@@ -1,11 +1,11 @@
 import Button from '@codegouvfr/react-dsfr/Button';
-import SearchBar from '@codegouvfr/react-dsfr/SearchBar';
 import { parseAsString, useQueryState } from 'nuqs';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useDebounce } from 'use-debounce';
 
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
+import { SearchInput } from '@/shared/ui/search-input';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { MAGISTRAT_SEARCH_MIN_LENGTH, useMagistratSearchQuery } from '@queries/magistrats.queries';
 
@@ -15,7 +15,7 @@ export function MagistratSearch() {
   const { formatMessage } = useIntl();
   const isSgNavigation = useIsSgNavigation();
   const [search, setSearch] = useQueryState('recherche', parseAsString.withDefault(''));
-  const [debouncedSearch, { flush }] = useDebounce(search.trim(), 400);
+  const [debouncedSearch] = useDebounce(search.trim(), 400);
   const isSearchable = debouncedSearch.length >= MAGISTRAT_SEARCH_MIN_LENGTH;
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useMagistratSearchQuery({
     search: debouncedSearch,
@@ -47,13 +47,12 @@ export function MagistratSearch() {
         <h1 className="fr-mb-0">
           <FormattedMessage defaultMessage="Rechercher un magistrat" />
         </h1>
-        <SearchBar
+        <SearchInput
           className="w-full md:w-96"
-          label={formatMessage({ defaultMessage: 'Rechercher par nom ou prénom' })}
-          onButtonClick={flush}
-          renderInput={(params) => (
-            <input {...params} onChange={(event) => setSearch(event.target.value)} value={search} />
-          )}
+          onChange={setSearch}
+          onClear={() => setSearch('')}
+          placeholder={formatMessage({ defaultMessage: 'Rechercher par nom ou prénom' })}
+          value={search}
         />
       </div>
       <p className="fr-sr-only" role="status">

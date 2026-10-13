@@ -65,7 +65,7 @@ describe('MagistratSearch', () => {
     const user = userEvent.setup();
     renderSearch();
 
-    await user.type(screen.getByRole('searchbox', { name: 'Rechercher par nom ou prénom' }), 'v');
+    await user.type(screen.getByRole('textbox', { name: 'Rechercher par nom ou prénom' }), 'v');
 
     expect(screen.getByText('Recherchez un magistrat par son prénom ou son nom.')).toBeInTheDocument();
     expect(searchMagistrats).not.toHaveBeenCalled();
@@ -99,7 +99,7 @@ describe('MagistratSearch', () => {
     const user = userEvent.setup();
     renderSearch();
 
-    await user.type(screen.getByRole('searchbox', { name: 'Rechercher par nom ou prénom' }), 'valr');
+    await user.type(screen.getByRole('textbox', { name: 'Rechercher par nom ou prénom' }), 'valr');
 
     const honorine = await screen.findByRole('article', { name: 'VALROSE Honorine' });
     expect(within(honorine).getByText('Procureur de la République')).toBeInTheDocument();
@@ -122,7 +122,7 @@ describe('MagistratSearch', () => {
     const user = userEvent.setup();
     renderSearch();
 
-    await user.type(screen.getByRole('searchbox', { name: 'Rechercher par nom ou prénom' }), 'zz{Enter}');
+    await user.type(screen.getByRole('textbox', { name: 'Rechercher par nom ou prénom' }), 'zz');
 
     expect(await screen.findByText('Aucun résultat ne correspond aux valeurs saisies.')).toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent('0 résultat');
@@ -143,7 +143,7 @@ describe('MagistratSearch', () => {
     renderSearch({ searchParams: '?recherche=valr' });
 
     expect(await screen.findByRole('article', { name: 'VALROSE Honorine' })).toBeInTheDocument();
-    expect(screen.getByRole('searchbox', { name: 'Rechercher par nom ou prénom' })).toHaveValue('valr');
+    expect(screen.getByRole('textbox', { name: 'Rechercher par nom ou prénom' })).toHaveValue('valr');
   });
 
   it('empties the search when the URL loses it, as when following the navigation link', async () => {
@@ -163,7 +163,7 @@ describe('MagistratSearch', () => {
 
     navigateTo('');
 
-    expect(screen.getByRole('searchbox', { name: 'Rechercher par nom ou prénom' })).toHaveValue('');
+    expect(screen.getByRole('textbox', { name: 'Rechercher par nom ou prénom' })).toHaveValue('');
     expect(await screen.findByText('Recherchez un magistrat par son prénom ou son nom.')).toBeInTheDocument();
   });
 
