@@ -150,9 +150,7 @@ export function OfficialReportForm() {
             justiceContactId: agenda.presentationPlan?.justiceContactId
               ? agenda.presentationPlan.justiceContactId
               : form.justiceContactId,
-            sessionMeetingDate: agenda.sessionMeetingDate
-              ? dateOnlyToIso(agenda.sessionMeetingDate)
-              : form.sessionMeetingDate,
+            sessionMeetingDate: dateOnlyToIso(agenda.presentationPlan?.date ?? agenda.sessionMeetingDate),
             sessionMeetingStartingTime: agenda.presentationPlan?.startTime
               ? formTimeOnlyCodec.encode(agenda.presentationPlan.startTime) || form.sessionMeetingStartingTime
               : form.sessionMeetingStartingTime,

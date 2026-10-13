@@ -74,7 +74,7 @@ function OfficialReportFormTree() {
 }
 
 describe('OfficialReportForm', () => {
-  it('should fill the times of the restitution when the agenda list in cache predates it', async () => {
+  it('should fill the date and times of the restitution when the agenda list in cache predates it', async () => {
     mocks.agendas = { data: agendaList(null), isFetchedAfterMount: false };
     const { rerender } = render(<OfficialReportFormTree />);
     expect(screen.getByRole('combobox', { name: /Ordre du jour/ })).toHaveValue('');
@@ -82,6 +82,7 @@ describe('OfficialReportForm', () => {
     mocks.agendas = {
       data: agendaList({
         absentMembers: [],
+        date: { day: 13, month: 3, year: 2026 },
         endTime: { hours: 12, minutes: 15, seconds: 0 },
         hasRenunciation: true,
         id: 'plan-1',
@@ -95,5 +96,6 @@ describe('OfficialReportForm', () => {
 
     expect(await screen.findByDisplayValue('10:30')).toHaveAccessibleName(/Heure de début de la séance/);
     expect(screen.getByLabelText(/Heure de fin de la séance/)).toHaveValue('12:15');
+    expect(screen.getByLabelText(/Date de la séance/)).toHaveValue('2026-03-13');
   });
 });
