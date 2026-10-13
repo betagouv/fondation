@@ -100,4 +100,50 @@ test.describe('Summary E2E', () => {
     expect(data.summary.attachments.map(({ id }) => id)).toEqual([keptFileId]);
   });
 
+  test('should let only the author and the readers of a summary read it and its attachments', async ({
+    agent,
+    expect,
+    logIn,
+    member,
+    sessions,
+  }) => {
+    const session = await sessions.createOne({
+      candidates: [
+        {
+          firstName: 'HONORINE',
+          lastName: 'VALROSE',
+          position: { function: seed.functions.PR, grade: 'G3', jurisdiction: seed.jurisdictions['CA  LYON'] },
+          targetPosition: { function: seed.functions.PR, grade: 'G3', jurisdiction: seed.jurisdictions['CA  REIMS'] },
+        },
+      ],
+      createdAt: '22/04/2026',
+    });
+    const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+
+    await agent.summaries.createSummary({ path, throwOnError: true });
+    await agent.summaries.attachSummaryFiles({ body: { files: [pdf('avis.pdf')] }, path, throwOnError: true });
+    await agent.summaries.writeSummary({ body: { content: '<p>Synthèse</p>' }, path, throwOnError: true });
+
+    const otherAgent = await logIn('ADJOINT_SECRETAIRE_GENERAL');
+    const readers = await otherAgent.summaries.updateSummaryReadersList({
+      body: { readerIds: [agent['@user']!.id, member['@user']!.id] },
+      path,
+    });
+    expect(readers.response?.status).toBe(204);
+
+    const read = await member.summaries.detailSummary({ path });
+    expect(read.data!.summary.author?.id).toBe(agent['@user']!.id);
+    // the author reads the summary already, the list only names the others
+    expect(read.data!.summary.readers.map(({ id }) => id)).toEqual([member['@user']!.id]);
+
+    const fileId = read.data!.summary.attachments[0]!.id;
+    const url = await member.summaries.generateAttachmentPublicUrl({ path: { ...path, fileId } });
+    expect(url.response?.status).toBe(200);
+
+    const stranger = await logIn('MEMBRE_COMMUN');
+    const unread = await stranger.summaries.detailSummary({ path });
+    expect(unread.response?.status).toBe(404);
+    const unreachable = await stranger.summaries.generateAttachmentPublicUrl({ path: { ...path, fileId } });
+    expect(unreachable.response?.status).toBe(404);
+  });
 });
