@@ -120,7 +120,7 @@ describe('Header reporter status', () => {
       nominationFile: makeSessionNominationFile({ reporters: [CURRENT_USER] }),
     });
 
-    expect(screen.getByRole('link', { name: 'Voir mon dossier' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Voir mon rapport' })).toHaveAttribute(
       'href',
       getGdsReportPath('report-1'),
     );
@@ -129,7 +129,7 @@ describe('Header reporter status', () => {
   it('hides the report link when the current user has no report', () => {
     renderHeader({ nominationFile: makeSessionNominationFile({ reporters: [OTHER_REPORTER] }) });
 
-    expect(screen.queryByRole('link', { name: 'Voir mon dossier' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Voir mon rapport' })).not.toBeInTheDocument();
   });
 
   it('flags a reporter excluded from the jurisdiction of the file', () => {
