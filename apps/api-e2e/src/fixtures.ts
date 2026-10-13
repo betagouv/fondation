@@ -1,6 +1,7 @@
 import { test as base, inject } from 'vitest';
 
 import { makeLoggedInUserFixture, registerUser } from './fixtures/auth.fixture.ts';
+import { makeDocsFixture } from './fixtures/docs.fixture.ts';
 import { makeCreateSessionFixture } from './fixtures/session.fixture.ts';
 import { RegisterUserDto } from './generated/api/types.ts';
 import { makeHttpClient, TestStepsAdmin, TestStepsAgent, TestStepsMember } from './steps.ts';
@@ -28,4 +29,7 @@ export const test = base
       return registerUser({ client, user });
     };
   })
-  .extend('sessions', ({ admin }) => makeCreateSessionFixture(admin));
+  .extend('sessions', ({ admin }) => makeCreateSessionFixture(admin))
+  .extend('docs', ({ admin, agent, registerUser, sessions }) =>
+    makeDocsFixture({ admin, agent, registerUser, sessions }),
+  );
