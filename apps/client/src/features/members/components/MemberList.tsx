@@ -9,8 +9,6 @@ import { capitalize } from '@/utils/string.utils';
 import type { PaginatedMemberListItemDto } from '@api/types';
 import { useMemberListQuery } from '@queries/members.queries';
 
-import { MemberListStatCell } from './MemberListStateCell';
-
 const h = createColumnHelper<PaginatedMemberListItemDto['items'][number]>();
 const columns = [
   h.accessor('role', {
@@ -46,16 +44,6 @@ const columns = [
     enableHiding: false,
     header: 'Prénom',
     cell: ({ cell }) => <div className="capitalize">{cell.getValue()}</div>,
-  }),
-
-  h.accessor('stats', {
-    id: 'stats',
-    enableSorting: false,
-    header: () => {
-      const currentYear = new Date().getFullYear();
-      return `Stats ${currentYear}`;
-    },
-    cell: ({ cell }) => <MemberListStatCell stats={cell.getValue()} />,
   }),
 
   h.display({
