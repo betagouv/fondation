@@ -81,23 +81,14 @@ export class LolfiMagistratsIngestor {
       schema: RawMagistratSchema,
       job: options.job,
       file: options.file,
+      // An unchanged file is skipped without being read: the statuses of its last import still hold
+      beforeSucceeding: async () => {
+        if (mappingResult.success && presentExternalIds)
+          await this.db.tx.$queryRawTyped(updateMagistratStatusesRawQuery(presentExternalIds));
+      },
     });
 
-    if (!success || !mappingResult.success) return { success: false };
-    // An unchanged file is skipped without being read: the statuses of its last import still hold
-    if (!presentExternalIds) return { success };
-
-    return this.updateStatuses(presentExternalIds);
-  }
-
-  private updateStatuses(presentExternalIds: string[]): Promise<{ success: boolean }> {
-    return this.db.tx.$queryRawTyped(updateMagistratStatusesRawQuery(presentExternalIds)).then(
-      () => ({ success: true }),
-      (error) => {
-        this.logger.error(`Failed updating the statuses of the magistrats`, error);
-        return { success: false };
-      },
-    );
+    return { success: success && mappingResult.success };
   }
 
   @Transactional(Propagation.RequiresNew)
