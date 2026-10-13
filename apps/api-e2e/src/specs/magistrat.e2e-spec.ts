@@ -137,6 +137,46 @@ test.describe('Magistrat E2E', () => {
     });
   });
 
+  test('should search a magistrat by the beginning of their married name, with their used name', async ({
+    expect,
+    member,
+    sessions,
+  }) => {
+    const marriedName = Array.from({ length: 12 }, () => String.fromCharCode(97 + crypto.randomInt(26))).join('');
+    const position = {
+      function: seed.functions.PR,
+      grade: 'G3' as const,
+      jurisdiction: seed.jurisdictions['CA  LYON'],
+    };
+    await sessions.createOne({
+      candidates: [
+        {
+          firstName: 'ISABELLE',
+          lastName: 'GAUTHIER',
+          marriedName,
+          position,
+          targetPosition: position,
+          usedName: 'LEFEBVRE',
+        },
+      ],
+      createdAt: '22/04/2026',
+      name: 'Transparence annuelle',
+    });
+
+    const { data } = await api.magistrats.searchMagistrats({
+      client: member['@client'],
+      query: { search: marriedName.slice(0, 8) },
+      throwOnError: true,
+    });
+
+    expect(data.items).toEqual([
+      expect.objectContaining({
+        name: `GAUTHIER Isabelle (ép. ${marriedName.toUpperCase()})`,
+        usedName: 'LEFEBVRE',
+      }),
+    ]);
+  });
+
   test('should list the LOLFI phone numbers of a magistrat', async ({ agent, expect, valrose }) => {
     const phoneNumbers = await agent.magistrats.listMagistratPhoneNumbers({
       path: { magistratId: valrose.magistratId },

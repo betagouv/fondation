@@ -2,7 +2,7 @@ import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import z from 'zod';
 
-import { magistratFullName } from '../../domain/magistrat-name';
+import { magistratFullName, magistratUsedName } from '../../domain/magistrat-name';
 import { searchMagistratRawQuery, searchMagistratTotalCountRawQuery } from 'src/generated/prisma/sql';
 import { Db } from 'src/modules/framework/database';
 import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
@@ -37,12 +37,13 @@ export class SearchMagistratsQuery {
       ),
     );
 
-    const items = resultItems.map(({ id, grade, firstName, lastName, marriedName, ...item }) => ({
+    const items = resultItems.map(({ id, grade, firstName, lastName, marriedName, usedName, ...item }) => ({
       id,
       grade,
       firstName,
       lastName,
       name: magistratFullName({ firstName, lastName, marriedName }),
+      usedName: magistratUsedName({ lastName, marriedName, usedName }),
       currentPosition: item.jurisdictionId
         ? {
             function: item.functionId ? { id: item.functionId, label: item.functionLabel } : null,
@@ -65,6 +66,7 @@ export class SearchMagistratsResponseDto extends createPaginatedZodDto(
     firstName: z.string(),
     lastName: z.string(),
     name: z.string(),
+    usedName: z.string().nullable(),
     grade: z.string().nullable(),
     currentPosition: PositionSchema.pick({ function: true, jurisdiction: true }).nullable(),
   }),

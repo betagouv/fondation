@@ -21,6 +21,17 @@ export function magistratFullName(magistrat: MagistratNames): string {
   return writeFullName(magistrat, ' ');
 }
 
+// the used name is exposed only when it tells something the full name does not
+export function magistratUsedName(magistrat: {
+  lastName: string;
+  marriedName: string | null;
+  usedName: string | null;
+}): string | null {
+  const usedName = magistrat.usedName && upperName(magistrat.usedName);
+  if (!usedName || usedName === upperName(magistrat.lastName)) return null;
+  return magistrat.marriedName && usedName === upperName(magistrat.marriedName) ? null : usedName;
+}
+
 const TITLES: Record<Civility, string> = { 'M.': 'M.', MME: 'Mme' };
 
 function isCivility(civility: string): civility is Civility {

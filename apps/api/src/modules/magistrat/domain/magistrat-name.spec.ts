@@ -1,4 +1,9 @@
-import { magistratFullName, magistratTitledFullName, proposedMagistratName } from './magistrat-name';
+import {
+  magistratFullName,
+  magistratTitledFullName,
+  magistratUsedName,
+  proposedMagistratName,
+} from './magistrat-name';
 
 describe('magistratFullName', () => {
   it.each`
@@ -39,5 +44,21 @@ describe('proposedMagistratName', () => {
     const nominationFile = { detectedMagistrat: null, name: 'ROUSSEL BRIGITTE ep. HOFFMANN' };
 
     expect(proposedMagistratName(nominationFile)).toBe('ROUSSEL BRIGITTE ep. HOFFMANN');
+  });
+});
+
+describe('magistratUsedName', () => {
+  it.each`
+    magistrat                                                                       | expected
+    ${{ lastName: 'GAUTHIER', marriedName: 'ROBERT', usedName: 'GAUTHIER' }}        | ${null}
+    ${{ lastName: 'GAUTHIER', marriedName: 'ROBERT', usedName: 'ROBERT' }}          | ${null}
+    ${{ lastName: 'GAUTHIER', marriedName: null, usedName: 'ROBERT' }}              | ${'ROBERT'}
+    ${{ lastName: 'GAUTHIER', marriedName: 'ROBERT', usedName: 'Gauthier-Robert' }} | ${'GAUTHIER-ROBERT'}
+    ${{ lastName: 'GAUTHIER', marriedName: 'ROBERT', usedName: null }}              | ${null}
+    ${{ lastName: 'GAUTHIER', marriedName: 'ROBERT', usedName: '  ' }}              | ${null}
+    ${{ lastName: 'DE  LA ROSE', marriedName: null, usedName: ' de la rose ' }}     | ${null}
+    ${{ lastName: 'GAUTHIER', marriedName: 'Le  Goff', usedName: 'LE GOFF ' }}      | ${null}
+  `('should expose $expected', ({ magistrat, expected }) => {
+    expect(magistratUsedName(magistrat)).toBe(expected);
   });
 });

@@ -8,6 +8,7 @@ SELECT
   m.first_name AS "firstName",
   m.last_name AS "lastName",
   m.married_name AS "marriedName",
+  m.used_name AS "usedName",
   m.grade,
 
   f.id AS "functionId",
