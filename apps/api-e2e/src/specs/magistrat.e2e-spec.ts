@@ -163,6 +163,35 @@ test.describe('Magistrat E2E', () => {
     expect(data.items).toContainEqual(expect.objectContaining({ name: `${lastName} Paul` }));
   });
 
+  test('should search a magistrat by the beginning of their first name and of their last name together', async ({
+    expect,
+    member,
+    sessions,
+  }) => {
+    const lastName = Array.from({ length: 12 }, () => String.fromCharCode(65 + crypto.randomInt(26))).join('');
+    const position = {
+      function: seed.functions.PR,
+      grade: 'G3' as const,
+      jurisdiction: seed.jurisdictions['CA  LYON'],
+    };
+    await sessions.createOne({
+      candidates: [
+        { firstName: 'JEANNE', lastName, position, targetPosition: position },
+        { firstName: 'PAUL', lastName, position, targetPosition: position },
+      ],
+      createdAt: '22/04/2026',
+      name: 'Transparence annuelle',
+    });
+
+    const { data } = await api.magistrats.searchMagistrats({
+      client: member['@client'],
+      query: { search: `jea ${lastName.slice(0, 8)}` },
+      throwOnError: true,
+    });
+
+    expect(data.items.map((magistrat) => magistrat.name)).toEqual([`${lastName} Jeanne`]);
+  });
+
   test('should search a magistrat by the beginning of their married name, with their used name', async ({
     expect,
     member,

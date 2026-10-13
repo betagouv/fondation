@@ -18,5 +18,8 @@ export function toMagistratFullTextQuery(input: string): string {
     return unaccent(input.trim().toLowerCase()) + ':C*';
   }
 
-  return toFullTextQuery(input);
+  return unaccent(input.trim().toLowerCase())
+    .split(/\s+/)
+    .map((word) => `${word}:*`)
+    .join(' & ');
 }

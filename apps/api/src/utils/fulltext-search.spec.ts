@@ -15,5 +15,9 @@ describe('full text search', () => {
     it('should convert a simple text query into a postgresql ts_query adapted to the index in the magistrat table', () => {
       expect(toMagistratFullTextQuery(`Albert.Einstein@justice`)).toBe(`albert.einstein@justice:C*`);
     });
+
+    it('should search every word of a name by its beginning', () => {
+      expect(toMagistratFullTextQuery(`  Hélè   Dup `)).toBe(`hele:* & dup:*`);
+    });
   });
 });
