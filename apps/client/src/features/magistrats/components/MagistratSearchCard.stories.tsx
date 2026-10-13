@@ -30,10 +30,11 @@ const meta = {
       },
     },
     layout: 'padded',
+    router: { initialEntries: ['/secretariat-general/magistrats'] },
   },
   tags: ['autodocs'],
   argTypes: { magistrat: { table: { disable: true } } },
-  args: { context: 'sg', magistrat },
+  args: { magistrat },
 } satisfies Meta<typeof MagistratSearchCard>;
 
 export default meta;

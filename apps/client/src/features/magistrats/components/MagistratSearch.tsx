@@ -8,7 +8,7 @@ import { MAGISTRAT_SEARCH_MIN_LENGTH, useMagistratSearchQuery } from '@queries/m
 
 import { MagistratSearchCard } from './MagistratSearchCard';
 
-export function MagistratSearch(props: { context: 'sg' | 'membre' }) {
+export function MagistratSearch() {
   const { formatMessage } = useIntl();
   const [search, setSearch] = useQueryState('recherche', parseAsString.withDefault(''));
   const [debouncedSearch, { flush }] = useDebounce(search.trim(), 400);
@@ -57,7 +57,7 @@ export function MagistratSearch(props: { context: 'sg' | 'membre' }) {
             {data?.pages.flatMap((page) =>
               page.items.map((magistrat) => (
                 <li className="pb-0" key={magistrat.id}>
-                  <MagistratSearchCard context={props.context} magistrat={magistrat} />
+                  <MagistratSearchCard magistrat={magistrat} />
                 </li>
               )),
             )}

@@ -40,7 +40,6 @@ const searchHandler = http.get('*/api/magistrats/v1', ({ request }) => {
 });
 
 const meta = {
-  args: { context: 'sg' },
   beforeEach: ({ msw }) => {
     msw.use(searchHandler);
   },
@@ -62,6 +61,7 @@ const meta = {
       },
     },
     layout: 'padded',
+    router: { initialEntries: ['/secretariat-general/magistrats'] },
   },
   tags: ['autodocs'],
   title: 'Features/MagistratSearch/Screen',

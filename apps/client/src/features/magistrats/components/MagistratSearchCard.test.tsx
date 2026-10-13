@@ -20,11 +20,11 @@ const magistrat: FoundMagistrat = {
   usedName: null,
 };
 
-function renderCard(foundMagistrat: FoundMagistrat) {
+function renderCard(foundMagistrat: FoundMagistrat, path = '/secretariat-general/magistrats') {
   return render(
     <IntlProvider defaultLocale="fr" formats={frFormat} locale="fr">
-      <MemoryRouter>
-        <MagistratSearchCard context="sg" magistrat={foundMagistrat} />
+      <MemoryRouter initialEntries={[path]}>
+        <MagistratSearchCard magistrat={foundMagistrat} />
       </MemoryRouter>
     </IntlProvider>,
   );
@@ -51,5 +51,13 @@ describe('MagistratSearchCard', () => {
     expect(screen.getByRole('article', { name: 'GAUTHIER Isabelle (ép. ROBERT)' })).toHaveTextContent(
       'Inactif',
     );
+  });
+
+  it('opens the details page in the space of a member', () => {
+    renderCard(magistrat, '/magistrats');
+
+    expect(
+      screen.getByRole('link', { name: 'Ouvrir la fiche de GAUTHIER Isabelle (ép. ROBERT)' }),
+    ).toHaveAttribute('href', '/magistrats/magistrat-1');
   });
 });

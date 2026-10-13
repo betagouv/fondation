@@ -19,9 +19,9 @@ function renderSearch(props?: { searchParams: string }) {
   const searchAt = (searchParams = '') => (
     <QueryClientProvider client={client}>
       <IntlProvider defaultLocale="fr" formats={frFormat} locale="fr">
-        <MemoryRouter>
+        <MemoryRouter initialEntries={['/secretariat-general/magistrats']}>
           <NuqsTestingAdapter hasMemory searchParams={searchParams}>
-            <MagistratSearch context="sg" />
+            <MagistratSearch />
           </NuqsTestingAdapter>
         </MemoryRouter>
       </IntlProvider>
@@ -104,7 +104,15 @@ describe('MagistratSearch', () => {
 
   it('restores the search from the URL', async () => {
     searchMagistrats.mockResolvedValue(
-      found([{ currentPosition: null, grade: null, gradeAndJurisdiction: null, id: 'magistrat-1', name: 'VALROSE Honorine' }]),
+      found([
+        {
+          currentPosition: null,
+          grade: null,
+          gradeAndJurisdiction: null,
+          id: 'magistrat-1',
+          name: 'VALROSE Honorine',
+        },
+      ]),
     );
     renderSearch({ searchParams: '?recherche=valr' });
 
@@ -114,7 +122,15 @@ describe('MagistratSearch', () => {
 
   it('empties the search when the URL loses it, as when following the navigation link', async () => {
     searchMagistrats.mockResolvedValue(
-      found([{ currentPosition: null, grade: null, gradeAndJurisdiction: null, id: 'magistrat-1', name: 'VALROSE Honorine' }]),
+      found([
+        {
+          currentPosition: null,
+          grade: null,
+          gradeAndJurisdiction: null,
+          id: 'magistrat-1',
+          name: 'VALROSE Honorine',
+        },
+      ]),
     );
     const { navigateTo } = renderSearch({ searchParams: '?recherche=valr' });
     await screen.findByRole('article', { name: 'VALROSE Honorine' });
@@ -128,15 +144,37 @@ describe('MagistratSearch', () => {
   it('adds the next magistrats from "Voir plus" until all are shown', async () => {
     searchMagistrats
       .mockResolvedValueOnce(
-        found([{ currentPosition: null, grade: null, gradeAndJurisdiction: null, id: 'magistrat-1', name: 'VALROSE Honorine' }], {
-          nextPageIndex: 2,
-          totalCount: 2,
-        }),
+        found(
+          [
+            {
+              currentPosition: null,
+              grade: null,
+              gradeAndJurisdiction: null,
+              id: 'magistrat-1',
+              name: 'VALROSE Honorine',
+            },
+          ],
+          {
+            nextPageIndex: 2,
+            totalCount: 2,
+          },
+        ),
       )
       .mockResolvedValueOnce(
-        found([{ currentPosition: null, grade: null, gradeAndJurisdiction: null, id: 'magistrat-2', name: 'VALROSE Marc' }], {
-          totalCount: 2,
-        }),
+        found(
+          [
+            {
+              currentPosition: null,
+              grade: null,
+              gradeAndJurisdiction: null,
+              id: 'magistrat-2',
+              name: 'VALROSE Marc',
+            },
+          ],
+          {
+            totalCount: 2,
+          },
+        ),
       );
     const user = userEvent.setup();
     renderSearch({ searchParams: '?recherche=valr' });
