@@ -99,37 +99,33 @@ export function makeCreateSessionFixture(steps: TestStepsAdmin) {
       .ingestLolfiArchive({ body: { file }, throwOnError: true })
       .then(({ data }) => data!.id);
 
-    await waitFor(
-      async () => {
-        const { status, errors, files } = await steps.jobs
-          .detailsJob({ path: { jobId }, throwOnError: true })
-          .then(({ data }) => data!);
+    await waitFor(async () => {
+      const { status, errors, files } = await steps.jobs
+        .detailsJob({ path: { jobId }, throwOnError: true })
+        .then(({ data }) => data!);
 
-        if (status === 'FAILED') {
-          console.error(errors);
-          console.error(files.map((file) => file.errors));
-        }
+      if (status === 'FAILED') {
+        console.error(errors);
+        console.error(files.map((file) => file.errors));
+      }
 
-        assert.ok(status === 'FAILED' || status === 'SUCCEEDED', `ingestion not done`);
-      },
-      { timeout: 2_000 },
-    );
+      assert.ok(status === 'FAILED' || status === 'SUCCEEDED', `ingestion not done`);
+    });
 
-    const sessionIds = await waitFor(
-      async () => {
-        const result: string[] = [];
-        for (const name of names) {
-          const [firstSession] = await steps.sessions
-            .listSessionsOfTypeGardeDesSceaux({ query: { search: name } })
-            .then(({ data }) => data!.items);
+    // the sessions are synchronised once the job succeeded
+    const sessionIds = await waitFor(async () => {
+      const result: string[] = [];
+      for (const name of names) {
+        const [firstSession] = await steps.sessions
+          .listSessionsOfTypeGardeDesSceaux({ query: { search: name } })
+          .then(({ data }) => data!.items);
 
-          assert.ok(firstSession, `session "${name}" is undefined`);
-          result.push(firstSession.id);
-        }
-        return result;
-      },
-      { timeout: 2_000 },
-    );
+        assert.ok(firstSession, `session "${name}" is undefined`);
+        result.push(firstSession.id);
+      }
+
+      return result;
+    });
 
     const created: CreatedSession[] = [];
     for (const [index, id] of sessionIds.entries()) {
