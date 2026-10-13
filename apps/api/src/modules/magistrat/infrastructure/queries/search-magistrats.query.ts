@@ -4,6 +4,7 @@ import z from 'zod';
 
 import { magistratFullName, magistratUsedName } from '../../domain/magistrat-name';
 import { magistratGradeAndJurisdiction } from '../../domain/magistrat-position';
+import { PrismaMagistratStatusEnum } from 'src/generated/prisma/enums';
 import { searchMagistratRawQuery, searchMagistratTotalCountRawQuery } from 'src/generated/prisma/sql';
 import { Db } from 'src/modules/framework/database';
 import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
@@ -72,7 +73,7 @@ export class SearchMagistratsResponseDto extends createPaginatedZodDto(
     lastName: z.string(),
     name: z.string(),
     usedName: z.string().nullable(),
-    status: z.enum(['ACTIVE', 'INACTIVE']),
+    status: z.enum(PrismaMagistratStatusEnum),
     grade: z.string().nullable(),
     gradeAndJurisdiction: z.string().nullable(),
     currentPosition: PositionSchema.pick({ function: true, jurisdiction: true }).nullable(),
