@@ -1173,6 +1173,27 @@ test.describe('Docs Service', () => {
     expect((await agendaOf(agent, agendaId))?.presentation).toEqual({ status: 'TO_PRESENT' });
   });
 
+  test('should keep the presentation of a validated agenda once a draft is opened on it', async ({
+    agent,
+    expect,
+    registerUser,
+  }) => {
+    // the notice refuses a formation whose only present member presides it
+    await registerUser('MEMBRE_DU_PARQUET');
+    const { agendaId, planId } = await agendaOnValidatedNotice(agent);
+    await agent.docs.presentPlan({ body: { endTime: { hours: 10, minutes: 15, seconds: 0 } }, path: { planId } });
+
+    await agent.docs.updateAgendaMetadata({
+      body: { chairmanId, date: { day: 2, month: 2, year: 2026 }, sessionMeetingDate: MEETING_DATE },
+      path: { agendaId },
+    });
+
+    expect(await agendaOf(agent, agendaId)).toMatchObject({
+      draftChangesBy: 'PERSON',
+      presentation: { date: MEETING_DATE, endTime: { hours: 10, minutes: 15, seconds: 0 }, status: 'PRESENTED' },
+    });
+  });
+
   test('should refuse to restitute a notice nobody validated', async ({ agent, expect, registerUser }) => {
     // the notice refuses a formation whose only present member presides it
     await registerUser('MEMBRE_DU_PARQUET');
