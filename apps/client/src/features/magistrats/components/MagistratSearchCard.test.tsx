@@ -53,11 +53,18 @@ describe('MagistratSearchCard', () => {
     );
   });
 
-  it('opens the details page in the space of a member', () => {
+  it('opens the details page from the name, in the space of a member', () => {
     renderCard(magistrat, '/magistrats');
 
-    expect(
-      screen.getByRole('link', { name: 'Ouvrir la fiche de GAUTHIER Isabelle (ép. ROBERT)' }),
-    ).toHaveAttribute('href', '/magistrats/magistrat-1');
+    expect(screen.getByRole('link', { name: 'GAUTHIER Isabelle (ép. ROBERT)' })).toHaveAttribute(
+      'href',
+      '/magistrats/magistrat-1',
+    );
+  });
+
+  it('announces a single link to the details page', () => {
+    renderCard(magistrat);
+
+    expect(screen.getAllByRole('link')).toHaveLength(1);
   });
 });

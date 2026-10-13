@@ -104,9 +104,10 @@ describe('MagistratSearch', () => {
     const honorine = await screen.findByRole('article', { name: 'VALROSE Honorine' });
     expect(within(honorine).getByText('Procureur de la République')).toBeInTheDocument();
     expect(within(honorine).getByText('G3 - CA LYON')).toBeInTheDocument();
-    expect(
-      within(honorine).getByRole('link', { name: 'Ouvrir la fiche de VALROSE Honorine' }),
-    ).toHaveAttribute('href', '/secretariat-general/magistrats/magistrat-1');
+    expect(within(honorine).getByRole('link', { name: 'VALROSE Honorine' })).toHaveAttribute(
+      'href',
+      '/secretariat-general/magistrats/magistrat-1',
+    );
     const marc = screen.getByRole('article', { name: 'VALROSE Marc' });
     expect(within(marc).getByText('Tribunal judiciaire de Rodez')).toBeInTheDocument();
     expect(within(marc).getByText('G2 - TJ RODEZ')).toBeInTheDocument();
