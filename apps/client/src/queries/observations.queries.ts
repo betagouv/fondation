@@ -90,11 +90,11 @@ function updateMemberCommentImages(
 export function useSearchMagistratsQuery(search: string, ignoreIds?: readonly string[]) {
   return useQuery({
     enabled: search.length >= 2,
-    queryKey: observationKeys.searchMagistrats({ search: search.length > 2 ? search : undefined }),
+    queryKey: observationKeys.searchMagistrats({ search }),
     queryFn: async () => {
       const { data } = await $api.magistrats.searchMagistrats({
         query: {
-          search: search.length > 2 ? search : undefined,
+          search,
           ignore: ignoreIds?.join(',') || undefined,
         },
       });
