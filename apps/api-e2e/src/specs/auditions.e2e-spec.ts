@@ -52,15 +52,10 @@ function observationForm(form: CreateObservationDto['form']): CreateObservationD
   return new Blob([JSON.stringify(form)], { type: 'application/json' }) as unknown as CreateObservationDto['form'];
 }
 
-const test = base.extend('session', async ({ agent, sessions }) => {
+const test = base.extend('session', async ({ sessions }) => {
   const session = await sessions.createOne(SESSION);
-  const files = await agent.sessions
-    .listNominationFiles({ path: { sessionId: session.id }, throwOnError: true })
-    .then(({ data }) => data!.items);
-  const valrose = files.find((file) => /valrose/i.test(file.content.nomMagistrat))!;
-  const montferrand = files.find((file) => /montferrand/i.test(file.content.nomMagistrat))!;
 
-  return { id: session.id, montferrand, valrose };
+  return { id: session.id, montferrand: session.files[1]!, valrose: session.files[0]! };
 });
 
 test.describe('Auditions E2E', () => {
@@ -83,13 +78,11 @@ test.describe('Auditions E2E', () => {
 
   test('should list a proposition once the secretariat requests its audition', async ({ agent, expect, sessions }) => {
     const siege = await sessions.createOne(SIEGE_SESSION);
-    const [file] = await agent.sessions
-      .listNominationFiles({ path: { sessionId: siege.id }, throwOnError: true })
-      .then(({ data }) => data!.items);
+    const file = siege.files[0]!;
 
     await agent.sessions.updateNominationFileAuditionRequest({
       body: { requested: true },
-      path: { nominationFileId: file!.id, sessionId: siege.id },
+      path: { nominationFileId: file.id, sessionId: siege.id },
       throwOnError: true,
     });
 
@@ -98,7 +91,7 @@ test.describe('Auditions E2E', () => {
       throwOnError: true,
     });
 
-    expect(auditions.data!.items).toMatchObject([{ audition: null, propositions: [{ nominationFileId: file!.id }] }]);
+    expect(auditions.data!.items).toMatchObject([{ audition: null, propositions: [{ nominationFileId: file.id }] }]);
   });
 
   test('should no longer list a proposition whose scheduled audition the secretariat dismisses', async ({
@@ -107,10 +100,8 @@ test.describe('Auditions E2E', () => {
     sessions,
   }) => {
     const siege = await sessions.createOne(SIEGE_SESSION);
-    const [file] = await agent.sessions
-      .listNominationFiles({ path: { sessionId: siege.id }, throwOnError: true })
-      .then(({ data }) => data!.items);
-    const path = { nominationFileId: file!.id, sessionId: siege.id };
+    const file = siege.files[0]!;
+    const path = { nominationFileId: file.id, sessionId: siege.id };
     await agent.sessions.updateNominationFileAuditionRequest({ body: { requested: true }, path, throwOnError: true });
     await agent.sessions.updateNominationFileAuditionDate({
       body: { auditionDate: { day: 12, month: 12, year: 2028 }, auditionTime: { hours: 9, minutes: 30 } },
@@ -138,7 +129,7 @@ test.describe('Auditions E2E', () => {
         body: {
           form: observationForm({
             dateReception: '2026-05-02',
-            magistratId: session.valrose.content.detectedMagistratId!,
+            magistratId: session.valrose.magistratId,
           }),
         },
         path: { nominationFileId: session.montferrand.id, sessionId: session.id },
@@ -164,7 +155,7 @@ test.describe('Auditions E2E', () => {
       },
       {
         audition: { time: { hours: 10, minutes: 30 } },
-        magistrat: { id: session.valrose.content.detectedMagistratId },
+        magistrat: { id: session.valrose.magistratId },
         propositions: [{ nominationFileId: session.montferrand.id, observationId }],
         role: 'OBSERVANT',
       },
@@ -227,7 +218,7 @@ test.describe('Auditions E2E', () => {
   }) => {
     await agent.magistrats.addMagistratPhoneNumber({
       body: { label: 'Conjointe', number: '07 00 00 00 00' },
-      path: { magistratId: session.valrose.content.detectedMagistratId! },
+      path: { magistratId: session.valrose.magistratId },
       throwOnError: true,
     });
 
@@ -238,11 +229,11 @@ test.describe('Auditions E2E', () => {
 
     const phoneNumberOf = (magistratId: string | null) =>
       auditions.data!.items.find(({ magistrat }) => magistrat.id === magistratId)?.contact?.phoneNumber;
-    expect(phoneNumberOf(session.valrose.content.detectedMagistratId)).toEqual({
+    expect(phoneNumberOf(session.valrose.magistratId)).toEqual({
       label: 'Conjointe',
       number: '0700000000',
     });
-    expect(phoneNumberOf(session.montferrand.content.detectedMagistratId)).toEqual({
+    expect(phoneNumberOf(session.montferrand.magistratId)).toEqual({
       label: null,
       number: '01 02 03 04 05',
     });

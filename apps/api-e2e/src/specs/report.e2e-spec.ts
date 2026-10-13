@@ -7,54 +7,41 @@ test.describe('Report E2E', () => {
   let reportId: string;
   let sessionId: string;
 
-  test.beforeEach(async ({ sessions, agent, member, expect }) => {
-    // Create a session and assign the member so a report is created automatically
-    const session = await sessions.createOne({
-      candidates: [
-        {
-          firstName: 'ETIENNE',
-          lastName: 'TREVOUX',
-          position: {
-            function: seed.functions.PR,
-            grade: 'G3',
-            jurisdiction: seed.jurisdictions['CA  LYON'],
+  test.beforeEach(async ({ sessions, member }) => {
+    // the member is affected so that a report is created for them
+    const session = await sessions.createOne(
+      {
+        candidates: [
+          {
+            firstName: 'ETIENNE',
+            lastName: 'TREVOUX',
+            position: {
+              function: seed.functions.PR,
+              grade: 'G3',
+              jurisdiction: seed.jurisdictions['CA  LYON'],
+            },
+            targetPosition: {
+              function: seed.functions.PR,
+              grade: 'G3',
+              jurisdiction: seed.jurisdictions['CA  GRENOBLE'],
+            },
           },
-          targetPosition: {
-            function: seed.functions.PR,
-            grade: 'G3',
-            jurisdiction: seed.jurisdictions['CA  GRENOBLE'],
-          },
-        },
-      ],
-      createdAt: '22/04/2026',
-      name: 'Transparence rapport',
-    });
+        ],
+        createdAt: '22/04/2026',
+        name: 'Transparence rapport',
+      },
+      { reporters: [member['@user']!] },
+    );
 
-    const filesResponse = await agent.sessions.listNominationFiles({
-      path: { sessionId: session.id },
-    });
-    expect(filesResponse.response?.status).toBe(200);
-
-    nominationFileId = filesResponse.data!.items[0]!.id;
+    nominationFileId = session.files[0]!.id;
     sessionId = session.id;
 
-    const affectResponse = await agent.sessions.affectReporters({
-      body: { items: [{ nominationFileId, priorities: [], reporterIds: [member['@user']!.id] }] },
-      path: { sessionId: session.id },
-    });
-    expect(affectResponse.response?.status).toBe(204);
-
-    const publishResponse = await agent.sessions.publishNominationSessionAffectationsVersion({
-      path: { sessionId: session.id },
-    });
-    expect(publishResponse.response?.status).toBe(204);
-
-    const memberId = member['@user']!.id;
     const reportsRes = await member.members.listMemberSessionReports({
-      path: { sessionId: session.id, userId: memberId },
+      path: { sessionId, userId: member['@user']!.id },
+      throwOnError: true,
     });
 
-    reportId = reportsRes.data!.items[0]!.report.id;
+    reportId = reportsRes.data.items[0]!.report.id;
   });
 
   test('should find my report for a nomination file', async ({ logIn, member, expect }) => {

@@ -34,23 +34,21 @@ test.describe('Docs Service', () => {
   let firstSecretaryId: string;
   let sessionId: string;
 
-  test.beforeEach(async ({ admin, agent, expect, registerUser, sessions }) => {
+  test.beforeEach(async ({ admin, agent, registerUser, sessions }) => {
     const chairman = await registerUser('MEMBRE_DU_PARQUET');
-
-    const titleUpdateResponse = await agent.members.updateTitle({
+    await agent.members.updateTitle({
       body: { title: 'PRESIDENT_PARQUET' },
       path: { userId: chairman.id },
+      throwOnError: true,
     });
-    expect(titleUpdateResponse.response?.status).toBe(204);
-
     chairmanId = chairman.id;
 
     const firstSecretary = await registerUser('ADJOINT_SECRETAIRE_GENERAL');
-    const roleUpdated = await admin.administration.updateRole({
+    await admin.administration.updateRole({
       body: { role: 'FIRST_SECRETARY' },
       path: { userId: firstSecretary.id },
+      throwOnError: true,
     });
-    expect(roleUpdated.response?.status).toBe(204);
     firstSecretaryId = firstSecretary.id;
 
     const session = await sessions.createOne({
@@ -90,13 +88,8 @@ test.describe('Docs Service', () => {
     });
     sessionId = session.id;
 
-    const validateRes = await agent.sessions.validateSession({ path: { sessionId } });
-    expect(validateRes.response?.status).toBe(204);
-
-    const publishRes = await agent.sessions.publishNominationSessionAffectationsVersion({
-      path: { sessionId },
-    });
-    expect(publishRes.response?.status).toBe(204);
+    await agent.sessions.validateSession({ path: { sessionId }, throwOnError: true });
+    await agent.sessions.publishNominationSessionAffectationsVersion({ path: { sessionId }, throwOnError: true });
   });
 
   /** a validated agenda held by a validated notice, ready to be presented */
