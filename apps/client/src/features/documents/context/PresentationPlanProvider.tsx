@@ -151,6 +151,36 @@ export function PresentationPlanProvider(props: PropsWithChildren) {
   const missingMetadata = MANDATORY_METADATA.filter((key) => !state[key]);
   const hasAllMandatoryMetadata = missingMetadata.length === 0;
 
+  // an outdated notice is never unchanged: saving it is how it catches up with its agendas
+  // TODO: see JusticePresentationPlanSettings.equals
+  const isUnchanged = useCallback(
+    (options: { agendas: Record<string, string | null> }): boolean => {
+      if (!planId || !metadata || metadata.outdated) return false;
+
+      const sameAbsences =
+        state.absentMemberIds.length === metadata.absentMemberIds.length &&
+        state.absentMemberIds.every((id) => metadata.absentMemberIds.includes(id));
+      const sameAgendas =
+        metadata.agendas.length === Object.keys(options.agendas).length &&
+        metadata.agendas.every(({ comment, id }) => (options.agendas[id] ?? '').trim() === comment);
+
+      return (
+        sameAbsences &&
+        sameAgendas &&
+        state.chairmanId === metadata.chairmanId &&
+        state.secretaryId === metadata.secretaryId &&
+        state.justiceContactId === metadata.justiceDepartmentContactId &&
+        state.hasRenunciation === metadata.hasRenunciation &&
+        state.date?.day === metadata.date.day &&
+        state.date?.month === metadata.date.month &&
+        state.date?.year === metadata.date.year &&
+        state.time?.hours === metadata.time.hours &&
+        state.time?.minutes === metadata.time.minutes
+      );
+    },
+    [metadata, planId, state],
+  );
+
   const createPlan = useCallback(
     async (options: { agendas: Record<string, string | null> }) => {
       setState((s) => ({ ...s, agendas: options.agendas }));
@@ -247,16 +277,17 @@ export function PresentationPlanProvider(props: PropsWithChildren) {
   return (
     <PresentationPlanContext
       value={{
-        planId,
-        state,
-        isFetching: isFetchingMeta,
-        isDisabled,
+        createPlan,
+        goToMetadata,
         hasAllMandatoryMetadata,
         hasFailed: Boolean(creationError || updateError),
-        goToMetadata,
         initPlanCreation,
+        isDisabled,
+        isFetching: isFetchingMeta,
+        isUnchanged,
+        planId,
         setMetadata,
-        createPlan,
+        state,
       }}
     >
       {planId ? state.formation && props.children : props.children}
