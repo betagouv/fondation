@@ -83,7 +83,7 @@ export function MagistratSearch() {
           )}
         </p>
         {/* stacks the prompt and the results so that they cross-fade, the prompt staying mounted to fade out */}
-        <div className="grid">
+        <div className="mx-auto grid max-w-3xl">
           <div
             className="fr-mt-20v col-start-1 row-start-1 flex-col items-center gap-6 transition-[display,opacity] transition-discrete duration-500 motion-reduce:transition-none starting:opacity-0 [&:not([hidden])]:flex [&[hidden]]:opacity-0"
             hidden={totalCount !== undefined}
