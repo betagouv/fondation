@@ -61,10 +61,4 @@ describe('MagistratSearchCard', () => {
       '/magistrats/magistrat-1',
     );
   });
-
-  it('announces a single link to the details page', () => {
-    renderCard(magistrat);
-
-    expect(screen.getAllByRole('link')).toHaveLength(1);
-  });
 });

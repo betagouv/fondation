@@ -1,5 +1,4 @@
 import Badge from '@codegouvfr/react-dsfr/Badge';
-import Button from '@codegouvfr/react-dsfr/Button';
 import { useId } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { Link } from 'react-router';
@@ -48,18 +47,7 @@ export function MagistratSearchCard(props: { magistrat: FoundMagistrat }) {
         </p>
       )}
       {positionLabel && <p className="fr-mb-0">{positionLabel}</p>}
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="fr-mb-0 text-(--text-mention-grey)">{gradeAndJurisdiction}</p>
-        {/* duplicates the link on the name for the mouse only, so that a card announces a single link */}
-        <Button
-          iconId="fr-icon-arrow-right-line"
-          iconPosition="right"
-          linkProps={{ 'aria-hidden': true, tabIndex: -1, to: detailsPath }}
-          priority="tertiary no outline"
-        >
-          <FormattedMessage defaultMessage="Ouvrir la fiche" />
-        </Button>
-      </div>
+      <p className="fr-mb-0 text-(--text-mention-grey)">{gradeAndJurisdiction}</p>
     </article>
   );
 }
