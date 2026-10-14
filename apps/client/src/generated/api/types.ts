@@ -1179,6 +1179,7 @@ export type FoundSessionDocsDto = {
                 minutes: number;
                 seconds: number;
             } | null;
+            planId: string;
             status: 'PRESENTED';
         } | null;
         outdated: boolean;
