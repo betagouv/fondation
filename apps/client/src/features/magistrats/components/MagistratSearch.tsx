@@ -1,5 +1,7 @@
 import Button from '@codegouvfr/react-dsfr/Button';
+import Avatar from '@codegouvfr/react-dsfr/picto/Avatar';
 import { parseAsString, useQueryState } from 'nuqs';
+import { type CSSProperties } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useDebounce } from 'use-debounce';
 
@@ -64,34 +66,52 @@ export function MagistratSearch() {
             />
           )}
         </p>
-        {!isSearchable ? (
-          <p className="fr-mt-8v">
-            <FormattedMessage defaultMessage="Recherchez un magistrat par son prénom ou son nom." />
-          </p>
-        ) : totalCount === 0 ? (
-          <p className="fr-mt-8v">
-            <FormattedMessage defaultMessage="Aucun résultat ne correspond aux valeurs saisies." />
-          </p>
-        ) : (
-          <>
-            <ul className="fr-mt-8v flex list-none flex-col gap-4 ps-0">
-              {data?.pages.flatMap((page) =>
-                page.items.map((magistrat) => (
-                  <li className="pb-0" key={magistrat.id}>
-                    <MagistratSearchCard magistrat={magistrat} />
-                  </li>
-                )),
-              )}
-            </ul>
-            {hasNextPage && (
-              <div className="fr-mt-6v flex justify-center">
-                <Button disabled={isFetchingNextPage} onClick={() => fetchNextPage()} priority="secondary">
-                  <FormattedMessage defaultMessage="Voir plus" />
-                </Button>
+        {/* stacks the prompt and the results so that they cross-fade, the prompt staying mounted to fade out */}
+        <div className="grid">
+          <div
+            className="fr-mt-20v col-start-1 row-start-1 flex-col items-center gap-6 transition-[display,opacity] transition-discrete duration-500 motion-reduce:transition-none starting:opacity-0 [&:not([hidden])]:flex [&[hidden]]:opacity-0"
+            hidden={totalCount !== undefined}
+          >
+            <Avatar aria-hidden fontSize="10rem" />
+            <p className="fr-mb-0">
+              <FormattedMessage defaultMessage="Recherchez un magistrat par son prénom ou son nom." />
+            </p>
+          </div>
+          {totalCount === 0 ? (
+            <p className="fr-mt-8v col-start-1 row-start-1">
+              <FormattedMessage defaultMessage="Aucun résultat ne correspond aux valeurs saisies." />
+            </p>
+          ) : (
+            totalCount !== undefined && (
+              <div className="col-start-1 row-start-1">
+                <ul className="fr-mt-8v flex list-none flex-col gap-4 ps-0">
+                  {data?.pages.flatMap((page) =>
+                    page.items.map((magistrat, index) => (
+                      <li
+                        className="pb-0 motion-safe:animate-fade-in"
+                        key={magistrat.id}
+                        style={{ '--fade-in-delay': `${index * 40}ms` } as CSSProperties}
+                      >
+                        <MagistratSearchCard magistrat={magistrat} />
+                      </li>
+                    )),
+                  )}
+                </ul>
+                {hasNextPage && (
+                  <div className="fr-mt-6v flex justify-center">
+                    <Button
+                      disabled={isFetchingNextPage}
+                      onClick={() => fetchNextPage()}
+                      priority="secondary"
+                    >
+                      <FormattedMessage defaultMessage="Voir plus" />
+                    </Button>
+                  </div>
+                )}
               </div>
-            )}
-          </>
-        )}
+            )
+          )}
+        </div>
       </div>
     </>
   );

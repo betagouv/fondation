@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { NuqsTestingAdapter } from 'nuqs/adapters/testing';
 import { IntlProvider } from 'react-intl';
@@ -67,7 +67,7 @@ describe('MagistratSearch', () => {
 
     await user.type(screen.getByRole('textbox', { name: 'Rechercher par nom ou prénom' }), 'v');
 
-    expect(screen.getByText('Recherchez un magistrat par son prénom ou son nom.')).toBeInTheDocument();
+    expect(screen.getByText('Recherchez un magistrat par son prénom ou son nom.')).toBeVisible();
     expect(searchMagistrats).not.toHaveBeenCalled();
   });
 
@@ -112,6 +112,7 @@ describe('MagistratSearch', () => {
     expect(within(marc).getByText('Tribunal judiciaire de Rodez')).toBeInTheDocument();
     expect(within(marc).getByText('G2 - TJ RODEZ')).toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent('2 résultats');
+    expect(screen.getByText('Recherchez un magistrat par son prénom ou son nom.')).not.toBeVisible();
     expect(searchMagistrats).toHaveBeenCalledWith(
       expect.objectContaining({ query: { page: 1, search: 'valr' } }),
     );
@@ -164,7 +165,9 @@ describe('MagistratSearch', () => {
     navigateTo('');
 
     expect(screen.getByRole('textbox', { name: 'Rechercher par nom ou prénom' })).toHaveValue('');
-    expect(await screen.findByText('Recherchez un magistrat par son prénom ou son nom.')).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByText('Recherchez un magistrat par son prénom ou son nom.')).toBeVisible(),
+    );
   });
 
   it('adds the next magistrats from "Voir plus" until all are shown', async () => {
