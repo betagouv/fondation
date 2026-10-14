@@ -44,7 +44,7 @@ export function MagistratSearch() {
         id="magistrat-search-breadcrumb"
       />
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="fr-mb-0">
+        <h1 className="fr-h3 fr-mb-0">
           <FormattedMessage defaultMessage="Rechercher un magistrat" />
         </h1>
         <SearchInput
