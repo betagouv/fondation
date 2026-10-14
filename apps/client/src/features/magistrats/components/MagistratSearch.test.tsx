@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { NuqsTestingAdapter } from 'nuqs/adapters/testing';
 import { IntlProvider } from 'react-intl';
@@ -13,6 +13,28 @@ import type { FoundMagistrat } from '@queries/magistrats.queries';
 import { MagistratSearch } from './MagistratSearch';
 
 const searchMagistrats = vi.spyOn($api.magistrats, 'searchMagistrats');
+
+// jsdom implements no IntersectionObserver: the test reports the end of the list in view itself
+const endOfListObservers: IntersectionObserverCallback[] = [];
+vi.stubGlobal(
+  'IntersectionObserver',
+  class {
+    constructor(callback: IntersectionObserverCallback) {
+      endOfListObservers.push(callback);
+    }
+    disconnect() {}
+    observe() {}
+  },
+);
+
+function scrollToEndOfList() {
+  act(() =>
+    endOfListObservers.at(-1)?.(
+      [{ isIntersecting: true } as IntersectionObserverEntry],
+      {} as IntersectionObserver,
+    ),
+  );
+}
 
 function renderSearch(props?: { path?: string; searchParams?: string }) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -34,6 +56,7 @@ function renderSearch(props?: { path?: string; searchParams?: string }) {
 describe('MagistratSearch', () => {
   beforeEach(() => {
     searchMagistrats.mockReset();
+    endOfListObservers.length = 0;
   });
 
   it('leads back to the secretariat general from its breadcrumb', () => {
@@ -171,40 +194,7 @@ describe('MagistratSearch', () => {
   });
 
   it('adds the next magistrats from "Voir plus" until all are shown', async () => {
-    searchMagistrats
-      .mockResolvedValueOnce(
-        found(
-          [
-            {
-              currentPosition: null,
-              grade: null,
-              gradeAndJurisdiction: null,
-              id: 'magistrat-1',
-              name: 'VALROSE Honorine',
-            },
-          ],
-          {
-            nextPageIndex: 2,
-            totalCount: 2,
-          },
-        ),
-      )
-      .mockResolvedValueOnce(
-        found(
-          [
-            {
-              currentPosition: null,
-              grade: null,
-              gradeAndJurisdiction: null,
-              id: 'magistrat-2',
-              name: 'VALROSE Marc',
-            },
-          ],
-          {
-            totalCount: 2,
-          },
-        ),
-      );
+    mockTwoPagesOfValrose();
     const user = userEvent.setup();
     renderSearch({ searchParams: '?recherche=valr' });
 
@@ -213,6 +203,19 @@ describe('MagistratSearch', () => {
     expect(await screen.findByRole('article', { name: 'VALROSE Marc' })).toBeInTheDocument();
     expect(screen.getByRole('article', { name: 'VALROSE Honorine' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Voir plus' })).not.toBeInTheDocument();
+    expect(searchMagistrats).toHaveBeenLastCalledWith(
+      expect.objectContaining({ query: { page: 2, search: 'valr' } }),
+    );
+  });
+
+  it('adds the next magistrats once the end of the list is scrolled into view', async () => {
+    mockTwoPagesOfValrose();
+    renderSearch({ searchParams: '?recherche=valr' });
+    await screen.findByRole('article', { name: 'VALROSE Honorine' });
+
+    scrollToEndOfList();
+
+    expect(await screen.findByRole('article', { name: 'VALROSE Marc' })).toBeInTheDocument();
     expect(searchMagistrats).toHaveBeenLastCalledWith(
       expect.objectContaining({ query: { page: 2, search: 'valr' } }),
     );
@@ -237,4 +240,41 @@ function found(
       ...page,
     },
   } as unknown as Awaited<ReturnType<typeof $api.magistrats.searchMagistrats>>;
+}
+
+function mockTwoPagesOfValrose() {
+  searchMagistrats
+    .mockResolvedValueOnce(
+      found(
+        [
+          {
+            currentPosition: null,
+            grade: null,
+            gradeAndJurisdiction: null,
+            id: 'magistrat-1',
+            name: 'VALROSE Honorine',
+          },
+        ],
+        {
+          nextPageIndex: 2,
+          totalCount: 2,
+        },
+      ),
+    )
+    .mockResolvedValueOnce(
+      found(
+        [
+          {
+            currentPosition: null,
+            grade: null,
+            gradeAndJurisdiction: null,
+            id: 'magistrat-2',
+            name: 'VALROSE Marc',
+          },
+        ],
+        {
+          totalCount: 2,
+        },
+      ),
+    );
 }

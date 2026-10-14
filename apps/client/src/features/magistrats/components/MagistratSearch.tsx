@@ -1,7 +1,7 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Avatar from '@codegouvfr/react-dsfr/picto/Avatar';
 import { parseAsString, useQueryState } from 'nuqs';
-import { type CSSProperties } from 'react';
+import { useCallback, type CSSProperties } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useDebounce } from 'use-debounce';
 
@@ -23,6 +23,22 @@ export function MagistratSearch() {
     search: debouncedSearch,
   });
   const totalCount = isSearchable ? data?.pages[0]?.totalCount : undefined;
+  // observes again once a page is loaded: the end of the list may still be in view, and an observer only reports changes
+  const loadMoreOnScroll = useCallback(
+    (element: HTMLDivElement | null) => {
+      if (!element || isFetchingNextPage) return;
+
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry?.isIntersecting) fetchNextPage();
+        },
+        { rootMargin: '200px' },
+      );
+      observer.observe(element);
+      return () => observer.disconnect();
+    },
+    [fetchNextPage, isFetchingNextPage],
+  );
 
   return (
     <>
@@ -98,7 +114,8 @@ export function MagistratSearch() {
                   )}
                 </ul>
                 {hasNextPage && (
-                  <div className="fr-mt-6v flex justify-center">
+                  <div className="fr-mt-6v flex justify-center" ref={loadMoreOnScroll}>
+                    {/* an explicit control for assistive technologies, which do not always scroll */}
                     <Button
                       disabled={isFetchingNextPage}
                       onClick={() => fetchNextPage()}
