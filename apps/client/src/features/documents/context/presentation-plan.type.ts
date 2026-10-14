@@ -22,7 +22,6 @@ export type PresentationPlanContextType = {
   goToMetadata(): void;
   createPlan(options: { agendas: Record<string, string | null> }): Promise<void>;
   initPlanCreation(options: { agendaIds: string[]; formation: 'PARQUET' | 'SIEGE' }): void;
-  isUnchanged(options: { agendas: Record<string, string | null> }): boolean;
   setMetadata(options: {
     chairmanId: string;
     secretaryId: string;

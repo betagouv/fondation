@@ -15,7 +15,6 @@ import {
   OfficialReportWithoutValidatedVersion,
 } from './official-report';
 import * as helpers from './official-report-test-utils';
-import type { UpdateOfficialReportCommand } from './official-report-types';
 import {
   OfficialReportSnapshot,
   type PlainOfficialReportSnapshot,
@@ -40,28 +39,6 @@ function makeReport(
     isValidated: state.isValidated ?? false,
     snapshot: OfficialReportSnapshot.from(helpers.makeSnapshot(state.snapshot)),
   });
-}
-
-/** the form sent back as the report already knows it, files included since they come from the agenda */
-function sameMetadataOf(report: OfficialReport): UpdateOfficialReportCommand['officialReport'] {
-  const { meta } = report.snapshot;
-
-  return {
-    agenda: meta.agenda,
-    chairman: meta.chairman,
-    files: [
-      {
-        nominationFileId: 'file-1',
-        outcome: { comment: null, value: 'VALIDATED' },
-        reporters: ['M. John DOE'],
-      },
-    ],
-    hasRenunciation: meta.hasRenunciation,
-    justiceDepartmentContactId: meta.justiceDepartmentContactId,
-    members: meta.members,
-    secretary: meta.secretary,
-    sessionMeeting: meta.sessionMeeting,
-  };
 }
 
 describe('OfficialReport', () => {
@@ -240,37 +217,9 @@ describe('OfficialReport', () => {
 
       expect(report.messages).toEqual([]);
     });
-
-    it('should stay as it is when its metadata are saved unchanged', () => {
-      const report = validated();
-
-      report.update({ authorId: AUTHOR, officialReport: sameMetadataOf(report) });
-
-      expect(report.messages).toEqual([]);
-    });
-
-    it('should fork a draft when a metadata changes', () => {
-      const report = validated();
-      const metadata = sameMetadataOf(report);
-
-      report.update({
-        authorId: AUTHOR,
-        officialReport: { ...metadata, hasRenunciation: !metadata.hasRenunciation },
-      });
-
-      expect(report.messages[0]).toEqual(new OfficialReportDraftOpened(report.id, AUTHOR));
-    });
   });
 
   describe('a draft report', () => {
-    it('should not record a save that changes nothing', () => {
-      const report = makeReport();
-
-      report.update({ authorId: AUTHOR, officialReport: sameMetadataOf(report) });
-
-      expect(report.messages).toEqual([]);
-    });
-
     it('should not fork another draft', () => {
       const report = makeReport();
 

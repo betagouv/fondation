@@ -114,12 +114,11 @@ export function OfficialReportProvider(props: PropsWithChildren) {
     <OfficialReportContext
       value={{
         cancel,
-        changedSinceValidation: officialReportMetadata?.changedSinceValidation ?? [],
-        isSubmitting: createOfficialReport.isPending || updateOfficialReport.isPending,
+        submit,
         officialReportId,
         report: state,
         session: { id: sessionId, formation: session?.formation ?? 'SIEGE' },
-        submit,
+        isSubmitting: createOfficialReport.isPending || updateOfficialReport.isPending,
       }}
     >
       {isFetching ? <span className="ri-loader-4-line animate-spin" /> : props.children}

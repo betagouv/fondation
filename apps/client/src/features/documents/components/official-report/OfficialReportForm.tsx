@@ -76,14 +76,7 @@ const OfficialReportMetadataSchema = z
   });
 
 export function OfficialReportForm() {
-  const {
-    cancel,
-    changedSinceValidation,
-    officialReportId,
-    report: metadata,
-    session,
-    submit,
-  } = useOfficialReport();
+  const { session, report: metadata, officialReportId, submit, cancel } = useOfficialReport();
   const { formatMessage } = useIntl();
   const { state } = useLocation();
   const requestedAgendaId: string | null = typeof state?.agendaId === 'string' ? state.agendaId : null;
@@ -123,7 +116,7 @@ export function OfficialReportForm() {
     setValues,
     handleSubmit,
     subscribe,
-    formState: { errors, isDirty, isValid, dirtyFields },
+    formState: { errors, isValid, dirtyFields },
   } = useForm({
     mode: 'all',
     defaultValues,
@@ -372,14 +365,13 @@ export function OfficialReportForm() {
         buttons={[
           { children: 'Annuler', priority: 'secondary', onClick: cancel, type: 'button' },
           {
+            type: 'submit',
+            disabled: !isValid,
             children: officialReportId ? (
               <FormattedMessage defaultMessage="Mettre à jour" />
             ) : (
               <FormattedMessage defaultMessage="Générer le PV" />
             ),
-            disabled:
-              !isValid || (Boolean(officialReportId) && !isDirty && changedSinceValidation.length === 0),
-            type: 'submit',
           },
         ]}
       />

@@ -14,37 +14,12 @@ describe('OfficialReportSnapshot', () => {
   it('should have no difference with the same snapshot', () => {
     const { snapshot, update } = makeSnapshot();
 
-    const { changed, diff } = snapshot.update(update);
+    const { diff } = snapshot.update(update);
 
-    expect(changed).toBe(false);
     expect(diff.hasAny).toBe(false);
     expect(diff.intro).toBe('NOOP');
     expect(diff.conclusion).toBe('NOOP');
     expect(diff.files.map((f) => f.action)).toEqual(['noop']);
-  });
-
-  it('should tell a change even when no rendered part falls behind', () => {
-    const { snapshot, update } = makeSnapshot({ manuallyEditedPart: { conclusion: false, intro: false } });
-
-    const { changed, diff } = snapshot.update({ ...update, hasRenunciation: !update.hasRenunciation });
-
-    expect(changed).toBe(true);
-    expect(diff.hasAny).toBe(false);
-  });
-
-  it('should tell an absence change', () => {
-    const { snapshot, update } = makeSnapshot();
-    const [first, ...others] = update.members.toSortedArray();
-
-    const { changed } = snapshot.update({
-      ...update,
-      members: OfficialReportMembersList.from([
-        OfficialReportMember.from(helpers.makeMember({ id: first!.id, isAbsent: true })),
-        ...others,
-      ]),
-    });
-
-    expect(changed).toBe(true);
   });
 
   it('should detect the chairman difference', () => {
