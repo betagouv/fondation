@@ -286,7 +286,8 @@ export function ObservationForm({
           <Input
             classes={{ root: 'fr-mb-0' }}
             hintText={intl.formatMessage({
-              defaultMessage: "Renseignez le texte de l'observation ou joignez une pièce jointe ci-dessous",
+              defaultMessage:
+                "Renseignez ici les éléments que vous voulez partager aux membres sur l'historique de cet observant",
             })}
             label={<FormattedMessage defaultMessage="Historique observant" />}
             nativeTextAreaProps={{ onChange: field.onChange, value: field.value as string }}
