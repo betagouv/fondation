@@ -19,8 +19,8 @@ export class OfficialReportMembersList {
   equals(other: OfficialReportMembersList): boolean {
     if (this.members.size !== other.members.size) return false;
 
-    for (const id of this.members.keys()) {
-      if (!other.members.has(id)) return false;
+    for (const [id, member] of this.members) {
+      if (other.members.get(id)?.isAbsent !== member.isAbsent) return false;
     }
 
     return true;
