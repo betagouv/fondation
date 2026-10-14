@@ -11,8 +11,16 @@ import { useListPresentationPlansAgendasQuery } from '@queries/agenda.queries';
 
 export function PresentationAgendaCommentsStep(props: { className?: string }) {
   const { formatMessage } = useIntl();
-  const { state, createPlan, hasFailed, hasAllMandatoryMetadata, isDisabled, planId, goToMetadata } =
-    usePresentationPlan();
+  const {
+    createPlan,
+    goToMetadata,
+    hasAllMandatoryMetadata,
+    hasFailed,
+    isDisabled,
+    isUnchanged,
+    planId,
+    state,
+  } = usePresentationPlan();
 
   const { data: agendasData } = useListPresentationPlansAgendasQuery({
     ignorePlanId: planId ?? undefined,
@@ -48,12 +56,13 @@ export function PresentationAgendaCommentsStep(props: { className?: string }) {
     setComments((prev) => ({ ...prev, [agendaId]: value }));
   }, []);
 
-  const onSubmit = useCallback(() => {
-    createPlan({
-      // a comment emptied on purpose stays '' in the state, null would bring the session one back
-      agendas: Object.fromEntries(agendaIds.map((id) => [id, commentOf(id).trim()])),
-    });
-  }, [agendaIds, commentOf, createPlan]);
+  // a comment emptied on purpose stays '' in the state, null would bring the session one back
+  const agendasToSave = useMemo(
+    () => Object.fromEntries(agendaIds.map((id) => [id, commentOf(id).trim()])),
+    [agendaIds, commentOf],
+  );
+
+  const onSubmit = useCallback(() => createPlan({ agendas: agendasToSave }), [agendasToSave, createPlan]);
 
   return (
     <div className={clsx('mx-auto max-w-2xl', props.className)}>
@@ -105,7 +114,7 @@ export function PresentationAgendaCommentsStep(props: { className?: string }) {
           },
           {
             children: formatMessage({ defaultMessage: 'Enregistrer la notice' }),
-            disabled: isDisabled || !hasAllMandatoryMetadata,
+            disabled: isDisabled || !hasAllMandatoryMetadata || isUnchanged({ agendas: agendasToSave }),
             onClick: onSubmit,
             type: 'button',
           },

@@ -15,6 +15,7 @@ import {
   JusticePresentationPlanUpdated,
 } from '../../domain/justice-presentation-plan';
 import { JusticePresentationPlanContent } from '../../domain/justice-presentation-plan-content';
+import { JusticePresentationPlanSettings } from '../../domain/justice-presentation-plan-settings';
 import { presentationPlanStatusOf } from '../presentation-plan-status';
 import { Prisma } from 'src/generated/prisma/client';
 import { Clock } from 'src/modules/framework/clock';
@@ -22,6 +23,7 @@ import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { assertNever } from 'src/utils/assert-never';
+import { DateOnly } from 'src/utils/date-only';
 import { assertIsDefined, isDefined } from 'src/utils/is-defined';
 import { dateToTimeOnly, timeOnlyToDate } from 'src/utils/time-only';
 
@@ -41,14 +43,16 @@ export class JusticePresentationPlanRepository {
     const found = await this.db.tx.justicePresentationPlan.findUnique({
       where: { id: query.id },
       select: {
-        id: true,
-        pdfId: true,
-        isPresented: true,
-        outdated: true,
-        time: true,
         agendas: {
-          select: { agendaId: true, agenda: { select: { formation: true } } },
+          select: { agenda: { select: { formation: true } }, agendaId: true, comment: true },
         },
+        chairmanId: true,
+        date: true,
+        hasRenunciation: true,
+        id: true,
+        isPresented: true,
+        justiceDepartmentContactId: true,
+        members: { select: { isAbsent: true, memberId: true } },
         nominationFiles: {
           select: {
             name: true,
@@ -60,23 +64,37 @@ export class JusticePresentationPlanRepository {
             targetedPosition: true,
           },
         },
+        outdated: true,
+        pdfId: true,
+        secretaryId: true,
+        time: true,
       } satisfies Prisma.JusticePresentationPlanSelect,
     });
 
     if (!found || found.agendas.length === 0) throw new NotFoundException();
     return JusticePresentationPlan.from({
-      id: found.id,
-      formation: prismaFormationEnumToFormationEnum(assertIsDefined(found.agendas[0]).agenda.formation),
-      startTime: dateToTimeOnly(found.time),
       agendaIds: found.agendas.map(({ agendaId }) => agendaId),
-      isValidated: presentationPlanStatusOf(found) === 'VALIDATED',
-      isPresented: found.isPresented,
-      outdated: found.outdated,
       content: JusticePresentationPlanContent.from(
         found.nominationFiles.flatMap(({ nominationFileId, ...file }) =>
           isDefined(nominationFileId) ? [{ ...file, nominationFileId }] : [],
         ),
       ),
+      formation: prismaFormationEnumToFormationEnum(assertIsDefined(found.agendas[0]).agenda.formation),
+      id: found.id,
+      isPresented: found.isPresented,
+      isValidated: presentationPlanStatusOf(found) === 'VALIDATED',
+      outdated: found.outdated,
+      settings: JusticePresentationPlanSettings.from({
+        agendas: found.agendas.map(({ agendaId, comment }) => ({ comment: comment || null, id: agendaId })),
+        chairmanId: found.chairmanId,
+        date: DateOnly.fromUtcDate(found.date),
+        hasRenunciation: found.hasRenunciation,
+        justiceContactId: String(found.justiceDepartmentContactId),
+        members: found.members.map(({ isAbsent, memberId }) => ({ id: memberId, isAbsent })),
+        secretaryId: found.secretaryId,
+        time: dateToTimeOnly(found.time),
+      }),
+      startTime: dateToTimeOnly(found.time),
     });
   }
 
