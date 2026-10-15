@@ -13,29 +13,35 @@ export type DraftLastChange = {
   origin: 'PERSON' | 'SYSTEM';
 };
 
-export function draftLastChange(draft: {
-  author: Person | null;
-  createdAt: Date;
-  editor: Person | null;
-  systemUpdatedAt: Date | null;
-  systemUpdates: readonly { cause: DocSystemUpdateCause }[];
-  updatedAt: Date | null;
-}): DraftLastChange {
+export function draftLastChange(
+  draft: {
+    author: Person | null;
+    createdAt: Date;
+    editor: Person | null;
+    systemUpdatedAt: Date | null;
+    systemUpdates: readonly { cause: DocSystemUpdateCause }[];
+    updatedAt: Date | null;
+  },
+  options: { overValidated: boolean },
+): DraftLastChange | null {
   const systemCauses = draft.systemUpdates.map(({ cause }) => cause);
 
+  // the first draft is the document itself, whose creation is already told: opening it changes nothing
+  const openedAt = options.overValidated ? draft.createdAt : null;
+
   const changes: (Omit<DraftLastChange, 'at'> & { at: Date | null })[] = [
+    // a draft nobody opened was opened by the application
+    draft.author
+      ? { at: openedAt, by: draft.author, causes: [], origin: 'PERSON' }
+      : { at: openedAt, by: null, causes: systemCauses, origin: 'SYSTEM' },
     { at: draft.updatedAt, by: draft.editor, causes: [], origin: 'PERSON' },
     { at: draft.systemUpdatedAt, by: null, causes: systemCauses, origin: 'SYSTEM' },
   ];
 
-  // a draft nobody opened was opened by the application
-  const opening: DraftLastChange = draft.author
-    ? { at: draft.createdAt, by: draft.author, causes: [], origin: 'PERSON' }
-    : { at: draft.createdAt, by: null, causes: systemCauses, origin: 'SYSTEM' };
-
-  return changes.reduce<DraftLastChange>(
-    (latest, change) => (change.at && change.at > latest.at ? { ...change, at: change.at } : latest),
-    opening,
+  return changes.reduce<DraftLastChange | null>(
+    (latest, change) =>
+      change.at && (!latest || change.at > latest.at) ? { ...change, at: change.at } : latest,
+    null,
   );
 }
 

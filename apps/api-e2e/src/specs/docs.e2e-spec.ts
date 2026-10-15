@@ -1731,6 +1731,25 @@ test.describe('Docs Service', () => {
     });
   });
 
+  test('should not tell a change on a new agenda nobody edited', async ({ agent, expect }) => {
+    const foundFiles = await agent.docs.findAgendaNominationFiles({ path: { sessionId } });
+    const agenda = await agent.docs.createAgenda({
+      body: {
+        chairmanId,
+        date: { day: 1, month: 2, year: 2026 },
+        nominationFileIds: foundFiles.data!.items.map(({ id }) => id),
+        sessionMeetingDate: MEETING_DATE,
+      },
+      path: { sessionId },
+    });
+
+    const docs = await agent.docs.findSessionDocs({ path: { sessionId } });
+    expect(docs.data!.items.find(({ id }) => id === agenda.data!.id)).toMatchObject({
+      draftUpdate: null,
+      status: 'DRAFT',
+    });
+  });
+
   test('should render the official report draft again once its metadata change', async ({ agent, expect, member }) => {
     const foundFiles = await agent.docs.findAgendaNominationFiles({ path: { sessionId } });
     const nominationFileIds = foundFiles.data!.items.map(({ id }) => id);
