@@ -3,7 +3,7 @@ import { inject } from 'vitest';
 
 import { test } from '../fixtures.ts';
 import type { PaginatedNominationFiles } from '../generated/api/types.ts';
-import type { TestStepsAgent } from '../steps.ts';
+import type { TestStepsAgent, TestStepsMember } from '../steps.ts';
 import * as seed from '../utils/seed.ts';
 
 async function filesOfValidatedVersionsReading(html: string): Promise<number> {
@@ -435,7 +435,6 @@ test.describe('Docs Service', () => {
   test('should report the session only once every file is acted in a validated official report', async ({
     agent,
     expect,
-    logIn,
     member,
   }) => {
     const ruleAcrossEndpoints = async () => {
@@ -560,15 +559,83 @@ test.describe('Docs Service', () => {
     const reports = await member.members.listMemberSessionReports({
       path: { sessionId, userId: member['@user']!.id },
     });
-    const summaryPath = { nominationFileId: fileIds[0]!, sessionId };
-    await agent.summaries.createSummary({ path: summaryPath, throwOnError: true });
-    await agent.summaries.writeSummary({
-      body: { content: '<p>Synthèse avant archivage</p>' },
-      path: summaryPath,
-      throwOnError: true,
-    });
     const archived = await agent.sessions.archiveSession({ path: { sessionId } });
     expect(archived.response?.status).toBe(204);
+    const archivedSessions = await agent.archivedSessions.listArchivedSessions({ query: { limit: 200 } });
+    expect(archivedSessions.data!.items.map(({ id }) => id)).toContain(sessionId);
+
+    // an archived session freezes the reports written for it
+    const frozen = await member.reports.updateReport({
+      body: { comment: 'Relu après la session' },
+      path: { reportId: reports.data!.items[0]!.report.id },
+    });
+    expect(frozen.response?.status).toBe(403);
+  });
+
+  /** every file of the session acted in a validated official report */
+  async function makeSessionArchivable(fixtures: { agent: TestStepsAgent; member: TestStepsMember }) {
+    const { agent, member } = fixtures;
+    const foundFiles = await agent.docs.findAgendaNominationFiles({ path: { sessionId } });
+    const fileIds = foundFiles.data!.items.map(({ id }) => id);
+
+    await agent.sessions.affectReporters({
+      body: {
+        items: fileIds.map((nominationFileId) => ({
+          nominationFileId,
+          priorities: [],
+          reporterIds: [member['@user']!.id],
+        })),
+      },
+      path: { sessionId },
+    });
+    await agent.sessions.publishNominationSessionAffectationsVersion({ path: { sessionId } });
+    for (const nominationFileId of fileIds) {
+      await agent.sessions.defineNominationFileOutcome({
+        body: { comment: null, outcome: 'VALIDATED' },
+        path: { nominationFileId, sessionId },
+      });
+    }
+
+    const agenda = await agent.docs.createAgenda({
+      body: {
+        chairmanId,
+        date: { day: 1, month: 2, year: 2026 },
+        nominationFileIds: fileIds,
+        sessionMeetingDate: MEETING_DATE,
+      },
+      path: { sessionId },
+    });
+    const justiceContact = await agent.docs.createJusticeContact({
+      body: { name: `M. Vincent de la Porte, adjoint ${crypto.randomUUID()}` },
+    });
+    const officialReport = await agent.docs.createOfficialReport({
+      body: {
+        absentMemberIds: [],
+        agendaId: agenda.data!.id,
+        chairmanId,
+        hasRenunciation: true,
+        justiceDepartmentContactId: justiceContact.data!.id,
+        secretaryId: firstSecretaryId,
+        sessionMeetingDate: MEETING_DATE,
+        sessionMeetingEndingTime: { hours: 18, minutes: 10, seconds: 0 },
+        sessionMeetingTime: { hours: 18, minutes: 0, seconds: 0 },
+      },
+      path: { sessionId },
+    });
+    await agent.docs.validateOfficialReport({ path: { officialReportId: officialReport.data!.id } });
+
+    return { fileIds };
+  }
+
+  test('should list an archived session to the members of its formation only', async ({
+    agent,
+    expect,
+    logIn,
+    member,
+  }) => {
+    await makeSessionArchivable({ agent, member });
+    await agent.sessions.archiveSession({ path: { sessionId }, throwOnError: true });
+
     const archivedSessions = await agent.archivedSessions.listArchivedSessions({ query: { limit: 200 } });
     const archivedSession = archivedSessions.data!.items.find(({ id }) => id === sessionId);
     expect(archivedSession).toMatchObject({
@@ -577,7 +644,6 @@ test.describe('Docs Service', () => {
       typeDeSaisine: { id: 'TRANSPARENCE_GDS', label: 'Transparence' },
     });
 
-    // a member finds the archived sessions of their formation, and only them
     const { formation } = archivedSession!;
     const formationMember = await logIn(formation === 'PARQUET' ? 'MEMBRE_DU_PARQUET' : 'MEMBRE_DU_SIEGE');
     const outsider = await logIn(formation === 'PARQUET' ? 'MEMBRE_DU_SIEGE' : 'MEMBRE_DU_PARQUET');
@@ -587,20 +653,24 @@ test.describe('Docs Service', () => {
       query: { formations: [formation], limit: 200 },
     });
     expect(foundByOutsider.data!.items.map(({ id }) => id)).not.toContain(sessionId);
+  });
 
-    // an archived session freezes the reports written for it
-    const frozen = await member.reports.updateReport({
-      body: { comment: 'Relu après la session' },
-      path: { reportId: reports.data!.items[0]!.report.id },
+  test('should freeze the summaries of the files of an archived session', async ({ agent, expect, member }) => {
+    const { fileIds } = await makeSessionArchivable({ agent, member });
+    const summaryPath = { nominationFileId: fileIds[0]!, sessionId };
+    await agent.summaries.createSummary({ path: summaryPath, throwOnError: true });
+    await agent.summaries.writeSummary({
+      body: { content: '<p>Synthèse avant archivage</p>' },
+      path: summaryPath,
+      throwOnError: true,
     });
-    expect(frozen.response?.status).toBe(403);
+    await agent.sessions.archiveSession({ path: { sessionId }, throwOnError: true });
 
-    // and the summaries of its files
-    const frozenSummary = await agent.summaries.writeSummary({
+    const frozen = await agent.summaries.writeSummary({
       body: { content: '<p>Synthèse après archivage</p>' },
       path: summaryPath,
     });
-    expect(frozenSummary.response?.status).toBe(403);
+    expect(frozen.response?.status).toBe(403);
     const summary = await agent.summaries.detailSummary({ path: summaryPath });
     expect(summary.data?.summary.content).toBe('<p>Synthèse avant archivage</p>');
   });
