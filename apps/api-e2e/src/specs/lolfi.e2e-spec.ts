@@ -483,7 +483,61 @@ test.describe('lolfi', () => {
       expect(anomalyOf(alerts[1]!.text)).toContain('1 candidature et aucune proposition');
     },
   );
+
+  test('should make inactive a magistrat absent from the last import', async ({ admin, expect }) => {
+    const lastName = randomLastName();
+    const staying = { ...trevoux(), lastName };
+    const leaving = { ...berger(), lastName };
+
+    await ingestUntilEnded(admin, { createdAt: '22/04/2026', candidates: [staying, leaving] });
+    await ingestUntilEnded(admin, { createdAt: '22/04/2026', candidates: [staying] });
+
+    expect(await statusesOf(admin, lastName)).toEqual([
+      { firstName: 'ETIENNE', status: 'ACTIVE' },
+      { firstName: 'MICHEL', status: 'INACTIVE' },
+    ]);
+  });
+
+  test('should keep active a magistrat the import rejects', async ({ admin, expect }) => {
+    const lastName = randomLastName();
+    const rejected = { ...trevoux(), lastName };
+    const leaving = { ...berger(), lastName };
+
+    await ingestUntilEnded(admin, { createdAt: '22/04/2026', candidates: [rejected, leaving] });
+    await ingestUntilEnded(admin, {
+      createdAt: '22/04/2026',
+      candidates: [{ ...rejected, administrativePosition: 'UNKNOWN' }],
+    });
+
+    expect(await statusesOf(admin, lastName)).toEqual([
+      { firstName: 'ETIENNE', status: 'ACTIVE' },
+      { firstName: 'MICHEL', status: 'INACTIVE' },
+    ]);
+  });
+
+  test('should keep the statuses when the import fails', async ({ admin, expect }) => {
+    const lastName = randomLastName();
+
+    await ingestUntilEnded(admin, { createdAt: '22/04/2026', candidates: [{ ...trevoux(), lastName }] });
+    const failedJobId = await ingestArchive(admin, {
+      createdAt: '22/04/2026',
+      candidates: [{ ...berger(), lastName: '' }],
+    });
+    expect(await waitForEndedJob(admin, failedJobId)).toBe('FAILED');
+
+    expect(await statusesOf(admin, lastName)).toEqual([{ firstName: 'ETIENNE', status: 'ACTIVE' }]);
+  });
 });
+
+function randomLastName(): string {
+  return Array.from({ length: 12 }, () => String.fromCharCode(97 + crypto.randomInt(26))).join('');
+}
+
+async function statusesOf(admin: TestStepsAdmin, lastName: string): Promise<{ firstName: string; status: string }[]> {
+  const { data } = await admin.magistrats.searchMagistrats({ query: { search: lastName }, throwOnError: true });
+
+  return data!.items.map(({ firstName, status }) => ({ firstName, status }));
+}
 
 async function ingestArchiveAsMachine(baseUrl: string, ...sessions: LolfiArchiveContent['sessions']): Promise<number> {
   const archive = await generateLolfiArchive({ sessions });

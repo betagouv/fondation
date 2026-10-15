@@ -3,7 +3,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
 import { LolfiJob } from '../lolfi-job.type';
-import { insertMagistratRawQuery } from 'src/generated/prisma/sql';
+import { insertMagistratRawQuery, updateMagistratStatusesRawQuery } from 'src/generated/prisma/sql';
 import { Db } from 'src/modules/framework/database';
 
 import { JobFileIngestor } from './job-file-ingestor';
@@ -28,6 +28,8 @@ export class LolfiMagistratsIngestor {
   }): Promise<{ success: boolean }> {
     const self = this; // oxlint-disable-line @typescript-eslint/no-this-alias
     const mappingResult = { success: true };
+    // Read from the file rather than from the inserted rows: a magistrat rejected for an unknown grade, position or POSAD stays active
+    let presentExternalIds: string[] | undefined;
 
     // oxlint-disable-next-line require-yield
     async function* mapper(source: AsyncIterable<{ data: RawMagistrat; success: boolean }>) {
@@ -69,6 +71,7 @@ export class LolfiMagistratsIngestor {
         });
       }
 
+      presentExternalIds = Array.from(ids, String);
       ids.clear();
     }
 
@@ -78,6 +81,11 @@ export class LolfiMagistratsIngestor {
       schema: RawMagistratSchema,
       job: options.job,
       file: options.file,
+      // An unchanged file is skipped without being read: the statuses of its last import still hold
+      beforeSucceeding: async () => {
+        if (mappingResult.success && presentExternalIds)
+          await this.db.tx.$queryRawTyped(updateMagistratStatusesRawQuery(presentExternalIds));
+      },
     });
 
     return { success: success && mappingResult.success };

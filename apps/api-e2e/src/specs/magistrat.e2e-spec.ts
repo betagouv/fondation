@@ -91,6 +91,174 @@ test.describe('Magistrat E2E', () => {
     });
   });
 
+  test('should search magistrats by the beginning of their name, sorted by last name', async ({
+    expect,
+    member,
+    sessions,
+  }) => {
+    const lastName = Array.from({ length: 12 }, () => String.fromCharCode(97 + crypto.randomInt(26))).join('');
+    const position = {
+      function: seed.functions.PR,
+      grade: 'G3' as const,
+      jurisdiction: seed.jurisdictions['CA  LYON'],
+    };
+    const candidate = { position, targetPosition: position };
+    await sessions.createOne({
+      candidates: [
+        { ...candidate, firstName: 'ALINE', lastName: `${lastName}B` },
+        { ...candidate, firstName: 'ZOE', lastName: `${lastName}A` },
+        { ...candidate, firstName: 'BRUNO', lastName: `${lastName}A` },
+        { ...candidate, firstName: 'BRUNO', lastName: `${lastName}A` },
+      ],
+      createdAt: '22/04/2026',
+      name: 'Transparence annuelle',
+    });
+
+    const { data } = await api.magistrats.searchMagistrats({
+      client: member['@client'],
+      query: { search: lastName.slice(0, 8) },
+      throwOnError: true,
+    });
+
+    const homonymIds = data.items.slice(0, 2).map((magistrat) => magistrat.id);
+    expect(homonymIds).toEqual(homonymIds.toSorted());
+    expect(data.items.map((magistrat) => magistrat.name)).toEqual([
+      `${lastName.toUpperCase()}A Bruno`,
+      `${lastName.toUpperCase()}A Bruno`,
+      `${lastName.toUpperCase()}A Zoe`,
+      `${lastName.toUpperCase()}B Aline`,
+    ]);
+    expect(data.items[0]).toMatchObject({
+      currentPosition: {
+        function: { id: 'PR', label: 'Procureur de la République' },
+        jurisdiction: { id: 'CA  LYON', label: "Cour d'appel de Lyon" },
+      },
+      grade: 'G3',
+      gradeAndJurisdiction: 'G3 - CA LYON',
+    });
+  });
+
+  test('should search a magistrat by a beginning of name that is also a French stop word', async ({
+    expect,
+    member,
+    sessions,
+  }) => {
+    const lastName = `LE${Array.from({ length: 12 }, () => String.fromCharCode(65 + crypto.randomInt(26))).join('')}`;
+    const position = {
+      function: seed.functions.PR,
+      grade: 'G3' as const,
+      jurisdiction: seed.jurisdictions['CA  LYON'],
+    };
+    await sessions.createOne({
+      candidates: [{ firstName: 'PAUL', lastName, position, targetPosition: position }],
+      createdAt: '22/04/2026',
+      name: 'Transparence annuelle',
+    });
+
+    const { data } = await api.magistrats.searchMagistrats({
+      client: member['@client'],
+      query: { search: 'le' },
+      throwOnError: true,
+    });
+
+    expect(data.items).toContainEqual(expect.objectContaining({ name: `${lastName} Paul` }));
+  });
+
+  test('should search a magistrat by the beginning of their first name and of their last name together', async ({
+    expect,
+    member,
+    sessions,
+  }) => {
+    const lastName = Array.from({ length: 12 }, () => String.fromCharCode(65 + crypto.randomInt(26))).join('');
+    const position = {
+      function: seed.functions.PR,
+      grade: 'G3' as const,
+      jurisdiction: seed.jurisdictions['CA  LYON'],
+    };
+    await sessions.createOne({
+      candidates: [
+        { firstName: 'JEANNE', lastName, position, targetPosition: position },
+        { firstName: 'PAUL', lastName, position, targetPosition: position },
+      ],
+      createdAt: '22/04/2026',
+      name: 'Transparence annuelle',
+    });
+
+    const { data } = await api.magistrats.searchMagistrats({
+      client: member['@client'],
+      query: { search: `jea ${lastName.slice(0, 8)}` },
+      throwOnError: true,
+    });
+
+    expect(data.items.map((magistrat) => magistrat.name)).toEqual([`${lastName} Jeanne`]);
+  });
+
+  test('should search a magistrat by a name typed with an apostrophe and punctuation', async ({
+    expect,
+    member,
+    sessions,
+  }) => {
+    const name = Array.from({ length: 12 }, () => String.fromCharCode(65 + crypto.randomInt(26))).join('');
+    const position = {
+      function: seed.functions.PR,
+      grade: 'G3' as const,
+      jurisdiction: seed.jurisdictions['CA  LYON'],
+    };
+    await sessions.createOne({
+      candidates: [{ firstName: 'PAUL', lastName: `D'${name}`, position, targetPosition: position }],
+      createdAt: '22/04/2026',
+      name: 'Transparence annuelle',
+    });
+
+    const { data } = await api.magistrats.searchMagistrats({
+      client: member['@client'],
+      query: { search: `d'${name.slice(0, 8)} !` },
+      throwOnError: true,
+    });
+
+    expect(data.items.map((magistrat) => magistrat.name)).toEqual([`D'${name} Paul`]);
+  });
+
+  test('should search a magistrat by the beginning of their married name, with their used name', async ({
+    expect,
+    member,
+    sessions,
+  }) => {
+    const marriedName = Array.from({ length: 12 }, () => String.fromCharCode(97 + crypto.randomInt(26))).join('');
+    const position = {
+      function: seed.functions.PR,
+      grade: 'G3' as const,
+      jurisdiction: seed.jurisdictions['CA  LYON'],
+    };
+    await sessions.createOne({
+      candidates: [
+        {
+          firstName: 'ISABELLE',
+          lastName: 'GAUTHIER',
+          marriedName,
+          position,
+          targetPosition: position,
+          usedName: 'LEFEBVRE',
+        },
+      ],
+      createdAt: '22/04/2026',
+      name: 'Transparence annuelle',
+    });
+
+    const { data } = await api.magistrats.searchMagistrats({
+      client: member['@client'],
+      query: { search: marriedName.slice(0, 8) },
+      throwOnError: true,
+    });
+
+    expect(data.items).toEqual([
+      expect.objectContaining({
+        name: `GAUTHIER Isabelle (ép. ${marriedName.toUpperCase()})`,
+        usedName: 'LEFEBVRE',
+      }),
+    ]);
+  });
+
   test('should list the LOLFI phone numbers of a magistrat', async ({ agent, expect, valrose }) => {
     const phoneNumbers = await agent.magistrats.listMagistratPhoneNumbers({
       path: { magistratId: valrose.magistratId },

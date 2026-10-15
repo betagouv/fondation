@@ -125,6 +125,13 @@ export const router = sentryCreateBrowserRouter([
               })),
           },
           {
+            path: ROUTE_PATHS.MEMBER.MAGISTRAT_SEARCH,
+            lazy: () =>
+              import('@/pages/magistrats/MagistratSearchPage').then(({ MagistratSearchPage }) => ({
+                Component: MagistratSearchPage,
+              })),
+          },
+          {
             path: ROUTE_PATHS.MEMBER.MAGISTRAT_DETAILS,
             lazy: () =>
               import('@/pages/magistrats/MagistratDetailsPage').then(({ MagistratDetailsPage }) => ({
@@ -214,6 +221,13 @@ export const router = sentryCreateBrowserRouter([
             lazy: () =>
               import('@/pages/observations/ObservationDetailsPage').then(({ ObservationDetailsPage }) => ({
                 Component: ObservationDetailsPage,
+              })),
+          },
+          {
+            path: ROUTE_PATHS.SG.MAGISTRAT_SEARCH,
+            lazy: () =>
+              import('@/pages/magistrats/MagistratSearchPage').then(({ MagistratSearchPage }) => ({
+                Component: MagistratSearchPage,
               })),
           },
           {

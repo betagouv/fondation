@@ -18,6 +18,7 @@ import type {
   SearchMagistratsResponseDto,
   UpdateObservationDto,
 } from '@api/types';
+import type { FoundMagistrat } from '@queries/magistrats.queries';
 import type { Observation } from '@queries/observations.queries';
 
 import { Observations } from './Observations';
@@ -74,6 +75,60 @@ const MAGISTRATS: NonNullable<Observation['magistrat']>[] = [
     name: 'LEFEBVRE Étienne',
   },
 ];
+
+const FOUND_POSITIONS: Record<
+  string,
+  Pick<FoundMagistrat, 'currentPosition' | 'grade' | 'gradeAndJurisdiction'>
+> = {
+  'magistrat-benali': {
+    currentPosition: {
+      function: { id: 'VPR', label: 'Vice-procureur de la République' },
+      jurisdiction: { id: 'TJ  MARSEILLE', label: 'Tribunal judiciaire de Marseille' },
+    },
+    grade: 'G1',
+    gradeAndJurisdiction: 'G1 - TJ MARSEILLE',
+  },
+  'magistrat-konate': {
+    currentPosition: {
+      function: { id: 'C', label: 'Conseiller' },
+      jurisdiction: { id: 'CA  LYON', label: "Cour d'appel de Lyon" },
+    },
+    grade: 'G1',
+    gradeAndJurisdiction: 'G1 - CA LYON',
+  },
+  'magistrat-lefebvre': {
+    currentPosition: {
+      function: { id: 'CR', label: 'Conseiller référendaire' },
+      jurisdiction: { id: 'CC', label: 'Cour de cassation' },
+    },
+    grade: 'G1',
+    gradeAndJurisdiction: 'G1 - CC',
+  },
+  'magistrat-martin': {
+    currentPosition: {
+      function: { id: 'J', label: 'Juge' },
+      jurisdiction: { id: 'TJ  NANTES', label: 'Tribunal judiciaire de Nantes' },
+    },
+    grade: 'G2',
+    gradeAndJurisdiction: 'G2 - TJ NANTES',
+  },
+  'magistrat-nguyen': {
+    currentPosition: {
+      function: { id: 'PVP', label: 'Premier vice-président' },
+      jurisdiction: { id: 'TJ  BORDEAUX', label: 'Tribunal judiciaire de Bordeaux' },
+    },
+    grade: 'G1',
+    gradeAndJurisdiction: 'G1 - TJ BORDEAUX',
+  },
+  'magistrat-rousseau': {
+    currentPosition: {
+      function: { id: 'SUBG', label: 'Substitut général' },
+      jurisdiction: { id: 'CA  DOUAI', label: "Cour d'appel de Douai" },
+    },
+    grade: 'G1',
+    gradeAndJurisdiction: 'G1 - CA DOUAI',
+  },
+};
 
 function makeObservation(overrides: Partial<Observation> & { id: string }): Observation {
   return {
@@ -165,7 +220,12 @@ const observationHandlers = [
     const search = new URL(request.url).searchParams.get('search')?.toLowerCase() ?? '';
     const items = MAGISTRATS.filter(({ firstName, lastName }) =>
       `${firstName} ${lastName}`.toLowerCase().includes(search),
-    ).map((magistrat) => ({ ...magistrat, grade: null }));
+    ).map((magistrat) => ({
+      ...magistrat,
+      ...FOUND_POSITIONS[magistrat.id]!,
+      status: 'ACTIVE' as const,
+      usedName: null,
+    }));
 
     return HttpResponse.json<SearchMagistratsResponseDto>({
       currentPageIndex: 0,

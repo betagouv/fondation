@@ -29,6 +29,8 @@ export class JobFileIngestor {
     tag: string;
     schema: z.ZodType<T>;
     mapper: (item: AsyncIterable<{ data: T; success: boolean }>) => AsyncIterable<unknown>;
+    /** Runs once every item is read: when it throws, the file fails */
+    beforeSucceeding?: () => Promise<void>;
   }): Promise<{ success: boolean }> {
     let start: number;
     const { job, file } = options;
@@ -86,6 +88,7 @@ export class JobFileIngestor {
       );
 
       if (result.success) {
+        await options.beforeSucceeding?.();
         return this.succeedJobFile({ file, jobId: job.id });
       } else {
         return this.failJobFile({

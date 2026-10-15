@@ -1896,8 +1896,20 @@ export type SearchMagistratsResponseDto = {
         firstName: string;
         lastName: string;
         name: string;
+        usedName: string | null;
+        status: 'ACTIVE' | 'INACTIVE';
         grade: string | null;
-        currentPosition: string | null;
+        gradeAndJurisdiction: string | null;
+        currentPosition: {
+            function: {
+                id: string;
+                label: string;
+            } | null;
+            jurisdiction: {
+                id: string;
+                label: string | null;
+            };
+        } | null;
     }>;
     totalCount: number;
     currentPageIndex: number;

@@ -28,7 +28,7 @@ const PresentationsBreadcrumb = memo(function PresentationsBreadcrumb() {
         currentPageLabel: formatMessage({ defaultMessage: `Restitutions` }),
         segments: [
           {
-            label: formatMessage({ defaultMessage: 'Secrétariat Général' }),
+            label: formatMessage({ defaultMessage: 'Secrétariat général' }),
             to: generatePath(ROUTE_PATHS.SG.DASHBOARD),
           },
         ],

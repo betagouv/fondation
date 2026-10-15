@@ -90,7 +90,7 @@ export class DetailMagistratQuery {
   }
 }
 
-const PositionSchema = z.object({
+export const PositionSchema = z.object({
   id: z.number().int(),
   grade: z.enum(GradeEnum).nullable(),
   function: z.object({ id: z.string(), label: z.string() }).nullable(),

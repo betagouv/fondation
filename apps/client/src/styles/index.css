@@ -13,6 +13,17 @@
   --breakpoint-2xl: 94rem;
 }
 
+/* inline: resolves the delay on the animated element rather than on `:root`, where it is unset */
+@theme inline {
+  --animate-fade-in: fade-in 300ms ease-out var(--fade-in-delay, 0ms) both;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+}
+
 :root {
   --fondation-container-max-width: 86rem;
   --fondation-editor-min-width: 5rem;

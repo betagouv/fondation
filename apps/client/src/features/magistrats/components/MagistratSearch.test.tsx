@@ -1,0 +1,336 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { NuqsTestingAdapter } from 'nuqs/adapters/testing';
+import { IntlProvider } from 'react-intl';
+import { MemoryRouter } from 'react-router';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { frFormat } from '@/i18n/formats';
+import { ToastProvider } from '@/shared/ui/toast';
+import * as $api from '@api/sdk';
+import type { FoundMagistrat } from '@queries/magistrats.queries';
+
+import { MagistratSearch } from './MagistratSearch';
+
+const searchMagistrats = vi.spyOn($api.magistrats, 'searchMagistrats');
+
+// jsdom implements no IntersectionObserver: the test reports the end of the list in view itself
+const endOfListObservers: IntersectionObserverCallback[] = [];
+vi.stubGlobal(
+  'IntersectionObserver',
+  class {
+    constructor(callback: IntersectionObserverCallback) {
+      endOfListObservers.push(callback);
+    }
+    disconnect() {}
+    observe() {}
+  },
+);
+
+function scrollToEndOfList() {
+  act(() =>
+    endOfListObservers.at(-1)?.(
+      [{ isIntersecting: true } as IntersectionObserverEntry],
+      {} as IntersectionObserver,
+    ),
+  );
+}
+
+function renderSearch(props?: { path?: string; searchParams?: string }) {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const searchAt = (searchParams = '') => (
+    <QueryClientProvider client={client}>
+      <IntlProvider defaultLocale="fr" formats={frFormat} locale="fr">
+        <MemoryRouter initialEntries={[props?.path ?? '/secretariat-general/magistrats']}>
+          <NuqsTestingAdapter hasMemory searchParams={searchParams}>
+            <ToastProvider>
+              <MagistratSearch />
+            </ToastProvider>
+          </NuqsTestingAdapter>
+        </MemoryRouter>
+      </IntlProvider>
+    </QueryClientProvider>
+  );
+  const view = render(searchAt(props?.searchParams));
+  return { navigateTo: (searchParams: string) => view.rerender(searchAt(searchParams)) };
+}
+
+describe('MagistratSearch', () => {
+  beforeEach(() => {
+    searchMagistrats.mockReset();
+    endOfListObservers.length = 0;
+  });
+
+  it('leads back to the secretariat general from its breadcrumb', () => {
+    renderSearch();
+
+    const breadcrumb = screen.getByRole('navigation', {
+      name: "Fil d'Ariane de la recherche d'un magistrat",
+    });
+    expect(within(breadcrumb).getByRole('link', { name: 'Secrétariat général' })).toHaveAttribute(
+      'href',
+      '/secretariat-general',
+    );
+    expect(within(breadcrumb).getByText('Rechercher un magistrat')).toHaveAttribute('aria-current', 'page');
+  });
+
+  it('leads a member back to the transparences from the breadcrumb', () => {
+    renderSearch({ path: '/magistrats' });
+
+    const breadcrumb = screen.getByRole('navigation', {
+      name: "Fil d'Ariane de la recherche d'un magistrat",
+    });
+    expect(within(breadcrumb).getByRole('link', { name: 'Transparences' })).toHaveAttribute(
+      'href',
+      '/transparences',
+    );
+  });
+
+  it('waits for 2 characters before searching', async () => {
+    const user = userEvent.setup();
+    renderSearch();
+
+    await user.type(screen.getByRole('textbox', { name: 'Rechercher par nom ou prénom' }), 'v');
+
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
+    expect(searchMagistrats).not.toHaveBeenCalled();
+  });
+
+  it('shows the found magistrats with their total', async () => {
+    searchMagistrats.mockResolvedValue(
+      found([
+        {
+          currentPosition: {
+            function: { id: 'PR', label: 'Procureur de la République' },
+            jurisdiction: { id: 'CA  LYON', label: "Cour d'appel de Lyon" },
+          },
+          grade: 'G3',
+          gradeAndJurisdiction: 'G3 - CA LYON',
+          id: 'magistrat-1',
+          name: 'VALROSE Honorine',
+        },
+        {
+          currentPosition: {
+            function: null,
+            jurisdiction: { id: 'TJ  RODEZ', label: 'Tribunal judiciaire de Rodez' },
+          },
+          grade: 'G2',
+          gradeAndJurisdiction: 'G2 - TJ RODEZ',
+          id: 'magistrat-2',
+          name: 'VALROSE Marc',
+        },
+      ]),
+    );
+    const user = userEvent.setup();
+    renderSearch();
+
+    await user.type(screen.getByRole('textbox', { name: 'Rechercher par nom ou prénom' }), 'valr');
+
+    const honorine = await screen.findByRole('article', { name: 'VALROSE Honorine' });
+    expect(within(honorine).getByText('Procureur de la République')).toBeInTheDocument();
+    expect(within(honorine).getByText('G3 - CA LYON')).toBeInTheDocument();
+    expect(within(honorine).getByRole('link', { name: 'VALROSE Honorine' })).toHaveAttribute(
+      'href',
+      '/secretariat-general/magistrats/magistrat-1',
+    );
+    const marc = screen.getByRole('article', { name: 'VALROSE Marc' });
+    expect(within(marc).getByText('Tribunal judiciaire de Rodez')).toBeInTheDocument();
+    expect(within(marc).getByText('G2 - TJ RODEZ')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('2 résultats');
+    expect(searchMagistrats).toHaveBeenCalledWith(
+      expect.objectContaining({ query: { page: 1, search: 'valr' } }),
+    );
+  });
+
+  it('opens the details page of a found magistrat in the space of a member', async () => {
+    searchMagistrats.mockResolvedValue(
+      found([
+        {
+          currentPosition: null,
+          grade: null,
+          gradeAndJurisdiction: null,
+          id: 'magistrat-1',
+          name: 'VALROSE Honorine',
+        },
+      ]),
+    );
+    renderSearch({ path: '/magistrats', searchParams: '?recherche=valr' });
+
+    expect(await screen.findByRole('link', { name: 'VALROSE Honorine' })).toHaveAttribute(
+      'href',
+      '/magistrats/magistrat-1',
+    );
+  });
+
+  it('keeps the focus in the search input once magistrats are found', async () => {
+    searchMagistrats.mockResolvedValue(
+      found([
+        {
+          currentPosition: null,
+          grade: null,
+          gradeAndJurisdiction: null,
+          id: 'magistrat-1',
+          name: 'VALROSE Honorine',
+        },
+      ]),
+    );
+    const user = userEvent.setup();
+    renderSearch();
+
+    await user.type(screen.getByRole('textbox', { name: 'Rechercher par nom ou prénom' }), 'valr');
+
+    await screen.findByRole('article', { name: 'VALROSE Honorine' });
+    expect(screen.getByRole('textbox', { name: 'Rechercher par nom ou prénom' })).toHaveFocus();
+  });
+
+  it('tells when no magistrat matches', async () => {
+    searchMagistrats.mockResolvedValue(found([]));
+    const user = userEvent.setup();
+    renderSearch();
+
+    await user.type(screen.getByRole('textbox', { name: 'Rechercher par nom ou prénom' }), 'zz');
+
+    expect(await screen.findByText('Aucun résultat ne correspond aux valeurs saisies.')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('0 résultat');
+  });
+
+  it('tells when the search fails', async () => {
+    searchMagistrats.mockRejectedValue(new Error('Internal Server Error'));
+    renderSearch({ searchParams: '?recherche=valr' });
+
+    expect(
+      await within(screen.getByRole('region', { name: 'Notifications' })).findByText(
+        "La recherche n'a pas pu aboutir",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it('restores the search from the URL', async () => {
+    searchMagistrats.mockResolvedValue(
+      found([
+        {
+          currentPosition: null,
+          grade: null,
+          gradeAndJurisdiction: null,
+          id: 'magistrat-1',
+          name: 'VALROSE Honorine',
+        },
+      ]),
+    );
+    renderSearch({ searchParams: '?recherche=valr' });
+
+    expect(await screen.findByRole('article', { name: 'VALROSE Honorine' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Rechercher par nom ou prénom' })).toHaveValue('valr');
+  });
+
+  it('empties the search when the URL loses it, as when following the navigation link', async () => {
+    searchMagistrats.mockResolvedValue(
+      found([
+        {
+          currentPosition: null,
+          grade: null,
+          gradeAndJurisdiction: null,
+          id: 'magistrat-1',
+          name: 'VALROSE Honorine',
+        },
+      ]),
+    );
+    const { navigateTo } = renderSearch({ searchParams: '?recherche=valr' });
+    await screen.findByRole('article', { name: 'VALROSE Honorine' });
+
+    navigateTo('');
+
+    expect(screen.getByRole('textbox', { name: 'Rechercher par nom ou prénom' })).toHaveValue('');
+    await waitFor(() => expect(screen.queryByRole('article')).not.toBeInTheDocument());
+  });
+
+  it('adds the next magistrats from "Voir plus" until all are shown', async () => {
+    mockTwoPagesOfValrose();
+    const user = userEvent.setup();
+    renderSearch({ searchParams: '?recherche=valr' });
+
+    const showMore = await screen.findByRole('button', { name: 'Voir plus' });
+    expect(screen.getByRole('status')).toHaveTextContent('1 résultat affiché sur 2');
+    await user.click(showMore);
+
+    expect(await screen.findByRole('article', { name: 'VALROSE Marc' })).toBeInTheDocument();
+    expect(screen.getByRole('article', { name: 'VALROSE Honorine' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Voir plus' })).not.toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('2 résultats');
+    await waitFor(() => expect(screen.getByRole('link', { name: 'VALROSE Marc' })).toHaveFocus());
+    expect(searchMagistrats).toHaveBeenLastCalledWith(
+      expect.objectContaining({ query: { page: 2, search: 'valr' } }),
+    );
+  });
+
+  it('adds the next magistrats once the end of the list is scrolled into view', async () => {
+    mockTwoPagesOfValrose();
+    renderSearch({ searchParams: '?recherche=valr' });
+    await screen.findByRole('article', { name: 'VALROSE Honorine' });
+
+    scrollToEndOfList();
+
+    expect(await screen.findByRole('article', { name: 'VALROSE Marc' })).toBeInTheDocument();
+    expect(searchMagistrats).toHaveBeenLastCalledWith(
+      expect.objectContaining({ query: { page: 2, search: 'valr' } }),
+    );
+  });
+});
+
+function found(
+  items: Pick<FoundMagistrat, 'currentPosition' | 'grade' | 'gradeAndJurisdiction' | 'id' | 'name'>[],
+  page?: { nextPageIndex?: number; totalCount: number },
+) {
+  return {
+    data: {
+      currentPageIndex: 1,
+      items: items.map((item) => ({
+        ...item,
+        firstName: '',
+        lastName: '',
+        status: 'ACTIVE',
+        usedName: null,
+      })),
+      totalCount: items.length,
+      ...page,
+    },
+  } as unknown as Awaited<ReturnType<typeof $api.magistrats.searchMagistrats>>;
+}
+
+function mockTwoPagesOfValrose() {
+  searchMagistrats
+    .mockResolvedValueOnce(
+      found(
+        [
+          {
+            currentPosition: null,
+            grade: null,
+            gradeAndJurisdiction: null,
+            id: 'magistrat-1',
+            name: 'VALROSE Honorine',
+          },
+        ],
+        {
+          nextPageIndex: 2,
+          totalCount: 2,
+        },
+      ),
+    )
+    .mockResolvedValueOnce(
+      found(
+        [
+          {
+            currentPosition: null,
+            grade: null,
+            gradeAndJurisdiction: null,
+            id: 'magistrat-2',
+            name: 'VALROSE Marc',
+          },
+        ],
+        {
+          totalCount: 2,
+        },
+      ),
+    );
+}

@@ -6,22 +6,29 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { useDebounce } from 'use-debounce';
 
 import { RequiredLabel } from '@/shared/ui/required-label';
-import { useSearchMagistratsQuery, type MagistratSearchResult } from '@queries/observations.queries';
+import { MAGISTRAT_SEARCH_MIN_LENGTH, type FoundMagistrat } from '@queries/magistrats.queries';
+import { useSearchMagistratsQuery, type Observant } from '@queries/observations.queries';
 
-const searchTermFor = (magistrat: MagistratSearchResult) => `${magistrat.lastName} ${magistrat.firstName}`;
+const searchTermFor = (magistrat: Observant) => `${magistrat.lastName} ${magistrat.firstName}`;
 
-const magistratDetails = (magistrat: MagistratSearchResult) =>
-  [magistrat.grade, magistrat.currentPosition]
-    .flatMap((detail) => {
-      const trimmed = detail?.trim();
-      return trimmed ? [trimmed] : [];
-    })
-    .join(' - ');
+const currentPositionLabel = ({ currentPosition }: FoundMagistrat) =>
+  [currentPosition?.function?.label, currentPosition?.jurisdiction.label].filter(Boolean).join(' ') || null;
+
+const magistratDetails = (magistrat: FoundMagistrat) =>
+  [magistrat.grade, currentPositionLabel(magistrat)].filter(Boolean).join(' - ');
+
+const toObservant = (magistrat: FoundMagistrat): Observant => ({
+  currentPosition: currentPositionLabel(magistrat),
+  firstName: magistrat.firstName,
+  id: magistrat.id,
+  lastName: magistrat.lastName,
+  name: magistrat.name,
+});
 
 export function MagistratCombobox(props: {
   errorMessage?: string;
-  magistrat: MagistratSearchResult | null;
-  onChange: (magistrat: MagistratSearchResult | null) => void;
+  magistrat: Observant | null;
+  onChange: (magistrat: Observant | null) => void;
 }) {
   const intl = useIntl();
   const { magistrat, onChange } = props;
@@ -39,14 +46,15 @@ export function MagistratCombobox(props: {
     if (magistrat) setSearchTerm(searchTermFor(magistrat));
   }, [magistrat]);
 
-  const { data, isLoading: isSearching } = useSearchMagistratsQuery(debouncedSearch);
+  const { data, isError, isLoading: isSearching } = useSearchMagistratsQuery(debouncedSearch);
   const results = data ?? [];
-  const isOpen = showResults && debouncedSearch.length >= 2;
+  const isOpen = showResults && debouncedSearch.length >= MAGISTRAT_SEARCH_MIN_LENGTH;
   const activeMagistrat = isOpen ? results[activeIndex] : undefined;
 
-  const select = (selected: MagistratSearchResult) => {
-    onChange(selected);
-    setSearchTerm(searchTermFor(selected));
+  const select = (selected: FoundMagistrat) => {
+    const observant = toObservant(selected);
+    onChange(observant);
+    setSearchTerm(searchTermFor(observant));
     setShowResults(false);
   };
 
@@ -111,7 +119,12 @@ export function MagistratCombobox(props: {
               <FormattedMessage defaultMessage="Recherche…" />
             </p>
           )}
-          {!isSearching && results.length === 0 && (
+          {isError && (
+            <p className="fr-p-3v fr-mb-0 text-sm text-(--text-default-error)">
+              <FormattedMessage defaultMessage="La recherche n'a pas pu aboutir" />
+            </p>
+          )}
+          {!isSearching && !isError && results.length === 0 && (
             <p className="fr-p-3v fr-mb-0 text-sm text-(--text-mention-grey)">
               <FormattedMessage defaultMessage="Aucun résultat" />
             </p>

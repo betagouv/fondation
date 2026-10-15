@@ -9,15 +9,15 @@ import type {
   GetObservationDetailsResponseDto,
   ListObservationsResponseDto,
   ScheduleObservantAuditionDto,
-  SearchMagistratsResponseDto,
   UpdateObservationDto,
 } from '@api/types';
 
 import { auditionKeys } from './auditions.queries';
+import { MAGISTRAT_SEARCH_MIN_LENGTH } from './magistrats.queries';
 import { mapCachedNominationFiles, sessionKeys } from './nomination-sessions.queries';
 
 export type Observation = ListObservationsResponseDto['observations'][number];
-export type MagistratSearchResult = SearchMagistratsResponseDto['items'][number];
+export type Observant = NonNullable<Observation['magistrat']>;
 
 export const observationKeys = {
   observations: (props?: { sessionId: string; nominationFileId: string | undefined }) =>
@@ -26,8 +26,7 @@ export const observationKeys = {
   allObservations: () => ['observations'] as const,
   observationDetails: (props: { sessionId: string; nominationFileId: string; observationId: string }) =>
     ['observationDetails', props] as const,
-  searchMagistrats: (props?: { search?: string; ignoreIds?: string[] }) =>
-    ['searchMagistrats', props?.search, props?.ignoreIds] as const,
+  searchMagistrats: (props?: { search?: string }) => ['searchMagistrats', props?.search] as const,
   observationAttachments: (props?: { magistratId?: string }) =>
     ['observation', 'attachments', props?.magistratId] as const,
 };
@@ -86,19 +85,20 @@ function updateMemberCommentImages(
   return response;
 }
 
-export function useSearchMagistratsQuery(search: string, ignoreIds?: readonly string[]) {
+export function useSearchMagistratsQuery(search: string) {
   return useQuery({
-    enabled: search.length >= 2,
-    queryKey: observationKeys.searchMagistrats({ search: search.length > 2 ? search : undefined }),
+    enabled: search.length >= MAGISTRAT_SEARCH_MIN_LENGTH,
+    queryKey: observationKeys.searchMagistrats({ search }),
     queryFn: async () => {
       const { data } = await $api.magistrats.searchMagistrats({
         query: {
-          search: search.length > 2 ? search : undefined,
-          ignore: ignoreIds?.join(',') || undefined,
+          search,
+          limit: 10,
         },
+        throwOnError: true,
       });
 
-      return data?.items ?? [];
+      return data.items;
     },
   });
 }

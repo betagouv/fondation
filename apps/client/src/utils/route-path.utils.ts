@@ -18,6 +18,7 @@ export const ROUTE_PATHS = {
   LOGIN: '/login',
   MEMBER: {
     MAGISTRAT_DETAILS: '/magistrats/:magistratId',
+    MAGISTRAT_SEARCH: '/magistrats',
   },
   REDIRECT_MAGISTRAT_LOLFI: '/session/:sessionId/dossier/:fileId/lolfi-magistrat',
   SG: {
@@ -30,6 +31,7 @@ export const ROUTE_PATHS = {
     ARCHIVED_SESSIONS: '/secretariat-general/archives/sessions',
     DASHBOARD: '/secretariat-general',
     MAGISTRAT_DETAILS: '/secretariat-general/magistrats/:magistratId',
+    MAGISTRAT_SEARCH: '/secretariat-general/magistrats',
     MANAGE_MEMBERS: '/secretariat-general/membres',
     MANAGE_SESSION: '/secretariat-general/sessions',
     MANAGE_SINGLE_MEMBER: '/secretariat-general/membres/:userId',

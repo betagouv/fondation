@@ -35,6 +35,8 @@ model Magistrat {
 
   lolfiUpdatedAt DateTime? @map("lolfi_updated_at") @db.Date
 
+  status PrismaMagistratStatusEnum @default(ACTIVE)
+
   observations              Observation[]
   observantAuditions        ObservantAudition[]
   observantAuditionVersions ObservantAuditionVersion[]
@@ -44,13 +46,21 @@ model Magistrat {
   detectedInNominationFiles DossierDeNomination[]
   phoneNumbers              MagistratPhoneNumber[]
 
-  search Unsupported("tsvector")? @default(dbgenerated("(((setweight(to_tsvector('unaccent_fr'::regconfig, lower(COALESCE(first_name, ''::text))), 'A'::\"char\") || setweight(to_tsvector('unaccent_fr'::regconfig, lower(COALESCE(used_name, ''::text))), 'A'::\"char\")) || setweight(to_tsvector('unaccent_fr'::regconfig, lower(COALESCE(last_name, ''::text))), 'B'::\"char\")) || setweight(to_tsvector('unaccent_fr'::regconfig, lower(COALESCE(professional_email, ''::text))), 'C'::\"char\"))"))
+  search Unsupported("tsvector")? @default(dbgenerated("((((setweight(to_tsvector('unaccent_simple'::regconfig, lower(COALESCE(first_name, ''::text))), 'A'::\"char\") || setweight(to_tsvector('unaccent_simple'::regconfig, lower(COALESCE(used_name, ''::text))), 'A'::\"char\")) || setweight(to_tsvector('unaccent_simple'::regconfig, lower(COALESCE(last_name, ''::text))), 'B'::\"char\")) || setweight(to_tsvector('unaccent_simple'::regconfig, lower(COALESCE(married_name, ''::text))), 'B'::\"char\")) || setweight(to_tsvector('unaccent_simple'::regconfig, lower(COALESCE(professional_email, ''::text))), 'C'::\"char\"))"))
 
   @@index([search], map: "magistrat_search_idx_gin", type: Gin)
   @@index([lastName, firstName])
   @@index([usedName])
   @@index([professionalEmail])
   @@map("magistrat")
+  @@schema("nominations_context")
+}
+
+enum PrismaMagistratStatusEnum {
+  ACTIVE
+  INACTIVE
+
+  @@map("magistrat_status_enum")
   @@schema("nominations_context")
 }
 
