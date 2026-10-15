@@ -1,6 +1,11 @@
+export { Checkbox } from './Checkbox';
 export { DataTable } from './DataTable';
+export { DataTableCount } from './DataTableCount';
+export { DataTableFilters } from './DataTableFilters';
+export type { TableMetaFilterAsyncList, TableMetaFilterEnum } from './data-table.types';
 export { parseAsFilters } from './hooks/data-table-parsers';
-export { ReactTableFilterColumn } from './ReactTableFilterColumn';
-export { useDataTable } from './hooks/useDataTable';
-export { useDataTableState } from './hooks/useDataTableState';
-export { useQueryDataTableState } from './hooks/useQueryDataTableState';
+export { rowCell } from './rowCell';
+export { useDataTableSearch } from './hooks/useDataTableSearch';
+export { useDataTableUrlState } from './hooks/useDataTableUrlState';
+export { useSelectionColumn } from './hooks/useSelectionColumn';
+export { useTableVirtualizer } from './hooks/useTableVirtualizer';

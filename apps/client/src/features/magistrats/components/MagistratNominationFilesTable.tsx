@@ -6,7 +6,7 @@ import { generatePath, Link } from 'react-router';
 
 import { OutcomeBadge } from '@/shared/components/outcome-badge';
 import { ReporterTagList } from '@/shared/components/reporter-tag';
-import { NewTable } from '@/shared/ui/new-table/NewTable';
+import { DataTable } from '@/shared/ui/data-table';
 import { isAuditionMissing } from '@/utils/audition-expectation.util';
 import { formatDateOnly } from '@/utils/date-only.util';
 import { getDetailSessionGdsPath, ROUTE_PATHS } from '@/utils/route-path.utils';
@@ -159,7 +159,7 @@ export function MagistratNominationFilesTable({
   });
 
   return (
-    <NewTable
+    <DataTable
       className="max-h-80"
       emptyLabel={formatMessage({ defaultMessage: 'Aucun dossier de nomination' })}
       fluid
