@@ -1,4 +1,5 @@
 // oxlint-disable typescript/unbound-method
+import { NoSuchKey, S3ServiceException } from '@aws-sdk/client-s3';
 import { HttpService } from '@nestjs/axios';
 import { NotFoundException } from '@nestjs/common';
 import * as Sentry from '@sentry/node';
@@ -105,6 +106,35 @@ describe('Files', () => {
       storageAnswers(403);
 
       await expect(files.getFileContent('public-url-id')).rejects.toBeInstanceOf(AxiosError);
+      expect(Sentry.captureMessage).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getFile', () => {
+    beforeEach(() => {
+      tx.file.findUnique.mockResolvedValue({ path: ['agendas', 'ordre-du-jour.pdf'] } as never);
+    });
+
+    it('answers no file and warns Sentry when the storage lost a file the database knows', async () => {
+      send.mockRejectedValue(new NoSuchKey({ $metadata: {}, message: 'The specified key does not exist.' }));
+
+      await expect(files.getFile({ fileId: 'file-id' })).resolves.toBeNull();
+      expect(Sentry.captureMessage).toHaveBeenCalledWith(expect.any(String), {
+        extra: { fileId: 'file-id', path: 'agendas/ordre-du-jour.pdf' },
+        level: 'warning',
+      });
+    });
+
+    it('lets any other storage failure through', async () => {
+      const failure = new S3ServiceException({
+        $fault: 'client',
+        $metadata: {},
+        message: 'Access Denied',
+        name: 'AccessDenied',
+      });
+      send.mockRejectedValue(failure);
+
+      await expect(files.getFile({ fileId: 'file-id' })).rejects.toBe(failure);
       expect(Sentry.captureMessage).not.toHaveBeenCalled();
     });
   });

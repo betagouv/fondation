@@ -8,6 +8,7 @@ import {
   GetObjectCommand,
   HeadBucketCommand,
   ListObjectVersionsCommand,
+  NoSuchKey,
   PutBucketCorsCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
@@ -508,7 +509,14 @@ export class Files implements OnApplicationBootstrap {
       Key: encodeURI(storedFile.path.join('/')),
     });
 
-    const response = await this.client.send(command);
+    const response = await this.client.send(command).catch((error: unknown) => {
+      if (!(error instanceof NoSuchKey)) throw error;
+
+      this.reportMissingFromStorage({ id: props.fileId, path: storedFile.path });
+      return null;
+    });
+
+    if (!response) return null;
     if (!response.Body) throw new Error('Not Found');
 
     return assertIsDefined(response.Body as Readable | undefined, `file ${props.fileId} not found`);

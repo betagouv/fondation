@@ -1,10 +1,4 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-  NotFoundException,
-  StreamableFile,
-} from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, StreamableFile } from '@nestjs/common';
 
 import { docFileName } from '../../../shared/domain/doc-file-name';
 import { OfficialReportVersionFinder } from '../finders/official-report-version.finder';
@@ -60,10 +54,7 @@ export class FindOfficialReportDocumentPdfQuery {
     // Stream the cached PDF from S3 outside of any transaction.
     if (!query.forceNew && officialReport.pdf?.id) {
       const file$ = await this.files.getFile({ fileId: officialReport.pdf.id });
-      if (!file$) {
-        this.logger.error(`Could not retrieve the official report PDF file from S3`);
-        throw new InternalServerErrorException();
-      }
+      if (!file$) throw new NotFoundException();
 
       return new StreamableFile(file$, {
         type: FILE_MIME_TYPES.pdf,

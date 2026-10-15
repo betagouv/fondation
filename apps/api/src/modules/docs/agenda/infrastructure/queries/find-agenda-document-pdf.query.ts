@@ -1,10 +1,4 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-  NotFoundException,
-  StreamableFile,
-} from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, StreamableFile } from '@nestjs/common';
 
 import { docFileName } from '../../../shared/domain/doc-file-name';
 import { AgendaVersionFinder } from '../finders/agenda-version.finder';
@@ -60,10 +54,7 @@ export class FindAgendaDocumentPdfQuery {
     // Stream the cached PDF from S3 outside of any transaction.
     if (!query.forceNew && version.pdf?.id) {
       const file$ = await this.files.getFile({ fileId: version.pdf.id });
-      if (!file$) {
-        this.logger.error(`Could not retrieve the agenda PDF file from S3`);
-        throw new InternalServerErrorException();
-      }
+      if (!file$) throw new NotFoundException();
 
       return new StreamableFile(file$, {
         type: FILE_MIME_TYPES.pdf,
