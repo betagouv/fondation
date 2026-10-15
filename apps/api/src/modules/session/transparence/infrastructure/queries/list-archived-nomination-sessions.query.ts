@@ -36,16 +36,13 @@ export class ListArchivedNominationSessionsQuery {
     typeDeSaisine: TypeDeSaisineEnum;
   }): Promise<ListedArchivedNominationSessionsDto> {
     const allowed = roleToFormation(query.role);
-    const requested = query.formations?.length ? query.formations : undefined;
-    const formations = allowed
-      ? (requested ?? [allowed]).filter((formation) => formation === allowed)
-      : requested;
+    const requested = query.formations?.length ? { in: [...query.formations] } : undefined;
 
     const where: Prisma.SessionWhereInput = {
       deletedAt: null,
       archivedAt: { not: null },
       typeDeSaisine: query.typeDeSaisine,
-      ...(formations && { formation: { in: [...formations] } }),
+      formation: allowed ?? requested,
       ...(query.search && {
         name: { contains: query.search, mode: 'insensitive' },
       }),
