@@ -46,7 +46,7 @@ export function MagistratCombobox(props: {
     if (magistrat) setSearchTerm(searchTermFor(magistrat));
   }, [magistrat]);
 
-  const { data, isLoading: isSearching } = useSearchMagistratsQuery(debouncedSearch);
+  const { data, isError, isLoading: isSearching } = useSearchMagistratsQuery(debouncedSearch);
   const results = data ?? [];
   const isOpen = showResults && debouncedSearch.length >= MAGISTRAT_SEARCH_MIN_LENGTH;
   const activeMagistrat = isOpen ? results[activeIndex] : undefined;
@@ -119,7 +119,12 @@ export function MagistratCombobox(props: {
               <FormattedMessage defaultMessage="Recherche…" />
             </p>
           )}
-          {!isSearching && results.length === 0 && (
+          {isError && (
+            <p className="fr-p-3v fr-mb-0 text-sm text-(--text-default-error)">
+              <FormattedMessage defaultMessage="La recherche n'a pas pu aboutir" />
+            </p>
+          )}
+          {!isSearching && !isError && results.length === 0 && (
             <p className="fr-p-3v fr-mb-0 text-sm text-(--text-mention-grey)">
               <FormattedMessage defaultMessage="Aucun résultat" />
             </p>

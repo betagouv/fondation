@@ -95,9 +95,10 @@ export function useSearchMagistratsQuery(search: string) {
           search,
           limit: 10,
         },
+        throwOnError: true,
       });
 
-      return data?.items ?? [];
+      return data.items;
     },
   });
 }

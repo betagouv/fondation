@@ -20,7 +20,10 @@ describe('useSearchMagistratsQuery', () => {
     });
 
     await waitFor(() =>
-      expect(searchMagistrats).toHaveBeenCalledWith({ query: expect.objectContaining({ search: 'ma' }) }),
+      expect(searchMagistrats).toHaveBeenCalledWith({
+        query: expect.objectContaining({ search: 'ma' }),
+        throwOnError: true,
+      }),
     );
   });
 });

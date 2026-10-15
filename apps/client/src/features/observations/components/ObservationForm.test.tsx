@@ -15,13 +15,18 @@ const createObservation = vi.fn();
 const updateObservation = vi.fn();
 
 let searchResults: FoundMagistrat[] = [];
+let searchFailed = false;
 
 let linkableAttachments: { observationId: string; fileId: string; name: string }[] = [];
 
 vi.mock('@queries/observations.queries', () => ({
   useCreateObservationMutation: () => ({ mutate: createObservation, reset: vi.fn(), error: null }),
   useUpdateObservationMutation: () => ({ mutate: updateObservation, reset: vi.fn(), error: null }),
-  useSearchMagistratsQuery: () => ({ data: searchResults, isLoading: false }),
+  useSearchMagistratsQuery: () => ({
+    data: searchFailed ? undefined : searchResults,
+    isError: searchFailed,
+    isLoading: false,
+  }),
   useListObservationsAttachments: () => ({ data: { items: linkableAttachments } }),
 }));
 
@@ -112,6 +117,7 @@ async function search(user: ReturnType<typeof userEvent.setup>) {
 beforeEach(() => {
   vi.clearAllMocks();
   searchResults = [];
+  searchFailed = false;
   linkableAttachments = [];
 });
 
@@ -180,6 +186,17 @@ describe('ObservationForm magistrat combobox', () => {
     expect(
       screen.getByRole('button', { name: /MARTIN Léa - Juge Tribunal judiciaire de Nantes/ }),
     ).toBeInTheDocument();
+  });
+
+  it('tells when the search fails rather than finding no magistrat', async () => {
+    const user = userEvent.setup();
+    searchFailed = true;
+    renderForm();
+
+    await user.type(searchInput(), 'mar');
+
+    expect(await screen.findByText("La recherche n'a pas pu aboutir")).toBeInTheDocument();
+    expect(screen.queryByText('Aucun résultat')).not.toBeInTheDocument();
   });
 
   it('exposes the results as options of a listbox', async () => {
