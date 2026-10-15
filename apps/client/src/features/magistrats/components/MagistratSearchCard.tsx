@@ -3,19 +3,12 @@ import { useId } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { Link } from 'react-router';
 
-import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
-import { getMagistratDetailsPath } from '@/utils/route-path.utils';
 import type { FoundMagistrat } from '@queries/magistrats.queries';
 
-export function MagistratSearchCard(props: { magistrat: FoundMagistrat }) {
-  const { currentPosition, gradeAndJurisdiction, id, name, status, usedName } = props.magistrat;
+export function MagistratSearchCard(props: { detailsPath: string; magistrat: FoundMagistrat }) {
+  const { currentPosition, gradeAndJurisdiction, name, status, usedName } = props.magistrat;
   const positionLabel = currentPosition?.function?.label ?? currentPosition?.jurisdiction.label;
   const titleId = useId();
-  const isSgNavigation = useIsSgNavigation();
-  const detailsPath = getMagistratDetailsPath({
-    context: isSgNavigation ? 'sg' : 'membre',
-    magistratId: id,
-  });
 
   return (
     <article
@@ -27,7 +20,7 @@ export function MagistratSearchCard(props: { magistrat: FoundMagistrat }) {
           className="fr-text--lg fr-mb-0 fr-icon-account-circle-fill fr-icon--sm flex items-center gap-2"
           id={titleId}
         >
-          <Link className="fr-link fr-text--lg" to={detailsPath}>
+          <Link className="fr-link fr-text--lg" to={props.detailsPath}>
             {name}
           </Link>
         </h2>

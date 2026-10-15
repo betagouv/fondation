@@ -8,7 +8,7 @@ import { useDebounce } from 'use-debounce';
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { SearchInput } from '@/shared/ui/search-input';
-import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import { getMagistratDetailsPath, ROUTE_PATHS } from '@/utils/route-path.utils';
 import { MAGISTRAT_SEARCH_MIN_LENGTH, useMagistratSearchQuery } from '@queries/magistrats.queries';
 
 import { MagistratSearchCard } from './MagistratSearchCard';
@@ -108,7 +108,13 @@ export function MagistratSearch() {
                         key={magistrat.id}
                         style={{ '--fade-in-delay': `${index * 40}ms` } as CSSProperties}
                       >
-                        <MagistratSearchCard magistrat={magistrat} />
+                        <MagistratSearchCard
+                          detailsPath={getMagistratDetailsPath({
+                            context: isSgNavigation ? 'sg' : 'membre',
+                            magistratId: magistrat.id,
+                          })}
+                          magistrat={magistrat}
+                        />
                       </li>
                     )),
                   )}

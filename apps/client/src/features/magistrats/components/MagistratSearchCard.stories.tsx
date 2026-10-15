@@ -26,15 +26,14 @@ const meta = {
     docs: {
       description: {
         component:
-          "Carte d'un magistrat trouvé par la recherche : un badge actif ou inactif (absent du dernier import Lolfi réussi), son nom d'usage quand il diffère de son nom de naissance et de son nom marital, la fonction de son poste actuel (ou sa juridiction quand le poste n'a pas de fonction), son grade et le code de sa juridiction, et un lien vers sa fiche dans l'espace courant.",
+          "Carte d'un magistrat trouvé par la recherche : un badge actif ou inactif (absent du dernier import Lolfi réussi), son nom d'usage quand il diffère de son nom de naissance et de son nom marital, la fonction de son poste actuel (ou sa juridiction quand le poste n'a pas de fonction), son grade et le code de sa juridiction, et un lien vers sa fiche.",
       },
     },
     layout: 'padded',
-    router: { initialEntries: ['/secretariat-general/magistrats'] },
   },
   tags: ['autodocs'],
   argTypes: { magistrat: { table: { disable: true } } },
-  args: { magistrat },
+  args: { detailsPath: '/secretariat-general/magistrats/magistrat-1', magistrat },
 } satisfies Meta<typeof MagistratSearchCard>;
 
 export default meta;

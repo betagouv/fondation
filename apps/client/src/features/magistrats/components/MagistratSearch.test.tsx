@@ -141,6 +141,26 @@ describe('MagistratSearch', () => {
     );
   });
 
+  it('opens the details page of a found magistrat in the space of a member', async () => {
+    searchMagistrats.mockResolvedValue(
+      found([
+        {
+          currentPosition: null,
+          grade: null,
+          gradeAndJurisdiction: null,
+          id: 'magistrat-1',
+          name: 'VALROSE Honorine',
+        },
+      ]),
+    );
+    renderSearch({ path: '/magistrats', searchParams: '?recherche=valr' });
+
+    expect(await screen.findByRole('link', { name: 'VALROSE Honorine' })).toHaveAttribute(
+      'href',
+      '/magistrats/magistrat-1',
+    );
+  });
+
   it('tells when no magistrat matches', async () => {
     searchMagistrats.mockResolvedValue(found([]));
     const user = userEvent.setup();
