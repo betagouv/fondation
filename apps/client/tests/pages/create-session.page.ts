@@ -63,11 +63,14 @@ export class CreateSessionPage {
   }
 
   private async fillFile(file: File): Promise<void> {
-    return this.app.page.getByLabel('Fichier').setInputFiles({
-      name: file.name,
-      mimeType: file.type,
-      buffer: Buffer.from(await file.arrayBuffer()),
-    });
+    return this.app.page
+      .getByRole('tabpanel')
+      .getByLabel('Extraction LODAM')
+      .setInputFiles({
+        name: file.name,
+        mimeType: file.type,
+        buffer: Buffer.from(await file.arrayBuffer()),
+      });
   }
 
   private fillName(name: string): Promise<void> {

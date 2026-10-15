@@ -20,10 +20,12 @@ const columnHelper = createColumnHelper<MagistratNominationFile>();
 export function MagistratNominationFilesTable({
   context,
   nominationFiles,
+  onEndReached,
   showAuditionDate = true,
 }: {
   context: 'sg' | 'membre';
   nominationFiles: MagistratNominationFile[];
+  onEndReached?: () => void;
   showAuditionDate?: boolean;
 }) {
   const { formatDate, formatMessage, formatTime } = useIntl();
@@ -163,8 +165,8 @@ export function MagistratNominationFilesTable({
       className="max-h-80"
       emptyLabel={formatMessage({ defaultMessage: 'Aucun dossier de nomination' })}
       fluid
+      onEndReached={onEndReached}
       table={table}
-      unvirtualized
     />
   );
 }

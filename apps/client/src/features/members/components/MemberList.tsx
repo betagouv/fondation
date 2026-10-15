@@ -1,8 +1,7 @@
-import Button from '@codegouvfr/react-dsfr/Button';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 import { createColumnHelper, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import clsx from 'clsx';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { defineMessages, FormattedMessage, useIntl } from 'react-intl';
 
 import { PinnedHeader } from '@/shared/components/pinned-header';
@@ -132,6 +131,10 @@ export function MemberList() {
     setTableState((state) => ({ ...state, globalFilter })),
   );
 
+  const fetchMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
   const columns = useMemberColumns();
   const isFiltered =
     !!tableState.globalFilter || tableState.columnFilters.some(({ value }) => value.length > 0);
@@ -189,21 +192,10 @@ export function MemberList() {
         }
         fluid
         isLoading={isLoading}
+        onEndReached={fetchMore}
         scrollsWithPage
         table={table}
-        unvirtualized
       />
-      {hasNextPage && (
-        <Button
-          className="self-center"
-          disabled={isFetchingNextPage}
-          onClick={() => void fetchNextPage()}
-          priority="secondary"
-          size="small"
-        >
-          <FormattedMessage defaultMessage="Voir plus" />
-        </Button>
-      )}
     </PinnedHeader>
   );
 }

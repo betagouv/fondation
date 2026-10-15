@@ -1,8 +1,7 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
-import Button from '@codegouvfr/react-dsfr/Button';
 import { createColumnHelper, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import clsx from 'clsx';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { defineMessage, FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, Link, useLocation } from 'react-router';
 
@@ -113,6 +112,10 @@ export function ManageSession() {
       sorting: tableState.sorting,
     });
 
+  const fetchMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
   const columns = useManagedSessionColumns();
   const isFiltered = tableState.columnFilters.some(({ value }) => value.length > 0);
 
@@ -183,21 +186,10 @@ export function ManageSession() {
           }
           fluid
           isLoading={isLoading}
+          onEndReached={fetchMore}
           scrollsWithPage
           table={table}
-          unvirtualized
         />
-        {hasNextPage && (
-          <Button
-            className="self-center"
-            disabled={isFetchingNextPage}
-            onClick={() => void fetchNextPage()}
-            priority="secondary"
-            size="small"
-          >
-            <FormattedMessage defaultMessage="Voir plus" />
-          </Button>
-        )}
       </PinnedHeader>
     </>
   );

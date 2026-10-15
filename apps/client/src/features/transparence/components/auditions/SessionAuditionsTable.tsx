@@ -1,7 +1,7 @@
 import Badge from '@codegouvfr/react-dsfr/Badge';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { createColumnHelper, getCoreRowModel, useReactTable } from '@tanstack/react-table';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, Link } from 'react-router';
@@ -103,6 +103,10 @@ function SessionAuditionsContent(props: {
   const search = useDataTableSearch(tableState.globalFilter ?? '', (globalFilter) =>
     setTableState((state) => ({ ...state, globalFilter })),
   );
+
+  const fetchMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   const columns = useMemo(() => {
     const h = createColumnHelper<SessionAudition>();
@@ -223,21 +227,10 @@ function SessionAuditionsContent(props: {
         }
         fluid
         isLoading={isLoading}
+        onEndReached={fetchMore}
         scrollsWithPage
         table={table}
-        unvirtualized
       />
-      {hasNextPage && (
-        <Button
-          className="self-center"
-          disabled={isFetchingNextPage}
-          onClick={() => void fetchNextPage()}
-          priority="secondary"
-          size="small"
-        >
-          <FormattedMessage defaultMessage="Voir plus" />
-        </Button>
-      )}
     </div>
   );
 }

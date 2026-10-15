@@ -104,6 +104,10 @@ export function AdminJobsPage() {
     filters: { statuses: tableState.columnFilters.find(({ id }) => id === 'status')?.value },
   });
 
+  const fetchMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
   const columns = useJobColumns();
   const isFiltered = tableState.columnFilters.some(({ value }) => value.length > 0);
 
@@ -202,24 +206,13 @@ export function AdminJobsPage() {
             }
             fluid
             isLoading={isLoading}
+            onEndReached={fetchMore}
             revealedRowId={jobId}
             rowTint={(row) => (row.id === jobId ? 'bg-(--background-alt-blue-france)' : undefined)}
             scrollsWithPage
             table={table}
-            unvirtualized
           />
         </div>
-        {hasNextPage && (
-          <Button
-            className="self-center"
-            disabled={isFetchingNextPage}
-            onClick={() => void fetchNextPage()}
-            priority="secondary"
-            size="small"
-          >
-            <FormattedMessage defaultMessage="Voir plus" />
-          </Button>
-        )}
       </PinnedHeader>
 
       <SidePanel

@@ -1,7 +1,7 @@
 import Header from '@codegouvfr/react-dsfr/Header';
 import type { MainNavigationProps } from '@codegouvfr/react-dsfr/MainNavigation';
 import clsx from 'clsx';
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import { useIntl } from 'react-intl';
 import { matchPath, useLocation } from 'react-router';
 
@@ -29,18 +29,15 @@ function useRouteMatcher() {
 }
 
 /** the DSFR only folds a menu on a full page load: after a client-side navigation it would stay open */
-function useMenuFoldedOnNavigation(pathname: string) {
-  useEffect(() => {
-    document
-      .querySelectorAll<HTMLButtonElement>('.fr-header .fr-nav__btn[aria-expanded="true"]')
-      .forEach((button) => button.click());
-  }, [pathname]);
+function foldMenus() {
+  document
+    .querySelectorAll<HTMLButtonElement>('.fr-header .fr-nav__btn[aria-expanded="true"]')
+    .forEach((button) => button.click());
 }
 
 export const AppHeader = () => {
   const { formatMessage } = useIntl();
   const { pathname } = useLocation();
-  useMenuFoldedOnNavigation(pathname);
   const routeMatches = useRouteMatcher();
   const isUserSg = useIsSg();
   const isUserAdmin = useIsAdmin();
@@ -97,7 +94,7 @@ export const AppHeader = () => {
       menuLinks: [
         {
           isActive: routeMatches([ROUTE_PATHS.ADMIN.INGEST_LOLFI]),
-          linkProps: { to: ROUTE_PATHS.ADMIN.INGEST_LOLFI },
+          linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.INGEST_LOLFI },
           text: (
             <span className={clsx('fr-icon-file-add-line', NAV_ICON_CLASS)}>
               {formatMessage({ defaultMessage: 'Import LOLFI manuel' })}
@@ -106,7 +103,7 @@ export const AppHeader = () => {
         },
         {
           isActive: routeMatches([ROUTE_PATHS.ADMIN.LIST_JOBS, ROUTE_PATHS.ADMIN.DETAILS_JOB]),
-          linkProps: { to: ROUTE_PATHS.ADMIN.LIST_JOBS },
+          linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.LIST_JOBS },
           text: (
             <span className={clsx('ri-play-circle-line', NAV_ICON_CLASS)}>
               {formatMessage({ defaultMessage: 'Ingestions' })}
@@ -115,7 +112,7 @@ export const AppHeader = () => {
         },
         {
           isActive: routeMatches([ROUTE_PATHS.ADMIN.USERS, ROUTE_PATHS.ADMIN.USER_DETAIL]),
-          linkProps: { to: ROUTE_PATHS.ADMIN.USERS },
+          linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.USERS },
           text: (
             <span className={clsx('ri-user-settings-line', NAV_ICON_CLASS)}>
               {formatMessage({ defaultMessage: 'Gestion des utilisateurs' })}
@@ -124,7 +121,7 @@ export const AppHeader = () => {
         },
         {
           isActive: routeMatches([ROUTE_PATHS.ADMIN.FEEDBACKS]),
-          linkProps: { to: ROUTE_PATHS.ADMIN.FEEDBACKS },
+          linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.FEEDBACKS },
           text: (
             <span className={clsx('fr-icon-feedback-line', NAV_ICON_CLASS)}>
               {formatMessage({ defaultMessage: 'Avis des utilisateurs' })}
