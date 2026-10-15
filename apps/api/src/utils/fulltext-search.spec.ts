@@ -23,5 +23,16 @@ describe('full text search', () => {
     it('should search every word of a name by its beginning', () => {
       expect(toMagistratFullTextQuery(`  Hélè   Dup `)).toBe(`hele:* & dup:*`);
     });
+
+    it.each`
+      input                  | expected
+      ${`dupont !`}          | ${`dupont:*`}
+      ${`d'Artagnan`}        | ${`d:* & artagnan:*`}
+      ${`dupont: (paul | <`} | ${`dupont:* & paul:*`}
+      ${`'`}                 | ${``}
+      ${`a!b(@justice.fr`}   | ${`ab@justice.fr:C*`}
+    `('should leave out the operators of a ts_query from $input', ({ input, expected }) => {
+      expect(toMagistratFullTextQuery(input)).toBe(expected);
+    });
   });
 });

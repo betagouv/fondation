@@ -193,6 +193,32 @@ test.describe('Magistrat E2E', () => {
     expect(data.items.map((magistrat) => magistrat.name)).toEqual([`${lastName} Jeanne`]);
   });
 
+  test('should search a magistrat by a name typed with an apostrophe and punctuation', async ({
+    expect,
+    member,
+    sessions,
+  }) => {
+    const name = Array.from({ length: 12 }, () => String.fromCharCode(65 + crypto.randomInt(26))).join('');
+    const position = {
+      function: seed.functions.PR,
+      grade: 'G3' as const,
+      jurisdiction: seed.jurisdictions['CA  LYON'],
+    };
+    await sessions.createOne({
+      candidates: [{ firstName: 'PAUL', lastName: `D'${name}`, position, targetPosition: position }],
+      createdAt: '22/04/2026',
+      name: 'Transparence annuelle',
+    });
+
+    const { data } = await api.magistrats.searchMagistrats({
+      client: member['@client'],
+      query: { search: `d'${name.slice(0, 8)} !` },
+      throwOnError: true,
+    });
+
+    expect(data.items.map((magistrat) => magistrat.name)).toEqual([`D'${name} Paul`]);
+  });
+
   test('should search a magistrat by the beginning of their married name, with their used name', async ({
     expect,
     member,

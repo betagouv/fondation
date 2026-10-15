@@ -11,17 +11,20 @@ export function toFullTextQuery(input: string): string {
   return words.length > 0 ? `${words.join(' & ')}:*` : '';
 }
 
-/** this works for the {@link import('src/generated/prisma/client').Magistrat.search} column */
+/**
+ * this works for the {@link import('src/generated/prisma/client').Magistrat.search} column
+ * an input without any letter or digit gives an empty query, which matches nothing
+ */
 export function toMagistratFullTextQuery(input: string): string {
   // we have a special weight defined in the index for the email field
   // see https://www.postgresql.org/docs/current/textsearch-controls.html#TEXTSEARCH-RANKING
   // see prisma/migrations/20260428074329_full_text_search_magistrat/migration.sql
   if (input.includes('@') || input.includes('.')) {
-    return unaccent(input.trim().toLowerCase()) + ':C*';
+    const email = unaccent(input.toLowerCase()).replace(/[^\p{L}\p{N}.@_-]/gu, '');
+    return email && `${email}:C*`;
   }
 
-  return unaccent(input.trim().toLowerCase())
-    .split(/\s+/)
+  return wordsOf(input)
     .map((word) => `${word}:*`)
     .join(' & ');
 }
