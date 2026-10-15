@@ -4,11 +4,13 @@ import { useIntl } from 'react-intl';
 import { Outlet, useParams } from 'react-router';
 
 import { HeaderReportList } from '@/features/reports/components/HeaderReportList';
+import { SessionNotFound } from '@/features/transparence/components/session/SessionNotFound';
 import { MemberSessionTabsBar } from '@/features/transparence/components/session/SessionTabs';
 import { ArchiveBannerPortal } from '@/shared/components/banners';
 import { PinnedHeader } from '@/shared/components/pinned-header';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { Collapse } from '@/shared/ui/collapse';
+import { HttpException } from '@/utils/http-exception';
 import { TransparencesCurrentPage, useTransparencesBreadCrumb } from '@/utils/transparences-breadcrumb.utils';
 import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
 
@@ -21,9 +23,11 @@ export function MemberSessionLayout() {
   const [filtersSlot, setFiltersSlot] = useState<HTMLDivElement | null>(null);
   const [toolbarSlot, setToolbarSlot] = useState<HTMLDivElement | null>(null);
 
-  const { data: session, isPending } = useDetailedNominationSessionQuery({ sessionId });
+  const { data: session, error, isPending } = useDetailedNominationSessionQuery({ sessionId });
 
-  if (isPending || !session) return null;
+  if (isPending) return null;
+  if (error && !(error instanceof HttpException && error.statusCode === 404)) throw error;
+  if (!session) return <SessionNotFound />;
 
   return (
     <ArchiveBannerPortal isArchived={session.isArchived}>
