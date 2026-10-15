@@ -25,7 +25,6 @@ exports[`presentationPlanTemplate > should render 1`] = `
   <li>DSJ&nbsp;: MME Marie CURIE, représentante de la DSJ</li>
   <li>SG&nbsp;: Ada&nbsp;LOVELACE</li>
   <li>Heure de début de la séance de restitution&nbsp;: 18:00</li>
-  
 </ul></div>
 
             <div class="footer"></div>
