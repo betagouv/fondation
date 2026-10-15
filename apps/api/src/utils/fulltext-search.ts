@@ -1,12 +1,14 @@
-import assert from 'node:assert';
-
 import { unaccent } from './unaccent';
 
-export function toFullTextQuery(input: string): string {
-  const trimmed = input.trim();
-  assert.ok(trimmed.length > 0);
+// Only letters and digits reach to_tsquery, whose operators (& | ! : < ( ') would fail the query: "d'artagnan" looks for "d" and "artagnan"
+function wordsOf(input: string): string[] {
+  return unaccent(input.toLowerCase()).match(/[\p{L}\p{N}]+/gu) ?? [];
+}
 
-  return unaccent(trimmed.toLowerCase()).replace(/\s+/g, ' & ') + ':*';
+/** an input without any letter or digit gives an empty query, which matches nothing */
+export function toFullTextQuery(input: string): string {
+  const words = wordsOf(input);
+  return words.length > 0 ? `${words.join(' & ')}:*` : '';
 }
 
 /** this works for the {@link import('src/generated/prisma/client').Magistrat.search} column */

@@ -6,8 +6,12 @@ describe('full text search', () => {
       expect(toFullTextQuery(`Albert Eins`)).toBe(`albert & eins:*`);
     });
 
-    it('should throw when an empty string is provided', () => {
-      expect(() => toFullTextQuery(`   `)).toThrow();
+    it('should leave out the operators of a ts_query', () => {
+      expect(toFullTextQuery(`d'Artagnan ! (Paul`)).toBe(`d & artagnan & paul:*`);
+    });
+
+    it('should give an empty query without any letter or digit', () => {
+      expect(toFullTextQuery(` ! & `)).toBe(``);
     });
   });
 
