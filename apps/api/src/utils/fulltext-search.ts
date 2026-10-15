@@ -1,8 +1,9 @@
 import { unaccent } from './unaccent';
 
 // Only letters and digits reach to_tsquery, whose operators (& | ! : < ( ') would fail the query: "d'artagnan" looks for "d" and "artagnan"
+// A hyphen inside a word stays: PostgreSQL then splits "4572-85c6" into "4572", "-85" and "c6", as it did in the index
 function wordsOf(input: string): string[] {
-  return unaccent(input.toLowerCase()).match(/[\p{L}\p{N}]+/gu) ?? [];
+  return unaccent(input.toLowerCase()).match(/[\p{L}\p{N}]+(?:-[\p{L}\p{N}]+)*/gu) ?? [];
 }
 
 /** an input without any letter or digit gives an empty query, which matches nothing */

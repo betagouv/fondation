@@ -24,12 +24,17 @@ describe('full text search', () => {
       expect(toMagistratFullTextQuery(`  Hélè   Dup `)).toBe(`hele:* & dup:*`);
     });
 
+    it('should keep a hyphenated word whole, for PostgreSQL to split it as in the index', () => {
+      expect(toMagistratFullTextQuery(`Jean-Pierre 4572-85c6`)).toBe(`jean-pierre:* & 4572-85c6:*`);
+    });
+
     it.each`
       input                  | expected
       ${`dupont !`}          | ${`dupont:*`}
       ${`d'Artagnan`}        | ${`d:* & artagnan:*`}
       ${`dupont: (paul | <`} | ${`dupont:* & paul:*`}
       ${`'`}                 | ${``}
+      ${`jean- -pierre`}     | ${`jean:* & pierre:*`}
       ${`a!b(@justice.fr`}   | ${`ab@justice.fr:C*`}
     `('should leave out the operators of a ts_query from $input', ({ input, expected }) => {
       expect(toMagistratFullTextQuery(input)).toBe(expected);
