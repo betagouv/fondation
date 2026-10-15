@@ -1,6 +1,7 @@
 import { DateOnly } from 'src/utils/date-only';
 
 import {
+  EmptyPresentationPlanMemberList,
   JusticePresentationPlan,
   JusticePresentationPlanAgendaRemoved,
   JusticePresentationPlanAlreadyValidated,
@@ -12,6 +13,56 @@ import { JusticePresentationPlanContent } from './justice-presentation-plan-cont
 import { JusticePresentationPlanSettings } from './justice-presentation-plan-settings';
 
 describe('JusticePresentationPlan', () => {
+  describe('create', () => {
+    it('should refuse a notice where no member other than the chairman is present', () => {
+      const chairman = {
+        displayTitle: null,
+        duty: 'PRESIDENT',
+        firstName: 'Marie',
+        gender: 'FEMALE',
+        id: 'chairman-1',
+        lastName: 'Curie',
+        role: 'MEMBRE_DU_PARQUET',
+        title: 'PRESIDENT_PARQUET',
+      } as const;
+      const secretary = {
+        displayTitle: null,
+        duty: 'SECRETARY',
+        firstName: 'Louis',
+        gender: 'MALE',
+        id: 'secretary-1',
+        lastName: 'Pasteur',
+        role: 'ADJOINT_SECRETAIRE_GENERAL',
+        title: 'FIRST_SECRETARY',
+      } as const;
+
+      expect(() =>
+        JusticePresentationPlan.create({
+          agendas: [
+            {
+              comment: null,
+              formation: 'PARQUET',
+              id: 'agenda-1',
+              presentationPlan: null,
+              session: { id: 'session-1', name: 'Session' },
+            },
+          ],
+          authorId: 'user-1',
+          chairman,
+          date: DateOnly.fromJson({ day: 10, month: 2, year: 2026 }),
+          hasRenunciation: false,
+          justiceContactId: 'contact-1',
+          members: [
+            { id: chairman.id, isAbsent: false },
+            { id: 'member-1', isAbsent: true },
+          ],
+          secretary,
+          time: { hours: 9, minutes: 30, seconds: 0 },
+        }),
+      ).toThrow(EmptyPresentationPlanMemberList);
+    });
+  });
+
   describe('removeAgendas', () => {
     const removal = { removerId: 'user-1', takenByPlanId: 'plan-2' };
 

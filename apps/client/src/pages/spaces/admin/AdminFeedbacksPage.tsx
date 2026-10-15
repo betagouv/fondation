@@ -1,16 +1,27 @@
 import Button from '@codegouvfr/react-dsfr/Button';
-import { FormattedMessage } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useExportFailure } from '@/features/nomination-files-table/hooks/useExportFailure';
+import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { useListFeedbacksAsExcelMutation } from '@queries/feedback.queries';
 
 export function AdminFeedbacksPage() {
+  const { formatMessage } = useIntl();
   const exportAsExcel = useListFeedbacksAsExcelMutation();
   const onExportFailure = useExportFailure();
 
   return (
-    <div className="fr-container fr-py-8v">
-      <h1 className="fr-h3 fr-mb-2v">
+    <div className="fr-container fr-pt-8v fr-pb-16v">
+      <Breadcrumb
+        ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane pour l'Administration" })}
+        breadcrumb={{
+          currentPageLabel: formatMessage({ defaultMessage: 'Avis des utilisateurs' }),
+          segments: [{ label: formatMessage({ defaultMessage: 'Administration' }), to: {} }],
+        }}
+        id="administration-breadcrumb"
+      />
+
+      <h1 className="fr-h3 fr-mb-4v">
         <FormattedMessage defaultMessage="Avis des utilisateurs" />
       </h1>
       <p className="fr-mb-6v max-w-3xl leading-7 text-(--text-mention-grey)">

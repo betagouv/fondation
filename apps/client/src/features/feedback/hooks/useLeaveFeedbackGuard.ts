@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useIntl } from 'react-intl';
 import { useBlocker } from 'react-router';
 
@@ -12,6 +12,8 @@ export function useLeaveFeedbackGuard(isStarted: boolean) {
   const blocker = useBlocker(
     ({ currentLocation, nextLocation }) => isStarted && currentLocation.pathname !== nextLocation.pathname,
   );
+  const isLeaving = useRef(false);
+
   useEffect(() => {
     if (blocker.state !== 'blocked') return;
 
@@ -26,15 +28,23 @@ export function useLeaveFeedbackGuard(isStarted: boolean) {
       },
       title: formatMessage({ defaultMessage: 'Quitter le questionnaire ?' }),
     }).then(({ isConfirmed }) => {
-      if (isConfirmed) blocker.proceed?.();
-      else blocker.reset?.();
+      if (isConfirmed) {
+        // the departure may turn into a full page load (a newer version is deployed): the reader
+        // has already answered, the browser must not ask again
+        isLeaving.current = true;
+        blocker.proceed?.();
+      } else {
+        blocker.reset?.();
+      }
     });
   }, [blocker, formatMessage, waitForConfirmation]);
 
   useEffect(() => {
     if (!isStarted) return;
 
-    const warnBeforeUnload = (event: BeforeUnloadEvent) => event.preventDefault();
+    const warnBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (!isLeaving.current) event.preventDefault();
+    };
     window.addEventListener('beforeunload', warnBeforeUnload);
     return () => window.removeEventListener('beforeunload', warnBeforeUnload);
   }, [isStarted]);

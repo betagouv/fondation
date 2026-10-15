@@ -13,10 +13,12 @@ import { queryClient } from '@queries/query-client.ts';
 
 import { frFormat } from './i18n/formats.ts';
 import { router } from './router.tsx';
+import { appVersion } from './utils/app-version.ts';
 import { matomo } from './utils/matomo.ts';
 
 startReactDsfr({ defaultColorScheme: 'light', Link });
 matomo?.start();
+appVersion.watch(router);
 
 createRoot(document.getElementById('root')!, {
   onUncaughtError: Sentry.reactErrorHandler(),

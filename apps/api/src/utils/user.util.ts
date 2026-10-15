@@ -1,3 +1,5 @@
+import z from 'zod';
+
 import { capitalize } from './capitalize';
 import { unaccent } from './unaccent';
 
@@ -24,6 +26,15 @@ function retrieveInitials(word: string): string {
 
 export function fullname(user: { firstName: string; lastName: string }): string {
   return `${capitalize(user.firstName)}\u00A0${user.lastName.toUpperCase()}`;
+}
+
+/** null when the application did it, or its author is gone */
+export const writerSchema = z.object({ id: z.string(), name: z.string() }).nullable();
+
+export function writerOf(
+  user: { firstName: string; id: string; lastName: string } | null,
+): z.infer<typeof writerSchema> {
+  return user ? { id: user.id, name: fullname(user) } : null;
 }
 
 export function initials(user: { firstName: string; lastName: string }) {

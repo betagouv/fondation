@@ -29,8 +29,7 @@ import { useSessionFilesTable } from '@/features/nomination-files-table/hooks/us
 import { GradeAndPosition } from '@/shared/components/GradeAndPosition';
 import { PriorityBadgeList } from '@/shared/components/priority-badge';
 import type { FormationEnum } from '@/shared/enums/formation.enum';
-import { ReactTableFilterColumn } from '@/shared/ui/data-table';
-import { Checkbox, NewTable, rowCell, useSelectionColumn } from '@/shared/ui/new-table';
+import { Checkbox, DataTable, DataTableFilters, rowCell, useSelectionColumn } from '@/shared/ui/data-table';
 import { SearchInput } from '@/shared/ui/search-input';
 import { useToasts } from '@/shared/ui/toast';
 import { Tooltip } from '@/shared/ui/tooltip';
@@ -378,7 +377,7 @@ function AgendaFilesSelectionTableInner(props: AgendaFilesSelectionTableProps) {
         ref={setPinnedFilters}
       >
         <div className="flex items-center justify-between gap-4">
-          <ReactTableFilterColumn table={filesTable.table} />
+          <DataTableFilters table={filesTable.table} />
           <SearchInput
             className="w-72"
             onChange={filesTable.onSearchChange}
@@ -423,7 +422,7 @@ function AgendaFilesSelectionTableInner(props: AgendaFilesSelectionTableProps) {
         )}
       </div>
 
-      <NewTable
+      <DataTable
         ariaLabel={formatMessage({ defaultMessage: "Propositions à inscrire à l'ordre du jour" })}
         className={clsx(!props.scrollsWithPage && !isEmpty && 'max-h-screen')}
         emptyLabel={

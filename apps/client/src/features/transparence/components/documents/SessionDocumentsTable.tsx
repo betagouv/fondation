@@ -1,4 +1,4 @@
-import Badge from '@codegouvfr/react-dsfr/Badge';
+import Badge, { type BadgeProps } from '@codegouvfr/react-dsfr/Badge';
 import {
   createColumnHelper,
   getCoreRowModel,
@@ -8,11 +8,14 @@ import {
 } from '@tanstack/react-table';
 import { createContext, useContext, useMemo, type ReactNode } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
+import { generatePath, Link, useLocation } from 'react-router';
 
 import { useSystemUpdateCauses } from '@/features/documents/hooks/useSystemUpdateCauses';
+import { PresentationMoment } from '@/shared/components/presentation-moment';
 import { useDateAndTime } from '@/shared/hooks/useDateAndTime';
-import { NewTable } from '@/shared/ui/new-table';
+import { DataTable } from '@/shared/ui/data-table';
 import { compareDateOnly, formatLongDateOnly, type PlainDateOnly } from '@/utils/date-only.util';
+import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useUser } from '@queries/auth.queries';
 
 import {
@@ -43,6 +46,7 @@ export const SessionDocumentsTableContext = createContext<{
   newOfficialReport?: (agenda: AgendaDocument) => ReactNode;
   officialReports?: ReadonlyMap<string, OfficialReportDocument>;
   renderName?: (doc: SessionDocument) => ReactNode;
+  returnPath?: string;
   states?: ReadonlyMap<string, SessionDocumentGroupState>;
 }>({});
 
@@ -75,11 +79,19 @@ function Moment(props: { at: string }) {
 function useAuthorship() {
   const { currentUserId } = useContext(SessionDocumentsTableContext);
 
-  return (at: string, by: SessionDocument['createdBy']) => ({
+  return (moment: ReactNode, by: SessionDocument['createdBy']) => ({
     author: by?.name,
-    moment: <Moment at={at} />,
+    moment,
     who: !by ? 'nobody' : by.id === currentUserId ? 'self' : 'someone',
   });
+}
+
+function StatusBadge(props: { children: NonNullable<ReactNode>; severity: BadgeProps['severity'] }) {
+  return (
+    <Badge as="span" className="rounded-full" noIcon severity={props.severity} small>
+      {props.children}
+    </Badge>
+  );
 }
 
 function DocumentStatus(props: { doc: SessionDocument }) {
@@ -87,25 +99,64 @@ function DocumentStatus(props: { doc: SessionDocument }) {
 
   if (!doc.validatedAt) {
     return (
-      <Badge as="span" className="rounded-full" noIcon severity="new" small>
+      <StatusBadge severity="new">
         <FormattedMessage defaultMessage="brouillon" />
-      </Badge>
+      </StatusBadge>
     );
   }
 
   if (doc.draftChangesBy) {
     // the "Validé le" line underneath tells these changes sit on top of a validated version
     return (
-      <Badge as="span" className="rounded-full" noIcon severity="info" small>
+      <StatusBadge severity="info">
         <FormattedMessage defaultMessage="modifications en cours" />
-      </Badge>
+      </StatusBadge>
     );
   }
 
   return (
-    <Badge as="span" className="rounded-full" noIcon severity="success" small>
+    <StatusBadge severity="success">
       <FormattedMessage defaultMessage="validé" />
-    </Badge>
+    </StatusBadge>
+  );
+}
+
+function AgendaPresentationStatus(props: { doc: SessionDocument }) {
+  const { doc } = props;
+  // a presented agenda shows only its "Restitué le" trace underneath
+  if (doc.type !== 'agenda' || doc.presentation?.status !== 'TO_PRESENT') return null;
+
+  return (
+    <StatusBadge severity="new">
+      <FormattedMessage defaultMessage="À restituer" />
+    </StatusBadge>
+  );
+}
+
+function AgendaPresentationTrace(props: { doc: SessionDocument }) {
+  const authorship = useAuthorship();
+  const { returnPath } = useContext(SessionDocumentsTableContext);
+  const { doc } = props;
+  if (doc.type !== 'agenda' || doc.presentation?.status !== 'PRESENTED') return null;
+
+  const { by, date, endTime, planId } = doc.presentation;
+
+  return (
+    <span className="flex flex-wrap items-baseline gap-x-2">
+      <Trace>
+        <FormattedMessage
+          defaultMessage="Restitué le {moment}{who, select, self { par vous} someone { par {author}} other {}}"
+          values={authorship(<PresentationMoment date={date} endTime={endTime} />, by)}
+        />
+      </Trace>
+      <Link
+        className="fr-link fr-link--sm"
+        state={{ returnPath }}
+        to={generatePath(ROUTE_PATHS.SG.PRESENTATIONS_PREVIEW, { planId })}
+      >
+        <FormattedMessage defaultMessage="Voir la notice" />
+      </Link>
+    </span>
   );
 }
 
@@ -135,23 +186,25 @@ function SessionDocumentItem(props: { doc: SessionDocument }) {
         <div className="flex flex-wrap items-center gap-2">
           <div className="min-w-0">{renderName?.(doc) ?? doc.name}</div>
           <DocumentStatus doc={doc} />
+          <AgendaPresentationStatus doc={doc} />
           <OutdatedDocument state={states?.get(doc.id)} />
         </div>
         {/* the file name carries no time, so two documents of the same day are told apart here */}
         <Trace>
           <FormattedMessage
             defaultMessage="Créé le {moment}{who, select, self { par vous} someone { par {author}} other {}}"
-            values={authorship(doc.createdAt, doc.createdBy)}
+            values={authorship(<Moment at={doc.createdAt} />, doc.createdBy)}
           />
         </Trace>
         {doc.validatedAt && (
           <Trace>
             <FormattedMessage
               defaultMessage="Validé le {moment}{who, select, self { par vous} someone { par {author}} other {}}"
-              values={authorship(doc.validatedAt, doc.validatedBy)}
+              values={authorship(<Moment at={doc.validatedAt} />, doc.validatedBy)}
             />
           </Trace>
         )}
+        <AgendaPresentationTrace doc={doc} />
         {doc.draftUpdate && (
           <Trace>
             {doc.draftUpdate.origin === 'SYSTEM' ? (
@@ -166,7 +219,7 @@ function SessionDocumentItem(props: { doc: SessionDocument }) {
             ) : (
               <FormattedMessage
                 defaultMessage="Modifié le {moment}{who, select, self { par vous} someone { par {author}} other {}}"
-                values={authorship(doc.draftUpdate.at, doc.draftUpdate.by)}
+                values={authorship(<Moment at={doc.draftUpdate.at} />, doc.draftUpdate.by)}
               />
             )}
           </Trace>
@@ -195,9 +248,9 @@ function OfficialReportCell(props: CellContext<SessionMeeting, unknown>) {
 
   return (
     <div className="flex w-full flex-col items-center gap-3 py-4">
-      <Badge as="span" className="rounded-full" noIcon severity="error" small>
+      <StatusBadge severity="error">
         <FormattedMessage defaultMessage="pv attendu" />
-      </Badge>
+      </StatusBadge>
       {agenda && newOfficialReport?.(agenda)}
     </div>
   );
@@ -228,10 +281,12 @@ export function SessionDocumentsTable(props: {
 
   const { user } = useUser();
   const currentUserId = user?.id;
+  const { pathname, search } = useLocation();
+  const returnPath = `${pathname}${search}`;
 
   const renderers = useMemo(
-    () => ({ actions, currentUserId, newOfficialReport, officialReports, renderName, states }),
-    [actions, currentUserId, newOfficialReport, officialReports, renderName, states],
+    () => ({ actions, currentUserId, newOfficialReport, officialReports, renderName, returnPath, states }),
+    [actions, currentUserId, newOfficialReport, officialReports, renderName, returnPath, states],
   );
 
   const columns = useMemo(
@@ -283,7 +338,7 @@ export function SessionDocumentsTable(props: {
 
   return (
     <SessionDocumentsTableContext.Provider value={renderers}>
-      <NewTable
+      <DataTable
         ariaLabel={formatMessage({ defaultMessage: 'Documents de la session' })}
         emptyLabel={formatMessage({ defaultMessage: 'Aucun document' })}
         fluid

@@ -11,7 +11,7 @@ import { createContext, Fragment, useContext, useMemo, type ReactNode } from 're
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useDateAndTime } from '@/shared/hooks/useDateAndTime';
-import { NewTable, rowCell } from '@/shared/ui/new-table';
+import { DataTable, rowCell } from '@/shared/ui/data-table';
 import { formatFileSize } from '@/utils/file.utils';
 import type { ListedNominationSessionAttachmentDto } from '@api/types';
 
@@ -126,7 +126,7 @@ export function SessionAttachmentsTable(props: {
 
   return (
     <SessionAttachmentsTableContext.Provider value={renderers}>
-      <NewTable
+      <DataTable
         ariaLabel={formatMessage({
           defaultMessage: 'Pièces jointes de la session',
         })}

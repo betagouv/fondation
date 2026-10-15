@@ -96,11 +96,7 @@ li {
 }
 
 .fr-breadcrumb:not([class*='fr-mb-'], [class*='fr-my-']) {
-  margin-bottom: 2.25rem;
-}
-
-.fr-table__content table tbody td {
-  padding: 1rem;
+  margin-bottom: 1.75rem;
 }
 
 .editor-resizable-image {

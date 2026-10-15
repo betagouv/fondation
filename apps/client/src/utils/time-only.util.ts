@@ -66,6 +66,11 @@ export function toFrenchHours(hoursAndMinutes: string): string {
   return hoursAndMinutes.replace(':', 'h');
 }
 
+export function inFrenchHours(time: PlainTimeOnly): string | null {
+  const hoursAndMinutes = timeOnlyToString(time, 'HH:mm');
+  return hoursAndMinutes ? toFrenchHours(hoursAndMinutes) : null;
+}
+
 export function timeOnlyToString(
   timeOnly: { hours: number; minutes: number; seconds?: number },
   format: 'HH:mm' | 'HH:mm:ss',

@@ -1,5 +1,6 @@
 import Header from '@codegouvfr/react-dsfr/Header';
 import type { MainNavigationProps } from '@codegouvfr/react-dsfr/MainNavigation';
+import clsx from 'clsx';
 import { useCallback } from 'react';
 import { useIntl } from 'react-intl';
 import { matchPath, useLocation } from 'react-router';
@@ -13,6 +14,8 @@ import { Avatar } from './Avatar';
 import { LolfiCsm } from './LolfiCsm';
 import { ManageSessionsLink } from './ManageSessionsLink';
 
+const NAV_ICON_CLASS = "before:mr-2 before:size-5! before:align-middle before:content-['']";
+
 function useRouteMatcher() {
   const { pathname } = useLocation();
   return useCallback(
@@ -23,6 +26,13 @@ function useRouteMatcher() {
     },
     [pathname],
   );
+}
+
+/** the DSFR only folds a menu on a full page load: after a client-side navigation it would stay open */
+function foldMenus() {
+  document
+    .querySelectorAll<HTMLButtonElement>('.fr-header .fr-nav__btn[aria-expanded="true"]')
+    .forEach((button) => button.click());
 }
 
 export const AppHeader = () => {
@@ -41,8 +51,8 @@ export const AppHeader = () => {
       text: formatMessage({ defaultMessage: 'Accueil' }),
     },
     {
-      isActive: routeMatches([ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE]),
-      linkProps: { to: ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE },
+      isActive: routeMatches([ROUTE_PATHS.SG.NEW_TRANSPARENCE]),
+      linkProps: { to: ROUTE_PATHS.SG.NEW_TRANSPARENCE },
       text: formatMessage({ defaultMessage: 'Créer une session' }),
     },
     {
@@ -84,43 +94,43 @@ export const AppHeader = () => {
       menuLinks: [
         {
           isActive: routeMatches([ROUTE_PATHS.ADMIN.INGEST_LOLFI]),
-          linkProps: { to: ROUTE_PATHS.ADMIN.INGEST_LOLFI },
+          linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.INGEST_LOLFI },
           text: (
-            <span className="fr-icon-file-add-line before:size-5!! before:mr-2 before:align-middle before:content-['']">
+            <span className={clsx('fr-icon-file-add-line', NAV_ICON_CLASS)}>
               {formatMessage({ defaultMessage: 'Import LOLFI manuel' })}
             </span>
           ),
         },
         {
           isActive: routeMatches([ROUTE_PATHS.ADMIN.LIST_JOBS, ROUTE_PATHS.ADMIN.DETAILS_JOB]),
-          linkProps: { to: ROUTE_PATHS.ADMIN.LIST_JOBS },
+          linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.LIST_JOBS },
           text: (
-            <span className="ri-play-circle-line before:mr-2 before:size-5! before:align-middle before:content-['']">
+            <span className={clsx('ri-play-circle-line', NAV_ICON_CLASS)}>
               {formatMessage({ defaultMessage: 'Ingestions' })}
             </span>
           ),
         },
         {
           isActive: routeMatches([ROUTE_PATHS.ADMIN.USERS, ROUTE_PATHS.ADMIN.USER_DETAIL]),
-          linkProps: { to: ROUTE_PATHS.ADMIN.USERS },
+          linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.USERS },
           text: (
-            <span className="ri-user-settings-line before:mr-2 before:size-5! before:align-middle before:content-['']">
+            <span className={clsx('ri-user-settings-line', NAV_ICON_CLASS)}>
               {formatMessage({ defaultMessage: 'Gestion des utilisateurs' })}
             </span>
           ),
         },
         {
           isActive: routeMatches([ROUTE_PATHS.ADMIN.FEEDBACKS]),
-          linkProps: { to: ROUTE_PATHS.ADMIN.FEEDBACKS },
+          linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.FEEDBACKS },
           text: (
-            <span className="fr-icon-feedback-line before:mr-2 before:size-5! before:align-middle before:content-['']">
+            <span className={clsx('fr-icon-feedback-line', NAV_ICON_CLASS)}>
               {formatMessage({ defaultMessage: 'Avis des utilisateurs' })}
             </span>
           ),
         },
       ],
       text: (
-        <span className="ri-admin-line before:size-5!! before:mr-2 before:align-middle before:content-['']">
+        <span className={clsx('ri-admin-line', NAV_ICON_CLASS)}>
           {formatMessage({ defaultMessage: 'Administration' })}
         </span>
       ),

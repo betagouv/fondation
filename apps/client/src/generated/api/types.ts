@@ -1157,6 +1157,26 @@ export type FoundSessionDocsDto = {
             isPresented: boolean;
             otherAgendasCount: number;
         }>;
+        presentation: {
+            status: 'TO_PRESENT';
+        } | {
+            by: {
+                id: string;
+                name: string;
+            } | null;
+            date: {
+                year: number;
+                month: number;
+                day: number;
+            };
+            endTime: {
+                hours: number;
+                minutes: number;
+                seconds: number;
+            } | null;
+            planId: string;
+            status: 'PRESENTED';
+        } | null;
         outdated: boolean;
         status: 'DRAFT' | 'VALIDATED';
         draftChangesBy: 'PERSON' | 'PERSON_AND_SYSTEM' | 'SYSTEM' | null;
@@ -1679,7 +1699,6 @@ export type ListedPresentedPlansDto = {
             id: string;
             name: string;
         } | null;
-        presentedAt: string | null;
         presentedBy: {
             id: string;
             name: string;
@@ -1737,10 +1756,19 @@ export type DetailedPresentationPlanMetadataDto = {
         } | null;
     } | null;
     presentation: {
-        at: string;
         by: {
             id: string;
             name: string;
+        } | null;
+        date: {
+            year: number;
+            month: number;
+            day: number;
+        };
+        endTime: {
+            hours: number;
+            minutes: number;
+            seconds: number;
         } | null;
     } | null;
     isManuallyEdited: boolean;

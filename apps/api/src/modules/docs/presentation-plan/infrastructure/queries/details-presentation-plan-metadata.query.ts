@@ -11,6 +11,8 @@ import {
 import {
   draftTrace,
   draftTraceSchema,
+  presentationTraceOf,
+  presentationTraceSchema,
   traceOf,
   traceSchema,
 } from 'src/modules/docs/shared/infrastructure/document-trace';
@@ -21,7 +23,7 @@ import { dateOnlyJsonSchema } from 'src/utils/date-only';
 import { DateOnly } from 'src/utils/date-only';
 import { assertIsDefined } from 'src/utils/is-defined';
 import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
-import { fullname } from 'src/utils/user.util';
+import { writerOf, writerSchema } from 'src/utils/user.util';
 
 const chairmanSchema = z.object({ firstName: z.string(), lastName: z.string() });
 
@@ -50,7 +52,7 @@ export class DetailsPresentationPlanMetadataQuery {
         editor: { select: { firstName: true, id: true, lastName: true } },
         validatedAt: true,
         validator: { select: { firstName: true, id: true, lastName: true } },
-        presentedAt: true,
+        endTime: true,
         presenter: { select: { firstName: true, id: true, lastName: true } },
         members: { select: { memberId: true, isAbsent: true } },
         agendas: {
@@ -100,7 +102,7 @@ export class DetailsPresentationPlanMetadataQuery {
       // a notice has no version underneath: its draft is the notice itself, never opened by the application
       draft: draftTrace({ ...plan, status, systemUpdatedAt: null, systemUpdates: [] }),
       validation: status === 'VALIDATED' ? traceOf(plan.validatedAt, plan.validator) : null,
-      presentation: plan.isPresented ? traceOf(plan.presentedAt, plan.presenter) : null,
+      presentation: plan.isPresented ? presentationTraceOf(plan) : null,
       isManuallyEdited: plan.isManuallyEdited,
       hasRenunciation: plan.hasRenunciation,
       date: DateOnly.fromUtcDate(plan.date).toJson(),
@@ -148,8 +150,8 @@ export class DetailedPresentationPlanMetadataDto extends createZodDto(
     isPresented: z.boolean(),
     draft: draftTraceSchema,
     validation: traceSchema,
-    /** when the notice was presented, and by whom, null on the notices presented before that trace */
-    presentation: traceSchema,
+    /** null while the notice is not presented */
+    presentation: presentationTraceSchema.nullable(),
     isManuallyEdited: z.boolean(),
     formation: z.enum(FormationEnum),
     agendas: z.array(z.object({ id: z.string(), comment: z.string() })),
@@ -172,12 +174,8 @@ export class DetailedPresentationPlanMetadataDto extends createZodDto(
           chairman: chairmanSchema,
         }),
         removedAt: z.iso.datetime(),
-        removedBy: z.object({ id: z.string(), name: z.string() }).nullable(),
+        removedBy: writerSchema,
       }),
     ),
   }),
 ) {}
-
-function writerOf(user: { id: string; firstName: string; lastName: string } | null) {
-  return user ? { id: user.id, name: fullname(user) } : null;
-}

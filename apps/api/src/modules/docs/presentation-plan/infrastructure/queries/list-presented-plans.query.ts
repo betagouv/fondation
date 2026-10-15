@@ -12,7 +12,7 @@ import { dateOnlyJsonSchema } from 'src/utils/date-only';
 import { DateOnly } from 'src/utils/date-only';
 import { assertIsDefined } from 'src/utils/is-defined';
 import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
-import { fullname } from 'src/utils/user.util';
+import { writerOf, writerSchema } from 'src/utils/user.util';
 
 @Injectable()
 export class ListPresentedPlansQuery {
@@ -38,7 +38,6 @@ export class ListPresentedPlansQuery {
         pdfId: true,
         createdAt: true,
         updatedAt: true,
-        presentedAt: true,
         author: { select: { id: true, firstName: true, lastName: true } },
         editor: { select: { id: true, firstName: true, lastName: true } },
         presenter: { select: { id: true, firstName: true, lastName: true } },
@@ -65,7 +64,6 @@ export class ListPresentedPlansQuery {
         createdBy: writerOf(item.author),
         updatedAt: item.updatedAt?.toISOString() ?? null,
         updatedBy: writerOf(item.editor),
-        presentedAt: item.presentedAt?.toISOString() ?? null,
         presentedBy: writerOf(item.presenter),
         formation: prismaFormationEnumToFormationEnum(assertIsDefined(item.agendas[0]).agenda.formation),
         chairman: { firstName: item.chairmanFirstName, lastName: item.chairmanLastName },
@@ -73,8 +71,6 @@ export class ListPresentedPlansQuery {
     });
   }
 }
-
-const writerSchema = z.object({ id: z.string(), name: z.string() }).nullable();
 
 export class ListedPresentedPlansDto extends createPaginatedZodDto(
   z.object({
@@ -89,13 +85,8 @@ export class ListedPresentedPlansDto extends createPaginatedZodDto(
     createdBy: writerSchema,
     updatedAt: z.iso.datetime().nullable(),
     updatedBy: writerSchema,
-    presentedAt: z.iso.datetime().nullable(),
     presentedBy: writerSchema,
     formation: z.enum(FormationEnum),
     chairman: z.object({ firstName: z.string(), lastName: z.string() }),
   }),
 ) {}
-
-function writerOf(user: { id: string; firstName: string; lastName: string } | null) {
-  return user ? { id: user.id, name: fullname(user) } : null;
-}

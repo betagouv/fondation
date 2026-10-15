@@ -3,9 +3,10 @@ import Input from '@codegouvfr/react-dsfr/Input';
 import Select from '@codegouvfr/react-dsfr/Select';
 import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 import { useQueryClient } from '@tanstack/react-query';
-import { useCallback, useMemo, useState, type ChangeEvent, type SyntheticEvent } from 'react';
+import clsx from 'clsx';
+import { useCallback, useMemo, useState, type ChangeEvent, type ReactNode, type SyntheticEvent } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
-import { generatePath, useLocation, useNavigate, useParams } from 'react-router';
+import { generatePath, useNavigate, useParams } from 'react-router';
 
 import { AdminUserRole } from '@/features/administration/components/AdminUserRole';
 import {
@@ -16,6 +17,8 @@ import {
 import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { useTab } from '@/shared/hooks/useTab';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
+import { DetailsCard, DetailsHeader, DetailsPageLayout } from '@/shared/ui/details';
+import { IconButton } from '@/shared/ui/icon-button';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { memberFullName } from '@/utils/user.utils';
 import type { DetailedAdminUserDto } from '@api/types';
@@ -73,26 +76,17 @@ function EmailField(props: { user: DetailedAdminUserDto }) {
             >
               <FormattedMessage defaultMessage="Fermer" />
             </Button>
-            <Button
-              disabled={isPending}
-              iconId="ri-check-line"
-              onClick={handleSave}
-              priority="primary"
-              size="small"
-              type="button"
-            >
+            <Button disabled={isPending} onClick={handleSave} priority="primary" size="small" type="button">
               <FormattedMessage defaultMessage="Ok" />
             </Button>
           </div>
         ) : (
-          <Button
-            className="rounded-full"
+          <IconButton
             disabled={isPending}
             iconId="fr-icon-edit-fill"
+            label={formatMessage({ defaultMessage: "Éditer l'email" })}
             onClick={handleEdit}
-            priority="tertiary no outline"
-            size="small"
-            title={formatMessage({ defaultMessage: "Éditer l'email" })}
+            small
           />
         )}
       </div>
@@ -241,26 +235,17 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
             >
               <FormattedMessage defaultMessage="Fermer" />
             </Button>
-            <Button
-              disabled={isPending}
-              iconId="ri-check-line"
-              onClick={handleSave}
-              priority="primary"
-              size="small"
-              type="button"
-            >
+            <Button disabled={isPending} onClick={handleSave} priority="primary" size="small" type="button">
               <FormattedMessage defaultMessage="Ok" />
             </Button>
           </div>
         ) : (
-          <Button
-            className="rounded-full"
+          <IconButton
             disabled={isPending}
             iconId="fr-icon-edit-fill"
+            label={formatMessage({ defaultMessage: 'Modifier le mot de passe' })}
             onClick={() => changeEdition(true)}
-            priority="tertiary no outline"
-            size="small"
-            title={formatMessage({ defaultMessage: 'Modifier le mot de passe' })}
+            small
           />
         )}
       </div>
@@ -359,26 +344,24 @@ function AdminUserPromotionToggle(props: { className?: string; user: DetailedAdm
 function RoleField(props: { user: DetailedAdminUserDto }) {
   const intl = useIntl();
   const [isEditing, setEditing] = useState(false);
+  const [role, setRole] = useState<AdminUserRoleEnum>(props.user.role);
 
-  const { error, isPending, mutate: updateRole } = useUpdateUserRoleMutation(props.user.id);
+  const { error, isPending, mutate: updateRole, reset } = useUpdateUserRoleMutation(props.user.id);
 
-  const handleChange = useCallback(
-    async (e: ChangeEvent<HTMLSelectElement>) => {
-      e.preventDefault();
-      const newRole = e.target.value as unknown as AdminUserRoleEnum;
-      if (newRole === props.user.role) return;
+  const handleEdit = useCallback(() => {
+    setRole(props.user.role);
+    reset();
+    setEditing(true);
+  }, [props.user.role, reset]);
 
-      updateRole(
-        { role: newRole },
-        {
-          onSuccess: () => {
-            setEditing(false);
-          },
-        },
-      );
-    },
-    [props, setEditing, updateRole],
-  );
+  const handleSave = useCallback(() => {
+    if (role === props.user.role) {
+      setEditing(false);
+      return;
+    }
+
+    updateRole({ role }, { onSuccess: () => setEditing(false) });
+  }, [props.user.role, role, updateRole]);
 
   return (
     <div>
@@ -387,25 +370,28 @@ function RoleField(props: { user: DetailedAdminUserDto }) {
           <FormattedMessage defaultMessage="Rôle" />
         </dt>
         {isEditing ? (
-          <Button
-            disabled={isPending}
-            iconId="ri-check-line"
-            onClick={() => setEditing(false)}
-            priority="primary"
-            size="small"
-            type="button"
-          >
-            <FormattedMessage defaultMessage="Ok" />
-          </Button>
+          <div className="flex gap-1">
+            <Button
+              disabled={isPending}
+              iconId="fr-icon-close-line"
+              onClick={() => setEditing(false)}
+              priority="tertiary no outline"
+              size="small"
+              type="button"
+            >
+              <FormattedMessage defaultMessage="Fermer" />
+            </Button>
+            <Button disabled={isPending} onClick={handleSave} priority="primary" size="small" type="button">
+              <FormattedMessage defaultMessage="Ok" />
+            </Button>
+          </div>
         ) : (
-          <Button
-            className="rounded-full"
+          <IconButton
             disabled={isPending}
             iconId="fr-icon-edit-fill"
-            onClick={() => setEditing(true)}
-            priority="tertiary no outline"
-            size="small"
-            title={intl.formatMessage({ defaultMessage: 'Modifier le rôle' })}
+            label={intl.formatMessage({ defaultMessage: 'Modifier le rôle' })}
+            onClick={handleEdit}
+            small
           />
         )}
       </div>
@@ -413,9 +399,10 @@ function RoleField(props: { user: DetailedAdminUserDto }) {
         <Select
           label=""
           nativeSelectProps={{
+            'aria-label': intl.formatMessage({ defaultMessage: 'Rôle' }),
             autoFocus: true,
-            defaultValue: props.user.role,
-            onChange: handleChange,
+            onChange: (e) => setRole(e.target.value as AdminUserRoleEnum),
+            value: role,
           }}
           state={error ? 'error' : undefined}
           stateRelatedMessage={
@@ -437,7 +424,6 @@ function RoleField(props: { user: DetailedAdminUserDto }) {
           <AdminUserRole gender={props.user.gender} value={props.user.role} />
         </dd>
       )}
-      <AdminUserPromotionToggle className="fr-mt-2v fr-ml-4v" user={props.user} />
     </div>
   );
 }
@@ -475,24 +461,16 @@ function DisplayTitleField(props: { user: DetailedAdminUserDto }) {
           <FormattedMessage defaultMessage="Titre" />
         </dt>
         {isEditing ? (
-          <Button
-            disabled={isPending}
-            iconId="ri-check-line"
-            onClick={handleSave}
-            priority="primary"
-            size="small"
-          >
+          <Button disabled={isPending} onClick={handleSave} priority="primary" size="small">
             <FormattedMessage defaultMessage="Ok" />
           </Button>
         ) : (
-          <Button
-            className="rounded-full"
+          <IconButton
             disabled={isPending}
             iconId="fr-icon-edit-fill"
+            label={formatMessage({ defaultMessage: 'Éditer le titre affiché' })}
             onClick={handleEdit}
-            priority="tertiary no outline"
-            size="small"
-            title={formatMessage({ defaultMessage: 'Éditer le titre affiché' })}
+            small
           />
         )}
       </div>
@@ -530,15 +508,37 @@ function DisplayTitleField(props: { user: DetailedAdminUserDto }) {
   );
 }
 
-function AdminLoadedUserDetail(props: { user: DetailedAdminUserDto }) {
-  const { user } = props;
-  const fullName = memberFullName(user);
-  const isUserImpersonable = !(
-    ['FIRST_SECRETARY', 'OFFICER', 'SECRETARY'] satisfies DetailedAdminUserDto['role'][]
-  ).includes(user.role as any); // oxlint-disable-line @typescript-eslint/no-explicit-any
+function AdminUserDetailHeader(props: { action?: ReactNode; name: string }) {
+  const { formatMessage } = useIntl();
 
+  return (
+    <DetailsHeader
+      action={props.action}
+      backTo={ROUTE_PATHS.ADMIN.USERS}
+      backThroughHistory
+      breadcrumb={
+        <Breadcrumb
+          ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane pour l'Administration" })}
+          breadcrumb={{
+            currentPageLabel: props.name,
+            segments: [
+              { label: formatMessage({ defaultMessage: 'Administration' }), to: {} },
+              { label: formatMessage({ defaultMessage: 'Utilisateurs' }), to: ROUTE_PATHS.ADMIN.USERS },
+            ],
+          }}
+          className="fr-mt-0"
+          id="administration-breadcrumb"
+        />
+      }
+      overline={<FormattedMessage defaultMessage="Fiche utilisateur" />}
+      title={props.name}
+    />
+  );
+}
+
+function ImpersonateButton(props: { userId: string }) {
   const tab = useTab();
-  const { isPending, mutate: impersonate } = useImpersonateMutation({ userId: props.user.id });
+  const { isPending, mutate: impersonate } = useImpersonateMutation({ userId: props.userId });
   const onClick = useCallback(() => {
     impersonate(undefined, {
       onSuccess() {
@@ -549,92 +549,94 @@ function AdminLoadedUserDetail(props: { user: DetailedAdminUserDto }) {
   }, [tab, impersonate]);
 
   return (
-    <div className="admin-user-detail-page fr-pb-12v mx-auto max-w-2xl">
-      <h1 className="fr-display-xl text-center">{fullName}</h1>
-      {isUserImpersonable && (
-        <p className="text-center">
-          <Button
-            className="rounded-full"
-            disabled={isPending}
-            iconId="ri-user-shared-fill"
-            onClick={onClick}
-            priority="secondary"
-            size="small"
-          >
-            <FormattedMessage defaultMessage="Se connecter" />
-          </Button>
-        </p>
-      )}
+    <Button
+      className="btn-compact"
+      disabled={isPending}
+      iconId="ri-user-shared-fill"
+      onClick={onClick}
+      priority="secondary"
+      size="small"
+    >
+      <FormattedMessage defaultMessage="Se connecter en tant que" />
+    </Button>
+  );
+}
 
-      <section className="fr-mt-16v flex flex-col gap-y-8">
-        <dl className="flex flex-col gap-y-4">
+function AdminLoadedUserDetail(props: { user: DetailedAdminUserDto }) {
+  const { user } = props;
+  /** the secretariat accounts are never impersonated: only a member's screens are worth checking */
+  const isSecretariat = PROMOTABLE_ROLES.includes(user.role);
+
+  return (
+    <DetailsPageLayout
+      background={isSecretariat ? 'cafeCreme' : 'blueFrance'}
+      header={
+        <AdminUserDetailHeader
+          action={isSecretariat ? undefined : <ImpersonateButton userId={user.id} />}
+          name={memberFullName(user)}
+        />
+      }
+      identity={
+        <>
+          <DetailsCard className={clsx({ grow: !isSecretariat })}>
+            <h2 className="fr-h4">
+              <FormattedMessage defaultMessage="Titre affiché" />
+            </h2>
+            <dl className="m-0 p-0">
+              <DisplayTitleField user={user} />
+            </dl>
+          </DetailsCard>
+
+          {isSecretariat && (
+            <DetailsCard className="grow">
+              <h2 className="fr-h4">
+                <FormattedMessage defaultMessage="Droits d'administration" />
+              </h2>
+              <p className="fr-text--sm fr-mb-4v text-(--text-mention-grey)">
+                <FormattedMessage defaultMessage="Un administrateur peut accéder à l'onglet Administration." />
+              </p>
+              <AdminUserPromotionToggle user={user} />
+            </DetailsCard>
+          )}
+        </>
+      }
+      identityPosition="right"
+    >
+      <DetailsCard className="grow">
+        <h2 className="fr-h4">
+          <FormattedMessage defaultMessage="Compte" />
+        </h2>
+        <dl className="m-0 flex flex-col gap-y-6 p-0">
           <EmailField user={user} />
           <PasswordField user={user} />
           <RoleField user={user} />
-          <DisplayTitleField user={user} />
         </dl>
-      </section>
-    </div>
+      </DetailsCard>
+    </DetailsPageLayout>
   );
 }
 
 export function AdminUserDetailPage() {
-  const { formatMessage } = useIntl();
-  const params = useParams();
-  const location = useLocation();
-  const navigate = useNavigate();
-  const userId = params.userId;
+  const { userId } = useParams();
   const { data: user, isError, isLoading } = useAdminUserDetailQuery(userId);
 
-  const hasHistory = location.key !== 'default';
-  const goBack = useCallback(() => {
-    if (hasHistory) {
-      navigate(-1);
-    }
-  }, [hasHistory, navigate]);
+  if (isLoading) {
+    return (
+      <div className="fr-container fr-py-8v">
+        <p>
+          <FormattedMessage defaultMessage="Chargement..." />
+        </p>
+      </div>
+    );
+  }
 
-  if (isLoading) return;
-  if (isError || !user || !userId)
+  if (isError || !user || !userId) {
     return (
       <div className="fr-container fr-py-8v">
         <FormattedMessage defaultMessage="Utilisateur introuvable" />
       </div>
     );
+  }
 
-  const fullName = user ? memberFullName(user) : undefined;
-
-  return (
-    <div className="fr-container fr-pt-8v">
-      <div className="flex items-start justify-between">
-        <Breadcrumb
-          ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane pour l'Administration" })}
-          breadcrumb={{
-            currentPageLabel: isLoading ? '...' : fullName!,
-            segments: [
-              { label: formatMessage({ defaultMessage: 'Administration' }), to: {} },
-              { label: formatMessage({ defaultMessage: 'Utilisateurs' }), to: ROUTE_PATHS.ADMIN.USERS },
-            ],
-          }}
-          id="administration-breadcrumb"
-        />
-        {hasHistory && (
-          <Button iconId="fr-icon-close-line" onClick={goBack} priority="tertiary no outline" size="small">
-            <FormattedMessage defaultMessage="FERMER" />
-          </Button>
-        )}
-      </div>
-
-      {isLoading && (
-        <div className="fr-py-8v">
-          <FormattedMessage defaultMessage="Chargement..." />
-        </div>
-      )}
-      {(isError || !user || !userId) && (
-        <div className="fr-py-8v">
-          <FormattedMessage defaultMessage="Utilisateur introuvable" />
-        </div>
-      )}
-      {user && <AdminLoadedUserDetail user={user} />}
-    </div>
-  );
+  return <AdminLoadedUserDetail user={user} />;
 }
