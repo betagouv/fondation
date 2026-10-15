@@ -49,23 +49,27 @@ const ARCHIVED_SESSIONS = [
   }),
 ];
 
-const archivedSessionsHandler = http.get('*/api/archived-sessions/v1', ({ request }) => {
-  const params = new URL(request.url).searchParams;
-  const formations = params.getAll('formations');
-  const search = params.get('search')?.toLowerCase();
+/** @param memberFormation as the API, which keeps a member of a single formation to that formation */
+function makeArchivedSessionsHandler(memberFormation?: ArchivedSession['formation']) {
+  return http.get('*/api/archived-sessions/v1', ({ request }) => {
+    const params = new URL(request.url).searchParams;
+    const formations = params.getAll('formations');
+    const search = params.get('search')?.toLowerCase();
 
-  const items = ARCHIVED_SESSIONS.filter(
-    (session) =>
-      (formations.length === 0 || formations.includes(session.formation)) &&
-      (!search || session.name.toLowerCase().includes(search)),
-  );
+    const items = ARCHIVED_SESSIONS.filter(
+      (session) =>
+        (!memberFormation || session.formation === memberFormation) &&
+        (formations.length === 0 || formations.includes(session.formation)) &&
+        (!search || session.name.toLowerCase().includes(search)),
+    );
 
-  return HttpResponse.json<ListedArchivedNominationSessionsDto>({
-    currentPageIndex: 1,
-    items,
-    totalCount: items.length,
+    return HttpResponse.json<ListedArchivedNominationSessionsDto>({
+      currentPageIndex: 1,
+      items,
+      totalCount: items.length,
+    });
   });
-});
+}
 
 function ArchivedSessionsStory(props: ComponentProps<typeof ArchivedSessions>) {
   return (
@@ -81,7 +85,7 @@ const meta = {
   title: 'Session/ArchivedSessions',
   component: ArchivedSessionsStory,
   beforeEach: ({ msw }) => {
-    msw.use(archivedSessionsHandler);
+    msw.use(makeArchivedSessionsHandler());
   },
   parameters: { layout: 'fullscreen' },
   tags: ['autodocs'],
@@ -97,4 +101,17 @@ type Story = StoryObj<typeof meta>;
 export const SecretariatGeneral: Story = {
   args: { space: 'SG', withFormationFilter: true },
   parameters: { router: { initialEntries: ['/secretariat-general/archives/sessions'] } },
+};
+
+export const MemberOfFormation: Story = {
+  args: { space: 'TRANSPARENCES', withFormationFilter: false },
+  beforeEach: ({ msw }) => {
+    msw.use(makeArchivedSessionsHandler('SIEGE'));
+  },
+  parameters: { router: { initialEntries: ['/transparences/archives/sessions'] } },
+};
+
+export const CommonMember: Story = {
+  args: { space: 'TRANSPARENCES', withFormationFilter: true },
+  parameters: { router: { initialEntries: ['/transparences/archives/sessions'] } },
 };

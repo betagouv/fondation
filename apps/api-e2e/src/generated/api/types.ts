@@ -28,6 +28,7 @@ export type DetailedUserResponseDto = {
     firstName: string;
     lastName: string;
     role: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | 'ADMIN';
+    formation: 'SIEGE' | 'PARQUET' | null;
     gender: 'MALE' | 'FEMALE';
     isImpersonated: boolean;
     displayTitle: string | null;

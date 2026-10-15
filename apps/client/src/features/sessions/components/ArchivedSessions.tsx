@@ -129,12 +129,14 @@ export function ArchivedSessions(props: { space: Space; withFormationFilter: boo
     sorting: [] as ArchivedSessionsSorting,
   });
 
+  // a formation shared in the URL would otherwise filter the table of a member who cannot remove it
+  const formations = props.withFormationFilter
+    ? tableState.columnFilters.find(({ id }) => id === 'formation')?.value
+    : undefined;
+
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
     useInfiniteArchivedGdsNominationSessionsQuery({
-      filters: {
-        formations: tableState.columnFilters.find(({ id }) => id === 'formation')?.value,
-        search: tableState.globalFilter,
-      },
+      filters: { formations, search: tableState.globalFilter },
       sorting: tableState.sorting,
     });
 
@@ -147,8 +149,7 @@ export function ArchivedSessions(props: { space: Space; withFormationFilter: boo
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   const columns = useArchivedSessionColumns(props);
-  const isFiltered =
-    !!tableState.globalFilter || tableState.columnFilters.some(({ value }) => value.length > 0);
+  const isFiltered = !!tableState.globalFilter || !!formations?.length;
 
   const sessions = useMemo(() => data?.items ?? [], [data]);
   const table = useReactTable({

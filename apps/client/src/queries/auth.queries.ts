@@ -21,6 +21,7 @@ export const sessionQueryOptions = queryOptions({
           ? {
               id: data.userId,
               role: data.role,
+              formation: data.formation,
               firstName: data.firstName,
               lastName: data.lastName,
               isImpersonated: data.isImpersonated,

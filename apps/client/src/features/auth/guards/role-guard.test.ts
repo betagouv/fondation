@@ -31,6 +31,7 @@ describe('roleGuard', () => {
   const member = {
     id: '5f6478c1-46a1-4b64-8cbd-4a0d67101d7e',
     role: 'MEMBRE_DU_SIEGE' as const,
+    formation: 'SIEGE' as const,
     firstName: 'Ada',
     lastName: 'Lovelace',
     isImpersonated: false,

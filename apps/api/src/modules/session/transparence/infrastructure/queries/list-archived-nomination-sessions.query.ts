@@ -7,9 +7,11 @@ import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
 import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
 import { Sortable } from 'src/modules/framework/sorting';
+import { roleToFormation } from 'src/modules/members/infrastructure/member.utils';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { prismaTypeDeSaisineEnumToTypeDeSaisine } from 'src/modules/shared/mappers/type-de-saisine-enum.mapper';
+import type { RoleEnum } from 'src/modules/shared/role.enum';
 import {
   ProposingAuthorityEnum,
   ProposingAuthorityEnumLabels,
@@ -26,19 +28,24 @@ export class ListArchivedNominationSessionsQuery {
 
   @Transactional()
   async handle(query: {
-    search: string | null;
-    typeDeSaisine: TypeDeSaisineEnum;
     formations: readonly FormationEnum[] | undefined;
-    sorting: Sortable<ListArchivedSessionsQueryDto>;
     pagination: Pagination;
+    role: RoleEnum;
+    search: string | null;
+    sorting: Sortable<ListArchivedSessionsQueryDto>;
+    typeDeSaisine: TypeDeSaisineEnum;
   }): Promise<ListedArchivedNominationSessionsDto> {
+    const allowed = roleToFormation(query.role);
+    const requested = query.formations?.length ? query.formations : undefined;
+    const formations = allowed
+      ? (requested ?? [allowed]).filter((formation) => formation === allowed)
+      : requested;
+
     const where: Prisma.SessionWhereInput = {
       deletedAt: null,
       archivedAt: { not: null },
       typeDeSaisine: query.typeDeSaisine,
-      ...(query.formations?.length && {
-        formation: { in: [...query.formations] },
-      }),
+      ...(formations && { formation: { in: [...formations] } }),
       ...(query.search && {
         name: { contains: query.search, mode: 'insensitive' },
       }),

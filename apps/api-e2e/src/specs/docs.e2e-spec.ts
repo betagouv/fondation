@@ -435,6 +435,7 @@ test.describe('Docs Service', () => {
   test('should report the session only once every file is acted in a validated official report', async ({
     agent,
     expect,
+    logIn,
     member,
   }) => {
     const ruleAcrossEndpoints = async () => {
@@ -569,12 +570,23 @@ test.describe('Docs Service', () => {
     const archived = await agent.sessions.archiveSession({ path: { sessionId } });
     expect(archived.response?.status).toBe(204);
     const archivedSessions = await agent.archivedSessions.listArchivedSessions({ query: { limit: 200 } });
-    expect(archivedSessions.data!.items[0]).toMatchObject({
+    const archivedSession = archivedSessions.data!.items.find(({ id }) => id === sessionId);
+    expect(archivedSession).toMatchObject({
       archivedAt: expect.any(String),
-      id: sessionId,
       proposingAuthority: { id: 'GARDE_DES_SCEAUX', label: 'Garde des Sceaux' },
       typeDeSaisine: { id: 'TRANSPARENCE_GDS', label: 'Transparence' },
     });
+
+    // a member finds the archived sessions of their formation, and only them
+    const { formation } = archivedSession!;
+    const formationMember = await logIn(formation === 'PARQUET' ? 'MEMBRE_DU_PARQUET' : 'MEMBRE_DU_SIEGE');
+    const outsider = await logIn(formation === 'PARQUET' ? 'MEMBRE_DU_SIEGE' : 'MEMBRE_DU_PARQUET');
+    const foundByMember = await formationMember.archivedSessions.listArchivedSessions({ query: { limit: 200 } });
+    expect(foundByMember.data!.items.map(({ id }) => id)).toContain(sessionId);
+    const foundByOutsider = await outsider.archivedSessions.listArchivedSessions({
+      query: { formations: [formation], limit: 200 },
+    });
+    expect(foundByOutsider.data!.items.map(({ id }) => id)).not.toContain(sessionId);
 
     // an archived session freezes the reports written for it
     const frozen = await member.reports.updateReport({

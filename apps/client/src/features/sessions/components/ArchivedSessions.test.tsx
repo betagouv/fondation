@@ -18,9 +18,8 @@ class NoopObserver {
 vi.stubGlobal('IntersectionObserver', NoopObserver);
 vi.stubGlobal('ResizeObserver', NoopObserver);
 
-vi.mock('@queries/archived-nomination-sessions.queries', async (importOriginal) => ({
-  ...(await importOriginal<object>()),
-  useInfiniteArchivedGdsNominationSessionsQuery: () => ({
+const useArchivedSessionsQuery = vi.hoisted(() =>
+  vi.fn(() => ({
     data: {
       items: [
         {
@@ -38,16 +37,21 @@ vi.mock('@queries/archived-nomination-sessions.queries', async (importOriginal) 
     hasNextPage: false,
     isFetchingNextPage: false,
     isLoading: false,
-  }),
+  })),
+);
+
+vi.mock('@queries/archived-nomination-sessions.queries', async (importOriginal) => ({
+  ...(await importOriginal<object>()),
+  useInfiniteArchivedGdsNominationSessionsQuery: useArchivedSessionsQuery,
 }));
 
 function renderArchivedSessions(
   props: ComponentProps<typeof ArchivedSessions>,
-  onUrlUpdate: OnUrlUpdateFunction = () => {},
+  options: { onUrlUpdate?: OnUrlUpdateFunction; searchParams?: string } = {},
 ) {
   render(
     <MemoryRouter>
-      <NuqsTestingAdapter hasMemory onUrlUpdate={onUrlUpdate}>
+      <NuqsTestingAdapter hasMemory onUrlUpdate={options.onUrlUpdate} searchParams={options.searchParams}>
         <IntlProvider defaultLocale="fr" formats={frFormat} locale="fr">
           <ArchivedSessions {...props} />
         </IntlProvider>
@@ -67,9 +71,31 @@ describe('ArchivedSessions', () => {
     );
   });
 
+  it('should open a session in the member space, without a formation filter for a single formation', () => {
+    renderArchivedSessions({ space: 'TRANSPARENCES', withFormationFilter: false });
+
+    expect(screen.queryByRole('button', { name: /Formation/ })).toBeNull();
+    expect(screen.getByRole('columnheader', { name: /Formation/ })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'Transparence du 4 février 2026' })).toHaveAttribute(
+      'href',
+      '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/session-1',
+    );
+  });
+
+  it('should ignore a formation shared in the address when the formation filter is hidden', () => {
+    renderArchivedSessions(
+      { space: 'TRANSPARENCES', withFormationFilter: false },
+      { searchParams: `?filters=${encodeURIComponent('formation:["PARQUET"]')}` },
+    );
+
+    expect(useArchivedSessionsQuery).toHaveBeenLastCalledWith(
+      expect.objectContaining({ filters: { formations: undefined, search: '' } }),
+    );
+  });
+
   it('should keep the searched name in the address', async () => {
     const onUrlUpdate = vi.fn<OnUrlUpdateFunction>();
-    renderArchivedSessions({ space: 'SG', withFormationFilter: true }, onUrlUpdate);
+    renderArchivedSessions({ space: 'SG', withFormationFilter: true }, { onUrlUpdate });
 
     await userEvent.type(screen.getByPlaceholderText('Rechercher une session'), 'février');
 

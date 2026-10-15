@@ -79,6 +79,13 @@ export const router = sentryCreateBrowserRouter([
                   })),
               },
               {
+                path: ROUTE_PATHS.TRANSPARENCES.ARCHIVED_SESSIONS,
+                lazy: () =>
+                  import('@/pages/sessions/MemberArchivedSessionsPage').then(
+                    ({ MemberArchivedSessionsPage }) => ({ Component: MemberArchivedSessionsPage }),
+                  ),
+              },
+              {
                 path: ROUTE_PATHS.TRANSPARENCES.DETAIL_SESSION_GDS,
                 lazy: () =>
                   import('@/pages/reports/MemberSessionLayout').then(({ MemberSessionLayout }) => ({

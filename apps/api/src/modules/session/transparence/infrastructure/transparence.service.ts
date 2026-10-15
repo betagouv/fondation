@@ -662,6 +662,7 @@ export class TransparenceService {
   listArchivedSessions(query: {
     formations: readonly FormationEnum[] | undefined;
     pagination: Pagination;
+    role: RoleEnum;
     search: string | null;
     sorting: Sortable<ListArchivedSessionsQueryDto>;
     typeDeSaisine: TypeDeSaisineEnum;

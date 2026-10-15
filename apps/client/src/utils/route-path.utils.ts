@@ -59,6 +59,7 @@ export const ROUTE_PATHS = {
   },
   SUMMARY: '/session/:sessionId/dossier/:fileId/synthese',
   TRANSPARENCES: {
+    ARCHIVED_SESSIONS: '/transparences/archives/sessions',
     DASHBOARD: '/transparences',
     DETAILS_REPORTS: '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/rapports/:id',
     DETAIL_SESSION_GDS: `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/:sessionId`,
