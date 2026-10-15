@@ -100,7 +100,13 @@ test.describe('Docs Service', () => {
   });
 
   /** a validated agenda held by a validated notice, ready to be presented */
-  async function agendaOnValidatedNotice(agent: TestStepsAgent): Promise<{ agendaId: string; planId: string }> {
+  async function agendaOnValidatedNotice(fixtures: {
+    agent: TestStepsAgent;
+    registerUser: (role: 'MEMBRE_DU_PARQUET') => Promise<unknown>;
+  }): Promise<{ agendaId: string; planId: string }> {
+    const { agent, registerUser } = fixtures;
+    // the notice refuses a formation whose only present member presides it
+    await registerUser('MEMBRE_DU_PARQUET');
     const foundFiles = await agent.docs.findAgendaNominationFiles({ path: { sessionId } });
     const agenda = await agent.docs.createAgenda({
       body: {
@@ -1140,9 +1146,7 @@ test.describe('Docs Service', () => {
     expect,
     registerUser,
   }) => {
-    // the notice refuses a formation whose only present member presides it
-    await registerUser('MEMBRE_DU_PARQUET');
-    const { agendaId, planId } = await agendaOnValidatedNotice(agent);
+    const { agendaId, planId } = await agendaOnValidatedNotice({ agent, registerUser });
 
     const beforePresentation = await agendaOf(agent, agendaId);
     expect(beforePresentation?.presentation).toEqual({ status: 'TO_PRESENT' });
@@ -1163,9 +1167,7 @@ test.describe('Docs Service', () => {
     expect,
     registerUser,
   }) => {
-    // the notice refuses a formation whose only present member presides it
-    await registerUser('MEMBRE_DU_PARQUET');
-    const { agendaId, planId } = await agendaOnValidatedNotice(agent);
+    const { agendaId, planId } = await agendaOnValidatedNotice({ agent, registerUser });
     await agent.docs.presentPlan({ body: { endTime: { hours: 10, minutes: 15, seconds: 0 } }, path: { planId } });
 
     await agent.docs.unPresentPlan({ path: { planId } });
@@ -1178,9 +1180,7 @@ test.describe('Docs Service', () => {
     expect,
     registerUser,
   }) => {
-    // the notice refuses a formation whose only present member presides it
-    await registerUser('MEMBRE_DU_PARQUET');
-    const { agendaId, planId } = await agendaOnValidatedNotice(agent);
+    const { agendaId, planId } = await agendaOnValidatedNotice({ agent, registerUser });
     await agent.docs.presentPlan({ body: { endTime: { hours: 10, minutes: 15, seconds: 0 } }, path: { planId } });
 
     await agent.docs.updateAgendaMetadata({
