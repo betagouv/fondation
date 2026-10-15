@@ -5,12 +5,12 @@ import { useCallback, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { FormattedMessage, useIntl } from 'react-intl';
 
+import { useDownloadFailureToast } from '@/shared/hooks/useDownloadFailureToast';
 import { useTab } from '@/shared/hooks/useTab';
 import { DropdownFilter } from '@/shared/ui/DropdownFilter';
 import { IconButton } from '@/shared/ui/icon-button';
 import { ACTION_ICONS } from '@/shared/ui/icons';
 import { SearchInput } from '@/shared/ui/search-input';
-import { useToasts } from '@/shared/ui/toast';
 import { TotalBadge } from '@/shared/ui/total-badge';
 import { formatFileSize } from '@/utils/file.utils';
 import { unaccent } from '@/utils/string.utils';
@@ -31,7 +31,7 @@ export function SessionAttachmentsTab(props: {
   toolbarSlot?: Element | null;
 }) {
   const { formatMessage } = useIntl();
-  const toasts = useToasts();
+  const notifyDownloadFailure = useDownloadFailureToast();
   const tab = useTab();
 
   const [search, setSearch] = useQueryState('q', parseAsString.withDefault(''));
@@ -70,28 +70,17 @@ export function SessionAttachmentsTab(props: {
     [createUrl, formatMessage, props.sessionId, tab],
   );
 
-  const notifyDownloadFailure = useCallback(
-    (name: string) =>
-      toasts.error({
-        description: formatMessage({
-          defaultMessage: 'Réessayez et prévenez le support si cela persiste.',
-        }),
-        title: formatMessage({ defaultMessage: 'Le téléchargement de "{name}" a échoué' }, { name }),
-      }),
-    [formatMessage, toasts],
-  );
-
   const onDownload = useCallback(
     (attachment: SessionAttachment) =>
       createUrl(
         { fileId: attachment.id, sessionId: props.sessionId },
         {
-          onError: () => notifyDownloadFailure(attachment.name),
+          onError: (error) => notifyDownloadFailure(attachment.name, error),
           onSuccess: (response) => {
             if (!response) return;
             download(
               { name: attachment.name, url: response.url },
-              { onError: () => notifyDownloadFailure(attachment.name) },
+              { onError: (error) => notifyDownloadFailure(attachment.name, error) },
             );
           },
         },

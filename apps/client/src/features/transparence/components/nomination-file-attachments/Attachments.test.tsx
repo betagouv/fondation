@@ -19,6 +19,7 @@ const mocks = vi.hoisted(() => ({
   openAddAttachment: vi.fn(),
   remove: vi.fn(),
   settleTab: vi.fn(),
+  toastError: vi.fn(),
   user: { id: 'user-2' },
   waitForConfirmation: vi.fn(async () => ({ isConfirmed: true })),
 }));
@@ -35,6 +36,7 @@ vi.mock('@/shared/hooks/useTab', () => ({
     openDeferred: () => ({ cancel: mocks.cancelTab, settle: mocks.settleTab }),
   }),
 }));
+vi.mock('@/shared/ui/toast', () => ({ useToasts: () => ({ error: mocks.toastError }) }));
 vi.mock('@/features/auth/hooks/roles.hook', () => ({ useIsSgNavigation: () => mocks.isSg() }));
 vi.mock('@queries/auth.queries', () => ({ useUser: () => ({ user: mocks.user }) }));
 vi.mock('@queries/files.queries', () => ({
@@ -172,10 +174,37 @@ describe('Attachments actions', () => {
 
     await user.click(screen.getByRole('button', { name: 'Télécharger rapport.pdf' }));
 
-    expect(mocks.downloadFile).toHaveBeenCalledWith({
-      name: 'rapport.pdf',
-      url: 'https://api.example/api/files/v1/abc',
-    });
+    expect(mocks.downloadFile).toHaveBeenCalledWith(
+      { name: 'rapport.pdf', url: 'https://api.example/api/files/v1/abc' },
+      expect.any(Object),
+    );
+  });
+
+  it('tells the download failed', async () => {
+    mocks.createUrl.mockImplementation((_vars, options) =>
+      options.onSuccess({ url: 'https://api.example/api/files/v1/abc' }),
+    );
+    mocks.downloadFile.mockImplementation((_vars, options) => options.onError(new Error('network')));
+    const user = userEvent.setup();
+    renderAttachments();
+
+    await user.click(screen.getByRole('button', { name: 'Télécharger rapport.pdf' }));
+
+    expect(mocks.toastError).toHaveBeenCalledWith(
+      expect.objectContaining({ title: 'Le téléchargement de "rapport.pdf" a échoué' }),
+    );
+  });
+
+  it('tells the opening failed', async () => {
+    mocks.createUrl.mockImplementation((_vars, options) => options.onError(new Error('network')));
+    const user = userEvent.setup();
+    renderAttachments();
+
+    await user.click(screen.getByRole('button', { name: 'rapport' }));
+
+    expect(mocks.toastError).toHaveBeenCalledWith(
+      expect.objectContaining({ title: 'L\'ouverture de "rapport.pdf" a échoué' }),
+    );
   });
 
   it('removes the file once the deletion is confirmed', async () => {

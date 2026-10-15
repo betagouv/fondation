@@ -3,6 +3,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 
 import { FileList, FileListItem } from '@/shared/components/file-list';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
+import { useDownloadFailureToast } from '@/shared/hooks/useDownloadFailureToast';
 import { useTab } from '@/shared/hooks/useTab';
 import { useToasts } from '@/shared/ui/toast';
 import { useDownloadFileMutation } from '@queries/files.queries';
@@ -22,6 +23,7 @@ export function AttachedFilesList(props: {
 }) {
   const { formatMessage } = useIntl();
   const toasts = useToasts();
+  const notifyDownloadFailure = useDownloadFailureToast();
   const tab = useTab();
   const confirmation = useConfirmModal();
 
@@ -60,13 +62,11 @@ export function AttachedFilesList(props: {
       try {
         const url = await createAttachmentLink({ fileName, reportId: props.reportId });
         await download({ name: fileName, url });
-      } catch {
-        onError(
-          formatMessage({ defaultMessage: 'Le téléchargement de "{name}" a échoué' }, { name: fileName }),
-        );
+      } catch (error) {
+        notifyDownloadFailure(fileName, error);
       }
     },
-    [createAttachmentLink, download, formatMessage, onError, props.reportId],
+    [createAttachmentLink, download, notifyDownloadFailure, props.reportId],
   );
 
   const onDelete = async (fileName: string) => {

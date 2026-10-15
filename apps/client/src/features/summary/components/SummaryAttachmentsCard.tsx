@@ -5,8 +5,8 @@ import { useSummary } from '@/features/summary/context/SummaryContext';
 import { useOpenSummaryAttachment } from '@/features/summary/hooks/useOpenSummaryAttachment';
 import { FileList, FileListItem } from '@/shared/components/file-list';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
+import { useDownloadFailureToast } from '@/shared/hooks/useDownloadFailureToast';
 import { DetailsCard } from '@/shared/ui/details';
-import { useToasts } from '@/shared/ui/toast';
 import { Upload } from '@/shared/ui/upload';
 import type { DetailedSummaryDto } from '@api/types';
 import { useDownloadFileMutation } from '@queries/files.queries';
@@ -73,7 +73,7 @@ function SummaryAttachmentInput() {
 function SummaryAttachment({ attachment }: { attachment: SummaryAttachmentDto }) {
   const { canWriteSummary, nominationFileId, sessionId } = useSummary();
   const { formatMessage } = useIntl();
-  const toasts = useToasts();
+  const notifyDownloadFailure = useDownloadFailureToast();
 
   const { isPending: isOpening, open: openAttachment } = useOpenSummaryAttachment();
   const onOpen = useCallback(() => {
@@ -83,14 +83,7 @@ function SummaryAttachment({ attachment }: { attachment: SummaryAttachmentDto })
   const { isPending: isCreatingUrl, mutate: createUrl } = useGenerateSummaryAttachmentPublicUrlMutation();
   const { isPending: isDownloading, mutate: download } = useDownloadFileMutation();
   const onDownload = useCallback(() => {
-    const onError = () =>
-      toasts.error({
-        description: formatMessage({ defaultMessage: 'Réessayez et prévenez le support si cela persiste.' }),
-        title: formatMessage(
-          { defaultMessage: 'Le téléchargement de "{name}" a échoué' },
-          { name: attachment.name },
-        ),
-      });
+    const onError = (error?: unknown) => notifyDownloadFailure(attachment.name, error);
 
     createUrl(
       { fileId: attachment.id, nominationFileId, sessionId },
@@ -102,12 +95,11 @@ function SummaryAttachment({ attachment }: { attachment: SummaryAttachmentDto })
   }, [
     createUrl,
     download,
-    formatMessage,
+    notifyDownloadFailure,
     nominationFileId,
     attachment.id,
     attachment.name,
     sessionId,
-    toasts,
   ]);
 
   const { isPending: isDetaching, mutate: detach } = useDetachSummaryFilesMutation();
