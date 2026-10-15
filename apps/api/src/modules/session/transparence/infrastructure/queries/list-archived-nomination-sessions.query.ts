@@ -11,10 +11,12 @@ import { roleToFormation } from 'src/modules/members/infrastructure/member.utils
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { prismaTypeDeSaisineEnumToTypeDeSaisine } from 'src/modules/shared/mappers/type-de-saisine-enum.mapper';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
 import {
   ProposingAuthorityEnum,
   ProposingAuthorityEnumLabels,
+} from 'src/modules/shared/proposing-authority.enum';
+import type { RoleEnum } from 'src/modules/shared/role.enum';
+import {
   TypeDeSaisineEnum,
   TypeDeSaisineEnumLabels,
   typeDeSaisineProposingAuthority,
