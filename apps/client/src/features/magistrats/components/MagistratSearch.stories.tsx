@@ -3,6 +3,7 @@ import { http, HttpResponse } from 'msw';
 import { NuqsTestingAdapter } from 'nuqs/adapters/testing';
 
 import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
+import { ToastProvider } from '@/shared/ui/toast';
 import type { SearchMagistratsResponseDto } from '@api/types';
 
 import { MagistratSearch } from './MagistratSearch';
@@ -48,7 +49,9 @@ const meta = {
     (Story, context) => (
       <NuqsTestingAdapter hasMemory searchParams={context.parameters.searchParams as string | undefined}>
         <StoryQueryClient>
-          <Story />
+          <ToastProvider>
+            <Story />
+          </ToastProvider>
         </StoryQueryClient>
       </NuqsTestingAdapter>
     ),
