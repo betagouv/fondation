@@ -83,6 +83,7 @@ const PRESENTED = {
     by: LUCAS,
     date: { day: 24, month: 9, year: 2026 },
     endTime: { hours: 11, minutes: 30, seconds: 0 },
+    planId: 'plan-24-09',
     status: 'PRESENTED',
   },
 } satisfies Partial<AgendaDocument>;
