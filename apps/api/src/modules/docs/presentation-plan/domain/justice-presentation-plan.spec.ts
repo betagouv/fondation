@@ -67,7 +67,6 @@ describe('JusticePresentationPlan', () => {
       authorId: 'user-1',
       chairman,
       date: new DateOnly(2026, 2, 10),
-      endingTime: null,
       hasRenunciation: true,
       justiceContactId: '12',
       members: [
@@ -86,16 +85,23 @@ describe('JusticePresentationPlan', () => {
       expect(plan.messages).toEqual([]);
     });
 
-    it('should be written again when a setting changes', () => {
+    it.each<[string, Partial<UpdateJusticePresentationPlanCommand>]>([
+      [
+        'an absence',
+        {
+          members: [
+            { id: 'member-1', isAbsent: false },
+            { id: 'member-2', isAbsent: false },
+          ],
+        },
+      ],
+      ['an agenda comment', { agendas: [{ ...command.agendas[0]!, comment: 'dans les délais' }] }],
+      ['the date', { date: new DateOnly(2026, 2, 11) }],
+      ['the time', { time: { hours: 10, minutes: 30, seconds: 0 } }],
+    ])('should be written again when %s changes', (_, change) => {
       const plan = aDraft({ agendaIds: ['agenda-1'] });
 
-      plan.update({
-        ...command,
-        members: [
-          { id: 'member-1', isAbsent: false },
-          { id: 'member-2', isAbsent: false },
-        ],
-      });
+      plan.update({ ...command, ...change });
 
       expect(plan.messages.map((m) => m.constructor)).toEqual([JusticePresentationPlanUpdated]);
     });

@@ -151,11 +151,14 @@ export function PresentationPlanProvider(props: PropsWithChildren) {
   const missingMetadata = MANDATORY_METADATA.filter((key) => !state[key]);
   const hasAllMandatoryMetadata = missingMetadata.length === 0;
 
+  const hasSomethingToLose =
+    Boolean(planId) && (metadata?.status === 'VALIDATED' || Boolean(metadata?.isManuallyEdited));
+
   // an outdated notice is never unchanged: saving it is how it catches up with its agendas
   // TODO: see JusticePresentationPlanSettings.equals
   const isUnchanged = useCallback(
     (options: { agendas: Record<string, string | null> }): boolean => {
-      if (!planId || !metadata || metadata.outdated) return false;
+      if (!hasSomethingToLose || !metadata || metadata.outdated) return false;
 
       const sameAbsences =
         state.absentMemberIds.length === metadata.absentMemberIds.length &&
@@ -178,7 +181,7 @@ export function PresentationPlanProvider(props: PropsWithChildren) {
         state.time?.minutes === metadata.time.minutes
       );
     },
-    [metadata, planId, state],
+    [hasSomethingToLose, metadata, state],
   );
 
   const createPlan = useCallback(
@@ -189,9 +192,7 @@ export function PresentationPlanProvider(props: PropsWithChildren) {
         throw new Error(`Cannot create a presentation plan, missing ${missingMetadata.join(', ')}`);
       }
 
-      const hasSomethingToLose = metadata?.status === 'VALIDATED' || metadata?.isManuallyEdited;
-
-      if (planId && hasSomethingToLose) {
+      if (hasSomethingToLose) {
         const { isConfirmed } = await waitForConfirmation({
           title: formatMessage({ defaultMessage: `Supprimer l'ancienne version` }),
           i18n: { confirm: formatMessage({ defaultMessage: `Oui, écraser la notice` }) },
@@ -267,8 +268,8 @@ export function PresentationPlanProvider(props: PropsWithChildren) {
       queryClient,
       waitForConfirmation,
       formatMessage,
+      hasSomethingToLose,
       metadata?.isManuallyEdited,
-      metadata?.status,
       resetCreation,
       resetUpdate,
     ],

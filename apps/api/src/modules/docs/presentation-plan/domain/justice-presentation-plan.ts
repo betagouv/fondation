@@ -219,8 +219,6 @@ export class JusticePresentationPlan {
         ...agenda,
         comment: agenda.comment?.trim() || null,
       })),
-      endingTime: 'endingTime' in props ? props.endingTime : null,
-
       ...state,
     };
   }
@@ -311,7 +309,6 @@ export type JusticePresentationPlanState = {
   justiceContactId: string;
   date: DateOnly;
   time: TimeOnly;
-  endingTime: TimeOnly | null;
   authorId: string;
   hasRenunciation: boolean;
   agendas: readonly {
@@ -347,7 +344,6 @@ export type UpdateJusticePresentationPlanCommand = {
   justiceContactId: string;
   date: DateOnly;
   time: TimeOnly;
-  endingTime: TimeOnly | null;
   hasRenunciation: boolean;
   agendas: readonly {
     id: string;

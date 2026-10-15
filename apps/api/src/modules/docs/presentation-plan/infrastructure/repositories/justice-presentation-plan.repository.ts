@@ -192,7 +192,6 @@ export class JusticePresentationPlanRepository {
       isManuallyEdited: false,
       date: message.state.date.toDate(),
       time: timeOnlyToDate(message.state.time),
-      endTime: message.state.endingTime ? timeOnlyToDate(message.state.endingTime) : null,
       hasRenunciation: message.state.hasRenunciation,
 
       chairmanId: message.state.chairman.id,
