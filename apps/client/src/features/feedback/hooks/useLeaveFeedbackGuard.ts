@@ -28,12 +28,14 @@ export function useLeaveFeedbackGuard(isStarted: boolean) {
       },
       title: formatMessage({ defaultMessage: 'Quitter le questionnaire ?' }),
     }).then(({ isConfirmed }) => {
-      if (!isConfirmed) return blocker.reset?.();
-
-      // the departure may turn into a full page load (a newer version is deployed): the reader
-      // has already answered, the browser must not ask again
-      isLeaving.current = true;
-      blocker.proceed?.();
+      if (isConfirmed) {
+        // the departure may turn into a full page load (a newer version is deployed): the reader
+        // has already answered, the browser must not ask again
+        isLeaving.current = true;
+        blocker.proceed?.();
+      } else {
+        blocker.reset?.();
+      }
     });
   }, [blocker, formatMessage, waitForConfirmation]);
 
