@@ -116,6 +116,12 @@ function useArchivedSessionColumns(props: { space: Space; withFormationFilter: b
   );
 }
 
+const DEFAULT_SORTING: ArchivedSessionsSorting = [{ desc: true, id: 'archivedAt' }];
+const SORTABLE_COLUMNS = new Set<string>([
+  'archivedAt',
+  'date',
+] satisfies ArchivedSessionsSorting[number]['id'][]);
+
 const ARCHIVED_SESSIONS_LABEL = defineMessage({
   defaultMessage: '{count, plural, one {session archivée} other {sessions archivées}}',
 });
@@ -126,8 +132,12 @@ export function ArchivedSessions(props: { space: Space; withFormationFilter: boo
   const { onColumnFiltersChange, onSortingChange, setTableState, tableState } = useDataTableUrlState({
     columnFilters: [] as { id: 'formation'; value: FormationEnum[] }[],
     globalFilter: '',
-    sorting: [] as ArchivedSessionsSorting,
+    sorting: DEFAULT_SORTING,
   });
+
+  // a saved link can carry a sort the API no longer accepts
+  const [sort] = tableState.sorting;
+  const sorting = sort && SORTABLE_COLUMNS.has(sort.id) ? tableState.sorting : DEFAULT_SORTING;
 
   // a formation shared in the URL would otherwise filter the table of a member who cannot remove it
   const formations = props.withFormationFilter
@@ -137,7 +147,7 @@ export function ArchivedSessions(props: { space: Space; withFormationFilter: boo
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
     useInfiniteArchivedGdsNominationSessionsQuery({
       filters: { formations, search: tableState.globalFilter },
-      sorting: tableState.sorting,
+      sorting,
     });
 
   const search = useDataTableSearch(tableState.globalFilter ?? '', (globalFilter) =>
@@ -155,6 +165,7 @@ export function ArchivedSessions(props: { space: Space; withFormationFilter: boo
   const table = useReactTable({
     columns,
     data: sessions,
+    enableSortingRemoval: false,
     getCoreRowModel: getCoreRowModel(),
     getRowId: (row) => row.id,
     manualFiltering: true,
@@ -164,7 +175,7 @@ export function ArchivedSessions(props: { space: Space; withFormationFilter: boo
     state: {
       columnFilters: tableState.columnFilters,
       globalFilter: tableState.globalFilter,
-      sorting: tableState.sorting,
+      sorting,
     },
   });
 

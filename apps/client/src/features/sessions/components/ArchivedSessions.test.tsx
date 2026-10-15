@@ -93,6 +93,18 @@ describe('ArchivedSessions', () => {
     );
   });
 
+  it('should show the most recently archived first, even from a link with a sort no longer offered', () => {
+    renderArchivedSessions({ space: 'SG', withFormationFilter: true }, { searchParams: '?sortBy=dueDate' });
+
+    expect(screen.getByRole('columnheader', { name: /Date d'archivage/ })).toHaveAttribute(
+      'aria-sort',
+      'descending',
+    );
+    expect(useArchivedSessionsQuery).toHaveBeenLastCalledWith(
+      expect.objectContaining({ sorting: [{ desc: true, id: 'archivedAt' }] }),
+    );
+  });
+
   it('should keep the searched name in the address', async () => {
     const onUrlUpdate = vi.fn<OnUrlUpdateFunction>();
     renderArchivedSessions({ space: 'SG', withFormationFilter: true }, { onUrlUpdate });
