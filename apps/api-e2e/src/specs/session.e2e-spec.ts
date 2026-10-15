@@ -4,6 +4,8 @@ import * as fs from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
 import type { LolfiArchiveContent } from 'lolfi';
+import postgres from 'postgres';
+import { inject } from 'vitest';
 
 import { test } from '../fixtures.ts';
 import * as api from '../generated/api/sdk.ts';
@@ -415,6 +417,27 @@ test.describe('Session E2E', () => {
         path: { nominationFileId: files.data!.items[0]!.id, sessionId: session.id },
       });
       expect(forbidden.response?.status).toBe(404);
+    }, 10_000);
+
+    test('should not list to the members an archived session never published to them', async ({
+      agent,
+      member,
+      sessions,
+      expect,
+    }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+      // the API archives only once every file is reported, which a session never published hardly reaches
+      const sql = postgres(inject('databaseUrl'), { onnotice: () => {} });
+      try {
+        await sql`update nominations_context.session set archived_at = now() where id = ${session.id}`;
+      } finally {
+        await sql.end();
+      }
+
+      const listedToSecretariat = await agent.archivedSessions.listArchivedSessions({ query: { limit: 200 } });
+      expect(listedToSecretariat.data!.items.map(({ id }) => id)).toContain(session.id);
+      const listedToMember = await member.archivedSessions.listArchivedSessions({ query: { limit: 200 } });
+      expect(listedToMember.data!.items.map(({ id }) => id)).not.toContain(session.id);
     }, 10_000);
 
     test('should write then read back the session comment and who wrote it last', async ({

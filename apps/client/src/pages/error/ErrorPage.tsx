@@ -1,12 +1,11 @@
 import type { ButtonProps } from '@codegouvfr/react-dsfr/Button';
 import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
-import TechnicalError from '@codegouvfr/react-dsfr/picto/TechnicalError';
 import { isRouteErrorResponse, useRouteError } from 'react-router';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { PageLayout } from '@/layout/PageLayout';
-import { OvoidBackground, OvoidMotif } from '@/shared/ui/ovoid';
+import { ErrorPageLayout } from '@/shared/ui/error-page';
 import { appVersion } from '@/utils/app-version';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useUser } from '@queries/auth.queries';
@@ -53,62 +52,25 @@ export function ErrorPage() {
 
   return (
     <PageLayout>
-      <div className="fr-container">
-        <div
-          className={cx(
-            'fr-my-14v',
-            'fr-mt-md-24v',
-            'fr-mb-md-20v',
-            'fr-grid-row',
-            'fr-grid-row--gutters',
-            'fr-grid-row--middle',
-            'fr-grid-row--center',
-          )}
-        >
-          <div className={cx('fr-py-0', 'fr-col-12', 'fr-col-md-6')}>
-            <h1>Erreur inattendue</h1>
-            <p className={cx('fr-text--sm', 'fr-mb-6v')}>
-              {isRouteErrorResponse(error) ? `Erreur ${error.status}` : 'Erreur applicative'}
-            </p>
-            <p className={cx('fr-text--lead', 'fr-mb-6v')}>
-              Désolé, le service rencontre un problème, nous travaillons pour le résoudre le plus rapidement
-              possible.
-            </p>
+      <ErrorPageLayout>
+        <h1>Erreur inattendue</h1>
+        <p className={cx('fr-text--sm', 'fr-mb-6v')}>
+          {isRouteErrorResponse(error) ? `Erreur ${error.status}` : 'Erreur applicative'}
+        </p>
+        <p className={cx('fr-text--lead', 'fr-mb-6v')}>
+          Désolé, le service rencontre un problème, nous travaillons pour le résoudre le plus rapidement
+          possible.
+        </p>
 
-            <p className={cx('fr-text--sm', 'fr-m-0')}>
-              Essayez de rafraîchir la page ou bien ressayez plus tard.
-            </p>
-            <p className="fr-text--sm fr-mb-6v">
-              Si vous avez besoin d'une aide immédiate, merci de nous contacter.
-            </p>
+        <p className={cx('fr-text--sm', 'fr-m-0')}>
+          Essayez de rafraîchir la page ou bien ressayez plus tard.
+        </p>
+        <p className="fr-text--sm fr-mb-6v">
+          Si vous avez besoin d'une aide immédiate, merci de nous contacter.
+        </p>
 
-            <ButtonsGroup inlineLayoutWhen="md and up" buttons={buttons as [ButtonProps, ...ButtonProps[]]} />
-          </div>
-
-          <div
-            className={cx(
-              'fr-col-12',
-              'fr-col-md-3',
-              'fr-col-offset-md-1',
-              'fr-px-12v',
-              'fr-px-md-0',
-              'fr-py-0',
-            )}
-          >
-            <div className="relative h-50 w-40">
-              <OvoidMotif className="absolute" />
-              <OvoidBackground className="fr-artwork-background absolute" />
-
-              <TechnicalError
-                aria-hidden
-                width="80"
-                height="100"
-                className="fr-artwork fr-responsive-img absolute"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
+        <ButtonsGroup inlineLayoutWhen="md and up" buttons={buttons as [ButtonProps, ...ButtonProps[]]} />
+      </ErrorPageLayout>
     </PageLayout>
   );
 }

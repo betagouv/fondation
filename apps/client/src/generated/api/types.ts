@@ -31,6 +31,7 @@ export type DetailedUserResponseDto = {
     firstName: string;
     lastName: string;
     role: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | 'ADMIN';
+    formation: 'SIEGE' | 'PARQUET' | null;
     gender: 'MALE' | 'FEMALE';
     isImpersonated: boolean;
     displayTitle: string | null;
@@ -130,13 +131,15 @@ export type ListedArchivedNominationSessionsDto = {
             month: number;
             day: number;
         };
-        dueDate: {
-            year: number;
-            month: number;
-            day: number;
-        } | null;
-        typeDeSaisine: 'TRANSPARENCE_GDS';
-        status: 'TO_VALIDATE' | 'READY';
+        archivedAt: string;
+        proposingAuthority: {
+            id: 'GARDE_DES_SCEAUX';
+            label: string;
+        };
+        typeDeSaisine: {
+            id: 'TRANSPARENCE_GDS';
+            label: string;
+        };
     }>;
     totalCount: number;
     currentPageIndex: number;
@@ -2644,7 +2647,7 @@ export type ListArchivedSessionsData = {
     path?: never;
     query?: {
         search?: string;
-        sortBy?: 'date' | 'dueDate';
+        sortBy?: 'archivedAt' | 'date';
         formations?: Array<'SIEGE' | 'PARQUET'>;
         /**
          * true

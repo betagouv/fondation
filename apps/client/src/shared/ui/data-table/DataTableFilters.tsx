@@ -25,11 +25,13 @@ function DataTableEnumFilter<Data extends RowData>(props: {
   const onSelectionChange = React.useCallback(
     (selection: string[]) => {
       props.table.setColumnFilters((filters) =>
-        props.filter.multiple !== false
-          ? filters
-              .filter((filter) => filter.id !== props.filter.filterId)
-              .concat({ id: props.filter.filterId, value: selection })
-          : [{ id: props.filter.filterId, value: selection }],
+        filters
+          .filter((filter) => filter.id !== props.filter.filterId)
+          .concat({
+            id: props.filter.filterId,
+            // DropdownFilter appends the value just checked: it replaces the previous one
+            value: props.filter.multiple === false ? selection.slice(-1) : selection,
+          }),
       );
     },
     [props.table, props.filter],

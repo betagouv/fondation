@@ -3,7 +3,7 @@ import { inject } from 'vitest';
 
 import { test } from '../fixtures.ts';
 import type { PaginatedNominationFiles } from '../generated/api/types.ts';
-import type { TestStepsAgent } from '../steps.ts';
+import type { TestStepsAgent, TestStepsMember } from '../steps.ts';
 import * as seed from '../utils/seed.ts';
 
 async function filesOfValidatedVersionsReading(html: string): Promise<number> {
@@ -570,6 +570,109 @@ test.describe('Docs Service', () => {
       path: { reportId: reports.data!.items[0]!.report.id },
     });
     expect(frozen.response?.status).toBe(403);
+  });
+
+  /** every file of the session acted in a validated official report */
+  async function makeSessionArchivable(fixtures: { agent: TestStepsAgent; member: TestStepsMember }) {
+    const { agent, member } = fixtures;
+    const foundFiles = await agent.docs.findAgendaNominationFiles({ path: { sessionId } });
+    const fileIds = foundFiles.data!.items.map(({ id }) => id);
+
+    await agent.sessions.affectReporters({
+      body: {
+        items: fileIds.map((nominationFileId) => ({
+          nominationFileId,
+          priorities: [],
+          reporterIds: [member['@user']!.id],
+        })),
+      },
+      path: { sessionId },
+    });
+    await agent.sessions.publishNominationSessionAffectationsVersion({ path: { sessionId } });
+    for (const nominationFileId of fileIds) {
+      await agent.sessions.defineNominationFileOutcome({
+        body: { comment: null, outcome: 'VALIDATED' },
+        path: { nominationFileId, sessionId },
+      });
+    }
+
+    const agenda = await agent.docs.createAgenda({
+      body: {
+        chairmanId,
+        date: { day: 1, month: 2, year: 2026 },
+        nominationFileIds: fileIds,
+        sessionMeetingDate: MEETING_DATE,
+      },
+      path: { sessionId },
+    });
+    const justiceContact = await agent.docs.createJusticeContact({
+      body: { name: `M. Vincent de la Porte, adjoint ${crypto.randomUUID()}` },
+    });
+    const officialReport = await agent.docs.createOfficialReport({
+      body: {
+        absentMemberIds: [],
+        agendaId: agenda.data!.id,
+        chairmanId,
+        hasRenunciation: true,
+        justiceDepartmentContactId: justiceContact.data!.id,
+        secretaryId: firstSecretaryId,
+        sessionMeetingDate: MEETING_DATE,
+        sessionMeetingEndingTime: { hours: 18, minutes: 10, seconds: 0 },
+        sessionMeetingTime: { hours: 18, minutes: 0, seconds: 0 },
+      },
+      path: { sessionId },
+    });
+    await agent.docs.validateOfficialReport({ path: { officialReportId: officialReport.data!.id } });
+
+    return { fileIds };
+  }
+
+  test('should list an archived session to the members of its formation only', async ({
+    agent,
+    expect,
+    logIn,
+    member,
+  }) => {
+    await makeSessionArchivable({ agent, member });
+    await agent.sessions.archiveSession({ path: { sessionId }, throwOnError: true });
+
+    const archivedSessions = await agent.archivedSessions.listArchivedSessions({ query: { limit: 200 } });
+    const archivedSession = archivedSessions.data!.items.find(({ id }) => id === sessionId);
+    expect(archivedSession).toMatchObject({
+      archivedAt: expect.any(String),
+      proposingAuthority: { id: 'GARDE_DES_SCEAUX', label: 'Garde des Sceaux' },
+      typeDeSaisine: { id: 'TRANSPARENCE_GDS', label: 'Transparence' },
+    });
+
+    const { formation } = archivedSession!;
+    const formationMember = await logIn(formation === 'PARQUET' ? 'MEMBRE_DU_PARQUET' : 'MEMBRE_DU_SIEGE');
+    const outsider = await logIn(formation === 'PARQUET' ? 'MEMBRE_DU_SIEGE' : 'MEMBRE_DU_PARQUET');
+    const foundByMember = await formationMember.archivedSessions.listArchivedSessions({ query: { limit: 200 } });
+    expect(foundByMember.data!.items.map(({ id }) => id)).toContain(sessionId);
+    const foundByOutsider = await outsider.archivedSessions.listArchivedSessions({
+      query: { formations: [formation], limit: 200 },
+    });
+    expect(foundByOutsider.data!.items.map(({ id }) => id)).not.toContain(sessionId);
+  });
+
+  test('should freeze the summaries of the files of an archived session', async ({ agent, expect, member }) => {
+    const { fileIds } = await makeSessionArchivable({ agent, member });
+    const summaryPath = { nominationFileId: fileIds[0]!, sessionId };
+    await agent.summaries.createSummary({ path: summaryPath, throwOnError: true });
+    await agent.summaries.writeSummary({
+      body: { content: '<p>Synthèse avant archivage</p>' },
+      path: summaryPath,
+      throwOnError: true,
+    });
+    await agent.sessions.archiveSession({ path: { sessionId }, throwOnError: true });
+
+    const frozen = await agent.summaries.writeSummary({
+      body: { content: '<p>Synthèse après archivage</p>' },
+      path: summaryPath,
+    });
+    expect(frozen.response?.status).toBe(403);
+    const summary = await agent.summaries.detailSummary({ path: summaryPath });
+    expect(summary.data?.summary.content).toBe('<p>Synthèse avant archivage</p>');
   });
 
   test('should keep an edition made after a validation, and undo it when the draft is discarded', async ({

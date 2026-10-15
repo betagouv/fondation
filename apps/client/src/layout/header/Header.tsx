@@ -8,6 +8,7 @@ import { matchPath, useLocation } from 'react-router';
 import { useIsAdmin, useIsSg } from '@/features/auth/hooks/roles.hook';
 import { FeedbackHeaderButton } from '@/features/feedback/components/FeedbackHeaderButton';
 import { HelpPageButton } from '@/pages/help/HelpPageButton';
+import { useArchivedSession } from '@/shared/context/archived-session';
 import { ROUTE_PATHS, type FondationPath } from '@/utils/route-path.utils';
 import { useUser } from '@queries/auth.queries';
 
@@ -43,6 +44,7 @@ export const AppHeader = () => {
   const { user } = useUser();
   const isUserSg = useIsSg();
   const isUserAdmin = useIsAdmin();
+  const { isArchived } = useArchivedSession();
 
   const shouldShowNavBar = !!user && pathname !== ROUTE_PATHS.LOGIN;
 
@@ -52,11 +54,17 @@ export const AppHeader = () => {
     </span>
   );
 
+  const isMemberArchives = isArchived || routeMatches([ROUTE_PATHS.TRANSPARENCES.ARCHIVED_SESSIONS]);
   const memberNavigation: MainNavigationProps.Item[] = [
     {
-      isActive: routeMatches([ROUTE_PATHS.TRANSPARENCES.DASHBOARD]),
+      isActive: routeMatches([ROUTE_PATHS.TRANSPARENCES.DASHBOARD]) && !isMemberArchives,
       linkProps: { to: ROUTE_PATHS.TRANSPARENCES.DASHBOARD },
       text: formatMessage({ defaultMessage: 'Accueil' }),
+    },
+    {
+      isActive: isMemberArchives,
+      linkProps: { to: ROUTE_PATHS.TRANSPARENCES.ARCHIVED_SESSIONS },
+      text: formatMessage({ defaultMessage: 'Archives' }),
     },
     {
       isActive: routeMatches([ROUTE_PATHS.MEMBER.MAGISTRAT_SEARCH], { end: true }),
@@ -77,7 +85,7 @@ export const AppHeader = () => {
       text: formatMessage({ defaultMessage: 'Créer une session' }),
     },
     {
-      isActive: routeMatches([ROUTE_PATHS.SG.MANAGE_SESSION, ROUTE_PATHS.SG.SESSION_ID]),
+      isActive: routeMatches([ROUTE_PATHS.SG.MANAGE_SESSION, ROUTE_PATHS.SG.SESSION_ID]) && !isArchived,
       linkProps: { to: ROUTE_PATHS.SG.MANAGE_SESSION },
       text: <ManageSessionsLink />,
     },
@@ -96,7 +104,7 @@ export const AppHeader = () => {
       text: formatMessage({ defaultMessage: 'Gérer les membres' }),
     },
     {
-      isActive: routeMatches([ROUTE_PATHS.SG.ARCHIVED_SESSIONS]),
+      isActive: isArchived || routeMatches([ROUTE_PATHS.SG.ARCHIVED_SESSIONS]),
       linkProps: { to: ROUTE_PATHS.SG.ARCHIVED_SESSIONS },
       text: formatMessage({ defaultMessage: 'Archives' }),
     },
