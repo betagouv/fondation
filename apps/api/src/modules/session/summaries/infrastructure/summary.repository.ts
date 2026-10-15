@@ -15,7 +15,6 @@ import {
 } from 'src/modules/session/summaries/domain/summary';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import { assertNever } from 'src/utils/assert-never';
-import { isDefined } from 'src/utils/is-defined';
 
 @Injectable()
 export class SummaryRepository {
@@ -34,28 +33,18 @@ export class SummaryRepository {
   }
 
   async find(query: { sessionId: string; nominationFileId: string }) {
-    const session = await this.db.tx.session.findUnique({
-      where: { id: query.sessionId, deletedAt: null },
-      select: {
-        dossierDeNominations: {
-          where: { id: query.nominationFileId },
-          select: {
-            summary: {
-              select: { nominationFileId: true, authorId: true },
-            },
-          },
-        },
-      } satisfies Prisma.SessionSelect,
+    const sessionIsArchived = await this.isSessionArchived(query);
+    const summary = await this.db.tx.summary.findUnique({
+      where: { nominationFileId: query.nominationFileId, nominationFile: { sessionId: query.sessionId } },
+      select: { authorId: true, nominationFileId: true } satisfies Prisma.SummarySelect,
     });
-
-    const summary = session?.dossierDeNominations[0]?.summary;
-    if (!isDefined(summary)) throw new NotFoundException();
+    if (!summary) throw new NotFoundException();
 
     return Summary.from({
       authorId: summary.authorId,
       id: summary.nominationFileId,
       sessionId: query.sessionId,
-      sessionIsArchived: await this.isSessionArchived(query),
+      sessionIsArchived,
     });
   }
 
