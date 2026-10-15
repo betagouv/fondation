@@ -94,21 +94,26 @@ export class DefineNominationFilesOutcomeDto extends createZodDto(
   }),
 ) {}
 
+const ListSessionsFiltersSchema = z.object({
+  search: z
+    .string()
+    .trim()
+    .optional()
+    .transform((x) => (x?.length === 0 ? undefined : x)),
+  formations: z
+    .preprocess(
+      (x) => (isDefined(x) ? ([] as unknown[]).concat(x) : x),
+      z.array(z.enum(FormationEnum)).optional(),
+    )
+    .optional(),
+});
+
 export class ListGdsNominationSessionsQueryDto extends createSortableDto(
-  z.object({
-    search: z
-      .string()
-      .trim()
-      .optional()
-      .transform((x) => (x?.length === 0 ? undefined : x)),
-    sortBy: z.enum(['date', 'dueDate']).optional(),
-    formations: z
-      .preprocess(
-        (x) => (isDefined(x) ? ([] as unknown[]).concat(x) : x),
-        z.array(z.enum(FormationEnum)).optional(),
-      )
-      .optional(),
-  }),
+  ListSessionsFiltersSchema.extend({ sortBy: z.enum(['date', 'dueDate']).optional() }),
+) {}
+
+export class ListArchivedSessionsQueryDto extends createSortableDto(
+  ListSessionsFiltersSchema.extend({ sortBy: z.enum(['archivedAt', 'date']).optional() }),
 ) {}
 
 export class CountUnaffectedFilesQueryDto extends createZodDto(

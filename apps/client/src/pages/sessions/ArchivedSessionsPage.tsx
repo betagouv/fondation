@@ -1,9 +1,9 @@
-import { ManageArchivedSessions } from '@/features/sessions/components/ManageArchivedSessions';
+import { ArchivedSessions } from '@/features/sessions/components/ArchivedSessions';
 
 export const ArchivedSessionsPage = () => {
   return (
     <div className="fr-container fr-pt-8v fr-pb-16v">
-      <ManageArchivedSessions />
+      <ArchivedSessions space="SG" withFormationFilter />
     </div>
   );
 };

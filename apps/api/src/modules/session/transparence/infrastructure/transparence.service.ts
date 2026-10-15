@@ -29,7 +29,10 @@ import { TimeOnly } from 'src/utils/time-only';
 
 import { ListNominationFilesQueryDto } from './dtos/nomination-file.dto';
 import { CountedSessionAuditionsDto, ListedSessionAuditionsDto } from './dtos/session-audition.dto';
-import { ListGdsNominationSessionsQueryDto } from './dtos/transparence-session.dto';
+import {
+  ListArchivedSessionsQueryDto,
+  ListGdsNominationSessionsQueryDto,
+} from './dtos/transparence-session.dto';
 import {
   AffectationVersionFinder,
   FoundAffectationVersion,
@@ -660,7 +663,7 @@ export class TransparenceService {
     formations: readonly FormationEnum[] | undefined;
     pagination: Pagination;
     search: string | null;
-    sorting: Sortable<ListGdsNominationSessionsQueryDto>;
+    sorting: Sortable<ListArchivedSessionsQueryDto>;
     typeDeSaisine: TypeDeSaisineEnum;
   }): Promise<ListedArchivedNominationSessionsDto> {
     return this.listArchivedNominationSessionsQuery.handle(query);

@@ -5,7 +5,7 @@ import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 import { ApiPaginated, Pagination, QueryPagination } from 'src/modules/framework/pagination';
 import { HasRole } from 'src/modules/simple-auth';
 
-import { ListGdsNominationSessionsQueryDto } from './infrastructure/dtos/transparence-session.dto';
+import { ListArchivedSessionsQueryDto } from './infrastructure/dtos/transparence-session.dto';
 import { ListedArchivedNominationSessionsDto } from './infrastructure/queries/list-archived-nomination-sessions.query';
 import { TransparenceService } from './infrastructure/transparence.service';
 
@@ -21,7 +21,7 @@ export class ArchivedSessionsController {
   @ZodResponse({ type: ListedArchivedNominationSessionsDto, status: HttpStatus.OK })
   listArchivedSessions(
     @QueryPagination() pagination: Pagination,
-    @Query() query: ListGdsNominationSessionsQueryDto,
+    @Query() query: ListArchivedSessionsQueryDto,
   ): Promise<ListedArchivedNominationSessionsDto> {
     return this.sessions.listArchivedSessions({
       pagination,

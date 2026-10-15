@@ -130,12 +130,15 @@ export type ListedArchivedNominationSessionsDto = {
             month: number;
             day: number;
         };
-        dueDate: {
-            year: number;
-            month: number;
-            day: number;
-        } | null;
-        typeDeSaisine: 'TRANSPARENCE_GDS';
+        archivedAt: string;
+        proposingAuthority: {
+            id: 'GARDE_DES_SCEAUX';
+            label: string;
+        };
+        typeDeSaisine: {
+            id: 'TRANSPARENCE_GDS';
+            label: string;
+        };
     }>;
     totalCount: number;
     currentPageIndex: number;
@@ -2643,7 +2646,7 @@ export type ListArchivedSessionsData = {
     path?: never;
     query?: {
         search?: string;
-        sortBy?: 'date' | 'dueDate';
+        sortBy?: 'archivedAt' | 'date';
         formations?: Array<'SIEGE' | 'PARQUET'>;
         /**
          * true

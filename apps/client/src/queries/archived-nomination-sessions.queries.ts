@@ -4,7 +4,7 @@ import type { FormationEnum } from '@/shared/enums/formation.enum';
 import * as $api from '@api/sdk';
 import type { ListArchivedSessionsData, ListedArchivedNominationSessionsDto } from '@api/types';
 
-export type ArchivedSessionsFilters = { formations?: FormationEnum[] };
+export type ArchivedSessionsFilters = { formations?: FormationEnum[]; search?: string };
 export type ArchivedSessionsSorting =
   | []
   | [{ desc: boolean; id: NonNullable<NonNullable<ListArchivedSessionsData['query']>['sortBy']> }];
@@ -41,6 +41,7 @@ export const useInfiniteArchivedGdsNominationSessionsQuery = (options: {
             formations: options.filters.formations,
             limit: ARCHIVED_SESSIONS_PAGE_SIZE,
             page: pageParam,
+            search: options.filters.search || undefined,
             sortBy: options.sorting[0]?.id,
             sortDesc: options.sorting[0]?.desc ? 'true' : undefined,
           },

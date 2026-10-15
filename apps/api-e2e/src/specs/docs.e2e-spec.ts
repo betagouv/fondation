@@ -569,7 +569,12 @@ test.describe('Docs Service', () => {
     const archived = await agent.sessions.archiveSession({ path: { sessionId } });
     expect(archived.response?.status).toBe(204);
     const archivedSessions = await agent.archivedSessions.listArchivedSessions({ query: { limit: 200 } });
-    expect(archivedSessions.data!.items.map(({ id }) => id)).toContain(sessionId);
+    expect(archivedSessions.data!.items[0]).toMatchObject({
+      archivedAt: expect.any(String),
+      id: sessionId,
+      proposingAuthority: { id: 'GARDE_DES_SCEAUX', label: 'Garde des Sceaux' },
+      typeDeSaisine: { id: 'TRANSPARENCE_GDS', label: 'Transparence' },
+    });
 
     // an archived session freezes the reports written for it
     const frozen = await member.reports.updateReport({
