@@ -47,7 +47,7 @@ export const AppHeader = () => {
   const shouldShowNavBar = !!user && pathname !== ROUTE_PATHS.LOGIN;
 
   const magistratSearchText = (
-    <span className="fr-icon-search-line inline-flex flex-row-reverse items-center gap-2 before:size-4!">
+    <span className="fr-icon-search-line inline-flex items-center gap-2 before:size-4!">
       {formatMessage({ defaultMessage: 'Rechercher un magistrat' })}
     </span>
   );
