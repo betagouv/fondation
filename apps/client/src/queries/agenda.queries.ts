@@ -13,6 +13,7 @@ export const agendaKeys = {
   findAgendaNominationFiles: (query: { sessionId: string }) =>
     ['agenda', 'findAgendaNominationFiles', query.sessionId] as const,
   agendaHtml: (id: string) => ['agenda', 'agendaHtml', id] as const,
+  allSessionDocs: () => ['agenda', 'findSessionDocs'] as const,
   findSessionDocs: (sessionId: string) => ['agenda', 'findSessionDocs', sessionId] as const,
   isSessionReadyForDocGeneration: (sessionId: string) =>
     ['agenda', 'isSessionReadyForDocGeneration', sessionId] as const,
@@ -709,6 +710,8 @@ export function usePresentPlansMutation() {
         queryClient.invalidateQueries({
           queryKey: presentationPlanKeys.planAgendas({ ignore: undefined }),
         }),
+        // the mutation knows the notices, not the sessions of their agendas
+        queryClient.invalidateQueries({ queryKey: agendaKeys.allSessionDocs() }),
         queryClient.invalidateQueries({ queryKey: officialReportKeys.all('listAgendas') }),
       ]),
   });

@@ -1,6 +1,6 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import { FormattedMessage, useIntl } from 'react-intl';
-import { generatePath, Link, useNavigate, useParams } from 'react-router';
+import { generatePath, Link, useLocation, useNavigate, useParams } from 'react-router';
 
 import { DocumentDraftBanner } from '../DocumentDraftBanner';
 import { DocumentValidatedBanner } from '../DocumentValidatedBanner';
@@ -22,6 +22,11 @@ import { PresentationRemovedAgendasBanner } from './PresentationRemovedAgendasBa
 export function PresentationPreviewPage() {
   const { formatMessage } = useIntl();
   const { planId } = useParams<{ planId: string }>();
+  const { state } = useLocation();
+  const returnPath: string =
+    typeof state?.returnPath === 'string'
+      ? state.returnPath
+      : generatePath(ROUTE_PATHS.SG.PRESENTATIONS_READY);
   const navigate = useNavigate();
   const describeFailure = useDocumentFailure();
 
@@ -62,10 +67,7 @@ export function PresentationPreviewPage() {
         )
       }
       backLink={
-        <Link
-          className="fr-link fr-link--icon-left fr-icon-arrow-left-line"
-          to={generatePath(ROUTE_PATHS.SG.PRESENTATIONS_READY)}
-        >
+        <Link className="fr-link fr-link--icon-left fr-icon-arrow-left-line" to={returnPath}>
           <FormattedMessage defaultMessage="Fermer" />
         </Link>
       }

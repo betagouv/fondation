@@ -3,6 +3,7 @@ import { inject } from 'vitest';
 
 import { test } from '../fixtures.ts';
 import type { PaginatedNominationFiles } from '../generated/api/types.ts';
+import type { TestStepsAgent } from '../steps.ts';
 import * as seed from '../utils/seed.ts';
 
 async function filesOfValidatedVersionsReading(html: string): Promise<number> {
@@ -97,6 +98,55 @@ test.describe('Docs Service', () => {
     });
     expect(publishRes.response?.status).toBe(204);
   });
+
+  /** a validated agenda held by a validated notice, ready to be presented */
+  async function agendaOnValidatedNotice(fixtures: {
+    agent: TestStepsAgent;
+    registerUser: (role: 'MEMBRE_DU_PARQUET') => Promise<unknown>;
+  }): Promise<{ agendaId: string; planId: string }> {
+    const { agent, registerUser } = fixtures;
+    // the notice refuses a formation whose only present member presides it
+    await registerUser('MEMBRE_DU_PARQUET');
+    const foundFiles = await agent.docs.findAgendaNominationFiles({ path: { sessionId } });
+    const agenda = await agent.docs.createAgenda({
+      body: {
+        chairmanId,
+        date: { day: 1, month: 2, year: 2026 },
+        nominationFileIds: foundFiles.data!.items.map(({ id }) => id),
+        sessionMeetingDate: MEETING_DATE,
+      },
+      path: { sessionId },
+    });
+    const agendaId = agenda.data!.id;
+    await agent.docs.validateAgenda({ path: { agendaId } });
+
+    const justiceContact = await agent.docs.createJusticeContact({
+      body: { name: `M. Vincent de la Porte, adjoint ${crypto.randomUUID()}` },
+    });
+    const plan = await agent.docs.createJusticePresentationPlan({
+      body: {
+        absentMembers: [],
+        agendas: [{ comment: null, id: agendaId }],
+        chairmanId,
+        date: MEETING_DATE,
+        hasRenunciation: true,
+        justiceContactId: justiceContact.data!.id,
+        secretaryId: firstSecretaryId,
+        time: { hours: 9, minutes: 30, seconds: 0 },
+      },
+    });
+    const planId = plan.data!.id;
+    await agent.docs.generatePresentationPlanHtml({ path: { planId } });
+    await agent.docs.validatePresentationPlan({ path: { planId } });
+
+    return { agendaId, planId };
+  }
+
+  async function agendaOf(agent: TestStepsAgent, agendaId: string) {
+    const docs = await agent.docs.findSessionDocs({ path: { sessionId } });
+    const found = docs.data!.items.find(({ id }) => id === agendaId);
+    return found?.type === 'agenda' ? found : undefined;
+  }
 
   test('should plan a file listed in an agenda, and keep it planned until its official report is validated', async ({
     agent,
@@ -1091,6 +1141,60 @@ test.describe('Docs Service', () => {
     expect(atRewriting.data!.outdated).toBe(false);
   });
 
+  test('should tell a validated agenda presented once the notice holding it is', async ({
+    agent,
+    expect,
+    registerUser,
+  }) => {
+    const { agendaId, planId } = await agendaOnValidatedNotice({ agent, registerUser });
+
+    const beforePresentation = await agendaOf(agent, agendaId);
+    expect(beforePresentation?.presentation).toEqual({ status: 'TO_PRESENT' });
+
+    await agent.docs.presentPlan({ body: { endTime: { hours: 10, minutes: 15, seconds: 0 } }, path: { planId } });
+
+    expect((await agendaOf(agent, agendaId))?.presentation).toEqual({
+      // the agent who validated the agenda is the one presenting its notice
+      by: beforePresentation?.validatedBy,
+      date: MEETING_DATE,
+      endTime: { hours: 10, minutes: 15, seconds: 0 },
+      planId,
+      status: 'PRESENTED',
+    });
+  });
+
+  test('should bring an agenda back to present once its notice presentation is cancelled', async ({
+    agent,
+    expect,
+    registerUser,
+  }) => {
+    const { agendaId, planId } = await agendaOnValidatedNotice({ agent, registerUser });
+    await agent.docs.presentPlan({ body: { endTime: { hours: 10, minutes: 15, seconds: 0 } }, path: { planId } });
+
+    await agent.docs.unPresentPlan({ path: { planId } });
+
+    expect((await agendaOf(agent, agendaId))?.presentation).toEqual({ status: 'TO_PRESENT' });
+  });
+
+  test('should keep the presentation of a validated agenda once a draft is opened on it', async ({
+    agent,
+    expect,
+    registerUser,
+  }) => {
+    const { agendaId, planId } = await agendaOnValidatedNotice({ agent, registerUser });
+    await agent.docs.presentPlan({ body: { endTime: { hours: 10, minutes: 15, seconds: 0 } }, path: { planId } });
+
+    await agent.docs.updateAgendaMetadata({
+      body: { chairmanId, date: { day: 2, month: 2, year: 2026 }, sessionMeetingDate: MEETING_DATE },
+      path: { agendaId },
+    });
+
+    expect(await agendaOf(agent, agendaId)).toMatchObject({
+      draftChangesBy: 'PERSON',
+      presentation: { date: MEETING_DATE, endTime: { hours: 10, minutes: 15, seconds: 0 }, status: 'PRESENTED' },
+    });
+  });
+
   test('should refuse to restitute a notice nobody validated', async ({ agent, expect, registerUser }) => {
     // the notice refuses a formation whose only present member presides it
     await registerUser('MEMBRE_DU_PARQUET');
@@ -1174,7 +1278,11 @@ test.describe('Docs Service', () => {
     expect(presented.response?.status).toBe(204);
 
     const presentedMetadata = await agent.docs.detailsPresentationPlanMetadata({ path: { planId } });
-    expect(presentedMetadata.data!.presentation).toEqual({ at: expect.any(String), by: ready?.createdBy });
+    expect(presentedMetadata.data!.presentation).toEqual({
+      by: ready?.createdBy,
+      date: MEETING_DATE,
+      endTime: { hours: 11, minutes: 0, seconds: 0 },
+    });
 
     // presenting twice would append a second ending time to the text and its pdf
     const presentedAgain = await agent.docs.presentPlan({
