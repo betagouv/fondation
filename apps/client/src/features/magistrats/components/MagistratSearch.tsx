@@ -28,6 +28,7 @@ export function MagistratSearch() {
     search: debouncedSearch,
   });
   const totalCount = isSearchable ? data?.pages[0]?.totalCount : undefined;
+  const shownCount = data?.pages.reduce((count, page) => count + page.items.length, 0) ?? 0;
   const isPrompting = totalCount === undefined;
 
   useEffect(() => {
@@ -109,13 +110,20 @@ export function MagistratSearch() {
             value={search}
           />
         </div>
-        <p className="fr-sr-only" role="status">
-          {totalCount !== undefined && (
-            <FormattedMessage
-              defaultMessage="{totalCount, plural, one {# résultat} other {# résultats}}"
-              values={{ totalCount }}
-            />
-          )}
+        {/* stays in the page once magistrats are found: a screen reader only announces the changes of a live region already there */}
+        <p className={(totalCount ?? 0) > 0 ? 'fr-mt-8v fr-mb-3v mx-auto max-w-3xl' : 'fr-sr-only'} role="status">
+          {totalCount !== undefined &&
+            (shownCount < totalCount ? (
+              <FormattedMessage
+                defaultMessage="{shownCount, plural, one {# résultat affiché} other {# résultats affichés}} sur {totalCount}"
+                values={{ shownCount, totalCount }}
+              />
+            ) : (
+              <FormattedMessage
+                defaultMessage="{totalCount, plural, one {# résultat} other {# résultats}}"
+                values={{ totalCount }}
+              />
+            ))}
         </p>
         {totalCount === 0 ? (
           <p className="fr-mt-20v fr-mb-0 text-center motion-safe:animate-fade-in">
@@ -124,7 +132,7 @@ export function MagistratSearch() {
         ) : (
           totalCount !== undefined && (
             <div className="mx-auto max-w-3xl">
-              <ul className="fr-mt-8v flex list-none flex-col gap-4 ps-0">
+              <ul className="fr-mt-0 flex list-none flex-col gap-4 ps-0">
                 {data?.pages.flatMap((page) =>
                   page.items.map((magistrat, index) => (
                     <li

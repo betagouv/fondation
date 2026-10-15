@@ -250,11 +250,14 @@ describe('MagistratSearch', () => {
     const user = userEvent.setup();
     renderSearch({ searchParams: '?recherche=valr' });
 
-    await user.click(await screen.findByRole('button', { name: 'Voir plus' }));
+    const showMore = await screen.findByRole('button', { name: 'Voir plus' });
+    expect(screen.getByRole('status')).toHaveTextContent('1 résultat affiché sur 2');
+    await user.click(showMore);
 
     expect(await screen.findByRole('article', { name: 'VALROSE Marc' })).toBeInTheDocument();
     expect(screen.getByRole('article', { name: 'VALROSE Honorine' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Voir plus' })).not.toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('2 résultats');
     await waitFor(() => expect(screen.getByRole('link', { name: 'VALROSE Marc' })).toHaveFocus());
     expect(searchMagistrats).toHaveBeenLastCalledWith(
       expect.objectContaining({ query: { page: 2, search: 'valr' } }),
