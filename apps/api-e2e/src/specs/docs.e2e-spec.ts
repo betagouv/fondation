@@ -559,6 +559,13 @@ test.describe('Docs Service', () => {
     const reports = await member.members.listMemberSessionReports({
       path: { sessionId, userId: member['@user']!.id },
     });
+    const summaryPath = { nominationFileId: fileIds[0]!, sessionId };
+    await agent.summaries.createSummary({ path: summaryPath, throwOnError: true });
+    await agent.summaries.writeSummary({
+      body: { content: '<p>Synthèse avant archivage</p>' },
+      path: summaryPath,
+      throwOnError: true,
+    });
     const archived = await agent.sessions.archiveSession({ path: { sessionId } });
     expect(archived.response?.status).toBe(204);
     const archivedSessions = await agent.archivedSessions.listArchivedSessions({ query: { limit: 200 } });
@@ -570,6 +577,15 @@ test.describe('Docs Service', () => {
       path: { reportId: reports.data!.items[0]!.report.id },
     });
     expect(frozen.response?.status).toBe(403);
+
+    // and the summaries of its files
+    const frozenSummary = await agent.summaries.writeSummary({
+      body: { content: '<p>Synthèse après archivage</p>' },
+      path: summaryPath,
+    });
+    expect(frozenSummary.response?.status).toBe(403);
+    const summary = await agent.summaries.detailSummary({ path: summaryPath });
+    expect(summary.data?.summary.content).toBe('<p>Synthèse avant archivage</p>');
   });
 
   test('should keep an edition made after a validation, and undo it when the draft is discarded', async ({

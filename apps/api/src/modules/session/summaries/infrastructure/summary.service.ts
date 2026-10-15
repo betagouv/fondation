@@ -30,7 +30,10 @@ export class SummaryService {
 
   @Transactional()
   async create(command: { sessionId: string; nominationFileId: string }): Promise<{ id: string }> {
-    const summary = Summary.create(command);
+    const summary = Summary.create({
+      ...command,
+      sessionIsArchived: await this.summaryRepository.isSessionArchived(command),
+    });
     await this.summaryRepository.persist(summary);
     return { id: summary.id };
   }

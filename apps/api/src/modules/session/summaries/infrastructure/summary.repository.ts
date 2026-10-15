@@ -1,5 +1,5 @@
 import { Propagation, Transactional } from '@nestjs-cls/transactional';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 
 import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
@@ -13,6 +13,7 @@ import {
   SummaryCreated,
   UpdatedSummaryReaderList,
 } from 'src/modules/session/summaries/domain/summary';
+import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import { assertNever } from 'src/utils/assert-never';
 import { isDefined } from 'src/utils/is-defined';
 
@@ -21,7 +22,16 @@ export class SummaryRepository {
   constructor(
     private readonly db: Db,
     private readonly files: Files,
+    @Inject(forwardRef(() => TransparenceService))
+    private readonly sessions: TransparenceService,
   ) {}
+
+  async isSessionArchived(query: { sessionId: string }): Promise<boolean> {
+    const state = await this.sessions.internalFindSessionState(query);
+    if (state === 'DELETED') throw new NotFoundException();
+
+    return state === 'ARCHIVED';
+  }
 
   async find(query: { sessionId: string; nominationFileId: string }) {
     const session = await this.db.tx.session.findUnique({
@@ -42,8 +52,10 @@ export class SummaryRepository {
     if (!isDefined(summary)) throw new NotFoundException();
 
     return Summary.from({
-      id: summary.nominationFileId,
       authorId: summary.authorId,
+      id: summary.nominationFileId,
+      sessionId: query.sessionId,
+      sessionIsArchived: await this.isSessionArchived(query),
     });
   }
 
