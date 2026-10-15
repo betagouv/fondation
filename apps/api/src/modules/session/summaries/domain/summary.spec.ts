@@ -17,7 +17,7 @@ describe('Summary', () => {
     ).toThrow(SummarySessionIsArchived);
   });
 
-  it('should refuse to write the summary of a file of an archived session', () => {
+  it('should refuse to load the summary of a file of an archived session', () => {
     expect(() =>
       Summary.from({ authorId: null, id: 'file-1', sessionId: 'session-1', sessionIsArchived: true }),
     ).toThrow(SummarySessionIsArchived);
