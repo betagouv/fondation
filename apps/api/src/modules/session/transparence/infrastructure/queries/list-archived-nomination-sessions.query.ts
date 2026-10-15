@@ -15,7 +15,7 @@ import {
   ProposingAuthorityEnum,
   ProposingAuthorityEnumLabels,
 } from 'src/modules/shared/proposing-authority.enum';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
+import { isSecretariat, type RoleEnum } from 'src/modules/shared/role.enum';
 import {
   TypeDeSaisineEnum,
   TypeDeSaisineEnumLabels,
@@ -45,6 +45,7 @@ export class ListArchivedNominationSessionsQuery {
       archivedAt: { not: null },
       typeDeSaisine: query.typeDeSaisine,
       formation: allowed ?? requested,
+      ...(!isSecretariat(query.role) && { affectationVersions: { some: { statut: 'PUBLIEE' } } }),
       ...(query.search && {
         name: { contains: query.search, mode: 'insensitive' },
       }),
