@@ -99,6 +99,17 @@ pnpm --filter api exec dotenvx run -f .env.e2e -f .env -- prisma migrate deploy
 > par les scripts du package.json de l'api (comme `start:e2e`), qui chargent `.env.e2e`
 > avant `.env` pour cibler la base de test.
 
+> [!NOTE]
+> Postgres suit la version majeure de la production (17). Chaque version majeure a son
+> propre volume (`fondation_postgres-17`) : après un changement de version, la base repart
+> vide et il faut réappliquer les migrations de la base locale et de la base de test. Pour
+> garder ses données, les sauvegarder avant de changer d'image puis les restaurer :
+>
+> ```bash
+> docker exec postgres-test pg_dumpall -U fondation > ~/fondation.sql      # avant
+> docker exec -i postgres-test psql -U fondation -d postgres < ~/fondation.sql   # après
+> ```
+
 4. Générer le code
 
 ```bash
