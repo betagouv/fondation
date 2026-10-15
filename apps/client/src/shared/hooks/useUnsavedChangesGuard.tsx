@@ -62,6 +62,9 @@ export function useUnsavedChangesGuard(props: { onSave: () => Promise<void> }) {
         isAsking.current = false;
       }
 
+      // the departure may turn into a full page load (a newer version is deployed): the reader
+      // has already answered, the browser must not ask again
+      isDirtyRef.current = false;
       blocker.proceed?.();
     })();
   }, [blocker, formatMessage, onSave, waitForConfirmation]);
@@ -69,7 +72,9 @@ export function useUnsavedChangesGuard(props: { onSave: () => Promise<void> }) {
   useEffect(() => {
     if (!isDirty) return;
 
-    const warnBeforeUnload = (event: BeforeUnloadEvent) => event.preventDefault();
+    const warnBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (isDirtyRef.current) event.preventDefault();
+    };
     window.addEventListener('beforeunload', warnBeforeUnload);
 
     return () => window.removeEventListener('beforeunload', warnBeforeUnload);

@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { type NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
 
+import { APP_VERSION_HEADER } from './modules/framework/app-version';
 import { API_CONFIG_TOKEN, type ApiConfig } from './modules/framework/config';
 import { openapi } from './modules/framework/openapi';
 import { RootModule } from './modules/root.module';
@@ -18,7 +19,7 @@ export class AppModule {
 
     app.disable('x-powered-by');
     app.enableCors({
-      exposedHeaders: ['Content-Disposition'],
+      exposedHeaders: ['Content-Disposition', APP_VERSION_HEADER],
       origin: config.frontendOriginUrl,
       credentials: true,
     });

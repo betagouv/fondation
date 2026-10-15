@@ -7,6 +7,7 @@ import { isRouteErrorResponse, useRouteError } from 'react-router';
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { PageLayout } from '@/layout/PageLayout';
 import { OvoidBackground, OvoidMotif } from '@/shared/ui/ovoid';
+import { appVersion } from '@/utils/app-version';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useUser } from '@queries/auth.queries';
 
@@ -14,6 +15,9 @@ export function ErrorPage() {
   const { user } = useUser();
   const isSg = useIsSg();
   const error = useRouteError();
+
+  // a missing file resolves to nothing once its reload is decided: the page would flash before unloading
+  if (appVersion.isReloading) return null;
 
   const buttons: ButtonProps[] = [];
 

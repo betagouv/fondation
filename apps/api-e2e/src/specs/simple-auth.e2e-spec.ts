@@ -7,6 +7,11 @@ test.describe('Simple Auth E2E', () => {
       expect(introspectRes.response?.status).toBe(200);
     });
 
+    test('should tell the deployed version', async ({ member, expect }) => {
+      const introspectRes = await member.auth.introspectSession();
+      expect(introspectRes.response?.headers.get('X-App-Version')).toBe('e2e');
+    });
+
     test('should logout', async ({ member, expect }) => {
       const logoutRes = await member.auth.logout();
       expect(logoutRes.response?.status).toBe(204);

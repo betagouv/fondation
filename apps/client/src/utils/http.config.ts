@@ -1,5 +1,6 @@
 import type { CreateClientConfig } from '../generated/api/client/types';
 
+import { appVersion } from './app-version';
 import { httpAssert } from './http-exception';
 
 export function getBaseUrl() {
@@ -43,6 +44,7 @@ export const createClientConfig: CreateClientConfig = (config) => ({
     const timeout = isQuery && !isLongRunningUrl ? 10_000 : 60_000;
 
     const response = await globalThis.fetch(init, { signal: AbortSignal.timeout(timeout) });
+    appVersion.observe(response);
     return httpAssert(response);
   },
   throwOnError: true,

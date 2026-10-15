@@ -198,6 +198,7 @@ async function startServer(
   const server = spawn('pnpm', ['--filter', 'api', 'start:e2e'], {
     env: {
       ...process.env,
+      APP_VERSION: 'e2e',
       PORT: '0',
       TCHAP_ACCESS_TOKEN: 'e2e',
       TCHAP_HOMESERVER_URL: tchapUrl,
