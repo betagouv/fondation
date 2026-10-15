@@ -3,7 +3,7 @@ import { useIntl } from 'react-intl';
 
 import { useNominationFilesTable } from '../context/files-table.context';
 import { PrioriteEnum, PrioriteEnumMessages } from '@/shared/enums/priorite.enum';
-import type { TableMetaFilterAsyncList, TableMetaFilterEnum } from '@/tanstack-react-table';
+import type { TableMetaFilterAsyncList, TableMetaFilterEnum } from '@/shared/ui/data-table';
 import { memberFullName } from '@/utils/user.utils';
 import type { ListedCurrentlyAffectedReportersDto } from '@api/types';
 import { getListCurrentlyAffectedReportersQueryOptions } from '@queries/nomination-sessions.queries';

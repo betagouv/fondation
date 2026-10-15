@@ -33,7 +33,7 @@ export const ROUTE_PATHS = {
     MANAGE_MEMBERS: '/secretariat-general/membres',
     MANAGE_SESSION: '/secretariat-general/sessions',
     MANAGE_SINGLE_MEMBER: '/secretariat-general/membres/:userId',
-    NOUVELLE_TRANSPARENCE: '/secretariat-general/nouvelle-transparence',
+    NEW_TRANSPARENCE: '/secretariat-general/nouvelle-transparence',
     OBSERVATION_DETAILS:
       '/secretariat-general/session/:sessionId/dossiers/:nominationFileId/observations/:observationId',
     OFFICIAL_REPORT_EDIT:
@@ -72,8 +72,6 @@ export const ROUTE_PATHS = {
 type RoutePath = typeof ROUTE_PATHS;
 
 export type FondationPath<Node = RoutePath> = Node extends string ? Node : FondationPath<Node[keyof Node]>;
-
-export type RoutePathSecretariat = RoutePath['SG'][keyof RoutePath['SG']];
 
 export const getNewAgendaPath = (sessionId: string): string =>
   generatePath(ROUTE_PATHS.SG.AGENDA_NEW, { sessionId });

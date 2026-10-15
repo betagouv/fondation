@@ -1,46 +1,46 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
-import { DemoTable, InfiniteDemoTable } from './NewTable.fixtures';
+import { DemoTable, InfiniteDemoTable } from './DataTable.fixtures';
 
 const meta = {
-  title: 'Shared/NewTable',
-  component: DemoTable,
-  parameters: { layout: 'fullscreen' },
   argTypes: {
-    rowCount: {
-      control: { type: 'range', min: 0, max: 10000, step: 50 },
-      description: 'Nombre de lignes dans le jeu de données (toutes virtualisées).',
+    enableSorting: {
+      control: 'boolean',
+      description: 'Active le tri par colonne (la colonne Email reste non triable).',
     },
     height: {
-      control: { type: 'range', min: 200, max: 800, step: 20 },
+      control: { max: 800, min: 200, step: 20, type: 'range' },
       description: 'Hauteur du conteneur scrollable (px).',
-    },
-    withSelection: {
-      control: 'boolean',
-      description: 'Active la colonne de sélection (checkbox + select-all + shift-click).',
     },
     lockedRowIds: {
       control: 'object',
       description:
         'Lignes non sélectionnables (`person-0`, `person-1`...) : case désactivée, cellule grisée et tooltip expliquant pourquoi. Demande withSelection pour que la colonne soit affichée.',
     },
+    rowCount: {
+      control: { max: 10000, min: 0, step: 50, type: 'range' },
+      description: 'Nombre de lignes dans le jeu de données (toutes virtualisées).',
+    },
     rowTint: {
       control: 'inline-radio',
-      options: [undefined, 'blue', 'yellow'],
       description: 'Couleur de survol des lignes via rowTint (gris par défaut si non défini).',
+      options: [undefined, 'blue', 'yellow'],
     },
-    enableSorting: {
+    withSelection: {
       control: 'boolean',
-      description: 'Active le tri par colonne (la colonne Email reste non triable).',
+      description: 'Active la colonne de sélection (checkbox + select-all + shift-click).',
     },
   },
   args: {
-    rowCount: 100,
-    height: 480,
-    withSelection: false,
-    rowTint: undefined,
     enableSorting: false,
+    height: 480,
+    rowCount: 100,
+    rowTint: undefined,
+    withSelection: false,
   },
+  component: DemoTable,
+  parameters: { layout: 'fullscreen' },
+  title: 'Shared/DataTable',
 } satisfies Meta<typeof DemoTable>;
 
 export default meta;

@@ -2,8 +2,8 @@ import { type ColumnDef, getCoreRowModel, getSortedRowModel, useReactTable } fro
 import { useCallback, useMemo, useState } from 'react';
 import { IntlProvider } from 'react-intl';
 
+import { DataTable } from './DataTable';
 import { useSelectionColumn } from './hooks/useSelectionColumn';
-import { NewTable } from './NewTable';
 
 export type Person = {
   age: number;
@@ -89,7 +89,7 @@ function DemoTableContent(props: DemoTableProps) {
 
   return (
     <div style={{ height: props.height ?? 480 }}>
-      <NewTable
+      <DataTable
         emptyLabel="Aucune donnée"
         rowTint={props.rowTint ? () => ROW_TINTS[props.rowTint!] : undefined}
         table={table}
@@ -127,7 +127,7 @@ export function InfiniteDemoTable(props: { height?: number }) {
 
   return (
     <div style={{ height: props.height ?? 480 }}>
-      <NewTable
+      <DataTable
         emptyLabel="Aucune donnée"
         onEndReached={() => {
           if (hasNextPage && !isFetchingNextPage) fetchNextPage();

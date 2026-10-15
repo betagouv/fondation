@@ -1,5 +1,4 @@
 import { FormattedMessage, useIntl } from 'react-intl';
-import { useLocation, useNavigate } from 'react-router';
 
 import { LolfiLink } from '@/shared/components/lolfi-link';
 import { TitleNameIcons } from '@/shared/components/title-name-icons';
@@ -14,8 +13,6 @@ type MagistratDetailsHeaderProps = {
 };
 
 export function MagistratDetailsHeader({ context, magistrat }: MagistratDetailsHeaderProps) {
-  const location = useLocation();
-  const navigate = useNavigate();
   const { formatMessage } = useIntl();
 
   const dashboardPath = context === 'sg' ? ROUTE_PATHS.SG.DASHBOARD : ROUTE_PATHS.TRANSPARENCES.DASHBOARD;
@@ -41,17 +38,10 @@ export function MagistratDetailsHeader({ context, magistrat }: MagistratDetailsH
           },
         ];
 
-  const goBack = (event: React.MouseEvent<HTMLAnchorElement>) => {
-    const hasPreviousPage = location.key !== 'default';
-    if (hasPreviousPage) {
-      event.preventDefault();
-      navigate(-1);
-    }
-  };
-
   return (
     <DetailsHeader
       backTo={dashboardPath}
+      backThroughHistory
       breadcrumb={
         <Breadcrumb
           ariaLabel={formatMessage({
@@ -67,7 +57,6 @@ export function MagistratDetailsHeader({ context, magistrat }: MagistratDetailsH
           id="magistrat-details-breadcrumb"
         />
       }
-      onBackClick={goBack}
       overline={<FormattedMessage defaultMessage="Fiche magistrat" />}
       title={
         <TitleNameIcons name={magistrat.name}>

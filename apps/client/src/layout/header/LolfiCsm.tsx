@@ -9,8 +9,9 @@ export const LolfiCsm = () => {
 
   return (
     <Button
-      className="fr-mb-0 self-center"
-      linkProps={{ to: 'http://lolfi.dsj.intranet.justice.gouv.fr/csm/', target: '_blank' }}
+      className="fr-mb-0 self-center after:hidden!"
+      iconId="fr-icon-external-link-line"
+      linkProps={{ target: '_blank', to: 'http://lolfi.dsj.intranet.justice.gouv.fr/csm/' }}
     >
       LOLFI - CSM
     </Button>

@@ -1,148 +1,196 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
-import { createColumnHelper } from '@tanstack/react-table';
-import { useMemo } from 'react';
-import { defineMessage, useIntl } from 'react-intl';
+import { createColumnHelper, getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import clsx from 'clsx';
+import { useCallback, useMemo } from 'react';
+import { defineMessage, FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, Link, useLocation } from 'react-router';
 
 import { FormationBadge } from '@/shared/components/formation-badge';
+import { PinnedHeader } from '@/shared/components/pinned-header';
 import { FormationEnum, FormationEnumMessages } from '@/shared/enums/formation.enum';
-import { Breadcrumb, type BreadcrumbVM } from '@/shared/ui/Breadcrumb';
-import { DataTable, useDataTable, useQueryDataTableState } from '@/shared/ui/data-table';
+import { Breadcrumb } from '@/shared/ui/Breadcrumb';
+import { DataTable, DataTableCount, DataTableFilters, useDataTableUrlState } from '@/shared/ui/data-table';
 import { formatDateOnly } from '@/utils/date-only.util';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { capitalize } from '@/utils/string.utils';
 import type { ListedNominationSessionsDto } from '@api/types';
-import { useListedGdsNominationSessionsQuery } from '@queries/nomination-sessions.queries';
+import {
+  type GdsSessionsSorting,
+  useInfiniteGdsNominationSessionsQuery,
+} from '@queries/nomination-sessions.queries';
 
 import { SessionStatusBadge } from './SessionStatusBadge';
 
-const h = createColumnHelper<ListedNominationSessionsDto['items'][number]>();
+type ManagedSession = ListedNominationSessionsDto['items'][number];
+
+const h = createColumnHelper<ManagedSession>();
 function useManagedSessionColumns() {
   const { formatMessage } = useIntl();
 
   return useMemo(
     () => [
       h.accessor('name', {
-        id: 'name',
-        enableSorting: false,
-        enableHiding: false,
-        header: 'Intitulé de la session',
         cell: ({ row }) => (
           <Link to={generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId: row.original.id })}>
             {row.original.name}
           </Link>
         ),
+        enableSorting: false,
+        header: formatMessage({ defaultMessage: 'Intitulé de la session' }),
+        id: 'name',
+        size: 360,
       }),
 
       h.accessor('formation', {
-        id: 'formation',
-        enableSorting: false,
-        header: 'Formation',
         cell: ({ getValue }) => <FormationBadge formation={getValue()} small />,
+        enableSorting: false,
+        header: formatMessage({ defaultMessage: 'Formation' }),
+        id: 'formation',
         meta: {
           filters: {
-            type: 'enum',
             filterId: 'formation',
-            label: 'Formation',
+            label: formatMessage({ defaultMessage: 'Formation' }),
+            type: 'enum',
             values: Object.values(FormationEnum).map((id) => ({
               id,
               label: capitalize(formatMessage(FormationEnumMessages[id])),
             })),
           },
         },
+        size: 140,
       }),
 
       h.accessor('date', {
-        id: 'date',
+        cell: ({ getValue }) => formatDateOnly(getValue()),
         enableSorting: true,
+        header: formatMessage({ defaultMessage: 'Date de publication' }),
+        id: 'date',
+        size: 180,
         sortDescFirst: false,
-        header: 'Date de publication',
-        cell: ({ cell }) => formatDateOnly(cell.getValue()),
       }),
 
       h.accessor('dueDate', {
-        id: 'dueDate',
-        enableSorting: true,
-        header: "Date d'échéance",
-        cell: ({ cell }) => {
-          const val = cell.getValue();
-          return val ? formatDateOnly(val) : null;
+        cell: ({ getValue }) => {
+          const dueDate = getValue();
+          return dueDate ? formatDateOnly(dueDate) : null;
         },
+        enableSorting: true,
+        header: formatMessage({ defaultMessage: "Date d'échéance" }),
+        id: 'dueDate',
+        size: 180,
       }),
 
       h.accessor('status', {
-        id: 'status',
-        enableSorting: false,
-        header: 'Statut',
         cell: ({ getValue }) => <SessionStatusBadge status={getValue()} />,
+        enableSorting: false,
+        header: formatMessage({ defaultMessage: 'Statut' }),
+        id: 'status',
+        size: 160,
       }),
     ],
     [formatMessage],
   );
 }
 
-const breadcrumb: BreadcrumbVM = {
-  currentPageLabel: 'Gérer une session',
-  segments: [{ label: 'Secrétariat général', to: ROUTE_PATHS.SG.DASHBOARD }],
-};
+const SESSIONS_LABEL = defineMessage({
+  defaultMessage: '{count, plural, one {session} other {sessions}}',
+});
 
 export function ManageSession() {
+  const { formatMessage } = useIntl();
   const location = useLocation();
   const successSessionImportTitle = location.state?.success ?? undefined;
 
-  const [tableState, setTableState] = useQueryDataTableState({
-    pagination: { pageIndex: 0, pageSize: 50 },
-    columnFilters: [] as { id: 'formation'; value: ('PARQUET' | 'SIEGE')[] }[],
-    sorting: [] as [{ id: 'date' | 'dueDate'; desc: boolean }] | [],
+  const { onColumnFiltersChange, onSortingChange, tableState } = useDataTableUrlState({
+    columnFilters: [] as { id: 'formation'; value: FormationEnum[] }[],
+    sorting: [] as GdsSessionsSorting,
   });
 
-  const formations = tableState.columnFilters?.find(({ id }) => id === 'formation')?.value;
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
+    useInfiniteGdsNominationSessionsQuery({
+      filters: { formations: tableState.columnFilters.find(({ id }) => id === 'formation')?.value },
+      sorting: tableState.sorting,
+    });
 
-  const { data, isLoading } = useListedGdsNominationSessionsQuery({
-    pagination: tableState.pagination,
-    sorting: tableState.sorting,
-    filters: { formations },
-  });
+  const fetchMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   const columns = useManagedSessionColumns();
+  const isFiltered = tableState.columnFilters.some(({ value }) => value.length > 0);
 
-  const table = useDataTable({
+  const sessions = useMemo(() => data?.items ?? [], [data]);
+  const table = useReactTable({
     columns,
-    data: data?.items,
+    data: sessions,
+    getCoreRowModel: getCoreRowModel(),
     getRowId: (row) => row.id,
-    rowCount: data?.totalCount,
-    meta: {
-      paginationItemLabel: defineMessage({
-        defaultMessage: '{count, plural, one {session} other {sessions}}',
-      }),
-    },
-    state: tableState,
-    onStateChange: setTableState,
+    manualFiltering: true,
+    manualSorting: true,
+    onColumnFiltersChange,
+    onSortingChange,
+    state: { columnFilters: tableState.columnFilters, sorting: tableState.sorting },
   });
 
   return (
     <>
       <Breadcrumb
+        ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane de la gestion des sessions" })}
+        breadcrumb={{
+          currentPageLabel: formatMessage({ defaultMessage: 'Gérer une session' }),
+          segments: [
+            { label: formatMessage({ defaultMessage: 'Secrétariat général' }), to: ROUTE_PATHS.SG.DASHBOARD },
+          ],
+        }}
         id="manage-sessions-breadcrumb"
-        ariaLabel="Fil d'Ariane de la gestion des sessions"
-        breadcrumb={breadcrumb}
       />
 
       {successSessionImportTitle && (
         <Alert
+          className="fr-mt-6v"
           closable
           severity="success"
           title={`Session «\u00A0${successSessionImportTitle}\u00A0» créée`}
-          className="fr-mb-10v"
         />
       )}
 
-      <DataTable
-        table={table}
-        classNames={{ content: 'fr-container' }}
-        placeholder={isLoading ? 'Chargement...' : 'Aucune données ne correspond aux filtres fournis'}
-        caption="Liste des sessions"
-      />
+      <PinnedHeader
+        bar={(isPinned) => (
+          <div className={clsx('flex flex-col gap-y-6', { 'fr-container': isPinned })}>
+            <h1 className="fr-h3 fr-mb-0">
+              <FormattedMessage defaultMessage="Gérer une session" />
+            </h1>
+            <div className="flex items-center justify-between gap-4">
+              <DataTableFilters table={table} />
+              {data && (
+                <DataTableCount
+                  className="self-end text-sm text-(--text-mention-grey)"
+                  label={SESSIONS_LABEL}
+                  loaded={sessions.length}
+                  total={data.totalCount}
+                />
+              )}
+            </div>
+          </div>
+        )}
+        barClassName="fr-pb-2v"
+        pinnedBarClassName="fr-pt-6v"
+        contentClassName="flex flex-col gap-y-6"
+      >
+        <DataTable
+          ariaLabel={formatMessage({ defaultMessage: 'Liste des sessions' })}
+          emptyLabel={
+            isFiltered
+              ? formatMessage({ defaultMessage: 'Aucune session ne correspond aux filtres fournis' })
+              : formatMessage({ defaultMessage: 'Aucune session' })
+          }
+          fluid
+          isLoading={isLoading}
+          onEndReached={fetchMore}
+          scrollsWithPage
+          table={table}
+        />
+      </PinnedHeader>
     </>
   );
 }

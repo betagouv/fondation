@@ -1,5 +1,5 @@
 import { FormattedMessage, useIntl } from 'react-intl';
-import { type To, useLocation, useNavigate } from 'react-router';
+import { type To } from 'react-router';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { useSummary } from '@/features/summary/context/SummaryContext';
@@ -16,8 +16,6 @@ import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.
 import { SummaryReaderSelector } from './SummaryReaderSelector';
 
 export function SummaryDetailsHeader() {
-  const location = useLocation();
-  const navigate = useNavigate();
   const { formatMessage } = useIntl();
   const isSg = useIsSg();
   const { nominationFileId, sessionId, summary } = useSummary();
@@ -53,18 +51,11 @@ export function SummaryDetailsHeader() {
     });
   }
 
-  const goBack = (event: React.MouseEvent<HTMLAnchorElement>) => {
-    const hasPreviousPage = location.key !== 'default';
-    if (hasPreviousPage) {
-      event.preventDefault();
-      navigate(-1);
-    }
-  };
-
   return (
     <DetailsHeader
       action={<SummaryReaderSelector priority="secondary" rounded={false} />}
       backTo={sessionPath}
+      backThroughHistory
       breadcrumb={
         <Breadcrumb
           ariaLabel={formatMessage(
@@ -76,7 +67,6 @@ export function SummaryDetailsHeader() {
           id="summary-breadcrumb"
         />
       }
-      onBackClick={goBack}
       overline={<FormattedMessage defaultMessage="Synthèse" />}
       title={
         <TitleNameIcons name={summary.name}>

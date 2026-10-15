@@ -8,8 +8,7 @@ import { useNominationFilesTable } from '../context/files-table.context';
 import type { SessionFilesTableState } from '../hooks/useSessionFilesTable';
 import { ObservationsModalProvider } from '@/features/observations/context/ObservationsModalProvider';
 import { AddNominationFileAttachmentModalProvider } from '@/features/transparence/components/nomination-file-attachments/context/AddNominationFileAttachmentModalProvider';
-import { ReactTableFilterColumn } from '@/shared/ui/data-table';
-import { NewTable } from '@/shared/ui/new-table';
+import { DataTable, DataTableFilters } from '@/shared/ui/data-table';
 import { SearchInput } from '@/shared/ui/search-input';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
@@ -20,7 +19,7 @@ import { useOutOfListFile } from './cells/magistrat-side-panel/hooks/use-out-of-
 import { NominationFileOutcomeCommentModalProvider } from './cells/nomination-file-outcome/NominationFileOutcomeCommentModalProvider';
 import { NominationFileTargetPositionProvider } from './cells/targeted-position/NominationFileTargetPositionProvider';
 
-function SessionFilesNewTable(props: {
+function SessionFilesDataTable(props: {
   emptyLabel: string;
   isLoading: boolean;
   narrowsBesideSidePanel?: boolean;
@@ -33,7 +32,7 @@ function SessionFilesNewTable(props: {
   const isEmpty = !props.isLoading && props.table.getRowModel().rows.length === 0;
 
   const table = (
-    <NewTable
+    <DataTable
       ariaLabel={intl.formatMessage({ defaultMessage: 'Dossiers de la session' })}
       className={clsx(!props.scrollsWithPage && !isEmpty && 'max-h-screen')}
       emptyLabel={
@@ -95,7 +94,7 @@ export function SessionFilesTable(
   const filters = (
     <div className="flex items-center justify-between gap-4">
       <div className="flex items-center gap-4">
-        <ReactTableFilterColumn table={filesTable.table} />
+        <DataTableFilters table={filesTable.table} />
         {props.filtersEnd}
       </div>
       <SearchInput
@@ -127,7 +126,7 @@ export function SessionFilesTable(
 
                 {props.toolbarSlot ? createPortal(toolbar, props.toolbarSlot) : toolbar}
 
-                <SessionFilesNewTable
+                <SessionFilesDataTable
                   emptyLabel={
                     props.emptyLabel ??
                     intl.formatMessage({

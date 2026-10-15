@@ -11,7 +11,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useSystemUpdateCauses } from '@/features/documents/hooks/useSystemUpdateCauses';
 import { useDateAndTime } from '@/shared/hooks/useDateAndTime';
-import { NewTable } from '@/shared/ui/new-table';
+import { DataTable } from '@/shared/ui/data-table';
 import { compareDateOnly, formatLongDateOnly, type PlainDateOnly } from '@/utils/date-only.util';
 import { useUser } from '@queries/auth.queries';
 
@@ -283,7 +283,7 @@ export function SessionDocumentsTable(props: {
 
   return (
     <SessionDocumentsTableContext.Provider value={renderers}>
-      <NewTable
+      <DataTable
         ariaLabel={formatMessage({ defaultMessage: 'Documents de la session' })}
         emptyLabel={formatMessage({ defaultMessage: 'Aucun document' })}
         fluid

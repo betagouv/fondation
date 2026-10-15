@@ -3,9 +3,10 @@ import type { RowData, Table } from '@tanstack/react-table';
 import React from 'react';
 
 import { DropdownFilter } from '../DropdownFilter';
-import type { TableMetaFilterAsyncList } from '@/tanstack-react-table';
 
-export function ReactTableFilterColumnAsyncList<Data extends RowData>(props: {
+import type { TableMetaFilterAsyncList } from './data-table.types';
+
+export function DataTableAsyncListFilter<Data extends RowData>(props: {
   table: Table<Data>;
   filter: TableMetaFilterAsyncList;
 }) {
@@ -17,7 +18,7 @@ export function ReactTableFilterColumnAsyncList<Data extends RowData>(props: {
     () =>
       ([] as { id: string; label: string }[])
         .concat(props.filter.emptyValue ? [props.filter.emptyValue] : [], data ?? [])
-        .map(({ id, label }) => ({ value: id, label })),
+        .map(({ id, label }) => ({ label, value: id })),
     [props.filter, data],
   );
 
