@@ -7,27 +7,21 @@ import {
 } from 'src/modules/docs/shared/domain/doc-system-update-cause';
 import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
 import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
-import { fullname } from 'src/utils/user.util';
-
-const writerSchema = z.object({ id: z.string(), name: z.string() });
+import { writerOf, writerSchema } from 'src/utils/user.util';
 
 /** who opened the draft and when, and who last worked on it: nobody named means the application */
 export const draftTraceSchema = z
   .object({
     openedAt: z.iso.datetime(),
-    openedBy: writerSchema.nullable(),
+    openedBy: writerSchema,
     systemCauses: z.array(z.enum(DOC_SYSTEM_UPDATE_CAUSES)),
     systemUpdatedAt: z.iso.datetime().nullable(),
     updatedAt: z.iso.datetime().nullable(),
-    updatedBy: writerSchema.nullable(),
+    updatedBy: writerSchema,
   })
   .nullable();
 
 type Person = { firstName: string; id: string; lastName: string } | null;
-
-function writerOf(person: Person): z.infer<typeof writerSchema> | null {
-  return person ? { id: person.id, name: fullname(person) } : null;
-}
 
 export const DRAFT_TRACE_SELECT = {
   author: { select: { firstName: true, id: true, lastName: true } },
@@ -60,7 +54,7 @@ export function draftTrace(version: {
 }
 
 /** when a document was validated, and by whom */
-export const traceSchema = z.object({ at: z.iso.datetime(), by: writerSchema.nullable() }).nullable();
+export const traceSchema = z.object({ at: z.iso.datetime(), by: writerSchema }).nullable();
 
 export const VALIDATION_TRACE_SELECT = {
   validatedAt: true,
@@ -78,7 +72,7 @@ export function traceOf(
 
 /** a restitution is dated by its notice and its ending time rather than by the click, which may come later */
 export const presentationTraceSchema = z.object({
-  by: writerSchema.nullable(),
+  by: writerSchema,
   date: dateOnlyJsonSchema,
   /** null on the notices presented without an ending time */
   endTime: timeOnlySchema.nullable(),

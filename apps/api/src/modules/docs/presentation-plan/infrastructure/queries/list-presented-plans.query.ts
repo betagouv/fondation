@@ -12,7 +12,7 @@ import { dateOnlyJsonSchema } from 'src/utils/date-only';
 import { DateOnly } from 'src/utils/date-only';
 import { assertIsDefined } from 'src/utils/is-defined';
 import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
-import { fullname } from 'src/utils/user.util';
+import { writerOf, writerSchema } from 'src/utils/user.util';
 
 @Injectable()
 export class ListPresentedPlansQuery {
@@ -72,8 +72,6 @@ export class ListPresentedPlansQuery {
   }
 }
 
-const writerSchema = z.object({ id: z.string(), name: z.string() }).nullable();
-
 export class ListedPresentedPlansDto extends createPaginatedZodDto(
   z.object({
     id: z.string(),
@@ -92,7 +90,3 @@ export class ListedPresentedPlansDto extends createPaginatedZodDto(
     chairman: z.object({ firstName: z.string(), lastName: z.string() }),
   }),
 ) {}
-
-function writerOf(user: { id: string; firstName: string; lastName: string } | null) {
-  return user ? { id: user.id, name: fullname(user) } : null;
-}
