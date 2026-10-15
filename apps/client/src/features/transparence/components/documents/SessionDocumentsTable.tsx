@@ -46,6 +46,7 @@ export const SessionDocumentsTableContext = createContext<{
   newOfficialReport?: (agenda: AgendaDocument) => ReactNode;
   officialReports?: ReadonlyMap<string, OfficialReportDocument>;
   renderName?: (doc: SessionDocument) => ReactNode;
+  returnPath?: string;
   states?: ReadonlyMap<string, SessionDocumentGroupState>;
 }>({});
 
@@ -134,7 +135,7 @@ function AgendaPresentationStatus(props: { doc: SessionDocument }) {
 
 function AgendaPresentationTrace(props: { doc: SessionDocument }) {
   const authorship = useAuthorship();
-  const { pathname, search } = useLocation();
+  const { returnPath } = useContext(SessionDocumentsTableContext);
   const { doc } = props;
   if (doc.type !== 'agenda' || doc.presentation?.status !== 'PRESENTED') return null;
 
@@ -150,7 +151,7 @@ function AgendaPresentationTrace(props: { doc: SessionDocument }) {
       </Trace>
       <Link
         className="fr-link fr-link--sm"
-        state={{ returnPath: `${pathname}${search}` }}
+        state={{ returnPath }}
         to={generatePath(ROUTE_PATHS.SG.PRESENTATIONS_PREVIEW, { planId })}
       >
         <FormattedMessage defaultMessage="Voir la notice" />
@@ -280,10 +281,12 @@ export function SessionDocumentsTable(props: {
 
   const { user } = useUser();
   const currentUserId = user?.id;
+  const { pathname, search } = useLocation();
+  const returnPath = `${pathname}${search}`;
 
   const renderers = useMemo(
-    () => ({ actions, currentUserId, newOfficialReport, officialReports, renderName, states }),
-    [actions, currentUserId, newOfficialReport, officialReports, renderName, states],
+    () => ({ actions, currentUserId, newOfficialReport, officialReports, renderName, returnPath, states }),
+    [actions, currentUserId, newOfficialReport, officialReports, renderName, returnPath, states],
   );
 
   const columns = useMemo(
