@@ -26,8 +26,7 @@ export const observationKeys = {
   allObservations: () => ['observations'] as const,
   observationDetails: (props: { sessionId: string; nominationFileId: string; observationId: string }) =>
     ['observationDetails', props] as const,
-  searchMagistrats: (props?: { search?: string; ignoreIds?: string[] }) =>
-    ['searchMagistrats', props?.search, props?.ignoreIds] as const,
+  searchMagistrats: (props?: { search?: string }) => ['searchMagistrats', props?.search] as const,
   observationAttachments: (props?: { magistratId?: string }) =>
     ['observation', 'attachments', props?.magistratId] as const,
 };
@@ -86,7 +85,7 @@ function updateMemberCommentImages(
   return response;
 }
 
-export function useSearchMagistratsQuery(search: string, ignoreIds?: readonly string[]) {
+export function useSearchMagistratsQuery(search: string) {
   return useQuery({
     enabled: search.length >= MAGISTRAT_SEARCH_MIN_LENGTH,
     queryKey: observationKeys.searchMagistrats({ search }),
@@ -94,7 +93,6 @@ export function useSearchMagistratsQuery(search: string, ignoreIds?: readonly st
       const { data } = await $api.magistrats.searchMagistrats({
         query: {
           search,
-          ignore: ignoreIds?.join(',') || undefined,
           limit: 10,
         },
       });
