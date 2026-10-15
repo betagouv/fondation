@@ -21,7 +21,7 @@ vi.mock('@queries/agenda.queries', () => ({
   }),
 }));
 
-function renderStep(agendas: Record<string, string | null>) {
+function renderStep(agendas: Record<string, string | null>, isUnchanged = () => false) {
   return render(
     <IntlProvider defaultLocale="fr" locale="fr">
       <PresentationPlanContext
@@ -32,6 +32,7 @@ function renderStep(agendas: Record<string, string | null>) {
             hasAllMandatoryMetadata: true,
             hasFailed: false,
             isDisabled: false,
+            isUnchanged,
             planId: null,
             state: { agendas },
           } as unknown as PresentationPlanContextType
@@ -70,5 +71,13 @@ describe('PresentationAgendaCommentsStep', () => {
     renderStep({ 'agenda-1': '', 'agenda-2': '' });
 
     expect(screen.getByRole('textbox', { name: 'Commentaire' })).toHaveValue('');
+  });
+
+  it('should not offer to save a notice as it already is', () => {
+    const isUnchanged = vi.fn(() => true);
+    renderStep({ 'agenda-1': 'Note', 'agenda-2': '' }, isUnchanged);
+
+    expect(screen.getByRole('button', { name: 'Enregistrer la notice' })).toBeDisabled();
+    expect(isUnchanged).toHaveBeenCalledWith({ agendas: { 'agenda-1': 'Note', 'agenda-2': '' } });
   });
 });

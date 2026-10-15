@@ -1,6 +1,44 @@
-import { draftChangesBy } from './draft-changes-by';
+import { draftChangesBy, draftLastChange } from './draft-changes-by';
 
 const UPDATED_AT = new Date('2026-09-24T10:00:00.000Z');
+
+describe('draftLastChange', () => {
+  const person = { firstName: 'Jeanne', id: 'user-1', lastName: 'Dupont' };
+  const untouched = {
+    author: person,
+    createdAt: new Date('2026-09-24T09:00:00.000Z'),
+    editor: null,
+    systemUpdatedAt: null,
+    systemUpdates: [],
+    updatedAt: null,
+  };
+
+  it('should be nothing for a first draft nobody edited, its creation is already told', () => {
+    expect(draftLastChange(untouched, { overValidated: false })).toBeNull();
+  });
+
+  it('should be the person who edited a first draft', () => {
+    expect(
+      draftLastChange({ ...untouched, editor: person, updatedAt: UPDATED_AT }, { overValidated: false }),
+    ).toEqual({ at: UPDATED_AT, by: person, causes: [], origin: 'PERSON' });
+  });
+
+  it('should be the person who opened a draft over a validated version', () => {
+    expect(draftLastChange(untouched, { overValidated: true })).toEqual({
+      at: untouched.createdAt,
+      by: person,
+      causes: [],
+      origin: 'PERSON',
+    });
+  });
+
+  it('should be the application when it opened a draft over a validated version', () => {
+    expect(draftLastChange({ ...untouched, author: null }, { overValidated: true })).toMatchObject({
+      by: null,
+      origin: 'SYSTEM',
+    });
+  });
+});
 
 describe('draftChangesBy', () => {
   it('should be nothing for a validated version', () => {

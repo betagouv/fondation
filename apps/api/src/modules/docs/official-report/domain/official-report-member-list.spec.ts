@@ -70,6 +70,20 @@ describe('OfficialReportMembersList', () => {
     expect(list1.equals(list2)).toBe(false);
   });
 
+  it('should compare 2 lists, and be false, when a member is absent in one of them', () => {
+    const list1 = OfficialReportMembersList.from([
+      makeMember({ id: 'member-1', isAbsent: false }),
+      makeMember({ id: 'member-2', isAbsent: false }),
+    ]);
+
+    const list2 = OfficialReportMembersList.from([
+      makeMember({ id: 'member-1', isAbsent: false }),
+      makeMember({ id: 'member-2', isAbsent: true }),
+    ]);
+
+    expect(list1.equals(list2)).toBe(false);
+  });
+
   it('should compare 2 lists, and be false, when the compared list has an unknown id', () => {
     const list1 = OfficialReportMembersList.from([
       makeMember({ id: 'member-1', isAbsent: false }),

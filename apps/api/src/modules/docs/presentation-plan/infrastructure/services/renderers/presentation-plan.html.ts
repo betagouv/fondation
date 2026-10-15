@@ -271,7 +271,6 @@ function endingTime(time: TimeOnly): string {
 function content(ctx: {
   hasRenunciation: boolean;
   time: TimeOnly;
-  endingTime?: TimeOnly;
   justiceContactName: string;
   secretary: { firstName: string; lastName: string };
   sessions: readonly {
@@ -303,7 +302,6 @@ function content(ctx: {
       <li>DSJ&nbsp;: ${ctx.justiceContactName}</li>
       <li>SG&nbsp;: ${fullname(ctx.secretary)}</li>
       <li>Heure de début de la séance de restitution&nbsp;: ${timeOnlyToString(ctx.time)}</li>
-      ${ctx.endingTime ? html`<li>${endingTime(ctx.endingTime)}</li>` : ''}
     </ul>
   `;
 }

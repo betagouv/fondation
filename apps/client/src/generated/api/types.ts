@@ -1831,11 +1831,6 @@ export type CreateOrUpdateJusticePresentationPlanDto = {
         minutes?: number;
         seconds?: number;
     };
-    endingTime?: {
-        hours: number;
-        minutes?: number;
-        seconds?: number;
-    } | null;
     chairmanId: string;
     secretaryId: string;
     justiceContactId: string;

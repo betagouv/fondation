@@ -299,7 +299,8 @@ export class OfficialReport {
   }
 
   update(command: UpdateOfficialReportCommand): void {
-    const { next, diff } = this.snapshot.update(command.officialReport);
+    const { changed, diff, next } = this.snapshot.update(command.officialReport);
+    if (!changed) return;
 
     this.openDraft();
     if (diff.hasAny) this.#messages.push(new OfficialReportInvalidated(this.id, diff));

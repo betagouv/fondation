@@ -21,12 +21,17 @@ export class OfficialReportSnapshot {
     private readonly filesSnapshot: OfficialReportSnapshotFilesCollection,
   ) {}
 
+  /** `diff` tells which rendered parts fall behind, `changed` whether anything differs at all */
   update(next: UpdateOfficialReportCommand['officialReport']): {
+    changed: boolean;
     diff: OfficialReportSnapshotDiff;
     next: OfficialReportSnapshotMeta;
   } {
+    const diff = this.diff(next);
+
     return {
-      diff: this.diff(next),
+      changed: !this.meta.equals(next) || diff.files.some(({ action }) => action !== 'noop'),
+      diff,
       next: OfficialReportSnapshotMeta.from({
         ...next,
         manuallyEditedPart: { conclusion: false, intro: false },

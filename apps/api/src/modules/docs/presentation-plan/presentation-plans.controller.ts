@@ -123,12 +123,7 @@ export class PresentationPlansController {
     @Body() body: CreateOrUpdateJusticePresentationPlanDto,
     @AuthedUser() user: { id: string },
   ): Promise<void> {
-    return this.presentationPlans.updatePresentationPlan({
-      ...body,
-      id: planId,
-      authorId: user.id,
-      endingTime: body.endingTime ?? null,
-    });
+    return this.presentationPlans.updatePresentationPlan({ ...body, id: planId, authorId: user.id });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')

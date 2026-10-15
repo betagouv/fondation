@@ -105,7 +105,7 @@ export class FindSessionDocsQuery {
           // the version carries its own createdAt, which must not pass for the agenda's
           createdAt: agenda.createdAt,
           creator: author,
-          draftChange: draft ? draftLastChange(draft) : null,
+          draftChange: draft ? draftLastChange(draft, { overValidated: Boolean(published) }) : null,
           draftChangesBy: draft ? draftChangesBy(draft) : null,
           // the upstream changes land in the draft, and the reader has to be told even though the
           // validated version they are shown knows nothing of them
@@ -161,7 +161,7 @@ export class FindSessionDocsQuery {
           ...shown,
           createdAt: report.createdAt,
           creator: author,
-          draftChange: draft ? draftLastChange(draft) : null,
+          draftChange: draft ? draftLastChange(draft, { overValidated: Boolean(published) }) : null,
           draftChangesBy: draft ? draftChangesBy(draft) : null,
           outdated: versions.some((version) => version.outdated),
           status: published ? ('VALIDATED' as const) : ('DRAFT' as const),
