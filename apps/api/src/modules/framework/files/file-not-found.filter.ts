@@ -2,7 +2,7 @@ import { Catch, NotFoundException, type ArgumentsHost, type ExceptionFilter } fr
 import type { Response as ExpressResponse } from 'express';
 
 // "Ouvrir" navigates a new tab straight to the file: the browser shows this page, not the client
-const PAGE = `<!doctype html>
+const MISSING_ATTACHMENT_PAGE = `<!doctype html>
 <html lang="fr" style="color-scheme: light dark">
   <head>
     <meta charset="utf-8" />
@@ -18,6 +18,6 @@ const PAGE = `<!doctype html>
 @Catch(NotFoundException)
 export class FileNotFoundFilter implements ExceptionFilter {
   catch(_exception: NotFoundException, host: ArgumentsHost): void {
-    host.switchToHttp().getResponse<ExpressResponse>().status(404).type('html').send(PAGE);
+    host.switchToHttp().getResponse<ExpressResponse>().status(404).type('html').send(MISSING_ATTACHMENT_PAGE);
   }
 }

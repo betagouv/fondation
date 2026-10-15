@@ -20,8 +20,9 @@ describe('FileNotFoundFilter', () => {
 
     expect(response.status).toHaveBeenCalledWith(404);
     expect(response.type).toHaveBeenCalledWith('html');
-    expect(response.send).toHaveBeenCalledWith(
-      expect.stringContaining('Cette pièce jointe est introuvable. Prévenez le support.'),
-    );
+    const [page] = response.send.mock.calls[0]!;
+    expect(page).toContain('<html lang="fr"');
+    expect(page).toContain('<title>Pièce jointe introuvable</title>');
+    expect(page).toContain('Cette pièce jointe est introuvable. Prévenez le support.');
   });
 });
