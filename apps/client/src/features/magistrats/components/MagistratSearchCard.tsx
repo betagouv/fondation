@@ -47,7 +47,7 @@ export function MagistratSearchCard(props: { magistrat: FoundMagistrat }) {
         </p>
       )}
       {positionLabel && <p className="fr-mb-0">{positionLabel}</p>}
-      <p className="fr-mb-0 text-(--text-mention-grey)">{gradeAndJurisdiction}</p>
+      {gradeAndJurisdiction && <p className="fr-mb-0 text-(--text-mention-grey)">{gradeAndJurisdiction}</p>}
     </article>
   );
 }
