@@ -1,7 +1,7 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Avatar from '@codegouvfr/react-dsfr/picto/Avatar';
 import { parseAsString, useQueryState } from 'nuqs';
-import { useCallback, useEffect, type CSSProperties } from 'react';
+import { useCallback, useEffect, useState, type CSSProperties } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useDebounce } from 'use-debounce';
 
@@ -37,6 +37,7 @@ export function MagistratSearch() {
       });
     else toasts.close(SEARCH_FAILED_TOAST);
   }, [error, formatMessage, toasts]);
+
   // observes again once a page is loaded: the end of the list may still be in view, and an observer only reports changes
   const loadMoreOnScroll = useCallback(
     (element: HTMLDivElement | null) => {
@@ -53,6 +54,17 @@ export function MagistratSearch() {
     },
     [fetchNextPage, isFetchingNextPage],
   );
+
+  // "Voir plus" would otherwise keep the focus below the magistrats it adds, unknown to a screen reader
+  const [firstShownMoreId, setFirstShownMoreId] = useState<string>();
+  const showMore = async () => {
+    const result = await fetchNextPage();
+    if (result.isSuccess) setFirstShownMoreId(result.data.pages.at(-1)?.items[0]?.id);
+  };
+  const focusFirstShownMore = useCallback((item: HTMLLIElement | null) => {
+    item?.querySelector('a')?.focus();
+    setFirstShownMoreId(undefined);
+  }, []);
 
   return (
     <>
@@ -120,6 +132,7 @@ export function MagistratSearch() {
                       <li
                         className="pb-0 motion-safe:animate-fade-in"
                         key={magistrat.id}
+                        ref={magistrat.id === firstShownMoreId ? focusFirstShownMore : undefined}
                         style={{ '--fade-in-delay': `${index * 40}ms` } as CSSProperties}
                       >
                         <MagistratSearchCard
@@ -136,11 +149,7 @@ export function MagistratSearch() {
                 {hasNextPage && (
                   <div className="fr-mt-6v flex justify-center" ref={loadMoreOnScroll}>
                     {/* an explicit control for assistive technologies, which do not always scroll */}
-                    <Button
-                      disabled={isFetchingNextPage}
-                      onClick={() => fetchNextPage()}
-                      priority="secondary"
-                    >
+                    <Button disabled={isFetchingNextPage} onClick={showMore} priority="secondary">
                       <FormattedMessage defaultMessage="Voir plus" />
                     </Button>
                   </div>

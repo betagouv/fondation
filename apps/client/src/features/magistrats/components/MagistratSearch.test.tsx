@@ -237,6 +237,7 @@ describe('MagistratSearch', () => {
     expect(await screen.findByRole('article', { name: 'VALROSE Marc' })).toBeInTheDocument();
     expect(screen.getByRole('article', { name: 'VALROSE Honorine' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Voir plus' })).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole('link', { name: 'VALROSE Marc' })).toHaveFocus());
     expect(searchMagistrats).toHaveBeenLastCalledWith(
       expect.objectContaining({ query: { page: 2, search: 'valr' } }),
     );
