@@ -83,13 +83,13 @@ function SummaryAttachment({ attachment }: { attachment: SummaryAttachmentDto })
   const { isPending: isCreatingUrl, mutate: createUrl } = useGenerateSummaryAttachmentPublicUrlMutation();
   const { isPending: isDownloading, mutate: download } = useDownloadFileMutation();
   const onDownload = useCallback(() => {
-    const onError = (error?: unknown) => notifyDownloadFailure(attachment.name, error);
+    const onError = (error: unknown) => notifyDownloadFailure(attachment.name, error);
 
     createUrl(
       { fileId: attachment.id, nominationFileId, sessionId },
       {
         onError,
-        onSuccess: (url) => (url ? download({ name: attachment.name, url }, { onError }) : onError()),
+        onSuccess: (url) => (url ? download({ name: attachment.name, url }, { onError }) : onError(null)),
       },
     );
   }, [
