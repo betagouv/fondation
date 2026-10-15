@@ -1158,6 +1158,7 @@ test.describe('Docs Service', () => {
       by: beforePresentation?.validatedBy,
       date: MEETING_DATE,
       endTime: { hours: 10, minutes: 15, seconds: 0 },
+      planId,
       status: 'PRESENTED',
     });
   });

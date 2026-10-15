@@ -270,6 +270,7 @@ function presentationOf(
     plan: {
       date: Date;
       endTime: Date | null;
+      id: string;
       isPresented: boolean;
       pdfId: string | null;
       presenter: { firstName: string; id: string; lastName: string } | null;
@@ -279,7 +280,7 @@ function presentationOf(
   const validated = plans.find(({ plan }) => plan.pdfId !== null)?.plan;
   if (!validated?.isPresented) return { status: 'TO_PRESENT' as const };
 
-  return { ...presentationTraceOf(validated), status: 'PRESENTED' as const };
+  return { ...presentationTraceOf(validated), planId: validated.id, status: 'PRESENTED' as const };
 }
 
 export class FoundSessionDocsDto extends createZodDto(
@@ -309,7 +310,7 @@ export class FoundSessionDocsDto extends createZodDto(
           presentation: z
             .discriminatedUnion('status', [
               z.object({ status: z.enum(['TO_PRESENT']) }),
-              presentationTraceSchema.extend({ status: z.enum(['PRESENTED']) }),
+              presentationTraceSchema.extend({ planId: z.string(), status: z.enum(['PRESENTED']) }),
             ])
             .nullable(),
           outdated: z.boolean(),

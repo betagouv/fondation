@@ -8,12 +8,14 @@ import {
 } from '@tanstack/react-table';
 import { createContext, useContext, useMemo, type ReactNode } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
+import { generatePath, Link, useLocation } from 'react-router';
 
 import { useSystemUpdateCauses } from '@/features/documents/hooks/useSystemUpdateCauses';
 import { PresentationMoment } from '@/shared/components/presentation-moment';
 import { useDateAndTime } from '@/shared/hooks/useDateAndTime';
 import { NewTable } from '@/shared/ui/new-table';
 import { compareDateOnly, formatLongDateOnly, type PlainDateOnly } from '@/utils/date-only.util';
+import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useUser } from '@queries/auth.queries';
 
 import {
@@ -44,6 +46,7 @@ export const SessionDocumentsTableContext = createContext<{
   newOfficialReport?: (agenda: AgendaDocument) => ReactNode;
   officialReports?: ReadonlyMap<string, OfficialReportDocument>;
   renderName?: (doc: SessionDocument) => ReactNode;
+  returnPath?: string;
   states?: ReadonlyMap<string, SessionDocumentGroupState>;
 }>({});
 
@@ -132,18 +135,28 @@ function AgendaPresentationStatus(props: { doc: SessionDocument }) {
 
 function AgendaPresentationTrace(props: { doc: SessionDocument }) {
   const authorship = useAuthorship();
+  const { returnPath } = useContext(SessionDocumentsTableContext);
   const { doc } = props;
   if (doc.type !== 'agenda' || doc.presentation?.status !== 'PRESENTED') return null;
 
-  const { by, date, endTime } = doc.presentation;
+  const { by, date, endTime, planId } = doc.presentation;
 
   return (
-    <Trace>
-      <FormattedMessage
-        defaultMessage="Restitué le {moment}{who, select, self { par vous} someone { par {author}} other {}}"
-        values={authorship(<PresentationMoment date={date} endTime={endTime} />, by)}
-      />
-    </Trace>
+    <span className="flex flex-wrap items-baseline gap-x-2">
+      <Trace>
+        <FormattedMessage
+          defaultMessage="Restitué le {moment}{who, select, self { par vous} someone { par {author}} other {}}"
+          values={authorship(<PresentationMoment date={date} endTime={endTime} />, by)}
+        />
+      </Trace>
+      <Link
+        className="fr-link fr-link--sm"
+        state={{ returnPath }}
+        to={generatePath(ROUTE_PATHS.SG.PRESENTATIONS_PREVIEW, { planId })}
+      >
+        <FormattedMessage defaultMessage="Voir la notice" />
+      </Link>
+    </span>
   );
 }
 
@@ -268,10 +281,12 @@ export function SessionDocumentsTable(props: {
 
   const { user } = useUser();
   const currentUserId = user?.id;
+  const { pathname, search } = useLocation();
+  const returnPath = `${pathname}${search}`;
 
   const renderers = useMemo(
-    () => ({ actions, currentUserId, newOfficialReport, officialReports, renderName, states }),
-    [actions, currentUserId, newOfficialReport, officialReports, renderName, states],
+    () => ({ actions, currentUserId, newOfficialReport, officialReports, renderName, returnPath, states }),
+    [actions, currentUserId, newOfficialReport, officialReports, renderName, returnPath, states],
   );
 
   const columns = useMemo(

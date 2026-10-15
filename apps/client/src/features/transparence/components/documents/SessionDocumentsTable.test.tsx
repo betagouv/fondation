@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useEffect, type ReactNode } from 'react';
 import { IntlProvider } from 'react-intl';
+import { MemoryRouter } from 'react-router';
 import { describe, expect, it, vi } from 'vitest';
 
 import { frFormat } from '@/i18n/formats';
@@ -66,11 +67,13 @@ function table(
 ) {
   return (
     <IntlProvider defaultLocale="fr" formats={frFormat} locale="fr">
-      <SessionDocumentsTable
-        groups={groupSessionDocuments(docs)}
-        newOfficialReport={newOfficialReport}
-        renderName={renderName}
-      />
+      <MemoryRouter>
+        <SessionDocumentsTable
+          groups={groupSessionDocuments(docs)}
+          newOfficialReport={newOfficialReport}
+          renderName={renderName}
+        />
+      </MemoryRouter>
     </IntlProvider>
   );
 }
@@ -114,6 +117,7 @@ describe('SessionDocumentsTable', () => {
       by: { id: 'user-1', name: 'Camille Martin' },
       date: { day: 15, month: 3, year: 2028 },
       endTime: { hours: 10, minutes: 15, seconds: 0 },
+      planId: 'plan-1',
       status: 'PRESENTED',
     } as const;
 
@@ -149,6 +153,27 @@ describe('SessionDocumentsTable', () => {
       render(table([{ ...agenda, presentation: null, status: 'DRAFT', validatedAt: null }, officialReport]));
 
       expect(screen.queryByText('À restituer')).not.toBeInTheDocument();
+    });
+
+    it('should lead from a presented agenda to the preview of its notice', () => {
+      render(table([{ ...agenda, presentation: PRESENTED }]));
+
+      expect(screen.getByRole('link', { name: 'Voir la notice' })).toHaveAttribute(
+        'href',
+        '/secretariat-general/restitutions/plan-1/validation',
+      );
+    });
+
+    it('should lead to no notice from an agenda still to present, never validated, nor from an official report', () => {
+      render(
+        table([
+          agenda,
+          { ...agenda, id: 'agenda-2', presentation: null, status: 'DRAFT', validatedAt: null },
+          officialReport,
+        ]),
+      );
+
+      expect(screen.queryByRole('link', { name: 'Voir la notice' })).not.toBeInTheDocument();
     });
   });
 
