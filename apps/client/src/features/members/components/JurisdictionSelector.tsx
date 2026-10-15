@@ -3,8 +3,8 @@ import Tag from '@codegouvfr/react-dsfr/Tag';
 import { useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
+import { IconButton } from '@/shared/ui/icon-button';
 import { Modal } from '@/shared/ui/modal';
-import { Tooltip } from '@/shared/ui/tooltip';
 
 import { JuridictionAutocomplete } from './JurisdictionAutocomplete';
 
@@ -12,38 +12,13 @@ function JurisdictionSelectorSelected(props: { selected: readonly { id: string; 
   if (props.selected.length === 0) return <span className="font-bold text-(--text-disabled-grey)">n/a</span>;
 
   return (
-    <>
-      <ul className="fr-p-0 flex list-none flex-row flex-wrap items-center gap-x-2">
-        {props.selected.slice(0, 4).map(({ id, label }) => (
-          <li className="shrink-0 grow-0" key={`jurisdiction_${id}`}>
-            <Tag>{label ?? id}</Tag>
-          </li>
-        ))}
-        {props.selected.length > 4 ? (
-          <li className="shrink-0 whitespace-nowrap">
-            <Tooltip
-              className="shrink-0"
-              label={
-                <ul>
-                  {props.selected.map(({ label, id }) => (
-                    <li key={`excluded_jurisdictions_tooltip_${id}`}>{label ?? id}</li>
-                  ))}
-                </ul>
-              }
-            >
-              <Tag
-                nativeButtonProps={{
-                  className: 'shrink-0 cursor-help whitespace-nowrap',
-                }}
-                small
-              >
-                {`(+${props.selected.length - 4})`}
-              </Tag>
-            </Tooltip>
-          </li>
-        ) : null}
-      </ul>
-    </>
+    <ul className="fr-p-0 flex list-none flex-row flex-wrap items-center justify-end gap-2">
+      {props.selected.map(({ id, label }) => (
+        <li className="shrink-0 grow-0" key={`jurisdiction_${id}`}>
+          <Tag>{label ?? id}</Tag>
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -107,20 +82,19 @@ export function JurisdictionSelector(props: {
   const [isEditing, setIsEditing] = useState(false);
   const [openCount, setOpenCount] = useState(0);
   const selected = props.selected ?? [];
+  const editLabel = formatMessage({ defaultMessage: 'Éditer les juridictions exclues' });
 
   return (
-    <div className="flex items-center gap-x-2">
+    <div className="flex items-start justify-end gap-x-2">
       <JurisdictionSelectorSelected selected={selected} />
-      <Button
-        className="rounded-full"
+      <IconButton
         iconId="fr-icon-edit-fill"
+        label={editLabel}
         onClick={() => {
           setOpenCount((current) => current + 1);
           setIsEditing(true);
         }}
-        priority="tertiary no outline"
-        size="small"
-        title={formatMessage({ defaultMessage: 'Éditer les juridictions exclues' })}
+        small
       />
 
       {openCount > 0 && (

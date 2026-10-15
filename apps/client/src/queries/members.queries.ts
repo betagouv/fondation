@@ -1,4 +1,10 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type InfiniteData,
+} from '@tanstack/react-query';
 
 import * as $api from '@api/sdk';
 import type {
@@ -6,6 +12,7 @@ import type {
   DetailedSummaryDto,
   ListedMemberSessionsDto,
   ListMembersData,
+  PaginatedMemberListItemDto,
   UpdateAuditionDateDto,
   UpdateAuditionRequestDto,
   UpdateMissingEvaluationCommentDto,
@@ -24,12 +31,23 @@ export type ListMembersOptions = {
   sorting?: { id: string; desc: boolean }[];
 };
 
+export type MembersFilters = {
+  formations?: NonNullable<ListMembersData['query']>['formations'];
+  search?: string;
+};
+export type MembersSorting =
+  | []
+  | [{ desc: boolean; id: NonNullable<NonNullable<ListMembersData['query']>['sortBy']> }];
+
 export const memberKeys = {
   allListMemberSessionReports: () => ['listMemberSessionReports'] as const,
 
   allListedMembers: () => ['listMembers'] as const,
 
   detailsMember: (props: { userId: string | undefined }) => ['detailsMember', props.userId] as const,
+
+  infiniteListMembers: (props: { filters: MembersFilters; sorting: MembersSorting }) =>
+    ['listMembers', 'infinite', props] as const,
 
   listMemberGdsSessions: (props: { userId: string | undefined }) =>
     ['listMemberGdsSessions', props.userId] as const,
@@ -76,6 +94,38 @@ export const useMemberListQuery = ({
     },
     queryKey: memberKeys.listMembers(options),
     staleTime: 1_000,
+  });
+
+const MEMBERS_PAGE_SIZE = 50;
+
+/** @warning must stay stable, tanstack only reuses the selection when the function identity does not change */
+function selectMembers(data: InfiniteData<PaginatedMemberListItemDto | null>) {
+  return {
+    items: data.pages.flatMap((page) => page?.items ?? []),
+    totalCount: data.pages.at(-1)?.totalCount ?? 0,
+  };
+}
+
+export const useInfiniteMembersQuery = (options: { filters: MembersFilters; sorting: MembersSorting }) =>
+  useInfiniteQuery({
+    getNextPageParam: (lastPage: PaginatedMemberListItemDto | null) => lastPage?.nextPageIndex,
+    initialPageParam: 1,
+    placeholderData: (previous) => previous,
+    queryFn: ({ pageParam }) =>
+      $api.members
+        .listMembers({
+          query: {
+            formations: options.filters.formations ?? [],
+            limit: MEMBERS_PAGE_SIZE,
+            page: pageParam,
+            search: options.filters.search?.trim() || undefined,
+            sortBy: options.sorting[0]?.id,
+            sortDirection: options.sorting[0]?.desc ? 'desc' : undefined,
+          },
+        })
+        .then(({ data = null }) => data),
+    queryKey: memberKeys.infiniteListMembers(options),
+    select: selectMembers,
   });
 
 export const useDetailedMember = (options: { userId: string | undefined }) =>

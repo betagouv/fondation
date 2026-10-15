@@ -112,7 +112,7 @@ export function Header(props: { nominationFile: SessionNominationFile; sessionId
           ) : (
             <PriorityBadgeList priorities={nominationFile.priorities} small={false} />
           )}
-          <h2 className="fr-h3 fr-mb-0 text-(--text-title-blue-france)">
+          <h2 className="fr-h4 fr-mb-0 text-(--text-title-blue-france)">
             <TitleNameIcons name={nomMagistrat}>
               <DetailsLink
                 context={isSgContext ? 'sg' : 'membre'}

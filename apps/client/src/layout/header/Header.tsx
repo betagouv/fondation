@@ -1,6 +1,7 @@
 import Header from '@codegouvfr/react-dsfr/Header';
 import type { MainNavigationProps } from '@codegouvfr/react-dsfr/MainNavigation';
-import { useCallback } from 'react';
+import clsx from 'clsx';
+import { useCallback, useEffect } from 'react';
 import { useIntl } from 'react-intl';
 import { matchPath, useLocation } from 'react-router';
 
@@ -12,6 +13,8 @@ import { ROUTE_PATHS, type FondationPath } from '@/utils/route-path.utils';
 import { Avatar } from './Avatar';
 import { LolfiCsm } from './LolfiCsm';
 import { ManageSessionsLink } from './ManageSessionsLink';
+
+const NAV_ICON_CLASS = "before:mr-2 before:size-5! before:align-middle before:content-['']";
 
 function useRouteMatcher() {
   const { pathname } = useLocation();
@@ -25,9 +28,19 @@ function useRouteMatcher() {
   );
 }
 
+/** the DSFR only folds a menu on a full page load: after a client-side navigation it would stay open */
+function useMenuFoldedOnNavigation(pathname: string) {
+  useEffect(() => {
+    document
+      .querySelectorAll<HTMLButtonElement>('.fr-header .fr-nav__btn[aria-expanded="true"]')
+      .forEach((button) => button.click());
+  }, [pathname]);
+}
+
 export const AppHeader = () => {
   const { formatMessage } = useIntl();
   const { pathname } = useLocation();
+  useMenuFoldedOnNavigation(pathname);
   const routeMatches = useRouteMatcher();
   const isUserSg = useIsSg();
   const isUserAdmin = useIsAdmin();
@@ -41,8 +54,8 @@ export const AppHeader = () => {
       text: formatMessage({ defaultMessage: 'Accueil' }),
     },
     {
-      isActive: routeMatches([ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE]),
-      linkProps: { to: ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE },
+      isActive: routeMatches([ROUTE_PATHS.SG.NEW_TRANSPARENCE]),
+      linkProps: { to: ROUTE_PATHS.SG.NEW_TRANSPARENCE },
       text: formatMessage({ defaultMessage: 'Créer une session' }),
     },
     {
@@ -86,7 +99,7 @@ export const AppHeader = () => {
           isActive: routeMatches([ROUTE_PATHS.ADMIN.INGEST_LOLFI]),
           linkProps: { to: ROUTE_PATHS.ADMIN.INGEST_LOLFI },
           text: (
-            <span className="fr-icon-file-add-line before:size-5!! before:mr-2 before:align-middle before:content-['']">
+            <span className={clsx('fr-icon-file-add-line', NAV_ICON_CLASS)}>
               {formatMessage({ defaultMessage: 'Import LOLFI manuel' })}
             </span>
           ),
@@ -95,7 +108,7 @@ export const AppHeader = () => {
           isActive: routeMatches([ROUTE_PATHS.ADMIN.LIST_JOBS, ROUTE_PATHS.ADMIN.DETAILS_JOB]),
           linkProps: { to: ROUTE_PATHS.ADMIN.LIST_JOBS },
           text: (
-            <span className="ri-play-circle-line before:mr-2 before:size-5! before:align-middle before:content-['']">
+            <span className={clsx('ri-play-circle-line', NAV_ICON_CLASS)}>
               {formatMessage({ defaultMessage: 'Ingestions' })}
             </span>
           ),
@@ -104,7 +117,7 @@ export const AppHeader = () => {
           isActive: routeMatches([ROUTE_PATHS.ADMIN.USERS, ROUTE_PATHS.ADMIN.USER_DETAIL]),
           linkProps: { to: ROUTE_PATHS.ADMIN.USERS },
           text: (
-            <span className="ri-user-settings-line before:mr-2 before:size-5! before:align-middle before:content-['']">
+            <span className={clsx('ri-user-settings-line', NAV_ICON_CLASS)}>
               {formatMessage({ defaultMessage: 'Gestion des utilisateurs' })}
             </span>
           ),
@@ -113,14 +126,14 @@ export const AppHeader = () => {
           isActive: routeMatches([ROUTE_PATHS.ADMIN.FEEDBACKS]),
           linkProps: { to: ROUTE_PATHS.ADMIN.FEEDBACKS },
           text: (
-            <span className="fr-icon-feedback-line before:mr-2 before:size-5! before:align-middle before:content-['']">
+            <span className={clsx('fr-icon-feedback-line', NAV_ICON_CLASS)}>
               {formatMessage({ defaultMessage: 'Avis des utilisateurs' })}
             </span>
           ),
         },
       ],
       text: (
-        <span className="ri-admin-line before:size-5!! before:mr-2 before:align-middle before:content-['']">
+        <span className={clsx('ri-admin-line', NAV_ICON_CLASS)}>
           {formatMessage({ defaultMessage: 'Administration' })}
         </span>
       ),
