@@ -1750,6 +1750,62 @@ test.describe('Docs Service', () => {
     });
   });
 
+  test('should not tell a change on a new official report nobody edited', async ({ agent, expect, member }) => {
+    const foundFiles = await agent.docs.findAgendaNominationFiles({ path: { sessionId } });
+    const nominationFileIds = foundFiles.data!.items.map(({ id }) => id);
+
+    await agent.sessions.affectReporters({
+      body: {
+        items: nominationFileIds.map((nominationFileId) => ({
+          nominationFileId,
+          priorities: [],
+          reporterIds: [member['@user']!.id],
+        })),
+      },
+      path: { sessionId },
+    });
+    await agent.sessions.publishNominationSessionAffectationsVersion({ path: { sessionId } });
+    for (const nominationFileId of nominationFileIds) {
+      await agent.sessions.defineNominationFileOutcome({
+        body: { comment: null, outcome: 'VALIDATED' },
+        path: { nominationFileId, sessionId },
+      });
+    }
+
+    const agenda = await agent.docs.createAgenda({
+      body: {
+        chairmanId,
+        date: { day: 1, month: 2, year: 2026 },
+        nominationFileIds,
+        sessionMeetingDate: MEETING_DATE,
+      },
+      path: { sessionId },
+    });
+    const justiceContact = await agent.docs.createJusticeContact({
+      body: { name: `M. Vincent de la Porte, adjoint ${crypto.randomUUID()}` },
+    });
+    const created = await agent.docs.createOfficialReport({
+      body: {
+        absentMemberIds: [],
+        agendaId: agenda.data!.id,
+        chairmanId,
+        hasRenunciation: true,
+        justiceDepartmentContactId: justiceContact.data!.id,
+        secretaryId: firstSecretaryId,
+        sessionMeetingDate: MEETING_DATE,
+        sessionMeetingEndingTime: { hours: 18, minutes: 10, seconds: 0 },
+        sessionMeetingTime: { hours: 18, minutes: 0, seconds: 0 },
+      },
+      path: { sessionId },
+    });
+
+    const docs = await agent.docs.findSessionDocs({ path: { sessionId } });
+    expect(docs.data!.items.find(({ id }) => id === created.data!.id)).toMatchObject({
+      draftUpdate: null,
+      status: 'DRAFT',
+    });
+  });
+
   test('should render the official report draft again once its metadata change', async ({ agent, expect, member }) => {
     const foundFiles = await agent.docs.findAgendaNominationFiles({ path: { sessionId } });
     const nominationFileIds = foundFiles.data!.items.map(({ id }) => id);
