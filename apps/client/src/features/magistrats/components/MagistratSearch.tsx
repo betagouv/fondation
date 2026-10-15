@@ -1,5 +1,6 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Avatar from '@codegouvfr/react-dsfr/picto/Avatar';
+import clsx from 'clsx';
 import { parseAsString, useQueryState } from 'nuqs';
 import { useCallback, useEffect, useState, type CSSProperties } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
@@ -27,6 +28,7 @@ export function MagistratSearch() {
     search: debouncedSearch,
   });
   const totalCount = isSearchable ? data?.pages[0]?.totalCount : undefined;
+  const isPrompting = totalCount === undefined;
 
   useEffect(() => {
     if (error)
@@ -87,13 +89,20 @@ export function MagistratSearch() {
         className="fr-mt-0"
         id="magistrat-search-breadcrumb"
       />
-      <div className="mx-auto max-w-[66rem]">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="fr-mb-12v mx-auto max-w-[66rem]">
+        {/* the same elements change layout: the search input would otherwise lose the focus once magistrats are found */}
+        <div
+          className={clsx(
+            'flex gap-4',
+            isPrompting ? 'fr-mt-16v flex-col items-center gap-8' : 'flex-wrap items-center justify-between',
+          )}
+        >
+          {isPrompting && <Avatar aria-hidden className="motion-safe:animate-fade-in" fontSize="7.75rem" />}
           <h1 className="fr-h3 fr-mb-0">
             <FormattedMessage defaultMessage="Rechercher un magistrat" />
           </h1>
           <SearchInput
-            className="w-full md:w-82"
+            className={clsx('w-full', isPrompting ? 'md:w-[33.375rem]' : 'md:w-82')}
             onChange={setSearch}
             onClear={() => setSearch('')}
             placeholder={formatMessage({ defaultMessage: 'Rechercher par nom ou prénom' })}
@@ -108,56 +117,44 @@ export function MagistratSearch() {
             />
           )}
         </p>
-        {/* stacks the prompt and the results so that they cross-fade, the prompt staying mounted to fade out */}
-        <div className="mx-auto grid max-w-3xl">
-          <div
-            className="fr-mt-20v col-start-1 row-start-1 flex-col items-center gap-6 transition-[display,opacity] transition-discrete duration-500 motion-reduce:transition-none starting:opacity-0 [&:not([hidden])]:flex [&[hidden]]:opacity-0"
-            hidden={totalCount !== undefined}
-          >
-            <Avatar aria-hidden fontSize="10rem" />
-            <p className="fr-mb-0">
-              <FormattedMessage defaultMessage="Recherchez un magistrat par son prénom ou son nom." />
-            </p>
-          </div>
-          {totalCount === 0 ? (
-            <p className="fr-mt-8v col-start-1 row-start-1">
-              <FormattedMessage defaultMessage="Aucun résultat ne correspond aux valeurs saisies." />
-            </p>
-          ) : (
-            totalCount !== undefined && (
-              <div className="col-start-1 row-start-1">
-                <ul className="fr-mt-8v flex list-none flex-col gap-4 ps-0">
-                  {data?.pages.flatMap((page) =>
-                    page.items.map((magistrat, index) => (
-                      <li
-                        className="pb-0 motion-safe:animate-fade-in"
-                        key={magistrat.id}
-                        ref={magistrat.id === firstShownMoreId ? focusFirstShownMore : undefined}
-                        style={{ '--fade-in-delay': `${index * 40}ms` } as CSSProperties}
-                      >
-                        <MagistratSearchCard
-                          detailsPath={getMagistratDetailsPath({
-                            context: isSgNavigation ? 'sg' : 'membre',
-                            magistratId: magistrat.id,
-                          })}
-                          magistrat={magistrat}
-                        />
-                      </li>
-                    )),
-                  )}
-                </ul>
-                {hasNextPage && (
-                  <div className="fr-mt-6v flex justify-center" ref={loadMoreOnScroll}>
-                    {/* an explicit control for assistive technologies, which do not always scroll */}
-                    <Button disabled={isFetchingNextPage} onClick={showMore} priority="secondary">
-                      <FormattedMessage defaultMessage="Voir plus" />
-                    </Button>
-                  </div>
+        {totalCount === 0 ? (
+          <p className="fr-mt-20v fr-mb-0 text-center motion-safe:animate-fade-in">
+            <FormattedMessage defaultMessage="Aucun résultat ne correspond aux valeurs saisies." />
+          </p>
+        ) : (
+          totalCount !== undefined && (
+            <div className="mx-auto max-w-3xl">
+              <ul className="fr-mt-8v flex list-none flex-col gap-4 ps-0">
+                {data?.pages.flatMap((page) =>
+                  page.items.map((magistrat, index) => (
+                    <li
+                      className="pb-0 motion-safe:animate-fade-in"
+                      key={magistrat.id}
+                      ref={magistrat.id === firstShownMoreId ? focusFirstShownMore : undefined}
+                      style={{ '--fade-in-delay': `${index * 40}ms` } as CSSProperties}
+                    >
+                      <MagistratSearchCard
+                        detailsPath={getMagistratDetailsPath({
+                          context: isSgNavigation ? 'sg' : 'membre',
+                          magistratId: magistrat.id,
+                        })}
+                        magistrat={magistrat}
+                      />
+                    </li>
+                  )),
                 )}
-              </div>
-            )
-          )}
-        </div>
+              </ul>
+              {hasNextPage && (
+                <div className="fr-mt-6v flex justify-center" ref={loadMoreOnScroll}>
+                  {/* an explicit control for assistive technologies, which do not always scroll */}
+                  <Button disabled={isFetchingNextPage} onClick={showMore} priority="secondary">
+                    <FormattedMessage defaultMessage="Voir plus" />
+                  </Button>
+                </div>
+              )}
+            </div>
+          )
+        )}
       </div>
     </>
   );

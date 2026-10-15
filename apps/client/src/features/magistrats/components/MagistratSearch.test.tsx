@@ -87,13 +87,13 @@ describe('MagistratSearch', () => {
     );
   });
 
-  it('invites to search by first or last name under 2 characters', async () => {
+  it('waits for 2 characters before searching', async () => {
     const user = userEvent.setup();
     renderSearch();
 
     await user.type(screen.getByRole('textbox', { name: 'Rechercher par nom ou prénom' }), 'v');
 
-    expect(screen.getByText('Recherchez un magistrat par son prénom ou son nom.')).toBeVisible();
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
     expect(searchMagistrats).not.toHaveBeenCalled();
   });
 
@@ -138,7 +138,6 @@ describe('MagistratSearch', () => {
     expect(within(marc).getByText('Tribunal judiciaire de Rodez')).toBeInTheDocument();
     expect(within(marc).getByText('G2 - TJ RODEZ')).toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent('2 résultats');
-    expect(screen.getByText('Recherchez un magistrat par son prénom ou son nom.')).not.toBeVisible();
     expect(searchMagistrats).toHaveBeenCalledWith(
       expect.objectContaining({ query: { page: 1, search: 'valr' } }),
     );
@@ -162,6 +161,27 @@ describe('MagistratSearch', () => {
       'href',
       '/magistrats/magistrat-1',
     );
+  });
+
+  it('keeps the focus in the search input once magistrats are found', async () => {
+    searchMagistrats.mockResolvedValue(
+      found([
+        {
+          currentPosition: null,
+          grade: null,
+          gradeAndJurisdiction: null,
+          id: 'magistrat-1',
+          name: 'VALROSE Honorine',
+        },
+      ]),
+    );
+    const user = userEvent.setup();
+    renderSearch();
+
+    await user.type(screen.getByRole('textbox', { name: 'Rechercher par nom ou prénom' }), 'valr');
+
+    await screen.findByRole('article', { name: 'VALROSE Honorine' });
+    expect(screen.getByRole('textbox', { name: 'Rechercher par nom ou prénom' })).toHaveFocus();
   });
 
   it('tells when no magistrat matches', async () => {
@@ -222,9 +242,7 @@ describe('MagistratSearch', () => {
     navigateTo('');
 
     expect(screen.getByRole('textbox', { name: 'Rechercher par nom ou prénom' })).toHaveValue('');
-    await waitFor(() =>
-      expect(screen.getByText('Recherchez un magistrat par son prénom ou son nom.')).toBeVisible(),
-    );
+    await waitFor(() => expect(screen.queryByRole('article')).not.toBeInTheDocument());
   });
 
   it('adds the next magistrats from "Voir plus" until all are shown', async () => {
