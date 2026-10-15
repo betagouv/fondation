@@ -1,5 +1,4 @@
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { IntlProvider } from 'react-intl';
 import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -66,6 +65,9 @@ function renderSection() {
 
 describe('MagistratNominationFilesSection', () => {
   beforeEach(() => {
+    // jsdom lays nothing out: the virtualized table only renders rows once its box has a height
+    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, get: () => 320 });
+    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, get: () => 800 });
     fetchNextPage.mockClear();
     query = { data: undefined, hasNextPage: false, isFetchingNextPage: false, isLoading: false };
   });
@@ -104,7 +106,7 @@ describe('MagistratNominationFilesSection', () => {
     expect(screen.queryByText('À programmer')).not.toBeInTheDocument();
   });
 
-  it('loads the next page from the "Voir plus" button', async () => {
+  it('loads the next page once the last row is shown', () => {
     query = {
       ...query,
       data: { pages: [{ items: [makeNominationFile()] }] },
@@ -112,8 +114,13 @@ describe('MagistratNominationFilesSection', () => {
     };
     renderSection();
 
-    await userEvent.click(screen.getByRole('button', { name: 'Voir plus' }));
-
     expect(fetchNextPage).toHaveBeenCalledOnce();
+  });
+
+  it('does not ask for a next page when there is none', () => {
+    query = { ...query, data: { pages: [{ items: [makeNominationFile()] }] }, hasNextPage: false };
+    renderSection();
+
+    expect(fetchNextPage).not.toHaveBeenCalled();
   });
 });

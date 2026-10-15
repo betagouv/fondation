@@ -1,4 +1,4 @@
-import Button from '@codegouvfr/react-dsfr/Button';
+import { useCallback } from 'react';
 import { FormattedMessage } from 'react-intl';
 
 import { useMagistratObservationsQuery } from '@queries/magistrats.queries';
@@ -9,6 +9,10 @@ export function MagistratObservationsSection(props: { context: 'sg' | 'membre'; 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useMagistratObservationsQuery({
     magistratId: props.magistratId,
   });
+
+  const fetchMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   if (isLoading) {
     return (
@@ -32,19 +36,9 @@ export function MagistratObservationsSection(props: { context: 'sg' | 'membre'; 
       <MagistratNominationFilesTable
         context={props.context}
         nominationFiles={observations.map((observation) => observation.nominationFile)}
+        onEndReached={fetchMore}
         showAuditionDate={false}
       />
-      {hasNextPage && (
-        <Button
-          className="fr-mt-2v"
-          disabled={isFetchingNextPage}
-          onClick={() => fetchNextPage()}
-          priority="secondary"
-          size="small"
-        >
-          <FormattedMessage defaultMessage="Voir plus" />
-        </Button>
-      )}
     </>
   );
 }

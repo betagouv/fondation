@@ -1,12 +1,11 @@
 import { MemberList } from '@/features/members/components/MemberList';
 import { MemberListHeader } from '@/features/members/components/MemberListHeader';
-import { PageContentLayout } from '@/shared/ui/PageContentLayout';
 
 export function MemberListPage() {
   return (
-    <PageContentLayout>
+    <div className="fr-container fr-pt-8v fr-pb-16v">
       <MemberListHeader />
       <MemberList />
-    </PageContentLayout>
+    </div>
   );
 }

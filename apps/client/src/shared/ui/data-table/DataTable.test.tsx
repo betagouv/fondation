@@ -3,9 +3,9 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { axe } from 'vitest-axe';
 
-import { DemoTable } from './NewTable.fixtures';
+import { DemoTable } from './DataTable.fixtures';
 
-describe('NewTable', () => {
+describe('DataTable', () => {
   it('only renders a fraction of the rows (virtualization)', () => {
     render(<DemoTable rowCount={1000} />);
 

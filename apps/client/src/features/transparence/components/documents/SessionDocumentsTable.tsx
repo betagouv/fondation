@@ -13,7 +13,7 @@ import { generatePath, Link, useLocation } from 'react-router';
 import { useSystemUpdateCauses } from '@/features/documents/hooks/useSystemUpdateCauses';
 import { PresentationMoment } from '@/shared/components/presentation-moment';
 import { useDateAndTime } from '@/shared/hooks/useDateAndTime';
-import { NewTable } from '@/shared/ui/new-table';
+import { DataTable } from '@/shared/ui/data-table';
 import { compareDateOnly, formatLongDateOnly, type PlainDateOnly } from '@/utils/date-only.util';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useUser } from '@queries/auth.queries';
@@ -338,7 +338,7 @@ export function SessionDocumentsTable(props: {
 
   return (
     <SessionDocumentsTableContext.Provider value={renderers}>
-      <NewTable
+      <DataTable
         ariaLabel={formatMessage({ defaultMessage: 'Documents de la session' })}
         emptyLabel={formatMessage({ defaultMessage: 'Aucun document' })}
         fluid

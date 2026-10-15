@@ -1319,6 +1319,70 @@ test.describe('Docs Service', () => {
     expect(stillPresented.data!.items.find(({ id }) => id === planId)).toBeDefined();
   });
 
+  test('should list an agenda for a new official report with the date and times of its validated notice', async ({
+    agent,
+    expect,
+    member,
+    registerUser,
+  }) => {
+    // the notice refuses a formation whose only present member presides it
+    await registerUser('MEMBRE_DU_PARQUET');
+
+    const foundFiles = await agent.docs.findAgendaNominationFiles({ path: { sessionId } });
+    const [file] = foundFiles.data!.items;
+    await agent.sessions.affectReporters({
+      body: { items: [{ nominationFileId: file!.id, priorities: [], reporterIds: [member['@user']!.id] }] },
+      path: { sessionId },
+    });
+    await agent.sessions.publishNominationSessionAffectationsVersion({ path: { sessionId } });
+
+    const agenda = await agent.docs.createAgenda({
+      body: {
+        chairmanId,
+        date: { day: 1, month: 2, year: 2026 },
+        nominationFileIds: [file!.id],
+        sessionMeetingDate: MEETING_DATE,
+      },
+      path: { sessionId },
+    });
+    const agendaId = agenda.data!.id;
+    await agent.sessions.defineNominationFileOutcome({
+      body: { comment: null, outcome: 'VALIDATED' },
+      path: { nominationFileId: file!.id, sessionId },
+    });
+
+    const justiceContact = await agent.docs.createJusticeContact({
+      body: { name: `M. Vincent de la Porte, adjoint ${crypto.randomUUID()}` },
+    });
+    const noticeDate = { day: 11, month: 2, year: 2026 };
+    const plan = await agent.docs.createJusticePresentationPlan({
+      body: {
+        absentMembers: [],
+        agendas: [{ comment: null, id: agendaId }],
+        chairmanId,
+        date: noticeDate,
+        hasRenunciation: true,
+        justiceContactId: justiceContact.data!.id,
+        secretaryId: firstSecretaryId,
+        time: { hours: 9, minutes: 30, seconds: 0 },
+      },
+    });
+    const planId = plan.data!.id;
+
+    await agent.docs.generatePresentationPlanHtml({ path: { planId } });
+    await agent.docs.validatePresentationPlan({ path: { planId } });
+    await agent.docs.presentPlan({ body: { endTime: { hours: 11, minutes: 0, seconds: 0 } }, path: { planId } });
+
+    const listed = await agent.docs.listAgendasForNewOfficialReport({ path: { sessionId } });
+    expect(listed.data!.items.find(({ id }) => id === agendaId)?.presentationPlan).toEqual(
+      expect.objectContaining({
+        date: noticeDate,
+        endTime: { hours: 11, minutes: 0, seconds: 0 },
+        startTime: { hours: 9, minutes: 30, seconds: 0 },
+      }),
+    );
+  });
+
   test('should let the notice validated first take the agendas it shares with the drafts', async ({
     agent,
     expect,

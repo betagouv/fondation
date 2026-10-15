@@ -46,7 +46,7 @@ export class MembersPage {
   }
 
   memberRow(text: string): Locator {
-    return this.app.page.locator('table').getByRole('cell', { name: text });
+    return this.app.page.getByRole('table').getByRole('cell', { name: text });
   }
 
   async gotoEditMember(fullName: string) {

@@ -26,7 +26,7 @@ class LolfiIngestPage {
     const lolfiIngestionPromise = this.app.page.waitForResponse('**/api/ingest/v1/lolfi');
 
     await this.app.page.getByRole('button', { name: 'Enregistrer' }).click();
-    await this.app.page.getByRole('heading', { level: 2, name: 'Ingestions' }).waitFor();
+    await this.app.page.getByRole('heading', { level: 1, name: 'Ingestions' }).waitFor();
 
     let { id: jobId } = await (await lolfiIngestionPromise).json();
 

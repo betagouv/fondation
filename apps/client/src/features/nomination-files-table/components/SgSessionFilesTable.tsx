@@ -12,7 +12,7 @@ import { useSessionFilesTable } from '../hooks/useSessionFilesTable';
 import { PriorityBadgeList } from '@/shared/components/priority-badge';
 import type { FormationEnum } from '@/shared/enums/formation.enum';
 import { NominationFileLockEnumMessages } from '@/shared/enums/nomination-file-lock.enum';
-import { rowCell, useSelectionColumn } from '@/shared/ui/new-table';
+import { rowCell, useSelectionColumn } from '@/shared/ui/data-table';
 import { SIDE_PANEL_DOSSIER_PARAM } from '@/utils/route-path.utils';
 import {
   isUpdatable,

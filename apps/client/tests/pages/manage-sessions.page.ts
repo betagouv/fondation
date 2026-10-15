@@ -7,11 +7,8 @@ export class ManageSessionsPage {
 
   async goto() {
     await this.app.nav.getByText('Gérer une session').click();
-    await this.app.page
-      .locator('table thead')
-      .getByText('Intitulé de la session')
-      .waitFor({ state: 'visible' });
-    await this.app.page.getByRole('cell', { name: 'Chargement...' }).waitFor({ state: 'hidden' });
+    await this.app.page.getByRole('columnheader', { name: 'Intitulé de la session' }).waitFor();
+    await this.app.page.waitForLoadState('networkidle');
   }
 
   sessionRow(text: string): Locator {

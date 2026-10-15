@@ -1,16 +1,15 @@
 import type { RowData, Table } from '@tanstack/react-table';
 import React from 'react';
-import { useIntl } from 'react-intl';
+import { FormattedMessage } from 'react-intl';
 
 import { DropdownFilter } from '../DropdownFilter';
-import type { TableMetaFilterEnum } from '@/tanstack-react-table';
 
-import { useDataTablePaginationItemLabel } from './hooks/useDataTablePaginationItemLabel';
-import { ReactTableFilterColumnAsyncList } from './ReactTableFilterColumnAsyncList';
+import type { TableMetaFilterEnum } from './data-table.types';
+import { DataTableAsyncListFilter } from './DataTableAsyncListFilter';
 
-function ReactTableFilterEnum<Data extends RowData>(props: {
-  table: Table<Data>;
+function DataTableEnumFilter<Data extends RowData>(props: {
   filter: TableMetaFilterEnum;
+  table: Table<Data>;
 }) {
   const currentFilter = (props.table
     .getState()
@@ -21,10 +20,7 @@ function ReactTableFilterEnum<Data extends RowData>(props: {
 
   const options = (
     props.filter.emptyValue ? [props.filter.emptyValue].concat(props.filter.values) : props.filter.values
-  ).map(({ id: value, label }) => ({
-    value,
-    label,
-  }));
+  ).map(({ id: value, label }) => ({ label, value }));
 
   const onSelectionChange = React.useCallback(
     (selection: string[]) => {
@@ -49,34 +45,19 @@ function ReactTableFilterEnum<Data extends RowData>(props: {
   );
 }
 
-export function ReactTableFilterColumn<Data extends RowData>(props: { table: Table<Data> }) {
-  const intl = useIntl();
-  const hasFilterActive =
-    props.table
-      .getState()
-      .columnFilters.some(
-        ({ value }) =>
-          (Array.isArray(value) && value.length > 0) ||
-          (typeof value === 'string' && value.trim().length > 0),
-      ) || props.table.getState().globalFilter?.trim();
-
-  const rowsCount = props.table.getRowCount();
-  const itemLabel = useDataTablePaginationItemLabel(props.table);
-  const label =
-    hasFilterActive && itemLabel
-      ? `${rowsCount} ${itemLabel}`
-      : intl.formatMessage({ defaultMessage: `Filtrer par` });
-
+export function DataTableFilters<Data extends RowData>(props: { table: Table<Data> }) {
   return (
     <div className="flex items-center gap-4">
-      <span>{label}</span>
+      <span>
+        <FormattedMessage defaultMessage="Filtrer par" />
+      </span>
       {props.table.options.columns
         .filter((col) => !!col.meta?.filters)
         .map((col) => {
           switch (col.meta?.filters?.type) {
             case 'enum':
               return (
-                <ReactTableFilterEnum
+                <DataTableEnumFilter
                   filter={col.meta.filters}
                   key={col.meta.filters.filterId}
                   table={props.table}
@@ -84,7 +65,7 @@ export function ReactTableFilterColumn<Data extends RowData>(props: { table: Tab
               );
             case 'asyncList':
               return (
-                <ReactTableFilterColumnAsyncList
+                <DataTableAsyncListFilter
                   filter={col.meta.filters}
                   key={col.meta.filters.filterId}
                   table={props.table}

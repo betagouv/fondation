@@ -1,23 +1,22 @@
 /* oxlint-disable @typescript-eslint/no-explicit-any */
 
 import '@tanstack/react-table';
-import type { MessageDescriptor } from 'react-intl';
+import type { Row, RowData } from '@tanstack/react-table';
 
 export type TableMetaFilterEnum = {
-  type: 'enum';
+  emptyValue?: { id: string; label: string };
   filterId: string;
   label: string;
   multiple?: false;
+  type: 'enum';
   values: { id: string; label: string }[];
-  emptyValue?: { id: string; label: string };
 };
 
 export type TableMetaFilterAsyncList = {
-  type: 'asyncList';
+  emptyValue?: { id: string; label: string };
   filterId: string;
   label: string;
   multiple?: false;
-  emptyValue?: { id: string; label: string };
   query:
     | {
         queryKey: readonly unknown[];
@@ -28,22 +27,18 @@ export type TableMetaFilterAsyncList = {
         queryFn: () => Promise<any>;
         select: (data: any) => { id: string; label: string }[];
       };
+  type: 'asyncList';
 };
 
 type TableMetaFilter = TableMetaFilterEnum | TableMetaFilterAsyncList;
 
 declare module '@tanstack/react-table' {
   interface ColumnMeta {
-    size?: 'sm' | 'xs' | 'md' | 'lg' | `${string}%`;
-    multiline?: false;
+    cellBackground?: (row: Row<RowData>) => string | undefined;
+    cellClassName?: (row: Row<RowData>) => string | undefined;
+    /** shown in the filter bar of the table, and set on the column filters state under `filterId` */
     filters?: TableMetaFilter;
-  }
-
-  interface TableMeta {
-    allRowsSelectionEnabled?: boolean;
-    columnVisibilityEnabled?: boolean;
-    paginationEnabled?: boolean;
-    paginationItemLabel?: MessageDescriptor;
-    globalFilterPlaceholder?: MessageDescriptor;
+    headerClassName?: string;
+    sticky?: boolean;
   }
 }

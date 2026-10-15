@@ -918,11 +918,6 @@ export type PaginatedMemberListItemDto = {
             id: string;
             label: string | null;
         }>;
-        stats: Array<{
-            year: number;
-            count: number;
-            targetedGrade: 'I' | 'II' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | 'MH';
-        }>;
     }>;
     totalCount: number;
     currentPageIndex: number;
@@ -1504,6 +1499,11 @@ export type FoundAgendasDto = {
         }>;
         presentationPlan: {
             id: string;
+            date: {
+                year: number;
+                month: number;
+                day: number;
+            };
             startTime: {
                 hours: number;
                 minutes: number;

@@ -292,6 +292,7 @@ export class AgendaFinder {
         presentationPlan: item.validatedPlan
           ? {
               id: item.validatedPlan.id,
+              date: DateOnly.fromUtcDate(item.validatedPlan.date).toJson(),
               startTime: dateToTimeOnly(item.validatedPlan.time),
               endTime: item.validatedPlan.endTime ? dateToTimeOnly(item.validatedPlan.endTime) : null,
               secretaryId: item.validatedPlan.secretaryId,
@@ -339,6 +340,7 @@ export class FoundAgendasDto extends createZodDto(
         presentationPlan: z
           .object({
             id: z.string(),
+            date: dateOnlyJsonSchema,
             startTime: timeOnlySchema,
             endTime: timeOnlySchema.nullable(),
             hasRenunciation: z.boolean(),

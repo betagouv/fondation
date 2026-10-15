@@ -148,11 +148,11 @@ export const router = sentryCreateBrowserRouter([
               ),
           },
           {
-            path: ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE,
+            path: ROUTE_PATHS.SG.NEW_TRANSPARENCE,
             lazy: () =>
-              import('@/pages/transparence/NouvelleTransparencePage').then(
-                ({ NouvelleTransparencePage }) => ({ Component: NouvelleTransparencePage }),
-              ),
+              import('@/pages/transparence/NewTransparencePage').then(({ NewTransparencePage }) => ({
+                Component: NewTransparencePage,
+              })),
           },
           {
             path: ROUTE_PATHS.SG.SESSION_ID,

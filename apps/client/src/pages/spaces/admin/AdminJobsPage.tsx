@@ -1,180 +1,253 @@
 import Button from '@codegouvfr/react-dsfr/Button';
-import DocumentSearch from '@codegouvfr/react-dsfr/picto/DocumentSearch';
-import { SideMenu } from '@codegouvfr/react-dsfr/SideMenu';
-import { Tag } from '@codegouvfr/react-dsfr/Tag';
-import { parseAsArrayOf, parseAsStringEnum, useQueryState } from 'nuqs';
-import { useCallback, useMemo } from 'react';
-import { FormattedMessage } from 'react-intl';
-import { Navigate, Outlet, generatePath, useParams } from 'react-router';
+import { createColumnHelper, getCoreRowModel, useReactTable, type CellContext } from '@tanstack/react-table';
+import clsx from 'clsx';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { FormattedMessage, useIntl } from 'react-intl';
+import { generatePath, Link, Outlet, useNavigate, useParams } from 'react-router';
 
-import { JobsListItem } from '@/features/jobs/components/JobsListItem';
+import { JobStatusBadge } from '@/features/jobs/components/JobStatusBadge';
 import { SelectedJobProvider } from '@/features/jobs/context';
-import { JOB_STATUS_ICONS } from '@/features/jobs/utils/job-status.utils';
+import { formatJobDuration } from '@/features/jobs/utils/format-job-duration.utils';
+import { PinnedHeader } from '@/shared/components/pinned-header';
 import { JobStatusEnum, JobStatusEnumMessages } from '@/shared/enums/job-status.enum';
+import { useDateAndTime } from '@/shared/hooks/useDateAndTime';
+import { Breadcrumb } from '@/shared/ui/Breadcrumb';
+import {
+  DataTable,
+  DataTableCount,
+  DataTableFilters,
+  rowCell,
+  useDataTableUrlState,
+} from '@/shared/ui/data-table';
+import { SidePanel } from '@/shared/ui/side-panel';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import { useListJobsInfiniteQuery } from '@queries/jobs.queries';
+import { capitalize } from '@/utils/string.utils';
+import type { PaginatedJobsDto } from '@api/types';
+import { useInfiniteJobsQuery } from '@queries/jobs.queries';
+
+type ListedJob = PaginatedJobsDto['items'][number];
+
+const h = createColumnHelper<ListedJob>();
+
+const jobCell = rowCell<ListedJob>((job) => (
+  <Link to={generatePath(ROUTE_PATHS.ADMIN.DETAILS_JOB, { jobId: String(job.id) })}>
+    <FormattedMessage defaultMessage="Ingestion n°{id}" values={{ id: job.id }} />
+  </Link>
+));
+
+function StartedAtCell(props: CellContext<ListedJob, unknown>) {
+  const dateAndTime = useDateAndTime();
+  const { createdAt, startedAt } = props.row.original;
+
+  return <FormattedMessage defaultMessage="{date} à {time}" values={dateAndTime(startedAt ?? createdAt)} />;
+}
+
+const durationCell = rowCell<ListedJob>((job) => formatJobDuration(job) ?? '-');
+
+function useJobColumns() {
+  const { formatMessage } = useIntl();
+
+  return useMemo(
+    () => [
+      h.accessor('id', {
+        cell: jobCell,
+        header: formatMessage({ defaultMessage: 'Ingestion' }),
+        id: 'id',
+        size: 200,
+      }),
+
+      h.accessor('status', {
+        cell: ({ getValue }) => <JobStatusBadge status={getValue()} />,
+        header: formatMessage({ defaultMessage: 'Statut' }),
+        id: 'status',
+        meta: {
+          filters: {
+            filterId: 'status',
+            label: formatMessage({ defaultMessage: 'Statut' }),
+            type: 'enum',
+            values: Object.values(JobStatusEnum).map((id) => ({
+              id,
+              label: capitalize(formatMessage(JobStatusEnumMessages[id])),
+            })),
+          },
+        },
+        size: 160,
+      }),
+
+      h.display({
+        cell: StartedAtCell,
+        header: formatMessage({ defaultMessage: 'Lancée le' }),
+        id: 'startedAt',
+        size: 220,
+      }),
+
+      h.display({
+        cell: durationCell,
+        header: formatMessage({ defaultMessage: 'Durée' }),
+        id: 'duration',
+        size: 140,
+      }),
+    ],
+    [formatMessage],
+  );
+}
 
 export function AdminJobsPage() {
-  const params = useParams();
-  const [statusFilter, setStatusFilter] = useQueryState(
-    'status',
-    parseAsArrayOf(parseAsStringEnum(Object.values(JobStatusEnum))).withDefault([]),
+  const { formatMessage } = useIntl();
+  const navigate = useNavigate();
+  const { jobId } = useParams();
+  const { onColumnFiltersChange, tableState } = useDataTableUrlState({
+    columnFilters: [] as { id: 'status'; value: JobStatusEnum[] }[],
+  });
+
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useInfiniteJobsQuery({
+    filters: { statuses: tableState.columnFilters.find(({ id }) => id === 'status')?.value },
+  });
+
+  const fetchMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  const columns = useJobColumns();
+  const isFiltered = tableState.columnFilters.some(({ value }) => value.length > 0);
+
+  const jobs = useMemo(() => data?.items ?? [], [data]);
+  const table = useReactTable({
+    columns,
+    data: jobs,
+    enableSorting: false,
+    getCoreRowModel: getCoreRowModel(),
+    getRowId: (row) => String(row.id),
+    manualFiltering: true,
+    onColumnFiltersChange,
+    state: { columnFilters: tableState.columnFilters },
+  });
+
+  const closePanel = useCallback(() => navigate(ROUTE_PATHS.ADMIN.LIST_JOBS), [navigate]);
+  const openJob = useCallback(
+    (job: ListedJob) => navigate(generatePath(ROUTE_PATHS.ADMIN.DETAILS_JOB, { jobId: String(job.id) })),
+    [navigate],
   );
 
-  const { data, error, isLoading, isFetched, isFetching, isError, hasNextPage, fetchNextPage } =
-    useListJobsInfiniteQuery({
-      statuses: statusFilter,
-    });
+  const activeIndex = jobs.findIndex((job) => String(job.id) === jobId);
+  const hasPrevious = activeIndex > 0;
+  const hasNext = activeIndex !== -1 && (activeIndex < jobs.length - 1 || !!hasNextPage);
+  /** "Suivant" on the last loaded row waits for the next page before it can open anything */
+  const pendingNext = useRef(false);
 
-  const hasData = isFetched && (data?.pages[0]?.items.length ?? 0) > 0;
+  const previous = useCallback(() => {
+    const job = jobs[activeIndex - 1];
+    if (job) openJob(job);
+  }, [activeIndex, jobs, openJob]);
 
-  const toggleStatus = useCallback(
-    (status: JobStatusEnum) => {
-      setStatusFilter((statuses) => {
-        if (statuses.includes(status)) return statuses.filter((x) => x !== status);
-        return statuses.concat(status);
-      });
-    },
-    [setStatusFilter],
-  );
-
-  const statuses = [
-    JobStatusEnum.FAILED,
-    JobStatusEnum.RUNNING,
-    JobStatusEnum.IDLE,
-    JobStatusEnum.CANCELED,
-    JobStatusEnum.SUCCEEDED,
-  ];
-
-  const activeItem = useMemo(() => {
-    if (!params.jobId) return undefined;
-
-    for (const page of data?.pages ?? []) {
-      const item = (page?.items ?? []).find((job) => String(job.id) === params.jobId);
-      if (item) return item;
+  const next = useCallback(() => {
+    const job = jobs[activeIndex + 1];
+    if (job) openJob(job);
+    else if (hasNextPage && !isFetchingNextPage) {
+      pendingNext.current = true;
+      void fetchNextPage();
     }
-  }, [data, params]);
+  }, [activeIndex, fetchNextPage, hasNextPage, isFetchingNextPage, jobs, openJob]);
 
-  const activeBgClass = useMemo(() => {
-    if (!activeItem) return undefined;
-    return JOB_STATUS_ICONS[activeItem.status].beforeBgColor;
-  }, [activeItem]);
-
-  if (hasData && !params.jobId) {
-    return (
-      <Navigate
-        replace
-        to={generatePath(ROUTE_PATHS.ADMIN.DETAILS_JOB, {
-          jobId: String(data?.pages[0]?.items[0]?.id),
-        })}
-      />
-    );
-  }
+  useEffect(() => {
+    if (!pendingNext.current) return;
+    const job = jobs[activeIndex + 1];
+    if (!job) return;
+    pendingNext.current = false;
+    openJob(job);
+  }, [activeIndex, jobs, openJob]);
 
   return (
-    <div className="fr-mx-4v fr-p-4v fr-mx-md-0 flex min-h-full flex-col md:flex-row">
-      <SideMenu
-        sticky
-        className="md:w-80"
-        classes={{
-          list: 'max-h-[53vh] min-h-full overflow-y-scroll fr-pb-20v',
-          link: activeBgClass,
+    <div className="fr-container fr-pt-8v fr-pb-16v">
+      <Breadcrumb
+        ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane pour l'Administration" })}
+        breadcrumb={{
+          currentPageLabel: formatMessage({ defaultMessage: 'Ingestions' }),
+          segments: [{ label: formatMessage({ defaultMessage: 'Administration' }), to: {} }],
         }}
-        title={
-          <>
-            <h2>Ingestions</h2>
-            <div className="fr-pt-2v fr-pb-4v flex flex-nowrap gap-x-2 overflow-x-scroll">
-              {statuses.map((s) => (
-                <Tag
-                  small
-                  key={s}
-                  pressed={statusFilter.includes(s)}
-                  className="shrink-0 grow-0 font-normal text-nowrap"
-                  nativeButtonProps={{ onClick: () => toggleStatus(s) }}
-                >
-                  <FormattedMessage {...JobStatusEnumMessages[s]} />
-                </Tag>
-              ))}
-            </div>
-          </>
-        }
-        burgerMenuButtonText="Ingestion"
-        items={
-          isLoading || isError
-            ? [
-                {
-                  linkProps: { to: '#' },
-                  isActive: false,
-                  text: isLoading ? (
-                    <p className="fr-m-0 text-sm font-normal">Chargement...</p>
-                  ) : (
-                    <div>
-                      <p className="fr-m-0 font-normal text-(--text-default-error)">Erreur</p>
-                      {error ? (
-                        <p className="fr-m-0 text-xs font-normal text-(--text-default-error)">
-                          {String(error)}
-                        </p>
-                      ) : null}
-                    </div>
-                  ),
-                },
-              ]
-            : !hasData
-              ? [
-                  {
-                    linkProps: { to: '' },
-                    isActive: false,
-                    text: (
-                      <p className="fr-m-0 text-sm font-normal text-(--text-mention-grey)">
-                        Aucune ingestion ne correspond aux filtres
-                      </p>
-                    ),
-                  },
-                ]
-              : (data?.pages ?? [])
-                  .flatMap((page) =>
-                    (page?.items ?? []).map((job) => ({
-                      text: <JobsListItem key={job.id} job={job} />,
-                      isActive: params.jobId === String(job.id),
-                      linkProps: {
-                        to: generatePath(ROUTE_PATHS.ADMIN.DETAILS_JOB, { jobId: String(job.id) }),
-                      },
-                    })),
-                  )
-                  .concat(
-                    isFetched && hasNextPage
-                      ? [
-                          {
-                            linkProps: {
-                              to: '#',
-                              // oxlint-disable-next-line
-                              // @ts-ignore
-                              onClick: (e) => {
-                                e.preventDefault();
-
-                                fetchNextPage();
-                              },
-                            },
-                            isActive: false,
-                            text: <Button priority="primary">Charger plus</Button>,
-                          },
-                        ]
-                      : [],
-                  )
-        }
+        id="administration-breadcrumb"
       />
-      <div className="min-h-full w-[calc(100vw-24rem)] overflow-y-auto">
-        {hasData || isFetching || params.jobId ? (
-          <SelectedJobProvider>
-            <Outlet context={{ status: activeItem?.status }} />
-          </SelectedJobProvider>
-        ) : (
-          <div className="flex h-full w-full flex-col items-center justify-center">
-            <DocumentSearch className="size-44" />
-            <h3 className="fr-h4">Aucune ingestion n'est disponible pour le moment</h3>
+
+      <PinnedHeader
+        bar={(isPinned) => (
+          <div className={clsx('flex flex-col gap-y-6', { 'fr-container': isPinned })}>
+            <div className="flex items-center justify-between gap-4">
+              <h1 className="fr-h3 fr-mb-0">
+                <FormattedMessage defaultMessage="Ingestions" />
+                {data && (
+                  <span className="fr-ml-2v text-sm font-normal text-(--text-mention-grey)">
+                    (<DataTableCount loaded={jobs.length} total={data.totalCount} />)
+                  </span>
+                )}
+              </h1>
+              <Button
+                className="btn-compact"
+                iconId="fr-icon-upload-line"
+                linkProps={{ to: ROUTE_PATHS.ADMIN.INGEST_LOLFI }}
+                priority="secondary"
+                size="small"
+              >
+                <FormattedMessage defaultMessage="Importer une archive" />
+              </Button>
+            </div>
+            <DataTableFilters table={table} />
           </div>
         )}
-      </div>
+        contentClassName="flex flex-col gap-y-6"
+        pinnedBarClassName="fr-pt-6v"
+      >
+        <div className={clsx('w-full transition-[width] duration-300 ease-out', jobId && 'md:w-[52%]')}>
+          <DataTable
+            ariaLabel={formatMessage({ defaultMessage: 'Liste des ingestions' })}
+            emptyLabel={
+              isFiltered
+                ? formatMessage({ defaultMessage: 'Aucune ingestion ne correspond aux filtres fournis' })
+                : formatMessage({ defaultMessage: 'Aucune ingestion' })
+            }
+            fluid
+            isLoading={isLoading}
+            onEndReached={fetchMore}
+            revealedRowId={jobId}
+            rowTint={(row) => (row.id === jobId ? 'bg-(--background-alt-blue-france)' : undefined)}
+            scrollsWithPage
+            table={table}
+          />
+        </div>
+      </PinnedHeader>
+
+      <SidePanel
+        ariaLabel={formatMessage({ defaultMessage: "Détail d'une ingestion" })}
+        header={
+          <>
+            <Button
+              disabled={!hasPrevious}
+              iconId="fr-icon-arrow-left-s-line"
+              iconPosition="left"
+              onClick={previous}
+              priority="tertiary no outline"
+              size="small"
+            >
+              <FormattedMessage defaultMessage="Précédent" />
+            </Button>
+            <Button
+              disabled={!hasNext || isFetchingNextPage}
+              iconId="fr-icon-arrow-right-s-line"
+              iconPosition="right"
+              onClick={next}
+              priority="tertiary no outline"
+              size="small"
+            >
+              <FormattedMessage defaultMessage="Suivant" />
+            </Button>
+          </>
+        }
+        onClose={closePanel}
+        open={!!jobId}
+      >
+        <SelectedJobProvider>
+          <Outlet />
+        </SelectedJobProvider>
+      </SidePanel>
     </div>
   );
 }

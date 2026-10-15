@@ -1,5 +1,4 @@
 import { FormattedMessage, useIntl } from 'react-intl';
-import { useLocation, useNavigate } from 'react-router';
 
 import { DetailsLink } from '@/shared/components/details-link';
 import { LolfiLink } from '@/shared/components/lolfi-link';
@@ -19,8 +18,6 @@ export function ObservationDetailsHeader(props: {
   observation: GetObservationDetailsResponseDto;
   sessionId: string;
 }) {
-  const location = useLocation();
-  const navigate = useNavigate();
   const { formatMessage } = useIntl();
   const { observant } = props.observation;
 
@@ -38,14 +35,6 @@ export function ObservationDetailsHeader(props: {
           },
         ];
 
-  const goBack = (event: React.MouseEvent<HTMLAnchorElement>) => {
-    const hasPreviousPage = location.key !== 'default';
-    if (hasPreviousPage) {
-      event.preventDefault();
-      navigate(-1);
-    }
-  };
-
   return (
     <DetailsHeader
       action={
@@ -59,6 +48,7 @@ export function ObservationDetailsHeader(props: {
         />
       }
       backTo={props.backTo}
+      backThroughHistory
       breadcrumb={
         <Breadcrumb
           ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane de l'observation" })}
@@ -67,7 +57,6 @@ export function ObservationDetailsHeader(props: {
           id="observation-details-breadcrumb"
         />
       }
-      onBackClick={goBack}
       overline={<FormattedMessage defaultMessage="Observation" />}
       title={
         <TitleNameIcons name={observant.name}>

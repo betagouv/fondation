@@ -199,7 +199,7 @@ export class UsersModule {}
 ### Performance et transactions
 
 - Pas de N+1 par défaut : pas d'`await` dans une boucle mais une requête groupée. Exception : quand le regroupement complique le contrat d'un objet central, quelques lectures ponctuelles et indexées restent acceptables
-- Une liste affichée a une limite (avec un "Voir plus"), jamais une remontée illimitée
+- Une liste affichée se charge par pages, la suivante au défilement (`onEndReached` du `DataTable`), jamais une remontée illimitée ni un bouton "Voir plus"
 - Ne pas ajouter d'index par réflexe : le justifier par un volume réel et par le plan d'exécution
 - Plusieurs lectures liées dans un même traitement passent par une transaction, sinon chacune prend sa propre connexion du pool
 - Pas de `Promise.all` sur `db.tx` : une transaction interactive ne supporte pas les requêtes concurrentes
