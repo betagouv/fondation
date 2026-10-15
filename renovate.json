@@ -48,6 +48,12 @@
       "matchManagers": ["github-actions"],
       "groupName": "github",
       "additionalBranchPrefix": "github/"
+    },
+    {
+      "allowedVersions": "<18",
+      "description": "PostgreSQL follows the major version of the Scalingo production database",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["postgres"]
     }
   ]
 }
