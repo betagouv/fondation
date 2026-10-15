@@ -133,7 +133,6 @@ export type ListedArchivedNominationSessionsDto = {
             day: number;
         } | null;
         typeDeSaisine: 'TRANSPARENCE_GDS';
-        status: 'TO_VALIDATE' | 'READY';
     }>;
     totalCount: number;
     currentPageIndex: number;
