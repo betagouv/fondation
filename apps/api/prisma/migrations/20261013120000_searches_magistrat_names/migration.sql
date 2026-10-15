@@ -7,7 +7,8 @@ ALTER TEXT SEARCH CONFIGURATION unaccent_simple
   ALTER MAPPING FOR hword, hword_part, word
   WITH unaccent, simple;
 
--- PostgreSQL 16 cannot change the expression of a generated column: it is dropped, with its index, then added back
+-- The married name is searched too. PostgreSQL 17 (staging, production) could change the expression of the generated column
+-- with SET EXPRESSION, but not the 16 used locally nor the 13 of the CI: the column is dropped, with its index, then added back
 ALTER TABLE "nominations_context"."magistrat" DROP COLUMN "search";
 
 ALTER TABLE "nominations_context"."magistrat" ADD COLUMN "search" TSVECTOR GENERATED ALWAYS AS (
