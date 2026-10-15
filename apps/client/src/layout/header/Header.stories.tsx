@@ -43,7 +43,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'En-tête de l\'application. Un membre a une navigation avec "Accueil" (la liste de ses sessions) et "Rechercher un magistrat". Le secrétariat général a la sienne, avec une pastille sur "Gérer une session" quand de nouvelles sessions sont arrivées et "Rechercher un magistrat" après "Archives". Un administrateur a en plus le menu "Administration". En haut à droite, LOLFI, le centre d\'aide, l\'avis et le compte apparaissent pour tout le monde.',
+          'En-tête de l\'application. Un membre a une navigation avec "Accueil" (la liste de ses sessions), "Archives" (les sessions archivées de sa formation) et "Rechercher un magistrat". Le secrétariat général a la sienne, avec une pastille sur "Gérer une session" quand de nouvelles sessions sont arrivées et "Rechercher un magistrat" après "Archives". Un administrateur a en plus le menu "Administration". En haut à droite, LOLFI, le centre d\'aide, l\'avis et le compte apparaissent pour tout le monde.',
       },
     },
     layout: 'fullscreen',
@@ -59,6 +59,10 @@ type Story = StoryObj<typeof meta>;
 
 export const Member: Story = {
   parameters: { router: { initialEntries: ['/magistrats'], path: '*' } },
+};
+
+export const MemberArchives: Story = {
+  parameters: { router: { initialEntries: ['/transparences/archives/sessions'], path: '*' } },
 };
 
 export const Sg: Story = { args: { view: 'sg' } };

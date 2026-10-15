@@ -52,11 +52,17 @@ export const AppHeader = () => {
     </span>
   );
 
+  const isMemberArchives = routeMatches([ROUTE_PATHS.TRANSPARENCES.ARCHIVED_SESSIONS]);
   const memberNavigation: MainNavigationProps.Item[] = [
     {
-      isActive: routeMatches([ROUTE_PATHS.TRANSPARENCES.DASHBOARD]),
+      isActive: routeMatches([ROUTE_PATHS.TRANSPARENCES.DASHBOARD]) && !isMemberArchives,
       linkProps: { to: ROUTE_PATHS.TRANSPARENCES.DASHBOARD },
       text: formatMessage({ defaultMessage: 'Accueil' }),
+    },
+    {
+      isActive: isMemberArchives,
+      linkProps: { to: ROUTE_PATHS.TRANSPARENCES.ARCHIVED_SESSIONS },
+      text: formatMessage({ defaultMessage: 'Archives' }),
     },
     {
       isActive: routeMatches([ROUTE_PATHS.MEMBER.MAGISTRAT_SEARCH], { end: true }),
