@@ -16,11 +16,11 @@ export function MagistratSearchCard(props: { detailsPath: string; magistrat: Fou
       className="flex flex-col gap-2 border border-(--border-default-grey) p-6"
     >
       <div className="flex flex-wrap items-center gap-2">
-        <h2
-          className="fr-text--lg fr-mb-0 fr-icon-account-circle-fill fr-icon--sm flex items-center gap-2"
-          id={titleId}
-        >
-          <Link className="fr-link fr-text--lg" to={props.detailsPath}>
+        <h2 className="fr-text--lg fr-mb-0" id={titleId}>
+          <Link
+            className="fr-link fr-text--lg fr-icon-account-circle-fill fr-link--icon-left"
+            to={props.detailsPath}
+          >
             {name}
           </Link>
         </h2>
