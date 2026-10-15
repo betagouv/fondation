@@ -6,6 +6,7 @@ import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { ObservationDetailsContent } from '@/features/observations/components/ObservationDetailsContent';
 import { ObservationFollowUpCommentProvider } from '@/features/observations/context/ObservationFollowUpCommentDialogProvider';
 import { ArchiveBannerPortal } from '@/shared/components/banners';
+import { useDownloadFailureToast } from '@/shared/hooks/useDownloadFailureToast';
 import { useScrollToTop } from '@/shared/hooks/useScrollToTop';
 import { PageContentLayout } from '@/shared/ui/PageContentLayout';
 import type { FilesUploader } from '@/shared/ui/tip-tap-editor';
@@ -41,6 +42,7 @@ export function ObservationDetailsPage() {
     sessionId: sessionId ?? '',
   });
 
+  const notifyDownloadFailure = useDownloadFailureToast();
   const { mutate: download } = useDownloadFileMutation();
   const { mutate: getFileUrl } = useGetObservationFileUrlMutation();
   const { mutate: writeMemberComment } = useWriteObservationMemberCommentMutation();
@@ -93,7 +95,11 @@ export function ObservationDetailsPage() {
   const handleDownloadFile = (file: { id: string; name: string }) => {
     getFileUrl(
       { fileId: file.id, nominationFileId, observationId, sessionId },
-      { onSuccess: (url) => download({ name: file.name, url }) },
+      {
+        onError: (error) => notifyDownloadFailure(file.name, error),
+        onSuccess: (url) =>
+          download({ name: file.name, url }, { onError: (error) => notifyDownloadFailure(file.name, error) }),
+      },
     );
   };
 
