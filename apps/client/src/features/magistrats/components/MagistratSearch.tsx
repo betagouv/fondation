@@ -111,7 +111,10 @@ export function MagistratSearch() {
           />
         </div>
         {/* stays in the page once magistrats are found: a screen reader only announces the changes of a live region already there */}
-        <p className={(totalCount ?? 0) > 0 ? 'fr-mt-8v fr-mb-3v mx-auto max-w-3xl' : 'fr-sr-only'} role="status">
+        <p
+          className={(totalCount ?? 0) > 0 ? 'fr-mt-8v fr-mb-3v mx-auto max-w-3xl' : 'fr-sr-only'}
+          role="status"
+        >
           {totalCount !== undefined &&
             (shownCount < totalCount ? (
               <FormattedMessage
