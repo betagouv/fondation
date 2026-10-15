@@ -1,11 +1,22 @@
-import { Controller, Get, Param, ParseUUIDPipe, Query, Res, StreamableFile } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Query,
+  Res,
+  StreamableFile,
+  UseFilters,
+} from '@nestjs/common';
 import type { Response as ExpressResponse } from 'express';
 
 import { HasRole } from 'src/modules/simple-auth';
 
+import { FileNotFoundFilter } from './file-not-found.filter';
 import { Files } from './files';
 
 @Controller('/api/files/v1')
+@UseFilters(FileNotFoundFilter)
 export class FilesController {
   constructor(private readonly files: Files) {}
 
