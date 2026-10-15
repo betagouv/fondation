@@ -1,3 +1,4 @@
+// oxlint-disable typescript/unbound-method
 import { NotFoundException, type ArgumentsHost } from '@nestjs/common';
 import type { Response as ExpressResponse } from 'express';
 import { mock } from 'vitest-mock-extended';
