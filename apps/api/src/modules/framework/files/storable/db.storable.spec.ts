@@ -157,6 +157,13 @@ describe('DbStorage', () => {
       expect(result).toBe(expected);
     });
 
+    it('throws NotFoundException for an unknown file id', async () => {
+      tx.file.findUnique.mockResolvedValue(null);
+
+      await expect(storage.toStreamableFile({ id: 'missing' })).rejects.toThrow(NotFoundException);
+      expect(s3.toStreamableFile).not.toHaveBeenCalled();
+    });
+
     it('throws NotFoundException for an unknown public url id', async () => {
       tx.filePublicUrl.findUnique.mockResolvedValue(null);
 

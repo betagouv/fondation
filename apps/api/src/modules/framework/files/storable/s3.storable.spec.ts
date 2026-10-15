@@ -1,16 +1,19 @@
 // oxlint-disable typescript/unbound-method
 import { Readable } from 'node:stream';
 
+import { NoSuchKey } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import type { HttpService } from '@nestjs/axios';
 import {
   InternalServerErrorException,
   Logger,
+  NotFoundException,
   NotImplementedException,
   StreamableFile,
 } from '@nestjs/common';
-import { of } from 'rxjs';
+import { AxiosError, AxiosHeaders } from 'axios';
+import { of, throwError } from 'rxjs';
 import { mock, type MockProxy } from 'vitest-mock-extended';
 
 import type { Clock } from 'src/modules/framework/clock';
@@ -213,6 +216,43 @@ describe('S3Storage', () => {
 
       expect(file).toBeInstanceOf(StreamableFile);
       expect(http.get).toHaveBeenCalledOnce();
+    });
+
+    it('throws NotFound when s3 has no object at the path', async () => {
+      vi.spyOn(s3, 'send').mockRejectedValue(new NoSuchKey({ $metadata: {}, message: 'missing' }));
+
+      await expect(storage.toStreamableFile({ id: object.id, path: object.path })).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    describe('when the url answers an error', () => {
+      function storageAnswers(status: number) {
+        const error = new AxiosError('storage error', undefined, undefined, undefined, {
+          config: { headers: new AxiosHeaders() },
+          data: null,
+          headers: {},
+          status,
+          statusText: '',
+        });
+        http.get.mockReturnValue(throwError(() => error));
+      }
+
+      it('throws NotFound for a missing object', async () => {
+        storageAnswers(404);
+
+        await expect(storage.toStreamableFile({ url: new URL('https://s3.example/object') })).rejects.toThrow(
+          NotFoundException,
+        );
+      });
+
+      it('lets a refusal through', async () => {
+        storageAnswers(403);
+
+        await expect(
+          storage.toStreamableFile({ url: new URL('https://s3.example/object') }),
+        ).rejects.toBeInstanceOf(AxiosError);
+      });
     });
   });
 });

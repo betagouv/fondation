@@ -5,6 +5,7 @@ import {
   DeleteObjectsCommand,
   DeleteObjectsCommandOutput,
   GetObjectCommand,
+  NoSuchKey,
 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -14,9 +15,11 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
   NotImplementedException,
   StreamableFile,
 } from '@nestjs/common';
+import { isAxiosError } from 'axios';
 import { lastValueFrom } from 'rxjs';
 
 import { Clock } from '../../clock';
@@ -152,7 +155,10 @@ export class S3Storage implements Storage {
           ...request,
           responseType: 'stream',
         }),
-      );
+      ).catch((error: unknown) => {
+        if (isAxiosError(error) && error.response?.status === 404) throw new NotFoundException();
+        throw error;
+      });
 
       readable = response.data;
     } else {
@@ -161,7 +167,12 @@ export class S3Storage implements Storage {
         throw new InternalServerErrorException();
       }
 
-      const response = await this.s3.send(this.innerGet(object as { path: StorablePath }));
+      const response = await this.s3
+        .send(this.innerGet(object as { path: StorablePath }))
+        .catch((error: unknown) => {
+          if (error instanceof NoSuchKey) throw new NotFoundException();
+          throw error;
+        });
       if (!response.Body) {
         this.logger.error(`Received no body from S3`);
         throw new InternalServerErrorException();

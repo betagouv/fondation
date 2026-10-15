@@ -10,7 +10,7 @@ import { partition } from 'src/utils/iterables';
 import { noop } from 'src/utils/noop';
 
 import { StorageResult } from './result.storable';
-import { Storable, StorablePath, type Storage, type Stored } from './storable.types';
+import { makeStorablePath, Storable, StorablePath, type Storage, type Stored } from './storable.types';
 
 @Injectable()
 export class DbStorage implements Storage {
@@ -177,9 +177,9 @@ export class DbStorage implements Storage {
         where: { id: object.id },
       });
 
-      return this.storage.toStreamableFile(
-        file as unknown as { id: string; name: string; path: StorablePath },
-      );
+      if (!file) throw new NotFoundException();
+
+      return this.storage.toStreamableFile({ ...file, path: makeStorablePath(file.path) });
     }
 
     const publicUrl = await this.db.tx.filePublicUrl.findUnique({
