@@ -125,6 +125,14 @@ describe('Files', () => {
       });
     });
 
+    it('answers no file when the storage answers a bare not found', async () => {
+      send.mockRejectedValue(
+        new S3ServiceException({ $fault: 'client', $metadata: {}, message: 'NotFound', name: 'NotFound' }),
+      );
+
+      await expect(files.getFile({ fileId: 'file-id' })).resolves.toBeNull();
+    });
+
     it('lets any other storage failure through', async () => {
       const failure = new S3ServiceException({
         $fault: 'client',

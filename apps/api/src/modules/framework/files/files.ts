@@ -8,7 +8,6 @@ import {
   GetObjectCommand,
   HeadBucketCommand,
   ListObjectVersionsCommand,
-  NoSuchKey,
   PutBucketCorsCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
@@ -26,7 +25,6 @@ import {
   type OnApplicationBootstrap,
 } from '@nestjs/common';
 import * as Sentry from '@sentry/node';
-import { isAxiosError } from 'axios';
 import { lastValueFrom } from 'rxjs';
 
 import { Clock } from '../clock';
@@ -42,6 +40,7 @@ import * as time from 'src/utils/time';
 import { contentDisposition } from './content-disposition';
 import { type FondationFile } from './files.types';
 import { filenameToMimeType } from './mime-type';
+import { isMissingFromStorage } from './missing-from-storage';
 
 /** @internal */
 class RollbackFilePathOperationError {
@@ -442,6 +441,7 @@ export class Files implements OnApplicationBootstrap {
     }
   }
 
+  // TODO: see S3Storage.toStreamableFile
   async getFileContent(
     fileUrlId: string,
     options?: { download?: boolean },
@@ -476,7 +476,7 @@ export class Files implements OnApplicationBootstrap {
         responseType: 'stream',
       }),
     ).catch((error: unknown) => {
-      if (isAxiosError(error) && error.response?.status === 404) {
+      if (isMissingFromStorage(error)) {
         this.reportMissingFromStorage(file.file);
         throw new NotFoundException();
       }
@@ -510,7 +510,7 @@ export class Files implements OnApplicationBootstrap {
     });
 
     const response = await this.client.send(command).catch((error: unknown) => {
-      if (!(error instanceof NoSuchKey)) throw error;
+      if (!isMissingFromStorage(error)) throw error;
 
       this.reportMissingFromStorage({ id: props.fileId, path: storedFile.path });
       return null;

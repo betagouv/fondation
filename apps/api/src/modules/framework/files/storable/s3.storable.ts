@@ -5,7 +5,6 @@ import {
   DeleteObjectsCommand,
   DeleteObjectsCommandOutput,
   GetObjectCommand,
-  NoSuchKey,
 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -19,13 +18,13 @@ import {
   NotImplementedException,
   StreamableFile,
 } from '@nestjs/common';
-import { isAxiosError } from 'axios';
 import { lastValueFrom } from 'rxjs';
 
 import { Clock } from '../../clock';
 import { API_CONFIG_TOKEN, ApiConfig } from '../../config';
 import { contentDisposition } from '../content-disposition';
 import { filenameToMimeType } from '../mime-type';
+import { isMissingFromStorage } from '../missing-from-storage';
 import * as time from 'src/utils/time';
 
 import { StorageResult } from './result.storable';
@@ -124,6 +123,7 @@ export class S3Storage implements Storage {
     );
   }
 
+  // TODO: see Files.getFileContent
   async toStreamableFile(
     object:
       | { url: URL; name?: string; expiresAt?: Date }
@@ -156,7 +156,7 @@ export class S3Storage implements Storage {
           responseType: 'stream',
         }),
       ).catch((error: unknown) => {
-        if (isAxiosError(error) && error.response?.status === 404) throw new NotFoundException();
+        if (isMissingFromStorage(error)) throw new NotFoundException();
         throw error;
       });
 
@@ -170,7 +170,7 @@ export class S3Storage implements Storage {
       const response = await this.s3
         .send(this.innerGet(object as { path: StorablePath }))
         .catch((error: unknown) => {
-          if (error instanceof NoSuchKey) throw new NotFoundException();
+          if (isMissingFromStorage(error)) throw new NotFoundException();
           throw error;
         });
       if (!response.Body) {
