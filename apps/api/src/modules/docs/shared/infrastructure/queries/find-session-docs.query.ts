@@ -7,12 +7,7 @@ import { docFileName } from '../../domain/doc-file-name';
 import { DOC_SYSTEM_UPDATE_CAUSES } from '../../domain/doc-system-update-cause';
 import { presentationTraceOf, presentationTraceSchema } from '../document-trace';
 import { draftChangesBy, draftChangesBySchema, draftLastChange } from '../draft-changes-by';
-import {
-  AgendaFinder,
-  officialReportReadinessSchema,
-  writerOf,
-  writerSchema,
-} from '../finders/agenda.finder';
+import { AgendaFinder, officialReportReadinessSchema } from '../finders/agenda.finder';
 import { Prisma } from 'src/generated/prisma/client';
 import {
   presentationPlanStatusOf,
@@ -22,6 +17,7 @@ import { Db } from 'src/modules/framework/database';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
 import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
+import { writerOf, writerSchema } from 'src/utils/user.util';
 
 const draftUpdateSchema = z
   .object({
@@ -268,21 +264,22 @@ export class FindSessionDocsQuery {
   }
 }
 
-/** a validated notice alone holds its agendas, so at most one presented notice holds an agenda */
+/** the validated notice, as for the official report, the only one that holds the agenda for good */
 function presentationOf(
   plans: readonly {
     plan: {
       date: Date;
       endTime: Date | null;
       isPresented: boolean;
+      pdfId: string | null;
       presenter: { firstName: string; id: string; lastName: string } | null;
     };
   }[],
 ) {
-  const presented = plans.find(({ plan }) => plan.isPresented)?.plan;
-  if (!presented) return { status: 'TO_PRESENT' as const };
+  const validated = plans.find(({ plan }) => plan.pdfId !== null)?.plan;
+  if (!validated?.isPresented) return { status: 'TO_PRESENT' as const };
 
-  return { ...presentationTraceOf(presented), status: 'PRESENTED' as const };
+  return { ...presentationTraceOf(validated), status: 'PRESENTED' as const };
 }
 
 export class FoundSessionDocsDto extends createZodDto(
