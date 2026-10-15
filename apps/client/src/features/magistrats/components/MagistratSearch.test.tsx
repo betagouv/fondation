@@ -7,6 +7,7 @@ import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { frFormat } from '@/i18n/formats';
+import { ToastProvider } from '@/shared/ui/toast';
 import * as $api from '@api/sdk';
 import type { FoundMagistrat } from '@queries/magistrats.queries';
 
@@ -43,7 +44,9 @@ function renderSearch(props?: { path?: string; searchParams?: string }) {
       <IntlProvider defaultLocale="fr" formats={frFormat} locale="fr">
         <MemoryRouter initialEntries={[props?.path ?? '/secretariat-general/magistrats']}>
           <NuqsTestingAdapter hasMemory searchParams={searchParams}>
-            <MagistratSearch />
+            <ToastProvider>
+              <MagistratSearch />
+            </ToastProvider>
           </NuqsTestingAdapter>
         </MemoryRouter>
       </IntlProvider>
@@ -170,6 +173,17 @@ describe('MagistratSearch', () => {
 
     expect(await screen.findByText('Aucun résultat ne correspond aux valeurs saisies.')).toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent('0 résultat');
+  });
+
+  it('tells when the search fails', async () => {
+    searchMagistrats.mockRejectedValue(new Error('Internal Server Error'));
+    renderSearch({ searchParams: '?recherche=valr' });
+
+    expect(
+      await within(screen.getByRole('region', { name: 'Notifications' })).findByText(
+        "La recherche n'a pas pu aboutir",
+      ),
+    ).toBeInTheDocument();
   });
 
   it('restores the search from the URL', async () => {

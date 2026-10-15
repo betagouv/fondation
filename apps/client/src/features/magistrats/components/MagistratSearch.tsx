@@ -1,28 +1,42 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Avatar from '@codegouvfr/react-dsfr/picto/Avatar';
 import { parseAsString, useQueryState } from 'nuqs';
-import { useCallback, type CSSProperties } from 'react';
+import { useCallback, useEffect, type CSSProperties } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useDebounce } from 'use-debounce';
 
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { SearchInput } from '@/shared/ui/search-input';
+import { useToasts } from '@/shared/ui/toast';
 import { getMagistratDetailsPath, ROUTE_PATHS } from '@/utils/route-path.utils';
 import { MAGISTRAT_SEARCH_MIN_LENGTH, useMagistratSearchQuery } from '@queries/magistrats.queries';
 
 import { MagistratSearchCard } from './MagistratSearchCard';
 
+const SEARCH_FAILED_TOAST = 'magistrat-search-failed';
+
 export function MagistratSearch() {
   const { formatMessage } = useIntl();
+  const toasts = useToasts();
   const isSgNavigation = useIsSgNavigation();
   const [search, setSearch] = useQueryState('recherche', parseAsString.withDefault(''));
   const [debouncedSearch] = useDebounce(search.trim(), 400);
   const isSearchable = debouncedSearch.length >= MAGISTRAT_SEARCH_MIN_LENGTH;
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useMagistratSearchQuery({
+  const { data, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useMagistratSearchQuery({
     search: debouncedSearch,
   });
   const totalCount = isSearchable ? data?.pages[0]?.totalCount : undefined;
+
+  useEffect(() => {
+    if (error)
+      toasts.error({
+        description: formatMessage({ defaultMessage: 'Modifiez la recherche ou réessayez plus tard.' }),
+        id: SEARCH_FAILED_TOAST,
+        title: formatMessage({ defaultMessage: "La recherche n'a pas pu aboutir" }),
+      });
+    else toasts.close(SEARCH_FAILED_TOAST);
+  }, [error, formatMessage, toasts]);
   // observes again once a page is loaded: the end of the list may still be in view, and an observer only reports changes
   const loadMoreOnScroll = useCallback(
     (element: HTMLDivElement | null) => {
