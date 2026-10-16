@@ -80,7 +80,9 @@ export class SimpleAuthController {
       )
         .toString()
         .split(':');
-      body = LoginDto.schema.parse({ email, password });
+      const credentials = LoginDto.schema.safeParse({ email, password });
+      if (!credentials.success) throw new BadRequestException();
+      body = credentials.data;
     } else if (!body) {
       throw new BadRequestException();
     }
