@@ -8,6 +8,7 @@ import postgres from 'postgres';
 import { type TestProject } from 'vitest/node';
 
 import { makeLoggedInUserFixture } from './src/fixtures/auth.fixture.ts';
+import { makeLolfiFixture } from './src/fixtures/lolfi.fixture.ts';
 import { makeCreateSessionFixture } from './src/fixtures/session.fixture.ts';
 import { TestStepsAdmin } from './src/steps.ts';
 import { functions, jurisdictions } from './src/utils/seed.ts';
@@ -71,7 +72,7 @@ async function seed(apiUrl: string) {
   const logIn = makeLoggedInUserFixture(apiUrl);
 
   const admin: TestStepsAdmin = await logIn('ADMIN');
-  const sessions = makeCreateSessionFixture(admin);
+  const sessions = makeCreateSessionFixture(admin, makeLolfiFixture({ admin, baseUrl: apiUrl }));
 
   await sessions.createMany([
     {

@@ -1,13 +1,12 @@
-// oxlint-disable no-console
 import * as assert from 'node:assert/strict';
-import { File } from 'node:buffer';
 import { randomInt } from 'node:crypto';
 
-import { generateLolfiArchive, type LolfiArchiveContent } from 'lolfi';
+import type { LolfiArchiveContent } from 'lolfi';
 
 import type { DefineNominationFilesOutcomeDto } from '../generated/api/types.ts';
 import { TestStepsAdmin } from '../steps.ts';
 import { waitFor } from '../utils/wait-for.ts';
+import type { LolfiFixture } from './lolfi.fixture.ts';
 
 let sessionIdSequence = randomInt(1_000_000, 1_000_000_000);
 
@@ -23,31 +22,7 @@ export type SessionStage = {
 /** the nomination files come in the order of the candidates */
 export type CreatedSession = { files: { id: string; magistratId: string }[]; id: string };
 
-export function makeCreateSessionFixture(steps: TestStepsAdmin) {
-  async function generateSessionsArchive(
-    inputSessions: LolfiArchiveContent['sessions'],
-  ): Promise<{ file: File; names: string[] }> {
-    const [names, sessions] = inputSessions.reduce(
-      ([sessionNames, list], inputSession) => {
-        const sessionId = inputSession.id || ++sessionIdSequence;
-        const sessionName = inputSession.name || 'Transparence annuelle';
-
-        sessionNames.push(`${sessionName} (${sessionId})`);
-        list.push({ ...inputSession, id: sessionId, name: sessionName });
-
-        return [sessionNames, list];
-      },
-      [[] as string[], [] as LolfiArchiveContent['sessions']],
-    );
-
-    const archive = await generateLolfiArchive({ sessions });
-    const file = new File([archive], `LOLFI_CSM_${new Date().toISOString()}.zip`, {
-      type: 'application/zip',
-    });
-
-    return { file, names };
-  }
-
+export function makeCreateSessionFixture(steps: TestStepsAdmin, lolfi: LolfiFixture) {
   async function findFiles(sessionId: string, candidates: readonly Candidate[]): Promise<CreatedSession['files']> {
     const { data } = await steps.sessions.listNominationFiles({
       path: { sessionId },
@@ -98,33 +73,28 @@ export function makeCreateSessionFixture(steps: TestStepsAdmin) {
     sessions: LolfiArchiveContent['sessions'],
     stage: SessionStage = {},
   ): Promise<CreatedSession[]> {
-    const { names, file } = await generateSessionsArchive(sessions);
-    const jobId = await steps.ingest
-      .ingestLolfiArchive({ body: { file }, throwOnError: true })
-      .then(({ data }) => data!.id);
-
-    await waitFor(async () => {
-      const { status, errors, files } = await steps.jobs
-        .detailsJob({ path: { jobId }, throwOnError: true })
-        .then(({ data }) => data!);
-
-      if (status === 'FAILED') {
-        console.error(errors);
-        console.error(files.map((file) => file.errors));
-      }
-
-      assert.ok(status === 'FAILED' || status === 'SUCCEEDED', `ingestion not done`);
-    });
+    const named = sessions.map((session) => ({
+      ...session,
+      id: session.id || ++sessionIdSequence,
+      name: session.name || 'Transparence annuelle',
+    }));
+    const job = await lolfi.ingest(named);
+    if (job.status === 'FAILED') {
+      const { errors, files } = await steps.jobs
+        .detailsJob({ path: { jobId: job.id }, throwOnError: true })
+        .then(({ data }) => data);
+      assert.fail(`job #${job.id} failed: ${JSON.stringify({ errors, files: files.map((file) => file.errors) })}`);
+    }
 
     // the sessions are synchronised once the job succeeded
     const sessionIds = await waitFor(async () => {
       const result: string[] = [];
-      for (const name of names) {
+      for (const { id, name } of named) {
         const [firstSession] = await steps.sessions
-          .listSessionsOfTypeGardeDesSceaux({ query: { search: name } })
+          .listSessionsOfTypeGardeDesSceaux({ query: { search: `${name} (${id})` } })
           .then(({ data }) => data!.items);
 
-        assert.ok(firstSession, `session "${name}" is undefined`);
+        assert.ok(firstSession, `session "${name} (${id})" is undefined`);
         result.push(firstSession.id);
       }
 
