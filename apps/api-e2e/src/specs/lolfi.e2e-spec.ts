@@ -498,6 +498,20 @@ test.describe('lolfi', () => {
     ]);
   });
 
+  test('should list the active magistrats before the inactive ones', async ({ admin, expect }) => {
+    const lastName = randomLastName();
+    const leaving = { ...trevoux(), lastName };
+    const staying = { ...berger(), lastName };
+
+    await ingestUntilEnded(admin, { createdAt: '22/04/2026', candidates: [leaving, staying] });
+    await ingestUntilEnded(admin, { createdAt: '22/04/2026', candidates: [staying] });
+
+    expect(await statusesOf(admin, lastName)).toEqual([
+      { firstName: 'MICHEL', status: 'ACTIVE' },
+      { firstName: 'ETIENNE', status: 'INACTIVE' },
+    ]);
+  });
+
   test('should keep active a magistrat the import rejects', async ({ admin, expect }) => {
     const lastName = randomLastName();
     const rejected = { ...trevoux(), lastName };
