@@ -9,6 +9,7 @@ import {
   AuthOpenIdRequestCompleted,
   AuthUser,
   AuthUserAuthenticated,
+  AuthUserNotAuthentifiable,
   AuthUserRegistered,
   AuthUserUnAuthenticated,
 } from 'src/modules/simple-auth/domain/auth-user';
@@ -24,7 +25,8 @@ export class AuthUserRepository {
       where: { email: { equals: email, mode: 'insensitive' } },
     });
 
-    if (!user) throw new NotFoundException();
+    // An unknown email fails like a wrong password, so that the status code does not reveal who has an account
+    if (!user) throw new AuthUserNotAuthentifiable();
 
     return AuthUser.from(user);
   }
