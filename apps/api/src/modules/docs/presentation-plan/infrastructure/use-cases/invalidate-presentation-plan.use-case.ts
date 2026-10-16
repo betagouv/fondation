@@ -11,7 +11,7 @@ import { assertNever } from 'src/utils/assert-never';
 import { isDefined } from 'src/utils/is-defined';
 
 @Injectable()
-export class InternalInvalidatePresentationPlanUseCase {
+export class InvalidatePresentationPlanUseCase {
   constructor(
     private readonly db: Db,
     private readonly docsNominationFilesFinder: DocsNominationFilesFinder,

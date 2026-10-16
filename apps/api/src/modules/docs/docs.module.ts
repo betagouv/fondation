@@ -27,7 +27,7 @@ import { FindOfficialReportDocumentPdfQuery } from './official-report/infrastruc
 import { FindOfficialReportDocumentQuery } from './official-report/infrastructure/queries/find-official-report-document.query';
 import { OfficialReportRepository } from './official-report/infrastructure/repositories/official-report.repository';
 import { OfficialReportRenderer } from './official-report/infrastructure/services/renderers/official-report.renderer';
-import { InternalInvalidateOfficialReportUseCase } from './official-report/infrastructure/use-cases/invalidate-official-report.use-case';
+import { InvalidateOfficialReportUseCase } from './official-report/infrastructure/use-cases/invalidate-official-report.use-case';
 import { OfficialReportsController } from './official-report/official-reports.controller';
 import { OfficialReportsService } from './official-report/official-reports.service';
 import { DetailsPresentationPlanMetadataQuery } from './presentation-plan/infrastructure/queries/details-presentation-plan-metadata.query';
@@ -38,7 +38,7 @@ import { ListNonPresentedPlansQuery } from './presentation-plan/infrastructure/q
 import { ListPresentedPlansQuery } from './presentation-plan/infrastructure/queries/list-presented-plans.query';
 import { JusticePresentationPlanRepository } from './presentation-plan/infrastructure/repositories/justice-presentation-plan.repository';
 import { PresentationPlanRenderer } from './presentation-plan/infrastructure/services/renderers/presentation-plan.renderer';
-import { InternalInvalidatePresentationPlanUseCase } from './presentation-plan/infrastructure/use-cases/invalidate-presentation-plan.use-case';
+import { InvalidatePresentationPlanUseCase } from './presentation-plan/infrastructure/use-cases/invalidate-presentation-plan.use-case';
 import { ValidatePresentationPlanUseCase } from './presentation-plan/infrastructure/use-cases/validate-presentation-plan.use-case';
 import { PresentationPlansController } from './presentation-plan/presentation-plans.controller';
 import { PresentationPlansService } from './presentation-plan/presentation-plans.service';
@@ -83,8 +83,8 @@ import { InvalidateDocsUseCase } from './shared/infrastructure/use-cases/invalid
     FindPresentationPlanDocumentPdfQuery,
     FindPresentationPlanDocumentQuery,
     FindSessionDocsQuery,
-    InternalInvalidateOfficialReportUseCase,
-    InternalInvalidatePresentationPlanUseCase,
+    InvalidateOfficialReportUseCase,
+    InvalidatePresentationPlanUseCase,
     ValidatePresentationPlanUseCase,
     OfficialReportVersionFinder,
     InvalidateAgendasUseCase,
