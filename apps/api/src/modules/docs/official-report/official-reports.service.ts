@@ -3,8 +3,8 @@ import { forwardRef, Inject, Injectable, NotFoundException, StreamableFile } fro
 
 import { MembersService } from '../../members';
 import { SimpleAuthService } from '../../simple-auth';
+import { DocInvalidation } from '../shared/domain/doc-invalidation';
 import { DocNominationFileOutcomeEnum } from '../shared/domain/doc-nomination-file-outcome';
-import { DocInvalidation } from '../shared/domain/invalidation/official-report-invalidated.integration-event';
 import { AgendaFinder, FoundAgendasDto } from '../shared/infrastructure/finders/agenda.finder';
 import { DocsNominationFilesFinder } from '../shared/infrastructure/finders/docs-nomination-files.finder';
 import { Clock } from 'src/modules/framework/clock';

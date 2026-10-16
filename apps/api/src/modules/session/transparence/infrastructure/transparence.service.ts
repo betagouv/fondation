@@ -6,7 +6,7 @@ import * as Sentry from '@sentry/node';
 import { SessionTransparence } from '../domain/session-transparence';
 import { LodamTransparenceFile } from '../domain/transparence-file';
 import { Prisma } from 'src/generated/prisma/client';
-import { DocInvalidatedIntegrationEvent } from 'src/modules/docs/shared/domain/invalidation/official-report-invalidated.integration-event';
+import { DocInvalidatedIntegrationEvent } from 'src/modules/docs/shared/domain/doc-invalidation';
 import { Db } from 'src/modules/framework/database';
 import { Pagination } from 'src/modules/framework/pagination';
 import { Sortable } from 'src/modules/framework/sorting';

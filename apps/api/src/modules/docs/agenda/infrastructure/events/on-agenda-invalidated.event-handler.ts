@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 
 import { AgendasService } from '../../agendas.service';
-import { DocInvalidatedIntegrationEvent } from 'src/modules/docs/shared/domain/invalidation/official-report-invalidated.integration-event';
+import { DocInvalidatedIntegrationEvent } from 'src/modules/docs/shared/domain/doc-invalidation';
 
 @Injectable()
 export class OnAgendaInvalidatedEventHandler {
