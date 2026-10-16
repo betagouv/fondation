@@ -96,6 +96,45 @@ test.describe('Observation', () => {
     expect(taken.response?.status).toBe(409);
   });
 
+  test('should detach a file from an observation without touching the files of another one', async ({
+    agent,
+    expect,
+    sessions,
+  }) => {
+    const session = await sessions.createOne(SESSION);
+    const magistratId = session.files[1]!.magistratId;
+    const [kept, edited] = session.files.map(({ id }) => ({ nominationFileId: id, sessionId: session.id }));
+
+    const observe = async (path: { nominationFileId: string; sessionId: string }, name: string) => {
+      const { data: created } = await agent.observations.createObservation({
+        body: { files: [pdf(name)], form: observationForm({ dateReception: '2026-05-02', magistratId }) },
+        path,
+        throwOnError: true,
+      });
+      const { data } = await agent.observations.listObservations({ path, throwOnError: true });
+      return { files: data.observations[0]!.files.map(({ id }) => id), id: created.id };
+    };
+    const keptObservation = await observe(kept!, 'courrier.pdf');
+    const editedObservation = await observe(edited!, 'note.pdf');
+
+    const detachment = await agent.observations.updateObservation({
+      body: {
+        form: observationForm({
+          dateReception: '2026-05-02',
+          detachFileIds: [...keptObservation.files, ...editedObservation.files],
+          magistratId,
+        }),
+      },
+      path: { ...edited!, observationId: editedObservation.id },
+    });
+    expect(detachment.response?.status).toBe(204);
+
+    const { data: detached } = await agent.observations.listObservations({ path: edited!, throwOnError: true });
+    expect(detached.observations[0]!.files).toEqual([]);
+    const { data } = await agent.observations.listObservations({ path: kept!, throwOnError: true });
+    expect(data.observations[0]!.files.map(({ id }) => id)).toEqual(keptObservation.files);
+  });
+
   test('should keep the comment of a reporter on an observation to its author', async ({
     agent,
     expect,
