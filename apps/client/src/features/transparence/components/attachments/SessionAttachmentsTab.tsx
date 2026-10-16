@@ -5,7 +5,7 @@ import { useCallback, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import { useDownloadFailureToast } from '@/shared/hooks/useDownloadFailureToast';
+import { useAttachmentFailureToast } from '@/shared/hooks/useAttachmentFailureToast';
 import { useTab } from '@/shared/hooks/useTab';
 import { DropdownFilter } from '@/shared/ui/DropdownFilter';
 import { IconButton } from '@/shared/ui/icon-button';
@@ -31,7 +31,7 @@ export function SessionAttachmentsTab(props: {
   toolbarSlot?: Element | null;
 }) {
   const { formatMessage } = useIntl();
-  const notifyDownloadFailure = useDownloadFailureToast();
+  const notifyFailure = useAttachmentFailureToast();
   const tab = useTab();
 
   const [search, setSearch] = useQueryState('q', parseAsString.withDefault(''));
@@ -50,16 +50,19 @@ export function SessionAttachmentsTab(props: {
   const { mutate: download, isPending: isDownloadPending } = useDownloadFileMutation();
 
   const onOpen = useCallback(
-    (fileId: string) => {
+    (attachment: SessionAttachment) => {
       const attachmentTab = tab.openDeferred({
         message: formatMessage({ defaultMessage: 'Ouverture de la pièce jointe, merci de patienter...' }),
         title: formatMessage({ defaultMessage: 'Pièce jointe' }),
       });
 
       createUrl(
-        { fileId, sessionId: props.sessionId },
+        { fileId: attachment.id, sessionId: props.sessionId },
         {
-          onError: () => attachmentTab.cancel(),
+          onError: (error) => {
+            attachmentTab.cancel();
+            notifyFailure('open', attachment.name, error);
+          },
           onSuccess: (response) => {
             if (response) attachmentTab.settle(response.url);
             else attachmentTab.cancel();
@@ -67,7 +70,7 @@ export function SessionAttachmentsTab(props: {
         },
       );
     },
-    [createUrl, formatMessage, props.sessionId, tab],
+    [createUrl, formatMessage, notifyFailure, props.sessionId, tab],
   );
 
   const onDownload = useCallback(
@@ -75,17 +78,17 @@ export function SessionAttachmentsTab(props: {
       createUrl(
         { fileId: attachment.id, sessionId: props.sessionId },
         {
-          onError: (error) => notifyDownloadFailure(attachment.name, error),
+          onError: (error) => notifyFailure('download', attachment.name, error),
           onSuccess: (response) => {
             if (!response) return;
             download(
               { name: attachment.name, url: response.url },
-              { onError: (error) => notifyDownloadFailure(attachment.name, error) },
+              { onError: (error) => notifyFailure('download', attachment.name, error) },
             );
           },
         },
       ),
-    [createUrl, download, notifyDownloadFailure, props.sessionId],
+    [createUrl, download, notifyFailure, props.sessionId],
   );
 
   const allAttachments = attachments?.items ?? [];
@@ -170,7 +173,7 @@ export function SessionAttachmentsTab(props: {
           <Button
             className="fr-btn--align-on-content grow truncate text-left"
             disabled={isUrlPending}
-            onClick={() => onOpen(attachment.id)}
+            onClick={() => onOpen(attachment)}
             priority="tertiary no outline"
             size="small"
             title={formatMessage({ defaultMessage: 'Ouvrir {name}' }, { name: attachment.name })}

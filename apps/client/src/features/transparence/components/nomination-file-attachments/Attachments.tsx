@@ -7,9 +7,8 @@ import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import type { NominationFileAttachmentTypeEnum } from '@/features/transparence/components/nomination-file-attachments/nomination-file-attachment-type';
 import { FileList, FileListItem } from '@/shared/components/file-list';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
-import { useDownloadFailureToast } from '@/shared/hooks/useDownloadFailureToast';
+import { useAttachmentFailureToast } from '@/shared/hooks/useAttachmentFailureToast';
 import { useTab } from '@/shared/hooks/useTab';
-import { useToasts } from '@/shared/ui/toast';
 import { useDownloadFileMutation } from '@queries/files.queries';
 import {
   useCreateNominationFileAttachmentUrlMutation,
@@ -106,8 +105,7 @@ function AttachmentItem(props: {
 }) {
   const { formatMessage } = useIntl();
   const tab = useTab();
-  const toasts = useToasts();
-  const notifyDownloadFailure = useDownloadFailureToast();
+  const notifyFailure = useAttachmentFailureToast();
   const { isPending: isUrlPending, mutate: createUrl } = useCreateNominationFileAttachmentUrlMutation();
   const { isPending: isDownloadPending, mutate: download } = useDownloadFileMutation();
   const {
@@ -131,17 +129,9 @@ function AttachmentItem(props: {
     createUrl(
       { fileId: props.fileId, nominationFileId: props.nominationFileId, sessionId: props.sessionId },
       {
-        onError: () => {
+        onError: (error) => {
           attachmentTab.cancel();
-          toasts.error({
-            description: formatMessage({
-              defaultMessage: 'Réessayez et prévenez le support si cela persiste.',
-            }),
-            title: formatMessage(
-              { defaultMessage: 'L\'ouverture de "{name}" a échoué' },
-              { name: props.name },
-            ),
-          });
+          notifyFailure('open', props.name, error);
         },
         onSuccess: (response) => {
           if (response) attachmentTab.settle(response.url);
@@ -152,37 +142,29 @@ function AttachmentItem(props: {
   }, [
     createUrl,
     formatMessage,
+    notifyFailure,
     props.fileId,
     props.name,
     props.nominationFileId,
     props.sessionId,
     tab,
-    toasts,
   ]);
 
   const onDownload = useCallback(() => {
     createUrl(
       { fileId: props.fileId, nominationFileId: props.nominationFileId, sessionId: props.sessionId },
       {
-        onError: (error) => notifyDownloadFailure(props.name, error),
+        onError: (error) => notifyFailure('download', props.name, error),
         onSuccess: (response) => {
           if (!response) return;
           download(
             { name: props.name, url: response.url },
-            { onError: (error) => notifyDownloadFailure(props.name, error) },
+            { onError: (error) => notifyFailure('download', props.name, error) },
           );
         },
       },
     );
-  }, [
-    createUrl,
-    download,
-    notifyDownloadFailure,
-    props.fileId,
-    props.name,
-    props.nominationFileId,
-    props.sessionId,
-  ]);
+  }, [createUrl, download, notifyFailure, props.fileId, props.name, props.nominationFileId, props.sessionId]);
 
   const onDelete = useCallback(async () => {
     const { isConfirmed } = await waitForConfirmation({

@@ -16,7 +16,7 @@ import {
   ObservationFollowUpEnumMessages,
   type ObservationFollowUpEnum,
 } from '@/shared/enums/observation-follow-up.enum';
-import { useDownloadFailureToast } from '@/shared/hooks/useDownloadFailureToast';
+import { useAttachmentFailureToast } from '@/shared/hooks/useAttachmentFailureToast';
 import { dateOnlyFromIso, formatDateOnly } from '@/utils/date-only.util';
 import { getObservationDetailsPath } from '@/utils/route-path.utils';
 import { useDownloadFileMutation } from '@queries/files.queries';
@@ -47,7 +47,7 @@ function ObservationCard({
 }) {
   const intl = useIntl();
   const { edit, requestDelete } = useObservationsModal();
-  const notifyDownloadFailure = useDownloadFailureToast();
+  const notifyFailure = useAttachmentFailureToast();
   const { isPending: isDownloading, mutate: download } = useDownloadFileMutation();
   const { isPending: isLoadingUrl, mutate: getFileUrl } = useGetObservationFileUrlMutation();
   const isLoadingFile = isDownloading || isLoadingUrl;
@@ -102,11 +102,11 @@ function ObservationCard({
         sessionId: file.sessionId,
       },
       {
-        onError: (error) => notifyDownloadFailure(attachment.name, error),
+        onError: (error) => notifyFailure('download', attachment.name, error),
         onSuccess: (url) =>
           download(
             { name: attachment.name, url },
-            { onError: (error) => notifyDownloadFailure(attachment.name, error) },
+            { onError: (error) => notifyFailure('download', attachment.name, error) },
           ),
       },
     );

@@ -5,7 +5,7 @@ import { useSummary } from '@/features/summary/context/SummaryContext';
 import { useOpenSummaryAttachment } from '@/features/summary/hooks/useOpenSummaryAttachment';
 import { FileList, FileListItem } from '@/shared/components/file-list';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
-import { useDownloadFailureToast } from '@/shared/hooks/useDownloadFailureToast';
+import { useAttachmentFailureToast } from '@/shared/hooks/useAttachmentFailureToast';
 import { DetailsCard } from '@/shared/ui/details';
 import { Upload } from '@/shared/ui/upload';
 import type { DetailedSummaryDto } from '@api/types';
@@ -73,7 +73,7 @@ function SummaryAttachmentInput() {
 function SummaryAttachment({ attachment }: { attachment: SummaryAttachmentDto }) {
   const { canWriteSummary, nominationFileId, sessionId } = useSummary();
   const { formatMessage } = useIntl();
-  const notifyDownloadFailure = useDownloadFailureToast();
+  const notifyFailure = useAttachmentFailureToast();
 
   const { isPending: isOpening, open: openAttachment } = useOpenSummaryAttachment();
   const onOpen = useCallback(() => {
@@ -83,24 +83,16 @@ function SummaryAttachment({ attachment }: { attachment: SummaryAttachmentDto })
   const { isPending: isCreatingUrl, mutate: createUrl } = useGenerateSummaryAttachmentPublicUrlMutation();
   const { isPending: isDownloading, mutate: download } = useDownloadFileMutation();
   const onDownload = useCallback(() => {
-    const onError = (error: unknown) => notifyDownloadFailure(attachment.name, error);
+    const onError = (error: unknown) => notifyFailure('download', attachment.name, error);
 
     createUrl(
       { fileId: attachment.id, nominationFileId, sessionId },
       {
         onError,
-        onSuccess: (url) => (url ? download({ name: attachment.name, url }, { onError }) : onError(null)),
+        onSuccess: (url) => download({ name: attachment.name, url }, { onError }),
       },
     );
-  }, [
-    createUrl,
-    download,
-    notifyDownloadFailure,
-    nominationFileId,
-    attachment.id,
-    attachment.name,
-    sessionId,
-  ]);
+  }, [createUrl, download, notifyFailure, nominationFileId, attachment.id, attachment.name, sessionId]);
 
   const { isPending: isDetaching, mutate: detach } = useDetachSummaryFilesMutation();
   const { waitForConfirmation } = useConfirmModal();
