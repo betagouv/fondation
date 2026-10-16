@@ -1,24 +1,24 @@
-import { Transactional } from '@nestjs-cls/transactional';
+import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
 import { JusticePresentationPlanContent } from '../../domain/justice-presentation-plan-content';
 import { JusticePresentationPlanRepository } from '../repositories/justice-presentation-plan.repository';
 import { Prisma } from 'src/generated/prisma/client';
-import { DocInvalidation } from 'src/modules/docs/shared/domain/invalidation/official-report-invalidated.integration-event';
+import { DocInvalidation } from 'src/modules/docs/shared/domain/doc-invalidation';
 import { DocsNominationFilesFinder } from 'src/modules/docs/shared/infrastructure/finders/docs-nomination-files.finder';
 import { Db } from 'src/modules/framework/database';
 import { assertNever } from 'src/utils/assert-never';
 import { isDefined } from 'src/utils/is-defined';
 
 @Injectable()
-export class InternalInvalidatePresentationPlanUseCase {
+export class InvalidatePresentationPlanUseCase {
   constructor(
     private readonly db: Db,
     private readonly docsNominationFilesFinder: DocsNominationFilesFinder,
     private readonly justicePresentationPlanRepository: JusticePresentationPlanRepository,
   ) {}
 
-  @Transactional()
+  @Transactional(Propagation.Mandatory)
   async handle(invalidation: DocInvalidation): Promise<void> {
     switch (invalidation.type) {
       case 'AgendaNominationFilesUpdated':

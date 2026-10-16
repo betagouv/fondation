@@ -1,5 +1,4 @@
 import { Global, Module } from '@nestjs/common';
-import { EventEmitterModule } from '@nestjs/event-emitter';
 
 import { AppVersionModule } from './app-version';
 import { ClockModule } from './clock';
@@ -28,7 +27,6 @@ import { TchapModule } from './tchap';
     ObservabilityModule,
     PdfModule,
     TchapModule,
-    EventEmitterModule.forRoot(),
     FaviconModule,
   ],
   exports: [

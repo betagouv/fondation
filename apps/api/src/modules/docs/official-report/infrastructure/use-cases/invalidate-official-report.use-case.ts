@@ -1,4 +1,4 @@
-import { Transactional } from '@nestjs-cls/transactional';
+import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
 import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../../../shared/infrastructure/agenda-content';
@@ -6,8 +6,8 @@ import { InvalidateOfficialReportCommand } from '../../domain/official-report-ty
 import { OfficialReportVersionFinder } from '../finders/official-report-version.finder';
 import { OfficialReportRepository } from '../repositories/official-report.repository';
 import { Prisma } from 'src/generated/prisma/client';
+import { DocInvalidation } from 'src/modules/docs/shared/domain/doc-invalidation';
 import { nominationFileOutcomeToDocNominationFileOutcome } from 'src/modules/docs/shared/domain/doc-nomination-file-outcome';
-import { DocInvalidation } from 'src/modules/docs/shared/domain/invalidation/official-report-invalidated.integration-event';
 import { DocsNominationFilesFinder } from 'src/modules/docs/shared/infrastructure/finders/docs-nomination-files.finder';
 import { readsTheSame } from 'src/modules/docs/shared/infrastructure/services/renderers/helpers';
 import { Db } from 'src/modules/framework/database';
@@ -15,7 +15,7 @@ import { assertNever } from 'src/utils/assert-never';
 import { isDefined } from 'src/utils/is-defined';
 
 @Injectable()
-export class InternalInvalidateOfficialReportUseCase {
+export class InvalidateOfficialReportUseCase {
   constructor(
     private readonly db: Db,
     private readonly docsNominationFilesFinder: DocsNominationFilesFinder,
@@ -23,7 +23,7 @@ export class InternalInvalidateOfficialReportUseCase {
     private readonly officialReportVersionFinder: OfficialReportVersionFinder,
   ) {}
 
-  @Transactional()
+  @Transactional(Propagation.Mandatory)
   async handle(invalidation: DocInvalidation): Promise<void> {
     switch (invalidation.type) {
       case 'SessionAffectationVersionPublished':

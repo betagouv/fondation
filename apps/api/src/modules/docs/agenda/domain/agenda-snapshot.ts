@@ -1,4 +1,4 @@
-import { DocInvalidation } from 'src/modules/docs/shared/domain/invalidation/official-report-invalidated.integration-event';
+import { DocInvalidation } from 'src/modules/docs/shared/domain/doc-invalidation';
 import { DateOnly } from 'src/utils/date-only';
 import { Id } from 'src/utils/id';
 
