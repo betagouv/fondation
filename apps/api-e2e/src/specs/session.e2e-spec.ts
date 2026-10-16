@@ -239,7 +239,6 @@ test.describe('Session E2E', () => {
       agent,
       expect,
     }) => {
-      const startedAt = new Date();
       const importResponse = await agent.sessions.createSessionFromLodam({
         body: { file: await lodamFile(), form: lodamForm() },
       });
@@ -254,8 +253,7 @@ test.describe('Session E2E', () => {
       const sql = postgres(inject('databaseUrl'), { onnotice: () => {} });
       try {
         const [copies] = await sql<{ count: number }[]>`
-          select count(*)::int as count from files_context.files
-          where path[1] = 'lodam' and created_at >= ${startedAt}
+          select count(*)::int as count from files_context.files where path[1] = 'lodam'
         `;
         expect(copies?.count).toBe(0);
       } finally {
