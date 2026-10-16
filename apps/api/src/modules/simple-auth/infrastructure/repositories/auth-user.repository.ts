@@ -18,15 +18,13 @@ import { assertNever } from 'src/utils/assert-never';
 export class AuthUserRepository {
   constructor(private readonly db: Db) {}
 
-  async findByEmail(email: string): Promise<AuthUser> {
+  async findByEmail(email: string): Promise<AuthUser | null> {
     const user = await this.db.tx.user.findFirst({
       select: { id: true, password: true } satisfies Prisma.UserSelect,
       where: { email: { equals: email, mode: 'insensitive' } },
     });
 
-    if (!user) throw new NotFoundException();
-
-    return AuthUser.from(user);
+    return user && AuthUser.from(user);
   }
 
   async find(id: string): Promise<AuthUser> {

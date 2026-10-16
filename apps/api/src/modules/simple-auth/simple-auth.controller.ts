@@ -74,13 +74,14 @@ export class SimpleAuthController {
   ): Promise<void> {
     const authorization = req.get('authorization');
     if (/^basic/i.test(authorization || '')) {
-      const [email, password] = Buffer.from(
-        (authorization ?? '').split(' ').slice(1).join(' ').trim(),
-        'base64',
-      )
-        .toString()
-        .split(':');
-      body = LoginDto.schema.parse({ email, password });
+      // Only the user-id cannot contain a colon (RFC 7617): the password keeps everything after the first one
+      const [, email, password] =
+        /^([^:]*):(.*)$/s.exec(
+          Buffer.from((authorization ?? '').split(' ').slice(1).join(' ').trim(), 'base64').toString(),
+        ) ?? [];
+      const credentials = LoginDto.schema.safeParse({ email, password });
+      if (!credentials.success) throw new BadRequestException();
+      body = credentials.data;
     } else if (!body) {
       throw new BadRequestException();
     }
