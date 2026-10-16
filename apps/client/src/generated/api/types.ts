@@ -2647,8 +2647,8 @@ export type ListArchivedSessionsData = {
     path?: never;
     query?: {
         search?: string;
-        sortBy?: 'archivedAt' | 'date';
         formations?: Array<'SIEGE' | 'PARQUET'>;
+        sortBy?: 'archivedAt' | 'date';
         /**
          * true
          */
@@ -2702,8 +2702,8 @@ export type ListSessionsOfTypeGardeDesSceauxData = {
     path?: never;
     query?: {
         search?: string;
-        sortBy?: 'date' | 'dueDate';
         formations?: Array<'SIEGE' | 'PARQUET'>;
+        sortBy?: 'date' | 'dueDate';
         /**
          * true
          */
