@@ -1,4 +1,4 @@
-import { Transactional } from '@nestjs-cls/transactional';
+import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
 import { AgendaRepository } from '../repositories/agenda.repository';
@@ -16,6 +16,7 @@ export class InvalidateAgendasUseCase {
     private readonly agendaRepository: AgendaRepository,
   ) {}
 
+  @Transactional(Propagation.Mandatory)
   async handle(invalidation: DocInvalidation): Promise<void> {
     switch (invalidation.type) {
       case 'SessionAffectationVersionPublished':
@@ -34,7 +35,6 @@ export class InvalidateAgendasUseCase {
     }
   }
 
-  @Transactional()
   private async updateAgendasReporters(
     invalidation: Extract<DocInvalidation, { type: 'SessionAffectationVersionPublished' }>,
   ): Promise<void> {
