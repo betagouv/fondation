@@ -8,6 +8,7 @@ import {
   StreamableFile,
   UseFilters,
 } from '@nestjs/common';
+import { ApiQuery } from '@nestjs/swagger';
 import type { Response as ExpressResponse } from 'express';
 
 import { HasRole } from 'src/modules/simple-auth';
@@ -22,6 +23,7 @@ export class FilesController {
 
   @HasRole()
   @Get('/:fileUrlId')
+  @ApiQuery({ name: 'download', required: false, type: 'string' })
   async getFileByFileUrl(
     @Res({ passthrough: true }) res: ExpressResponse,
     @Param('fileUrlId', ParseUUIDPipe) fileUrlId: string,
