@@ -1,3 +1,4 @@
+import postgres from 'postgres';
 import { test as base, inject } from 'vitest';
 
 import { makeLoggedInUserFixture, registerUser } from './fixtures/auth.fixture.ts';
@@ -9,6 +10,14 @@ import { makeHttpClient, TestStepsAdmin, TestStepsAgent, TestStepsMember } from 
 
 export const test = base
   .extend('baseUrl', { scope: 'worker' }, () => inject('apiUrl') ?? process.env.API_URL ?? 'http://localhost:3000')
+  // for what the API does not serve: a stored file, a recorded anomaly, a state the API cannot reach
+  // oxlint-disable-next-line no-empty-pattern -- vitest reads the dependencies of a fixture from this pattern
+  .extend('sql', { scope: 'worker' }, ({}, { onCleanup }) => {
+    const sql = postgres(inject('databaseUrl'), { onnotice: () => {} });
+    onCleanup(() => sql.end());
+
+    return sql;
+  })
   .extend('logIn', ({ baseUrl }) => makeLoggedInUserFixture(baseUrl))
   .extend('admin', ({ logIn }): Promise<TestStepsAdmin> => logIn('ADMIN'))
   .extend('member', async ({ logIn }): Promise<TestStepsMember> => logIn('MEMBRE_COMMUN'))

@@ -2,7 +2,7 @@ import * as assert from 'node:assert/strict';
 import * as crypto from 'node:crypto';
 
 import type { LolfiArchiveContent } from 'lolfi';
-import postgres from 'postgres';
+import type { Sql } from 'postgres';
 import { inject } from 'vitest';
 
 import { test } from '../fixtures.ts';
@@ -457,7 +457,7 @@ test.describe('lolfi', () => {
   test(
     'should alert again on a transparence that broke, was repaired, then broke the same way',
     { timeout: 40_000 },
-    async ({ admin, expect, lolfi }) => {
+    async ({ admin, expect, lolfi, sql }) => {
       const candidate = trevoux();
       const complete = {
         id: crypto.randomInt(1_000, 900_000),
@@ -482,7 +482,7 @@ test.describe('lolfi', () => {
       // The job is SUCCEEDED before the reporting runs, so only the forgotten row tells us it is over
       const repairedJobId = await ingestUntilEnded(lolfi, complete);
       await waitFor(async () => {
-        assert.equal(await recordedAnomaly(complete.id), undefined, `the repair must be forgotten`);
+        assert.equal(await recordedAnomaly(sql, complete.id), undefined, `the repair must be forgotten`);
       });
       expect(await jobErrors(admin, repairedJobId)).not.toContainEqual(expect.stringContaining(`(${complete.id})`));
 
@@ -584,18 +584,12 @@ function anomalyOf(alert: string): string {
   return alert.split('\n')[0]!;
 }
 
-async function recordedAnomaly(lolfiSessionId: number): Promise<string | undefined> {
-  const sql = postgres(inject('databaseUrl'), { onnotice: () => {} });
+async function recordedAnomaly(sql: Sql, lolfiSessionId: number): Promise<string | undefined> {
+  const [anomaly] = await sql<{ reason: string }[]>`
+    select reason from jobs.lolfi_transparence_anomaly where lolfi_session_id = ${lolfiSessionId}
+  `;
 
-  try {
-    const [anomaly] = await sql<{ reason: string }[]>`
-      select reason from jobs.lolfi_transparence_anomaly where lolfi_session_id = ${lolfiSessionId}
-    `;
-
-    return anomaly?.reason;
-  } finally {
-    await sql.end();
-  }
+  return anomaly?.reason;
 }
 
 // The tolerance is counted from the publication, so this one must never age past it

@@ -1,24 +1,17 @@
-import postgres from 'postgres';
-import { inject } from 'vitest';
+import type { Sql } from 'postgres';
 
 import { test } from '../fixtures.ts';
 import { MEETING_DATE } from '../fixtures/docs.fixture.ts';
 
-async function filesOfValidatedVersionsReading(html: string): Promise<number> {
-  const sql = postgres(inject('databaseUrl'), { onnotice: () => {} });
+async function filesOfValidatedVersionsReading(sql: Sql, html: string): Promise<number> {
+  const [row] = await sql<{ count: bigint }[]>`
+    select count(*)
+    from docs.official_report_nomination_file as f
+    inner join docs.official_report_version as v on v.id = f.version_id
+    where v.status = 'VALIDATED' and f.html_edited = ${html}
+  `;
 
-  try {
-    const [row] = await sql<{ count: bigint }[]>`
-      select count(*)
-      from docs.official_report_nomination_file as f
-      inner join docs.official_report_version as v on v.id = f.version_id
-      where v.status = 'VALIDATED' and f.html_edited = ${html}
-    `;
-
-    return Number(row?.count ?? 0);
-  } finally {
-    await sql.end();
-  }
+  return Number(row?.count ?? 0);
 }
 
 const VALIDATED = { comment: null, value: 'VALIDATED' } as const;
@@ -354,6 +347,7 @@ test.describe('Official report', () => {
     docs,
     expect,
     member,
+    sql,
   }) => {
     const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
     const agenda = await docs.agenda(session);
@@ -379,7 +373,7 @@ test.describe('Official report', () => {
       draft: null,
       status: 'VALIDATED',
     });
-    expect(await filesOfValidatedVersionsReading(later)).toBe(0);
+    expect(await filesOfValidatedVersionsReading(sql, later)).toBe(0);
   });
 
   test('should give a file of a validated report the sentence its agenda rewrote, once reset', async ({
