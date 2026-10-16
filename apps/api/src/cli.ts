@@ -6,11 +6,12 @@ import { CommandFactory } from 'nest-commander';
 import * as time from 'src/utils/time';
 
 import { AppModule } from './app.module';
+import { FilesCliModule } from './modules/framework/files/files-cli.module';
 import { IngestCliModule } from './modules/ingest/ingest-cli.module';
 import { AuthCliModule } from './modules/simple-auth/infrastructure/cli/auth-cli.module';
 
 @Module({
-  imports: [AppModule, AuthCliModule, IngestCliModule],
+  imports: [AppModule, AuthCliModule, FilesCliModule, IngestCliModule],
 })
 class CliAppModule {}
 
