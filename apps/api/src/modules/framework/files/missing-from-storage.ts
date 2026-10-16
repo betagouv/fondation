@@ -1,4 +1,4 @@
-import { NoSuchKey, S3ServiceException } from '@aws-sdk/client-s3';
+import { NoSuchKey } from '@aws-sdk/client-s3';
 import { NotFoundException } from '@nestjs/common';
 import { isAxiosError } from 'axios';
 
@@ -9,5 +9,5 @@ export class FileMissingFromStorage extends NotFoundException {}
 export function isMissingFromStorage(error: unknown): boolean {
   if (isAxiosError(error)) return error.response?.status === 404;
 
-  return error instanceof NoSuchKey || (error instanceof S3ServiceException && error.name === 'NotFound');
+  return error instanceof NoSuchKey;
 }
