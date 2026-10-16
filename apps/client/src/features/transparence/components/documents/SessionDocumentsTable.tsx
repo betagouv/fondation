@@ -142,21 +142,23 @@ function AgendaPresentationTrace(props: { doc: SessionDocument }) {
   const { by, date, endTime, planId } = doc.presentation;
 
   return (
-    <span className="flex flex-wrap items-baseline gap-x-2">
-      <Trace>
-        <FormattedMessage
-          defaultMessage="Restitué le {moment}{who, select, self { par vous} someone { par {author}} other {}}"
-          values={authorship(<PresentationMoment date={date} endTime={endTime} />, by)}
-        />
-      </Trace>
-      <Link
-        className="fr-link fr-link--sm"
-        state={{ returnPath }}
-        to={generatePath(ROUTE_PATHS.SG.PRESENTATIONS_PREVIEW, { planId })}
-      >
-        <FormattedMessage defaultMessage="Voir la notice" />
-      </Link>
-    </span>
+    <Trace>
+      <FormattedMessage
+        defaultMessage="Restitué dans <notice>la notice</notice> du {moment}{who, select, self { par vous} someone { par {author}} other {}}"
+        values={{
+          ...authorship(<PresentationMoment date={date} endTime={endTime} />, by),
+          notice: (chunks) => (
+            <Link
+              className="text-(--text-action-high-blue-france)"
+              state={{ returnPath }}
+              to={generatePath(ROUTE_PATHS.SG.PRESENTATIONS_PREVIEW, { planId })}
+            >
+              {chunks}
+            </Link>
+          ),
+        }}
+      />
+    </Trace>
   );
 }
 

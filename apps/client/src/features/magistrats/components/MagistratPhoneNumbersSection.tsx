@@ -1,7 +1,9 @@
 import Button from '@codegouvfr/react-dsfr/Button';
-import { useState } from 'react';
+import clsx from 'clsx';
+import { useId, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
+import { IconButton } from '@/shared/ui/icon-button';
 import { Tooltip } from '@/shared/ui/tooltip';
 import { formatDateOnly } from '@/utils/date-only.util';
 import { formatPhoneNumber } from '@/utils/string.utils';
@@ -15,7 +17,6 @@ import {
   ValidationError,
 } from '@queries/magistrats.queries';
 
-import { MagistratInfoItem, MagistratInfoList } from './MagistratIdentityCard';
 import { MagistratPhoneNumberDeleteModal } from './MagistratPhoneNumberDeleteModal';
 import { MagistratPhoneNumberModal } from './MagistratPhoneNumberModal';
 
@@ -35,6 +36,7 @@ export function MagistratPhoneNumbersSection(props: { magistratId: string; magis
   const updatePhoneNumber = useUpdateMagistratPhoneNumberMutation(props);
   const deletePhoneNumber = useDeleteMagistratPhoneNumberMutation(props);
   const [editing, setEditing] = useState<Editing | null>(null);
+  const titleId = useId();
 
   if (isLoading) {
     return (
@@ -61,26 +63,43 @@ export function MagistratPhoneNumbersSection(props: { magistratId: string; magis
   const closed = () => setEditing(null);
   const numberError = (error: Error | null) => (error instanceof ValidationError ? error.message : null);
   const hasFailed = (error: Error | null) => !!error && !(error instanceof ValidationError);
+  const [firstPhoneNumber, ...otherPhoneNumbers] = phoneNumbers ?? [];
+  const isOnTitleLine =
+    otherPhoneNumbers.length === 0 && !(firstPhoneNumber?.source === 'FONDATION' && firstPhoneNumber.label);
 
   return (
     <>
-      <MagistratInfoList>
+      <div className={clsx(isOnTitleLine && 'flex items-center gap-1')}>
+        <h3
+          className={clsx(
+            'flex min-h-8 items-center text-base font-bold text-(--text-default-grey)',
+            isOnTitleLine ? 'fr-m-0' : 'fr-mb-1v',
+          )}
+          id={titleId}
+        >
+          <FormattedMessage
+            defaultMessage="{count, plural, one {Téléphone} other {Numéros de téléphone}}"
+            values={{ count: phoneNumbers?.length ?? 0 }}
+          />
+        </h3>
         {phoneNumbers?.length ? (
-          phoneNumbers.map((phoneNumber) => (
-            <MagistratPhoneNumberItem
-              key={phoneNumber.source === 'FONDATION' ? phoneNumber.id : phoneNumber.number}
-              onDelete={(phoneNumber) => setEditing({ action: 'DELETE', open: true, phoneNumber })}
-              onUpdate={(phoneNumber) => setEditing({ action: 'UPDATE', open: true, phoneNumber })}
-              phoneNumber={phoneNumber}
-            />
-          ))
+          <ul aria-labelledby={titleId} className="m-0 flex min-w-0 grow list-none flex-col p-0">
+            {phoneNumbers.map((phoneNumber) => (
+              <MagistratPhoneNumberItem
+                key={phoneNumber.source === 'FONDATION' ? phoneNumber.id : phoneNumber.number}
+                onDelete={(phoneNumber) => setEditing({ action: 'DELETE', open: true, phoneNumber })}
+                onUpdate={(phoneNumber) => setEditing({ action: 'UPDATE', open: true, phoneNumber })}
+                phoneNumber={phoneNumber}
+              />
+            ))}
+          </ul>
         ) : (
-          <MagistratInfoItem label={<FormattedMessage defaultMessage="Téléphone" />}>-</MagistratInfoItem>
+          <p className="fr-mb-0">-</p>
         )}
-      </MagistratInfoList>
+      </div>
 
       <Button
-        className="fr-mt-4v"
+        className="fr-mt-2v"
         onClick={() => setEditing({ action: 'ADD', open: true })}
         priority="tertiary"
         size="small"
@@ -161,42 +180,39 @@ function MagistratPhoneNumberItem(props: {
           },
         )
       : date
-        ? formatMessage({ defaultMessage: 'Issu de LOLFI, candidature modifiée le {date}' }, { date })
-        : formatMessage({ defaultMessage: 'Issu de LOLFI' });
+        ? formatMessage(
+            {
+              defaultMessage: 'Saisi par le magistrat dans une candidature LOLFI mise à jour le {date}',
+            },
+            { date },
+          )
+        : formatMessage({ defaultMessage: 'Saisi par le magistrat dans une candidature LOLFI' });
   const label = phoneNumber.source === 'FONDATION' ? phoneNumber.label : null;
 
   return (
-    <MagistratInfoItem
-      label={
-        label ? (
-          <FormattedMessage defaultMessage="Téléphone ({label})" values={{ label }} />
-        ) : (
-          <FormattedMessage defaultMessage="Téléphone" />
-        )
-      }
-    >
-      <Tooltip focusable label={origin}>
+    <li className="flex min-h-8 items-center gap-3 p-0">
+      <Tooltip className="shrink-0 whitespace-nowrap" focusable label={origin}>
         {number}
       </Tooltip>
-      {phoneNumber.source === 'FONDATION' ? (
-        <>
-          <Button
-            className="fr-ml-1v"
-            iconId="fr-icon-edit-line"
-            onClick={() => props.onUpdate(phoneNumber)}
-            priority="tertiary no outline"
-            size="small"
-            title={formatMessage({ defaultMessage: 'Modifier le numéro {number}' }, { number })}
-          />
-          <Button
-            iconId="fr-icon-delete-line"
-            onClick={() => props.onDelete(phoneNumber)}
-            priority="tertiary no outline"
-            size="small"
-            title={formatMessage({ defaultMessage: 'Supprimer le numéro {number}' }, { number })}
-          />
-        </>
+      {label ? (
+        <span className="min-w-0 text-xs wrap-break-word text-(--text-mention-grey)">{label}</span>
       ) : null}
-    </MagistratInfoItem>
+      {phoneNumber.source === 'FONDATION' ? (
+        <span className="ml-auto flex shrink-0 items-center">
+          <IconButton
+            iconId="fr-icon-edit-line"
+            label={formatMessage({ defaultMessage: 'Modifier le numéro {number}' }, { number })}
+            onClick={() => props.onUpdate(phoneNumber)}
+            small
+          />
+          <IconButton
+            iconId="fr-icon-delete-line"
+            label={formatMessage({ defaultMessage: 'Supprimer le numéro {number}' }, { number })}
+            onClick={() => props.onDelete(phoneNumber)}
+            small
+          />
+        </span>
+      ) : null}
+    </li>
   );
 }
