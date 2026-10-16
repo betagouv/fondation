@@ -36,6 +36,11 @@ export type DocInvalidation =
       payload: { sessionId: string; versionId: string };
     };
 
+export type SessionDocInvalidation = Extract<
+  DocInvalidation,
+  { type: 'NominationFileOutcomeUpdated' | 'SessionAffectationVersionPublished' | 'SessionDateUpdated' }
+>;
+
 export class DocInvalidatedIntegrationEvent {
   static readonly name = Symbol.for('docs.invalidated');
 

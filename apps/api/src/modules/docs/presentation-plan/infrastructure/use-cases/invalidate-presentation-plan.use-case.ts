@@ -4,7 +4,7 @@ import { Injectable } from '@nestjs/common';
 import { JusticePresentationPlanContent } from '../../domain/justice-presentation-plan-content';
 import { JusticePresentationPlanRepository } from '../repositories/justice-presentation-plan.repository';
 import { Prisma } from 'src/generated/prisma/client';
-import { DocInvalidation } from 'src/modules/docs/shared/domain/invalidation/official-report-invalidated.integration-event';
+import { DocInvalidation } from 'src/modules/docs/shared/domain/doc-invalidation';
 import { DocsNominationFilesFinder } from 'src/modules/docs/shared/infrastructure/finders/docs-nomination-files.finder';
 import { Db } from 'src/modules/framework/database';
 import { assertNever } from 'src/utils/assert-never';

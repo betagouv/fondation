@@ -4,10 +4,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import { Db } from '../../framework/database';
 import { MembersService } from '../../members';
-import {
-  DocInvalidatedIntegrationEvent,
-  DocInvalidation,
-} from '../shared/domain/invalidation/official-report-invalidated.integration-event';
+import { DocInvalidatedIntegrationEvent, DocInvalidation } from '../shared/domain/doc-invalidation';
 import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../shared/infrastructure/agenda-content';
 import { ActedNominationFilesFinder } from '../shared/infrastructure/finders/acted-nomination-files.finder';
 import { DocsNominationFilesFinder } from '../shared/infrastructure/finders/docs-nomination-files.finder';

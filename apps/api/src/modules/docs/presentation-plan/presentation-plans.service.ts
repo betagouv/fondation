@@ -5,7 +5,7 @@ import { Db } from '../../framework/database';
 import { Pagination } from '../../framework/pagination';
 import { MembersService } from '../../members';
 import { SimpleAuthService } from '../../simple-auth';
-import { DocInvalidation } from '../shared/domain/invalidation/official-report-invalidated.integration-event';
+import { DocInvalidation } from '../shared/domain/doc-invalidation';
 import { AgendaFinder, FoundAgendasDto } from '../shared/infrastructure/finders/agenda.finder';
 import { Prisma } from 'src/generated/prisma/client';
 import { Clock } from 'src/modules/framework/clock';
