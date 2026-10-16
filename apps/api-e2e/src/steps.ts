@@ -31,7 +31,6 @@ export type TestStepsMember = Pick<TestSteps, 'archivedSessions' | 'reports' | '
     | 'getObservationDetails'
     | 'getObservationFileUrl'
     | 'listObservations'
-    | 'listObservationsAttachments'
     | 'writeMemberComment'
   >;
 };
@@ -43,21 +42,26 @@ export type TestStepsAdmin = Omit<TestSteps, 'members'> & {
   >;
 };
 
+// an intersection merges the keys of a namespace: one narrowed below must first leave the complement
 export type TestStepsAgent = Omit<
-  Complement<TestSteps, TestStepsMember> & {
-    archivedSessions: TestSteps['archivedSessions'];
-    auth: Omit<(typeof api)['auth'], 'login' | 'listOpenIdProviders' | 'prepareOpenIdRequest' | 'callback'>;
-    feedback: TestSteps['feedback'];
-    // the secretariat also opens the attachments it serves
-    files: TestSteps['files'];
-    // the secretariat also reads the observations it receives
-    observations: TestSteps['observations'];
-    // the secretariat also reads the summaries it writes
-    summaries: Pick<TestSteps['summaries'], 'detailSummary'>;
-    ['@user']: TestSteps['@user'];
-  },
-  'administration' | 'ingest'
->;
+  Complement<TestSteps, TestStepsMember>,
+  'administration' | 'auth' | 'feedback' | 'ingest' | 'jobs' | 'magistrats'
+> & {
+  archivedSessions: TestSteps['archivedSessions'];
+  auth: Omit<
+    (typeof api)['auth'],
+    'callback' | 'impersonate' | 'listOpenIdProviders' | 'login' | 'prepareOpenIdRequest'
+  >;
+  feedback: Omit<TestSteps['feedback'], 'listFeedbacksAsExcel'>;
+  // the secretariat also opens the attachments it serves
+  files: TestSteps['files'];
+  magistrats: Omit<TestSteps['magistrats'], 'searchMagistratAuthorization'>;
+  // the secretariat also reads the observations it receives
+  observations: TestSteps['observations'];
+  // the secretariat also reads the summaries it writes
+  summaries: Pick<TestSteps['summaries'], 'detailSummary'>;
+  ['@user']: TestSteps['@user'];
+};
 
 function createSdk(client: Client, user?: { id: string }): TestSteps {
   return new Proxy(api as TestSteps, {
