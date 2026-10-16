@@ -4,6 +4,7 @@ import { Clock } from '../framework/clock';
 import { Db } from '../framework/database';
 
 import { AuthSession } from './domain/auth-session';
+import { AuthUserNotAuthentifiable } from './domain/auth-user';
 import { OpenIdAuthenticationRequestFinder } from './infrastructure/finders/openid-authentication-request.finder';
 import { AuthUserRepository } from './infrastructure/repositories/auth-user.repository';
 import { OpenId } from './openid/openid';
@@ -49,6 +50,8 @@ export class OpenIdAuthService {
     });
 
     const user = await this.userRepository.findByEmail(email);
+    if (!user) throw new AuthUserNotAuthentifiable();
+
     const session = await user.authenticate({
       now: this.clock.now(),
       type: 'openid',

@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, Logger, StreamableFile } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 
 import { makeStorablePath, Storable, Storage, Stored } from './storable.types';
 
@@ -34,12 +34,5 @@ export class Objects {
     objects: readonly T[],
   ): Promise<(T & { url: URL; expiresAt: Date })[]> {
     return this.storage.publish(objects);
-  }
-
-  async toStreamableFile(
-    object: { id: string } | { publicUrlId: string },
-  ): Promise<{ file: StreamableFile; expiresAt: Date | null }> {
-    const { file, expiresAt = null } = await this.storage.toStreamableFile(object);
-    return { file, expiresAt };
   }
 }

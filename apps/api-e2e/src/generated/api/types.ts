@@ -2386,8 +2386,8 @@ export type GetFileByFileUrlData = {
     path: {
         fileUrlId: string;
     };
-    query: {
-        download: string;
+    query?: {
+        download?: string;
     };
     url: '/api/files/v1/{fileUrlId}';
 };

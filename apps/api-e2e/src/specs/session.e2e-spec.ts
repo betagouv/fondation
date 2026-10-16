@@ -46,6 +46,17 @@ function isoDate(date: { day: number; month: number; year: number }): string {
   return `${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`;
 }
 
+// the e2e reach the database, not the storage: a path nothing was stored at stands for a lost object
+async function loseFromStorage(fileId: string): Promise<void> {
+  const sql = postgres(inject('databaseUrl'), { onnotice: () => {} });
+
+  try {
+    await sql`update files_context.files set path = array['lost', ${fileId}] where id = ${fileId}`;
+  } finally {
+    await sql.end();
+  }
+}
+
 function attachmentForm(form: UploadNominationFileAttachmentsDto['form']): UploadNominationFileAttachmentsDto['form'] {
   return new Blob([JSON.stringify(form)], { type: 'application/json' }) as any;
 }
@@ -271,6 +282,39 @@ test.describe('Session E2E', () => {
       const updatedFile = filesAfter.data!.items.find((file) => file.id === nominationFileId);
       expect(updatedFile?.hasAttachment).toBe(true);
       expect(updatedFile?.hasJurisdictionSheet).toBe(true);
+    });
+
+    test('should show a readable page for an attachment the storage lost', async ({ agent, expect }) => {
+      const importResponse = await agent.sessions.createSessionFromLodam({
+        body: { file: await lodamFile(), form: lodamForm() },
+      });
+      const sessionId = importResponse.data!.id;
+
+      const files = await agent.sessions.listNominationFiles({ path: { sessionId } });
+      const nominationFileId = files.data!.items[0]!.id;
+
+      await agent.sessions.uploadNominationFileAttachments({
+        body: {
+          files: [makeFile({ name: 'note.pdf', type: 'application/pdf' })],
+          form: attachmentForm({ type: 'FICHE_DE_JURIDICTION' }),
+        },
+        path: { nominationFileId, sessionId },
+      });
+      const attachments = await agent.sessions.listNominationFileAttachments({
+        path: { nominationFileId, sessionId },
+      });
+      const fileId = attachments.data!.items[0]!.id;
+      await loseFromStorage(fileId);
+
+      const attachment = await agent.sessions.createNominationFileAttachmentUrl({
+        path: { fileId, nominationFileId, sessionId },
+      });
+      const fileUrlId = new URL(attachment.data!.url).pathname.split('/').at(-1)!;
+
+      const { error, response } = await agent.files.getFileByFileUrl({ parseAs: 'text', path: { fileUrlId } });
+      expect(response?.status).toBe(404);
+      expect(response?.headers.get('content-type')).toContain('text/html');
+      expect(error).toContain('Cette pièce jointe est introuvable. Prévenez le support.');
     });
 
     test('should only flag a jurisdiction sheet for that very type', async ({ agent, expect }) => {
