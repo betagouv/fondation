@@ -5,7 +5,6 @@ import { Db } from '../../framework/database';
 import { Pagination } from '../../framework/pagination';
 import { MembersService } from '../../members';
 import { SimpleAuthService } from '../../simple-auth';
-import { DocInvalidation } from '../shared/domain/doc-invalidation';
 import { AgendaFinder, FoundAgendasDto } from '../shared/infrastructure/finders/agenda.finder';
 import { Prisma } from 'src/generated/prisma/client';
 import { Clock } from 'src/modules/framework/clock';
@@ -36,7 +35,6 @@ import {
 } from './infrastructure/queries/list-presented-plans.query';
 import { JusticePresentationPlanRepository } from './infrastructure/repositories/justice-presentation-plan.repository';
 import { updatePresentationTimeDocMeetingSessionEndingTime } from './infrastructure/services/renderers/presentation-plan.html';
-import { InternalInvalidatePresentationPlanUseCase } from './infrastructure/use-cases/invalidate-presentation-plan.use-case';
 import { ValidatePresentationPlanUseCase } from './infrastructure/use-cases/validate-presentation-plan.use-case';
 
 @Injectable()
@@ -51,7 +49,6 @@ export class PresentationPlansService {
     private readonly detailsPresentationPlanPdfDocumentQuery: DetailsPresentationPlanPdfDocumentQuery,
     private readonly findPresentationPlanDocumentPdfQuery: FindPresentationPlanDocumentPdfQuery,
     private readonly findPresentationPlanDocumentQuery: FindPresentationPlanDocumentQuery,
-    private readonly internalInvalidatePresentationPlanUseCase: InternalInvalidatePresentationPlanUseCase,
     private readonly justicePresentationPlanRepository: JusticePresentationPlanRepository,
     private readonly listNonPresentedPlansQuery: ListNonPresentedPlansQuery,
     private readonly listPresentedPlansQuery: ListPresentedPlansQuery,
@@ -64,10 +61,6 @@ export class PresentationPlansService {
 
   findPresentationPlanAgendas(query: { ignorePlanId: string | undefined }): Promise<FoundAgendasDto> {
     return this.agendaFinder.findAwaitingPresentationPlan(query);
-  }
-
-  internalInvalidatePresentationPlan(cause: DocInvalidation): Promise<void> {
-    return this.internalInvalidatePresentationPlanUseCase.handle(cause);
   }
 
   detailsPresentationPlanMetadata(query: { id: string }): Promise<DetailedPresentationPlanMetadataDto> {

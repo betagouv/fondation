@@ -3,7 +3,6 @@ import { forwardRef, Inject, Injectable, NotFoundException, StreamableFile } fro
 
 import { MembersService } from '../../members';
 import { SimpleAuthService } from '../../simple-auth';
-import { DocInvalidation } from '../shared/domain/doc-invalidation';
 import { DocNominationFileOutcomeEnum } from '../shared/domain/doc-nomination-file-outcome';
 import { AgendaFinder, FoundAgendasDto } from '../shared/infrastructure/finders/agenda.finder';
 import { DocsNominationFilesFinder } from '../shared/infrastructure/finders/docs-nomination-files.finder';
@@ -35,7 +34,6 @@ import {
 import { FindOfficialReportDocumentPdfQuery } from './infrastructure/queries/find-official-report-document-pdf.query';
 import { FindOfficialReportDocumentQuery } from './infrastructure/queries/find-official-report-document.query';
 import { OfficialReportRepository } from './infrastructure/repositories/official-report.repository';
-import { InternalInvalidateOfficialReportUseCase } from './infrastructure/use-cases/invalidate-official-report.use-case';
 
 @Injectable()
 export class OfficialReportsService {
@@ -51,7 +49,6 @@ export class OfficialReportsService {
     private readonly findOfficialReportDocumentPdfQuery: FindOfficialReportDocumentPdfQuery,
     private readonly findOfficialReportDocumentQuery: FindOfficialReportDocumentQuery,
 
-    private readonly internalInvalidateOfficialReportUseCase: InternalInvalidateOfficialReportUseCase,
     private readonly officialReportVersionFinder: OfficialReportVersionFinder,
 
     private readonly clock: Clock,
@@ -350,10 +347,6 @@ export class OfficialReportsService {
     return this.withOfficialReport({ actorId: command.authorId, id: command.id }, (report) =>
       report.resetSectionIntro({ outcome: command.outcome }),
     );
-  }
-
-  async internalInvalidateOfficialReport(command: DocInvalidation): Promise<void> {
-    await this.internalInvalidateOfficialReportUseCase.handle(command);
   }
 
   @Transactional()
