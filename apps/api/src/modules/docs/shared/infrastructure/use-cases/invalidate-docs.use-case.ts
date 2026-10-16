@@ -3,15 +3,15 @@ import { Injectable } from '@nestjs/common';
 
 import { DocInvalidation } from '../../domain/doc-invalidation';
 import { InvalidateAgendasUseCase } from 'src/modules/docs/agenda/infrastructure/use-cases/invalidate-agenda.use-case';
-import { InternalInvalidateOfficialReportUseCase } from 'src/modules/docs/official-report/infrastructure/use-cases/invalidate-official-report.use-case';
-import { InternalInvalidatePresentationPlanUseCase } from 'src/modules/docs/presentation-plan/infrastructure/use-cases/invalidate-presentation-plan.use-case';
+import { InvalidateOfficialReportUseCase } from 'src/modules/docs/official-report/infrastructure/use-cases/invalidate-official-report.use-case';
+import { InvalidatePresentationPlanUseCase } from 'src/modules/docs/presentation-plan/infrastructure/use-cases/invalidate-presentation-plan.use-case';
 
 @Injectable()
 export class InvalidateDocsUseCase {
   constructor(
     private readonly invalidateAgendas: InvalidateAgendasUseCase,
-    private readonly invalidateOfficialReport: InternalInvalidateOfficialReportUseCase,
-    private readonly invalidatePresentationPlan: InternalInvalidatePresentationPlanUseCase,
+    private readonly invalidateOfficialReport: InvalidateOfficialReportUseCase,
+    private readonly invalidatePresentationPlan: InvalidatePresentationPlanUseCase,
   ) {}
 
   @Transactional(Propagation.Mandatory)
