@@ -441,7 +441,6 @@ export class Files implements OnApplicationBootstrap {
     }
   }
 
-  // TODO: see S3Storage.toStreamableFile
   async getFileContent(
     fileUrlId: string,
     options?: { download?: boolean },

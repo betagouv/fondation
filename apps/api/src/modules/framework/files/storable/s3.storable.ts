@@ -8,23 +8,10 @@ import {
 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { HttpService } from '@nestjs/axios';
-import {
-  Inject,
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-  NotFoundException,
-  NotImplementedException,
-  StreamableFile,
-} from '@nestjs/common';
-import { lastValueFrom } from 'rxjs';
+import { Inject, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 
 import { Clock } from '../../clock';
 import { API_CONFIG_TOKEN, ApiConfig } from '../../config';
-import { contentDisposition } from '../content-disposition';
-import { filenameToMimeType } from '../mime-type';
-import { isMissingFromStorage } from '../missing-from-storage';
 import * as time from 'src/utils/time';
 
 import { StorageResult } from './result.storable';
@@ -37,7 +24,6 @@ export class S3Storage implements Storage {
   private readonly expiresInSeconds: number;
 
   constructor(
-    private readonly http: HttpService,
     private readonly s3: S3Client,
     private readonly clock: Clock,
     @Inject(API_CONFIG_TOKEN)
@@ -121,82 +107,6 @@ export class S3Storage implements Storage {
         return { ...object, expiresAt, url: new URL(url) };
       }),
     );
-  }
-
-  // TODO: see Files.getFileContent
-  async toStreamableFile(
-    object:
-      | { url: URL; name?: string; expiresAt?: Date }
-      | { id: string; path?: StorablePath; name?: string; expiresAt?: Date }
-      | { publicUrlId: string; path?: StorablePath; name?: string; expiresAt?: Date },
-  ): Promise<{ file: StreamableFile; expiresAt?: Date }> {
-    if ('publicUrlId' in object) {
-      this.logger.error(`S3 Storage called with public URL id`);
-      throw new NotImplementedException();
-    }
-
-    let readable: Readable;
-    if ('url' in object) {
-      const request = this.s3.buildCommand(({ command }) => {
-        const { SSECustomerKey, SSECustomerKeyMD5, SSECustomerAlgorithm } = command;
-        return {
-          headers: SSECustomerKey
-            ? {
-                'x-amz-server-side-encryption-customer-key': SSECustomerKey,
-                'x-amz-server-side-encryption-customer-key-MD5': SSECustomerKeyMD5,
-                'x-amz-server-side-encryption-customer-algorithm': SSECustomerAlgorithm,
-              }
-            : {},
-        };
-      });
-
-      const response = await lastValueFrom(
-        this.http.get(object.url.toString(), {
-          ...request,
-          responseType: 'stream',
-        }),
-      ).catch((error: unknown) => {
-        if (isMissingFromStorage(error)) throw new NotFoundException();
-        throw error;
-      });
-
-      readable = response.data;
-    } else {
-      if (!object.path) {
-        this.logger.error(`Received object without path`);
-        throw new InternalServerErrorException();
-      }
-
-      const response = await this.s3
-        .send(this.innerGet(object as { path: StorablePath }))
-        .catch((error: unknown) => {
-          if (isMissingFromStorage(error)) throw new NotFoundException();
-          throw error;
-        });
-      if (!response.Body) {
-        this.logger.error(`Received no body from S3`);
-        throw new InternalServerErrorException();
-      }
-
-      readable = response.Body as Readable;
-    }
-
-    return {
-      expiresAt: object.expiresAt ?? this.fromNowUntilExpiration(),
-      file: new StreamableFile(
-        readable,
-        object.name
-          ? {
-              type: filenameToMimeType(object.name),
-              disposition: contentDisposition({ name: object.name }),
-            }
-          : undefined,
-      ),
-    };
-  }
-
-  private fromNowUntilExpiration(): Date {
-    return new Date(this.clock.now().getTime() + this.expiresInSeconds * time.SECONDS);
   }
 
   private innerDelete(

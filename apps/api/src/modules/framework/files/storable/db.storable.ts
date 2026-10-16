@@ -1,5 +1,5 @@
 import { Propagation } from '@nestjs-cls/transactional';
-import { Inject, Injectable, Logger, NotFoundException, StreamableFile } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 
 import { Prisma } from 'src/generated/prisma/client';
 import { Clock } from 'src/modules/framework/clock';
@@ -10,7 +10,7 @@ import { partition } from 'src/utils/iterables';
 import { noop } from 'src/utils/noop';
 
 import { StorageResult } from './result.storable';
-import { makeStorablePath, Storable, StorablePath, type Storage, type Stored } from './storable.types';
+import { Storable, StorablePath, type Storage, type Stored } from './storable.types';
 
 @Injectable()
 export class DbStorage implements Storage {
@@ -159,38 +159,5 @@ export class DbStorage implements Storage {
 
   private makeObjectPublicUrl(publicUrlId: string): URL {
     return new URL(`${this.originUrl}/api/files/v1/${publicUrlId}`);
-  }
-
-  async toStreamableFile(
-    object:
-      | { expiresAt?: Date; id: string; name?: string; path?: StorablePath }
-      | { expiresAt?: Date; name?: string; path?: StorablePath; publicUrlId: string }
-      | { expiresAt?: Date; url: URL },
-  ): Promise<{ expiresAt?: Date; file: StreamableFile }> {
-    if ('url' in object) {
-      return this.storage.toStreamableFile(object);
-    }
-
-    if ('id' in object) {
-      const file = await this.db.tx.file.findUnique({
-        select: { id: true, name: true, path: true } satisfies Prisma.FileSelect,
-        where: { id: object.id },
-      });
-
-      if (!file) throw new NotFoundException();
-
-      return this.storage.toStreamableFile({ ...file, path: makeStorablePath(file.path) });
-    }
-
-    const publicUrl = await this.db.tx.filePublicUrl.findUnique({
-      select: { expiresAt: true, url: true } satisfies Prisma.FilePublicUrlSelect,
-      where: { expiresAt: { gt: this.clock.now() }, id: object.publicUrlId },
-    });
-
-    if (!publicUrl) {
-      throw new NotFoundException();
-    }
-
-    return this.toStreamableFile({ expiresAt: publicUrl.expiresAt, url: new URL(publicUrl.url) });
   }
 }
