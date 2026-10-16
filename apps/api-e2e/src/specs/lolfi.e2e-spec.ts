@@ -37,7 +37,10 @@ test.describe('lolfi', () => {
       ],
     });
 
-    expect(session).toEqual({ id: expect.any(String) });
+    expect(session).toEqual({
+      files: [{ id: expect.any(String), magistratId: expect.any(String) }],
+      id: expect.any(String),
+    });
   });
 
   test('should define a PROFILE priority', async ({ sessions, agent, expect }) => {
@@ -129,7 +132,7 @@ test.describe('lolfi', () => {
     expect(nextFiles.data!.totalCount).toBe(1);
   });
 
-  test('should keep ingesting a formation once the other one was deleted', async ({ sessions, agent, expect }) => {
+  test('should keep ingesting a formation once the other one was deleted', async ({ admin, agent, expect }) => {
     const lolfiSessionId = crypto.randomInt(1_000, 900_000);
     const name = crypto.randomUUID();
 
@@ -180,25 +183,31 @@ test.describe('lolfi', () => {
       return data!.items[0];
     };
 
-    await sessions.createMany([
-      { id: lolfiSessionId, name, createdAt: '22/04/2026', candidates: [siegeCandidate, parquetCandidate] },
-    ]);
+    // one lolfi session for both formations, which the session fixture does not handle
+    await ingestUntilEnded(admin, {
+      id: lolfiSessionId,
+      name,
+      createdAt: '22/04/2026',
+      candidates: [siegeCandidate, parquetCandidate],
+    });
 
-    const siege = await findSession('SIEGE');
-    const parquet = await findSession('PARQUET');
-    assert.ok(siege, 'siege session is undefined');
-    assert.ok(parquet, 'parquet session is undefined');
+    // the sessions are synchronised once the job succeeded
+    const [siege, parquet] = await waitFor(async () => {
+      const found = [await findSession('SIEGE'), await findSession('PARQUET')] as const;
+      assert.ok(found[0], 'siege session is undefined');
+      assert.ok(found[1], 'parquet session is undefined');
+
+      return [found[0], found[1]] as const;
+    });
 
     await agent.sessions.deleteNominationSession({ path: { sessionId: siege.id }, throwOnError: true });
 
-    await sessions.createMany([
-      {
-        id: lolfiSessionId,
-        name,
-        createdAt: '22/04/2026',
-        candidates: [siegeCandidate, parquetCandidate, lateParquetCandidate],
-      },
-    ]);
+    await ingestUntilEnded(admin, {
+      id: lolfiSessionId,
+      name,
+      createdAt: '22/04/2026',
+      candidates: [siegeCandidate, parquetCandidate, lateParquetCandidate],
+    });
 
     await waitFor(async () => {
       const parquetFiles = await agent.sessions.listNominationFiles({ path: { sessionId: parquet.id } });

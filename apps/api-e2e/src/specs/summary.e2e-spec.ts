@@ -23,8 +23,7 @@ test.describe('Summary E2E', () => {
       createdAt: '22/04/2026',
       name: 'Transparence annuelle',
     });
-    const files = await agent.sessions.listNominationFiles({ path: { sessionId: session.id }, throwOnError: true });
-    const path = { nominationFileId: files.data!.items[0]!.id, sessionId: session.id };
+    const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
     await agent.summaries.createSummary({ path, throwOnError: true });
 
     const summary = await agent.summaries.detailSummary({ path });
