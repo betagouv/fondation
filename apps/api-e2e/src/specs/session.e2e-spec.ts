@@ -246,6 +246,32 @@ test.describe('Session E2E', () => {
       } satisfies NominationFile);
     });
 
+    test('should update the observers from a LODAM file, keeping no copy of the imported files', async ({
+      agent,
+      expect,
+    }) => {
+      const importResponse = await agent.sessions.createSessionFromLodam({
+        body: { file: await lodamFile(), form: lodamForm() },
+      });
+      const sessionId = importResponse.data!.id;
+
+      const response = await agent.sessions.updateSessionObservers({
+        body: { file: await lodamFile() },
+        path: { sessionId },
+      });
+      expect(response.response?.status).toBe(204);
+
+      const sql = postgres(inject('databaseUrl'), { onnotice: () => {} });
+      try {
+        const [copies] = await sql<{ count: number }[]>`
+          select count(*)::int as count from files_context.files where path[1] = 'lodam'
+        `;
+        expect(copies?.count).toBe(0);
+      } finally {
+        await sql.end();
+      }
+    });
+
     test('should attach a file to a nomination file and list it', async ({ agent, expect }) => {
       const importResponse = await agent.sessions.createSessionFromLodam({
         body: { file: await lodamFile(), form: lodamForm() },

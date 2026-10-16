@@ -50,11 +50,11 @@ describe('Files', () => {
     (files as any).client = { send };
   });
 
-  describe('delete', () => {
+  describe('deleteNow', () => {
     it('keeps the object in storage while another file row points to it', async () => {
       tx.file.findMany.mockResolvedValue([{ path: linkedCopy.path }] as never);
 
-      await (files as any)._delete([linkedCopy]);
+      await files.deleteNow([linkedCopy]);
 
       expect(send).not.toHaveBeenCalled();
       expect(tx.file.delete).toHaveBeenCalledWith({ where: { id: linkedCopy.id } });
@@ -63,11 +63,19 @@ describe('Files', () => {
     it('removes the object from storage once no other file row points to it', async () => {
       tx.file.findMany.mockResolvedValue([]);
 
-      await (files as any)._delete([linkedCopy]);
+      await files.deleteNow([linkedCopy]);
 
       expect(send).toHaveBeenCalledOnce();
       expect(send.mock.calls[0]![0].input.Delete.Objects).toEqual([{ Key: 'observations/courrier.pdf' }]);
       expect(tx.file.delete).toHaveBeenCalledWith({ where: { id: linkedCopy.id } });
+    });
+
+    it('lets the caller know the storage failed to delete, keeping the row', async () => {
+      tx.file.findMany.mockResolvedValue([]);
+      send.mockResolvedValue({ Deleted: [], Errors: [{ Key: 'observations/courrier.pdf' }] });
+
+      await expect(files.deleteNow([linkedCopy])).rejects.toThrow('failed deleting 1 files');
+      expect(tx.file.delete).not.toHaveBeenCalled();
     });
   });
 

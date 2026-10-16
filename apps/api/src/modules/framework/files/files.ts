@@ -311,6 +311,11 @@ export class Files implements OnApplicationBootstrap {
     );
   }
 
+  /** outside of a transaction, for a caller that has to know the deletion went through */
+  deleteNow(files: readonly { id: string; path: readonly string[] }[]): Promise<void> {
+    return this._delete(files);
+  }
+
   /** a linked observation file is another row pointing to the same object: the object stays while one of them remains */
   private async pathsStillReferenced(
     files: readonly ({ id: string; path: readonly string[] } | string)[],
