@@ -37,6 +37,7 @@ test.describe('lolfi', () => {
     expect(session).toEqual({
       files: [{ id: expect.any(String), magistratId: expect.any(String) }],
       id: expect.any(String),
+      name: expect.stringMatching(/^Transparence annuelle \(\d+\)$/),
     });
   });
 

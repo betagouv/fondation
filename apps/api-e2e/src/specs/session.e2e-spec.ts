@@ -447,11 +447,14 @@ test.describe('Session E2E', () => {
     }, 10_000);
 
     test('should sort the sessions by due date', async ({ agent, sessions, expect }) => {
-      const [later, sooner] = await sessions.createMany([TREVOUX_SESSION, TREVOUX_SESSION]);
-      // the earliest due dates of the database, for both sessions to open the list whatever its size
+      const name = randomUUID();
+      const [later, sooner] = await sessions.createMany([
+        { ...TREVOUX_SESSION, name },
+        { ...TREVOUX_SESSION, name },
+      ]);
       for (const [session, dueDate] of [
-        [later!, '1991-01-01'],
-        [sooner!, '1990-01-01'],
+        [later!, '2027-02-01'],
+        [sooner!, '2027-01-01'],
       ] as const) {
         const details = await agent.sessions.detailsNominationSession({ path: { sessionId: session.id } });
         const { date, name, observationsClosingDate, positionStartDate } = details.data!;
@@ -469,13 +472,10 @@ test.describe('Session E2E', () => {
       }
 
       const listed = await agent.sessions.listSessionsOfTypeGardeDesSceaux({
-        query: { limit: 200, sortBy: 'dueDate' },
+        query: { search: name, sortBy: 'dueDate' },
       });
 
-      // earlier runs leave sessions with the same due dates: only the order of these two is checked
-      const ours = new Set([sooner!.id, later!.id]);
-      expect(listed.response?.status).toBe(200);
-      expect(listed.data!.items.filter(({ id }) => ours.has(id)).map(({ id }) => id)).toEqual([sooner!.id, later!.id]);
+      expect(listed.data!.items.map(({ id }) => id)).toEqual([sooner!.id, later!.id]);
     });
 
     test('should list the nomination files it is asked for', async ({ agent, sessions, expect }) => {
@@ -568,9 +568,11 @@ test.describe('Session E2E', () => {
         await sql.end();
       }
 
-      const listedToSecretariat = await agent.archivedSessions.listArchivedSessions({ query: { limit: 200 } });
+      const listedToSecretariat = await agent.archivedSessions.listArchivedSessions({
+        query: { search: session.name },
+      });
       expect(listedToSecretariat.data!.items.map(({ id }) => id)).toContain(session.id);
-      const listedToMember = await member.archivedSessions.listArchivedSessions({ query: { limit: 200 } });
+      const listedToMember = await member.archivedSessions.listArchivedSessions({ query: { search: session.name } });
       expect(listedToMember.data!.items.map(({ id }) => id)).not.toContain(session.id);
     }, 10_000);
 

@@ -69,7 +69,7 @@ test.describe('Official report', () => {
     const sessionId = session.id;
 
     const ruleAcrossEndpoints = async () => {
-      const sessions = await agent.sessions.listSessionsOfTypeGardeDesSceaux({ query: { limit: 50 } });
+      const sessions = await agent.sessions.listSessionsOfTypeGardeDesSceaux({ query: { search: session.name } });
       const detailed = await agent.sessions.detailsNominationSession({ path: { sessionId } });
       const files = await agent.sessions.listNominationFiles({ path: { sessionId } });
       const readiness = await agent.docs.isSessionReadyForDocGeneration({ path: { sessionId } });
@@ -120,7 +120,7 @@ test.describe('Official report', () => {
     });
     const archived = await agent.sessions.archiveSession({ path: { sessionId } });
     expect(archived.response?.status).toBe(204);
-    const archivedSessions = await agent.archivedSessions.listArchivedSessions({ query: { limit: 200 } });
+    const archivedSessions = await agent.archivedSessions.listArchivedSessions({ query: { search: session.name } });
     expect(archivedSessions.data!.items.map(({ id }) => id)).toContain(sessionId);
 
     // an archived session freezes the reports written for it
@@ -143,7 +143,7 @@ test.describe('Official report', () => {
     await docs.officialReport(await docs.agenda(session), { status: 'VALIDATED' });
     await agent.sessions.archiveSession({ path: { sessionId }, throwOnError: true });
 
-    const archivedSessions = await agent.archivedSessions.listArchivedSessions({ query: { limit: 200 } });
+    const archivedSessions = await agent.archivedSessions.listArchivedSessions({ query: { search: session.name } });
     const archivedSession = archivedSessions.data!.items.find(({ id }) => id === sessionId);
     expect(archivedSession).toMatchObject({
       archivedAt: expect.any(String),
@@ -154,10 +154,12 @@ test.describe('Official report', () => {
     const { formation } = archivedSession!;
     const formationMember = await logIn(formation === 'PARQUET' ? 'MEMBRE_DU_PARQUET' : 'MEMBRE_DU_SIEGE');
     const outsider = await logIn(formation === 'PARQUET' ? 'MEMBRE_DU_SIEGE' : 'MEMBRE_DU_PARQUET');
-    const foundByMember = await formationMember.archivedSessions.listArchivedSessions({ query: { limit: 200 } });
+    const foundByMember = await formationMember.archivedSessions.listArchivedSessions({
+      query: { search: session.name },
+    });
     expect(foundByMember.data!.items.map(({ id }) => id)).toContain(sessionId);
     const foundByOutsider = await outsider.archivedSessions.listArchivedSessions({
-      query: { formations: [formation], limit: 200 },
+      query: { formations: [formation], search: session.name },
     });
     expect(foundByOutsider.data!.items.map(({ id }) => id)).not.toContain(sessionId);
   });

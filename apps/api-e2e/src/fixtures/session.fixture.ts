@@ -19,8 +19,8 @@ export type SessionStage = {
   reporters?: readonly [{ id: string }, ...{ id: string }[]];
 };
 
-/** the nomination files come in the order of the candidates */
-export type CreatedSession = { files: { id: string; magistratId: string }[]; id: string };
+/** the nomination files come in the order of the candidates, the name is unique to find the session in a list */
+export type CreatedSession = { files: { id: string; magistratId: string }[]; id: string; name: string };
 
 export function makeCreateSessionFixture(steps: TestStepsAdmin, lolfi: LolfiFixture) {
   async function findFiles(sessionId: string, candidates: readonly Candidate[]): Promise<CreatedSession['files']> {
@@ -78,6 +78,7 @@ export function makeCreateSessionFixture(steps: TestStepsAdmin, lolfi: LolfiFixt
       id: session.id || ++sessionIdSequence,
       name: session.name || 'Transparence annuelle',
     }));
+    const names = named.map(({ id, name }) => `${name} (${id})`);
     const job = await lolfi.ingest(named);
     if (job.status === 'FAILED') {
       const { errors, files } = await steps.jobs
@@ -89,12 +90,12 @@ export function makeCreateSessionFixture(steps: TestStepsAdmin, lolfi: LolfiFixt
     // the sessions are synchronised once the job succeeded
     const sessionIds = await waitFor(async () => {
       const result: string[] = [];
-      for (const { id, name } of named) {
+      for (const name of names) {
         const [firstSession] = await steps.sessions
-          .listSessionsOfTypeGardeDesSceaux({ query: { search: `${name} (${id})` } })
+          .listSessionsOfTypeGardeDesSceaux({ query: { search: name } })
           .then(({ data }) => data!.items);
 
-        assert.ok(firstSession, `session "${name} (${id})" is undefined`);
+        assert.ok(firstSession, `session "${name}" is undefined`);
         result.push(firstSession.id);
       }
 
@@ -105,7 +106,7 @@ export function makeCreateSessionFixture(steps: TestStepsAdmin, lolfi: LolfiFixt
     for (const [index, id] of sessionIds.entries()) {
       const files = await findFiles(id, sessions[index]!.candidates);
       await bringTo(id, files, stage);
-      created.push({ files, id });
+      created.push({ files, id, name: names[index]! });
     }
 
     return created;
