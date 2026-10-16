@@ -8,7 +8,6 @@ import { capitalize } from '@/utils/string.utils';
 import type { DetailedMemberDto } from '@api/types';
 import { useExcludedJurisdictionsMutation } from '@queries/members.queries';
 
-import { DetailsMemberStats } from './DetailsMemberStats';
 import { JurisdictionSelector } from './JurisdictionSelector';
 import { MemberDisplayTitle } from './MemberDisplayTitle';
 import { MemberTitle } from './MemberTitle';
@@ -72,30 +71,27 @@ export function DetailsMember(props: { member: DetailedMemberDto }) {
       header={<DetailsMemberHeader name={name} />}
       identity={
         <DetailsCard className="grow">
-          <DetailsMemberStats stats={member.stats} />
+          <h2 className="fr-h4">
+            <FormattedMessage defaultMessage="Informations" />
+          </h2>
+          <dl className="m-0 flex flex-col gap-2 p-0">
+            <MemberInfoItem label={<FormattedMessage defaultMessage="Nom" />}>
+              {member.lastName.toUpperCase()}
+            </MemberInfoItem>
+            <MemberInfoItem label={<FormattedMessage defaultMessage="Prénom" />}>
+              {capitalize(member.firstName)}
+            </MemberInfoItem>
+            <MemberInfoItem label={<FormattedMessage defaultMessage="Email" />}>
+              {member.email}
+            </MemberInfoItem>
+            <MemberInfoItem label={<FormattedMessage defaultMessage="Formation" />}>
+              <FormattedMessage {...FORMATION_LABELS[member.role]} />
+            </MemberInfoItem>
+          </dl>
         </DetailsCard>
       }
-      identityPosition="right"
       wideIdentity
     >
-      <DetailsCard>
-        <h2 className="fr-h4">
-          <FormattedMessage defaultMessage="Informations" />
-        </h2>
-        <dl className="m-0 flex flex-col gap-2 p-0">
-          <MemberInfoItem label={<FormattedMessage defaultMessage="Nom" />}>
-            {member.lastName.toUpperCase()}
-          </MemberInfoItem>
-          <MemberInfoItem label={<FormattedMessage defaultMessage="Prénom" />}>
-            {capitalize(member.firstName)}
-          </MemberInfoItem>
-          <MemberInfoItem label={<FormattedMessage defaultMessage="Email" />}>{member.email}</MemberInfoItem>
-          <MemberInfoItem label={<FormattedMessage defaultMessage="Formation" />}>
-            <FormattedMessage {...FORMATION_LABELS[member.role]} />
-          </MemberInfoItem>
-        </dl>
-      </DetailsCard>
-
       <DetailsCard>
         <h2 className="fr-h4">
           <FormattedMessage defaultMessage="Distinction et titre" />

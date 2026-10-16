@@ -125,7 +125,7 @@ describe('SessionDocumentsTable', () => {
       render(table([agenda]));
 
       expect(screen.getByText('À restituer')).toBeInTheDocument();
-      expect(screen.queryByText(/Restitué le/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Restitué dans/)).not.toBeInTheDocument();
     });
 
     it('should tell when and by whom an agenda was presented', () => {
@@ -133,20 +133,26 @@ describe('SessionDocumentsTable', () => {
 
       expect(screen.queryByText('À restituer')).not.toBeInTheDocument();
       expect(rowTexts()).toEqual([
-        expect.stringMatching(/Validé le 10\/03\/2028.*Restitué le 15\/03\/2028 à 10h15 par Camille Martin/),
+        expect.stringMatching(
+          /Validé le 10\/03\/2028.*Restitué dans la notice du 15\/03\/2028 à 10h15 par Camille Martin/,
+        ),
       ]);
     });
 
     it('should say "vous" to whoever presented the agenda', () => {
       render(table([{ ...agenda, presentation: { ...PRESENTED, by: { id: 'me', name: 'Lucas Bernard' } } }]));
 
-      expect(rowTexts()).toEqual([expect.stringContaining('Restitué le 15/03/2028 à 10h15 par vous')]);
+      expect(rowTexts()).toEqual([
+        expect.stringContaining('Restitué dans la notice du 15/03/2028 à 10h15 par vous'),
+      ]);
     });
 
     it('should keep only the date of a presentation whose author and ending time are unknown', () => {
       render(table([{ ...agenda, presentation: { ...PRESENTED, by: null, endTime: null } }]));
 
-      expect(rowTexts()).toEqual([expect.stringMatching(/Restitué le 15\/03\/2028(?! à)(?! par)/)]);
+      expect(rowTexts()).toEqual([
+        expect.stringMatching(/Restitué dans la notice du 15\/03\/2028(?! à)(?! par)/),
+      ]);
     });
 
     it('should not badge an agenda never validated, nor an official report', () => {
@@ -158,7 +164,7 @@ describe('SessionDocumentsTable', () => {
     it('should lead from a presented agenda to the preview of its notice', () => {
       render(table([{ ...agenda, presentation: PRESENTED }]));
 
-      expect(screen.getByRole('link', { name: 'Voir la notice' })).toHaveAttribute(
+      expect(screen.getByRole('link', { name: 'la notice' })).toHaveAttribute(
         'href',
         '/secretariat-general/restitutions/plan-1/validation',
       );
@@ -173,7 +179,7 @@ describe('SessionDocumentsTable', () => {
         ]),
       );
 
-      expect(screen.queryByRole('link', { name: 'Voir la notice' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: 'la notice' })).not.toBeInTheDocument();
     });
   });
 

@@ -162,7 +162,7 @@ export function MagistratNominationFilesTable({
 
   return (
     <DataTable
-      className="max-h-80"
+      className="h-auto max-h-80"
       emptyLabel={formatMessage({ defaultMessage: 'Aucun dossier de nomination' })}
       fluid
       onEndReached={onEndReached}
