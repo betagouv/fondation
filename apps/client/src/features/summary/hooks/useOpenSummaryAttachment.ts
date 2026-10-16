@@ -1,13 +1,13 @@
 import { useCallback } from 'react';
 import { useIntl } from 'react-intl';
 
+import { useAttachmentFailureToast } from '@/shared/hooks/useAttachmentFailureToast';
 import { useTab } from '@/shared/hooks/useTab';
-import { useToasts } from '@/shared/ui/toast';
 import { useGenerateSummaryAttachmentPublicUrlMutation } from '@queries/summary.queries';
 
 export function useOpenSummaryAttachment() {
   const { formatMessage } = useIntl();
-  const toasts = useToasts();
+  const notifyFailure = useAttachmentFailureToast();
   const tab = useTab();
   const { mutateAsync, isPending } = useGenerateSummaryAttachmentPublicUrlMutation();
 
@@ -19,24 +19,13 @@ export function useOpenSummaryAttachment() {
       });
 
       try {
-        const url = await mutateAsync(attachment);
-        if (!url) throw new Error(`no public url for ${attachment.name}`);
-
-        attachmentTab.settle(url);
-      } catch {
+        attachmentTab.settle(await mutateAsync(attachment));
+      } catch (error) {
         attachmentTab.cancel();
-        toasts.error({
-          description: formatMessage({
-            defaultMessage: 'Réessayez et prévenez le support si cela persiste.',
-          }),
-          title: formatMessage(
-            { defaultMessage: 'L\'ouverture de "{name}" a échoué' },
-            { name: attachment.name },
-          ),
-        });
+        notifyFailure('open', attachment.name, error);
       }
     },
-    [formatMessage, mutateAsync, tab, toasts],
+    [formatMessage, mutateAsync, notifyFailure, tab],
   );
 
   return { isPending, open };

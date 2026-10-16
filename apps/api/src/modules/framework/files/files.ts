@@ -7,9 +7,11 @@ import {
   DeleteObjectsCommand,
   GetObjectCommand,
   HeadBucketCommand,
+  HeadObjectCommand,
   ListObjectVersionsCommand,
   PutBucketCorsCommand,
   S3Client,
+  S3ServiceException,
 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -38,8 +40,9 @@ import { ignoreAsync, isFulfilled } from 'src/utils/promises';
 import * as time from 'src/utils/time';
 
 import { contentDisposition } from './content-disposition';
-import { type FondationFile } from './files.types';
+import { type FondationFile, type StoredSize } from './files.types';
 import { filenameToMimeType } from './mime-type';
+import { FileMissingFromStorage, isMissingFromStorage } from './missing-from-storage';
 
 /** @internal */
 class RollbackFilePathOperationError {
@@ -453,7 +456,7 @@ export class Files implements OnApplicationBootstrap {
       this.db.tx.filePublicUrl.findUnique({
         select: {
           expiresAt: true,
-          file: { select: { name: true } },
+          file: { select: { id: true, name: true, path: true } },
           url: true,
         } satisfies Prisma.FilePublicUrlSelect,
         where: { expiresAt: { gt: this.clock.now() }, id: fileUrlId },
@@ -478,7 +481,14 @@ export class Files implements OnApplicationBootstrap {
         headers,
         responseType: 'stream',
       }),
-    );
+    ).catch((error: unknown) => {
+      if (isMissingFromStorage(error)) {
+        this.reportMissingFromStorage(file.file);
+        throw new FileMissingFromStorage();
+      }
+
+      throw error;
+    });
 
     return {
       expiresAt: file.expiresAt,
@@ -505,10 +515,41 @@ export class Files implements OnApplicationBootstrap {
       Key: encodeURI(storedFile.path.join('/')),
     });
 
-    const response = await this.client.send(command);
-    if (!response.Body) throw new Error('Not Found');
+    const response = await this.client.send(command).catch((error: unknown) => {
+      if (!isMissingFromStorage(error)) throw error;
 
+      this.reportMissingFromStorage({ id: props.fileId, path: storedFile.path });
+      return null;
+    });
+
+    if (!response) return null;
     return assertIsDefined(response.Body as Readable | undefined, `file ${props.fileId} not found`);
+  }
+
+  async storedSize(file: { path: readonly string[] }): Promise<StoredSize> {
+    const key = encodeURI(file.path.join('/'));
+
+    try {
+      const { ContentLength } = await this.client.send(
+        new HeadObjectCommand({ ...this.sseHeaders, Bucket: this.bucketName, Key: key }),
+      );
+
+      return { size: assertIsDefined(ContentLength, `no size for ${key}`), status: 'FOUND' };
+    } catch (error) {
+      if (!(error instanceof S3ServiceException)) throw error;
+
+      // a HEAD answer has no body to name the error: its status is the only clue
+      if (error.$metadata.httpStatusCode === 404) return { status: 'MISSING' };
+      if (error.$metadata.httpStatusCode === 403) return { status: 'REFUSED' };
+      throw error;
+    }
+  }
+
+  private reportMissingFromStorage(file: { id: string; path: readonly string[] }): void {
+    Sentry.captureMessage('A file known to the database is missing from the storage', {
+      extra: { fileId: file.id, path: file.path.join('/') },
+      level: 'warning',
+    });
   }
 
   private async generatePublicUrl(file: { id: string; path: readonly string[] }): Promise<{

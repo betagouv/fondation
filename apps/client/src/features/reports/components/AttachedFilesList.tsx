@@ -3,8 +3,8 @@ import { FormattedMessage, useIntl } from 'react-intl';
 
 import { FileList, FileListItem } from '@/shared/components/file-list';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
+import { useAttachmentFailureToast } from '@/shared/hooks/useAttachmentFailureToast';
 import { useTab } from '@/shared/hooks/useTab';
-import { useToasts } from '@/shared/ui/toast';
 import { useDownloadFileMutation } from '@queries/files.queries';
 import { useGenerateReportFilePublicUrlMutation } from '@queries/reports.queries';
 
@@ -21,22 +21,13 @@ export function AttachedFilesList(props: {
   reportId: string;
 }) {
   const { formatMessage } = useIntl();
-  const toasts = useToasts();
+  const notifyFailure = useAttachmentFailureToast();
   const tab = useTab();
   const confirmation = useConfirmModal();
 
   const { isPending: isCreatingUrl, mutateAsync: createAttachmentLink } =
     useGenerateReportFilePublicUrlMutation();
   const { isPending: isDownloading, mutateAsync: download } = useDownloadFileMutation();
-
-  const onError = useCallback(
-    (title: string) =>
-      toasts.error({
-        description: formatMessage({ defaultMessage: 'Réessayez et prévenez le support si cela persiste.' }),
-        title,
-      }),
-    [formatMessage, toasts],
-  );
 
   const onOpen = useCallback(
     async (fileName: string) => {
@@ -47,12 +38,12 @@ export function AttachedFilesList(props: {
 
       try {
         attachmentTab.settle(await createAttachmentLink({ fileName, reportId: props.reportId }));
-      } catch {
+      } catch (error) {
         attachmentTab.cancel();
-        onError(formatMessage({ defaultMessage: 'L\'ouverture de "{name}" a échoué' }, { name: fileName }));
+        notifyFailure('open', fileName, error);
       }
     },
-    [createAttachmentLink, formatMessage, onError, props.reportId, tab],
+    [createAttachmentLink, formatMessage, notifyFailure, props.reportId, tab],
   );
 
   const onDownload = useCallback(
@@ -60,13 +51,11 @@ export function AttachedFilesList(props: {
       try {
         const url = await createAttachmentLink({ fileName, reportId: props.reportId });
         await download({ name: fileName, url });
-      } catch {
-        onError(
-          formatMessage({ defaultMessage: 'Le téléchargement de "{name}" a échoué' }, { name: fileName }),
-        );
+      } catch (error) {
+        notifyFailure('download', fileName, error);
       }
     },
-    [createAttachmentLink, download, formatMessage, onError, props.reportId],
+    [createAttachmentLink, download, notifyFailure, props.reportId],
   );
 
   const onDelete = async (fileName: string) => {

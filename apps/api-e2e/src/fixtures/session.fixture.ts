@@ -57,9 +57,9 @@ export function makeCreateSessionFixture(steps: TestStepsAdmin) {
       { timeout: 2_000 },
     );
 
-    const result: { id: string }[] = [];
-    await waitFor(
+    return waitFor(
       async () => {
+        const result: { id: string }[] = [];
         for (const name of names) {
           const [firstSession] = await steps.sessions
             .listSessionsOfTypeGardeDesSceaux({ query: { search: name } })
@@ -68,11 +68,10 @@ export function makeCreateSessionFixture(steps: TestStepsAdmin) {
           assert.ok(firstSession, `session "${name}" is undefined`);
           result.push({ id: firstSession.id });
         }
+        return result;
       },
       { timeout: 2_000 },
     );
-
-    return result;
   }
 
   async function createSession(inputSession: LolfiArchiveContent['sessions'][number]): Promise<{ id: string }> {

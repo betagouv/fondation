@@ -55,7 +55,9 @@ export function usePasswordLogin() {
 
   return useMutation({
     mutationFn: (body: { email: string; password: string }) => {
-      const authorization = btoa(`${body.email}:${body.password}`);
+      // btoa only takes Latin-1 characters, while the server reads the credentials in UTF-8
+      const credentials = new TextEncoder().encode(`${body.email}:${body.password}`);
+      const authorization = btoa(String.fromCharCode(...credentials));
       return $api.auth.login({ headers: { authorization: `Basic ${authorization}` } });
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: authKeys.introspectSession() }),

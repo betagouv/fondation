@@ -7,6 +7,7 @@ import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import type { NominationFileAttachmentTypeEnum } from '@/features/transparence/components/nomination-file-attachments/nomination-file-attachment-type';
 import { FileList, FileListItem } from '@/shared/components/file-list';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
+import { useAttachmentFailureToast } from '@/shared/hooks/useAttachmentFailureToast';
 import { useTab } from '@/shared/hooks/useTab';
 import { useDownloadFileMutation } from '@queries/files.queries';
 import {
@@ -104,18 +105,9 @@ function AttachmentItem(props: {
 }) {
   const { formatMessage } = useIntl();
   const tab = useTab();
-  const {
-    isError: isUrlError,
-    isPending: isUrlPending,
-    mutate: createUrl,
-    reset: resetUrl,
-  } = useCreateNominationFileAttachmentUrlMutation();
-  const {
-    isError: isDownloadError,
-    isPending: isDownloadPending,
-    mutate: download,
-    reset: resetDownload,
-  } = useDownloadFileMutation();
+  const notifyFailure = useAttachmentFailureToast();
+  const { isPending: isUrlPending, mutate: createUrl } = useCreateNominationFileAttachmentUrlMutation();
+  const { isPending: isDownloadPending, mutate: download } = useDownloadFileMutation();
   const {
     isError: isRemoveError,
     isPending: isRemovePending,
@@ -124,12 +116,9 @@ function AttachmentItem(props: {
   } = useRemoveNominationFileAttachmentMutation();
   const { waitForConfirmation } = useConfirmModal();
 
-  const error =
-    isUrlError || isDownloadError
-      ? formatMessage({ defaultMessage: 'Le téléchargement du fichier a échoué. Veuillez réessayer.' })
-      : isRemoveError
-        ? formatMessage({ defaultMessage: 'La suppression du fichier a échoué. Veuillez réessayer.' })
-        : null;
+  const error = isRemoveError
+    ? formatMessage({ defaultMessage: 'La suppression du fichier a échoué. Veuillez réessayer.' })
+    : null;
 
   const onPreview = useCallback(() => {
     const attachmentTab = tab.openDeferred({
@@ -140,25 +129,42 @@ function AttachmentItem(props: {
     createUrl(
       { fileId: props.fileId, nominationFileId: props.nominationFileId, sessionId: props.sessionId },
       {
-        onError: () => attachmentTab.cancel(),
+        onError: (error) => {
+          attachmentTab.cancel();
+          notifyFailure('open', props.name, error);
+        },
         onSuccess: (response) => {
           if (response) attachmentTab.settle(response.url);
           else attachmentTab.cancel();
         },
       },
     );
-  }, [createUrl, formatMessage, props.fileId, props.name, props.nominationFileId, props.sessionId, tab]);
+  }, [
+    createUrl,
+    formatMessage,
+    notifyFailure,
+    props.fileId,
+    props.name,
+    props.nominationFileId,
+    props.sessionId,
+    tab,
+  ]);
 
   const onDownload = useCallback(() => {
     createUrl(
       { fileId: props.fileId, nominationFileId: props.nominationFileId, sessionId: props.sessionId },
       {
+        onError: (error) => notifyFailure('download', props.name, error),
         onSuccess: (response) => {
-          if (response) download({ name: props.name, url: response.url });
+          if (!response) return;
+          download(
+            { name: props.name, url: response.url },
+            { onError: (error) => notifyFailure('download', props.name, error) },
+          );
         },
       },
     );
-  }, [createUrl, download, props.fileId, props.name, props.nominationFileId, props.sessionId]);
+  }, [createUrl, download, notifyFailure, props.fileId, props.name, props.nominationFileId, props.sessionId]);
 
   const onDelete = useCallback(async () => {
     const { isConfirmed } = await waitForConfirmation({
@@ -205,11 +211,7 @@ function AttachmentItem(props: {
           className="fr-mt-2v"
           closable
           description={error}
-          onClose={() => {
-            resetUrl();
-            resetDownload();
-            resetRemove();
-          }}
+          onClose={resetRemove}
           severity="error"
           small
         />

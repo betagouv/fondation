@@ -43,6 +43,8 @@ export type TestStepsAgent = Omit<
     archivedSessions: TestSteps['archivedSessions'];
     auth: Omit<(typeof api)['auth'], 'login' | 'listOpenIdProviders' | 'prepareOpenIdRequest' | 'callback'>;
     feedback: TestSteps['feedback'];
+    // the secretariat also opens the attachments it serves
+    files: TestSteps['files'];
     // the secretariat also reads the observations it receives
     observations: TestSteps['observations'];
     // the secretariat also reads the summaries it writes
