@@ -1,3 +1,4 @@
+import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 
 import { Db } from '../framework/database';
@@ -8,6 +9,7 @@ import { FormationEnum } from '../shared/formation.enum';
 import { AgendasService } from './agenda/agendas.service';
 import { OfficialReportsService } from './official-report/official-reports.service';
 import { PresentationPlansService } from './presentation-plan/presentation-plans.service';
+import { SessionDocInvalidation } from './shared/domain/doc-invalidation';
 import { FoundDocsMembersDto } from './shared/infrastructure/docs.dto';
 import {
   DocsNominationFilesFinder,
@@ -34,6 +36,7 @@ import {
   ListedSecretariesGeneralDto,
   ListSecretariesGeneralQuery,
 } from './shared/infrastructure/queries/list-secretaries-general.query';
+import { InvalidateDocsUseCase } from './shared/infrastructure/use-cases/invalidate-docs.use-case';
 
 @Injectable()
 export class DocsService {
@@ -46,6 +49,7 @@ export class DocsService {
 
     private readonly findJusticeContactsQuery: FindJusticeContactsQuery,
     private readonly findSessionDocsQuery: FindSessionDocsQuery,
+    private readonly invalidateDocsUseCase: InvalidateDocsUseCase,
     private readonly isSessionReadyForDocGenerationQuery: IsSessionReadyForDocGenerationQuery,
     private readonly nominationFilesLinkedDocsFinder: NominationFilesLinkedDocsFinder,
     private readonly reportedNominationFilesFinder: ReportedNominationFilesFinder,
@@ -97,6 +101,11 @@ export class DocsService {
     nominationFileIds: Set<string>;
   }): Promise<Map<string, NominationFileLinkedDoc[]>> {
     return this.nominationFilesLinkedDocsFinder.find(query);
+  }
+
+  @Transactional(Propagation.Mandatory)
+  internalInvalidateDocs(invalidations: readonly SessionDocInvalidation[]): Promise<void> {
+    return this.invalidateDocsUseCase.handle(invalidations);
   }
 
   internalFindReportedNominationFiles(query: { nominationFileIds: Set<string> }): Promise<Set<string>> {
