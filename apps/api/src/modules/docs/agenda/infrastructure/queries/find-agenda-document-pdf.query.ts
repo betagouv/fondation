@@ -54,12 +54,13 @@ export class FindAgendaDocumentPdfQuery {
     // Stream the cached PDF from S3 outside of any transaction.
     if (!query.forceNew && version.pdf?.id) {
       const file$ = await this.files.getFile({ fileId: version.pdf.id });
-      if (!file$) throw new NotFoundException();
-
-      return new StreamableFile(file$, {
-        type: FILE_MIME_TYPES.pdf,
-        disposition: contentDisposition({ name: version.pdf.name }),
-      });
+      if (file$) {
+        return new StreamableFile(file$, {
+          type: FILE_MIME_TYPES.pdf,
+          disposition: contentDisposition({ name: version.pdf.name }),
+        });
+      }
+      // the storage lost it: rendered again from the HTML the version froze
     }
 
     const html = await this.findAgendaDocumentQuery.handle(query);

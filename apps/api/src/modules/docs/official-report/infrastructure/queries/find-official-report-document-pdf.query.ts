@@ -54,12 +54,13 @@ export class FindOfficialReportDocumentPdfQuery {
     // Stream the cached PDF from S3 outside of any transaction.
     if (!query.forceNew && officialReport.pdf?.id) {
       const file$ = await this.files.getFile({ fileId: officialReport.pdf.id });
-      if (!file$) throw new NotFoundException();
-
-      return new StreamableFile(file$, {
-        type: FILE_MIME_TYPES.pdf,
-        disposition: contentDisposition({ name: officialReport.pdf.name }),
-      });
+      if (file$) {
+        return new StreamableFile(file$, {
+          type: FILE_MIME_TYPES.pdf,
+          disposition: contentDisposition({ name: officialReport.pdf.name }),
+        });
+      }
+      // the storage lost it: rendered again from the HTML the version froze
     }
 
     const html = await this.findOfficialReportDocumentQuery.handle(query);
