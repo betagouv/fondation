@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { QueryClient } from '@tanstack/react-query';
 import { http, HttpResponse } from 'msw';
 
+import { ArchivedSessionContext } from '@/shared/context/archived-session';
 import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
 import { authKeys } from '@queries/auth.queries';
 
@@ -24,17 +25,19 @@ function seed(view: View) {
     });
 }
 
-function AppHeaderStory(props: { view: View }) {
+function AppHeaderStory(props: { isArchived: boolean; view: View }) {
   return (
     <StoryQueryClient key={props.view} seed={seed(props.view)}>
-      <AppHeader />
+      <ArchivedSessionContext value={{ isArchived: props.isArchived, setIsArchived: () => {} }}>
+        <AppHeader />
+      </ArchivedSessionContext>
     </StoryQueryClient>
   );
 }
 
 const meta = {
   argTypes: { view: { control: 'inline-radio', options: VIEWS } },
-  args: { view: 'member' },
+  args: { isArchived: false, view: 'member' },
   beforeEach: ({ msw }) => {
     msw.use(http.get('*/api/sessions/v2/new/count', () => HttpResponse.json({ count: 2 })));
   },
@@ -43,7 +46,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'En-tête de l\'application. Un membre n\'a pas de menu de navigation. Le secrétariat général a le sien, avec une pastille sur "Gérer une session" quand de nouvelles sessions sont arrivées. Un administrateur a en plus le menu "Administration". En haut à droite, LOLFI, le centre d\'aide, l\'avis et le compte apparaissent pour tout le monde.',
+          'En-tête de l\'application. Un membre a une navigation avec "Accueil" (la liste de ses sessions), "Archives" (les sessions archivées de sa formation) et "Rechercher un magistrat". Le secrétariat général a la sienne, avec une pastille sur "Gérer une session" quand de nouvelles sessions sont arrivées et "Rechercher un magistrat" après "Archives". Une page d\'une session archivée met "Archives" en avant, quel que soit son chemin. Un administrateur a en plus le menu "Administration". En haut à droite, LOLFI, le centre d\'aide, l\'avis et le compte apparaissent pour tout le monde.',
       },
     },
     layout: 'fullscreen',
@@ -57,7 +60,23 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const Member: Story = {};
+export const Member: Story = {
+  parameters: { router: { initialEntries: ['/magistrats'], path: '*' } },
+};
+
+export const MemberArchives: Story = {
+  parameters: { router: { initialEntries: ['/transparences/archives/sessions'], path: '*' } },
+};
+
+export const MemberArchivedSession: Story = {
+  args: { isArchived: true },
+  parameters: {
+    router: {
+      initialEntries: ['/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/session-1'],
+      path: '*',
+    },
+  },
+};
 
 export const Sg: Story = { args: { view: 'sg' } };
 

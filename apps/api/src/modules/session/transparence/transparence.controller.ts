@@ -163,12 +163,7 @@ export class SessionController {
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Post('/lodam')
-  @UseMultipartBody({
-    deleteOnFail: false,
-    destination: ({ id, mimetype }) => `lodam/${new Date().toISOString()}/${id}.${FILE_EXTENSIONS[mimetype]}`,
-    overrideFiles: false,
-    schema: ImportNominationSessionFromLodamXlsxDto,
-  })
+  @UseMultipartBody({ schema: ImportNominationSessionFromLodamXlsxDto })
   @ZodResponse({
     status: HttpStatus.CREATED,
     type: CreatedNominationSessionDto,
@@ -191,12 +186,7 @@ export class SessionController {
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Post('/lodam/:sessionId/observers')
-  @UseMultipartBody({
-    deleteOnFail: false,
-    destination: ({ id, mimetype }) => `lodam/${new Date().toISOString()}/${id}.${FILE_EXTENSIONS[mimetype]}`,
-    overrideFiles: false,
-    schema: UpdateNominationSessionFilesObserversDto,
-  })
+  @UseMultipartBody({ schema: UpdateNominationSessionFilesObserversDto })
   @HttpCode(HttpStatus.NO_CONTENT)
   async updateSessionObservers(
     @Param('sessionId') sessionId: string,

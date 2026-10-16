@@ -6,7 +6,7 @@ import { generatePath, Link } from 'react-router';
 
 import { OutcomeBadge } from '@/shared/components/outcome-badge';
 import { ReporterTagList } from '@/shared/components/reporter-tag';
-import { NewTable } from '@/shared/ui/new-table/NewTable';
+import { DataTable } from '@/shared/ui/data-table';
 import { isAuditionMissing } from '@/utils/audition-expectation.util';
 import { formatDateOnly } from '@/utils/date-only.util';
 import { getDetailSessionGdsPath, ROUTE_PATHS } from '@/utils/route-path.utils';
@@ -20,10 +20,12 @@ const columnHelper = createColumnHelper<MagistratNominationFile>();
 export function MagistratNominationFilesTable({
   context,
   nominationFiles,
+  onEndReached,
   showAuditionDate = true,
 }: {
   context: 'sg' | 'membre';
   nominationFiles: MagistratNominationFile[];
+  onEndReached?: () => void;
   showAuditionDate?: boolean;
 }) {
   const { formatDate, formatMessage, formatTime } = useIntl();
@@ -159,12 +161,12 @@ export function MagistratNominationFilesTable({
   });
 
   return (
-    <NewTable
-      className="max-h-80"
+    <DataTable
+      className="h-auto max-h-80"
       emptyLabel={formatMessage({ defaultMessage: 'Aucun dossier de nomination' })}
       fluid
+      onEndReached={onEndReached}
       table={table}
-      unvirtualized
     />
   );
 }

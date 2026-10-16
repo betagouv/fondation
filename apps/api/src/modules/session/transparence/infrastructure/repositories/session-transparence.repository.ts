@@ -690,21 +690,16 @@ export class SessionTransparenceRepository {
   private async persistSessionTransparenceFileMemberMemoWritten(
     message: SessionTransparenceFileMemberMemoWritten,
   ) {
+    const { memo, nominationFileId, userId } = message;
+    if (memo === null) {
+      await this.db.tx.memberMemo.deleteMany({ where: { nominationFileId, userId } });
+      return;
+    }
+
     await this.db.tx.memberMemo.upsert({
-      create: {
-        memo: message.memo,
-        nominationFileId: message.nominationFileId,
-        userId: message.userId,
-      },
-
-      update: { memo: message.memo },
-
-      where: {
-        primaryKey: {
-          nominationFileId: message.nominationFileId,
-          userId: message.userId,
-        },
-      },
+      create: { memo, nominationFileId, userId },
+      update: { memo },
+      where: { primaryKey: { nominationFileId, userId } },
     });
   }
 

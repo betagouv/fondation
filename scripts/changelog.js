@@ -43,7 +43,7 @@ const FORMATS = {
 /** @param {[string, string]} commandRange @returns {string[]} */
 function logCommits(commandRange) {
   /** @type string */
-  const list = execSync(`git log --pretty='%h %s' ${commandRange[0]}..${commandRange[1]}`, {
+  const list = execSync(`git log --no-merges --pretty='%h %s' ${commandRange[0]}..${commandRange[1]}`, {
     encoding: 'utf-8',
   });
 

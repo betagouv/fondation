@@ -17,13 +17,14 @@ import type {
   AffectReportersDto,
   ImportNominationSessionFromLodamXlsxDto,
   ListedNominationFileAttachmentDto,
+  ListedNominationSessionsDto,
   ListNominationFilesData,
   ListSessionsOfTypeGardeDesSceauxData,
   PaginatedNominationFiles,
   UploadNominationFileAttachmentsDto,
 } from '@api/types';
 
-import { agendaKeys, presentationPlanKeys } from './agenda.queries';
+import { agendaKeys, officialReportKeys, presentationPlanKeys } from './agenda.queries';
 import { archivedSessionKeys } from './archived-nomination-sessions.queries';
 
 type NonNullableKey<Parts extends unknown[], Rest extends unknown[] = []> = Parts extends never[]
@@ -45,6 +46,16 @@ function key<const Parts extends unknown[]>(...parts: Parts): NonNullableKey<Par
   }) as NonNullableKey<Parts>;
 }
 
+export type GdsSessionsFilters = { formations?: FormationEnum[] };
+export type GdsSessionsSorting =
+  | []
+  | [
+      {
+        desc: boolean;
+        id: NonNullable<NonNullable<ListSessionsOfTypeGardeDesSceauxData['query']>['sortBy']>;
+      },
+    ];
+
 export const sessionKeys = {
   detailSessionAffectationVersion: (props?: { sessionId: string }) =>
     key('sessions', 'detailSessionAffectationVersion', props?.sessionId),
@@ -63,19 +74,8 @@ export const sessionKeys = {
     key('sessions', 'detailSession', props?.sessionId),
   detailSessionComment: (props: { sessionId: string }) =>
     key('sessions', 'detailSessionComment', props.sessionId),
-  listGdsSessions: (props?: {
-    pagination: { pageIndex: number; pageSize: number } | undefined;
-    sorting:
-      | []
-      | [
-          {
-            id: NonNullable<ListSessionsOfTypeGardeDesSceauxData['query']>['sortBy'];
-            desc: boolean;
-          },
-        ]
-      | undefined;
-    filters: { formations?: FormationEnum[] } | undefined;
-  }) => key('sessions', 'listGdsSessions', props),
+  listGdsSessions: (props?: { filters: GdsSessionsFilters; sorting: GdsSessionsSorting }) =>
+    key('sessions', 'listGdsSessions', props),
   listSessionAttachments: (props: { sessionId: string }) =>
     key('sessions', 'listSessionAttachments', props.sessionId),
   listNominationFileAttachments: (props: { nominationFileId: string; sessionId: string }) =>
@@ -258,6 +258,7 @@ export function usePublishVersionMutation() {
           sessionKeys.listSessionNominationFiles({ sessionId }),
           sessionKeys.detailSessionAffectationVersion({ sessionId }),
           agendaKeys.findAgendaNominationFiles({ sessionId }),
+          officialReportKeys.all(),
         ),
       }),
   });
@@ -498,6 +499,7 @@ export const useUpdateNominationSessionMutation = () => {
 
     onSuccess: (_data, { sessionId }) => {
       queryClient.invalidateQueries({ queryKey: sessionKeys.detailSession({ sessionId }) });
+      queryClient.invalidateQueries({ queryKey: officialReportKeys.all() });
     },
   });
 };
@@ -536,27 +538,38 @@ export function useWriteSessionCommentMutation(input: { sessionId: string }) {
   });
 }
 
-export const useListedGdsNominationSessionsQuery = (options: {
-  pagination: { pageIndex: number; pageSize: number } | undefined;
-  sorting: [] | [{ id: 'date' | 'dueDate'; desc: boolean }] | undefined;
-  filters: { formations?: FormationEnum[] } | undefined;
+const GDS_SESSIONS_PAGE_SIZE = 50;
+
+/** @warning must stay stable, tanstack only reuses the selection when the function identity does not change */
+function selectGdsSessions(data: InfiniteData<ListedNominationSessionsDto | null>) {
+  return {
+    items: data.pages.flatMap((page) => page?.items ?? []),
+    totalCount: data.pages.at(-1)?.totalCount ?? 0,
+  };
+}
+
+export const useInfiniteGdsNominationSessionsQuery = (options: {
+  filters: GdsSessionsFilters;
+  sorting: GdsSessionsSorting;
 }) =>
-  useQuery({
-    placeholderData: (prev) => prev,
-    queryKey: sessionKeys.listGdsSessions(options),
-    queryFn: () =>
+  useInfiniteQuery({
+    getNextPageParam: (lastPage: ListedNominationSessionsDto | null) => lastPage?.nextPageIndex,
+    initialPageParam: 1,
+    placeholderData: (previous) => previous,
+    queryFn: ({ pageParam }) =>
       $api.sessions
         .listSessionsOfTypeGardeDesSceaux({
           query: {
-            page:
-              (options.pagination?.pageIndex ?? 0) > 0 ? (options.pagination?.pageIndex ?? 0) + 1 : undefined,
-            limit: options.pagination?.pageSize,
-            sortBy: options.sorting?.[0]?.id,
-            sortDesc: options.sorting?.[0]?.desc ? 'true' : undefined,
-            formations: options.filters?.formations,
+            formations: options.filters.formations,
+            limit: GDS_SESSIONS_PAGE_SIZE,
+            page: pageParam,
+            sortBy: options.sorting[0]?.id,
+            sortDesc: options.sorting[0]?.desc ? 'true' : undefined,
           },
         })
         .then(({ data = null }) => data),
+    queryKey: sessionKeys.listGdsSessions(options),
+    select: selectGdsSessions,
   });
 
 export function useDefineNominationFileOutcomeMutation(input: {
@@ -603,6 +616,7 @@ export function useDefineNominationFileOutcomeMutation(input: {
             agendaKeys.isSessionReadyForDocGeneration(input.sessionId),
             agendaKeys.findSessionDocs(input.sessionId),
             agendaKeys.findAgendaNominationFiles({ sessionId: input.sessionId }),
+            officialReportKeys.all(),
           ),
         }),
       ]),
@@ -632,6 +646,7 @@ export function useDefineNominationFilesOutcomeMutation(input: { sessionId: stri
           agendaKeys.isSessionReadyForDocGeneration(input.sessionId),
           agendaKeys.findSessionDocs(input.sessionId),
           agendaKeys.findAgendaNominationFiles({ sessionId: input.sessionId }),
+          officialReportKeys.all(),
           ...items.map(({ nominationFileId }) =>
             sessionKeys.detailSessionNominationFile({ nominationFileId, sessionId: input.sessionId }),
           ),

@@ -8,6 +8,10 @@ import { assertIsDefined } from 'src/utils/is-defined';
 import { TimeOnly } from 'src/utils/time-only';
 
 import { JusticePresentationPlanContent } from './justice-presentation-plan-content';
+import {
+  JusticePresentationPlanSettings,
+  type PlainJusticePresentationPlanSettings,
+} from './justice-presentation-plan-settings';
 
 export class JusticePresentationPlanCreated {
   constructor(
@@ -94,17 +98,19 @@ export class JusticePresentationPlan {
     private readonly isPresented: boolean = false,
     private readonly outdated: boolean = false,
     private readonly content?: JusticePresentationPlanContent,
+    private readonly settings?: JusticePresentationPlanSettings,
   ) {}
 
   static from(props: {
-    id: string;
-    formation: FormationEnum;
-    startTime: TimeOnly;
     agendaIds: readonly string[];
-    isValidated: boolean;
-    isPresented: boolean;
-    outdated: boolean;
     content: JusticePresentationPlanContent;
+    formation: FormationEnum;
+    id: string;
+    isPresented: boolean;
+    isValidated: boolean;
+    outdated: boolean;
+    settings: JusticePresentationPlanSettings;
+    startTime: TimeOnly;
   }): JusticePresentationPlan {
     return new JusticePresentationPlan(
       makeId('JusticePresentationPlanId', props.id),
@@ -115,6 +121,7 @@ export class JusticePresentationPlan {
       props.isPresented,
       props.outdated,
       props.content,
+      props.settings,
     );
   }
 
@@ -133,9 +140,27 @@ export class JusticePresentationPlan {
   update(command: UpdateJusticePresentationPlanCommand): void {
     if (this.isPresented) throw new JusticePresentationPlanAlreadyPresented();
 
-    this.#messages.push(
-      new JusticePresentationPlanUpdated(this.id, command.authorId, this.buildState(command)),
-    );
+    const state = this.buildState(command);
+    const settings = assertIsDefined(this.settings, 'unknown presentation plan settings');
+    // saving is how an outdated notice catches up with its agendas, so it is written again even unchanged
+    if (!this.outdated && settings.equals(JusticePresentationPlanSettings.from(this.settingsOf(state)))) {
+      return;
+    }
+
+    this.#messages.push(new JusticePresentationPlanUpdated(this.id, command.authorId, state));
+  }
+
+  private settingsOf(state: JusticePresentationPlanState): PlainJusticePresentationPlanSettings {
+    return {
+      agendas: state.agendas.map(({ comment, id }) => ({ comment, id })),
+      chairmanId: state.chairman.id,
+      date: state.date,
+      hasRenunciation: state.hasRenunciation,
+      justiceContactId: state.justiceContactId,
+      members: state.members,
+      secretaryId: state.secretary.id,
+      time: state.time,
+    };
   }
 
   delete(): void {
@@ -194,8 +219,6 @@ export class JusticePresentationPlan {
         ...agenda,
         comment: agenda.comment?.trim() || null,
       })),
-      endingTime: 'endingTime' in props ? props.endingTime : null,
-
       ...state,
     };
   }
@@ -286,7 +309,6 @@ export type JusticePresentationPlanState = {
   justiceContactId: string;
   date: DateOnly;
   time: TimeOnly;
-  endingTime: TimeOnly | null;
   authorId: string;
   hasRenunciation: boolean;
   agendas: readonly {
@@ -322,7 +344,6 @@ export type UpdateJusticePresentationPlanCommand = {
   justiceContactId: string;
   date: DateOnly;
   time: TimeOnly;
-  endingTime: TimeOnly | null;
   hasRenunciation: boolean;
   agendas: readonly {
     id: string;

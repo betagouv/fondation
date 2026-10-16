@@ -6,14 +6,38 @@ describe('full text search', () => {
       expect(toFullTextQuery(`Albert Eins`)).toBe(`albert & eins:*`);
     });
 
-    it('should throw when an empty string is provided', () => {
-      expect(() => toFullTextQuery(`   `)).toThrow();
+    it('should leave out the operators of a ts_query', () => {
+      expect(toFullTextQuery(`d'Artagnan ! (Paul`)).toBe(`d & artagnan & paul:*`);
+    });
+
+    it('should give an empty query without any letter or digit', () => {
+      expect(toFullTextQuery(` ! & `)).toBe(``);
     });
   });
 
   describe('toMagistratFullTextQuery', () => {
     it('should convert a simple text query into a postgresql ts_query adapted to the index in the magistrat table', () => {
       expect(toMagistratFullTextQuery(`Albert.Einstein@justice`)).toBe(`albert.einstein@justice:C*`);
+    });
+
+    it('should search every word of a name by its beginning', () => {
+      expect(toMagistratFullTextQuery(`  Hélè   Dup `)).toBe(`hele:* & dup:*`);
+    });
+
+    it('should keep a hyphenated word whole, for PostgreSQL to split it as in the index', () => {
+      expect(toMagistratFullTextQuery(`Jean-Pierre 4572-85c6`)).toBe(`jean-pierre:* & 4572-85c6:*`);
+    });
+
+    it.each`
+      input                  | expected
+      ${`dupont !`}          | ${`dupont:*`}
+      ${`d'Artagnan`}        | ${`d:* & artagnan:*`}
+      ${`dupont: (paul | <`} | ${`dupont:* & paul:*`}
+      ${`'`}                 | ${``}
+      ${`jean- -pierre`}     | ${`jean:* & pierre:*`}
+      ${`a!b(@justice.fr`}   | ${`ab@justice.fr:C*`}
+    `('should leave out the operators of a ts_query from $input', ({ input, expected }) => {
+      expect(toMagistratFullTextQuery(input)).toBe(expected);
     });
   });
 });

@@ -1,18 +1,28 @@
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 
 import { HttpException } from '@/utils/http-exception';
 import * as $api from '@api/sdk';
-import type { ListedMagistratPhoneNumbersDto } from '@api/types';
+import type { ListedMagistratPhoneNumbersDto, SearchMagistratsResponseDto } from '@api/types';
 
 import { auditionKeys } from './auditions.queries';
 
 export type MagistratPhoneNumber = ListedMagistratPhoneNumbersDto['items'][number];
+export type FoundMagistrat = SearchMagistratsResponseDto['items'][number];
+
+export const MAGISTRAT_SEARCH_MIN_LENGTH = 2;
 
 const magistratKeys = {
   magistratDetails: (props: { magistratId: string }) => ['magistratDetails', props] as const,
   magistratNominationFiles: (props: { magistratId: string }) => ['magistratNominationFiles', props] as const,
   magistratObservations: (props: { magistratId: string }) => ['magistratObservations', props] as const,
   magistratPhoneNumbers: (props: { magistratId: string }) => ['magistratPhoneNumbers', props] as const,
+  magistratSearch: (props: { search: string }) => ['magistratSearch', props] as const,
 };
 
 export function useMagistratDetailsQuery(props: { magistratId: string | undefined }) {
@@ -25,6 +35,23 @@ export function useMagistratDetailsQuery(props: { magistratId: string | undefine
       });
       return data ?? null;
     },
+  });
+}
+
+export function useMagistratSearchQuery(props: { search: string }) {
+  return useInfiniteQuery({
+    enabled: props.search.length >= MAGISTRAT_SEARCH_MIN_LENGTH,
+    queryKey: magistratKeys.magistratSearch(props),
+    queryFn: async ({ pageParam }) => {
+      const { data } = await $api.magistrats.searchMagistrats({
+        query: { page: pageParam, search: props.search },
+        throwOnError: true,
+      });
+      return data;
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => lastPage.nextPageIndex ?? null,
+    placeholderData: keepPreviousData,
   });
 }
 

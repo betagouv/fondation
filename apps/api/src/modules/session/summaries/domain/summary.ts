@@ -57,11 +57,15 @@ export class Summary {
     readonly authorId: string | null,
   ) {}
 
-  static from(props: { id: string; authorId: string | null }) {
+  static from(props: { authorId: string | null; id: string; sessionId: string; sessionIsArchived: boolean }) {
+    if (props.sessionIsArchived) throw new SummarySessionIsArchived(props.sessionId);
+
     return new Summary(makeId('SummaryId', props.id), props.authorId);
   }
 
-  static create(props: { sessionId: string; nominationFileId: string }): Summary {
+  static create(props: { nominationFileId: string; sessionId: string; sessionIsArchived: boolean }): Summary {
+    if (props.sessionIsArchived) throw new SummarySessionIsArchived(props.sessionId);
+
     const summary = new Summary(makeId('SummaryId', props.nominationFileId), null);
 
     summary.#messages.push(new SummaryCreated(props.sessionId, summary.id));
@@ -114,6 +118,12 @@ export class Summary {
   readonly #messages: SummaryMessage[] = [];
   get messages(): readonly SummaryMessage[] {
     return this.#messages;
+  }
+}
+
+export class SummarySessionIsArchived extends Error {
+  constructor(readonly sessionId: string) {
+    super();
   }
 }
 

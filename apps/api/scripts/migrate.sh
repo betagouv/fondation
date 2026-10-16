@@ -57,9 +57,6 @@ run_prisma() {
 #   --addon "$SCALINGO_DB_ID" \
 #   database-users-create "$ROLE_NAME"
 
-run_prisma migrate resolve --applied 00_squash 2>/dev/null || \
-  echo 'Already applied 00_squash'
-
 run_prisma migrate diff --from-config-datasource --to-schema=./prisma | tee -a "${GITHUB_STEP_SUMMARY:-/dev/null}"
 
 # TODO:(restricted_user)

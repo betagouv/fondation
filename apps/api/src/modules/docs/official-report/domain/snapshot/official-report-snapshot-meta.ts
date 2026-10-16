@@ -39,26 +39,42 @@ export class OfficialReportSnapshotMeta {
     };
   }
 
-  private introChanged(next: UpdateOfficialReportCommand['officialReport']): boolean {
-    const introEqual =
+  equals(next: UpdateOfficialReportCommand['officialReport']): boolean {
+    return (
+      this.introEquals(next) &&
+      this.conclusionEquals(next) &&
+      this.agenda.id === next.agenda.id &&
+      this.agenda.date.equals(next.agenda.date) &&
+      this.agenda.session.date.equals(next.agenda.session.date)
+    );
+  }
+
+  private introEquals(next: UpdateOfficialReportCommand['officialReport']): boolean {
+    return (
       this.hasRenunciation === next.hasRenunciation &&
       this._justiceDepartmentContactId === next.justiceDepartmentContactId &&
       this.members.equals(next.members) &&
       this.sessionMeeting.scheduledOn(next.sessionMeeting.date) &&
       this.sessionMeeting.startsAt(next.sessionMeeting.start) &&
       this.chairman.id === next.chairman.id &&
-      this.secretary.id === next.secretary.id;
+      this.secretary.id === next.secretary.id
+    );
+  }
 
-    return this.manuallyEditedParts.intro && !introEqual;
+  private conclusionEquals(next: UpdateOfficialReportCommand['officialReport']): boolean {
+    return (
+      this.sessionMeeting.endsAt(next.sessionMeeting.end) &&
+      this.secretary.id === next.secretary.id &&
+      this.chairman.id === next.chairman.id
+    );
+  }
+
+  private introChanged(next: UpdateOfficialReportCommand['officialReport']): boolean {
+    return this.manuallyEditedParts.intro && !this.introEquals(next);
   }
 
   private conclusionChanged(next: UpdateOfficialReportCommand['officialReport']): boolean {
-    const conclusionEqual =
-      this.sessionMeeting.endsAt(next.sessionMeeting.end) &&
-      this.secretary.id == next.secretary.id &&
-      this.chairman.id == next.chairman.id;
-
-    return this.manuallyEditedParts.conclusion && !conclusionEqual;
+    return this.manuallyEditedParts.conclusion && !this.conclusionEquals(next);
   }
 
   static from(props: Omit<PlainOfficialReportSnapshot, 'files'>) {

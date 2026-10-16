@@ -29,7 +29,10 @@ import { TimeOnly } from 'src/utils/time-only';
 
 import { ListNominationFilesQueryDto } from './dtos/nomination-file.dto';
 import { CountedSessionAuditionsDto, ListedSessionAuditionsDto } from './dtos/session-audition.dto';
-import { ListGdsNominationSessionsQueryDto } from './dtos/transparence-session.dto';
+import {
+  ListArchivedSessionsQueryDto,
+  ListGdsNominationSessionsQueryDto,
+} from './dtos/transparence-session.dto';
 import {
   AffectationVersionFinder,
   FoundAffectationVersion,
@@ -659,8 +662,9 @@ export class TransparenceService {
   listArchivedSessions(query: {
     formations: readonly FormationEnum[] | undefined;
     pagination: Pagination;
+    role: RoleEnum;
     search: string | null;
-    sorting: Sortable<ListGdsNominationSessionsQueryDto>;
+    sorting: Sortable<ListArchivedSessionsQueryDto>;
     typeDeSaisine: TypeDeSaisineEnum;
   }): Promise<ListedArchivedNominationSessionsDto> {
     return this.listArchivedNominationSessionsQuery.handle(query);
@@ -724,12 +728,16 @@ export class TransparenceService {
     memo: string;
     nominationFileId: string;
     sessionId: string;
-    userId: string;
+    user: { id: string; role: RoleEnum };
   }) {
-    const session = await this.nominationSessionRepository.find(command.sessionId);
+    const { memo, nominationFileId, user } = command;
+    const session = await this.nominationSessionRepository.find(command.sessionId, {
+      nominationFileIds: new Set([nominationFileId]),
+    });
+    const reporters = await this.versions.findPublishedReporters({ nominationFileIds: [nominationFileId] });
+    const reporterIds = (reporters.get(nominationFileId) ?? []).map(({ id }) => id);
 
-    const { userId, nominationFileId, memo } = command;
-    session.writeNominationFileMemberMemo({ memo, nominationFileId, userId });
+    session.writeNominationFileMemberMemo({ memo, nominationFileId, reporterIds, user });
 
     return this.nominationSessionRepository.persist(session);
   }

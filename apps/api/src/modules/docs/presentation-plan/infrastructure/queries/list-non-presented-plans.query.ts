@@ -10,9 +10,7 @@ import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/f
 import { dateOnlyJsonSchema } from 'src/utils/date-only';
 import { DateOnly } from 'src/utils/date-only';
 import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
-import { fullname } from 'src/utils/user.util';
-
-const writerSchema = z.object({ id: z.string(), name: z.string() }).nullable();
+import { writerOf, writerSchema } from 'src/utils/user.util';
 
 @Injectable()
 export class ListNonPresentedPlansQuery {
@@ -87,7 +85,3 @@ export class ListedNonPresentedPlansDto extends createZodDto(
     ),
   }),
 ) {}
-
-function writerOf(user: { id: string; firstName: string; lastName: string } | null) {
-  return user ? { id: user.id, name: fullname(user) } : null;
-}

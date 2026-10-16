@@ -10,7 +10,13 @@ export function Biography(props: { historique: string | null }) {
         <FormattedMessage defaultMessage="Biographie" />
       </label>
       <div aria-labelledby={reportHtmlIds.overview.biography} className="w-full">
-        {props.historique ? <BiographyList biography={props.historique} /> : null}
+        {props.historique?.trim() ? (
+          <BiographyList biography={props.historique} />
+        ) : (
+          <p className="fr-mb-0 text-(--text-mention-grey)">
+            <FormattedMessage defaultMessage="Aucune biographie" />
+          </p>
+        )}
       </div>
     </div>
   );

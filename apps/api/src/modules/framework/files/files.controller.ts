@@ -1,16 +1,29 @@
-import { Controller, Get, Param, ParseUUIDPipe, Query, Res, StreamableFile } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Query,
+  Res,
+  StreamableFile,
+  UseFilters,
+} from '@nestjs/common';
+import { ApiQuery } from '@nestjs/swagger';
 import type { Response as ExpressResponse } from 'express';
 
 import { HasRole } from 'src/modules/simple-auth';
 
 import { Files } from './files';
+import { MissingFromStorageFilter } from './missing-from-storage.filter';
 
 @Controller('/api/files/v1')
+@UseFilters(MissingFromStorageFilter)
 export class FilesController {
   constructor(private readonly files: Files) {}
 
   @HasRole()
   @Get('/:fileUrlId')
+  @ApiQuery({ name: 'download', required: false, type: 'string' })
   async getFileByFileUrl(
     @Res({ passthrough: true }) res: ExpressResponse,
     @Param('fileUrlId', ParseUUIDPipe) fileUrlId: string,

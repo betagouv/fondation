@@ -79,6 +79,13 @@ export const router = sentryCreateBrowserRouter([
                   })),
               },
               {
+                path: ROUTE_PATHS.TRANSPARENCES.ARCHIVED_SESSIONS,
+                lazy: () =>
+                  import('@/pages/sessions/MemberArchivedSessionsPage').then(
+                    ({ MemberArchivedSessionsPage }) => ({ Component: MemberArchivedSessionsPage }),
+                  ),
+              },
+              {
                 path: ROUTE_PATHS.TRANSPARENCES.DETAIL_SESSION_GDS,
                 lazy: () =>
                   import('@/pages/reports/MemberSessionLayout').then(({ MemberSessionLayout }) => ({
@@ -125,6 +132,13 @@ export const router = sentryCreateBrowserRouter([
               })),
           },
           {
+            path: ROUTE_PATHS.MEMBER.MAGISTRAT_SEARCH,
+            lazy: () =>
+              import('@/pages/magistrats/MagistratSearchPage').then(({ MagistratSearchPage }) => ({
+                Component: MagistratSearchPage,
+              })),
+          },
+          {
             path: ROUTE_PATHS.MEMBER.MAGISTRAT_DETAILS,
             lazy: () =>
               import('@/pages/magistrats/MagistratDetailsPage').then(({ MagistratDetailsPage }) => ({
@@ -148,11 +162,11 @@ export const router = sentryCreateBrowserRouter([
               ),
           },
           {
-            path: ROUTE_PATHS.SG.NOUVELLE_TRANSPARENCE,
+            path: ROUTE_PATHS.SG.NEW_TRANSPARENCE,
             lazy: () =>
-              import('@/pages/transparence/NouvelleTransparencePage').then(
-                ({ NouvelleTransparencePage }) => ({ Component: NouvelleTransparencePage }),
-              ),
+              import('@/pages/transparence/NewTransparencePage').then(({ NewTransparencePage }) => ({
+                Component: NewTransparencePage,
+              })),
           },
           {
             path: ROUTE_PATHS.SG.SESSION_ID,
@@ -214,6 +228,13 @@ export const router = sentryCreateBrowserRouter([
             lazy: () =>
               import('@/pages/observations/ObservationDetailsPage').then(({ ObservationDetailsPage }) => ({
                 Component: ObservationDetailsPage,
+              })),
+          },
+          {
+            path: ROUTE_PATHS.SG.MAGISTRAT_SEARCH,
+            lazy: () =>
+              import('@/pages/magistrats/MagistratSearchPage').then(({ MagistratSearchPage }) => ({
+                Component: MagistratSearchPage,
               })),
           },
           {

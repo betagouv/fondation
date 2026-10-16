@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { catchError, Observable, throwError } from 'rxjs';
 
-import { OnlyAuthorCanWriteSummary, UnknownReader } from './domain/summary';
+import { OnlyAuthorCanWriteSummary, SummarySessionIsArchived, UnknownReader } from './domain/summary';
 
 @Injectable()
 export class SummaryFilter implements NestInterceptor {
@@ -34,6 +34,12 @@ export class SummaryFilter implements NestInterceptor {
             });
 
             return new ForbiddenException();
+          }
+
+          if (err instanceof SummarySessionIsArchived) {
+            return new ForbiddenException({
+              validationErrors: [`la session est archivée et la synthèse ne peut pas être modifiée`],
+            });
           }
 
           return err;

@@ -142,7 +142,6 @@ export class PresentationPlansService {
     id: string;
     date: DateOnlyJson;
     time: TimeOnly;
-    endingTime: TimeOnly | null;
     authorId: string;
     chairmanId: string;
     secretaryId: string;
@@ -196,7 +195,6 @@ export class PresentationPlansService {
       justiceContactId: command.justiceContactId,
       authorId: command.authorId,
       time: command.time,
-      endingTime: command.endingTime,
       date: DateOnly.fromJson(command.date),
       members: planMembers,
     });

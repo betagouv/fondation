@@ -21,7 +21,7 @@ export function SidePanelTrigger(props: { nominationFile: SessionNominationFile 
   const warningId = useId();
 
   const annotations: string[] = [];
-  if (props.nominationFile.memo) annotations.push(intl.formatMessage({ defaultMessage: 'mémo' }));
+  if (props.nominationFile.memo?.value) annotations.push(intl.formatMessage({ defaultMessage: 'mémo' }));
   if (props.nominationFile.summary?.canWrite || props.nominationFile.summary?.canRead)
     annotations.push(intl.formatMessage({ defaultMessage: 'synthèse' }));
   if ((props.nominationFile.comment?.trim().length ?? 0) > 0)

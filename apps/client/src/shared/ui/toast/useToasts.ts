@@ -25,23 +25,24 @@ function optionsOf(notice: ToastNotice) {
 }
 
 export function useToasts() {
-  const manager = BaseToast.useToastManager();
+  // the manager changes with every toast shown, its methods never: an effect depending on these toasts would loop
+  const { add, close } = BaseToast.useToastManager();
 
   return useMemo(
     () => ({
-      close: (toastId: string) => manager.close(toastId),
+      close: (toastId: string) => close(toastId),
 
       error: (notice: ToastNotice & { id?: string }) =>
-        manager.add({ ...optionsOf(notice), id: notice.id, priority: 'low', timeout: 0, type: 'error' }),
+        add({ ...optionsOf(notice), id: notice.id, priority: 'low', timeout: 0, type: 'error' }),
 
       success: (notice: ToastNotice) =>
-        manager.add({
+        add({
           ...optionsOf(notice),
           priority: 'low',
           timeout: notice.action ? MAX_TIMEOUT_MS : readingTimeMs(notice),
           type: 'success',
         }),
     }),
-    [manager],
+    [add, close],
   );
 }

@@ -18,6 +18,7 @@ export const ROUTE_PATHS = {
   LOGIN: '/login',
   MEMBER: {
     MAGISTRAT_DETAILS: '/magistrats/:magistratId',
+    MAGISTRAT_SEARCH: '/magistrats',
   },
   REDIRECT_MAGISTRAT_LOLFI: '/session/:sessionId/dossier/:fileId/lolfi-magistrat',
   SG: {
@@ -30,10 +31,11 @@ export const ROUTE_PATHS = {
     ARCHIVED_SESSIONS: '/secretariat-general/archives/sessions',
     DASHBOARD: '/secretariat-general',
     MAGISTRAT_DETAILS: '/secretariat-general/magistrats/:magistratId',
+    MAGISTRAT_SEARCH: '/secretariat-general/magistrats',
     MANAGE_MEMBERS: '/secretariat-general/membres',
     MANAGE_SESSION: '/secretariat-general/sessions',
     MANAGE_SINGLE_MEMBER: '/secretariat-general/membres/:userId',
-    NOUVELLE_TRANSPARENCE: '/secretariat-general/nouvelle-transparence',
+    NEW_TRANSPARENCE: '/secretariat-general/nouvelle-transparence',
     OBSERVATION_DETAILS:
       '/secretariat-general/session/:sessionId/dossiers/:nominationFileId/observations/:observationId',
     OFFICIAL_REPORT_EDIT:
@@ -57,6 +59,7 @@ export const ROUTE_PATHS = {
   },
   SUMMARY: '/session/:sessionId/dossier/:fileId/synthese',
   TRANSPARENCES: {
+    ARCHIVED_SESSIONS: '/transparences/archives/sessions',
     DASHBOARD: '/transparences',
     DETAILS_REPORTS: '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/rapports/:id',
     DETAIL_SESSION_GDS: `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/:sessionId`,
@@ -72,8 +75,6 @@ export const ROUTE_PATHS = {
 type RoutePath = typeof ROUTE_PATHS;
 
 export type FondationPath<Node = RoutePath> = Node extends string ? Node : FondationPath<Node[keyof Node]>;
-
-export type RoutePathSecretariat = RoutePath['SG'][keyof RoutePath['SG']];
 
 export const getNewAgendaPath = (sessionId: string): string =>
   generatePath(ROUTE_PATHS.SG.AGENDA_NEW, { sessionId });

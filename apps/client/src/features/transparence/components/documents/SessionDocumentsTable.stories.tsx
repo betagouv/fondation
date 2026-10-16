@@ -41,6 +41,8 @@ function anAgenda(
     officialReportId,
     officialReportReadiness: officialReportId ? null : { status: 'READY' },
     outdated: false,
+    // an agenda never validated has nothing to present yet
+    presentation: props.status === 'DRAFT' ? null : { status: 'TO_PRESENT' },
     presentationPlans: [],
     status: 'VALIDATED',
     type: 'agenda',
@@ -76,6 +78,16 @@ const DRAFT = {
   validatedBy: null,
 } satisfies Partial<SessionDocument>;
 
+const PRESENTED = {
+  presentation: {
+    by: LUCAS,
+    date: { day: 24, month: 9, year: 2026 },
+    endTime: { hours: 11, minutes: 30, seconds: 0 },
+    planId: 'plan-24-09',
+    status: 'PRESENTED',
+  },
+} satisfies Partial<AgendaDocument>;
+
 const DOCS: SessionDocument[] = [
   anAgenda({ id: 'agenda-30-09', meetingDate: { day: 30, month: 9, year: 2026 } }),
   anAgenda({
@@ -93,7 +105,12 @@ const DOCS: SessionDocument[] = [
     meetingDate: { day: 28, month: 9, year: 2026 },
     officialReportReadiness: { status: 'NEVER_PUBLISHED' },
   }),
-  anAgenda({ id: 'agenda-pp', meetingDate: { day: 23, month: 9, year: 2026 }, officialReportId: 'pv-23-09' }),
+  anAgenda({
+    ...PRESENTED,
+    id: 'agenda-pp',
+    meetingDate: { day: 23, month: 9, year: 2026 },
+    officialReportId: 'pv-23-09',
+  }),
   anAgenda({
     id: 'agenda-rmbl',
     meetingDate: { day: 23, month: 9, year: 2026 },
@@ -188,7 +205,7 @@ function aMeeting(index: number): SessionDocument[] {
     case 0:
       return [anAgenda(agenda)];
     case 1:
-      return [anAgenda(reported), anOfficialReport(officialReport)];
+      return [anAgenda({ ...reported, ...PRESENTED }), anOfficialReport(officialReport)];
     case 2:
       return [
         anAgenda({ ...reported, ...CHANGES_IN_PROGRESS }),

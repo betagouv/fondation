@@ -11,6 +11,7 @@ import { catchError, Observable, throwError } from 'rxjs';
 import {
   CannotScheduleAuditionOnNominationFile,
   CantUpdateNominationFiles,
+  MemberMemoNotAllowed,
   NonFormationMemberDefinedAsReporter,
   PositionAuditionCannotBeDismissed,
   SessionTransparenceAffectationHasUnknownReporter,
@@ -103,6 +104,12 @@ export class TransparenceExceptionFilter implements NestInterceptor {
           if (err instanceof SessionTransparenceIsArchived) {
             return new ForbiddenException({
               validationErrors: [`la session est archivée et ne peut pas être modifiée`],
+            });
+          }
+
+          if (err instanceof MemberMemoNotAllowed) {
+            return new ForbiddenException({
+              validationErrors: [`impossible de prendre des notes personnelles sur ce dossier`],
             });
           }
 

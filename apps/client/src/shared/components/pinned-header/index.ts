@@ -1,0 +1,1 @@
+export { PinnedHeader } from './PinnedHeader';

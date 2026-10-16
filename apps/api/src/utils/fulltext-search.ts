@@ -1,22 +1,31 @@
-import assert from 'node:assert';
-
 import { unaccent } from './unaccent';
 
-export function toFullTextQuery(input: string): string {
-  const trimmed = input.trim();
-  assert.ok(trimmed.length > 0);
-
-  return unaccent(trimmed.toLowerCase()).replace(/\s+/g, ' & ') + ':*';
+// Only letters and digits reach to_tsquery, whose operators (& | ! : < ( ') would fail the query: "d'artagnan" looks for "d" and "artagnan"
+// A hyphen inside a word stays: PostgreSQL then splits "4572-85c6" into "4572", "-85" and "c6", as it did in the index
+function wordsOf(input: string): string[] {
+  return unaccent(input.toLowerCase()).match(/[\p{L}\p{N}]+(?:-[\p{L}\p{N}]+)*/gu) ?? [];
 }
 
-/** this works for the {@link import('src/generated/prisma/client').Magistrat.search} column */
+/** an input without any letter or digit gives an empty query, which matches nothing */
+export function toFullTextQuery(input: string): string {
+  const words = wordsOf(input);
+  return words.length > 0 ? `${words.join(' & ')}:*` : '';
+}
+
+/**
+ * this works for the {@link import('src/generated/prisma/client').Magistrat.search} column
+ * an input without any letter or digit gives an empty query, which matches nothing
+ */
 export function toMagistratFullTextQuery(input: string): string {
   // we have a special weight defined in the index for the email field
   // see https://www.postgresql.org/docs/current/textsearch-controls.html#TEXTSEARCH-RANKING
   // see prisma/migrations/20260428074329_full_text_search_magistrat/migration.sql
   if (input.includes('@') || input.includes('.')) {
-    return unaccent(input.trim().toLowerCase()) + ':C*';
+    const email = unaccent(input.toLowerCase()).replace(/[^\p{L}\p{N}.@_-]/gu, '');
+    return email && `${email}:C*`;
   }
 
-  return toFullTextQuery(input);
+  return wordsOf(input)
+    .map((word) => `${word}:*`)
+    .join(' & ');
 }

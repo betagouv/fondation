@@ -93,10 +93,9 @@ FROM
   ) AS reporters ON TRUE
 
   LEFT JOIN LATERAL (
-    SELECT (ARRAY_AGG(member_memo))[1] AS "memo"
+    SELECT member_memo.memo
     FROM nominations_context.member_memo
     WHERE member_memo.nomination_file_id = ddn.id AND member_memo.user_id = /* userId */$2::UUID
-    GROUP BY member_memo.nomination_file_id
   ) AS member_memo ON TRUE
 
   LEFT JOIN LATERAL (

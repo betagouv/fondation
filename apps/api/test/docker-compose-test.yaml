@@ -3,7 +3,7 @@ name: fondation
 services:
   postgres:
     container_name: postgres-test
-    image: 'postgres:16'
+    image: 'postgres:17'
     ports:
       - '5435:5432'
     networks:
@@ -13,6 +13,8 @@ services:
       POSTGRES_USER: fondation
       POSTGRES_PASSWORD: secret
       POSTGRES_DB: fondation
+    volumes:
+      - postgres-17:/var/lib/postgresql/data
 
   gotenberg:
     container_name: gotenberg
@@ -40,3 +42,7 @@ services:
 networks:
   app_test:
     driver: bridge
+
+volumes:
+  # A data directory only opens with the major version that created it: renaming the volume on each upgrade starts an empty one
+  postgres-17:

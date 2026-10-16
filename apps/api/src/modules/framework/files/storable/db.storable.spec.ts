@@ -1,5 +1,5 @@
 // oxlint-disable typescript/unbound-method
-import { Logger, NotFoundException, StreamableFile } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { mock, type MockProxy } from 'vitest-mock-extended';
 
 import { FileDelegate, FilePublicUrlDelegate } from 'src/generated/prisma/models';
@@ -142,25 +142,6 @@ describe('DbStorage', () => {
 
       expect(result.success).toBe(true);
       expect(s3.delete).toHaveBeenCalled();
-    });
-  });
-
-  describe('toStreamableFile', () => {
-    it('delegates url objects to the underlying storage', async () => {
-      const expected = { expiresAt: new Date(), file: new StreamableFile(Buffer.from('x')) };
-      s3.toStreamableFile.mockResolvedValue(expected);
-      const url = new URL('https://s3.example/object');
-
-      const result = await storage.toStreamableFile({ url });
-
-      expect(s3.toStreamableFile).toHaveBeenCalledWith({ url });
-      expect(result).toBe(expected);
-    });
-
-    it('throws NotFoundException for an unknown public url id', async () => {
-      tx.filePublicUrl.findUnique.mockResolvedValue(null);
-
-      await expect(storage.toStreamableFile({ publicUrlId: 'missing' })).rejects.toThrow(NotFoundException);
     });
   });
 

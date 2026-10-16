@@ -37,7 +37,7 @@ export class MagistratController {
   constructor(private readonly magistrats: MagistratService) {}
 
   @Get()
-  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @HasRole()
   @UsePipes(ZodValidationPipe)
   @ApiPaginated()
   @ZodResponse({
@@ -46,7 +46,7 @@ export class MagistratController {
   })
   async searchMagistrats(
     @Query() query: SearchMagistratsQueryDto,
-    @QueryPagination({ defaultLimit: 10 }) pagination: Pagination,
+    @QueryPagination({ defaultLimit: 20 }) pagination: Pagination,
   ): Promise<SearchMagistratsResponseDto> {
     return this.magistrats.searchMagistrats({
       ignoreIds: query.ignore,

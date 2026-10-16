@@ -5,6 +5,7 @@ import { useCallback, useMemo, useState, type SyntheticEvent } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useConfirmModal } from '@/shared/context/confirm-modal';
+import { IconButton } from '@/shared/ui/icon-button';
 import { useToasts } from '@/shared/ui/toast';
 import { useUpdateTitleMutation } from '@queries/members.queries';
 
@@ -136,13 +137,11 @@ function MemberTitleAction(props: {
   if (!isEditing) {
     return (
       <dd>
-        <Button
-          className="rounded-full"
+        <IconButton
           iconId="fr-icon-edit-fill"
+          label={formatMessage({ defaultMessage: 'Définir une distinction' })}
           onClick={() => setEditing(true)}
-          priority="tertiary no outline"
-          size="small"
-          title={formatMessage({ defaultMessage: 'Définir une distinction' })}
+          small
         />
       </dd>
     );

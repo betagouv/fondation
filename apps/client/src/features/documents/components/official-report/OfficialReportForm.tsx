@@ -76,14 +76,21 @@ const OfficialReportMetadataSchema = z
   });
 
 export function OfficialReportForm() {
-  const { session, report: metadata, officialReportId, submit, cancel } = useOfficialReport();
+  const {
+    cancel,
+    changedSinceValidation,
+    officialReportId,
+    report: metadata,
+    session,
+    submit,
+  } = useOfficialReport();
   const { formatMessage } = useIntl();
   const { state } = useLocation();
   const requestedAgendaId: string | null = typeof state?.agendaId === 'string' ? state.agendaId : null;
 
   const { data: secretariesData, isFetching: isFetchingSecretaries } = useListSecretariesGeneralQuery();
 
-  const { data: agendas } = useListAgendasForNewOfficialReportQuery({
+  const { data: agendas, isFetchedAfterMount: areAgendasFresh } = useListAgendasForNewOfficialReportQuery({
     sessionId: session.id,
     ignoreOfficialReportId: officialReportId ?? undefined,
   });
@@ -116,7 +123,7 @@ export function OfficialReportForm() {
     setValues,
     handleSubmit,
     subscribe,
-    formState: { errors, isValid, dirtyFields },
+    formState: { errors, isDirty, isValid, dirtyFields },
   } = useForm({
     mode: 'all',
     defaultValues,
@@ -150,9 +157,7 @@ export function OfficialReportForm() {
             justiceContactId: agenda.presentationPlan?.justiceContactId
               ? agenda.presentationPlan.justiceContactId
               : form.justiceContactId,
-            sessionMeetingDate: agenda.sessionMeetingDate
-              ? dateOnlyToIso(agenda.sessionMeetingDate)
-              : form.sessionMeetingDate,
+            sessionMeetingDate: dateOnlyToIso(agenda.presentationPlan?.date ?? agenda.sessionMeetingDate),
             sessionMeetingStartingTime: agenda.presentationPlan?.startTime
               ? formTimeOnlyCodec.encode(agenda.presentationPlan.startTime) || form.sessionMeetingStartingTime
               : form.sessionMeetingStartingTime,
@@ -175,13 +180,13 @@ export function OfficialReportForm() {
     return unsubscribe;
   }, [subscribe, setValues, agendas]);
 
-  // selected as the reader would, once the list is there, so the fields it fills follow
+  // a cached list can predate the notice and the selection is never redone once the fresh one arrives
   useEffect(() => {
-    if (officialReportId || !requestedAgendaId || getValues('agendaId')) return;
+    if (officialReportId || !requestedAgendaId || !areAgendasFresh || getValues('agendaId')) return;
     if (!agendas?.items.some(({ id }) => id === requestedAgendaId)) return;
 
     setValue('agendaId', requestedAgendaId, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
-  }, [agendas, getValues, officialReportId, requestedAgendaId, setValue]);
+  }, [agendas, areAgendasFresh, getValues, officialReportId, requestedAgendaId, setValue]);
 
   const onAgendaSelected = useCallback(
     (event: ChangeEvent<HTMLSelectElement>) => {
@@ -367,13 +372,14 @@ export function OfficialReportForm() {
         buttons={[
           { children: 'Annuler', priority: 'secondary', onClick: cancel, type: 'button' },
           {
-            type: 'submit',
-            disabled: !isValid,
             children: officialReportId ? (
               <FormattedMessage defaultMessage="Mettre à jour" />
             ) : (
               <FormattedMessage defaultMessage="Générer le PV" />
             ),
+            disabled:
+              !isValid || (Boolean(officialReportId) && !isDirty && changedSinceValidation.length === 0),
+            type: 'submit',
           },
         ]}
       />

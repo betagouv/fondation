@@ -11,6 +11,7 @@ import { catchError, Observable, throwError } from 'rxjs';
 import {
   AgendaIsNotCompatibleWithPresentationPlan,
   EmptyAgendaList,
+  EmptyPresentationPlanMemberList,
   JusticePresentationPlanAlreadyPresented,
   JusticePresentationPlanAlreadyValidated,
   JusticePresentationPlanChangedWhileValidated,
@@ -42,6 +43,12 @@ export class PresentationPlansFilter implements NestInterceptor {
           if (err instanceof EmptyAgendaList) {
             return new BadRequestException({
               validationError: `Au moins un ordre du jour doit être sélectionné`,
+            });
+          }
+
+          if (err instanceof EmptyPresentationPlanMemberList) {
+            return new BadRequestException({
+              validationError: `Au moins un membre autre que le président doit être présent`,
             });
           }
 

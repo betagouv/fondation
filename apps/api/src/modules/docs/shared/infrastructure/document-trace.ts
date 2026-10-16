@@ -5,19 +5,19 @@ import {
   DOC_SYSTEM_UPDATE_CAUSES,
   type DocSystemUpdateCause,
 } from 'src/modules/docs/shared/domain/doc-system-update-cause';
-import { fullname } from 'src/utils/user.util';
-
-const writerSchema = z.object({ id: z.string(), name: z.string() });
+import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
+import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
+import { writerOf, writerSchema } from 'src/utils/user.util';
 
 /** who opened the draft and when, and who last worked on it: nobody named means the application */
 export const draftTraceSchema = z
   .object({
     openedAt: z.iso.datetime(),
-    openedBy: writerSchema.nullable(),
+    openedBy: writerSchema,
     systemCauses: z.array(z.enum(DOC_SYSTEM_UPDATE_CAUSES)),
     systemUpdatedAt: z.iso.datetime().nullable(),
     updatedAt: z.iso.datetime().nullable(),
-    updatedBy: writerSchema.nullable(),
+    updatedBy: writerSchema,
   })
   .nullable();
 
@@ -43,20 +43,18 @@ export function draftTrace(version: {
 }): z.infer<typeof draftTraceSchema> {
   if (version.status === 'VALIDATED') return null;
 
-  const writer = (person: Person) => (person ? { id: person.id, name: fullname(person) } : null);
-
   return {
     openedAt: version.createdAt.toISOString(),
-    openedBy: writer(version.author),
+    openedBy: writerOf(version.author),
     systemCauses: version.systemUpdates.map(({ cause }) => cause),
     systemUpdatedAt: version.systemUpdatedAt?.toISOString() ?? null,
     updatedAt: version.updatedAt?.toISOString() ?? null,
-    updatedBy: writer(version.editor),
+    updatedBy: writerOf(version.editor),
   };
 }
 
-/** when a document went through a step, validation or presentation, and who took it */
-export const traceSchema = z.object({ at: z.iso.datetime(), by: writerSchema.nullable() }).nullable();
+/** when a document was validated, and by whom */
+export const traceSchema = z.object({ at: z.iso.datetime(), by: writerSchema }).nullable();
 
 export const VALIDATION_TRACE_SELECT = {
   validatedAt: true,
@@ -69,5 +67,25 @@ export function traceOf(
 ): z.infer<typeof traceSchema> {
   if (!at) return null;
 
-  return { at: at.toISOString(), by: person ? { id: person.id, name: fullname(person) } : null };
+  return { at: at.toISOString(), by: writerOf(person ?? null) };
+}
+
+/** a restitution is dated by its notice and its ending time rather than by the click, which may come later */
+export const presentationTraceSchema = z.object({
+  by: writerSchema,
+  date: dateOnlyJsonSchema,
+  /** null on the notices presented without an ending time */
+  endTime: timeOnlySchema.nullable(),
+});
+
+export function presentationTraceOf(plan: {
+  date: Date;
+  endTime: Date | null;
+  presenter: Person;
+}): z.infer<typeof presentationTraceSchema> {
+  return {
+    by: writerOf(plan.presenter),
+    date: DateOnly.fromUtcDate(plan.date).toJson(),
+    endTime: plan.endTime ? dateToTimeOnly(plan.endTime) : null,
+  };
 }

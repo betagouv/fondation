@@ -2,11 +2,15 @@ import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import z from 'zod';
 
-import { magistratFullName } from '../../domain/magistrat-name';
+import { magistratFullName, magistratUsedName } from '../../domain/magistrat-name';
+import { magistratGradeAndJurisdiction } from '../../domain/magistrat-position';
+import { PrismaMagistratStatusEnum } from 'src/generated/prisma/enums';
 import { searchMagistratRawQuery, searchMagistratTotalCountRawQuery } from 'src/generated/prisma/sql';
 import { Db } from 'src/modules/framework/database';
 import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
 import { toMagistratFullTextQuery } from 'src/utils/fulltext-search';
+
+import { PositionSchema } from './detail-magistrat.query';
 
 @Injectable()
 export class SearchMagistratsQuery {
@@ -35,17 +39,24 @@ export class SearchMagistratsQuery {
       ),
     );
 
-    const items = resultItems.map(({ id, grade, firstName, lastName, marriedName, ...item }) => ({
-      id,
-      grade,
-      firstName,
-      lastName,
-      name: magistratFullName({ firstName, lastName, marriedName }),
-      currentPosition:
-        item.functionId && item.jurisdictionId
-          ? `${item.functionId} ${item.jurisdictionId}`
-          : item.currentPosition,
-    }));
+    const items = resultItems.map(
+      ({ id, grade, firstName, lastName, marriedName, status, usedName, ...item }) => ({
+        id,
+        grade,
+        firstName,
+        lastName,
+        name: magistratFullName({ firstName, lastName, marriedName }),
+        usedName: magistratUsedName({ lastName, marriedName, usedName }),
+        status,
+        gradeAndJurisdiction: magistratGradeAndJurisdiction({ grade, jurisdictionCode: item.jurisdictionId }),
+        currentPosition: item.jurisdictionId
+          ? {
+              function: item.functionId ? { id: item.functionId, label: item.functionLabel } : null,
+              jurisdiction: { id: item.jurisdictionId, label: item.jurisdictionLabel },
+            }
+          : null,
+      }),
+    );
 
     return paginate({
       items,
@@ -61,7 +72,10 @@ export class SearchMagistratsResponseDto extends createPaginatedZodDto(
     firstName: z.string(),
     lastName: z.string(),
     name: z.string(),
+    usedName: z.string().nullable(),
+    status: z.enum(PrismaMagistratStatusEnum),
     grade: z.string().nullable(),
-    currentPosition: z.string().nullable(),
+    gradeAndJurisdiction: z.string().nullable(),
+    currentPosition: PositionSchema.pick({ function: true, jurisdiction: true }).nullable(),
   }),
 ) {}

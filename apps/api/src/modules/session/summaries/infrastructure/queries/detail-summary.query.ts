@@ -172,7 +172,10 @@ export class DetailSummaryQuery {
       observers: nominationFile.observers,
       outcome: nominationFile.outcome
         ? {
-            comment: nominationFile.outcomeComment,
+            comment: NominationFileOutcome.commentSeenBy({
+              comment: nominationFile.outcomeComment,
+              role: query.role,
+            }),
             label: nominationFileOutcomeLabel({
               formation: prismaFormationEnumToFormationEnum(session.formation),
               outcome: nominationFile.outcome,

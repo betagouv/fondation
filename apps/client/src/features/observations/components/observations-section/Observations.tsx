@@ -16,6 +16,8 @@ import {
   ObservationFollowUpEnumMessages,
   type ObservationFollowUpEnum,
 } from '@/shared/enums/observation-follow-up.enum';
+import { useAttachmentFailureToast } from '@/shared/hooks/useAttachmentFailureToast';
+import { useTab } from '@/shared/hooks/useTab';
 import { dateOnlyFromIso, formatDateOnly } from '@/utils/date-only.util';
 import { getObservationDetailsPath } from '@/utils/route-path.utils';
 import { useDownloadFileMutation } from '@queries/files.queries';
@@ -46,6 +48,8 @@ function ObservationCard({
 }) {
   const intl = useIntl();
   const { edit, requestDelete } = useObservationsModal();
+  const notifyFailure = useAttachmentFailureToast();
+  const tab = useTab();
   const { isPending: isDownloading, mutate: download } = useDownloadFileMutation();
   const { isPending: isLoadingUrl, mutate: getFileUrl } = useGetObservationFileUrlMutation();
   const isLoadingFile = isDownloading || isLoadingUrl;
@@ -80,16 +84,28 @@ function ObservationCard({
     ? observation.magistrat.name
     : intl.formatMessage({ defaultMessage: 'Magistrat inconnu' });
 
-  const handleFileClick = (fileId: string) =>
+  const handleFileOpen = (attachment: { id: string; name: string }) => {
+    const attachmentTab = tab.openDeferred({
+      message: intl.formatMessage({ defaultMessage: 'Ouverture de la pièce jointe, merci de patienter...' }),
+      title: attachment.name,
+    });
+
     getFileUrl(
       {
-        fileId,
+        fileId: attachment.id,
         nominationFileId: file.id,
         observationId: observation.id,
         sessionId: file.sessionId,
       },
-      { onSuccess: (url) => window.open(url, '_blank') },
+      {
+        onError: (error) => {
+          attachmentTab.cancel();
+          notifyFailure('open', attachment.name, error);
+        },
+        onSuccess: (url) => attachmentTab.settle(url),
+      },
     );
+  };
 
   const handleFileDownload = (attachment: { id: string; name: string }) =>
     getFileUrl(
@@ -99,7 +115,14 @@ function ObservationCard({
         observationId: observation.id,
         sessionId: file.sessionId,
       },
-      { onSuccess: (url) => download({ name: attachment.name, url }) },
+      {
+        onError: (error) => notifyFailure('download', attachment.name, error),
+        onSuccess: (url) =>
+          download(
+            { name: attachment.name, url },
+            { onError: (error) => notifyFailure('download', attachment.name, error) },
+          ),
+      },
     );
 
   const detailPath = getObservationDetailsPath({
@@ -217,7 +240,7 @@ function ObservationCard({
                       key={attachment.id}
                       name={attachment.name}
                       onDownload={() => handleFileDownload(attachment)}
-                      onOpen={() => handleFileClick(attachment.id)}
+                      onOpen={() => handleFileOpen(attachment)}
                       size={attachment.size}
                     />
                   ))}

@@ -28,7 +28,7 @@ const PresentationsBreadcrumb = memo(function PresentationsBreadcrumb() {
         currentPageLabel: formatMessage({ defaultMessage: `Restitutions` }),
         segments: [
           {
-            label: formatMessage({ defaultMessage: 'Secrétariat Général' }),
+            label: formatMessage({ defaultMessage: 'Secrétariat général' }),
             to: generatePath(ROUTE_PATHS.SG.DASHBOARD),
           },
         ],
@@ -93,7 +93,7 @@ export function PresentationsTabsPage() {
     <div className="fr-pt-8v fr-pb-8v grow bg-(--background-alt-grey)">
       <div className="fr-container">
         <PresentationsBreadcrumb />
-        <h1 className="fr-h2 fr-mb-8v">
+        <h1 className="fr-h3 fr-mb-8v">
           <FormattedMessage defaultMessage="Restitutions" />
         </h1>
 

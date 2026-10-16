@@ -5,7 +5,7 @@ import Compass from '@codegouvfr/react-dsfr/picto/Compass';
 import React from 'react';
 import { useParams, useSearchParams } from 'react-router';
 
-import { OvoidBackground, OvoidMotif } from '@/shared/ui/ovoid';
+import { ErrorPageLayout } from '@/shared/ui/error-page';
 import { useLolfiMagistratUrlQuery } from '@queries/nomination-sessions.queries';
 
 function useCountdown(time = 5_000) {
@@ -50,61 +50,29 @@ function LolfiRedirectMagistratInner() {
   }
 
   return (
-    <div className="fr-container">
-      <div
-        className={cx(
-          'fr-my-14v',
-          'fr-mt-md-24v',
-          'fr-mb-md-20v',
-          'fr-grid-row',
-          'fr-grid-row--gutters',
-          'fr-grid-row--middle',
-          'fr-grid-row--center',
-        )}
-      >
-        <div className={cx('fr-py-0', 'fr-col-12', 'fr-col-md-6')}>
-          <h1>{error ? 'Impossible de vous rediriger' : 'Redirection en cours...'}</h1>
-          {error ? (
-            <>
-              <Alert
-                severity="error"
-                title="Nous n'avons pas trouvé l'identifiant LOLFI de ce magistrat"
-                description="Nous nous excusons pour la gêne occasionnée."
-              />
-              <ButtonsGroup
-                className="fr-mt-2v"
-                inlineLayoutWhen="md and up"
-                buttons={[{ onClick: closeWindow, children: 'Revenir au contenu', priority: 'primary' }]}
-              />
-            </>
-          ) : (
-            <p className={cx('fr-text--lead', 'fr-mb-6v')}>
-              {magistratName
-                ? `Nous vous redirigerons vers la page LOLFI de ${magistratName} dans ${remainingSeconds} ${remainingSeconds > 1 ? 'secondes' : 'seconde'}`
-                : `Nous vous redirigerons vers la page LOLFI du magistrat dans ${remainingSeconds} ${remainingSeconds > 1 ? 'secondes' : 'seconde'}`}
-            </p>
-          )}
-        </div>
-
-        <div
-          className={cx(
-            'fr-col-12',
-            'fr-col-md-3',
-            'fr-col-offset-md-1',
-            'fr-px-12v',
-            'fr-px-md-0',
-            'fr-py-0',
-          )}
-        >
-          <div className="relative h-50 w-40">
-            <OvoidMotif className="absolute" />
-            <OvoidBackground className="fr-artwork-background absolute" />
-
-            <Compass aria-hidden width="80" height="100" className="fr-artwork fr-responsive-img absolute" />
-          </div>
-        </div>
-      </div>
-    </div>
+    <ErrorPageLayout pictogram={Compass}>
+      <h1>{error ? 'Impossible de vous rediriger' : 'Redirection en cours...'}</h1>
+      {error ? (
+        <>
+          <Alert
+            severity="error"
+            title="Nous n'avons pas trouvé l'identifiant LOLFI de ce magistrat"
+            description="Nous nous excusons pour la gêne occasionnée."
+          />
+          <ButtonsGroup
+            className="fr-mt-2v"
+            inlineLayoutWhen="md and up"
+            buttons={[{ onClick: closeWindow, children: 'Revenir au contenu', priority: 'primary' }]}
+          />
+        </>
+      ) : (
+        <p className={cx('fr-text--lead', 'fr-mb-6v')}>
+          {magistratName
+            ? `Nous vous redirigerons vers la page LOLFI de ${magistratName} dans ${remainingSeconds} ${remainingSeconds > 1 ? 'secondes' : 'seconde'}`
+            : `Nous vous redirigerons vers la page LOLFI du magistrat dans ${remainingSeconds} ${remainingSeconds > 1 ? 'secondes' : 'seconde'}`}
+        </p>
+      )}
+    </ErrorPageLayout>
   );
 }
 

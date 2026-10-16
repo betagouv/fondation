@@ -13,7 +13,7 @@ import {
   useCreateObservationMutation,
   useListObservationsAttachments,
   useUpdateObservationMutation,
-  type MagistratSearchResult,
+  type Observant,
   type Observation,
 } from '@queries/observations.queries';
 
@@ -74,7 +74,7 @@ export function ObservationForm({
     mode: 'onChange',
   });
 
-  const [selectedMagistrat, setSelectedMagistrat] = useState<MagistratSearchResult | null>(null);
+  const [selectedMagistrat, setSelectedMagistrat] = useState<Observant | null>(null);
 
   const keptFileIds = watch('keptFileIds') ?? [];
   const attachedFiles = observation?.files ?? [];
@@ -102,14 +102,7 @@ export function ObservationForm({
 
   useEffect(() => {
     if (observation?.magistrat) {
-      setSelectedMagistrat({
-        id: observation.magistrat.id,
-        firstName: observation.magistrat.firstName,
-        lastName: observation.magistrat.lastName,
-        name: observation.magistrat.name,
-        grade: null,
-        currentPosition: observation.magistrat.currentPosition ?? null,
-      });
+      setSelectedMagistrat(observation.magistrat);
     }
   }, [observation]);
 
@@ -118,7 +111,7 @@ export function ObservationForm({
     return () => onFormStateChange?.({ isDirty: false, isValid: false });
   }, [isDirty, isValid, onFormStateChange]);
 
-  const handleMagistratChange = (magistrat: MagistratSearchResult | null) => {
+  const handleMagistratChange = (magistrat: Observant | null) => {
     setSelectedMagistrat(magistrat);
     setValue('magistratId', magistrat?.id ?? '', { shouldDirty: true, shouldValidate: true });
   };
@@ -286,7 +279,8 @@ export function ObservationForm({
           <Input
             classes={{ root: 'fr-mb-0' }}
             hintText={intl.formatMessage({
-              defaultMessage: "Renseignez le texte de l'observation ou joignez une pièce jointe ci-dessous",
+              defaultMessage:
+                "Renseignez ici les éléments que vous voulez partager aux membres sur l'historique de cet observant",
             })}
             label={<FormattedMessage defaultMessage="Historique observant" />}
             nativeTextAreaProps={{ onChange: field.onChange, value: field.value as string }}

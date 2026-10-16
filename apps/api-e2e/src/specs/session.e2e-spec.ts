@@ -4,6 +4,8 @@ import * as fs from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
 import type { LolfiArchiveContent } from 'lolfi';
+import postgres from 'postgres';
+import { inject } from 'vitest';
 
 import { test } from '../fixtures.ts';
 import * as api from '../generated/api/sdk.ts';
@@ -42,6 +44,17 @@ function lodamForm(): ImportNominationSessionFromLodamXlsxDto['form'] {
 
 function isoDate(date: { day: number; month: number; year: number }): string {
   return `${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`;
+}
+
+// the e2e reach the database, not the storage: a path nothing was stored at stands for a lost object
+async function loseFromStorage(fileId: string): Promise<void> {
+  const sql = postgres(inject('databaseUrl'), { onnotice: () => {} });
+
+  try {
+    await sql`update files_context.files set path = array['lost', ${fileId}] where id = ${fileId}`;
+  } finally {
+    await sql.end();
+  }
 }
 
 function attachmentForm(form: UploadNominationFileAttachmentsDto['form']): UploadNominationFileAttachmentsDto['form'] {
@@ -233,6 +246,32 @@ test.describe('Session E2E', () => {
       } satisfies NominationFile);
     });
 
+    test('should update the observers from a LODAM file, keeping no copy of the imported files', async ({
+      agent,
+      expect,
+    }) => {
+      const importResponse = await agent.sessions.createSessionFromLodam({
+        body: { file: await lodamFile(), form: lodamForm() },
+      });
+      const sessionId = importResponse.data!.id;
+
+      const response = await agent.sessions.updateSessionObservers({
+        body: { file: await lodamFile() },
+        path: { sessionId },
+      });
+      expect(response.response?.status).toBe(204);
+
+      const sql = postgres(inject('databaseUrl'), { onnotice: () => {} });
+      try {
+        const [copies] = await sql<{ count: number }[]>`
+          select count(*)::int as count from files_context.files where path[1] = 'lodam'
+        `;
+        expect(copies?.count).toBe(0);
+      } finally {
+        await sql.end();
+      }
+    });
+
     test('should attach a file to a nomination file and list it', async ({ agent, expect }) => {
       const importResponse = await agent.sessions.createSessionFromLodam({
         body: { file: await lodamFile(), form: lodamForm() },
@@ -269,6 +308,39 @@ test.describe('Session E2E', () => {
       const updatedFile = filesAfter.data!.items.find((file) => file.id === nominationFileId);
       expect(updatedFile?.hasAttachment).toBe(true);
       expect(updatedFile?.hasJurisdictionSheet).toBe(true);
+    });
+
+    test('should show a readable page for an attachment the storage lost', async ({ agent, expect }) => {
+      const importResponse = await agent.sessions.createSessionFromLodam({
+        body: { file: await lodamFile(), form: lodamForm() },
+      });
+      const sessionId = importResponse.data!.id;
+
+      const files = await agent.sessions.listNominationFiles({ path: { sessionId } });
+      const nominationFileId = files.data!.items[0]!.id;
+
+      await agent.sessions.uploadNominationFileAttachments({
+        body: {
+          files: [makeFile({ name: 'note.pdf', type: 'application/pdf' })],
+          form: attachmentForm({ type: 'FICHE_DE_JURIDICTION' }),
+        },
+        path: { nominationFileId, sessionId },
+      });
+      const attachments = await agent.sessions.listNominationFileAttachments({
+        path: { nominationFileId, sessionId },
+      });
+      const fileId = attachments.data!.items[0]!.id;
+      await loseFromStorage(fileId);
+
+      const attachment = await agent.sessions.createNominationFileAttachmentUrl({
+        path: { fileId, nominationFileId, sessionId },
+      });
+      const fileUrlId = new URL(attachment.data!.url).pathname.split('/').at(-1)!;
+
+      const { error, response } = await agent.files.getFileByFileUrl({ parseAs: 'text', path: { fileUrlId } });
+      expect(response?.status).toBe(404);
+      expect(response?.headers.get('content-type')).toContain('text/html');
+      expect(error).toContain('Cette pièce jointe est introuvable. Prévenez le support.');
     });
 
     test('should only flag a jurisdiction sheet for that very type', async ({ agent, expect }) => {
@@ -415,6 +487,27 @@ test.describe('Session E2E', () => {
         path: { nominationFileId: files.data!.items[0]!.id, sessionId: session.id },
       });
       expect(forbidden.response?.status).toBe(404);
+    }, 10_000);
+
+    test('should not list to the members an archived session never published to them', async ({
+      agent,
+      member,
+      sessions,
+      expect,
+    }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+      // the API archives only once every file is reported, which a session never published hardly reaches
+      const sql = postgres(inject('databaseUrl'), { onnotice: () => {} });
+      try {
+        await sql`update nominations_context.session set archived_at = now() where id = ${session.id}`;
+      } finally {
+        await sql.end();
+      }
+
+      const listedToSecretariat = await agent.archivedSessions.listArchivedSessions({ query: { limit: 200 } });
+      expect(listedToSecretariat.data!.items.map(({ id }) => id)).toContain(session.id);
+      const listedToMember = await member.archivedSessions.listArchivedSessions({ query: { limit: 200 } });
+      expect(listedToMember.data!.items.map(({ id }) => id)).not.toContain(session.id);
     }, 10_000);
 
     test('should write then read back the session comment and who wrote it last', async ({

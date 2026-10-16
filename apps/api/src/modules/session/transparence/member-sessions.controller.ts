@@ -1,4 +1,14 @@
-import { Body, Controller, ForbiddenException, Get, HttpCode, HttpStatus, Param, Put } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  ForbiddenException,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Put,
+  UseInterceptors,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ZodResponse } from 'nestjs-zod';
 
@@ -7,10 +17,12 @@ import { AuthedUser, HasRole } from 'src/modules/simple-auth';
 
 import { WriteNominationFileMemberMemoDto } from './infrastructure/dtos/nomination-file.dto';
 import { ListedMemberSessionsDto } from './infrastructure/queries/list-member-sessions.query';
+import { TransparenceExceptionFilter } from './infrastructure/transparence.filter';
 import { TransparenceService } from './infrastructure/transparence.service';
 
 @ApiTags('Members')
 @Controller('/api/members/v1')
+@UseInterceptors(TransparenceExceptionFilter)
 export class MemberSessionsController {
   constructor(private readonly sessions: TransparenceService) {}
 
@@ -30,7 +42,7 @@ export class MemberSessionsController {
   @Put('/:userId/sessions/transparence/garde-des-sceaux/:sessionId/files/:nominationFileId/memo')
   @HttpCode(HttpStatus.NO_CONTENT)
   async writeNominationFileMemberMemo(
-    @AuthedUser() authedUser: { id: string },
+    @AuthedUser() authedUser: { id: string; role: RoleEnum },
     @Param('userId') userId: string,
     @Param('sessionId') sessionId: string,
     @Param('nominationFileId') nominationFileId: string,
@@ -38,6 +50,11 @@ export class MemberSessionsController {
   ) {
     if (authedUser.id !== userId) throw new ForbiddenException();
 
-    await this.sessions.writeNominationFileMemberMemo({ memo, nominationFileId, sessionId, userId });
+    await this.sessions.writeNominationFileMemberMemo({
+      memo,
+      nominationFileId,
+      sessionId,
+      user: authedUser,
+    });
   }
 }

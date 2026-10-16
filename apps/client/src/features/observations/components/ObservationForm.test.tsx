@@ -4,7 +4,8 @@ import { IntlProvider } from 'react-intl';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ConfirmModalProvider } from '@/shared/context/confirm-modal';
-import type { MagistratSearchResult, Observation } from '@queries/observations.queries';
+import type { FoundMagistrat } from '@queries/magistrats.queries';
+import type { Observation } from '@queries/observations.queries';
 
 import { ObservationForm } from './ObservationForm';
 
@@ -13,36 +14,53 @@ type FormState = { isDirty: boolean; isValid: boolean };
 const createObservation = vi.fn();
 const updateObservation = vi.fn();
 
-let searchResults: MagistratSearchResult[] = [];
+let searchResults: FoundMagistrat[] = [];
+let searchFailed = false;
 
 let linkableAttachments: { observationId: string; fileId: string; name: string }[] = [];
 
 vi.mock('@queries/observations.queries', () => ({
   useCreateObservationMutation: () => ({ mutate: createObservation, reset: vi.fn(), error: null }),
   useUpdateObservationMutation: () => ({ mutate: updateObservation, reset: vi.fn(), error: null }),
-  useSearchMagistratsQuery: () => ({ data: searchResults, isLoading: false }),
+  useSearchMagistratsQuery: () => ({
+    data: searchFailed ? undefined : searchResults,
+    isError: searchFailed,
+    isLoading: false,
+  }),
   useListObservationsAttachments: () => ({ data: { items: linkableAttachments } }),
 }));
 
 const PV = { observationId: 'other-observation', fileId: 'file-a', name: 'pv.pdf' };
 const NOTE = { observationId: 'other-observation', fileId: 'file-b', name: 'note.pdf' };
 
-const MARTIN: MagistratSearchResult = {
-  currentPosition: 'Juge à Nantes',
+const MARTIN: FoundMagistrat = {
+  currentPosition: {
+    function: { id: 'J', label: 'Juge' },
+    jurisdiction: { id: 'TJ  NANTES', label: 'Tribunal judiciaire de Nantes' },
+  },
   firstName: 'Léa',
-  grade: null,
+  grade: 'G1',
+  gradeAndJurisdiction: 'G1 - TJ NANTES',
   id: 'magistrat-1',
   lastName: 'Martin',
   name: 'MARTIN Léa',
+  status: 'ACTIVE',
+  usedName: null,
 };
 
-const DUPONT: MagistratSearchResult = {
-  currentPosition: 'Procureur à Rennes',
+const DUPONT: FoundMagistrat = {
+  currentPosition: {
+    function: null,
+    jurisdiction: { id: 'TJ  RENNES', label: 'Tribunal judiciaire de Rennes' },
+  },
   firstName: 'Marc',
   grade: null,
+  gradeAndJurisdiction: 'TJ RENNES',
   id: 'magistrat-2',
   lastName: 'Dupont',
   name: 'DUPONT Marc',
+  status: 'INACTIVE',
+  usedName: null,
 };
 
 const OBSERVATION: Observation = {
@@ -99,6 +117,7 @@ async function search(user: ReturnType<typeof userEvent.setup>) {
 beforeEach(() => {
   vi.clearAllMocks();
   searchResults = [];
+  searchFailed = false;
   linkableAttachments = [];
 });
 
@@ -144,6 +163,42 @@ describe('ObservationForm linkable attachments', () => {
 });
 
 describe('ObservationForm magistrat combobox', () => {
+  it('describes each option by the grade and the labels of the current position', async () => {
+    const user = userEvent.setup();
+    searchResults = [MARTIN, DUPONT];
+    renderForm();
+
+    const [martin, dupont] = await search(user);
+
+    expect(martin).toHaveTextContent('G1 - Juge Tribunal judiciaire de Nantes');
+    expect(dupont).toHaveTextContent('Tribunal judiciaire de Rennes');
+    expect(dupont).not.toHaveTextContent('TJ');
+  });
+
+  it('labels the selected magistrat with their current position', async () => {
+    const user = userEvent.setup();
+    searchResults = [MARTIN];
+    renderForm();
+
+    const [martin] = await search(user);
+    await user.click(martin!);
+
+    expect(
+      screen.getByRole('button', { name: /MARTIN Léa - Juge Tribunal judiciaire de Nantes/ }),
+    ).toBeInTheDocument();
+  });
+
+  it('tells when the search fails rather than finding no magistrat', async () => {
+    const user = userEvent.setup();
+    searchFailed = true;
+    renderForm();
+
+    await user.type(searchInput(), 'mar');
+
+    expect(await screen.findByText("La recherche n'a pas pu aboutir")).toBeInTheDocument();
+    expect(screen.queryByText('Aucun résultat')).not.toBeInTheDocument();
+  });
+
   it('exposes the results as options of a listbox', async () => {
     const user = userEvent.setup();
     searchResults = [MARTIN, DUPONT];

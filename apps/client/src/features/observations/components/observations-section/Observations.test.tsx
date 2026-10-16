@@ -23,13 +23,28 @@ const makeObservation = (id: string) => ({
   magistrat: null,
 });
 
+const withAttachment = () =>
+  ({
+    ...makeObservation('obs-1'),
+    files: [
+      { addedAt: '2025-01-10T10:00:00.000Z', addedBy: null, id: 'file-1', name: 'courrier.pdf', size: 1024 },
+    ],
+  }) as never;
+
 let observations: ReturnType<typeof makeObservation>[] = [];
 vi.mock('@queries/auth.queries', () => ({ useUser: () => ({ user: { id: 'user-1' } }) }));
+const getFileUrl = vi.fn();
+const toastError = vi.fn();
+vi.mock('@/shared/ui/toast', () => ({ useToasts: () => ({ error: toastError }) }));
+const cancelTab = vi.fn();
+vi.mock('@/shared/hooks/useTab', () => ({
+  useTab: () => ({ openDeferred: () => ({ cancel: cancelTab, settle: vi.fn() }) }),
+}));
 vi.mock('@queries/files.queries', () => ({
   useDownloadFileMutation: () => ({ isPending: false, mutate: vi.fn() }),
 }));
 vi.mock('@queries/observations.queries', () => ({
-  useGetObservationFileUrlMutation: () => ({ isPending: false, mutate: vi.fn() }),
+  useGetObservationFileUrlMutation: () => ({ isPending: false, mutate: getFileUrl }),
   useObservationsQuery: () => ({ data: { observations } }),
 }));
 
@@ -126,5 +141,34 @@ describe('Observations', () => {
 
     expect(screen.queryByRole('heading')).not.toBeInTheDocument();
     expect(screen.queryByText('Aucun observant sur cette proposition')).not.toBeInTheDocument();
+  });
+
+  it('tells the opening of an attachment failed', async () => {
+    observations = [withAttachment()];
+    getFileUrl.mockImplementation((_vars, options) => options.onError(new Error('network')));
+    const user = userEvent.setup();
+    renderObservations();
+
+    await user.click(screen.getByRole('button', { name: 'Voir la pièce jointe' }));
+    await user.click(screen.getByRole('button', { name: 'courrier' }));
+
+    expect(cancelTab).toHaveBeenCalled();
+    expect(toastError).toHaveBeenCalledWith(
+      expect.objectContaining({ title: 'L\'ouverture de "courrier.pdf" a échoué' }),
+    );
+  });
+
+  it('tells the download of an attachment failed', async () => {
+    observations = [withAttachment()];
+    getFileUrl.mockImplementation((_vars, options) => options.onError(new Error('network')));
+    const user = userEvent.setup();
+    renderObservations();
+
+    await user.click(screen.getByRole('button', { name: 'Voir la pièce jointe' }));
+    await user.click(screen.getByRole('button', { name: 'Télécharger courrier.pdf' }));
+
+    expect(toastError).toHaveBeenCalledWith(
+      expect.objectContaining({ title: 'Le téléchargement de "courrier.pdf" a échoué' }),
+    );
   });
 });

@@ -6,7 +6,7 @@ permissions:
 on:
   push:
     tags:
-      - IT[0-9]+S[0-9]
+      - IT[0-9]+S[0-9]+
       - IT[0-9]+S[0-9]+-[0-9]+
 
 jobs:
@@ -21,61 +21,14 @@ jobs:
     with:
       environment: staging
 
-  notify-changelog:
+  notify:
     needs: [release]
-    runs-on: ubuntu-latest
-    env:
+    if: ${{ always() && needs.release.result != 'skipped' }}
+    uses: ./.github/workflows/notify-tchap.yml
+    secrets:
+      TCHAP_ACCESS_TOKEN: ${{ secrets.TCHAP_ACCESS_TOKEN }}
+    with:
+      environment: staging
+      result: ${{ needs.release.result }}
       tags_current: ${{ needs.release.outputs.tags_current }}
       tags_previous: ${{ needs.release.outputs.tags_previous }}
-      TCHAP_ACCESS_TOKEN: ${{ secrets.TCHAP_ACCESS_TOKEN }}
-      TCHAP_HOMESERVER_URL: ${{ vars.TCHAP_HOMESERVER_URL }}
-      TCHAP_ROOM_ID: ${{ vars.TCHAP_ROOM_ID }}
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-        with:
-          persist-credentials: false
-          fetch-tags: true
-          fetch-depth: 200
-
-      - name: Use Node.js
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
-        with:
-          node-version: '24.12.0'
-          package-manager-cache: false
-
-      - shell: bash
-        id: changelog
-        run: |
-          echo "${tags_current}" ${tags_previous}
-          {
-            echo 'markdown<<EOF'
-            node scripts/changelog ${tags_current} ${tags_previous}
-            echo EOF
-            echo 'html<<EOF'
-            node scripts/changelog ${tags_current} ${tags_previous} --html
-            echo EOF
-          } >> "$GITHUB_OUTPUT"
-
-      - name: Outputs changelog
-        env:
-          CHANGELOG: ${{ steps.changelog.outputs.markdown }}
-        run: echo "$CHANGELOG" >> $GITHUB_STEP_SUMMARY
-
-      - name: Notify Tchap
-        if: ${{ env.TCHAP_ACCESS_TOKEN != '' }}
-        continue-on-error: true
-        env:
-          CHANGELOG: ${{ steps.changelog.outputs.markdown }}
-          CHANGELOG_HTML: ${{ steps.changelog.outputs.html }}
-          DEPLOYER: ${{ github.actor }}
-        run: |
-          room=$(jq -rn --arg id "$TCHAP_ROOM_ID" '$id | @uri')
-          jq -n --arg changelog "$CHANGELOG" --arg html "$CHANGELOG_HTML" --arg deployer "$DEPLOYER" '{
-              body: "Staging déployé par \($deployer)\n\n\($changelog)",
-              format: "org.matrix.custom.html",
-              formatted_body: "<strong>Staging déployé par \($deployer)</strong>\($html)",
-              msgtype: "m.text"
-            }' \
-            | curl --fail-with-body --silent --show-error -X PUT \
-                -H "Authorization: Bearer $TCHAP_ACCESS_TOKEN" -H 'Content-type: application/json' \
-                -d @- "$TCHAP_HOMESERVER_URL/_matrix/client/v3/rooms/$room/send/m.room.message/$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"

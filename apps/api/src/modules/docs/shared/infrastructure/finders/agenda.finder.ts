@@ -22,9 +22,7 @@ import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
 import { isDefined } from 'src/utils/is-defined';
 import { partition } from 'src/utils/iterables';
 import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
-import { fullname } from 'src/utils/user.util';
-
-export const writerSchema = z.object({ id: z.string(), name: z.string() }).nullable();
+import { writerOf, writerSchema } from 'src/utils/user.util';
 
 export const officialReportReadinessSchema = z.discriminatedUnion('status', [
   z.object({ status: z.enum(['READY']) }),
@@ -39,10 +37,6 @@ export const officialReportReadinessSchema = z.discriminatedUnion('status', [
 ]);
 
 export type OfficialReportReadiness = z.infer<typeof officialReportReadinessSchema>;
-
-export function writerOf(user: { firstName: string; id: string; lastName: string } | null) {
-  return user ? { id: user.id, name: fullname(user) } : null;
-}
 
 @Injectable()
 export class AgendaFinder {
@@ -298,6 +292,7 @@ export class AgendaFinder {
         presentationPlan: item.validatedPlan
           ? {
               id: item.validatedPlan.id,
+              date: DateOnly.fromUtcDate(item.validatedPlan.date).toJson(),
               startTime: dateToTimeOnly(item.validatedPlan.time),
               endTime: item.validatedPlan.endTime ? dateToTimeOnly(item.validatedPlan.endTime) : null,
               secretaryId: item.validatedPlan.secretaryId,
@@ -345,6 +340,7 @@ export class FoundAgendasDto extends createZodDto(
         presentationPlan: z
           .object({
             id: z.string(),
+            date: dateOnlyJsonSchema,
             startTime: timeOnlySchema,
             endTime: timeOnlySchema.nullable(),
             hasRenunciation: z.boolean(),

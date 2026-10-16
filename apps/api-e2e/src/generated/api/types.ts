@@ -28,6 +28,7 @@ export type DetailedUserResponseDto = {
     firstName: string;
     lastName: string;
     role: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | 'ADMIN';
+    formation: 'SIEGE' | 'PARQUET' | null;
     gender: 'MALE' | 'FEMALE';
     isImpersonated: boolean;
     displayTitle: string | null;
@@ -127,13 +128,15 @@ export type ListedArchivedNominationSessionsDto = {
             month: number;
             day: number;
         };
-        dueDate: {
-            year: number;
-            month: number;
-            day: number;
-        } | null;
-        typeDeSaisine: 'TRANSPARENCE_GDS';
-        status: 'TO_VALIDATE' | 'READY';
+        archivedAt: string;
+        proposingAuthority: {
+            id: 'GARDE_DES_SCEAUX';
+            label: string;
+        };
+        typeDeSaisine: {
+            id: 'TRANSPARENCE_GDS';
+            label: string;
+        };
     }>;
     totalCount: number;
     currentPageIndex: number;
@@ -421,7 +424,12 @@ export type PaginatedNominationFiles = {
                 name: string;
             };
         }>;
-        memo: string | null;
+        /**
+         * null when the user keeps no personal notes on this file
+         */
+        memo: {
+            value: string | null;
+        } | null;
         summary: {
             id: string;
             canRead: boolean;
@@ -720,7 +728,12 @@ export type DetailedNominationFileDto = {
             name: string;
         };
     }>;
-    memo: string | null;
+    /**
+     * null when the user keeps no personal notes on this file
+     */
+    memo: {
+        value: string | null;
+    } | null;
     summary: {
         id: string;
         canRead: boolean;
@@ -907,11 +920,6 @@ export type PaginatedMemberListItemDto = {
         excludedJurisdictions: Array<{
             id: string;
             label: string | null;
-        }>;
-        stats: Array<{
-            year: number;
-            count: number;
-            targetedGrade: 'I' | 'II' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | 'MH';
         }>;
     }>;
     totalCount: number;
@@ -1149,6 +1157,26 @@ export type FoundSessionDocsDto = {
             isPresented: boolean;
             otherAgendasCount: number;
         }>;
+        presentation: {
+            status: 'TO_PRESENT';
+        } | {
+            by: {
+                id: string;
+                name: string;
+            } | null;
+            date: {
+                year: number;
+                month: number;
+                day: number;
+            };
+            endTime: {
+                hours: number;
+                minutes: number;
+                seconds: number;
+            } | null;
+            planId: string;
+            status: 'PRESENTED';
+        } | null;
         outdated: boolean;
         status: 'DRAFT' | 'VALIDATED';
         draftChangesBy: 'PERSON' | 'PERSON_AND_SYSTEM' | 'SYSTEM' | null;
@@ -1474,6 +1502,11 @@ export type FoundAgendasDto = {
         }>;
         presentationPlan: {
             id: string;
+            date: {
+                year: number;
+                month: number;
+                day: number;
+            };
             startTime: {
                 hours: number;
                 minutes: number;
@@ -1666,7 +1699,6 @@ export type ListedPresentedPlansDto = {
             id: string;
             name: string;
         } | null;
-        presentedAt: string | null;
         presentedBy: {
             id: string;
             name: string;
@@ -1724,10 +1756,19 @@ export type DetailedPresentationPlanMetadataDto = {
         } | null;
     } | null;
     presentation: {
-        at: string;
         by: {
             id: string;
             name: string;
+        } | null;
+        date: {
+            year: number;
+            month: number;
+            day: number;
+        };
+        endTime: {
+            hours: number;
+            minutes: number;
+            seconds: number;
         } | null;
     } | null;
     isManuallyEdited: boolean;
@@ -1790,11 +1831,6 @@ export type CreateOrUpdateJusticePresentationPlanDto = {
         minutes?: number;
         seconds?: number;
     };
-    endingTime?: {
-        hours: number;
-        minutes?: number;
-        seconds?: number;
-    } | null;
     chairmanId: string;
     secretaryId: string;
     justiceContactId: string;
@@ -1863,8 +1899,20 @@ export type SearchMagistratsResponseDto = {
         firstName: string;
         lastName: string;
         name: string;
+        usedName: string | null;
+        status: 'ACTIVE' | 'INACTIVE';
         grade: string | null;
-        currentPosition: string | null;
+        gradeAndJurisdiction: string | null;
+        currentPosition: {
+            function: {
+                id: string;
+                label: string;
+            } | null;
+            jurisdiction: {
+                id: string;
+                label: string | null;
+            };
+        } | null;
     }>;
     totalCount: number;
     currentPageIndex: number;
@@ -2338,8 +2386,8 @@ export type GetFileByFileUrlData = {
     path: {
         fileUrlId: string;
     };
-    query: {
-        download: string;
+    query?: {
+        download?: string;
     };
     url: '/api/files/v1/{fileUrlId}';
 };
@@ -2596,8 +2644,8 @@ export type ListArchivedSessionsData = {
     path?: never;
     query?: {
         search?: string;
-        sortBy?: 'date' | 'dueDate';
         formations?: Array<'SIEGE' | 'PARQUET'>;
+        sortBy?: 'archivedAt' | 'date';
         /**
          * true
          */
@@ -2651,8 +2699,8 @@ export type ListSessionsOfTypeGardeDesSceauxData = {
     path?: never;
     query?: {
         search?: string;
-        sortBy?: 'date' | 'dueDate';
         formations?: Array<'SIEGE' | 'PARQUET'>;
+        sortBy?: 'date' | 'dueDate';
         /**
          * true
          */

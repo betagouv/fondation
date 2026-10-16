@@ -35,11 +35,19 @@ export const Agenda: Story = {
 export const PresentedNotice: Story = {
   args: {
     kind: 'notice',
-    presentation: { at: '2026-09-23T12:00:00.000Z', by: { id: 'user-sg', name: 'Claire MERCIER' } },
+    presentation: {
+      by: { id: 'user-sg', name: 'Claire MERCIER' },
+      date: { day: 23, month: 9, year: 2026 },
+      endTime: { hours: 12, minutes: 0, seconds: 0 },
+    },
     validation: { at: '2026-09-22T08:12:00.000Z', by: { id: 'user-sg', name: 'Claire MERCIER' } },
   },
 };
 
 export const ValidatedBeforeTheTrace: Story = {
-  args: { kind: 'notice', presentation: { at: '2026-09-23T12:00:00.000Z', by: null }, validation: null },
+  args: {
+    kind: 'notice',
+    presentation: { by: null, date: { day: 23, month: 9, year: 2026 }, endTime: null },
+    validation: null,
+  },
 };

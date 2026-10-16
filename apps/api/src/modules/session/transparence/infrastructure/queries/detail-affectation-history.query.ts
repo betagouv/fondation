@@ -5,17 +5,9 @@ import z from 'zod';
 
 import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
-import { fullname } from 'src/utils/user.util';
+import { writerOf, writerSchema } from 'src/utils/user.util';
 
 const PERSON_SELECT = { firstName: true, id: true, lastName: true } satisfies Prisma.UserSelect;
-
-type Person = { firstName: string; id: string; lastName: string } | null;
-
-const writerSchema = z.object({ id: z.string(), name: z.string() }).nullable();
-
-function writerOf(person: Person) {
-  return person ? { id: person.id, name: fullname(person) } : null;
-}
 
 /** the version the members read, and the one the secretariat works on until it publishes it */
 @Injectable()

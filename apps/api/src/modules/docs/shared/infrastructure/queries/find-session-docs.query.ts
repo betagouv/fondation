@@ -5,13 +5,9 @@ import z from 'zod';
 
 import { docFileName } from '../../domain/doc-file-name';
 import { DOC_SYSTEM_UPDATE_CAUSES } from '../../domain/doc-system-update-cause';
+import { presentationTraceOf, presentationTraceSchema } from '../document-trace';
 import { draftChangesBy, draftChangesBySchema, draftLastChange } from '../draft-changes-by';
-import {
-  AgendaFinder,
-  officialReportReadinessSchema,
-  writerOf,
-  writerSchema,
-} from '../finders/agenda.finder';
+import { AgendaFinder, officialReportReadinessSchema } from '../finders/agenda.finder';
 import { Prisma } from 'src/generated/prisma/client';
 import {
   presentationPlanStatusOf,
@@ -21,6 +17,7 @@ import { Db } from 'src/modules/framework/database';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
 import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
+import { writerOf, writerSchema } from 'src/utils/user.util';
 
 const draftUpdateSchema = z
   .object({
@@ -60,6 +57,8 @@ export class FindSessionDocsQuery {
                 time: true,
                 pdfId: true,
                 isPresented: true,
+                endTime: true,
+                presenter: { select: { firstName: true, id: true, lastName: true } },
                 chairmanFirstName: true,
                 chairmanLastName: true,
                 _count: { select: { agendas: true } },
@@ -106,11 +105,12 @@ export class FindSessionDocsQuery {
           // the version carries its own createdAt, which must not pass for the agenda's
           createdAt: agenda.createdAt,
           creator: author,
-          draftChange: draft ? draftLastChange(draft) : null,
+          draftChange: draft ? draftLastChange(draft, { overValidated: Boolean(published) }) : null,
           draftChangesBy: draft ? draftChangesBy(draft) : null,
           // the upstream changes land in the draft, and the reader has to be told even though the
           // validated version they are shown knows nothing of them
           outdated: versions.some((version) => version.outdated),
+          presentation: published ? presentationOf(agenda.justicePresentationPlans) : null,
           status: published ? ('VALIDATED' as const) : ('DRAFT' as const),
           validator: published?.validator ?? null,
         },
@@ -161,7 +161,7 @@ export class FindSessionDocsQuery {
           ...shown,
           createdAt: report.createdAt,
           creator: author,
-          draftChange: draft ? draftLastChange(draft) : null,
+          draftChange: draft ? draftLastChange(draft, { overValidated: Boolean(published) }) : null,
           draftChangesBy: draft ? draftChangesBy(draft) : null,
           outdated: versions.some((version) => version.outdated),
           status: published ? ('VALIDATED' as const) : ('DRAFT' as const),
@@ -190,6 +190,7 @@ export class FindSessionDocsQuery {
           isPresented: plan.isPresented,
           otherAgendasCount: plan._count.agendas - 1,
         })),
+        presentation: file.presentation,
         outdated: file.outdated,
         status: file.status,
         draftChangesBy: file.draftChangesBy,
@@ -263,6 +264,25 @@ export class FindSessionDocsQuery {
   }
 }
 
+/** the validated notice, as for the official report, the only one that holds the agenda for good */
+function presentationOf(
+  plans: readonly {
+    plan: {
+      date: Date;
+      endTime: Date | null;
+      id: string;
+      isPresented: boolean;
+      pdfId: string | null;
+      presenter: { firstName: string; id: string; lastName: string } | null;
+    };
+  }[],
+) {
+  const validated = plans.find(({ plan }) => plan.pdfId !== null)?.plan;
+  if (!validated?.isPresented) return { status: 'TO_PRESENT' as const };
+
+  return { ...presentationTraceOf(validated), planId: validated.id, status: 'PRESENTED' as const };
+}
+
 export class FoundSessionDocsDto extends createZodDto(
   z.object({
     items: z.array(
@@ -286,6 +306,13 @@ export class FoundSessionDocsDto extends createZodDto(
               otherAgendasCount: z.number(),
             }),
           ),
+          /** null while the agenda has never been validated */
+          presentation: z
+            .discriminatedUnion('status', [
+              z.object({ status: z.enum(['TO_PRESENT']) }),
+              presentationTraceSchema.extend({ planId: z.string(), status: z.enum(['PRESENTED']) }),
+            ])
+            .nullable(),
           outdated: z.boolean(),
           /** DRAFT while the agenda has never been validated */
           status: z.enum(['DRAFT', 'VALIDATED']),

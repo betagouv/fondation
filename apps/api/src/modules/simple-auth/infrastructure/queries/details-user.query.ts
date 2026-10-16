@@ -6,6 +6,8 @@ import z from 'zod';
 import { Prisma } from 'src/generated/prisma/client';
 import { USER_DUTIES, USER_TITLES } from 'src/modules/administration/domain/user-enum';
 import { Db } from 'src/modules/framework/database';
+import { roleToFormation } from 'src/modules/members/infrastructure/member.utils';
+import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
 import { prismaRoleEnumToRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
@@ -38,11 +40,13 @@ export class DetailsUserQuery {
     if (!maybeUser) throw new NotFoundException();
 
     const { id: userId, ...user } = maybeUser;
+    const role = prismaRoleEnumToRoleEnum(user.role);
     return {
       ...user,
       userId,
       isImpersonated: isDefined(query.impersonationId),
-      role: prismaRoleEnumToRoleEnum(user.role),
+      role,
+      formation: roleToFormation(role) ?? null,
       gender: prismaGenderEnumToGenderEnum(user.gender),
     };
   }
@@ -54,6 +58,8 @@ export class DetailedUserResponseDto extends createZodDto(
     firstName: z.string(),
     lastName: z.string(),
     role: z.enum(RoleEnum),
+    /** null when the user is not restricted to a formation */
+    formation: z.enum(FormationEnum).nullable(),
     gender: z.enum(GenderEnum),
     isImpersonated: z.boolean(),
     displayTitle: z.string().nullable(),

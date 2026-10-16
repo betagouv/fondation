@@ -5,8 +5,9 @@ import { GenderEnum } from 'src/modules/shared/gender.enum';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
 
 import { AuthImpersonation } from './domain/auth-impersonation';
+import { AuthPassword } from './domain/auth-password';
 import { AuthSession } from './domain/auth-session';
-import { AuthUser } from './domain/auth-user';
+import { AuthUser, AuthUserNotAuthentifiable } from './domain/auth-user';
 import { DetailsUserFromImpersonationQuery } from './infrastructure/queries/details-user-from-impesronation-id.query';
 import { DetailsUserFromSessionIdQuery } from './infrastructure/queries/details-user-from-session-id.query';
 import { DetailedUserResponseDto, DetailsUserQuery } from './infrastructure/queries/details-user.query';
@@ -45,6 +46,12 @@ export class SimpleAuthService {
 
   async login(command: { email: string; password: string }): Promise<AuthSession> {
     const user = await this.userRepository.findByEmail(command.email);
+    if (!user) {
+      // An unknown email fails like a wrong password, as late and with the same status, so that nothing reveals who has an account
+      await AuthPassword.DECOY.equals(command.password);
+      throw new AuthUserNotAuthentifiable();
+    }
+
     const session = await user.authenticate({
       type: 'password',
       now: this.clock.now(),

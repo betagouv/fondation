@@ -1,17 +1,10 @@
 import Badge from '@codegouvfr/react-dsfr/Badge';
 import Button from '@codegouvfr/react-dsfr/Button';
-import {
-  createColumnHelper,
-  getCoreRowModel,
-  useReactTable,
-  type ColumnFiltersState,
-  type SortingState,
-} from '@tanstack/react-table';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { createColumnHelper, getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import { useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, Link } from 'react-router';
-import { useDebouncedCallback } from 'use-debounce';
 
 import {
   type SessionOutcome,
@@ -23,8 +16,13 @@ import { useSessionFilesFilters } from '@/features/nomination-files-table/hooks/
 import { AuditionRoleBadge } from '@/shared/components/audition-role-badge';
 import { ReporterTagList } from '@/shared/components/reporter-tag';
 import type { FormationEnum } from '@/shared/enums/formation.enum';
-import { ReactTableFilterColumn, useQueryDataTableState } from '@/shared/ui/data-table';
-import { NewTable, rowCell } from '@/shared/ui/new-table';
+import {
+  DataTable,
+  DataTableFilters,
+  rowCell,
+  useDataTableSearch,
+  useDataTableUrlState,
+} from '@/shared/ui/data-table';
 import { SearchInput } from '@/shared/ui/search-input';
 import { TotalBadge } from '@/shared/ui/total-badge';
 import {
@@ -44,8 +42,6 @@ import {
 
 import { AuditionsPublicationBadge } from './AuditionsPublicationBadge';
 import { AuditionsPublishButton } from './AuditionsPublishButton';
-
-const SEARCH_DEBOUNCE_MS = 600;
 
 type AuditionsContext = 'sg' | 'membre';
 
@@ -83,7 +79,7 @@ function SessionAuditionsContent(props: {
 }) {
   const intl = useIntl();
   const filters = useSessionFilesFilters();
-  const [tableState, setTableState] = useQueryDataTableState({
+  const { onColumnFiltersChange, onSortingChange, setTableState, tableState } = useDataTableUrlState({
     columnFilters: [] as { id: 'reporters'; value: string[] }[],
     globalFilter: '',
     sorting: [] as [] | [{ desc: boolean; id: 'auditionDate' }],
@@ -104,9 +100,13 @@ function SessionAuditionsContent(props: {
   const exportAsExcel = useListSessionAuditionsAsExcelMutation();
   const onExportFailure = useExportFailure();
 
-  const search = useSearch(tableState.globalFilter ?? '', (globalFilter) =>
+  const search = useDataTableSearch(tableState.globalFilter ?? '', (globalFilter) =>
     setTableState((state) => ({ ...state, globalFilter })),
   );
+
+  const fetchMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   const columns = useMemo(() => {
     const h = createColumnHelper<SessionAudition>();
@@ -152,23 +152,6 @@ function SessionAuditionsContent(props: {
     ];
   }, [filters.reporters, intl, props.context]);
 
-  const onSortingChange = useCallback(
-    (updater: SortingState | ((old: SortingState) => SortingState)) =>
-      setTableState((state) => ({
-        ...state,
-        sorting: typeof updater === 'function' ? updater(state.sorting) : updater,
-      })),
-    [setTableState],
-  );
-  const onColumnFiltersChange = useCallback(
-    (updater: ColumnFiltersState | ((old: ColumnFiltersState) => ColumnFiltersState)) =>
-      setTableState((state) => ({
-        ...state,
-        columnFilters: typeof updater === 'function' ? updater(state.columnFilters) : updater,
-      })),
-    [setTableState],
-  );
-
   const auditions = useMemo(() => data?.items ?? [], [data]);
   const table = useReactTable({
     columns,
@@ -188,7 +171,7 @@ function SessionAuditionsContent(props: {
 
   const filtersBar = (
     <div className="flex items-center justify-between gap-4">
-      <ReactTableFilterColumn table={table} />
+      <DataTableFilters table={table} />
       <SearchInput
         className="w-72"
         onChange={search.onChange}
@@ -235,7 +218,7 @@ function SessionAuditionsContent(props: {
     <div className="flex flex-col gap-y-4">
       {props.filtersSlot ? createPortal(filtersBar, props.filtersSlot) : filtersBar}
       {props.toolbarSlot ? createPortal(toolbar, props.toolbarSlot) : toolbar}
-      <NewTable
+      <DataTable
         ariaLabel={intl.formatMessage({ defaultMessage: 'Auditions de la session' })}
         emptyLabel={
           props.context === 'membre' && !tableState.globalFilter && tableState.columnFilters.length === 0
@@ -244,45 +227,12 @@ function SessionAuditionsContent(props: {
         }
         fluid
         isLoading={isLoading}
+        onEndReached={fetchMore}
         scrollsWithPage
         table={table}
-        unvirtualized
       />
-      {hasNextPage && (
-        <Button
-          className="self-center"
-          disabled={isFetchingNextPage}
-          onClick={() => void fetchNextPage()}
-          priority="secondary"
-          size="small"
-        >
-          <FormattedMessage defaultMessage="Voir plus" />
-        </Button>
-      )}
     </div>
   );
-}
-
-function useSearch(value: string, onCommit: (value: string) => void) {
-  const [search, setSearch] = useState(value);
-  const commit = useDebouncedCallback(onCommit, SEARCH_DEBOUNCE_MS);
-
-  useEffect(() => {
-    if (!commit.isPending()) setSearch(value);
-  }, [commit, value]);
-
-  return {
-    clear: () => {
-      commit.cancel();
-      setSearch('');
-      onCommit('');
-    },
-    onChange: (next: string) => {
-      setSearch(next);
-      commit(next);
-    },
-    value: search,
-  };
 }
 
 const magistratCell = (context: AuditionsContext) =>

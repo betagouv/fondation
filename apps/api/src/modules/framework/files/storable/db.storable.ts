@@ -1,5 +1,5 @@
 import { Propagation } from '@nestjs-cls/transactional';
-import { Inject, Injectable, Logger, NotFoundException, StreamableFile } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 
 import { Prisma } from 'src/generated/prisma/client';
 import { Clock } from 'src/modules/framework/clock';
@@ -159,38 +159,5 @@ export class DbStorage implements Storage {
 
   private makeObjectPublicUrl(publicUrlId: string): URL {
     return new URL(`${this.originUrl}/api/files/v1/${publicUrlId}`);
-  }
-
-  async toStreamableFile(
-    object:
-      | { expiresAt?: Date; id: string; name?: string; path?: StorablePath }
-      | { expiresAt?: Date; name?: string; path?: StorablePath; publicUrlId: string }
-      | { expiresAt?: Date; url: URL },
-  ): Promise<{ expiresAt?: Date; file: StreamableFile }> {
-    if ('url' in object) {
-      return this.storage.toStreamableFile(object);
-    }
-
-    if ('id' in object) {
-      const file = await this.db.tx.file.findUnique({
-        select: { id: true, name: true, path: true } satisfies Prisma.FileSelect,
-        where: { id: object.id },
-      });
-
-      return this.storage.toStreamableFile(
-        file as unknown as { id: string; name: string; path: StorablePath },
-      );
-    }
-
-    const publicUrl = await this.db.tx.filePublicUrl.findUnique({
-      select: { expiresAt: true, url: true } satisfies Prisma.FilePublicUrlSelect,
-      where: { expiresAt: { gt: this.clock.now() }, id: object.publicUrlId },
-    });
-
-    if (!publicUrl) {
-      throw new NotFoundException();
-    }
-
-    return this.toStreamableFile({ expiresAt: publicUrl.expiresAt, url: new URL(publicUrl.url) });
   }
 }

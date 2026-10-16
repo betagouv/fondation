@@ -91,11 +91,11 @@ function InfoDate(props: { date: PlainDateOnly | null }) {
   return formatDateOnly(props.date);
 }
 
-export function MagistratInfoList(props: { children: React.ReactNode }) {
+function MagistratInfoList(props: { children: React.ReactNode }) {
   return <dl className="m-0 flex flex-col gap-2 p-0">{props.children}</dl>;
 }
 
-export function MagistratInfoItem(props: { children: React.ReactNode; label: React.ReactNode }) {
+function MagistratInfoItem(props: { children: React.ReactNode; label: React.ReactNode }) {
   return (
     <div className="leading-relaxed">
       <dt className="inline p-0 font-bold whitespace-nowrap">{props.label}</dt>{' '}

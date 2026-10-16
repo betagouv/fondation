@@ -10,7 +10,6 @@ export class CreateOrUpdateJusticePresentationPlanDto extends createZodDto(
   z.object({
     date: dateOnlyJsonSchema,
     time: timeOnlySchema,
-    endingTime: timeOnlySchema.nullish(),
     chairmanId: z.string(),
     secretaryId: z.string(),
     justiceContactId: z.string(),
