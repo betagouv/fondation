@@ -3,9 +3,10 @@ import { ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { ApiPaginated, Pagination, QueryPagination } from 'src/modules/framework/pagination';
-import { HasRole } from 'src/modules/simple-auth';
+import type { RoleEnum } from 'src/modules/shared/role.enum';
+import { AuthedUser, HasRole } from 'src/modules/simple-auth';
 
-import { ListGdsNominationSessionsQueryDto } from './infrastructure/dtos/transparence-session.dto';
+import { ListArchivedSessionsQueryDto } from './infrastructure/dtos/transparence-session.dto';
 import { ListedArchivedNominationSessionsDto } from './infrastructure/queries/list-archived-nomination-sessions.query';
 import { TransparenceService } from './infrastructure/transparence.service';
 
@@ -15,16 +16,18 @@ export class ArchivedSessionsController {
   constructor(private readonly sessions: TransparenceService) {}
 
   @Get()
-  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL', 'MEMBRE_COMMUN', 'MEMBRE_DU_PARQUET', 'MEMBRE_DU_SIEGE')
   @UsePipes(ZodValidationPipe)
   @ApiPaginated()
   @ZodResponse({ type: ListedArchivedNominationSessionsDto, status: HttpStatus.OK })
   listArchivedSessions(
     @QueryPagination() pagination: Pagination,
-    @Query() query: ListGdsNominationSessionsQueryDto,
+    @Query() query: ListArchivedSessionsQueryDto,
+    @AuthedUser() user: { role: RoleEnum },
   ): Promise<ListedArchivedNominationSessionsDto> {
     return this.sessions.listArchivedSessions({
       pagination,
+      role: user.role,
       search: query.search || null,
       formations: query.formations,
       sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
