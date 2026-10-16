@@ -13,3 +13,5 @@ export type FondationFile = {
     [k: string]: string | undefined;
   };
 };
+
+export type StoredSize = { size: number; status: 'FOUND' } | { status: 'MISSING' } | { status: 'REFUSED' };

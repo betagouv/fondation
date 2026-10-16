@@ -71,6 +71,39 @@ describe('Files', () => {
     });
   });
 
+  describe('storedSize', () => {
+    function headFailsWith(status: number) {
+      send.mockRejectedValue(
+        new S3ServiceException({ $fault: 'client', $metadata: { httpStatusCode: status }, name: 'Unknown' }),
+      );
+    }
+
+    it('answers the size the storage knows', async () => {
+      send.mockResolvedValue({ ContentLength: 1024 });
+
+      await expect(files.storedSize(linkedCopy)).resolves.toEqual({ size: 1024, status: 'FOUND' });
+      expect(send.mock.calls[0]![0].input.Key).toBe('observations/courrier.pdf');
+    });
+
+    it('tells a missing object', async () => {
+      headFailsWith(404);
+
+      await expect(files.storedSize(linkedCopy)).resolves.toEqual({ status: 'MISSING' });
+    });
+
+    it('tells a refusal apart from a missing object', async () => {
+      headFailsWith(403);
+
+      await expect(files.storedSize(linkedCopy)).resolves.toEqual({ status: 'REFUSED' });
+    });
+
+    it('lets any other storage failure through', async () => {
+      headFailsWith(500);
+
+      await expect(files.storedSize(linkedCopy)).rejects.toBeInstanceOf(S3ServiceException);
+    });
+  });
+
   describe('getFileContent', () => {
     const storedFile = { id: 'file-id', name: 'courrier.pdf', path: ['observations', 'courrier.pdf'] };
 
