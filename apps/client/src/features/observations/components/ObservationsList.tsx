@@ -1,6 +1,8 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import { FormattedMessage, useIntl } from 'react-intl';
 
+import { useAttachmentFailureToast } from '@/shared/hooks/useAttachmentFailureToast';
+import { useTab } from '@/shared/hooks/useTab';
 import { dateOnlyFromIso, formatDateOnly } from '@/utils/date-only.util';
 import { getObservationDetailsPath } from '@/utils/route-path.utils';
 import {
@@ -17,17 +19,30 @@ function ObservationCard(props: {
   sessionId: string;
 }) {
   const intl = useIntl();
+  const notifyFailure = useAttachmentFailureToast();
+  const tab = useTab();
   const { mutate: getFileUrl, isPending: isLoadingFile } = useGetObservationFileUrlMutation();
 
-  const handleFileClick = (fileId: string) => {
+  const handleFileOpen = (file: { id: string; name: string }) => {
+    const attachmentTab = tab.openDeferred({
+      message: intl.formatMessage({ defaultMessage: 'Ouverture de la pièce jointe, merci de patienter...' }),
+      title: file.name,
+    });
+
     getFileUrl(
       {
-        fileId,
+        fileId: file.id,
         nominationFileId: props.nominationFileId,
         observationId: props.observation.id,
         sessionId: props.sessionId,
       },
-      { onSuccess: (url) => window.open(url, '_blank') },
+      {
+        onError: (error) => {
+          attachmentTab.cancel();
+          notifyFailure('open', file.name, error);
+        },
+        onSuccess: (url) => attachmentTab.settle(url),
+      },
     );
   };
 
@@ -104,7 +119,7 @@ function ObservationCard(props: {
                 <Button
                   disabled={isLoadingFile}
                   iconId="ri-file-download-line"
-                  onClick={() => handleFileClick(file.id)}
+                  onClick={() => handleFileOpen(file)}
                   priority="tertiary no outline"
                   size="small"
                 >

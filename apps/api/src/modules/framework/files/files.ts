@@ -40,6 +40,7 @@ import * as time from 'src/utils/time';
 import { contentDisposition } from './content-disposition';
 import { type FondationFile } from './files.types';
 import { filenameToMimeType } from './mime-type';
+import { FileMissingFromStorage, isMissingFromStorage } from './missing-from-storage';
 
 /** @internal */
 class RollbackFilePathOperationError {
@@ -448,7 +449,7 @@ export class Files implements OnApplicationBootstrap {
       this.db.tx.filePublicUrl.findUnique({
         select: {
           expiresAt: true,
-          file: { select: { name: true } },
+          file: { select: { id: true, name: true, path: true } },
           url: true,
         } satisfies Prisma.FilePublicUrlSelect,
         where: { expiresAt: { gt: this.clock.now() }, id: fileUrlId },
@@ -473,7 +474,14 @@ export class Files implements OnApplicationBootstrap {
         headers,
         responseType: 'stream',
       }),
-    );
+    ).catch((error: unknown) => {
+      if (isMissingFromStorage(error)) {
+        this.reportMissingFromStorage(file.file);
+        throw new FileMissingFromStorage();
+      }
+
+      throw error;
+    });
 
     return {
       expiresAt: file.expiresAt,
@@ -500,10 +508,22 @@ export class Files implements OnApplicationBootstrap {
       Key: encodeURI(storedFile.path.join('/')),
     });
 
-    const response = await this.client.send(command);
-    if (!response.Body) throw new Error('Not Found');
+    const response = await this.client.send(command).catch((error: unknown) => {
+      if (!isMissingFromStorage(error)) throw error;
 
+      this.reportMissingFromStorage({ id: props.fileId, path: storedFile.path });
+      return null;
+    });
+
+    if (!response) return null;
     return assertIsDefined(response.Body as Readable | undefined, `file ${props.fileId} not found`);
+  }
+
+  private reportMissingFromStorage(file: { id: string; path: readonly string[] }): void {
+    Sentry.captureMessage('A file known to the database is missing from the storage', {
+      extra: { fileId: file.id, path: file.path.join('/') },
+      level: 'warning',
+    });
   }
 
   private async generatePublicUrl(file: { id: string; path: readonly string[] }): Promise<{

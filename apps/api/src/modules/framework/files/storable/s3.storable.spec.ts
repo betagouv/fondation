@@ -1,16 +1,7 @@
 // oxlint-disable typescript/unbound-method
-import { Readable } from 'node:stream';
-
 import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import type { HttpService } from '@nestjs/axios';
-import {
-  InternalServerErrorException,
-  Logger,
-  NotImplementedException,
-  StreamableFile,
-} from '@nestjs/common';
-import { of } from 'rxjs';
+import { InternalServerErrorException, Logger } from '@nestjs/common';
 import { mock, type MockProxy } from 'vitest-mock-extended';
 
 import type { Clock } from 'src/modules/framework/clock';
@@ -26,7 +17,6 @@ vi.mock('@aws-sdk/s3-request-presigner', () => ({ getSignedUrl: vi.fn() }));
 vi.mock('@aws-sdk/lib-storage', () => ({ Upload: vi.fn() }));
 
 describe('S3Storage', () => {
-  let http: MockProxy<HttpService>;
   let s3: S3Client;
   let clock: MockProxy<Clock>;
   let storage: S3Storage;
@@ -61,9 +51,7 @@ describe('S3Storage', () => {
     clock = mock<Clock>();
     clock.now.mockReturnValue(now);
 
-    http = mock<HttpService>();
-
-    storage = new S3Storage(http, s3, clock, { s3: config } as ApiConfig);
+    storage = new S3Storage(s3, clock, { s3: config } as ApiConfig);
     (storage as any).logger = { warn: noop, error: noop } as unknown as Logger;
   });
 
@@ -173,46 +161,6 @@ describe('S3Storage', () => {
         path: object.path,
         versionId: 'v1',
       });
-    });
-  });
-
-  describe('toStreamableFile', () => {
-    it('throws NotImplemented when called with a public url id', async () => {
-      await expect(storage.toStreamableFile({ publicUrlId: 'x' })).rejects.toThrow(NotImplementedException);
-    });
-
-    it('throws when an id object has no path', async () => {
-      await expect(storage.toStreamableFile({ id: object.id })).rejects.toThrow(InternalServerErrorException);
-    });
-
-    it('streams an object fetched from s3 by its path', async () => {
-      vi.spyOn(s3, 'send').mockResolvedValue({ Body: Readable.from(['data']) } as never);
-
-      const { file, expiresAt: streamedExpiry } = await storage.toStreamableFile({
-        id: object.id,
-        path: object.path,
-        name: object.name,
-      });
-
-      expect(file).toBeInstanceOf(StreamableFile);
-      expect(streamedExpiry).toEqual(expiresAt);
-    });
-
-    it('throws when s3 returns no body', async () => {
-      vi.spyOn(s3, 'send').mockResolvedValue({} as never);
-
-      await expect(storage.toStreamableFile({ id: object.id, path: object.path })).rejects.toThrow(
-        InternalServerErrorException,
-      );
-    });
-
-    it('streams a url through the http client', async () => {
-      http.get.mockReturnValue(of({ data: Readable.from(['data']) }) as never);
-
-      const { file } = await storage.toStreamableFile({ url: new URL('https://s3.example/object') });
-
-      expect(file).toBeInstanceOf(StreamableFile);
-      expect(http.get).toHaveBeenCalledOnce();
     });
   });
 });

@@ -1,6 +1,5 @@
 // oxlint-disable typescript/no-unsafe-declaration-merging
 
-import type { StreamableFile } from '@nestjs/common';
 import type { Readable } from 'node:stream';
 
 import type { StorageResult } from './result.storable';
@@ -50,13 +49,6 @@ export interface Storage {
   publish<T extends { id: string; path?: StorablePath }>(
     objects: readonly T[],
   ): Promise<(T & { expiresAt: Date; url: URL })[]>;
-
-  toStreamableFile(
-    object:
-      | { publicUrlId: string }
-      | { expiresAt?: Date; id: string; name?: string; path?: StorablePath }
-      | { expiresAt?: Date; url: URL },
-  ): Promise<{ expiresAt?: Date; file: StreamableFile }>;
 }
 
 export class Storage {}

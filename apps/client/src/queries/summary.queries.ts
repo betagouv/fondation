@@ -101,13 +101,14 @@ export const useGenerateSummaryAttachmentPublicUrlMutation = () =>
       fileId: string;
       nominationFileId: string;
       sessionId: string;
-    }): Promise<string | null> {
+    }): Promise<string> {
       const { fileId, nominationFileId, sessionId } = mutation;
       const { data } = await $api.summaries.generateAttachmentPublicUrl({
         path: { fileId, nominationFileId, sessionId },
+        throwOnError: true,
       });
 
-      return data?.url ?? null;
+      return data.url;
     },
   });
 
