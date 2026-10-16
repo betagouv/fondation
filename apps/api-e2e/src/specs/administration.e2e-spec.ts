@@ -33,6 +33,27 @@ test.describe('Administration', () => {
     expect(details.data!.email).toBe(credentials.email);
   });
 
+  test('should refuse to give a user the email of another one, whatever its case', async ({
+    admin,
+    baseUrl,
+    expect,
+    registerUser,
+  }) => {
+    const owner = await registerUser('MEMBRE_COMMUN');
+    const other = await registerUser('MEMBRE_COMMUN');
+
+    for (const email of [owner.email, owner.email.toUpperCase()]) {
+      const taken = await admin.administration.updateEmail({ body: { email }, path: { userId: other.id } });
+      expect(taken.response?.status).toBe(409);
+    }
+
+    // the login matches an email whatever its case, so a second account with it would lock one out
+    const { response } = await makeStepsFixtures({ baseUrl }).auth.login({
+      body: { email: owner.email, password: owner.password },
+    });
+    expect(response?.status).toBe(204);
+  });
+
   test('should give an agent the rights of an admin on their next request, until they are taken back', async ({
     admin,
     agent,
