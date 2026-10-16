@@ -12,11 +12,11 @@ import type { Response as ExpressResponse } from 'express';
 
 import { HasRole } from 'src/modules/simple-auth';
 
-import { FileNotFoundFilter } from './file-not-found.filter';
 import { Files } from './files';
+import { MissingFromStorageFilter } from './missing-from-storage.filter';
 
 @Controller('/api/files/v1')
-@UseFilters(FileNotFoundFilter)
+@UseFilters(MissingFromStorageFilter)
 export class FilesController {
   constructor(private readonly files: Files) {}
 

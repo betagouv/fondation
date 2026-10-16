@@ -13,6 +13,7 @@ import { ApiConfig } from 'src/modules/framework/config';
 import { Db } from 'src/modules/framework/database';
 
 import { Files } from './files';
+import { FileMissingFromStorage } from './missing-from-storage';
 
 vi.mock('@sentry/node', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@sentry/node')>()),
@@ -95,7 +96,7 @@ describe('Files', () => {
     it('answers not found and warns Sentry when the storage lost a file the database knows', async () => {
       storageAnswers(404);
 
-      await expect(files.getFileContent('public-url-id')).rejects.toThrow(NotFoundException);
+      await expect(files.getFileContent('public-url-id')).rejects.toThrow(FileMissingFromStorage);
       expect(Sentry.captureMessage).toHaveBeenCalledWith(expect.any(String), {
         extra: { fileId: 'file-id', path: 'observations/courrier.pdf' },
         level: 'warning',
@@ -107,6 +108,15 @@ describe('Files', () => {
 
       await expect(files.getFileContent('public-url-id')).rejects.toBeInstanceOf(AxiosError);
       expect(Sentry.captureMessage).not.toHaveBeenCalled();
+    });
+
+    it('keeps an unknown or expired public url apart from a file the storage lost', async () => {
+      tx.filePublicUrl.findUnique.mockResolvedValue(null);
+
+      const content = files.getFileContent('public-url-id');
+
+      await expect(content).rejects.toThrow(NotFoundException);
+      await expect(content).rejects.not.toBeInstanceOf(FileMissingFromStorage);
     });
   });
 

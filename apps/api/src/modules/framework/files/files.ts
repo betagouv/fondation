@@ -40,7 +40,7 @@ import * as time from 'src/utils/time';
 import { contentDisposition } from './content-disposition';
 import { type FondationFile } from './files.types';
 import { filenameToMimeType } from './mime-type';
-import { isMissingFromStorage } from './missing-from-storage';
+import { FileMissingFromStorage, isMissingFromStorage } from './missing-from-storage';
 
 /** @internal */
 class RollbackFilePathOperationError {
@@ -477,7 +477,7 @@ export class Files implements OnApplicationBootstrap {
     ).catch((error: unknown) => {
       if (isMissingFromStorage(error)) {
         this.reportMissingFromStorage(file.file);
-        throw new NotFoundException();
+        throw new FileMissingFromStorage();
       }
 
       throw error;

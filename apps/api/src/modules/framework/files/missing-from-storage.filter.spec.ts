@@ -1,11 +1,12 @@
 // oxlint-disable typescript/unbound-method
-import { NotFoundException, type ArgumentsHost } from '@nestjs/common';
+import { type ArgumentsHost } from '@nestjs/common';
 import type { Response as ExpressResponse } from 'express';
 import { mock } from 'vitest-mock-extended';
 
-import { FileNotFoundFilter } from './file-not-found.filter';
+import { FileMissingFromStorage } from './missing-from-storage';
+import { MissingFromStorageFilter } from './missing-from-storage.filter';
 
-describe('FileNotFoundFilter', () => {
+describe('MissingFromStorageFilter', () => {
   it('answers a readable page to the tab opened on a missing attachment', () => {
     const response = mock<ExpressResponse>();
     response.status.mockReturnValue(response);
@@ -13,11 +14,11 @@ describe('FileNotFoundFilter', () => {
     const host = mock<ArgumentsHost>();
     host.switchToHttp.mockReturnValue({
       getNext: vi.fn(),
-      getRequest: vi.fn(),
+      getRequest: () => ({ path: '/api/files/v1/public-url-id' }),
       getResponse: () => response,
     } as never);
 
-    new FileNotFoundFilter().catch(new NotFoundException(), host);
+    new MissingFromStorageFilter().catch(new FileMissingFromStorage(), host);
 
     expect(response.status).toHaveBeenCalledWith(404);
     expect(response.type).toHaveBeenCalledWith('html');
