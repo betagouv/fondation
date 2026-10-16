@@ -9,7 +9,6 @@ import {
   AuthOpenIdRequestCompleted,
   AuthUser,
   AuthUserAuthenticated,
-  AuthUserNotAuthentifiable,
   AuthUserRegistered,
   AuthUserUnAuthenticated,
 } from 'src/modules/simple-auth/domain/auth-user';
@@ -19,16 +18,13 @@ import { assertNever } from 'src/utils/assert-never';
 export class AuthUserRepository {
   constructor(private readonly db: Db) {}
 
-  async findByEmail(email: string): Promise<AuthUser> {
+  async findByEmail(email: string): Promise<AuthUser | null> {
     const user = await this.db.tx.user.findFirst({
       select: { id: true, password: true } satisfies Prisma.UserSelect,
       where: { email: { equals: email, mode: 'insensitive' } },
     });
 
-    // An unknown email fails like a wrong password, so that the status code does not reveal who has an account
-    if (!user) throw new AuthUserNotAuthentifiable();
-
-    return AuthUser.from(user);
+    return user && AuthUser.from(user);
   }
 
   async find(id: string): Promise<AuthUser> {
