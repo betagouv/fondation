@@ -50,8 +50,6 @@ export class DeleteUnusedFilesCommand extends CommandRunner {
           includedInSummariesContent: { none: {} },
           ingestionJobFile: { none: {} },
           justicePresentationPdf: { none: {} },
-          // the LODAM imports are kept on purpose until the business says otherwise
-          NOT: { path: { has: 'lodam' } },
           officialReportPdf: { none: {} },
         },
       }),
