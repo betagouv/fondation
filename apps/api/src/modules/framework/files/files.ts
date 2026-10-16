@@ -516,8 +516,6 @@ export class Files implements OnApplicationBootstrap {
     });
 
     if (!response) return null;
-    if (!response.Body) throw new Error('Not Found');
-
     return assertIsDefined(response.Body as Readable | undefined, `file ${props.fileId} not found`);
   }
 
