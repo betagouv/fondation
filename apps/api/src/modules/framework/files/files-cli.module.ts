@@ -85,26 +85,34 @@ export class BackfillFileSizesCommand extends CommandRunner {
       }),
     );
 
-    const counts = { FOUND: 0, MISSING: 0, REFUSED: 0 };
+    let checked = 0;
     for (const file of known) {
       const stored = await this.files.storedSize(file);
-      counts[stored.status]++;
-      if (stored.status !== 'FOUND') continue;
+
+      // a refusal may come from a wrong SSE-C key, or hide a missing object: nothing was checked
+      if (stored.status === 'REFUSED') {
+        throw new Error(`The storage refuses ${file.path.join('/')}: no size is written before it answers`);
+      }
+
+      // the same known files are read on every run: a lost one must not block them all
+      if (stored.status === 'MISSING') {
+        this.logger.warn(`MISSING ${file.path.join('/')}`);
+        continue;
+      }
 
       if (stored.size !== file.sizeInBytes) {
         throw new Error(
           `The storage answers ${stored.size} bytes for ${file.path.join('/')}, the database knows ${file.sizeInBytes}`,
         );
       }
+      checked++;
     }
 
-    if (counts.FOUND === 0) {
-      throw new Error(
-        `No known size could be checked against the storage: ${counts.MISSING} missing, ${counts.REFUSED} refused`,
-      );
+    if (checked === 0) {
+      throw new Error(`No known size could be checked against the storage: ${known.length} missing`);
     }
 
-    this.logger.log(`The storage agrees with the ${counts.FOUND} known sizes it was asked`);
+    this.logger.log(`The storage agrees with the ${checked} known sizes it was asked`);
   }
 }
 

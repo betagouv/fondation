@@ -68,6 +68,13 @@ describe('BackfillFileSizesCommand', () => {
     expect(tx.file.update).not.toHaveBeenCalled();
   });
 
+  it('stops before writing when the storage refuses a known file', async () => {
+    files.storedSize.mockResolvedValueOnce({ status: 'REFUSED' });
+
+    await expect(command.run([], {})).rejects.toThrow('The storage refuses sessions/recent.pdf');
+    expect(tx.file.update).not.toHaveBeenCalled();
+  });
+
   it('stops before writing when no known size could be checked', async () => {
     files.storedSize.mockResolvedValueOnce({ status: 'MISSING' });
 
