@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { FormattedMessage } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 import { Navigate, useParams, useSearchParams } from 'react-router';
 
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
@@ -8,6 +8,7 @@ import { ObservationFollowUpCommentProvider } from '@/features/observations/cont
 import { ArchiveBannerPortal } from '@/shared/components/banners';
 import { useAttachmentFailureToast } from '@/shared/hooks/useAttachmentFailureToast';
 import { useScrollToTop } from '@/shared/hooks/useScrollToTop';
+import { useTab } from '@/shared/hooks/useTab';
 import { PageContentLayout } from '@/shared/ui/PageContentLayout';
 import type { FilesUploader } from '@/shared/ui/tip-tap-editor';
 import { getDetailSessionGdsPath, openedDossierSearch, ROUTE_PATHS } from '@/utils/route-path.utils';
@@ -42,7 +43,9 @@ export function ObservationDetailsPage() {
     sessionId: sessionId ?? '',
   });
 
+  const { formatMessage } = useIntl();
   const notifyFailure = useAttachmentFailureToast();
+  const tab = useTab();
   const { mutate: download } = useDownloadFileMutation();
   const { mutate: getFileUrl } = useGetObservationFileUrlMutation();
   const { mutate: writeMemberComment } = useWriteObservationMemberCommentMutation();
@@ -85,10 +88,21 @@ export function ObservationDetailsPage() {
     return <Navigate replace={true} to={fallbackPath} />;
   }
 
-  const handleOpenFile = (fileId: string) => {
+  const handleOpenFile = (file: { id: string; name: string }) => {
+    const attachmentTab = tab.openDeferred({
+      message: formatMessage({ defaultMessage: 'Ouverture de la pièce jointe, merci de patienter...' }),
+      title: file.name,
+    });
+
     getFileUrl(
-      { fileId, nominationFileId, observationId, sessionId },
-      { onSuccess: (url) => window.open(url, '_blank') },
+      { fileId: file.id, nominationFileId, observationId, sessionId },
+      {
+        onError: (error) => {
+          attachmentTab.cancel();
+          notifyFailure('open', file.name, error);
+        },
+        onSuccess: (url) => attachmentTab.settle(url),
+      },
     );
   };
 
@@ -98,7 +112,10 @@ export function ObservationDetailsPage() {
       {
         onError: (error) => notifyFailure('download', file.name, error),
         onSuccess: (url) =>
-          download({ name: file.name, url }, { onError: (error) => notifyFailure('download', file.name, error) }),
+          download(
+            { name: file.name, url },
+            { onError: (error) => notifyFailure('download', file.name, error) },
+          ),
       },
     );
   };

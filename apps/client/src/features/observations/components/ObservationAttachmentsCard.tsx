@@ -15,7 +15,7 @@ export function ObservationAttachmentsCard(props: {
   nominationFileId: string;
   observation: GetObservationDetailsResponseDto;
   onDownloadFile: (file: { id: string; name: string }) => void;
-  onOpenFile: (fileId: string) => void;
+  onOpenFile: (file: { id: string; name: string }) => void;
   sessionId: string;
 }) {
   const { formatMessage } = useIntl();
@@ -72,7 +72,7 @@ export function ObservationAttachmentsCard(props: {
               name={file.name}
               onDelete={canEdit ? () => onDelete(file.id) : undefined}
               onDownload={() => props.onDownloadFile(file)}
-              onOpen={() => props.onOpenFile(file.id)}
+              onOpen={() => props.onOpenFile(file)}
               size={file.size}
             />
           ))}

@@ -22,7 +22,7 @@ type ObservationDetailsContentProps = {
   observation: GetObservationDetailsResponseDto;
   observationId: string;
   onDownloadFile: (file: { id: string; name: string }) => void;
-  onOpenFile: (fileId: string) => void;
+  onOpenFile: (file: { id: string; name: string }) => void;
   onUpdateMemberComment?: (comment: string) => void;
   sessionId: string;
   uploadFiles?: FilesUploader;
