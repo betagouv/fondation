@@ -32,6 +32,6 @@ WHERE (
   ))
 )
 
-ORDER BY m.last_name ASC, m.first_name ASC, m.id ASC
+ORDER BY m.status = 'INACTIVE' ASC, m.last_name ASC, m.first_name ASC, m.id ASC
 
 OFFSET $3 LIMIT $4;
