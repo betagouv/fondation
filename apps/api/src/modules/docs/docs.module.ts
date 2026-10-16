@@ -55,6 +55,7 @@ import { FindJusticeContactsQuery } from './shared/infrastructure/queries/find-j
 import { FindSessionDocsQuery } from './shared/infrastructure/queries/find-session-docs.query';
 import { IsSessionReadyForDocGenerationQuery } from './shared/infrastructure/queries/is-session-ready-for-doc-generation.query';
 import { ListSecretariesGeneralQuery } from './shared/infrastructure/queries/list-secretaries-general.query';
+import { InvalidateDocsUseCase } from './shared/infrastructure/use-cases/invalidate-docs.use-case';
 
 @Module({
   imports: [SimpleAuthModule, forwardRef(() => TransparenceModule), MembersModule],
@@ -90,6 +91,7 @@ import { ListSecretariesGeneralQuery } from './shared/infrastructure/queries/lis
     ValidatePresentationPlanUseCase,
     OfficialReportVersionFinder,
     InvalidateAgendasUseCase,
+    InvalidateDocsUseCase,
     IsSessionReadyForDocGenerationQuery,
     JusticePresentationPlanRepository,
     ListNonPresentedPlansQuery,
