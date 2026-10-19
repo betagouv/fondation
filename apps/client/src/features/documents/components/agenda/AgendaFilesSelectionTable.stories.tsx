@@ -36,18 +36,14 @@ const sessions: Record<string, SessionDataset> = {
   },
 };
 
-function AgendaFilesSelectionTableStory(props: {
-  hasActionsSlot: boolean;
-  formation: FormationEnum;
-  sessionId: string;
-}) {
+function AgendaFilesSelectionTableStory(props: { formation: FormationEnum; sessionId: string }) {
   const [actionsSlot, setActionsSlot] = useState<HTMLDivElement | null>(null);
 
   return (
     <StoryQueryClient key={`${props.formation}-${props.sessionId}`}>
       <ToastProvider>
         <div className="fr-container fr-py-4v">
-          {props.hasActionsSlot && <div className="fr-mb-8v flex justify-end" ref={setActionsSlot} />}
+          <div className="fr-mb-8v flex justify-end" ref={setActionsSlot} />
 
           <AgendaFilesSelectionTable
             actionsSlot={actionsSlot}
@@ -68,33 +64,22 @@ function AgendaFilesSelectionTableStory(props: {
 }
 
 const meta = {
-  title: 'Session/Transparence/AgendaFilesSelectionTable',
-  component: AgendaFilesSelectionTableStory,
+  args: { formation: FormationEnum.SIEGE, sessionId: 'draft' },
+  argTypes: {
+    formation: { control: 'inline-radio', options: Object.values(FormationEnum) },
+    sessionId: { control: 'inline-radio', options: Object.keys(sessions) },
+  },
   beforeEach: ({ msw }) => {
     msw.use(...sgAuthHandlers, ...makeSessionHandlers(sessions));
   },
+  component: AgendaFilesSelectionTableStory,
   parameters: {
     layout: 'fullscreen',
     router: { initialEntries: ['/secretariat-general/session/draft/ordre-du-jour'] },
   },
-  tags: ['autodocs'],
-  argTypes: {
-    hasActionsSlot: { control: 'boolean' },
-    formation: { control: 'inline-radio', options: Object.values(FormationEnum) },
-    sessionId: { table: { disable: true } },
-  },
-  args: { hasActionsSlot: true, formation: FormationEnum.SIEGE, sessionId: 'draft' },
+  title: 'Session/Transparence/AgendaFilesSelectionTable',
 } satisfies Meta<typeof AgendaFilesSelectionTableStory>;
 
 export default meta;
 
-type Story = StoryObj<typeof meta>;
-
-export const Playground: Story = {};
-
-export const EveryIneligibility: Story = { args: { sessionId: 'every-ineligibility' } };
-
-export const EligibilityUnavailable: Story = {
-  args: { sessionId: 'eligibility-unavailable' },
-  tags: ['!autodocs'],
-};
+export const Playground: StoryObj<typeof meta> = {};

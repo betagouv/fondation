@@ -11,7 +11,7 @@ const meta = {
   argTypes: {
     ariaLabel: { table: { disable: true } },
     emptyLabel: { table: { disable: true } },
-    initialValue: { table: { disable: true } },
+    initialValue: { control: 'text' },
     onDirtyChange: { table: { disable: true } },
     onSave: { table: { disable: true } },
     placeholder: { control: 'text' },
@@ -31,10 +31,4 @@ const meta = {
 
 export default meta;
 
-type Story = StoryObj<typeof meta>;
-
-export const Playground: Story = {};
-
-export const Warning: Story = { args: { initialValue: 'Brouillon en cours', warning: true } };
-
-export const ReadOnly: Story = { args: { initialValue: 'Commentaire non modifiable.', readOnly: true } };
+export const Playground: StoryObj<typeof meta> = {};

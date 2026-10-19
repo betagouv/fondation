@@ -1,21 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import type { ComponentProps, ReactNode } from 'react';
+import type { ComponentProps } from 'react';
 import { fn } from 'storybook/test';
 
 import { ACTION_ICONS } from '@/shared/ui/icons';
 
 import { IconButton } from './IconButton';
 
-function Row(props: { children: ReactNode; label: string }) {
-  return (
-    <div className="flex items-center gap-2">
-      <span className="w-56 text-sm text-(--text-mention-grey)">{props.label}</span>
-      {props.children}
-    </div>
-  );
-}
-
-const BUTTONS: (ComponentProps<typeof IconButton> & { title: string })[] = [
+const USAGES: (ComponentProps<typeof IconButton> & { title: string })[] = [
   {
     iconId: ACTION_ICONS.download,
     label: 'Télécharger la pièce jointe',
@@ -41,16 +32,6 @@ const BUTTONS: (ComponentProps<typeof IconButton> & { title: string })[] = [
 ];
 
 const meta = {
-  title: 'Shared/IconButton',
-  component: IconButton,
-  argTypes: {
-    iconId: { control: 'select', options: Object.values(ACTION_ICONS) },
-  },
-  parameters: {
-    controls: { include: ['disabled', 'iconId', 'label', 'small'] },
-    layout: 'padded',
-  },
-  tags: ['autodocs'],
   args: {
     disabled: false,
     iconId: ACTION_ICONS.download,
@@ -58,6 +39,14 @@ const meta = {
     onClick: fn(),
     small: true,
   },
+  argTypes: { iconId: { control: 'select', options: Object.values(ACTION_ICONS) } },
+  component: IconButton,
+  parameters: {
+    controls: { include: ['disabled', 'iconId', 'label', 'small'] },
+    layout: 'padded',
+  },
+  tags: ['autodocs'],
+  title: 'Shared/IconButton',
 } satisfies Meta<typeof IconButton>;
 
 export default meta;
@@ -66,15 +55,17 @@ type Story = StoryObj<typeof meta>;
 
 export const Playground: Story = {};
 
-export const Buttons: Story = {
+/** every real use, small then normal size side by side */
+export const Usages: Story = {
   parameters: { controls: { disable: true } },
-  render: () => (
+  render: (args) => (
     <div className="flex flex-col gap-4">
-      {BUTTONS.map(({ title, ...button }) => (
-        <Row key={title} label={title}>
-          <IconButton {...button} onClick={fn()} small />
-          <IconButton {...button} onClick={fn()} />
-        </Row>
+      {USAGES.map(({ title, ...button }) => (
+        <div className="flex items-center gap-2" key={title}>
+          <span className="w-72 text-sm text-(--text-mention-grey)">{title}</span>
+          <IconButton {...button} onClick={args.onClick} small />
+          <IconButton {...button} onClick={args.onClick} />
+        </div>
       ))}
     </div>
   ),

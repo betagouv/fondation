@@ -2,110 +2,64 @@ import Tag from '@codegouvfr/react-dsfr/Tag';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';
 
+import { STORY_AUTHORS, STORY_USERS } from '@/shared/storybook/story-users';
 import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
 import { authKeys } from '@queries/auth.queries';
 
 import { FileList, FileListItem } from './FileList';
 
-const CURRENT_USER = {
-  civility: 'Madame BERNARD',
-  firstName: 'Sophie',
-  id: 'sg-1',
-  isImpersonated: false,
-  lastName: 'Bernard',
-  role: 'ADJOINT_SECRETAIRE_GENERAL',
-};
+// one case per file: added by the viewer, by someone else, by nobody known, unknown size, long name, no extension
+const FILES = [
+  { addedBy: STORY_AUTHORS.member, id: 'file-1', name: 'cv-camille-durand.pdf', size: 248_900 },
+  { addedBy: STORY_AUTHORS.sg, id: 'file-2', name: 'note-d-intention.docx', size: 24_576 },
+  { addedBy: null, id: 'file-3', name: 'organigramme-juridiction.png', size: null },
+  {
+    addedBy: STORY_AUTHORS.member,
+    id: 'file-4',
+    name: 'compte-rendu-de-la-commission-d-avancement-du-premier-trimestre-2026-version-definitive.pdf',
+    size: 1_310_720,
+  },
+  { addedBy: STORY_AUTHORS.sg, id: 'file-5', name: 'lettre-de-motivation', size: 8_192 },
+];
+
+const onDelete = fn().mockName('onDelete');
+const onDownload = fn().mockName('onDownload');
+const onOpen = fn().mockName('onOpen');
+
+function FileListStory(props: { count: number; deletable: boolean; disabled: boolean; withHeader: boolean }) {
+  return (
+    <StoryQueryClient seed={(client) => client.setQueryData(authKeys.introspectSession(), STORY_USERS.sg)}>
+      <div className="max-w-2xl">
+        <FileList>
+          {FILES.slice(0, props.count).map((file) => (
+            <FileListItem
+              addedAt="2026-06-18T08:30:00.000Z"
+              addedBy={file.addedBy}
+              disabled={props.disabled}
+              header={props.withHeader ? <Tag small>Note d'intention</Tag> : undefined}
+              key={file.id}
+              name={file.name}
+              onDelete={props.deletable ? onDelete : undefined}
+              onDownload={onDownload}
+              onOpen={onOpen}
+              size={file.size}
+            />
+          ))}
+        </FileList>
+      </div>
+    </StoryQueryClient>
+  );
+}
 
 const meta = {
-  args: {
-    addedAt: '2026-06-18T08:30:00.000Z',
-    addedBy: { id: 'user-2', name: 'Léa MARTIN' },
-    disabled: false,
-    name: 'cv-camille-durand.pdf',
-    onDelete: fn().mockName('onDelete'),
-    onDownload: fn().mockName('onDownload'),
-    onOpen: fn().mockName('onOpen'),
-    size: 248_900,
-  },
-  argTypes: {
-    children: { table: { disable: true } },
-    header: { table: { disable: true } },
-  },
-  component: FileListItem,
-  decorators: [
-    (Story) => (
-      <StoryQueryClient seed={(client) => client.setQueryData(authKeys.introspectSession(), CURRENT_USER)}>
-        <div className="max-w-2xl">
-          <FileList>
-            <Story />
-          </FileList>
-        </div>
-      </StoryQueryClient>
-    ),
-  ],
+  args: { count: FILES.length, deletable: true, disabled: false, withHeader: false },
+  argTypes: { count: { control: { max: FILES.length, min: 1, step: 1, type: 'range' } } },
+  component: FileListStory,
   parameters: { layout: 'padded' },
   tags: ['autodocs'],
   title: 'Shared/FileList',
-} satisfies Meta<typeof FileListItem>;
+} satisfies Meta<typeof FileListStory>;
 
 export default meta;
 
-type Story = StoryObj<typeof meta>;
-
-export const Playground: Story = {};
-
-export const AddedByCurrentUser: Story = {
-  args: { addedBy: { id: CURRENT_USER.id, name: 'Sophie BERNARD' } },
-};
-
-export const Disabled: Story = {
-  args: { disabled: true },
-};
-
-export const LongName: Story = {
-  args: {
-    name: 'proces-verbal-de-la-commission-d-avancement-du-conseil-superieur-de-la-magistrature-session-de-printemps-2026-version-definitive-signee.pdf',
-  },
-};
-
-export const ReadOnly: Story = {
-  render: ({ onDelete: _onDelete, ...args }) => <FileListItem {...args} />,
-};
-
-export const SeveralFiles: Story = {
-  render: (args) => (
-    <>
-      <FileListItem {...args} />
-      <FileListItem
-        {...args}
-        addedAt="2026-06-19T14:10:00.000Z"
-        addedBy={{ id: CURRENT_USER.id, name: 'Sophie BERNARD' }}
-        name="lettre-de-motivation.docx"
-        size={51_200}
-      />
-      <FileListItem
-        {...args}
-        addedAt="2026-06-20T09:45:00.000Z"
-        addedBy={null}
-        name="photo-identite.png"
-        size={null}
-      />
-    </>
-  ),
-};
-
-export const UnknownAuthor: Story = {
-  args: { addedBy: null },
-};
-
-export const UnknownSize: Story = {
-  args: { size: null },
-};
-
-export const WithHeader: Story = {
-  args: { header: <Tag small>Note d'intention</Tag> },
-};
-
-export const WithoutExtension: Story = {
-  args: { name: 'releve-de-decisions' },
-};
+export const Playground: StoryObj<typeof meta> = {};

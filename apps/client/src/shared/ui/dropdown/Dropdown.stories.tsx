@@ -1,88 +1,76 @@
 import Badge from '@codegouvfr/react-dsfr/Badge';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { useState, type ReactNode } from 'react';
+import { useState } from 'react';
 
 import { Dropdown, type DropdownOption } from './Dropdown';
 
-type ControlledDropdownProps = {
-  className?: string;
-  label?: ReactNode;
-  multiple?: boolean;
-  options?: readonly DropdownOption[];
-  placeholder?: ReactNode;
-};
+const LISTS = {
+  colors: {
+    label: 'Couleur',
+    options: [
+      { label: 'Rouge', value: 'red' },
+      { label: 'Bleu', value: 'blue' },
+      { label: 'Vert', value: 'green' },
+    ],
+    placeholder: 'Sélectionner une couleur',
+  },
+  rapporteurs: {
+    label: 'Affecter un rapporteur',
+    options: Array.from({ length: 14 }, (_, i) => ({
+      label: `Rapporteur ${i + 1}`,
+      value: `rapporteur-${i + 1}`,
+    })),
+    placeholder: 'Choisir des rapporteurs',
+  },
+  statuses: {
+    label: 'Statut',
+    options: [
+      { label: <Badge severity="new">Nouveau</Badge>, value: 'new' },
+      { label: <Badge severity="info">En cours</Badge>, value: 'progress' },
+      { label: <Badge severity="success">Validé</Badge>, value: 'done' },
+      { label: <Badge severity="error">Bloqué</Badge>, value: 'blocked' },
+    ],
+    placeholder: 'Sélectionner un statut',
+  },
+} satisfies Record<string, { label: string; options: DropdownOption[]; placeholder: string }>;
 
-const colorOptions: DropdownOption[] = [
-  { label: 'Rouge', value: 'red' },
-  { label: 'Bleu', value: 'blue' },
-  { label: 'Vert', value: 'green' },
-];
+type List = keyof typeof LISTS;
 
-const statusOptions: DropdownOption[] = [
-  { label: <Badge severity="new">Nouveau</Badge>, value: 'new' },
-  { label: <Badge severity="info">En cours</Badge>, value: 'progress' },
-  { label: <Badge severity="success">Validé</Badge>, value: 'done' },
-  { label: <Badge severity="error">Bloqué</Badge>, value: 'blocked' },
-];
-
-const rapporteurOptions: DropdownOption[] = Array.from({ length: 14 }, (_, i) => ({
-  label: `Rapporteur ${i + 1}`,
-  value: `rapporteur-${i + 1}`,
-}));
-
-function ControlledDropdown({ multiple, ...args }: ControlledDropdownProps) {
-  const options = args.options ?? colorOptions;
+function DropdownStory(props: { disabled: boolean; list: List; multiple: boolean; withLabel: boolean }) {
+  const { label, options, placeholder } = LISTS[props.list];
   const [single, setSingle] = useState<string | null>(null);
   const [many, setMany] = useState<string[]>([]);
+  const shared = {
+    disabled: props.disabled,
+    label: props.withLabel ? label : undefined,
+    options,
+    placeholder,
+  };
 
-  return multiple ? (
-    <Dropdown {...args} multiple onSelect={setMany} options={options} selected={many} />
+  return props.multiple ? (
+    <Dropdown {...shared} multiple onSelect={setMany} selected={many} />
   ) : (
-    <Dropdown {...args} onSelect={setSingle} options={options} selected={single} />
+    <Dropdown {...shared} onSelect={setSingle} selected={single} />
   );
 }
 
 const meta = {
   title: 'Shared/Dropdown',
-  component: ControlledDropdown,
+  component: DropdownStory,
+  render: (args) => <DropdownStory key={`${args.list}-${args.multiple}`} {...args} />,
   parameters: { layout: 'padded' },
   tags: ['autodocs'],
   argTypes: {
-    className: { table: { disable: true } },
-    label: { control: 'text' },
-    multiple: { control: 'boolean' },
-    onSelect: { table: { disable: true } },
-    options: { table: { disable: true } },
-    placeholder: { control: 'text' },
-    selected: { table: { disable: true } },
+    list: { control: 'inline-radio', options: Object.keys(LISTS) },
   },
   args: {
-    label: 'Couleur',
+    disabled: false,
+    list: 'colors',
     multiple: false,
-    options: colorOptions,
-    placeholder: 'Sélectionner une couleur',
+    withLabel: true,
   },
-} satisfies Meta<typeof Dropdown>;
+} satisfies Meta<typeof DropdownStory>;
 
 export default meta;
 
-type Story = StoryObj<typeof meta>;
-
-export const Playground: Story = {};
-
-export const WithBadges: Story = {
-  args: { label: 'Statut', options: statusOptions, placeholder: 'Sélectionner un statut' },
-};
-
-export const WithoutLabel: Story = {
-  args: { label: undefined },
-};
-
-export const ScrollableList: Story = {
-  args: {
-    label: 'Affecter un rapporteur',
-    multiple: true,
-    options: rapporteurOptions,
-    placeholder: 'Choisir des rapporteurs',
-  },
-};
+export const Playground: StoryObj<typeof meta> = {};
