@@ -49,7 +49,11 @@ export function makeCreateSessionFixture(steps: TestStepsAdmin) {
   }
 
   async function findFiles(sessionId: string, candidates: readonly Candidate[]): Promise<CreatedSession['files']> {
-    const { data } = await steps.sessions.listNominationFiles({ path: { sessionId }, throwOnError: true });
+    const { data } = await steps.sessions.listNominationFiles({
+      path: { sessionId },
+      query: { limit: candidates.length },
+      throwOnError: true,
+    });
 
     // homonyms are interchangeable: each one takes the next file bearing its name
     const taken = new Set<string>();
