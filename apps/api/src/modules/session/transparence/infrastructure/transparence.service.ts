@@ -1,12 +1,11 @@
 import { Propagation, Transactional } from '@nestjs-cls/transactional';
-import { Injectable, Logger, NotFoundException, StreamableFile } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { forwardRef, Inject, Injectable, Logger, NotFoundException, StreamableFile } from '@nestjs/common';
 import * as Sentry from '@sentry/node';
 
 import { SessionTransparence } from '../domain/session-transparence';
 import { LodamTransparenceFile } from '../domain/transparence-file';
 import { Prisma } from 'src/generated/prisma/client';
-import { DocInvalidatedIntegrationEvent } from 'src/modules/docs/shared/domain/invalidation/official-report-invalidated.integration-event';
+import { DocsService } from 'src/modules/docs/docs.service';
 import { Db } from 'src/modules/framework/database';
 import { Pagination } from 'src/modules/framework/pagination';
 import { Sortable } from 'src/modules/framework/sorting';
@@ -185,7 +184,8 @@ export class TransparenceService {
     private readonly reportedSessionsFinder: ReportedSessionsFinder,
     private readonly reportersAffectation: ReportersAffectationFinder,
 
-    private readonly events: EventEmitter2,
+    @Inject(forwardRef(() => DocsService))
+    private readonly docs: DocsService,
   ) {}
 
   /** @internal */
@@ -326,22 +326,14 @@ export class TransparenceService {
     return this.detailNominationSessionAffectationVersionQuery.handle(query);
   }
 
+  @Transactional()
   async publishNominationSessionAffectationsVersion(command: {
     sessionId: string;
     userId: string;
   }): Promise<void> {
-    const invalidations = await this.db.withTransaction(async () => {
-      const session = await this.nominationSessionRepository.find(command.sessionId);
-      session.publishAffectationVersion({ userId: command.userId });
-      return this.nominationSessionRepository.persist(session);
-    });
-
-    for (const invalidation of invalidations) {
-      await this.events.emitAsync(
-        DocInvalidatedIntegrationEvent.name,
-        new DocInvalidatedIntegrationEvent(invalidation),
-      );
-    }
+    const session = await this.nominationSessionRepository.find(command.sessionId);
+    session.publishAffectationVersion({ userId: command.userId });
+    await this.docs.internalInvalidateDocs(await this.nominationSessionRepository.persist(session));
   }
 
   @Transactional()
@@ -614,6 +606,7 @@ export class TransparenceService {
     return this.detailNominationSessionQuery.handle(query);
   }
 
+  @Transactional()
   async update(command: {
     sessionId: string;
     data: {
@@ -624,18 +617,9 @@ export class TransparenceService {
       positionStartDate: DateOnly | null;
     };
   }): Promise<void> {
-    const invalidations = await this.db.withTransaction(async () => {
-      const session = await this.nominationSessionRepository.find(command.sessionId);
-      session.update(command.data);
-      return this.nominationSessionRepository.persist(session);
-    });
-
-    for (const invalidation of invalidations) {
-      await this.events.emitAsync(
-        DocInvalidatedIntegrationEvent.name,
-        new DocInvalidatedIntegrationEvent(invalidation),
-      );
-    }
+    const session = await this.nominationSessionRepository.find(command.sessionId);
+    session.update(command.data);
+    await this.docs.internalInvalidateDocs(await this.nominationSessionRepository.persist(session));
   }
 
   detailComment(query: { sessionId: string }): Promise<DetailedSessionCommentDto> {
@@ -693,34 +677,26 @@ export class TransparenceService {
     });
   }
 
+  @Transactional()
   async defineNominationFilesOutcome(command: {
     items: readonly { nominationFileId: string; comment: string | null }[];
     outcome: NominationFileOutcomeEnum | null;
     sessionId: string;
   }): Promise<void> {
-    const invalidations = await this.db.withTransaction(async () => {
-      const session = await this.nominationSessionRepository.find(command.sessionId, {
-        nominationFileIds: new Set(command.items.map(({ nominationFileId }) => nominationFileId)),
-      });
-
-      for (const { comment, nominationFileId } of command.items) {
-        session.defineNominationFileOutcome({
-          nominationFileId,
-          outcome: isDefined(command.outcome)
-            ? NominationFileOutcome.from({ comment, outcome: command.outcome })
-            : null,
-        });
-      }
-
-      return this.nominationSessionRepository.persist(session);
+    const session = await this.nominationSessionRepository.find(command.sessionId, {
+      nominationFileIds: new Set(command.items.map(({ nominationFileId }) => nominationFileId)),
     });
 
-    for (const invalidation of invalidations) {
-      await this.events.emitAsync(
-        DocInvalidatedIntegrationEvent.name,
-        new DocInvalidatedIntegrationEvent(invalidation),
-      );
+    for (const { comment, nominationFileId } of command.items) {
+      session.defineNominationFileOutcome({
+        nominationFileId,
+        outcome: isDefined(command.outcome)
+          ? NominationFileOutcome.from({ comment, outcome: command.outcome })
+          : null,
+      });
     }
+
+    await this.docs.internalInvalidateDocs(await this.nominationSessionRepository.persist(session));
   }
 
   @Transactional()

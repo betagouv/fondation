@@ -13,7 +13,7 @@ import { AffectationVersionFinder } from '../finders/affectation-version.finder'
 import { TransparenceFilesFinder } from '../finders/transparence-files.finder';
 import { Prisma } from 'src/generated/prisma/client';
 import { insertLodamNominationFilesRawQuery } from 'src/generated/prisma/sql';
-import { DocInvalidation } from 'src/modules/docs/shared/domain/invalidation/official-report-invalidated.integration-event';
+import { SessionDocInvalidation } from 'src/modules/docs/shared/domain/doc-invalidation';
 import { Clock } from 'src/modules/framework/clock';
 import { Db } from 'src/modules/framework/database';
 import { Files } from 'src/modules/framework/files';
@@ -154,8 +154,8 @@ export class SessionTransparenceRepository {
   }
 
   @Transactional(Propagation.Mandatory)
-  async persist(session: SessionTransparence): Promise<DocInvalidation[]> {
-    const invalidations: DocInvalidation[] = [];
+  async persist(session: SessionTransparence): Promise<SessionDocInvalidation[]> {
+    const invalidations: SessionDocInvalidation[] = [];
 
     for (const message of session.messages) {
       if (message instanceof SessionTransparenceFileReportersAffected) {
@@ -185,7 +185,7 @@ export class SessionTransparenceRepository {
       } else if (message instanceof SessionTransparenceCommentWritten) {
         await this.persistSessionTransparenceCommentWritten(message);
       } else if (message instanceof SessionTransparenceOutcomeDefined) {
-        invalidations.push(...(await this.persistSessionTransparenceOutcomeDefined(message)));
+        await this.persistSessionTransparenceOutcomeDefined(message);
       } else if (message instanceof SessionTransparenceAuditionRequestDefined) {
         await this.persistSessionTransparenceAuditionRequestDefined(message);
       } else if (message instanceof SessionTransparenceAuditionScheduled) {
@@ -213,6 +213,22 @@ export class SessionTransparenceRepository {
       } else {
         assertNever(message);
       }
+    }
+
+    const outcomesDefined = session.messages.filter(
+      (message) => message instanceof SessionTransparenceOutcomeDefined,
+    );
+    if (outcomesDefined.length > 0) {
+      invalidations.push({
+        payload: {
+          files: outcomesDefined.map(({ comment, nominationFileId, outcome }) => ({
+            comment,
+            nominationFileId,
+            outcome,
+          })),
+        },
+        type: 'NominationFilesOutcomeUpdated',
+      });
     }
 
     return invalidations;
@@ -271,7 +287,7 @@ export class SessionTransparenceRepository {
 
   private async persistSessionTransparenceAffectationVersionPublished(
     message: SessionTransparenceAffectationVersionPublished,
-  ): Promise<DocInvalidation[]> {
+  ): Promise<SessionDocInvalidation[]> {
     const session = await this.db.tx.session.findUnique({
       select: {
         affectationVersions: {
@@ -333,7 +349,7 @@ export class SessionTransparenceRepository {
       {
         payload: { sessionId: message.sessionId, versionId },
         type: 'SessionAffectationVersionPublished',
-      } satisfies DocInvalidation,
+      } satisfies SessionDocInvalidation,
     ];
   }
 
@@ -513,7 +529,7 @@ export class SessionTransparenceRepository {
   }
 
   private async persistSessionTransparenceUpdated(message: SessionTransparenceUpdated) {
-    const invalidations: DocInvalidation[] = [];
+    const invalidations: SessionDocInvalidation[] = [];
     const old = await this.db.tx.session.findUnique({
       select: { date: true } satisfies Prisma.SessionSelect,
       where: { id: message.sessionId },
@@ -565,24 +581,11 @@ export class SessionTransparenceRepository {
     });
   }
 
-  private async persistSessionTransparenceOutcomeDefined(
-    message: SessionTransparenceOutcomeDefined,
-  ): Promise<DocInvalidation[]> {
-    await this.db.tx.dossierDeNomination.update({
+  private persistSessionTransparenceOutcomeDefined(message: SessionTransparenceOutcomeDefined) {
+    return this.db.tx.dossierDeNomination.update({
       data: { outcome: message.outcome, outcomeComment: message.comment },
       where: { id: message.nominationFileId },
     });
-
-    return [
-      {
-        payload: {
-          comment: message.comment,
-          nominationFileId: message.nominationFileId,
-          outcome: message.outcome,
-        },
-        type: 'NominationFileOutcomeUpdated',
-      },
-    ];
   }
 
   private async persistSessionTransparenceAuditionScheduled(message: SessionTransparenceAuditionScheduled) {

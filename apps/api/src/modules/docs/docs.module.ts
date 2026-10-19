@@ -6,7 +6,6 @@ import { SimpleAuthModule } from 'src/modules/simple-auth';
 
 import { AgendasController } from './agenda/agendas.controller';
 import { AgendasService } from './agenda/agendas.service';
-import { OnAgendaInvalidatedEventHandler } from './agenda/infrastructure/events/on-agenda-invalidated.event-handler';
 import { AgendaRenderContextFinder } from './agenda/infrastructure/finders/agenda-render-context.finder';
 import { AgendaVersionFinder } from './agenda/infrastructure/finders/agenda-version.finder';
 import { DetailsAgendaDocumentBlocksQuery } from './agenda/infrastructure/queries/details-agenda-document-blocks.query';
@@ -19,7 +18,6 @@ import { AgendaRepository } from './agenda/infrastructure/repositories/agenda.re
 import { AgendaRenderer } from './agenda/infrastructure/services/renderers/agenda.renderer';
 import { InvalidateAgendasUseCase } from './agenda/infrastructure/use-cases/invalidate-agenda.use-case';
 import { DocsService } from './docs.service';
-import { OnOfficialReportInvalidatedEventHandler } from './official-report/infrastructure/events/on-official-report-invalidated.event-handler';
 import { OfficialReportRenderContextFinder } from './official-report/infrastructure/finders/official-report-render-context.finder';
 import { OfficialReportVersionFinder } from './official-report/infrastructure/finders/official-report-version.finder';
 import { DetailsOfficialReportDocumentQuery } from './official-report/infrastructure/queries/details-official-report-document.query';
@@ -29,10 +27,9 @@ import { FindOfficialReportDocumentPdfQuery } from './official-report/infrastruc
 import { FindOfficialReportDocumentQuery } from './official-report/infrastructure/queries/find-official-report-document.query';
 import { OfficialReportRepository } from './official-report/infrastructure/repositories/official-report.repository';
 import { OfficialReportRenderer } from './official-report/infrastructure/services/renderers/official-report.renderer';
-import { InternalInvalidateOfficialReportUseCase } from './official-report/infrastructure/use-cases/invalidate-official-report.use-case';
+import { InvalidateOfficialReportUseCase } from './official-report/infrastructure/use-cases/invalidate-official-report.use-case';
 import { OfficialReportsController } from './official-report/official-reports.controller';
 import { OfficialReportsService } from './official-report/official-reports.service';
-import { OnPresentationPlanInvalidatedEventHandler } from './presentation-plan/infrastructure/events/on-presentation-plan-invalidated.event-handler';
 import { DetailsPresentationPlanMetadataQuery } from './presentation-plan/infrastructure/queries/details-presentation-plan-metadata.query';
 import { DetailsPresentationPlanPdfDocumentQuery } from './presentation-plan/infrastructure/queries/details-presentation-plan-pdf-document.query';
 import { FindPresentationPlanDocumentPdfQuery } from './presentation-plan/infrastructure/queries/find-presentation-plan-document-pdf.query';
@@ -41,7 +38,7 @@ import { ListNonPresentedPlansQuery } from './presentation-plan/infrastructure/q
 import { ListPresentedPlansQuery } from './presentation-plan/infrastructure/queries/list-presented-plans.query';
 import { JusticePresentationPlanRepository } from './presentation-plan/infrastructure/repositories/justice-presentation-plan.repository';
 import { PresentationPlanRenderer } from './presentation-plan/infrastructure/services/renderers/presentation-plan.renderer';
-import { InternalInvalidatePresentationPlanUseCase } from './presentation-plan/infrastructure/use-cases/invalidate-presentation-plan.use-case';
+import { InvalidatePresentationPlanUseCase } from './presentation-plan/infrastructure/use-cases/invalidate-presentation-plan.use-case';
 import { ValidatePresentationPlanUseCase } from './presentation-plan/infrastructure/use-cases/validate-presentation-plan.use-case';
 import { PresentationPlansController } from './presentation-plan/presentation-plans.controller';
 import { PresentationPlansService } from './presentation-plan/presentation-plans.service';
@@ -55,6 +52,7 @@ import { FindJusticeContactsQuery } from './shared/infrastructure/queries/find-j
 import { FindSessionDocsQuery } from './shared/infrastructure/queries/find-session-docs.query';
 import { IsSessionReadyForDocGenerationQuery } from './shared/infrastructure/queries/is-session-ready-for-doc-generation.query';
 import { ListSecretariesGeneralQuery } from './shared/infrastructure/queries/list-secretaries-general.query';
+import { InvalidateDocsUseCase } from './shared/infrastructure/use-cases/invalidate-docs.use-case';
 
 @Module({
   imports: [SimpleAuthModule, forwardRef(() => TransparenceModule), MembersModule],
@@ -85,11 +83,12 @@ import { ListSecretariesGeneralQuery } from './shared/infrastructure/queries/lis
     FindPresentationPlanDocumentPdfQuery,
     FindPresentationPlanDocumentQuery,
     FindSessionDocsQuery,
-    InternalInvalidateOfficialReportUseCase,
-    InternalInvalidatePresentationPlanUseCase,
+    InvalidateOfficialReportUseCase,
+    InvalidatePresentationPlanUseCase,
     ValidatePresentationPlanUseCase,
     OfficialReportVersionFinder,
     InvalidateAgendasUseCase,
+    InvalidateDocsUseCase,
     IsSessionReadyForDocGenerationQuery,
     JusticePresentationPlanRepository,
     ListNonPresentedPlansQuery,
@@ -100,9 +99,6 @@ import { ListSecretariesGeneralQuery } from './shared/infrastructure/queries/lis
     OfficialReportRenderer,
     OfficialReportRepository,
     OfficialReportsService,
-    OnAgendaInvalidatedEventHandler,
-    OnOfficialReportInvalidatedEventHandler,
-    OnPresentationPlanInvalidatedEventHandler,
     PresentationPlanRenderer,
     PresentationPlansService,
     ReportedNominationFilesFinder,

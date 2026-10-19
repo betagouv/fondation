@@ -46,5 +46,8 @@ session, observation et magistrat.
   celles des observants, et les auditions qu'une personne peut voir se calculent avec les deux
   modules. Le casser demanderait de confier les auditions des observants au module session. À
   rouvrir si les règles des auditions obligent souvent à modifier les deux modules ensemble.
-- Les cycles entre session et les modules docs, report et ingest ne sont pas traités.
+- Le cycle entre session et docs reste, dans les deux sens : session écrit dans docs par
+  `DocsService.internalInvalidateDocs`, dans sa transaction (FON-579), et docs lit
+  `TransparenceService`. L'évènement qui invalidait les documents après le commit a disparu.
+- Les cycles entre session et les modules report et ingest ne sont pas traités.
 - Un cas reste ouvert : la charge d'un membre, dont la définition est à fixer avec le métier.

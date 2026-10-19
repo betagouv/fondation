@@ -1,5 +1,5 @@
+import { DocInvalidation } from '../../shared/domain/doc-invalidation';
 import { DocNominationFileOutcomeEnum } from '../../shared/domain/doc-nomination-file-outcome';
-import { DocInvalidation } from '../../shared/domain/invalidation/official-report-invalidated.integration-event';
 
 import { OfficialReportAgenda } from './official-report-agenda';
 import { OfficialReportChairman } from './official-report-chairman';

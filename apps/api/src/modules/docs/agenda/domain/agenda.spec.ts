@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker';
 
-import { DocInvalidation } from '../../shared/domain/invalidation/official-report-invalidated.integration-event';
+import { DocInvalidation } from '../../shared/domain/doc-invalidation';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { makeId } from 'src/utils/id';
