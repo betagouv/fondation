@@ -49,14 +49,16 @@ vocabulaire. Celui-ci règle celui des prédicats : ce que l'utilisateur peut ou
 
 ## Conséquences
 
-- Deux filets repèrent les dérives. La CI échoue quand le client généré ne suit plus le contrat (#472).
-  La revue repère les prédicats du front grâce au critère ci-dessus, repris dans le `CLAUDE.md`.
+- Deux filets repèrent les dérives. La revue repère les prédicats du front grâce au critère ci-dessus,
+  repris dans le `CLAUDE.md`. Après le merge sur develop, `openapi.yml` ouvre une PR `chore/openapi`
+  quand le client généré ne suit plus le contrat (#472, déplacé après le merge par #475).
 - #473 a appliqué cette règle à l'issue d'un dossier : le contrat sert `{ value, label, commentRequired }`
-  et le client a perdu sa copie des libellés et de `outcomeRequiresComment`.
+  et le client a perdu sa copie des libellés et de la règle du commentaire obligatoire.
+  `outcomeRequiresComment` ne fait plus que lire le `commentRequired` servi.
 - Des prédicats restent dans le client, chacun suivi par un ticket :
-  - `isAuditionMissing` et `areReportersMissing` (`utils/audition-expectation.util.ts`) ;
-  - `hasSomethingToLose` (`PresentationPlanProvider`) ;
-  - `PROMOTABLE_ROLES` (`AdminUserDetailPage`).
+  - `isAuditionMissing` et `areReportersMissing` (`utils/audition-expectation.util.ts`) : FON-646 ;
+  - `hasSomethingToLose` (`PresentationPlanProvider`) : FON-647 ;
+  - `PROMOTABLE_ROLES` (`AdminUserDetailPage`) : FON-648.
 - `MemberTitle`, qui tire un titre d'un rôle, relève du vocabulaire et donc de l'ADR du 13/07/2026.
 - Avec OpenAPI 3.1 (FON-495), une capacité pourra aussi prendre la forme d'une union discriminée :
   une issue `NON_VALIDATED` qui porte son commentaire obligatoire.
