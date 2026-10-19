@@ -59,7 +59,7 @@ function labelize(
 
 export const ROLE_OPTIONS = [
   {
-    name: 'Présidents / Suppléants',
+    label: defineMessage({ defaultMessage: 'Présidents / Suppléants' }),
     options: labelize(
       'PRESIDENT_PARQUET',
       'PRESIDENT_SIEGE',
@@ -68,11 +68,11 @@ export const ROLE_OPTIONS = [
     ),
   },
   {
-    name: 'Membre',
+    label: defineMessage({ defaultMessage: 'Membre' }),
     options: labelize('MEMBRE_COMMUN', 'MEMBRE_PARQUET', 'MEMBRE_SIEGE'),
   },
   {
-    name: 'Secrétariat Général',
+    label: defineMessage({ defaultMessage: 'Secrétariat Général' }),
     options: labelize('FIRST_SECRETARY', 'SECRETARY', 'OFFICER'),
   },
 ] as const;
