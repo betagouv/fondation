@@ -17,7 +17,7 @@
     "node-xlsx": "0.24.0",
     "postgres": "3.4.9",
     "typescript": "catalog:",
-    "undici-types": "8.10.2",
+    "undici-types": "8.11.2",
     "vitest": "catalog:"
   }
 }
