@@ -230,13 +230,18 @@ function groupFilesByOutcome(
     .sort((a, b) => (OUTCOME_ORDER.get(a.outcome) ?? 10) - (OUTCOME_ORDER.get(b.outcome) ?? 10));
 }
 
-function displaySectionTitle(ctx: {
-  root: OfficialReportRenderContext;
-  outcome: DocNominationFileOutcomeEnum;
-  count: number;
-}): string {
+function displaySectionTitle(
+  ctx: {
+    root: OfficialReportRenderContext;
+    outcome: DocNominationFileOutcomeEnum;
+    count: number;
+  },
+  opts?: { ignoreUserDefinedContent?: true },
+): string {
   return (
-    ctx.root.userDefinedBlocks.outcomes[ctx.outcome]?.title?.html ??
+    (opts?.ignoreUserDefinedContent
+      ? undefined
+      : ctx.root.userDefinedBlocks.outcomes[ctx.outcome]?.title?.html) ??
     docNominationFileOutcomeSectionTitle({
       formation: ctx.root.agenda.formation,
       outcome: ctx.outcome,
@@ -245,13 +250,16 @@ function displaySectionTitle(ctx: {
   );
 }
 
-function displaySectionIntro(ctx: {
-  count: number;
-  outcome: DocNominationFileOutcomeEnum;
-  root: OfficialReportRenderContext;
-}): string {
+function displaySectionIntro(
+  ctx: {
+    count: number;
+    outcome: DocNominationFileOutcomeEnum;
+    root: OfficialReportRenderContext;
+  },
+  opts?: { ignoreUserDefinedContent?: true },
+): string {
   const userDefinedSectionIntro = ctx.root.userDefinedBlocks.outcomes[ctx.outcome]?.intro?.html;
-  if (userDefinedSectionIntro) return userDefinedSectionIntro;
+  if (!opts?.ignoreUserDefinedContent && userDefinedSectionIntro) return userDefinedSectionIntro;
 
   switch (ctx.outcome) {
     case 'VALIDATED':
@@ -469,7 +477,8 @@ export function* officialReportBlocks(ctx: OfficialReportRenderContext): Iterabl
     let outcomeWeight = OUTCOME_ORDER.get(outcome);
     if (!isDefined(outcomeWeight)) continue;
 
-    const title = displaySectionTitle({ root: ctx, count: files.length, outcome });
+    const section = { count: files.length, outcome, root: ctx };
+    const title = displaySectionTitle(section);
     const storedTitle = ctx.userDefinedBlocks.outcomes[outcome]?.title?.html;
     yield {
       kind: 'section-title',
@@ -477,16 +486,20 @@ export function* officialReportBlocks(ctx: OfficialReportRenderContext): Iterabl
       outdated: false,
       weight: outcomeWeight++,
       text: title,
-      edited: isDefined(storedTitle) && !readsTheSame(title, storedTitle),
+      edited:
+        isDefined(storedTitle) &&
+        !readsTheSame(title, displaySectionTitle(section, { ignoreUserDefinedContent: true })),
     };
 
-    const sectionIntro = displaySectionIntro({ count: files.length, outcome, root: ctx });
+    const sectionIntro = displaySectionIntro(section);
     const storedSectionIntro = ctx.userDefinedBlocks.outcomes[outcome]?.intro?.html;
     yield {
       outcome,
       kind: 'section-intro',
       outdated: Boolean(ctx.userDefinedBlocks.outcomes[outcome]?.intro?.isOutdated),
-      edited: isDefined(storedSectionIntro) && !readsTheSame(sectionIntro, storedSectionIntro),
+      edited:
+        isDefined(storedSectionIntro) &&
+        !readsTheSame(sectionIntro, displaySectionIntro(section, { ignoreUserDefinedContent: true })),
       weight: outcomeWeight++,
       html: sectionIntro,
     };

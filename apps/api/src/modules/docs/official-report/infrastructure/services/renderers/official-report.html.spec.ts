@@ -252,6 +252,29 @@ describe('officialReportTemplate', () => {
     expect(stored).toMatchObject({ edited: false, editedAt: null, fromAgenda: false });
   });
 
+  it('should credit the reader for a section written by hand', () => {
+    const blocks = Array.from(
+      officialReportBlocks({
+        ...baseContext,
+        userDefinedBlocks: {
+          ...baseContext.userDefinedBlocks,
+          outcomes: {
+            WITHDRAWN: {
+              intro: { html: '<p>Une section écrite à la main</p>', isOutdated: false },
+              title: { html: 'Un titre écrit à la main', isOutdated: false },
+            },
+          },
+        },
+      }),
+    );
+
+    const withdrawn = blocks.filter(
+      (block) =>
+        (block.kind === 'section-title' || block.kind === 'section-intro') && block.outcome === 'WITHDRAWN',
+    );
+    expect(withdrawn).toMatchObject([{ edited: true }, { edited: true }]);
+  });
+
   it('should order files', () => {
     const blocks = Array.from(
       officialReportBlocks({
