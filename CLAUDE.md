@@ -318,6 +318,7 @@ export function MyAwesomeComponent(props: { foo: string }) {
 
 - Préférer un `Context` au prop drilling
 - Croiser deux sources de données passe par un modèle construit une fois et partagé par un `Context`, pas par un hook appelé à chaque ligne
+- Un `if` sur une valeur métier qui décide de ce que l'utilisateur peut ou doit faire est une capacité manquante dans le contrat (`canX`, `xRequired` ou un statut), calculée par le domaine du back (voir [l'ADR](docs/adr/2026-10-19-regles-metier-servies-comme-capacites.md))
 - Un nom de composant se suffit à lui-même, même dans un dossier déjà ciblé : `MagistratDetailsContent` plutôt que `DetailsContent`
 - Utiliser TanStack Query pour gérer l'état asynchrone de l'application (voir [État asynchrone](#état-asynchrone))
 
