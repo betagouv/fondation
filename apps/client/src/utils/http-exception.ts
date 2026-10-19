@@ -13,7 +13,10 @@ class HttpExceptionImpl extends HttpException {
   }
 }
 
-class UnauthorizedHttpException extends HttpExceptionImpl {}
+class UnauthorizedHttpException extends HttpExceptionImpl {
+  // Sentry's ignoreErrors matches the name, otherwise inherited from Error
+  override readonly name = 'UnauthorizedHttpException';
+}
 
 export function httpAssert(response: Response): Response {
   if (response.ok) return response;
