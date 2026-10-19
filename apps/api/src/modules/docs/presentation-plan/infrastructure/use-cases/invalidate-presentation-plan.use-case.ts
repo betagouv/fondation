@@ -1,4 +1,3 @@
-import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
 import { JusticePresentationPlanContent } from '../../domain/justice-presentation-plan-content';
@@ -18,7 +17,6 @@ export class InvalidatePresentationPlanUseCase {
     private readonly justicePresentationPlanRepository: JusticePresentationPlanRepository,
   ) {}
 
-  @Transactional(Propagation.Mandatory)
   async handle(invalidation: DocInvalidation): Promise<void> {
     switch (invalidation.type) {
       case 'AgendaNominationFilesUpdated':

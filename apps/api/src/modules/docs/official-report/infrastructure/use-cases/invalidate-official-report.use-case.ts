@@ -1,4 +1,3 @@
-import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
 import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../../../shared/infrastructure/agenda-content';
@@ -23,7 +22,6 @@ export class InvalidateOfficialReportUseCase {
     private readonly officialReportVersionFinder: OfficialReportVersionFinder,
   ) {}
 
-  @Transactional(Propagation.Mandatory)
   async handle(invalidation: DocInvalidation): Promise<void> {
     switch (invalidation.type) {
       case 'SessionAffectationVersionPublished':
