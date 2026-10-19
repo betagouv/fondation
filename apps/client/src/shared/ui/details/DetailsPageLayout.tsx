@@ -15,7 +15,7 @@ export function DetailsPageLayout(props: {
   alerts?: React.ReactNode;
   background: keyof typeof BACKGROUNDS;
   children: React.ReactNode;
-  header?: React.ReactNode;
+  header: React.ReactNode;
   identity: React.ReactNode;
   identityPosition?: 'left' | 'right';
   navigation?: React.ReactNode;
@@ -26,10 +26,21 @@ export function DetailsPageLayout(props: {
   const identity = <div className={`fr-col-12 ${identityColumn} flex flex-col gap-6`}>{props.identity}</div>;
   const content = <div className={`fr-col-12 ${contentColumn} flex flex-col gap-6`}>{props.children}</div>;
 
-  const body = (
-    <>
-      {props.alerts}
-      {props.navigation}
+  return (
+    <PinnedHeader
+      bar={(isPinned) => (
+        <>
+          <div className={clsx('fr-container fr-pb-5v', isPinned ? 'fr-pt-6v' : 'fr-pt-8v')}>
+            {props.header}
+          </div>
+          {props.navigation}
+          {props.alerts}
+        </>
+      )}
+      className="grow"
+      contentClassName="flex grow flex-col"
+      gapClassName={BACKGROUNDS[props.background]}
+    >
       <div className={`grow ${BACKGROUNDS[props.background]}`}>
         <div className="fr-container fr-py-10v">
           <div className="fr-grid-row fr-grid-row--gutters">
@@ -47,20 +58,6 @@ export function DetailsPageLayout(props: {
           </div>
         </div>
       </div>
-    </>
-  );
-
-  if (!props.header) return <div className="flex grow flex-col">{body}</div>;
-
-  return (
-    <PinnedHeader
-      bar={(isPinned) => (
-        <div className={clsx('fr-container', isPinned ? 'fr-pt-6v' : 'fr-pt-8v')}>{props.header}</div>
-      )}
-      className="grow"
-      contentClassName="flex grow flex-col"
-    >
-      {body}
     </PinnedHeader>
   );
 }

@@ -1,106 +1,64 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { useState, type ComponentProps } from 'react';
+import { useState } from 'react';
 
 import { Modal } from './Modal';
 
-const meta = {
-  title: 'Shared/Modal',
-  component: Modal,
-  parameters: { layout: 'fullscreen' },
-  tags: ['autodocs'],
-  argTypes: {
-    actions: { table: { disable: true } },
-    children: { control: 'text' },
-    onClose: { table: { disable: true } },
-    open: { control: 'boolean' },
-    title: { control: 'text' },
-  },
-  args: {
-    children: 'Contenu de la modale',
-    onClose: () => {},
-    open: true,
-    title: 'Titre de la modale',
-  },
-} satisfies Meta<typeof Modal>;
-
-export default meta;
-
-type Story = StoryObj<typeof meta>;
-
-function ModalDemo(args: ComponentProps<typeof Modal>) {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <div className="fr-p-4v">
-      <Button onClick={() => setOpen(true)}>Ouvrir la modale</Button>
-
-      <Modal {...args} onClose={() => setOpen(false)} open={open} />
+const CONTENTS = {
+  long: (
+    <div className="flex flex-col gap-4">
+      {Array.from({ length: 20 }, (_, index) => (
+        <p key={index}>Paragraphe {index + 1} — le contenu défile dans la modale, pas la page.</p>
+      ))}
     </div>
+  ),
+  short: 'Contenu de la modale',
+};
+
+function ModalStory(props: {
+  actions: 'close' | 'delete' | 'none' | 'save' | 'saveFailed';
+  closeOnBackdrop: boolean;
+  content: keyof typeof CONTENTS;
+  size: 'large' | 'medium';
+  title: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+
+  const save = (
+    <>
+      <Button priority="secondary">Annuler</Button>
+      <Button>Enregistrer</Button>
+    </>
   );
-}
-
-export const Playground: Story = {
-  render: (args) => <ModalDemo {...args} />,
-};
-
-export const WithActions: Story = {
-  args: {
-    actions: (
-      <>
-        <Button priority="secondary">Annuler</Button>
-        <Button>Enregistrer</Button>
-      </>
-    ),
-  },
-  render: (args) => <ModalDemo {...args} />,
-};
-
-export const WithFailedActions: Story = {
-  args: {
-    actions: (
+  const actions = {
+    close: <Button onClick={() => setOpen(false)}>Fermer</Button>,
+    delete: <Button onClick={() => setConfirming(true)}>Supprimer</Button>,
+    none: undefined,
+    save,
+    saveFailed: (
       <>
         <p className="fr-error-text fr-mt-0 mr-auto" role="alert">
           L’enregistrement a échoué
         </p>
-
-        <Button priority="secondary">Annuler</Button>
-        <Button>Enregistrer</Button>
+        {save}
       </>
     ),
-  },
-  render: (args) => <ModalDemo {...args} />,
-};
-
-export const LongContent: Story = {
-  args: {
-    children: (
-      <div className="flex flex-col gap-4">
-        {Array.from({ length: 20 }, (_, index) => (
-          <p key={index}>Paragraphe {index + 1} — le contenu défile dans la modale, pas la page.</p>
-        ))}
-      </div>
-    ),
-    actions: <Button>Fermer</Button>,
-  },
-  render: (args) => <ModalDemo {...args} />,
-};
-
-function StackedModalsDemo(args: ComponentProps<typeof Modal>) {
-  const [open, setOpen] = useState(false);
-  const [confirming, setConfirming] = useState(false);
+  };
 
   return (
     <div className="fr-p-4v">
       <Button onClick={() => setOpen(true)}>Ouvrir la modale</Button>
 
       <Modal
-        {...args}
-        actions={<Button onClick={() => setConfirming(true)}>Supprimer</Button>}
+        actions={actions[props.actions]}
+        closeOnBackdrop={props.closeOnBackdrop}
         onClose={() => setOpen(false)}
         open={open}
+        size={props.size}
+        title={props.title}
       >
-        Une confirmation peut s’ouvrir par-dessus cette modale.
+        {CONTENTS[props.content]}
       </Modal>
 
       <Modal
@@ -129,6 +87,25 @@ function StackedModalsDemo(args: ComponentProps<typeof Modal>) {
   );
 }
 
-export const Stacked: Story = {
-  render: (args) => <StackedModalsDemo {...args} />,
-};
+const meta = {
+  title: 'Shared/Modal',
+  component: ModalStory,
+  parameters: { layout: 'fullscreen' },
+  tags: ['autodocs'],
+  argTypes: {
+    actions: { control: 'inline-radio', options: ['none', 'save', 'saveFailed', 'close', 'delete'] },
+    content: { control: 'inline-radio', options: Object.keys(CONTENTS) },
+    size: { control: 'inline-radio', options: ['medium', 'large'] },
+  },
+  args: {
+    actions: 'none',
+    closeOnBackdrop: true,
+    content: 'short',
+    size: 'medium',
+    title: 'Titre de la modale',
+  },
+} satisfies Meta<typeof ModalStory>;
+
+export default meta;
+
+export const Playground: StoryObj<typeof meta> = {};

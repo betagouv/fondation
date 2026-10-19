@@ -319,6 +319,8 @@ export function MyAwesomeComponent(props: { foo: string }) {
 - Préférer un `Context` au prop drilling
 - Croiser deux sources de données passe par un modèle construit une fois et partagé par un `Context`, pas par un hook appelé à chaque ligne
 - Un nom de composant se suffit à lui-même, même dans un dossier déjà ciblé : `MagistratDetailsContent` plutôt que `DetailsContent`
+- Le titre d'une story Storybook suit le dossier du composant qu'elle affiche : `Pages/...` pour un écran entier de `src/pages`, `Features/...` pour une brique de `src/features`, `Shared/...` pour un composant générique, `Layout/...` pour la coquille de l'application. Exception : l'en-tête et les tableaux des écrans de session, cœur de l'application, sont rangés sous `Session/<type de session>/...`. Les autres briques d'une session, comme le panneau latéral, restent sous `Features/...`
+- Une story montre un écran ou une brique en entier, jamais ses blocs un par un. Elle passe les états par des contrôles qui reprennent les valeurs de l'API : une seule story `Playground` suffit. Seule exception : une story `Usages` à côté, quand une galerie compare des variantes côte à côte (tailles, usages d'une icône)
 - Utiliser TanStack Query pour gérer l'état asynchrone de l'application (voir [État asynchrone](#état-asynchrone))
 
 ### État asynchrone

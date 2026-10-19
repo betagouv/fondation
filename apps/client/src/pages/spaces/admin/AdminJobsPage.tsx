@@ -174,11 +174,7 @@ export function AdminJobsPage() {
             <div className="flex items-center justify-between gap-4">
               <h1 className="fr-h3 fr-mb-0">
                 <FormattedMessage defaultMessage="Ingestions" />
-                {data && (
-                  <span className="fr-ml-2v text-sm font-normal text-(--text-mention-grey)">
-                    (<DataTableCount loaded={jobs.length} total={data.totalCount} />)
-                  </span>
-                )}
+                {data && <DataTableCount loaded={jobs.length} total={data.totalCount} />}
               </h1>
               <Button
                 className="btn-compact"

@@ -22,14 +22,4 @@ const meta = {
 
 export default meta;
 
-type Story = StoryObj<typeof meta>;
-
-export const Playground: Story = {};
-
-export const ExcludedJurisdiction: Story = {
-  args: { excludedTitle: "Juridiction exclue pour Honorine VALROSE : Cour d'appel de Lyon" },
-};
-
-export const CurrentUser: Story = {
-  args: { isCurrentUser: true },
-};
+export const Playground: StoryObj<typeof meta> = {};

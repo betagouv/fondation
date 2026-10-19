@@ -70,18 +70,19 @@ export default definePreview({
           [
             'Transparence',
             [
+              'SessionHeader',
               'SgSessionFilesTable',
               'MemberSessionFilesTable',
               'SessionDocumentsTable',
               'AgendaFilesSelectionTable',
               'SessionAttachmentsTable',
+              'ArchivedSessionsTable',
             ],
           ],
+          'Pages',
           'Features',
-          [
-            'Documents',
-            ['DocumentEditor', ['Agenda', 'OfficialReport', 'PresentationNotice'], 'DocumentScreen'],
-          ],
+          ['DocumentEditor', ['Agenda', 'OfficialReport', 'PresentationNotice']],
+          'Layout',
           'Shared',
         ],
       },

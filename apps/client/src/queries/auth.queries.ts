@@ -2,6 +2,12 @@ import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/r
 
 import { HttpException } from '../utils/http-exception';
 import * as $api from '@api/sdk';
+import type { DetailedUserResponseDto } from '@api/types';
+
+export type SessionUser = Pick<
+  DetailedUserResponseDto,
+  'firstName' | 'formation' | 'isImpersonated' | 'lastName' | 'role'
+> & { civility: string; id: string };
 
 export const authKeys = {
   introspectSession: () => ['introspectSession'],
@@ -16,7 +22,7 @@ export const sessionQueryOptions = queryOptions({
   queryFn: () =>
     $api.auth
       .introspectSession()
-      .then(({ data }) =>
+      .then(({ data }): SessionUser | null =>
         data
           ? {
               id: data.userId,

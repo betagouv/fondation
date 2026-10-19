@@ -23,20 +23,4 @@ const meta = {
 
 export default meta;
 
-type Story = StoryObj<typeof meta>;
-
-export const Playground: Story = {};
-
-export const Formations: Story = {
-  argTypes: { formation: { table: { disable: true } }, small: { table: { disable: true } } },
-  render: () => (
-    <ul className="fr-m-0 fr-p-0 flex list-none flex-col items-start gap-4">
-      {formations.map((formation) => (
-        <li className="fr-p-0 flex items-center gap-4" key={formation}>
-          <FormationBadge formation={formation} />
-          <FormationBadge formation={formation} small />
-        </li>
-      ))}
-    </ul>
-  ),
-};
+export const Playground: StoryObj<typeof meta> = {};

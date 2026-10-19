@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import type { ComponentProps, ReactNode } from 'react';
+import type { ComponentProps } from 'react';
 
 import { ACTION_ICONS, type IconClassName } from '@/shared/ui/icons';
 
@@ -11,43 +11,7 @@ const LINK_ICONS: IconClassName[] = [
   ...Object.values(ACTION_ICONS),
 ];
 
-function Row(props: { children: ReactNode; label: string }) {
-  return (
-    <div className="flex items-center gap-2">
-      <span className="w-56 text-sm text-(--text-mention-grey)">{props.label}</span>
-      {props.children}
-    </div>
-  );
-}
-
-const meta = {
-  title: 'Shared/IconLink',
-  component: IconLink,
-  argTypes: {
-    iconId: { control: 'select', options: LINK_ICONS },
-  },
-  parameters: {
-    controls: { include: ['disabled', 'iconId', 'label', 'newTab', 'small'] },
-    layout: 'padded',
-  },
-  tags: ['autodocs'],
-  args: {
-    disabled: false,
-    iconId: 'fr-icon-account-circle-line',
-    label: 'Vers la fiche magistrat',
-    newTab: false,
-    small: true,
-    to: '/magistrats/1',
-  },
-} satisfies Meta<typeof IconLink>;
-
-export default meta;
-
-type Story = StoryObj<typeof meta>;
-
-export const Playground: Story = {};
-
-const LINKS: (ComponentProps<typeof IconLink> & { title: string })[] = [
+const USAGES: (ComponentProps<typeof IconLink> & { title: string })[] = [
   {
     iconId: 'fr-icon-account-circle-line',
     label: 'Vers la fiche magistrat',
@@ -88,15 +52,42 @@ const LINKS: (ComponentProps<typeof IconLink> & { title: string })[] = [
   },
 ];
 
-export const Links: Story = {
+const meta = {
+  args: {
+    disabled: false,
+    iconId: 'fr-icon-account-circle-line',
+    label: 'Vers la fiche magistrat',
+    newTab: false,
+    small: true,
+    to: '/magistrats/1',
+  },
+  argTypes: { iconId: { control: 'select', options: LINK_ICONS } },
+  component: IconLink,
+  parameters: {
+    controls: { include: ['disabled', 'iconId', 'label', 'newTab', 'small'] },
+    layout: 'padded',
+  },
+  tags: ['autodocs'],
+  title: 'Shared/IconLink',
+} satisfies Meta<typeof IconLink>;
+
+export default meta;
+
+type Story = StoryObj<typeof meta>;
+
+export const Playground: Story = {};
+
+/** every real use, small then normal size side by side */
+export const Usages: Story = {
   parameters: { controls: { disable: true } },
   render: () => (
     <div className="flex flex-col gap-4">
-      {LINKS.map(({ title, ...link }) => (
-        <Row key={title} label={title}>
+      {USAGES.map(({ title, ...link }) => (
+        <div className="flex items-center gap-2" key={title}>
+          <span className="w-72 text-sm text-(--text-mention-grey)">{title}</span>
           <IconLink {...link} small />
           <IconLink {...link} />
-        </Row>
+        </div>
       ))}
     </div>
   ),

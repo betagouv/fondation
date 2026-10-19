@@ -6,7 +6,7 @@ import { PINNED_GAP, useFoldWithScroll, usePinnedBar } from '@/shared/hooks/useP
 
 /**
  * pins a screen's bar under the banner once the page scrolls past it: the content keeps the room the bar
- * leaves, and a table scrolling with the page sticks its header under the bar through
+ * leaves, and a table header or an editor toolbar scrolling with the page sticks under the bar through
  * `--fondation-table-header-top`. Rows marked `data-collapse-natural` in the bar fold with the scroll
  */
 export function PinnedHeader(props: {
@@ -16,7 +16,7 @@ export function PinnedHeader(props: {
   children: ReactNode;
   className?: string;
   contentClassName?: string;
-  /** the strip between the bar and the content, under which a sticky table header slides */
+  /** the strip between the bar and the content, under which a sticky table header slides: white unless told */
   gapClassName?: string;
   /** what the bar only needs once pinned, such as a padding under the banner */
   pinnedBarClassName?: string;
@@ -57,8 +57,8 @@ export function PinnedHeader(props: {
       {isPinned && <div style={{ height: restHeight }} />}
       <div
         className={clsx(
-          'sticky top-[calc(var(--fondation-banner-height)+var(--fondation-pinned-bar-height))] z-4 h-(--fondation-pinned-gap) bg-(--background-default-grey)',
-          props.gapClassName,
+          'sticky top-[calc(var(--fondation-banner-height)+var(--fondation-pinned-bar-height))] z-4 h-(--fondation-pinned-gap)',
+          props.gapClassName ?? 'bg-(--background-default-grey)',
         )}
       />
 

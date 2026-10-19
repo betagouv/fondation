@@ -17,19 +17,4 @@ const meta = {
 
 export default meta;
 
-type Story = StoryObj<typeof meta>;
-
-export const Playground: Story = {};
-
-export const States: Story = {
-  argTypes: { state: { table: { disable: true } } },
-  render: () => (
-    <ul className="fr-m-0 fr-p-0 flex list-none flex-col items-start gap-4">
-      {REPORT_STATUSES.map((state) => (
-        <li className="fr-p-0" key={state}>
-          <ReportStateTag state={state} />
-        </li>
-      ))}
-    </ul>
-  ),
-};
+export const Playground: StoryObj<typeof meta> = {};

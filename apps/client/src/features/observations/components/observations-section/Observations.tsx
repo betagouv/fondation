@@ -1,6 +1,6 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Tag from '@codegouvfr/react-dsfr/Tag';
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Link } from 'react-router';
 
@@ -285,6 +285,7 @@ export function Observations(props: {
 
   const file: ActiveFile = { id: nominationFileId, name: magistratName, sessionId };
   const formattedObservers = observers ? splitLodamObservers(observers) : null;
+  const announcedObserversId = useId();
   const observationsCount = observations.length;
 
   if (!canManage && observationsCount === 0 && !formattedObservers) return null;
@@ -311,13 +312,18 @@ export function Observations(props: {
       </div>
 
       {formattedObservers && (
-        <ul className="fr-raw-list fr-mt-2v fr-mb-5v flex flex-wrap gap-2">
-          {formattedObservers.map((observer, index) => (
-            <li key={`${observer}-${index}`}>
-              <Tag small>{observer}</Tag>
-            </li>
-          ))}
-        </ul>
+        <div className="fr-mt-2v fr-mb-5v flex flex-wrap items-center gap-2">
+          <span className="text-sm text-(--text-mention-grey)" id={announcedObserversId}>
+            <FormattedMessage defaultMessage={'Annoncés par la DSJ\u00A0:'} />
+          </span>
+          <ul aria-labelledby={announcedObserversId} className="fr-raw-list flex flex-wrap gap-2">
+            {formattedObservers.map((observer, index) => (
+              <li key={`${observer}-${index}`}>
+                <Tag small>{observer}</Tag>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
 
       {observations.length > 0 && (

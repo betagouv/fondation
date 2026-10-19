@@ -3,44 +3,38 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { ReporterTagList } from './ReporterTagList';
 
 const CAMILLE = { firstName: 'Camille', id: 'camille', lastName: 'Commun' };
-const PAUL = { firstName: 'Paul', id: 'paul', lastName: 'Parquet' };
-const SOPHIE = { firstName: 'Sophie', id: 'sophie', lastName: 'Siège' };
+
+const OTHER_REPORTERS = [
+  { firstName: 'Honorine', id: 'honorine', lastName: 'Valrose' },
+  { firstName: 'Ada', id: 'ada', lastName: 'Lovelace' },
+  { firstName: 'Jean-Pierre', id: 'jean-pierre', lastName: 'de la Tour' },
+  { firstName: 'Marie', id: 'marie', lastName: 'Curie' },
+  { firstName: 'Sophie', id: 'sophie', lastName: 'Siège' },
+  { firstName: 'Paul', id: 'paul', lastName: 'Parquet' },
+];
+
+function ReporterTagListStory(props: { excludedJurisdiction: boolean; max: number }) {
+  const camille = props.excludedJurisdiction
+    ? { ...CAMILLE, excludedTitle: "Juridiction exclue pour Camille COMMUN : Cour d'appel de Lyon" }
+    : CAMILLE;
+
+  return <ReporterTagList max={props.max} reporters={[camille, ...OTHER_REPORTERS]} />;
+}
 
 const meta = {
   title: 'Shared/ReporterTagList',
-  component: ReporterTagList,
+  component: ReporterTagListStory,
   parameters: { layout: 'padded' },
   tags: ['autodocs'],
   argTypes: {
-    max: { control: { type: 'number', min: 1 } },
-    reporters: { table: { disable: true } },
+    max: { control: { min: 1, type: 'number' } },
   },
   args: {
+    excludedJurisdiction: false,
     max: 3,
-    reporters: [
-      { firstName: 'Honorine', id: 'honorine', lastName: 'Valrose' },
-      { firstName: 'Ada', id: 'ada', lastName: 'Lovelace' },
-      { firstName: 'Jean-Pierre', id: 'jean-pierre', lastName: 'de la Tour' },
-      { firstName: 'Marie', id: 'marie', lastName: 'Curie' },
-      SOPHIE,
-      CAMILLE,
-      PAUL,
-    ],
   },
-} satisfies Meta<typeof ReporterTagList>;
+} satisfies Meta<typeof ReporterTagListStory>;
 
 export default meta;
 
-type Story = StoryObj<typeof meta>;
-
-export const Playground: Story = {};
-
-export const ExcludedJurisdiction: Story = {
-  args: {
-    reporters: [
-      { ...CAMILLE, excludedTitle: "Juridiction exclue pour Camille COMMUN : Cour d'appel de Lyon" },
-      PAUL,
-      SOPHIE,
-    ],
-  },
-};
+export const Playground: StoryObj<typeof meta> = {};

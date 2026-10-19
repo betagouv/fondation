@@ -19,14 +19,4 @@ const meta = {
 
 export default meta;
 
-type Story = StoryObj<typeof meta>;
-
-export const Playground: Story = {};
-
-export const Pending: Story = {
-  args: { isPending: true },
-};
-
-export const Failed: Story = {
-  args: { hasError: true },
-};
+export const Playground: StoryObj<typeof meta> = {};
