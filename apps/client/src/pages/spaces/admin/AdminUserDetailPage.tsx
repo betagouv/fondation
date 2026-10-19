@@ -409,15 +409,18 @@ function RoleField(props: { user: DetailedAdminUserDto }) {
             error ? intl.formatMessage({ defaultMessage: 'Erreur à la mise à jour du rôle' }) : undefined
           }
         >
-          {ROLE_OPTIONS.map(({ name, options }) => (
-            <optgroup key={name} label={name}>
-              {options.map(({ id, label }) => (
-                <option key={id} value={id}>
-                  {intl.formatMessage(label, { gender: props.user.gender })}
-                </option>
-              ))}
-            </optgroup>
-          ))}
+          {ROLE_OPTIONS.map((group) => {
+            const groupLabel = intl.formatMessage(group.label);
+            return (
+              <optgroup key={groupLabel} label={groupLabel}>
+                {group.options.map(({ id, label }) => (
+                  <option key={id} value={id}>
+                    {intl.formatMessage(label, { gender: props.user.gender })}
+                  </option>
+                ))}
+              </optgroup>
+            );
+          })}
         </Select>
       ) : (
         <dd className="fr-mt-2v fr-px-4v fr-py-2v rounded-sm border border-(--border-default-grey) bg-(--background-alt-grey)">

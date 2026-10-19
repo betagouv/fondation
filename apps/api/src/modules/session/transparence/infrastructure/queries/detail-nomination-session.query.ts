@@ -3,6 +3,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { sessionLabel } from '../../domain/session-label';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 import { ReportedSessionsFinder } from '../finders/reported-sessions.finder';
 import { Prisma } from 'src/generated/prisma/client';
@@ -73,10 +74,12 @@ export class DetailNominationSessionQuery {
     const isArchivable = !!session.validatedAt && !session.archivedAt && unreportedCount === 0;
 
     const formation = prismaFormationEnumToFormationEnum(session.formation);
+    const date = DateOnly.fromUtcDate(session.date);
 
     return {
       id: session.id,
       name: session.name,
+      label: sessionLabel({ date, name: session.name }),
       formation,
       outcomes: NominationFileOutcome.selectableOutcomes(formation),
       observationsClosingDate: DateOnly.fromUtcDate(
@@ -85,7 +88,7 @@ export class DetailNominationSessionQuery {
           `${session.id} no observation closing date`,
         ),
       ).toJson(),
-      date: DateOnly.fromUtcDate(session.date).toJson(),
+      date: date.toJson(),
       dueDate: DateOnly.fromOptionalUtcDate(session.transparenceGds?.dueDate)?.toJson() ?? null,
       positionStartDate:
         DateOnly.fromOptionalUtcDate(session.transparenceGds?.positionStartDate)?.toJson() ?? null,
@@ -102,6 +105,7 @@ export class DetailedNominationSessionDto extends createZodDto(
   z.object({
     id: z.string(),
     name: z.string(),
+    label: z.string(),
     formation: z.enum(FormationEnum),
     outcomes: z.array(
       z.object({

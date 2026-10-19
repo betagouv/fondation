@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { sessionLabel } from '../../domain/session-label';
 import { listMemberGardeDesSceauxSessions } from 'src/generated/prisma/sql';
 import { Db } from 'src/modules/framework/database';
 import { roleToFormation } from 'src/modules/members/infrastructure/member.utils';
@@ -10,6 +11,7 @@ import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/f
 import { prismaTypeDeSaisineEnumToTypeDeSaisine } from 'src/modules/shared/mappers/type-de-saisine-enum.mapper';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
+import { DateOnly } from 'src/utils/date-only';
 
 @Injectable()
 export class ListMemberSessionsQuery {
@@ -24,30 +26,17 @@ export class ListMemberSessionsQuery {
       listMemberGardeDesSceauxSessions(query.user.id, userFormationRestriction),
     );
 
-    const items = sessions.map((session) => {
-      const label = ListMemberSessionsQuery.labelizeSession(session);
-
-      return {
-        createdAt: session.createdAt.toISOString(),
-        fileCount: Number(session.fileCount ?? 0),
-        formation: prismaFormationEnumToFormationEnum(session.formation),
-        id: session.id,
-        isAffected: (session.reporterIds ?? []).length > 0,
-        label,
-        typeDeSaisine: prismaTypeDeSaisineEnumToTypeDeSaisine(session.typeDeSaisine),
-      };
-    });
+    const items = sessions.map((session) => ({
+      createdAt: session.createdAt.toISOString(),
+      fileCount: Number(session.fileCount ?? 0),
+      formation: prismaFormationEnumToFormationEnum(session.formation),
+      id: session.id,
+      isAffected: (session.reporterIds ?? []).length > 0,
+      label: sessionLabel({ date: DateOnly.fromUtcDate(session.date), name: session.name }),
+      typeDeSaisine: prismaTypeDeSaisineEnumToTypeDeSaisine(session.typeDeSaisine),
+    }));
 
     return { items };
-  }
-
-  private static labelizeSession(session: { date: Date; name: string }): string {
-    const { date: d } = session;
-    const formattedDate = [d.getUTCDate(), d.getUTCMonth() + 1, d.getUTCFullYear()]
-      .map((x) => x.toString().padStart(2, '0'))
-      .join('/');
-
-    return `T ${formattedDate} (${session.name})`;
   }
 }
 
