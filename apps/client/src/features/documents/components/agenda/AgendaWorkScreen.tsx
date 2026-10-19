@@ -46,7 +46,7 @@ export function AgendaWorkScreen(props: {
         barClassName="fr-pt-9v fr-pb-4v"
         className="grow"
         contentClassName="fr-container flex grow flex-col"
-        gapClassName="border-b border-(--border-default-grey)"
+        gapClassName="border-b border-(--border-default-grey) bg-(--background-default-grey)"
       >
         {props.children}
       </PinnedHeader>
