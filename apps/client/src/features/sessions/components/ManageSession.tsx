@@ -2,7 +2,7 @@ import Alert from '@codegouvfr/react-dsfr/Alert';
 import { createColumnHelper, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import clsx from 'clsx';
 import { useCallback, useMemo } from 'react';
-import { defineMessage, FormattedMessage, useIntl } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, Link, useLocation } from 'react-router';
 
 import { FormationBadge } from '@/shared/components/formation-badge';
@@ -92,10 +92,6 @@ function useManagedSessionColumns() {
   );
 }
 
-const SESSIONS_LABEL = defineMessage({
-  defaultMessage: '{count, plural, one {session} other {sessions}}',
-});
-
 export function ManageSession() {
   const { formatMessage } = useIntl();
   const location = useLocation();
@@ -159,18 +155,9 @@ export function ManageSession() {
           <div className={clsx('flex flex-col gap-y-6', { 'fr-container': isPinned })}>
             <h1 className="fr-h3 fr-mb-0">
               <FormattedMessage defaultMessage="Gérer une session" />
+              {data && <DataTableCount loaded={sessions.length} total={data.totalCount} />}
             </h1>
-            <div className="flex items-center justify-between gap-4">
-              <DataTableFilters table={table} />
-              {data && (
-                <DataTableCount
-                  className="self-end text-sm text-(--text-mention-grey)"
-                  label={SESSIONS_LABEL}
-                  loaded={sessions.length}
-                  total={data.totalCount}
-                />
-              )}
-            </div>
+            <DataTableFilters table={table} />
           </div>
         )}
         barClassName="fr-pb-2v"

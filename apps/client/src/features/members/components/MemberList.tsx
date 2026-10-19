@@ -162,11 +162,7 @@ export function MemberList() {
         <div className={clsx('flex flex-col gap-y-6', { 'fr-container': isPinned })}>
           <h1 className="fr-h3 fr-mb-0">
             <FormattedMessage defaultMessage="Membres" />
-            {data && (
-              <span className="fr-ml-2v text-sm font-normal text-(--text-mention-grey)">
-                (<DataTableCount loaded={members.length} total={data.totalCount} />)
-              </span>
-            )}
+            {data && <DataTableCount loaded={members.length} total={data.totalCount} />}
           </h1>
           <div className="flex items-center justify-between gap-4">
             <DataTableFilters table={table} />
