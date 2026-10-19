@@ -3,7 +3,6 @@ import { type To } from 'react-router';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { useSummary } from '@/features/summary/context/SummaryContext';
-import { transparencyToLabel } from '@/features/transparence/labels/labels-mappers';
 import { DetailsLink } from '@/shared/components/details-link';
 import { LolfiLink } from '@/shared/components/lolfi-link';
 import { PriorityBadge } from '@/shared/components/priority-badge';
@@ -46,7 +45,7 @@ export function SummaryDetailsHeader() {
 
   if (session) {
     segments.push({
-      label: isSg ? session.name : transparencyToLabel(session.name, session.date),
+      label: isSg ? session.name : session.label,
       to: sessionPath,
     });
   }
