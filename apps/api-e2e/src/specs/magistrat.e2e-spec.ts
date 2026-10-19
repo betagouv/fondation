@@ -53,17 +53,12 @@ function observationForm(form: CreateObservationDto['form']): CreateObservationD
   }) as unknown as CreateObservationDto['form'];
 }
 
-const test = base.extend('valrose', async ({ agent, sessions }) => {
+const test = base.extend('valrose', async ({ sessions }) => {
   const session = await sessions.createOne(VALROSE_SESSION);
-
-  const nominationFiles = await agent.sessions
-    .listNominationFiles({ path: { sessionId: session.id }, throwOnError: true })
-    .then(({ data }) => data!.items);
-  const nominationFile = nominationFiles.find((file) => /valrose/i.test(file.content.nomMagistrat));
-  const otherNominationFile = nominationFiles.find((file) => !/valrose/i.test(file.content.nomMagistrat));
+  const [nominationFile, otherNominationFile] = session.files;
 
   return {
-    magistratId: nominationFile!.content.detectedMagistratId!,
+    magistratId: nominationFile!.magistratId,
     nominationFile: nominationFile!,
     otherNominationFile: otherNominationFile!,
     session,
@@ -334,10 +329,7 @@ test.describe('Magistrat E2E', () => {
     const candidate = { ...VALROSE_SESSION.candidates[0]!, id: crypto.randomInt(1_000, 900_000) };
     const lolfiSession = { ...VALROSE_SESSION, candidates: [candidate], id: crypto.randomInt(1_000, 900_000) };
     const session = await sessions.createOne(lolfiSession);
-    const [nominationFile] = await agent.sessions
-      .listNominationFiles({ path: { sessionId: session.id }, throwOnError: true })
-      .then(({ data }) => data!.items);
-    const path = { magistratId: nominationFile!.content.detectedMagistratId! };
+    const path = { magistratId: session.files[0]!.magistratId };
 
     await agent.magistrats.addMagistratPhoneNumber({
       body: { label: 'Conjointe', number: '07 00 00 00 00' },
@@ -396,7 +388,7 @@ test.describe('Magistrat E2E', () => {
 
   test('should expect an audition on an auditioned position', async ({ agent, expect, valrose }) => {
     const nominationFiles = await agent.magistrats.listMagistratNominationFiles({
-      path: { magistratId: valrose.otherNominationFile.content.detectedMagistratId! },
+      path: { magistratId: valrose.otherNominationFile.magistratId },
     });
 
     expect(nominationFiles.response?.status).toBe(200);
@@ -414,7 +406,7 @@ test.describe('Magistrat E2E', () => {
     expect(outcomeRes.response?.status).toBe(204);
 
     const nominationFiles = await agent.magistrats.listMagistratNominationFiles({
-      path: { magistratId: valrose.otherNominationFile.content.detectedMagistratId! },
+      path: { magistratId: valrose.otherNominationFile.magistratId },
     });
 
     expect(nominationFiles.response?.status).toBe(200);
@@ -631,13 +623,9 @@ test.describe('Magistrat E2E', () => {
     valrose,
   }) => {
     const laterSession = await sessions.createOne({ ...VALROSE_SESSION, createdAt: '22/05/2026' });
-    const laterFiles = await agent.sessions.listNominationFiles({
-      path: { sessionId: laterSession.id },
-      throwOnError: true,
-    });
     for (const [sessionId, nominationFileId] of [
       [valrose.session.id, valrose.nominationFile.id],
-      [laterSession.id, laterFiles.data!.items[0]!.id],
+      [laterSession.id, laterSession.files[0]!.id],
     ] as const) {
       await agent.observations.createObservation({
         body: {
@@ -668,9 +656,11 @@ test.describe('Magistrat E2E', () => {
   });
 
   test('should order the observations of a session by nomination file number', async ({ agent, expect, valrose }) => {
-    const [lowerFile, higherFile] = [valrose.nominationFile, valrose.otherNominationFile].sort(
-      (a, b) => a.content.numeroDeDossier! - b.content.numeroDeDossier!,
-    );
+    const { data: files } = await agent.sessions.listNominationFiles({
+      path: { sessionId: valrose.session.id },
+      throwOnError: true,
+    });
+    const [lowerFile, higherFile] = files.items.sort((a, b) => a.content.numeroDeDossier! - b.content.numeroDeDossier!);
 
     await agent.observations.createObservation({
       body: {

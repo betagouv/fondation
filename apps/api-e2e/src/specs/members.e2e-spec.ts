@@ -95,8 +95,7 @@ test.describe('Members E2E', () => {
         ],
       });
       const member = await logIn('MEMBRE_COMMUN');
-      const { data: files } = await member.sessions.listNominationFiles({ path: { sessionId: session.id } });
-      const file = { nominationFileId: files!.items[0]!.id, sessionId: session.id };
+      const file = { nominationFileId: session.files[0]!.id, sessionId: session.id };
       const path = { ...file, userId: member['@user']!.id };
 
       await member.members.writeNominationFileMemberMemo({ body: { memo: 'À relire' }, path, throwOnError: true });

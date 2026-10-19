@@ -414,15 +414,14 @@ test.describe('Session E2E', () => {
 
     test('should list the nomination files it is asked for', async ({ agent, sessions, expect }) => {
       const session = await sessions.createOne(TREVOUX_SESSION);
-      const files = await agent.sessions.listNominationFiles({ path: { sessionId: session.id } });
-      const [wanted] = files.data!.items;
+      const wanted = session.files[0]!;
 
       const restricted = await agent.sessions.listNominationFiles({
         path: { sessionId: session.id },
-        query: { nominationFileIds: [wanted!.id] },
+        query: { nominationFileIds: [wanted.id] },
       });
 
-      expect(restricted.data!.items.map(({ id }) => id)).toEqual([wanted!.id]);
+      expect(restricted.data!.items.map(({ id }) => id)).toEqual([wanted.id]);
       expect(restricted.data!.totalCount).toBe(1);
 
       const none = await agent.sessions.listNominationFiles({
@@ -437,7 +436,6 @@ test.describe('Session E2E', () => {
     test('should not detail a nomination file outside of the session', async ({ agent, sessions, expect }) => {
       const session = await sessions.createOne(TREVOUX_SESSION);
       const otherSession = await sessions.createOne(TREVOUX_SESSION);
-      const otherFiles = await agent.sessions.listNominationFiles({ path: { sessionId: otherSession.id } });
 
       const unknown = await agent.sessions.detailNominationFile({
         path: { nominationFileId: randomUUID(), sessionId: session.id },
@@ -445,7 +443,7 @@ test.describe('Session E2E', () => {
       expect(unknown.response?.status).toBe(404);
 
       const foreign = await agent.sessions.detailNominationFile({
-        path: { nominationFileId: otherFiles.data!.items[0]!.id, sessionId: session.id },
+        path: { nominationFileId: otherSession.files[0]!.id, sessionId: session.id },
       });
       expect(foreign.response?.status).toBe(404);
     }, 10_000);
@@ -540,8 +538,7 @@ test.describe('Session E2E', () => {
         return files.data!.items.find(({ id }) => id === nominationFileId)?.missingEvaluation;
       };
 
-      const initial = await agent.sessions.listNominationFiles({ path: { sessionId: session.id } });
-      const nominationFileId = initial.data!.items[0]!.id;
+      const nominationFileId = session.files[0]!.id;
       expect(await missingEvaluationOf(nominationFileId)).toBe(false);
 
       const flagRes = await agent.sessions.updateNominationFileMissingEvaluation({
@@ -570,13 +567,12 @@ test.describe('Session E2E', () => {
         return { ids: files.data!.items.map(({ id }) => id), totalCount: files.data!.totalCount };
       };
 
-      const initial = await agent.sessions.listNominationFiles({ path: { sessionId: session.id } });
-      const nominationFileId = initial.data!.items[0]!.id;
+      const nominationFileId = session.files[0]!.id;
 
       expect(await listFlaggedAs(true)).toEqual({ ids: [], totalCount: 0 });
       expect(await listFlaggedAs(false)).toEqual({
         ids: [nominationFileId],
-        totalCount: initial.data!.totalCount,
+        totalCount: session.files.length,
       });
 
       await agent.sessions.updateNominationFileMissingEvaluation({
@@ -591,8 +587,7 @@ test.describe('Session E2E', () => {
     test('should export the missing evaluations as a spreadsheet', async ({ agent, sessions, expect }) => {
       const session = await sessions.createOne(TREVOUX_SESSION);
 
-      const initial = await agent.sessions.listNominationFiles({ path: { sessionId: session.id } });
-      const nominationFileId = initial.data!.items[0]!.id;
+      const nominationFileId = session.files[0]!.id;
 
       await agent.sessions.updateNominationFileMissingEvaluation({
         body: { missingEvaluation: true },
@@ -619,8 +614,7 @@ test.describe('Session E2E', () => {
         return files.data!.items.find(({ id }) => id === nominationFileId)?.missingEvaluationComment;
       };
 
-      const initial = await agent.sessions.listNominationFiles({ path: { sessionId: session.id } });
-      const nominationFileId = initial.data!.items[0]!.id;
+      const nominationFileId = session.files[0]!.id;
       expect(await commentOf(nominationFileId)).toBeNull();
 
       await agent.sessions.updateNominationFileMissingEvaluation({
@@ -652,9 +646,8 @@ test.describe('Session E2E', () => {
         return data!;
       };
 
-      const initial = await agent.sessions.listNominationFiles({ path: { sessionId: session.id } });
-      const nominationFileId = initial.data!.items[0]!.id;
-      const total = initial.data!.totalCount;
+      const nominationFileId = session.files[0]!.id;
+      const total = session.files.length;
 
       expect(await counts()).toMatchObject({ missingEvaluation: 0, missingEvaluationWithComment: 0, total });
 
@@ -685,8 +678,7 @@ test.describe('Session E2E', () => {
         return files.data!.items.find(({ id }) => id === nominationFileId)?.summary;
       };
 
-      const initial = await agent.sessions.listNominationFiles({ path: { sessionId: session.id } });
-      const nominationFileId = initial.data!.items[0]!.id;
+      const nominationFileId = session.files[0]!.id;
 
       const createRes = await agent.summaries.createSummary({
         path: { nominationFileId, sessionId: session.id },
@@ -716,8 +708,7 @@ test.describe('Session E2E', () => {
 
       const session = await sessions.createOne(TREVOUX_SESSION);
 
-      const initial = await agent.sessions.listNominationFiles({ path: { sessionId: session.id } });
-      const nominationFileId = initial.data!.items[0]!.id;
+      const nominationFileId = session.files[0]!.id;
       const summaryPath = { nominationFileId, sessionId: session.id };
 
       expect((await agent.summaries.createSummary({ path: summaryPath })).response?.status).toBe(201);
@@ -741,18 +732,10 @@ test.describe('Session E2E', () => {
     let nominationFileId: string;
     let sessionId: string;
 
-    test.beforeEach(async ({ agent, member, sessions }) => {
-      const session = await sessions.createOne(TREVOUX_SESSION);
-      const files = await agent.sessions.listNominationFiles({ path: { sessionId: session.id } });
-      nominationFileId = files.data!.items[0]!.id;
+    test.beforeEach(async ({ member, sessions }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION, { reporters: [member['@user']!] });
+      nominationFileId = session.files[0]!.id;
       sessionId = session.id;
-
-      await agent.sessions.affectReporters({
-        body: { items: [{ nominationFileId, priorities: [], reporterIds: [member['@user']!.id] }] },
-        path: { sessionId },
-        throwOnError: true,
-      });
-      await agent.sessions.publishNominationSessionAffectationsVersion({ path: { sessionId }, throwOnError: true });
     });
 
     test('should no longer schedule an audition once the outcome is final', async ({ agent, member, expect }) => {

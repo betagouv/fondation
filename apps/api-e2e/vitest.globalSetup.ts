@@ -112,7 +112,7 @@ async function seed(apiUrl: string) {
             jurisdiction: jurisdictions['TJ  GRASSE'],
           },
           firstName: `user #3 first name`,
-          lastName: 'user #4 last name',
+          lastName: 'user #3 last name',
         },
         {
           position: {
@@ -123,7 +123,7 @@ async function seed(apiUrl: string) {
             function: functions.PR,
             jurisdiction: jurisdictions['TJ  TOULON'],
           },
-          firstName: `user #3 first name`,
+          firstName: `user #4 first name`,
           lastName: 'user #4 last name',
         },
       ],
