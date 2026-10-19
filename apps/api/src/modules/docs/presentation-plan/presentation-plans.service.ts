@@ -34,7 +34,10 @@ import {
   ListPresentedPlansQuery,
 } from './infrastructure/queries/list-presented-plans.query';
 import { JusticePresentationPlanRepository } from './infrastructure/repositories/justice-presentation-plan.repository';
-import { updatePresentationTimeDocMeetingSessionEndingTime } from './infrastructure/services/renderers/presentation-plan.html';
+import {
+  removePresentationTimeDocMeetingSessionEndingTime,
+  updatePresentationTimeDocMeetingSessionEndingTime,
+} from './infrastructure/services/renderers/presentation-plan.html';
 import { ValidatePresentationPlanUseCase } from './infrastructure/use-cases/validate-presentation-plan.use-case';
 
 @Injectable()
@@ -250,11 +253,28 @@ export class PresentationPlansService {
     await this.findPresentationPlanDocumentPdfQuery.renew({ id: command.id });
   }
 
-  @Transactional()
   async unPresentPlan(command: { id: string }): Promise<void> {
-    const plan = await this.justicePresentationPlanRepository.find({ id: command.id });
-    plan.unPresent();
-    await this.justicePresentationPlanRepository.persist(plan);
+    await this.db.withTransaction(async () => {
+      const plan = await this.justicePresentationPlanRepository.find({ id: command.id });
+      plan.unPresent();
+      await this.justicePresentationPlanRepository.persist(plan);
+
+      const { html } = await this.db.tx.justicePresentationPlan.findUniqueOrThrow({
+        where: { id: command.id },
+        select: { html: true } satisfies Prisma.JusticePresentationPlanSelect,
+      });
+
+      await this.db.tx.justicePresentationPlan.update({
+        where: { id: command.id },
+        data: {
+          html: removePresentationTimeDocMeetingSessionEndingTime({
+            html: assertIsDefined(html, 'a presented notice holds the text it was read with'),
+          }),
+        },
+      });
+    });
+
+    await this.findPresentationPlanDocumentPdfQuery.renew({ id: command.id });
   }
 
   async detailsPresentationPlanPdfDocument(query: { id: string }): Promise<{ id: string; url: string }> {

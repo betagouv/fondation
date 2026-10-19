@@ -16,6 +16,7 @@ import {
   JusticePresentationPlanAlreadyValidated,
   JusticePresentationPlanChangedWhileValidated,
   JusticePresentationPlanEndTimeShouldBeBeforeStartTime,
+  JusticePresentationPlanNotPresented,
   JusticePresentationPlanNotValidated,
   PresentationPlanAgendaAlreadyReported,
   UnknownPresentationPlanChairman,
@@ -73,6 +74,12 @@ export class PresentationPlansFilter implements NestInterceptor {
           if (err instanceof JusticePresentationPlanAlreadyPresented) {
             return new BadRequestException({
               validationError: `Une notice restituée ne peut plus être modifiée`,
+            });
+          }
+
+          if (err instanceof JusticePresentationPlanNotPresented) {
+            return new BadRequestException({
+              validationError: `La notice n'a pas été restituée`,
             });
           }
 

@@ -80,6 +80,7 @@ export class PresentationPlanAgendaAlreadyReported extends Error {}
 export class EmptyPresentationPlanMemberList extends Error {}
 export class JusticePresentationPlanNotValidated extends Error {}
 export class JusticePresentationPlanAlreadyPresented extends Error {}
+export class JusticePresentationPlanNotPresented extends Error {}
 export class JusticePresentationPlanAlreadyValidated extends Error {}
 export class JusticePresentationPlanChangedWhileValidated extends Error {}
 
@@ -190,6 +191,8 @@ export class JusticePresentationPlan {
   }
 
   unPresent(): void {
+    if (!this.isPresented) throw new JusticePresentationPlanNotPresented();
+
     this.#messages.push(new JusticePresentationPlanUnPresented(this.id));
   }
 

@@ -305,7 +305,7 @@ export class JusticePresentationPlanRepository {
   private async persistJusticePresentationPlanUnPresented(message: JusticePresentationPlanUnPresented) {
     await this.db.tx.justicePresentationPlan.update({
       where: { id: message.id },
-      data: { isPresented: false, presentedAt: null, presentedBy: null },
+      data: { endTime: null, isPresented: false, presentedAt: null, presentedBy: null },
     });
   }
 

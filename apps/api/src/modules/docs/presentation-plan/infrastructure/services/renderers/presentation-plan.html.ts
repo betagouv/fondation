@@ -326,3 +326,11 @@ export function updatePresentationTimeDocMeetingSessionEndingTime(props: {
 
   return doc.html();
 }
+
+/** a presented notice cannot be edited: the ending time is still the last line its presentation added */
+export function removePresentationTimeDocMeetingSessionEndingTime(props: { html: string }): string {
+  const doc = load(props.html);
+  doc('.content ul:last-of-type > li:last-child').remove();
+
+  return doc.html();
+}

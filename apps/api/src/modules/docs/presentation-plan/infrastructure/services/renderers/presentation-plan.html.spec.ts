@@ -4,6 +4,7 @@ import { DateOnly } from 'src/utils/date-only';
 
 import {
   presentationPlanTemplate,
+  removePresentationTimeDocMeetingSessionEndingTime,
   updatePresentationTimeDocMeetingSessionEndingTime,
 } from './presentation-plan.html';
 
@@ -102,5 +103,15 @@ describe('presentationPlanTemplate', () => {
     });
 
     expect(result).toContain('Heure de fin de la séance de restitution&nbsp;: 18:10');
+  });
+
+  it('should give back the text read before the presentation once the end time is removed', () => {
+    const html = presentationPlanTemplate.render(baseCtx);
+    const presented = updatePresentationTimeDocMeetingSessionEndingTime({
+      html,
+      meetingSessionEndingTime: { hours: 18, minutes: 10, seconds: 0 },
+    });
+
+    expect(removePresentationTimeDocMeetingSessionEndingTime({ html: presented })).toBe(load(html).html());
   });
 });
