@@ -24,11 +24,13 @@ export type DocInvalidation =
       payload: { agendaId: string; nominationFileId: string };
     }
   | {
-      type: 'NominationFileOutcomeUpdated';
+      type: 'NominationFilesOutcomeUpdated';
       payload: {
-        nominationFileId: string;
-        outcome: NominationFileOutcomeEnum | null;
-        comment: string | null;
+        files: readonly {
+          comment: string | null;
+          nominationFileId: string;
+          outcome: NominationFileOutcomeEnum | null;
+        }[];
       };
     }
   | {
@@ -38,5 +40,5 @@ export type DocInvalidation =
 
 export type SessionDocInvalidation = Extract<
   DocInvalidation,
-  { type: 'NominationFileOutcomeUpdated' | 'SessionAffectationVersionPublished' | 'SessionDateUpdated' }
+  { type: 'NominationFilesOutcomeUpdated' | 'SessionAffectationVersionPublished' | 'SessionDateUpdated' }
 >;

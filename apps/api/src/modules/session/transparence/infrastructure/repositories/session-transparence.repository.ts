@@ -185,7 +185,7 @@ export class SessionTransparenceRepository {
       } else if (message instanceof SessionTransparenceCommentWritten) {
         await this.persistSessionTransparenceCommentWritten(message);
       } else if (message instanceof SessionTransparenceOutcomeDefined) {
-        invalidations.push(...(await this.persistSessionTransparenceOutcomeDefined(message)));
+        await this.persistSessionTransparenceOutcomeDefined(message);
       } else if (message instanceof SessionTransparenceAuditionRequestDefined) {
         await this.persistSessionTransparenceAuditionRequestDefined(message);
       } else if (message instanceof SessionTransparenceAuditionScheduled) {
@@ -213,6 +213,22 @@ export class SessionTransparenceRepository {
       } else {
         assertNever(message);
       }
+    }
+
+    const outcomesDefined = session.messages.filter(
+      (message) => message instanceof SessionTransparenceOutcomeDefined,
+    );
+    if (outcomesDefined.length > 0) {
+      invalidations.push({
+        payload: {
+          files: outcomesDefined.map(({ comment, nominationFileId, outcome }) => ({
+            comment,
+            nominationFileId,
+            outcome,
+          })),
+        },
+        type: 'NominationFilesOutcomeUpdated',
+      });
     }
 
     return invalidations;
@@ -565,24 +581,11 @@ export class SessionTransparenceRepository {
     });
   }
 
-  private async persistSessionTransparenceOutcomeDefined(
-    message: SessionTransparenceOutcomeDefined,
-  ): Promise<SessionDocInvalidation[]> {
-    await this.db.tx.dossierDeNomination.update({
+  private persistSessionTransparenceOutcomeDefined(message: SessionTransparenceOutcomeDefined) {
+    return this.db.tx.dossierDeNomination.update({
       data: { outcome: message.outcome, outcomeComment: message.comment },
       where: { id: message.nominationFileId },
     });
-
-    return [
-      {
-        payload: {
-          comment: message.comment,
-          nominationFileId: message.nominationFileId,
-          outcome: message.outcome,
-        },
-        type: 'NominationFileOutcomeUpdated',
-      },
-    ];
   }
 
   private async persistSessionTransparenceAuditionScheduled(message: SessionTransparenceAuditionScheduled) {

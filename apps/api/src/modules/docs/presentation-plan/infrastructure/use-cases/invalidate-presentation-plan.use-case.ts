@@ -23,8 +23,12 @@ export class InvalidatePresentationPlanUseCase {
       case 'AgendaValidated':
         return this.checkContentOf(await this.planIdsOfAgenda(invalidation.payload.agendaId));
 
-      case 'NominationFileOutcomeUpdated':
-        return this.checkContentOf(await this.planIdsOfNominationFile(invalidation.payload.nominationFileId));
+      case 'NominationFilesOutcomeUpdated':
+        return this.checkContentOf(
+          await this.planIdsOfNominationFiles(
+            invalidation.payload.files.map(({ nominationFileId }) => nominationFileId),
+          ),
+        );
 
       case 'AgendaDateUpdated':
       case 'AgendaFileBlockEdited':
@@ -46,9 +50,9 @@ export class InvalidatePresentationPlanUseCase {
     return links.map(({ planId }) => planId);
   }
 
-  private async planIdsOfNominationFile(nominationFileId: string): Promise<string[]> {
+  private async planIdsOfNominationFiles(nominationFileIds: readonly string[]): Promise<string[]> {
     const files = await this.db.tx.justicePresentationPlanNominationFile.findMany({
-      where: { nominationFileId },
+      where: { nominationFileId: { in: [...nominationFileIds] } },
       distinct: ['planId'],
       select: { planId: true } satisfies Prisma.JusticePresentationPlanNominationFileSelect,
     });

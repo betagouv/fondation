@@ -39,8 +39,8 @@ export class InvalidateOfficialReportUseCase {
       case 'AgendaFileBlockEdited':
         return this.invalidate(await this.mapAgendaFileBlockEdited({ invalidation }));
 
-      case 'NominationFileOutcomeUpdated':
-        return this.invalidate(await this.mapNominationFileOutcomeUpdated({ invalidation }));
+      case 'NominationFilesOutcomeUpdated':
+        return this.invalidate(await this.mapNominationFilesOutcomeUpdated({ invalidation }));
 
       // the report already answered when the draft was opened, and its own draft carries the answer
       case 'AgendaValidated':
@@ -64,33 +64,40 @@ export class InvalidateOfficialReportUseCase {
     }
   }
 
-  private async mapNominationFileOutcomeUpdated(query: {
-    invalidation: Extract<DocInvalidation, { type: 'NominationFileOutcomeUpdated' }>;
+  private async mapNominationFilesOutcomeUpdated(query: {
+    invalidation: Extract<DocInvalidation, { type: 'NominationFilesOutcomeUpdated' }>;
   }): Promise<InvalidateOfficialReportCommand[]> {
-    const { nominationFileId, comment, outcome } = query.invalidation.payload;
+    const files = query.invalidation.payload.files.flatMap(({ comment, nominationFileId, outcome }) =>
+      isDefined(outcome)
+        ? [
+            {
+              nominationFileId,
+              outcome: { comment, value: nominationFileOutcomeToDocNominationFileOutcome(outcome) },
+            },
+          ]
+        : [],
+    );
+    if (files.length === 0) return [];
 
-    if (!isDefined(outcome)) return [];
-
-    // a report holding a draft carries the file twice, and it is invalidated once
-    const files = await this.db.tx.officialReportNominationFile.findMany({
-      where: { nominationFileId: query.invalidation.payload.nominationFileId },
+    const reportFiles = await this.db.tx.officialReportNominationFile.findMany({
+      where: { nominationFileId: { in: files.map(({ nominationFileId }) => nominationFileId) } },
       select: {
+        nominationFileId: true,
         version: { select: { officialReportId: true } },
       } satisfies Prisma.OfficialReportNominationFileSelect,
-      distinct: ['versionId'],
     });
 
-    return [...new Set(files.map((file) => file.version.officialReportId))].map((officialReportId) => ({
+    // a report holding a draft carries a file twice, and it is invalidated once
+    const nominationFileIdsPerReport = new Map<string, Set<string | null>>();
+    for (const { nominationFileId, version } of reportFiles) {
+      const nominationFileIds = nominationFileIdsPerReport.get(version.officialReportId) ?? new Set();
+      nominationFileIdsPerReport.set(version.officialReportId, nominationFileIds.add(nominationFileId));
+    }
+
+    return [...nominationFileIdsPerReport].map(([officialReportId, nominationFileIds]) => ({
       type: 'NominationFilesOutcomeUpdated',
       id: officialReportId,
-      payload: {
-        files: [
-          {
-            nominationFileId,
-            outcome: { comment, value: nominationFileOutcomeToDocNominationFileOutcome(outcome) },
-          },
-        ],
-      },
+      payload: { files: files.filter(({ nominationFileId }) => nominationFileIds.has(nominationFileId)) },
     }));
   }
 
