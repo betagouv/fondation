@@ -31,7 +31,7 @@ jobs:
       GOTENBERG_API_URL: http://gotenberg.example.com
     services:
       postgres:
-        image: postgres:17.9@sha256:2a0d0fe14825b0939f78a8cad5cd4e6aa68bf94d0e5dd96e24b6d23af4315545
+        image: postgres:17.10@sha256:7958605b474b3d264a969cb3a123d6aa00ad1e1fe9da8a69984dabb704d93317
         env:
           POSTGRES_USER: fondation
           POSTGRES_PASSWORD: secret
@@ -57,7 +57,7 @@ jobs:
 
       - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
         with:
-          version: 11.27.0
+          version: 11.28.4
           run_install: false
 
       - name: Use Node.js
