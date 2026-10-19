@@ -749,6 +749,7 @@ export type DetailedNominationFileDto = {
 export type DetailedNominationSessionDto = {
     id: string;
     name: string;
+    label: string;
     formation: 'SIEGE' | 'PARQUET';
     outcomes: Array<{
         commentRequired: boolean;

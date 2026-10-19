@@ -14,6 +14,7 @@ export const STORY_SESSION: DetailedNominationSessionDto = {
   isArchived: false,
   isDeletable: false,
   isValidated: true,
+  label: 'T 20/02/2026 (Transparence annuelle)',
   name: 'Transparence annuelle',
   observationsClosingDate: { day: 27, month: 2, year: 2026 },
   outcomes: [],
