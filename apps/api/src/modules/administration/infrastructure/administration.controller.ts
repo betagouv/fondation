@@ -16,7 +16,7 @@ import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { AdministrationService } from '../administration.service';
 import { ApiPaginated, Pagination, QueryPagination } from 'src/modules/framework/pagination';
-import { HasRole } from 'src/modules/simple-auth';
+import { AuthedUser, HasRole } from 'src/modules/simple-auth';
 
 import { AdministrationErrorMapper } from './administration.filter';
 import {
@@ -38,24 +38,28 @@ export class AdministrationController {
   @Get('/users')
   @ApiPaginated()
   @UsePipes(ZodValidationPipe)
-  @ZodResponse({ type: PaginatedAdminUserListItemDto, status: HttpStatus.OK })
+  @ZodResponse({ status: HttpStatus.OK, type: PaginatedAdminUserListItemDto })
   listUsers(
     @QueryPagination() pagination: Pagination,
     @Query() query: ListUsersQueryDto,
   ): Promise<PaginatedAdminUserListItemDto> {
     return this.administration.listUsers({
       pagination,
-      search: query.search,
       roles: query.roles,
+      search: query.search,
       sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
+      statuses: query.statuses,
     });
   }
 
   @HasRole('ADMIN')
   @Get('/users/:userId')
-  @ZodResponse({ type: DetailedAdminUserDto, status: HttpStatus.OK })
-  detailsUser(@Param('userId', ParseUUIDPipe) userId: string): Promise<DetailedAdminUserDto> {
-    return this.administration.detailsUser({ userId });
+  @ZodResponse({ status: HttpStatus.OK, type: DetailedAdminUserDto })
+  detailsUser(
+    @AuthedUser() actor: { id: string },
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ): Promise<DetailedAdminUserDto> {
+    return this.administration.detailsUser({ actorId: actor.id, userId });
   }
 
   @HasRole('ADMIN')
@@ -66,7 +70,7 @@ export class AdministrationController {
     @Param('userId', ParseUUIDPipe) userId: string,
     @Body() { email }: UpdateUserEmailDto,
   ): Promise<void> {
-    return this.administration.updateEmail({ userId, email });
+    return this.administration.updateEmail({ email, userId });
   }
 
   @HasRole('ADMIN')
@@ -74,10 +78,11 @@ export class AdministrationController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
   updatePassword(
+    @AuthedUser() actor: { sessionId: string },
     @Param('userId', ParseUUIDPipe) userId: string,
     @Body() { password }: UpdateUserPasswordDto,
   ): Promise<void> {
-    return this.administration.updatePassword({ userId, password });
+    return this.administration.updatePassword({ actorSessionId: actor.sessionId, password, userId });
   }
 
   @HasRole('ADMIN')
@@ -88,7 +93,7 @@ export class AdministrationController {
     @Param('userId', ParseUUIDPipe) userId: string,
     @Body() { role }: UpdateUserRoleDto,
   ): Promise<void> {
-    return this.administration.updateRole({ userId, role });
+    return this.administration.updateRole({ role, userId });
   }
 
   @HasRole('ADMIN')
@@ -99,7 +104,7 @@ export class AdministrationController {
     @Param('userId', ParseUUIDPipe) userId: string,
     @Body() { displayTitle }: UpdateUserDisplayTitleDto,
   ): Promise<void> {
-    return this.administration.updateDisplayTitle({ userId, displayTitle });
+    return this.administration.updateDisplayTitle({ displayTitle, userId });
   }
 
   @HasRole('ADMIN')
@@ -114,5 +119,22 @@ export class AdministrationController {
   @HttpCode(HttpStatus.NO_CONTENT)
   demoteFromAdmin(@Param('userId', ParseUUIDPipe) userId: string): Promise<void> {
     return this.administration.demoteFromAdmin({ userId });
+  }
+
+  @HasRole('ADMIN')
+  @Put('/users/:userId/deactivation')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  deactivate(
+    @AuthedUser() actor: { id: string },
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ): Promise<void> {
+    return this.administration.deactivate({ actorId: actor.id, userId });
+  }
+
+  @HasRole('ADMIN')
+  @Delete('/users/:userId/deactivation')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  reactivate(@Param('userId', ParseUUIDPipe) userId: string): Promise<void> {
+    return this.administration.reactivate({ userId });
   }
 }

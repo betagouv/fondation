@@ -257,14 +257,10 @@ export class TransparenceService {
   }
 
   @Transactional()
-  async affectReportersAndPriorities(command: {
+  async affectReporters(command: {
+    affectations: readonly { nominationFileId: string; reporterIds: readonly string[] }[];
     authorId: string;
     sessionId: string;
-    affectations: readonly {
-      nominationFileId: string;
-      priorities: PriorityEnum[];
-      reporterIds: readonly string[];
-    }[];
   }): Promise<void> {
     const session = await this.nominationSessionRepository.find(command.sessionId, {
       nominationFileIds: new Set(command.affectations.map(({ nominationFileId }) => nominationFileId)),
@@ -278,23 +274,31 @@ export class TransparenceService {
       .findMembers({ formation: session.formation, ids: memberIds })
       .then((ids) => new Set(ids));
 
-    session.affectNominationFileReporters({ ...command, formationMemberIds });
+    const assignedReporterIds = await this.reportersAffectation.findAssigned({
+      nominationFileIds: command.affectations.map(({ nominationFileId }) => nominationFileId),
+      sessionId: command.sessionId,
+    });
 
-    for (const item of command.affectations) {
-      session.setNominationFilePriority({
-        nominationFileId: item.nominationFileId,
-        priorities: item.priorities,
-      });
-    }
+    session.affectNominationFileReporters({ ...command, assignedReporterIds, formationMemberIds });
+
+    await this.nominationSessionRepository.persist(session);
+  }
+
+  @Transactional()
+  async updateNominationFilesPriorities(command: {
+    items: readonly { nominationFileId: string; priorities: PriorityEnum[] }[];
+    sessionId: string;
+  }): Promise<void> {
+    const session = await this.nominationSessionRepository.find(command.sessionId, {
+      nominationFileIds: new Set(command.items.map(({ nominationFileId }) => nominationFileId)),
+    });
+
+    for (const item of command.items) session.setNominationFilePriority(item);
 
     await this.nominationSessionRepository.persist(session);
   }
 
   async listNominationFiles(query: {
-    pagination: Pagination;
-    sessionId: string;
-    sorting: Sortable<ListNominationFilesQueryDto>;
-    user: { role: RoleEnum; id: string };
     filters: {
       missingEvaluation: boolean | undefined;
       nominationFileIds: readonly string[] | undefined;
@@ -303,6 +307,10 @@ export class TransparenceService {
       reporterIds: readonly (string | null)[];
       search: string | null;
     };
+    pagination: Pagination;
+    sessionId: string;
+    sorting: Sortable<ListNominationFilesQueryDto>;
+    user: { id: string; role: RoleEnum };
   }): Promise<PaginatedNominationFiles> {
     return this.listNominationFilesQuery.handle(query);
   }
@@ -310,7 +318,7 @@ export class TransparenceService {
   async detailNominationFile(query: {
     nominationFileId: string;
     sessionId: string;
-    user: { role: RoleEnum; id: string };
+    user: { id: string; role: RoleEnum };
   }): Promise<DetailedNominationFileDto> {
     const file = await this.listNominationFilesQuery.detail(query);
     if (!file) throw new NotFoundException();
@@ -533,7 +541,7 @@ export class TransparenceService {
   }
 
   @Transactional()
-  async removeNominationSessionAttachment(command: { sessionId: string; fileId: string }): Promise<void> {
+  async removeNominationSessionAttachment(command: { fileId: string; sessionId: string }): Promise<void> {
     const session = await this.nominationSessionRepository.find(command.sessionId);
 
     session.removeAttachment({ fileId: command.fileId });
@@ -608,7 +616,6 @@ export class TransparenceService {
 
   @Transactional()
   async update(command: {
-    sessionId: string;
     data: {
       date: DateOnly;
       dueDate: DateOnly | null;
@@ -616,6 +623,7 @@ export class TransparenceService {
       observationsClosingDate: DateOnly;
       positionStartDate: DateOnly | null;
     };
+    sessionId: string;
   }): Promise<void> {
     const session = await this.nominationSessionRepository.find(command.sessionId);
     session.update(command.data);
@@ -679,7 +687,7 @@ export class TransparenceService {
 
   @Transactional()
   async defineNominationFilesOutcome(command: {
-    items: readonly { nominationFileId: string; comment: string | null }[];
+    items: readonly { comment: string | null; nominationFileId: string }[];
     outcome: NominationFileOutcomeEnum | null;
     sessionId: string;
   }): Promise<void> {
@@ -785,7 +793,7 @@ export class TransparenceService {
   }
 
   @Transactional()
-  async hideAlert(command: { sessionId: string; nominationFileId: string }): Promise<void> {
+  async hideAlert(command: { nominationFileId: string; sessionId: string }): Promise<void> {
     const session = await this.nominationSessionRepository.find(command.sessionId);
     session.hideAlert(command);
     await this.nominationSessionRepository.persist(session);
@@ -793,13 +801,13 @@ export class TransparenceService {
 
   /** @internal */
   async internalIngestLolfiSessions(
-    sessions: readonly { id: number; creationDate: DateOnly; name: string | null }[],
+    sessions: readonly { creationDate: DateOnly; id: number; name: string | null }[],
   ): Promise<void> {
     for (const session of sessions) {
       await this.db.withTransaction(Propagation.RequiresNew, async () => {
         const nominationSessions = await this.lolfiNominationSessionFinder.find(session).catch((error) => {
           Sentry.captureException(error);
-          this.logger.error(`Errror while retrieving lolfi sessions ${session.id}`, error);
+          this.logger.error(`Error while retrieving lolfi sessions ${session.id}`, error);
 
           return [] as SessionTransparence[];
         });

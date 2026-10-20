@@ -81,6 +81,7 @@ function OfficialReportFormTree(
             changedSinceValidation: props.changedSinceValidation ?? [],
             isSubmitting: false,
             officialReportId: props.officialReportId ?? null,
+            recordedMemberIds: [],
             report: props.report ?? null,
             session: { formation: 'PARQUET', id: 'session-1' },
             submit: vi.fn(),

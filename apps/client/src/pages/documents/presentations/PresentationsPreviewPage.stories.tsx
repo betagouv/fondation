@@ -84,6 +84,7 @@ function PresentationPreviewPageStory(props: {
   const metadata: DetailedPresentationPlanMetadataDto = {
     ...LIFECYCLES[props.lifecycle],
     absentMemberIds: [],
+    recordedMemberIds: [],
     agendas: [{ comment: '', id: 'agenda-1' }],
     chairmanId: null,
     date: { day: 23, month: 9, year: 2026 },

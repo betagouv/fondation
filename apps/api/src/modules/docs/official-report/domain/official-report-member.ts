@@ -18,6 +18,26 @@ export class OfficialReportMember {
     return typeof this.id === 'string' && typeof other.id === 'string' && this.id === other.id;
   }
 
+  static recorded(member: {
+    firstName: string;
+    gender: GenderEnum;
+    isAbsent: boolean;
+    lastName: string;
+    memberId: string;
+    sort: number;
+    title: string | null;
+  }): OfficialReportMember {
+    return new OfficialReportMember(
+      member.memberId,
+      member.firstName,
+      member.lastName,
+      member.gender,
+      member.sort,
+      member.title,
+      member.isAbsent,
+    );
+  }
+
   static from(props: {
     displayTitle: string | null;
     duty: UserDutyEnum | null;

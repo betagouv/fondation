@@ -21,33 +21,40 @@ export class InternalFindMembersByFormationQuery {
   constructor(private readonly db: Db) {}
 
   @Transactional()
-  async handle(query: { formation: FormationEnum }): Promise<InternalMemberListDto[]> {
+  async handle(query: {
+    formation: FormationEnum;
+    includeIds?: readonly string[];
+  }): Promise<InternalMemberListDto[]> {
     const roles = formationToMemberRole(query.formation);
     const users = await this.db.tx.user.findMany({
-      where: { role: { in: roles.map(roleEnumToPrismaRoleEnum) } },
       select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        gender: true,
-        role: true,
-        title: true,
         displayTitle: true,
         duty: true,
+        firstName: true,
+        gender: true,
+        id: true,
+        lastName: true,
+        role: true,
         sort: true,
+        title: true,
       } satisfies Prisma.UserSelect,
+      where: {
+        // the members a document recorded stay offered for it, even deactivated since
+        OR: [{ deactivatedAt: null }, { id: { in: [...(query.includeIds ?? [])] } }],
+        role: { in: roles.map(roleEnumToPrismaRoleEnum) },
+      },
     });
 
     return users.filter(isMember).map((u) => ({
-      id: u.id,
-      firstName: u.firstName,
-      lastName: u.lastName,
-      gender: prismaGenderEnumToGenderEnum(u.gender),
-      role: prismaRoleEnumToRoleEnum(u.role),
-      title: u.title ?? null,
       displayTitle: u.displayTitle ?? null,
       duty: u.duty ?? null,
+      firstName: u.firstName,
+      gender: prismaGenderEnumToGenderEnum(u.gender),
+      id: u.id,
+      lastName: u.lastName,
+      role: prismaRoleEnumToRoleEnum(u.role),
       sort: u.sort,
+      title: u.title ?? null,
     }));
   }
 }

@@ -112,6 +112,7 @@ export class SummaryService {
   }): Promise<void> {
     const summary = await this.summaryRepository.find(command);
     const { items: availableUsers } = await this.users.listUsers({
+      activeOnly: true,
       excludeIds: [command.userId],
       includeIds: command.readerIds,
       includeIdsOnly: true,

@@ -5,8 +5,8 @@ import { parse } from 'node-xlsx';
 
 import { test as base } from '../fixtures.ts';
 import * as api from '../generated/api/sdk.ts';
-import type { CreateObservationDto } from '../generated/api/types.ts';
 import { makeFile } from '../utils/files.ts';
+import { observationForm } from '../utils/observation.ts';
 import * as seed from '../utils/seed.ts';
 
 const VALROSE_SESSION: LolfiArchiveContent['sessions'][number] = {
@@ -46,12 +46,6 @@ const VALROSE_SESSION: LolfiArchiveContent['sessions'][number] = {
   createdAt: '22/04/2026',
   name: 'Transparence annuelle',
 };
-
-function observationForm(form: CreateObservationDto['form']): CreateObservationDto['form'] {
-  return new Blob([JSON.stringify(form)], {
-    type: 'application/json',
-  }) as unknown as CreateObservationDto['form'];
-}
 
 const test = base.extend('valrose', async ({ sessions }) => {
   const session = await sessions.createOne(VALROSE_SESSION);
@@ -261,13 +255,13 @@ test.describe('Magistrat E2E', () => {
 
     expect(phoneNumbers.response?.status).toBe(200);
     expect(phoneNumbers.data).toEqual({
-      items: [{ date: { year: 2026, month: 4, day: 22 }, number: '06.12.34.56.78', source: 'LOLFI' }],
+      items: [{ date: { day: 22, month: 4, year: 2026 }, number: '06.12.34.56.78', source: 'LOLFI' }],
     });
   });
 
   test('should list the saved phone numbers before the LOLFI ones', async ({ agent, expect, valrose }) => {
     const today = { day: expect.any(Number), month: expect.any(Number), year: expect.any(Number) };
-    const lolfi = { date: { year: 2026, month: 4, day: 22 }, number: '06.12.34.56.78', source: 'LOLFI' };
+    const lolfi = { date: { day: 22, month: 4, year: 2026 }, number: '06.12.34.56.78', source: 'LOLFI' };
     const { data: me } = await agent.auth.introspectSession();
     const savedBy = { id: me!.userId, name: expect.any(String) };
 
@@ -320,7 +314,7 @@ test.describe('Magistrat E2E', () => {
     expect(deleted.response?.status).toBe(204);
     const remaining = await agent.magistrats.listMagistratPhoneNumbers({ path, throwOnError: true });
     expect(remaining.data.items).toEqual([
-      { date: { year: 2026, month: 4, day: 22 }, number: '06.12.34.56.78', source: 'LOLFI' },
+      { date: { day: 22, month: 4, year: 2026 }, number: '06.12.34.56.78', source: 'LOLFI' },
     ]);
   });
 
@@ -348,7 +342,7 @@ test.describe('Magistrat E2E', () => {
         savedBy: expect.any(Object),
         source: 'FONDATION',
       },
-      { date: { year: 2026, month: 4, day: 22 }, number: '06 98 76 54 32', source: 'LOLFI' },
+      { date: { day: 22, month: 4, year: 2026 }, number: '06 98 76 54 32', source: 'LOLFI' },
     ]);
   });
 
@@ -424,7 +418,7 @@ test.describe('Magistrat E2E', () => {
   }) => {
     await agent.sessions.affectReporters({
       body: {
-        items: [{ nominationFileId: valrose.nominationFile.id, priorities: [], reporterIds: [member['@user']!.id] }],
+        items: [{ nominationFileId: valrose.nominationFile.id, reporterIds: [member['@user']!.id] }],
       },
       path: { sessionId: valrose.session.id },
       throwOnError: true,

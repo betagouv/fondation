@@ -1,6 +1,7 @@
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { USER_STATUSES } from 'src/modules/shared/user-status.enum';
 import { isDefined } from 'src/utils/is-defined';
 
 export class ListMembersQueryDto extends createZodDto(
@@ -11,6 +12,10 @@ export class ListMembersQueryDto extends createZodDto(
     formations: z.preprocess(
       (x) => (isDefined(x) ? ([] as unknown[]).concat(x) : x),
       z.array(z.enum(['SIEGE', 'PARQUET', 'COMMUN'])).optional(),
+    ),
+    statuses: z.preprocess(
+      (x) => (isDefined(x) ? ([] as unknown[]).concat(x) : x),
+      z.array(z.enum(USER_STATUSES)).nonempty().default(['ACTIVE']),
     ),
   }),
 ) {}

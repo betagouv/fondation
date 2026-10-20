@@ -28,7 +28,8 @@ test.describe('Notice', () => {
     const before = await agent.docs.detailsJusticePresentationPlanPdfDocument({ path: { planId } });
     expect(before.response?.status).toBe(200);
 
-    const rewritten = '<html><body><p>Le garde des Sceaux renonce au délai.</p></body></html>';
+    const rewritten =
+      '<html><body><div data-editable-content><p>Le garde des Sceaux renonce au délai.</p></div></body></html>';
     const edited = await agent.docs.updatePresentationPlanHtml({
       body: { html: new File([rewritten], 'notice.html', { type: 'text/html' }) },
       path: { planId },
@@ -129,7 +130,8 @@ test.describe('Notice', () => {
     const validatedMetadata = await agent.docs.detailsPresentationPlanMetadata({ path: { planId } });
     expect(validatedMetadata.data!.validation).toEqual({ at: expect.any(String), by: ready?.createdBy });
 
-    const rewritten = '<html><body><p>Le garde des Sceaux renonce au délai.</p></body></html>';
+    const rewritten =
+      '<html><body><div data-editable-content><p>Le garde des Sceaux renonce au délai.</p></div></body></html>';
     await agent.docs.updatePresentationPlanHtml({
       body: { html: new File([rewritten], 'notice.html', { type: 'text/html' }) },
       path: { planId },
@@ -205,6 +207,65 @@ test.describe('Notice', () => {
 
     const saved = await agent.docs.updateJusticePresentationPlan({
       body: { ...metadata, agendas: [{ comment: null, id: agenda.id }] },
+      path: { planId },
+    });
+    expect(saved.response?.status).toBe(204);
+
+    const listed = await agent.docs.listNonPresentedPlans();
+    expect(listed.data!.items.find(({ id }) => id === planId)).toMatchObject({
+      status: 'VALIDATED',
+      updatedAt: null,
+    });
+  });
+
+  test('should save a notice whose chairman was deactivated since', async ({ admin, agent, docs, expect }) => {
+    const agenda = await docs.agenda(await docs.session());
+    const metadata = {
+      absentMembers: [],
+      chairmanId: docs.chairman.id,
+      date: MEETING_DATE,
+      hasRenunciation: true,
+      justiceContactId: docs.justiceContact.id,
+      secretaryId: docs.secretary.id,
+      time: { hours: 9, minutes: 30, seconds: 0 },
+    };
+    const { id: planId } = await docs.notice([agenda], metadata);
+    await admin.administration.deactivate({ path: { userId: docs.chairman.id }, throwOnError: true });
+
+    const saved = await agent.docs.updateJusticePresentationPlan({
+      body: { ...metadata, agendas: [{ comment: 'hors délai', id: agenda.id }] },
+      path: { planId },
+    });
+    expect(saved.response?.status).toBe(204);
+  });
+
+  test('should keep in a validated notice a member deactivated since, with the absence recorded', async ({
+    admin,
+    agent,
+    docs,
+    expect,
+    registerUser,
+  }) => {
+    const leaving = await registerUser('MEMBRE_DU_PARQUET');
+    const agenda = await docs.agenda(await docs.session());
+    const metadata = {
+      absentMembers: [],
+      chairmanId: docs.chairman.id,
+      date: MEETING_DATE,
+      hasRenunciation: true,
+      justiceContactId: docs.justiceContact.id,
+      secretaryId: docs.secretary.id,
+      time: { hours: 9, minutes: 30, seconds: 0 },
+    };
+    const { id: planId } = await docs.notice([agenda], {
+      ...metadata,
+      absentMembers: [leaving.id],
+      status: 'VALIDATED',
+    });
+    await admin.administration.deactivate({ path: { userId: leaving.id }, throwOnError: true });
+
+    const saved = await agent.docs.updateJusticePresentationPlan({
+      body: { ...metadata, absentMembers: [leaving.id], agendas: [{ comment: null, id: agenda.id }] },
       path: { planId },
     });
     expect(saved.response?.status).toBe(204);

@@ -235,14 +235,14 @@ export type UpdateNominationSessionFilesObserversDto = {
 export type AffectReportersDto = {
     items: Array<{
         nominationFileId: string;
-        priorities?: Array<'ETOILE' | 'OUTRE_MER' | 'PROFILE'>;
-        /**
-         * prefer priorities
-         *
-         * @deprecated
-         */
-        priority?: 'ETOILE' | 'OUTRE_MER' | 'PROFILE' | null;
         reporterIds: Array<string>;
+    }>;
+};
+
+export type UpdateNominationFilesPrioritiesDto = {
+    items: Array<{
+        nominationFileId: string;
+        priorities: Array<'ETOILE' | 'OUTRE_MER' | 'PROFILE'>;
     }>;
 };
 
@@ -579,7 +579,7 @@ export type ListedNominationSessionAttachmentDto = {
             id: string;
             name: string;
         } | null;
-        sizeInBytes: number | null;
+        size: number | null;
     }>;
 };
 
@@ -925,6 +925,7 @@ export type PaginatedMemberListItemDto = {
             id: string;
             label: string | null;
         }>;
+        status: 'ACTIVE' | 'DEACTIVATED';
     }>;
     totalCount: number;
     currentPageIndex: number;
@@ -1533,6 +1534,7 @@ export type DetailedOfficialReportMetadataDto = {
     id: string;
     hasRenunciation: boolean;
     absentMembers: Array<string>;
+    recordedMembers: Array<string>;
     agendaId: string | null;
     sessionMeetingDate: {
         year: number;
@@ -1786,6 +1788,7 @@ export type DetailedPresentationPlanMetadataDto = {
     justiceDepartmentContactId: string | null;
     hasRenunciation: boolean;
     absentMemberIds: Array<string>;
+    recordedMemberIds: Array<string>;
     removedAgendas: Array<{
         agenda: {
             id: string;
@@ -2317,6 +2320,7 @@ export type PaginatedAdminUserListItemDto = {
         email: string;
         gender: 'MALE' | 'FEMALE';
         role: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+        status: 'ACTIVE' | 'DEACTIVATED';
     }>;
     totalCount: number;
     currentPageIndex: number;
@@ -2337,6 +2341,10 @@ export type DetailedAdminUserDto = {
     gender: 'MALE' | 'FEMALE';
     displayTitle: string | null;
     isAdmin: boolean;
+    status: 'ACTIVE' | 'DEACTIVATED';
+    canDeactivate: boolean;
+    canImpersonate: boolean;
+    canReactivate: boolean;
 };
 
 export type UpdateUserEmailDto = {
@@ -2836,6 +2844,21 @@ export type AffectReportersResponses = {
 };
 
 export type AffectReportersResponse = AffectReportersResponses[keyof AffectReportersResponses];
+
+export type UpdateNominationFilesPrioritiesData = {
+    body: UpdateNominationFilesPrioritiesDto;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/priorities';
+};
+
+export type UpdateNominationFilesPrioritiesResponses = {
+    204: void;
+};
+
+export type UpdateNominationFilesPrioritiesResponse = UpdateNominationFilesPrioritiesResponses[keyof UpdateNominationFilesPrioritiesResponses];
 
 export type ListNominationFilesAsExcelData = {
     body?: never;
@@ -3592,6 +3615,7 @@ export type ListMembersData = {
         sortDirection?: 'asc' | 'desc';
         search?: string;
         formations?: Array<'SIEGE' | 'PARQUET' | 'COMMUN'>;
+        statuses?: Array<'ACTIVE' | 'DEACTIVATED'>;
         page?: number;
         limit?: number;
     };
@@ -3796,6 +3820,7 @@ export type FindDocsMembersData = {
     path?: never;
     query: {
         formation: 'SIEGE' | 'PARQUET';
+        includeIds?: Array<string>;
     };
     url: '/api/docs/v1/members';
 };
@@ -4910,6 +4935,7 @@ export type ListUsersData = {
         sortBy?: 'lastName';
         search?: string;
         roles?: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN' | Array<'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN'>;
+        statuses?: 'ACTIVE' | 'DEACTIVATED' | Array<'ACTIVE' | 'DEACTIVATED'>;
         /**
          * true
          */
@@ -5030,6 +5056,36 @@ export type PromoteToAdminResponses = {
 };
 
 export type PromoteToAdminResponse = PromoteToAdminResponses[keyof PromoteToAdminResponses];
+
+export type ReactivateData = {
+    body?: never;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/administration/v1/users/{userId}/deactivation';
+};
+
+export type ReactivateResponses = {
+    204: void;
+};
+
+export type ReactivateResponse = ReactivateResponses[keyof ReactivateResponses];
+
+export type DeactivateData = {
+    body?: never;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/administration/v1/users/{userId}/deactivation';
+};
+
+export type DeactivateResponses = {
+    204: void;
+};
+
+export type DeactivateResponse = DeactivateResponses[keyof DeactivateResponses];
 
 export type ListFeedbacksAsExcelData = {
     body?: never;

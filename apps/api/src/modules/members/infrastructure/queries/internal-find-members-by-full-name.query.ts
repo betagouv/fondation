@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { formationToMemberRole } from '../../../shared/formation-to-member-role';
 import { Db } from 'src/modules/framework/database';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
+import { UserStatus, userStatusOf } from 'src/modules/shared/user-status.enum';
 
 @Injectable()
 export class InternalFindMembersByFullNameQuery {
@@ -19,12 +20,15 @@ export class InternalFindMembersByFullNameQuery {
     const reporterFullNames = Array.from(queriedFullNames.keys());
 
     // TypedSQL does not support array variables
-    const members = await this.db.tx.$queryRaw<FoundMemberByFullName[]>`
+    const members = await this.db.tx.$queryRaw<
+      (Omit<FoundMemberByFullName, 'status'> & { deactivatedAt: Date | null })[]
+    >`
       SELECT
         id,
         LOWER(last_name || ' ' || first_name) AS "fullName",
         last_name AS "lastName",
-        first_name AS "firstName"
+        first_name AS "firstName",
+        deactivated_at AS "deactivatedAt"
       FROM identity_and_access_context.users
       WHERE (
         LOWER(last_name || ' ' || first_name) = ANY(${reporterFullNames}::TEXT[])
@@ -32,9 +36,13 @@ export class InternalFindMembersByFullNameQuery {
       );
     `;
 
-    return members.map((member) => {
+    return members.map(({ deactivatedAt, ...member }) => {
       const queriedFullName = queriedFullNames.get(member.fullName);
-      return { ...member, fullName: queriedFullName ?? member.fullName };
+      return {
+        ...member,
+        fullName: queriedFullName ?? member.fullName,
+        status: userStatusOf({ deactivatedAt }),
+      };
     });
   }
 }
@@ -44,4 +52,5 @@ type FoundMemberByFullName = {
   fullName: string;
   firstName: string;
   lastName: string;
+  status: UserStatus;
 };

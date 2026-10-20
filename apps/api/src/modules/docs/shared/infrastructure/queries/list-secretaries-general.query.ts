@@ -15,16 +15,16 @@ export class ListSecretariesGeneralQuery {
 
   async handle(): Promise<ListedSecretariesGeneralDto> {
     const secretaries = await this.db.tx.user.findMany({
-      where: { duty: 'SECRETARY' },
       select: {
-        id: true,
-        firstName: true,
-        lastName: true,
         displayTitle: true,
         duty: true,
-        title: true,
+        firstName: true,
         gender: true,
+        id: true,
+        lastName: true,
+        title: true,
       } satisfies Prisma.UserSelect,
+      where: { deactivatedAt: null, duty: 'SECRETARY' },
     });
 
     return {

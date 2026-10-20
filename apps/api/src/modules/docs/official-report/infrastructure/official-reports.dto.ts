@@ -2,6 +2,7 @@ import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
 import { DocBlockSchema } from '../domain/official-report-doc-block';
+import { editedHtml } from 'src/modules/docs/shared/infrastructure/edited-html';
 import { dateOnlyJsonSchema } from 'src/utils/date-only';
 import { timeOnlySchema } from 'src/utils/time-only';
 
@@ -35,9 +36,9 @@ export class DetailedOfficialReportDocumentDto extends createZodDto(
 ) {}
 
 export class EditOfficialReportBlockDto extends createZodDto(
-  z.object({ html: z.string(), outdated: z.boolean() }),
+  z.object({ html: editedHtml, outdated: z.boolean() }),
 ) {}
 
 export class EditOfficialReportSectionTitleDto extends createZodDto(z.object({ text: z.string() })) {}
 
-export class EditOfficialReportSectionIntroBlockDto extends createZodDto(z.object({ html: z.string() })) {}
+export class EditOfficialReportSectionIntroBlockDto extends createZodDto(z.object({ html: editedHtml })) {}

@@ -114,6 +114,7 @@ export class DetailsPresentationPlanMetadataQuery {
       })),
       justiceDepartmentContactId: plan.justiceDepartmentContactId?.toString() ?? null,
       absentMemberIds: plan.members.filter((m) => m.isAbsent).map((m) => m.memberId),
+      recordedMemberIds: plan.members.map(({ memberId }) => memberId),
       removedAgendas: plan.removedAgendas.flatMap(({ agenda, agendaId, remover, removedAt, takenBy }) => {
         const content = agendaContentOf(agenda.versions);
         if (!content) return [];
@@ -160,6 +161,7 @@ export class DetailedPresentationPlanMetadataDto extends createZodDto(
     justiceDepartmentContactId: z.string().nullable(),
     hasRenunciation: z.boolean(),
     absentMemberIds: z.array(z.string()),
+    recordedMemberIds: z.array(z.string()),
     removedAgendas: z.array(
       z.object({
         agenda: z.object({

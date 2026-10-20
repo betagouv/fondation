@@ -36,13 +36,18 @@ export class SummaryRepository {
     const sessionIsArchived = await this.isSessionArchived(query);
     const summary = await this.db.tx.summary.findUnique({
       where: { nominationFileId: query.nominationFileId, nominationFile: { sessionId: query.sessionId } },
-      select: { authorId: true, nominationFileId: true } satisfies Prisma.SummarySelect,
+      select: {
+        authorId: true,
+        nominationFileId: true,
+        readers: { select: { userId: true } },
+      } satisfies Prisma.SummarySelect,
     });
     if (!summary) throw new NotFoundException();
 
     return Summary.from({
       authorId: summary.authorId,
       id: summary.nominationFileId,
+      readerIds: summary.readers.map(({ userId }) => userId),
       sessionId: query.sessionId,
       sessionIsArchived,
     });
@@ -85,19 +90,16 @@ export class SummaryRepository {
   }
 
   private async persistDetachedFilesFromSummary(message: DetachedFilesFromSummary) {
-    await this.db.tx.summaryAttachment.deleteMany({
-      where: {
-        summaryId: message.id,
-        fileId: { in: message.fileIds as string[] },
-      },
+    // a file attached elsewhere is not this summary's to delete
+    const where = { fileId: { in: [...message.fileIds] }, summaryId: message.id };
+    const attachments = await this.db.tx.summaryAttachment.findMany({
+      where,
+      select: { file: { select: { id: true, path: true } } } satisfies Prisma.SummaryAttachmentSelect,
     });
 
-    const files = await this.db.tx.file.findMany({
-      select: { id: true, path: true } satisfies Prisma.FileSelect,
-      where: { id: { in: message.fileIds as string[] } },
-    });
+    await this.db.tx.summaryAttachment.deleteMany({ where });
 
-    this.files.delete(files);
+    this.files.delete(attachments.map(({ file }) => file));
   }
 
   private persistIncludedFilesInSummaryContent(message: IncludedFilesInSummaryContent) {

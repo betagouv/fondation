@@ -95,7 +95,7 @@ export function SessionAttachmentsTab(props: {
   const items = allAttachments.filter((attachment) =>
     unaccent(attachment.name).toLowerCase().includes(unaccent(search).toLowerCase()),
   );
-  const totalSizeInBytes = allAttachments.reduce((total, { sizeInBytes }) => total + (sizeInBytes ?? 0), 0);
+  const totalSizeInBytes = allAttachments.reduce((total, { size }) => total + (size ?? 0), 0);
 
   const sortOptions = [
     { label: formatMessage({ defaultMessage: 'Les plus récentes' }), value: 'addedAt:desc' },

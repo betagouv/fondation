@@ -37,6 +37,7 @@ import {
   UpdateCommentDto,
   UpdateMissingEvaluationCommentDto,
   UpdateMissingEvaluationDto,
+  UpdateNominationFilesPrioritiesDto,
 } from './infrastructure/dtos/nomination-file.dto';
 import {
   CountedSessionAuditionsDto,
@@ -208,11 +209,22 @@ export class SessionController {
     @Param('sessionId') sessionId: string,
     @Body() body: AffectReportersDto,
   ): Promise<void> {
-    await this.sessions.affectReportersAndPriorities({
+    await this.sessions.affectReporters({
       affectations: body.items,
       authorId: userId,
       sessionId,
     });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Put('/:sessionId/files/priorities')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UsePipes(ZodValidationPipe)
+  async updateNominationFilesPriorities(
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Body() body: UpdateNominationFilesPrioritiesDto,
+  ): Promise<void> {
+    await this.sessions.updateNominationFilesPriorities({ items: body.items, sessionId });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
@@ -554,7 +566,7 @@ export class SessionController {
   @Put('/:sessionId/multiattachments')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseMultipartBody({
-    destination: ({ request, id, mimetype }) =>
+    destination: ({ id, mimetype, request }) =>
       `sessions/${request.params.sessionId}/${id}.${FILE_EXTENSIONS[mimetype]}`,
     schema: UploadSessionAttachmentsDto,
   })
@@ -608,7 +620,7 @@ export class SessionController {
   @Put('/:sessionId/files/:nominationFileId/attachments')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseMultipartBody({
-    destination: ({ request, id, mimetype }) =>
+    destination: ({ id, mimetype, request }) =>
       `sessions/${request.params.sessionId}/files/${request.params.nominationFileId}/${id}.${FILE_EXTENSIONS[mimetype]}`,
     schema: UploadNominationFileAttachmentsDto,
   })

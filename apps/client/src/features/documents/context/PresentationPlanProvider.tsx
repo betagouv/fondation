@@ -275,6 +275,12 @@ export function PresentationPlanProvider(props: PropsWithChildren) {
     ],
   );
 
+  const recordedMemberIds = useMemo(
+    () =>
+      metadata ? [...(metadata.chairmanId ? [metadata.chairmanId] : []), ...metadata.recordedMemberIds] : [],
+    [metadata],
+  );
+
   return (
     <PresentationPlanContext
       value={{
@@ -287,6 +293,7 @@ export function PresentationPlanProvider(props: PropsWithChildren) {
         isFetching: isFetchingMeta,
         isUnchanged,
         planId,
+        recordedMemberIds,
         setMetadata,
         state,
       }}

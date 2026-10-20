@@ -3,6 +3,7 @@ import z from 'zod';
 import { OpenIdProvider } from '../openid';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
+import { UserStatus } from 'src/modules/shared/user-status.enum';
 import { Id, makeId } from 'src/utils/id';
 
 import { AuthImpersonation } from './auth-impersonation';
@@ -10,6 +11,7 @@ import { AuthPassword } from './auth-password';
 import { AuthSession } from './auth-session';
 
 export class AuthUserNotAuthentifiable extends Error {}
+export class DeactivatedUserNotImpersonable extends Error {}
 
 export class AuthUserRegistered {
   readonly id: string;
@@ -43,6 +45,13 @@ export class AuthUserUnAuthenticated {
   constructor(
     readonly id: string,
     readonly sessionId: string,
+  ) {}
+}
+
+export class AuthUserSessionsRevoked {
+  constructor(
+    readonly id: string,
+    readonly keptSessionId: string | undefined,
   ) {}
 }
 
@@ -87,6 +96,7 @@ type AuthUserEvent =
   | AuthUserRegistered
   | AuthUserAuthenticated
   | AuthUserUnAuthenticated
+  | AuthUserSessionsRevoked
   | AuthImpersonationStarted
   | AuthImpersonationRevoked
   | AuthOpenIdRequestCompleted;
@@ -95,6 +105,7 @@ export class AuthUser {
   constructor(
     readonly id: string,
     private readonly password: AuthPassword,
+    readonly status: UserStatus,
   ) {}
 
   async authenticate(props: AuthenticationStrategy & { now: Date }): Promise<AuthSession> {
@@ -103,6 +114,9 @@ export class AuthUser {
         throw new AuthUserNotAuthentifiable();
       }
     }
+
+    // Refused after the password check, with the same error, so that nothing reveals that the account exists
+    if (this.status === 'DEACTIVATED') throw new AuthUserNotAuthentifiable();
 
     const session = AuthSession.start({
       data: { userId: this.id },
@@ -121,8 +135,12 @@ export class AuthUser {
     this.#messages.push(new AuthUserUnAuthenticated(this.id, sessionId));
   }
 
-  static from(props: { id: string; password: string }): AuthUser {
-    return new AuthUser(props.id, AuthPassword.from(props.password));
+  revokeSessions(command: { keptSessionId: string | undefined }): void {
+    this.#messages.push(new AuthUserSessionsRevoked(this.id, command.keptSessionId));
+  }
+
+  static from(props: { id: string; password: string; status: UserStatus }): AuthUser {
+    return new AuthUser(props.id, AuthPassword.from(props.password), props.status);
   }
 
   static async register(props: {
@@ -137,24 +155,30 @@ export class AuthUser {
     const email = await z.email().toLowerCase().parseAsync(props.email);
     const id = makeId('AuthUserId');
 
-    const user = new AuthUser(id, password);
+    const user = new AuthUser(id, password, 'ACTIVE');
     user.#messages.push(
       new AuthUserRegistered({
         ...props,
-        id,
         email,
-        password,
         firstName: props.firstName.toLowerCase(),
+        id,
         lastName: props.lastName.toLowerCase(),
+        password,
       }),
     );
     return user;
   }
 
-  impersonate(props: { authSessionId: string; userId: string; now: Date }): AuthImpersonation {
+  static canBeImpersonated(user: { status: UserStatus }): boolean {
+    return user.status === 'ACTIVE';
+  }
+
+  impersonate(props: { authSessionId: string; now: Date; target: AuthUser }): AuthImpersonation {
+    if (!AuthUser.canBeImpersonated(props.target)) throw new DeactivatedUserNotImpersonable();
+
     const impersonation = AuthImpersonation.start({
       authSessionId: props.authSessionId,
-      impersonateId: props.userId,
+      impersonateId: props.target.id,
       now: props.now,
     });
 

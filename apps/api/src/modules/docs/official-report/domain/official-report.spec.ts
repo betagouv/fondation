@@ -14,6 +14,7 @@ import {
   OfficialReportValidated,
   OfficialReportWithoutValidatedVersion,
 } from './official-report';
+import { OfficialReportMembersList } from './official-report-member-list';
 import * as helpers from './official-report-test-utils';
 import type { UpdateOfficialReportCommand } from './official-report-types';
 import {
@@ -267,6 +268,19 @@ describe('OfficialReport', () => {
       const report = makeReport();
 
       report.update({ authorId: AUTHOR, officialReport: sameMetadataOf(report) });
+
+      expect(report.messages).toEqual([]);
+    });
+
+    it('should keep a recorded member who is no longer offered, with the recorded absence', () => {
+      const report = makeReport();
+      const metadata = sameMetadataOf(report);
+      const offered = metadata.members.toSortedArray().filter(({ id }) => id !== 'member-2');
+
+      report.update({
+        authorId: AUTHOR,
+        officialReport: { ...metadata, members: OfficialReportMembersList.from(offered) },
+      });
 
       expect(report.messages).toEqual([]);
     });

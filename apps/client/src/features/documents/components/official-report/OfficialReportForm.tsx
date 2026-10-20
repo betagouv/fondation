@@ -80,6 +80,7 @@ export function OfficialReportForm() {
     cancel,
     changedSinceValidation,
     officialReportId,
+    recordedMemberIds,
     report: metadata,
     session,
     submit,
@@ -295,6 +296,7 @@ export function OfficialReportForm() {
         formation={session.formation}
         // oxlint-disable-next-line typescript/no-explicit-any
         control={control as any}
+        includeIds={recordedMemberIds}
         name="chairmanId"
       />
 
@@ -303,6 +305,7 @@ export function OfficialReportForm() {
         formation={session.formation}
         // oxlint-disable-next-line typescript/no-explicit-any
         control={control as any}
+        includeIds={recordedMemberIds}
       />
 
       <Controller

@@ -87,7 +87,8 @@ export class SimpleAuthController {
     }
 
     const session = await this.auth.login(body);
-    this.decorateResponse(res, session).end();
+    // an impersonation left over, ended or of an account deactivated since, would refuse every request of the new session
+    this.unDecorateResponse(this.decorateResponse(res, session), 'impersonationId').end();
   }
 
   @Get('introspect')

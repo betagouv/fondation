@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 
 import { test } from '../fixtures.ts';
 import { makeStepsFixtures } from '../steps.ts';
+import { cookieHeader } from '../utils/cookies.ts';
 
 test.describe('Simple Auth E2E', () => {
   test.describe('Given a registered user', () => {
@@ -40,5 +41,36 @@ test.describe('Simple Auth E2E', () => {
       const [setCookie] = logoutRes.response!.headers.getSetCookie();
       expect(setCookie).toMatch(/Expires=Thu, 01 Jan 1970 00:00:00/);
     });
+  });
+
+  test('should act as the impersonated user until the impersonation is over', async ({
+    baseUrl,
+    expect,
+    registerUser,
+  }) => {
+    const admin = await registerUser('ADMIN');
+    const impersonated = await registerUser('MEMBRE_COMMUN');
+    const { response: login } = await makeStepsFixtures({ baseUrl }).auth.login({
+      body: { email: admin.email, password: admin.password },
+      throwOnError: true,
+    });
+    const adminSession = cookieHeader(login);
+    const asAdmin = makeStepsFixtures({ baseUrl, cookies: [adminSession] });
+
+    const started = await asAdmin.auth.impersonate({ path: { userId: impersonated.id }, throwOnError: true });
+    const impersonation = `${adminSession}; ${cookieHeader(started.response)}`;
+    const asImpersonated = makeStepsFixtures({ baseUrl, cookies: [impersonation] });
+
+    const during = await asImpersonated.auth.introspectSession();
+    expect(during.data).toMatchObject({ isImpersonated: true, role: 'MEMBRE_COMMUN', userId: impersonated.id });
+
+    const ended = await asImpersonated.auth.logout();
+    expect(ended.response?.status).toBe(204);
+
+    // logging out of an impersonation only ends it: the admin keeps their own session
+    const after = await asAdmin.auth.introspectSession();
+    expect(after.data).toMatchObject({ isImpersonated: false, role: 'ADMIN', userId: admin.id });
+    const revoked = await asImpersonated.auth.introspectSession();
+    expect(revoked.response?.status).toBe(401);
   });
 });

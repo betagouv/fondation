@@ -16,6 +16,7 @@ import { useMemberListQuery } from '@queries/members.queries';
 import {
   useAffectNominationFilesReportersMutation,
   useDefineNominationFilesOutcomeMutation,
+  useUpdateNominationFilesPrioritiesMutation,
   type SessionNominationFile,
 } from '@queries/nomination-sessions.queries';
 
@@ -75,6 +76,7 @@ export function NominationFilesBulkActions(props: {
 
   const affectReporters = useAffectNominationFilesReportersMutation();
   const defineOutcome = useDefineNominationFilesOutcomeMutation({ sessionId });
+  const updatePriorities = useUpdateNominationFilesPrioritiesMutation();
 
   const { data: members } = useMemberListQuery({
     formations: ['COMMUN', formation],
@@ -126,7 +128,7 @@ export function NominationFilesBulkActions(props: {
   const [commentedOutcome, setCommentedOutcome] = useState<NominationFileOutcomeEnum | null>(null);
 
   const hasSelection = props.selectedFiles.length > 0;
-  const isApplying = affectReporters.isPending || defineOutcome.isPending;
+  const isApplying = affectReporters.isPending || defineOutcome.isPending || updatePriorities.isPending;
 
   useEffect(() => {
     setReporterIds(shared.reporterIds);
@@ -145,7 +147,6 @@ export function NominationFilesBulkActions(props: {
         {
           affectations: props.selectedFiles.map((file) => ({
             nominationFileId: file.id,
-            priorities: file.priorities,
             reporterIds: applyChange(
               file.reporters.map(({ id }) => id),
               change,
@@ -166,11 +167,7 @@ export function NominationFilesBulkActions(props: {
 
     affectReporters.mutate(
       {
-        affectations: props.selectedFiles.map((file) => ({
-          nominationFileId: file.id,
-          priorities: file.priorities,
-          reporterIds: [],
-        })),
+        affectations: props.selectedFiles.map((file) => ({ nominationFileId: file.id, reporterIds: [] })),
         sessionId,
       },
       { onError: onFailure },
@@ -184,19 +181,18 @@ export function NominationFilesBulkActions(props: {
       const change = diff(priorities, next);
       setPriorities(next);
 
-      affectReporters.mutate(
+      updatePriorities.mutate(
         {
-          affectations: props.selectedFiles.map((file) => ({
+          items: props.selectedFiles.map((file) => ({
             nominationFileId: file.id,
             priorities: applyChange(file.priorities, change) as PrioriteEnum[],
-            reporterIds: file.reporters.map(({ id }) => id),
           })),
           sessionId,
         },
         { onError: onFailure },
       );
     },
-    [affectReporters, hasSelection, onFailure, priorities, props.selectedFiles, sessionId],
+    [hasSelection, onFailure, priorities, props.selectedFiles, sessionId, updatePriorities],
   );
 
   const chooseOutcome = useCallback(

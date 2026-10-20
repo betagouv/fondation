@@ -3,6 +3,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
+import { userStatusOf } from 'src/modules/shared/user-status.enum';
 import {
   AuthImpersonationRevoked,
   AuthImpersonationStarted,
@@ -10,6 +11,7 @@ import {
   AuthUser,
   AuthUserAuthenticated,
   AuthUserRegistered,
+  AuthUserSessionsRevoked,
   AuthUserUnAuthenticated,
 } from 'src/modules/simple-auth/domain/auth-user';
 import { assertNever } from 'src/utils/assert-never';
@@ -20,22 +22,22 @@ export class AuthUserRepository {
 
   async findByEmail(email: string): Promise<AuthUser | null> {
     const user = await this.db.tx.user.findFirst({
-      select: { id: true, password: true } satisfies Prisma.UserSelect,
+      select: { deactivatedAt: true, id: true, password: true } satisfies Prisma.UserSelect,
       where: { email: { equals: email, mode: 'insensitive' } },
     });
 
-    return user && AuthUser.from(user);
+    return user && AuthUser.from({ ...user, status: userStatusOf(user) });
   }
 
   async find(id: string): Promise<AuthUser> {
     const user = await this.db.tx.user.findUnique({
+      select: { deactivatedAt: true, id: true, password: true } satisfies Prisma.UserSelect,
       where: { id },
-      select: { id: true, password: true } satisfies Prisma.UserSelect,
     });
 
     if (!user) throw new NotFoundException();
 
-    return AuthUser.from(user);
+    return AuthUser.from({ ...user, status: userStatusOf(user) });
   }
 
   @Transactional()
@@ -44,6 +46,7 @@ export class AuthUserRepository {
       if (event instanceof AuthUserRegistered) await this.persistUserRegistered(event);
       else if (event instanceof AuthUserAuthenticated) await this.persistUserAuthenticated(event);
       else if (event instanceof AuthUserUnAuthenticated) await this.persistAuthUserUnAuthenticated(event);
+      else if (event instanceof AuthUserSessionsRevoked) await this.persistAuthUserSessionsRevoked(event);
       else if (event instanceof AuthImpersonationStarted) await this.persistImpersonationStarted(event);
       else if (event instanceof AuthImpersonationRevoked) await this.persistImpersonationRevoked(event);
       else if (event instanceof AuthOpenIdRequestCompleted)
@@ -57,9 +60,9 @@ export class AuthUserRepository {
 
     return this.db.tx.authSession.create({
       data: {
+        createdAt: event.session.startedAt,
         expiresAt,
         sessionId: event.session.id,
-        createdAt: event.session.startedAt,
         user: { connect: { id: event.id } },
       },
     });
@@ -68,13 +71,13 @@ export class AuthUserRepository {
   private persistUserRegistered(event: AuthUserRegistered) {
     return this.db.tx.user.create({
       data: {
-        id: event.id,
         email: event.email,
-        password: event.password,
         firstName: event.firstName,
-        lastName: event.lastName,
-        role: event.role,
         gender: event.gender,
+        id: event.id,
+        lastName: event.lastName,
+        password: event.password,
+        role: event.role,
       },
     });
   }
@@ -82,11 +85,11 @@ export class AuthUserRepository {
   private persistImpersonationStarted({ impersonation }: AuthImpersonationStarted) {
     return this.db.tx.authImpersonation.create({
       data: {
-        id: impersonation.id,
         createdAt: impersonation.startedAt,
         expiresAt: impersonation.expiresAt,
-        sessionId: impersonation.authSessionId,
+        id: impersonation.id,
         impersonatedUserId: impersonation.impersonateId,
+        sessionId: impersonation.authSessionId,
       },
     });
   }
@@ -99,6 +102,10 @@ export class AuthUserRepository {
 
   private persistAuthUserUnAuthenticated({ sessionId }: AuthUserUnAuthenticated) {
     return this.db.tx.authSession.delete({ where: { sessionId } });
+  }
+
+  private persistAuthUserSessionsRevoked({ id, keptSessionId }: AuthUserSessionsRevoked) {
+    return this.db.tx.authSession.deleteMany({ where: { sessionId: { not: keptSessionId }, userId: id } });
   }
 
   private persistAuthOpenIdRequestCompleted(message: AuthOpenIdRequestCompleted) {

@@ -1,3 +1,4 @@
+import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
 import { Clock } from '../framework/clock';
@@ -53,9 +54,9 @@ export class SimpleAuthService {
     }
 
     const session = await user.authenticate({
-      type: 'password',
       now: this.clock.now(),
       plainPassword: command.password,
+      type: 'password',
     });
     await this.userRepository.persist(user);
     return session;
@@ -69,6 +70,7 @@ export class SimpleAuthService {
   }
 
   listUsers(query: {
+    activeOnly?: true;
     search?: string;
     roles?: readonly RoleEnum[];
     includeIds?: readonly string[];
@@ -82,6 +84,16 @@ export class SimpleAuthService {
   async unAuthenticate(command: { userId: string; sessionId: string }): Promise<void> {
     const user = await this.userRepository.find(command.userId);
     user.unAuthenticate(command.sessionId);
+    await this.userRepository.persist(user);
+  }
+
+  @Transactional(Propagation.Mandatory)
+  async internalRevokeSessions(command: {
+    keptSessionId: string | undefined;
+    userId: string;
+  }): Promise<void> {
+    const user = await this.userRepository.find(command.userId);
+    user.revokeSessions(command);
     await this.userRepository.persist(user);
   }
 
@@ -110,10 +122,11 @@ export class SimpleAuthService {
     targetUserId: string;
   }): Promise<AuthImpersonation> {
     const user = await this.userRepository.find(command.userId);
+    const target = await this.userRepository.find(command.targetUserId);
     const impersonation = user.impersonate({
       authSessionId: command.authSessionId,
-      userId: command.targetUserId,
       now: this.clock.now(),
+      target,
     });
 
     await this.userRepository.persist(user);

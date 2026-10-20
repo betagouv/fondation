@@ -4,6 +4,8 @@ import { captureException } from '@sentry/node';
 import { Prisma } from 'src/generated/prisma/client';
 import { Clock } from 'src/modules/framework/clock';
 import { Db } from 'src/modules/framework/database';
+import { userStatusOf } from 'src/modules/shared/user-status.enum';
+import { AuthUser } from 'src/modules/simple-auth/domain/auth-user';
 
 @Injectable()
 export class DetailsUserFromImpersonationQuery {
@@ -22,7 +24,7 @@ export class DetailsUserFromImpersonationQuery {
       where: { id: impersonation.id },
       select: {
         expiresAt: true,
-        impersonatedUser: { select: { id: true, role: true } },
+        impersonatedUser: { select: { deactivatedAt: true, id: true, role: true } },
         session: {
           select: {
             sessionId: true,
@@ -33,7 +35,7 @@ export class DetailsUserFromImpersonationQuery {
       } satisfies Prisma.AuthImpersonationSelect,
     });
 
-    if (!found) return null;
+    if (!found || !AuthUser.canBeImpersonated({ status: userStatusOf(found.impersonatedUser) })) return null;
 
     if (found.session.sessionId !== impersonation.authSessionId) {
       // should not happen

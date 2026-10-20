@@ -1,24 +1,17 @@
-import postgres from 'postgres';
-import { inject } from 'vitest';
+import type { Sql } from 'postgres';
 
 import { test } from '../fixtures.ts';
 import { MEETING_DATE } from '../fixtures/docs.fixture.ts';
 
-async function filesOfValidatedVersionsReading(html: string): Promise<number> {
-  const sql = postgres(inject('databaseUrl'), { onnotice: () => {} });
+async function filesOfValidatedVersionsReading(sql: Sql, html: string): Promise<number> {
+  const [row] = await sql<{ count: bigint }[]>`
+    select count(*)
+    from docs.official_report_nomination_file as f
+    inner join docs.official_report_version as v on v.id = f.version_id
+    where v.status = 'VALIDATED' and f.html_edited = ${html}
+  `;
 
-  try {
-    const [row] = await sql<{ count: bigint }[]>`
-      select count(*)
-      from docs.official_report_nomination_file as f
-      inner join docs.official_report_version as v on v.id = f.version_id
-      where v.status = 'VALIDATED' and f.html_edited = ${html}
-    `;
-
-    return Number(row?.count ?? 0);
-  } finally {
-    await sql.end();
-  }
+  return Number(row?.count ?? 0);
 }
 
 const VALIDATED = { comment: null, value: 'VALIDATED' } as const;
@@ -69,7 +62,7 @@ test.describe('Official report', () => {
     const sessionId = session.id;
 
     const ruleAcrossEndpoints = async () => {
-      const sessions = await agent.sessions.listSessionsOfTypeGardeDesSceaux({ query: { limit: 50 } });
+      const sessions = await agent.sessions.listSessionsOfTypeGardeDesSceaux({ query: { search: session.name } });
       const detailed = await agent.sessions.detailsNominationSession({ path: { sessionId } });
       const files = await agent.sessions.listNominationFiles({ path: { sessionId } });
       const readiness = await agent.docs.isSessionReadyForDocGeneration({ path: { sessionId } });
@@ -120,7 +113,7 @@ test.describe('Official report', () => {
     });
     const archived = await agent.sessions.archiveSession({ path: { sessionId } });
     expect(archived.response?.status).toBe(204);
-    const archivedSessions = await agent.archivedSessions.listArchivedSessions({ query: { limit: 200 } });
+    const archivedSessions = await agent.archivedSessions.listArchivedSessions({ query: { search: session.name } });
     expect(archivedSessions.data!.items.map(({ id }) => id)).toContain(sessionId);
 
     // an archived session freezes the reports written for it
@@ -143,7 +136,7 @@ test.describe('Official report', () => {
     await docs.officialReport(await docs.agenda(session), { status: 'VALIDATED' });
     await agent.sessions.archiveSession({ path: { sessionId }, throwOnError: true });
 
-    const archivedSessions = await agent.archivedSessions.listArchivedSessions({ query: { limit: 200 } });
+    const archivedSessions = await agent.archivedSessions.listArchivedSessions({ query: { search: session.name } });
     const archivedSession = archivedSessions.data!.items.find(({ id }) => id === sessionId);
     expect(archivedSession).toMatchObject({
       archivedAt: expect.any(String),
@@ -154,10 +147,12 @@ test.describe('Official report', () => {
     const { formation } = archivedSession!;
     const formationMember = await logIn(formation === 'PARQUET' ? 'MEMBRE_DU_PARQUET' : 'MEMBRE_DU_SIEGE');
     const outsider = await logIn(formation === 'PARQUET' ? 'MEMBRE_DU_SIEGE' : 'MEMBRE_DU_PARQUET');
-    const foundByMember = await formationMember.archivedSessions.listArchivedSessions({ query: { limit: 200 } });
+    const foundByMember = await formationMember.archivedSessions.listArchivedSessions({
+      query: { search: session.name },
+    });
     expect(foundByMember.data!.items.map(({ id }) => id)).toContain(sessionId);
     const foundByOutsider = await outsider.archivedSessions.listArchivedSessions({
-      query: { formations: [formation], limit: 200 },
+      query: { formations: [formation], search: session.name },
     });
     expect(foundByOutsider.data!.items.map(({ id }) => id)).not.toContain(sessionId);
   });
@@ -352,6 +347,7 @@ test.describe('Official report', () => {
     docs,
     expect,
     member,
+    sql,
   }) => {
     const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
     const agenda = await docs.agenda(session);
@@ -377,7 +373,7 @@ test.describe('Official report', () => {
       draft: null,
       status: 'VALIDATED',
     });
-    expect(await filesOfValidatedVersionsReading(later)).toBe(0);
+    expect(await filesOfValidatedVersionsReading(sql, later)).toBe(0);
   });
 
   test('should give a file of a validated report the sentence its agenda rewrote, once reset', async ({
@@ -555,6 +551,85 @@ test.describe('Official report', () => {
     });
   });
 
+  test('should still offer for an official report a member it recorded, deactivated since, and mark them absent', async ({
+    admin,
+    agent,
+    docs,
+    expect,
+    member,
+    registerUser,
+  }) => {
+    const leaving = await registerUser('MEMBRE_DU_PARQUET');
+    const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
+    const metadata = {
+      absentMemberIds: [],
+      chairmanId: docs.chairman.id,
+      hasRenunciation: true,
+      justiceDepartmentContactId: docs.justiceContact.id,
+      secretaryId: docs.secretary.id,
+      sessionMeetingDate: MEETING_DATE,
+      sessionMeetingEndingTime: { hours: 18, minutes: 10, seconds: 0 },
+      sessionMeetingTime: { hours: 18, minutes: 0, seconds: 0 },
+    };
+    const { id: officialReportId } = await docs.officialReport(await docs.agenda(session), metadata);
+    await admin.administration.deactivate({ path: { userId: leaving.id }, throwOnError: true });
+
+    const { data: report } = await agent.docs.detailsOfficialReport({ path: { officialReportId }, throwOnError: true });
+    const { data: offered } = await agent.docs.findDocsMembers({
+      query: { formation: 'PARQUET', includeIds: report.recordedMembers },
+      throwOnError: true,
+    });
+    expect(offered.items.map(({ id }) => id)).toContain(leaving.id);
+
+    await agent.docs.updateOfficialReport({
+      body: { ...metadata, absentMemberIds: [leaving.id] },
+      path: { officialReportId },
+      throwOnError: true,
+    });
+    const { data: updated } = await agent.docs.detailsOfficialReport({
+      path: { officialReportId },
+      throwOnError: true,
+    });
+    expect(updated.absentMembers).toEqual([leaving.id]);
+  });
+
+  test('should keep in a validated official report a member deactivated since, with the absence recorded', async ({
+    admin,
+    agent,
+    docs,
+    expect,
+    member,
+    registerUser,
+  }) => {
+    const leaving = await registerUser('MEMBRE_DU_PARQUET');
+    const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
+    const metadata = {
+      absentMemberIds: [],
+      chairmanId: docs.chairman.id,
+      hasRenunciation: true,
+      justiceDepartmentContactId: docs.justiceContact.id,
+      secretaryId: docs.secretary.id,
+      sessionMeetingDate: MEETING_DATE,
+      sessionMeetingEndingTime: { hours: 18, minutes: 10, seconds: 0 },
+      sessionMeetingTime: { hours: 18, minutes: 0, seconds: 0 },
+    };
+    const { id: officialReportId } = await docs.officialReport(await docs.agenda(session), {
+      ...metadata,
+      absentMemberIds: [leaving.id],
+      status: 'VALIDATED',
+    });
+    await admin.administration.deactivate({ path: { userId: leaving.id }, throwOnError: true });
+
+    const saved = await agent.docs.updateOfficialReport({
+      body: { ...metadata, absentMemberIds: [leaving.id] },
+      path: { officialReportId },
+    });
+    expect(saved.response?.status).toBe(204);
+
+    const details = await agent.docs.detailsOfficialReport({ path: { officialReportId } });
+    expect(details.data).toMatchObject({ draftChangesBy: null, status: 'VALIDATED' });
+  });
+
   test('should render the official report draft again once its metadata change', async ({
     agent,
     docs,
@@ -577,7 +652,7 @@ test.describe('Official report', () => {
       sessionMeetingTime: { hours: 18, minutes: 0, seconds: 0 },
     };
     const { id: officialReportId } = await docs.officialReport(agenda, metadata);
-    await agent.docs.generateOfficialReportHtml({ path: { officialReportId }, parseAs: 'text' });
+    await agent.docs.generateOfficialReportHtml({ parseAs: 'text', path: { officialReportId } });
 
     await agent.docs.updateOfficialReport({
       body: { ...metadata, justiceDepartmentContactId: secondContact.data!.id },
