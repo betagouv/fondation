@@ -1,20 +1,13 @@
-import postgres from 'postgres';
-import { inject } from 'vitest';
+import type { Sql } from 'postgres';
 
 import { test } from '../fixtures.ts';
 import * as seed from '../utils/seed.ts';
 import { waitFor } from '../utils/wait-for.ts';
 
-async function isStored(fileId: string): Promise<boolean> {
-  const sql = postgres(inject('databaseUrl'), { onnotice: () => {} });
+async function isStored(sql: Sql, fileId: string): Promise<boolean> {
+  const [row] = await sql<{ count: bigint }[]>`select count(*) from files_context.files where id = ${fileId}`;
 
-  try {
-    const [row] = await sql<{ count: bigint }[]>`select count(*) from files_context.files where id = ${fileId}`;
-
-    return Number(row?.count ?? 0) > 0;
-  } finally {
-    await sql.end();
-  }
+  return Number(row?.count ?? 0) > 0;
 }
 
 function pdf(name: string) {
@@ -56,6 +49,7 @@ test.describe('Summary E2E', () => {
     agent,
     expect,
     sessions,
+    sql,
   }) => {
     const session = await sessions.createOne({
       candidates: [
@@ -93,7 +87,7 @@ test.describe('Summary E2E', () => {
 
     // the files are deleted after the commit, both at once: once the detached one is gone, the other is settled
     await waitFor(async () => {
-      if (await isStored(detachedFileId!)) throw new Error(`${detachedFileId} is still stored`);
+      if (await isStored(sql, detachedFileId!)) throw new Error(`${detachedFileId} is still stored`);
     });
 
     const { data } = await agent.summaries.detailSummary({ path: kept!, throwOnError: true });

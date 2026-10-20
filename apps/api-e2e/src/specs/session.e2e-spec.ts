@@ -4,8 +4,7 @@ import * as fs from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
 import type { LolfiArchiveContent } from 'lolfi';
-import postgres from 'postgres';
-import { inject } from 'vitest';
+import type { Sql } from 'postgres';
 
 import { test } from '../fixtures.ts';
 import * as api from '../generated/api/sdk.ts';
@@ -47,14 +46,8 @@ function isoDate(date: { day: number; month: number; year: number }): string {
 }
 
 // the e2e reach the database, not the storage: a path nothing was stored at stands for a lost object
-async function loseFromStorage(fileId: string): Promise<void> {
-  const sql = postgres(inject('databaseUrl'), { onnotice: () => {} });
-
-  try {
-    await sql`update files_context.files set path = array['lost', ${fileId}] where id = ${fileId}`;
-  } finally {
-    await sql.end();
-  }
+async function loseFromStorage(sql: Sql, fileId: string): Promise<void> {
+  await sql`update files_context.files set path = array['lost', ${fileId}] where id = ${fileId}`;
 }
 
 function attachmentForm(form: UploadNominationFileAttachmentsDto['form']): UploadNominationFileAttachmentsDto['form'] {
@@ -249,6 +242,7 @@ test.describe('Session E2E', () => {
     test('should update the observers from a LODAM file, keeping no copy of the imported files', async ({
       agent,
       expect,
+      sql,
     }) => {
       const importResponse = await agent.sessions.createSessionFromLodam({
         body: { file: await lodamFile(), form: lodamForm() },
@@ -261,15 +255,10 @@ test.describe('Session E2E', () => {
       });
       expect(response.response?.status).toBe(204);
 
-      const sql = postgres(inject('databaseUrl'), { onnotice: () => {} });
-      try {
-        const [copies] = await sql<{ count: number }[]>`
-          select count(*)::int as count from files_context.files where path[1] = 'lodam'
-        `;
-        expect(copies?.count).toBe(0);
-      } finally {
-        await sql.end();
-      }
+      const [copies] = await sql<{ count: number }[]>`
+        select count(*)::int as count from files_context.files where path[1] = 'lodam'
+      `;
+      expect(copies?.count).toBe(0);
     });
 
     test('should attach a file to a nomination file and list it', async ({ agent, expect }) => {
@@ -310,7 +299,7 @@ test.describe('Session E2E', () => {
       expect(updatedFile?.hasJurisdictionSheet).toBe(true);
     });
 
-    test('should show a readable page for an attachment the storage lost', async ({ agent, expect }) => {
+    test('should show a readable page for an attachment the storage lost', async ({ agent, expect, sql }) => {
       const importResponse = await agent.sessions.createSessionFromLodam({
         body: { file: await lodamFile(), form: lodamForm() },
       });
@@ -330,7 +319,7 @@ test.describe('Session E2E', () => {
         path: { nominationFileId, sessionId },
       });
       const fileId = attachments.data!.items[0]!.id;
-      await loseFromStorage(fileId);
+      await loseFromStorage(sql, fileId);
 
       const attachment = await agent.sessions.createNominationFileAttachmentUrl({
         path: { fileId, nominationFileId, sessionId },
@@ -447,11 +436,14 @@ test.describe('Session E2E', () => {
     }, 10_000);
 
     test('should sort the sessions by due date', async ({ agent, sessions, expect }) => {
-      const [later, sooner] = await sessions.createMany([TREVOUX_SESSION, TREVOUX_SESSION]);
-      // the earliest due dates of the database, for both sessions to open the list whatever its size
+      const name = randomUUID();
+      const [later, sooner] = await sessions.createMany([
+        { ...TREVOUX_SESSION, name },
+        { ...TREVOUX_SESSION, name },
+      ]);
       for (const [session, dueDate] of [
-        [later!, '1991-01-01'],
-        [sooner!, '1990-01-01'],
+        [later!, '2027-02-01'],
+        [sooner!, '2027-01-01'],
       ] as const) {
         const details = await agent.sessions.detailsNominationSession({ path: { sessionId: session.id } });
         const { date, name, observationsClosingDate, positionStartDate } = details.data!;
@@ -469,13 +461,10 @@ test.describe('Session E2E', () => {
       }
 
       const listed = await agent.sessions.listSessionsOfTypeGardeDesSceaux({
-        query: { limit: 200, sortBy: 'dueDate' },
+        query: { search: name, sortBy: 'dueDate' },
       });
 
-      // earlier runs leave sessions with the same due dates: only the order of these two is checked
-      const ours = new Set([sooner!.id, later!.id]);
-      expect(listed.response?.status).toBe(200);
-      expect(listed.data!.items.filter(({ id }) => ours.has(id)).map(({ id }) => id)).toEqual([sooner!.id, later!.id]);
+      expect(listed.data!.items.map(({ id }) => id)).toEqual([sooner!.id, later!.id]);
     });
 
     test('should list the nomination files it is asked for', async ({ agent, sessions, expect }) => {
@@ -555,22 +544,20 @@ test.describe('Session E2E', () => {
 
     test('should not list to the members an archived session never published to them', async ({
       agent,
+      expect,
       member,
       sessions,
-      expect,
+      sql,
     }) => {
       const session = await sessions.createOne(TREVOUX_SESSION);
       // the API archives only once every file is reported, which a session never published hardly reaches
-      const sql = postgres(inject('databaseUrl'), { onnotice: () => {} });
-      try {
-        await sql`update nominations_context.session set archived_at = now() where id = ${session.id}`;
-      } finally {
-        await sql.end();
-      }
+      await sql`update nominations_context.session set archived_at = now() where id = ${session.id}`;
 
-      const listedToSecretariat = await agent.archivedSessions.listArchivedSessions({ query: { limit: 200 } });
+      const listedToSecretariat = await agent.archivedSessions.listArchivedSessions({
+        query: { search: session.name },
+      });
       expect(listedToSecretariat.data!.items.map(({ id }) => id)).toContain(session.id);
-      const listedToMember = await member.archivedSessions.listArchivedSessions({ query: { limit: 200 } });
+      const listedToMember = await member.archivedSessions.listArchivedSessions({ query: { search: session.name } });
       expect(listedToMember.data!.items.map(({ id }) => id)).not.toContain(session.id);
     }, 10_000);
 
