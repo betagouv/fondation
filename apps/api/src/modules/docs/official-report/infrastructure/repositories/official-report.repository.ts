@@ -156,17 +156,8 @@ export class OfficialReportRepository {
     });
 
     const members = OfficialReportMembersList.from(
-      officialReport.members.map(
-        (member) =>
-          new OfficialReportMember(
-            member.memberId,
-            member.firstName,
-            member.lastName,
-            prismaGenderEnumToGenderEnum(member.gender),
-            member.sort,
-            member.title,
-            member.isAbsent,
-          ),
+      officialReport.members.map((member) =>
+        OfficialReportMember.recorded({ ...member, gender: prismaGenderEnumToGenderEnum(member.gender) }),
       ),
     );
 

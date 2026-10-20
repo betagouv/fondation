@@ -11,7 +11,6 @@ import { Prisma } from 'src/generated/prisma/client';
 import { DocNominationFileOutcomeEnum } from 'src/modules/docs/shared/domain/doc-nomination-file-outcome';
 import { agendaContentOf } from 'src/modules/docs/shared/infrastructure/agenda-content';
 import { Db } from 'src/modules/framework/database';
-import { MembersService } from 'src/modules/members';
 import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
 import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
@@ -34,7 +33,6 @@ function writer(
 export class OfficialReportRenderContextFinder {
   constructor(
     private readonly db: Db,
-    private readonly members: MembersService,
     private readonly officialReportVersionFinder: OfficialReportVersionFinder,
     @Inject(forwardRef(() => TransparenceService))
     private readonly sessions: TransparenceService,
@@ -109,7 +107,17 @@ export class OfficialReportRenderContextFinder {
           },
         },
 
-        members: { select: { memberId: true, isAbsent: true } },
+        members: {
+          select: {
+            firstName: true,
+            gender: true,
+            isAbsent: true,
+            lastName: true,
+            memberId: true,
+            sort: true,
+            title: true,
+          },
+        },
 
         nominationFiles: {
           orderBy: { number: 'asc' },
@@ -207,19 +215,10 @@ export class OfficialReportRenderContextFinder {
       gender: prismaGenderEnumToGenderEnum(rawSecretary.gender),
     });
 
-    const absentMembers = new Map(
-      report.members.map(({ memberId, isAbsent }) => [memberId, isAbsent] as const),
-    );
-    const members = await this.members.internalFindMembersByFormation({ formation });
-
     const membersList = OfficialReportMembersList.from(
-      members.flatMap((member) => {
-        const isAbsent = absentMembers.get(member.id);
-        if (!isDefined(isAbsent)) return [];
-
-        // oxlint-disable-next-line typescript/no-misused-spread
-        return [OfficialReportMember.from({ ...member, isAbsent, expectedFormation: formation })];
-      }),
+      report.members.map((member) =>
+        OfficialReportMember.recorded({ ...member, gender: prismaGenderEnumToGenderEnum(member.gender) }),
+      ),
     );
 
     const userDefinedInto = report.introHtml?.trim()
