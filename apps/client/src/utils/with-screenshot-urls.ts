@@ -1,3 +1,5 @@
+import { dataFileIdKey, dataFileNameKey } from '@/shared/ui/tip-tap-editor/extensions/constant';
+
 /** parses the stored html apart from the page: an image of the page would load and run its handlers */
 export function withScreenshotUrls(
   html: string,
@@ -8,13 +10,13 @@ export function withScreenshotUrls(
 
   const { body } = new DOMParser().parseFromString(html, 'text/html');
   for (const $img of body.querySelectorAll('img')) {
-    const screenshot =
-      ($img.dataset.fileId && byId.get($img.dataset.fileId)) ||
-      ($img.dataset.fileName && byName.get($img.dataset.fileName));
+    const fileId = $img.getAttribute(dataFileIdKey);
+    const fileName = $img.getAttribute(dataFileNameKey);
+    const screenshot = (fileId && byId.get(fileId)) || (fileName && byName.get(fileName));
     if (!screenshot) continue;
 
-    $img.dataset.fileId = screenshot.id;
-    $img.dataset.fileName = screenshot.name;
+    $img.setAttribute(dataFileIdKey, screenshot.id);
+    $img.setAttribute(dataFileNameKey, screenshot.name);
     $img.src = screenshot.url;
   }
 
