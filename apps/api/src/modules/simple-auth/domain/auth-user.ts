@@ -148,14 +148,13 @@ export class AuthUser {
     lastName: string;
     role: RoleEnum;
     email: string;
-    password: string;
+    password: AuthPassword;
     gender: GenderEnum;
   }) {
-    const password = await AuthPassword.create(props.password);
     const email = await z.email().toLowerCase().parseAsync(props.email);
     const id = makeId('AuthUserId');
 
-    const user = new AuthUser(id, password, 'ACTIVE');
+    const user = new AuthUser(id, props.password, 'ACTIVE');
     user.#messages.push(
       new AuthUserRegistered({
         ...props,
@@ -163,7 +162,6 @@ export class AuthUser {
         firstName: props.firstName.toLowerCase(),
         id,
         lastName: props.lastName.toLowerCase(),
-        password,
       }),
     );
     return user;

@@ -1,12 +1,13 @@
-import { AuthPassword } from './auth-password';
+import * as bcrypt from 'bcrypt';
+
 import { AuthUser, AuthUserNotAuthentifiable, DeactivatedUserNotImpersonable } from './auth-user';
 
 describe('AuthUser', () => {
   const now = new Date('2026-10-20T09:00:00Z');
 
   it('should refuse to authenticate a deactivated user with the right password', async () => {
-    const password = await AuthPassword.create('secret');
-    const user = AuthUser.from({ id: 'user-1', password: password.toString(), status: 'DEACTIVATED' });
+    const password = await bcrypt.hash('secret', 4);
+    const user = AuthUser.from({ id: 'user-1', password, status: 'DEACTIVATED' });
 
     await expect(user.authenticate({ now, plainPassword: 'secret', type: 'password' })).rejects.toThrow(
       AuthUserNotAuthentifiable,
