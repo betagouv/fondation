@@ -7,7 +7,12 @@ catalog:
   '@faker-js/faker': 10.6.0
   'oxlint': 1.86.0
   'oxlint-tsgolint': 0.25.0
-  'typescript': 6.0.3
+  # TypeScript 7 has no compiler API yet: `typescript` stays on 6 for the tools that import it
+  # (@hey-api/openapi-ts, @swc-node/register, prisma-selects.spec.ts) while `tsc` comes from 7.
+  # 6.0.2 is the version of the wrapper, which still resolves typescript 6.0.3.
+  # TODO: see https://github.com/hey-api/hey-api/issues/4235
+  'typescript': npm:@typescript/typescript6@6.0.2
+  '@typescript/native': npm:typescript@7.0.2
   '@types/node': 26.6.4
   '@hey-api/openapi-ts': 0.99.0
   'vitest': 4.1.11
