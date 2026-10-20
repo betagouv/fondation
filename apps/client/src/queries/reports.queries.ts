@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import type { ReportStatusEnum } from '@/shared/enums/report-status.enum';
+import { withScreenshotUrls } from '@/shared/ui/tip-tap-editor';
 import { SANITIZED_MIME_TYPES } from '@/shared/ui/upload/file-types';
 import { InvalidMimeTypeError } from '@/utils/InvalidMimeType.error';
 import * as $api from '@api/sdk';
@@ -49,38 +50,6 @@ export const useGenerateReportFilePublicUrlMutation = () =>
     },
   });
 
-function updateCommentScreenshots(
-  html: string,
-  screenshots: readonly { fileId: string; name: string; url: string }[],
-): string {
-  const byId = new Map(screenshots.map((s) => [s.fileId, s]));
-  const byName = new Map(screenshots.map((s) => [s.name, s]));
-
-  const $div = document.createElement('div');
-  $div.innerHTML = html;
-
-  for (const $img of $div.querySelectorAll('img')) {
-    let file: { fileId: string; name: string; url: string } | undefined;
-
-    if ($img.dataset.fileId) {
-      file = byId.get($img.dataset.fileId);
-    }
-
-    if (!file && $img.dataset.fileName) {
-      file = byName.get($img.dataset.fileName);
-    }
-
-    if (file) {
-      $img.dataset.fileId = file.fileId;
-      $img.dataset.fileName = file.name;
-      $img.src = file.url;
-      continue;
-    }
-  }
-
-  return $div.innerHTML;
-}
-
 export const useReportQuery = (reportId: string) =>
   useQuery({
     queryKey: reportKeys.reportById({ reportId }),
@@ -91,12 +60,8 @@ export const useReportQuery = (reportId: string) =>
 
       if (!report) return null;
 
-      const updatedComment =
-        report.comment && report.screenshots.length
-          ? updateCommentScreenshots(report.comment, report.screenshots)
-          : report.comment || null;
-
-      return { ...report, comment: updatedComment };
+      const screenshots = report.screenshots.map((s) => ({ id: s.fileId, name: s.name, url: s.url }));
+      return { ...report, comment: report.comment ? withScreenshotUrls(report.comment, screenshots) : null };
     },
   });
 
