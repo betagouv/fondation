@@ -8,14 +8,14 @@
     "scalingo"
   ],
   "scripts": {
-    "build": "nest build",
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
     "format": "oxfmt --write",
     "format:check": "oxfmt --check",
-    "start": "dotenvx run -- nest start",
-    "start:e2e": "env -u NODE_V8_COVERAGE nest build && dotenvx run -f .env.e2e -f .env -- node dist/main.e2e.js",
+    "start": "tsc -p tsconfig.build.json && dotenvx run -- node dist/main.js",
+    "start:e2e": "env -u NODE_V8_COVERAGE tsc -p tsconfig.build.json && dotenvx run -f .env.e2e -f .env -- node dist/main.e2e.js",
     "predev": "pnpm prisma:generate",
-    "dev": "dotenvx run -- nest start --watch",
-    "start:debug": "nest start --debug --watch",
+    "dev": "tsc -p tsconfig.build.json && (tsc -p tsconfig.build.json -w --preserveWatchOutput & dotenvx run -- node --watch dist/main.js)",
+    "start:debug": "tsc -p tsconfig.build.json && (tsc -p tsconfig.build.json -w --preserveWatchOutput & dotenvx run -- node --inspect --watch dist/main.js)",
     "lint": "oxlint --fix",
     "lint:check": "oxlint",
     "types:check": "tsc --noEmit",
@@ -64,8 +64,6 @@
   },
   "devDependencies": {
     "@faker-js/faker": "catalog:",
-    "@nestjs/cli": "11.0.24",
-    "@nestjs/schematics": "11.1.0",
     "@nestjs/testing": "11.2.7",
     "@prisma/generator-helper": "7.10.0",
     "@sentry/cli": "3.8.0",
