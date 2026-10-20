@@ -13,6 +13,7 @@ import {
   DocNominationFileOutcomeEnum,
   docNominationFileOutcomeLabel,
 } from 'src/modules/docs/shared/domain/doc-nomination-file-outcome';
+import { sanitizeEditedHtml } from 'src/modules/docs/shared/infrastructure/edited-html';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
 import { DateOnly } from 'src/utils/date-only';
@@ -325,6 +326,15 @@ export const presentationPlanTemplate = documentLayout({
   content,
   footer,
 });
+
+/** only the content of a notice is edited by hand: the rest of the document stays the template's */
+export function withEditedPresentationPlanContent(props: { edited: string; html: string }): string {
+  const doc = load(props.html);
+  const edited = load(props.edited)('[data-editable-content]').html() ?? '';
+  doc('[data-editable-content]').html(sanitizeEditedHtml(edited));
+
+  return doc.html();
+}
 
 export function updatePresentationTimeDocMeetingSessionEndingTime(props: {
   html: string;
