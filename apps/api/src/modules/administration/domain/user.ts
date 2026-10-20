@@ -102,10 +102,6 @@ export class User {
     return this.status === 'DEACTIVATED';
   }
 
-  canBeImpersonated(): boolean {
-    return this.status === 'ACTIVE';
-  }
-
   /** the login matches an email whatever its case, so an email opens one account only */
   updateEmail(command: { email: string; isTakenByAnotherUser: boolean }): void {
     if (command.isTakenByAnotherUser) throw new EmailAlreadyTaken();

@@ -11,6 +11,7 @@ import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
 import { prismaRoleEnumToRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
 import { USER_STATUSES, userStatusOf } from 'src/modules/shared/user-status.enum';
+import { AuthUser } from 'src/modules/simple-auth/domain/auth-user';
 
 @Injectable()
 export class DetailsUserQuery {
@@ -44,7 +45,7 @@ export class DetailsUserQuery {
 
     return {
       canDeactivate: admin.canDeactivate(query.actorId),
-      canImpersonate: admin.canBeImpersonated(),
+      canImpersonate: AuthUser.canBeImpersonated({ status }),
       canReactivate: admin.canReactivate(),
       displayTitle: user.displayTitle ?? null,
       email: user.email,

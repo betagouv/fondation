@@ -169,8 +169,12 @@ export class AuthUser {
     return user;
   }
 
-  impersonate(props: { authSessionId: string; target: AuthUser; now: Date }): AuthImpersonation {
-    if (props.target.status === 'DEACTIVATED') throw new DeactivatedUserNotImpersonable();
+  static canBeImpersonated(user: { status: UserStatus }): boolean {
+    return user.status === 'ACTIVE';
+  }
+
+  impersonate(props: { authSessionId: string; now: Date; target: AuthUser }): AuthImpersonation {
+    if (!AuthUser.canBeImpersonated(props.target)) throw new DeactivatedUserNotImpersonable();
 
     const impersonation = AuthImpersonation.start({
       authSessionId: props.authSessionId,
