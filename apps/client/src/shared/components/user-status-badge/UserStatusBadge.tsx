@@ -1,16 +1,12 @@
 import Badge from '@codegouvfr/react-dsfr/Badge';
 import { FormattedMessage } from 'react-intl';
 
-import type { DetailedAdminUserDto } from '@api/types';
+import { UserStatusEnumMessages, type UserStatusEnum } from '@/shared/enums/user-status.enum';
 
-export function UserStatusBadge(props: { status: DetailedAdminUserDto['status'] }) {
-  return props.status === 'ACTIVE' ? (
-    <Badge noIcon severity="success" small>
-      <FormattedMessage defaultMessage="Activé" />
-    </Badge>
-  ) : (
-    <Badge noIcon small>
-      <FormattedMessage defaultMessage="Désactivé" />
+export function UserStatusBadge(props: { status: UserStatusEnum }) {
+  return (
+    <Badge noIcon severity={props.status === 'ACTIVE' ? 'success' : undefined} small>
+      <FormattedMessage {...UserStatusEnumMessages[props.status]} />
     </Badge>
   );
 }
