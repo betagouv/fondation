@@ -15,7 +15,9 @@ export class ListUsersQueryDto extends createSortableDto(
   }),
 ) {}
 
-export class UpdateUserEmailDto extends createZodDto(z.object({ email: z.email().trim().toLowerCase() })) {}
+export class UpdateUserEmailDto extends createZodDto(
+  z.object({ email: z.string().trim().toLowerCase().pipe(z.email()) }),
+) {}
 
 export class UpdateUserPasswordDto extends createZodDto(z.object({ password: z.string().min(8) })) {}
 

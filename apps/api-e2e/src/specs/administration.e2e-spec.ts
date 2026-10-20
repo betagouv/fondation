@@ -33,7 +33,7 @@ test.describe('Administration', () => {
     expect(details.data!.email).toBe(credentials.email);
   });
 
-  test('should refuse to give a user the email of another one, whatever its case', async ({
+  test('should refuse to give a user the email of another one, however it is typed', async ({
     admin,
     baseUrl,
     expect,
@@ -42,7 +42,7 @@ test.describe('Administration', () => {
     const owner = await registerUser('MEMBRE_COMMUN');
     const other = await registerUser('MEMBRE_COMMUN');
 
-    for (const email of [owner.email, owner.email.toUpperCase()]) {
+    for (const email of [owner.email, ` ${owner.email.toUpperCase()} `]) {
       const taken = await admin.administration.updateEmail({ body: { email }, path: { userId: other.id } });
       expect(taken.response?.status).toBe(409);
     }
