@@ -167,7 +167,13 @@ export class PresentationPlansService {
       formation,
     });
 
-    const [[chairman], allMembers] = partition(members, (m) => m.id === command.chairmanId);
+    const [[offeredChairman], allMembers] = partition(members, (m) => m.id === command.chairmanId);
+    // the chairman of the meeting stays, even deactivated since
+    const chairman =
+      offeredChairman ??
+      (command.chairmanId === plan.chairmanId
+        ? await this.members.internalGetMember({ id: command.chairmanId })
+        : undefined);
 
     if (!chairman) {
       this.logger.error(`unknown chairman id ${command.chairmanId}`);

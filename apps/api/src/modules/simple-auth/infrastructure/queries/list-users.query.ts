@@ -49,6 +49,7 @@ export class ListUsersQuery {
           orderBy: { lastName: 'asc' },
           take: query.limit ? query.limit - union.length : undefined,
           where: {
+            deactivatedAt: null,
             id: { notIn: [...excludeIds] },
             role: query.roles ? { in: query.roles.map(roleEnumToPrismaRoleEnum) } : undefined,
             OR:

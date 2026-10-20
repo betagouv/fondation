@@ -121,9 +121,10 @@ export class SimpleAuthService {
     targetUserId: string;
   }): Promise<AuthImpersonation> {
     const user = await this.userRepository.find(command.userId);
+    const target = await this.userRepository.find(command.targetUserId);
     const impersonation = user.impersonate({
       authSessionId: command.authSessionId,
-      userId: command.targetUserId,
+      target,
       now: this.clock.now(),
     });
 

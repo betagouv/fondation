@@ -15,7 +15,7 @@ export class ListSecretariesGeneralQuery {
 
   async handle(): Promise<ListedSecretariesGeneralDto> {
     const secretaries = await this.db.tx.user.findMany({
-      where: { duty: 'SECRETARY' },
+      where: { deactivatedAt: null, duty: 'SECRETARY' },
       select: {
         id: true,
         firstName: true,

@@ -40,14 +40,20 @@ export class TransparenceExceptionFilter implements NestInterceptor {
             const list = new Intl.ListFormat('fr-FR', { type: 'conjunction' });
             return new BadRequestException(
               {
-                validationErrors: err.errors.map((error) => {
-                  const message =
-                    error.reporters.length > 1
-                      ? `rapporteurs inconnus: ${list.format(error.reporters)}`
-                      : `rapporteur inconnu: ${error.reporters[0]}`;
-
-                  return `n°${error.fileNumber} ${message}`;
-                }),
+                validationErrors: err.errors.flatMap((error) => [
+                  ...(error.reporters.length > 1
+                    ? [`n°${error.fileNumber} rapporteurs inconnus: ${list.format(error.reporters)}`]
+                    : error.reporters.map(
+                        (reporter) => `n°${error.fileNumber} rapporteur inconnu: ${reporter}`,
+                      )),
+                  ...(error.deactivatedReporters.length > 1
+                    ? [
+                        `n°${error.fileNumber} rapporteurs désactivés: ${list.format(error.deactivatedReporters)}`,
+                      ]
+                    : error.deactivatedReporters.map(
+                        (reporter) => `n°${error.fileNumber} rapporteur désactivé: ${reporter}`,
+                      )),
+                ]),
               },
               { cause: err },
             );

@@ -47,6 +47,7 @@ export class AdministrationController {
       pagination,
       search: query.search,
       roles: query.roles,
+      statuses: query.statuses,
       sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
     });
   }
@@ -54,8 +55,11 @@ export class AdministrationController {
   @HasRole('ADMIN')
   @Get('/users/:userId')
   @ZodResponse({ type: DetailedAdminUserDto, status: HttpStatus.OK })
-  detailsUser(@Param('userId', ParseUUIDPipe) userId: string): Promise<DetailedAdminUserDto> {
-    return this.administration.detailsUser({ userId });
+  detailsUser(
+    @AuthedUser() actor: { id: string },
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ): Promise<DetailedAdminUserDto> {
+    return this.administration.detailsUser({ actorId: actor.id, userId });
   }
 
   @HasRole('ADMIN')
@@ -115,5 +119,22 @@ export class AdministrationController {
   @HttpCode(HttpStatus.NO_CONTENT)
   demoteFromAdmin(@Param('userId', ParseUUIDPipe) userId: string): Promise<void> {
     return this.administration.demoteFromAdmin({ userId });
+  }
+
+  @HasRole('ADMIN')
+  @Put('/users/:userId/deactivation')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  deactivate(
+    @AuthedUser() actor: { id: string },
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ): Promise<void> {
+    return this.administration.deactivate({ actorId: actor.id, userId });
+  }
+
+  @HasRole('ADMIN')
+  @Delete('/users/:userId/deactivation')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  reactivate(@Param('userId', ParseUUIDPipe) userId: string): Promise<void> {
+    return this.administration.reactivate({ userId });
   }
 }

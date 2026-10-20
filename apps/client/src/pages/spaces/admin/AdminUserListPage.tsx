@@ -7,6 +7,7 @@ import { generatePath } from 'react-router';
 import { AdminUserRole } from '@/features/administration/components/AdminUserRole';
 import { ROLE_OPTIONS, type AdminUserRoleEnum } from '@/features/administration/labels/admin-user-enum';
 import { PinnedHeader } from '@/shared/components/pinned-header';
+import { UserStatusBadge } from '@/shared/components/user-status-badge';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import {
   DataTable,
@@ -75,6 +76,25 @@ function useAdminUserColumns() {
         size: 260,
       }),
 
+      h.accessor('status', {
+        cell: ({ getValue }) => <UserStatusBadge status={getValue()} />,
+        enableSorting: false,
+        header: formatMessage({ defaultMessage: 'Compte' }),
+        id: 'status',
+        meta: {
+          filters: {
+            filterId: 'status',
+            label: formatMessage({ defaultMessage: 'Compte' }),
+            type: 'enum',
+            values: [
+              { id: 'ACTIVE', label: formatMessage({ defaultMessage: 'Activé' }) },
+              { id: 'DEACTIVATED', label: formatMessage({ defaultMessage: 'Désactivé' }) },
+            ],
+          },
+        },
+        size: 140,
+      }),
+
       h.display({
         cell: ({ row }) => <EditButton user={row.original} />,
         id: 'edit',
@@ -105,15 +125,19 @@ function EditButton(props: { user: AdminUserItem }) {
 export function AdminUserListPage() {
   const { formatMessage } = useIntl();
   const { onColumnFiltersChange, onSortingChange, setTableState, tableState } = useDataTableUrlState({
-    columnFilters: [] as { id: 'role'; value: AdminUserRoleEnum[] }[],
+    columnFilters: [] as (
+      | { id: 'role'; value: AdminUserRoleEnum[] }
+      | { id: 'status'; value: AdminUserItem['status'][] }
+    )[],
     globalFilter: '',
     sorting: [] as AdminUsersSorting,
   });
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useInfiniteAdminUsersQuery({
     filters: {
-      roles: tableState.columnFilters.find(({ id }) => id === 'role')?.value,
+      roles: tableState.columnFilters.find((filter) => filter.id === 'role')?.value,
       search: tableState.globalFilter,
+      statuses: tableState.columnFilters.find((filter) => filter.id === 'status')?.value,
     },
     sorting: tableState.sorting,
   });

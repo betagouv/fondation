@@ -32,6 +32,7 @@ export class InternalFindMembersQuery {
     const users = await this.db.tx.user.findMany({
       select: { id: true } satisfies Prisma.UserSelect,
       where: {
+        deactivatedAt: null,
         role: { in: roles },
         id: { in: query.ids as string[] | undefined },
       },

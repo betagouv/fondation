@@ -35,6 +35,7 @@ export class ListMembersQuery {
 
     const totalCount = await this.db.tx.user.count({
       where: {
+        deactivatedAt: null,
         role: { in: roles },
         OR: query.search
           ? [

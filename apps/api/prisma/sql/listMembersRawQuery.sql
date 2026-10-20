@@ -30,6 +30,7 @@ FROM
 
 WHERE (
   m."role" = ANY($1)
+  AND m.deactivated_at IS NULL
   AND ($2::TEXT IS NULL OR (
     m.email ILIKE '%' || $2::TEXT || '%'
     OR m.first_name ILIKE '%' || $2::TEXT || '%'

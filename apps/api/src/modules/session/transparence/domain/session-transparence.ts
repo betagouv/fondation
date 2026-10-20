@@ -8,6 +8,7 @@ import * as policies from 'src/modules/shared/policies/nomination-file.policies'
 import { PriorityEnum } from 'src/modules/shared/priority.enum';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
 import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
+import { UserStatus } from 'src/modules/shared/user-status.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { makeId } from 'src/utils/id';
 import { isDefined } from 'src/utils/is-defined';
@@ -290,6 +291,7 @@ export class NonFormationMemberDefinedAsReporter extends Error {
 export class SessionTransparenceAffectationHasUnknownReporter extends Error {
   constructor(
     readonly errors: readonly {
+      deactivatedReporters: readonly string[];
       fileNumber: number;
       reporters: readonly string[];
     }[],
@@ -438,7 +440,8 @@ export class SessionTransparence {
       command.formationMembers.map((member) => [member.fullName.toLowerCase(), member] as const),
     );
     const nominationFileEntities: LodamTransparenceFileEntity[] = [];
-    const unknownReporters: { fileNumber: number; reporters: string[] }[] = [];
+    const unknownReporters: { deactivatedReporters: string[]; fileNumber: number; reporters: string[] }[] =
+      [];
     const affectations: {
       nominationFileId: string;
       reporterIds: readonly string[];
@@ -447,19 +450,19 @@ export class SessionTransparence {
     for (const file of command.files) {
       const reporterIds: string[] = [];
       const fileUnknownReporters: string[] = [];
+      const fileDeactivatedReporters: string[] = [];
 
       for (const reporter of file.reporters) {
         const member = memberPerFullName.get(reporter.toLowerCase());
 
-        if (member) {
-          reporterIds.push(member.id);
-        } else {
-          fileUnknownReporters.push(reporter);
-        }
+        if (!member) fileUnknownReporters.push(reporter);
+        else if (member.status === 'DEACTIVATED') fileDeactivatedReporters.push(reporter);
+        else reporterIds.push(member.id);
       }
 
-      if (fileUnknownReporters.length) {
+      if (fileUnknownReporters.length || fileDeactivatedReporters.length) {
         unknownReporters.push({
+          deactivatedReporters: fileDeactivatedReporters,
           fileNumber: file.fileNumber,
           reporters: fileUnknownReporters,
         });
@@ -520,6 +523,8 @@ export class SessionTransparence {
   affectNominationFileReporters(command: {
     authorId: string | null;
     formationMemberIds: Set<string>;
+    // a reporter deactivated since stays on the files they already have, without being offered for new ones
+    assignedReporterIds?: ReadonlyMap<string, ReadonlySet<string>>;
     affectations: readonly {
       nominationFileId: string;
       reporterIds: readonly string[];
@@ -540,12 +545,12 @@ export class SessionTransparence {
       );
     }
 
-    const allReporterIds = Array.from(
-      new Set(command.affectations.flatMap(({ reporterIds }) => reporterIds)),
-    );
-
-    const allReportersAreFormationMembers = allReporterIds.every((reporterId) =>
-      command.formationMemberIds.has(reporterId),
+    const allReportersAreFormationMembers = command.affectations.every(({ nominationFileId, reporterIds }) =>
+      reporterIds.every(
+        (reporterId) =>
+          command.formationMemberIds.has(reporterId) ||
+          !!command.assignedReporterIds?.get(nominationFileId)?.has(reporterId),
+      ),
     );
 
     if (!allReportersAreFormationMembers) {
@@ -852,7 +857,7 @@ export type CreateLodamSessionTransparenceCommand = {
   dueDate: DateOnly | null;
   files: readonly LodamTransparenceFile[];
   formation: FormationEnum;
-  formationMembers: readonly { id: string; fullName: string }[];
+  formationMembers: readonly { id: string; fullName: string; status: UserStatus }[];
   name: string;
   observationClosingDate: DateOnly;
   positionStartDate: DateOnly | null;

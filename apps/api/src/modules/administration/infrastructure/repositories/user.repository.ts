@@ -4,12 +4,14 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { AdminUserRole } from '../../domain/admin-user-role';
 import {
   User,
+  UserDeactivated,
   UserDemotedFromAdmin,
   UserDisplayTitleUpdated,
   UserEmailUpdated,
   UserEvent,
   UserPasswordUpdated,
   UserPromotedToAdmin,
+  UserReactivated,
   UserRoleUpdated,
   UsersUntitled,
 } from '../../domain/user';
@@ -19,6 +21,7 @@ import {
   prismaRoleEnumToRoleEnum,
   roleEnumToPrismaRoleEnum,
 } from 'src/modules/shared/mappers/role-enum.mapper';
+import { userStatusOf } from 'src/modules/shared/user-status.enum';
 import { assertNever } from 'src/utils/assert-never';
 
 @Injectable()
@@ -33,6 +36,7 @@ export class UserRepository {
         role: true,
         title: true,
         duty: true,
+        deactivatedAt: true,
       } satisfies Prisma.UserSelect,
     });
     if (!user) throw new NotFoundException();
@@ -44,13 +48,21 @@ export class UserRepository {
         title: user.title,
         duty: user.duty,
       }),
+      status: userStatusOf(user),
     });
   }
 
   async findManyByLastName(lastNames: readonly string[]): Promise<Map<string, User>> {
     const users = await this.db.tx.user.findMany({
       where: { lastName: { in: lastNames as string[], mode: 'insensitive' } },
-      select: { id: true, lastName: true, role: true, title: true, duty: true } satisfies Prisma.UserSelect,
+      select: {
+        deactivatedAt: true,
+        duty: true,
+        id: true,
+        lastName: true,
+        role: true,
+        title: true,
+      } satisfies Prisma.UserSelect,
     });
 
     return new Map(
@@ -63,6 +75,7 @@ export class UserRepository {
             title: user.title,
             duty: user.duty,
           }),
+          status: userStatusOf(user),
         }),
       ]),
     );
@@ -87,6 +100,8 @@ export class UserRepository {
       else if (message instanceof UsersUntitled) await this.persistUsersUntitled(message);
       else if (message instanceof UserPromotedToAdmin) await this.persistUserPromotedToAdmin(message);
       else if (message instanceof UserDemotedFromAdmin) await this.persistUserDemotedFromAdmin(message);
+      else if (message instanceof UserDeactivated) await this.persistUserDeactivated(message);
+      else if (message instanceof UserReactivated) await this.persistUserReactivated(message);
       else assertNever(message);
     }
   }
@@ -141,6 +156,20 @@ export class UserRepository {
     return this.db.tx.user.update({
       where: { id: message.userId },
       data: { role: 'ADJOINT_SECRETAIRE_GENERAL' },
+    });
+  }
+
+  private persistUserDeactivated(message: UserDeactivated) {
+    return this.db.tx.user.update({
+      where: { id: message.userId },
+      data: { deactivatedAt: message.deactivatedAt, deactivatedBy: message.deactivatedBy },
+    });
+  }
+
+  private persistUserReactivated(message: UserReactivated) {
+    return this.db.tx.user.update({
+      where: { id: message.userId },
+      data: { deactivatedAt: null, deactivatedBy: null },
     });
   }
 }

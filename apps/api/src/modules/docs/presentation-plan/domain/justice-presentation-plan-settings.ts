@@ -15,6 +15,14 @@ export type PlainJusticePresentationPlanSettings = {
 export class JusticePresentationPlanSettings {
   private constructor(private readonly plain: PlainJusticePresentationPlanSettings) {}
 
+  get chairmanId(): string | null {
+    return this.plain.chairmanId;
+  }
+
+  get members(): readonly { id: string; isAbsent: boolean }[] {
+    return this.plain.members;
+  }
+
   static from(plain: PlainJusticePresentationPlanSettings): JusticePresentationPlanSettings {
     return new JusticePresentationPlanSettings(plain);
   }

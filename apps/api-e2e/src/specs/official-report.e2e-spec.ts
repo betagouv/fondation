@@ -555,6 +555,40 @@ test.describe('Official report', () => {
     });
   });
 
+  test('should keep in a validated official report a member deactivated since, with the absence recorded', async ({
+    admin,
+    agent,
+    docs,
+    expect,
+    member,
+    registerUser,
+  }) => {
+    const leaving = await registerUser('MEMBRE_DU_PARQUET');
+    const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
+    const metadata = {
+      absentMemberIds: [],
+      chairmanId: docs.chairman.id,
+      hasRenunciation: true,
+      justiceDepartmentContactId: docs.justiceContact.id,
+      secretaryId: docs.secretary.id,
+      sessionMeetingDate: MEETING_DATE,
+      sessionMeetingEndingTime: { hours: 18, minutes: 10, seconds: 0 },
+      sessionMeetingTime: { hours: 18, minutes: 0, seconds: 0 },
+    };
+    const { id: officialReportId } = await docs.officialReport(await docs.agenda(session), {
+      ...metadata,
+      absentMemberIds: [leaving.id],
+      status: 'VALIDATED',
+    });
+    await admin.administration.deactivate({ path: { userId: leaving.id }, throwOnError: true });
+
+    const saved = await agent.docs.updateOfficialReport({ body: metadata, path: { officialReportId } });
+    expect(saved.response?.status).toBe(204);
+
+    const details = await agent.docs.detailsOfficialReport({ path: { officialReportId } });
+    expect(details.data).toMatchObject({ draftChangesBy: null, status: 'VALIDATED' });
+  });
+
   test('should render the official report draft again once its metadata change', async ({
     agent,
     docs,

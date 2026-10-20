@@ -37,6 +37,10 @@ model User {
   createdAt DateTime         @default(now()) @map("created_at") @db.Timestamp(6)
   sort      Int              @default(1000) @db.SmallInt
 
+  deactivatedAt DateTime? @map("deactivated_at") @db.Timestamp(6)
+  deactivatedBy String?   @map("deactivated_by") @db.Uuid
+  deactivator   User?     @relation(fields: [deactivatedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "user_deactivation_author")
+
   title        PrismaUserTitleEnum? @unique()
   duty         PrismaUserDutyEnum?
   displayTitle String?              @map("display_title")
@@ -89,6 +93,7 @@ model User {
   publisherOfAuditionPublications    AuditionPublication[] @relation("audition_publication_publisher")
   impersonatorOfAuditionPublications AuditionPublication[] @relation("audition_publication_impersonator")
   authorOfMagistratPhoneNumbers MagistratPhoneNumber[]
+  deactivatorOfUsers            User[]                 @relation("user_deactivation_author")
 
   @@map("users")
   @@schema("identity_and_access_context")

@@ -4,20 +4,27 @@ import {
   useQuery,
   useQueryClient,
   type InfiniteData,
+  type QueryClient,
 } from '@tanstack/react-query';
 
 import type { AdminUserRoleEnum } from '@/features/administration/labels/admin-user-enum';
 import * as $api from '@api/sdk';
 import type { DetailedAdminUserDto, ListUsersData, PaginatedAdminUserListItemDto } from '@api/types';
 
-import { docsKeys } from './agenda.queries';
+import { docsKeys, officialReportKeys } from './agenda.queries';
+import { memberKeys } from './members.queries';
 
-export type AdminUsersFilters = { roles?: AdminUserRoleEnum[]; search?: string };
+export type AdminUsersFilters = {
+  roles?: AdminUserRoleEnum[];
+  search?: string;
+  statuses?: DetailedAdminUserDto['status'][];
+};
 export type AdminUsersSorting =
   | []
   | [{ desc: boolean; id: NonNullable<NonNullable<ListUsersData['query']>['sortBy']> }];
 
 const adminKeys = {
+  allUsers: () => ['admin', 'users'] as const,
   user: (userId: string | undefined) => ['admin', 'user', userId] as const,
   users: (params: { filters: AdminUsersFilters; sorting: AdminUsersSorting }) =>
     ['admin', 'users', params] as const,
@@ -51,6 +58,7 @@ export function useInfiniteAdminUsersQuery(options: {
             search: options.filters.search?.trim() || undefined,
             sortBy: options.sorting[0]?.id,
             sortDesc: options.sorting[0]?.desc ? 'true' : undefined,
+            statuses: options.filters.statuses,
           },
         })
         .then(({ data }) => data ?? null),
@@ -69,11 +77,7 @@ export function useAdminUserDetailQuery(userId: string | undefined) {
   });
 }
 
-function updateUser(
-  queryClient: ReturnType<typeof useQueryClient>,
-  userId: string,
-  patch: Partial<DetailedAdminUserDto>,
-) {
+function updateUser(queryClient: QueryClient, userId: string, patch: Partial<DetailedAdminUserDto>) {
   queryClient.setQueryData(adminKeys.user(userId), (data: DetailedAdminUserDto | undefined) =>
     data ? { ...data, ...patch } : data,
   );
@@ -136,5 +140,32 @@ export function useDemoteUserFromAdmin(userId: string) {
       updateUser(queryClient, userId, { isAdmin: false });
       queryClient.invalidateQueries({ queryKey: docsKeys.members() });
     },
+  });
+}
+
+/** a deactivated account leaves every list of choices, and comes back once reactivated */
+function invalidateUserAccess(queryClient: QueryClient, userId: string) {
+  queryClient.invalidateQueries({ queryKey: adminKeys.user(userId) });
+  queryClient.invalidateQueries({ queryKey: adminKeys.allUsers() });
+  queryClient.invalidateQueries({ queryKey: docsKeys.members() });
+  queryClient.invalidateQueries({ queryKey: memberKeys.allListedMembers() });
+  queryClient.invalidateQueries({ queryKey: officialReportKeys.listSecretaries() });
+}
+
+export function useDeactivateUserMutation(userId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => $api.administration.deactivate({ path: { userId } }),
+    onSuccess: () => invalidateUserAccess(queryClient, userId),
+  });
+}
+
+export function useReactivateUserMutation(userId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => $api.administration.reactivate({ path: { userId } }),
+    onSuccess: () => invalidateUserAccess(queryClient, userId),
   });
 }

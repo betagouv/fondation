@@ -24,7 +24,7 @@ export class InternalFindMembersByFormationQuery {
   async handle(query: { formation: FormationEnum }): Promise<InternalMemberListDto[]> {
     const roles = formationToMemberRole(query.formation);
     const users = await this.db.tx.user.findMany({
-      where: { role: { in: roles.map(roleEnumToPrismaRoleEnum) } },
+      where: { deactivatedAt: null, role: { in: roles.map(roleEnumToPrismaRoleEnum) } },
       select: {
         id: true,
         firstName: true,

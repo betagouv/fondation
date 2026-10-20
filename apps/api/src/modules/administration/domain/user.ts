@@ -1,3 +1,4 @@
+import { UserStatus } from 'src/modules/shared/user-status.enum';
 import { AuthPassword } from 'src/modules/simple-auth/domain/auth-password';
 
 import { AdminUserRole } from './admin-user-role';
@@ -48,6 +49,18 @@ export class UserDemotedFromAdmin {
   constructor(readonly userId: string) {}
 }
 
+export class UserDeactivated {
+  constructor(
+    readonly userId: string,
+    readonly deactivatedAt: Date,
+    readonly deactivatedBy: string,
+  ) {}
+}
+
+export class UserReactivated {
+  constructor(readonly userId: string) {}
+}
+
 export type UserEvent =
   | UserEmailUpdated
   | UserPasswordUpdated
@@ -55,10 +68,13 @@ export type UserEvent =
   | UsersUntitled
   | UserDisplayTitleUpdated
   | UserPromotedToAdmin
-  | UserDemotedFromAdmin;
+  | UserDemotedFromAdmin
+  | UserDeactivated
+  | UserReactivated;
 
 export class CantPromoteMemberToAdmin extends Error {}
 export class CantDemoteFromAdmin extends Error {}
+export class CantDeactivateOwnAccount extends Error {}
 
 export class User {
   readonly #messages: UserEvent[] = [];
@@ -70,10 +86,23 @@ export class User {
   private constructor(
     readonly id: string,
     private readonly role: AdminUserRole,
+    private readonly status: UserStatus,
   ) {}
 
-  static from(props: { id: string; role: AdminUserRole }): User {
-    return new User(props.id, props.role);
+  static from(props: { id: string; role: AdminUserRole; status: UserStatus }): User {
+    return new User(props.id, props.role, props.status);
+  }
+
+  canDeactivate(actorId: string): boolean {
+    return this.status === 'ACTIVE' && actorId !== this.id;
+  }
+
+  canReactivate(): boolean {
+    return this.status === 'DEACTIVATED';
+  }
+
+  canBeImpersonated(): boolean {
+    return this.status === 'ACTIVE';
   }
 
   updateEmail(email: string): void {
@@ -118,5 +147,18 @@ export class User {
     if (this.role.role !== 'ADMIN') throw new CantDemoteFromAdmin();
 
     this.#messages.push(new UserDemotedFromAdmin(this.id));
+  }
+
+  deactivate(command: { actorId: string; now: Date }): void {
+    if (command.actorId === this.id) throw new CantDeactivateOwnAccount();
+    if (!this.canDeactivate(command.actorId)) return;
+
+    this.#messages.push(new UserDeactivated(this.id, command.now, command.actorId));
+  }
+
+  reactivate(): void {
+    if (!this.canReactivate()) return;
+
+    this.#messages.push(new UserReactivated(this.id));
   }
 }

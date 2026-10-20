@@ -86,6 +86,10 @@ export class JusticePresentationPlanChangedWhileValidated extends Error {}
 
 export class JusticePresentationPlan {
   readonly #messages: JusticePresentationPlanMessage[] = [];
+  get chairmanId(): string | null {
+    return this.settings?.chairmanId ?? null;
+  }
+
   get messages(): readonly JusticePresentationPlanMessage[] {
     return this.#messages;
   }
@@ -141,8 +145,11 @@ export class JusticePresentationPlan {
   update(command: UpdateJusticePresentationPlanCommand): void {
     if (this.isPresented) throw new JusticePresentationPlanAlreadyPresented();
 
-    const state = this.buildState(command);
     const settings = assertIsDefined(this.settings, 'unknown presentation plan settings');
+    const state = this.buildState({
+      ...command,
+      members: keepingRecorded(command.members, settings.members),
+    });
     // saving is how an outdated notice catches up with its agendas, so it is written again even unchanged
     if (!this.outdated && settings.equals(JusticePresentationPlanSettings.from(this.settingsOf(state)))) {
       return;
@@ -357,3 +364,12 @@ export type UpdateJusticePresentationPlanCommand = {
   }[];
   members: readonly { id: string; isAbsent: boolean }[];
 };
+
+/** a member recorded for the meeting stays once no longer offered (deactivated since, or moved to another formation) */
+function keepingRecorded(
+  offered: readonly { id: string; isAbsent: boolean }[],
+  recorded: readonly { id: string; isAbsent: boolean }[],
+): { id: string; isAbsent: boolean }[] {
+  const offeredIds = new Set(offered.map(({ id }) => id));
+  return [...offered, ...recorded.filter(({ id }) => !offeredIds.has(id))];
+}

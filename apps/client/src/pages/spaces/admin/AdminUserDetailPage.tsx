@@ -3,7 +3,6 @@ import Input from '@codegouvfr/react-dsfr/Input';
 import Select from '@codegouvfr/react-dsfr/Select';
 import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 import { useQueryClient } from '@tanstack/react-query';
-import clsx from 'clsx';
 import { useCallback, useMemo, useState, type ChangeEvent, type ReactNode, type SyntheticEvent } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
@@ -14,6 +13,7 @@ import {
   ROLE_OPTIONS,
   type AdminUserRoleEnum,
 } from '@/features/administration/labels/admin-user-enum';
+import { UserStatusBadge } from '@/shared/components/user-status-badge';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { useTab } from '@/shared/hooks/useTab';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
@@ -24,8 +24,10 @@ import { memberFullName } from '@/utils/user.utils';
 import type { DetailedAdminUserDto } from '@api/types';
 import {
   useAdminUserDetailQuery,
+  useDeactivateUserMutation,
   useDemoteUserFromAdmin,
   usePromoteUserToAdmin,
+  useReactivateUserMutation,
   useUpdateUserDisplayTitleMutation,
   useUpdateUserEmailMutation,
   useUpdateUserPasswordMutation,
@@ -511,6 +513,81 @@ function DisplayTitleField(props: { user: DetailedAdminUserDto }) {
   );
 }
 
+function AccessCard(props: { isSecretariat: boolean; user: DetailedAdminUserDto }) {
+  const { formatMessage } = useIntl();
+  const confirmation = useConfirmModal();
+  const deactivate = useDeactivateUserMutation(props.user.id);
+  const reactivate = useReactivateUserMutation(props.user.id);
+
+  const onDeactivate = useCallback(async () => {
+    const { isConfirmed } = await confirmation.waitForConfirmation({
+      content: (
+        <p>
+          <FormattedMessage
+            defaultMessage="<bold>{fullName}</bold> ne pourra plus se connecter à Fondation et sa session en cours sera fermée. Son nom reste sur les dossiers, rapports et documents existants."
+            values={{
+              bold: (chunks) => <strong>{chunks}</strong>,
+              fullName: memberFullName(props.user),
+            }}
+          />
+        </p>
+      ),
+      i18n: { confirm: formatMessage({ defaultMessage: 'Désactiver le compte' }) },
+      title: formatMessage({ defaultMessage: 'Désactiver le compte\u00A0?' }),
+    });
+
+    if (isConfirmed) deactivate.mutate();
+  }, [confirmation, deactivate, formatMessage, props.user]);
+
+  return (
+    <DetailsCard className="grow">
+      <div className="fr-mb-6v flex items-center justify-between gap-4">
+        <h2 className="fr-h4 fr-mb-0">
+          <FormattedMessage defaultMessage="Accès" />
+        </h2>
+        {props.user.canDeactivate && (
+          <Button
+            disabled={deactivate.isPending}
+            iconId="fr-icon-lock-line"
+            onClick={onDeactivate}
+            priority="secondary"
+            size="small"
+            type="button"
+          >
+            <FormattedMessage defaultMessage="Désactiver le compte" />
+          </Button>
+        )}
+        {props.user.canReactivate && (
+          <Button
+            disabled={reactivate.isPending}
+            iconId="fr-icon-lock-unlock-line"
+            onClick={() => reactivate.mutate()}
+            priority="secondary"
+            size="small"
+            type="button"
+          >
+            <FormattedMessage defaultMessage="Réactiver le compte" />
+          </Button>
+        )}
+      </div>
+      <div className="flex items-center gap-3">
+        <span className="font-bold">
+          <FormattedMessage defaultMessage="Compte" />
+        </span>
+        <UserStatusBadge status={props.user.status} />
+      </div>
+      {props.isSecretariat && (
+        <div className="fr-mt-8v">
+          <AdminUserPromotionToggle user={props.user} />
+          <p className="fr-text--sm fr-mt-2v fr-mb-0 text-(--text-mention-grey)">
+            <FormattedMessage defaultMessage="Un administrateur peut accéder à l'onglet Administration." />
+          </p>
+        </div>
+      )}
+    </DetailsCard>
+  );
+}
+
 function AdminUserDetailHeader(props: { action?: ReactNode; name: string }) {
   const { formatMessage } = useIntl();
 
@@ -575,13 +652,13 @@ function AdminLoadedUserDetail(props: { user: DetailedAdminUserDto }) {
       background={isSecretariat ? 'cafeCreme' : 'blueFrance'}
       header={
         <AdminUserDetailHeader
-          action={isSecretariat ? undefined : <ImpersonateButton userId={user.id} />}
+          action={isSecretariat || !user.canImpersonate ? undefined : <ImpersonateButton userId={user.id} />}
           name={memberFullName(user)}
         />
       }
       identity={
         <>
-          <DetailsCard className={clsx({ grow: !isSecretariat })}>
+          <DetailsCard>
             <h2 className="fr-h4">
               <FormattedMessage defaultMessage="Titre affiché" />
             </h2>
@@ -590,20 +667,11 @@ function AdminLoadedUserDetail(props: { user: DetailedAdminUserDto }) {
             </dl>
           </DetailsCard>
 
-          {isSecretariat && (
-            <DetailsCard className="grow">
-              <h2 className="fr-h4">
-                <FormattedMessage defaultMessage="Droits d'administration" />
-              </h2>
-              <p className="fr-text--sm fr-mb-4v text-(--text-mention-grey)">
-                <FormattedMessage defaultMessage="Un administrateur peut accéder à l'onglet Administration." />
-              </p>
-              <AdminUserPromotionToggle user={user} />
-            </DetailsCard>
-          )}
+          <AccessCard isSecretariat={isSecretariat} user={user} />
         </>
       }
       identityPosition="right"
+      wideIdentity
     >
       <DetailsCard className="grow">
         <h2 className="fr-h4">

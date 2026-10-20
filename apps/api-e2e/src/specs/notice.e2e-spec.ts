@@ -216,6 +216,44 @@ test.describe('Notice', () => {
     });
   });
 
+  test('should keep in a validated notice a member deactivated since, with the absence recorded', async ({
+    admin,
+    agent,
+    docs,
+    expect,
+    registerUser,
+  }) => {
+    const leaving = await registerUser('MEMBRE_DU_PARQUET');
+    const agenda = await docs.agenda(await docs.session());
+    const metadata = {
+      absentMembers: [],
+      chairmanId: docs.chairman.id,
+      date: MEETING_DATE,
+      hasRenunciation: true,
+      justiceContactId: docs.justiceContact.id,
+      secretaryId: docs.secretary.id,
+      time: { hours: 9, minutes: 30, seconds: 0 },
+    };
+    const { id: planId } = await docs.notice([agenda], {
+      ...metadata,
+      absentMembers: [leaving.id],
+      status: 'VALIDATED',
+    });
+    await admin.administration.deactivate({ path: { userId: leaving.id }, throwOnError: true });
+
+    const saved = await agent.docs.updateJusticePresentationPlan({
+      body: { ...metadata, agendas: [{ comment: null, id: agenda.id }] },
+      path: { planId },
+    });
+    expect(saved.response?.status).toBe(204);
+
+    const listed = await agent.docs.listNonPresentedPlans();
+    expect(listed.data!.items.find(({ id }) => id === planId)).toMatchObject({
+      status: 'VALIDATED',
+      updatedAt: null,
+    });
+  });
+
   test('should free the files of an unpresented notice, and present it again with a single ending time', async ({
     agent,
     docs,

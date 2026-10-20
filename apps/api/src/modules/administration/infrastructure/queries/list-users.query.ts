@@ -18,6 +18,7 @@ import { Sortable } from 'src/modules/framework/sorting';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
 import { prismaRoleEnumToRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
+import { USER_STATUSES, UserStatus, userStatusOf } from 'src/modules/shared/user-status.enum';
 import { assertIsDefined } from 'src/utils/is-defined';
 
 @Injectable()
@@ -28,6 +29,7 @@ export class ListUsersQuery {
   async handle(query: {
     search?: string;
     roles?: AdminUserRoleEnum[];
+    statuses?: UserStatus[];
     sorting: Sortable<ListUsersQueryDto>;
     pagination: Pagination;
   }): Promise<PaginatedAdminUserListItemDto> {
@@ -48,9 +50,14 @@ export class ListUsersQuery {
         : { OR: roles }
       : {};
 
+    const statuses = new Set(query.statuses);
+    const whereStatus: Prisma.UserWhereInput =
+      statuses.size === 1 ? { deactivatedAt: statuses.has('ACTIVE') ? null : { not: null } } : {};
+
     const where: Prisma.UserWhereInput = {
       AND: [
         whereRole,
+        whereStatus,
         {
           OR: query.search
             ? [
@@ -75,6 +82,7 @@ export class ListUsersQuery {
         title: true,
         duty: true,
         gender: true,
+        deactivatedAt: true,
       } satisfies Prisma.UserSelect,
       where,
       orderBy: [{ lastName: direction }, { createdAt: 'asc' }],
@@ -84,9 +92,10 @@ export class ListUsersQuery {
 
     return paginate({
       totalCount,
-      items: items.map(({ role, title, duty, gender, ...u }) => ({
+      items: items.map(({ role, title, duty, gender, deactivatedAt, ...u }) => ({
         ...u,
         gender: prismaGenderEnumToGenderEnum(gender),
+        status: userStatusOf({ deactivatedAt }),
         role: AdminUserRole.from({
           role: prismaRoleEnumToRoleEnum(role),
           title: title ?? null,
@@ -106,5 +115,6 @@ export class PaginatedAdminUserListItemDto extends createPaginatedZodDto(
     email: z.string(),
     gender: z.enum(GenderEnum),
     role: z.enum(ADMIN_USER_ROLES_ENUM),
+    status: z.enum(USER_STATUSES),
   }),
 ) {}

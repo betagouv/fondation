@@ -3,6 +3,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { Prisma } from 'src/generated/prisma/client';
 import { Db } from 'src/modules/framework/database';
+import { userStatusOf } from 'src/modules/shared/user-status.enum';
 import {
   AuthImpersonationRevoked,
   AuthImpersonationStarted,
@@ -21,22 +22,22 @@ export class AuthUserRepository {
 
   async findByEmail(email: string): Promise<AuthUser | null> {
     const user = await this.db.tx.user.findFirst({
-      select: { id: true, password: true } satisfies Prisma.UserSelect,
+      select: { deactivatedAt: true, id: true, password: true } satisfies Prisma.UserSelect,
       where: { email: { equals: email, mode: 'insensitive' } },
     });
 
-    return user && AuthUser.from(user);
+    return user && AuthUser.from({ ...user, status: userStatusOf(user) });
   }
 
   async find(id: string): Promise<AuthUser> {
     const user = await this.db.tx.user.findUnique({
       where: { id },
-      select: { id: true, password: true } satisfies Prisma.UserSelect,
+      select: { deactivatedAt: true, id: true, password: true } satisfies Prisma.UserSelect,
     });
 
     if (!user) throw new NotFoundException();
 
-    return AuthUser.from(user);
+    return AuthUser.from({ ...user, status: userStatusOf(user) });
   }
 
   @Transactional()

@@ -10,6 +10,8 @@ import { AdminUserDetailPage } from './AdminUserDetailPage';
 
 const ACCOUNTS = ['secretariat', 'member'] as const;
 type Account = (typeof ACCOUNTS)[number];
+const STATUSES = ['ACTIVE', 'DEACTIVATED'] as const satisfies readonly DetailedAdminUserDto['status'][];
+type Status = (typeof STATUSES)[number];
 
 const USERS = {
   member: {
@@ -32,9 +34,12 @@ const USERS = {
     lastName: 'Dupont',
     role: 'SECRETARY',
   },
-} satisfies Record<Account, DetailedAdminUserDto>;
+} satisfies Record<
+  Account,
+  Omit<DetailedAdminUserDto, 'canDeactivate' | 'canImpersonate' | 'canReactivate' | 'status'>
+>;
 
-function AdminUserDetailPageStory(props: { account: Account }) {
+function AdminUserDetailPageStory(props: { account: Account; status: Status }) {
   return (
     <PageStory
       location={generatePath(ROUTE_PATHS.ADMIN.USER_DETAIL, { userId: USERS[props.account].id })}
@@ -47,13 +52,24 @@ function AdminUserDetailPageStory(props: { account: Account }) {
 }
 
 const meta = {
-  args: { account: 'secretariat' },
-  argTypes: { account: { control: 'inline-radio', options: ACCOUNTS } },
-  beforeEach: ({ msw }) => {
+  args: { account: 'secretariat', status: 'ACTIVE' },
+  argTypes: {
+    account: { control: 'inline-radio', options: ACCOUNTS },
+    status: { control: 'inline-radio', options: STATUSES },
+  },
+  beforeEach: ({ args, msw }) => {
     msw.use(
       http.get('*/api/administration/v1/users/:userId', ({ params }) => {
         const user = Object.values(USERS).find(({ id }) => id === params.userId);
-        return user ? HttpResponse.json<DetailedAdminUserDto>(user) : new HttpResponse(null, { status: 404 });
+        if (!user) return new HttpResponse(null, { status: 404 });
+
+        return HttpResponse.json<DetailedAdminUserDto>({
+          ...user,
+          canDeactivate: args.status === 'ACTIVE',
+          canImpersonate: args.status === 'ACTIVE',
+          canReactivate: args.status === 'DEACTIVATED',
+          status: args.status,
+        });
       }),
     );
   },

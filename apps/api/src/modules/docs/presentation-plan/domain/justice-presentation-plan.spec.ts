@@ -158,6 +158,20 @@ describe('JusticePresentationPlan', () => {
       expect(plan.messages.map((m) => m.constructor)).toEqual([JusticePresentationPlanUpdated]);
     });
 
+    it('should keep a recorded member who is no longer offered, with the recorded absence', () => {
+      const plan = aDraft({ agendaIds: ['agenda-1'], isValidated: true });
+
+      plan.update({
+        ...command,
+        members: [
+          { id: 'chairman-1', isAbsent: false },
+          { id: 'member-1', isAbsent: false },
+        ],
+      });
+
+      expect(plan.messages).toEqual([]);
+    });
+
     it('should be written again when outdated, even unchanged', () => {
       const plan = aDraft({ agendaIds: ['agenda-1'], outdated: true });
 

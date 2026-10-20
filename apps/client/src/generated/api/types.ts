@@ -2317,6 +2317,7 @@ export type PaginatedAdminUserListItemDto = {
         email: string;
         gender: 'MALE' | 'FEMALE';
         role: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+        status: 'ACTIVE' | 'DEACTIVATED';
     }>;
     totalCount: number;
     currentPageIndex: number;
@@ -2337,6 +2338,10 @@ export type DetailedAdminUserDto = {
     gender: 'MALE' | 'FEMALE';
     displayTitle: string | null;
     isAdmin: boolean;
+    status: 'ACTIVE' | 'DEACTIVATED';
+    canDeactivate: boolean;
+    canImpersonate: boolean;
+    canReactivate: boolean;
 };
 
 export type UpdateUserEmailDto = {
@@ -4910,6 +4915,7 @@ export type ListUsersData = {
         sortBy?: 'lastName';
         search?: string;
         roles?: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN' | Array<'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN'>;
+        statuses?: 'ACTIVE' | 'DEACTIVATED' | Array<'ACTIVE' | 'DEACTIVATED'>;
         /**
          * true
          */
@@ -5030,6 +5036,36 @@ export type PromoteToAdminResponses = {
 };
 
 export type PromoteToAdminResponse = PromoteToAdminResponses[keyof PromoteToAdminResponses];
+
+export type ReactivateData = {
+    body?: never;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/administration/v1/users/{userId}/deactivation';
+};
+
+export type ReactivateResponses = {
+    204: void;
+};
+
+export type ReactivateResponse = ReactivateResponses[keyof ReactivateResponses];
+
+export type DeactivateData = {
+    body?: never;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/administration/v1/users/{userId}/deactivation';
+};
+
+export type DeactivateResponses = {
+    204: void;
+};
+
+export type DeactivateResponse = DeactivateResponses[keyof DeactivateResponses];
 
 export type ListFeedbacksAsExcelData = {
     body?: never;

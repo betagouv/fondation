@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { catchError, Observable, throwError } from 'rxjs';
 
-import { CantDemoteFromAdmin, CantPromoteMemberToAdmin } from '../domain/user';
+import { CantDeactivateOwnAccount, CantDemoteFromAdmin, CantPromoteMemberToAdmin } from '../domain/user';
 
 @Injectable()
 export class AdministrationErrorMapper implements NestInterceptor {
@@ -24,6 +24,12 @@ export class AdministrationErrorMapper implements NestInterceptor {
           if (error instanceof CantDemoteFromAdmin) {
             return new BadRequestException({
               validationError: `L'utilisateur n'est pas administrateur`,
+            });
+          }
+
+          if (error instanceof CantDeactivateOwnAccount) {
+            return new BadRequestException({
+              validationError: `Impossible de désactiver son propre compte`,
             });
           }
 

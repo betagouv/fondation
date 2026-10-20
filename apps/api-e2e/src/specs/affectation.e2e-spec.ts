@@ -83,6 +83,29 @@ test.describe('Session Affectations E2E', () => {
     expect(files.data!.totalCount).toBe(files.data!.items.length);
   });
 
+  test('keeps a reporter deactivated since on the file they already have', async ({ admin, agent, expect }) => {
+    const body = { items: [{ nominationFileId, priorities: [], reporterIds: [memberId] }] };
+    await agent.sessions.affectReporters({ body, path: { sessionId }, throwOnError: true });
+    await admin.administration.deactivate({ path: { userId: memberId }, throwOnError: true });
+
+    const saved = await agent.sessions.affectReporters({ body, path: { sessionId } });
+    expect(saved.response?.status).toBe(204);
+
+    const files = await agent.sessions.listNominationFiles({ path: { sessionId } });
+    expect(files.data!.items[0]!.reporters).toEqual([expect.objectContaining({ id: memberId })]);
+  });
+
+  test('refuses to affect a deactivated member to a file', async ({ admin, agent, expect, registerUser }) => {
+    const leaving = await registerUser('MEMBRE_COMMUN');
+    await admin.administration.deactivate({ path: { userId: leaving.id }, throwOnError: true });
+
+    const affected = await agent.sessions.affectReporters({
+      body: { items: [{ nominationFileId, priorities: [], reporterIds: [leaving.id] }] },
+      path: { sessionId },
+    });
+    expect(affected.response?.status).toBe(400);
+  });
+
   test('counts the nomination files by status along the affectation', async ({ agent, expect }) => {
     const counts = async () => {
       const { data } = await agent.sessions.countNominationFilesByStatus({ path: { sessionId } });

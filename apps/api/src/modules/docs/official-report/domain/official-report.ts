@@ -299,7 +299,10 @@ export class OfficialReport {
   }
 
   update(command: UpdateOfficialReportCommand): void {
-    const { changed, diff, next } = this.snapshot.update(command.officialReport);
+    const { changed, diff, next } = this.snapshot.update({
+      ...command.officialReport,
+      members: command.officialReport.members.keepingRecorded(this.snapshot.meta.members),
+    });
     if (!changed) return;
 
     this.openDraft();
