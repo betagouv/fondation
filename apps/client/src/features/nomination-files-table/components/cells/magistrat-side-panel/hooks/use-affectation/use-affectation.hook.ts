@@ -1,23 +1,26 @@
-import React from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import { useIntl } from 'react-intl';
 
 import { useNominationFilesTable } from '@/features/nomination-files-table/context/files-table.context';
 import type { PrioriteEnum } from '@/shared/enums/priorite.enum';
+import { useToasts } from '@/shared/ui/toast';
 import { useMemberListQuery } from '@queries/members.queries';
 import {
   useAffectNominationFilesReportersMutation,
+  useUpdateNominationFilesPrioritiesMutation,
   type SessionNominationFile,
 } from '@queries/nomination-sessions.queries';
 
 export function useAffectation(props: {
   nominationFile: SessionNominationFile;
-  sessionId: string;
   onSaved: () => void;
+  sessionId: string;
 }) {
-  const { nominationFile, sessionId, onSaved } = props;
+  const { nominationFile, onSaved, sessionId } = props;
   const { formation } = useNominationFilesTable();
 
-  const [priorities, setPriorities] = React.useState<PrioriteEnum[]>(() => [...nominationFile.priorities]);
-  const [reporterIds, setReporterIds] = React.useState<string[]>(() =>
+  const [priorities, setPriorities] = useState<PrioriteEnum[]>(() => [...nominationFile.priorities]);
+  const [reporterIds, setReporterIds] = useState<string[]>(() =>
     nominationFile.reporters.map((reporter) => reporter.id),
   );
 
@@ -26,17 +29,17 @@ export function useAffectation(props: {
     pagination: { pageIndex: 0, pageSize: 100 },
   });
 
-  const availableRapporteurs = React.useMemo(
+  const availableRapporteurs = useMemo(
     () =>
       (data?.items ?? []).map((member) => ({
-        userId: member.id,
         firstName: member.firstName,
         lastName: member.lastName,
+        userId: member.id,
       })),
     [data],
   );
 
-  const selectedReporters = React.useMemo(() => {
+  const selectedReporters = useMemo(() => {
     const byId = new Map(availableRapporteurs.map((reporter) => [reporter.userId, reporter] as const));
     return reporterIds.map((id) => byId.get(id)).filter((reporter) => !!reporter);
   }, [availableRapporteurs, reporterIds]);
@@ -47,28 +50,54 @@ export function useAffectation(props: {
     nominationFile.reporters.map((reporter) => reporter.id),
   );
 
-  const { mutate, isPending } = useAffectNominationFilesReportersMutation();
+  const { formatMessage } = useIntl();
+  const toasts = useToasts();
+  const affectReporters = useAffectNominationFilesReportersMutation();
+  const updatePriorities = useUpdateNominationFilesPrioritiesMutation();
+  const isPending = affectReporters.isPending || updatePriorities.isPending;
 
-  const save = React.useCallback(
-    () =>
-      mutate(
-        { sessionId, affectations: [{ nominationFileId: nominationFile.id, reporterIds, priorities }] },
-        { onSuccess: onSaved },
-      ),
-    [mutate, sessionId, nominationFile.id, reporterIds, priorities, onSaved],
-  );
+  const save = useCallback(() => {
+    const nominationFileId = nominationFile.id;
+
+    Promise.all([
+      reportersDirty &&
+        affectReporters.mutateAsync({ affectations: [{ nominationFileId, reporterIds }], sessionId }),
+      prioritiesDirty &&
+        updatePriorities.mutateAsync({ items: [{ nominationFileId, priorities }], sessionId }),
+    ]).then(onSaved, () =>
+      toasts.error({
+        description: formatMessage({
+          defaultMessage:
+            'Les champs encore modifiés ne sont pas enregistrés. Réessayez et prévenez le support si cela persiste.',
+        }),
+        title: formatMessage({ defaultMessage: "Les modifications n'ont pas été enregistrées" }),
+      }),
+    );
+  }, [
+    affectReporters,
+    formatMessage,
+    nominationFile.id,
+    onSaved,
+    priorities,
+    prioritiesDirty,
+    reporterIds,
+    reportersDirty,
+    sessionId,
+    toasts,
+    updatePriorities,
+  ]);
 
   return {
-    priorities,
-    setPriorities,
-    reporterIds,
-    setReporterIds,
     availableRapporteurs,
-    selectedReporters,
-    save,
     isPending,
+    priorities,
     prioritiesDirty,
+    reporterIds,
     reportersDirty,
+    save,
+    selectedReporters,
+    setPriorities,
+    setReporterIds,
   };
 }
 

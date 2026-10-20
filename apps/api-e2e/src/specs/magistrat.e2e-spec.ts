@@ -261,13 +261,13 @@ test.describe('Magistrat E2E', () => {
 
     expect(phoneNumbers.response?.status).toBe(200);
     expect(phoneNumbers.data).toEqual({
-      items: [{ date: { year: 2026, month: 4, day: 22 }, number: '06.12.34.56.78', source: 'LOLFI' }],
+      items: [{ date: { day: 22, month: 4, year: 2026 }, number: '06.12.34.56.78', source: 'LOLFI' }],
     });
   });
 
   test('should list the saved phone numbers before the LOLFI ones', async ({ agent, expect, valrose }) => {
     const today = { day: expect.any(Number), month: expect.any(Number), year: expect.any(Number) };
-    const lolfi = { date: { year: 2026, month: 4, day: 22 }, number: '06.12.34.56.78', source: 'LOLFI' };
+    const lolfi = { date: { day: 22, month: 4, year: 2026 }, number: '06.12.34.56.78', source: 'LOLFI' };
     const { data: me } = await agent.auth.introspectSession();
     const savedBy = { id: me!.userId, name: expect.any(String) };
 
@@ -320,7 +320,7 @@ test.describe('Magistrat E2E', () => {
     expect(deleted.response?.status).toBe(204);
     const remaining = await agent.magistrats.listMagistratPhoneNumbers({ path, throwOnError: true });
     expect(remaining.data.items).toEqual([
-      { date: { year: 2026, month: 4, day: 22 }, number: '06.12.34.56.78', source: 'LOLFI' },
+      { date: { day: 22, month: 4, year: 2026 }, number: '06.12.34.56.78', source: 'LOLFI' },
     ]);
   });
 
@@ -348,7 +348,7 @@ test.describe('Magistrat E2E', () => {
         savedBy: expect.any(Object),
         source: 'FONDATION',
       },
-      { date: { year: 2026, month: 4, day: 22 }, number: '06 98 76 54 32', source: 'LOLFI' },
+      { date: { day: 22, month: 4, year: 2026 }, number: '06 98 76 54 32', source: 'LOLFI' },
     ]);
   });
 
@@ -424,7 +424,7 @@ test.describe('Magistrat E2E', () => {
   }) => {
     await agent.sessions.affectReporters({
       body: {
-        items: [{ nominationFileId: valrose.nominationFile.id, priorities: [], reporterIds: [member['@user']!.id] }],
+        items: [{ nominationFileId: valrose.nominationFile.id, reporterIds: [member['@user']!.id] }],
       },
       path: { sessionId: valrose.session.id },
       throwOnError: true,

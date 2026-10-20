@@ -13,6 +13,7 @@ import { NominationFilesBulkActions } from './NominationFilesBulkActions';
 
 const affectReporters = vi.fn();
 const defineOutcome = vi.fn();
+const updatePriorities = vi.fn();
 
 vi.mock('@queries/members.queries', async (importOriginal) => ({
   ...(await importOriginal<object>()),
@@ -30,6 +31,7 @@ vi.mock('@queries/nomination-sessions.queries', async (importOriginal) => ({
   ...(await importOriginal<object>()),
   useAffectNominationFilesReportersMutation: () => ({ isPending: false, mutate: affectReporters }),
   useDefineNominationFilesOutcomeMutation: () => ({ isPending: false, mutate: defineOutcome }),
+  useUpdateNominationFilesPrioritiesMutation: () => ({ isPending: false, mutate: updatePriorities }),
 }));
 
 const OUTCOMES = [
@@ -45,13 +47,13 @@ function file(props: {
   reporters?: readonly { id: string }[];
 }): SessionNominationFile {
   return {
-    id: props.id,
     content: {
       jurisdictions: { current: null, targeted: null },
       nomMagistrat: props.nomMagistrat,
       numeroDeDossier: 1,
       outcome: props.outcome ? { comment: null, value: props.outcome } : null,
     },
+    id: props.id,
     priorities: props.priorities ?? [],
     reporters: props.reporters ?? [],
   } as unknown as SessionNominationFile;
@@ -80,6 +82,7 @@ describe('NominationFilesBulkActions', () => {
   beforeEach(() => {
     affectReporters.mockReset();
     defineOutcome.mockReset();
+    updatePriorities.mockReset();
   });
 
   it('should show the reporters, the priorities and the outcome shared by every selected file', () => {
@@ -135,11 +138,11 @@ describe('NominationFilesBulkActions', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Retirer Étoilé' }));
 
-    expect(affectReporters).toHaveBeenCalledWith(
+    expect(updatePriorities).toHaveBeenCalledWith(
       {
-        affectations: [
-          { nominationFileId: 'file-1', priorities: [], reporterIds: [] },
-          { nominationFileId: 'file-2', priorities: [], reporterIds: [] },
+        items: [
+          { nominationFileId: 'file-1', priorities: [] },
+          { nominationFileId: 'file-2', priorities: [] },
         ],
         sessionId: 'session-1',
       },
@@ -163,8 +166,8 @@ describe('NominationFilesBulkActions', () => {
     expect(affectReporters).toHaveBeenCalledWith(
       {
         affectations: [
-          { nominationFileId: 'file-1', priorities: [], reporterIds: ['member-2', 'member-1'] },
-          { nominationFileId: 'file-2', priorities: [], reporterIds: ['member-1'] },
+          { nominationFileId: 'file-1', reporterIds: ['member-2', 'member-1'] },
+          { nominationFileId: 'file-2', reporterIds: ['member-1'] },
         ],
         sessionId: 'session-1',
       },
@@ -189,8 +192,8 @@ describe('NominationFilesBulkActions', () => {
     expect(affectReporters).toHaveBeenLastCalledWith(
       {
         affectations: [
-          { nominationFileId: 'file-1', priorities: [], reporterIds: [] },
-          { nominationFileId: 'file-2', priorities: [], reporterIds: ['member-2'] },
+          { nominationFileId: 'file-1', reporterIds: [] },
+          { nominationFileId: 'file-2', reporterIds: ['member-2'] },
         ],
         sessionId: 'session-1',
       },
@@ -198,7 +201,7 @@ describe('NominationFilesBulkActions', () => {
     );
   });
 
-  it('should empty the reporters of every selected file while keeping their priorities', async () => {
+  it('should empty the reporters of every selected file', async () => {
     renderActions([
       file({
         id: 'file-1',
@@ -219,8 +222,8 @@ describe('NominationFilesBulkActions', () => {
     expect(affectReporters).toHaveBeenCalledWith(
       {
         affectations: [
-          { nominationFileId: 'file-1', priorities: ['ETOILE'], reporterIds: [] },
-          { nominationFileId: 'file-2', priorities: [], reporterIds: [] },
+          { nominationFileId: 'file-1', reporterIds: [] },
+          { nominationFileId: 'file-2', reporterIds: [] },
         ],
         sessionId: 'session-1',
       },
@@ -228,7 +231,7 @@ describe('NominationFilesBulkActions', () => {
     );
   });
 
-  it('should complete the priorities without dropping the reporters', async () => {
+  it('should complete the priorities without touching the affectation', async () => {
     renderActions([
       file({
         id: 'file-1',
@@ -241,15 +244,14 @@ describe('NominationFilesBulkActions', () => {
     await openDropdown(/Définir une priorité/);
     await chooseOption('Outre-mer');
 
-    expect(affectReporters).toHaveBeenCalledWith(
+    expect(updatePriorities).toHaveBeenCalledWith(
       {
-        affectations: [
-          { nominationFileId: 'file-1', priorities: ['ETOILE', 'OUTRE_MER'], reporterIds: ['member-1'] },
-        ],
+        items: [{ nominationFileId: 'file-1', priorities: ['ETOILE', 'OUTRE_MER'] }],
         sessionId: 'session-1',
       },
       expect.anything(),
     );
+    expect(affectReporters).not.toHaveBeenCalled();
   });
 
   it('should apply an outcome that needs no comment right away', async () => {

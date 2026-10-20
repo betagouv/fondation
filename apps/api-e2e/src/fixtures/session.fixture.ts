@@ -77,7 +77,7 @@ export function makeCreateSessionFixture(steps: TestStepsAdmin) {
     if (stage.reporters) {
       const reporterIds = stage.reporters.map(({ id }) => id);
       await steps.sessions.affectReporters({
-        body: { items: files.map(({ id }) => ({ nominationFileId: id, priorities: [], reporterIds })) },
+        body: { items: files.map(({ id }) => ({ nominationFileId: id, reporterIds })) },
         path: { sessionId },
         throwOnError: true,
       });
@@ -98,13 +98,13 @@ export function makeCreateSessionFixture(steps: TestStepsAdmin) {
     sessions: LolfiArchiveContent['sessions'],
     stage: SessionStage = {},
   ): Promise<CreatedSession[]> {
-    const { names, file } = await generateSessionsArchive(sessions);
+    const { file, names } = await generateSessionsArchive(sessions);
     const jobId = await steps.ingest
       .ingestLolfiArchive({ body: { file }, throwOnError: true })
       .then(({ data }) => data!.id);
 
     await waitFor(async () => {
-      const { status, errors, files } = await steps.jobs
+      const { errors, files, status } = await steps.jobs
         .detailsJob({ path: { jobId }, throwOnError: true })
         .then(({ data }) => data!);
 
@@ -151,5 +151,5 @@ export function makeCreateSessionFixture(steps: TestStepsAdmin) {
     return session;
   }
 
-  return { createOne: createSession, createMany: createMultipleSessions };
+  return { createMany: createMultipleSessions, createOne: createSession };
 }
