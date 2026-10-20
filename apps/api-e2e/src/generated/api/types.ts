@@ -93,13 +93,13 @@ export type DetailedReportDto = {
     screenshots: Array<{
         usage: 'EMBEDDED_SCREENSHOT';
         name: string;
-        fileId: string;
+        id: string;
         url: string;
     }>;
     attachments: Array<{
         usage: 'ATTACHMENT';
         name: string;
-        fileId: string;
+        id: string;
         size: number | null;
         addedAt: string;
         addedBy: {

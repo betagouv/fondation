@@ -19,7 +19,7 @@ const REPORT: DetailedReportDto = {
     {
       addedAt: '2026-03-02T09:15:00.000Z',
       addedBy: STORY_AUTHORS.member,
-      fileId: 'file-1',
+      id: 'file-1',
       name: 'notes-entretien.pdf',
       size: 84_210,
       usage: 'ATTACHMENT',

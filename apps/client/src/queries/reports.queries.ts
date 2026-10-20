@@ -60,8 +60,10 @@ export const useReportQuery = (reportId: string) =>
 
       if (!report) return null;
 
-      const screenshots = report.screenshots.map((s) => ({ id: s.fileId, name: s.name, url: s.url }));
-      return { ...report, comment: report.comment ? withScreenshotUrls(report.comment, screenshots) : null };
+      return {
+        ...report,
+        comment: report.comment ? withScreenshotUrls(report.comment, report.screenshots) : null,
+      };
     },
   });
 
