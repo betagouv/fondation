@@ -70,6 +70,7 @@ export class SimpleAuthService {
   }
 
   listUsers(query: {
+    activeOnly?: true;
     search?: string;
     roles?: readonly RoleEnum[];
     includeIds?: readonly string[];

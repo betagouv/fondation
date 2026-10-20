@@ -140,4 +140,59 @@ test.describe('Summary E2E', () => {
     const unreachable = await stranger.summaries.generateAttachmentPublicUrl({ path: { ...path, fileId } });
     expect(unreachable.response?.status).toBe(404);
   });
+
+  test('should keep a reader of a summary deactivated since', async ({
+    admin,
+    agent,
+    expect,
+    registerUser,
+    sessions,
+  }) => {
+    const session = await sessions.createOne({
+      candidates: [
+        {
+          firstName: 'HONORINE',
+          lastName: 'VALROSE',
+          position: { function: seed.functions.PR, grade: 'G3', jurisdiction: seed.jurisdictions['CA  LYON'] },
+          targetPosition: { function: seed.functions.PR, grade: 'G3', jurisdiction: seed.jurisdictions['CA  REIMS'] },
+        },
+      ],
+      createdAt: '22/04/2026',
+    });
+    const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+    const reader = await registerUser('MEMBRE_COMMUN');
+    await agent.summaries.createSummary({ path, throwOnError: true });
+    await agent.summaries.updateSummaryReadersList({ body: { readerIds: [reader.id] }, path, throwOnError: true });
+    await admin.administration.deactivate({ path: { userId: reader.id }, throwOnError: true });
+
+    const saved = await agent.summaries.updateSummaryReadersList({ body: { readerIds: [reader.id] }, path });
+    expect(saved.response?.status).toBe(204);
+  });
+
+  test('should refuse a deactivated user as a new reader of a summary', async ({
+    admin,
+    agent,
+    expect,
+    registerUser,
+    sessions,
+  }) => {
+    const session = await sessions.createOne({
+      candidates: [
+        {
+          firstName: 'HONORINE',
+          lastName: 'VALROSE',
+          position: { function: seed.functions.PR, grade: 'G3', jurisdiction: seed.jurisdictions['CA  LYON'] },
+          targetPosition: { function: seed.functions.PR, grade: 'G3', jurisdiction: seed.jurisdictions['CA  REIMS'] },
+        },
+      ],
+      createdAt: '22/04/2026',
+    });
+    const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+    const leaving = await registerUser('MEMBRE_COMMUN');
+    await agent.summaries.createSummary({ path, throwOnError: true });
+    await admin.administration.deactivate({ path: { userId: leaving.id }, throwOnError: true });
+
+    const refused = await agent.summaries.updateSummaryReadersList({ body: { readerIds: [leaving.id] }, path });
+    expect(refused.response?.status).toBe(404);
+  });
 });

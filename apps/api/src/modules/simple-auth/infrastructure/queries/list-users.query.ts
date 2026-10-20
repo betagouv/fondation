@@ -15,6 +15,7 @@ export class ListUsersQuery {
   constructor(private readonly db: Db) {}
 
   async handle(query: {
+    activeOnly?: true;
     search?: string;
     roles?: readonly RoleEnum[];
     excludeIds?: readonly string[];
@@ -38,7 +39,7 @@ export class ListUsersQuery {
         const nextItems = await this.db.tx.user.findMany({
           orderBy: { lastName: 'asc' },
           select: { firstName: true, id: true, lastName: true, role: true } satisfies Prisma.UserSelect,
-          where: { id: { in: [...includeIds] } },
+          where: { deactivatedAt: query.activeOnly ? null : undefined, id: { in: [...includeIds] } },
         });
         union.push(...nextItems);
       }
