@@ -19,7 +19,7 @@ export class DetailsUserFromImpersonationQuery {
     authSessionId: string;
   }): Promise<{ id: string; role: string; impersonatorId: string } | null> {
     const found = await this.db.tx.authImpersonation.findFirst({
-      where: { id: impersonation.id },
+      where: { id: impersonation.id, impersonatedUser: { deactivatedAt: null } },
       select: {
         expiresAt: true,
         impersonatedUser: { select: { id: true, role: true } },

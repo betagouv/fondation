@@ -1,5 +1,6 @@
 import { test } from '../fixtures.ts';
 import { makeStepsFixtures } from '../steps.ts';
+import { cookieHeader } from '../utils/cookies.ts';
 
 test.describe('Administration', () => {
   test('should let a user log in with the email and password an admin gave them, and no longer with the former ones', async ({
@@ -107,6 +108,39 @@ test.describe('Administration', () => {
 
       const { response } = await admin.auth.introspectSession();
       expect(response?.status).toBe(200);
+    });
+  });
+
+  test.describe('Given an impersonated member', () => {
+    test('should end the impersonation once the member is deactivated, and let the admin log in again', async ({
+      admin,
+      baseUrl,
+      expect,
+      registerUser,
+    }) => {
+      const impersonator = await registerUser('ADMIN');
+      const impersonated = await registerUser('MEMBRE_COMMUN');
+      const anonymous = makeStepsFixtures({ baseUrl });
+      const credentials = { email: impersonator.email, password: impersonator.password };
+      const { response: login } = await anonymous.auth.login({ body: credentials, throwOnError: true });
+      const adminSession = cookieHeader(login);
+      const started = await makeStepsFixtures({ baseUrl, cookies: [adminSession] }).auth.impersonate({
+        path: { userId: impersonated.id },
+        throwOnError: true,
+      });
+      const asImpersonated = makeStepsFixtures({
+        baseUrl,
+        cookies: [`${adminSession}; ${cookieHeader(started.response)}`],
+      });
+
+      await admin.administration.deactivate({ path: { userId: impersonated.id }, throwOnError: true });
+
+      const during = await asImpersonated.auth.introspectSession();
+      expect(during.response?.status).toBe(401);
+      const { response: again } = await anonymous.auth.login({ body: credentials, throwOnError: true });
+      expect(again.headers.getSetCookie()).toContainEqual(
+        expect.stringMatching(/^impersonationId=.*Expires=Thu, 01 Jan 1970/),
+      );
     });
   });
 
