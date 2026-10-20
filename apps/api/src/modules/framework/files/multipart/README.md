@@ -40,8 +40,9 @@ stateDiagram-v2
 I want to attach pictures to an existing report.
 
 ```ts
-import { FILE_EXTENSIONS, type FileMimeType } from 'src/framework/files';
-import { UseMultipartBody, type Multipart } from 'src/framework/files/multipart';
+// src/modules/reports/infrastructure/report.controller.ts
+import { FILE_EXTENSIONS, type FileMimeType } from '../../framework/files';
+import { UseMultipartBody, type Multipart } from '../../framework/files/multipart';
 
 const ReportPictureDto = {
   files: z
