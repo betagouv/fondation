@@ -28,7 +28,8 @@ test.describe('Notice', () => {
     const before = await agent.docs.detailsJusticePresentationPlanPdfDocument({ path: { planId } });
     expect(before.response?.status).toBe(200);
 
-    const rewritten = '<html><body><p>Le garde des Sceaux renonce au délai.</p></body></html>';
+    const rewritten =
+      '<html><body><div data-editable-content><p>Le garde des Sceaux renonce au délai.</p></div></body></html>';
     const edited = await agent.docs.updatePresentationPlanHtml({
       body: { html: new File([rewritten], 'notice.html', { type: 'text/html' }) },
       path: { planId },
@@ -129,7 +130,8 @@ test.describe('Notice', () => {
     const validatedMetadata = await agent.docs.detailsPresentationPlanMetadata({ path: { planId } });
     expect(validatedMetadata.data!.validation).toEqual({ at: expect.any(String), by: ready?.createdBy });
 
-    const rewritten = '<html><body><p>Le garde des Sceaux renonce au délai.</p></body></html>';
+    const rewritten =
+      '<html><body><div data-editable-content><p>Le garde des Sceaux renonce au délai.</p></div></body></html>';
     await agent.docs.updatePresentationPlanHtml({
       body: { html: new File([rewritten], 'notice.html', { type: 'text/html' }) },
       path: { planId },

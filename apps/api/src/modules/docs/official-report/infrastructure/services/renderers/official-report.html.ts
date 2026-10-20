@@ -1,5 +1,3 @@
-import { oneLine } from 'common-tags';
-
 import {
   commonDocumentCss,
   documentLayout,
@@ -11,6 +9,7 @@ import {
   readsTheSame,
   requiresElision,
 } from '../../../../shared/infrastructure/services/renderers/helpers';
+import { html, SafeHtml } from '../../../../shared/infrastructure/services/renderers/safe-html';
 import { Template } from '../../../../shared/infrastructure/services/renderers/templates.types';
 import type { DocBlock } from '../../../domain/official-report-doc-block';
 import { OfficialReportChairman } from 'src/modules/docs/official-report/domain/official-report-chairman';
@@ -87,9 +86,7 @@ export type OfficialReportRenderContext = {
   };
 };
 
-const html = oneLine;
-
-function header(ctx: OfficialReportRenderContext): string {
+function header(ctx: OfficialReportRenderContext): SafeHtml {
   return html`
     <h1>
       Procès-verbal de restitution de la séance du ${date(ctx.sessionMeeting.date, 'dd/MM/yyyy')} tenue à
@@ -109,11 +106,11 @@ function displayFileContent(ctx: {
   file: OfficialReportRenderContextNominationFile;
   root: OfficialReportRenderContext;
   ignoreUserDefinedContent?: true;
-}): string {
+}): SafeHtml {
   const userDefinedFileContent = ctx.file.nominationFileId
     ? ctx.root.userDefinedBlocks.files[ctx.file.nominationFileId]?.html
     : undefined;
-  if (!ctx.ignoreUserDefinedContent && userDefinedFileContent) return userDefinedFileContent;
+  if (!ctx.ignoreUserDefinedContent && userDefinedFileContent) return new SafeHtml(userDefinedFileContent);
 
   const currentPosition = ctx.file.currentPosition
     ? `, actuellement ${ctx.file.currentPosition} (${ctx.file.currentGrade})`
@@ -148,40 +145,41 @@ function displayChairmanTitle(ctx: OfficialReportRenderContext): string | null {
 function displayIntroduction(
   ctx: OfficialReportRenderContext,
   opts?: { ignoreUserDefinedContent?: true },
-): string {
+): SafeHtml {
   if (!opts?.ignoreUserDefinedContent && ctx.userDefinedBlocks.intro?.html)
-    return ctx.userDefinedBlocks.intro.html;
+    return new SafeHtml(ctx.userDefinedBlocks.intro.html);
 
   const presidentTitle = displayChairmanTitle(ctx);
 
-  const intro = [
-    `<p>Sous la présidence de ${fullname(ctx.chairman)}`,
+  const presence = [
+    `Sous la présidence de ${fullname(ctx.chairman)}`,
     ctx.chairman.displayTitle,
     presidentTitle,
-    `en présence des membres du Conseil supérieur de la magistrature suivants\u00A0:</p>`,
+    `en présence des membres du Conseil supérieur de la magistrature suivants\u00A0:`,
   ]
     .filter(Boolean)
     .join(', ');
+  const intro = html`<p>${presence}</p>`;
 
   const membersList = html`<ul>
-    ${ctx.members
-      .toSortedArray()
-      .filter((member) => !member.isAbsent && (ctx.chairman.id === null || member.id !== ctx.chairman.id))
-      .map((member) => `<li>${displayTitled(member)}</li>`)
-      .join('')}
+    ${SafeHtml.join(
+      ctx.members
+        .toSortedArray()
+        .filter((member) => !member.isAbsent && (ctx.chairman.id === null || member.id !== ctx.chairman.id))
+        .map((member) => html`<li>${displayTitled(member)}</li>`),
+    )}
   </ul>`;
 
-  const secretary =
-    (ctx.secretary.gender === 'MALE' ? `M.&nbsp;` : `Mme&nbsp;`) +
-    fullname(ctx.secretary) +
-    ', ' +
-    (ctx.secretary.title === 'FIRST_SECRETARY'
+  const secretaryTitle =
+    ctx.secretary.title === 'FIRST_SECRETARY'
       ? ctx.secretary.gender === 'MALE'
         ? `secrétaire général`
         : `secrétaire générale`
       : ctx.secretary.gender === 'MALE'
         ? `secrétaire général adjoint`
-        : `secrétaire générale adjointe`);
+        : `secrétaire générale adjointe`;
+  const secretary = html`${ctx.secretary.gender === 'MALE' ? 'M.' : 'Mme'}&nbsp;${fullname(ctx.secretary)},
+  ${secretaryTitle}`;
 
   const renouncement = ctx.hasRenouncement
     ? html`<p>
@@ -189,7 +187,7 @@ function displayIntroduction(
         l'article 35 du décret n°94-199 du 9&nbsp;mars&nbsp;1994 relatif au Conseil supérieur de la
         magistrature.
       </p>`
-    : '';
+    : html``;
 
   const { hours, minutes } = ctx.sessionMeeting.start;
   const sessionMeetingTime = [hours, minutes].map((x) => x.toString().padStart(2, '0')).join(':');
@@ -200,17 +198,19 @@ function displayIntroduction(
     sur la circulaire de transparence du ${date(ctx.session.date, 'do MMMM yyyy')}&nbsp;:
   </p>`;
 
-  return (
-    intro +
-    membersList +
-    html`<p><strong>En présence de&nbsp;:</strong></p>` +
-    html`<ul>
-      <li>${secretary}</li>
-      <li>${ctx.justiceDepartmentContact}</li>
-    </ul>` +
-    renouncement +
-    opening
-  );
+  const attendees = html`<ul>
+    <li>${secretary}</li>
+    <li>${ctx.justiceDepartmentContact}</li>
+  </ul>`;
+
+  return SafeHtml.join([
+    intro,
+    membersList,
+    html`<p><strong>En présence de&nbsp;:</strong></p>`,
+    attendees,
+    renouncement,
+    opening,
+  ]);
 }
 
 const OUTCOME_ORDER = new Map<DocNominationFileOutcomeEnum, number>([
@@ -257,9 +257,15 @@ function displaySectionIntro(
     root: OfficialReportRenderContext;
   },
   opts?: { ignoreUserDefinedContent?: true },
-): string {
+): SafeHtml {
   const userDefinedSectionIntro = ctx.root.userDefinedBlocks.outcomes[ctx.outcome]?.intro?.html;
-  if (!opts?.ignoreUserDefinedContent && userDefinedSectionIntro) return userDefinedSectionIntro;
+  if (!opts?.ignoreUserDefinedContent && userDefinedSectionIntro)
+    return new SafeHtml(userDefinedSectionIntro);
+
+  const propositions =
+    ctx.count > 1
+      ? html`les propositions de nomination suivantes&nbsp;:`
+      : html`la proposition de nomination suivante&nbsp;:`;
 
   switch (ctx.outcome) {
     case 'VALIDATED':
@@ -269,43 +275,40 @@ function displaySectionIntro(
         outcome: ctx.outcome,
         count: 1,
       }).toLowerCase();
-      return `<p>Le Conseil a émis un ${outcome} sur ${
-        ctx.count > 1
-          ? `les propositions de nomination suivantes&nbsp;:`
-          : `la proposition de nomination suivante&nbsp;:`
-      }</p>`;
+      return html`<p>Le Conseil a émis un ${outcome} sur ${propositions}</p>`;
     }
 
     case 'SUSPENDED':
-      return `<p>Le Conseil sursoit à statuer sur ${
-        ctx.count > 1
-          ? `les propositions de nomination suivantes&nbsp;:`
-          : `la proposition de nomination suivante&nbsp;:`
-      }</p>`;
+      return html`<p>Le Conseil sursoit à statuer sur ${propositions}</p>`;
 
-    case 'WITHDRAWN':
-      return `<p>Le Conseil constate le retrait ${
+    case 'WITHDRAWN': {
+      const withdrawn =
         ctx.count > 1
-          ? `des propositions de nomination suivantes&nbsp;:`
-          : `de la proposition de nomination suivante&nbsp;:`
-      }</p>`;
+          ? html`des propositions de nomination suivantes&nbsp;:`
+          : html`de la proposition de nomination suivante&nbsp;:`;
+      return html`<p>Le Conseil constate le retrait ${withdrawn}</p>`;
+    }
   }
 }
 
-function content(ctx: OfficialReportRenderContext): string {
+function content(ctx: OfficialReportRenderContext): SafeHtml {
   const introContent = displayIntroduction(ctx);
 
-  const sections = groupFilesByOutcome(ctx)
-    .map(
+  const sections = SafeHtml.join(
+    groupFilesByOutcome(ctx).map(
       ({ outcome, files }) => html`
         <h2>${displaySectionTitle({ root: ctx, count: files.length, outcome })}</h2>
         ${displaySectionIntro({ root: ctx, count: files.length, outcome })}
         <ol>
-          ${files.map((file) => /* html */ `<li>${displayFileContent({ file, root: ctx })}</li>`).join('\n')}
+          ${SafeHtml.join(
+            files.map((file) => html`<li>${displayFileContent({ file, root: ctx })}</li>`),
+            '\n',
+          )}
         </ol>
       `,
-    )
-    .join('\n');
+    ),
+    '\n',
+  );
 
   return html` ${introContent} ${sections} `;
 }
@@ -313,19 +316,21 @@ function content(ctx: OfficialReportRenderContext): string {
 function displayConclusion(
   ctx: OfficialReportRenderContext,
   opts?: { ignoreUserDefinedContent?: true },
-): string {
+): SafeHtml {
   const userDefinedConclusion = ctx.userDefinedBlocks.conclusion?.html;
-  if (!opts?.ignoreUserDefinedContent && userDefinedConclusion) return userDefinedConclusion;
+  if (!opts?.ignoreUserDefinedContent && userDefinedConclusion) return new SafeHtml(userDefinedConclusion);
 
   const { hours, minutes } = ctx.sessionMeeting.end;
   const endTime = [hours, minutes].map((x) => x.toString().padStart(2, '0')).join(':');
 
   const presidentTitle = displayChairmanTitle(ctx);
 
-  return /* html */ `<p class="end-time"><em>À ${endTime}, ${fullname(ctx.chairman)}${presidentTitle ? `, ${presidentTitle}` : ''}, clôture la séance.</em></p>`;
+  const closing = `À ${endTime}, ${fullname(ctx.chairman)}${presidentTitle ? `, ${presidentTitle}` : ''}, clôture la séance.`;
+
+  return html`<p class="end-time"><em>${closing}</em></p>`;
 }
 
-function displayFooterSignatures(ctx: OfficialReportRenderContext): string {
+function displayFooterSignatures(ctx: OfficialReportRenderContext): SafeHtml {
   const secretary =
     ctx.secretary.title === 'FIRST_SECRETARY'
       ? ctx.secretary.gender === 'MALE'
@@ -360,11 +365,8 @@ function displayFooterSignatures(ctx: OfficialReportRenderContext): string {
   `;
 }
 
-function footer(ctx: OfficialReportRenderContext): string {
-  const conclusion = displayConclusion(ctx);
-  const signatures = displayFooterSignatures(ctx);
-
-  return `${conclusion}\n${signatures}`;
+function footer(ctx: OfficialReportRenderContext): SafeHtml {
+  return SafeHtml.join([displayConclusion(ctx), displayFooterSignatures(ctx)], '\n');
 }
 
 function css() {
@@ -462,8 +464,8 @@ export const officialReportTemplate: Template<OfficialReportRenderContext> = doc
 export function* officialReportBlocks(ctx: OfficialReportRenderContext): Iterable<DocBlock> {
   // every block carries the text the document proposes, so the editor can mark what the reader
   // changes as they type, before anything is saved. An untouched block reads the same both ways.
-  const generatedIntro = displayIntroduction(ctx, { ignoreUserDefinedContent: true });
-  const intro = displayIntroduction(ctx);
+  const generatedIntro = displayIntroduction(ctx, { ignoreUserDefinedContent: true }).toString();
+  const intro = displayIntroduction(ctx).toString();
   yield {
     kind: 'intro',
     weight: 0,
@@ -491,7 +493,7 @@ export function* officialReportBlocks(ctx: OfficialReportRenderContext): Iterabl
         !readsTheSame(title, displaySectionTitle(section, { ignoreUserDefinedContent: true })),
     };
 
-    const sectionIntro = displaySectionIntro(section);
+    const sectionIntro = displaySectionIntro(section).toString();
     const storedSectionIntro = ctx.userDefinedBlocks.outcomes[outcome]?.intro?.html;
     yield {
       outcome,
@@ -499,7 +501,10 @@ export function* officialReportBlocks(ctx: OfficialReportRenderContext): Iterabl
       outdated: Boolean(ctx.userDefinedBlocks.outcomes[outcome]?.intro?.isOutdated),
       edited:
         isDefined(storedSectionIntro) &&
-        !readsTheSame(sectionIntro, displaySectionIntro(section, { ignoreUserDefinedContent: true })),
+        !readsTheSame(
+          sectionIntro,
+          displaySectionIntro(section, { ignoreUserDefinedContent: true }).toString(),
+        ),
       weight: outcomeWeight++,
       html: sectionIntro,
     };
@@ -508,8 +513,8 @@ export function* officialReportBlocks(ctx: OfficialReportRenderContext): Iterabl
       const userDefinedFile = file.nominationFileId
         ? ctx.userDefinedBlocks.files[file.nominationFileId]
         : undefined;
-      const templateFile = displayFileContent({ file, root: ctx, ignoreUserDefinedContent: true });
-      const fileContent = displayFileContent({ file, root: ctx });
+      const templateFile = displayFileContent({ file, root: ctx, ignoreUserDefinedContent: true }).toString();
+      const fileContent = displayFileContent({ file, root: ctx }).toString();
       const editedFile = Boolean(userDefinedFile?.html) && !readsTheSame(fileContent, templateFile);
 
       const agendaProposal = file.nominationFileId
@@ -535,8 +540,8 @@ export function* officialReportBlocks(ctx: OfficialReportRenderContext): Iterabl
     }
   }
 
-  const generatedConclusion = displayConclusion(ctx, { ignoreUserDefinedContent: true });
-  const conclusion = displayConclusion(ctx);
+  const generatedConclusion = displayConclusion(ctx, { ignoreUserDefinedContent: true }).toString();
+  const conclusion = displayConclusion(ctx).toString();
   yield {
     kind: 'conclusion',
     weight: 1e6,

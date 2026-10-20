@@ -38,9 +38,13 @@ export class AdministrationService {
     return this.detailsUserQuery.handle(query);
   }
 
+  @Transactional()
   async updateEmail(command: { userId: string; email: string }): Promise<void> {
     const user = await this.userRepository.findById(command.userId);
-    user.updateEmail(command.email);
+    user.updateEmail({
+      email: command.email,
+      isTakenByAnotherUser: await this.userRepository.isEmailTakenByAnotherUser(command),
+    });
     await this.userRepository.persist(user);
   }
 

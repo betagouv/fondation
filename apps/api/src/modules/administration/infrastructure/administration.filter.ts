@@ -1,13 +1,19 @@
 import {
   BadRequestException,
   CallHandler,
+  ConflictException,
   ExecutionContext,
   Injectable,
   NestInterceptor,
 } from '@nestjs/common';
 import { catchError, Observable, throwError } from 'rxjs';
 
-import { CantDeactivateOwnAccount, CantDemoteFromAdmin, CantPromoteMemberToAdmin } from '../domain/user';
+import {
+  CantDeactivateOwnAccount,
+  CantDemoteFromAdmin,
+  CantPromoteMemberToAdmin,
+  EmailAlreadyTaken,
+} from '../domain/user';
 
 @Injectable()
 export class AdministrationErrorMapper implements NestInterceptor {
@@ -30,6 +36,12 @@ export class AdministrationErrorMapper implements NestInterceptor {
           if (error instanceof CantDeactivateOwnAccount) {
             return new BadRequestException({
               validationError: `Impossible de désactiver son propre compte`,
+            });
+          }
+
+          if (error instanceof EmailAlreadyTaken) {
+            return new ConflictException({
+              validationError: `Cette adresse email est déjà celle d'un autre compte`,
             });
           }
 

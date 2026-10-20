@@ -2,9 +2,12 @@ import Badge from '@codegouvfr/react-dsfr/Badge';
 import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import { type ReactNodeViewProps } from '@tiptap/react';
 import clsx from 'clsx';
+import { useMemo } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import { Tooltip } from '@/shared/ui/tooltip';
+
+import { htmlThroughSchema } from './tiptap-node-to-html';
 
 function DocBlockDriftBannerTooltip(props: { acknowledgeable: boolean }) {
   const { formatMessage } = useIntl();
@@ -30,7 +33,10 @@ function DocBlockDriftBannerTooltip(props: { acknowledgeable: boolean }) {
 export function DocBlockDriftBanner(props: ReactNodeViewProps & { acknowledgeable?: boolean }) {
   const { editor, node } = props;
   const { agendaHtml, generatedHtml, isPending, outdated } = node.attrs;
-  const proposed = agendaHtml ?? generatedHtml;
+  const proposed = useMemo(
+    () => (outdated ? htmlThroughSchema(agendaHtml ?? generatedHtml ?? '', editor.schema) : ''),
+    [agendaHtml, editor.schema, generatedHtml, outdated],
+  );
 
   const disabled = Boolean(isPending);
 
@@ -87,7 +93,7 @@ export function DocBlockDriftBanner(props: ReactNodeViewProps & { acknowledgeabl
         </Tooltip>
       </span>
       <div className="fr-mt-3v fr-mb-4v">
-        <div dangerouslySetInnerHTML={{ __html: proposed }} />
+        <div className="[&>:last-child]:mb-0!" dangerouslySetInnerHTML={{ __html: proposed }} />
       </div>
       <div>
         <ButtonsGroup

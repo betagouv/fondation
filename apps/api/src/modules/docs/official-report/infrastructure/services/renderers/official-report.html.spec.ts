@@ -164,6 +164,19 @@ describe('officialReportTemplate', () => {
     expect($('main').html()).toMatchSnapshot();
   });
 
+  it('reads a name written in HTML as text', () => {
+    const name = '<img src=x onerror=alert(1)>';
+    const $ = load(
+      officialReportTemplate.render({
+        ...baseContext,
+        files: baseContext.files.map((file) => ({ ...file, name })),
+      }),
+    );
+
+    expect($('main img')).toHaveLength(0);
+    expect($('main ol strong').first().text()).toBe(name);
+  });
+
   it('should not display the renouncement when false', () => {
     const $ = load(officialReportTemplate.render({ ...baseContext, hasRenouncement: false }));
 

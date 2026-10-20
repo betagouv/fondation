@@ -38,7 +38,7 @@ export class ListNominationSessionAttachmentsQuery {
         name: file.name,
         addedAt: file.createdAt.toISOString(),
         addedBy: file.createdBy ? { id: file.createdBy.id, name: fullname(file.createdBy) } : null,
-        sizeInBytes: file.sizeInBytes,
+        size: file.sizeInBytes,
       })),
     };
   }
@@ -52,7 +52,7 @@ export class ListedNominationSessionAttachmentDto extends createZodDto(
         id: z.string(),
         addedAt: z.iso.datetime(),
         addedBy: z.object({ id: z.string(), name: z.string() }).nullable(),
-        sizeInBytes: z.number().int().nullable(),
+        size: z.number().int().nullable(),
       }),
     ),
   }),

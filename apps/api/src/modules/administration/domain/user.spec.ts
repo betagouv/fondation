@@ -2,6 +2,7 @@ import { AdminUserRole } from './admin-user-role';
 import { AdminUserTitle } from './admin-user-title';
 import {
   CantDeactivateOwnAccount,
+  EmailAlreadyTaken,
   User,
   UserDeactivated,
   UserDisplayTitleUpdated,
@@ -24,9 +25,17 @@ describe('User', () => {
 
   it('should update email', () => {
     const user = User.from(baseProps);
-    user.updateEmail('new@email.com');
+    user.updateEmail({ email: 'new@email.com', isTakenByAnotherUser: false });
 
     expect(user.messages).toContainEqual(new UserEmailUpdated(user.id, 'new@email.com'));
+  });
+
+  it('should refuse the email of another user', () => {
+    const user = User.from(baseProps);
+
+    expect(() => user.updateEmail({ email: 'taken@email.com', isTakenByAnotherUser: true })).toThrow(
+      EmailAlreadyTaken,
+    );
   });
 
   it('should update the display title', () => {

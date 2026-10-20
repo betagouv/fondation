@@ -1,24 +1,17 @@
-import postgres from 'postgres';
-import { inject } from 'vitest';
+import type { Sql } from 'postgres';
 
 import { test } from '../fixtures.ts';
 import { MEETING_DATE } from '../fixtures/docs.fixture.ts';
 
-async function filesOfValidatedVersionsReading(html: string): Promise<number> {
-  const sql = postgres(inject('databaseUrl'), { onnotice: () => {} });
+async function filesOfValidatedVersionsReading(sql: Sql, html: string): Promise<number> {
+  const [row] = await sql<{ count: bigint }[]>`
+    select count(*)
+    from docs.official_report_nomination_file as f
+    inner join docs.official_report_version as v on v.id = f.version_id
+    where v.status = 'VALIDATED' and f.html_edited = ${html}
+  `;
 
-  try {
-    const [row] = await sql<{ count: bigint }[]>`
-      select count(*)
-      from docs.official_report_nomination_file as f
-      inner join docs.official_report_version as v on v.id = f.version_id
-      where v.status = 'VALIDATED' and f.html_edited = ${html}
-    `;
-
-    return Number(row?.count ?? 0);
-  } finally {
-    await sql.end();
-  }
+  return Number(row?.count ?? 0);
 }
 
 const VALIDATED = { comment: null, value: 'VALIDATED' } as const;
@@ -69,7 +62,7 @@ test.describe('Official report', () => {
     const sessionId = session.id;
 
     const ruleAcrossEndpoints = async () => {
-      const sessions = await agent.sessions.listSessionsOfTypeGardeDesSceaux({ query: { limit: 50 } });
+      const sessions = await agent.sessions.listSessionsOfTypeGardeDesSceaux({ query: { search: session.name } });
       const detailed = await agent.sessions.detailsNominationSession({ path: { sessionId } });
       const files = await agent.sessions.listNominationFiles({ path: { sessionId } });
       const readiness = await agent.docs.isSessionReadyForDocGeneration({ path: { sessionId } });
@@ -120,7 +113,7 @@ test.describe('Official report', () => {
     });
     const archived = await agent.sessions.archiveSession({ path: { sessionId } });
     expect(archived.response?.status).toBe(204);
-    const archivedSessions = await agent.archivedSessions.listArchivedSessions({ query: { limit: 200 } });
+    const archivedSessions = await agent.archivedSessions.listArchivedSessions({ query: { search: session.name } });
     expect(archivedSessions.data!.items.map(({ id }) => id)).toContain(sessionId);
 
     // an archived session freezes the reports written for it
@@ -143,7 +136,7 @@ test.describe('Official report', () => {
     await docs.officialReport(await docs.agenda(session), { status: 'VALIDATED' });
     await agent.sessions.archiveSession({ path: { sessionId }, throwOnError: true });
 
-    const archivedSessions = await agent.archivedSessions.listArchivedSessions({ query: { limit: 200 } });
+    const archivedSessions = await agent.archivedSessions.listArchivedSessions({ query: { search: session.name } });
     const archivedSession = archivedSessions.data!.items.find(({ id }) => id === sessionId);
     expect(archivedSession).toMatchObject({
       archivedAt: expect.any(String),
@@ -154,10 +147,12 @@ test.describe('Official report', () => {
     const { formation } = archivedSession!;
     const formationMember = await logIn(formation === 'PARQUET' ? 'MEMBRE_DU_PARQUET' : 'MEMBRE_DU_SIEGE');
     const outsider = await logIn(formation === 'PARQUET' ? 'MEMBRE_DU_SIEGE' : 'MEMBRE_DU_PARQUET');
-    const foundByMember = await formationMember.archivedSessions.listArchivedSessions({ query: { limit: 200 } });
+    const foundByMember = await formationMember.archivedSessions.listArchivedSessions({
+      query: { search: session.name },
+    });
     expect(foundByMember.data!.items.map(({ id }) => id)).toContain(sessionId);
     const foundByOutsider = await outsider.archivedSessions.listArchivedSessions({
-      query: { formations: [formation], limit: 200 },
+      query: { formations: [formation], search: session.name },
     });
     expect(foundByOutsider.data!.items.map(({ id }) => id)).not.toContain(sessionId);
   });
@@ -352,6 +347,7 @@ test.describe('Official report', () => {
     docs,
     expect,
     member,
+    sql,
   }) => {
     const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
     const agenda = await docs.agenda(session);
@@ -377,7 +373,7 @@ test.describe('Official report', () => {
       draft: null,
       status: 'VALIDATED',
     });
-    expect(await filesOfValidatedVersionsReading(later)).toBe(0);
+    expect(await filesOfValidatedVersionsReading(sql, later)).toBe(0);
   });
 
   test('should give a file of a validated report the sentence its agenda rewrote, once reset', async ({

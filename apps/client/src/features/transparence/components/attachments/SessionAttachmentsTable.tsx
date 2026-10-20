@@ -41,7 +41,7 @@ function AddedAtCell(props: CellContext<SessionAttachment, string>) {
 const addedByCell = rowCell<SessionAttachment>((attachment) => attachment.addedBy?.name ?? '-');
 
 const sizeCell = rowCell<SessionAttachment>((attachment) =>
-  attachment.sizeInBytes ? formatFileSize(attachment.sizeInBytes) : null,
+  attachment.size ? formatFileSize(attachment.size) : null,
 );
 
 function ActionsCell(props: CellContext<SessionAttachment, unknown>) {
@@ -94,7 +94,7 @@ export function SessionAttachmentsTable(props: {
         size: 200,
       }),
 
-      h.accessor('sizeInBytes', {
+      h.accessor('size', {
         cell: sizeCell,
         enableSorting: true,
         header: formatMessage({ defaultMessage: 'Taille' }),

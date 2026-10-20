@@ -37,6 +37,7 @@ import { JusticePresentationPlanRepository } from './infrastructure/repositories
 import {
   removePresentationTimeDocMeetingSessionEndingTime,
   updatePresentationTimeDocMeetingSessionEndingTime,
+  withEditedPresentationPlanContent,
 } from './infrastructure/services/renderers/presentation-plan.html';
 import { ValidatePresentationPlanUseCase } from './infrastructure/use-cases/validate-presentation-plan.use-case';
 
@@ -323,9 +324,10 @@ export class PresentationPlansService {
     if (!plan) throw new NotFoundException();
     if (plan.isPresented) throw new JusticePresentationPlanAlreadyPresented();
 
+    const html = await this.findPresentationPlanDocumentQuery.handle({ forceNew: true, id: command.id });
     await this.db.tx.justicePresentationPlan.update({
       data: {
-        html: command.html.toString('utf-8'),
+        html: withEditedPresentationPlanContent({ edited: command.html.toString('utf-8'), html }),
         isManuallyEdited: true,
         pdfId: null,
         updatedAt: this.clock.now(),
