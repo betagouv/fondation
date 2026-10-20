@@ -221,4 +221,45 @@ test.describe('Session Affectations E2E', () => {
     const files = await agent.sessions.listNominationFiles({ path: { sessionId } });
     expect(files.data!.items[0]).toMatchObject({ priorities: ['ETOILE'], reporters: [{ id: memberId }] });
   });
+
+  test('gives each file its own priorities in a single bulk update', async ({ agent, expect, sessions }) => {
+    const candidate = (lastName: string) => ({
+      firstName: 'ETIENNE',
+      lastName,
+      position: { function: seed.functions.PR, grade: 'G3' as const, jurisdiction: seed.jurisdictions['CA  LYON'] },
+      targetPosition: {
+        function: seed.functions.PR,
+        grade: 'G3' as const,
+        jurisdiction: seed.jurisdictions['CA  GRENOBLE'],
+      },
+    });
+    const { id: bulkSessionId } = await sessions.createOne({
+      candidates: [candidate('ARNAUD'), candidate('BERGER'), candidate('CARON')],
+      createdAt: '22/04/2026',
+      name: 'Transparence priorités groupées',
+    });
+    const { data } = await agent.sessions.listNominationFiles({ path: { sessionId: bulkSessionId } });
+    const [first, second, third] = data!.items.map(({ id }) => id);
+
+    await agent.sessions.updateNominationFilesPriorities({
+      body: {
+        items: [
+          { nominationFileId: first!, priorities: ['ETOILE'] },
+          { nominationFileId: second!, priorities: ['ETOILE'] },
+          { nominationFileId: third!, priorities: ['PROFILE'] },
+        ],
+      },
+      path: { sessionId: bulkSessionId },
+      throwOnError: true,
+    });
+
+    const files = await agent.sessions.listNominationFiles({ path: { sessionId: bulkSessionId } });
+    expect(new Map(files.data!.items.map(({ id, priorities }) => [id, priorities]))).toEqual(
+      new Map([
+        [first, ['ETOILE']],
+        [second, ['ETOILE']],
+        [third, ['PROFILE']],
+      ]),
+    );
+  });
 });
