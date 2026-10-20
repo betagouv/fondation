@@ -116,6 +116,11 @@ export class SimpleAuthService {
     return { id: user.id };
   }
 
+  async internalHashPassword(plain: string): Promise<string> {
+    const password = await AuthPassword.create(plain);
+    return password.toString();
+  }
+
   async impersonate(command: {
     userId: string;
     authSessionId: string;
