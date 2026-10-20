@@ -59,20 +59,26 @@ export function useAffectation(props: {
   const save = useCallback(() => {
     const nominationFileId = nominationFile.id;
 
-    Promise.all([
+    void Promise.allSettled([
       reportersDirty &&
         affectReporters.mutateAsync({ affectations: [{ nominationFileId, reporterIds }], sessionId }),
       prioritiesDirty &&
         updatePriorities.mutateAsync({ items: [{ nominationFileId, priorities }], sessionId }),
-    ]).then(onSaved, () =>
+    ]).then(([reporters, priorities]) => {
+      const reportersFailed = reporters.status === 'rejected';
+      const prioritiesFailed = priorities.status === 'rejected';
+      if (!reportersFailed && !prioritiesFailed) return onSaved();
+
       toasts.error({
-        description: formatMessage({
-          defaultMessage:
-            'Les champs encore modifiés ne sont pas enregistrés. Réessayez et prévenez le support si cela persiste.',
-        }),
-        title: formatMessage({ defaultMessage: "Les modifications n'ont pas été enregistrées" }),
-      }),
-    );
+        description: formatMessage({ defaultMessage: 'Réessayez et prévenez le support si cela persiste.' }),
+        title:
+          reportersFailed && prioritiesFailed
+            ? formatMessage({ defaultMessage: "Les rapporteurs et les priorités n'ont pas été enregistrés" })
+            : reportersFailed
+              ? formatMessage({ defaultMessage: "Les rapporteurs n'ont pas été enregistrés" })
+              : formatMessage({ defaultMessage: "Les priorités n'ont pas été enregistrées" }),
+      });
+    });
   }, [
     affectReporters,
     formatMessage,

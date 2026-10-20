@@ -742,7 +742,7 @@ export const useCountUsersNewSessionsQuery = () =>
       return data ?? null;
     },
     queryKey: sessionKeys.countUsersNewSessions(),
-    staleTime: 600_000, // 10 * 60 * 1_000,,
+    staleTime: 600_000,
   });
 
 export function useValidateSessionMutation() {
