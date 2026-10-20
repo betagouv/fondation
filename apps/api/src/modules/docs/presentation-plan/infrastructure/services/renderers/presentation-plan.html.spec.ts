@@ -95,6 +95,34 @@ describe('presentationPlanTemplate', () => {
     expect($('main').html()).toMatchSnapshot();
   });
 
+  it('reads a name and a comment written in HTML as text', () => {
+    const name = '<img src=x onerror=alert(1)>';
+    const comment = '<script>alert(1)</script>';
+    const [session] = baseCtx.sessions;
+    const [agenda] = session.agendas;
+    const $ = load(
+      presentationPlanTemplate.render({
+        ...baseCtx,
+        sessions: [
+          {
+            ...session,
+            agendas: [
+              {
+                ...agenda,
+                comments: [comment],
+                nominationFiles: agenda.nominationFiles.map((file) => ({ ...file, name })),
+              },
+            ],
+          },
+        ],
+      }),
+    );
+
+    expect($('main img, main script')).toHaveLength(0);
+    expect($('main li strong').first().text()).toBe(name);
+    expect($('main').text()).toContain(comment);
+  });
+
   it('should add the end time', () => {
     const html = presentationPlanTemplate.render(baseCtx);
     const result = updatePresentationTimeDocMeetingSessionEndingTime({

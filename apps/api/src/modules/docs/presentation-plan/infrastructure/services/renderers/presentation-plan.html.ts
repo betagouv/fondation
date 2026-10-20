@@ -1,11 +1,14 @@
 import { load } from 'cheerio';
-import { html } from 'common-tags';
 
 import {
   commonDocumentCss,
   documentLayout,
 } from '../../../../shared/infrastructure/services/renderers/common.html';
 import { date, requiresElision } from '../../../../shared/infrastructure/services/renderers/helpers';
+import {
+  indentedHtml as html,
+  SafeHtml,
+} from '../../../../shared/infrastructure/services/renderers/safe-html';
 import {
   DocNominationFileOutcomeEnum,
   docNominationFileOutcomeLabel,
@@ -63,7 +66,11 @@ function css(): string {
   `;
 }
 
-function header(ctx: { date: DateOnly; typeDeSaisine: TypeDeSaisineEnum; formation: FormationEnum }): string {
+function header(ctx: {
+  date: DateOnly;
+  typeDeSaisine: TypeDeSaisineEnum;
+  formation: FormationEnum;
+}): SafeHtml {
   const saisineTitle = assertIsDefined(
     (
       {
@@ -99,46 +106,53 @@ function displayOutcome(ctx: {
   return docNominationFileOutcomeLabel(ctx);
 }
 
-function nominationFileParagraph(file: AgendaNominationFile): string {
+function nominationFileParagraph(file: AgendaNominationFile): SafeHtml {
   const position = `${requiresElision(file.targetedPosition) ? `d'` : 'de '}${file.targetedPosition}`;
   return html`
     <li>
       <strong>${file.name}</strong>, pour la proposition au poste ${position}
-      (${file.targetedGrade})${file.outcomeComment ? `, aux motifs que&nbsp;: ${file.outcomeComment}` : ''}.
+      (${file.targetedGrade})${file.outcomeComment ? html`, aux motifs que&nbsp;: ${file.outcomeComment}` : ''}.
     </li>
   `;
 }
 
-function suspendedPagraphs(ctx: { previousCount: number; nominationFiles: readonly AgendaNominationFile[] }) {
+function suspendedPagraphs(ctx: {
+  previousCount: number;
+  nominationFiles: readonly AgendaNominationFile[];
+}): SafeHtml | null {
   const files = ctx.nominationFiles
     .filter(({ outcome }) => outcome === 'SUSPENDED')
     .sort((a, b) => a.number - b.number);
-  if (files.length === 0) return '';
+  if (files.length === 0) return null;
 
-  const paragraphs = files.map(nominationFileParagraph).join('\n');
+  const paragraphs = SafeHtml.join(files.map(nominationFileParagraph), '\n');
 
   const intro =
     ctx.previousCount > 0
       ? html`Par ailleurs, le Conseil sursoit à statuer pour`
       : html`Le Conseil supérieur de la magistrature sursoit à statuer pour`;
 
+  const list = html`<ul>
+    ${paragraphs}
+  </ul>`;
+
   return html`<p>
       ${intro}
       ${files.length > 1 ? html`les propositions suivantes&nbsp;:` : html`la proposition suivante&nbsp;:`}
     </p>
-    ${`<ul>${paragraphs}</ul>`}`;
+    ${list}`;
 }
 
 function nonValidatedParagraph(ctx: {
   formation: FormationEnum;
   nominationFiles: readonly AgendaNominationFile[];
-}): string {
+}): SafeHtml | null {
   const files = ctx.nominationFiles
     .filter(({ outcome }) => outcome === 'NON_VALIDATED')
     .sort((a, b) => a.number - b.number);
-  if (files.length === 0) return '';
+  if (files.length === 0) return null;
 
-  const paragraphs = files.map(nominationFileParagraph).join('\n');
+  const paragraphs = SafeHtml.join(files.map(nominationFileParagraph), '\n');
 
   const intro = html`<p>
     Le Conseil supérieur de la magistrature émet un
@@ -174,7 +188,7 @@ function chairmanBlock(ctx: {
   formation: FormationEnum;
   chairman: { firstName: string; lastName: string };
   nominationFiles: readonly AgendaNominationFile[];
-}): string {
+}): SafeHtml {
   const nonValidated = nonValidatedParagraph(ctx);
 
   const nonValidatedCount = pluralCount(ctx.nominationFiles, ({ outcome }) => outcome === 'NON_VALIDATED');
@@ -189,9 +203,9 @@ function chairmanBlock(ctx: {
     validatedCount > 0
       ? html`<p>
           ${
-            nonValidated !== '' && suspended !== ''
+            nonValidated && suspended
               ? `Enfin, le Conseil émet un`
-              : nonValidated !== '' || suspended !== ''
+              : nonValidated || suspended
                 ? `Par ailleurs, le Conseil émet un`
                 : `Le Conseil supérieur de la magistrature émet un`
           }
@@ -227,7 +241,7 @@ function presentationPlanSessionSection(ctx: {
     chairman: { firstName: string; lastName: string };
     nominationFiles: readonly AgendaNominationFile[];
   }[];
-}): string {
+}): SafeHtml {
   const allComments = ctx.agendas.flatMap(({ comments }) =>
     comments.flatMap((x) => {
       const trimmed = x.trim();
@@ -237,26 +251,29 @@ function presentationPlanSessionSection(ctx: {
 
   const commentParagraph =
     allComments.length > 1
-      ? html`<p>Commentaires&nbsp;:</p>` +
-        html`<ul>
-          ${allComments.map((comment) => html`<li>${comment}</li>`)}
-        </ul>`
+      ? SafeHtml.join([
+          html`<p>Commentaires&nbsp;:</p>`,
+          html`<ul>
+            ${allComments.map((comment) => html`<li>${comment}</li>`)}
+          </ul>`,
+        ])
       : allComments.length === 1
         ? html`<p>Commentaire&nbsp;: ${allComments[0]!}</p>`
         : '';
 
   return html`
     <h3>${ctx.name}</h3>
-    ${ctx.agendas
-      .map(({ chairman, nominationFiles }) =>
+    ${SafeHtml.join(
+      ctx.agendas.map(({ chairman, nominationFiles }) =>
         chairmanBlock({ formation: ctx.formation, chairman, nominationFiles }),
-      )
-      .join('\n')}
+      ),
+      '\n',
+    )}
     ${commentParagraph}
   `;
 }
 
-function endingTime(time: TimeOnly): string {
+function endingTime(time: TimeOnly): SafeHtml {
   return html`Heure de fin de la séance de restitution&nbsp;: ${timeOnlyToString(time)}`;
 }
 
@@ -276,7 +293,7 @@ function content(ctx: {
       nominationFiles: readonly AgendaNominationFile[];
     }[];
   }[];
-}): string {
+}): SafeHtml {
   return html`
     ${
       ctx.hasRenunciation
@@ -287,7 +304,7 @@ function content(ctx: {
             </p>`
         : ''
     }
-    ${ctx.sessions.map((session) => presentationPlanSessionSection(session)).join('\n')}
+    ${SafeHtml.join(ctx.sessions.map(presentationPlanSessionSection), '\n')}
 
     <h3>Informations administratives</h3>
     <ul>
@@ -298,7 +315,7 @@ function content(ctx: {
   `;
 }
 
-function footer(): string {
+function footer(): SafeHtml {
   return html``;
 }
 
@@ -314,7 +331,9 @@ export function updatePresentationTimeDocMeetingSessionEndingTime(props: {
   meetingSessionEndingTime: TimeOnly;
 }): string {
   const doc = load(props.html);
-  doc('.content ul:last-of-type').append(html`<li>${endingTime(props.meetingSessionEndingTime)}</li>`);
+  doc('.content ul:last-of-type').append(
+    html`<li>${endingTime(props.meetingSessionEndingTime)}</li>`.toString(),
+  );
 
   return doc.html();
 }
