@@ -19,6 +19,7 @@ export type OfficialReportContextType = {
   officialReportId: string | null;
   session: { id: string; formation: FormationEnum };
   report: OfficialReport | null;
+  recordedMemberIds: readonly string[];
   /** what a validated report did not follow: saving it again, even unchanged, is how it catches up */
   changedSinceValidation: readonly SystemUpdateCause[];
   isSubmitting: boolean;

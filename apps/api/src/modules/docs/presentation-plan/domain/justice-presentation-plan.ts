@@ -86,8 +86,11 @@ export class JusticePresentationPlanChangedWhileValidated extends Error {}
 
 export class JusticePresentationPlan {
   readonly #messages: JusticePresentationPlanMessage[] = [];
-  get chairmanId(): string | null {
-    return this.settings?.chairmanId ?? null;
+  get recordedMemberIds(): string[] {
+    if (!this.settings) return [];
+
+    const { chairmanId, members } = this.settings;
+    return [...(chairmanId ? [chairmanId] : []), ...members.map(({ id }) => id)];
   }
 
   get messages(): readonly JusticePresentationPlanMessage[] {

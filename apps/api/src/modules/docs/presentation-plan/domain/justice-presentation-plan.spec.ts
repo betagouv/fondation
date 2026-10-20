@@ -181,6 +181,14 @@ describe('JusticePresentationPlan', () => {
     });
   });
 
+  it('should name the chairman and the members it recorded, for them to stay offered', () => {
+    expect(aDraft({ agendaIds: ['agenda-1'] }).recordedMemberIds).toEqual([
+      'chairman-1',
+      'member-1',
+      'member-2',
+    ]);
+  });
+
   describe('unPresent', () => {
     it('should refuse to unpresent a notice not presented', () => {
       const plan = aDraft({ agendaIds: ['agenda-1'], isValidated: true });

@@ -32,7 +32,7 @@ const MetadataSchema = z.object({
 });
 
 export function PresentationMetadataStep(props: { className?: string }) {
-  const { state, setMetadata, isDisabled } = usePresentationPlan();
+  const { isDisabled, recordedMemberIds, setMetadata, state } = usePresentationPlan();
   const navigate = useNavigate();
 
   const { data: secretariesData, isFetching: isFetchingSecretaries } = useListSecretariesGeneralQuery();
@@ -148,6 +148,7 @@ export function PresentationMetadataStep(props: { className?: string }) {
         formation={state.formation ?? undefined}
         // oxlint-disable-next-line typescript/no-explicit-any
         control={control as any}
+        includeIds={recordedMemberIds}
         name="chairmanId"
       />
 
@@ -181,6 +182,7 @@ export function PresentationMetadataStep(props: { className?: string }) {
         formation={state.formation}
         // oxlint-disable-next-line typescript/no-explicit-any
         control={control as any}
+        includeIds={recordedMemberIds}
         name="memberIds"
       />
 

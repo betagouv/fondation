@@ -10,13 +10,17 @@ import type { FoundDocsMembersDto } from '@api/types';
 import { useDocsMembersQuery } from '@queries/agenda.queries';
 
 export function ChairmanSelector(
-  props: UseControllerProps<{ chairmanId: string }, 'chairmanId'> & { formation: FormationEnum | undefined },
+  props: UseControllerProps<{ chairmanId: string }, 'chairmanId'> & {
+    formation: FormationEnum | undefined;
+    includeIds?: readonly string[];
+  },
 ) {
   const { formatMessage } = useIntl();
   const { field, fieldState } = useController(props);
 
   const { data: membersData, isFetching: isMembersFetching } = useDocsMembersQuery({
     formation: props.formation,
+    includeIds: props.includeIds,
   });
 
   const [chairmen, nonChairmen] = React.useMemo(

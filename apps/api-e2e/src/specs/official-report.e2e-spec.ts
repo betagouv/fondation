@@ -551,6 +551,48 @@ test.describe('Official report', () => {
     });
   });
 
+  test('should still offer for an official report a member it recorded, deactivated since, and mark them absent', async ({
+    admin,
+    agent,
+    docs,
+    expect,
+    member,
+    registerUser,
+  }) => {
+    const leaving = await registerUser('MEMBRE_DU_PARQUET');
+    const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
+    const metadata = {
+      absentMemberIds: [],
+      chairmanId: docs.chairman.id,
+      hasRenunciation: true,
+      justiceDepartmentContactId: docs.justiceContact.id,
+      secretaryId: docs.secretary.id,
+      sessionMeetingDate: MEETING_DATE,
+      sessionMeetingEndingTime: { hours: 18, minutes: 10, seconds: 0 },
+      sessionMeetingTime: { hours: 18, minutes: 0, seconds: 0 },
+    };
+    const { id: officialReportId } = await docs.officialReport(await docs.agenda(session), metadata);
+    await admin.administration.deactivate({ path: { userId: leaving.id }, throwOnError: true });
+
+    const { data: report } = await agent.docs.detailsOfficialReport({ path: { officialReportId }, throwOnError: true });
+    const { data: offered } = await agent.docs.findDocsMembers({
+      query: { formation: 'PARQUET', includeIds: report.recordedMembers },
+      throwOnError: true,
+    });
+    expect(offered.items.map(({ id }) => id)).toContain(leaving.id);
+
+    await agent.docs.updateOfficialReport({
+      body: { ...metadata, absentMemberIds: [leaving.id] },
+      path: { officialReportId },
+      throwOnError: true,
+    });
+    const { data: updated } = await agent.docs.detailsOfficialReport({
+      path: { officialReportId },
+      throwOnError: true,
+    });
+    expect(updated.absentMembers).toEqual([leaving.id]);
+  });
+
   test('should keep in a validated official report a member deactivated since, with the absence recorded', async ({
     admin,
     agent,
@@ -578,7 +620,10 @@ test.describe('Official report', () => {
     });
     await admin.administration.deactivate({ path: { userId: leaving.id }, throwOnError: true });
 
-    const saved = await agent.docs.updateOfficialReport({ body: metadata, path: { officialReportId } });
+    const saved = await agent.docs.updateOfficialReport({
+      body: { ...metadata, absentMemberIds: [leaving.id] },
+      path: { officialReportId },
+    });
     expect(saved.response?.status).toBe(204);
 
     const details = await agent.docs.detailsOfficialReport({ path: { officialReportId } });

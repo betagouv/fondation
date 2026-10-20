@@ -96,7 +96,10 @@ export class MembersService {
   }
 
   /** @internal */
-  internalFindMembersByFormation(query: { formation: FormationEnum }): Promise<InternalMemberListDto[]> {
+  internalFindMembersByFormation(query: {
+    formation: FormationEnum;
+    includeIds?: readonly string[];
+  }): Promise<InternalMemberListDto[]> {
     return this.internalFindMembersByFormationQuery.handle(query);
   }
 }

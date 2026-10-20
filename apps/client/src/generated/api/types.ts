@@ -1534,6 +1534,7 @@ export type DetailedOfficialReportMetadataDto = {
     id: string;
     hasRenunciation: boolean;
     absentMembers: Array<string>;
+    recordedMembers: Array<string>;
     agendaId: string | null;
     sessionMeetingDate: {
         year: number;
@@ -1787,6 +1788,7 @@ export type DetailedPresentationPlanMetadataDto = {
     justiceDepartmentContactId: string | null;
     hasRenunciation: boolean;
     absentMemberIds: Array<string>;
+    recordedMemberIds: Array<string>;
     removedAgendas: Array<{
         agenda: {
             id: string;
@@ -3803,6 +3805,7 @@ export type FindDocsMembersData = {
     path?: never;
     query: {
         formation: 'SIEGE' | 'PARQUET';
+        includeIds?: Array<string>;
     };
     url: '/api/docs/v1/members';
 };

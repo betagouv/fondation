@@ -190,6 +190,11 @@ export class OfficialReport {
     return this.#messages;
   }
 
+  get recordedMemberIds(): string[] {
+    const { chairman, members } = this.snapshot.meta;
+    return [...(chairman.id ? [chairman.id] : []), ...members.map(({ id }) => id)];
+  }
+
   get formation(): FormationEnum {
     return this.snapshot.meta.agenda.formation;
   }

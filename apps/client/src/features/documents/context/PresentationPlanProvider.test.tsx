@@ -18,6 +18,7 @@ const mocks = vi.hoisted(() => ({
     formation: 'SIEGE',
     hasRenunciation: true,
     isManuallyEdited: false,
+    recordedMemberIds: [],
     justiceDepartmentContactId: '12',
     outdated: false,
     secretaryId: 'secretary-1',

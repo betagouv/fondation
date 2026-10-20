@@ -163,7 +163,10 @@ export class OfficialReportsService {
       impersonationId: undefined,
     });
     const chairman = await this.members.internalGetMember({ id: command.chairmanId });
-    const members = await this.members.internalFindMembersByFormation({ formation: report.formation });
+    const members = await this.members.internalFindMembersByFormation({
+      formation: report.formation,
+      includeIds: report.recordedMemberIds,
+    });
 
     const {
       items: [agenda],

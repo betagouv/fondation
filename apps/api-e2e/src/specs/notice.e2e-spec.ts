@@ -218,6 +218,27 @@ test.describe('Notice', () => {
     });
   });
 
+  test('should save a notice whose chairman was deactivated since', async ({ admin, agent, docs, expect }) => {
+    const agenda = await docs.agenda(await docs.session());
+    const metadata = {
+      absentMembers: [],
+      chairmanId: docs.chairman.id,
+      date: MEETING_DATE,
+      hasRenunciation: true,
+      justiceContactId: docs.justiceContact.id,
+      secretaryId: docs.secretary.id,
+      time: { hours: 9, minutes: 30, seconds: 0 },
+    };
+    const { id: planId } = await docs.notice([agenda], metadata);
+    await admin.administration.deactivate({ path: { userId: docs.chairman.id }, throwOnError: true });
+
+    const saved = await agent.docs.updateJusticePresentationPlan({
+      body: { ...metadata, agendas: [{ comment: 'hors délai', id: agenda.id }] },
+      path: { planId },
+    });
+    expect(saved.response?.status).toBe(204);
+  });
+
   test('should keep in a validated notice a member deactivated since, with the absence recorded', async ({
     admin,
     agent,
@@ -244,7 +265,7 @@ test.describe('Notice', () => {
     await admin.administration.deactivate({ path: { userId: leaving.id }, throwOnError: true });
 
     const saved = await agent.docs.updateJusticePresentationPlan({
-      body: { ...metadata, agendas: [{ comment: null, id: agenda.id }] },
+      body: { ...metadata, absentMembers: [leaving.id], agendas: [{ comment: null, id: agenda.id }] },
       path: { planId },
     });
     expect(saved.response?.status).toBe(204);

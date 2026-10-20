@@ -166,15 +166,10 @@ export class PresentationPlansService {
     const { formation } = assertIsDefined(agendas[0]);
     const members = await this.members.internalFindMembersByFormation({
       formation,
+      includeIds: plan.recordedMemberIds,
     });
 
-    const [[offeredChairman], allMembers] = partition(members, (m) => m.id === command.chairmanId);
-    // the chairman of the meeting stays, even deactivated since
-    const chairman =
-      offeredChairman ??
-      (command.chairmanId === plan.chairmanId
-        ? await this.members.internalGetMember({ id: command.chairmanId })
-        : undefined);
+    const [[chairman], allMembers] = partition(members, (m) => m.id === command.chairmanId);
 
     if (!chairman) {
       this.logger.error(`unknown chairman id ${command.chairmanId}`);
