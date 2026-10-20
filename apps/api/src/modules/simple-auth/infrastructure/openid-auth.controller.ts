@@ -55,9 +55,8 @@ export class OpenIdAuthController {
     try {
       const { code, state } = query;
       const session = await this.auth.openId.login({ code, state, provider });
-      res
-        .cookie('sessionId', session.id, { ...SESSION_COOKIE_OPTIONS, expires: session.expiresAt })
-        .clearCookie('impersonationId', SESSION_COOKIE_OPTIONS);
+      res.cookie('sessionId', session.id, { ...SESSION_COOKIE_OPTIONS, expires: session.expiresAt });
+      res.clearCookie('impersonationId', SESSION_COOKIE_OPTIONS);
     } catch (error) {
       this.logger.error('Error while login with openid', error);
       redirect.searchParams.set('error', 'true');
