@@ -1,9 +1,11 @@
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { richTextHtml } from 'src/utils/rich-text-html';
+
 export class WriteMemberCommentDto extends createZodDto(
   z.object({
-    comment: z.string(),
+    comment: richTextHtml,
   }),
 ) {}
 
