@@ -5,6 +5,8 @@ import { DateOnly } from 'src/utils/date-only';
 import { unaccent } from 'src/utils/unaccent';
 import { fullname } from 'src/utils/user.util';
 
+import { SafeHtml } from './safe-html';
+
 export function titled(props: {
   title: UserTitleEnum | null;
   firstName: string;
@@ -52,13 +54,13 @@ const longDate = new Intl.DateTimeFormat('fr', {
 });
 
 type DateFormat = 'dd/MM/yyyy' | 'do MMMM yyyy';
-export function date(date: DateOnly | DateOnlyJson, format: DateFormat = 'dd/MM/yyyy'): string {
+export function date(date: DateOnly | DateOnlyJson, format: DateFormat = 'dd/MM/yyyy'): SafeHtml {
   const dateOnly = date instanceof DateOnly ? date : DateOnly.fromJson(date);
-  if (format === 'dd/MM/yyyy') return shortDate.format(dateOnly.toDate());
+  if (format === 'dd/MM/yyyy') return new SafeHtml(shortDate.format(dateOnly.toDate()));
 
   // In French only the first of the month takes an ordinal
   const formatted = longDate.format(dateOnly.toDate());
-  return dateOnly.toJson().day === 1 ? formatted.replace(/^1 /, `1<sup>er</sup> `) : formatted;
+  return new SafeHtml(dateOnly.toJson().day === 1 ? formatted.replace(/^1 /, `1<sup>er</sup> `) : formatted);
 }
 
 const elidingInitials = new Set(['a', 'e', 'i', 'o', 'u', 'y', 'h']);
@@ -69,14 +71,16 @@ export function requiresElision(word: string): boolean {
 
 /**
  * the template and the editor write the same sentence differently, so the editor's own paragraph
- * wrappers and its spacing are set aside. The emphasis is not: putting a name in bold is an
- * edition of its own.
+ * wrappers, its spacing and the quotes the template escapes but the editor leaves as is are set
+ * aside. The emphasis is not: putting a name in bold is an edition of its own.
  */
 export function readsTheSame(left: string, right: string): boolean {
   const words = (html: string) =>
     html
       .replace(/<\/?(p|div|li|ul|ol|h[1-6]|br)\s*\/?>/gi, ' ')
       .replace(/&nbsp;/g, ' ')
+      .replace(/&#39;/g, "'")
+      .replace(/&quot;/g, '"')
       .replace(/\s+/g, ' ')
       .trim();
 

@@ -16,15 +16,19 @@ describe('renderer helpers', () => {
       process.env.TZ = timeZone;
       const { date: reloaded } = await import('./helpers');
 
-      expect(reloaded({ year: 2026, month: 6, day: 1 })).toBe('01/06/2026');
-      expect(reloaded({ year: 2026, month: 6, day: 2 }, 'do MMMM yyyy')).toBe('2 juin 2026');
-      expect(reloaded({ year: 2026, month: 6, day: 1 }, 'do MMMM yyyy')).toBe('1<sup>er</sup> juin 2026');
+      expect(String(reloaded({ year: 2026, month: 6, day: 1 }))).toBe('01/06/2026');
+      expect(String(reloaded({ year: 2026, month: 6, day: 2 }, 'do MMMM yyyy'))).toBe('2 juin 2026');
+      expect(String(reloaded({ year: 2026, month: 6, day: 1 }, 'do MMMM yyyy'))).toBe(
+        '1<sup>er</sup> juin 2026',
+      );
     });
 
     it('takes an ordinal on the first of the month, and only there', () => {
-      expect(renderDate({ year: 2026, month: 6, day: 1 }, 'do MMMM yyyy')).toBe('1<sup>er</sup> juin 2026');
-      expect(renderDate({ year: 2026, month: 6, day: 11 }, 'do MMMM yyyy')).toBe('11 juin 2026');
-      expect(renderDate({ year: 2026, month: 6, day: 21 }, 'do MMMM yyyy')).toBe('21 juin 2026');
+      expect(String(renderDate({ year: 2026, month: 6, day: 1 }, 'do MMMM yyyy'))).toBe(
+        '1<sup>er</sup> juin 2026',
+      );
+      expect(String(renderDate({ year: 2026, month: 6, day: 11 }, 'do MMMM yyyy'))).toBe('11 juin 2026');
+      expect(String(renderDate({ year: 2026, month: 6, day: 21 }, 'do MMMM yyyy'))).toBe('21 juin 2026');
     });
   });
 
@@ -54,6 +58,12 @@ describe('renderer helpers', () => {
     it('sets aside the spacing the two writers disagree on', () => {
       expect(
         readsTheSame(`<strong>M. VIRBEL  Eric</strong>,\n  actuellement en détachement (G3).`, PROPOSED),
+      ).toBe(true);
+    });
+
+    it('sets aside the quotes the template escapes and the editor leaves as is', () => {
+      expect(
+        readsTheSame(`<p>cour d'appel, dite "de Paris"</p>`, `cour d&#39;appel, dite &quot;de Paris&quot;`),
       ).toBe(true);
     });
 
