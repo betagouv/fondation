@@ -10,6 +10,7 @@ import {
   AuthUser,
   AuthUserAuthenticated,
   AuthUserRegistered,
+  AuthUserSessionsRevoked,
   AuthUserUnAuthenticated,
 } from 'src/modules/simple-auth/domain/auth-user';
 import { assertNever } from 'src/utils/assert-never';
@@ -44,6 +45,7 @@ export class AuthUserRepository {
       if (event instanceof AuthUserRegistered) await this.persistUserRegistered(event);
       else if (event instanceof AuthUserAuthenticated) await this.persistUserAuthenticated(event);
       else if (event instanceof AuthUserUnAuthenticated) await this.persistAuthUserUnAuthenticated(event);
+      else if (event instanceof AuthUserSessionsRevoked) await this.persistAuthUserSessionsRevoked(event);
       else if (event instanceof AuthImpersonationStarted) await this.persistImpersonationStarted(event);
       else if (event instanceof AuthImpersonationRevoked) await this.persistImpersonationRevoked(event);
       else if (event instanceof AuthOpenIdRequestCompleted)
@@ -99,6 +101,10 @@ export class AuthUserRepository {
 
   private persistAuthUserUnAuthenticated({ sessionId }: AuthUserUnAuthenticated) {
     return this.db.tx.authSession.delete({ where: { sessionId } });
+  }
+
+  private persistAuthUserSessionsRevoked({ id, keptSessionId }: AuthUserSessionsRevoked) {
+    return this.db.tx.authSession.deleteMany({ where: { sessionId: { not: keptSessionId }, userId: id } });
   }
 
   private persistAuthOpenIdRequestCompleted(message: AuthOpenIdRequestCompleted) {

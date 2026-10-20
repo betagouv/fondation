@@ -1,3 +1,4 @@
+import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
 import { Clock } from '../framework/clock';
@@ -82,6 +83,16 @@ export class SimpleAuthService {
   async unAuthenticate(command: { userId: string; sessionId: string }): Promise<void> {
     const user = await this.userRepository.find(command.userId);
     user.unAuthenticate(command.sessionId);
+    await this.userRepository.persist(user);
+  }
+
+  @Transactional(Propagation.Mandatory)
+  async internalRevokeSessions(command: {
+    keptSessionId: string | undefined;
+    userId: string;
+  }): Promise<void> {
+    const user = await this.userRepository.find(command.userId);
+    user.revokeSessions(command);
     await this.userRepository.persist(user);
   }
 

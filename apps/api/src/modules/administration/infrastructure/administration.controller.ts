@@ -16,7 +16,7 @@ import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { AdministrationService } from '../administration.service';
 import { ApiPaginated, Pagination, QueryPagination } from 'src/modules/framework/pagination';
-import { HasRole } from 'src/modules/simple-auth';
+import { AuthedUser, HasRole } from 'src/modules/simple-auth';
 
 import { AdministrationErrorMapper } from './administration.filter';
 import {
@@ -74,10 +74,11 @@ export class AdministrationController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
   updatePassword(
+    @AuthedUser() actor: { sessionId: string },
     @Param('userId', ParseUUIDPipe) userId: string,
     @Body() { password }: UpdateUserPasswordDto,
   ): Promise<void> {
-    return this.administration.updatePassword({ userId, password });
+    return this.administration.updatePassword({ actorSessionId: actor.sessionId, password, userId });
   }
 
   @HasRole('ADMIN')

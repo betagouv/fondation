@@ -1,7 +1,9 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
 import { Pagination } from 'src/modules/framework/pagination';
 import { Sortable } from 'src/modules/framework/sorting';
+import { SimpleAuthService } from 'src/modules/simple-auth';
 
 import { User } from './domain/user';
 import { AdminUserRoleEnum } from './domain/user-enum';
@@ -13,6 +15,7 @@ import { UserRepository } from './infrastructure/repositories/user.repository';
 @Injectable()
 export class AdministrationService {
   constructor(
+    private readonly auth: SimpleAuthService,
     private readonly userRepository: UserRepository,
     private readonly listUsersQuery: ListUsersQuery,
     private readonly detailsUserQuery: DetailsUserQuery,
@@ -37,10 +40,13 @@ export class AdministrationService {
     await this.userRepository.persist(user);
   }
 
-  async updatePassword(command: { userId: string; password: string }): Promise<void> {
+  @Transactional()
+  async updatePassword(command: { actorSessionId: string; password: string; userId: string }): Promise<void> {
     const user = await this.userRepository.findById(command.userId);
     await user.updatePassword(command.password);
     await this.userRepository.persist(user);
+    // an admin changing their own password stays logged in
+    await this.auth.internalRevokeSessions({ keptSessionId: command.actorSessionId, userId: command.userId });
   }
 
   async updateRole(command: { userId: string; role: AdminUserRoleEnum }): Promise<void> {

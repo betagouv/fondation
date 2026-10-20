@@ -46,6 +46,13 @@ export class AuthUserUnAuthenticated {
   ) {}
 }
 
+export class AuthUserSessionsRevoked {
+  constructor(
+    readonly id: string,
+    readonly keptSessionId: string | undefined,
+  ) {}
+}
+
 export class AuthUserAuthenticated {
   constructor(
     readonly id: string,
@@ -87,6 +94,7 @@ type AuthUserEvent =
   | AuthUserRegistered
   | AuthUserAuthenticated
   | AuthUserUnAuthenticated
+  | AuthUserSessionsRevoked
   | AuthImpersonationStarted
   | AuthImpersonationRevoked
   | AuthOpenIdRequestCompleted;
@@ -119,6 +127,10 @@ export class AuthUser {
 
   unAuthenticate(sessionId: string): void {
     this.#messages.push(new AuthUserUnAuthenticated(this.id, sessionId));
+  }
+
+  revokeSessions(command: { keptSessionId: string | undefined }): void {
+    this.#messages.push(new AuthUserSessionsRevoked(this.id, command.keptSessionId));
   }
 
   static from(props: { id: string; password: string }): AuthUser {
