@@ -44,15 +44,21 @@ function renderHeader(options: {
     pagination: { pageIndex: 0, pageSize: 100 },
   };
   client.setQueryData(authKeys.introspectSession(), CURRENT_USER);
-  client.setQueryData(memberKeys.listMembers(memberListOptions), {
+  const members = {
     items: [
-      { ...CURRENT_USER, excludedJurisdictions: [] },
+      { ...CURRENT_USER, excludedJurisdictions: [], status: 'ACTIVE' },
       {
         ...OTHER_REPORTER,
         excludedJurisdictions: options.excludedJurisdictionsOfOtherReporter ?? [],
+        status: 'ACTIVE',
       },
     ],
-  });
+  };
+  client.setQueryData(memberKeys.listMembers(memberListOptions), members);
+  client.setQueryData(
+    memberKeys.listMembers({ ...memberListOptions, statuses: ['ACTIVE', 'DEACTIVATED'] }),
+    members,
+  );
   client.setQueryData(
     reportKeys.myReport({ nominationFileId: options.nominationFile.id }),
     options.myReportId ?? null,

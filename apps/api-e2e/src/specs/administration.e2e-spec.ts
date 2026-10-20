@@ -182,6 +182,21 @@ test.describe('Administration', () => {
       expect(data.items).toEqual([]);
     });
 
+    test('should list the member with their status when every status is asked for', async ({
+      admin,
+      expect,
+      registerUser,
+    }) => {
+      const user = await registerUser('MEMBRE_COMMUN');
+      await admin.administration.deactivate({ path: { userId: user.id }, throwOnError: true });
+
+      const { data } = await admin.members.listMembers({
+        query: { search: user.email, statuses: ['ACTIVE', 'DEACTIVATED'] },
+        throwOnError: true,
+      });
+      expect(data.items).toEqual([expect.objectContaining({ id: user.id, status: 'DEACTIVATED' })]);
+    });
+
     test('should list the member among the deactivated users only', async ({ admin, expect, registerUser }) => {
       const user = await registerUser('MEMBRE_COMMUN');
       await admin.administration.deactivate({ path: { userId: user.id }, throwOnError: true });

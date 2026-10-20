@@ -37,6 +37,7 @@ export class MembersService {
     search: string | undefined;
     sortBy: 'firstName' | 'lastName' | undefined;
     sortDirection: 'asc' | 'desc' | undefined;
+    statuses: readonly UserStatus[];
   }): Promise<PaginatedMemberListItemDto> {
     return this.listMembersQuery.handle(query);
   }

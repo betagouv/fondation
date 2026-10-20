@@ -922,6 +922,7 @@ export type PaginatedMemberListItemDto = {
             id: string;
             label: string | null;
         }>;
+        status: 'ACTIVE' | 'DEACTIVATED';
     }>;
     totalCount: number;
     currentPageIndex: number;
@@ -3594,6 +3595,7 @@ export type ListMembersData = {
         sortDirection?: 'asc' | 'desc';
         search?: string;
         formations?: Array<'SIEGE' | 'PARQUET' | 'COMMUN'>;
+        statuses?: Array<'ACTIVE' | 'DEACTIVATED'>;
         page?: number;
         limit?: number;
     };

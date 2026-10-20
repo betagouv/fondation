@@ -3,12 +3,15 @@
 -- @param {String} $4:sortDirection?
 -- @param {Int} $5:limit
 -- @param {Int} $6:offset
+-- @param {Boolean} $7:includesActive
+-- @param {Boolean} $8:includesDeactivated
 
 SELECT
   m.id,
   m."role",
   m.first_name AS "firstName",
   m.last_name AS "lastName",
+  m.deactivated_at AS "deactivatedAt",
   COALESCE(excluded.jurisdictions, ARRAY[]::JSONB[])::JSONB[] AS "excludedJurisdictions"
 FROM
   identity_and_access_context."users" AS m
@@ -30,7 +33,7 @@ FROM
 
 WHERE (
   m."role" = ANY($1)
-  AND m.deactivated_at IS NULL
+  AND (CASE WHEN m.deactivated_at IS NULL THEN $7::BOOLEAN ELSE $8::BOOLEAN END)
   AND ($2::TEXT IS NULL OR (
     m.email ILIKE '%' || $2::TEXT || '%'
     OR m.first_name ILIKE '%' || $2::TEXT || '%'

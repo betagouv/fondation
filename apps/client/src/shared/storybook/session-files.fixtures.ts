@@ -109,6 +109,7 @@ export const sessionMembers: PaginatedMemberListItemDto['items'] = [
     ...sessionReporters.bernard,
     excludedJurisdictions: [{ id: 'jurisdiction-1', label: 'CA AIX EN PROVENCE' }],
     role: 'MEMBRE_DU_SIEGE',
+    status: 'ACTIVE',
   },
 ];
 

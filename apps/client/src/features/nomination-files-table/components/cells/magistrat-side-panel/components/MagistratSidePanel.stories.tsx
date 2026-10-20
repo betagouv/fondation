@@ -75,11 +75,12 @@ const { member } = STORY_USERS;
 const READER = { firstName: member.firstName, id: member.id, lastName: member.lastName };
 
 const MEMBERS: PaginatedMemberListItemDto['items'] = [
-  { ...READER, excludedJurisdictions: [], role: 'MEMBRE_DU_SIEGE' },
+  { ...READER, excludedJurisdictions: [], role: 'MEMBRE_DU_SIEGE', status: 'ACTIVE' },
   ...REPORTERS.map((reporter) => ({
     ...reporter,
     excludedJurisdictions: [],
     role: 'MEMBRE_DU_SIEGE' as const,
+    status: 'ACTIVE' as const,
   })),
 ];
 
