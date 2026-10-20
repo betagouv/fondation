@@ -367,6 +367,72 @@ test.describe('Session E2E', () => {
       expect(updatedFile?.hasJurisdictionSheet).toBe(false);
     });
 
+    test('should give back the attachments of a session until one is removed', async ({ agent, expect, sessions }) => {
+      const { id: sessionId } = await sessions.createOne(TREVOUX_SESSION);
+      await agent.sessions.uploadSessionAttachments({
+        body: {
+          files: [
+            makeFile({ name: 'circulaire.pdf', type: 'application/pdf' }),
+            makeFile({ name: 'calendrier.pdf', type: 'application/pdf' }),
+          ],
+        },
+        path: { sessionId },
+        throwOnError: true,
+      });
+
+      const listed = await agent.sessions.listNominationSessionAttachments({ path: { sessionId } });
+      expect(listed.data!.items.map(({ name }) => name).toSorted()).toEqual(['calendrier.pdf', 'circulaire.pdf']);
+      const removedId = listed.data!.items.find(({ name }) => name === 'circulaire.pdf')!.id;
+      const path = { fileId: removedId, sessionId };
+
+      const url = await agent.sessions.createNominationSessionAttachmentUrl({ path });
+      expect(url.data).toEqual({ id: removedId, name: 'circulaire.pdf', url: expect.any(String) });
+
+      const removed = await agent.sessions.removeSessionAttachment({ path });
+      expect(removed.response?.status).toBe(204);
+
+      const remaining = await agent.sessions.listNominationSessionAttachments({ path: { sessionId } });
+      expect(remaining.data!.items.map(({ name }) => name)).toEqual(['calendrier.pdf']);
+      const gone = await agent.sessions.createNominationSessionAttachmentUrl({ path });
+      expect(gone.response?.status).toBe(404);
+    });
+
+    test('should give back the attachments of a nomination file until one is removed', async ({
+      agent,
+      expect,
+      sessions,
+    }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+      const filePath = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+      await agent.sessions.uploadNominationFileAttachments({
+        body: {
+          files: [
+            makeFile({ name: 'fiche.pdf', type: 'application/pdf' }),
+            makeFile({ name: 'note.pdf', type: 'application/pdf' }),
+          ],
+          form: attachmentForm({ type: 'AUTRE' }),
+        },
+        path: filePath,
+        throwOnError: true,
+      });
+
+      const listed = await agent.sessions.listNominationFileAttachments({ path: filePath });
+      expect(listed.data!.items.map(({ name }) => name).toSorted()).toEqual(['fiche.pdf', 'note.pdf']);
+      const removedId = listed.data!.items.find(({ name }) => name === 'fiche.pdf')!.id;
+      const path = { ...filePath, fileId: removedId };
+
+      const url = await agent.sessions.createNominationFileAttachmentUrl({ path });
+      expect(url.data).toEqual({ id: removedId, name: 'fiche.pdf', url: expect.any(String) });
+
+      const removed = await agent.sessions.removeNominationFileAttachment({ path });
+      expect(removed.response?.status).toBe(204);
+
+      const remaining = await agent.sessions.listNominationFileAttachments({ path: filePath });
+      expect(remaining.data!.items.map(({ name }) => name)).toEqual(['note.pdf']);
+      const gone = await agent.sessions.createNominationFileAttachmentUrl({ path });
+      expect(gone.response?.status).toBe(404);
+    });
+
     test('should detail a nomination file exactly as the list serves it', async ({ agent, sessions, expect }) => {
       const session = await sessions.createOne(TREVOUX_SESSION);
       const files = await agent.sessions.listNominationFiles({ path: { sessionId: session.id } });

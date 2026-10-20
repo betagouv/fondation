@@ -17,7 +17,7 @@ export type TestSteps = typeof api & { ['@client']: Client; ['@user']: { id: str
 export type TestStepsMember = Pick<TestSteps, 'archivedSessions' | 'reports' | 'files' | '@client' | '@user'> & {
   auth: Pick<(typeof api)['auth'], 'introspectSession' | 'logout'>;
   feedback: Pick<TestSteps['feedback'], 'answerFeedback' | 'findFeedback'>;
-  summaries: Pick<TestSteps['summaries'], 'detailSummary' | 'detachSummaryFiles' | 'generateAttachmentPublicUrl'>;
+  summaries: Pick<TestSteps['summaries'], 'detailSummary' | 'generateAttachmentPublicUrl'>;
   members: Pick<
     TestSteps['members'],
     | 'listMemberSessionReports'
@@ -27,7 +27,12 @@ export type TestStepsMember = Pick<TestSteps, 'archivedSessions' | 'reports' | '
   >;
   observations: Pick<
     TestSteps['observations'],
-    'listObservations' | 'getObservationDetails' | 'getObservationFileUrl' | 'listObservationsAttachments'
+    | 'attachMemberCommentScreenshots'
+    | 'getObservationDetails'
+    | 'getObservationFileUrl'
+    | 'listObservations'
+    | 'listObservationsAttachments'
+    | 'writeMemberComment'
   >;
 };
 
@@ -49,6 +54,7 @@ export type TestStepsAgent = Omit<
     observations: TestSteps['observations'];
     // the secretariat also reads the summaries it writes
     summaries: Pick<TestSteps['summaries'], 'detailSummary'>;
+    ['@user']: TestSteps['@user'];
   },
   'administration' | 'ingest'
 >;
