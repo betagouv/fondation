@@ -27,7 +27,12 @@ export type TestStepsMember = Pick<TestSteps, 'archivedSessions' | 'reports' | '
   >;
   observations: Pick<
     TestSteps['observations'],
-    'listObservations' | 'getObservationDetails' | 'getObservationFileUrl' | 'listObservationsAttachments'
+    | 'attachMemberCommentScreenshots'
+    | 'getObservationDetails'
+    | 'getObservationFileUrl'
+    | 'listObservations'
+    | 'listObservationsAttachments'
+    | 'writeMemberComment'
   >;
 };
 
