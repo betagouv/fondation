@@ -110,13 +110,12 @@ function nominationFileParagraph(file: AgendaNominationFile): string {
 }
 
 function suspendedPagraphs(ctx: { previousCount: number; nominationFiles: readonly AgendaNominationFile[] }) {
-  const paragraphs = ctx.nominationFiles
+  const files = ctx.nominationFiles
     .filter(({ outcome }) => outcome === 'SUSPENDED')
-    .sort((a, b) => a.number - b.number)
-    .map(nominationFileParagraph)
-    .join('\n');
+    .sort((a, b) => a.number - b.number);
+  if (files.length === 0) return '';
 
-  if (paragraphs.length === 0) return '';
+  const paragraphs = files.map(nominationFileParagraph).join('\n');
 
   const intro =
     ctx.previousCount > 0
@@ -125,24 +124,21 @@ function suspendedPagraphs(ctx: { previousCount: number; nominationFiles: readon
 
   return html`<p>
       ${intro}
-      ${
-        paragraphs.length > 1 ? html`les propositions suivantes&nbsp;:` : html`la proposition suivante&nbsp;:`
-      }
+      ${files.length > 1 ? html`les propositions suivantes&nbsp;:` : html`la proposition suivante&nbsp;:`}
     </p>
-    ${paragraphs.length === 0 ? '' : `<ul>${paragraphs}</ul>`}`;
+    ${`<ul>${paragraphs}</ul>`}`;
 }
 
 function nonValidatedParagraph(ctx: {
   formation: FormationEnum;
   nominationFiles: readonly AgendaNominationFile[];
 }): string {
-  const paragraphs = ctx.nominationFiles
+  const files = ctx.nominationFiles
     .filter(({ outcome }) => outcome === 'NON_VALIDATED')
-    .sort((a, b) => a.number - b.number)
-    .map(nominationFileParagraph)
-    .join('\n');
+    .sort((a, b) => a.number - b.number);
+  if (files.length === 0) return '';
 
-  if (paragraphs.length === 0) return '';
+  const paragraphs = files.map(nominationFileParagraph).join('\n');
 
   const intro = html`<p>
     Le Conseil supérieur de la magistrature émet un
@@ -153,19 +149,15 @@ function nonValidatedParagraph(ctx: {
       })}</strong
     >
     ${
-      paragraphs.length > 1
+      files.length > 1
         ? html` aux propositions de nomination suivantes&nbsp;:`
         : html` à la proposition de nomination suivante&nbsp;:`
     }
   </p>`;
 
-  return html`${intro}${
-    paragraphs.length === 0
-      ? ''
-      : html`<ul>
-          ${paragraphs}
-        </ul>`
-  }`;
+  return html`${intro}${html`<ul>
+    ${paragraphs}
+  </ul>`}`;
 }
 
 function pluralCount<T>(items: Iterable<T>, predicate: (value: T) => boolean): 0 | 1 | 2 {
