@@ -189,4 +189,42 @@ describe('Files', () => {
       expect(Sentry.captureMessage).not.toHaveBeenCalled();
     });
   });
+
+  describe('storedObjects', () => {
+    it('reads every page of the storage', async () => {
+      const writtenAt = new Date('2025-06-01');
+      send
+        .mockResolvedValueOnce({
+          Contents: [{ Key: 'a.pdf', LastModified: writtenAt, Size: 12 }],
+          NextContinuationToken: 'next',
+        })
+        .mockResolvedValueOnce({ Contents: [{ Key: 'b.pdf', LastModified: writtenAt, Size: 34 }] });
+
+      const objects = await Array.fromAsync(files.storedObjects());
+
+      expect(objects).toEqual([
+        { key: 'a.pdf', size: 12, writtenAt },
+        { key: 'b.pdf', size: 34, writtenAt },
+      ]);
+      expect(send.mock.calls[1]![0].input.ContinuationToken).toBe('next');
+    });
+  });
+
+  describe('deleteStoredObjects', () => {
+    it('deletes by batches of a thousand objects', async () => {
+      send.mockResolvedValue({});
+      const keys = Array.from({ length: 1_001 }, (_, index) => `${index}.pdf`);
+
+      await files.deleteStoredObjects(keys);
+
+      expect(send).toHaveBeenCalledTimes(2);
+      expect(send.mock.calls[1]![0].input.Delete.Objects).toEqual([{ Key: '1000.pdf' }]);
+    });
+
+    it('lets the caller know an object could not be deleted', async () => {
+      send.mockResolvedValue({ Errors: [{ Key: 'a.pdf' }] });
+
+      await expect(files.deleteStoredObjects(['a.pdf'])).rejects.toThrow('Failed deleting 1 objects');
+    });
+  });
 });

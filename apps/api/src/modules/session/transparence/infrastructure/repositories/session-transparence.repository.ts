@@ -156,12 +156,13 @@ export class SessionTransparenceRepository {
   @Transactional(Propagation.Mandatory)
   async persist(session: SessionTransparence): Promise<SessionDocInvalidation[]> {
     const invalidations: SessionDocInvalidation[] = [];
+    const prioritiesByFileId = new Map<string, readonly PriorityEnum[]>();
 
     for (const message of session.messages) {
       if (message instanceof SessionTransparenceFileReportersAffected) {
         await this.persistSessionTransparenceFileReportersAffected(message);
       } else if (message instanceof SessionTransparenceFilePrioritiesUpdated) {
-        await this.persistSessionTransparenceFilePrioritiesUpdated(message);
+        prioritiesByFileId.set(message.nominationFileId, message.priorities);
       } else if (message instanceof SessionTransparenceAffectationVersionPublished) {
         invalidations.push(...(await this.persistSessionTransparenceAffectationVersionPublished(message)));
       } else if (message instanceof SessionTransparenceAffectationVersionCreated) {
@@ -214,6 +215,8 @@ export class SessionTransparenceRepository {
         assertNever(message);
       }
     }
+
+    await this.persistNominationFilesPriorities(session.id, prioritiesByFileId);
 
     const outcomesDefined = session.messages.filter(
       (message) => message instanceof SessionTransparenceOutcomeDefined,
@@ -278,11 +281,18 @@ export class SessionTransparenceRepository {
     }
   }
 
-  private persistSessionTransparenceFilePrioritiesUpdated(message: SessionTransparenceFilePrioritiesUpdated) {
-    return this.db.tx.dossierDeNomination.update({
-      data: { priorities: message.priorities as PriorityEnum[] },
-      where: { id: message.nominationFileId, sessionId: message.sessionId },
-    });
+  // a bulk action gives many files the same priorities: one write per set of priorities, not per file
+  private async persistNominationFilesPriorities(
+    sessionId: string,
+    prioritiesByFileId: ReadonlyMap<string, readonly PriorityEnum[]>,
+  ) {
+    const filesByPriorities = Map.groupBy(prioritiesByFileId, ([, priorities]) => priorities.join(','));
+    for (const files of filesByPriorities.values()) {
+      await this.db.tx.dossierDeNomination.updateMany({
+        data: { priorities: [...files[0]![1]] },
+        where: { id: { in: files.map(([id]) => id) }, sessionId },
+      });
+    }
   }
 
   private async persistSessionTransparenceAffectationVersionPublished(

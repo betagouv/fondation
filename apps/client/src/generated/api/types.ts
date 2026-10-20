@@ -235,14 +235,14 @@ export type UpdateNominationSessionFilesObserversDto = {
 export type AffectReportersDto = {
     items: Array<{
         nominationFileId: string;
-        priorities?: Array<'ETOILE' | 'OUTRE_MER' | 'PROFILE'>;
-        /**
-         * prefer priorities
-         *
-         * @deprecated
-         */
-        priority?: 'ETOILE' | 'OUTRE_MER' | 'PROFILE' | null;
         reporterIds: Array<string>;
+    }>;
+};
+
+export type UpdateNominationFilesPrioritiesDto = {
+    items: Array<{
+        nominationFileId: string;
+        priorities: Array<'ETOILE' | 'OUTRE_MER' | 'PROFILE'>;
     }>;
 };
 
@@ -2844,6 +2844,21 @@ export type AffectReportersResponses = {
 };
 
 export type AffectReportersResponse = AffectReportersResponses[keyof AffectReportersResponses];
+
+export type UpdateNominationFilesPrioritiesData = {
+    body: UpdateNominationFilesPrioritiesDto;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/priorities';
+};
+
+export type UpdateNominationFilesPrioritiesResponses = {
+    204: void;
+};
+
+export type UpdateNominationFilesPrioritiesResponse = UpdateNominationFilesPrioritiesResponses[keyof UpdateNominationFilesPrioritiesResponses];
 
 export type ListNominationFilesAsExcelData = {
     body?: never;

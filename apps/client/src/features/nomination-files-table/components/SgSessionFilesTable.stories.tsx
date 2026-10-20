@@ -37,8 +37,9 @@ const sessions: Record<string, SessionDataset> = {
 };
 
 const bulkActionHandlers = [
-  http.put('*/api/sessions/v2/:sessionId/files/reporters', () => new HttpResponse(null, { status: 204 })),
+  http.post('*/api/sessions/v2/:sessionId/files/reporters', () => new HttpResponse(null, { status: 204 })),
   http.put('*/api/sessions/v2/:sessionId/files/outcome', () => new HttpResponse(null, { status: 204 })),
+  http.put('*/api/sessions/v2/:sessionId/files/priorities', () => new HttpResponse(null, { status: 204 })),
 ];
 
 function SgSessionFilesTableStory(props: {
