@@ -93,7 +93,7 @@ export function DocBlockDriftBanner(props: ReactNodeViewProps & { acknowledgeabl
         </Tooltip>
       </span>
       <div className="fr-mt-3v fr-mb-4v">
-        <div dangerouslySetInnerHTML={{ __html: proposed }} />
+        <div className="[&>:last-child]:mb-0!" dangerouslySetInnerHTML={{ __html: proposed }} />
       </div>
       <div>
         <ButtonsGroup
