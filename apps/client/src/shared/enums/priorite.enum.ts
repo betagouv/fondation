@@ -1,8 +1,8 @@
 import { defineMessages } from 'react-intl';
 
-import type { AffectReportersDto } from '@api/types';
+import type { UpdateNominationFilesPrioritiesDto } from '@api/types';
 
-export type PrioriteEnum = NonNullable<AffectReportersDto['items'][number]['priorities']>[number];
+export type PrioriteEnum = UpdateNominationFilesPrioritiesDto['items'][number]['priorities'][number];
 
 export const PrioriteEnum = {
   ETOILE: 'ETOILE',

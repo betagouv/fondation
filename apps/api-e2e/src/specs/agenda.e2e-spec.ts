@@ -125,7 +125,7 @@ test.describe('Agenda', () => {
     const [file] = session.files;
 
     await agent.sessions.affectReporters({
-      body: { items: [{ nominationFileId: file!.id, priorities: [], reporterIds: [member['@user']!.id] }] },
+      body: { items: [{ nominationFileId: file!.id, reporterIds: [member['@user']!.id] }] },
       path: { sessionId },
     });
 
@@ -154,12 +154,12 @@ test.describe('Agenda', () => {
     const [file] = session.files;
 
     await agent.sessions.affectReporters({
-      body: { items: [{ nominationFileId: file!.id, priorities: [], reporterIds: [member['@user']!.id] }] },
+      body: { items: [{ nominationFileId: file!.id, reporterIds: [member['@user']!.id] }] },
       path: { sessionId },
     });
     await agent.sessions.publishNominationSessionAffectationsVersion({ path: { sessionId } });
     await agent.sessions.affectReporters({
-      body: { items: [{ nominationFileId: file!.id, priorities: [], reporterIds: [] }] },
+      body: { items: [{ nominationFileId: file!.id, reporterIds: [] }] },
       path: { sessionId },
     });
 
@@ -241,11 +241,7 @@ test.describe('Agenda', () => {
     const affect = async (reporterId: string) => {
       await agent.sessions.affectReporters({
         body: {
-          items: session.files.map(({ id }) => ({
-            nominationFileId: id,
-            priorities: [],
-            reporterIds: [reporterId],
-          })),
+          items: session.files.map(({ id }) => ({ nominationFileId: id, reporterIds: [reporterId] })),
         },
         path: { sessionId },
       });

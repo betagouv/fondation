@@ -52,7 +52,7 @@ export function makeCreateSessionFixture(steps: TestStepsAdmin, lolfi: LolfiFixt
     if (stage.reporters) {
       const reporterIds = stage.reporters.map(({ id }) => id);
       await steps.sessions.affectReporters({
-        body: { items: files.map(({ id }) => ({ nominationFileId: id, priorities: [], reporterIds })) },
+        body: { items: files.map(({ id }) => ({ nominationFileId: id, reporterIds })) },
         path: { sessionId },
         throwOnError: true,
       });
@@ -122,5 +122,5 @@ export function makeCreateSessionFixture(steps: TestStepsAdmin, lolfi: LolfiFixt
     return session;
   }
 
-  return { createOne: createSession, createMany: createMultipleSessions };
+  return { createMany: createMultipleSessions, createOne: createSession };
 }
