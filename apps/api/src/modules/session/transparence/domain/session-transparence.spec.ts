@@ -15,7 +15,7 @@ import {
   NonFormationMemberDefinedAsReporter,
   PositionAuditionCannotBeDismissed,
   SessionTransparence,
-  SessionTransparenceAffectationHasUnknownReporter,
+  SessionTransparenceAffectationHasUnassignableReporters,
   SessionTransparenceAffectationVersionCreated,
   SessionTransparenceAffectationVersionPublished,
   SessionTransparenceAuditionRequestDefined,
@@ -491,12 +491,12 @@ describe('SessionTransparence', () => {
           userId: randomUUID(),
         });
 
-      expect(act).toThrow(SessionTransparenceAffectationHasUnknownReporter);
+      expect(act).toThrow(SessionTransparenceAffectationHasUnassignableReporters);
       expect(act).toThrow(
         expect.objectContaining({
           errors: [
-            { deactivatedReporters: [], fileNumber: 1, reporters: ['BOURDIEU Pierre'] },
-            { deactivatedReporters: [], fileNumber: 2, reporters: ['BOURDIEU Pierre'] },
+            { deactivatedReporters: [], fileNumber: 1, unknownReporters: ['BOURDIEU Pierre'] },
+            { deactivatedReporters: [], fileNumber: 2, unknownReporters: ['BOURDIEU Pierre'] },
           ],
         }),
       );
@@ -519,7 +519,7 @@ describe('SessionTransparence', () => {
 
       expect(act).toThrow(
         expect.objectContaining({
-          errors: [{ deactivatedReporters: ['BOURDIEU Pierre'], fileNumber: 1, reporters: [] }],
+          errors: [{ deactivatedReporters: ['BOURDIEU Pierre'], fileNumber: 1, unknownReporters: [] }],
         }),
       );
     });

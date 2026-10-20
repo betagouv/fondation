@@ -288,15 +288,15 @@ export class NonFormationMemberDefinedAsReporter extends Error {
   }
 }
 
-export class SessionTransparenceAffectationHasUnknownReporter extends Error {
+export class SessionTransparenceAffectationHasUnassignableReporters extends Error {
   constructor(
     readonly errors: readonly {
       deactivatedReporters: readonly string[];
       fileNumber: number;
-      reporters: readonly string[];
+      unknownReporters: readonly string[];
     }[],
   ) {
-    super(`Impossible d'affecter un membre inconnu`);
+    super(`Impossible d'affecter un membre inconnu ou désactivé`);
   }
 }
 
@@ -440,8 +440,11 @@ export class SessionTransparence {
       command.formationMembers.map((member) => [member.fullName.toLowerCase(), member] as const),
     );
     const nominationFileEntities: LodamTransparenceFileEntity[] = [];
-    const unknownReporters: { deactivatedReporters: string[]; fileNumber: number; reporters: string[] }[] =
-      [];
+    const unassignableReporters: {
+      deactivatedReporters: string[];
+      fileNumber: number;
+      unknownReporters: string[];
+    }[] = [];
     const affectations: {
       nominationFileId: string;
       reporterIds: readonly string[];
@@ -461,10 +464,10 @@ export class SessionTransparence {
       }
 
       if (fileUnknownReporters.length || fileDeactivatedReporters.length) {
-        unknownReporters.push({
+        unassignableReporters.push({
           deactivatedReporters: fileDeactivatedReporters,
           fileNumber: file.fileNumber,
-          reporters: fileUnknownReporters,
+          unknownReporters: fileUnknownReporters,
         });
       } else {
         const nominationFileId = makeId('NominationFileId');
@@ -476,8 +479,8 @@ export class SessionTransparence {
       }
     }
 
-    if (unknownReporters.length) {
-      throw new SessionTransparenceAffectationHasUnknownReporter(unknownReporters);
+    if (unassignableReporters.length) {
+      throw new SessionTransparenceAffectationHasUnassignableReporters(unassignableReporters);
     }
 
     session.files = new Map(

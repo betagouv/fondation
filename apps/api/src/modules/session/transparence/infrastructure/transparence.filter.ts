@@ -14,7 +14,7 @@ import {
   MemberMemoNotAllowed,
   NonFormationMemberDefinedAsReporter,
   PositionAuditionCannotBeDismissed,
-  SessionTransparenceAffectationHasUnknownReporter,
+  SessionTransparenceAffectationHasUnassignableReporters,
   SessionTransparenceIsArchived,
   SessionTransparenceIsNotArchivable,
   SessionTransparenceIsNotDeletable,
@@ -36,23 +36,33 @@ export class TransparenceExceptionFilter implements NestInterceptor {
             return new BadRequestException({ message: err.message }, { cause: err });
           }
 
-          if (err instanceof SessionTransparenceAffectationHasUnknownReporter) {
+          if (err instanceof SessionTransparenceAffectationHasUnassignableReporters) {
             const list = new Intl.ListFormat('fr-FR', { type: 'conjunction' });
+            const describe = (
+              fileNumber: number,
+              reporters: readonly string[],
+              singular: string,
+              plural: string,
+            ) =>
+              reporters.length > 1
+                ? [`n°${fileNumber} ${plural}: ${list.format(reporters)}`]
+                : reporters.map((reporter) => `n°${fileNumber} ${singular}: ${reporter}`);
+
             return new BadRequestException(
               {
                 validationErrors: err.errors.flatMap((error) => [
-                  ...(error.reporters.length > 1
-                    ? [`n°${error.fileNumber} rapporteurs inconnus: ${list.format(error.reporters)}`]
-                    : error.reporters.map(
-                        (reporter) => `n°${error.fileNumber} rapporteur inconnu: ${reporter}`,
-                      )),
-                  ...(error.deactivatedReporters.length > 1
-                    ? [
-                        `n°${error.fileNumber} rapporteurs désactivés: ${list.format(error.deactivatedReporters)}`,
-                      ]
-                    : error.deactivatedReporters.map(
-                        (reporter) => `n°${error.fileNumber} rapporteur désactivé: ${reporter}`,
-                      )),
+                  ...describe(
+                    error.fileNumber,
+                    error.unknownReporters,
+                    'rapporteur inconnu',
+                    'rapporteurs inconnus',
+                  ),
+                  ...describe(
+                    error.fileNumber,
+                    error.deactivatedReporters,
+                    'rapporteur désactivé',
+                    'rapporteurs désactivés',
+                  ),
                 ]),
               },
               { cause: err },
