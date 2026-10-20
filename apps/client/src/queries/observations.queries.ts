@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import type { ObservationFollowUpEnum } from '@/shared/enums/observation-follow-up.enum';
-import { withScreenshotUrls } from '@/shared/ui/tip-tap-editor';
 import { HttpException } from '@/utils/http-exception';
 import { multipartJson } from '@/utils/multipart-json';
+import { withScreenshotUrls } from '@/utils/with-screenshot-urls';
 import * as $api from '@api/sdk';
 import type {
   CreateObservationDto,

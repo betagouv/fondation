@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import type { ReportStatusEnum } from '@/shared/enums/report-status.enum';
-import { withScreenshotUrls } from '@/shared/ui/tip-tap-editor';
 import { SANITIZED_MIME_TYPES } from '@/shared/ui/upload/file-types';
 import { InvalidMimeTypeError } from '@/utils/InvalidMimeType.error';
+import { withScreenshotUrls } from '@/utils/with-screenshot-urls';
 import * as $api from '@api/sdk';
 import type { AttachFilesData } from '@api/types';
 

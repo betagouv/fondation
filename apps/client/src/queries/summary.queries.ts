@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { withScreenshotUrls } from '@/shared/ui/tip-tap-editor';
+import { withScreenshotUrls } from '@/utils/with-screenshot-urls';
 import * as $api from '@api/sdk';
 import type { DetailedSummaryDto } from '@api/types';
 
