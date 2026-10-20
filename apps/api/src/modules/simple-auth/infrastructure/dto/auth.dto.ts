@@ -5,7 +5,7 @@ import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { RoleEnum } from 'src/modules/shared/role.enum';
 
 export const LoginDtoSchema = z.object({
-  email: z.email().trim(),
+  email: z.string().trim().pipe(z.email()),
   password: z.string().nonempty().trim(),
 });
 

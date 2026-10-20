@@ -47,6 +47,15 @@ export class UserRepository {
     });
   }
 
+  async isEmailTakenByAnotherUser(predicate: { email: string; userId: string }): Promise<boolean> {
+    const user = await this.db.tx.user.findFirst({
+      select: { id: true } satisfies Prisma.UserSelect,
+      where: { email: { equals: predicate.email, mode: 'insensitive' }, id: { not: predicate.userId } },
+    });
+
+    return !!user;
+  }
+
   async findManyByLastName(lastNames: readonly string[]): Promise<Map<string, User>> {
     const users = await this.db.tx.user.findMany({
       where: { lastName: { in: lastNames as string[], mode: 'insensitive' } },
