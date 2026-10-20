@@ -33,9 +33,13 @@ describe('DeleteUnreferencedObjectsCommand', () => {
       s3: { bucket: 'fondation' },
     } as ApiConfig);
 
-    tx.file.findMany.mockResolvedValue([{ path: ['sessions', 'courrier signé.pdf'] }] as never);
+    tx.file.findMany.mockResolvedValue([
+      { path: ['sessions', 'courrier signé.pdf'] },
+      { path: ['sessions', 'avis motivé.pdf'] },
+    ] as never);
     files.storedObjects.mockImplementation(async function* () {
       yield { key: 'sessions/courrier%20sign%C3%A9.pdf', writtenAt: old };
+      yield { key: 'sessions/avis motivé.pdf', writtenAt: old };
       yield { key: 'Ete 2025/rapport.pdf', writtenAt: old };
       yield { key: 'sessions/en-cours.pdf', writtenAt: new Date('2026-10-20T07:00:00Z') };
     });
@@ -47,7 +51,7 @@ describe('DeleteUnreferencedObjectsCommand', () => {
     expect(files.deleteStoredObjects).not.toHaveBeenCalled();
   });
 
-  it('deletes them when asked to, leaving the referenced and the recent ones', async () => {
+  it('deletes them when asked to, leaving the referenced, the recent and the ones written before the paths were normalized', async () => {
     await command.run([], { delete: true });
 
     expect(files.deleteStoredObjects).toHaveBeenCalledExactlyOnceWith(['Ete 2025/rapport.pdf']);

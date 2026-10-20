@@ -44,7 +44,8 @@ export class DeleteUnreferencedObjectsCommand extends CommandRunner {
     );
     if (files.length === 0) throw new Error('No file in the database: every object would look unreferenced');
 
-    const referenced = new Set(files.map(({ path }) => encodeURI(path.join('/'))));
+    // an object written before the paths were normalized keeps raw spaces: it may be the only copy of a missing file
+    const referenced = new Set(files.flatMap(({ path }) => [path.join('/'), encodeURI(path.join('/'))]));
     // an upload is stored a moment before its file is written
     const writtenBefore = new Date(this.clock.now().getTime() - time.DAYS);
 
