@@ -14,13 +14,13 @@
     "build": "tsc -p tsconfig.build.json",
     "lint:check": "oxlint",
     "lint": "oxlint --fix",
-    "test": "node --test --require @swc-node/register test/*.test.ts"
+    "test": "vitest run"
   },
   "devDependencies": {
-    "@swc-node/register": "1.12.1",
     "@types/node": "catalog:",
     "@typescript/native": "catalog:",
     "oxlint": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

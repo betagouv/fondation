@@ -74,8 +74,8 @@ pour Sentry. L'OpenAPI et les clients générés ne changent pas.
 - On accepte deux versions de TypeScript : `typescript` désigne la 6, `tsc` la 7. Un éditeur réglé sur
   la version du workspace pointe vers le paquet TS 6 réduit, sans `tsserver` : il faut garder la version
   intégrée à l'éditeur ou l'extension TypeScript 7.
-- L'alias se retire en six lignes quand `@hey-api/openapi-ts` 0.100 sera stable et que
-  `@swc-node/register` se passera de l'API de TypeScript (`// TODO` dans `pnpm-workspace.yaml`).
+- L'alias se retire en six lignes quand `@hey-api/openapi-ts` 0.100 sera stable (`// TODO` dans
+  `pnpm-workspace.yaml`) ; `@swc-node/register` a disparu avec le passage des paquets à Vitest.
   `prisma-selects.spec.ts` devra alors parser sans TypeScript, par exemple avec `parseAst` de
   `vitest/node`.
 - En `dev`, la vérification des types de `tsc -w` prend environ 5 s : une deuxième sauvegarde n'est prise
