@@ -6,13 +6,21 @@ import { CommandFactory } from 'nest-commander';
 import * as time from 'src/utils/time';
 
 import { AppModule } from './app.module';
+import { DeleteUnreferencedObjectsCliModule } from './modules/framework/files/delete-unreferenced-objects.cli';
 import { DeleteUnusedFilesCliModule } from './modules/framework/files/delete-unused-files.cli';
 import { FilesCliModule } from './modules/framework/files/files-cli.module';
 import { IngestCliModule } from './modules/ingest/ingest-cli.module';
 import { AuthCliModule } from './modules/simple-auth/infrastructure/cli/auth-cli.module';
 
 @Module({
-  imports: [AppModule, AuthCliModule, DeleteUnusedFilesCliModule, FilesCliModule, IngestCliModule],
+  imports: [
+    AppModule,
+    AuthCliModule,
+    DeleteUnreferencedObjectsCliModule,
+    DeleteUnusedFilesCliModule,
+    FilesCliModule,
+    IngestCliModule,
+  ],
 })
 class CliAppModule {}
 
