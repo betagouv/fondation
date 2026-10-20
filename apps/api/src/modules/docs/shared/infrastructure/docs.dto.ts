@@ -1,10 +1,10 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
-import { PrismaUserDutyEnum, PrismaUserTitleEnum } from 'src/generated/prisma/enums';
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import { GenderEnum } from 'src/modules/shared/gender.enum';
-import { isDefined } from 'src/utils/is-defined';
+import { PrismaUserDutyEnum, PrismaUserTitleEnum } from '../../../../generated/prisma/enums';
+import { isDefined } from '../../../../utils/is-defined';
+import { FormationEnum } from '../../../shared/formation.enum';
+import { GenderEnum } from '../../../shared/gender.enum';
 
 export class CreateOfficialReportJusticeContactDto extends createZodDto(
   z

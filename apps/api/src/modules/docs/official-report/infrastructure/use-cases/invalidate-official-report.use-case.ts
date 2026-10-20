@@ -1,17 +1,17 @@
 import { Injectable } from '@nestjs/common';
 
+import { Prisma } from '../../../../../generated/prisma/client';
+import { assertNever } from '../../../../../utils/assert-never';
+import { isDefined } from '../../../../../utils/is-defined';
+import { Db } from '../../../../framework/database';
+import { DocInvalidation } from '../../../shared/domain/doc-invalidation';
+import { nominationFileOutcomeToDocNominationFileOutcome } from '../../../shared/domain/doc-nomination-file-outcome';
 import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../../../shared/infrastructure/agenda-content';
+import { DocsNominationFilesFinder } from '../../../shared/infrastructure/finders/docs-nomination-files.finder';
+import { readsTheSame } from '../../../shared/infrastructure/services/renderers/helpers';
 import { InvalidateOfficialReportCommand } from '../../domain/official-report-types';
 import { OfficialReportVersionFinder } from '../finders/official-report-version.finder';
 import { OfficialReportRepository } from '../repositories/official-report.repository';
-import { Prisma } from 'src/generated/prisma/client';
-import { DocInvalidation } from 'src/modules/docs/shared/domain/doc-invalidation';
-import { nominationFileOutcomeToDocNominationFileOutcome } from 'src/modules/docs/shared/domain/doc-nomination-file-outcome';
-import { DocsNominationFilesFinder } from 'src/modules/docs/shared/infrastructure/finders/docs-nomination-files.finder';
-import { readsTheSame } from 'src/modules/docs/shared/infrastructure/services/renderers/helpers';
-import { Db } from 'src/modules/framework/database';
-import { assertNever } from 'src/utils/assert-never';
-import { isDefined } from 'src/utils/is-defined';
 
 @Injectable()
 export class InvalidateOfficialReportUseCase {

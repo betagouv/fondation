@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
-import { Pagination } from 'src/modules/framework/pagination';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
+import { Pagination } from '../framework/pagination';
+import type { RoleEnum } from '../shared/role.enum';
 
 import {
   ListedMagistratNominationFilesDto,

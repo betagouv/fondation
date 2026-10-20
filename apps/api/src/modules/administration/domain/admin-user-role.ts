@@ -1,8 +1,8 @@
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import { UserDutyEnum } from 'src/modules/shared/user-duty.enum';
-import { UserTitleEnum } from 'src/modules/shared/user-title.enum';
-import { assertNever } from 'src/utils/assert-never';
-import { assertIsDefined } from 'src/utils/is-defined';
+import { assertNever } from '../../../utils/assert-never';
+import { assertIsDefined } from '../../../utils/is-defined';
+import type { RoleEnum } from '../../shared/role.enum';
+import { UserDutyEnum } from '../../shared/user-duty.enum';
+import { UserTitleEnum } from '../../shared/user-title.enum';
 
 import { AdminUserTitle } from './admin-user-title';
 import {

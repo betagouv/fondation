@@ -1,6 +1,6 @@
+import { PrismaFormationEnum } from '../../../generated/prisma/enums';
+import { assertNever } from '../../../utils/assert-never';
 import { FormationEnum } from '../formation.enum';
-import { PrismaFormationEnum } from 'src/generated/prisma/enums';
-import { assertNever } from 'src/utils/assert-never';
 
 export function prismaFormationEnumToFormationEnum(value: PrismaFormationEnum): FormationEnum {
   switch (value) {

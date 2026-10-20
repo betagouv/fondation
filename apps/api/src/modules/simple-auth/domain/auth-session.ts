@@ -1,5 +1,5 @@
-import { Id, makeId } from 'src/utils/id';
-import { DAYS } from 'src/utils/time';
+import { Id, makeId } from '../../../utils/id';
+import { DAYS } from '../../../utils/time';
 
 export class AuthSession {
   static readonly DEFAULT_DURATION = 30 * DAYS;

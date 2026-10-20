@@ -2,9 +2,9 @@ import { Propagation } from '@nestjs-cls/transactional';
 import { Inject, Logger, Module } from '@nestjs/common';
 import { Command, CommandRunner, Option } from 'nest-commander';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { API_CONFIG_TOKEN, type ApiConfig } from 'src/modules/framework/config';
-import { Db } from 'src/modules/framework/database';
+import { Prisma } from '../../../generated/prisma/client';
+import { API_CONFIG_TOKEN, type ApiConfig } from '../config';
+import { Db } from '../database';
 
 import { Files } from './files';
 

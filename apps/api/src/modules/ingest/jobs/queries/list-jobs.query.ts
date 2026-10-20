@@ -2,10 +2,10 @@ import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import z from 'zod';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { PrismaJobStatusEnum } from 'src/generated/prisma/enums';
-import { Db } from 'src/modules/framework/database';
-import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
+import { Prisma } from '../../../../generated/prisma/client';
+import { PrismaJobStatusEnum } from '../../../../generated/prisma/enums';
+import { Db } from '../../../framework/database';
+import { createPaginatedZodDto, paginate, Pagination } from '../../../framework/pagination';
 
 @Injectable()
 export class ListJobsQuery {

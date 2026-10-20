@@ -1,6 +1,6 @@
-import { GradeEnum } from 'src/modules/shared/grade.enum';
-import { PriorityEnum } from 'src/modules/shared/priority.enum';
-import { DateOnly } from 'src/utils/date-only';
+import { DateOnly } from '../../../../utils/date-only';
+import { GradeEnum } from '../../../shared/grade.enum';
+import { PriorityEnum } from '../../../shared/priority.enum';
 
 type InternalTransparenceFile = {
   fileNumber: number;

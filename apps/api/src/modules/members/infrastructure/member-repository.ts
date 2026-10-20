@@ -1,17 +1,17 @@
 import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable, NotFoundException } from '@nestjs/common';
 
+import { Prisma } from '../../../generated/prisma/client';
+import { assertNever } from '../../../utils/assert-never';
+import { makeId } from '../../../utils/id';
+import { Db } from '../../framework/database';
+import { prismaRoleEnumToRoleEnum } from '../../shared/mappers/role-enum.mapper';
 import {
   ExcludedMemberJurisdictions,
   Member,
   MemberDisplayTitleUpdated,
   MemberTitleUpdated,
 } from '../domain/member';
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { prismaRoleEnumToRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
-import { assertNever } from 'src/utils/assert-never';
-import { makeId } from 'src/utils/id';
 
 import { MEMBER_ROLES } from './member.utils';
 

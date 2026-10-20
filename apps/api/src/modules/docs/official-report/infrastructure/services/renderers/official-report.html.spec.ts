@@ -1,12 +1,12 @@
 import { load } from 'cheerio';
 
-import { OfficialReportChairman } from 'src/modules/docs/official-report/domain/official-report-chairman';
-import { OfficialReportMember } from 'src/modules/docs/official-report/domain/official-report-member';
-import { OfficialReportMembersList } from 'src/modules/docs/official-report/domain/official-report-member-list';
-import { OfficialReportSecretary } from 'src/modules/docs/official-report/domain/official-report-secretary';
-import { OfficialReportSessionMeeting } from 'src/modules/docs/official-report/domain/official-report-session-meeting';
-import { DateOnly } from 'src/utils/date-only';
-import { makeId } from 'src/utils/id';
+import { DateOnly } from '../../../../../../utils/date-only';
+import { makeId } from '../../../../../../utils/id';
+import { OfficialReportChairman } from '../../../domain/official-report-chairman';
+import { OfficialReportMember } from '../../../domain/official-report-member';
+import { OfficialReportMembersList } from '../../../domain/official-report-member-list';
+import { OfficialReportSecretary } from '../../../domain/official-report-secretary';
+import { OfficialReportSessionMeeting } from '../../../domain/official-report-session-meeting';
 
 import {
   officialReportBlocks,

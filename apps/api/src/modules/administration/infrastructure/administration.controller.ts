@@ -14,9 +14,9 @@ import {
 } from '@nestjs/common';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
+import { ApiPaginated, Pagination, QueryPagination } from '../../framework/pagination';
+import { AuthedUser, HasRole } from '../../simple-auth';
 import { AdministrationService } from '../administration.service';
-import { ApiPaginated, Pagination, QueryPagination } from 'src/modules/framework/pagination';
-import { AuthedUser, HasRole } from 'src/modules/simple-auth';
 
 import { AdministrationErrorMapper } from './administration.filter';
 import {

@@ -1,4 +1,4 @@
-import { isDefined } from 'src/utils/is-defined';
+import { isDefined } from '../../../utils/is-defined';
 
 export const FILE_MIME_TYPES = {
   txt: 'text/plain',

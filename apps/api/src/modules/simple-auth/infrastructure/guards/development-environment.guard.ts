@@ -1,7 +1,7 @@
 import { CanActivate, ExecutionContext, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Request as ExpressRequest } from 'express';
 
-import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
+import { API_CONFIG_TOKEN, ApiConfig } from '../../../framework/config';
 
 @Injectable()
 export class DevelopmentEnvironmentGuard implements CanActivate {

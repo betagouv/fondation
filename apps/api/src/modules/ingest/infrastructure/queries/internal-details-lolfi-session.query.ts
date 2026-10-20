@@ -2,13 +2,13 @@ import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
-import { detailLolfiSessionRawQuery } from 'src/generated/prisma/sql';
-import { Db } from 'src/modules/framework/database';
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import { GradeEnum } from 'src/modules/shared/grade.enum';
-import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
-import { PriorityEnum } from 'src/modules/shared/priority.enum';
-import { assertIsDefined } from 'src/utils/is-defined';
+import { detailLolfiSessionRawQuery } from '../../../../generated/prisma/sql';
+import { assertIsDefined } from '../../../../utils/is-defined';
+import { Db } from '../../../framework/database';
+import { FormationEnum } from '../../../shared/formation.enum';
+import { GradeEnum } from '../../../shared/grade.enum';
+import { prismaFormationEnumToFormationEnum } from '../../../shared/mappers/formation.mapper';
+import { PriorityEnum } from '../../../shared/priority.enum';
 
 @Injectable()
 export class InternalDetailsLolfiSessionQuery {

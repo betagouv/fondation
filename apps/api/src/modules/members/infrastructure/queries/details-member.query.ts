@@ -2,11 +2,11 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
+import { detailsMemberRawQuery } from '../../../../generated/prisma/sql';
+import { Db } from '../../../framework/database';
+import { GradeEnum } from '../../../shared/grade.enum';
 import { MEMBER_TITLES, toMemberTitle } from '../../domain/member-enums';
 import { isMember, MEMBER_ROLES } from '../member.utils';
-import { detailsMemberRawQuery } from 'src/generated/prisma/sql';
-import { Db } from 'src/modules/framework/database';
-import { GradeEnum } from 'src/modules/shared/grade.enum';
 
 @Injectable()
 export class DetailsMemberQuery {

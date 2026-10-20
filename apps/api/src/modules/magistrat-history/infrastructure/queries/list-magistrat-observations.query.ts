@@ -1,13 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import z from 'zod';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
-import { ObservationService } from 'src/modules/observation/observation.service';
-import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
+import { Prisma } from '../../../../generated/prisma/client';
+import { DateOnly, dateOnlyJsonSchema } from '../../../../utils/date-only';
+import { Db } from '../../../framework/database';
+import { createPaginatedZodDto, paginate, Pagination } from '../../../framework/pagination';
+import { ObservationService } from '../../../observation/observation.service';
+import { TransparenceService } from '../../../session/transparence/infrastructure/transparence.service';
+import type { RoleEnum } from '../../../shared/role.enum';
 
 import { MagistratNominationFileSchema } from './list-magistrat-nomination-files.query';
 

@@ -1,8 +1,8 @@
 import { createHash, randomBytes } from 'node:crypto';
 
+import { Id, makeId } from '../../../../utils/id';
+import * as time from '../../../../utils/time';
 import { OpenIdProvider } from '../openid.provider';
-import { Id, makeId } from 'src/utils/id';
-import * as time from 'src/utils/time';
 
 import { OpenIdConfig } from './openid-config';
 

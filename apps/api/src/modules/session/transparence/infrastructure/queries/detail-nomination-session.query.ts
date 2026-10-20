@@ -3,18 +3,18 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { Prisma } from '../../../../../generated/prisma/client';
+import { DateOnly, dateOnlyJsonSchema } from '../../../../../utils/date-only';
+import { assertIsDefined } from '../../../../../utils/is-defined';
+import { Db } from '../../../../framework/database';
+import { FormationEnum } from '../../../../shared/formation.enum';
+import { prismaFormationEnumToFormationEnum } from '../../../../shared/mappers/formation.mapper';
+import { prismaTypeDeSaisineEnumToTypeDeSaisine } from '../../../../shared/mappers/type-de-saisine-enum.mapper';
+import { NominationFileOutcome } from '../../../../shared/nomination-file-outcome.enum';
+import { TypeDeSaisineEnum } from '../../../../shared/type-de-saisine.enum';
 import { sessionLabel } from '../../domain/session-label';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 import { ReportedSessionsFinder } from '../finders/reported-sessions.finder';
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
-import { prismaTypeDeSaisineEnumToTypeDeSaisine } from 'src/modules/shared/mappers/type-de-saisine-enum.mapper';
-import { NominationFileOutcome } from 'src/modules/shared/nomination-file-outcome.enum';
-import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
-import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
-import { assertIsDefined } from 'src/utils/is-defined';
 
 @Injectable()
 export class DetailNominationSessionQuery {

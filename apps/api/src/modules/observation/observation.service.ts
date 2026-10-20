@@ -10,16 +10,16 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
+import { Prisma } from '../../generated/prisma/client';
+import type { AuditionSchedule } from '../../utils/audition-schedule';
+import type { DateOnly } from '../../utils/date-only';
+import { isDefined } from '../../utils/is-defined';
+import type { TimeOnly } from '../../utils/time-only';
+import { Db } from '../framework/database';
+import { Files } from '../framework/files';
+import type { StoredFile } from '../framework/files/multipart/multipart.types';
 import { TransparenceService } from '../session/transparence/infrastructure/transparence.service';
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { Files } from 'src/modules/framework/files';
-import type { StoredFile } from 'src/modules/framework/files/multipart/multipart.types';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import type { AuditionSchedule } from 'src/utils/audition-schedule';
-import type { DateOnly } from 'src/utils/date-only';
-import { isDefined } from 'src/utils/is-defined';
-import type { TimeOnly } from 'src/utils/time-only';
+import type { RoleEnum } from '../shared/role.enum';
 
 import {
   Observation,

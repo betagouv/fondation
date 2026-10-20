@@ -1,13 +1,13 @@
 import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
+import { isDefined } from '../../utils/is-defined';
 import { Files } from '../framework/files';
 import { StoredFile } from '../framework/files/multipart/multipart.types';
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import { ReportFileUsageEnum } from 'src/modules/shared/report-file-usage.enum';
-import { ReportStateEnum } from 'src/modules/shared/report-state.enum';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import { isDefined } from 'src/utils/is-defined';
+import { FormationEnum } from '../shared/formation.enum';
+import { ReportFileUsageEnum } from '../shared/report-file-usage.enum';
+import { ReportStateEnum } from '../shared/report-state.enum';
+import type { RoleEnum } from '../shared/role.enum';
 
 import { AttachedScreenshotsDto } from './infrastructure/dtos/report.dto';
 import { type DetailedReportDto, DetailReportQuery } from './infrastructure/queries/detail-report.query';

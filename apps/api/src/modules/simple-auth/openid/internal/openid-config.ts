@@ -3,8 +3,8 @@ import { Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { lastValueFrom } from 'rxjs';
 import z from 'zod';
 
-import { ApiConfig } from 'src/modules/framework/config';
-import { Pretty } from 'src/utils/types';
+import { Pretty } from '../../../../utils/types';
+import { ApiConfig } from '../../../framework/config';
 
 import { OpenIdClaims } from './openid-claims';
 import { Jwk, JwksSchema } from './openid.schema';

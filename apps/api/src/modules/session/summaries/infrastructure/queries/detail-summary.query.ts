@@ -2,31 +2,31 @@ import { forwardRef, Inject, Injectable, Logger, NotFoundException } from '@nest
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { Files } from 'src/modules/framework/files';
-import { FILE_MIME_TYPES, filenameToMimeType } from 'src/modules/framework/files/mime-type';
-import { proposedMagistratName } from 'src/modules/magistrat/domain/magistrat-name';
-import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
-import { GradeEnum } from 'src/modules/shared/grade.enum';
-import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
-import { isGrade } from 'src/modules/shared/mappers/grade.mapper';
-import { prismaPrioriteEnumToPriorityEnum } from 'src/modules/shared/mappers/priorite.mapper';
+import { Prisma } from '../../../../../generated/prisma/client';
+import { DateOnly, dateOnlyJsonSchema } from '../../../../../utils/date-only';
+import { isDefined } from '../../../../../utils/is-defined';
+import { timeOnlySchema } from '../../../../../utils/time-only';
+import { fullname } from '../../../../../utils/user.util';
+import { Db } from '../../../../framework/database';
+import { Files } from '../../../../framework/files';
+import { FILE_MIME_TYPES, filenameToMimeType } from '../../../../framework/files/mime-type';
+import { proposedMagistratName } from '../../../../magistrat/domain/magistrat-name';
+import { GradeEnum } from '../../../../shared/grade.enum';
+import { prismaFormationEnumToFormationEnum } from '../../../../shared/mappers/formation.mapper';
+import { isGrade } from '../../../../shared/mappers/grade.mapper';
+import { prismaPrioriteEnumToPriorityEnum } from '../../../../shared/mappers/priorite.mapper';
 import {
   NominationFileOutcome,
   nominationFileOutcomeLabel,
-} from 'src/modules/shared/nomination-file-outcome.enum';
+} from '../../../../shared/nomination-file-outcome.enum';
 import {
   AUDITION_REQUIREMENTS,
   expectedReportersCount,
-} from 'src/modules/shared/policies/auditioned-position.policy';
-import { canScheduleAudition } from 'src/modules/shared/policies/nomination-file.policies';
-import { PriorityEnum } from 'src/modules/shared/priority.enum';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
-import { isDefined } from 'src/utils/is-defined';
-import { timeOnlySchema } from 'src/utils/time-only';
-import { fullname } from 'src/utils/user.util';
+} from '../../../../shared/policies/auditioned-position.policy';
+import { canScheduleAudition } from '../../../../shared/policies/nomination-file.policies';
+import { PriorityEnum } from '../../../../shared/priority.enum';
+import type { RoleEnum } from '../../../../shared/role.enum';
+import { TransparenceService } from '../../../transparence/infrastructure/transparence.service';
 
 @Injectable()
 export class DetailSummaryQuery {

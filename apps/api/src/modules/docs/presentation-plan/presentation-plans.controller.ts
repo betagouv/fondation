@@ -19,9 +19,9 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiConsumes, ApiOperation, ApiProduces, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
+import { ApiPaginated, Pagination, QueryPagination } from '../../framework/pagination';
+import { AuthedUser, HasRole } from '../../simple-auth';
 import { FoundAgendasDto } from '../shared/infrastructure/finders/agenda.finder';
-import { ApiPaginated, Pagination, QueryPagination } from 'src/modules/framework/pagination';
-import { AuthedUser, HasRole } from 'src/modules/simple-auth';
 
 import {
   CreatedJusticePresentationPlanDto,

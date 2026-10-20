@@ -12,8 +12,8 @@ import {
 } from '@nestjs/common';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
-import { ApiPaginated, Pagination, QueryPagination } from 'src/modules/framework/pagination';
-import { HasRole } from 'src/modules/simple-auth';
+import { ApiPaginated, Pagination, QueryPagination } from '../framework/pagination';
+import { HasRole } from '../simple-auth';
 
 import { ListMembersQueryDto } from './infrastructure/dtos/members.dto';
 import {

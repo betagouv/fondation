@@ -8,6 +8,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
+import { Prisma } from '../../../generated/prisma/client';
+import { assertNever } from '../../../utils/assert-never';
+import { Db } from '../../framework/database';
+import { Files } from '../../framework/files';
+import { TransparenceService } from '../../session/transparence/infrastructure/transparence.service';
 import {
   Report,
   ReportFilesAttached,
@@ -15,11 +20,6 @@ import {
   ReportRuleValidationUpdated,
   ReportUpdated,
 } from '../domain/report';
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { Files } from 'src/modules/framework/files';
-import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
-import { assertNever } from 'src/utils/assert-never';
 
 @Injectable()
 export class ReportRepository {

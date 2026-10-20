@@ -3,9 +3,9 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { writerOf, writerSchema } from 'src/utils/user.util';
+import { Prisma } from '../../../../../generated/prisma/client';
+import { writerOf, writerSchema } from '../../../../../utils/user.util';
+import { Db } from '../../../../framework/database';
 
 const PERSON_SELECT = { firstName: true, id: true, lastName: true } satisfies Prisma.UserSelect;
 

@@ -2,8 +2,8 @@ import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
 import { Clock } from '../framework/clock';
-import { GenderEnum } from 'src/modules/shared/gender.enum';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
+import { GenderEnum } from '../shared/gender.enum';
+import type { RoleEnum } from '../shared/role.enum';
 
 import { AuthImpersonation } from './domain/auth-impersonation';
 import { AuthSession } from './domain/auth-session';

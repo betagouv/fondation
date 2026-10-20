@@ -13,10 +13,10 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
+import { FILE_MIME_TYPES } from '../../framework/files';
+import type { RoleEnum } from '../../shared/role.enum';
+import { AuthedUser, HasRole } from '../../simple-auth';
 import { FeedbackService } from '../feedback.service';
-import { FILE_MIME_TYPES } from 'src/modules/framework/files';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import { AuthedUser, HasRole } from 'src/modules/simple-auth';
 
 import { AnswerFeedbackDto } from './feedback.dto';
 import { FeedbackFilter } from './feedback.filter';

@@ -1,9 +1,9 @@
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { createSortableDto } from '../../../framework/sorting';
+import { USER_STATUSES, UserStatus } from '../../../shared/user-status.enum';
 import { ADMIN_USER_ROLES_ENUM, AdminUserRoleEnum } from '../../domain/user-enum';
-import { createSortableDto } from 'src/modules/framework/sorting';
-import { USER_STATUSES, UserStatus } from 'src/modules/shared/user-status.enum';
 
 export class ListUsersQueryDto extends createSortableDto(
   z.object({

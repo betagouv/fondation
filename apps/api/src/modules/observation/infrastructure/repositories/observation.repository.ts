@@ -9,6 +9,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
+import { Prisma } from '../../../../generated/prisma/client';
+import { assertNever } from '../../../../utils/assert-never';
+import { makeId } from '../../../../utils/id';
+import { Clock } from '../../../framework/clock';
+import { Db } from '../../../framework/database';
+import { Files } from '../../../framework/files/files';
+import { TransparenceService } from '../../../session/transparence/infrastructure/transparence.service';
 import {
   ObservantAuditionDropped,
   Observation,
@@ -22,13 +29,6 @@ import {
   ObservationMemberCommentWritten,
   ObservationUpdated,
 } from '../../domain/observation';
-import { Prisma } from 'src/generated/prisma/client';
-import { Clock } from 'src/modules/framework/clock';
-import { Db } from 'src/modules/framework/database';
-import { Files } from 'src/modules/framework/files/files';
-import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
-import { assertNever } from 'src/utils/assert-never';
-import { makeId } from 'src/utils/id';
 
 @Injectable()
 export class ObservationRepository {

@@ -1,5 +1,5 @@
-import { DateOnly } from 'src/utils/date-only';
-import { TimeOnly } from 'src/utils/time-only';
+import { DateOnly } from '../../../../utils/date-only';
+import { TimeOnly } from '../../../../utils/time-only';
 
 export type PlainJusticePresentationPlanSettings = {
   agendas: readonly { comment: string | null; id: string }[];

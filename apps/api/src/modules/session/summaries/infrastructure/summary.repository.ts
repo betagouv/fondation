@@ -1,9 +1,11 @@
 import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { Files } from 'src/modules/framework/files';
+import { Prisma } from '../../../../generated/prisma/client';
+import { assertNever } from '../../../../utils/assert-never';
+import { Db } from '../../../framework/database';
+import { Files } from '../../../framework/files';
+import { TransparenceService } from '../../transparence/infrastructure/transparence.service';
 import {
   AttachedFilesToSummary,
   DetachedFilesFromSummary,
@@ -12,9 +14,7 @@ import {
   SummaryContentWritten,
   SummaryCreated,
   UpdatedSummaryReaderList,
-} from 'src/modules/session/summaries/domain/summary';
-import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
-import { assertNever } from 'src/utils/assert-never';
+} from '../domain/summary';
 
 @Injectable()
 export class SummaryRepository {

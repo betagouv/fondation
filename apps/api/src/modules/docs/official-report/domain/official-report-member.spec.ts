@@ -1,5 +1,5 @@
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import { RoleEnum } from 'src/modules/shared/role.enum';
+import { FormationEnum } from '../../../shared/formation.enum';
+import { RoleEnum } from '../../../shared/role.enum';
 
 import {
   InvalidMemberDuty,

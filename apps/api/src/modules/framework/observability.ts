@@ -12,7 +12,7 @@ import * as Sentry from '@sentry/node';
 import { Request as ExpressRequest, Response as ExpressResponse, IRoute } from 'express';
 import { Observable, tap } from 'rxjs';
 
-import * as time from 'src/utils/time';
+import * as time from '../../utils/time';
 
 import { API_CONFIG_TOKEN, ApiConfig } from './config';
 

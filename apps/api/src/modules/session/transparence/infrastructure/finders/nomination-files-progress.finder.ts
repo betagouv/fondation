@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { assertPgParams } from 'src/utils/assert-pg-params';
+import { Prisma } from '../../../../../generated/prisma/client';
+import { assertPgParams } from '../../../../../utils/assert-pg-params';
+import { Db } from '../../../../framework/database';
 
 export type NominationFileProgress = {
   /** a reporter in any version of the affectations, published or not */

@@ -1,13 +1,13 @@
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { FILE_MIME_TYPES } from 'src/modules/framework/files';
-import { createSortableDto } from 'src/modules/framework/sorting';
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import { NominationFileAttachmentTypeEnum } from 'src/modules/shared/nomination-file-attachment-type.enum';
-import { NominationFileOutcome } from 'src/modules/shared/nomination-file-outcome.enum';
-import { DateOnly } from 'src/utils/date-only';
-import { isDefined } from 'src/utils/is-defined';
+import { DateOnly } from '../../../../../utils/date-only';
+import { isDefined } from '../../../../../utils/is-defined';
+import { FILE_MIME_TYPES } from '../../../../framework/files';
+import { createSortableDto } from '../../../../framework/sorting';
+import { FormationEnum } from '../../../../shared/formation.enum';
+import { NominationFileAttachmentTypeEnum } from '../../../../shared/nomination-file-attachment-type.enum';
+import { NominationFileOutcome } from '../../../../shared/nomination-file-outcome.enum';
 
 const ImportNominationSessionFromLodamXlsxDtoSchema = z.object({
   file: z

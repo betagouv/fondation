@@ -2,6 +2,15 @@ import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import z from 'zod';
 
+import { Prisma } from '../../../../generated/prisma/client';
+import { assertIsDefined } from '../../../../utils/is-defined';
+import { Db } from '../../../framework/database';
+import { createPaginatedZodDto, paginate, Pagination } from '../../../framework/pagination';
+import { Sortable } from '../../../framework/sorting';
+import { GenderEnum } from '../../../shared/gender.enum';
+import { prismaGenderEnumToGenderEnum } from '../../../shared/mappers/gender-enum.mapper';
+import { prismaRoleEnumToRoleEnum } from '../../../shared/mappers/role-enum.mapper';
+import { USER_STATUSES, UserStatus, userStatusOf } from '../../../shared/user-status.enum';
 import { AdminUserRole } from '../../domain/admin-user-role';
 import {
   ADMIN_USER_ROLES_ENUM,
@@ -11,15 +20,6 @@ import {
   adminUserRoleEnumToTitle,
 } from '../../domain/user-enum';
 import { ListUsersQueryDto } from '../dto/administration.dto';
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
-import { Sortable } from 'src/modules/framework/sorting';
-import { GenderEnum } from 'src/modules/shared/gender.enum';
-import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
-import { prismaRoleEnumToRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
-import { USER_STATUSES, UserStatus, userStatusOf } from 'src/modules/shared/user-status.enum';
-import { assertIsDefined } from 'src/utils/is-defined';
 
 @Injectable()
 export class ListUsersQuery {

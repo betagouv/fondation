@@ -18,9 +18,9 @@ import { createZodDto, ZodValidationPipe } from 'nestjs-zod';
 import { lastValueFrom } from 'rxjs';
 import z from 'zod';
 
+import { describeErrorWithoutSecrets } from '../../utils/describe-error-without-secrets';
+import { escapeHtml } from '../../utils/escape-html';
 import { HasRole } from '../simple-auth';
-import { describeErrorWithoutSecrets } from 'src/utils/describe-error-without-secrets';
-import { escapeHtml } from 'src/utils/escape-html';
 
 import { API_CONFIG_TOKEN, ApiConfig } from './config';
 

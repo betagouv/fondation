@@ -3,8 +3,8 @@ import { createHash } from 'node:crypto';
 import { HeadBucketCommand, PutBucketCorsCommand, S3Client as S3 } from '@aws-sdk/client-s3';
 import { Inject, Injectable, OnApplicationBootstrap } from '@nestjs/common';
 
+import * as time from '../../../../utils/time';
 import { API_CONFIG_TOKEN, ApiConfig } from '../../config';
-import * as time from 'src/utils/time';
 
 import { StorablePath } from './storable.types';
 

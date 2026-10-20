@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 
-import { Clock } from 'src/modules/framework/clock';
-import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
-import { Db } from 'src/modules/framework/database';
+import { Clock } from '../../clock';
+import { API_CONFIG_TOKEN, ApiConfig } from '../../config';
+import { Db } from '../../database';
 
 import { DbStorage } from './db.storable';
 import { Objects } from './objects.storable';

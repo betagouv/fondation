@@ -3,14 +3,13 @@ import { Module } from '@nestjs/common';
 import * as Sentry from '@sentry/node';
 import { CommandFactory } from 'nest-commander';
 
-import * as time from 'src/utils/time';
-
 import { AppModule } from './app.module';
 import { DeleteUnreferencedObjectsCliModule } from './modules/framework/files/delete-unreferenced-objects.cli';
 import { DeleteUnusedFilesCliModule } from './modules/framework/files/delete-unused-files.cli';
 import { FilesCliModule } from './modules/framework/files/files-cli.module';
 import { IngestCliModule } from './modules/ingest/ingest-cli.module';
 import { AuthCliModule } from './modules/simple-auth/infrastructure/cli/auth-cli.module';
+import * as time from './utils/time';
 
 @Module({
   imports: [

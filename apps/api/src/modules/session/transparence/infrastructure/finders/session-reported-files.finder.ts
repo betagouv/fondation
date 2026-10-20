@@ -1,14 +1,14 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { DocsService } from 'src/modules/docs/docs.service';
-import { Db } from 'src/modules/framework/database';
+import { Prisma } from '../../../../../generated/prisma/client';
+import { assertPgParams } from '../../../../../utils/assert-pg-params';
+import { DocsService } from '../../../../docs/docs.service';
+import { Db } from '../../../../framework/database';
 import {
   NominationFileOutcome,
   type NominationFileOutcomeEnum,
-} from 'src/modules/shared/nomination-file-outcome.enum';
-import { assertPgParams } from 'src/utils/assert-pg-params';
+} from '../../../../shared/nomination-file-outcome.enum';
 
 /** a file is reported once a validated official report acts it and it still holds a final outcome */
 @Injectable()

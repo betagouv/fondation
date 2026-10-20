@@ -1,6 +1,6 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 
-import type { RoleEnum } from 'src/modules/shared/role.enum';
+import type { RoleEnum } from '../../shared/role.enum';
 
 import { JurisdictionId } from './jurisdiction';
 import { MemberDutyEnum, MemberTitleEnum } from './member-enums';

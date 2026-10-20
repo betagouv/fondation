@@ -1,21 +1,21 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { findMemberCurrentYearWorkloadRawQuery } from 'src/generated/prisma/sql';
-import { Db } from 'src/modules/framework/database';
-import { MembersService } from 'src/modules/members';
+import { Prisma } from '../../../../../generated/prisma/client';
+import { findMemberCurrentYearWorkloadRawQuery } from '../../../../../generated/prisma/sql';
+import { DateOnly } from '../../../../../utils/date-only';
+import { isDefined } from '../../../../../utils/is-defined';
+import { Db } from '../../../../framework/database';
+import { MembersService } from '../../../../members';
+import { FormationEnum } from '../../../../shared/formation.enum';
+import { GradeEnum } from '../../../../shared/grade.enum';
+import { prismaFormationEnumToFormationEnum } from '../../../../shared/mappers/formation.mapper';
+import { isGrade } from '../../../../shared/mappers/grade.mapper';
 import {
   AutoAffectationMember,
   AutoAffectationNominationFile,
   AutoAffectations,
-} from 'src/modules/session/transparence/domain/auto-affectation';
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import { GradeEnum } from 'src/modules/shared/grade.enum';
-import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
-import { isGrade } from 'src/modules/shared/mappers/grade.mapper';
-import { DateOnly } from 'src/utils/date-only';
-import { isDefined } from 'src/utils/is-defined';
+} from '../../domain/auto-affectation';
 
 import { NominationFileJurisdictionsFinder } from './nomination-file-jurisdictions.finder';
 import { UnaffectedFilesFinder } from './unaffected-files.finder';

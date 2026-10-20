@@ -1,16 +1,16 @@
 import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { ObservationService } from 'src/modules/observation/observation.service';
+import { Prisma } from '../../../../../generated/prisma/client';
+import { type AuditionSchedule, toOptionalAuditionSchedule } from '../../../../../utils/audition-schedule';
+import type { DateOnlyJson } from '../../../../../utils/date-only';
+import type { TimeOnly } from '../../../../../utils/time-only';
+import { Db } from '../../../../framework/database';
+import { ObservationService } from '../../../../observation/observation.service';
 import {
   type AuditionRequirement,
   auditionRequirementOf,
-} from 'src/modules/shared/policies/auditioned-position.policy';
-import { isSecretariat, type RoleEnum } from 'src/modules/shared/role.enum';
-import { type AuditionSchedule, toOptionalAuditionSchedule } from 'src/utils/audition-schedule';
-import type { DateOnlyJson } from 'src/utils/date-only';
-import type { TimeOnly } from 'src/utils/time-only';
+} from '../../../../shared/policies/auditioned-position.policy';
+import { isSecretariat, type RoleEnum } from '../../../../shared/role.enum';
 
 import { AuditionPublicationFinder } from './audition-publication.finder';
 

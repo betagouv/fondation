@@ -3,18 +3,15 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { Prisma, PrismaUserDutyEnum, PrismaUserTitleEnum } from '../../../../generated/prisma/client';
+import { Db } from '../../../framework/database';
+import { formationToMemberRole } from '../../../shared/formation-to-member-role';
+import { FormationEnum } from '../../../shared/formation.enum';
+import { GenderEnum } from '../../../shared/gender.enum';
+import { prismaGenderEnumToGenderEnum } from '../../../shared/mappers/gender-enum.mapper';
+import { prismaRoleEnumToRoleEnum, roleEnumToPrismaRoleEnum } from '../../../shared/mappers/role-enum.mapper';
+import { RoleEnum } from '../../../shared/role.enum';
 import { isMember } from '../member.utils';
-import { Prisma, PrismaUserDutyEnum, PrismaUserTitleEnum } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { formationToMemberRole } from 'src/modules/shared/formation-to-member-role';
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import { GenderEnum } from 'src/modules/shared/gender.enum';
-import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
-import {
-  prismaRoleEnumToRoleEnum,
-  roleEnumToPrismaRoleEnum,
-} from 'src/modules/shared/mappers/role-enum.mapper';
-import { RoleEnum } from 'src/modules/shared/role.enum';
 
 @Injectable()
 export class InternalFindMembersByFormationQuery {

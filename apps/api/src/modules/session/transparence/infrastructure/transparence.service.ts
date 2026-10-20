@@ -2,29 +2,29 @@ import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { forwardRef, Inject, Injectable, Logger, NotFoundException, StreamableFile } from '@nestjs/common';
 import * as Sentry from '@sentry/node';
 
-import { SessionTransparence } from '../domain/session-transparence';
-import { LodamTransparenceFile } from '../domain/transparence-file';
-import { Prisma } from 'src/generated/prisma/client';
-import { DocsService } from 'src/modules/docs/docs.service';
-import { Db } from 'src/modules/framework/database';
-import { Pagination } from 'src/modules/framework/pagination';
-import { Sortable } from 'src/modules/framework/sorting';
-import { MembersService } from 'src/modules/members';
-import { roleToFormation } from 'src/modules/members/infrastructure/member.utils';
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import { NominationFileAttachmentTypeEnum } from 'src/modules/shared/nomination-file-attachment-type.enum';
+import { Prisma } from '../../../../generated/prisma/client';
+import type { AuditionSchedule } from '../../../../utils/audition-schedule';
+import { DateOnly } from '../../../../utils/date-only';
+import { isDefined } from '../../../../utils/is-defined';
+import { TimeOnly } from '../../../../utils/time-only';
+import { DocsService } from '../../../docs/docs.service';
+import { Db } from '../../../framework/database';
+import { Pagination } from '../../../framework/pagination';
+import { Sortable } from '../../../framework/sorting';
+import { MembersService } from '../../../members';
+import { roleToFormation } from '../../../members/infrastructure/member.utils';
+import { FormationEnum } from '../../../shared/formation.enum';
+import { NominationFileAttachmentTypeEnum } from '../../../shared/nomination-file-attachment-type.enum';
 import {
   NominationFileOutcome,
   NominationFileOutcomeEnum,
-} from 'src/modules/shared/nomination-file-outcome.enum';
-import * as policies from 'src/modules/shared/policies/nomination-file.policies';
-import { PriorityEnum } from 'src/modules/shared/priority.enum';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
-import type { AuditionSchedule } from 'src/utils/audition-schedule';
-import { DateOnly } from 'src/utils/date-only';
-import { isDefined } from 'src/utils/is-defined';
-import { TimeOnly } from 'src/utils/time-only';
+} from '../../../shared/nomination-file-outcome.enum';
+import * as policies from '../../../shared/policies/nomination-file.policies';
+import { PriorityEnum } from '../../../shared/priority.enum';
+import type { RoleEnum } from '../../../shared/role.enum';
+import { TypeDeSaisineEnum } from '../../../shared/type-de-saisine.enum';
+import { SessionTransparence } from '../domain/session-transparence';
+import { LodamTransparenceFile } from '../domain/transparence-file';
 
 import { ListNominationFilesQueryDto } from './dtos/nomination-file.dto';
 import { CountedSessionAuditionsDto, ListedSessionAuditionsDto } from './dtos/session-audition.dto';

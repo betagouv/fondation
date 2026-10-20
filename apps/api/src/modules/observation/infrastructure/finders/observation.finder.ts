@@ -1,9 +1,9 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
+import { Prisma } from '../../../../generated/prisma/client';
+import { Db } from '../../../framework/database';
+import { TransparenceService } from '../../../session/transparence/infrastructure/transparence.service';
 
 @Injectable()
 export class ObservationFinder {

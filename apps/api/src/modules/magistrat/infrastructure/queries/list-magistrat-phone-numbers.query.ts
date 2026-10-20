@@ -2,10 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { listMagistratPhoneNumbersRawQuery } from 'src/generated/prisma/sql';
-import { Db } from 'src/modules/framework/database';
-import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
-import { fullname } from 'src/utils/user.util';
+import { listMagistratPhoneNumbersRawQuery } from '../../../../generated/prisma/sql';
+import { DateOnly, dateOnlyJsonSchema } from '../../../../utils/date-only';
+import { fullname } from '../../../../utils/user.util';
+import { Db } from '../../../framework/database';
 
 @Injectable()
 export class ListMagistratPhoneNumbersQuery {

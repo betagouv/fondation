@@ -1,5 +1,5 @@
-import { UserStatus } from 'src/modules/shared/user-status.enum';
-import { UserTitleEnum } from 'src/modules/shared/user-title.enum';
+import { UserStatus } from '../../shared/user-status.enum';
+import { UserTitleEnum } from '../../shared/user-title.enum';
 
 import { AdminUserRole } from './admin-user-role';
 import { AdminUserTitle } from './admin-user-title';

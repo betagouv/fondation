@@ -1,12 +1,12 @@
 import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
+import { Prisma } from '../../../generated/prisma/client';
+import { assertNever } from '../../../utils/assert-never';
+import { makeId } from '../../../utils/id';
+import { Db } from '../../framework/database';
+import { formationEnumToPrismaFormationEnum } from '../../shared/mappers/formation.mapper';
 import { ReportsCreated, ReportsDeleted, ReportsRestored, SessionReports } from '../domain/session-reports';
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { formationEnumToPrismaFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
-import { assertNever } from 'src/utils/assert-never';
-import { makeId } from 'src/utils/id';
 
 import { getAllNominationSessionReportRules } from './nomination-session-report-rules';
 

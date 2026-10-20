@@ -1,18 +1,18 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 
+import { Prisma } from '../../../generated/prisma/client';
+import { DateOnly, DateOnlyJson } from '../../../utils/date-only';
+import { assertIsDefined } from '../../../utils/is-defined';
+import { partition } from '../../../utils/iterables';
+import { TimeOnly } from '../../../utils/time-only';
+import { Clock } from '../../framework/clock';
 import { Db } from '../../framework/database';
+import { Files } from '../../framework/files';
 import { Pagination } from '../../framework/pagination';
 import { MembersService } from '../../members';
 import { SimpleAuthService } from '../../simple-auth';
 import { AgendaFinder, FoundAgendasDto } from '../shared/infrastructure/finders/agenda.finder';
-import { Prisma } from 'src/generated/prisma/client';
-import { Clock } from 'src/modules/framework/clock';
-import { Files } from 'src/modules/framework/files';
-import { DateOnly, DateOnlyJson } from 'src/utils/date-only';
-import { assertIsDefined } from 'src/utils/is-defined';
-import { partition } from 'src/utils/iterables';
-import { TimeOnly } from 'src/utils/time-only';
 
 import {
   JusticePresentationPlan,

@@ -2,13 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { Prisma, PrismaRoleEnum } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import {
-  prismaRoleEnumToRoleEnum,
-  roleEnumToPrismaRoleEnum,
-} from 'src/modules/shared/mappers/role-enum.mapper';
-import { RoleEnum } from 'src/modules/shared/role.enum';
+import { Prisma, PrismaRoleEnum } from '../../../../generated/prisma/client';
+import { Db } from '../../../framework/database';
+import { prismaRoleEnumToRoleEnum, roleEnumToPrismaRoleEnum } from '../../../shared/mappers/role-enum.mapper';
+import { RoleEnum } from '../../../shared/role.enum';
 
 @Injectable()
 export class ListUsersQuery {

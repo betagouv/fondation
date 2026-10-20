@@ -1,4 +1,4 @@
-import { NominationFileOutcomeEnum } from 'src/modules/shared/nomination-file-outcome.enum';
+import { NominationFileOutcomeEnum } from '../../../shared/nomination-file-outcome.enum';
 
 export type NominationFileSnapshot = {
   auditionRequired: boolean;

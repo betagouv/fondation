@@ -1,8 +1,8 @@
+import { makeId, type Id } from '../../../../utils/id';
+import { assertIsDefined } from '../../../../utils/is-defined';
+import type { FormationEnum } from '../../../shared/formation.enum';
 import { type DocNominationFileOutcomeEnum } from '../../shared/domain/doc-nomination-file-outcome';
 import { type DocSystemUpdateCause } from '../../shared/domain/doc-system-update-cause';
-import type { FormationEnum } from 'src/modules/shared/formation.enum';
-import { makeId, type Id } from 'src/utils/id';
-import { assertIsDefined } from 'src/utils/is-defined';
 
 import {
   InvalidateOfficialReportCommand,

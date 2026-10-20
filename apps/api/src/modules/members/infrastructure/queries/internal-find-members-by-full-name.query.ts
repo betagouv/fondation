@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 
+import { Db } from '../../../framework/database';
 import { formationToMemberRole } from '../../../shared/formation-to-member-role';
-import { Db } from 'src/modules/framework/database';
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import { UserStatus, userStatusOf } from 'src/modules/shared/user-status.enum';
+import { FormationEnum } from '../../../shared/formation.enum';
+import { UserStatus, userStatusOf } from '../../../shared/user-status.enum';
 
 @Injectable()
 export class InternalFindMembersByFullNameQuery {

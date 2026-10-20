@@ -1,10 +1,10 @@
 import z from 'zod';
 
+import { Id, makeId } from '../../../utils/id';
+import { GenderEnum } from '../../shared/gender.enum';
+import type { RoleEnum } from '../../shared/role.enum';
+import { UserStatus } from '../../shared/user-status.enum';
 import { OpenIdProvider } from '../openid';
-import { GenderEnum } from 'src/modules/shared/gender.enum';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import { UserStatus } from 'src/modules/shared/user-status.enum';
-import { Id, makeId } from 'src/utils/id';
 
 import { AuthImpersonation } from './auth-impersonation';
 import { AuthPassword } from './auth-password';

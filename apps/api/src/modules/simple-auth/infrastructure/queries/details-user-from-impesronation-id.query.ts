@@ -1,11 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { captureException } from '@sentry/node';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { Clock } from 'src/modules/framework/clock';
-import { Db } from 'src/modules/framework/database';
-import { userStatusOf } from 'src/modules/shared/user-status.enum';
-import { AuthUser } from 'src/modules/simple-auth/domain/auth-user';
+import { Prisma } from '../../../../generated/prisma/client';
+import { Clock } from '../../../framework/clock';
+import { Db } from '../../../framework/database';
+import { userStatusOf } from '../../../shared/user-status.enum';
+import { AuthUser } from '../../domain/auth-user';
 
 @Injectable()
 export class DetailsUserFromImpersonationQuery {

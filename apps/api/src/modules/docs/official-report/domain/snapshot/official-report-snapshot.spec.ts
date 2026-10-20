@@ -1,3 +1,4 @@
+import { DateOnly } from '../../../../../utils/date-only';
 import { OfficialReportChairman } from '../official-report-chairman';
 import { OfficialReportMember } from '../official-report-member';
 import { OfficialReportMembersList } from '../official-report-member-list';
@@ -5,7 +6,6 @@ import { OfficialReportSecretary } from '../official-report-secretary';
 import { OfficialReportSessionMeeting } from '../official-report-session-meeting';
 import * as helpers from '../official-report-test-utils';
 import { UpdateOfficialReportCommand } from '../official-report-types';
-import { DateOnly } from 'src/utils/date-only';
 
 import { OfficialReportSnapshot, PlainOfficialReportSnapshot } from './official-report-snapshot';
 import { OfficialReportSnapshotFile, PlainOfficialReportSnapshotFile } from './official-report-snapshot-file';

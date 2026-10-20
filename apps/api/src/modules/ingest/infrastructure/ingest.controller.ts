@@ -13,12 +13,12 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes } from '@nestjs/swagger';
 import { ZodResponse } from 'nestjs-zod';
 
+import { API_CONFIG_TOKEN, ApiConfig } from '../../framework/config';
+import { FILE_MIME_TYPES } from '../../framework/files';
+import { MulterFile } from '../../framework/files/multipart/multipart.types';
+import { Tchap } from '../../framework/tchap';
+import { HasRole, IsMachine } from '../../simple-auth';
 import { isScriptDivergent } from '../domain/divergent-script';
-import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
-import { FILE_MIME_TYPES } from 'src/modules/framework/files';
-import { MulterFile } from 'src/modules/framework/files/multipart/multipart.types';
-import { Tchap } from 'src/modules/framework/tchap';
-import { HasRole, IsMachine } from 'src/modules/simple-auth';
 
 import { IngestedLolfiArchiveDto } from './ingest.dto';
 import { IngestService } from './ingest.service';

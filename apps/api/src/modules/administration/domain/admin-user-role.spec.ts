@@ -1,6 +1,6 @@
-import { RoleEnum } from 'src/modules/shared/role.enum';
-import { USER_DUTIES } from 'src/modules/shared/user-duty.enum';
-import { USER_TITLES } from 'src/modules/shared/user-title.enum';
+import { RoleEnum } from '../../shared/role.enum';
+import { USER_DUTIES } from '../../shared/user-duty.enum';
+import { USER_TITLES } from '../../shared/user-title.enum';
 
 import { AdminUserRole } from './admin-user-role';
 import { AdminUserTitle } from './admin-user-title';

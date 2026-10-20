@@ -1,15 +1,15 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
-import { NominationFileSnapshot } from '../../domain/nomination-file-snapshot';
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
+import { Prisma } from '../../../../../generated/prisma/client';
+import { assertPgParams } from '../../../../../utils/assert-pg-params';
+import { isDefined } from '../../../../../utils/is-defined';
+import { Db } from '../../../../framework/database';
 import {
   isAuditionExpected,
   isAuditionRequired,
-} from 'src/modules/shared/policies/auditioned-position.policy';
-import { assertPgParams } from 'src/utils/assert-pg-params';
-import { isDefined } from 'src/utils/is-defined';
+} from '../../../../shared/policies/auditioned-position.policy';
+import { NominationFileSnapshot } from '../../domain/nomination-file-snapshot';
 
 import { SessionReportedFilesFinder } from './session-reported-files.finder';
 

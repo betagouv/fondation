@@ -9,15 +9,21 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { AffectationVersionFinder } from '../finders/affectation-version.finder';
-import { TransparenceFilesFinder } from '../finders/transparence-files.finder';
-import { Prisma } from 'src/generated/prisma/client';
-import { insertLodamNominationFilesRawQuery } from 'src/generated/prisma/sql';
-import { SessionDocInvalidation } from 'src/modules/docs/shared/domain/doc-invalidation';
-import { Clock } from 'src/modules/framework/clock';
-import { Db } from 'src/modules/framework/database';
-import { Files } from 'src/modules/framework/files';
-import { ReportService } from 'src/modules/report/report.service';
+import { Prisma } from '../../../../../generated/prisma/client';
+import { insertLodamNominationFilesRawQuery } from '../../../../../generated/prisma/sql';
+import { assertNever } from '../../../../../utils/assert-never';
+import { DateOnly } from '../../../../../utils/date-only';
+import { makeId } from '../../../../../utils/id';
+import { isDefined } from '../../../../../utils/is-defined';
+import { timeOnlyToDate } from '../../../../../utils/time-only';
+import { SessionDocInvalidation } from '../../../../docs/shared/domain/doc-invalidation';
+import { Clock } from '../../../../framework/clock';
+import { Db } from '../../../../framework/database';
+import { Files } from '../../../../framework/files';
+import { ReportService } from '../../../../report/report.service';
+import { FormationEnum } from '../../../../shared/formation.enum';
+import { prismaFormationEnumToFormationEnum } from '../../../../shared/mappers/formation.mapper';
+import { PriorityEnum } from '../../../../shared/priority.enum';
 import {
   LodamSessionTransparenceFilesCreated,
   SessionTransparence,
@@ -47,15 +53,9 @@ import {
   SessionTransparenceOutcomeDefined,
   SessionTransparenceUpdated,
   SessionTransparenceValidated,
-} from 'src/modules/session/transparence/domain/session-transparence';
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
-import { PriorityEnum } from 'src/modules/shared/priority.enum';
-import { assertNever } from 'src/utils/assert-never';
-import { DateOnly } from 'src/utils/date-only';
-import { makeId } from 'src/utils/id';
-import { isDefined } from 'src/utils/is-defined';
-import { timeOnlyToDate } from 'src/utils/time-only';
+} from '../../domain/session-transparence';
+import { AffectationVersionFinder } from '../finders/affectation-version.finder';
+import { TransparenceFilesFinder } from '../finders/transparence-files.finder';
 
 import { gradeEnumToSortableTargetedGrade } from './sortable-targeted-grade';
 

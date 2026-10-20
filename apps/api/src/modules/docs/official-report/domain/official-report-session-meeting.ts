@@ -1,5 +1,5 @@
-import { DateOnly } from 'src/utils/date-only';
-import { TimeOnly, timeOnlyToDate } from 'src/utils/time-only';
+import { DateOnly } from '../../../../utils/date-only';
+import { TimeOnly, timeOnlyToDate } from '../../../../utils/time-only';
 
 export class OfficialReportSessionMeeting {
   private constructor(

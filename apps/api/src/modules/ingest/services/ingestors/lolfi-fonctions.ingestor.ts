@@ -2,10 +2,10 @@ import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
+import { insertFunctionsRawQuery } from '../../../../generated/prisma/sql';
+import { Db } from '../../../framework/database';
+import { formationEnumToPrismaFormationEnum } from '../../../shared/mappers/formation.mapper';
 import { LolfiJob } from '../lolfi-job.type';
-import { insertFunctionsRawQuery } from 'src/generated/prisma/sql';
-import { Db } from 'src/modules/framework/database';
-import { formationEnumToPrismaFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 
 import { JobFileIngestor } from './job-file-ingestor';
 

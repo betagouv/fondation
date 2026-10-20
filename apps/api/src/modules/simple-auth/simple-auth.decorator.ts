@@ -14,8 +14,8 @@ import { Reflector } from '@nestjs/core';
 import { ApiCookieAuth } from '@nestjs/swagger';
 import { Request as ExpressRequest } from 'express';
 
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import { assertIsDefined, isDefined } from 'src/utils/is-defined';
+import { assertIsDefined, isDefined } from '../../utils/is-defined';
+import type { RoleEnum } from '../shared/role.enum';
 
 export const AuthedUserId = createParamDecorator((_, ctx: ExecutionContext) => {
   const { user } = ctx.switchToHttp().getRequest<ExpressRequest>();

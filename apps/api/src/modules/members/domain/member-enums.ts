@@ -1,4 +1,4 @@
-import { PrismaUserTitleEnum } from 'src/generated/prisma/enums';
+import { PrismaUserTitleEnum } from '../../../generated/prisma/enums';
 
 export const MEMBER_TITLES = ['PRESIDENT_SIEGE', 'PRESIDENT_PARQUET'] as const;
 export type MemberTitleEnum = (typeof MEMBER_TITLES)[number];

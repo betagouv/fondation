@@ -12,8 +12,8 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { ZodResponse } from 'nestjs-zod';
 
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import { AuthedUser, HasRole } from 'src/modules/simple-auth';
+import type { RoleEnum } from '../../shared/role.enum';
+import { AuthedUser, HasRole } from '../../simple-auth';
 
 import { WriteNominationFileMemberMemoDto } from './infrastructure/dtos/nomination-file.dto';
 import { ListedMemberSessionsDto } from './infrastructure/queries/list-member-sessions.query';

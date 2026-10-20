@@ -1,10 +1,10 @@
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { createSortableDto } from 'src/modules/framework/sorting';
-import { NominationFileOutcome } from 'src/modules/shared/nomination-file-outcome.enum';
-import { PriorityEnum } from 'src/modules/shared/priority.enum';
-import { scheduleAuditionSchema } from 'src/utils/audition-schedule';
+import { scheduleAuditionSchema } from '../../../../../utils/audition-schedule';
+import { createSortableDto } from '../../../../framework/sorting';
+import { NominationFileOutcome } from '../../../../shared/nomination-file-outcome.enum';
+import { PriorityEnum } from '../../../../shared/priority.enum';
 
 export class AffectReportersDto extends createZodDto(
   z.object({

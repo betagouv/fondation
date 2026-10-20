@@ -1,9 +1,9 @@
-import { FormationEnum } from 'src/modules/shared/formation.enum';
+import { assertNever } from '../../../../utils/assert-never';
+import { FormationEnum } from '../../../shared/formation.enum';
 import {
   NominationFileOutcomeEnum,
   nominationFileOutcomeLabel,
-} from 'src/modules/shared/nomination-file-outcome.enum';
-import { assertNever } from 'src/utils/assert-never';
+} from '../../../shared/nomination-file-outcome.enum';
 
 export const FINAL_DOC_NOMINATION_FILE_OUTCOMES = ['NON_VALIDATED', 'VALIDATED', 'WITHDRAWN'] as const;
 export type FinalDocNominationFileOutcomeEnum = (typeof FINAL_DOC_NOMINATION_FILE_OUTCOMES)[number];

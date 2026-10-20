@@ -1,9 +1,9 @@
+import { DateOnly } from '../../../../utils/date-only';
+import { Id, makeId } from '../../../../utils/id';
+import { assertIsDefined } from '../../../../utils/is-defined';
+import { GenderEnum } from '../../../shared/gender.enum';
+import { UserTitleEnum } from '../../../shared/user-title.enum';
 import { type DocSystemUpdateCause } from '../../shared/domain/doc-system-update-cause';
-import { GenderEnum } from 'src/modules/shared/gender.enum';
-import { UserTitleEnum } from 'src/modules/shared/user-title.enum';
-import { DateOnly } from 'src/utils/date-only';
-import { Id, makeId } from 'src/utils/id';
-import { assertIsDefined } from 'src/utils/is-defined';
 
 import { AgendaNominationFile } from './agenda-nomination-file';
 import { AgendaFilesDiff, AgendaMetadataDiff, AgendaSnapshot } from './agenda-snapshot';

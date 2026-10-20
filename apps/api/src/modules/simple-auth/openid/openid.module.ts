@@ -1,8 +1,8 @@
 import { HttpService } from '@nestjs/axios';
 import { DynamicModule, FactoryProvider, Module, Provider } from '@nestjs/common';
 
-import { Clock } from 'src/modules/framework/clock';
-import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
+import { Clock } from '../../framework/clock';
+import { API_CONFIG_TOKEN, ApiConfig } from '../../framework/config';
 
 import { internalOpenIdConfigFactory, OpenIdConfig, OpenIdOptions } from './internal/openid-config';
 import { InternalOpenIdService } from './internal/openid.service';

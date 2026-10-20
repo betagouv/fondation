@@ -1,8 +1,8 @@
 import { parse } from 'node-xlsx';
 
-import type { Clock } from 'src/modules/framework/clock';
-import type { ApiConfig } from 'src/modules/framework/config';
-import type { Db } from 'src/modules/framework/database';
+import type { Clock } from '../../../framework/clock';
+import type { ApiConfig } from '../../../framework/config';
+import type { Db } from '../../../framework/database';
 
 import { ListFeedbacksAsExcelQuery } from './list-feedbacks-as-excel.query';
 

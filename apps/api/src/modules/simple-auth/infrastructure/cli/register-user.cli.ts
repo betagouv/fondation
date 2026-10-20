@@ -2,9 +2,9 @@ import { type QuestionMap } from 'inquirer';
 import { CommandRunner, InquirerService, Option, SubCommand } from 'nest-commander';
 import z from 'zod';
 
+import { GenderEnum } from '../../../shared/gender.enum';
+import { RoleEnum } from '../../../shared/role.enum';
 import { SimpleAuthService } from '../../simple-auth.service';
-import { GenderEnum } from 'src/modules/shared/gender.enum';
-import { RoleEnum } from 'src/modules/shared/role.enum';
 
 const RegisterUserKey = {
   gender: 'gender',

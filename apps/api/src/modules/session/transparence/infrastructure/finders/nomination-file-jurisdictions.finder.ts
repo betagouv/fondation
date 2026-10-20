@@ -1,8 +1,8 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
-import { findNominationFileJurisdictionsRawQuery } from 'src/generated/prisma/sql';
-import { Db } from 'src/modules/framework/database';
+import { findNominationFileJurisdictionsRawQuery } from '../../../../../generated/prisma/sql';
+import { Db } from '../../../../framework/database';
 
 export type NominationFileJurisdiction = { id: string; label: string | null };
 

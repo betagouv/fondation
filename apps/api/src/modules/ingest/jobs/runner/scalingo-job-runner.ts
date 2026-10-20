@@ -8,8 +8,8 @@ import {
 } from '@nestjs/common';
 import z, { ZodSafeParseResult } from 'zod';
 
-import { Clock } from 'src/modules/framework/clock';
-import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
+import { Clock } from '../../../framework/clock';
+import { API_CONFIG_TOKEN, ApiConfig } from '../../../framework/config';
 
 import { FailedToCancelJob, FailedToStartJob } from './job-errors';
 import { ScalingoHttpContainer } from './scalingo-http';

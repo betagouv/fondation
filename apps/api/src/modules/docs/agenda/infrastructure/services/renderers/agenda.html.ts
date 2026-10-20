@@ -1,3 +1,7 @@
+import { DateOnly } from '../../../../../../utils/date-only';
+import { FormationEnum } from '../../../../../shared/formation.enum';
+import { GenderEnum } from '../../../../../shared/gender.enum';
+import { UserTitleEnum } from '../../../../../shared/user-title.enum';
 import {
   commonDocumentCss,
   documentLayout,
@@ -12,10 +16,6 @@ import {
 import { html, SafeHtml } from '../../../../shared/infrastructure/services/renderers/safe-html';
 import { Template } from '../../../../shared/infrastructure/services/renderers/templates.types';
 import { AgendaBlockFile } from '../../../domain/agenda-doc-block';
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import { GenderEnum } from 'src/modules/shared/gender.enum';
-import { UserTitleEnum } from 'src/modules/shared/user-title.enum';
-import { DateOnly } from 'src/utils/date-only';
 
 type AgendaRenderContextNominationFile = {
   id: bigint;

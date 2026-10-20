@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { type AuditionSchedule, toAuditionSchedule } from 'src/utils/audition-schedule';
+import { Prisma } from '../../../../generated/prisma/client';
+import { type AuditionSchedule, toAuditionSchedule } from '../../../../utils/audition-schedule';
+import { Db } from '../../../framework/database';
 
 export type ObservantAuditionWithObservations = {
   audition: AuditionSchedule;

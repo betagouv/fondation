@@ -1,7 +1,7 @@
 import * as assert from 'node:assert';
 
-import { DateOnly } from 'src/utils/date-only';
-import { makeId } from 'src/utils/id';
+import { DateOnly } from '../../../../utils/date-only';
+import { makeId } from '../../../../utils/id';
 
 import { AgendaSnapshot } from './agenda-snapshot';
 

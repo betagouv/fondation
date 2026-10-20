@@ -1,9 +1,9 @@
 import { faker } from '@faker-js/faker';
 
+import { DateOnly } from '../../../../utils/date-only';
+import { makeId } from '../../../../utils/id';
+import { GenderEnum } from '../../../shared/gender.enum';
 import { DocInvalidation } from '../../shared/domain/doc-invalidation';
-import { GenderEnum } from 'src/modules/shared/gender.enum';
-import { DateOnly } from 'src/utils/date-only';
-import { makeId } from 'src/utils/id';
 
 import {
   Agenda,

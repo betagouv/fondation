@@ -1,6 +1,6 @@
 import z from 'zod';
 
-import { isDefined } from 'src/utils/is-defined';
+import { isDefined } from '../../../../utils/is-defined';
 
 const PRESENTATION_PLAN_STATUSES = ['DRAFT', 'VALIDATED'] as const;
 

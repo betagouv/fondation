@@ -1,13 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { formatDate } from 'date-fns';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { FILE_MIME_TYPES, Files } from 'src/modules/framework/files';
-import { PdfRenderer } from 'src/modules/framework/pdf';
-import { DateOnly } from 'src/utils/date-only';
-import { makeId } from 'src/utils/id';
-import { assertIsDefined } from 'src/utils/is-defined';
+import { Prisma } from '../../../../../generated/prisma/client';
+import { DateOnly } from '../../../../../utils/date-only';
+import { makeId } from '../../../../../utils/id';
+import { assertIsDefined } from '../../../../../utils/is-defined';
+import { Db } from '../../../../framework/database';
+import { FILE_MIME_TYPES, Files } from '../../../../framework/files';
+import { PdfRenderer } from '../../../../framework/pdf';
 
 import { FindPresentationPlanDocumentQuery } from './find-presentation-plan-document.query';
 

@@ -1,4 +1,4 @@
-import { FRENCH_TIME_ZONES } from 'src/utils/french-time-zones';
+import { FRENCH_TIME_ZONES } from '../../../../../../utils/french-time-zones';
 
 import { date as renderDate, readsTheSame, requiresElision } from './helpers';
 

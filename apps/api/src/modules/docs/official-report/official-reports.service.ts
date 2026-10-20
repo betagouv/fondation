@@ -1,15 +1,15 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { forwardRef, Inject, Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
 
+import { DateOnly, DateOnlyJson } from '../../../utils/date-only';
+import { isDefined } from '../../../utils/is-defined';
+import { Clock } from '../../framework/clock';
 import { MembersService } from '../../members';
+import { TransparenceService } from '../../session/transparence/infrastructure/transparence.service';
 import { SimpleAuthService } from '../../simple-auth';
 import { DocNominationFileOutcomeEnum } from '../shared/domain/doc-nomination-file-outcome';
 import { AgendaFinder, FoundAgendasDto } from '../shared/infrastructure/finders/agenda.finder';
 import { DocsNominationFilesFinder } from '../shared/infrastructure/finders/docs-nomination-files.finder';
-import { Clock } from 'src/modules/framework/clock';
-import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
-import { DateOnly, DateOnlyJson } from 'src/utils/date-only';
-import { isDefined } from 'src/utils/is-defined';
 
 import { OfficialReport } from './domain/official-report';
 import { OfficialReportChairman } from './domain/official-report-chairman';

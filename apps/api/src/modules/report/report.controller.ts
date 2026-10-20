@@ -16,8 +16,8 @@ import { ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { FILE_EXTENSIONS, UseMultipartBody, type Multipart } from '../framework/files';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import { AuthedUser, AuthedUserId, HasRole } from 'src/modules/simple-auth';
+import type { RoleEnum } from '../shared/role.enum';
+import { AuthedUser, AuthedUserId, HasRole } from '../simple-auth';
 
 import {
   AttachedScreenshotsDto,

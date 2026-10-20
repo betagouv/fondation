@@ -1,14 +1,14 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, NotFoundException } from '@nestjs/common';
 
+import { Prisma } from '../../../../../generated/prisma/client';
+import { lockAgendasRawQuery } from '../../../../../generated/prisma/sql';
+import { Clock } from '../../../../framework/clock';
+import { Db } from '../../../../framework/database';
+import { Files } from '../../../../framework/files';
 import { JusticePresentationPlanChangedWhileValidated } from '../../domain/justice-presentation-plan';
 import { FindPresentationPlanDocumentPdfQuery } from '../queries/find-presentation-plan-document-pdf.query';
 import { JusticePresentationPlanRepository } from '../repositories/justice-presentation-plan.repository';
-import { Prisma } from 'src/generated/prisma/client';
-import { lockAgendasRawQuery } from 'src/generated/prisma/sql';
-import { Clock } from 'src/modules/framework/clock';
-import { Db } from 'src/modules/framework/database';
-import { Files } from 'src/modules/framework/files';
 
 @Injectable()
 export class ValidatePresentationPlanUseCase {

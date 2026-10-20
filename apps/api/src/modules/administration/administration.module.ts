@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 
-import { SimpleAuthModule } from 'src/modules/simple-auth';
+import { SimpleAuthModule } from '../simple-auth';
 
 import { AdministrationService } from './administration.service';
 import { AdministrationController } from './infrastructure/administration.controller';

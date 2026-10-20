@@ -1,7 +1,7 @@
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import type { UserDutyEnum } from 'src/modules/shared/user-duty.enum';
-import type { UserTitleEnum } from 'src/modules/shared/user-title.enum';
-import { assertNever } from 'src/utils/assert-never';
+import { assertNever } from '../../../utils/assert-never';
+import type { RoleEnum } from '../../shared/role.enum';
+import type { UserDutyEnum } from '../../shared/user-duty.enum';
+import type { UserTitleEnum } from '../../shared/user-title.enum';
 
 export const ADMIN_USER_ROLES_ENUM = [
   'FIRST_SECRETARY',

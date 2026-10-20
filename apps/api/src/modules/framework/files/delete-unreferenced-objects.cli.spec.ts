@@ -1,10 +1,10 @@
 // oxlint-disable typescript/unbound-method
 import { mock, type MockProxy } from 'vitest-mock-extended';
 
-import { FileDelegate } from 'src/generated/prisma/models';
-import { Clock } from 'src/modules/framework/clock';
-import { ApiConfig } from 'src/modules/framework/config';
-import { Db } from 'src/modules/framework/database';
+import { FileDelegate } from '../../../generated/prisma/models';
+import { Clock } from '../clock';
+import { ApiConfig } from '../config';
+import { Db } from '../database';
 
 import { DeleteUnreferencedObjectsCommand } from './delete-unreferenced-objects.cli';
 import { Files } from './files';

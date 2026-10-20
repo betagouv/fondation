@@ -1,12 +1,12 @@
 import { Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
 import { build } from 'node-xlsx';
 
+import { Prisma } from '../../../../../generated/prisma/client';
+import { capitalize } from '../../../../../utils/capitalize';
+import { Db } from '../../../../framework/database';
+import { contentDisposition, FILE_MIME_TYPES } from '../../../../framework/files';
+import { proposedMagistratName } from '../../../../magistrat/domain/magistrat-name';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { contentDisposition, FILE_MIME_TYPES } from 'src/modules/framework/files';
-import { proposedMagistratName } from 'src/modules/magistrat/domain/magistrat-name';
-import { capitalize } from 'src/utils/capitalize';
 
 const COLUMNS = [
   { label: 'N°', width: 10 },

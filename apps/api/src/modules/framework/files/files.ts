@@ -30,15 +30,15 @@ import {
 import * as Sentry from '@sentry/node';
 import { lastValueFrom } from 'rxjs';
 
+import { Prisma } from '../../../generated/prisma/client';
+import { makeId } from '../../../utils/id';
+import { assertIsDefined } from '../../../utils/is-defined';
+import { noop } from '../../../utils/noop';
+import { ignoreAsync, isFulfilled } from '../../../utils/promises';
+import * as time from '../../../utils/time';
 import { Clock } from '../clock';
-import { Prisma } from 'src/generated/prisma/client';
-import { API_CONFIG_TOKEN, type ApiConfig } from 'src/modules/framework/config';
-import { afterCommit, Db } from 'src/modules/framework/database';
-import { makeId } from 'src/utils/id';
-import { assertIsDefined } from 'src/utils/is-defined';
-import { noop } from 'src/utils/noop';
-import { ignoreAsync, isFulfilled } from 'src/utils/promises';
-import * as time from 'src/utils/time';
+import { API_CONFIG_TOKEN, type ApiConfig } from '../config';
+import { afterCommit, Db } from '../database';
 
 import { contentDisposition } from './content-disposition';
 import { type FondationFile, type StoredSize } from './files.types';

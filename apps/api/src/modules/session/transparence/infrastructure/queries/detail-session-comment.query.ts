@@ -2,9 +2,9 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { fullname } from 'src/utils/user.util';
+import { Prisma } from '../../../../../generated/prisma/client';
+import { fullname } from '../../../../../utils/user.util';
+import { Db } from '../../../../framework/database';
 
 @Injectable()
 export class DetailSessionCommentQuery {

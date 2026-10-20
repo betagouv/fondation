@@ -2,13 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { PrismaUserDutyEnum, PrismaUserTitleEnum } from 'src/generated/prisma/enums';
-import { Db } from 'src/modules/framework/database';
-import { GenderEnum } from 'src/modules/shared/gender.enum';
-import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
-import { UserDutyEnum } from 'src/modules/shared/user-duty.enum';
-import { UserTitleEnum } from 'src/modules/shared/user-title.enum';
+import { Prisma } from '../../../../../generated/prisma/client';
+import { PrismaUserDutyEnum, PrismaUserTitleEnum } from '../../../../../generated/prisma/enums';
+import { Db } from '../../../../framework/database';
+import { GenderEnum } from '../../../../shared/gender.enum';
+import { prismaGenderEnumToGenderEnum } from '../../../../shared/mappers/gender-enum.mapper';
+import { UserDutyEnum } from '../../../../shared/user-duty.enum';
+import { UserTitleEnum } from '../../../../shared/user-title.enum';
 
 @Injectable()
 export class ListSecretariesGeneralQuery {

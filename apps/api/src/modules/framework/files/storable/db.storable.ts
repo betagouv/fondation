@@ -1,13 +1,13 @@
 import { Propagation } from '@nestjs-cls/transactional';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { Clock } from 'src/modules/framework/clock';
-import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
-import { Db } from 'src/modules/framework/database';
-import { makeId } from 'src/utils/id';
-import { partition } from 'src/utils/iterables';
-import { noop } from 'src/utils/noop';
+import { Prisma } from '../../../../generated/prisma/client';
+import { makeId } from '../../../../utils/id';
+import { partition } from '../../../../utils/iterables';
+import { noop } from '../../../../utils/noop';
+import { Clock } from '../../clock';
+import { API_CONFIG_TOKEN, ApiConfig } from '../../config';
+import { Db } from '../../database';
 
 import { StorageResult } from './result.storable';
 import { Storable, StorablePath, type Storage, type Stored } from './storable.types';

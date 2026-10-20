@@ -1,4 +1,4 @@
-import { type AuditionSchedule, auditionScheduleKey } from 'src/utils/audition-schedule';
+import { type AuditionSchedule, auditionScheduleKey } from '../../../../utils/audition-schedule';
 
 type NominationFileAudition = { audition: AuditionSchedule | null; requested: boolean | null };
 

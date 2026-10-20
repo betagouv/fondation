@@ -1,10 +1,10 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
+import { dateOnlyJsonSchema } from '../../../../utils/date-only';
+import { timeOnlySchema } from '../../../../utils/time-only';
+import { editedHtml } from '../../shared/infrastructure/edited-html';
 import { DocBlockSchema } from '../domain/official-report-doc-block';
-import { editedHtml } from 'src/modules/docs/shared/infrastructure/edited-html';
-import { dateOnlyJsonSchema } from 'src/utils/date-only';
-import { timeOnlySchema } from 'src/utils/time-only';
 
 export class CreatedOfficialReportDto extends createZodDto(z.object({ id: z.uuid() })) {}
 

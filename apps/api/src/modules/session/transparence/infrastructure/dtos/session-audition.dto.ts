@@ -1,9 +1,9 @@
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { createPaginatedZodDto } from 'src/modules/framework/pagination';
-import { createSortableDto } from 'src/modules/framework/sorting';
-import { auditionScheduleSchema } from 'src/utils/audition-schedule';
+import { auditionScheduleSchema } from '../../../../../utils/audition-schedule';
+import { createPaginatedZodDto } from '../../../../framework/pagination';
+import { createSortableDto } from '../../../../framework/sorting';
 
 function toArray(value: unknown): undefined | unknown[] {
   if (value === undefined) return undefined;

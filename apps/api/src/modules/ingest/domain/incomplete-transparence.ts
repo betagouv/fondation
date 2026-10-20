@@ -1,5 +1,5 @@
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import * as time from 'src/utils/time';
+import * as time from '../../../utils/time';
+import { FormationEnum } from '../../shared/formation.enum';
 
 export type ReceivedDesignations = { candidatures: number; perFormation: Record<FormationEnum, number> };
 

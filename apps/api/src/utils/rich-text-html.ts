@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { type AttributeRule, type AttributesByTag, sanitizeHtml } from 'src/utils/sanitize-html';
+import { type AttributeRule, type AttributesByTag, sanitizeHtml } from './sanitize-html';
 
 const anyValue: AttributeRule = () => true;
 const color: AttributeRule = (value) =>

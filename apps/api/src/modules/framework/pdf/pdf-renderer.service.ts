@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import * as Sentry from '@sentry/node';
 
-import * as time from 'src/utils/time';
+import * as time from '../../../utils/time';
 
 import { GotenbergHttpClient } from './gotenberg-http-client.service';
 

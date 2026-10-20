@@ -1,16 +1,16 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, StreamableFile } from '@nestjs/common';
 
+import { Prisma } from '../../../generated/prisma/client';
+import { DateOnly, DateOnlyJson } from '../../../utils/date-only';
+import { isDefined } from '../../../utils/is-defined';
+import { Clock } from '../../framework/clock';
 import { Db } from '../../framework/database';
 import { MembersService } from '../../members';
 import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../shared/infrastructure/agenda-content';
 import { ActedNominationFilesFinder } from '../shared/infrastructure/finders/acted-nomination-files.finder';
 import { DocsNominationFilesFinder } from '../shared/infrastructure/finders/docs-nomination-files.finder';
 import { InvalidateDocsUseCase } from '../shared/infrastructure/use-cases/invalidate-docs.use-case';
-import { Prisma } from 'src/generated/prisma/client';
-import { Clock } from 'src/modules/framework/clock';
-import { DateOnly, DateOnlyJson } from 'src/utils/date-only';
-import { isDefined } from 'src/utils/is-defined';
 
 import { Agenda } from './domain/agenda';
 import { CreatedAgendaDto } from './infrastructure/agendas.dto';

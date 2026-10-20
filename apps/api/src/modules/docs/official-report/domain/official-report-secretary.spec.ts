@@ -1,4 +1,4 @@
-import { RoleEnum } from 'src/modules/shared/role.enum';
+import { RoleEnum } from '../../../shared/role.enum';
 
 import {
   InvalidSecretaryDuty,

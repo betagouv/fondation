@@ -1,19 +1,19 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, NotFoundException } from '@nestjs/common';
 
+import { Prisma } from '../../../../../generated/prisma/client';
+import { DateOnly } from '../../../../../utils/date-only';
+import { assertIsDefined, isDefined } from '../../../../../utils/is-defined';
+import { dateToTimeOnly } from '../../../../../utils/time-only';
+import { Db } from '../../../../framework/database';
+import { prismaFormationEnumToFormationEnum } from '../../../../shared/mappers/formation.mapper';
+import { TypeDeSaisineEnum } from '../../../../shared/type-de-saisine.enum';
 import { DocNominationFileOutcomeEnum } from '../../../shared/domain/doc-nomination-file-outcome';
+import { agendaContentOf } from '../../../shared/infrastructure/agenda-content';
 import {
   PresentationPlanRenderContext,
   PresentationPlanRenderer,
 } from '../services/renderers/presentation-plan.renderer';
-import { Prisma } from 'src/generated/prisma/client';
-import { agendaContentOf } from 'src/modules/docs/shared/infrastructure/agenda-content';
-import { Db } from 'src/modules/framework/database';
-import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
-import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
-import { DateOnly } from 'src/utils/date-only';
-import { assertIsDefined, isDefined } from 'src/utils/is-defined';
-import { dateToTimeOnly } from 'src/utils/time-only';
 
 @Injectable()
 export class FindPresentationPlanDocumentQuery {

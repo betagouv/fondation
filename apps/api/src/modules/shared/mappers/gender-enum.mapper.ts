@@ -1,6 +1,6 @@
-import { PrismaGenderEnum } from 'src/generated/prisma/enums';
-import { GenderEnum } from 'src/modules/shared/gender.enum';
-import { assertNever } from 'src/utils/assert-never';
+import { PrismaGenderEnum } from '../../../generated/prisma/enums';
+import { assertNever } from '../../../utils/assert-never';
+import { GenderEnum } from '../gender.enum';
 
 export function prismaGenderEnumToGenderEnum(value: PrismaGenderEnum): GenderEnum {
   switch (value) {
