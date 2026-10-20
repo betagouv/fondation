@@ -9,9 +9,9 @@ import { ListUsersQuery } from './infrastructure/queries/list-users.query';
 import { UserRepository } from './infrastructure/repositories/user.repository';
 
 @Module({
-  imports: [SimpleAuthModule],
-  providers: [AdministrationService, UserRepository, ListUsersQuery, DetailsUserQuery],
   controllers: [AdministrationController],
   exports: [AdministrationService],
+  imports: [SimpleAuthModule],
+  providers: [AdministrationService, UserRepository, ListUsersQuery, DetailsUserQuery],
 })
 export class AdministrationModule {}

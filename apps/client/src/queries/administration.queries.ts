@@ -143,7 +143,6 @@ export function useDemoteUserFromAdmin(userId: string) {
   });
 }
 
-/** a deactivated account leaves every list of choices, and comes back once reactivated */
 function invalidateUserAccess(queryClient: QueryClient, userId: string) {
   queryClient.invalidateQueries({ queryKey: adminKeys.user(userId) });
   queryClient.invalidateQueries({ queryKey: adminKeys.allUsers() });

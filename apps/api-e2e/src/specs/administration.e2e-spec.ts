@@ -3,7 +3,7 @@ import { makeStepsFixtures } from '../steps.ts';
 
 test.describe('Administration E2E', () => {
   test.describe('Given a logged-in member', () => {
-    test('should log the member out when an admin changes the password', async ({ admin, member, expect }) => {
+    test('should log the member out when an admin changes the password', async ({ admin, expect, member }) => {
       await admin.administration.updatePassword({
         body: { password: crypto.randomUUID() },
         path: { userId: member['@user']!.id },
@@ -14,7 +14,7 @@ test.describe('Administration E2E', () => {
       expect(response?.status).toBe(401);
     });
 
-    test('should log the member out when an admin deactivates the account', async ({ admin, member, expect }) => {
+    test('should log the member out when an admin deactivates the account', async ({ admin, expect, member }) => {
       await admin.administration.deactivate({ path: { userId: member['@user']!.id }, throwOnError: true });
 
       const { response } = await member.auth.introspectSession();
@@ -36,7 +36,7 @@ test.describe('Administration E2E', () => {
   });
 
   test.describe('Given a deactivated member', () => {
-    test('should refuse the login of the member', async ({ admin, baseUrl, registerUser, expect }) => {
+    test('should refuse the login of the member', async ({ admin, baseUrl, expect, registerUser }) => {
       const user = await registerUser('MEMBRE_COMMUN');
       await admin.administration.deactivate({ path: { userId: user.id }, throwOnError: true });
 
@@ -46,7 +46,7 @@ test.describe('Administration E2E', () => {
       expect(response?.status).toBe(401);
     });
 
-    test('should let the member log in again once reactivated', async ({ admin, baseUrl, registerUser, expect }) => {
+    test('should let the member log in again once reactivated', async ({ admin, baseUrl, expect, registerUser }) => {
       const user = await registerUser('MEMBRE_COMMUN');
       await admin.administration.deactivate({ path: { userId: user.id }, throwOnError: true });
       await admin.administration.reactivate({ path: { userId: user.id }, throwOnError: true });
@@ -65,7 +65,7 @@ test.describe('Administration E2E', () => {
       expect(response?.status).toBe(400);
     });
 
-    test('should leave the member out of the members', async ({ admin, registerUser, expect }) => {
+    test('should leave the member out of the members', async ({ admin, expect, registerUser }) => {
       const user = await registerUser('MEMBRE_COMMUN');
       await admin.administration.deactivate({ path: { userId: user.id }, throwOnError: true });
 
@@ -73,7 +73,7 @@ test.describe('Administration E2E', () => {
       expect(data.items).toEqual([]);
     });
 
-    test('should list the member among the deactivated users only', async ({ admin, registerUser, expect }) => {
+    test('should list the member among the deactivated users only', async ({ admin, expect, registerUser }) => {
       const user = await registerUser('MEMBRE_COMMUN');
       await admin.administration.deactivate({ path: { userId: user.id }, throwOnError: true });
 

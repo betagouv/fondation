@@ -340,23 +340,8 @@ describe('SessionTransparence', () => {
   describe('NominationSession tree creation (LODAM)', () => {
     it('should create a nomination session tree', () => {
       const session = SessionTransparence.createLodamNominationTreeAndAffectMembers({
-        name: 'TEST transparence LODAM PARQUET',
         date: new DateOnly(2025, 1, 1),
-        observationClosingDate: new DateOnly(2025, 2, 1),
-        formation: 'PARQUET',
-        typeDeSaisine: 'TRANSPARENCE_GDS',
         dueDate: null,
-        positionStartDate: null,
-        userId: randomUUID(),
-
-        // oxfmt-ignore
-        formationMembers: [
-            {
-              fullName: "BOURDIEU Pierre",
-              id: "51176c69-4f03-4973-9d25-0f83c7ad6931",
-              status: "ACTIVE",
-            },
-          ],
         // oxfmt-ignore
         files: [
             {
@@ -392,6 +377,20 @@ describe('SessionTransparence', () => {
               targetedPosition: "Vice-président TJ  CAHORS",
             },
           ],
+        formation: 'PARQUET',
+        // oxfmt-ignore
+        formationMembers: [
+            {
+              fullName: "BOURDIEU Pierre",
+              id: "51176c69-4f03-4973-9d25-0f83c7ad6931",
+              status: "ACTIVE",
+            },
+          ],
+        name: 'TEST transparence LODAM PARQUET',
+        observationClosingDate: new DateOnly(2025, 2, 1),
+        positionStartDate: null,
+        typeDeSaisine: 'TRANSPARENCE_GDS',
+        userId: randomUUID(),
       });
 
       expect(session.messages[0]).toEqual(
@@ -475,22 +474,21 @@ describe('SessionTransparence', () => {
     it('should throw, when affecting an unknown reporter', () => {
       const act = () =>
         SessionTransparence.createLodamNominationTreeAndAffectMembers({
-          name: 'TEST transparence LODAM PARQUET',
           date: new DateOnly(2025, 1, 1),
-          observationClosingDate: new DateOnly(2025, 2, 1),
-          formation: 'PARQUET',
-          typeDeSaisine: 'TRANSPARENCE_GDS',
           dueDate: null,
-          positionStartDate: null,
-          userId: randomUUID(),
-
-          // oxfmt-ignore
-          formationMembers: [],
           // oxfmt-ignore
           files: [
             { fileNumber: 1, reporters: ['BOURDIEU Pierre'] },
             { fileNumber: 2, reporters: ['BOURDIEU Pierre'] },
           ] as LodamTransparenceFile[],
+          formation: 'PARQUET',
+          // oxfmt-ignore
+          formationMembers: [],
+          name: 'TEST transparence LODAM PARQUET',
+          observationClosingDate: new DateOnly(2025, 2, 1),
+          positionStartDate: null,
+          typeDeSaisine: 'TRANSPARENCE_GDS',
+          userId: randomUUID(),
         });
 
       expect(act).toThrow(SessionTransparenceAffectationHasUnknownReporter);

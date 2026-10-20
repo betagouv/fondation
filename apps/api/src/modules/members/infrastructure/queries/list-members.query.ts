@@ -36,7 +36,6 @@ export class ListMembersQuery {
     const totalCount = await this.db.tx.user.count({
       where: {
         deactivatedAt: null,
-        role: { in: roles },
         OR: query.search
           ? [
               { email: { contains: query.search, mode: 'insensitive' } },
@@ -44,6 +43,7 @@ export class ListMembersQuery {
               { lastName: { contains: query.search, mode: 'insensitive' } },
             ]
           : undefined,
+        role: { in: roles },
       },
     });
 
@@ -59,9 +59,9 @@ export class ListMembersQuery {
     );
 
     return paginate({
-      totalCount,
       items: items.filter(isMember),
       pagination: query.pagination,
+      totalCount,
     });
   }
 }

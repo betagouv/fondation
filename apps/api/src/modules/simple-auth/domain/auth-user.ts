@@ -159,11 +159,11 @@ export class AuthUser {
     user.#messages.push(
       new AuthUserRegistered({
         ...props,
-        id,
         email,
-        password,
         firstName: props.firstName.toLowerCase(),
+        id,
         lastName: props.lastName.toLowerCase(),
+        password,
       }),
     );
     return user;

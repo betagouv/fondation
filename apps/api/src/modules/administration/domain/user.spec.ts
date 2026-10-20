@@ -15,8 +15,8 @@ describe('User', () => {
   const baseProps = {
     id: 'user-1',
     role: AdminUserRole.from({
-      role: 'ADJOINT_SECRETAIRE_GENERAL',
       duty: null,
+      role: 'ADJOINT_SECRETAIRE_GENERAL',
       title: null,
     }),
     status: 'ACTIVE' as const,
@@ -40,8 +40,8 @@ describe('User', () => {
       ...baseProps,
       role: AdminUserRole.from({
         duty: null,
-        title: null,
         role: 'ADJOINT_SECRETAIRE_GENERAL',
+        title: null,
       }),
     });
 
@@ -55,8 +55,8 @@ describe('User', () => {
       new UserRoleUpdated(
         user.id,
         AdminUserRole.from({
-          role: 'ADJOINT_SECRETAIRE_GENERAL',
           duty: 'SECRETARY',
+          role: 'ADJOINT_SECRETAIRE_GENERAL',
           title: 'FIRST_SECRETARY',
         }),
       ),
@@ -68,8 +68,8 @@ describe('User', () => {
       ...baseProps,
       role: AdminUserRole.from({
         duty: 'PRESIDENT',
-        title: 'PRESIDENT_PARQUET',
         role: 'MEMBRE_COMMUN',
+        title: 'PRESIDENT_PARQUET',
       }),
     });
 
@@ -80,8 +80,8 @@ describe('User', () => {
       new UserRoleUpdated(
         user.id,
         AdminUserRole.from({
-          role: 'MEMBRE_COMMUN',
           duty: null,
+          role: 'MEMBRE_COMMUN',
           title: null,
         }),
       ),

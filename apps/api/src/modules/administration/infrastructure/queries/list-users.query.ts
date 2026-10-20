@@ -36,11 +36,10 @@ export class ListUsersQuery {
     const roles: Prisma.UserWhereInput[] | undefined = query.roles?.map((role) => {
       const idRoles = adminUserRoleEnumToIdentityRoles(role);
       return {
-        title: adminUserRoleEnumToTitle(role),
         duty: adminUserRoleEnumToDuty(role),
-
-        role: idRoles.length === 1 ? idRoles[0] : undefined,
         OR: idRoles.length > 1 ? idRoles.map((role) => ({ role })) : undefined,
+        role: idRoles.length === 1 ? idRoles[0] : undefined,
+        title: adminUserRoleEnumToTitle(role),
       } satisfies Prisma.UserWhereInput;
     });
 
@@ -73,36 +72,36 @@ export class ListUsersQuery {
     const direction = query.sorting.sortDesc ? 'desc' : 'asc';
     const totalCount = await this.db.tx.user.count({ where });
     const items = await this.db.tx.user.findMany({
+      orderBy: [{ lastName: direction }, { createdAt: 'asc' }],
       select: {
-        id: true,
-        firstName: true,
-        lastName: true,
+        deactivatedAt: true,
+        duty: true,
         email: true,
+        firstName: true,
+        gender: true,
+        id: true,
+        lastName: true,
         role: true,
         title: true,
-        duty: true,
-        gender: true,
-        deactivatedAt: true,
       } satisfies Prisma.UserSelect,
-      where,
-      orderBy: [{ lastName: direction }, { createdAt: 'asc' }],
       skip: (query.pagination.page - 1) * query.pagination.limit,
       take: query.pagination.limit,
+      where,
     });
 
     return paginate({
-      totalCount,
-      items: items.map(({ role, title, duty, gender, deactivatedAt, ...u }) => ({
+      items: items.map(({ deactivatedAt, duty, gender, role, title, ...u }) => ({
         ...u,
         gender: prismaGenderEnumToGenderEnum(gender),
-        status: userStatusOf({ deactivatedAt }),
         role: AdminUserRole.from({
+          duty: duty ?? null,
           role: prismaRoleEnumToRoleEnum(role),
           title: title ?? null,
-          duty: duty ?? null,
         }).toString(),
+        status: userStatusOf({ deactivatedAt }),
       })),
       pagination: query.pagination,
+      totalCount,
     });
   }
 }

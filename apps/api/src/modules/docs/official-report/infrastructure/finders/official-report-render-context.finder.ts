@@ -42,71 +42,26 @@ export class OfficialReportRenderContextFinder {
   async find(query: { officialReportId: string }): Promise<OfficialReportRenderContext> {
     const versionId = await this.officialReportVersionFinder.latest(query);
     const report = await this.db.tx.officialReportVersion.findUnique({
-      where: { id: versionId },
       select: {
-        hasRenunciation: true,
-        justiceDepartmentContactName: true,
-
-        sessionMeetingDate: true,
-        sessionMeetingStartingTime: true,
-        sessionMeetingEndingTime: true,
-
-        officialReport: {
-          select: {
-            agenda: {
-              select: {
-                id: true,
-                sessionId: true,
-                formation: true,
-                versions: {
-                  take: 2,
-                  orderBy: { version: 'desc' },
-                  select: {
-                    date: true,
-                    status: true,
-                    nominationFiles: {
-                      select: {
-                        nominationFileId: true,
-                        htmlEdited: true,
-                        htmlEditedAt: true,
-                        editor: { select: { id: true, firstName: true, lastName: true } },
-                      },
-                      where: { htmlEdited: { not: null } },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-
         chairman: {
           select: {
-            id: true,
-            lastName: true,
-            firstName: true,
-            title: true,
             displayTitle: true,
             duty: true,
-            role: true,
+            firstName: true,
             gender: true,
+            id: true,
+            lastName: true,
+            role: true,
             sort: true,
-          },
-        },
-
-        secretary: {
-          select: {
-            id: true,
-            lastName: true,
-            firstName: true,
             title: true,
-            displayTitle: true,
-            duty: true,
-            role: true,
-            gender: true,
           },
         },
-
+        conclusionHtml: true,
+        conclusionOutdated: true,
+        hasRenunciation: true,
+        introHtml: true,
+        introOutdated: true,
+        justiceDepartmentContactName: true,
         members: {
           select: {
             firstName: true,
@@ -118,37 +73,73 @@ export class OfficialReportRenderContextFinder {
             title: true,
           },
         },
-
         nominationFiles: {
           orderBy: { number: 'asc' },
           select: {
-            id: true,
-            number: true,
-            nominationFileId: true,
-
-            name: true,
-            position: true,
+            editor: { select: { firstName: true, id: true, lastName: true } },
             grade: true,
-            targetedPosition: true,
-            targetedGrade: true,
-            reporters: true,
-            outcome: true,
-
             htmlEdited: true,
-            htmlOutdated: true,
             htmlEditedAt: true,
             htmlFromAgenda: true,
-            editor: { select: { id: true, firstName: true, lastName: true } },
+            htmlOutdated: true,
+            id: true,
+            name: true,
+            nominationFileId: true,
+            number: true,
+            outcome: true,
+            position: true,
+            reporters: true,
+            targetedGrade: true,
+            targetedPosition: true,
           },
         },
-
-        introHtml: true,
-        introOutdated: true,
-        conclusionHtml: true,
-        conclusionOutdated: true,
+        officialReport: {
+          select: {
+            agenda: {
+              select: {
+                formation: true,
+                id: true,
+                sessionId: true,
+                versions: {
+                  orderBy: { version: 'desc' },
+                  select: {
+                    date: true,
+                    nominationFiles: {
+                      select: {
+                        editor: { select: { firstName: true, id: true, lastName: true } },
+                        htmlEdited: true,
+                        htmlEditedAt: true,
+                        nominationFileId: true,
+                      },
+                      where: { htmlEdited: { not: null } },
+                    },
+                    status: true,
+                  },
+                  take: 2,
+                },
+              },
+            },
+          },
+        },
+        secretary: {
+          select: {
+            displayTitle: true,
+            duty: true,
+            firstName: true,
+            gender: true,
+            id: true,
+            lastName: true,
+            role: true,
+            title: true,
+          },
+        },
+        sectionIntros: { select: { html: true, outcome: true } },
         sectionTitles: { select: { outcome: true, title: true } },
-        sectionIntros: { select: { outcome: true, html: true } },
+        sessionMeetingDate: true,
+        sessionMeetingEndingTime: true,
+        sessionMeetingStartingTime: true,
       } satisfies Prisma.OfficialReportVersionSelect,
+      where: { id: versionId },
     });
 
     if (!report) throw new NotFoundException();
@@ -200,9 +191,9 @@ export class OfficialReportRenderContextFinder {
     );
     const chairman = OfficialReportChairman.from({
       ...rawChairman,
-      role: prismaRoleEnumToRoleEnum(rawChairman.role),
-      gender: prismaGenderEnumToGenderEnum(rawChairman.gender),
       expectedFormation: formation,
+      gender: prismaGenderEnumToGenderEnum(rawChairman.gender),
+      role: prismaRoleEnumToRoleEnum(rawChairman.role),
     });
 
     const rawSecretary = assertIsDefined(
@@ -211,8 +202,8 @@ export class OfficialReportRenderContextFinder {
     );
     const secretary = OfficialReportSecretary.from({
       ...rawSecretary,
-      role: prismaRoleEnumToRoleEnum(rawSecretary.role),
       gender: prismaGenderEnumToGenderEnum(rawSecretary.gender),
+      role: prismaRoleEnumToRoleEnum(rawSecretary.role),
     });
 
     const membersList = OfficialReportMembersList.from(
@@ -233,12 +224,12 @@ export class OfficialReportRenderContextFinder {
       const html = title?.trim();
       if (!html) return [];
 
-      return [{ type: 'title' as const, outcome, html }];
+      return [{ html, outcome, type: 'title' as const }];
     });
-    const sectionIntros = report.sectionIntros.map(({ outcome, html }) => ({
-      type: 'intro' as const,
-      outcome,
+    const sectionIntros = report.sectionIntros.map(({ html, outcome }) => ({
       html,
+      outcome,
+      type: 'intro' as const,
     }));
 
     const userDefinedOutcomes = [...sectionTitles, ...sectionIntros].reduce(
@@ -266,11 +257,11 @@ export class OfficialReportRenderContextFinder {
             [
               f.nominationFileId,
               {
-                html: f.htmlEdited,
-                isOutdated: f.htmlOutdated,
                 editedAt: f.htmlEditedAt,
                 editedBy: writer(f.editor),
                 fromAgenda: f.htmlFromAgenda,
+                html: f.htmlEdited,
+                isOutdated: f.htmlOutdated,
               },
             ] as const,
         ),
@@ -278,41 +269,41 @@ export class OfficialReportRenderContextFinder {
 
     const sessionMeeting = OfficialReportSessionMeeting.from({
       date: DateOnly.fromUtcDate(report.sessionMeetingDate),
-      startTime: dateToTimeOnly(report.sessionMeetingStartingTime),
       endTime: dateToTimeOnly(report.sessionMeetingEndingTime),
+      startTime: dateToTimeOnly(report.sessionMeetingStartingTime),
     });
 
     return {
-      chairman,
-      secretary,
-      sessionMeeting,
-      members: membersList,
-      hasRenouncement: report.hasRenunciation,
-      justiceDepartmentContact: report.justiceDepartmentContactName,
+      agenda: { date: DateOnly.fromUtcDate(agendaDate), formation, id: agenda.id },
       agendaProposals,
+      chairman,
       fileAgendas,
-      session: { date: session.date, id: agenda.sessionId },
-      agenda: { id: agenda.id, formation, date: DateOnly.fromUtcDate(agendaDate) },
-      userDefinedBlocks: {
-        intro: userDefinedInto,
-        conclusion: userDefinedConclusion,
-        files: userDefinedFiles,
-        outcomes: userDefinedOutcomes,
-      },
       files: report.nominationFiles.map((f) => ({
+        currentGrade: f.grade,
+        currentPosition: f.position,
         id: f.id,
-        number: f.number,
+        name: f.name,
         nominationFileId: isDefined(f.nominationFileId)
           ? makeId('NominationFileId', f.nominationFileId)
           : null,
-        name: f.name,
-        currentPosition: f.position,
-        currentGrade: f.grade,
-        targetedPosition: f.targetedPosition ?? '',
-        targetedGrade: f.targetedGrade,
-        reporters: f.reporters,
+        number: f.number,
         outcome: f.outcome,
+        reporters: f.reporters,
+        targetedGrade: f.targetedGrade,
+        targetedPosition: f.targetedPosition ?? '',
       })),
+      hasRenouncement: report.hasRenunciation,
+      justiceDepartmentContact: report.justiceDepartmentContactName,
+      members: membersList,
+      secretary,
+      session: { date: session.date, id: agenda.sessionId },
+      sessionMeeting,
+      userDefinedBlocks: {
+        conclusion: userDefinedConclusion,
+        files: userDefinedFiles,
+        intro: userDefinedInto,
+        outcomes: userDefinedOutcomes,
+      },
     } satisfies OfficialReportRenderContext;
   }
 }

@@ -54,9 +54,9 @@ export class SimpleAuthService {
     }
 
     const session = await user.authenticate({
-      type: 'password',
       now: this.clock.now(),
       plainPassword: command.password,
+      type: 'password',
     });
     await this.userRepository.persist(user);
     return session;
@@ -124,8 +124,8 @@ export class SimpleAuthService {
     const target = await this.userRepository.find(command.targetUserId);
     const impersonation = user.impersonate({
       authSessionId: command.authSessionId,
-      target,
       now: this.clock.now(),
+      target,
     });
 
     await this.userRepository.persist(user);

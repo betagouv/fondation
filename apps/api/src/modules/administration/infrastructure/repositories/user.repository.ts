@@ -30,23 +30,23 @@ export class UserRepository {
 
   async findById(userId: string): Promise<User> {
     const user = await this.db.tx.user.findUnique({
-      where: { id: userId },
       select: {
+        deactivatedAt: true,
+        duty: true,
         id: true,
         role: true,
         title: true,
-        duty: true,
-        deactivatedAt: true,
       } satisfies Prisma.UserSelect,
+      where: { id: userId },
     });
     if (!user) throw new NotFoundException();
 
     return User.from({
       id: user.id,
       role: AdminUserRole.from({
+        duty: user.duty,
         role: prismaRoleEnumToRoleEnum(user.role),
         title: user.title,
-        duty: user.duty,
       }),
       status: userStatusOf(user),
     });
@@ -54,7 +54,6 @@ export class UserRepository {
 
   async findManyByLastName(lastNames: readonly string[]): Promise<Map<string, User>> {
     const users = await this.db.tx.user.findMany({
-      where: { lastName: { in: lastNames as string[], mode: 'insensitive' } },
       select: {
         deactivatedAt: true,
         duty: true,
@@ -63,6 +62,7 @@ export class UserRepository {
         role: true,
         title: true,
       } satisfies Prisma.UserSelect,
+      where: { lastName: { in: lastNames as string[], mode: 'insensitive' } },
     });
 
     return new Map(
@@ -71,9 +71,9 @@ export class UserRepository {
         User.from({
           id: user.id,
           role: AdminUserRole.from({
+            duty: user.duty,
             role: prismaRoleEnumToRoleEnum(user.role),
             title: user.title,
-            duty: user.duty,
           }),
           status: userStatusOf(user),
         }),
@@ -108,68 +108,68 @@ export class UserRepository {
 
   private persistEmailUpdated(message: UserEmailUpdated) {
     return this.db.tx.user.update({
-      where: { id: message.userId },
       data: { email: message.email },
+      where: { id: message.userId },
     });
   }
 
   private persistPasswordUpdated(message: UserPasswordUpdated) {
     return this.db.tx.user.update({
-      where: { id: message.userId },
       data: { password: message.hashedPassword },
+      where: { id: message.userId },
     });
   }
 
   private persistRoleUpdated(message: UserRoleUpdated) {
     return this.db.tx.user.update({
-      where: { id: message.userId },
       data: {
-        role: roleEnumToPrismaRoleEnum(message.role.role),
         duty: message.role.duty,
+        role: roleEnumToPrismaRoleEnum(message.role.role),
         title: message.role.title,
       },
+      where: { id: message.userId },
     });
   }
 
   private persistUsersUntitled(message: UsersUntitled) {
     return this.db.tx.user.updateMany({
+      data: { duty: message.targetRole.duty, title: message.targetRole.title },
       where: { title: message.sourceTitle },
-      data: { title: message.targetRole.title, duty: message.targetRole.duty },
     });
   }
 
   private persistDisplayTitleUpdated(message: UserDisplayTitleUpdated) {
     return this.db.tx.user.update({
-      where: { id: message.userId },
       data: { displayTitle: message.displayTitle },
+      where: { id: message.userId },
     });
   }
 
   private persistUserPromotedToAdmin(message: UserPromotedToAdmin) {
     return this.db.tx.user.update({
-      where: { id: message.userId },
       data: { role: 'ADMIN' },
+      where: { id: message.userId },
     });
   }
 
   private persistUserDemotedFromAdmin(message: UserDemotedFromAdmin) {
     return this.db.tx.user.update({
-      where: { id: message.userId },
       data: { role: 'ADJOINT_SECRETAIRE_GENERAL' },
+      where: { id: message.userId },
     });
   }
 
   private persistUserDeactivated(message: UserDeactivated) {
     return this.db.tx.user.update({
-      where: { id: message.userId },
       data: { deactivatedAt: message.deactivatedAt, deactivatedBy: message.deactivatedBy },
+      where: { id: message.userId },
     });
   }
 
   private persistUserReactivated(message: UserReactivated) {
     return this.db.tx.user.update({
-      where: { id: message.userId },
       data: { deactivatedAt: null, deactivatedBy: null },
+      where: { id: message.userId },
     });
   }
 }

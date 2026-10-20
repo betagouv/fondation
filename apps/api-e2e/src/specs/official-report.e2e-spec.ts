@@ -611,7 +611,7 @@ test.describe('Official report', () => {
       sessionMeetingTime: { hours: 18, minutes: 0, seconds: 0 },
     };
     const { id: officialReportId } = await docs.officialReport(agenda, metadata);
-    await agent.docs.generateOfficialReportHtml({ path: { officialReportId }, parseAs: 'text' });
+    await agent.docs.generateOfficialReportHtml({ parseAs: 'text', path: { officialReportId } });
 
     await agent.docs.updateOfficialReport({
       body: { ...metadata, justiceDepartmentContactId: secondContact.data!.id },

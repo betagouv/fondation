@@ -31,8 +31,8 @@ export class AuthUserRepository {
 
   async find(id: string): Promise<AuthUser> {
     const user = await this.db.tx.user.findUnique({
-      where: { id },
       select: { deactivatedAt: true, id: true, password: true } satisfies Prisma.UserSelect,
+      where: { id },
     });
 
     if (!user) throw new NotFoundException();
@@ -60,9 +60,9 @@ export class AuthUserRepository {
 
     return this.db.tx.authSession.create({
       data: {
+        createdAt: event.session.startedAt,
         expiresAt,
         sessionId: event.session.id,
-        createdAt: event.session.startedAt,
         user: { connect: { id: event.id } },
       },
     });
@@ -71,13 +71,13 @@ export class AuthUserRepository {
   private persistUserRegistered(event: AuthUserRegistered) {
     return this.db.tx.user.create({
       data: {
-        id: event.id,
         email: event.email,
-        password: event.password,
         firstName: event.firstName,
-        lastName: event.lastName,
-        role: event.role,
         gender: event.gender,
+        id: event.id,
+        lastName: event.lastName,
+        password: event.password,
+        role: event.role,
       },
     });
   }
@@ -85,11 +85,11 @@ export class AuthUserRepository {
   private persistImpersonationStarted({ impersonation }: AuthImpersonationStarted) {
     return this.db.tx.authImpersonation.create({
       data: {
-        id: impersonation.id,
         createdAt: impersonation.startedAt,
         expiresAt: impersonation.expiresAt,
-        sessionId: impersonation.authSessionId,
+        id: impersonation.id,
         impersonatedUserId: impersonation.impersonateId,
+        sessionId: impersonation.authSessionId,
       },
     });
   }

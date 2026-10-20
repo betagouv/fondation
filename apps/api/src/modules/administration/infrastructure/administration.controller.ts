@@ -38,23 +38,23 @@ export class AdministrationController {
   @Get('/users')
   @ApiPaginated()
   @UsePipes(ZodValidationPipe)
-  @ZodResponse({ type: PaginatedAdminUserListItemDto, status: HttpStatus.OK })
+  @ZodResponse({ status: HttpStatus.OK, type: PaginatedAdminUserListItemDto })
   listUsers(
     @QueryPagination() pagination: Pagination,
     @Query() query: ListUsersQueryDto,
   ): Promise<PaginatedAdminUserListItemDto> {
     return this.administration.listUsers({
       pagination,
-      search: query.search,
       roles: query.roles,
-      statuses: query.statuses,
+      search: query.search,
       sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
+      statuses: query.statuses,
     });
   }
 
   @HasRole('ADMIN')
   @Get('/users/:userId')
-  @ZodResponse({ type: DetailedAdminUserDto, status: HttpStatus.OK })
+  @ZodResponse({ status: HttpStatus.OK, type: DetailedAdminUserDto })
   detailsUser(
     @AuthedUser() actor: { id: string },
     @Param('userId', ParseUUIDPipe) userId: string,
@@ -70,7 +70,7 @@ export class AdministrationController {
     @Param('userId', ParseUUIDPipe) userId: string,
     @Body() { email }: UpdateUserEmailDto,
   ): Promise<void> {
-    return this.administration.updateEmail({ userId, email });
+    return this.administration.updateEmail({ email, userId });
   }
 
   @HasRole('ADMIN')
@@ -93,7 +93,7 @@ export class AdministrationController {
     @Param('userId', ParseUUIDPipe) userId: string,
     @Body() { role }: UpdateUserRoleDto,
   ): Promise<void> {
-    return this.administration.updateRole({ userId, role });
+    return this.administration.updateRole({ role, userId });
   }
 
   @HasRole('ADMIN')
@@ -104,7 +104,7 @@ export class AdministrationController {
     @Param('userId', ParseUUIDPipe) userId: string,
     @Body() { displayTitle }: UpdateUserDisplayTitleDto,
   ): Promise<void> {
-    return this.administration.updateDisplayTitle({ userId, displayTitle });
+    return this.administration.updateDisplayTitle({ displayTitle, userId });
   }
 
   @HasRole('ADMIN')

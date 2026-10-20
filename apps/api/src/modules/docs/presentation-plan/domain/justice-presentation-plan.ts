@@ -215,20 +215,20 @@ export class JusticePresentationPlan {
   private buildState(
     props: CreateJusticePresentationPlanCommand | UpdateJusticePresentationPlanCommand,
   ): JusticePresentationPlanState {
-    const { chairman, secretary, agendas, members, ...state } = props;
+    const { agendas, chairman, members, secretary, ...state } = props;
     this.assertsChairman(chairman);
     this.assertsSecretary(secretary);
     this.assertsAgendas(agendas);
     const membersList = this.assertsMemberList(members, chairman);
 
     return {
-      chairman,
-      secretary,
-      members: membersList,
       agendas: agendas.map((agenda) => ({
         ...agenda,
         comment: agenda.comment?.trim() || null,
       })),
+      chairman,
+      members: membersList,
+      secretary,
       ...state,
     };
   }

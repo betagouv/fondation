@@ -49,7 +49,7 @@ function EmailField(props: { user: DetailedAdminUserDto }) {
   const handleEdit = useCallback(() => {
     setEmail(props.user.email);
     setEditing(true);
-  }, [setEmail, setEditing, props]);
+  }, [props, setEditing, setEmail]);
 
   const handleSave = () => {
     const trimmed = email.trim();
@@ -151,7 +151,7 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
       setIsDirty(false);
       setEditing(edition);
     },
-    [setIsDirty, setEditing],
+    [setEditing, setIsDirty],
   );
 
   const handleSave = useCallback(
@@ -216,7 +216,7 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
         },
       );
     },
-    [password, confirmation, props, changeEdition, updatePassword, reset, formatMessage],
+    [changeEdition, confirmation, formatMessage, password, props, reset, updatePassword],
   );
 
   return (
@@ -325,7 +325,7 @@ function AdminUserPromotionToggle(props: { className?: string; user: DetailedAdm
         });
       }
     },
-    [promote, demote, currentUser, props.user, confirmation, queryClient, navigate, formatMessage],
+    [confirmation, currentUser, demote, formatMessage, navigate, promote, props.user, queryClient],
   );
 
   if (!PROMOTABLE_ROLES.includes(props.user.role)) return null;
@@ -456,7 +456,7 @@ function DisplayTitleField(props: { user: DetailedAdminUserDto }) {
 
       mutate({ displayTitle: newTitle }, { onSuccess: () => setEditing(false) });
     },
-    [mutate, displayTitle, setEditing, props],
+    [displayTitle, mutate, props, setEditing],
   );
 
   return (
@@ -626,7 +626,7 @@ function ImpersonateButton(props: { userId: string }) {
         tab.open(url);
       },
     });
-  }, [tab, impersonate]);
+  }, [impersonate, tab]);
 
   return (
     <Button

@@ -33,8 +33,8 @@ export class InternalFindMembersQuery {
       select: { id: true } satisfies Prisma.UserSelect,
       where: {
         deactivatedAt: null,
-        role: { in: roles },
         id: { in: query.ids as string[] | undefined },
+        role: { in: roles },
       },
     });
 

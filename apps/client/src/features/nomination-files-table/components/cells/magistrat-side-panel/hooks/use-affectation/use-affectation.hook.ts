@@ -13,7 +13,7 @@ export function useAffectation(props: {
   sessionId: string;
   onSaved: () => void;
 }) {
-  const { nominationFile, sessionId, onSaved } = props;
+  const { nominationFile, onSaved, sessionId } = props;
   const { formation } = useNominationFilesTable();
 
   const [priorities, setPriorities] = React.useState<PrioriteEnum[]>(() => [...nominationFile.priorities]);
@@ -29,9 +29,9 @@ export function useAffectation(props: {
   const availableRapporteurs = React.useMemo(
     () =>
       (data?.items ?? []).map((member) => ({
-        userId: member.id,
         firstName: member.firstName,
         lastName: member.lastName,
+        userId: member.id,
       })),
     [data],
   );
@@ -57,28 +57,28 @@ export function useAffectation(props: {
     nominationFile.reporters.map((reporter) => reporter.id),
   );
 
-  const { mutate, isPending } = useAffectNominationFilesReportersMutation();
+  const { isPending, mutate } = useAffectNominationFilesReportersMutation();
 
   const save = React.useCallback(
     () =>
       mutate(
-        { sessionId, affectations: [{ nominationFileId: nominationFile.id, reporterIds, priorities }] },
+        { affectations: [{ nominationFileId: nominationFile.id, priorities, reporterIds }], sessionId },
         { onSuccess: onSaved },
       ),
-    [mutate, sessionId, nominationFile.id, reporterIds, priorities, onSaved],
+    [mutate, nominationFile.id, onSaved, priorities, reporterIds, sessionId],
   );
 
   return {
-    priorities,
-    setPriorities,
-    reporterIds,
-    setReporterIds,
     availableRapporteurs,
-    selectedReporters,
-    save,
     isPending,
+    priorities,
     prioritiesDirty,
+    reporterIds,
     reportersDirty,
+    save,
+    selectedReporters,
+    setPriorities,
+    setReporterIds,
   };
 }
 

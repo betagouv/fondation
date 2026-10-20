@@ -6,28 +6,28 @@ test.describe('Session Affectations E2E', () => {
   let nominationFileId: string;
   let memberId: string;
 
-  test.beforeEach(async ({ agent, member, sessions, expect }) => {
+  test.beforeEach(async ({ agent, expect, member, sessions }) => {
     memberId = member['@user']!.id;
 
     const session = await sessions.createOne({
-      name: 'Transparence affectation',
-      createdAt: '22/04/2026',
       candidates: [
         {
           firstName: 'ETIENNE',
           lastName: 'TREVOUX',
           position: {
+            function: seed.functions.PR,
             grade: 'G3',
             jurisdiction: seed.jurisdictions['CA  LYON'],
-            function: seed.functions.PR,
           },
           targetPosition: {
+            function: seed.functions.PR,
             grade: 'G3',
             jurisdiction: seed.jurisdictions['CA  GRENOBLE'],
-            function: seed.functions.PR,
           },
         },
       ],
+      createdAt: '22/04/2026',
+      name: 'Transparence affectation',
     });
     sessionId = session.id;
 
@@ -36,12 +36,12 @@ test.describe('Session Affectations E2E', () => {
     nominationFileId = files.data!.items[0]!.id;
   });
 
-  test("an unaffected session does not appear in the member's list", async ({ member, expect }) => {
+  test("an unaffected session does not appear in the member's list", async ({ expect, member }) => {
     const memberSessions = await member.members.listMemberSessions({ path: { userId: memberId } });
     expect(memberSessions.data!.items).not.toContainEqual(expect.objectContaining({ id: sessionId }));
   });
 
-  test('never auto-affects a member a file of a jurisdiction they exclude', async ({ agent, registerUser, expect }) => {
+  test('never auto-affects a member a file of a jurisdiction they exclude', async ({ agent, expect, registerUser }) => {
     const excluding = await registerUser('MEMBRE_COMMUN');
     await agent.members.excludeJurisdictions({
       body: { jurisdictionIds: [seed.jurisdictions['CA  LYON'].id] },
@@ -66,14 +66,14 @@ test.describe('Session Affectations E2E', () => {
     expect(files.data!.items[0]!.reporters).toEqual([]);
   });
 
-  test('counts a nomination file once whatever its number of reporters', async ({ agent, logIn, expect }) => {
+  test('counts a nomination file once whatever its number of reporters', async ({ agent, expect, logIn }) => {
     const secondMember = await logIn('MEMBRE_COMMUN');
 
     await agent.sessions.affectReporters({
-      path: { sessionId },
       body: {
-        items: [{ nominationFileId, reporterIds: [memberId, secondMember['@user']!.id], priorities: [] }],
+        items: [{ nominationFileId, priorities: [], reporterIds: [memberId, secondMember['@user']!.id] }],
       },
+      path: { sessionId },
       throwOnError: true,
     });
 
@@ -122,8 +122,8 @@ test.describe('Session Affectations E2E', () => {
     });
 
     await agent.sessions.affectReporters({
+      body: { items: [{ nominationFileId, priorities: [], reporterIds: [memberId] }] },
       path: { sessionId },
-      body: { items: [{ nominationFileId, reporterIds: [memberId], priorities: [] }] },
       throwOnError: true,
     });
 
@@ -137,8 +137,8 @@ test.describe('Session Affectations E2E', () => {
     });
 
     await agent.sessions.defineNominationFileOutcome({
-      path: { sessionId, nominationFileId },
       body: { comment: null, outcome: 'VALIDATED' },
+      path: { nominationFileId, sessionId },
       throwOnError: true,
     });
 
@@ -152,10 +152,10 @@ test.describe('Session Affectations E2E', () => {
     });
   });
 
-  test('the affectation lifecycle preserves the report edition', async ({ agent, member, expect }) => {
+  test('the affectation lifecycle preserves the report edition', async ({ agent, expect, member }) => {
     await agent.sessions.affectReporters({
+      body: { items: [{ nominationFileId, priorities: [], reporterIds: [memberId] }] },
       path: { sessionId },
-      body: { items: [{ nominationFileId, reporterIds: [memberId], priorities: [] }] },
       throwOnError: true,
     });
 
@@ -168,19 +168,19 @@ test.describe('Session Affectations E2E', () => {
     expect(affected.data!.items).toContainEqual(expect.objectContaining({ id: sessionId, isAffected: true }));
 
     const { data: memberReports } = await member.members.listMemberSessionReports({
-      path: { userId: memberId, sessionId },
+      path: { sessionId, userId: memberId },
     });
     const reportId = memberReports!.items[0]!.report.id;
 
     await member.reports.updateReport({
-      path: { reportId },
       body: { status: 'IN_PROGRESS' },
+      path: { reportId },
       throwOnError: true,
     });
 
     await agent.sessions.affectReporters({
+      body: { items: [{ nominationFileId, priorities: [], reporterIds: [] }] },
       path: { sessionId },
-      body: { items: [{ nominationFileId, reporterIds: [], priorities: [] }] },
       throwOnError: true,
     });
 
@@ -199,14 +199,13 @@ test.describe('Session Affectations E2E', () => {
     expect(unaffected.data!.items).toContainEqual(expect.objectContaining({ id: sessionId, isAffected: false }));
 
     const { data: removedReports } = await member.members.listMemberSessionReports({
-      path: { userId: memberId, sessionId },
+      path: { sessionId, userId: memberId },
     });
     expect(removedReports!.items).toEqual([]);
 
-    // Re-affecting must restore the previous report edition rather than resetting it
     await agent.sessions.affectReporters({
+      body: { items: [{ nominationFileId, priorities: [], reporterIds: [memberId] }] },
       path: { sessionId },
-      body: { items: [{ nominationFileId, reporterIds: [memberId], priorities: [] }] },
       throwOnError: true,
     });
 
@@ -216,7 +215,7 @@ test.describe('Session Affectations E2E', () => {
     });
 
     const { data: reaffected } = await member.members.listMemberSessionReports({
-      path: { userId: memberId, sessionId },
+      path: { sessionId, userId: memberId },
     });
     const restoredReport = await member.reports.detailReport({
       path: { reportId: reaffected!.items[0]!.report.id },

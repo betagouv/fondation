@@ -19,25 +19,25 @@ export class DetailsUserQuery {
   async handle(query: { actorId: string; userId: string }): Promise<DetailedAdminUserDto> {
     const user = await this.db.tx.user.findUnique({
       select: {
-        id: true,
-        firstName: true,
-        lastName: true,
+        deactivatedAt: true,
+        displayTitle: true,
+        duty: true,
         email: true,
+        firstName: true,
+        gender: true,
+        id: true,
+        lastName: true,
         role: true,
         title: true,
-        duty: true,
-        displayTitle: true,
-        gender: true,
-        deactivatedAt: true,
       } satisfies Prisma.UserSelect,
       where: { id: query.userId },
     });
     if (!user) throw new NotFoundException();
 
     const role = AdminUserRole.from({
+      duty: user.duty,
       role: prismaRoleEnumToRoleEnum(user.role),
       title: user.title,
-      duty: user.duty,
     });
     const status = userStatusOf(user);
     const admin = User.from({ id: user.id, role, status });
@@ -46,14 +46,14 @@ export class DetailsUserQuery {
       canDeactivate: admin.canDeactivate(query.actorId),
       canImpersonate: admin.canBeImpersonated(),
       canReactivate: admin.canReactivate(),
-      id: user.id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      gender: prismaGenderEnumToGenderEnum(user.gender),
-      isAdmin: user.role === 'ADMIN',
-      role: role.toString(),
       displayTitle: user.displayTitle ?? null,
+      email: user.email,
+      firstName: user.firstName,
+      gender: prismaGenderEnumToGenderEnum(user.gender),
+      id: user.id,
+      isAdmin: user.role === 'ADMIN',
+      lastName: user.lastName,
+      role: role.toString(),
       status,
     };
   }
