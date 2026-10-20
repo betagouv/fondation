@@ -3,7 +3,10 @@ import {
   Observation,
   ObservationDeleted,
   ObservationFollowedUp,
+  ObservationMemberCommentWritten,
   ObservationUpdated,
+  UserNotAllowedToAttachScreenshotsError,
+  UserNotAllowedToWriteCommentError,
 } from './observation';
 import { ObservationFollowUp } from './observation-follow-up';
 
@@ -113,6 +116,47 @@ describe('Observation', () => {
       });
 
       expect(updated.messages).toEqual([expect.any(ObservationUpdated)]);
+    });
+  });
+
+  describe('the comment of a member', () => {
+    const observation = () =>
+      Observation.from({
+        dateReception: new Date(2026, 4, 2),
+        id: 'obs-1',
+        magistratId: 'magistrat-1',
+        nominationFileId: 'file-1',
+        sessionId: 'session-1',
+      });
+
+    it('lets a reporter of the nomination file comment', () => {
+      const commented = observation();
+
+      commented.writeMemberComment({ comment: 'À vérifier', reporterIds: ['user-1'], userId: 'user-1' });
+
+      expect(commented.messages).toEqual([
+        new ObservationMemberCommentWritten('obs-1', 'user-1', 'À vérifier'),
+      ]);
+    });
+
+    it('refuses the comment of a member who does not report on the nomination file', () => {
+      expect(() =>
+        observation().writeMemberComment({
+          comment: 'À vérifier',
+          reporterIds: ['user-2'],
+          userId: 'user-1',
+        }),
+      ).toThrow(UserNotAllowedToWriteCommentError);
+    });
+
+    it('refuses the screenshots of a member who does not report on the nomination file', () => {
+      expect(() =>
+        observation().attachMemberCommentScreenshots({
+          files: [{ id: 'file-1' }],
+          reporterIds: ['user-2'],
+          userId: 'user-1',
+        }),
+      ).toThrow(UserNotAllowedToAttachScreenshotsError);
     });
   });
 });

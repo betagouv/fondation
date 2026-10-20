@@ -23,21 +23,21 @@ const ATTACHMENTS: Attachments = [
     addedBy: { id: 'user-1', name: 'Léa MARTIN' },
     id: 'file-1',
     name: 'Fiche de juridiction CA DOUAI.pdf',
-    sizeInBytes: 248_000,
+    size: 248_000,
   },
   {
     addedAt: '2028-02-11T08:30:00.000Z',
     addedBy: { id: 'user-1', name: 'Léa MARTIN' },
     id: 'file-2',
     name: 'Note DSJ - évaluations manquantes.pdf',
-    sizeInBytes: 1_240_000,
+    size: 1_240_000,
   },
   {
     addedAt: '2028-03-02T08:30:00.000Z',
     addedBy: { id: 'user-1', name: 'Léa MARTIN' },
     id: 'file-3',
     name: 'Tableau des effectifs 2028.xlsx',
-    sizeInBytes: 86_000,
+    size: 86_000,
   },
 ];
 
@@ -46,7 +46,7 @@ const MANY_ATTACHMENTS: Attachments = Array.from({ length: 100 }, (_, index) => 
   addedBy: null,
   id: `file-${index}`,
   name: `Fiche de juridiction ${index + 1}.pdf`,
-  sizeInBytes: 120_000 + index * 4_096,
+  size: 120_000 + index * 4_096,
 }));
 
 const sessions: Record<string, Attachments> = {

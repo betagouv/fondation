@@ -579,7 +579,7 @@ export type ListedNominationSessionAttachmentDto = {
             id: string;
             name: string;
         } | null;
-        sizeInBytes: number | null;
+        size: number | null;
     }>;
 };
 

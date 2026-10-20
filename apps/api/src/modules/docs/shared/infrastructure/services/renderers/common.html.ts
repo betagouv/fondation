@@ -103,7 +103,7 @@ export function commonDocumentCss(): string {
   `;
 }
 
-type LayoutContext = Record<'css' | 'header' | 'content' | 'footer', TemplateFunction<never>>;
+type LayoutContext = Record<'header' | 'content' | 'footer', TemplateFunction<never>> & { css: () => string };
 
 type MergedCtx<Fns> = Pretty<
   UnionToIntersection<
@@ -115,9 +115,9 @@ export function documentLayout<const T extends LayoutContext>(layout: T): Templa
   return new Template(function (ctx: MergedCtx<T[keyof T]>) {
     // FIXME: once we refactored all docs.
     const { css, header, content, footer } = layout as Record<
-      'css' | 'header' | 'content' | 'footer',
+      'header' | 'content' | 'footer',
       TemplateFunction<any>
-    >;
+    > & { css: () => string };
 
     return /* html */ `
       <!doctype html>
@@ -131,22 +131,22 @@ export function documentLayout<const T extends LayoutContext>(layout: T): Templa
           ></script>
 
           <style>
-            ${css(ctx)}
+            ${css()}
           </style>
         </head>
         <body>
           <header>${documentLogo()}</header>
 
           <main>
-            <div class="header">${header(ctx)}</div>
+            <div class="header">${header(ctx).toString()}</div>
 
             <footer>
               <div class="drapeau"></div>
             </footer>
 
-            <div class="content" data-editable-content>${content(ctx)}</div>
+            <div class="content" data-editable-content>${content(ctx).toString()}</div>
 
-            <div class="footer">${footer(ctx)}</div>
+            <div class="footer">${footer(ctx).toString()}</div>
           </main>
         </body>
       </html>

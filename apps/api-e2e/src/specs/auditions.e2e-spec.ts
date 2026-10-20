@@ -3,7 +3,7 @@ import { parse } from 'node-xlsx';
 
 import { test as base } from '../fixtures.ts';
 import * as api from '../generated/api/sdk.ts';
-import type { CreateObservationDto } from '../generated/api/types.ts';
+import { observationForm } from '../utils/observation.ts';
 import * as seed from '../utils/seed.ts';
 
 const SESSION: LolfiArchiveContent['sessions'][number] = {
@@ -47,10 +47,6 @@ const SIEGE_SESSION: LolfiArchiveContent['sessions'][number] = {
   createdAt: '22/04/2026',
   name: 'Transparence du siège',
 };
-
-function observationForm(form: CreateObservationDto['form']): CreateObservationDto['form'] {
-  return new Blob([JSON.stringify(form)], { type: 'application/json' }) as unknown as CreateObservationDto['form'];
-}
 
 const test = base.extend('session', async ({ sessions }) => {
   const session = await sessions.createOne(SESSION);

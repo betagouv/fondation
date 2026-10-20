@@ -5,8 +5,8 @@ import { parse } from 'node-xlsx';
 
 import { test as base } from '../fixtures.ts';
 import * as api from '../generated/api/sdk.ts';
-import type { CreateObservationDto } from '../generated/api/types.ts';
 import { makeFile } from '../utils/files.ts';
+import { observationForm } from '../utils/observation.ts';
 import * as seed from '../utils/seed.ts';
 
 const VALROSE_SESSION: LolfiArchiveContent['sessions'][number] = {
@@ -46,12 +46,6 @@ const VALROSE_SESSION: LolfiArchiveContent['sessions'][number] = {
   createdAt: '22/04/2026',
   name: 'Transparence annuelle',
 };
-
-function observationForm(form: CreateObservationDto['form']): CreateObservationDto['form'] {
-  return new Blob([JSON.stringify(form)], {
-    type: 'application/json',
-  }) as unknown as CreateObservationDto['form'];
-}
 
 const test = base.extend('valrose', async ({ sessions }) => {
   const session = await sessions.createOne(VALROSE_SESSION);

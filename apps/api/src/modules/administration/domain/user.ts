@@ -59,6 +59,7 @@ export type UserEvent =
 
 export class CantPromoteMemberToAdmin extends Error {}
 export class CantDemoteFromAdmin extends Error {}
+export class EmailAlreadyTaken extends Error {}
 
 export class User {
   readonly #messages: UserEvent[] = [];
@@ -76,8 +77,11 @@ export class User {
     return new User(props.id, props.role);
   }
 
-  updateEmail(email: string): void {
-    this.#messages.push(new UserEmailUpdated(this.id, email));
+  /** the login matches an email whatever its case, so an email opens one account only */
+  updateEmail(command: { email: string; isTakenByAnotherUser: boolean }): void {
+    if (command.isTakenByAnotherUser) throw new EmailAlreadyTaken();
+
+    this.#messages.push(new UserEmailUpdated(this.id, command.email));
   }
 
   async updatePassword(plainPassword: string): Promise<void> {

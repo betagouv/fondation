@@ -1,13 +1,12 @@
-// oxlint-disable no-console
 import * as assert from 'node:assert/strict';
-import { File } from 'node:buffer';
 import { randomInt } from 'node:crypto';
 
-import { generateLolfiArchive, type LolfiArchiveContent } from 'lolfi';
+import type { LolfiArchiveContent } from 'lolfi';
 
 import type { DefineNominationFilesOutcomeDto } from '../generated/api/types.ts';
 import { TestStepsAdmin } from '../steps.ts';
 import { waitFor } from '../utils/wait-for.ts';
+import type { LolfiFixture } from './lolfi.fixture.ts';
 
 let sessionIdSequence = randomInt(1_000_000, 1_000_000_000);
 
@@ -20,34 +19,10 @@ export type SessionStage = {
   reporters?: readonly [{ id: string }, ...{ id: string }[]];
 };
 
-/** the nomination files come in the order of the candidates */
-export type CreatedSession = { files: { id: string; magistratId: string }[]; id: string };
+/** the nomination files come in the order of the candidates, the name is unique to find the session in a list */
+export type CreatedSession = { files: { id: string; magistratId: string }[]; id: string; name: string };
 
-export function makeCreateSessionFixture(steps: TestStepsAdmin) {
-  async function generateSessionsArchive(
-    inputSessions: LolfiArchiveContent['sessions'],
-  ): Promise<{ file: File; names: string[] }> {
-    const [names, sessions] = inputSessions.reduce(
-      ([sessionNames, list], inputSession) => {
-        const sessionId = inputSession.id || ++sessionIdSequence;
-        const sessionName = inputSession.name || 'Transparence annuelle';
-
-        sessionNames.push(`${sessionName} (${sessionId})`);
-        list.push({ ...inputSession, id: sessionId, name: sessionName });
-
-        return [sessionNames, list];
-      },
-      [[] as string[], [] as LolfiArchiveContent['sessions']],
-    );
-
-    const archive = await generateLolfiArchive({ sessions });
-    const file = new File([archive], `LOLFI_CSM_${new Date().toISOString()}.zip`, {
-      type: 'application/zip',
-    });
-
-    return { file, names };
-  }
-
+export function makeCreateSessionFixture(steps: TestStepsAdmin, lolfi: LolfiFixture) {
   async function findFiles(sessionId: string, candidates: readonly Candidate[]): Promise<CreatedSession['files']> {
     const { data } = await steps.sessions.listNominationFiles({
       path: { sessionId },
@@ -98,23 +73,19 @@ export function makeCreateSessionFixture(steps: TestStepsAdmin) {
     sessions: LolfiArchiveContent['sessions'],
     stage: SessionStage = {},
   ): Promise<CreatedSession[]> {
-    const { file, names } = await generateSessionsArchive(sessions);
-    const jobId = await steps.ingest
-      .ingestLolfiArchive({ body: { file }, throwOnError: true })
-      .then(({ data }) => data!.id);
-
-    await waitFor(async () => {
-      const { errors, files, status } = await steps.jobs
-        .detailsJob({ path: { jobId }, throwOnError: true })
-        .then(({ data }) => data!);
-
-      if (status === 'FAILED') {
-        console.error(errors);
-        console.error(files.map((file) => file.errors));
-      }
-
-      assert.ok(status === 'FAILED' || status === 'SUCCEEDED', `ingestion not done`);
-    });
+    const named = sessions.map((session) => ({
+      ...session,
+      id: session.id || ++sessionIdSequence,
+      name: session.name || 'Transparence annuelle',
+    }));
+    const names = named.map(({ id, name }) => `${name} (${id})`);
+    const job = await lolfi.ingest(named);
+    if (job.status === 'FAILED') {
+      const { errors, files } = await steps.jobs
+        .detailsJob({ path: { jobId: job.id }, throwOnError: true })
+        .then(({ data }) => data);
+      assert.fail(`job #${job.id} failed: ${JSON.stringify({ errors, files: files.map((file) => file.errors) })}`);
+    }
 
     // the sessions are synchronised once the job succeeded
     const sessionIds = await waitFor(async () => {
@@ -135,7 +106,7 @@ export function makeCreateSessionFixture(steps: TestStepsAdmin) {
     for (const [index, id] of sessionIds.entries()) {
       const files = await findFiles(id, sessions[index]!.candidates);
       await bringTo(id, files, stage);
-      created.push({ files, id });
+      created.push({ files, id, name: names[index]! });
     }
 
     return created;
