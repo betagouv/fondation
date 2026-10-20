@@ -3,6 +3,7 @@ import z from 'zod';
 
 import { ADMIN_USER_ROLES_ENUM, AdminUserRoleEnum } from '../../domain/user-enum';
 import { createSortableDto } from 'src/modules/framework/sorting';
+import { USER_STATUSES, UserStatus } from 'src/modules/shared/user-status.enum';
 
 export class ListUsersQueryDto extends createSortableDto(
   z.object({
@@ -12,6 +13,10 @@ export class ListUsersQueryDto extends createSortableDto(
       .union([z.enum(ADMIN_USER_ROLES_ENUM), z.array(z.enum(ADMIN_USER_ROLES_ENUM))])
       .optional()
       .transform((x) => (x ? ([] as AdminUserRoleEnum[]).concat(x) : x)),
+    statuses: z
+      .union([z.enum(USER_STATUSES), z.array(z.enum(USER_STATUSES))])
+      .optional()
+      .transform((x) => (x ? ([] as UserStatus[]).concat(x) : x)),
   }),
 ) {}
 

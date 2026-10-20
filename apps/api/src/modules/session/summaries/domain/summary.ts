@@ -55,18 +55,25 @@ export class Summary {
   constructor(
     readonly id: Id<'SummaryId'>,
     readonly authorId: string | null,
+    private readonly readerIds: ReadonlySet<string>,
   ) {}
 
-  static from(props: { authorId: string | null; id: string; sessionId: string; sessionIsArchived: boolean }) {
+  static from(props: {
+    authorId: string | null;
+    id: string;
+    readerIds: readonly string[];
+    sessionId: string;
+    sessionIsArchived: boolean;
+  }) {
     if (props.sessionIsArchived) throw new SummarySessionIsArchived(props.sessionId);
 
-    return new Summary(makeId('SummaryId', props.id), props.authorId);
+    return new Summary(makeId('SummaryId', props.id), props.authorId, new Set(props.readerIds));
   }
 
   static create(props: { nominationFileId: string; sessionId: string; sessionIsArchived: boolean }): Summary {
     if (props.sessionIsArchived) throw new SummarySessionIsArchived(props.sessionId);
 
-    const summary = new Summary(makeId('SummaryId', props.nominationFileId), null);
+    const summary = new Summary(makeId('SummaryId', props.nominationFileId), null, new Set());
 
     summary.#messages.push(new SummaryCreated(props.sessionId, summary.id));
 
@@ -91,9 +98,10 @@ export class Summary {
     this.#messages.push(new IncludedFilesInSummaryContent(this.id, command.fileIds));
   }
 
+  /** a reader deactivated since stays a reader, but no longer joins a summary */
   updateReadersList(command: { availableUserIds: Set<string>; readerIds: readonly string[] }): void {
     for (const readerId of command.readerIds) {
-      if (!command.availableUserIds.has(readerId)) {
+      if (!command.availableUserIds.has(readerId) && !this.readerIds.has(readerId)) {
         throw new UnknownReader(readerId);
       }
     }

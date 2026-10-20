@@ -6,6 +6,7 @@ export type PresentationPlanContextType = {
   isDisabled: boolean;
   hasAllMandatoryMetadata: boolean;
   hasFailed: boolean;
+  recordedMemberIds: readonly string[];
   state: {
     step: 'METADATA' | 'AGENDA_COMMENTS';
     formation: FormationEnum | null;

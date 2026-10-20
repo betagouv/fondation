@@ -88,7 +88,10 @@ export class DocsService {
     return { id: String(result.id), name: result.name };
   }
 
-  async findDocsMembers(query: { formation: FormationEnum }): Promise<FoundDocsMembersDto> {
+  async findDocsMembers(query: {
+    formation: FormationEnum;
+    includeIds?: readonly string[];
+  }): Promise<FoundDocsMembersDto> {
     const items = await this.members.internalFindMembersByFormation(query);
     return { items: items.map(({ role: _r, ...m }) => m) };
   }

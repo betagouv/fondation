@@ -86,6 +86,13 @@ export class JusticePresentationPlanChangedWhileValidated extends Error {}
 
 export class JusticePresentationPlan {
   readonly #messages: JusticePresentationPlanMessage[] = [];
+  get recordedMemberIds(): string[] {
+    if (!this.settings) return [];
+
+    const { chairmanId, members } = this.settings;
+    return [...(chairmanId ? [chairmanId] : []), ...members.map(({ id }) => id)];
+  }
+
   get messages(): readonly JusticePresentationPlanMessage[] {
     return this.#messages;
   }
@@ -141,8 +148,11 @@ export class JusticePresentationPlan {
   update(command: UpdateJusticePresentationPlanCommand): void {
     if (this.isPresented) throw new JusticePresentationPlanAlreadyPresented();
 
-    const state = this.buildState(command);
     const settings = assertIsDefined(this.settings, 'unknown presentation plan settings');
+    const state = this.buildState({
+      ...command,
+      members: keepingRecorded(command.members, settings.members),
+    });
     // saving is how an outdated notice catches up with its agendas, so it is written again even unchanged
     if (!this.outdated && settings.equals(JusticePresentationPlanSettings.from(this.settingsOf(state)))) {
       return;
@@ -208,20 +218,20 @@ export class JusticePresentationPlan {
   private buildState(
     props: CreateJusticePresentationPlanCommand | UpdateJusticePresentationPlanCommand,
   ): JusticePresentationPlanState {
-    const { chairman, secretary, agendas, members, ...state } = props;
+    const { agendas, chairman, members, secretary, ...state } = props;
     this.assertsChairman(chairman);
     this.assertsSecretary(secretary);
     this.assertsAgendas(agendas);
     const membersList = this.assertsMemberList(members, chairman);
 
     return {
-      chairman,
-      secretary,
-      members: membersList,
       agendas: agendas.map((agenda) => ({
         ...agenda,
         comment: agenda.comment?.trim() || null,
       })),
+      chairman,
+      members: membersList,
+      secretary,
       ...state,
     };
   }
@@ -357,3 +367,12 @@ export type UpdateJusticePresentationPlanCommand = {
   }[];
   members: readonly { id: string; isAbsent: boolean }[];
 };
+
+/** a member recorded for the meeting stays once no longer offered (deactivated since, or moved to another formation) */
+function keepingRecorded(
+  offered: readonly { id: string; isAbsent: boolean }[],
+  recorded: readonly { id: string; isAbsent: boolean }[],
+): { id: string; isAbsent: boolean }[] {
+  const offeredIds = new Set(offered.map(({ id }) => id));
+  return [...offered, ...recorded.filter(({ id }) => !offeredIds.has(id))];
+}

@@ -39,10 +39,20 @@ export function useAffectation(props: {
     [data],
   );
 
+  // a reporter deactivated since is no longer offered, but stays on the file until removed
   const selectedReporters = useMemo(() => {
-    const byId = new Map(availableRapporteurs.map((reporter) => [reporter.userId, reporter] as const));
+    const byId = new Map(
+      [
+        ...nominationFile.reporters.map(({ firstName, id, lastName }) => ({
+          firstName,
+          lastName,
+          userId: id,
+        })),
+        ...availableRapporteurs,
+      ].map((reporter) => [reporter.userId, reporter] as const),
+    );
     return reporterIds.map((id) => byId.get(id)).filter((reporter) => !!reporter);
-  }, [availableRapporteurs, reporterIds]);
+  }, [availableRapporteurs, nominationFile.reporters, reporterIds]);
 
   const prioritiesDirty = !sameValuesIgnoringOrder(priorities, nominationFile.priorities);
   const reportersDirty = !sameValuesIgnoringOrder(

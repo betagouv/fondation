@@ -45,6 +45,7 @@ export class MembersController {
       search: query.search,
       sortBy: query.sortBy,
       sortDirection: query.sortDirection,
+      statuses: query.statuses,
     });
   }
 

@@ -1,5 +1,6 @@
 import { test } from '../fixtures.ts';
 import { makeStepsFixtures } from '../steps.ts';
+import { cookieHeader } from '../utils/cookies.ts';
 
 test.describe('Administration', () => {
   test('should let a user log in with the email and password an admin gave them, and no longer with the former ones', async ({
@@ -75,5 +76,142 @@ test.describe('Administration', () => {
 
     const demoted = await agent.auth.introspectSession();
     expect(demoted.data!.role).toBe('ADJOINT_SECRETAIRE_GENERAL');
+  });
+
+  test.describe('Given a logged-in member', () => {
+    test('should log the member out when an admin changes the password', async ({ admin, expect, member }) => {
+      await admin.administration.updatePassword({
+        body: { password: crypto.randomUUID() },
+        path: { userId: member['@user']!.id },
+        throwOnError: true,
+      });
+
+      const { response } = await member.auth.introspectSession();
+      expect(response?.status).toBe(401);
+    });
+
+    test('should log the member out when an admin deactivates the account', async ({ admin, expect, member }) => {
+      await admin.administration.deactivate({ path: { userId: member['@user']!.id }, throwOnError: true });
+
+      const { response } = await member.auth.introspectSession();
+      expect(response?.status).toBe(401);
+    });
+  });
+
+  test.describe('Given a logged-in admin', () => {
+    test('should keep the admin logged in when they change their own password', async ({ admin, expect }) => {
+      await admin.administration.updatePassword({
+        body: { password: crypto.randomUUID() },
+        path: { userId: admin['@user']!.id },
+        throwOnError: true,
+      });
+
+      const { response } = await admin.auth.introspectSession();
+      expect(response?.status).toBe(200);
+    });
+  });
+
+  test.describe('Given an impersonated member', () => {
+    test('should end the impersonation once the member is deactivated, and let the admin log in again', async ({
+      admin,
+      baseUrl,
+      expect,
+      registerUser,
+    }) => {
+      const impersonator = await registerUser('ADMIN');
+      const impersonated = await registerUser('MEMBRE_COMMUN');
+      const anonymous = makeStepsFixtures({ baseUrl });
+      const credentials = { email: impersonator.email, password: impersonator.password };
+      const { response: login } = await anonymous.auth.login({ body: credentials, throwOnError: true });
+      const adminSession = cookieHeader(login);
+      const started = await makeStepsFixtures({ baseUrl, cookies: [adminSession] }).auth.impersonate({
+        path: { userId: impersonated.id },
+        throwOnError: true,
+      });
+      const asImpersonated = makeStepsFixtures({
+        baseUrl,
+        cookies: [`${adminSession}; ${cookieHeader(started.response)}`],
+      });
+
+      await admin.administration.deactivate({ path: { userId: impersonated.id }, throwOnError: true });
+
+      const during = await asImpersonated.auth.introspectSession();
+      expect(during.response?.status).toBe(401);
+      const { response: again } = await anonymous.auth.login({ body: credentials, throwOnError: true });
+      expect(again.headers.getSetCookie()).toContainEqual(
+        expect.stringMatching(/^impersonationId=.*Expires=Thu, 01 Jan 1970/),
+      );
+    });
+  });
+
+  test.describe('Given a deactivated member', () => {
+    test('should refuse the login of the member', async ({ admin, baseUrl, expect, registerUser }) => {
+      const user = await registerUser('MEMBRE_COMMUN');
+      await admin.administration.deactivate({ path: { userId: user.id }, throwOnError: true });
+
+      const { response } = await makeStepsFixtures({ baseUrl }).auth.login({
+        body: { email: user.email, password: user.password },
+      });
+      expect(response?.status).toBe(401);
+    });
+
+    test('should let the member log in again once reactivated', async ({ admin, baseUrl, expect, registerUser }) => {
+      const user = await registerUser('MEMBRE_COMMUN');
+      await admin.administration.deactivate({ path: { userId: user.id }, throwOnError: true });
+      await admin.administration.reactivate({ path: { userId: user.id }, throwOnError: true });
+
+      const { response } = await makeStepsFixtures({ baseUrl }).auth.login({
+        body: { email: user.email, password: user.password },
+      });
+      expect(response?.status).toBe(204);
+    });
+
+    test('should refuse to impersonate the member', async ({ admin, expect, registerUser }) => {
+      const user = await registerUser('MEMBRE_COMMUN');
+      await admin.administration.deactivate({ path: { userId: user.id }, throwOnError: true });
+
+      const { response } = await admin.auth.impersonate({ path: { userId: user.id } });
+      expect(response?.status).toBe(400);
+    });
+
+    test('should leave the member out of the members', async ({ admin, expect, registerUser }) => {
+      const user = await registerUser('MEMBRE_COMMUN');
+      await admin.administration.deactivate({ path: { userId: user.id }, throwOnError: true });
+
+      const { data } = await admin.members.listMembers({ query: { search: user.email }, throwOnError: true });
+      expect(data.items).toEqual([]);
+    });
+
+    test('should list the member with their status when every status is asked for', async ({
+      admin,
+      expect,
+      registerUser,
+    }) => {
+      const user = await registerUser('MEMBRE_COMMUN');
+      await admin.administration.deactivate({ path: { userId: user.id }, throwOnError: true });
+
+      const { data } = await admin.members.listMembers({
+        query: { search: user.email, statuses: ['ACTIVE', 'DEACTIVATED'] },
+        throwOnError: true,
+      });
+      expect(data.items).toEqual([expect.objectContaining({ id: user.id, status: 'DEACTIVATED' })]);
+    });
+
+    test('should list the member among the deactivated users only', async ({ admin, expect, registerUser }) => {
+      const user = await registerUser('MEMBRE_COMMUN');
+      await admin.administration.deactivate({ path: { userId: user.id }, throwOnError: true });
+
+      const { data: deactivated } = await admin.administration.listUsers({
+        query: { search: user.email, statuses: ['DEACTIVATED'] },
+        throwOnError: true,
+      });
+      const { data: active } = await admin.administration.listUsers({
+        query: { search: user.email, statuses: ['ACTIVE'] },
+        throwOnError: true,
+      });
+
+      expect(deactivated.items).toEqual([expect.objectContaining({ id: user.id, status: 'DEACTIVATED' })]);
+      expect(active.items).toEqual([]);
+    });
   });
 });

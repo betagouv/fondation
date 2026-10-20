@@ -15,7 +15,7 @@ import {
   NonFormationMemberDefinedAsReporter,
   PositionAuditionCannotBeDismissed,
   SessionTransparence,
-  SessionTransparenceAffectationHasUnknownReporter,
+  SessionTransparenceAffectationHasUnassignableReporters,
   SessionTransparenceAffectationVersionCreated,
   SessionTransparenceAffectationVersionPublished,
   SessionTransparenceAuditionRequestDefined,
@@ -180,6 +180,39 @@ describe('SessionTransparence', () => {
     ).toThrow(NonFormationMemberDefinedAsReporter);
   });
 
+  it('should keep a reporter deactivated since on the file they already have, but not affect them to another', () => {
+    const session = SessionTransparence.from({
+      formation: 'SIEGE',
+      id: 'session-id',
+      nominationFiles: ['nomination-file-id-1', 'nomination-file-id-2'].map((id) => ({
+        auditionRequired: false,
+        id,
+        isReported: false,
+        outcome: null,
+        positionRequiresAudition: false,
+      })),
+      version: { id: 'version-id', isDraft: true, version: 3 },
+    });
+    const command = {
+      assignedReporterIds: new Map([['nomination-file-id-1', new Set(['deactivated-reporter'])]]),
+      authorId: 'author-id',
+      formationMemberIds: new Set(['reporter-1']),
+    };
+
+    session.affectNominationFileReporters({
+      ...command,
+      affectations: [
+        { nominationFileId: 'nomination-file-id-1', reporterIds: ['reporter-1', 'deactivated-reporter'] },
+      ],
+    });
+    expect(() =>
+      session.affectNominationFileReporters({
+        ...command,
+        affectations: [{ nominationFileId: 'nomination-file-id-2', reporterIds: ['deactivated-reporter'] }],
+      }),
+    ).toThrow(NonFormationMemberDefinedAsReporter);
+  });
+
   it('should define a nomination file priority', () => {
     const session = SessionTransparence.from({
       formation: 'SIEGE',
@@ -307,22 +340,8 @@ describe('SessionTransparence', () => {
   describe('NominationSession tree creation (LODAM)', () => {
     it('should create a nomination session tree', () => {
       const session = SessionTransparence.createLodamNominationTreeAndAffectMembers({
-        name: 'TEST transparence LODAM PARQUET',
         date: new DateOnly(2025, 1, 1),
-        observationClosingDate: new DateOnly(2025, 2, 1),
-        formation: 'PARQUET',
-        typeDeSaisine: 'TRANSPARENCE_GDS',
         dueDate: null,
-        positionStartDate: null,
-        userId: randomUUID(),
-
-        // oxfmt-ignore
-        formationMembers: [
-            {
-              fullName: "BOURDIEU Pierre",
-              id: "51176c69-4f03-4973-9d25-0f83c7ad6931",
-            },
-          ],
         // oxfmt-ignore
         files: [
             {
@@ -358,6 +377,20 @@ describe('SessionTransparence', () => {
               targetedPosition: "Vice-président TJ  CAHORS",
             },
           ],
+        formation: 'PARQUET',
+        // oxfmt-ignore
+        formationMembers: [
+            {
+              fullName: "BOURDIEU Pierre",
+              id: "51176c69-4f03-4973-9d25-0f83c7ad6931",
+              status: "ACTIVE",
+            },
+          ],
+        name: 'TEST transparence LODAM PARQUET',
+        observationClosingDate: new DateOnly(2025, 2, 1),
+        positionStartDate: null,
+        typeDeSaisine: 'TRANSPARENCE_GDS',
+        userId: randomUUID(),
       });
 
       expect(session.messages[0]).toEqual(
@@ -441,31 +474,52 @@ describe('SessionTransparence', () => {
     it('should throw, when affecting an unknown reporter', () => {
       const act = () =>
         SessionTransparence.createLodamNominationTreeAndAffectMembers({
-          name: 'TEST transparence LODAM PARQUET',
           date: new DateOnly(2025, 1, 1),
-          observationClosingDate: new DateOnly(2025, 2, 1),
-          formation: 'PARQUET',
-          typeDeSaisine: 'TRANSPARENCE_GDS',
           dueDate: null,
-          positionStartDate: null,
-          userId: randomUUID(),
-
-          // oxfmt-ignore
-          formationMembers: [],
           // oxfmt-ignore
           files: [
             { fileNumber: 1, reporters: ['BOURDIEU Pierre'] },
             { fileNumber: 2, reporters: ['BOURDIEU Pierre'] },
           ] as LodamTransparenceFile[],
+          formation: 'PARQUET',
+          // oxfmt-ignore
+          formationMembers: [],
+          name: 'TEST transparence LODAM PARQUET',
+          observationClosingDate: new DateOnly(2025, 2, 1),
+          positionStartDate: null,
+          typeDeSaisine: 'TRANSPARENCE_GDS',
+          userId: randomUUID(),
         });
 
-      expect(act).toThrow(SessionTransparenceAffectationHasUnknownReporter);
+      expect(act).toThrow(SessionTransparenceAffectationHasUnassignableReporters);
       expect(act).toThrow(
         expect.objectContaining({
           errors: [
-            { fileNumber: 1, reporters: ['BOURDIEU Pierre'] },
-            { fileNumber: 2, reporters: ['BOURDIEU Pierre'] },
+            { deactivatedReporters: [], fileNumber: 1, unknownReporters: ['BOURDIEU Pierre'] },
+            { deactivatedReporters: [], fileNumber: 2, unknownReporters: ['BOURDIEU Pierre'] },
           ],
+        }),
+      );
+    });
+
+    it('should throw, when affecting a deactivated reporter', () => {
+      const act = () =>
+        SessionTransparence.createLodamNominationTreeAndAffectMembers({
+          date: new DateOnly(2025, 1, 1),
+          dueDate: null,
+          files: [{ fileNumber: 1, reporters: ['BOURDIEU Pierre'] }] as LodamTransparenceFile[],
+          formation: 'PARQUET',
+          formationMembers: [{ fullName: 'BOURDIEU Pierre', id: 'member-1', status: 'DEACTIVATED' }],
+          name: 'TEST transparence LODAM PARQUET',
+          observationClosingDate: new DateOnly(2025, 2, 1),
+          positionStartDate: null,
+          typeDeSaisine: 'TRANSPARENCE_GDS',
+          userId: randomUUID(),
+        });
+
+      expect(act).toThrow(
+        expect.objectContaining({
+          errors: [{ deactivatedReporters: ['BOURDIEU Pierre'], fileNumber: 1, unknownReporters: [] }],
         }),
       );
     });

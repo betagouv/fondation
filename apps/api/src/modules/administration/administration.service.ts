@@ -1,8 +1,11 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
+import { Clock } from 'src/modules/framework/clock';
 import { Pagination } from 'src/modules/framework/pagination';
 import { Sortable } from 'src/modules/framework/sorting';
+import { UserStatus } from 'src/modules/shared/user-status.enum';
+import { SimpleAuthService } from 'src/modules/simple-auth';
 
 import { User } from './domain/user';
 import { AdminUserRoleEnum } from './domain/user-enum';
@@ -14,6 +17,8 @@ import { UserRepository } from './infrastructure/repositories/user.repository';
 @Injectable()
 export class AdministrationService {
   constructor(
+    private readonly auth: SimpleAuthService,
+    private readonly clock: Clock,
     private readonly userRepository: UserRepository,
     private readonly listUsersQuery: ListUsersQuery,
     private readonly detailsUserQuery: DetailsUserQuery,
@@ -22,13 +27,14 @@ export class AdministrationService {
   listUsers(query: {
     search?: string;
     roles?: AdminUserRoleEnum[];
+    statuses?: UserStatus[];
     sorting: Sortable<ListUsersQueryDto>;
     pagination: Pagination;
   }): Promise<PaginatedAdminUserListItemDto> {
     return this.listUsersQuery.handle(query);
   }
 
-  detailsUser(query: { userId: string }): Promise<DetailedAdminUserDto> {
+  detailsUser(query: { actorId: string; userId: string }): Promise<DetailedAdminUserDto> {
     return this.detailsUserQuery.handle(query);
   }
 
@@ -42,10 +48,13 @@ export class AdministrationService {
     await this.userRepository.persist(user);
   }
 
-  async updatePassword(command: { userId: string; password: string }): Promise<void> {
+  @Transactional()
+  async updatePassword(command: { actorSessionId: string; password: string; userId: string }): Promise<void> {
     const user = await this.userRepository.findById(command.userId);
     await user.updatePassword(command.password);
     await this.userRepository.persist(user);
+    // an admin changing their own password stays logged in
+    await this.auth.internalRevokeSessions({ keptSessionId: command.actorSessionId, userId: command.userId });
   }
 
   async updateRole(command: { userId: string; role: AdminUserRoleEnum }): Promise<void> {
@@ -88,6 +97,20 @@ export class AdministrationService {
   async promoteToAdmin(command: { userId: string }): Promise<void> {
     const user = await this.userRepository.findById(command.userId);
     user.promoteAdmin();
+    await this.userRepository.persist(user);
+  }
+
+  @Transactional()
+  async deactivate(command: { actorId: string; userId: string }): Promise<void> {
+    const user = await this.userRepository.findById(command.userId);
+    user.deactivate({ actorId: command.actorId, now: this.clock.now() });
+    await this.userRepository.persist(user);
+    await this.auth.internalRevokeSessions({ keptSessionId: undefined, userId: command.userId });
+  }
+
+  async reactivate(command: { userId: string }): Promise<void> {
+    const user = await this.userRepository.findById(command.userId);
+    user.reactivate();
     await this.userRepository.persist(user);
   }
 

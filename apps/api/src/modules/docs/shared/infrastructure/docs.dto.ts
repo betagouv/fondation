@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { PrismaUserDutyEnum, PrismaUserTitleEnum } from 'src/generated/prisma/enums';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
+import { isDefined } from 'src/utils/is-defined';
 
 export class CreateOfficialReportJusticeContactDto extends createZodDto(
   z
@@ -39,7 +40,15 @@ export class SearchJusticeContactsQueryDto extends createZodDto(
   z.object({ search: z.string().default('') }),
 ) {}
 
-export class FindDocsMembersQueryDto extends createZodDto(z.object({ formation: z.enum(FormationEnum) })) {}
+export class FindDocsMembersQueryDto extends createZodDto(
+  z.object({
+    formation: z.enum(FormationEnum),
+    includeIds: z.preprocess(
+      (x) => (isDefined(x) ? ([] as unknown[]).concat(x) : x),
+      z.array(z.uuid()).optional(),
+    ),
+  }),
+) {}
 
 export class FoundDocsMembersDto extends createZodDto(
   z.object({

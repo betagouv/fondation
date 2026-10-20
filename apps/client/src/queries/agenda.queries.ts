@@ -753,7 +753,8 @@ export function useOpenJusticePresentationPlanPdfDocumentMutation() {
 }
 
 export const docsKeys = {
-  members: (formation?: 'SIEGE' | 'PARQUET') => ['docs', 'members', formation].filter(Boolean),
+  members: (formation?: 'SIEGE' | 'PARQUET', includeIds?: readonly string[]) =>
+    ['docs', 'members', formation, includeIds?.length ? includeIds : undefined].filter(Boolean),
   justiceContacts: (query: { search?: string } = {}) => [
     'docs',
     'justiceContacts',
@@ -764,16 +765,22 @@ export const docsKeys = {
 const MINUTES = 60 * 1_000;
 export const useDocsMembersQuery = <T = FoundDocsMembersDto | null>(query: {
   formation: FormationEnum | undefined;
+  includeIds?: readonly string[];
   select?: (data: FoundDocsMembersDto | null) => T;
 }) =>
   useQuery({
     enabled: !!query.formation,
     staleTime: 20 * MINUTES,
-    queryKey: docsKeys.members(query.formation),
+    queryKey: docsKeys.members(query.formation, query.includeIds),
     queryFn: () => {
       if (!query.formation) return null;
       return $api.docs
-        .findDocsMembers({ query: { formation: query.formation } })
+        .findDocsMembers({
+          query: {
+            formation: query.formation,
+            includeIds: query.includeIds?.length ? [...query.includeIds] : undefined,
+          },
+        })
         .then(({ data = null }) => data);
     },
     select: query.select,

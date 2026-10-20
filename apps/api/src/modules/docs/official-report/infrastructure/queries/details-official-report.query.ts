@@ -82,6 +82,7 @@ export class DetailsOfficialReportQuery {
       absentMembers: report.members.flatMap((member) =>
         member.isAbsent && member.memberId ? [member.memberId] : [],
       ),
+      recordedMembers: report.members.flatMap(({ memberId }) => (memberId ? [memberId] : [])),
       chairmanId: report.chairmanId,
       secretaryId: report.secretaryId,
       justiceDepartmentContactId: report.justiceDepartmentContactId?.toString() ?? null,
@@ -104,6 +105,7 @@ export class DetailedOfficialReportMetadataDto extends createZodDto(
     id: z.string(),
     hasRenunciation: z.boolean(),
     absentMembers: z.array(z.string()),
+    recordedMembers: z.array(z.string()),
     agendaId: z.uuid().nullable(),
     sessionMeetingDate: dateOnlyJsonSchema,
     sessionMeetingStartingTime: timeOnlySchema,

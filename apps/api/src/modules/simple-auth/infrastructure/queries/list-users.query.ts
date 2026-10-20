@@ -15,6 +15,7 @@ export class ListUsersQuery {
   constructor(private readonly db: Db) {}
 
   async handle(query: {
+    activeOnly?: true;
     search?: string;
     roles?: readonly RoleEnum[];
     excludeIds?: readonly string[];
@@ -36,21 +37,21 @@ export class ListUsersQuery {
 
       if (includeIds.size) {
         const nextItems = await this.db.tx.user.findMany({
-          select: { id: true, firstName: true, lastName: true, role: true } satisfies Prisma.UserSelect,
-          where: { id: { in: [...includeIds] } },
           orderBy: { lastName: 'asc' },
+          select: { firstName: true, id: true, lastName: true, role: true } satisfies Prisma.UserSelect,
+          where: { deactivatedAt: query.activeOnly ? null : undefined, id: { in: [...includeIds] } },
         });
         union.push(...nextItems);
       }
 
       if (!(includeIds.size > 0 && query.includeIdsOnly)) {
         const nextItems = await this.db.tx.user.findMany({
-          select: { id: true, role: true, firstName: true, lastName: true } satisfies Prisma.UserSelect,
           orderBy: { lastName: 'asc' },
+          select: { firstName: true, id: true, lastName: true, role: true } satisfies Prisma.UserSelect,
           take: query.limit ? query.limit - union.length : undefined,
           where: {
+            deactivatedAt: null,
             id: { notIn: [...excludeIds] },
-            role: query.roles ? { in: query.roles.map(roleEnumToPrismaRoleEnum) } : undefined,
             OR:
               query.search && query.search.length > 2
                 ? [
@@ -66,6 +67,7 @@ export class ListUsersQuery {
                     },
                   ]
                 : undefined,
+            role: query.roles ? { in: query.roles.map(roleEnumToPrismaRoleEnum) } : undefined,
           },
         });
         union.push(...nextItems);

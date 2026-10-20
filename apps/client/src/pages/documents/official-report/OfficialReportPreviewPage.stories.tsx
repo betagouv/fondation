@@ -35,6 +35,7 @@ function OfficialReportPreviewPageStory(props: {
   const metadata: DetailedOfficialReportMetadataDto = {
     ...lifecycle,
     absentMembers: [],
+    recordedMembers: [],
     agendaId: 'agenda-1',
     chairmanId: null,
     // the API only tells what the validated version did not follow

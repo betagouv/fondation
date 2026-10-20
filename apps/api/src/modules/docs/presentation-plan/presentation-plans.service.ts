@@ -112,21 +112,21 @@ export class PresentationPlansService {
     }));
 
     const secretary = await this.auth.detailsUser({
-      userId: command.secretaryId,
       impersonationId: undefined,
+      userId: command.secretaryId,
     });
 
     const plan = JusticePresentationPlan.create({
       agendas,
+      authorId: command.authorId,
       chairman,
+      date: DateOnly.fromJson(command.date),
+      hasRenunciation: command.hasRenunciation,
+      justiceContactId: command.justiceContactId,
+      members: planMembers,
       // oxlint-disable-next-line typescript/no-misused-spread
       secretary: { ...secretary, id: secretary.userId },
-      justiceContactId: command.justiceContactId,
-      authorId: command.authorId,
       time: command.time,
-      hasRenunciation: command.hasRenunciation,
-      date: DateOnly.fromJson(command.date),
-      members: planMembers,
     });
 
     await this.justicePresentationPlanRepository.persist(plan);
@@ -166,6 +166,7 @@ export class PresentationPlansService {
     const { formation } = assertIsDefined(agendas[0]);
     const members = await this.members.internalFindMembersByFormation({
       formation,
+      includeIds: plan.recordedMemberIds,
     });
 
     const [[chairman], allMembers] = partition(members, (m) => m.id === command.chairmanId);
@@ -179,21 +180,21 @@ export class PresentationPlansService {
     const planMembers = allMembers.map((m) => ({ id: m.id, isAbsent: absentMembersSet.has(m.id) }));
 
     const secretary = await this.auth.detailsUser({
-      userId: command.secretaryId,
       impersonationId: undefined,
+      userId: command.secretaryId,
     });
 
     plan.update({
       agendas,
+      authorId: command.authorId,
       chairman,
+      date: DateOnly.fromJson(command.date),
       hasRenunciation: command.hasRenunciation,
+      justiceContactId: command.justiceContactId,
+      members: planMembers,
       // oxlint-disable-next-line typescript/no-misused-spread
       secretary: { ...secretary, id: secretary.userId },
-      justiceContactId: command.justiceContactId,
-      authorId: command.authorId,
       time: command.time,
-      date: DateOnly.fromJson(command.date),
-      members: planMembers,
     });
 
     await this.justicePresentationPlanRepository.persist(plan);
@@ -231,8 +232,8 @@ export class PresentationPlansService {
       await this.justicePresentationPlanRepository.persist(plan);
 
       const htmlPlan = await this.db.tx.justicePresentationPlan.findUnique({
-        where: { id: command.id },
         select: { html: true } satisfies Prisma.JusticePresentationPlanSelect,
+        where: { id: command.id },
       });
 
       if (!htmlPlan || !htmlPlan.html) {
@@ -246,8 +247,8 @@ export class PresentationPlansService {
       });
 
       await this.db.tx.justicePresentationPlan.update({
-        where: { id: command.id },
         data: { html: updatedHtml },
+        where: { id: command.id },
       });
     });
 
@@ -261,17 +262,17 @@ export class PresentationPlansService {
       await this.justicePresentationPlanRepository.persist(plan);
 
       const { html } = await this.db.tx.justicePresentationPlan.findUniqueOrThrow({
-        where: { id: command.id },
         select: { html: true } satisfies Prisma.JusticePresentationPlanSelect,
+        where: { id: command.id },
       });
 
       await this.db.tx.justicePresentationPlan.update({
-        where: { id: command.id },
         data: {
           html: removePresentationTimeDocMeetingSessionEndingTime({
             html: assertIsDefined(html, 'a presented notice holds the text it was read with'),
           }),
         },
+        where: { id: command.id },
       });
     });
 
@@ -284,17 +285,16 @@ export class PresentationPlansService {
 
   async resetPresentationPlanDocument(command: { authorId: string; id: string }): Promise<void> {
     const plan = await this.db.tx.justicePresentationPlan.findUnique({
-      where: { id: command.id },
       select: {
         isPresented: true,
         pdf: { select: { id: true, path: true } },
       } satisfies Prisma.JusticePresentationPlanSelect,
+      where: { id: command.id },
     });
     if (!plan) throw new NotFoundException();
     if (plan.isPresented) throw new JusticePresentationPlanAlreadyPresented();
 
     await this.db.tx.justicePresentationPlan.update({
-      where: { id: command.id },
       data: {
         html: null,
         isManuallyEdited: false,
@@ -302,6 +302,7 @@ export class PresentationPlansService {
         updatedAt: this.clock.now(),
         updatedBy: command.authorId,
       },
+      where: { id: command.id },
     });
 
     if (plan.pdf) this.files.delete([plan.pdf]);
@@ -309,18 +310,17 @@ export class PresentationPlansService {
 
   async updatePresentationPlanHtml(command: { authorId: string; html: Buffer; id: string }): Promise<void> {
     const plan = await this.db.tx.justicePresentationPlan.findUnique({
-      where: { id: command.id },
       select: {
         isPresented: true,
         pdf: { select: { id: true, path: true } },
       } satisfies Prisma.JusticePresentationPlanSelect,
+      where: { id: command.id },
     });
     if (!plan) throw new NotFoundException();
     if (plan.isPresented) throw new JusticePresentationPlanAlreadyPresented();
 
     const html = await this.findPresentationPlanDocumentQuery.handle({ forceNew: true, id: command.id });
     await this.db.tx.justicePresentationPlan.update({
-      where: { id: command.id },
       data: {
         html: withEditedPresentationPlanContent({ edited: command.html.toString('utf-8'), html }),
         isManuallyEdited: true,
@@ -328,6 +328,7 @@ export class PresentationPlansService {
         updatedAt: this.clock.now(),
         updatedBy: command.authorId,
       },
+      where: { id: command.id },
     });
 
     if (plan.pdf) this.files.delete([plan.pdf]);

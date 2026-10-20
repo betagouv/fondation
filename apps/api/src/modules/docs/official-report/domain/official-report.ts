@@ -190,6 +190,11 @@ export class OfficialReport {
     return this.#messages;
   }
 
+  get recordedMemberIds(): string[] {
+    const { chairman, members } = this.snapshot.meta;
+    return [...(chairman.id ? [chairman.id] : []), ...members.map(({ id }) => id)];
+  }
+
   get formation(): FormationEnum {
     return this.snapshot.meta.agenda.formation;
   }
@@ -299,7 +304,10 @@ export class OfficialReport {
   }
 
   update(command: UpdateOfficialReportCommand): void {
-    const { changed, diff, next } = this.snapshot.update(command.officialReport);
+    const { changed, diff, next } = this.snapshot.update({
+      ...command.officialReport,
+      members: command.officialReport.members.keepingRecorded(this.snapshot.meta.members),
+    });
     if (!changed) return;
 
     this.openDraft();

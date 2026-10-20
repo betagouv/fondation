@@ -29,6 +29,7 @@ export type ListMembersOptions = {
   pagination?: { pageIndex: number; pageSize: number };
   search?: string;
   sorting?: { id: string; desc: boolean }[];
+  statuses?: NonNullable<ListMembersData['query']>['statuses'];
 };
 
 export type MembersFilters = {
@@ -88,6 +89,7 @@ export const useMemberListQuery = ({
             search: options.search?.trim() || undefined,
             sortBy,
             sortDirection,
+            statuses: options.statuses,
           },
         })
         .then(({ data }) => data ?? null);

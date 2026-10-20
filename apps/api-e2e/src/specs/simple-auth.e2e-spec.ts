@@ -2,14 +2,7 @@ import { randomUUID } from 'node:crypto';
 
 import { test } from '../fixtures.ts';
 import { makeStepsFixtures } from '../steps.ts';
-
-/** the session cookies a response sets, as a request sends them back */
-function cookieHeader(response: Response): string {
-  return response.headers
-    .getSetCookie()
-    .map((cookie) => cookie.split(';')[0])
-    .join('; ');
-}
+import { cookieHeader } from '../utils/cookies.ts';
 
 test.describe('Simple Auth E2E', () => {
   test.describe('Given a registered user', () => {

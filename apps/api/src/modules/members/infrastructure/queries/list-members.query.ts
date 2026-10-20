@@ -7,6 +7,7 @@ import { PrismaRoleEnum } from 'src/generated/prisma/enums';
 import { listMembersRawQuery } from 'src/generated/prisma/sql';
 import { Db } from 'src/modules/framework/database';
 import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
+import { USER_STATUSES, UserStatus, userStatusOf } from 'src/modules/shared/user-status.enum';
 
 @Injectable()
 export class ListMembersQuery {
@@ -19,7 +20,11 @@ export class ListMembersQuery {
     search: string | undefined;
     sortBy: 'firstName' | 'lastName' | undefined;
     sortDirection: 'asc' | 'desc' | undefined;
+    statuses: readonly UserStatus[];
   }): Promise<PaginatedMemberListItemDto> {
+    const includesActive = query.statuses.includes('ACTIVE');
+    const includesDeactivated = query.statuses.includes('DEACTIVATED');
+
     const roles: PrismaRoleEnum[] =
       (query.formations ?? [])?.length === 0
         ? ['MEMBRE_COMMUN', 'MEMBRE_DU_SIEGE', 'MEMBRE_DU_PARQUET']
@@ -35,7 +40,8 @@ export class ListMembersQuery {
 
     const totalCount = await this.db.tx.user.count({
       where: {
-        role: { in: roles },
+        deactivatedAt:
+          includesActive === includesDeactivated ? undefined : includesActive ? null : { not: null },
         OR: query.search
           ? [
               { email: { contains: query.search, mode: 'insensitive' } },
@@ -43,6 +49,7 @@ export class ListMembersQuery {
               { lastName: { contains: query.search, mode: 'insensitive' } },
             ]
           : undefined,
+        role: { in: roles },
       },
     });
 
@@ -54,13 +61,18 @@ export class ListMembersQuery {
         query.sortDirection || null,
         query.pagination.limit,
         (query.pagination.page - 1) * query.pagination.limit,
+        includesActive,
+        includesDeactivated,
       ),
     );
 
     return paginate({
-      totalCount,
-      items: items.filter(isMember),
+      items: items.filter(isMember).map(({ deactivatedAt, ...member }) => ({
+        ...member,
+        status: userStatusOf({ deactivatedAt }),
+      })),
       pagination: query.pagination,
+      totalCount,
     });
   }
 }
@@ -71,6 +83,7 @@ const MemberListItemDtoSchema = z.object({
   lastName: z.string(),
   role: z.enum(MEMBER_ROLES),
   excludedJurisdictions: z.array(z.object({ id: z.string(), label: z.string().nullable() })),
+  status: z.enum(USER_STATUSES),
 });
 
 export class PaginatedMemberListItemDto extends createPaginatedZodDto(MemberListItemDtoSchema) {}

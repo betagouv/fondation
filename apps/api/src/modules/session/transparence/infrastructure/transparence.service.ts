@@ -274,7 +274,12 @@ export class TransparenceService {
       .findMembers({ formation: session.formation, ids: memberIds })
       .then((ids) => new Set(ids));
 
-    session.affectNominationFileReporters({ ...command, formationMemberIds });
+    const assignedReporterIds = await this.reportersAffectation.findAssigned({
+      nominationFileIds: command.affectations.map(({ nominationFileId }) => nominationFileId),
+      sessionId: command.sessionId,
+    });
+
+    session.affectNominationFileReporters({ ...command, assignedReporterIds, formationMemberIds });
 
     await this.nominationSessionRepository.persist(session);
   }

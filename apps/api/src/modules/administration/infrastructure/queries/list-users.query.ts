@@ -18,6 +18,7 @@ import { Sortable } from 'src/modules/framework/sorting';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
 import { prismaRoleEnumToRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
+import { USER_STATUSES, UserStatus, userStatusOf } from 'src/modules/shared/user-status.enum';
 import { assertIsDefined } from 'src/utils/is-defined';
 
 @Injectable()
@@ -28,17 +29,17 @@ export class ListUsersQuery {
   async handle(query: {
     search?: string;
     roles?: AdminUserRoleEnum[];
+    statuses?: UserStatus[];
     sorting: Sortable<ListUsersQueryDto>;
     pagination: Pagination;
   }): Promise<PaginatedAdminUserListItemDto> {
     const roles: Prisma.UserWhereInput[] | undefined = query.roles?.map((role) => {
       const idRoles = adminUserRoleEnumToIdentityRoles(role);
       return {
-        title: adminUserRoleEnumToTitle(role),
         duty: adminUserRoleEnumToDuty(role),
-
-        role: idRoles.length === 1 ? idRoles[0] : undefined,
         OR: idRoles.length > 1 ? idRoles.map((role) => ({ role })) : undefined,
+        role: idRoles.length === 1 ? idRoles[0] : undefined,
+        title: adminUserRoleEnumToTitle(role),
       } satisfies Prisma.UserWhereInput;
     });
 
@@ -48,9 +49,14 @@ export class ListUsersQuery {
         : { OR: roles }
       : {};
 
+    const statuses = new Set(query.statuses);
+    const whereStatus: Prisma.UserWhereInput =
+      statuses.size === 1 ? { deactivatedAt: statuses.has('ACTIVE') ? null : { not: null } } : {};
+
     const where: Prisma.UserWhereInput = {
       AND: [
         whereRole,
+        whereStatus,
         {
           OR: query.search
             ? [
@@ -66,34 +72,36 @@ export class ListUsersQuery {
     const direction = query.sorting.sortDesc ? 'desc' : 'asc';
     const totalCount = await this.db.tx.user.count({ where });
     const items = await this.db.tx.user.findMany({
+      orderBy: [{ lastName: direction }, { createdAt: 'asc' }],
       select: {
-        id: true,
-        firstName: true,
-        lastName: true,
+        deactivatedAt: true,
+        duty: true,
         email: true,
+        firstName: true,
+        gender: true,
+        id: true,
+        lastName: true,
         role: true,
         title: true,
-        duty: true,
-        gender: true,
       } satisfies Prisma.UserSelect,
-      where,
-      orderBy: [{ lastName: direction }, { createdAt: 'asc' }],
       skip: (query.pagination.page - 1) * query.pagination.limit,
       take: query.pagination.limit,
+      where,
     });
 
     return paginate({
-      totalCount,
-      items: items.map(({ role, title, duty, gender, ...u }) => ({
+      items: items.map(({ deactivatedAt, duty, gender, role, title, ...u }) => ({
         ...u,
         gender: prismaGenderEnumToGenderEnum(gender),
         role: AdminUserRole.from({
+          duty: duty ?? null,
           role: prismaRoleEnumToRoleEnum(role),
           title: title ?? null,
-          duty: duty ?? null,
         }).toString(),
+        status: userStatusOf({ deactivatedAt }),
       })),
       pagination: query.pagination,
+      totalCount,
     });
   }
 }
@@ -106,5 +114,6 @@ export class PaginatedAdminUserListItemDto extends createPaginatedZodDto(
     email: z.string(),
     gender: z.enum(GenderEnum),
     role: z.enum(ADMIN_USER_ROLES_ENUM),
+    status: z.enum(USER_STATUSES),
   }),
 ) {}
