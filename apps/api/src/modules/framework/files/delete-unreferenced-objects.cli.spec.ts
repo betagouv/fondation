@@ -38,17 +38,23 @@ describe('DeleteUnreferencedObjectsCommand', () => {
       { path: ['sessions', 'avis motivé.pdf'] },
     ] as never);
     files.storedObjects.mockImplementation(async function* () {
-      yield { key: 'sessions/courrier%20sign%C3%A9.pdf', writtenAt: old };
-      yield { key: 'sessions/avis motivé.pdf', writtenAt: old };
-      yield { key: 'Ete 2025/rapport.pdf', writtenAt: old };
-      yield { key: 'sessions/en-cours.pdf', writtenAt: new Date('2026-10-20T07:00:00Z') };
+      yield { key: 'sessions/courrier%20sign%C3%A9.pdf', size: 100, writtenAt: old };
+      yield { key: 'sessions/avis motivé.pdf', size: 100, writtenAt: old };
+      yield { key: 'Ete 2025/rapport.pdf', size: 100, writtenAt: old };
+      yield { key: 'sessions/en-cours.pdf', size: 100, writtenAt: new Date('2026-10-20T07:00:00Z') };
     });
   });
 
-  it('only lists the objects no file refers to', async () => {
+  it('only lists the objects no file refers to, one date and key per line', async () => {
+    const write = vi.spyOn(process.stdout, 'write').mockReturnValue(true);
+
     await command.run([], {});
 
+    expect(write.mock.calls.filter(([line]) => String(line).includes('\t'))).toEqual([
+      ['2025-06-01T00:00:00.000Z\tEte 2025/rapport.pdf\n'],
+    ]);
     expect(files.deleteStoredObjects).not.toHaveBeenCalled();
+    write.mockRestore();
   });
 
   it('deletes them when asked to, leaving the referenced, the recent and the ones written before the paths were normalized', async () => {

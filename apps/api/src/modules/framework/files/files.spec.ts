@@ -195,16 +195,16 @@ describe('Files', () => {
       const writtenAt = new Date('2025-06-01');
       send
         .mockResolvedValueOnce({
-          Contents: [{ Key: 'a.pdf', LastModified: writtenAt }],
+          Contents: [{ Key: 'a.pdf', LastModified: writtenAt, Size: 12 }],
           NextContinuationToken: 'next',
         })
-        .mockResolvedValueOnce({ Contents: [{ Key: 'b.pdf', LastModified: writtenAt }] });
+        .mockResolvedValueOnce({ Contents: [{ Key: 'b.pdf', LastModified: writtenAt, Size: 34 }] });
 
       const objects = await Array.fromAsync(files.storedObjects());
 
       expect(objects).toEqual([
-        { key: 'a.pdf', writtenAt },
-        { key: 'b.pdf', writtenAt },
+        { key: 'a.pdf', size: 12, writtenAt },
+        { key: 'b.pdf', size: 34, writtenAt },
       ]);
       expect(send.mock.calls[1]![0].input.ContinuationToken).toBe('next');
     });

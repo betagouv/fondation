@@ -546,7 +546,7 @@ export class Files implements OnApplicationBootstrap {
     }
   }
 
-  async *storedObjects(): AsyncGenerator<{ key: string; writtenAt: Date }> {
+  async *storedObjects(): AsyncGenerator<{ key: string; size: number; writtenAt: Date }> {
     let ContinuationToken: string | undefined;
     do {
       const page = await this.client.send(
@@ -555,6 +555,7 @@ export class Files implements OnApplicationBootstrap {
       for (const object of page.Contents ?? []) {
         yield {
           key: assertIsDefined(object.Key, 'object without key'),
+          size: object.Size ?? 0,
           writtenAt: assertIsDefined(object.LastModified, `no date for ${object.Key}`),
         };
       }

@@ -50,16 +50,21 @@ export class DeleteUnreferencedObjectsCommand extends CommandRunner {
     const writtenBefore = new Date(this.clock.now().getTime() - time.DAYS);
 
     const unreferenced: string[] = [];
+    let size = 0;
     for await (const object of this.files.storedObjects()) {
       if (object.writtenAt >= writtenBefore || referenced.has(object.key)) continue;
 
       unreferenced.push(object.key);
-      this.logger.log(`${object.writtenAt.toISOString()} ${object.key}`);
+      size += object.size;
+      // Nest writes its own logs to stdout too: the tab tells the lines of the list apart
+      process.stdout.write(`${object.writtenAt.toISOString()}\t${object.key}\n`);
     }
 
     if (options.delete) await this.files.deleteStoredObjects(unreferenced);
 
-    this.logger.log(`${options.delete ? 'Deleted' : 'Would delete'} ${unreferenced.length} objects`);
+    this.logger.log(
+      `${options.delete ? 'Deleted' : 'Would delete'} ${unreferenced.length} objects, ${(size / 1_000_000).toFixed(1)} MB`,
+    );
   }
 }
 
