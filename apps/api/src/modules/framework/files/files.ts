@@ -8,6 +8,7 @@ import {
   GetObjectCommand,
   HeadBucketCommand,
   HeadObjectCommand,
+  ListObjectsV2Command,
   ListObjectVersionsCommand,
   PutBucketCorsCommand,
   S3Client,
@@ -542,6 +543,36 @@ export class Files implements OnApplicationBootstrap {
       if (error.$metadata.httpStatusCode === 404) return { status: 'MISSING' };
       if (error.$metadata.httpStatusCode === 403) return { status: 'REFUSED' };
       throw error;
+    }
+  }
+
+  async *storedObjects(): AsyncGenerator<{ key: string; writtenAt: Date }> {
+    let ContinuationToken: string | undefined;
+    do {
+      const page = await this.client.send(
+        new ListObjectsV2Command({ Bucket: this.bucketName, ContinuationToken }),
+      );
+      for (const object of page.Contents ?? []) {
+        yield {
+          key: assertIsDefined(object.Key, 'object without key'),
+          writtenAt: assertIsDefined(object.LastModified, `no date for ${object.Key}`),
+        };
+      }
+      ContinuationToken = page.NextContinuationToken;
+    } while (ContinuationToken);
+  }
+
+  /** by their exact keys: objects written before the paths were normalized keep raw spaces, which encoding again would miss */
+  async deleteStoredObjects(keys: readonly string[]): Promise<void> {
+    // S3 deletes at most 1 000 objects per request
+    for (let start = 0; start < keys.length; start += 1_000) {
+      const { Errors = [] } = await this.client.send(
+        new DeleteObjectsCommand({
+          Bucket: this.bucketName,
+          Delete: { Objects: keys.slice(start, start + 1_000).map((Key) => ({ Key })), Quiet: true },
+        }),
+      );
+      if (Errors.length > 0) throw new Error(`Failed deleting ${Errors.length} objects ${inspect(Errors)}`);
     }
   }
 
