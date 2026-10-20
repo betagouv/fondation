@@ -3,7 +3,7 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   oxc: { decorator: { emitDecoratorMetadata: true, legacy: true } },
   test: {
-    name: 'unit',
+    name: 'api',
     globals: true,
     environment: 'node',
     env: { TZ: 'Etc/UTC' },
