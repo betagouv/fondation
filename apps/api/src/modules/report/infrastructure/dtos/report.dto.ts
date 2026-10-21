@@ -4,6 +4,7 @@ import z from 'zod';
 import { FILE_MIME_TYPES } from 'src/modules/framework/files';
 import { ReportFileUsageEnum } from 'src/modules/shared/report-file-usage.enum';
 import { ReportStateEnum } from 'src/modules/shared/report-state.enum';
+import { richTextHtml } from 'src/utils/rich-text-html';
 
 export class AttachReportFileDto extends createZodDto(z.object({ files: z.array(z.file()) })) {}
 
@@ -30,7 +31,7 @@ export class GetReportFileUrlsQueryDto extends createZodDto(
 
 export class UpdateReportDto extends createZodDto(
   z.object({
-    comment: z.string().optional(),
+    comment: richTextHtml.optional(),
     status: z.enum(ReportStateEnum).optional(),
   }),
 ) {}
