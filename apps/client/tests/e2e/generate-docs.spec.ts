@@ -122,8 +122,8 @@ test.describe('Générer un ordre du jour', () => {
       },
       role: 'MEMBRE_DU_PARQUET',
     });
-    await http.http.put(`/api/members/v1/${chairman.id}/title`, {
-      data: { title: 'PRESIDENT_PARQUET' },
+    await http.http.put(`/api/administration/v1/users/${chairman.id}/role`, {
+      data: { role: 'PRESIDENT_PARQUET' },
     });
     chairmanId = chairman.id;
   });
