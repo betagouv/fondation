@@ -196,8 +196,6 @@ export class AgendaRepository {
     await this.db.tx.agendaVersion.update({
       where: { id: versionId },
       data: {
-        createdBy: message.authorId,
-
         date: message.update.date.toDate(),
         sessionMeetingDate: message.update.sessionMeetingDate.toDate(),
 
