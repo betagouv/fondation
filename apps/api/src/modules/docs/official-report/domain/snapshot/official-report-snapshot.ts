@@ -43,6 +43,10 @@ export class OfficialReportSnapshot {
     return this.filesSnapshot.files.has(nominationFileId);
   }
 
+  noteOf(nominationFileId: string): string | null {
+    return this.filesSnapshot.files.get(nominationFileId)?.note ?? null;
+  }
+
   /** a suspension decided since then leaves the files as they are, yet it did happen */
   changedSince(
     command: Exclude<InvalidateOfficialReportCommand, { type: 'AgendaFileBlockEdited' }>,

@@ -84,7 +84,7 @@ const AGENDA_SOURCE = {
   fromAgenda: false,
 } as const;
 
-export function officialReportBlocks(state: BlocksState): OfficialReportBlock[] {
+export function officialReportBlocks(state: BlocksState & { note?: boolean }): OfficialReportBlock[] {
   return [
     {
       edited: false,
@@ -118,6 +118,9 @@ export function officialReportBlocks(state: BlocksState): OfficialReportBlock[] 
       html: `${CURIE}.`,
       kind: 'file',
       nominationFileId: 'file-1',
+      note: state.note
+        ? { ...EDITION, html: '<p>MME Marie CURIE a renoncé au délai de convocation.</p>' }
+        : null,
       outdated: false,
       weight: 3,
     },
@@ -134,6 +137,7 @@ export function officialReportBlocks(state: BlocksState): OfficialReportBlock[] 
       html: state.rewritten ? `${GERMAIN_REWRITTEN}.` : `${GERMAIN}.`,
       kind: 'file',
       nominationFileId: 'file-2',
+      note: null,
       outdated: false,
       weight: 4,
     },
@@ -145,6 +149,7 @@ export function officialReportBlocks(state: BlocksState): OfficialReportBlock[] 
       html: state.rewritten ? `${PEREY_REWRITTEN}.` : `${PEREY}.`,
       kind: 'file',
       nominationFileId: 'file-3',
+      note: null,
       outdated: state.rewritten && state.outdated,
       weight: 5,
     },

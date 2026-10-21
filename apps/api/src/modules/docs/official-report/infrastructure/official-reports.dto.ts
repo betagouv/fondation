@@ -1,3 +1,4 @@
+import { load } from 'cheerio';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
@@ -42,3 +43,7 @@ export class EditOfficialReportBlockDto extends createZodDto(
 export class EditOfficialReportSectionTitleDto extends createZodDto(z.object({ text: z.string() })) {}
 
 export class EditOfficialReportSectionIntroBlockDto extends createZodDto(z.object({ html: editedHtml })) {}
+
+export class EditOfficialReportFileNoteDto extends createZodDto(
+  z.object({ html: editedHtml.refine((html) => load(html, null, false).text().trim() !== '') }),
+) {}

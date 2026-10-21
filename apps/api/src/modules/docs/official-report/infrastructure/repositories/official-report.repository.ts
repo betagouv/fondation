@@ -29,6 +29,8 @@ import {
   OfficialReportConclusionReset,
   OfficialReportCreated,
   OfficialReportDeleted,
+  OfficialReportFileNoteDeleted,
+  OfficialReportFileNoteEdited,
   OfficialReportFileReset,
   OfficialReportIntroEdited,
   OfficialReportIntroReset,
@@ -229,6 +231,7 @@ export class OfficialReportRepository {
         htmlFromAgenda: boolean;
         id: bigint;
         nominationFileId: string | null;
+        note: string | null;
         outcome: PrismaDocsFileOutcomeEnum;
         outcomeComment: string | null;
         reporters: string[];
@@ -240,6 +243,7 @@ export class OfficialReportRepository {
           htmlFromAgenda: true,
           id: true,
           nominationFileId: true,
+          note: true,
           outcome: true,
           outcomeComment: true,
           reporters: true,
@@ -260,6 +264,7 @@ export class OfficialReportRepository {
             // a sentence taken from the agenda is the agenda's to keep up to date, not the report's
             hasManuallyEditedHtml: !file.htmlFromAgenda && (file.htmlEdited ?? '').trim().length > 0,
             nominationFileId: file.nominationFileId,
+            note: file.note,
             outcome: { comment: file.outcomeComment, value: file.outcome },
             reporters: file.reporters,
           }),
@@ -289,6 +294,10 @@ export class OfficialReportRepository {
         await this.persistOfficialReportConclusionReset(message);
       } else if (message instanceof OfficialReportFileReset) {
         await this.persistOfficialReportFileReset(message);
+      } else if (message instanceof OfficialReportFileNoteEdited) {
+        await this.persistOfficialReportFileNoteEdited(message);
+      } else if (message instanceof OfficialReportFileNoteDeleted) {
+        await this.persistOfficialReportFileNoteDeleted(message);
       } else if (message instanceof OfficialReportSectionTitleEdited) {
         await this.persistOfficialReportSectionTitleEdited(message);
       } else if (message instanceof OfficialReportSectionTitleReset) {
@@ -670,6 +679,26 @@ export class OfficialReportRepository {
     await this.recomputeState(versionId);
   }
 
+  private async persistOfficialReportFileNoteEdited(message: OfficialReportFileNoteEdited) {
+    const versionId = await this.officialReportVersionFinder.latest(message);
+    await this.db.tx.officialReportNominationFile.updateMany({
+      data: { note: message.html, noteEditedAt: this.clock.now(), noteEditedBy: message.authorId },
+      where: { nominationFileId: message.nominationFileId, versionId },
+    });
+
+    await this.recomputeState(versionId);
+  }
+
+  private async persistOfficialReportFileNoteDeleted(message: OfficialReportFileNoteDeleted) {
+    const versionId = await this.officialReportVersionFinder.latest(message);
+    await this.db.tx.officialReportNominationFile.updateMany({
+      data: { note: null, noteEditedAt: null, noteEditedBy: null },
+      where: { nominationFileId: message.nominationFileId, versionId },
+    });
+
+    await this.recomputeState(versionId);
+  }
+
   private async agendaProposalOf(
     message: OfficialReportFileReset,
   ): Promise<{ at: Date | null; by: string | null; html: string } | undefined> {
@@ -897,6 +926,7 @@ export class OfficialReportRepository {
           { introHtml: { not: null } },
           { conclusionHtml: { not: null } },
           { nominationFiles: { some: { htmlEdited: { not: null } } } },
+          { nominationFiles: { some: { note: { not: null } } } },
           { sectionIntros: { some: {} } },
           { sectionTitles: { some: { title: { not: null } } } },
         ],

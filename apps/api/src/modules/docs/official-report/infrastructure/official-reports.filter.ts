@@ -4,10 +4,11 @@ import {
   ExecutionContext,
   Injectable,
   NestInterceptor,
+  NotFoundException,
 } from '@nestjs/common';
 import { catchError, Observable, throwError } from 'rxjs';
 
-import { OfficialReportDocumentNotStored } from '../domain/official-report';
+import { OfficialReportDocumentNotStored, OfficialReportFileNotHeld } from '../domain/official-report';
 import { OfficialReportAgendaAlreadyReported } from '../domain/official-report-agenda';
 import {
   InvalidChairmanDuty,
@@ -84,6 +85,8 @@ export class OfficialReportsFilter implements NestInterceptor {
               validationError: `Certains utilisateurs désignés ne peuvent pas participer à la séance de restitution`,
             });
           }
+
+          if (err instanceof OfficialReportFileNotHeld) return new NotFoundException();
 
           if (err instanceof EmptyMembersList) {
             return new BadRequestException({
