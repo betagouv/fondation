@@ -21,6 +21,28 @@ test.describe('Simple Auth E2E', () => {
       });
       expect(response?.status).toBe(204);
     });
+
+    test('should rehash at the configured cost a password hashed at another one', async ({
+      baseUrl,
+      expect,
+      registerUser,
+      sql,
+    }) => {
+      const user = await registerUser('MEMBRE_COMMUN');
+      // "correct horse battery staple" hashed at cost 5, while .env.e2e sets 4
+      const hashedAtCost5 = '$2b$05$5EjEZdFUHuxIAYhtTNVriOQTLDIpCDTyRN772iX5a34kVzhCySgvC';
+      await sql`update identity_and_access_context.users set password = ${hashedAtCost5} where id = ${user.id}`;
+
+      await makeStepsFixtures({ baseUrl }).auth.login({
+        body: { email: user.email, password: 'correct horse battery staple' },
+        throwOnError: true,
+      });
+
+      const [row] = await sql<{ password: string }[]>`
+        select password from identity_and_access_context.users where id = ${user.id}
+      `;
+      expect(row?.password).toMatch(/^\$2b\$04\$/);
+    });
   });
 
   test.describe('Given a logged-in user', () => {

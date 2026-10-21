@@ -1,6 +1,6 @@
 import { type DocSystemUpdateCause } from '../../shared/domain/doc-system-update-cause';
-import { UserTitleEnum } from 'src/modules/administration/domain/user-enum';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
+import { UserTitleEnum } from 'src/modules/shared/user-title.enum';
 import { DateOnly } from 'src/utils/date-only';
 import { Id, makeId } from 'src/utils/id';
 import { assertIsDefined } from 'src/utils/is-defined';

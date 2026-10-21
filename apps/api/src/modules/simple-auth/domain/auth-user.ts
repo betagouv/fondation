@@ -67,6 +67,13 @@ export class AuthUserAuthenticated {
   ) {}
 }
 
+export class AuthUserPasswordRehashed {
+  constructor(
+    readonly id: string,
+    readonly password: string,
+  ) {}
+}
+
 export class AuthImpersonationStarted {
   constructor(
     readonly id: string,
@@ -97,6 +104,7 @@ type AuthUserEvent =
   | AuthUserAuthenticated
   | AuthUserUnAuthenticated
   | AuthUserSessionsRevoked
+  | AuthUserPasswordRehashed
   | AuthImpersonationStarted
   | AuthImpersonationRevoked
   | AuthOpenIdRequestCompleted;
@@ -104,7 +112,7 @@ type AuthUserEvent =
 export class AuthUser {
   constructor(
     readonly id: string,
-    private readonly password: AuthPassword,
+    readonly password: AuthPassword,
     readonly status: UserStatus,
   ) {}
 
@@ -131,6 +139,10 @@ export class AuthUser {
     return session;
   }
 
+  rehashPassword(password: AuthPassword): void {
+    this.#messages.push(new AuthUserPasswordRehashed(this.id, password.toString()));
+  }
+
   unAuthenticate(sessionId: string): void {
     this.#messages.push(new AuthUserUnAuthenticated(this.id, sessionId));
   }
@@ -148,14 +160,13 @@ export class AuthUser {
     lastName: string;
     role: RoleEnum;
     email: string;
-    password: string;
+    password: AuthPassword;
     gender: GenderEnum;
   }) {
-    const password = await AuthPassword.create(props.password);
     const email = await z.email().toLowerCase().parseAsync(props.email);
     const id = makeId('AuthUserId');
 
-    const user = new AuthUser(id, password, 'ACTIVE');
+    const user = new AuthUser(id, props.password, 'ACTIVE');
     user.#messages.push(
       new AuthUserRegistered({
         ...props,
@@ -163,7 +174,6 @@ export class AuthUser {
         firstName: props.firstName.toLowerCase(),
         id,
         lastName: props.lastName.toLowerCase(),
-        password,
       }),
     );
     return user;

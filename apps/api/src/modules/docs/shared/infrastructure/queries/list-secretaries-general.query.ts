@@ -4,10 +4,11 @@ import z from 'zod';
 
 import { Prisma } from 'src/generated/prisma/client';
 import { PrismaUserDutyEnum, PrismaUserTitleEnum } from 'src/generated/prisma/enums';
-import { UserDutyEnum, UserTitleEnum } from 'src/modules/administration/domain/user-enum';
 import { Db } from 'src/modules/framework/database';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
+import { UserDutyEnum } from 'src/modules/shared/user-duty.enum';
+import { UserTitleEnum } from 'src/modules/shared/user-title.enum';
 
 @Injectable()
 export class ListSecretariesGeneralQuery {

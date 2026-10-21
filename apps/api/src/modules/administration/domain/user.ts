@@ -1,9 +1,9 @@
 import { UserStatus } from 'src/modules/shared/user-status.enum';
-import { AuthPassword } from 'src/modules/simple-auth/domain/auth-password';
+import { UserTitleEnum } from 'src/modules/shared/user-title.enum';
 
 import { AdminUserRole } from './admin-user-role';
 import { AdminUserTitle } from './admin-user-title';
-import { AdminUserRoleEnum, UserTitleEnum } from './user-enum';
+import { AdminUserRoleEnum } from './user-enum';
 
 export class UserEmailUpdated {
   constructor(
@@ -109,9 +109,8 @@ export class User {
     this.#messages.push(new UserEmailUpdated(this.id, command.email));
   }
 
-  async updatePassword(plainPassword: string): Promise<void> {
-    const hashed = await AuthPassword.create(plainPassword);
-    this.#messages.push(new UserPasswordUpdated(this.id, hashed.toString()));
+  updatePassword(hashedPassword: string): void {
+    this.#messages.push(new UserPasswordUpdated(this.id, hashedPassword));
   }
 
   updateRole(nextRole: AdminUserRoleEnum): void {

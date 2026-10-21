@@ -51,7 +51,7 @@ export class AdministrationService {
   @Transactional()
   async updatePassword(command: { actorSessionId: string; password: string; userId: string }): Promise<void> {
     const user = await this.userRepository.findById(command.userId);
-    await user.updatePassword(command.password);
+    user.updatePassword(await this.auth.internalHashPassword(command.password));
     await this.userRepository.persist(user);
     // an admin changing their own password stays logged in
     await this.auth.internalRevokeSessions({ keptSessionId: command.actorSessionId, userId: command.userId });

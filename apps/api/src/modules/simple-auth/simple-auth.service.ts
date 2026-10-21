@@ -6,9 +6,9 @@ import { GenderEnum } from 'src/modules/shared/gender.enum';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
 
 import { AuthImpersonation } from './domain/auth-impersonation';
-import { AuthPassword } from './domain/auth-password';
 import { AuthSession } from './domain/auth-session';
 import { AuthUser, AuthUserNotAuthentifiable } from './domain/auth-user';
+import { PasswordHasher } from './infrastructure/password-hasher';
 import { DetailsUserFromImpersonationQuery } from './infrastructure/queries/details-user-from-impesronation-id.query';
 import { DetailsUserFromSessionIdQuery } from './infrastructure/queries/details-user-from-session-id.query';
 import { DetailedUserResponseDto, DetailsUserQuery } from './infrastructure/queries/details-user.query';
@@ -28,6 +28,7 @@ export class SimpleAuthService {
     private readonly userRepository: AuthUserRepository,
     private readonly findMachineQuery: FindMachineQuery,
     private readonly clock: Clock,
+    private readonly passwordHasher: PasswordHasher,
   ) {}
 
   findMachine(query: { bearer: string }): Promise<{ token: string } | null> {
@@ -49,7 +50,7 @@ export class SimpleAuthService {
     const user = await this.userRepository.findByEmail(command.email);
     if (!user) {
       // An unknown email fails like a wrong password, as late and with the same status, so that nothing reveals who has an account
-      await AuthPassword.DECOY.equals(command.password);
+      await this.passwordHasher.decoy.equals(command.password);
       throw new AuthUserNotAuthentifiable();
     }
 
@@ -58,6 +59,10 @@ export class SimpleAuthService {
       plainPassword: command.password,
       type: 'password',
     });
+    // The decoy takes the configured cost: a password hashed at another one would tell by its duration that the account exists
+    if (this.passwordHasher.isOutdated(user.password)) {
+      user.rehashPassword(await this.passwordHasher.hash(command.password));
+    }
     await this.userRepository.persist(user);
     return session;
   }
@@ -111,9 +116,17 @@ export class SimpleAuthService {
     role: RoleEnum;
     gender: GenderEnum;
   }): Promise<{ id: string }> {
-    const user = await AuthUser.register(command);
+    const user = await AuthUser.register({
+      ...command,
+      password: await this.passwordHasher.hash(command.password),
+    });
     await this.userRepository.persist(user);
     return { id: user.id };
+  }
+
+  async internalHashPassword(plain: string): Promise<string> {
+    const password = await this.passwordHasher.hash(plain);
+    return password.toString();
   }
 
   async impersonate(command: {
