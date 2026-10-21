@@ -50,8 +50,8 @@ export async function makeDocsFixture({
   };
 }) {
   const chairman = await registerUser('MEMBRE_DU_PARQUET');
-  await agent.members.updateTitle({
-    body: { title: 'PRESIDENT_PARQUET' },
+  await admin.administration.updateRole({
+    body: { role: 'PRESIDENT_PARQUET' },
     path: { userId: chairman.id },
     throwOnError: true,
   });

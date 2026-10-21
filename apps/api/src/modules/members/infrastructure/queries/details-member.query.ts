@@ -5,7 +5,6 @@ import { z } from 'zod';
 import { detailsMemberRawQuery } from '../../../../generated/prisma/sql';
 import { Db } from '../../../framework/database';
 import { GradeEnum } from '../../../shared/grade.enum';
-import { MEMBER_TITLES, toMemberTitle } from '../../domain/member-enums';
 import { isMember, MEMBER_ROLES } from '../member.utils';
 
 @Injectable()
@@ -25,7 +24,6 @@ export class DetailsMemberQuery {
       lastName: user.lastName,
       gender: user.gender,
       displayTitle: user.displayTitle ?? null,
-      title: toMemberTitle(user.title),
       excludedJurisdictions: ((user.excludedJurisdictions as any[]) ?? []).map(
         (j: { id: string; label: string }) => ({
           id: j.id,
@@ -52,7 +50,6 @@ export class DetailedMemberDto extends createZodDto(
     role: z.enum(MEMBER_ROLES),
     gender: z.string(),
     displayTitle: z.string().nullable(),
-    title: z.enum(MEMBER_TITLES).nullable(),
 
     excludedJurisdictions: z.array(z.object({ id: z.string(), label: z.string().nullable() })),
 

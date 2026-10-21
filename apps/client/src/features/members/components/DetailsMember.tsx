@@ -10,7 +10,6 @@ import { useExcludedJurisdictionsMutation } from '@queries/members.queries';
 
 import { JurisdictionSelector } from './JurisdictionSelector';
 import { MemberDisplayTitle } from './MemberDisplayTitle';
-import { MemberTitle } from './MemberTitle';
 
 const FORMATION_LABELS = defineMessages({
   MEMBRE_COMMUN: { defaultMessage: 'Commun' },
@@ -94,10 +93,9 @@ export function DetailsMember(props: { member: DetailedMemberDto }) {
     >
       <DetailsCard>
         <h2 className="fr-h4">
-          <FormattedMessage defaultMessage="Distinction et titre" />
+          <FormattedMessage defaultMessage="Titre" />
         </h2>
         <dl className="m-0 flex flex-col gap-y-4 p-0">
-          <MemberTitle member={member} />
           <MemberDisplayTitle member={member} />
         </dl>
       </DetailsCard>

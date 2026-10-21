@@ -1,9 +1,8 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common';
 
 import type { RoleEnum } from '../../shared/role.enum';
 
 import { JurisdictionId } from './jurisdiction';
-import { MemberDutyEnum, MemberTitleEnum } from './member-enums';
 
 export class Member {
   private constructor(
@@ -40,24 +39,13 @@ export class Member {
     this.#messages.push(new MemberDisplayTitleUpdated(this.id, displayTitle));
   }
 
-  updateTitle(title: MemberTitleEnum | null): void {
-    if (
-      (title === 'PRESIDENT_PARQUET' && this.role === 'MEMBRE_DU_SIEGE') ||
-      (title === 'PRESIDENT_SIEGE' && this.role === 'MEMBRE_DU_PARQUET')
-    ) {
-      throw new IncompatibleTitle();
-    }
-
-    this.#messages.push(new MemberTitleUpdated(this.id, title, title === null ? null : 'PRESIDENT'));
-  }
-
   readonly #messages: MemberEvent[] = [];
   get messages(): readonly MemberEvent[] {
     return this.#messages;
   }
 }
 
-export type MemberEvent = ExcludedMemberJurisdictions | MemberDisplayTitleUpdated | MemberTitleUpdated;
+export type MemberEvent = ExcludedMemberJurisdictions | MemberDisplayTitleUpdated;
 
 export class ExcludedMemberJurisdictions {
   readonly userId: string;
@@ -74,18 +62,4 @@ export class MemberDisplayTitleUpdated {
     readonly userId: string,
     readonly displayTitle: string | null,
   ) {}
-}
-
-export class MemberTitleUpdated {
-  constructor(
-    readonly userId: string,
-    readonly title: MemberTitleEnum | null,
-    readonly duty: MemberDutyEnum | null,
-  ) {}
-}
-
-export class IncompatibleTitle extends BadRequestException {
-  constructor() {
-    super(`Titre et formation incompatibles`);
-  }
 }

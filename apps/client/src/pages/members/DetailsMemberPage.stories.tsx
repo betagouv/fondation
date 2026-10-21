@@ -25,7 +25,6 @@ const MEMBER: DetailedMemberDto = {
     { count: 7, targetedGrade: 'HH', year: 2026 },
     { count: 3, targetedGrade: 'I', year: 2025 },
   ],
-  title: null,
 };
 
 function DetailsMemberPageStory() {

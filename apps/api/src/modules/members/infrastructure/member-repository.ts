@@ -6,12 +6,7 @@ import { assertNever } from '../../../utils/assert-never';
 import { makeId } from '../../../utils/id';
 import { Db } from '../../framework/database';
 import { prismaRoleEnumToRoleEnum } from '../../shared/mappers/role-enum.mapper';
-import {
-  ExcludedMemberJurisdictions,
-  Member,
-  MemberDisplayTitleUpdated,
-  MemberTitleUpdated,
-} from '../domain/member';
+import { ExcludedMemberJurisdictions, Member, MemberDisplayTitleUpdated } from '../domain/member';
 
 import { MEMBER_ROLES } from './member.utils';
 
@@ -63,7 +58,6 @@ export class MemberRepository {
         await this.persistExcludedMemberJurisdictions(message);
       else if (message instanceof MemberDisplayTitleUpdated)
         await this.persistMemberDisplayTitleUpdated(message);
-      else if (message instanceof MemberTitleUpdated) await this.persistMemberTitleUpdated(message);
       else assertNever(message);
     }
   }
@@ -90,18 +84,6 @@ export class MemberRepository {
     return this.db.tx.user.update({
       where: { id: message.userId },
       data: { displayTitle: message.displayTitle },
-    });
-  }
-
-  private async persistMemberTitleUpdated(message: MemberTitleUpdated) {
-    await this.db.tx.user.updateMany({
-      where: { title: message.title },
-      data: { title: null, duty: null },
-    });
-
-    await this.db.tx.user.update({
-      where: { id: message.userId },
-      data: { title: message.title, duty: message.duty },
     });
   }
 }
