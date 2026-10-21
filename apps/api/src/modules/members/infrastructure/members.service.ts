@@ -4,7 +4,6 @@ import { Injectable } from '@nestjs/common';
 import { Pagination } from '../../framework/pagination';
 import { FormationEnum } from '../../shared/formation.enum';
 import { UserStatus } from '../../shared/user-status.enum';
-import { MemberTitleEnum } from '../domain/member-enums';
 
 import { ExcludedJurisdictionsFinder } from './finders/excluded-jurisdictions.finder';
 import { MemberRepository } from './member-repository';
@@ -57,13 +56,6 @@ export class MembersService {
   async updateDisplayTitle(command: { userId: string; displayTitle: string | null }): Promise<void> {
     const member = await this.memberRepository.find(command.userId);
     member.updateDisplayTitle(command.displayTitle);
-    await this.memberRepository.persist(member);
-  }
-
-  @Transactional()
-  async updateTitle(command: { userId: string; title: MemberTitleEnum | null }): Promise<void> {
-    const member = await this.memberRepository.find(command.userId);
-    member.updateTitle(command.title);
     await this.memberRepository.persist(member);
   }
 

@@ -2,7 +2,7 @@ import z from 'zod';
 
 import { Id, makeId } from '../../../utils/id';
 import { GenderEnum } from '../../shared/gender.enum';
-import type { RoleEnum } from '../../shared/role.enum';
+import { isSecretariat, type RoleEnum } from '../../shared/role.enum';
 import { UserStatus } from '../../shared/user-status.enum';
 import { OpenIdProvider } from '../openid';
 
@@ -12,12 +12,14 @@ import { AuthSession } from './auth-session';
 
 export class AuthUserNotAuthentifiable extends Error {}
 export class DeactivatedUserNotImpersonable extends Error {}
+export class AdminOutsideSecretariat extends Error {}
 
 export class AuthUserRegistered {
   readonly id: string;
   readonly firstName: string;
   readonly lastName: string;
   readonly role: RoleEnum;
+  readonly isAdmin: boolean;
   readonly email: string;
   readonly password: string;
   readonly gender: GenderEnum;
@@ -27,6 +29,7 @@ export class AuthUserRegistered {
     firstName: string;
     lastName: string;
     role: RoleEnum;
+    isAdmin: boolean;
     email: string;
     password: AuthPassword;
     gender: GenderEnum;
@@ -35,6 +38,7 @@ export class AuthUserRegistered {
     this.firstName = props.firstName;
     this.lastName = props.lastName;
     this.role = props.role;
+    this.isAdmin = props.isAdmin;
     this.email = props.email;
     this.password = props.password.toString();
     this.gender = props.gender;
@@ -159,10 +163,12 @@ export class AuthUser {
     firstName: string;
     lastName: string;
     role: RoleEnum;
+    isAdmin: boolean;
     email: string;
     password: AuthPassword;
     gender: GenderEnum;
   }) {
+    if (props.isAdmin && !isSecretariat(props.role)) throw new AdminOutsideSecretariat();
     const email = await z.email().toLowerCase().parseAsync(props.email);
     const id = makeId('AuthUserId');
 

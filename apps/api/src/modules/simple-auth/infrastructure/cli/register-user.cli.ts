@@ -13,6 +13,7 @@ const RegisterUserKey = {
   lastName: 'lastName',
   email: 'email',
   password: 'password',
+  isAdmin: 'isAdmin',
 } as const;
 
 type RegisterUserOptions = {
@@ -22,6 +23,7 @@ type RegisterUserOptions = {
   [RegisterUserKey.lastName]: string;
   [RegisterUserKey.email]: string;
   [RegisterUserKey.password]: string;
+  [RegisterUserKey.isAdmin]?: boolean;
 };
 
 @SubCommand({ name: 'register' })
@@ -80,7 +82,16 @@ export class RegisterUserCliCommand extends CommandRunner {
       lastName: string;
       password: string;
     }>(prompts, options);
-    await this.auth.registerUser(answers);
+    await this.auth.registerUser({ ...answers, isAdmin: options.isAdmin ?? false });
+  }
+
+  @Option({
+    description: 'gives the admin right, to a member of the general secretariat only',
+    flags: '-a, --admin',
+    name: RegisterUserKey.isAdmin,
+  })
+  parseIsAdmin(): boolean {
+    return true;
   }
 
   @Option({

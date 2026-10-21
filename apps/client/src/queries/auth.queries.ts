@@ -6,7 +6,7 @@ import type { DetailedUserResponseDto } from '@api/types';
 
 export type SessionUser = Pick<
   DetailedUserResponseDto,
-  'firstName' | 'formation' | 'isImpersonated' | 'lastName' | 'role'
+  'firstName' | 'formation' | 'isAdmin' | 'isImpersonated' | 'lastName' | 'role'
 > & { civility: string; id: string };
 
 export const authKeys = {
@@ -30,6 +30,7 @@ export const sessionQueryOptions = queryOptions({
               formation: data.formation,
               firstName: data.firstName,
               lastName: data.lastName,
+              isAdmin: data.isAdmin,
               isImpersonated: data.isImpersonated,
               civility: `${data.gender === 'FEMALE' ? 'Madame' : 'Monsieur'} ${data.lastName.toUpperCase()}`,
             }

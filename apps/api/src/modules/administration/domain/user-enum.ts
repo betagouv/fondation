@@ -95,7 +95,7 @@ export function adminUserRoleEnumToIdentityRoles(role: AdminUserRoleEnum): RoleE
     case 'FIRST_SECRETARY':
     case 'SECRETARY':
     case 'OFFICER':
-      return ['ADMIN', 'ADJOINT_SECRETAIRE_GENERAL'];
+      return ['ADJOINT_SECRETAIRE_GENERAL'];
 
     default:
       return assertNever(role);

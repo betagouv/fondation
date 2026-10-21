@@ -14,7 +14,6 @@ export function roleToFormation(role: RoleEnum): FormationEnum | undefined {
   switch (role) {
     case 'MEMBRE_COMMUN':
     case 'ADJOINT_SECRETAIRE_GENERAL':
-    case 'ADMIN':
       return undefined;
     case 'MEMBRE_DU_PARQUET':
       return 'PARQUET';

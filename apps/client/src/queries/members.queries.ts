@@ -8,7 +8,6 @@ import {
 
 import * as $api from '@api/sdk';
 import type {
-  DetailedMemberDto,
   DetailedSummaryDto,
   ListedMemberSessionsDto,
   ListMembersData,
@@ -137,33 +136,6 @@ export const useDetailedMember = (options: { userId: string | undefined }) =>
       $api.members.detailsMember({ path: { userId: options.userId! } }).then(({ data = null }) => data),
     queryKey: memberKeys.detailsMember({ userId: options.userId }),
   });
-
-export function useUpdateTitleMutation(options: { userId: string }) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (title: 'PRESIDENT_PARQUET' | 'PRESIDENT_SIEGE' | null) =>
-      $api.members.updateTitle({
-        body: { title: title as 'PRESIDENT_PARQUET' | 'PRESIDENT_SIEGE' },
-        path: { userId: options.userId },
-      }),
-
-    onSuccess: (_data, title) => {
-      queryClient.setQueryData(
-        memberKeys.detailsMember({ userId: options.userId }),
-        (data: DetailedMemberDto | undefined) => {
-          if (!data) return data;
-
-          return {
-            ...data,
-            title,
-          };
-        },
-      );
-      queryClient.invalidateQueries({ queryKey: docsKeys.members() });
-    },
-  });
-}
 
 export const useUpdateDisplayTitleMutation = (options: { userId: string }) => {
   const queryClient = useQueryClient();

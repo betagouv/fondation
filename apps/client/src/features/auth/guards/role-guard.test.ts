@@ -13,23 +13,30 @@ describe('isAuthorized', () => {
   });
 
   it('rejects a role outside the authorized ones', () => {
-    expect(isAuthorized({ role: 'MEMBRE_COMMUN' }, AUTHORIZED_ROLES.SG)).toBe(false);
-    expect(isAuthorized({ role: 'ADJOINT_SECRETAIRE_GENERAL' }, AUTHORIZED_ROLES.MEMBER)).toBe(false);
+    expect(isAuthorized({ isAdmin: false, role: 'MEMBRE_COMMUN' }, AUTHORIZED_ROLES.SG)).toBe(false);
+    expect(
+      isAuthorized({ isAdmin: false, role: 'ADJOINT_SECRETAIRE_GENERAL' }, AUTHORIZED_ROLES.MEMBER),
+    ).toBe(false);
   });
 
   it('accepts an authorized role', () => {
-    expect(isAuthorized({ role: 'MEMBRE_DU_SIEGE' }, AUTHORIZED_ROLES.MEMBER)).toBe(true);
-    expect(isAuthorized({ role: 'ADJOINT_SECRETAIRE_GENERAL' }, AUTHORIZED_ROLES.SG)).toBe(true);
+    expect(isAuthorized({ isAdmin: false, role: 'MEMBRE_DU_SIEGE' }, AUTHORIZED_ROLES.MEMBER)).toBe(true);
+    expect(isAuthorized({ isAdmin: false, role: 'ADJOINT_SECRETAIRE_GENERAL' }, AUTHORIZED_ROLES.SG)).toBe(
+      true,
+    );
   });
 
   it('always accepts the admin, even with an empty allowlist', () => {
-    expect(isAuthorized({ role: 'ADMIN' }, AUTHORIZED_ROLES.NONE)).toBe(true);
+    expect(isAuthorized({ isAdmin: true, role: 'ADJOINT_SECRETAIRE_GENERAL' }, AUTHORIZED_ROLES.NONE)).toBe(
+      true,
+    );
   });
 });
 
 describe('roleGuard', () => {
   const member = {
     id: '5f6478c1-46a1-4b64-8cbd-4a0d67101d7e',
+    isAdmin: false,
     role: 'MEMBRE_DU_SIEGE' as const,
     formation: 'SIEGE' as const,
     firstName: 'Ada',

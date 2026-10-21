@@ -19,6 +19,7 @@ import {
 } from '@/shared/ui/data-table';
 import { IconLink } from '@/shared/ui/icon-link';
 import { SearchInput } from '@/shared/ui/search-input';
+import { Tooltip } from '@/shared/ui/tooltip';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { capitalize } from '@/utils/string.utils';
 import type { PaginatedAdminUserListItemDto } from '@api/types';
@@ -57,7 +58,20 @@ function useAdminUserColumns() {
       }),
 
       h.accessor('role', {
-        cell: ({ getValue, row }) => <AdminUserRole gender={row.original.gender} value={getValue()} />,
+        cell: ({ getValue, row }) => (
+          <span className="inline-flex items-center gap-1">
+            <AdminUserRole gender={row.original.gender} value={getValue()} />
+            {row.original.isAdmin && (
+              <Tooltip focusable label={formatMessage({ defaultMessage: 'Administrateur' })}>
+                <span
+                  aria-label={formatMessage({ defaultMessage: 'Administrateur' })}
+                  className="fr-icon-admin-line fr-icon--sm text-(--text-mention-grey)"
+                  role="img"
+                />
+              </Tooltip>
+            )}
+          </span>
+        ),
         enableSorting: false,
         header: formatMessage({ defaultMessage: 'Rôle' }),
         id: 'role',

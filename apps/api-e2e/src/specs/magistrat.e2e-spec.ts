@@ -77,6 +77,7 @@ test.describe('Magistrat E2E', () => {
       id: valrose.magistratId,
       lastName: expect.stringMatching(/^valrose$/i),
       name: 'Mme\u00A0VALROSE\u00A0Honorine (ép. DUBOIS)',
+      status: 'ACTIVE',
     });
   });
 

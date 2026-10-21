@@ -14,7 +14,8 @@ export type RegisterUserDto = {
     gender: 'MALE' | 'FEMALE';
     email: string;
     password: string;
-    role?: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | 'ADMIN' | null;
+    role?: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | null;
+    isAdmin?: boolean;
 };
 
 export type RegisteredUserDto = {
@@ -30,10 +31,11 @@ export type DetailedUserResponseDto = {
     userId: string;
     firstName: string;
     lastName: string;
-    role: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | 'ADMIN';
+    role: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL';
     formation: 'SIEGE' | 'PARQUET' | null;
     gender: 'MALE' | 'FEMALE';
     isImpersonated: boolean;
+    isAdmin: boolean;
     displayTitle: string | null;
     duty: 'PRESIDENT' | 'DEPUTY_PRESIDENT' | 'SECRETARY' | 'OFFICER' | null;
     title: 'PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_PARQUET' | 'FIRST_SECRETARY' | null;
@@ -911,7 +913,7 @@ export type FoundSummaryReadersDto = {
         id: string;
         firstName: string;
         lastName: string;
-        role: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | 'ADMIN';
+        role: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL';
     }>;
 };
 
@@ -945,7 +947,6 @@ export type DetailedMemberDto = {
     role: 'MEMBRE_COMMUN' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_DU_SIEGE';
     gender: string;
     displayTitle: string | null;
-    title: 'PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | null;
     excludedJurisdictions: Array<{
         id: string;
         label: string | null;
@@ -963,10 +964,6 @@ export type ExcludeJurisdictionsDto = {
 
 export type UpdateMemberDisplayTitleDto = {
     displayTitle: string | null;
-};
-
-export type UpdateMemberTitleDto = {
-    title: 'PRESIDENT_PARQUET' | 'PRESIDENT_SIEGE' | null;
 };
 
 export type ListedJurisdictions = {
@@ -1974,6 +1971,7 @@ export type DetailedMagistratDto = {
     } | null;
     careerHistory: string | null;
     externalUrl: string;
+    status: 'ACTIVE' | 'INACTIVE';
 };
 
 export type ListedMagistratPhoneNumbersDto = {
@@ -2320,6 +2318,7 @@ export type PaginatedAdminUserListItemDto = {
         email: string;
         gender: 'MALE' | 'FEMALE';
         role: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+        isAdmin: boolean;
         status: 'ACTIVE' | 'DEACTIVATED';
     }>;
     totalCount: number;
@@ -2343,8 +2342,15 @@ export type DetailedAdminUserDto = {
     isAdmin: boolean;
     status: 'ACTIVE' | 'DEACTIVATED';
     canDeactivate: boolean;
+    canHoldAdminRight: boolean;
     canImpersonate: boolean;
     canReactivate: boolean;
+    assignableRoles: Array<'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN'>;
+    deactivatedAt: string | null;
+    statusChanges: Array<{
+        changedAt: string;
+        status: 'ACTIVE' | 'DEACTIVATED';
+    }>;
 };
 
 export type UpdateUserEmailDto = {
@@ -3672,21 +3678,6 @@ export type UpdateDisplayTitleResponses = {
 };
 
 export type UpdateDisplayTitleResponse = UpdateDisplayTitleResponses[keyof UpdateDisplayTitleResponses];
-
-export type UpdateTitleData = {
-    body: UpdateMemberTitleDto;
-    path: {
-        userId: string;
-    };
-    query?: never;
-    url: '/api/members/v1/{userId}/title';
-};
-
-export type UpdateTitleResponses = {
-    204: void;
-};
-
-export type UpdateTitleResponse = UpdateTitleResponses[keyof UpdateTitleResponses];
 
 export type SearchData = {
     body?: never;

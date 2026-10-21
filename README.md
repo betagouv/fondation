@@ -155,9 +155,10 @@ repeat password: *****
 ```
 
 Rôles disponibles : `MEMBRE_DU_SIEGE`, `MEMBRE_DU_PARQUET`, `MEMBRE_COMMUN`,
-`ADJOINT_SECRETAIRE_GENERAL`, `ADMIN` (enum `PrismaRoleEnum` dans
+`ADJOINT_SECRETAIRE_GENERAL` (enum `PrismaRoleEnum` dans
 [apps/api/prisma/schemas/identity.prisma](./apps/api/prisma/schemas/identity.prisma)).
-Il est recommandé de créer un membre commun et un agent du secrétariat général.
+Le droit administrateur s'ajoute au rôle `ADJOINT_SECRETAIRE_GENERAL` avec l'option `--admin`.
+Il est recommandé de créer un membre commun et un agent du secrétariat général administrateur.
 
 8. Accès à l'application : [http://localhost:5173](http://localhost:5173)
 
@@ -172,7 +173,7 @@ outre-mer) y sont garantis.
 pnpm --filter lolfi generate:fictitious-archive   # => packages/lolfi/LOLFI_CSM_fictitious.zip
 ```
 
-L'archive s'envoie avec un compte `ADMIN` : menu "Administration", puis "Import LOLFI manuel"
+L'archive s'envoie avec un compte administrateur : menu "Administration", puis "Import LOLFI manuel"
 ([/admin/lolfi](http://localhost:5173/admin/lolfi) en local). Le suivi est sur `/admin/jobs`.
 
 ### Remettre à zéro

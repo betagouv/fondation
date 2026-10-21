@@ -1,9 +1,10 @@
-import Badge from '@codegouvfr/react-dsfr/Badge';
 import { useId } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { Link } from 'react-router';
 
 import type { FoundMagistrat } from '@queries/magistrats.queries';
+
+import { MagistratStatusBadge } from './MagistratStatusBadge';
 
 export function MagistratSearchCard(props: { detailsPath: string; magistrat: FoundMagistrat }) {
   const { currentPosition, gradeAndJurisdiction, name, status, usedName } = props.magistrat;
@@ -24,15 +25,7 @@ export function MagistratSearchCard(props: { detailsPath: string; magistrat: Fou
             {name}
           </Link>
         </h2>
-        {status === 'ACTIVE' ? (
-          <Badge noIcon severity="success" small>
-            <FormattedMessage defaultMessage="Actif" />
-          </Badge>
-        ) : (
-          <Badge noIcon small>
-            <FormattedMessage defaultMessage="Inactif" />
-          </Badge>
-        )}
+        <MagistratStatusBadge status={status} />
       </div>
       {usedName && (
         <p className="fr-mb-0">
