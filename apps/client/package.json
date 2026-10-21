@@ -105,7 +105,7 @@
     "tailwindcss": "4.3.3",
     "typescript": "catalog:",
     "typescript-eslint": "8.70.1",
-    "vite": "8.3.1",
+    "vite": "8.3.3",
     "vitest": "catalog:",
     "vitest-axe": "0.1.0",
     "xlsx": "file:../../vendor/xlsx-0.20.3.tgz"
