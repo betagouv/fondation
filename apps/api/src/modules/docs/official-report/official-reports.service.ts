@@ -232,7 +232,7 @@ export class OfficialReportsService {
     return this.findOfficialReportDocumentQuery.handle(query);
   }
 
-  getOrCreateOfficialReportDocumentPdf(query: { id: string; forceNew?: boolean }): Promise<StreamableFile> {
+  getOrCreateOfficialReportDocumentPdf(query: { id: string }): Promise<StreamableFile> {
     return this.findOfficialReportDocumentPdfQuery.handle(query);
   }
 

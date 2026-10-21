@@ -3972,9 +3972,7 @@ export type GenerateAgendaPdfData = {
     path: {
         agendaId: string;
     };
-    query?: {
-        force?: boolean;
-    };
+    query?: never;
     url: '/api/docs/v1/agendas/{agendaId}.pdf';
 };
 
@@ -4159,9 +4157,7 @@ export type GenerateOfficialReportPdfData = {
     path: {
         officialReportId: string;
     };
-    query?: {
-        force?: boolean;
-    };
+    query?: never;
     url: '/api/docs/v1/official-reports/{officialReportId}.pdf';
 };
 

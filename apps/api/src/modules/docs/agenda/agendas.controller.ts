@@ -124,13 +124,8 @@ export class AgendasController {
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/agendas/:agendaId.pdf')
   @ApiOkResponse({ content: { [FILE_MIME_TYPES.pdf]: {} } })
-  @ApiQuery({ name: 'force', required: false, type: 'boolean', default: false })
-  generateAgendaPdf(
-    @Param('agendaId') agendaId: string,
-    @Query('force', new ParseBoolPipe({ optional: true }), new DefaultValuePipe(false))
-    forceNew: boolean,
-  ): Promise<StreamableFile> {
-    return this.agendas.getOrCreateAgendaDocumentPdf({ id: agendaId, forceNew });
+  generateAgendaPdf(@Param('agendaId') agendaId: string): Promise<StreamableFile> {
+    return this.agendas.getOrCreateAgendaDocumentPdf({ id: agendaId });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')

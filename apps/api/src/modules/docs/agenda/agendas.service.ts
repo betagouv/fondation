@@ -163,7 +163,7 @@ export class AgendasService {
     return this.findAgendaDocumentQuery.handle(query);
   }
 
-  getOrCreateAgendaDocumentPdf(query: { forceNew?: boolean; id: string }): Promise<StreamableFile> {
+  getOrCreateAgendaDocumentPdf(query: { id: string }): Promise<StreamableFile> {
     return this.findAgendaDocumentPdfQuery.handle(query);
   }
 

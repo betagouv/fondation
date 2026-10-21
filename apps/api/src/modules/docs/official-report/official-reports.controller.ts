@@ -122,18 +122,9 @@ export class OfficialReportsController {
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @ApiProduces(FILE_MIME_TYPES.pdf)
   @ApiOkResponse({ content: { [FILE_MIME_TYPES.pdf]: {} } })
-  @ApiQuery({ name: 'force', type: 'boolean', required: false, default: false })
   @Get('/official-reports/:officialReportId.pdf')
-  generateOfficialReportPdf(
-    @AuthedUser() authUser: { id: string },
-    @Param('officialReportId') officialReportId: string,
-    @Query('force', new ParseBoolPipe({ optional: true }), new DefaultValuePipe(false))
-    forceNew: boolean,
-  ): Promise<StreamableFile> {
-    return this.officialReports.getOrCreateOfficialReportDocumentPdf({
-      forceNew,
-      id: officialReportId,
-    });
+  generateOfficialReportPdf(@Param('officialReportId') officialReportId: string): Promise<StreamableFile> {
+    return this.officialReports.getOrCreateOfficialReportDocumentPdf({ id: officialReportId });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
