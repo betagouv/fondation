@@ -19,4 +19,8 @@ export class PasswordHasher {
   async hash(plain: string): Promise<AuthPassword> {
     return AuthPassword.from(await bcrypt.hash(plain, this.cost));
   }
+
+  isOutdated(password: AuthPassword): boolean {
+    return password.cost !== this.cost;
+  }
 }

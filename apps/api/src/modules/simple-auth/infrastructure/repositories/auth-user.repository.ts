@@ -10,6 +10,7 @@ import {
   AuthOpenIdRequestCompleted,
   AuthUser,
   AuthUserAuthenticated,
+  AuthUserPasswordRehashed,
   AuthUserRegistered,
   AuthUserSessionsRevoked,
   AuthUserUnAuthenticated,
@@ -47,6 +48,7 @@ export class AuthUserRepository {
       else if (event instanceof AuthUserAuthenticated) await this.persistUserAuthenticated(event);
       else if (event instanceof AuthUserUnAuthenticated) await this.persistAuthUserUnAuthenticated(event);
       else if (event instanceof AuthUserSessionsRevoked) await this.persistAuthUserSessionsRevoked(event);
+      else if (event instanceof AuthUserPasswordRehashed) await this.persistPasswordRehashed(event);
       else if (event instanceof AuthImpersonationStarted) await this.persistImpersonationStarted(event);
       else if (event instanceof AuthImpersonationRevoked) await this.persistImpersonationRevoked(event);
       else if (event instanceof AuthOpenIdRequestCompleted)
@@ -80,6 +82,10 @@ export class AuthUserRepository {
         role: event.role,
       },
     });
+  }
+
+  private persistPasswordRehashed(event: AuthUserPasswordRehashed) {
+    return this.db.tx.user.update({ data: { password: event.password }, where: { id: event.id } });
   }
 
   private persistImpersonationStarted({ impersonation }: AuthImpersonationStarted) {

@@ -59,6 +59,10 @@ export class SimpleAuthService {
       plainPassword: command.password,
       type: 'password',
     });
+    // The decoy takes the configured cost: a password hashed at another one would tell by its duration that the account exists
+    if (this.passwordHasher.isOutdated(user.password)) {
+      user.rehashPassword(await this.passwordHasher.hash(command.password));
+    }
     await this.userRepository.persist(user);
     return session;
   }

@@ -67,6 +67,13 @@ export class AuthUserAuthenticated {
   ) {}
 }
 
+export class AuthUserPasswordRehashed {
+  constructor(
+    readonly id: string,
+    readonly password: string,
+  ) {}
+}
+
 export class AuthImpersonationStarted {
   constructor(
     readonly id: string,
@@ -97,6 +104,7 @@ type AuthUserEvent =
   | AuthUserAuthenticated
   | AuthUserUnAuthenticated
   | AuthUserSessionsRevoked
+  | AuthUserPasswordRehashed
   | AuthImpersonationStarted
   | AuthImpersonationRevoked
   | AuthOpenIdRequestCompleted;
@@ -104,7 +112,7 @@ type AuthUserEvent =
 export class AuthUser {
   constructor(
     readonly id: string,
-    private readonly password: AuthPassword,
+    readonly password: AuthPassword,
     readonly status: UserStatus,
   ) {}
 
@@ -129,6 +137,10 @@ export class AuthUser {
     }
 
     return session;
+  }
+
+  rehashPassword(password: AuthPassword): void {
+    this.#messages.push(new AuthUserPasswordRehashed(this.id, password.toString()));
   }
 
   unAuthenticate(sessionId: string): void {
