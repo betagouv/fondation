@@ -1,23 +1,20 @@
 import {
   Body,
   Controller,
-  DefaultValuePipe,
   Delete,
   Get,
   Header,
   HttpCode,
   HttpStatus,
   Param,
-  ParseBoolPipe,
   Patch,
   Post,
   Put,
-  Query,
   StreamableFile,
   UseInterceptors,
   UsePipes,
 } from '@nestjs/common';
-import { ApiOkResponse, ApiParam, ApiProduces, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiOkResponse, ApiParam, ApiProduces, ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { FILE_MIME_TYPES } from 'src/modules/framework/files';
@@ -112,13 +109,8 @@ export class AgendasController {
   @ApiProduces('text/html')
   @ApiOkResponse({ content: { 'text/html': {} } })
   @Header('content-type', 'text/html')
-  @ApiQuery({ name: 'force', required: false, type: 'boolean', default: false })
-  generateAgendaHtml(
-    @Param('agendaId') agendaId: string,
-    @Query('force', new ParseBoolPipe({ optional: true }), new DefaultValuePipe(false))
-    forceNew: boolean,
-  ): Promise<string> {
-    return this.agendas.getOrCreateAgendaDocument({ id: agendaId, forceNew });
+  generateAgendaHtml(@Param('agendaId') agendaId: string): Promise<string> {
+    return this.agendas.getOrCreateAgendaDocument({ id: agendaId });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
