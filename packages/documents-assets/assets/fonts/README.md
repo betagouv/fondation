@@ -17,5 +17,3 @@ par le navigateur de l'utilisateur et par le Chromium qui l'imprime en PDF.
 Sources officielles, licence SIL Open Font :
 [Noto Sans](https://fonts.google.com/noto/specimen/Noto+Sans) et
 [Montserrat](https://fonts.google.com/specimen/Montserrat).
-
-Tant qu'un fichier manque, `pnpm --filter documents-assets test` échoue en le nommant.

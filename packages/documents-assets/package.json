@@ -13,11 +13,9 @@
     "types:check": "tsc --noEmit -p .",
     "build": "tsc -p tsconfig.build.json",
     "lint:check": "oxlint",
-    "lint": "oxlint --fix",
-    "test": "node --test --require @swc-node/register test/*.test.ts"
+    "lint": "oxlint --fix"
   },
   "devDependencies": {
-    "@swc-node/register": "1.12.1",
     "@types/node": "catalog:",
     "@typescript/native": "catalog:",
     "oxlint": "catalog:",
