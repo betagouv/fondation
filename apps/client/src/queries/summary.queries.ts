@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { withScreenshotUrls } from '@/utils/with-screenshot-urls';
 import * as $api from '@api/sdk';
 import type { DetailedSummaryDto } from '@api/types';
 
@@ -14,31 +15,13 @@ export const summaryKeys = {
   }) => ['summaries', 'searchSummaryReaders', props] as const,
 };
 
-function injectScreenshotUrls(
-  content: string,
-  screenshots: readonly { id: string; name: string; url: string }[],
-): string {
-  const byId = new Map(screenshots.map((s) => [s.id, s.url]));
-  const byName = new Map(screenshots.map((s) => [s.name, s.url]));
-
-  const { body } = new DOMParser().parseFromString(content, 'text/html');
-  for (const $img of body.querySelectorAll('img')) {
-    const url =
-      ($img.dataset.fileId && byId.get($img.dataset.fileId)) ||
-      ($img.dataset.fileName && byName.get($img.dataset.fileName));
-    if (url) $img.src = url;
-  }
-
-  return body.innerHTML;
-}
-
 export const useSummaryQuery = (options: { nominationFileId: string; sessionId: string }) =>
   useQuery({
     queryFn: async () => {
       const { data } = await $api.summaries.detailSummary({ path: options });
 
       if (data) {
-        data.summary.content = injectScreenshotUrls(data.summary.content, data.summary.screenshots);
+        data.summary.content = withScreenshotUrls(data.summary.content, data.summary.screenshots);
       }
 
       return data ?? null;

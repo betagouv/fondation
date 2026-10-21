@@ -77,7 +77,7 @@ export class DetailReportQuery {
       attachments: attachments.map((f) => ({
         addedAt: f.addedAt,
         addedBy: f.addedBy,
-        fileId: f.id,
+        id: f.id,
         name: f.name,
         size: f.size,
         usage: f.usage,
@@ -86,7 +86,7 @@ export class DetailReportQuery {
       id: report.id,
       nominationFileId: report.nominationFileId,
       screenshots: screenshots.map((f) => ({
-        fileId: f.id,
+        id: f.id,
         name: f.name,
         url: f.url,
         usage: f.usage,
@@ -125,7 +125,7 @@ export class DetailedReportDto extends createZodDto(
       z.object({
         usage: z.enum(['EMBEDDED_SCREENSHOT']),
         name: z.string(),
-        fileId: z.string(),
+        id: z.string(),
         url: z.url(),
       }),
     ),
@@ -134,7 +134,7 @@ export class DetailedReportDto extends createZodDto(
       z.object({
         usage: z.enum(['ATTACHMENT']),
         name: z.string(),
-        fileId: z.string(),
+        id: z.string(),
         size: z.number().int().nullable(),
         addedAt: z.iso.datetime(),
         addedBy: z.object({ id: z.string(), name: z.string() }).nullable(),

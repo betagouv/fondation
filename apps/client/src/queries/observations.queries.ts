@@ -3,10 +3,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ObservationFollowUpEnum } from '@/shared/enums/observation-follow-up.enum';
 import { HttpException } from '@/utils/http-exception';
 import { multipartJson } from '@/utils/multipart-json';
+import { withScreenshotUrls } from '@/utils/with-screenshot-urls';
 import * as $api from '@api/sdk';
 import type {
   CreateObservationDto,
-  GetObservationDetailsResponseDto,
   ListObservationsResponseDto,
   ScheduleObservantAuditionDto,
   UpdateObservationDto,
@@ -48,41 +48,16 @@ export function useObservationDetailsQuery(props: {
         },
       });
 
-      return updateMemberCommentImages(data);
+      if (data?.memberComment) {
+        data.memberComment.comment = withScreenshotUrls(
+          data.memberComment.comment,
+          data.memberComment.screenshots,
+        );
+      }
+
+      return data ?? null;
     },
   });
-}
-
-function updateMemberCommentImages(
-  response: GetObservationDetailsResponseDto | null | undefined,
-): GetObservationDetailsResponseDto | null {
-  if (!response || !response.memberComment) return response ?? null;
-
-  const byId = new Map(response.memberComment.screenshots.map((s) => [s.id, s] as const));
-  const byName = new Map(response.memberComment.screenshots.map((s) => [s.name, s] as const));
-
-  const $div = document.createElement('div');
-  $div.innerHTML = response.memberComment.comment;
-
-  for (const $img of $div.querySelectorAll('img')) {
-    let file: { id: string; name: string; url: string } | undefined;
-    if ($img.dataset.fileId) {
-      file = byId.get($img.dataset.fileId);
-    }
-
-    if (!file && $img.dataset.fileName) {
-      file = byName.get($img.dataset.fileName);
-    }
-
-    if (file) {
-      $img.dataset.fileId = file.id;
-      $img.dataset.fileName = file.name;
-      $img.src = file.url;
-    }
-  }
-
-  response.memberComment.comment = $div.innerHTML;
-  return response;
 }
 
 export function useSearchMagistratsQuery(search: string) {
