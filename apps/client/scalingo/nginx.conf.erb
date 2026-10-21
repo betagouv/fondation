@@ -15,3 +15,15 @@ location /assets/ {
   add_header Cache-Control "public, max-age=2592000, immutable"; # 30 days
   try_files $uri =404;
 }
+
+# Ad blockers and network proxies may drop calls to the Sentry domain. Only the body goes through, so neither the cookies nor the
+# browser IP added by the router are forwarded, as with sendDefaultPii: false
+location = /monitoring {
+  # With a variable, nginx resolves the name on each call instead of failing to start without DNS
+  resolver <%= File.read('/etc/resolv.conf').scan(/^nameserver\s+(\S+)/).flatten.map { |ip| ip.include?(':') ? "[#{ip}]" : ip }.join(' ') %> valid=300s;
+  set $sentry https://sentry.incubateur.net/api/235/envelope/;
+  proxy_pass $sentry;
+  proxy_pass_request_headers off;
+  proxy_set_header Content-Type $content_type;
+  proxy_ssl_server_name on;
+}
