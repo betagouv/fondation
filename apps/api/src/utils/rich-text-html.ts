@@ -1,7 +1,6 @@
-import { load } from 'cheerio';
 import { z } from 'zod';
 
-type AttributeRule = (value: string) => boolean;
+import { type AttributeRule, type AttributesByTag, sanitizeHtml } from 'src/utils/sanitize-html';
 
 const anyValue: AttributeRule = () => true;
 const color: AttributeRule = (value) => /^color:\s*(#[\da-f]{3,8}|rgba?\([\d\s.,%]+\))\s*;?$/i.test(value);
@@ -12,7 +11,7 @@ const webUrl: AttributeRule = (value) => ['http:', 'https:'].includes(URL.parse(
 
 const noAttribute: ReadonlyMap<string, AttributeRule> = new Map();
 
-const ATTRIBUTES_BY_EDITOR_TAG: ReadonlyMap<string, ReadonlyMap<string, AttributeRule>> = new Map([
+const ATTRIBUTES_BY_EDITOR_TAG: AttributesByTag = new Map([
   ['em', noAttribute],
   ['h1', noAttribute],
   ['h2', noAttribute],
@@ -47,27 +46,7 @@ const ATTRIBUTES_BY_EDITOR_TAG: ReadonlyMap<string, ReadonlyMap<string, Attribut
 
 /** mirrors the rich text editor: a tag it does not write is unwrapped to its text rather than dropped */
 export function sanitizeRichTextHtml(html: string): string {
-  const $ = load(html, null, false);
-
-  $('iframe, noscript, script, style, template, textarea, title').remove();
-  $('*').each((_, element) => {
-    if (!('attribs' in element)) return;
-
-    const rules = ATTRIBUTES_BY_EDITOR_TAG.get(element.name);
-    if (!rules) $(element).replaceWith($(element).contents());
-    else
-      element.attribs = Object.fromEntries(
-        Object.entries(element.attribs).filter(([name, value]) => rules.get(name)?.(value)),
-      );
-  });
-  $.root()
-    .find('*')
-    .addBack()
-    .contents()
-    .filter((_, node) => node.type === 'comment')
-    .remove();
-
-  return $.html();
+  return sanitizeHtml(html, ATTRIBUTES_BY_EDITOR_TAG);
 }
 
 export const richTextHtml = z.string().transform(sanitizeRichTextHtml);

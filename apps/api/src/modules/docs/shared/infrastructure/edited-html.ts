@@ -1,40 +1,17 @@
-import { load } from 'cheerio';
 import { z } from 'zod';
 
-const EDITOR_TAGS = new Set([
-  'br',
-  'em',
-  'h1',
-  'h2',
-  'h3',
-  'h4',
-  'h5',
-  'h6',
-  'li',
-  'ol',
-  'p',
-  'strong',
-  'ul',
-]);
+import { type AttributesByTag, sanitizeHtml } from 'src/utils/sanitize-html';
+
+const EDITOR_TAGS: AttributesByTag = new Map(
+  ['br', 'em', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'ol', 'p', 'strong', 'ul'].map((tag) => [
+    tag,
+    new Map(),
+  ]),
+);
 
 /** what the document editors write: their tags without any attribute, the rest unwrapped to its text */
 export function sanitizeEditedHtml(html: string): string {
-  const $ = load(html, null, false);
-
-  $('iframe, noscript, script, style, template, textarea, title').remove();
-  $('*').each((_, element) => {
-    if (!('attribs' in element)) return;
-    if (EDITOR_TAGS.has(element.name)) element.attribs = {};
-    else $(element).replaceWith($(element).contents());
-  });
-  $.root()
-    .find('*')
-    .addBack()
-    .contents()
-    .filter((_, node) => node.type === 'comment')
-    .remove();
-
-  return $.html();
+  return sanitizeHtml(html, EDITOR_TAGS);
 }
 
 export const editedHtml = z.string().transform(sanitizeEditedHtml);
