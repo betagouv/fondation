@@ -153,7 +153,7 @@ test.describe('Observation', () => {
     const observationPath = { ...path, observationId: data.id };
 
     const written = await member.observations.writeMemberComment({
-      body: { comment: 'À rapprocher du dossier de 2024' },
+      body: { comment: '<p>À rapprocher du dossier de 2024<img src="x" onerror="alert(1)"></p>' },
       path: observationPath,
     });
     expect(written.response?.status).toBe(204);
@@ -164,9 +164,9 @@ test.describe('Observation', () => {
     expect(attached.response?.status).toBe(200);
 
     const read = await member.observations.getObservationDetails({ path: observationPath });
-    // the screenshots land on the comment already written, without wiping it
+    // the screenshots land on the comment already written, without wiping it nor its sanitizing
     expect(read.data!.memberComment).toEqual({
-      comment: 'À rapprocher du dossier de 2024',
+      comment: '<p>À rapprocher du dossier de 2024<img></p>',
       screenshots: [expect.objectContaining({ name: 'capture.png', url: expect.any(String) })],
     });
 
