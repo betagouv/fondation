@@ -310,6 +310,27 @@ export class OfficialReportsService {
     );
   }
 
+  editOfficialReportFileNote(command: {
+    authorId: string;
+    html: string;
+    id: string;
+    nominationFileId: string;
+  }): Promise<void> {
+    return this.withOfficialReport({ actorId: command.authorId, id: command.id }, (report) =>
+      report.editFileNote(command),
+    );
+  }
+
+  deleteOfficialReportFileNote(command: {
+    authorId: string;
+    id: string;
+    nominationFileId: string;
+  }): Promise<void> {
+    return this.withOfficialReport({ actorId: command.authorId, id: command.id }, (report) =>
+      report.deleteFileNote({ nominationFileId: command.nominationFileId }),
+    );
+  }
+
   editOfficialReportSectionTitle(command: {
     authorId: string;
     id: string;

@@ -85,6 +85,9 @@ export class OfficialReportRenderContextFinder {
             id: true,
             name: true,
             nominationFileId: true,
+            note: true,
+            noteEditedAt: true,
+            noteEditor: { select: { firstName: true, id: true, lastName: true } },
             number: true,
             outcome: true,
             position: true,
@@ -291,6 +294,7 @@ export class OfficialReportRenderContextFinder {
         nominationFileId: isDefined(f.nominationFileId)
           ? makeId('NominationFileId', f.nominationFileId)
           : null,
+        note: f.note ? { editedAt: f.noteEditedAt, editedBy: writer(f.noteEditor), html: f.note } : null,
         number: f.number,
         outcome: f.outcome,
         reporters: f.reporters,

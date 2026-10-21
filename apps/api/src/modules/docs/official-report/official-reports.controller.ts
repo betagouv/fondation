@@ -31,6 +31,7 @@ import {
   CreateOfficialReportDto,
   DetailedOfficialReportDocumentDto,
   EditOfficialReportBlockDto,
+  EditOfficialReportFileNoteDto,
   EditOfficialReportSectionIntroBlockDto,
   EditOfficialReportSectionTitleDto,
   ListAgendasForNewOfficialReportQueryDto,
@@ -319,6 +320,39 @@ export class OfficialReportsController {
     @Param('nominationFileId') nominationFileId: string,
   ): Promise<void> {
     return this.officialReports.resetOfficialReportFile({
+      authorId: authUser.id,
+      id: officialReportId,
+      nominationFileId,
+    });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Patch('/official-reports/:officialReportId/blocks/files/:nominationFileId/note')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UsePipes(ZodValidationPipe)
+  editOfficialReportFileNote(
+    @AuthedUser() authUser: { id: string },
+    @Param('officialReportId') officialReportId: string,
+    @Param('nominationFileId') nominationFileId: string,
+    @Body() body: EditOfficialReportFileNoteDto,
+  ): Promise<void> {
+    return this.officialReports.editOfficialReportFileNote({
+      authorId: authUser.id,
+      html: body.html,
+      id: officialReportId,
+      nominationFileId,
+    });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Delete('/official-reports/:officialReportId/blocks/files/:nominationFileId/note')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  deleteOfficialReportFileNote(
+    @AuthedUser() authUser: { id: string },
+    @Param('officialReportId') officialReportId: string,
+    @Param('nominationFileId') nominationFileId: string,
+  ): Promise<void> {
+    return this.officialReports.deleteOfficialReportFileNote({
       authorId: authUser.id,
       id: officialReportId,
       nominationFileId,

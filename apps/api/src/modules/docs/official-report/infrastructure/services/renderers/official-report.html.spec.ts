@@ -85,64 +85,69 @@ describe('officialReportTemplate', () => {
 
     files: [
       {
-        id: 0n,
-        number: 100_0,
-        nominationFileId: makeId('NominationFileId', 'nf-0'),
-        name: 'MME Françoise BARRÉ-SINOUSSI',
         currentGrade: 'G3',
         currentPosition: "présidente à la cour d'Appel de Lyon",
+        id: 0n,
+        name: 'MME Françoise BARRÉ-SINOUSSI',
+        nominationFileId: makeId('NominationFileId', 'nf-0'),
+        note: null,
+        number: 100_0,
+        outcome: 'VALIDATED',
         reporters: ['MME Marguerite PEREY'],
         targetedGrade: 'G3',
         targetedPosition: `présidente à la cour d'appel de Grenoble`,
-        outcome: 'VALIDATED',
       },
       {
-        id: 1n,
-        number: 100_1,
-        nominationFileId: makeId('NominationFileId', 'nf-1'),
-        name: 'MME Jacqueline FERRAND',
         currentGrade: 'G3',
         currentPosition: "présidente à la cour d'Appel de Amiens",
+        id: 1n,
+        name: 'MME Jacqueline FERRAND',
+        nominationFileId: makeId('NominationFileId', 'nf-1'),
+        note: null,
+        number: 100_1,
+        outcome: 'NON_VALIDATED',
         reporters: ['MME Sophie GERMAIN'],
         targetedGrade: 'G3',
         targetedPosition: `présidente à la cour d'appel de Reims`,
-        outcome: 'NON_VALIDATED',
       },
       {
-        id: 2n,
-        number: 100_2,
-        nominationFileId: makeId('NominationFileId', 'nf-2'),
-        name: 'MME Barbara McCLINTOCK',
         currentGrade: 'G3',
         currentPosition: "président à la cour d'Appel de Valence",
+        id: 2n,
+        name: 'MME Barbara McCLINTOCK',
+        nominationFileId: makeId('NominationFileId', 'nf-2'),
+        note: null,
+        number: 100_2,
+        outcome: 'NON_VALIDATED',
         reporters: ['MME Marguerite PEREY'],
         targetedGrade: 'G3',
         targetedPosition: `président à la cour d'appel de Riom`,
-        outcome: 'NON_VALIDATED',
       },
       {
-        id: 3n,
-        number: 100_3,
-        nominationFileId: makeId('NominationFileId', 'nf-3'),
-        name: 'MME Marthe GAUTIER',
         currentGrade: 'G3',
         currentPosition: "présidente à la cour d'Appel de Lille",
+        id: 3n,
+        name: 'MME Marthe GAUTIER',
+        nominationFileId: makeId('NominationFileId', 'nf-3'),
+        note: null,
+        number: 100_3,
+        outcome: 'SUSPENDED',
         reporters: ['MME Irène JOLIOT-CURIE'],
         targetedGrade: 'G3',
         targetedPosition: `présidente à la cour d'appel de Marseille`,
-        outcome: 'SUSPENDED',
       },
       {
-        id: 4n,
-        number: 100_4,
-        nominationFileId: makeId('NominationFileId', 'nf-4'),
-        name: 'MME Marthe GAUTIER',
         currentGrade: 'G3',
         currentPosition: "présidente à la cour d'Appel de Strasbourg",
+        id: 4n,
+        name: 'MME Marthe GAUTIER',
+        nominationFileId: makeId('NominationFileId', 'nf-4'),
+        note: null,
+        number: 100_4,
+        outcome: 'WITHDRAWN',
         reporters: ['MME Sophie GERMAIN'],
         targetedGrade: 'G3',
         targetedPosition: `présidente à la cour d'appel de Dijon`,
-        outcome: 'WITHDRAWN',
       },
     ],
 
@@ -242,6 +247,21 @@ describe('officialReportTemplate', () => {
     expect(html).toContain(
       /* html */ `<strong>MME Marthe GAUTIER</strong>, a vu son paragraphe subir une modification`,
     );
+  });
+
+  it('should write the note under the paragraph of its proposition', () => {
+    const note = { editedAt: null, editedBy: null, html: '<p>Une information propre au PV</p>' };
+    const $ = load(
+      officialReportTemplate.render({
+        ...baseContext,
+        files: baseContext.files.map((file, index) => ({ ...file, note: index === 0 ? note : null })),
+      }),
+    );
+
+    expect($('main ol li:contains("BARRÉ-SINOUSSI")').html()).toContain(
+      /* html */ `au rapport de MME Marguerite PEREY.<p>Une information propre au PV</p>`,
+    );
+    expect($('main ol p:contains("Une information propre au PV")')).toHaveLength(1);
   });
 
   it('should not credit the reader for a block reading as the report proposes', () => {

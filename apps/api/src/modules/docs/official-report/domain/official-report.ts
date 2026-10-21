@@ -64,6 +64,22 @@ export class OfficialReportFileReset {
   ) {}
 }
 
+export class OfficialReportFileNoteEdited {
+  constructor(
+    readonly officialReportId: Id<'OfficialReportId'>,
+    readonly nominationFileId: string,
+    readonly html: string,
+    readonly authorId: string,
+  ) {}
+}
+
+export class OfficialReportFileNoteDeleted {
+  constructor(
+    readonly officialReportId: Id<'OfficialReportId'>,
+    readonly nominationFileId: string,
+  ) {}
+}
+
 export class OfficialReportSectionTitleEdited {
   constructor(
     readonly officialReportId: Id<'OfficialReportId'>,
@@ -150,6 +166,8 @@ export type OfficialReportEvent =
   | OfficialReportConclusionEdited
   | OfficialReportConclusionReset
   | OfficialReportFileReset
+  | OfficialReportFileNoteEdited
+  | OfficialReportFileNoteDeleted
   | OfficialReportSectionTitleEdited
   | OfficialReportSectionTitleReset
   | OfficialReportSectionIntroEdited
@@ -178,6 +196,8 @@ export class OfficialReportDocumentNotStored extends Error {}
 export class OfficialReportAlreadyValidated extends Error {}
 
 export class OfficialReportWithoutValidatedVersion extends Error {}
+
+export class OfficialReportFileNotHeld extends Error {}
 
 type OfficialReportState = { isDocumentStored: boolean; isValidated: boolean };
 
@@ -342,6 +362,24 @@ export class OfficialReport {
   resetFile(command: { nominationFileId: string }): void {
     this.openDraft();
     this.#messages.push(new OfficialReportFileReset(this.id, command.nominationFileId));
+  }
+
+  editFileNote(command: { authorId: string; html: string; nominationFileId: string }): void {
+    if (!this.snapshot.holdsFile(command.nominationFileId)) throw new OfficialReportFileNotHeld();
+    if (this.snapshot.noteOf(command.nominationFileId) === command.html) return;
+
+    this.openDraft();
+    this.#messages.push(
+      new OfficialReportFileNoteEdited(this.id, command.nominationFileId, command.html, command.authorId),
+    );
+  }
+
+  deleteFileNote(command: { nominationFileId: string }): void {
+    if (!this.snapshot.holdsFile(command.nominationFileId)) throw new OfficialReportFileNotHeld();
+    if (this.snapshot.noteOf(command.nominationFileId) === null) return;
+
+    this.openDraft();
+    this.#messages.push(new OfficialReportFileNoteDeleted(this.id, command.nominationFileId));
   }
 
   editSectionTitle(command: { outcome: DocNominationFileOutcomeEnum; text: string }): void {

@@ -294,6 +294,7 @@ describe('OfficialReportSnapshot', () => {
             OfficialReportSnapshotFile.from({
               hasManuallyEditedHtml: true,
               nominationFileId: 'file-1',
+              note: null,
               outcome: { value: 'VALIDATED', comment: null },
               reporters: ['M. John DOE'],
             }),
@@ -367,6 +368,7 @@ describe('OfficialReportSnapshot', () => {
             OfficialReportSnapshotFile.from({
               nominationFileId,
               hasManuallyEditedHtml: false,
+              note: null,
               outcome: { value: 'VALIDATED', comment: null },
               reporters: ['M. John DOE'],
             }),
@@ -391,6 +393,7 @@ describe('OfficialReportSnapshot', () => {
             OfficialReportSnapshotFile.from({
               nominationFileId: 'file-1',
               hasManuallyEditedHtml: true,
+              note: null,
               reporters: ['M. John DOE'],
               outcome: { value: 'VALIDATED', comment: null },
             }),
@@ -436,6 +439,7 @@ function makeSnapshot(props: Partial<PlainOfficialReportSnapshot> = {}) {
   const file = {
     nominationFileId: 'file-1',
     hasManuallyEditedHtml: false,
+    note: null,
     outcome: { value: 'VALIDATED', comment: null },
     reporters: ['M. John DOE'],
   } as const satisfies PlainOfficialReportSnapshotFile;

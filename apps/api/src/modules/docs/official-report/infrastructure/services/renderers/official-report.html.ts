@@ -29,17 +29,17 @@ import { OfficialReportSessionMeeting } from '../../../domain/official-report-se
 type NominationFileId = Id<'NominationFileId'>;
 
 type OfficialReportRenderContextNominationFile = {
-  id: bigint;
-  number: number;
-  nominationFileId: NominationFileId | null;
-
-  name: string;
-  currentPosition: string | null;
   currentGrade: string;
-  targetedPosition: string;
-  targetedGrade: string;
-  reporters: readonly string[];
+  currentPosition: string | null;
+  id: bigint;
+  name: string;
+  nominationFileId: NominationFileId | null;
+  note: { editedAt: Date | null; editedBy: { id: string; name: string } | null; html: string } | null;
+  number: number;
   outcome: DocNominationFileOutcomeEnum;
+  reporters: readonly string[];
+  targetedGrade: string;
+  targetedPosition: string;
 };
 
 export type OfficialReportRenderContext = {
@@ -305,7 +305,10 @@ function content(ctx: OfficialReportRenderContext): SafeHtml {
         ${displaySectionIntro({ root: ctx, count: files.length, outcome })}
         <ol>
           ${SafeHtml.join(
-            files.map((file) => html`<li>${displayFileContent({ file, root: ctx })}</li>`),
+            files.map((file) => {
+              const note = file.note ? new SafeHtml(file.note.html) : '';
+              return html`<li>${displayFileContent({ file, root: ctx })}${note}</li>`;
+            }),
             '\n',
           )}
         </ol>
@@ -540,6 +543,7 @@ export function* officialReportBlocks(ctx: OfficialReportRenderContext): Iterabl
         agendaEditedAt: agendaProposal?.at?.toISOString() ?? null,
         agendaEditedBy: agendaProposal?.by ?? null,
         generatedHtml: templateFile,
+        note: file.note && { ...file.note, editedAt: file.note.editedAt?.toISOString() ?? null },
       };
     }
   }

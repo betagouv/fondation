@@ -43,6 +43,13 @@ const BlockFileSchema = z.object({
   editedBy: z.object({ id: z.string(), name: z.string() }).nullable(),
   /** the text comes from the agenda, so the report is not the one to credit for it */
   fromAgenda: z.boolean(),
+  note: z
+    .object({
+      editedAt: z.iso.datetime().nullable(),
+      editedBy: z.object({ id: z.string(), name: z.string() }).nullable(),
+      html: z.string(),
+    })
+    .nullable(),
 });
 
 const BlockConclusionSchema = z.object({

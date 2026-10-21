@@ -9,6 +9,7 @@ function makeFile(overrides: Partial<PlainOfficialReportSnapshotFile> = {}): Off
   return OfficialReportSnapshotFile.from({
     hasManuallyEditedHtml: false,
     nominationFileId: NOMINATION_FILE_ID,
+    note: null,
     outcome: { comment: null, value: 'SUSPENDED' },
     reporters: ['Madame Camille DURAND'],
     ...overrides,
