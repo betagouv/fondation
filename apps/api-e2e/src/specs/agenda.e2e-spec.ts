@@ -278,6 +278,27 @@ test.describe('Agenda', () => {
     expect(await listedAgenda(agent, agenda)).toMatchObject({ draftUpdate: null, status: 'DRAFT' });
   });
 
+  test('should keep the author of a draft once someone else changes its metadata', async ({
+    agent,
+    docs,
+    expect,
+    logIn,
+  }) => {
+    const { id: agendaId } = await docs.agenda(await docs.session());
+    const otherAgent = await logIn('ADJOINT_SECRETAIRE_GENERAL');
+
+    await otherAgent.docs.updateAgendaMetadata({
+      body: { chairmanId: docs.chairman.id, date: { day: 2, month: 2, year: 2026 }, sessionMeetingDate: MEETING_DATE },
+      path: { agendaId },
+    });
+
+    const metadata = await agent.docs.detailsAgendaMetadata({ path: { agendaId } });
+    expect(metadata.data!.draft).toMatchObject({
+      openedBy: { id: agent['@user']!.id },
+      updatedBy: { id: otherAgent['@user']!.id },
+    });
+  });
+
   test('should tell a validated agenda presented once the notice holding it is', async ({ agent, docs, expect }) => {
     const agenda = await docs.agenda(await docs.session(), { status: 'VALIDATED' });
     const { id: planId } = await docs.notice([agenda], { status: 'VALIDATED' });
