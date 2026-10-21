@@ -83,20 +83,20 @@ function DocumentDraftHistory(props: {
   const dateAndTime = useDateAndTime();
   const who = useWho();
   const { openedAt, openedBy, updatedAt, updatedBy } = props.draft;
+  // the draft of a validated document is a copy made when someone starts changing it, not the document's creation
+  const opening = props.hasValidatedVersion ? 'reopened' : props.kind;
 
   return (
     <>
-      {props.hasValidatedVersion ? (
-        <DocumentDraftReopening at={openedAt} by={openedBy} />
-      ) : openedBy ? (
+      {openedBy ? (
         <FormattedMessage
-          defaultMessage="{kind, select, notice {Créée} other {Créé}} le {date} à {time} par {who}"
-          values={{ ...dateAndTime(openedAt), kind: props.kind, who: who(openedBy) }}
+          defaultMessage="{opening, select, reopened {Modifications commencées} notice {Créée} other {Créé}} le {date} à {time} par {who}"
+          values={{ ...dateAndTime(openedAt), opening, who: who(openedBy) }}
         />
       ) : (
         <FormattedMessage
-          defaultMessage="{kind, select, notice {Créée} other {Créé automatiquement}} le {date} à {time}"
-          values={{ ...dateAndTime(openedAt), kind: props.kind }}
+          defaultMessage="{opening, select, reopened {Modifications commencées automatiquement} notice {Créée} other {Créé automatiquement}} le {date} à {time}"
+          values={{ ...dateAndTime(openedAt), opening }}
         />
       )}
       {updatedAt && updatedBy && (
@@ -109,24 +109,6 @@ function DocumentDraftHistory(props: {
         </>
       )}
     </>
-  );
-}
-
-/** the draft of a validated document is a copy made when someone starts changing it, not the document's creation */
-function DocumentDraftReopening(props: { at: string; by: Writer }) {
-  const dateAndTime = useDateAndTime();
-  const who = useWho();
-
-  return props.by ? (
-    <FormattedMessage
-      defaultMessage="Modifications commencées le {date} à {time} par {who}"
-      values={{ ...dateAndTime(props.at), who: who(props.by) }}
-    />
-  ) : (
-    <FormattedMessage
-      defaultMessage="Modifications commencées automatiquement le {date} à {time}"
-      values={dateAndTime(props.at)}
-    />
   );
 }
 
