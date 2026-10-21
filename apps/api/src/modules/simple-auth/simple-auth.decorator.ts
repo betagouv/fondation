@@ -44,10 +44,9 @@ class HasRoleGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext) {
-    const optionalRoles = this.reflector.getAllAndOverride<readonly (RoleEnum | 'MACHINE')[] | undefined>(
-      META_ROLES,
-      [context.getHandler(), context.getClass()],
-    );
+    const optionalRoles = this.reflector.getAllAndOverride<
+      readonly (RoleEnum | 'ADMIN' | 'MACHINE')[] | undefined
+    >(META_ROLES, [context.getHandler(), context.getClass()]);
 
     const roles = assertIsDefined(
       optionalRoles,
@@ -62,7 +61,7 @@ class HasRoleGuard implements CanActivate {
     }
 
     if (user.type === 'machine') return roles.includes('MACHINE');
-    if (user.role === 'ADMIN') return true;
+    if (user.isAdmin) return true;
 
     const userMissesAnyRequiredRole = roles.length > 0 && !roles.includes(user.role as RoleEnum);
     if (userMissesAnyRequiredRole) {
@@ -73,7 +72,8 @@ class HasRoleGuard implements CanActivate {
   }
 }
 
-export function HasRole(...roles: readonly (RoleEnum | 'MACHINE')[]): MethodDecorator {
+/** ADMIN is no role but the admin right: the guard lets its holders through whatever the roles listed */
+export function HasRole(...roles: readonly (RoleEnum | 'ADMIN' | 'MACHINE')[]): MethodDecorator {
   const decorators = [SetMetadata(META_ROLES, roles), UseGuards(mixin(HasRoleGuard))];
 
   if (roles.length === 0 || roles.filter((x) => x !== 'MACHINE').length > 0) {

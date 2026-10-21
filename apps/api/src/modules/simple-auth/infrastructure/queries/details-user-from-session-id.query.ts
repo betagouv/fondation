@@ -12,9 +12,13 @@ export class DetailsUserFromSessionIdQuery {
     private readonly db: Db,
   ) {}
 
-  private async _handle(query: { sessionId: string }): Promise<{ id: string; role: string } | null> {
+  private async _handle(query: {
+    sessionId: string;
+  }): Promise<{ id: string; isAdmin: boolean; role: string } | null> {
     const maybeUser = await this.db.tx.authSession.findUnique({
-      select: { user: { select: { id: true, role: true } } } satisfies Prisma.AuthSessionSelect,
+      select: {
+        user: { select: { id: true, isAdmin: true, role: true } },
+      } satisfies Prisma.AuthSessionSelect,
       where: {
         invalidatedAt: null,
         sessionId: query.sessionId,
@@ -24,11 +28,11 @@ export class DetailsUserFromSessionIdQuery {
 
     if (!maybeUser) return null;
 
-    const { id, role } = maybeUser.user;
-    return { id, role };
+    const { id, isAdmin, role } = maybeUser.user;
+    return { id, isAdmin, role };
   }
 
-  async handle(query: { sessionId: string }): Promise<{ id: string; role: string } | null> {
+  async handle(query: { sessionId: string }): Promise<{ id: string; isAdmin: boolean; role: string } | null> {
     return Sentry.startSpan({ name: 'fr.csm.fondation:queries:detailsUserFromSessionIdQuery' }, () =>
       this._handle(query),
     );

@@ -58,7 +58,9 @@ vocabulaire. Celui-ci règle celui des prédicats : ce que l'utilisateur peut ou
 - Des prédicats restent dans le client, chacun suivi par un ticket :
   - `isAuditionMissing` et `areReportersMissing` (`utils/audition-expectation.util.ts`) : FON-646 ;
   - `hasSomethingToLose` (`PresentationPlanProvider`) : FON-647 ;
-  - `PROMOTABLE_ROLES` (`AdminUserDetailPage`) : FON-648.
-- `MemberTitle`, qui tire un titre d'un rôle, relève du vocabulaire et donc de l'ADR du 13/07/2026.
+  - `PROMOTABLE_ROLES` (`AdminUserDetailPage`) : FON-648. Depuis FON-658, le toggle administrateur
+    lit la capacité `canHoldAdminRight`. Il ne reste que la couleur de la fiche et le bouton d'usurpation.
+- `MemberTitle` a disparu avec FON-658. La distinction d'un membre se règle désormais par son rôle
+  dans l'administration.
 - Avec OpenAPI 3.1 (FON-495), une capacité pourra aussi prendre la forme d'une union discriminée :
   une issue `NON_VALIDATED` qui porte son commentaire obligatoire.

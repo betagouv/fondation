@@ -32,7 +32,7 @@ export class AuthHttpClient {
     };
 
     const response = await this.http.post('/api/auth/v2/register', {
-      data: { ...person, role },
+      data: { ...person, isAdmin: defaultUser?.isAdmin, role },
     });
 
     const { id }: RegisteredUserDto = await response.json();

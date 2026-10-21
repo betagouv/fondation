@@ -18,14 +18,11 @@ export class AdminUserRole {
 
     if (output.length === 1) return assertIsDefined(output[0]);
 
-    if (
-      (this.identityRole === 'ADMIN' || this.identityRole === 'MEMBRE_COMMUN') &&
-      output.includes(this.identityRole)
-    ) {
+    if (this.identityRole === 'MEMBRE_COMMUN' && output.includes(this.identityRole)) {
       return this.identityRole;
     }
 
-    const [filtered] = output.filter((role) => role !== 'ADMIN' && role !== 'MEMBRE_COMMUN');
+    const [filtered] = output.filter((role) => role !== 'MEMBRE_COMMUN');
     return assertIsDefined(filtered);
   }
 
@@ -59,7 +56,6 @@ export class AdminUserRole {
     title: UserTitleEnum | null;
   }): AdminUserRole {
     switch (props.role) {
-      case 'ADMIN':
       case 'ADJOINT_SECRETAIRE_GENERAL': {
         switch (props.title) {
           case 'FIRST_SECRETARY':

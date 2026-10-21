@@ -35,14 +35,16 @@ export class SimpleAuthService {
     return this.findMachineQuery.handle(query);
   }
 
-  findUserFromValidSession(sessionId: string): Promise<{ id: string; role: string } | null> {
+  findUserFromValidSession(
+    sessionId: string,
+  ): Promise<{ id: string; isAdmin: boolean; role: string } | null> {
     return this.detailsUserFromSessionQuery.handle({ sessionId });
   }
 
   findImpersonatedUser(impersonation: {
     id: string;
     authSessionId: string;
-  }): Promise<{ id: string; role: string; impersonatorId: string } | null> {
+  }): Promise<{ id: string; isAdmin: boolean; role: string; impersonatorId: string } | null> {
     return this.detailsUserFromImpersonationQuery.handle(impersonation);
   }
 
@@ -114,6 +116,7 @@ export class SimpleAuthService {
     email: string;
     password: string;
     role: RoleEnum;
+    isAdmin: boolean;
     gender: GenderEnum;
   }): Promise<{ id: string }> {
     const user = await AuthUser.register({

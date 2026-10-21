@@ -52,4 +52,10 @@ describe('MagistratSearchCard', () => {
       'Inactif',
     );
   });
+
+  it('leaves an active magistrat unmarked', () => {
+    renderCard(magistrat);
+
+    expect(screen.queryByText(/actif/i)).not.toBeInTheDocument();
+  });
 });

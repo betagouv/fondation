@@ -25,11 +25,12 @@ import { FoundFeedbackDto } from './queries/find-feedback.query';
 type AuthedRespondent = {
   id: string;
   impersonation?: { impersonatorId: string };
+  isAdmin: boolean;
   role: RoleEnum;
 };
 
 function toRespondent(user: AuthedRespondent) {
-  return { id: user.id, isImpersonated: !!user.impersonation, role: user.role };
+  return { id: user.id, isAdmin: user.isAdmin, isImpersonated: !!user.impersonation, role: user.role };
 }
 
 @ApiTags('Feedback')

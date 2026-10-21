@@ -17,10 +17,6 @@ describe('OfficialReportMember', () => {
     );
   });
 
-  it('should prevent creating a member from an ADMIN', () => {
-    expect(() => OfficialReportMember.from(makeMember({ role: 'ADMIN' }))).toThrow(InvalidMemberRole);
-  });
-
   it.each`
     role                          | expectedFormation
     ${RoleEnum.MEMBRE_DU_PARQUET} | ${FormationEnum.SIEGE}

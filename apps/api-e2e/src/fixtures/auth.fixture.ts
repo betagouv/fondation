@@ -8,7 +8,8 @@ import { RegisteredUserDto, type RegisterUserDto } from '../generated/api/types.
 import { makeStepsFixtures, TestSteps } from '../steps.ts';
 import { registrationToken } from '../utils/e2e-tokens.ts';
 
-export type RoleEnum = NonNullable<RegisterUserDto['role']>;
+/** ADMIN stands for a member of the general secretariat who holds the admin right */
+export type RoleEnum = NonNullable<RegisterUserDto['role']> | 'ADMIN';
 
 export type AuthUser = {
   id: string;
@@ -23,11 +24,13 @@ export async function registerUser<Role extends RoleEnum>(options: {
   client: Client;
   user: Role | (Partial<Omit<RegisterUserDto, 'role'>> & { role: Role });
 }): Promise<AuthUser> {
-  const inputUser = (
-    typeof options.user === 'string' ? { role: options.user } : options.user
-  ) as Partial<RegisterUserDto>;
+  const inputUser = (typeof options.user === 'string' ? { role: options.user } : options.user) as Partial<
+    Omit<RegisterUserDto, 'role'>
+  > & { role: RoleEnum };
+  const isAdmin = inputUser.role === 'ADMIN';
   const user = {
-    role: inputUser.role as Role,
+    isAdmin,
+    role: isAdmin ? 'ADJOINT_SECRETAIRE_GENERAL' : (inputUser.role as Exclude<RoleEnum, 'ADMIN'>),
     // faker emails collide over a whole run, while the address must be unique
     email: inputUser.email ?? faker.internet.email().replace('@', `+${crypto.randomUUID()}@`),
     firstName: inputUser.firstName ?? faker.person.firstName(),

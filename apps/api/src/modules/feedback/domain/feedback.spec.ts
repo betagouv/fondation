@@ -2,16 +2,18 @@ import { Feedback, FeedbackAnswered, type FeedbackAnswers, type Respondent } fro
 
 const MEMBER: Respondent = {
   id: 'user-1',
+  isAdmin: false,
   isImpersonated: false,
   role: 'MEMBRE_DU_SIEGE',
 };
 const SECRETARIAT: Respondent = {
   id: 'user-2',
+  isAdmin: false,
   isImpersonated: false,
   role: 'ADJOINT_SECRETAIRE_GENERAL',
 };
 
-const ADMIN: Respondent = { ...SECRETARIAT, role: 'ADMIN' };
+const ADMIN: Respondent = { ...SECRETARIAT, isAdmin: true };
 const PRODUCTION = { isTest: false };
 const TEST = { isTest: true };
 
@@ -42,7 +44,6 @@ const SECRETARIAT_ANSWERS: FeedbackAnswers = {
 describe('Feedback', () => {
   it.each([
     { questionnaire: 'SECRETARIAT', role: 'ADJOINT_SECRETAIRE_GENERAL' },
-    { questionnaire: null, role: 'ADMIN' },
     { questionnaire: 'MEMBER', role: 'MEMBRE_COMMUN' },
     { questionnaire: 'MEMBER', role: 'MEMBRE_DU_PARQUET' },
     { questionnaire: 'MEMBER', role: 'MEMBRE_DU_SIEGE' },

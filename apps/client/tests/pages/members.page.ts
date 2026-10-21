@@ -70,7 +70,6 @@ export class MembersPage {
       | 'Nom'
       | 'Prénom'
       | 'Formation'
-      | 'Distinction'
       | 'Titre',
   ): Locator {
     return this.app.page.locator(`dt:has-text("${label}") + dd`);

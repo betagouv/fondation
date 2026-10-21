@@ -1,7 +1,7 @@
 import postgres from 'postgres';
 import { test as base, inject } from 'vitest';
 
-import { makeLoggedInUserFixture, registerUser } from './fixtures/auth.fixture.ts';
+import { makeLoggedInUserFixture, registerUser, type RoleEnum } from './fixtures/auth.fixture.ts';
 import { makeDocsFixture } from './fixtures/docs.fixture.ts';
 import { makeLolfiFixture } from './fixtures/lolfi.fixture.ts';
 import { makeCreateSessionFixture } from './fixtures/session.fixture.ts';
@@ -26,7 +26,6 @@ export const test = base
   .extend('registerUser', ({ baseUrl }) => {
     const client = makeHttpClient(baseUrl);
 
-    type RoleEnum = NonNullable<RegisterUserDto['role']>;
     return <Role extends RoleEnum>(
       user: Role | (Omit<RegisterUserDto, 'role'> & { role: Role }),
     ): Promise<{

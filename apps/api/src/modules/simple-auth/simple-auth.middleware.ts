@@ -20,12 +20,13 @@ export class SimpleAuthMiddleware implements NestMiddleware {
 
     const impersonationId: string | undefined = req.signedCookies?.['impersonationId'];
 
-    const user: { id: string; role: string; impersonatorId?: string } | null = impersonationId
-      ? await this.auth.findImpersonatedUser({
-          id: impersonationId,
-          authSessionId: sessionId,
-        })
-      : await this.auth.findUserFromValidSession(sessionId);
+    const user: { id: string; isAdmin: boolean; role: string; impersonatorId?: string } | null =
+      impersonationId
+        ? await this.auth.findImpersonatedUser({
+            id: impersonationId,
+            authSessionId: sessionId,
+          })
+        : await this.auth.findUserFromValidSession(sessionId);
 
     if (!user) return next();
 
@@ -40,6 +41,7 @@ export class SimpleAuthMiddleware implements NestMiddleware {
       impersonation,
 
       id: user.id,
+      isAdmin: user.isAdmin,
       role: user.role,
     };
     next();

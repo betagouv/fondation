@@ -70,10 +70,7 @@ describe('canKeepMemberMemo', () => {
     expect(canKeepMemberMemo({ reporterIds: ['member-2', member.id] }, member)).toBe(false);
   });
 
-  it.each(['ADJOINT_SECRETAIRE_GENERAL', 'ADMIN'] as const)(
-    'keeps the secretariat (%s) from taking notes',
-    (role) => {
-      expect(canKeepMemberMemo({ reporterIds: [] }, { id: 'sg-1', role })).toBe(false);
-    },
-  );
+  it.each(['ADJOINT_SECRETAIRE_GENERAL'] as const)('keeps the secretariat (%s) from taking notes', (role) => {
+    expect(canKeepMemberMemo({ reporterIds: [] }, { id: 'sg-1', role })).toBe(false);
+  });
 });

@@ -2,11 +2,15 @@ import { AdminUserRole } from './admin-user-role';
 import { AdminUserTitle } from './admin-user-title';
 import {
   CantDeactivateOwnAccount,
+  CantGiveAdminAMemberRole,
+  CantPromoteMemberToAdmin,
   EmailAlreadyTaken,
   User,
   UserDeactivated,
+  UserDemotedFromAdmin,
   UserDisplayTitleUpdated,
   UserEmailUpdated,
+  UserPromotedToAdmin,
   UserReactivated,
   UserRoleUpdated,
   UsersUntitled,
@@ -15,6 +19,7 @@ import {
 describe('User', () => {
   const baseProps = {
     id: 'user-1',
+    isAdmin: false,
     role: AdminUserRole.from({
       duty: null,
       role: 'ADJOINT_SECRETAIRE_GENERAL',
@@ -97,6 +102,62 @@ describe('User', () => {
     );
   });
 
+  describe('admin rights', () => {
+    const now = new Date('2026-10-21T09:00:00Z');
+    const admin = { ...baseProps, isAdmin: true };
+
+    it('should promote a deputy general secretary to admin', () => {
+      const user = User.from(baseProps);
+      user.promoteAdmin({ actorId: 'admin-1', now });
+
+      expect(user.messages).toEqual([new UserPromotedToAdmin(user.id, now, 'admin-1')]);
+    });
+
+    it('should refuse to promote a member to admin', () => {
+      const user = User.from({
+        ...baseProps,
+        role: AdminUserRole.from({ duty: null, role: 'MEMBRE_COMMUN', title: null }),
+      });
+
+      expect(() => user.promoteAdmin({ actorId: 'admin-1', now })).toThrow(CantPromoteMemberToAdmin);
+    });
+
+    it('should leave an admin as is when promoted again', () => {
+      const user = User.from(admin);
+      user.promoteAdmin({ actorId: 'admin-1', now });
+
+      expect(user.messages).toEqual([]);
+    });
+
+    it('should demote an admin', () => {
+      const user = User.from(admin);
+      user.demoteAdmin({ actorId: 'admin-1', now });
+
+      expect(user.messages).toEqual([new UserDemotedFromAdmin(user.id, now, 'admin-1')]);
+    });
+
+    it('should refuse to give an admin the role of a member', () => {
+      const user = User.from(admin);
+
+      expect(() => user.updateRole('MEMBRE_SIEGE')).toThrow(CantGiveAdminAMemberRole);
+      expect(user.assignableRoles()).toEqual(['FIRST_SECRETARY', 'SECRETARY', 'OFFICER']);
+    });
+
+    it('should let an admin change role within the general secretariat', () => {
+      const user = User.from(admin);
+      user.updateRole('SECRETARY');
+
+      expect(user.messages).toContainEqual(expect.any(UserRoleUpdated));
+    });
+
+    it('should leave a user who is not an admin as is when demoted', () => {
+      const user = User.from(baseProps);
+      user.demoteAdmin({ actorId: 'admin-1', now });
+
+      expect(user.messages).toEqual([]);
+    });
+  });
+
   describe('deactivation', () => {
     const now = new Date('2026-10-20T09:00:00Z');
 
@@ -123,14 +184,14 @@ describe('User', () => {
 
     it('should reactivate a deactivated user', () => {
       const user = User.from({ ...baseProps, status: 'DEACTIVATED' });
-      user.reactivate();
+      user.reactivate({ actorId: 'admin-1', now });
 
-      expect(user.messages).toEqual([new UserReactivated(user.id)]);
+      expect(user.messages).toEqual([new UserReactivated(user.id, now, 'admin-1')]);
     });
 
     it('should leave an active user as is when reactivated', () => {
       const user = User.from(baseProps);
-      user.reactivate();
+      user.reactivate({ actorId: 'admin-1', now });
 
       expect(user.messages).toEqual([]);
     });

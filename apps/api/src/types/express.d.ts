@@ -6,6 +6,7 @@ declare namespace Express {
       | {
           type: 'human';
           id: string;
+          isAdmin: boolean;
           role: string;
           sessionId: string;
           impersonation?: { id: string; impersonatorId: string };

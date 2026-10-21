@@ -21,6 +21,7 @@ const STORY_USER: DetailedUserResponseDto = {
   firstName: 'Nadia',
   formation: null,
   gender: 'FEMALE',
+  isAdmin: false,
   isImpersonated: false,
   lastName: 'Lemoine',
   role: 'MEMBRE_COMMUN',

@@ -77,6 +77,7 @@ export class AuthUserRepository {
         firstName: event.firstName,
         gender: event.gender,
         id: event.id,
+        isAdmin: event.isAdmin,
         lastName: event.lastName,
         password: event.password,
         role: event.role,

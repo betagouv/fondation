@@ -18,7 +18,8 @@ import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { useTab } from '@/shared/hooks/useTab';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { DetailsCard, DetailsHeader, DetailsPageLayout } from '@/shared/ui/details';
-import { IconButton } from '@/shared/ui/icon-button';
+import { IconButton, iconButtonClassName } from '@/shared/ui/icon-button';
+import { Tooltip } from '@/shared/ui/tooltip';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { memberFullName } from '@/utils/user.utils';
 import type { DetailedAdminUserDto } from '@api/types';
@@ -283,7 +284,7 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
   );
 }
 
-function AdminUserPromotionToggle(props: { className?: string; user: DetailedAdminUserDto }) {
+function AdminUserPromotionToggle(props: { user: DetailedAdminUserDto }) {
   const { formatMessage } = useIntl();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -328,18 +329,22 @@ function AdminUserPromotionToggle(props: { className?: string; user: DetailedAdm
     [confirmation, currentUser, demote, formatMessage, navigate, promote, props.user, queryClient],
   );
 
-  if (!PROMOTABLE_ROLES.includes(props.user.role)) return null;
+  if (!props.user.canHoldAdminRight) return null;
 
   return (
-    <ToggleSwitch
-      checked={props.user.isAdmin}
-      classes={{ label: 'before:mr-1!' }}
-      className={props.className}
-      disabled={promote.isPending || demote.isPending}
-      label={formatMessage({ defaultMessage: 'Administrateur' })}
-      onChange={onChange}
-      showCheckedHint={false}
-    />
+    <div className="fr-mt-6v">
+      <p className="fr-mb-3v font-bold">
+        <FormattedMessage defaultMessage="Administrateur" />
+      </p>
+      <ToggleSwitch
+        checked={props.user.isAdmin}
+        classes={{ label: 'fr-text--sm before:mr-1! text-(--text-default-grey)' }}
+        disabled={promote.isPending || demote.isPending}
+        label={formatMessage({ defaultMessage: "Peut accéder à l'onglet Administration" })}
+        onChange={onChange}
+        showCheckedHint={false}
+      />
+    </div>
   );
 }
 
@@ -406,6 +411,13 @@ function RoleField(props: { user: DetailedAdminUserDto }) {
             onChange: (e) => setRole(e.target.value as AdminUserRoleEnum),
             value: role,
           }}
+          hint={
+            props.user.isAdmin
+              ? intl.formatMessage({
+                  defaultMessage: "Retirez d'abord les droits administrateur pour donner un rôle de membre",
+                })
+              : undefined
+          }
           state={error ? 'error' : undefined}
           stateRelatedMessage={
             error ? intl.formatMessage({ defaultMessage: 'Erreur à la mise à jour du rôle' }) : undefined
@@ -416,7 +428,7 @@ function RoleField(props: { user: DetailedAdminUserDto }) {
             return (
               <optgroup key={groupLabel} label={groupLabel}>
                 {group.options.map(({ id, label }) => (
-                  <option key={id} value={id}>
+                  <option disabled={!props.user.assignableRoles.includes(id)} key={id} value={id}>
                     {intl.formatMessage(label, { gender: props.user.gender })}
                   </option>
                 ))}
@@ -513,8 +525,8 @@ function DisplayTitleField(props: { user: DetailedAdminUserDto }) {
   );
 }
 
-function AccessCard(props: { isSecretariat: boolean; user: DetailedAdminUserDto }) {
-  const { formatMessage } = useIntl();
+function AccessCard(props: { user: DetailedAdminUserDto }) {
+  const { formatDate, formatMessage, formatTime } = useIntl();
   const confirmation = useConfirmModal();
   const deactivate = useDeactivateUserMutation(props.user.id);
   const reactivate = useReactivateUserMutation(props.user.id);
@@ -570,21 +582,61 @@ function AccessCard(props: { isSecretariat: boolean; user: DetailedAdminUserDto 
           </Button>
         )}
       </div>
-      <div className="flex items-center gap-3">
-        <span className="font-bold">
+      <div>
+        <p className="fr-mb-2v font-bold">
           <FormattedMessage defaultMessage="Compte" />
-        </span>
-        <UserStatusBadge status={props.user.status} />
-      </div>
-      {props.isSecretariat && (
-        <div className="fr-mt-8v">
-          <AdminUserPromotionToggle user={props.user} />
-          <p className="fr-text--sm fr-mt-2v fr-mb-0 text-(--text-mention-grey)">
-            <FormattedMessage defaultMessage="Un administrateur peut accéder à l'onglet Administration." />
-          </p>
+        </p>
+        <div className="flex items-center gap-3">
+          <UserStatusBadge status={props.user.status} />
+          {props.user.deactivatedAt && (
+            <span className="fr-text--sm fr-mb-0 text-(--text-mention-grey)">
+              <FormattedMessage
+                defaultMessage="depuis le {date} à {time}"
+                values={{
+                  date: formatDate(props.user.deactivatedAt, { format: 'zonedDateShort' }),
+                  time: formatTime(props.user.deactivatedAt, { format: 'zonedTimeShort' }),
+                }}
+              />
+            </span>
+          )}
+          <AccountStatusHistory statusChanges={props.user.statusChanges} />
         </div>
-      )}
+      </div>
+      <AdminUserPromotionToggle user={props.user} />
     </DetailsCard>
+  );
+}
+
+function AccountStatusHistory(props: { statusChanges: DetailedAdminUserDto['statusChanges'] }) {
+  const { formatDate, formatMessage, formatTime } = useIntl();
+  if (props.statusChanges.length < 2) return null;
+
+  return (
+    <Tooltip
+      className="-ml-2"
+      label={
+        <ul className="fr-m-0 fr-p-0 flex list-none flex-col gap-1.5">
+          {props.statusChanges.map(({ changedAt, status }) => {
+            const values = {
+              date: formatDate(changedAt, { format: 'zonedDateShort' }),
+              time: formatTime(changedAt, { format: 'zonedTimeShort' }),
+            };
+            return (
+              <li className="fr-p-0 flex items-center gap-2" key={changedAt}>
+                <UserStatusBadge status={status} />
+                <FormattedMessage defaultMessage="le {date} à {time}" values={values} />
+              </li>
+            );
+          })}
+        </ul>
+      }
+    >
+      <button
+        aria-label={formatMessage({ defaultMessage: 'Historique du compte' })}
+        className={iconButtonClassName({ iconId: 'fr-icon-information-line', small: true })}
+        type="button"
+      />
+    </Tooltip>
   );
 }
 
@@ -667,7 +719,7 @@ function AdminLoadedUserDetail(props: { user: DetailedAdminUserDto }) {
             </dl>
           </DetailsCard>
 
-          <AccessCard isSecretariat={isSecretariat} user={user} />
+          <AccessCard user={user} />
         </>
       }
       identityPosition="right"
