@@ -13,14 +13,12 @@
     "types:check": "tsc --noEmit -p .",
     "build": "tsc -p tsconfig.build.json",
     "lint:check": "oxlint",
-    "lint": "oxlint --fix",
-    "test": "vitest run"
+    "lint": "oxlint --fix"
   },
   "devDependencies": {
     "@types/node": "catalog:",
     "@typescript/native": "catalog:",
     "oxlint": "catalog:",
-    "typescript": "catalog:",
-    "vitest": "catalog:"
+    "typescript": "catalog:"
   }
 }

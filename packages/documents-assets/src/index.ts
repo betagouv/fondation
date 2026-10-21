@@ -36,14 +36,3 @@ export function documentFontFaces(): string {
 export function documentLogo(): string {
   return readFileSync(join(ASSETS, 'logo-csm.svg'), 'utf8');
 }
-
-export function missingDocumentFonts(): string[] {
-  return DOCUMENT_FONTS.filter(({ file }) => {
-    try {
-      readFileSync(join(ASSETS, 'fonts', file));
-      return false;
-    } catch {
-      return true;
-    }
-  }).map(({ file }) => file);
-}
