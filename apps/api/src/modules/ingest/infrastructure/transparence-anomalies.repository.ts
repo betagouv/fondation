@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
+import { Prisma } from '../../../generated/prisma/client';
+import { Db } from '../../framework/database';
 
 @Injectable()
 export class TransparenceAnomaliesRepository {

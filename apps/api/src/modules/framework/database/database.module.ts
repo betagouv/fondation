@@ -3,8 +3,8 @@ import { Inject, Module, OnApplicationShutdown } from '@nestjs/common';
 import { ClsModule } from 'nestjs-cls';
 import { Pool } from 'pg';
 
-import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
-import * as time from 'src/utils/time';
+import * as time from '../../../utils/time';
+import { API_CONFIG_TOKEN, ApiConfig } from '../config';
 
 import { TransactionalAdapterPrismaWithAfterCommit } from './after-commit';
 import { PG_POOL_TOKEN } from './database.constants';

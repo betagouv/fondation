@@ -19,6 +19,7 @@
   "devDependencies": {
     "@swc-node/register": "1.12.1",
     "@types/node": "catalog:",
+    "@typescript/native": "catalog:",
     "typescript": "catalog:"
   },
   "dependencies": {

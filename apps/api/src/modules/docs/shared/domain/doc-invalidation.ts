@@ -1,5 +1,5 @@
-import { NominationFileOutcomeEnum } from 'src/modules/shared/nomination-file-outcome.enum';
-import { DateOnlyJson } from 'src/utils/date-only';
+import { DateOnlyJson } from '../../../../utils/date-only';
+import { NominationFileOutcomeEnum } from '../../../shared/nomination-file-outcome.enum';
 
 export type DocInvalidation =
   | {

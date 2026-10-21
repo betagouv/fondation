@@ -1,4 +1,4 @@
-import { unaccent } from 'src/utils/unaccent';
+import { unaccent } from '../../../../utils/unaccent';
 
 import { OfficialReportMember } from './official-report-member';
 

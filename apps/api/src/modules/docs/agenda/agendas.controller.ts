@@ -17,9 +17,9 @@ import {
 import { ApiOkResponse, ApiParam, ApiProduces, ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
-import { FILE_MIME_TYPES } from 'src/modules/framework/files';
-import { ParseBigIntPipe } from 'src/modules/framework/pipes';
-import { AuthedUser, HasRole } from 'src/modules/simple-auth';
+import { FILE_MIME_TYPES } from '../../framework/files';
+import { ParseBigIntPipe } from '../../framework/pipes';
+import { AuthedUser, HasRole } from '../../simple-auth';
 
 import { AgendasService } from './agendas.service';
 import {

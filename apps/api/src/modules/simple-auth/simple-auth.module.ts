@@ -1,6 +1,6 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 
-import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
+import { API_CONFIG_TOKEN, ApiConfig } from '../framework/config';
 
 import { OpenIdAuthenticationRequestFinder } from './infrastructure/finders/openid-authentication-request.finder';
 import { OpenIdAuthController } from './infrastructure/openid-auth.controller';

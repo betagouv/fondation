@@ -1,5 +1,16 @@
 import { load } from 'cheerio';
 
+import { DateOnly } from '../../../../../../utils/date-only';
+import { assertIsDefined } from '../../../../../../utils/is-defined';
+import { TimeOnly, timeOnlyToString } from '../../../../../../utils/time-only';
+import { fullname } from '../../../../../../utils/user.util';
+import { FormationEnum } from '../../../../../shared/formation.enum';
+import { TypeDeSaisineEnum } from '../../../../../shared/type-de-saisine.enum';
+import {
+  DocNominationFileOutcomeEnum,
+  docNominationFileOutcomeLabel,
+} from '../../../../shared/domain/doc-nomination-file-outcome';
+import { sanitizeEditedHtml } from '../../../../shared/infrastructure/edited-html';
 import {
   commonDocumentCss,
   documentLayout,
@@ -9,17 +20,6 @@ import {
   indentedHtml as html,
   SafeHtml,
 } from '../../../../shared/infrastructure/services/renderers/safe-html';
-import {
-  DocNominationFileOutcomeEnum,
-  docNominationFileOutcomeLabel,
-} from 'src/modules/docs/shared/domain/doc-nomination-file-outcome';
-import { sanitizeEditedHtml } from 'src/modules/docs/shared/infrastructure/edited-html';
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
-import { DateOnly } from 'src/utils/date-only';
-import { assertIsDefined } from 'src/utils/is-defined';
-import { TimeOnly, timeOnlyToString } from 'src/utils/time-only';
-import { fullname } from 'src/utils/user.util';
 
 function css(): string {
   return /* css */ `

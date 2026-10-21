@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 
+import { Prisma } from '../../../../../generated/prisma/client';
+import { assertNever } from '../../../../../utils/assert-never';
+import { Db } from '../../../../framework/database';
+import { DocInvalidation } from '../../../shared/domain/doc-invalidation';
+import { DocsNominationFilesFinder } from '../../../shared/infrastructure/finders/docs-nomination-files.finder';
 import { AgendaRepository } from '../repositories/agenda.repository';
-import { Prisma } from 'src/generated/prisma/client';
-import { DocInvalidation } from 'src/modules/docs/shared/domain/doc-invalidation';
-import { DocsNominationFilesFinder } from 'src/modules/docs/shared/infrastructure/finders/docs-nomination-files.finder';
-import { Db } from 'src/modules/framework/database';
-import { assertNever } from 'src/utils/assert-never';
 
 @Injectable()
 export class InvalidateAgendasUseCase {

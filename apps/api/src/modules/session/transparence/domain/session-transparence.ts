@@ -1,19 +1,19 @@
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import { NominationFileAttachmentTypeEnum } from 'src/modules/shared/nomination-file-attachment-type.enum';
+import { DateOnly } from '../../../../utils/date-only';
+import { makeId } from '../../../../utils/id';
+import { isDefined } from '../../../../utils/is-defined';
+import { partition } from '../../../../utils/iterables';
+import { TimeOnly } from '../../../../utils/time-only';
+import { FormationEnum } from '../../../shared/formation.enum';
+import { NominationFileAttachmentTypeEnum } from '../../../shared/nomination-file-attachment-type.enum';
 import {
   NominationFileOutcome,
   NominationFileOutcomeEnum,
-} from 'src/modules/shared/nomination-file-outcome.enum';
-import * as policies from 'src/modules/shared/policies/nomination-file.policies';
-import { PriorityEnum } from 'src/modules/shared/priority.enum';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
-import { UserStatus } from 'src/modules/shared/user-status.enum';
-import { DateOnly } from 'src/utils/date-only';
-import { makeId } from 'src/utils/id';
-import { isDefined } from 'src/utils/is-defined';
-import { partition } from 'src/utils/iterables';
-import { TimeOnly } from 'src/utils/time-only';
+} from '../../../shared/nomination-file-outcome.enum';
+import * as policies from '../../../shared/policies/nomination-file.policies';
+import { PriorityEnum } from '../../../shared/priority.enum';
+import type { RoleEnum } from '../../../shared/role.enum';
+import { TypeDeSaisineEnum } from '../../../shared/type-de-saisine.enum';
+import { UserStatus } from '../../../shared/user-status.enum';
 
 import type { PublishableAuditions } from './audition-publication';
 import { AutoAffectations } from './auto-affectation';

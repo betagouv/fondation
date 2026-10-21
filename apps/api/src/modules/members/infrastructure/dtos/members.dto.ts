@@ -1,8 +1,8 @@
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { USER_STATUSES } from 'src/modules/shared/user-status.enum';
-import { isDefined } from 'src/utils/is-defined';
+import { isDefined } from '../../../../utils/is-defined';
+import { USER_STATUSES } from '../../../shared/user-status.enum';
 
 export class ListMembersQueryDto extends createZodDto(
   z.object({

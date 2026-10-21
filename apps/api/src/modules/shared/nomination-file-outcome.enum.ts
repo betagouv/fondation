@@ -1,7 +1,8 @@
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import { isSecretariat, type RoleEnum } from 'src/modules/shared/role.enum';
-import { assertNever } from 'src/utils/assert-never';
-import { isDefined } from 'src/utils/is-defined';
+import { assertNever } from '../../utils/assert-never';
+import { isDefined } from '../../utils/is-defined';
+
+import { FormationEnum } from './formation.enum';
+import { isSecretariat, type RoleEnum } from './role.enum';
 
 const NOMINATION_FILE_OUTCOMES = [
   'VALIDATED',

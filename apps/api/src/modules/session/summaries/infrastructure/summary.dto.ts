@@ -1,10 +1,10 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
-import { FILE_MIME_TYPES } from 'src/modules/framework/files';
-import { ListedUsersDto } from 'src/modules/simple-auth/infrastructure/queries/list-users.query';
-import { isDefined } from 'src/utils/is-defined';
-import { richTextHtml } from 'src/utils/rich-text-html';
+import { isDefined } from '../../../../utils/is-defined';
+import { richTextHtml } from '../../../../utils/rich-text-html';
+import { FILE_MIME_TYPES } from '../../../framework/files';
+import { ListedUsersDto } from '../../../simple-auth/infrastructure/queries/list-users.query';
 
 export class CreatedSummaryDto extends createZodDto(
   z.object({

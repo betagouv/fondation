@@ -19,13 +19,13 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
-import { FILE_EXTENSIONS, FILE_MIME_TYPES, Multipart, UseMultipartBody } from 'src/modules/framework/files';
-import { ApiOkDiscriminatedByType } from 'src/modules/framework/openapi';
-import { ApiPaginated, Pagination, QueryPagination } from 'src/modules/framework/pagination';
-import { roleToFormation } from 'src/modules/members/infrastructure/member.utils';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import { AuthedUser, AuthedUserId, HasRole } from 'src/modules/simple-auth';
-import { DateOnly } from 'src/utils/date-only';
+import { DateOnly } from '../../../utils/date-only';
+import { FILE_EXTENSIONS, FILE_MIME_TYPES, Multipart, UseMultipartBody } from '../../framework/files';
+import { ApiOkDiscriminatedByType } from '../../framework/openapi';
+import { ApiPaginated, Pagination, QueryPagination } from '../../framework/pagination';
+import { roleToFormation } from '../../members/infrastructure/member.utils';
+import type { RoleEnum } from '../../shared/role.enum';
+import { AuthedUser, AuthedUserId, HasRole } from '../../simple-auth';
 
 import { LodamTransparenceFile } from './domain/transparence-file';
 import { AutoAffectationDto } from './infrastructure/dtos/auto-affectation.dto';

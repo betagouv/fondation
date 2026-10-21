@@ -2,10 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { Prisma } from '../../../../../generated/prisma/client';
+import { Db } from '../../../../framework/database';
+import { isSecretariat, type RoleEnum } from '../../../../shared/role.enum';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { isSecretariat, type RoleEnum } from 'src/modules/shared/role.enum';
 
 @Injectable()
 export class ListCurrentlyAffectedReportersQuery {

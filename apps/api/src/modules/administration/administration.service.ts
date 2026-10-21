@@ -1,11 +1,11 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
-import { Clock } from 'src/modules/framework/clock';
-import { Pagination } from 'src/modules/framework/pagination';
-import { Sortable } from 'src/modules/framework/sorting';
-import { UserStatus } from 'src/modules/shared/user-status.enum';
-import { SimpleAuthService } from 'src/modules/simple-auth';
+import { Clock } from '../framework/clock';
+import { Pagination } from '../framework/pagination';
+import { Sortable } from '../framework/sorting';
+import { UserStatus } from '../shared/user-status.enum';
+import { SimpleAuthService } from '../simple-auth';
 
 import { User } from './domain/user';
 import { AdminUserRoleEnum } from './domain/user-enum';

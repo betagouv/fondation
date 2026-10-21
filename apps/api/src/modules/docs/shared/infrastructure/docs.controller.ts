@@ -2,8 +2,8 @@ import { Body, Controller, Get, HttpStatus, Param, Post, Query, UsePipes } from 
 import { ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
+import { AuthedUser, HasRole } from '../../../simple-auth';
 import { DocsService } from '../../docs.service';
-import { AuthedUser, HasRole } from 'src/modules/simple-auth';
 
 import {
   CreatedJusticeContactDto,

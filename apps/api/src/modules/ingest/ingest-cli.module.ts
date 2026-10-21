@@ -3,8 +3,8 @@ import { format } from 'date-fns';
 import { Command, CommandRunner, Option } from 'nest-commander';
 import z from 'zod';
 
-import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
-import { Tchap } from 'src/modules/framework/tchap';
+import { API_CONFIG_TOKEN, ApiConfig } from '../framework/config';
+import { Tchap } from '../framework/tchap';
 
 import { IngestService } from './infrastructure/ingest.service';
 import { IngestModule } from './ingest.module';

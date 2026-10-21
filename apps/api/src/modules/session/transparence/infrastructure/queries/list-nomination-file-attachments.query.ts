@@ -2,10 +2,10 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { NominationFileAttachmentTypeEnum } from 'src/modules/shared/nomination-file-attachment-type.enum';
-import { fullname } from 'src/utils/user.util';
+import { Prisma } from '../../../../../generated/prisma/client';
+import { fullname } from '../../../../../utils/user.util';
+import { Db } from '../../../../framework/database';
+import { NominationFileAttachmentTypeEnum } from '../../../../shared/nomination-file-attachment-type.enum';
 
 @Injectable()
 export class ListNominationFileAttachmentsQuery {

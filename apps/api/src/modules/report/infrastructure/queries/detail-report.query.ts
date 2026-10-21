@@ -2,15 +2,15 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { Files } from 'src/modules/framework/files';
-import { prismaReportStateEnumToReportState } from 'src/modules/shared/mappers/rapport-statut.mapper';
-import { prismaReportFileUsageEnumToReportFileUsage } from 'src/modules/shared/mappers/report-file-usage.mapper';
-import { ReportStateEnum } from 'src/modules/shared/report-state.enum';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import { isDefined } from 'src/utils/is-defined';
-import { fullname } from 'src/utils/user.util';
+import { Prisma } from '../../../../generated/prisma/client';
+import { isDefined } from '../../../../utils/is-defined';
+import { fullname } from '../../../../utils/user.util';
+import { Db } from '../../../framework/database';
+import { Files } from '../../../framework/files';
+import { prismaReportStateEnumToReportState } from '../../../shared/mappers/rapport-statut.mapper';
+import { prismaReportFileUsageEnumToReportFileUsage } from '../../../shared/mappers/report-file-usage.mapper';
+import { ReportStateEnum } from '../../../shared/report-state.enum';
+import type { RoleEnum } from '../../../shared/role.enum';
 
 @Injectable()
 export class DetailReportQuery {

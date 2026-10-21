@@ -1,9 +1,10 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, NotFoundException } from '@nestjs/common';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { userStatusOf } from 'src/modules/shared/user-status.enum';
+import { Prisma } from '../../../../generated/prisma/client';
+import { assertNever } from '../../../../utils/assert-never';
+import { Db } from '../../../framework/database';
+import { userStatusOf } from '../../../shared/user-status.enum';
 import {
   AuthImpersonationRevoked,
   AuthImpersonationStarted,
@@ -14,8 +15,7 @@ import {
   AuthUserRegistered,
   AuthUserSessionsRevoked,
   AuthUserUnAuthenticated,
-} from 'src/modules/simple-auth/domain/auth-user';
-import { assertNever } from 'src/utils/assert-never';
+} from '../../domain/auth-user';
 
 @Injectable()
 export class AuthUserRepository {

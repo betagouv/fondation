@@ -1,7 +1,7 @@
 import * as Sentry from '@sentry/node';
 
-import { loadConfig } from 'src/modules/framework/config';
-import { assertIsDefined } from 'src/utils/is-defined';
+import { loadConfig } from './modules/framework/config';
+import { assertIsDefined } from './utils/is-defined';
 
 async function initInstrumentation(): Promise<void> {
   const config = await loadConfig();

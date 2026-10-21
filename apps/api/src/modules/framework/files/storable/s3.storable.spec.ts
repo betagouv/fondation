@@ -4,10 +4,10 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { InternalServerErrorException, Logger } from '@nestjs/common';
 import { mock, type MockProxy } from 'vitest-mock-extended';
 
-import type { Clock } from 'src/modules/framework/clock';
-import type { ApiConfig } from 'src/modules/framework/config';
-import { noop } from 'src/utils/noop';
-import { SECONDS } from 'src/utils/time';
+import { noop } from '../../../../utils/noop';
+import { SECONDS } from '../../../../utils/time';
+import type { Clock } from '../../clock';
+import type { ApiConfig } from '../../config';
 
 import { S3Client } from './s3';
 import { S3Storage } from './s3.storable';

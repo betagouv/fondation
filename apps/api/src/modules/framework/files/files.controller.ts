@@ -11,7 +11,7 @@ import {
 import { ApiQuery } from '@nestjs/swagger';
 import type { Response as ExpressResponse } from 'express';
 
-import { HasRole } from 'src/modules/simple-auth';
+import { HasRole } from '../../simple-auth';
 
 import { Files } from './files';
 import { MissingFromStorageFilter } from './missing-from-storage.filter';

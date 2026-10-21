@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import * as Sentry from '@sentry/node';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { Clock } from 'src/modules/framework/clock';
-import { Db } from 'src/modules/framework/database';
+import { Prisma } from '../../../../generated/prisma/client';
+import { Clock } from '../../../framework/clock';
+import { Db } from '../../../framework/database';
 
 @Injectable()
 export class DetailsUserFromSessionIdQuery {

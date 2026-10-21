@@ -9,6 +9,10 @@ import {
 import { catchError, Observable, throwError } from 'rxjs';
 
 import {
+  NominationFileOutcomeRequiresComment,
+  UnknownNominationFileOutcome,
+} from '../../../shared/nomination-file-outcome.enum';
+import {
   CannotScheduleAuditionOnNominationFile,
   CantUpdateNominationFiles,
   MemberMemoNotAllowed,
@@ -20,11 +24,7 @@ import {
   SessionTransparenceIsNotDeletable,
   UnknownNominationFiles,
   UnrequestedAuditionCannotBeScheduled,
-} from 'src/modules/session/transparence/domain/session-transparence';
-import {
-  NominationFileOutcomeRequiresComment,
-  UnknownNominationFileOutcome,
-} from 'src/modules/shared/nomination-file-outcome.enum';
+} from '../domain/session-transparence';
 
 export class TransparenceExceptionFilter implements NestInterceptor {
   private readonly logger = new Logger(TransparenceExceptionFilter.name);

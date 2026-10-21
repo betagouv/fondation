@@ -2,8 +2,8 @@ import { Controller, ForbiddenException, Get, HttpStatus, Param } from '@nestjs/
 import { ApiTags } from '@nestjs/swagger';
 import { ZodResponse } from 'nestjs-zod';
 
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import { AuthedUser, HasRole } from 'src/modules/simple-auth';
+import type { RoleEnum } from '../shared/role.enum';
+import { AuthedUser, HasRole } from '../simple-auth';
 
 import { ListedMemberSessionReportsDto } from './infrastructure/queries/list-member-session-reports.query';
 import { FoundNominationFileMembersReportDto } from './infrastructure/queries/search-nomination-file-members-report.query';

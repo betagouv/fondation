@@ -1,6 +1,6 @@
-import { ReportFileUsageEnum } from 'src/modules/shared/report-file-usage.enum';
-import { ReportStateEnum } from 'src/modules/shared/report-state.enum';
-import { Id, makeId } from 'src/utils/id';
+import { Id, makeId } from '../../../utils/id';
+import { ReportFileUsageEnum } from '../../shared/report-file-usage.enum';
+import { ReportStateEnum } from '../../shared/report-state.enum';
 
 export class ReportFilesAttached {
   constructor(

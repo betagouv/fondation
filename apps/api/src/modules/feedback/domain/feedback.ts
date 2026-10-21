@@ -1,5 +1,5 @@
-import { formationToMemberRole } from 'src/modules/shared/formation-to-member-role';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
+import { formationToMemberRole } from '../../shared/formation-to-member-role';
+import type { RoleEnum } from '../../shared/role.enum';
 
 export const MANUAL_WORK_SHARES = [
   'LESS_THAN_10',

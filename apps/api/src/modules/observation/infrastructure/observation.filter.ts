@@ -9,9 +9,9 @@ import {
 } from '@nestjs/common';
 import { catchError, Observable, throwError } from 'rxjs';
 
+import { assertNever } from '../../../utils/assert-never';
 import { CannotScheduleObservantAudition, type UnschedulableReason } from '../domain/observant-audition';
 import { ObservationAlreadyExist } from '../domain/observation';
-import { assertNever } from 'src/utils/assert-never';
 
 @Injectable()
 export class ObservationsFilter implements NestInterceptor {

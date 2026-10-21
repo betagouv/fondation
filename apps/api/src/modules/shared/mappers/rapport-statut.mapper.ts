@@ -1,6 +1,6 @@
-import { PrismaReportStateEnum } from 'src/generated/prisma/enums';
-import { ReportStateEnum } from 'src/modules/shared/report-state.enum';
-import { assertNever } from 'src/utils/assert-never';
+import { PrismaReportStateEnum } from '../../../generated/prisma/enums';
+import { assertNever } from '../../../utils/assert-never';
+import { ReportStateEnum } from '../report-state.enum';
 
 export function reportStateToPrismaReportStateEnum(value: ReportStateEnum): PrismaReportStateEnum {
   switch (value) {

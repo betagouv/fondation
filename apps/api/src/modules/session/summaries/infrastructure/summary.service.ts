@@ -1,13 +1,13 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
+import { isDefined } from '../../../../utils/is-defined';
+import { Db } from '../../../framework/database';
+import { Files } from '../../../framework/files';
+import { FILE_MIME_TYPES, filenameToMimeType } from '../../../framework/files/mime-type';
+import type { RoleEnum } from '../../../shared/role.enum';
+import { SimpleAuthService } from '../../../simple-auth';
 import { Summary } from '../domain/summary';
-import { Db } from 'src/modules/framework/database';
-import { Files } from 'src/modules/framework/files';
-import { FILE_MIME_TYPES, filenameToMimeType } from 'src/modules/framework/files/mime-type';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import { SimpleAuthService } from 'src/modules/simple-auth';
-import { isDefined } from 'src/utils/is-defined';
 
 import { DetailedSummaryDto, DetailSummaryQuery } from './queries/detail-summary.query';
 import {

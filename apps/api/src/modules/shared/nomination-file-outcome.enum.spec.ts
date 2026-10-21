@@ -3,7 +3,7 @@ import {
   NominationFileOutcomeRequiresComment,
   UnknownNominationFileOutcome,
   type NominationFileOutcomeEnum,
-} from 'src/modules/shared/nomination-file-outcome.enum';
+} from './nomination-file-outcome.enum';
 
 describe('NominationFileOutcome', () => {
   it('should throw when no comment is provided, while requiring one', () => {

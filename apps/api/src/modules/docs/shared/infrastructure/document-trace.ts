@@ -1,13 +1,10 @@
 import z from 'zod';
 
-import type { Prisma } from 'src/generated/prisma/client';
-import {
-  DOC_SYSTEM_UPDATE_CAUSES,
-  type DocSystemUpdateCause,
-} from 'src/modules/docs/shared/domain/doc-system-update-cause';
-import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
-import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
-import { writerOf, writerSchema } from 'src/utils/user.util';
+import type { Prisma } from '../../../../generated/prisma/client';
+import { DateOnly, dateOnlyJsonSchema } from '../../../../utils/date-only';
+import { dateToTimeOnly, timeOnlySchema } from '../../../../utils/time-only';
+import { writerOf, writerSchema } from '../../../../utils/user.util';
+import { DOC_SYSTEM_UPDATE_CAUSES, type DocSystemUpdateCause } from '../domain/doc-system-update-cause';
 
 /** who opened the draft and when, and who last worked on it: nobody named means the application */
 export const draftTraceSchema = z

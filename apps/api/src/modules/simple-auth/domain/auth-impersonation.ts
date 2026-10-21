@@ -1,5 +1,5 @@
-import { Id, makeId } from 'src/utils/id';
-import * as time from 'src/utils/time';
+import { Id, makeId } from '../../../utils/id';
+import * as time from '../../../utils/time';
 
 export class ImpersonationExpired extends Error {
   constructor(readonly expiredAt: Date) {

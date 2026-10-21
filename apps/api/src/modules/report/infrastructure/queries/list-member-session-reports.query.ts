@@ -3,12 +3,12 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
-import { prismaReportStateEnumToReportState } from 'src/modules/shared/mappers/rapport-statut.mapper';
-import { ReportStateEnum } from 'src/modules/shared/report-state.enum';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
+import { Prisma } from '../../../../generated/prisma/client';
+import { Db } from '../../../framework/database';
+import { TransparenceService } from '../../../session/transparence/infrastructure/transparence.service';
+import { prismaReportStateEnumToReportState } from '../../../shared/mappers/rapport-statut.mapper';
+import { ReportStateEnum } from '../../../shared/report-state.enum';
+import type { RoleEnum } from '../../../shared/role.enum';
 
 @Injectable()
 export class ListMemberSessionReportsQuery {

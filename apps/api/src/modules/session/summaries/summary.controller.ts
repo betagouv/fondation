@@ -16,9 +16,9 @@ import {
 import { ApiParam, ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
-import { FILE_EXTENSIONS, Multipart, UseMultipartBody } from 'src/modules/framework/files';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import { AuthedUser, HasRole, SimpleAuthService } from 'src/modules/simple-auth';
+import { FILE_EXTENSIONS, Multipart, UseMultipartBody } from '../../framework/files';
+import type { RoleEnum } from '../../shared/role.enum';
+import { AuthedUser, HasRole, SimpleAuthService } from '../../simple-auth';
 
 import { DetailedSummaryDto } from './infrastructure/queries/detail-summary.query';
 import { GeneratedSummaryAttachmentPublicUrlDto } from './infrastructure/queries/get-summary-attachment-url.query';

@@ -1,10 +1,10 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 
+import { DateOnly } from '../../../../../utils/date-only';
+import { assertIsDefined } from '../../../../../utils/is-defined';
+import { IngestService } from '../../../../ingest/infrastructure/ingest.service';
+import { FormationEnum } from '../../../../shared/formation.enum';
 import { LolfiTransparenceFile } from '../../domain/transparence-file';
-import { IngestService } from 'src/modules/ingest/infrastructure/ingest.service';
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import { DateOnly } from 'src/utils/date-only';
-import { assertIsDefined } from 'src/utils/is-defined';
 
 @Injectable()
 export class LolfiTransparenceFilesFinder {

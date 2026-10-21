@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 
+import { Prisma } from '../../../../../generated/prisma/client';
+import { assertNever } from '../../../../../utils/assert-never';
+import { isDefined } from '../../../../../utils/is-defined';
+import { Db } from '../../../../framework/database';
+import { DocInvalidation } from '../../../shared/domain/doc-invalidation';
+import { DocsNominationFilesFinder } from '../../../shared/infrastructure/finders/docs-nomination-files.finder';
 import { JusticePresentationPlanContent } from '../../domain/justice-presentation-plan-content';
 import { JusticePresentationPlanRepository } from '../repositories/justice-presentation-plan.repository';
-import { Prisma } from 'src/generated/prisma/client';
-import { DocInvalidation } from 'src/modules/docs/shared/domain/doc-invalidation';
-import { DocsNominationFilesFinder } from 'src/modules/docs/shared/infrastructure/finders/docs-nomination-files.finder';
-import { Db } from 'src/modules/framework/database';
-import { assertNever } from 'src/utils/assert-never';
-import { isDefined } from 'src/utils/is-defined';
 
 @Injectable()
 export class InvalidatePresentationPlanUseCase {

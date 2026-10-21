@@ -3,8 +3,8 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { fullname } from '../../../../../utils/user.util';
 import { AuditionPublicationFinder } from '../finders/audition-publication.finder';
-import { fullname } from 'src/utils/user.util';
 
 const PUBLICATION_STATUSES = ['NEVER_PUBLISHED', 'PUBLISHED', 'UNPUBLISHED_CHANGES'] as const;
 

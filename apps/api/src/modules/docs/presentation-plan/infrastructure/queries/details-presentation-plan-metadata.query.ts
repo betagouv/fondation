@@ -2,12 +2,16 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { presentationPlanStatusOf, presentationPlanStatusSchema } from '../presentation-plan-status';
-import { Prisma } from 'src/generated/prisma/client';
-import {
-  AGENDA_CONTENT_VERSIONS,
-  agendaContentOf,
-} from 'src/modules/docs/shared/infrastructure/agenda-content';
+import { Prisma } from '../../../../../generated/prisma/client';
+import { dateOnlyJsonSchema } from '../../../../../utils/date-only';
+import { DateOnly } from '../../../../../utils/date-only';
+import { assertIsDefined } from '../../../../../utils/is-defined';
+import { dateToTimeOnly, timeOnlySchema } from '../../../../../utils/time-only';
+import { writerOf, writerSchema } from '../../../../../utils/user.util';
+import { Db } from '../../../../framework/database';
+import { FormationEnum } from '../../../../shared/formation.enum';
+import { prismaFormationEnumToFormationEnum } from '../../../../shared/mappers/formation.mapper';
+import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../../../shared/infrastructure/agenda-content';
 import {
   draftTrace,
   draftTraceSchema,
@@ -15,15 +19,8 @@ import {
   presentationTraceSchema,
   traceOf,
   traceSchema,
-} from 'src/modules/docs/shared/infrastructure/document-trace';
-import { Db } from 'src/modules/framework/database';
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
-import { dateOnlyJsonSchema } from 'src/utils/date-only';
-import { DateOnly } from 'src/utils/date-only';
-import { assertIsDefined } from 'src/utils/is-defined';
-import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
-import { writerOf, writerSchema } from 'src/utils/user.util';
+} from '../../../shared/infrastructure/document-trace';
+import { presentationPlanStatusOf, presentationPlanStatusSchema } from '../presentation-plan-status';
 
 const chairmanSchema = z.object({ firstName: z.string(), lastName: z.string() });
 

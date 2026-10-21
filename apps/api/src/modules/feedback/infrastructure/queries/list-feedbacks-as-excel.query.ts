@@ -1,6 +1,11 @@
 import { Inject, Injectable, StreamableFile } from '@nestjs/common';
 import { build } from 'node-xlsx';
 
+import { Prisma } from '../../../../generated/prisma/client';
+import { Clock } from '../../../framework/clock';
+import { API_CONFIG_TOKEN, ApiConfig } from '../../../framework/config';
+import { Db } from '../../../framework/database';
+import { contentDisposition, FILE_MIME_TYPES } from '../../../framework/files';
 import type {
   DebateContribution,
   FeedbackAnswers,
@@ -8,11 +13,6 @@ import type {
   OtherToolUsage,
   ReviewThoroughness,
 } from '../../domain/feedback';
-import { Prisma } from 'src/generated/prisma/client';
-import { Clock } from 'src/modules/framework/clock';
-import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
-import { Db } from 'src/modules/framework/database';
-import { contentDisposition, FILE_MIME_TYPES } from 'src/modules/framework/files';
 
 type MemberAnswers = FeedbackAnswers & {
   member: NonNullable<FeedbackAnswers['member']>;

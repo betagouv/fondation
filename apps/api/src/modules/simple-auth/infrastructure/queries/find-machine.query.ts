@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 
-import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
+import { API_CONFIG_TOKEN, ApiConfig } from '../../../framework/config';
 
 @Injectable()
 export class FindMachineQuery {

@@ -3,19 +3,19 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { Prisma } from '../../../../../generated/prisma/client';
+import { Db } from '../../../../framework/database';
+import type { InternalFoundAgendaNominationFiles } from '../../../../session/transparence/infrastructure/queries/internal-find-docs-nomination-files.query';
+import { TransparenceService } from '../../../../session/transparence/infrastructure/transparence.service';
+import { FormationEnum } from '../../../../shared/formation.enum';
+import { GenderEnum } from '../../../../shared/gender.enum';
+import { GradeEnum } from '../../../../shared/grade.enum';
 import {
   DOC_NOMINATION_FILE_OUTCOMES,
   docNominationFileOutcomeLabel,
   nominationFileOutcomeToDocNominationFileOutcome,
 } from '../../domain/doc-nomination-file-outcome';
 import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../agenda-content';
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import type { InternalFoundAgendaNominationFiles } from 'src/modules/session/transparence/infrastructure/queries/internal-find-docs-nomination-files.query';
-import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import { GenderEnum } from 'src/modules/shared/gender.enum';
-import { GradeEnum } from 'src/modules/shared/grade.enum';
 
 import { ActedNominationFilesFinder } from './acted-nomination-files.finder';
 

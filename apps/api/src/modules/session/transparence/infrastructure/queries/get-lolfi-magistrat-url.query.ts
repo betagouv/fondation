@@ -2,11 +2,11 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { findMagistratExternalIdByFullName } from 'src/generated/prisma/sql';
-import { Db } from 'src/modules/framework/database';
-import { buildMagistratLolfiUrl } from 'src/utils/build-magistrat-lolfi-url';
-import { unaccent } from 'src/utils/unaccent';
+import { Prisma } from '../../../../../generated/prisma/client';
+import { findMagistratExternalIdByFullName } from '../../../../../generated/prisma/sql';
+import { buildMagistratLolfiUrl } from '../../../../../utils/build-magistrat-lolfi-url';
+import { unaccent } from '../../../../../utils/unaccent';
+import { Db } from '../../../../framework/database';
 
 @Injectable()
 export class GetLolfiMagistratUrlQuery {

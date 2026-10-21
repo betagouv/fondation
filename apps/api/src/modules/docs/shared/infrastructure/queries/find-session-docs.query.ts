@@ -3,21 +3,21 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { Prisma } from '../../../../../generated/prisma/client';
+import { DateOnly, dateOnlyJsonSchema } from '../../../../../utils/date-only';
+import { dateToTimeOnly, timeOnlySchema } from '../../../../../utils/time-only';
+import { writerOf, writerSchema } from '../../../../../utils/user.util';
+import { Db } from '../../../../framework/database';
+import { TransparenceService } from '../../../../session/transparence/infrastructure/transparence.service';
+import {
+  presentationPlanStatusOf,
+  presentationPlanStatusSchema,
+} from '../../../presentation-plan/infrastructure/presentation-plan-status';
 import { docFileName } from '../../domain/doc-file-name';
 import { DOC_SYSTEM_UPDATE_CAUSES } from '../../domain/doc-system-update-cause';
 import { presentationTraceOf, presentationTraceSchema } from '../document-trace';
 import { draftChangesBy, draftChangesBySchema, draftLastChange } from '../draft-changes-by';
 import { AgendaFinder, officialReportReadinessSchema } from '../finders/agenda.finder';
-import { Prisma } from 'src/generated/prisma/client';
-import {
-  presentationPlanStatusOf,
-  presentationPlanStatusSchema,
-} from 'src/modules/docs/presentation-plan/infrastructure/presentation-plan-status';
-import { Db } from 'src/modules/framework/database';
-import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
-import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
-import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
-import { writerOf, writerSchema } from 'src/utils/user.util';
 
 const draftUpdateSchema = z
   .object({

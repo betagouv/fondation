@@ -1,25 +1,25 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 
+import { Prisma } from '../../../../../generated/prisma/client';
+import { DateOnly } from '../../../../../utils/date-only';
+import { makeId } from '../../../../../utils/id';
+import { assertIsDefined, isDefined } from '../../../../../utils/is-defined';
+import { dateToTimeOnly } from '../../../../../utils/time-only';
+import { fullname } from '../../../../../utils/user.util';
+import { Db } from '../../../../framework/database';
+import { TransparenceService } from '../../../../session/transparence/infrastructure/transparence.service';
+import { prismaFormationEnumToFormationEnum } from '../../../../shared/mappers/formation.mapper';
+import { prismaGenderEnumToGenderEnum } from '../../../../shared/mappers/gender-enum.mapper';
+import { prismaRoleEnumToRoleEnum } from '../../../../shared/mappers/role-enum.mapper';
+import { DocNominationFileOutcomeEnum } from '../../../shared/domain/doc-nomination-file-outcome';
+import { agendaContentOf } from '../../../shared/infrastructure/agenda-content';
 import { OfficialReportChairman } from '../../domain/official-report-chairman';
 import { OfficialReportMember } from '../../domain/official-report-member';
 import { OfficialReportMembersList } from '../../domain/official-report-member-list';
 import { OfficialReportSecretary } from '../../domain/official-report-secretary';
 import { OfficialReportSessionMeeting } from '../../domain/official-report-session-meeting';
 import type { OfficialReportRenderContext } from '../services/renderers/official-report.renderer';
-import { Prisma } from 'src/generated/prisma/client';
-import { DocNominationFileOutcomeEnum } from 'src/modules/docs/shared/domain/doc-nomination-file-outcome';
-import { agendaContentOf } from 'src/modules/docs/shared/infrastructure/agenda-content';
-import { Db } from 'src/modules/framework/database';
-import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
-import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
-import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
-import { prismaRoleEnumToRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
-import { DateOnly } from 'src/utils/date-only';
-import { makeId } from 'src/utils/id';
-import { assertIsDefined, isDefined } from 'src/utils/is-defined';
-import { dateToTimeOnly } from 'src/utils/time-only';
-import { fullname } from 'src/utils/user.util';
 
 import { OfficialReportVersionFinder } from './official-report-version.finder';
 

@@ -1,9 +1,9 @@
-import { GenderEnum } from 'src/modules/shared/gender.enum';
-import { UserTitleEnum } from 'src/modules/shared/user-title.enum';
-import { DateOnlyJson } from 'src/utils/date-only';
-import { DateOnly } from 'src/utils/date-only';
-import { unaccent } from 'src/utils/unaccent';
-import { fullname } from 'src/utils/user.util';
+import { DateOnlyJson } from '../../../../../../utils/date-only';
+import { DateOnly } from '../../../../../../utils/date-only';
+import { unaccent } from '../../../../../../utils/unaccent';
+import { fullname } from '../../../../../../utils/user.util';
+import { GenderEnum } from '../../../../../shared/gender.enum';
+import { UserTitleEnum } from '../../../../../shared/user-title.enum';
 
 import { SafeHtml } from './safe-html';
 

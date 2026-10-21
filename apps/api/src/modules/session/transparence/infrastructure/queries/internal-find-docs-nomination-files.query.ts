@@ -3,16 +3,16 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { Prisma } from '../../../../../generated/prisma/client';
+import { findAgendaNominationFilesRawQuery } from '../../../../../generated/prisma/sql';
+import { assertPgParams } from '../../../../../utils/assert-pg-params';
+import { Db } from '../../../../framework/database';
+import { CIVILITIES, magistratTitledFullName } from '../../../../magistrat/domain/magistrat-name';
+import { GenderEnum } from '../../../../shared/gender.enum';
+import { GradeEnum } from '../../../../shared/grade.enum';
+import { NominationFileOutcome } from '../../../../shared/nomination-file-outcome.enum';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 import { buildMemberName, buildPosition } from '../helpers/magistrat.helper';
-import { Prisma } from 'src/generated/prisma/client';
-import { findAgendaNominationFilesRawQuery } from 'src/generated/prisma/sql';
-import { Db } from 'src/modules/framework/database';
-import { CIVILITIES, magistratTitledFullName } from 'src/modules/magistrat/domain/magistrat-name';
-import { GenderEnum } from 'src/modules/shared/gender.enum';
-import { GradeEnum } from 'src/modules/shared/grade.enum';
-import { NominationFileOutcome } from 'src/modules/shared/nomination-file-outcome.enum';
-import { assertPgParams } from 'src/utils/assert-pg-params';
 
 @Injectable()
 export class InternalFindDocsNominationFilesQuery {

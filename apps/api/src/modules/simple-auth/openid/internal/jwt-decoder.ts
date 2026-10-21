@@ -2,7 +2,7 @@ import { createPublicKey, KeyObject, verify as verifySignature } from 'node:cryp
 
 import z from 'zod';
 
-import { SECONDS } from 'src/utils/time';
+import { SECONDS } from '../../../../utils/time';
 
 import { OpenIdConfig } from './openid-config';
 import { OpenIdAuthenticationRequest } from './openid-request';

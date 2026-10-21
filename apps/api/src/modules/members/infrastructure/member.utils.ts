@@ -1,6 +1,6 @@
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import { assertNever } from 'src/utils/assert-never';
+import { assertNever } from '../../../utils/assert-never';
+import { FormationEnum } from '../../shared/formation.enum';
+import type { RoleEnum } from '../../shared/role.enum';
 
 export const MEMBER_ROLES = [
   'MEMBRE_COMMUN',

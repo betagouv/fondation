@@ -1,17 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import z from 'zod';
 
+import { Prisma } from '../../../../../generated/prisma/client';
+import { DateOnly, dateOnlyJsonSchema } from '../../../../../utils/date-only';
+import { Db } from '../../../../framework/database';
+import { createPaginatedZodDto, paginate, Pagination } from '../../../../framework/pagination';
+import { Sortable } from '../../../../framework/sorting';
+import { FormationEnum } from '../../../../shared/formation.enum';
+import { prismaFormationEnumToFormationEnum } from '../../../../shared/mappers/formation.mapper';
+import { prismaTypeDeSaisineEnumToTypeDeSaisine } from '../../../../shared/mappers/type-de-saisine-enum.mapper';
+import { TypeDeSaisineEnum } from '../../../../shared/type-de-saisine.enum';
 import { ListGdsNominationSessionsQueryDto } from '../dtos/transparence-session.dto';
 import { ReportedSessionsFinder } from '../finders/reported-sessions.finder';
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
-import { Sortable } from 'src/modules/framework/sorting';
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
-import { prismaTypeDeSaisineEnumToTypeDeSaisine } from 'src/modules/shared/mappers/type-de-saisine-enum.mapper';
-import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
-import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
 
 const SESSION_STATUSES = ['TO_VALIDATE', 'READY', 'REPORTED'] as const;
 type SessionStatus = (typeof SESSION_STATUSES)[number];

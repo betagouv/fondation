@@ -1,4 +1,4 @@
-import { DocNominationFileOutcomeEnum } from 'src/modules/docs/shared/domain/doc-nomination-file-outcome';
+import { DocNominationFileOutcomeEnum } from '../../shared/domain/doc-nomination-file-outcome';
 
 /** what the notice puts in front of its reader, and only that: the rest it copies is never rendered */
 export type JusticePresentationPlanFile = {

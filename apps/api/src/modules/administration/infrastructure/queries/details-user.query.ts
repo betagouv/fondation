@@ -2,16 +2,16 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { Prisma } from '../../../../generated/prisma/client';
+import { Db } from '../../../framework/database';
+import { GenderEnum } from '../../../shared/gender.enum';
+import { prismaGenderEnumToGenderEnum } from '../../../shared/mappers/gender-enum.mapper';
+import { prismaRoleEnumToRoleEnum } from '../../../shared/mappers/role-enum.mapper';
+import { USER_STATUSES, userStatusOf } from '../../../shared/user-status.enum';
+import { AuthUser } from '../../../simple-auth/domain/auth-user';
 import { AdminUserRole } from '../../domain/admin-user-role';
 import { User } from '../../domain/user';
 import { ADMIN_USER_ROLES_ENUM } from '../../domain/user-enum';
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { GenderEnum } from 'src/modules/shared/gender.enum';
-import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
-import { prismaRoleEnumToRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
-import { USER_STATUSES, userStatusOf } from 'src/modules/shared/user-status.enum';
-import { AuthUser } from 'src/modules/simple-auth/domain/auth-user';
 
 @Injectable()
 export class DetailsUserQuery {

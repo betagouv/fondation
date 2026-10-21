@@ -1,5 +1,5 @@
-import type { DateOnly } from 'src/utils/date-only';
-import type { TimeOnly } from 'src/utils/time-only';
+import type { DateOnly } from '../../../utils/date-only';
+import type { TimeOnly } from '../../../utils/time-only';
 
 export class ObservantAuditionScheduled {
   constructor(

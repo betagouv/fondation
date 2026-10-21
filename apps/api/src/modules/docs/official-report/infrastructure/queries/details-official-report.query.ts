@@ -3,9 +3,12 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { OfficialReportVersionFinder } from '../finders/official-report-version.finder';
-import { Prisma } from 'src/generated/prisma/client';
-import { DOC_SYSTEM_UPDATE_CAUSES } from 'src/modules/docs/shared/domain/doc-system-update-cause';
+import { Prisma } from '../../../../../generated/prisma/client';
+import { DateOnly, dateOnlyJsonSchema } from '../../../../../utils/date-only';
+import { isDefined } from '../../../../../utils/is-defined';
+import { dateToTimeOnly, timeOnlySchema } from '../../../../../utils/time-only';
+import { Db } from '../../../../framework/database';
+import { DOC_SYSTEM_UPDATE_CAUSES } from '../../../shared/domain/doc-system-update-cause';
 import {
   DRAFT_TRACE_SELECT,
   draftTrace,
@@ -13,15 +16,9 @@ import {
   VALIDATION_TRACE_SELECT,
   traceOf,
   traceSchema,
-} from 'src/modules/docs/shared/infrastructure/document-trace';
-import {
-  draftChangesBy,
-  draftChangesBySchema,
-} from 'src/modules/docs/shared/infrastructure/draft-changes-by';
-import { Db } from 'src/modules/framework/database';
-import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
-import { isDefined } from 'src/utils/is-defined';
-import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
+} from '../../../shared/infrastructure/document-trace';
+import { draftChangesBy, draftChangesBySchema } from '../../../shared/infrastructure/draft-changes-by';
+import { OfficialReportVersionFinder } from '../finders/official-report-version.finder';
 
 @Injectable()
 export class DetailsOfficialReportQuery {

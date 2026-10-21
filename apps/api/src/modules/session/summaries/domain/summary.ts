@@ -1,4 +1,4 @@
-import { Id, makeId } from 'src/utils/id';
+import { Id, makeId } from '../../../../utils/id';
 
 export class SummaryCreated {
   constructor(

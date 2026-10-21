@@ -1,13 +1,13 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 
+import { Prisma } from '../../../../../generated/prisma/client';
+import { assertPgParams } from '../../../../../utils/assert-pg-params';
+import { isDefined } from '../../../../../utils/is-defined';
+import { Db } from '../../../../framework/database';
+import { TransparenceService } from '../../../../session/transparence/infrastructure/transparence.service';
+import { NominationFileOutcome } from '../../../../shared/nomination-file-outcome.enum';
 import { FINAL_DOC_NOMINATION_FILE_OUTCOMES } from '../../domain/doc-nomination-file-outcome';
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
-import { NominationFileOutcome } from 'src/modules/shared/nomination-file-outcome.enum';
-import { assertPgParams } from 'src/utils/assert-pg-params';
-import { isDefined } from 'src/utils/is-defined';
 
 /** the business closes a proposition with its presented notice, not with the official report, see ReportedNominationFilesFinder */
 @Injectable()

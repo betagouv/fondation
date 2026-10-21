@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 
+import { findMagistratProfilesRawQuery } from '../../../../generated/prisma/sql';
+import { Db } from '../../../framework/database';
 import { magistratFullName } from '../../domain/magistrat-name';
-import { findMagistratProfilesRawQuery } from 'src/generated/prisma/sql';
-import { Db } from 'src/modules/framework/database';
 
 export type MagistratProfile = {
   currentPosition: string | null;

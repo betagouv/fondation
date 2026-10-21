@@ -3,8 +3,8 @@ import { readFile } from 'node:fs/promises';
 import { Logger } from '@nestjs/common';
 import { CommandRunner, Option, SubCommand } from 'nest-commander';
 
+import { isDefined } from '../../../../utils/is-defined';
 import { AdministrationService } from '../../administration.service';
-import { isDefined } from 'src/utils/is-defined';
 
 @SubCommand({ name: 'titles' })
 export class UpdateDisplayTitlesCliCommand extends CommandRunner {

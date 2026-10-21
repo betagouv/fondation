@@ -1,7 +1,7 @@
 import { load } from 'cheerio';
 
-import { GenderEnum } from 'src/modules/shared/gender.enum';
-import { DateOnly } from 'src/utils/date-only';
+import { DateOnly } from '../../../../../../utils/date-only';
+import { GenderEnum } from '../../../../../shared/gender.enum';
 
 import { agendaBlocks, AgendaRenderContext, agendaTemplate } from './agenda.html';
 

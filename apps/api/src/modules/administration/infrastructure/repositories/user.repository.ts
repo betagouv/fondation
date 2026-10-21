@@ -1,6 +1,11 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, NotFoundException } from '@nestjs/common';
 
+import { Prisma } from '../../../../generated/prisma/client';
+import { assertNever } from '../../../../utils/assert-never';
+import { Db } from '../../../framework/database';
+import { prismaRoleEnumToRoleEnum, roleEnumToPrismaRoleEnum } from '../../../shared/mappers/role-enum.mapper';
+import { userStatusOf } from '../../../shared/user-status.enum';
 import { AdminUserRole } from '../../domain/admin-user-role';
 import {
   User,
@@ -15,14 +20,6 @@ import {
   UserRoleUpdated,
   UsersUntitled,
 } from '../../domain/user';
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import {
-  prismaRoleEnumToRoleEnum,
-  roleEnumToPrismaRoleEnum,
-} from 'src/modules/shared/mappers/role-enum.mapper';
-import { userStatusOf } from 'src/modules/shared/user-status.enum';
-import { assertNever } from 'src/utils/assert-never';
 
 @Injectable()
 export class UserRepository {

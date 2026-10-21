@@ -3,8 +3,11 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { AgendaVersionFinder } from '../finders/agenda-version.finder';
-import { Prisma } from 'src/generated/prisma/client';
+import { Prisma } from '../../../../../generated/prisma/client';
+import { dateOnlyJsonSchema } from '../../../../../utils/date-only';
+import { DateOnly } from '../../../../../utils/date-only';
+import { isDefined } from '../../../../../utils/is-defined';
+import { Db } from '../../../../framework/database';
 import {
   DRAFT_TRACE_SELECT,
   draftTrace,
@@ -12,15 +15,9 @@ import {
   VALIDATION_TRACE_SELECT,
   traceOf,
   traceSchema,
-} from 'src/modules/docs/shared/infrastructure/document-trace';
-import {
-  draftChangesBy,
-  draftChangesBySchema,
-} from 'src/modules/docs/shared/infrastructure/draft-changes-by';
-import { Db } from 'src/modules/framework/database';
-import { dateOnlyJsonSchema } from 'src/utils/date-only';
-import { DateOnly } from 'src/utils/date-only';
-import { isDefined } from 'src/utils/is-defined';
+} from '../../../shared/infrastructure/document-trace';
+import { draftChangesBy, draftChangesBySchema } from '../../../shared/infrastructure/draft-changes-by';
+import { AgendaVersionFinder } from '../finders/agenda-version.finder';
 
 @Injectable()
 export class DetailsAgendaMetadataQuery {

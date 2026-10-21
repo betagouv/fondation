@@ -1,6 +1,6 @@
 import { forwardRef, Module } from '@nestjs/common';
 
-import { TransparenceModule } from 'src/modules/session/transparence/transparence.module';
+import { TransparenceModule } from '../session/transparence/transparence.module';
 
 import { DetailReportQuery } from './infrastructure/queries/detail-report.query';
 import { GetReportFileUrlsQuery } from './infrastructure/queries/get-report-file-urls.query';

@@ -1,4 +1,4 @@
-import { GenderEnum } from 'src/modules/shared/gender.enum';
+import { GenderEnum } from '../../../../shared/gender.enum';
 
 import { buildMemberName, buildPosition } from './magistrat.helper';
 

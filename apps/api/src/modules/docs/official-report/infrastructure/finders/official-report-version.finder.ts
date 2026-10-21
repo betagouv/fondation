@@ -1,8 +1,8 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, NotFoundException } from '@nestjs/common';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
+import { Prisma } from '../../../../../generated/prisma/client';
+import { Db } from '../../../../framework/database';
 
 @Injectable()
 export class OfficialReportVersionFinder {

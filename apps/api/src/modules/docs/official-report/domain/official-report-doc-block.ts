@@ -1,6 +1,6 @@
 import z from 'zod';
 
-import { DOC_NOMINATION_FILE_OUTCOMES } from 'src/modules/docs/shared/domain/doc-nomination-file-outcome';
+import { DOC_NOMINATION_FILE_OUTCOMES } from '../../shared/domain/doc-nomination-file-outcome';
 
 const AbstractDocBlock = z.object({
   weight: z.number().int().gte(0),

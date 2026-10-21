@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { FormationEnum } from 'src/modules/shared/formation.enum';
+import { FormationEnum } from '../../shared/formation.enum';
 
 import { incompleteTransparenceReason } from './incomplete-transparence';
 

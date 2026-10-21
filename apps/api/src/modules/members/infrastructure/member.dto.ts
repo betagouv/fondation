@@ -1,7 +1,7 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
-import { PrismaUserTitleEnum } from 'src/generated/prisma/enums';
+import { PrismaUserTitleEnum } from '../../../generated/prisma/enums';
 
 export class ExcludeJurisdictionsDto extends createZodDto(
   z.object({ jurisdictionIds: z.array(z.string()) }),

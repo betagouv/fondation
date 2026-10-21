@@ -2,16 +2,16 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { listMemberGardeDesSceauxSessions } from '../../../../../generated/prisma/sql';
+import { DateOnly } from '../../../../../utils/date-only';
+import { Db } from '../../../../framework/database';
+import { roleToFormation } from '../../../../members/infrastructure/member.utils';
+import { FormationEnum } from '../../../../shared/formation.enum';
+import { prismaFormationEnumToFormationEnum } from '../../../../shared/mappers/formation.mapper';
+import { prismaTypeDeSaisineEnumToTypeDeSaisine } from '../../../../shared/mappers/type-de-saisine-enum.mapper';
+import type { RoleEnum } from '../../../../shared/role.enum';
+import { TypeDeSaisineEnum } from '../../../../shared/type-de-saisine.enum';
 import { sessionLabel } from '../../domain/session-label';
-import { listMemberGardeDesSceauxSessions } from 'src/generated/prisma/sql';
-import { Db } from 'src/modules/framework/database';
-import { roleToFormation } from 'src/modules/members/infrastructure/member.utils';
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
-import { prismaTypeDeSaisineEnumToTypeDeSaisine } from 'src/modules/shared/mappers/type-de-saisine-enum.mapper';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
-import { DateOnly } from 'src/utils/date-only';
 
 @Injectable()
 export class ListMemberSessionsQuery {

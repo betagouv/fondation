@@ -1,8 +1,8 @@
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { scheduleAuditionSchema } from '../../../../utils/audition-schedule';
 import { ObservationFollowUp } from '../../domain/observation-follow-up';
-import { scheduleAuditionSchema } from 'src/utils/audition-schedule';
 
 const linkedObservationsAttachmentsMultipartSchema = z
   .array(z.object({ observationId: z.string(), fileId: z.string() }))

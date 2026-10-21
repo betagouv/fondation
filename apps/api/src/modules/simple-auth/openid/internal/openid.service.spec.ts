@@ -4,7 +4,7 @@ import { HttpService } from '@nestjs/axios';
 import { of } from 'rxjs';
 import { vi } from 'vitest';
 
-import { Clock } from 'src/modules/framework/clock';
+import { Clock } from '../../../framework/clock';
 
 import { type OpenIdConfig } from './openid-config';
 import { Jwk } from './openid.schema';

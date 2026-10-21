@@ -1,6 +1,6 @@
+import { NominationFileLockEnum } from '../nomination-file-lock.enum';
 import { NominationFileOutcome, NominationFileOutcomeEnum } from '../nomination-file-outcome.enum';
 import { isSecretariat, type RoleEnum } from '../role.enum';
-import { NominationFileLockEnum } from 'src/modules/shared/nomination-file-lock.enum';
 
 export function nominationFileLock(
   file: { isReported: boolean },

@@ -1,11 +1,11 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
+import { Prisma } from '../../../../generated/prisma/client';
+import { PrismaRoleEnum } from '../../../../generated/prisma/enums';
+import { Db } from '../../../framework/database';
+import { FormationEnum } from '../../../shared/formation.enum';
 import { MEMBER_ROLES } from '../member.utils';
-import { Prisma } from 'src/generated/prisma/client';
-import { PrismaRoleEnum } from 'src/generated/prisma/enums';
-import { Db } from 'src/modules/framework/database';
-import { FormationEnum } from 'src/modules/shared/formation.enum';
 
 @Injectable()
 export class InternalFindMembersQuery {

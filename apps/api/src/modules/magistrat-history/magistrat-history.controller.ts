@@ -2,9 +2,9 @@ import { Controller, Get, HttpStatus, Param } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ZodResponse } from 'nestjs-zod';
 
-import { ApiPaginated, Pagination, QueryPagination } from 'src/modules/framework/pagination';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import { AuthedUser, HasRole } from 'src/modules/simple-auth';
+import { ApiPaginated, Pagination, QueryPagination } from '../framework/pagination';
+import type { RoleEnum } from '../shared/role.enum';
+import { AuthedUser, HasRole } from '../simple-auth';
 
 import { ListedMagistratNominationFilesDto } from './infrastructure/queries/list-magistrat-nomination-files.query';
 import { ListedMagistratObservationsDto } from './infrastructure/queries/list-magistrat-observations.query';

@@ -3,16 +3,16 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { Prisma } from '../../../../../generated/prisma/client';
+import { DateOnly, DateOnlyJson, dateOnlyJsonSchema } from '../../../../../utils/date-only';
+import { isDefined } from '../../../../../utils/is-defined';
+import { initials } from '../../../../../utils/user.util';
+import { Db } from '../../../../framework/database';
+import { TransparenceService } from '../../../../session/transparence/infrastructure/transparence.service';
 import { agendaProgressOf } from '../../domain/agenda-progress';
 import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../agenda-content';
 import { ActedNominationFilesFinder } from '../finders/acted-nomination-files.finder';
 import { AgendaFinder } from '../finders/agenda.finder';
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
-import { DateOnly, DateOnlyJson, dateOnlyJsonSchema } from 'src/utils/date-only';
-import { isDefined } from 'src/utils/is-defined';
-import { initials } from 'src/utils/user.util';
 
 const AGENDA_BLOCKERS = ['ARCHIVED', 'NO_AFFECTATION', 'ALL_FILES_REPORTED'] as const;
 

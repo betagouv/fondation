@@ -1,8 +1,8 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
-import { editedHtml } from 'src/modules/docs/shared/infrastructure/edited-html';
-import { dateOnlyJsonSchema } from 'src/utils/date-only';
+import { dateOnlyJsonSchema } from '../../../../utils/date-only';
+import { editedHtml } from '../../shared/infrastructure/edited-html';
 
 export class CreateOrUpdateAgendaDto extends createZodDto(
   z.object({

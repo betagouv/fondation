@@ -1,3 +1,12 @@
+import { DateOnly } from '../../../../../../utils/date-only';
+import { Id } from '../../../../../../utils/id';
+import { isDefined } from '../../../../../../utils/is-defined';
+import { fullname } from '../../../../../../utils/user.util';
+import { FormationEnum } from '../../../../../shared/formation.enum';
+import {
+  DocNominationFileOutcomeEnum,
+  docNominationFileOutcomeSectionTitle,
+} from '../../../../shared/domain/doc-nomination-file-outcome';
 import {
   commonDocumentCss,
   documentLayout,
@@ -11,20 +20,11 @@ import {
 } from '../../../../shared/infrastructure/services/renderers/helpers';
 import { html, SafeHtml } from '../../../../shared/infrastructure/services/renderers/safe-html';
 import { Template } from '../../../../shared/infrastructure/services/renderers/templates.types';
+import { OfficialReportChairman } from '../../../domain/official-report-chairman';
 import type { DocBlock } from '../../../domain/official-report-doc-block';
-import { OfficialReportChairman } from 'src/modules/docs/official-report/domain/official-report-chairman';
-import { OfficialReportMembersList } from 'src/modules/docs/official-report/domain/official-report-member-list';
-import { OfficialReportSecretary } from 'src/modules/docs/official-report/domain/official-report-secretary';
-import { OfficialReportSessionMeeting } from 'src/modules/docs/official-report/domain/official-report-session-meeting';
-import {
-  DocNominationFileOutcomeEnum,
-  docNominationFileOutcomeSectionTitle,
-} from 'src/modules/docs/shared/domain/doc-nomination-file-outcome';
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import { DateOnly } from 'src/utils/date-only';
-import { Id } from 'src/utils/id';
-import { isDefined } from 'src/utils/is-defined';
-import { fullname } from 'src/utils/user.util';
+import { OfficialReportMembersList } from '../../../domain/official-report-member-list';
+import { OfficialReportSecretary } from '../../../domain/official-report-secretary';
+import { OfficialReportSessionMeeting } from '../../../domain/official-report-session-meeting';
 
 type NominationFileId = Id<'NominationFileId'>;
 

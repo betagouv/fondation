@@ -2,19 +2,19 @@ import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/commo
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { Prisma } from '../../../../generated/prisma/client';
+import { auditionScheduleSchema } from '../../../../utils/audition-schedule';
+import { buildMagistratLolfiUrl } from '../../../../utils/build-magistrat-lolfi-url';
+import { DateOnly, dateOnlyJsonSchema } from '../../../../utils/date-only';
+import { isDefined } from '../../../../utils/is-defined';
+import { fullname } from '../../../../utils/user.util';
+import { Db } from '../../../framework/database';
+import { Files } from '../../../framework/files';
+import { magistratFullName } from '../../../magistrat/domain/magistrat-name';
+import { TransparenceService } from '../../../session/transparence/infrastructure/transparence.service';
+import type { RoleEnum } from '../../../shared/role.enum';
 import { ObservantAudition, UNSCHEDULABLE_REASONS } from '../../domain/observant-audition';
 import { ObservationFollowUp } from '../../domain/observation-follow-up';
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { Files } from 'src/modules/framework/files';
-import { magistratFullName } from 'src/modules/magistrat/domain/magistrat-name';
-import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import { auditionScheduleSchema } from 'src/utils/audition-schedule';
-import { buildMagistratLolfiUrl } from 'src/utils/build-magistrat-lolfi-url';
-import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
-import { isDefined } from 'src/utils/is-defined';
-import { fullname } from 'src/utils/user.util';
 
 @Injectable()
 export class GetObservationDetailsQuery {

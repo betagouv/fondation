@@ -3,6 +3,14 @@ import { ConflictException, forwardRef, Inject, Injectable, Logger, NotFoundExce
 import * as Sentry from '@sentry/node';
 import { format } from 'date-fns';
 
+import { Prisma } from '../../../../generated/prisma/client';
+import { describeErrorWithoutSecrets } from '../../../../utils/describe-error-without-secrets';
+import { isDefined } from '../../../../utils/is-defined';
+import { Clock } from '../../../framework/clock';
+import { API_CONFIG_TOKEN, ApiConfig } from '../../../framework/config';
+import { Db } from '../../../framework/database';
+import { Tchap } from '../../../framework/tchap';
+import { TransparenceService } from '../../../session/transparence/infrastructure/transparence.service';
 import { incompleteTransparenceReason } from '../../domain/incomplete-transparence';
 import { dag } from '../../domain/requirements';
 import {
@@ -11,14 +19,6 @@ import {
 } from '../../infrastructure/finders/lolfi-sessions.finder';
 import { TransparenceAnomaliesRepository } from '../../infrastructure/transparence-anomalies.repository';
 import { LolfiJob } from '../lolfi-job.type';
-import { Prisma } from 'src/generated/prisma/client';
-import { Clock } from 'src/modules/framework/clock';
-import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
-import { Db } from 'src/modules/framework/database';
-import { Tchap } from 'src/modules/framework/tchap';
-import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
-import { describeErrorWithoutSecrets } from 'src/utils/describe-error-without-secrets';
-import { isDefined } from 'src/utils/is-defined';
 
 import { LolfiCandidatsIngestor } from './lolfi-candidats.ingestor';
 import { LolfiDesiderataIngestor } from './lolfi-desiderata.ingestor';

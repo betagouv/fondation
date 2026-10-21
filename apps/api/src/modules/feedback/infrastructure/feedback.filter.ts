@@ -8,8 +8,8 @@ import {
 } from '@nestjs/common';
 import { catchError, Observable, throwError } from 'rxjs';
 
+import { assertNever } from '../../../utils/assert-never';
 import { CannotGiveFeedback, type RefusalReason } from '../domain/feedback';
-import { assertNever } from 'src/utils/assert-never';
 
 @Injectable()
 export class FeedbackFilter implements NestInterceptor {

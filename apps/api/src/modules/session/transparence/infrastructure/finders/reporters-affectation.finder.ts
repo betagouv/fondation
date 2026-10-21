@@ -1,8 +1,8 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
+import { Prisma } from '../../../../../generated/prisma/client';
+import { Db } from '../../../../framework/database';
 
 import { AffectationVersionFinder } from './affectation-version.finder';
 import { SessionReportedFilesFinder } from './session-reported-files.finder';

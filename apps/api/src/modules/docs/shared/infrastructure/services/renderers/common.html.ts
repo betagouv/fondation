@@ -1,6 +1,6 @@
 import { documentFontFaces, documentLogo } from 'documents-assets';
 
-import type { Pretty, UnionToIntersection } from 'src/utils/types';
+import type { Pretty, UnionToIntersection } from '../../../../../../utils/types';
 
 import { Template, TemplateFunction } from './templates.types';
 

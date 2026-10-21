@@ -2,11 +2,11 @@ import * as crypto from 'node:crypto';
 
 import { faker } from '@faker-js/faker/locale/fr';
 
-import { GenderEnum } from 'src/modules/shared/gender.enum';
-import { USER_DUTIES } from 'src/modules/shared/user-duty.enum';
-import { USER_TITLES } from 'src/modules/shared/user-title.enum';
-import { DateOnly } from 'src/utils/date-only';
-import { makeId } from 'src/utils/id';
+import { DateOnly } from '../../../../utils/date-only';
+import { makeId } from '../../../../utils/id';
+import { GenderEnum } from '../../../shared/gender.enum';
+import { USER_DUTIES } from '../../../shared/user-duty.enum';
+import { USER_TITLES } from '../../../shared/user-title.enum';
 
 import { OfficialReportAgenda } from './official-report-agenda';
 import { OfficialReportChairman } from './official-report-chairman';

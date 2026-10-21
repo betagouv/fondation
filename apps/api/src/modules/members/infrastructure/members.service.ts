@@ -1,10 +1,10 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
+import { Pagination } from '../../framework/pagination';
+import { FormationEnum } from '../../shared/formation.enum';
+import { UserStatus } from '../../shared/user-status.enum';
 import { MemberTitleEnum } from '../domain/member-enums';
-import { Pagination } from 'src/modules/framework/pagination';
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import { UserStatus } from 'src/modules/shared/user-status.enum';
 
 import { ExcludedJurisdictionsFinder } from './finders/excluded-jurisdictions.finder';
 import { MemberRepository } from './member-repository';

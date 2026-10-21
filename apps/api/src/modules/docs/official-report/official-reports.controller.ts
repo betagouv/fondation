@@ -18,13 +18,13 @@ import {
 import { ApiOkResponse, ApiParam, ApiProduces, ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
+import { FILE_MIME_TYPES } from '../../framework/files';
+import { AuthedUser, HasRole } from '../../simple-auth';
 import {
   DOC_NOMINATION_FILE_OUTCOMES,
   DocNominationFileOutcomeEnum,
 } from '../shared/domain/doc-nomination-file-outcome';
 import { FoundAgendasDto } from '../shared/infrastructure/finders/agenda.finder';
-import { FILE_MIME_TYPES } from 'src/modules/framework/files';
-import { AuthedUser, HasRole } from 'src/modules/simple-auth';
 
 import {
   CreatedOfficialReportDto,

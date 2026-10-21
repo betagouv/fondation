@@ -2,10 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { countNominationFilesByStatusRawQuery } from '../../../../../generated/prisma/sql';
+import { Db } from '../../../../framework/database';
+import { NominationFileOutcome } from '../../../../shared/nomination-file-outcome.enum';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
-import { countNominationFilesByStatusRawQuery } from 'src/generated/prisma/sql';
-import { Db } from 'src/modules/framework/database';
-import { NominationFileOutcome } from 'src/modules/shared/nomination-file-outcome.enum';
 
 @Injectable()
 export class CountNominationFilesByStatusQuery {

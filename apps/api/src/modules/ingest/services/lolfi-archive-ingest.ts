@@ -3,11 +3,11 @@ import { pipeline } from 'node:stream/promises';
 import { Injectable } from '@nestjs/common';
 import * as unzipper from 'unzipper';
 
-import { Clock } from 'src/modules/framework/clock';
-import { FILE_MIME_TYPES, Files } from 'src/modules/framework/files';
-import { makeId } from 'src/utils/id';
-import { assertIsDefined } from 'src/utils/is-defined';
-import { Result, ResultBuilder } from 'src/utils/result';
+import { makeId } from '../../../utils/id';
+import { assertIsDefined } from '../../../utils/is-defined';
+import { Result, ResultBuilder } from '../../../utils/result';
+import { Clock } from '../../framework/clock';
+import { FILE_MIME_TYPES, Files } from '../../framework/files';
 
 import { LolfiCryptoService } from './lolfi-crypto.service';
 import { passthroughHash } from './passthrough-hash';

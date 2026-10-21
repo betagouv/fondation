@@ -1,12 +1,12 @@
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import { GenderEnum } from 'src/modules/shared/gender.enum';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import { UserDutyEnum } from 'src/modules/shared/user-duty.enum';
-import { UserTitleEnum } from 'src/modules/shared/user-title.enum';
-import { DateOnly } from 'src/utils/date-only';
-import { Id, makeId } from 'src/utils/id';
-import { assertIsDefined } from 'src/utils/is-defined';
-import { TimeOnly } from 'src/utils/time-only';
+import { DateOnly } from '../../../../utils/date-only';
+import { Id, makeId } from '../../../../utils/id';
+import { assertIsDefined } from '../../../../utils/is-defined';
+import { TimeOnly } from '../../../../utils/time-only';
+import { FormationEnum } from '../../../shared/formation.enum';
+import { GenderEnum } from '../../../shared/gender.enum';
+import type { RoleEnum } from '../../../shared/role.enum';
+import { UserDutyEnum } from '../../../shared/user-duty.enum';
+import { UserTitleEnum } from '../../../shared/user-title.enum';
 
 import { JusticePresentationPlanContent } from './justice-presentation-plan-content';
 import {

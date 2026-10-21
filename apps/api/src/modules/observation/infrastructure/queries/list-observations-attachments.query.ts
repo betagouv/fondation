@@ -3,9 +3,9 @@ import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/commo
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
+import { Prisma } from '../../../../generated/prisma/client';
+import { Db } from '../../../framework/database';
+import { TransparenceService } from '../../../session/transparence/infrastructure/transparence.service';
 
 const OBSERVATIONS_PER_FILE = 6;
 

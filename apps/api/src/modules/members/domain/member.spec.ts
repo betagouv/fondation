@@ -1,6 +1,6 @@
 import { NotFoundException } from '@nestjs/common';
 
-import { makeId } from 'src/utils/id';
+import { makeId } from '../../../utils/id';
 
 import { ExcludedMemberJurisdictions, Member } from './member';
 

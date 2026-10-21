@@ -1,11 +1,11 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
+import { Prisma } from '../../../../../generated/prisma/client';
+import { Db } from '../../../../framework/database';
 import { OfficialReportRenderContextFinder } from '../finders/official-report-render-context.finder';
 import { OfficialReportVersionFinder } from '../finders/official-report-version.finder';
 import { OfficialReportRenderer } from '../services/renderers/official-report.renderer';
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
 
 @Injectable()
 export class FindOfficialReportDocumentQuery {

@@ -1,9 +1,9 @@
 import { format } from 'date-fns';
 
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import { TypeDeSaisineEnum, TypeDeSaisineEnumLabels } from 'src/modules/shared/type-de-saisine.enum';
-import { DateOnly } from 'src/utils/date-only';
-import { initials } from 'src/utils/user.util';
+import { DateOnly } from '../../../../utils/date-only';
+import { initials } from '../../../../utils/user.util';
+import { FormationEnum } from '../../../shared/formation.enum';
+import { TypeDeSaisineEnum, TypeDeSaisineEnumLabels } from '../../../shared/type-de-saisine.enum';
 
 export function docFileName(file: {
   type: 'AGENDA' | 'OFFICIAL_REPORT' | 'PRESENTATION_PLAN';

@@ -1,6 +1,6 @@
-import { type Civility } from 'src/modules/magistrat/domain/magistrat-name';
-import { GenderEnum } from 'src/modules/shared/gender.enum';
-import { capitalize } from 'src/utils/capitalize';
+import { capitalize } from '../../../../../utils/capitalize';
+import { type Civility } from '../../../../magistrat/domain/magistrat-name';
+import { GenderEnum } from '../../../../shared/gender.enum';
 
 export function buildMemberName(member: { gender: GenderEnum; firstName: string; lastName: string }): string {
   return `${member.gender === GenderEnum.FEMALE ? 'Mme' : 'M.'}\u00A0${capitalize(member.firstName.toLowerCase())}\u00A0${member.lastName.toUpperCase()}`;

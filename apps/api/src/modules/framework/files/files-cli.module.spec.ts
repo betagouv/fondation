@@ -1,9 +1,9 @@
 // oxlint-disable typescript/unbound-method
 import { mock, type MockProxy } from 'vitest-mock-extended';
 
-import { FileDelegate } from 'src/generated/prisma/models';
-import { ApiConfig } from 'src/modules/framework/config';
-import { Db } from 'src/modules/framework/database';
+import { FileDelegate } from '../../../generated/prisma/models';
+import { ApiConfig } from '../config';
+import { Db } from '../database';
 
 import { Files } from './files';
 import { BackfillFileSizesCommand } from './files-cli.module';

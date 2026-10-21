@@ -1,11 +1,11 @@
 import { randomUUID } from 'node:crypto';
 
+import { DateOnly } from '../../../../utils/date-only';
+import { makeId } from '../../../../utils/id';
 import {
   NominationFileOutcome,
   NominationFileOutcomeEnum,
-} from 'src/modules/shared/nomination-file-outcome.enum';
-import { DateOnly } from 'src/utils/date-only';
-import { makeId } from 'src/utils/id';
+} from '../../../shared/nomination-file-outcome.enum';
 
 import {
   CannotScheduleAuditionOnNominationFile,

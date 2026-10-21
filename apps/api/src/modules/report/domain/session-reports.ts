@@ -1,4 +1,4 @@
-import type { FormationEnum } from 'src/modules/shared/formation.enum';
+import type { FormationEnum } from '../../shared/formation.enum';
 
 type Affectation = { nominationFileId: string; reporterId: string };
 export type SessionReport = Affectation & {

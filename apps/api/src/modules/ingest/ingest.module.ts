@@ -1,6 +1,6 @@
 import { forwardRef, Module } from '@nestjs/common';
 
-import { TransparenceModule } from 'src/modules/session/transparence/transparence.module';
+import { TransparenceModule } from '../session/transparence/transparence.module';
 
 import { LolfiSessionsFinder } from './infrastructure/finders/lolfi-sessions.finder';
 import { IngestController } from './infrastructure/ingest.controller';

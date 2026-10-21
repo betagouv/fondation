@@ -1,12 +1,12 @@
 import { Module, forwardRef } from '@nestjs/common';
 
+import { DocsModule } from '../../docs/docs.module';
+import { IngestModule } from '../../ingest/ingest.module';
+import { MagistratModule } from '../../magistrat/magistrat.module';
+import { MembersModule } from '../../members';
+import { ObservationModule } from '../../observation/observation.module';
+import { ReportModule } from '../../report/report.module';
 import { SummaryModule } from '../summaries/summary.module';
-import { DocsModule } from 'src/modules/docs/docs.module';
-import { IngestModule } from 'src/modules/ingest/ingest.module';
-import { MagistratModule } from 'src/modules/magistrat/magistrat.module';
-import { MembersModule } from 'src/modules/members';
-import { ObservationModule } from 'src/modules/observation/observation.module';
-import { ReportModule } from 'src/modules/report/report.module';
 
 import { ArchivedSessionsController } from './archived-sessions.controller';
 import { AffectationVersionFinder } from './infrastructure/finders/affectation-version.finder';

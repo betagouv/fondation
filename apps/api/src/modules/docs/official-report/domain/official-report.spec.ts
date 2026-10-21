@@ -1,4 +1,4 @@
-import { makeId } from 'src/utils/id';
+import { makeId } from '../../../../utils/id';
 
 import {
   OfficialReport,

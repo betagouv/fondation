@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { Db } from 'src/modules/framework/database';
+import { Db } from '../../../../framework/database';
 
 @Injectable()
 export class CountUsersNewSessionsQuery {

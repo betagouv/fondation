@@ -1,16 +1,16 @@
 import { forwardRef, Inject, Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
 import { build } from 'node-xlsx';
 
+import { Prisma } from '../../../../../generated/prisma/client';
+import { capitalize } from '../../../../../utils/capitalize';
+import { Db } from '../../../../framework/database';
+import { contentDisposition, FILE_MIME_TYPES } from '../../../../framework/files';
+import { proposedMagistratName } from '../../../../magistrat/domain/magistrat-name';
+import { ObservationService } from '../../../../observation/observation.service';
+import { prismaFormationEnumToFormationEnum } from '../../../../shared/mappers/formation.mapper';
+import { PriorityEnumLabels } from '../../../../shared/mappers/priorite.mapper';
+import { nominationFileOutcomeLabel } from '../../../../shared/nomination-file-outcome.enum';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { contentDisposition, FILE_MIME_TYPES } from 'src/modules/framework/files';
-import { proposedMagistratName } from 'src/modules/magistrat/domain/magistrat-name';
-import { ObservationService } from 'src/modules/observation/observation.service';
-import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
-import { PriorityEnumLabels } from 'src/modules/shared/mappers/priorite.mapper';
-import { nominationFileOutcomeLabel } from 'src/modules/shared/nomination-file-outcome.enum';
-import { capitalize } from 'src/utils/capitalize';
 
 @Injectable()
 export class ListNominationFilesAsExcelQuery {

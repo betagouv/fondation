@@ -2,9 +2,9 @@ import { Controller, Get, HttpStatus, Param, ParseIntPipe, Query, UsePipes } fro
 import { ApiQuery } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
-import { PrismaJobStatusEnum } from 'src/generated/prisma/enums';
-import { ApiPaginated, Pagination, QueryPagination } from 'src/modules/framework/pagination';
-import { HasRole } from 'src/modules/simple-auth';
+import { PrismaJobStatusEnum } from '../../../generated/prisma/enums';
+import { ApiPaginated, Pagination, QueryPagination } from '../../framework/pagination';
+import { HasRole } from '../../simple-auth';
 
 import { ListJobsQueryDto } from './jobs.dto';
 import { JobsService } from './jobs.service';

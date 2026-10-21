@@ -1,11 +1,11 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
+import { Prisma } from '../../../../../generated/prisma/client';
+import { assertPgParams } from '../../../../../utils/assert-pg-params';
+import { isDefined } from '../../../../../utils/is-defined';
+import { Db } from '../../../../framework/database';
 import { FINAL_DOC_NOMINATION_FILE_OUTCOMES } from '../../domain/doc-nomination-file-outcome';
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { assertPgParams } from 'src/utils/assert-pg-params';
-import { isDefined } from 'src/utils/is-defined';
 
 /** the files a validated official report acts with a final outcome: whether the file still holds one is for its session to tell */
 @Injectable()

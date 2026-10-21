@@ -1,8 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 
+import { API_CONFIG_TOKEN, ApiConfig } from '../../framework/config';
 import { AuthPassword } from '../domain/auth-password';
-import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
 
 @Injectable()
 export class PasswordHasher {

@@ -1,8 +1,8 @@
 import { forwardRef, Module } from '@nestjs/common';
 
-import { MembersModule } from 'src/modules/members';
-import { TransparenceModule } from 'src/modules/session/transparence/transparence.module';
-import { SimpleAuthModule } from 'src/modules/simple-auth';
+import { MembersModule } from '../members';
+import { TransparenceModule } from '../session/transparence/transparence.module';
+import { SimpleAuthModule } from '../simple-auth';
 
 import { AgendasController } from './agenda/agendas.controller';
 import { AgendasService } from './agenda/agendas.service';

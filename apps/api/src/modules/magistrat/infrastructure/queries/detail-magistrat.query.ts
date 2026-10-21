@@ -2,13 +2,13 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { Prisma } from '../../../../generated/prisma/client';
+import { buildMagistratLolfiUrl } from '../../../../utils/build-magistrat-lolfi-url';
+import { DateOnly, dateOnlyJsonSchema } from '../../../../utils/date-only';
+import { Db } from '../../../framework/database';
+import { GradeEnum } from '../../../shared/grade.enum';
+import { isGrade } from '../../../shared/mappers/grade.mapper';
 import { magistratTitledFullName } from '../../domain/magistrat-name';
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { GradeEnum } from 'src/modules/shared/grade.enum';
-import { isGrade } from 'src/modules/shared/mappers/grade.mapper';
-import { buildMagistratLolfiUrl } from 'src/utils/build-magistrat-lolfi-url';
-import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
 
 @Injectable()
 export class DetailMagistratQuery {

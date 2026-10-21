@@ -4,8 +4,8 @@ import { AxiosError } from 'axios';
 import { lastValueFrom } from 'rxjs';
 import { z } from 'zod';
 
-import { Clock } from 'src/modules/framework/clock';
-import { Id } from 'src/utils/id';
+import { Id } from '../../../../utils/id';
+import { Clock } from '../../../framework/clock';
 
 import { JwtDecoder } from './jwt-decoder';
 import { OpenIdConfig } from './openid-config';

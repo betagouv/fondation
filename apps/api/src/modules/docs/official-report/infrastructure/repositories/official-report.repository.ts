@@ -8,6 +8,18 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
+import { Prisma, PrismaDocsFileOutcomeEnum } from '../../../../../generated/prisma/client';
+import { assertNever } from '../../../../../utils/assert-never';
+import { DateOnly } from '../../../../../utils/date-only';
+import { makeId } from '../../../../../utils/id';
+import { assertIsDefined, isDefined } from '../../../../../utils/is-defined';
+import { dateToTimeOnly, timeOnlyToDate } from '../../../../../utils/time-only';
+import { Clock } from '../../../../framework/clock';
+import { Db } from '../../../../framework/database';
+import { Files } from '../../../../framework/files';
+import { TransparenceService } from '../../../../session/transparence/infrastructure/transparence.service';
+import { prismaFormationEnumToFormationEnum } from '../../../../shared/mappers/formation.mapper';
+import { prismaGenderEnumToGenderEnum } from '../../../../shared/mappers/gender-enum.mapper';
 import { DocNominationFileOutcomeEnum } from '../../../shared/domain/doc-nomination-file-outcome';
 import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../../../shared/infrastructure/agenda-content';
 import { DocsNominationFilesFinder } from '../../../shared/infrastructure/finders/docs-nomination-files.finder';
@@ -43,18 +55,6 @@ import { OfficialReportSnapshot } from '../../domain/snapshot/official-report-sn
 import { OfficialReportSnapshotFile } from '../../domain/snapshot/official-report-snapshot-file';
 import { OfficialReportSnapshotMeta } from '../../domain/snapshot/official-report-snapshot-meta';
 import { OfficialReportVersionFinder } from '../finders/official-report-version.finder';
-import { Prisma, PrismaDocsFileOutcomeEnum } from 'src/generated/prisma/client';
-import { Clock } from 'src/modules/framework/clock';
-import { Db } from 'src/modules/framework/database';
-import { Files } from 'src/modules/framework/files';
-import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
-import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
-import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
-import { assertNever } from 'src/utils/assert-never';
-import { DateOnly } from 'src/utils/date-only';
-import { makeId } from 'src/utils/id';
-import { assertIsDefined, isDefined } from 'src/utils/is-defined';
-import { dateToTimeOnly, timeOnlyToDate } from 'src/utils/time-only';
 
 @Injectable()
 export class OfficialReportRepository {
