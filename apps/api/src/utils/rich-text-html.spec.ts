@@ -34,6 +34,14 @@ describe('sanitizeRichTextHtml', () => {
     ).toBe('<span style="color: rgb(0, 0, 145)">a</span><span>b</span><span>c</span><span>d</span>');
   });
 
+  it('keeps a color pasted from Word, which the editor keeps as written', () => {
+    const pasted =
+      `<span style="color: black">a</span><span style="color: windowtext">b</span>` +
+      `<span style="color: hsl(240, 100%, 28%)">c</span><span style="color: rgb(0 0 145 / 50%)">d</span>`;
+
+    expect(sanitizeRichTextHtml(pasted)).toBe(pasted);
+  });
+
   it('keeps of an image only a source on the web', () => {
     expect(
       sanitizeRichTextHtml(

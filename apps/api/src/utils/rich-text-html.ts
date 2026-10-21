@@ -3,7 +3,8 @@ import { z } from 'zod';
 import { type AttributeRule, type AttributesByTag, sanitizeHtml } from 'src/utils/sanitize-html';
 
 const anyValue: AttributeRule = () => true;
-const color: AttributeRule = (value) => /^color:\s*(#[\da-f]{3,8}|rgba?\([\d\s.,%]+\))\s*;?$/i.test(value);
+const color: AttributeRule = (value) =>
+  /^color:\s*([a-z]+|#[\da-f]{3,8}|(rgb|hsl)a?\([\d\s.,%/a-z]+\))\s*;?$/i.test(value);
 const dimension: AttributeRule = (value) => /^\d+(\.\d+)?$/.test(value);
 const integer: AttributeRule = (value) => /^-?\d+$/.test(value);
 const listType: AttributeRule = (value) => /^[1aAiI]$/.test(value);
