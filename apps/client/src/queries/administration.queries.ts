@@ -124,7 +124,7 @@ export function usePromoteUserToAdmin(userId: string) {
 
   return useMutation({
     mutationFn: () => $api.administration.promoteToAdmin({ path: { userId } }),
-    onSuccess: () => invalidateAdminRight(queryClient, userId),
+    onSuccess: () => updateAdminRight(queryClient, userId, true),
   });
 }
 
@@ -133,12 +133,13 @@ export function useDemoteUserFromAdmin(userId: string) {
 
   return useMutation({
     mutationFn: () => $api.administration.demoteFromAdmin({ path: { userId } }),
-    onSuccess: () => invalidateAdminRight(queryClient, userId),
+    onSuccess: () => updateAdminRight(queryClient, userId, false),
   });
 }
 
-/** the right changes the roles the user may take and the icon of the list */
-function invalidateAdminRight(queryClient: QueryClient, userId: string) {
+/** the toggle flips at once, while the refetch brings the roles the user may take and the icon of the list */
+function updateAdminRight(queryClient: QueryClient, userId: string, isAdmin: boolean) {
+  updateUser(queryClient, userId, { isAdmin });
   queryClient.invalidateQueries({ queryKey: adminKeys.user(userId) });
   queryClient.invalidateQueries({ queryKey: adminKeys.allUsers() });
   queryClient.invalidateQueries({ queryKey: docsKeys.members() });
