@@ -127,7 +127,7 @@ export function useUpdateAgendaFilesMutation(sessionId: string, agendaId: string
   });
 }
 
-export const useAgendaHtmlQuery = (query: { id: string | undefined; force?: boolean }) =>
+export const useAgendaHtmlQuery = (query: { id: string | undefined }) =>
   useQuery({
     enabled: !!query.id,
     queryKey: agendaKeys.agendaHtml(query.id ?? ''),
@@ -135,7 +135,6 @@ export const useAgendaHtmlQuery = (query: { id: string | undefined; force?: bool
       $api.docs
         .generateAgendaHtml({
           path: { agendaId: query.id! },
-          query: { force: query.force },
           parseAs: 'text',
         })
         .then(({ data }) => (data ?? null) as string | null),
@@ -345,7 +344,7 @@ export function useCreateOfficialReportMutation() {
   });
 }
 
-export const useOfficialReportHtmlQuery = (query: { id: string | undefined; force?: boolean }) =>
+export const useOfficialReportHtmlQuery = (query: { id: string | undefined }) =>
   useQuery({
     enabled: !!query.id,
     queryKey: officialReportKeys.html(query.id ?? ''),
@@ -353,7 +352,6 @@ export const useOfficialReportHtmlQuery = (query: { id: string | undefined; forc
       $api.docs
         .generateOfficialReportHtml({
           path: { officialReportId: query.id! },
-          query: { force: query.force },
           parseAs: 'text',
         })
         .then(({ data }) => (data ?? null) as string | null),
@@ -584,7 +582,6 @@ export const useJusticePresentationPlanMetadataQuery = (options: {
 
 export const useJusticePresentationPlanHtmlQuery = (options: {
   presentationPlanId: string | undefined | null;
-  force?: boolean;
 }) =>
   useQuery({
     enabled: !!options.presentationPlanId,
@@ -593,7 +590,6 @@ export const useJusticePresentationPlanHtmlQuery = (options: {
       if (!options.presentationPlanId) return null;
 
       const { data = null } = await $api.docs.generatePresentationPlanHtml({
-        query: { force: options.force },
         path: { planId: options.presentationPlanId },
       });
 

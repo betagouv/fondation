@@ -29,7 +29,7 @@ export function OfficialReportPreviewPage() {
 
   const { officialReportId, sessionId } = useParams<{ officialReportId: string; sessionId: string }>();
 
-  const { data: html, isPending } = useOfficialReportHtmlQuery({ force: false, id: officialReportId });
+  const { data: html, isPending } = useOfficialReportHtmlQuery({ id: officialReportId });
   const { data: metadata } = useDetailsOfficialReportQuery({ officialReportId });
 
   const validate = useValidateOfficialReportMutation({

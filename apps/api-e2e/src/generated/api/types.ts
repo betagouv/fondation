@@ -3954,9 +3954,7 @@ export type GenerateAgendaHtmlData = {
     path: {
         agendaId: string;
     };
-    query?: {
-        force?: boolean;
-    };
+    query?: never;
     url: '/api/docs/v1/agendas/{agendaId}.html';
 };
 
@@ -3969,9 +3967,7 @@ export type GenerateAgendaPdfData = {
     path: {
         agendaId: string;
     };
-    query?: {
-        force?: boolean;
-    };
+    query?: never;
     url: '/api/docs/v1/agendas/{agendaId}.pdf';
 };
 
@@ -4141,9 +4137,7 @@ export type GenerateOfficialReportHtmlData = {
     path: {
         officialReportId: string;
     };
-    query?: {
-        force?: boolean;
-    };
+    query?: never;
     url: '/api/docs/v1/official-reports/{officialReportId}.html';
 };
 
@@ -4156,9 +4150,7 @@ export type GenerateOfficialReportPdfData = {
     path: {
         officialReportId: string;
     };
-    query?: {
-        force?: boolean;
-    };
+    query?: never;
     url: '/api/docs/v1/official-reports/{officialReportId}.pdf';
 };
 
@@ -4418,9 +4410,7 @@ export type GeneratePresentationPlanHtmlData = {
     path: {
         planId: string;
     };
-    query?: {
-        force?: boolean;
-    };
+    query?: never;
     url: '/api/docs/v1/presentation-plans/{planId}.html';
 };
 

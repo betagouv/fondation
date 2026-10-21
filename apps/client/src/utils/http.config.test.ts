@@ -11,7 +11,6 @@ describe('LONG_RUNNING_ROUTES', () => {
 
   it.each([
     ['/api/docs/v1/agendas/abc.pdf', true],
-    ['/api/docs/v1/agendas/abc.pdf?force=true', true],
     ['https://api.dev/api/docs/v1/sessions/s1/official-reports/o1', true],
     ['/api/docs/v1/presentation-plans/p1/url', true],
     ['/api/docs/v1/sessions/s1/agendas/a1/blocks', false],

@@ -159,11 +159,11 @@ export class AgendasService {
     await this.agendaRepository.persist(agenda);
   }
 
-  getOrCreateAgendaDocument(query: { forceNew?: boolean; id: string }): Promise<string> {
+  getOrCreateAgendaDocument(query: { id: string }): Promise<string> {
     return this.findAgendaDocumentQuery.handle(query);
   }
 
-  getOrCreateAgendaDocumentPdf(query: { forceNew?: boolean; id: string }): Promise<StreamableFile> {
+  getOrCreateAgendaDocumentPdf(query: { id: string }): Promise<StreamableFile> {
     return this.findAgendaDocumentPdfQuery.handle(query);
   }
 

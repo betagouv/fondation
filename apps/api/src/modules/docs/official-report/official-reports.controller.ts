@@ -1,13 +1,11 @@
 import {
   Body,
   Controller,
-  DefaultValuePipe,
   Delete,
   Get,
   HttpCode,
   HttpStatus,
   Param,
-  ParseBoolPipe,
   ParseEnumPipe,
   Patch,
   Post,
@@ -17,7 +15,7 @@ import {
   UseInterceptors,
   UsePipes,
 } from '@nestjs/common';
-import { ApiOkResponse, ApiParam, ApiProduces, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiOkResponse, ApiParam, ApiProduces, ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import {
@@ -105,35 +103,17 @@ export class OfficialReportsController {
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @ApiProduces('text/html')
   @ApiOkResponse({ content: { 'text/html': {} } })
-  @ApiQuery({ name: 'force', type: 'boolean', required: false, default: false })
   @Get('/official-reports/:officialReportId.html')
-  generateOfficialReportHtml(
-    @AuthedUser() authUser: { id: string },
-    @Param('officialReportId') officialReportId: string,
-    @Query('force', new ParseBoolPipe({ optional: true }), new DefaultValuePipe(false))
-    forceNew: boolean,
-  ): Promise<string> {
-    return this.officialReports.getOrCreateOfficialReportDocument({
-      forceNew,
-      id: officialReportId,
-    });
+  generateOfficialReportHtml(@Param('officialReportId') officialReportId: string): Promise<string> {
+    return this.officialReports.getOrCreateOfficialReportDocument({ id: officialReportId });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @ApiProduces(FILE_MIME_TYPES.pdf)
   @ApiOkResponse({ content: { [FILE_MIME_TYPES.pdf]: {} } })
-  @ApiQuery({ name: 'force', type: 'boolean', required: false, default: false })
   @Get('/official-reports/:officialReportId.pdf')
-  generateOfficialReportPdf(
-    @AuthedUser() authUser: { id: string },
-    @Param('officialReportId') officialReportId: string,
-    @Query('force', new ParseBoolPipe({ optional: true }), new DefaultValuePipe(false))
-    forceNew: boolean,
-  ): Promise<StreamableFile> {
-    return this.officialReports.getOrCreateOfficialReportDocumentPdf({
-      forceNew,
-      id: officialReportId,
-    });
+  generateOfficialReportPdf(@Param('officialReportId') officialReportId: string): Promise<StreamableFile> {
+    return this.officialReports.getOrCreateOfficialReportDocumentPdf({ id: officialReportId });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')

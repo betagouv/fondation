@@ -103,6 +103,7 @@ export class OfficialReportRenderContextFinder {
                 versions: {
                   orderBy: { version: 'desc' },
                   select: {
+                    _count: { select: { nominationFiles: true } },
                     date: true,
                     nominationFiles: {
                       select: {
@@ -165,11 +166,10 @@ export class OfficialReportRenderContextFinder {
     // the report speaks of the agenda as it was validated, and of its draft only while the agenda
     // has never been validated, which is the one case where nothing else exists to speak of
     const agendaContent = agendaContentOf(agenda?.versions ?? []);
-    const agendaDate = agendaContent?.date;
-    if (!agenda || !agendaDate) throw new NotFoundException();
+    if (!agenda || !agendaContent) throw new NotFoundException();
 
     const agendaProposals = new Map(
-      (agendaContent?.nominationFiles ?? []).flatMap((file) =>
+      agendaContent.nominationFiles.flatMap((file) =>
         file.nominationFileId && file.htmlEdited
           ? [
               [
@@ -274,7 +274,12 @@ export class OfficialReportRenderContextFinder {
     });
 
     return {
-      agenda: { date: DateOnly.fromUtcDate(agendaDate), formation, id: agenda.id },
+      agenda: {
+        date: DateOnly.fromUtcDate(agendaContent.date),
+        formation,
+        id: agenda.id,
+        propositionCount: agendaContent._count.nominationFiles,
+      },
       agendaProposals,
       chairman,
       fileAgendas,

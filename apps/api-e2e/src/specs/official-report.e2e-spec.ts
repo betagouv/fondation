@@ -240,6 +240,23 @@ test.describe('Official report', () => {
     expect(afterDiscard.data).toMatchObject({ hasValidatedVersion: true, status: 'VALIDATED' });
   });
 
+  test('should speak of a single proposition when the agenda holds only one', async ({
+    agent,
+    docs,
+    expect,
+    member,
+  }) => {
+    const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
+    const { id: officialReportId } = await docs.officialReport(
+      await docs.agenda(session, { files: [session.files[0]!] }),
+    );
+
+    const document = await agent.docs.detailsOfficialReportDocument({ path: { officialReportId } });
+    expect(document.data!.blocks.find(({ kind }) => kind === 'intro')).toMatchObject({
+      html: expect.stringContaining(`de l'avis émis par le Conseil sur la proposition figurant`),
+    });
+  });
+
   test('should give back the generated text of each part reset after a validation, and the written text when the draft is discarded', async ({
     agent,
     docs,

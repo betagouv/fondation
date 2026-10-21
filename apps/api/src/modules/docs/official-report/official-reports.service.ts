@@ -228,11 +228,11 @@ export class OfficialReportsService {
     await this.officialReportRepository.persist(report);
   }
 
-  getOrCreateOfficialReportDocument(query: { id: string; forceNew?: boolean }): Promise<string> {
+  getOrCreateOfficialReportDocument(query: { id: string }): Promise<string> {
     return this.findOfficialReportDocumentQuery.handle(query);
   }
 
-  getOrCreateOfficialReportDocumentPdf(query: { id: string; forceNew?: boolean }): Promise<StreamableFile> {
+  getOrCreateOfficialReportDocumentPdf(query: { id: string }): Promise<StreamableFile> {
     return this.findOfficialReportDocumentPdfQuery.handle(query);
   }
 

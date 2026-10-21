@@ -209,7 +209,7 @@ export class PresentationPlansService {
     await this.justicePresentationPlanRepository.persist(plan);
   }
 
-  findPresentationPlanDocument(query: { id: string; forceNew?: boolean }): Promise<string> {
+  findPresentationPlanDocument(query: { id: string }): Promise<string> {
     return this.findPresentationPlanDocumentQuery.handle(query);
   }
 

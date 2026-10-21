@@ -33,7 +33,7 @@ export function AgendaPreviewPage() {
       ? state.returnPath
       : generatePath(ROUTE_PATHS.SG.SESSION_ID_DOCUMENTS, { sessionId: sessionId! });
 
-  const { data: html, isPending } = useAgendaHtmlQuery({ force: false, id: agendaId });
+  const { data: html, isPending } = useAgendaHtmlQuery({ id: agendaId });
   const { data: metadata } = useDetailsAgendaMetadataQuery({ agendaId });
 
   const validate = useValidateAgendaMutation({
