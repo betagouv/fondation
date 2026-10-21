@@ -44,7 +44,7 @@ type OfficialReportRenderContextNominationFile = {
 
 export type OfficialReportRenderContext = {
   session: { id: string; date: DateOnly };
-  agenda: { id: string; date: DateOnly; formation: FormationEnum };
+  agenda: { date: DateOnly; formation: FormationEnum; id: string; propositionCount: number };
 
   hasRenouncement: boolean;
   justiceDepartmentContact: string;
@@ -191,11 +191,15 @@ function displayIntroduction(
 
   const { hours, minutes } = ctx.sessionMeeting.start;
   const sessionMeetingTime = [hours, minutes].map((x) => x.toString().padStart(2, '0')).join(':');
+  const opinions =
+    ctx.agenda.propositionCount === 1
+      ? html`de l'avis émis par le Conseil sur la proposition figurant`
+      : html`des avis émis par le Conseil sur les propositions figurant`;
   const opening = html`<p>
     À ${sessionMeetingTime}, ${fullname(ctx.chairman)}${presidentTitle ? `, ${presidentTitle}` : ''}, déclare
-    la séance ouverte. ${ctx.chairman.gender === 'MALE' ? 'Il' : 'Elle'} fait part des avis émis par le
-    Conseil sur les propositions figurant à l'ordre du jour arrêté le ${date(ctx.agenda.date, 'do MMMM yyyy')}
-    sur la circulaire de transparence du ${date(ctx.session.date, 'do MMMM yyyy')}&nbsp;:
+    la séance ouverte. ${ctx.chairman.gender === 'MALE' ? 'Il' : 'Elle'} fait part ${opinions} à l'ordre du
+    jour arrêté le ${date(ctx.agenda.date, 'do MMMM yyyy')} sur la circulaire de transparence du
+    ${date(ctx.session.date, 'do MMMM yyyy')}&nbsp;:
   </p>`;
 
   const attendees = html`<ul>

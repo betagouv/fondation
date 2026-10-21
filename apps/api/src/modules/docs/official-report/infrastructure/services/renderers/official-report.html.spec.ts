@@ -18,9 +18,10 @@ describe('officialReportTemplate', () => {
   const baseContext = {
     session: { id: makeId('SessionId'), date: DateOnly.fromJson({ day: 22, month: 6, year: 2026 }) },
     agenda: {
-      id: makeId('AgendaId'),
       date: DateOnly.fromJson({ day: 1, month: 7, year: 2026 }),
       formation: 'SIEGE',
+      id: makeId('AgendaId'),
+      propositionCount: 5,
     },
 
     hasRenouncement: true,
@@ -181,6 +182,17 @@ describe('officialReportTemplate', () => {
     const $ = load(officialReportTemplate.render({ ...baseContext, hasRenouncement: false }));
 
     expect($('main').html()).not.toContain(`indique renoncer au délai de convocation`);
+  });
+
+  it('should speak of a single proposition when the agenda holds only one', () => {
+    const $ = load(
+      officialReportTemplate.render({
+        ...baseContext,
+        agenda: { ...baseContext.agenda, propositionCount: 1 },
+      }),
+    );
+
+    expect($('main').text()).toContain(`de l'avis émis par le Conseil sur la proposition figurant`);
   });
 
   it('should include non president members in end-time', () => {
