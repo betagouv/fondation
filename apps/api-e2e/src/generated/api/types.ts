@@ -1649,6 +1649,14 @@ export type DetailedOfficialReportDocumentDto = {
             name: string;
         } | null;
         fromAgenda: boolean;
+        note: {
+            editedAt: string | null;
+            editedBy: {
+                id: string;
+                name: string;
+            } | null;
+            html: string;
+        } | null;
     } | {
         weight: number;
         edited: boolean;
@@ -1669,6 +1677,10 @@ export type EditOfficialReportSectionTitleDto = {
 };
 
 export type EditOfficialReportSectionIntroBlockDto = {
+    html: string;
+};
+
+export type EditOfficialReportFileNoteDto = {
     html: string;
 };
 
@@ -4389,6 +4401,38 @@ export type ResetOfficialReportFileResponses = {
 };
 
 export type ResetOfficialReportFileResponse = ResetOfficialReportFileResponses[keyof ResetOfficialReportFileResponses];
+
+export type DeleteOfficialReportFileNoteData = {
+    body?: never;
+    path: {
+        officialReportId: string;
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/official-reports/{officialReportId}/blocks/files/{nominationFileId}/note';
+};
+
+export type DeleteOfficialReportFileNoteResponses = {
+    204: void;
+};
+
+export type DeleteOfficialReportFileNoteResponse = DeleteOfficialReportFileNoteResponses[keyof DeleteOfficialReportFileNoteResponses];
+
+export type EditOfficialReportFileNoteData = {
+    body: EditOfficialReportFileNoteDto;
+    path: {
+        officialReportId: string;
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/official-reports/{officialReportId}/blocks/files/{nominationFileId}/note';
+};
+
+export type EditOfficialReportFileNoteResponses = {
+    204: void;
+};
+
+export type EditOfficialReportFileNoteResponse = EditOfficialReportFileNoteResponses[keyof EditOfficialReportFileNoteResponses];
 
 export type ListPresentationPlanAgendasData = {
     body?: never;

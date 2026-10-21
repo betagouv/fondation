@@ -429,6 +429,35 @@ test.describe('Official report', () => {
     expect(taken).toMatchObject({ fromAgenda: true, html: later, outdated: false });
   });
 
+  test('should write a note under a proposition of a validated report in a draft, until it is deleted', async ({
+    agent,
+    docs,
+    expect,
+    member,
+  }) => {
+    const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
+    const { id: officialReportId } = await docs.officialReport(await docs.agenda(session), { status: 'VALIDATED' });
+    const fileOf = async () => {
+      const document = await agent.docs.detailsOfficialReportDocument({ path: { officialReportId } });
+      return document.data!.blocks.find((block) => block.kind === 'file');
+    };
+    const nominationFileId = (await fileOf())!.nominationFileId!;
+    const path = { nominationFileId, officialReportId };
+
+    const edited = await agent.docs.editOfficialReportFileNote({ body: { html: '<p>Information du PV</p>' }, path });
+    expect(edited.response?.status).toBe(204);
+
+    const metadata = await agent.docs.detailsOfficialReport({ path: { officialReportId } });
+    expect(metadata.data).toMatchObject({ hasValidatedVersion: true, status: 'DRAFT' });
+    expect(await fileOf()).toMatchObject({
+      note: { editedAt: expect.any(String), editedBy: expect.any(Object), html: '<p>Information du PV</p>' },
+    });
+
+    await agent.docs.deleteOfficialReportFileNote({ path });
+
+    expect(await fileOf()).toMatchObject({ note: null });
+  });
+
   test('should refuse a second official report of an agenda', async ({ agent, docs, expect, member }) => {
     const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
     const agenda = await docs.agenda(session);
