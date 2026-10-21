@@ -1,8 +1,9 @@
 import { UserStatus } from 'src/modules/shared/user-status.enum';
+import { UserTitleEnum } from 'src/modules/shared/user-title.enum';
 
 import { AdminUserRole } from './admin-user-role';
 import { AdminUserTitle } from './admin-user-title';
-import { AdminUserRoleEnum, UserTitleEnum } from './user-enum';
+import { AdminUserRoleEnum } from './user-enum';
 
 export class UserEmailUpdated {
   constructor(

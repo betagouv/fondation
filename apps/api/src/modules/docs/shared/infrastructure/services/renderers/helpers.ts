@@ -1,5 +1,5 @@
-import { UserTitleEnum } from 'src/modules/administration/domain/user-enum';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
+import { UserTitleEnum } from 'src/modules/shared/user-title.enum';
 import { DateOnlyJson } from 'src/utils/date-only';
 import { DateOnly } from 'src/utils/date-only';
 import { unaccent } from 'src/utils/unaccent';

@@ -1,26 +1,7 @@
-import { PrismaUserDutyEnum, PrismaUserTitleEnum } from 'src/generated/prisma/enums';
 import type { RoleEnum } from 'src/modules/shared/role.enum';
+import type { UserDutyEnum } from 'src/modules/shared/user-duty.enum';
+import type { UserTitleEnum } from 'src/modules/shared/user-title.enum';
 import { assertNever } from 'src/utils/assert-never';
-
-export const USER_TITLES = [
-  'PRESIDENT_SIEGE',
-  'PRESIDENT_PARQUET',
-  'DEPUTY_PRESIDENT_SIEGE',
-  'DEPUTY_PRESIDENT_PARQUET',
-  'FIRST_SECRETARY',
-] as const;
-export type UserTitleEnum = (typeof USER_TITLES)[number];
-
-export const USER_DUTIES = ['PRESIDENT', 'DEPUTY_PRESIDENT', 'SECRETARY', 'OFFICER'] as const;
-export type UserDutyEnum = (typeof USER_DUTIES)[number];
-
-export function toUserTitle(value: PrismaUserTitleEnum | null): UserTitleEnum | null {
-  return USER_TITLES.includes(value as UserTitleEnum) ? (value as UserTitleEnum) : null;
-}
-
-export function toUserDuty(value: PrismaUserDutyEnum | null): UserDutyEnum | null {
-  return USER_DUTIES.includes(value as UserDutyEnum) ? (value as UserDutyEnum) : null;
-}
 
 export const ADMIN_USER_ROLES_ENUM = [
   'FIRST_SECRETARY',

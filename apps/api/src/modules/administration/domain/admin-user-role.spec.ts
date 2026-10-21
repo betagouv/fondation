@@ -1,8 +1,10 @@
 import { RoleEnum } from 'src/modules/shared/role.enum';
+import { USER_DUTIES } from 'src/modules/shared/user-duty.enum';
+import { USER_TITLES } from 'src/modules/shared/user-title.enum';
 
 import { AdminUserRole } from './admin-user-role';
 import { AdminUserTitle } from './admin-user-title';
-import { ADMIN_USER_ROLES_ENUM, USER_DUTIES, USER_TITLES } from './user-enum';
+import { ADMIN_USER_ROLES_ENUM } from './user-enum';
 
 describe('AdminUserRole', () => {
   it('handle all possible combinations without throwing', () => {

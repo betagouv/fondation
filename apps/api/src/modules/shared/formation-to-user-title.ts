@@ -1,6 +1,5 @@
-import { USER_TITLES, UserTitleEnum } from '../administration/domain/user-enum';
-
 import { FormationEnum } from './formation.enum';
+import { USER_TITLES, UserTitleEnum } from './user-title.enum';
 
 export function formationToUserTitle(
   formation: FormationEnum | null | undefined,

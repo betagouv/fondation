@@ -1,7 +1,8 @@
-import { UserDutyEnum, UserTitleEnum } from 'src/modules/administration/domain/user-enum';
 import { FormationEnum } from 'src/modules/shared/formation.enum';
 import { GenderEnum } from 'src/modules/shared/gender.enum';
 import { isSecretariat, RoleEnum } from 'src/modules/shared/role.enum';
+import { UserDutyEnum } from 'src/modules/shared/user-duty.enum';
+import { UserTitleEnum } from 'src/modules/shared/user-title.enum';
 
 export class OfficialReportMember {
   constructor(
