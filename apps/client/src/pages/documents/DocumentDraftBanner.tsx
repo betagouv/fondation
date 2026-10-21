@@ -11,7 +11,7 @@ import { useUser } from '@queries/auth.queries';
 
 type Writer = { id: string; name: string } | null;
 
-/** who opened the draft and when, and who last worked on it: nobody named means the application */
+/** nobody named means the application */
 export type DraftTrace = {
   openedAt: string;
   openedBy: Writer;
@@ -54,7 +54,11 @@ export function DocumentDraftBanner(props: {
           </span>
           {draft && (
             <span className="fr-text--sm fr-mb-0">
-              <DocumentDraftHistory draft={draft} kind={props.kind} />
+              <DocumentDraftHistory
+                draft={draft}
+                hasValidatedVersion={hasValidatedVersion}
+                kind={props.kind}
+              />
             </span>
           )}
           {draft?.systemUpdatedAt && (
@@ -71,22 +75,27 @@ export function DocumentDraftBanner(props: {
   );
 }
 
-/** a notice has no version underneath: its draft is the notice itself, created rather than opened */
-function DocumentDraftHistory(props: { draft: DraftTrace; kind: 'agenda' | 'notice' | 'officialReport' }) {
+function DocumentDraftHistory(props: {
+  draft: DraftTrace;
+  hasValidatedVersion: boolean;
+  kind: 'agenda' | 'notice' | 'officialReport';
+}) {
   const dateAndTime = useDateAndTime();
   const who = useWho();
   const { openedAt, openedBy, updatedAt, updatedBy } = props.draft;
 
   return (
     <>
-      {openedBy ? (
+      {props.hasValidatedVersion ? (
+        <DocumentDraftReopening at={openedAt} by={openedBy} />
+      ) : openedBy ? (
         <FormattedMessage
-          defaultMessage="{kind, select, notice {Créée} other {Ouvert}} le {date} à {time} par {who}"
+          defaultMessage="{kind, select, notice {Créée} other {Créé}} le {date} à {time} par {who}"
           values={{ ...dateAndTime(openedAt), kind: props.kind, who: who(openedBy) }}
         />
       ) : (
         <FormattedMessage
-          defaultMessage="{kind, select, notice {Créée} other {Ouvert automatiquement}} le {date} à {time}"
+          defaultMessage="{kind, select, notice {Créée} other {Créé automatiquement}} le {date} à {time}"
           values={{ ...dateAndTime(openedAt), kind: props.kind }}
         />
       )}
@@ -100,6 +109,24 @@ function DocumentDraftHistory(props: { draft: DraftTrace; kind: 'agenda' | 'noti
         </>
       )}
     </>
+  );
+}
+
+/** the draft of a validated document is a copy made when someone starts changing it, not the document's creation */
+function DocumentDraftReopening(props: { at: string; by: Writer }) {
+  const dateAndTime = useDateAndTime();
+  const who = useWho();
+
+  return props.by ? (
+    <FormattedMessage
+      defaultMessage="Modifications commencées le {date} à {time} par {who}"
+      values={{ ...dateAndTime(props.at), who: who(props.by) }}
+    />
+  ) : (
+    <FormattedMessage
+      defaultMessage="Modifications commencées automatiquement le {date} à {time}"
+      values={dateAndTime(props.at)}
+    />
   );
 }
 
