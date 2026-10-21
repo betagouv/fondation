@@ -1,6 +1,13 @@
 import * as bcrypt from 'bcrypt';
 
-import { AuthUser, AuthUserNotAuthentifiable, DeactivatedUserNotImpersonable } from './auth-user';
+import { AuthPassword } from './auth-password';
+import {
+  AdminOutsideSecretariat,
+  AuthUser,
+  AuthUserNotAuthentifiable,
+  AuthUserRegistered,
+  DeactivatedUserNotImpersonable,
+} from './auth-user';
 
 describe('AuthUser', () => {
   const now = new Date('2026-10-20T09:00:00Z');
@@ -13,6 +20,33 @@ describe('AuthUser', () => {
       AuthUserNotAuthentifiable,
     );
     expect(user.messages).toEqual([]);
+  });
+
+  describe('registration', () => {
+    const registration = {
+      email: 'agent@example.fr',
+      firstName: 'Agent',
+      gender: 'FEMALE',
+      lastName: 'Secrétariat',
+      password: AuthPassword.from('hash'),
+    } as const;
+
+    it('should register an admin of the general secretariat', async () => {
+      const user = await AuthUser.register({
+        ...registration,
+        isAdmin: true,
+        role: 'ADJOINT_SECRETAIRE_GENERAL',
+      });
+
+      expect(user.messages).toEqual([expect.objectContaining({ isAdmin: true })]);
+      expect(user.messages[0]).toBeInstanceOf(AuthUserRegistered);
+    });
+
+    it('should refuse the admin right to a member', async () => {
+      await expect(
+        AuthUser.register({ ...registration, isAdmin: true, role: 'MEMBRE_COMMUN' }),
+      ).rejects.toThrow(AdminOutsideSecretariat);
+    });
   });
 
   it('should refuse to impersonate a deactivated user', () => {

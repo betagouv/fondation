@@ -17,12 +17,6 @@ describe('OfficialReportChairman', () => {
     ).toThrow(InvalidChairmanRole);
   });
 
-  it('should prevent creating a chairman from an ADMIN', () => {
-    expect(() => OfficialReportChairman.from(makeChairman({ role: RoleEnum.ADMIN }))).toThrow(
-      InvalidChairmanRole,
-    );
-  });
-
   it.each`
     role                          | expectedFormation
     ${RoleEnum.MEMBRE_DU_PARQUET} | ${FormationEnum.SIEGE}

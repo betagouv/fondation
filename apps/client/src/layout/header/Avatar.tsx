@@ -29,7 +29,11 @@ export const Avatar: FC = () => {
   return (
     <>
       <Badge className="fr-mx-2v fr-mt-0 fr-ml-3v self-center" noIcon small>
-        <FormattedMessage {...RoleEnumMessages[user.role]} />
+        {user.isAdmin ? (
+          <FormattedMessage defaultMessage="Administrateur" />
+        ) : (
+          <FormattedMessage {...RoleEnumMessages[user.role]} />
+        )}
       </Badge>
       <Button className="fr-mb-0" onClick={onClickLogout}>
         <div className="fr-py-2v flex items-center gap-8 rounded-sm">

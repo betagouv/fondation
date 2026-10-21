@@ -1,9 +1,10 @@
+import { isSecretariat } from '../../shared/role.enum';
 import { UserStatus } from '../../shared/user-status.enum';
 import { UserTitleEnum } from '../../shared/user-title.enum';
 
 import { AdminUserRole } from './admin-user-role';
 import { AdminUserTitle } from './admin-user-title';
-import { AdminUserRoleEnum } from './user-enum';
+import { ADMIN_USER_ROLES_ENUM, AdminUserRoleEnum, adminUserRoleEnumToIdentityRoles } from './user-enum';
 
 export class UserEmailUpdated {
   constructor(
@@ -42,11 +43,19 @@ export class UsersUntitled {
 }
 
 export class UserPromotedToAdmin {
-  constructor(readonly userId: string) {}
+  constructor(
+    readonly userId: string,
+    readonly promotedAt: Date,
+    readonly promotedBy: string,
+  ) {}
 }
 
 export class UserDemotedFromAdmin {
-  constructor(readonly userId: string) {}
+  constructor(
+    readonly userId: string,
+    readonly demotedAt: Date,
+    readonly demotedBy: string,
+  ) {}
 }
 
 export class UserDeactivated {
@@ -58,7 +67,11 @@ export class UserDeactivated {
 }
 
 export class UserReactivated {
-  constructor(readonly userId: string) {}
+  constructor(
+    readonly userId: string,
+    readonly reactivatedAt: Date,
+    readonly reactivatedBy: string,
+  ) {}
 }
 
 export type UserEvent =
@@ -73,7 +86,7 @@ export type UserEvent =
   | UserReactivated;
 
 export class CantPromoteMemberToAdmin extends Error {}
-export class CantDemoteFromAdmin extends Error {}
+export class CantGiveAdminAMemberRole extends Error {}
 export class CantDeactivateOwnAccount extends Error {}
 export class EmailAlreadyTaken extends Error {}
 
@@ -86,12 +99,13 @@ export class User {
 
   private constructor(
     readonly id: string,
+    private readonly isAdmin: boolean,
     private readonly role: AdminUserRole,
     private readonly status: UserStatus,
   ) {}
 
-  static from(props: { id: string; role: AdminUserRole; status: UserStatus }): User {
-    return new User(props.id, props.role, props.status);
+  static from(props: { id: string; isAdmin: boolean; role: AdminUserRole; status: UserStatus }): User {
+    return new User(props.id, props.isAdmin, props.role, props.status);
   }
 
   canDeactivate(actorId: string): boolean {
@@ -100,6 +114,19 @@ export class User {
 
   canReactivate(): boolean {
     return this.status === 'DEACTIVATED';
+  }
+
+  /** the admin right belongs to the general secretariat, so an admin keeps one of its roles */
+  canHoldAdminRight(): boolean {
+    return isSecretariat(this.role.role);
+  }
+
+  assignableRoles(): AdminUserRoleEnum[] {
+    if (!this.isAdmin) return [...ADMIN_USER_ROLES_ENUM];
+
+    return ADMIN_USER_ROLES_ENUM.filter((role) =>
+      adminUserRoleEnumToIdentityRoles(role).every(isSecretariat),
+    );
   }
 
   /** the login matches an email whatever its case, so an email opens one account only */
@@ -114,6 +141,8 @@ export class User {
   }
 
   updateRole(nextRole: AdminUserRoleEnum): void {
+    if (!this.assignableRoles().includes(nextRole)) throw new CantGiveAdminAMemberRole();
+
     const target = AdminUserTitle.from(nextRole);
 
     const roleUpdateRequireOtherUsersUnTitling = target.title !== null && target.title !== this.role.title;
@@ -132,20 +161,17 @@ export class User {
     this.#messages.push(new UserDisplayTitleUpdated(this.id, displayTitle));
   }
 
-  promoteAdmin(): void {
-    if (this.role.role === 'ADMIN') return;
+  promoteAdmin(command: { actorId: string; now: Date }): void {
+    if (this.isAdmin) return;
+    if (!this.canHoldAdminRight()) throw new CantPromoteMemberToAdmin();
 
-    if (this.role.role !== 'ADJOINT_SECRETAIRE_GENERAL') {
-      throw new CantPromoteMemberToAdmin();
-    }
-
-    this.#messages.push(new UserPromotedToAdmin(this.id));
+    this.#messages.push(new UserPromotedToAdmin(this.id, command.now, command.actorId));
   }
 
-  demoteAdmin(): void {
-    if (this.role.role !== 'ADMIN') throw new CantDemoteFromAdmin();
+  demoteAdmin(command: { actorId: string; now: Date }): void {
+    if (!this.isAdmin) return;
 
-    this.#messages.push(new UserDemotedFromAdmin(this.id));
+    this.#messages.push(new UserDemotedFromAdmin(this.id, command.now, command.actorId));
   }
 
   deactivate(command: { actorId: string; now: Date }): void {
@@ -155,9 +181,9 @@ export class User {
     this.#messages.push(new UserDeactivated(this.id, command.now, command.actorId));
   }
 
-  reactivate(): void {
+  reactivate(command: { actorId: string; now: Date }): void {
     if (!this.canReactivate()) return;
 
-    this.#messages.push(new UserReactivated(this.id));
+    this.#messages.push(new UserReactivated(this.id, command.now, command.actorId));
   }
 }

@@ -59,6 +59,7 @@ test.describe('Administration', () => {
     admin,
     agent,
     expect,
+    sql,
   }) => {
     const path = { userId: agent['@user']!.id };
     const { data: me } = await agent.auth.introspectSession({ throwOnError: true });
@@ -66,16 +67,58 @@ test.describe('Administration', () => {
     await admin.administration.promoteToAdmin({ path, throwOnError: true });
 
     const promoted = await agent.auth.introspectSession();
-    expect(promoted.data!.role).toBe('ADMIN');
+    expect(promoted.data).toMatchObject({ isAdmin: true, role: 'ADJOINT_SECRETAIRE_GENERAL' });
     const listed = await admin.administration.listUsers({ query: { search: me.lastName } });
-    expect(listed.data!.items.map(({ id }) => id)).toContain(path.userId);
+    expect(listed.data!.items).toContainEqual(expect.objectContaining({ id: path.userId, isAdmin: true }));
     const detailed = await admin.administration.detailsUser({ path });
     expect(detailed.data!.isAdmin).toBe(true);
 
     await admin.administration.demoteFromAdmin({ path, throwOnError: true });
 
     const demoted = await agent.auth.introspectSession();
-    expect(demoted.data!.role).toBe('ADJOINT_SECRETAIRE_GENERAL');
+    expect(demoted.data).toMatchObject({ isAdmin: false, role: 'ADJOINT_SECRETAIRE_GENERAL' });
+    const changes = await sql`
+      select change, changed_by as "changedBy" from identity_and_access_context.admin_right_changes
+      where user_id = ${path.userId} order by changed_at`;
+    expect(changes).toEqual([
+      { change: 'GRANTED', changedBy: admin['@user']!.id },
+      { change: 'REVOKED', changedBy: admin['@user']!.id },
+    ]);
+  });
+
+  test('should record the admin right once when it is given twice at the same time', async ({
+    admin,
+    agent,
+    expect,
+    sql,
+  }) => {
+    const path = { userId: agent['@user']!.id };
+
+    const responses = await Promise.all([
+      admin.administration.promoteToAdmin({ path }),
+      admin.administration.promoteToAdmin({ path }),
+    ]);
+    expect(responses.map(({ response }) => response?.status)).toEqual([204, 204]);
+
+    const changes = await sql`
+      select change from identity_and_access_context.admin_right_changes where user_id = ${path.userId}`;
+    expect(changes).toEqual([{ change: 'GRANTED' }]);
+  });
+
+  test('should refuse the role of a member to an admin until their admin right is taken back', async ({
+    admin,
+    agent,
+    expect,
+  }) => {
+    const path = { userId: agent['@user']!.id };
+    await admin.administration.promoteToAdmin({ path, throwOnError: true });
+
+    const refused = await admin.administration.updateRole({ body: { role: 'MEMBRE_SIEGE' }, path });
+    expect(refused.response?.status).toBe(400);
+
+    await admin.administration.demoteFromAdmin({ path, throwOnError: true });
+    const updated = await admin.administration.updateRole({ body: { role: 'MEMBRE_SIEGE' }, path });
+    expect(updated.response?.status).toBe(204);
   });
 
   test.describe('Given a logged-in member', () => {
@@ -145,6 +188,21 @@ test.describe('Administration', () => {
   });
 
   test.describe('Given a deactivated member', () => {
+    test('should detail the account with its status changes, the latest first', async ({
+      admin,
+      expect,
+      registerUser,
+    }) => {
+      const user = await registerUser('MEMBRE_COMMUN');
+      await admin.administration.deactivate({ path: { userId: user.id }, throwOnError: true });
+      await admin.administration.reactivate({ path: { userId: user.id }, throwOnError: true });
+      await admin.administration.deactivate({ path: { userId: user.id }, throwOnError: true });
+
+      const { data } = await admin.administration.detailsUser({ path: { userId: user.id }, throwOnError: true });
+      expect(data.statusChanges.map(({ status }) => status)).toEqual(['DEACTIVATED', 'ACTIVE', 'DEACTIVATED']);
+      expect(data.deactivatedAt).toBe(data.statusChanges[0]!.changedAt);
+    });
+
     test('should refuse the login of the member', async ({ admin, baseUrl, expect, registerUser }) => {
       const user = await registerUser('MEMBRE_COMMUN');
       await admin.administration.deactivate({ path: { userId: user.id }, throwOnError: true });

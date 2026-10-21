@@ -110,15 +110,21 @@ export class AdministrationController {
   @HasRole('ADMIN')
   @Put('/users/:userId/promotion')
   @HttpCode(HttpStatus.NO_CONTENT)
-  promoteToAdmin(@Param('userId', ParseUUIDPipe) userId: string): Promise<void> {
-    return this.administration.promoteToAdmin({ userId });
+  promoteToAdmin(
+    @AuthedUser() actor: { id: string },
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ): Promise<void> {
+    return this.administration.promoteToAdmin({ actorId: actor.id, userId });
   }
 
   @HasRole('ADMIN')
   @Delete('/users/:userId/promotion')
   @HttpCode(HttpStatus.NO_CONTENT)
-  demoteFromAdmin(@Param('userId', ParseUUIDPipe) userId: string): Promise<void> {
-    return this.administration.demoteFromAdmin({ userId });
+  demoteFromAdmin(
+    @AuthedUser() actor: { id: string },
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ): Promise<void> {
+    return this.administration.demoteFromAdmin({ actorId: actor.id, userId });
   }
 
   @HasRole('ADMIN')
@@ -134,7 +140,10 @@ export class AdministrationController {
   @HasRole('ADMIN')
   @Delete('/users/:userId/deactivation')
   @HttpCode(HttpStatus.NO_CONTENT)
-  reactivate(@Param('userId', ParseUUIDPipe) userId: string): Promise<void> {
-    return this.administration.reactivate({ userId });
+  reactivate(
+    @AuthedUser() actor: { id: string },
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ): Promise<void> {
+    return this.administration.reactivate({ actorId: actor.id, userId });
   }
 }

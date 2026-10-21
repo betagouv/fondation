@@ -95,22 +95,22 @@ describe('AdminUserRole', () => {
     expect(reTitled?.title).toBeNull();
   });
 
-  it('should re-title the ADMIN FIRST_SECRETARY to SECRETARY', () => {
+  it('should re-title the secretariat FIRST_SECRETARY to SECRETARY', () => {
     const reTitled = AdminUserRole.from({
-      role: 'ADMIN',
+      role: 'ADJOINT_SECRETAIRE_GENERAL',
       title: 'FIRST_SECRETARY',
       duty: 'SECRETARY',
     }).reTitle(AdminUserTitle.from('SECRETARY'));
 
     expect(reTitled).not.toBeNull();
-    expect(reTitled?.role).toBe('ADMIN');
+    expect(reTitled?.role).toBe('ADJOINT_SECRETAIRE_GENERAL');
     expect(reTitled?.duty).toBe('SECRETARY');
     expect(reTitled?.title).toBeNull();
   });
 
-  it('should re-title the ADMIN FIRST_SECRETARY to MEMBRE SIEGE', () => {
+  it('should re-title the secretariat FIRST_SECRETARY to MEMBRE SIEGE', () => {
     const reTitled = AdminUserRole.from({
-      role: 'ADMIN',
+      role: 'ADJOINT_SECRETAIRE_GENERAL',
       title: 'FIRST_SECRETARY',
       duty: 'SECRETARY',
     }).reTitle(AdminUserTitle.from('MEMBRE_SIEGE'));
@@ -121,9 +121,9 @@ describe('AdminUserRole', () => {
     expect(reTitled?.title).toBeNull();
   });
 
-  it('should NOT re-title the ADMIN SECRETARY to SECRETARY', () => {
+  it('should NOT re-title the secretariat SECRETARY to SECRETARY', () => {
     const reTitled = AdminUserRole.from({
-      role: 'ADMIN',
+      role: 'ADJOINT_SECRETAIRE_GENERAL',
       title: null,
       duty: 'SECRETARY',
     }).reTitle(AdminUserTitle.from('SECRETARY'));

@@ -91,7 +91,12 @@ test.describe('Simple Auth E2E', () => {
 
     // logging out of an impersonation only ends it: the admin keeps their own session
     const after = await asAdmin.auth.introspectSession();
-    expect(after.data).toMatchObject({ isImpersonated: false, role: 'ADMIN', userId: admin.id });
+    expect(after.data).toMatchObject({
+      isAdmin: true,
+      isImpersonated: false,
+      role: 'ADJOINT_SECRETAIRE_GENERAL',
+      userId: admin.id,
+    });
     const revoked = await asImpersonated.auth.introspectSession();
     expect(revoked.response?.status).toBe(401);
   });

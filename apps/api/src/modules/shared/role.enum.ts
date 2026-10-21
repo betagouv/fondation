@@ -4,10 +4,9 @@ export const RoleEnum = {
   MEMBRE_DU_PARQUET: 'MEMBRE_DU_PARQUET',
   MEMBRE_COMMUN: 'MEMBRE_COMMUN',
   ADJOINT_SECRETAIRE_GENERAL: 'ADJOINT_SECRETAIRE_GENERAL',
-  ADMIN: 'ADMIN',
 } as const;
 export type RoleEnum = (typeof RoleEnum)[keyof typeof RoleEnum];
 
 export function isSecretariat(role: RoleEnum): boolean {
-  return role === 'ADJOINT_SECRETAIRE_GENERAL' || role === 'ADMIN';
+  return role === 'ADJOINT_SECRETAIRE_GENERAL';
 }

@@ -31,6 +31,7 @@ export class UserRepository {
         deactivatedAt: true,
         duty: true,
         id: true,
+        isAdmin: true,
         role: true,
         title: true,
       } satisfies Prisma.UserSelect,
@@ -40,6 +41,7 @@ export class UserRepository {
 
     return User.from({
       id: user.id,
+      isAdmin: user.isAdmin,
       role: AdminUserRole.from({
         duty: user.duty,
         role: prismaRoleEnumToRoleEnum(user.role),
@@ -64,6 +66,7 @@ export class UserRepository {
         deactivatedAt: true,
         duty: true,
         id: true,
+        isAdmin: true,
         lastName: true,
         role: true,
         title: true,
@@ -76,6 +79,7 @@ export class UserRepository {
         user.lastName.toUpperCase(),
         User.from({
           id: user.id,
+          isAdmin: user.isAdmin,
           role: AdminUserRole.from({
             duty: user.duty,
             role: prismaRoleEnumToRoleEnum(user.role),
@@ -151,31 +155,72 @@ export class UserRepository {
     });
   }
 
-  private persistUserPromotedToAdmin(message: UserPromotedToAdmin) {
-    return this.db.tx.user.update({
-      data: { role: 'ADMIN' },
-      where: { id: message.userId },
+  /** the conditions on the current state keep a concurrent request from recording the same change twice */
+  private async persistUserPromotedToAdmin(message: UserPromotedToAdmin) {
+    const { count } = await this.db.tx.user.updateMany({
+      data: { isAdmin: true },
+      where: { id: message.userId, isAdmin: false },
+    });
+    if (count === 0) return;
+
+    await this.db.tx.adminRightChange.create({
+      data: {
+        change: 'GRANTED',
+        changedAt: message.promotedAt,
+        changedBy: message.promotedBy,
+        userId: message.userId,
+      },
     });
   }
 
-  private persistUserDemotedFromAdmin(message: UserDemotedFromAdmin) {
-    return this.db.tx.user.update({
-      data: { role: 'ADJOINT_SECRETAIRE_GENERAL' },
-      where: { id: message.userId },
+  private async persistUserDemotedFromAdmin(message: UserDemotedFromAdmin) {
+    const { count } = await this.db.tx.user.updateMany({
+      data: { isAdmin: false },
+      where: { id: message.userId, isAdmin: true },
+    });
+    if (count === 0) return;
+
+    await this.db.tx.adminRightChange.create({
+      data: {
+        change: 'REVOKED',
+        changedAt: message.demotedAt,
+        changedBy: message.demotedBy,
+        userId: message.userId,
+      },
     });
   }
 
-  private persistUserDeactivated(message: UserDeactivated) {
-    return this.db.tx.user.update({
-      data: { deactivatedAt: message.deactivatedAt, deactivatedBy: message.deactivatedBy },
-      where: { id: message.userId },
+  private async persistUserDeactivated(message: UserDeactivated) {
+    const { count } = await this.db.tx.user.updateMany({
+      data: { deactivatedAt: message.deactivatedAt },
+      where: { deactivatedAt: null, id: message.userId },
+    });
+    if (count === 0) return;
+
+    await this.db.tx.userStatusChange.create({
+      data: {
+        changedAt: message.deactivatedAt,
+        changedBy: message.deactivatedBy,
+        status: 'DEACTIVATED',
+        userId: message.userId,
+      },
     });
   }
 
-  private persistUserReactivated(message: UserReactivated) {
-    return this.db.tx.user.update({
-      data: { deactivatedAt: null, deactivatedBy: null },
-      where: { id: message.userId },
+  private async persistUserReactivated(message: UserReactivated) {
+    const { count } = await this.db.tx.user.updateMany({
+      data: { deactivatedAt: null },
+      where: { deactivatedAt: { not: null }, id: message.userId },
+    });
+    if (count === 0) return;
+
+    await this.db.tx.userStatusChange.create({
+      data: {
+        changedAt: message.reactivatedAt,
+        changedBy: message.reactivatedBy,
+        status: 'ACTIVE',
+        userId: message.userId,
+      },
     });
   }
 }

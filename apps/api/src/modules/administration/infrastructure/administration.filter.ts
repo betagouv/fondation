@@ -10,7 +10,7 @@ import { catchError, Observable, throwError } from 'rxjs';
 
 import {
   CantDeactivateOwnAccount,
-  CantDemoteFromAdmin,
+  CantGiveAdminAMemberRole,
   CantPromoteMemberToAdmin,
   EmailAlreadyTaken,
 } from '../domain/user';
@@ -27,9 +27,9 @@ export class AdministrationErrorMapper implements NestInterceptor {
             });
           }
 
-          if (error instanceof CantDemoteFromAdmin) {
+          if (error instanceof CantGiveAdminAMemberRole) {
             return new BadRequestException({
-              validationError: `L'utilisateur n'est pas administrateur`,
+              validationError: `Retirez d'abord les droits administrateur`,
             });
           }
 

@@ -19,17 +19,17 @@ export class DetailsUserFromImpersonationQuery {
   async handle(impersonation: {
     id: string;
     authSessionId: string;
-  }): Promise<{ id: string; role: string; impersonatorId: string } | null> {
+  }): Promise<{ id: string; isAdmin: boolean; role: string; impersonatorId: string } | null> {
     const found = await this.db.tx.authImpersonation.findFirst({
       where: { id: impersonation.id },
       select: {
         expiresAt: true,
-        impersonatedUser: { select: { deactivatedAt: true, id: true, role: true } },
+        impersonatedUser: { select: { deactivatedAt: true, id: true, isAdmin: true, role: true } },
         session: {
           select: {
             sessionId: true,
             expiresAt: true,
-            user: { select: { id: true, role: true } },
+            user: { select: { id: true, isAdmin: true } },
           },
         },
       } satisfies Prisma.AuthImpersonationSelect,
@@ -52,12 +52,11 @@ export class DetailsUserFromImpersonationQuery {
       return null;
     }
 
-    if (found.session.user.role !== 'ADMIN') {
+    if (!found.session.user.isAdmin) {
       // should not happen
       captureException(
         Object.assign(new Error(`Received impersonated request from non ADMIN user`), {
           userId: found.session.user.id,
-          userRole: found.session.user.role,
         }),
       );
       this.logger.error(
@@ -74,6 +73,7 @@ export class DetailsUserFromImpersonationQuery {
 
     return {
       id: found.impersonatedUser.id,
+      isAdmin: found.impersonatedUser.isAdmin,
       role: found.impersonatedUser.role,
       impersonatorId: found.session.user.id,
     };

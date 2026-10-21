@@ -143,6 +143,7 @@ export class SimpleAuthController {
   registerUser(@Body() body: RegisterUserDto): Promise<RegisteredUserDto> {
     return this.auth.registerUser({
       ...body,
+      isAdmin: body.isAdmin ?? false,
       role: body.role ?? 'MEMBRE_COMMUN',
     });
   }

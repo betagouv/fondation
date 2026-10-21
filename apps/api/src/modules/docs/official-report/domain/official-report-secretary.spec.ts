@@ -20,7 +20,6 @@ describe('OfficialReportSecretary', () => {
 
   it.each`
     role
-    ${RoleEnum.ADMIN}
     ${RoleEnum.ADJOINT_SECRETAIRE_GENERAL}
   `('should allow creating a secretary from a $role', ({ role }) => {
     expect(() => OfficialReportSecretary.from(makeSecretary({ role }))).not.toThrow(InvalidSecretaryRole);

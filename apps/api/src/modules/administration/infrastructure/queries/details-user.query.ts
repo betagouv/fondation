@@ -27,8 +27,10 @@ export class DetailsUserQuery {
         firstName: true,
         gender: true,
         id: true,
+        isAdmin: true,
         lastName: true,
         role: true,
+        statusChanges: { orderBy: { changedAt: 'desc' }, select: { changedAt: true, status: true } },
         title: true,
       } satisfies Prisma.UserSelect,
       where: { id: query.userId },
@@ -41,21 +43,28 @@ export class DetailsUserQuery {
       title: user.title,
     });
     const status = userStatusOf(user);
-    const admin = User.from({ id: user.id, role, status });
+    const admin = User.from({ id: user.id, isAdmin: user.isAdmin, role, status });
 
     return {
+      assignableRoles: admin.assignableRoles(),
       canDeactivate: admin.canDeactivate(query.actorId),
+      canHoldAdminRight: admin.canHoldAdminRight(),
       canImpersonate: AuthUser.canBeImpersonated({ status }),
       canReactivate: admin.canReactivate(),
+      deactivatedAt: user.deactivatedAt?.toISOString() ?? null,
       displayTitle: user.displayTitle ?? null,
       email: user.email,
       firstName: user.firstName,
       gender: prismaGenderEnumToGenderEnum(user.gender),
       id: user.id,
-      isAdmin: user.role === 'ADMIN',
+      isAdmin: user.isAdmin,
       lastName: user.lastName,
       role: role.toString(),
       status,
+      statusChanges: user.statusChanges.map(({ changedAt, status }) => ({
+        changedAt: changedAt.toISOString(),
+        status,
+      })),
     };
   }
 }
@@ -72,7 +81,11 @@ export class DetailedAdminUserDto extends createZodDto(
     isAdmin: z.boolean(),
     status: z.enum(USER_STATUSES),
     canDeactivate: z.boolean(),
+    canHoldAdminRight: z.boolean(),
     canImpersonate: z.boolean(),
     canReactivate: z.boolean(),
+    assignableRoles: z.array(z.enum(ADMIN_USER_ROLES_ENUM)),
+    deactivatedAt: z.iso.datetime().nullable(),
+    statusChanges: z.array(z.object({ changedAt: z.iso.datetime(), status: z.enum(USER_STATUSES) })),
   }),
 ) {}

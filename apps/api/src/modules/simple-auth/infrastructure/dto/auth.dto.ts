@@ -19,6 +19,7 @@ export class RegisterUserDto extends createZodDto(
     email: z.email().toLowerCase(),
     password: z.string(),
     role: z.enum(RoleEnum).nullish(),
+    isAdmin: z.boolean().optional(),
   }),
 ) {}
 

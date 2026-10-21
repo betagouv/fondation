@@ -14,9 +14,9 @@ import { AppHeader } from './Header';
 
 const USERS = {
   ADJOINT_SECRETAIRE_GENERAL: STORY_USERS.sg,
-  ADMIN: { ...STORY_USERS.sg, role: 'ADMIN' },
+  ADMIN: { ...STORY_USERS.sg, isAdmin: true },
   MEMBRE_DU_SIEGE: STORY_USERS.member,
-} satisfies Partial<Record<RoleEnum, SessionUser>>;
+} satisfies Partial<Record<'ADMIN' | RoleEnum, SessionUser>>;
 type Role = keyof typeof USERS;
 
 const PAGES = ['home', 'archives', 'archivedSession', 'magistratSearch'] as const;

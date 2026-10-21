@@ -94,9 +94,10 @@ export class AdministrationService {
     return { notFound, updatedCount: toUpdate.length };
   }
 
-  async promoteToAdmin(command: { userId: string }): Promise<void> {
+  @Transactional()
+  async promoteToAdmin(command: { actorId: string; userId: string }): Promise<void> {
     const user = await this.userRepository.findById(command.userId);
-    user.promoteAdmin();
+    user.promoteAdmin({ actorId: command.actorId, now: this.clock.now() });
     await this.userRepository.persist(user);
   }
 
@@ -108,15 +109,17 @@ export class AdministrationService {
     await this.auth.internalRevokeSessions({ keptSessionId: undefined, userId: command.userId });
   }
 
-  async reactivate(command: { userId: string }): Promise<void> {
+  @Transactional()
+  async reactivate(command: { actorId: string; userId: string }): Promise<void> {
     const user = await this.userRepository.findById(command.userId);
-    user.reactivate();
+    user.reactivate({ actorId: command.actorId, now: this.clock.now() });
     await this.userRepository.persist(user);
   }
 
-  async demoteFromAdmin(command: { userId: string }): Promise<void> {
+  @Transactional()
+  async demoteFromAdmin(command: { actorId: string; userId: string }): Promise<void> {
     const user = await this.userRepository.findById(command.userId);
-    user.demoteAdmin();
+    user.demoteAdmin({ actorId: command.actorId, now: this.clock.now() });
     await this.userRepository.persist(user);
   }
 }
