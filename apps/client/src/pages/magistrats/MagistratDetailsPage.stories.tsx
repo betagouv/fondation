@@ -34,8 +34,11 @@ const MAGISTRAT: DetailedMagistratDto = {
   name: 'Mme VASSEUR Nathalie (ép. ROUSSEL)',
   nominationDate: { day: 12, month: 7, year: 2021 },
   professionalEmail: 'nathalie.roussel@justice.gouv.fr',
+  status: 'ACTIVE',
   usedName: 'Roussel',
 };
+
+const STATUSES = ['ACTIVE', 'INACTIVE'] as const satisfies readonly DetailedMagistratDto['status'][];
 
 type MagistratNominationFile = ListedMagistratNominationFilesDto['items'][number];
 
@@ -111,7 +114,6 @@ function page<T>(items: T[]) {
 }
 
 const magistratHandlers = [
-  http.get('*/api/magistrats/v1/:magistratId', () => HttpResponse.json<DetailedMagistratDto>(MAGISTRAT)),
   http.get('*/api/magistrats/v1/:magistratId/nomination-files', () =>
     HttpResponse.json<ListedMagistratNominationFilesDto>(page(NOMINATION_FILES)),
   ),
@@ -128,7 +130,7 @@ const PATHS = {
   sg: ROUTE_PATHS.SG.MAGISTRAT_DETAILS,
 } satisfies Record<StoryView, string>;
 
-function MagistratDetailsPageStory(props: { view: StoryView }) {
+function MagistratDetailsPageStory(props: { status: DetailedMagistratDto['status']; view: StoryView }) {
   return (
     <PageStory
       location={getMagistratDetailsPath({
@@ -144,10 +146,18 @@ function MagistratDetailsPageStory(props: { view: StoryView }) {
 }
 
 const meta = {
-  args: { view: 'sg' },
-  argTypes: { view: { control: 'inline-radio', options: STORY_VIEWS } },
-  beforeEach: ({ msw }) => {
-    msw.use(...magistratHandlers);
+  args: { status: 'ACTIVE', view: 'sg' },
+  argTypes: {
+    status: { control: 'inline-radio', options: STATUSES },
+    view: { control: 'inline-radio', options: STORY_VIEWS },
+  },
+  beforeEach: ({ args, msw }) => {
+    msw.use(
+      http.get('*/api/magistrats/v1/:magistratId', () =>
+        HttpResponse.json<DetailedMagistratDto>({ ...MAGISTRAT, status: args.status }),
+      ),
+      ...magistratHandlers,
+    );
   },
   component: MagistratDetailsPageStory,
   parameters: { layout: 'fullscreen' },
