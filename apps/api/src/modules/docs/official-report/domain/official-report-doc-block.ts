@@ -45,9 +45,9 @@ const BlockFileSchema = z.object({
   /** the agenda the proposition comes from, the one place its sentence is written */
   agendaId: z.string().nullable(),
   agendaEditedAt: z.iso.datetime().nullable(),
-  agendaEditedBy: z.object({ id: z.string(), name: z.string() }).nullable(),
+  agendaEditedBy: writerSchema,
   editedAt: z.iso.datetime().nullable(),
-  editedBy: z.object({ id: z.string(), name: z.string() }).nullable(),
+  editedBy: writerSchema,
   /** the text comes from the agenda, so the report is not the one to credit for it */
   fromAgenda: z.boolean(),
   name: z.string(),
