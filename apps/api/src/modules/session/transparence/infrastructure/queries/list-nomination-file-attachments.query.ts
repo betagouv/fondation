@@ -3,7 +3,7 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { Prisma } from '../../../../../generated/prisma/client';
-import { fullname } from '../../../../../utils/user.util';
+import { writerOf, writerSchema } from '../../../../../utils/user.util';
 import { Db } from '../../../../framework/database';
 import { NominationFileAttachmentTypeEnum } from '../../../../shared/nomination-file-attachment-type.enum';
 
@@ -44,7 +44,7 @@ export class ListNominationFileAttachmentsQuery {
         size: file.sizeInBytes,
         type,
         addedAt: createdAt.toISOString(),
-        addedBy: file.createdBy ? { id: file.createdBy.id, name: fullname(file.createdBy) } : null,
+        addedBy: writerOf(file.createdBy),
       })),
     };
   }
@@ -59,7 +59,7 @@ export class ListedNominationFileAttachmentDto extends createZodDto(
         size: z.number().int().nullable(),
         type: z.enum(NominationFileAttachmentTypeEnum),
         addedAt: z.iso.datetime(),
-        addedBy: z.object({ id: z.string(), name: z.string() }).nullable(),
+        addedBy: writerSchema,
       }),
     ),
   }),

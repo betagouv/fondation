@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import * as $api from '@api/sdk';
 
 import {
+  OfficialReportBlocksModel,
   OfficialReportEditionBlock,
   OfficialReportEditionBlockPersistor,
 } from './official-report-blocks.model';
@@ -108,6 +109,48 @@ describe('OfficialReportEditionBlock', () => {
           body: { html: '<p class="end-time">Fin de séance</p>', outdated: false },
         }),
       );
+    });
+  });
+});
+
+describe('OfficialReportBlocksModel', () => {
+  describe('a note being written', () => {
+    const modelWith = () => {
+      const onDirtyChange = vi.fn();
+      const model = new OfficialReportBlocksModel({
+        blocks: [],
+        officialReportId: 'report-1',
+        onDirtyChange,
+      });
+      return { model, onDirtyChange };
+    };
+
+    it('counts as a change not saved yet, until it is dropped', () => {
+      const { model, onDirtyChange } = modelWith();
+
+      model.draftNote('file-1', '<p>Information</p>');
+      expect(model.isDirty).toBe(true);
+
+      model.draftNote('file-1', null);
+      expect(model.isDirty).toBe(false);
+      expect(onDirtyChange.mock.calls).toEqual([[true], [false]]);
+    });
+
+    it('is saved with the rest of the report', async () => {
+      const editNote = vi.spyOn($api.docs, 'editOfficialReportFileNote').mockResolvedValueOnce({
+        data: { editedAt: null, editedBy: null, html: '<p>Information</p>' },
+        error: undefined,
+      });
+      const { model } = modelWith();
+
+      model.draftNote('file-1', '<p>Information</p>');
+      await model.save();
+
+      expect(editNote).toHaveBeenCalledWith({
+        body: { html: '<p>Information</p>' },
+        path: { nominationFileId: 'file-1', officialReportId: 'report-1' },
+      });
+      expect(model.isDirty).toBe(false);
     });
   });
 });

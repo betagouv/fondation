@@ -117,6 +117,7 @@ export function officialReportBlocks(state: BlocksState & { note?: boolean }): O
       generatedHtml: `${CURIE}.`,
       html: `${CURIE}.`,
       kind: 'file',
+      name: 'MME Marie CURIE',
       nominationFileId: 'file-1',
       note: state.note
         ? { ...EDITION, html: '<p>MME Marie CURIE a renoncé au délai de convocation.</p>' }
@@ -136,6 +137,7 @@ export function officialReportBlocks(state: BlocksState & { note?: boolean }): O
       generatedHtml: `${GERMAIN}.`,
       html: state.rewritten ? `${GERMAIN_REWRITTEN}.` : `${GERMAIN}.`,
       kind: 'file',
+      name: 'MME Sophie GERMAIN',
       nominationFileId: 'file-2',
       note: null,
       outdated: false,
@@ -148,6 +150,7 @@ export function officialReportBlocks(state: BlocksState & { note?: boolean }): O
       generatedHtml: `${PEREY}.`,
       html: state.rewritten ? `${PEREY_REWRITTEN}.` : `${PEREY}.`,
       kind: 'file',
+      name: 'MME Marguerite PEREY',
       nominationFileId: 'file-3',
       note: null,
       outdated: state.rewritten && state.outdated,

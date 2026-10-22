@@ -4,7 +4,7 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { Prisma } from '../../../../../generated/prisma/client';
-import { fullname } from '../../../../../utils/user.util';
+import { writerOf, writerSchema } from '../../../../../utils/user.util';
 import { Db } from '../../../../framework/database';
 
 type AuditionVersion = {
@@ -61,13 +61,11 @@ function changeOf(version: AuditionVersion | null) {
 
   return {
     at: version.writtenAt.toISOString(),
-    by: version.author ? { id: version.author.id, name: fullname(version.author) } : null,
+    by: writerOf(version.author),
   };
 }
 
-const changeSchema = z
-  .object({ at: z.iso.datetime(), by: z.object({ id: z.string(), name: z.string() }).nullable() })
-  .nullable();
+const changeSchema = z.object({ at: z.iso.datetime(), by: writerSchema }).nullable();
 
 export class DetailedNominationFileAuditionHistoryDto extends createZodDto(
   z.object({ scheduled: changeSchema }),

@@ -1,4 +1,4 @@
-import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import type { FormationEnum } from '@/shared/enums/formation.enum';
 import { useTab } from '@/shared/hooks/useTab';
@@ -357,66 +357,53 @@ export const useOfficialReportHtmlQuery = (query: { id: string | undefined }) =>
         .then(({ data }) => (data ?? null) as string | null),
   });
 
-const officialReportDocumentQueryOptions = (id: string) =>
-  queryOptions({
-    queryKey: officialReportKeys.document(id),
+export const useOfficialReportDocumentQuery = (query: { id: string | undefined | null }) =>
+  useQuery({
+    enabled: !!query.id,
     queryFn: () =>
       $api.docs
-        .detailsOfficialReportDocument({ path: { officialReportId: id } })
+        .detailsOfficialReportDocument({ path: { officialReportId: query.id! } })
         .then(({ data = null }) => data),
+    queryKey: officialReportKeys.document(query.id ?? ''),
   });
-
-export const useOfficialReportDocumentQuery = (query: { id: string | undefined | null }) =>
-  useQuery({ ...officialReportDocumentQueryOptions(query.id ?? ''), enabled: !!query.id });
-
-function useOfficialReportFileNoteMutation<T extends { nominationFileId: string }>(
-  mutation: { officialReportId: string; sessionId: string },
-  write: (command: T) => Promise<unknown>,
-) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (command: T) => {
-      await write(command);
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: agendaKeys.findSessionDocs(mutation.sessionId) }),
-        queryClient.invalidateQueries({ queryKey: officialReportKeys.all(mutation.officialReportId) }),
-      ]);
-
-      // an invalidated query stays stale whatever its staleTime: this reuses the blocks the editor
-      // page has just read again, and reads them itself only when nothing on screen did
-      const document = await queryClient.query({
-        ...officialReportDocumentQueryOptions(mutation.officialReportId),
-        staleTime: Infinity,
-      });
-      const file = document?.blocks.find(
-        (block) => block.kind === 'file' && block.nominationFileId === command.nominationFileId,
-      );
-      return file?.kind === 'file' ? file.note : null;
-    },
-  });
-}
 
 export function useEditOfficialReportFileNoteMutation(mutation: {
   officialReportId: string;
   sessionId: string;
 }) {
-  return useOfficialReportFileNoteMutation(mutation, (command: { html: string; nominationFileId: string }) =>
-    $api.docs.editOfficialReportFileNote({
-      body: { html: command.html },
-      path: { nominationFileId: command.nominationFileId, officialReportId: mutation.officialReportId },
-    }),
-  );
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (command: { html: string; nominationFileId: string }) =>
+      $api.docs
+        .editOfficialReportFileNote({
+          body: { html: command.html },
+          path: { nominationFileId: command.nominationFileId, officialReportId: mutation.officialReportId },
+        })
+        .then(({ data }) => data!),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: agendaKeys.findSessionDocs(mutation.sessionId) });
+      queryClient.invalidateQueries({ queryKey: officialReportKeys.all(mutation.officialReportId) });
+    },
+  });
 }
 
 export function useDeleteOfficialReportFileNoteMutation(mutation: {
   officialReportId: string;
   sessionId: string;
 }) {
-  return useOfficialReportFileNoteMutation(mutation, (command: { nominationFileId: string }) =>
-    $api.docs.deleteOfficialReportFileNote({
-      path: { nominationFileId: command.nominationFileId, officialReportId: mutation.officialReportId },
-    }),
-  );
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (command: { nominationFileId: string }) =>
+      $api.docs.deleteOfficialReportFileNote({
+        path: { nominationFileId: command.nominationFileId, officialReportId: mutation.officialReportId },
+      }),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: agendaKeys.findSessionDocs(mutation.sessionId) });
+      queryClient.invalidateQueries({ queryKey: officialReportKeys.all(mutation.officialReportId) });
+    },
+  });
 }
 
 export function useValidateOfficialReportMutation(mutation: {

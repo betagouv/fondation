@@ -5,7 +5,7 @@ import z from 'zod';
 import { Prisma } from '../../../../generated/prisma/client';
 import { findMagistratsCurrentPositionRawQuery } from '../../../../generated/prisma/sql';
 import { auditionScheduleSchema } from '../../../../utils/audition-schedule';
-import { fullname } from '../../../../utils/user.util';
+import { writerOf, writerSchema } from '../../../../utils/user.util';
 import { Db } from '../../../framework/database';
 import { magistratFullName } from '../../../magistrat/domain/magistrat-name';
 import { TransparenceService } from '../../../session/transparence/infrastructure/transparence.service';
@@ -17,7 +17,7 @@ const ObservationFileSchema = z.object({
   name: z.string(),
   size: z.number().int().nullable(),
   addedAt: z.iso.datetime(),
-  addedBy: z.object({ id: z.string(), name: z.string() }).nullable(),
+  addedBy: writerSchema,
 });
 
 const ObservationSchema = z.object({
@@ -140,7 +140,7 @@ export class ListObservationsQuery {
           description: obs.description,
           files: obs.files.map(({ file }) => ({
             addedAt: file.createdAt.toISOString(),
-            addedBy: file.createdBy ? { id: file.createdBy.id, name: fullname(file.createdBy) } : null,
+            addedBy: writerOf(file.createdBy),
             id: file.id,
             name: file.name,
             size: file.sizeInBytes,

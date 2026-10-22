@@ -3,7 +3,7 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { Prisma } from '../../../../../generated/prisma/client';
-import { fullname } from '../../../../../utils/user.util';
+import { writerOf, writerSchema } from '../../../../../utils/user.util';
 import { Db } from '../../../../framework/database';
 
 @Injectable()
@@ -25,11 +25,10 @@ export class DetailSessionCommentQuery {
     if (!session) throw new NotFoundException();
 
     const [lastVersion] = session.commentVersions;
-    const author = lastVersion?.author;
     return {
       comment: session.comment,
       writtenAt: lastVersion?.writtenAt.toISOString() ?? null,
-      writtenBy: author ? { id: author.id, name: fullname(author) } : null,
+      writtenBy: writerOf(lastVersion?.author ?? null),
     };
   }
 }
@@ -38,6 +37,6 @@ export class DetailedSessionCommentDto extends createZodDto(
   z.object({
     comment: z.string().nullable(),
     writtenAt: z.iso.datetime().nullable(),
-    writtenBy: z.object({ id: z.string(), name: z.string() }).nullable(),
+    writtenBy: writerSchema,
   }),
 ) {}

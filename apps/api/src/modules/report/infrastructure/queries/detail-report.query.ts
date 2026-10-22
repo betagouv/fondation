@@ -4,7 +4,7 @@ import z from 'zod';
 
 import { Prisma } from '../../../../generated/prisma/client';
 import { isDefined } from '../../../../utils/is-defined';
-import { fullname } from '../../../../utils/user.util';
+import { writerOf, writerSchema } from '../../../../utils/user.util';
 import { Db } from '../../../framework/database';
 import { Files } from '../../../framework/files';
 import { prismaReportStateEnumToReportState } from '../../../shared/mappers/rapport-statut.mapper';
@@ -55,7 +55,7 @@ export class DetailReportQuery {
 
     const reportFiles = report.files.map(({ file, usage }) => ({
       addedAt: file.createdAt.toISOString(),
-      addedBy: file.createdBy ? { id: file.createdBy.id, name: fullname(file.createdBy) } : null,
+      addedBy: writerOf(file.createdBy),
       id: file.id,
       name: file.name,
       path: file.path,
@@ -137,7 +137,7 @@ export class DetailedReportDto extends createZodDto(
         id: z.string(),
         size: z.number().int().nullable(),
         addedAt: z.iso.datetime(),
-        addedBy: z.object({ id: z.string(), name: z.string() }).nullable(),
+        addedBy: writerSchema,
       }),
     ),
   }),

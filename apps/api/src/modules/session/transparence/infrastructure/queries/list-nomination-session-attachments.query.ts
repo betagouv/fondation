@@ -3,7 +3,7 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { Prisma } from '../../../../../generated/prisma/client';
-import { fullname } from '../../../../../utils/user.util';
+import { writerOf, writerSchema } from '../../../../../utils/user.util';
 import { Db } from '../../../../framework/database';
 
 @Injectable()
@@ -37,7 +37,7 @@ export class ListNominationSessionAttachmentsQuery {
         id: file.id,
         name: file.name,
         addedAt: file.createdAt.toISOString(),
-        addedBy: file.createdBy ? { id: file.createdBy.id, name: fullname(file.createdBy) } : null,
+        addedBy: writerOf(file.createdBy),
         size: file.sizeInBytes,
       })),
     };
@@ -51,7 +51,7 @@ export class ListedNominationSessionAttachmentDto extends createZodDto(
         name: z.string(),
         id: z.string(),
         addedAt: z.iso.datetime(),
-        addedBy: z.object({ id: z.string(), name: z.string() }).nullable(),
+        addedBy: writerSchema,
         size: z.number().int().nullable(),
       }),
     ),

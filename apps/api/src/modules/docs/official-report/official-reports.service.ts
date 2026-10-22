@@ -21,8 +21,10 @@ import { OfficialReportVersionFinder } from './infrastructure/finders/official-r
 import {
   CreatedOfficialReportDto,
   DetailedOfficialReportDocumentDto,
+  EditedOfficialReportFileNoteDto,
 } from './infrastructure/official-reports.dto';
 import { DetailsOfficialReportDocumentQuery } from './infrastructure/queries/details-official-report-document.query';
+import { DetailsOfficialReportFileNoteQuery } from './infrastructure/queries/details-official-report-file-note.query';
 import {
   DetailedOfficialReportMetadataDto,
   DetailsOfficialReportQuery,
@@ -44,6 +46,7 @@ export class OfficialReportsService {
     private readonly docsNominationFilesFinder: DocsNominationFilesFinder,
 
     private readonly detailsOfficialReportDocumentQuery: DetailsOfficialReportDocumentQuery,
+    private readonly detailsOfficialReportFileNoteQuery: DetailsOfficialReportFileNoteQuery,
     private readonly detailsOfficialReportMetadataQuery: DetailsOfficialReportQuery,
     private readonly detailsSessionOfficialReportQuery: DetailsSessionOfficialReportQuery,
     private readonly findOfficialReportDocumentPdfQuery: FindOfficialReportDocumentPdfQuery,
@@ -310,15 +313,21 @@ export class OfficialReportsService {
     );
   }
 
-  editOfficialReportFileNote(command: {
+  @Transactional()
+  async editOfficialReportFileNote(command: {
     authorId: string;
     html: string;
     id: string;
     nominationFileId: string;
-  }): Promise<void> {
-    return this.withOfficialReport({ actorId: command.authorId, id: command.id }, (report) =>
+  }): Promise<EditedOfficialReportFileNoteDto> {
+    await this.withOfficialReport({ actorId: command.authorId, id: command.id }, (report) =>
       report.editFileNote(command),
     );
+
+    return this.detailsOfficialReportFileNoteQuery.handle({
+      nominationFileId: command.nominationFileId,
+      officialReportId: command.id,
+    });
   }
 
   deleteOfficialReportFileNote(command: {

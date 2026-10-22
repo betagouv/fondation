@@ -543,6 +543,7 @@ export function* officialReportBlocks(ctx: OfficialReportRenderContext): Iterabl
         agendaEditedAt: agendaProposal?.at?.toISOString() ?? null,
         agendaEditedBy: agendaProposal?.by ?? null,
         generatedHtml: templateFile,
+        name: file.name,
         note: file.note && { ...file.note, editedAt: file.note.editedAt?.toISOString() ?? null },
       };
     }

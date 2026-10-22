@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { fullname } from '../../../../../utils/user.util';
+import { writerOf, writerSchema } from '../../../../../utils/user.util';
 import { AuditionPublicationFinder } from '../finders/audition-publication.finder';
 
 const PUBLICATION_STATUSES = ['NEVER_PUBLISHED', 'PUBLISHED', 'UNPUBLISHED_CHANGES'] as const;
@@ -21,7 +21,7 @@ export class DetailAuditionsPublicationQuery {
     return {
       lastPublished: {
         at: last.publishedAt.toISOString(),
-        by: last.publisher ? { id: last.publisher.id, name: fullname(last.publisher) } : null,
+        by: writerOf(last.publisher),
       },
       status: last.auditions.equals(current) ? 'PUBLISHED' : 'UNPUBLISHED_CHANGES',
     };
@@ -30,9 +30,7 @@ export class DetailAuditionsPublicationQuery {
 
 export class DetailedAuditionsPublicationDto extends createZodDto(
   z.object({
-    lastPublished: z
-      .object({ at: z.iso.datetime(), by: z.object({ id: z.string(), name: z.string() }).nullable() })
-      .nullable(),
+    lastPublished: z.object({ at: z.iso.datetime(), by: writerSchema }).nullable(),
     status: z.enum(PUBLICATION_STATUSES),
   }),
 ) {}
