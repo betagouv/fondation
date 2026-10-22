@@ -46,6 +46,8 @@ export class AffectationVersionFinder {
     sessionId: string;
     version: number | null;
   }): Promise<OptionalAffectationVersion> {
+    if (props.version === null) return OptionalAffectationVersion.none();
+
     const version = await this.db.tx.affectationVersion.findFirst({
       select: {
         id: true,
@@ -54,9 +56,7 @@ export class AffectationVersionFinder {
         datePublication: true,
         user: { select: { id: true, firstName: true, lastName: true } },
       } satisfies Prisma.AffectationVersionSelect,
-      where: props.version
-        ? { version: props.version, sessionId: props.sessionId }
-        : { sessionId: props.sessionId },
+      where: { version: props.version, sessionId: props.sessionId },
     });
 
     if (!version) return OptionalAffectationVersion.none();

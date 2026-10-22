@@ -132,7 +132,7 @@ test.describe('Agenda', () => {
     const readiness = await agent.docs.isSessionReadyForDocGeneration({ path: { sessionId } });
     expect(readiness.data).toMatchObject({
       agendaBlocker: null,
-      agendaWarning: 'UNPUBLISHED_CHANGES',
+      agendaWarning: 'NEVER_PUBLISHED',
       canCreateAgenda: true,
     });
 
