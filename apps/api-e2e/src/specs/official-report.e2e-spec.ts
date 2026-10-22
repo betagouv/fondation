@@ -445,13 +445,15 @@ test.describe('Official report', () => {
     const path = { nominationFileId, officialReportId };
 
     const edited = await agent.docs.editOfficialReportFileNote({ body: { html: '<p>Information du PV</p>' }, path });
-    expect(edited.response?.status).toBe(204);
+    expect(edited.data).toEqual({
+      editedAt: expect.any(String),
+      editedBy: expect.any(Object),
+      html: '<p>Information du PV</p>',
+    });
 
     const metadata = await agent.docs.detailsOfficialReport({ path: { officialReportId } });
     expect(metadata.data).toMatchObject({ hasValidatedVersion: true, status: 'DRAFT' });
-    expect(await fileOf()).toMatchObject({
-      note: { editedAt: expect.any(String), editedBy: expect.any(Object), html: '<p>Information du PV</p>' },
-    });
+    expect(await fileOf()).toMatchObject({ note: edited.data });
 
     await agent.docs.deleteOfficialReportFileNote({ path });
 

@@ -72,7 +72,7 @@ FROM
   nominations_context.dossier_de_nomination AS ddn
   LEFT JOIN data_administration_context.jurisdictions AS detected_jurisdiction
     ON detected_jurisdiction.codejur = ddn.detected_jurisdiction_id
-  LEFT JOIN nominations_context.magistrat AS detected_magistrat
+  LEFT JOIN data_administration_context.magistrat AS detected_magistrat
     ON detected_magistrat.id = ddn.detected_magistrat_id
 
   LEFT JOIN LATERAL (

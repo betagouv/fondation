@@ -21,6 +21,7 @@ import { DocsService } from './docs.service';
 import { OfficialReportRenderContextFinder } from './official-report/infrastructure/finders/official-report-render-context.finder';
 import { OfficialReportVersionFinder } from './official-report/infrastructure/finders/official-report-version.finder';
 import { DetailsOfficialReportDocumentQuery } from './official-report/infrastructure/queries/details-official-report-document.query';
+import { DetailsOfficialReportFileNoteQuery } from './official-report/infrastructure/queries/details-official-report-file-note.query';
 import { DetailsOfficialReportQuery } from './official-report/infrastructure/queries/details-official-report.query';
 import { DetailsSessionOfficialReportQuery } from './official-report/infrastructure/queries/details-session-official-report.query';
 import { FindOfficialReportDocumentPdfQuery } from './official-report/infrastructure/queries/find-official-report-document-pdf.query';
@@ -68,6 +69,7 @@ import { InvalidateDocsUseCase } from './shared/infrastructure/use-cases/invalid
     DetailsAgendaFilesQuery,
     DetailsAgendaMetadataQuery,
     DetailsOfficialReportDocumentQuery,
+    DetailsOfficialReportFileNoteQuery,
     DetailsOfficialReportQuery,
     DetailsPresentationPlanMetadataQuery,
     DetailsPresentationPlanPdfDocumentQuery,

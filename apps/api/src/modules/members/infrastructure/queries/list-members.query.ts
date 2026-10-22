@@ -6,8 +6,9 @@ import { PrismaRoleEnum } from '../../../../generated/prisma/enums';
 import { listMembersRawQuery } from '../../../../generated/prisma/sql';
 import { Db } from '../../../framework/database';
 import { createPaginatedZodDto, paginate, Pagination } from '../../../framework/pagination';
+import { MEMBER_ROLES } from '../../../shared/role.enum';
 import { USER_STATUSES, UserStatus, userStatusOf } from '../../../shared/user-status.enum';
-import { isMember, MEMBER_ROLES } from '../member.utils';
+import { isMember } from '../member.utils';
 
 @Injectable()
 export class ListMembersQuery {

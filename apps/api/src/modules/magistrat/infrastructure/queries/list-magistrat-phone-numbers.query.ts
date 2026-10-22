@@ -4,7 +4,7 @@ import z from 'zod';
 
 import { listMagistratPhoneNumbersRawQuery } from '../../../../generated/prisma/sql';
 import { DateOnly, dateOnlyJsonSchema } from '../../../../utils/date-only';
-import { fullname } from '../../../../utils/user.util';
+import { writerOf, writerSchema } from '../../../../utils/user.util';
 import { Db } from '../../../framework/database';
 
 @Injectable()
@@ -28,10 +28,11 @@ export class ListMagistratPhoneNumbersQuery {
               id,
               label,
               number,
-              savedBy:
+              savedBy: writerOf(
                 authorId && authorFirstName && authorLastName
-                  ? { id: authorId, name: fullname({ firstName: authorFirstName, lastName: authorLastName }) }
+                  ? { firstName: authorFirstName, id: authorId, lastName: authorLastName }
                   : null,
+              ),
               source: 'FONDATION',
             },
           ];
@@ -54,7 +55,7 @@ const phoneNumberSchema = z.discriminatedUnion('source', [
     id: z.string(),
     label: z.string().nullable(),
     number: z.string(),
-    savedBy: z.object({ id: z.string(), name: z.string() }).nullable(),
+    savedBy: writerSchema,
     source: z.literal('FONDATION'),
   }),
   z.object({

@@ -6,11 +6,11 @@ WITH presence AS (
     CASE
       WHEN m.external_id = ANY($1::TEXT[]) THEN 'ACTIVE'
       ELSE 'INACTIVE'
-    END::nominations_context.magistrat_status_enum AS status
-  FROM nominations_context.magistrat AS m
+    END::data_administration_context.magistrat_status_enum AS status
+  FROM data_administration_context.magistrat AS m
 )
 
-UPDATE nominations_context.magistrat AS m
+UPDATE data_administration_context.magistrat AS m
 SET
   status = presence.status,
   updated_at = CURRENT_TIMESTAMP

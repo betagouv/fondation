@@ -17,7 +17,7 @@ SELECT
   j.codejur AS "jurisdictionId",
   j.libelle AS "jurisdictionLabel"
 
-FROM nominations_context."magistrat" m
+FROM data_administration_context."magistrat" m
   LEFT JOIN data_administration_context."position" p ON p.id = NULLIF(m.current_position_id, '')::INT
   LEFT JOIN data_administration_context."function" f ON f.id = p.function_id
   LEFT JOIN data_administration_context."jurisdictions" j ON j.codejur = p.jurisdiction_id

@@ -6,7 +6,7 @@ import { DateOnly } from '../../../../../utils/date-only';
 import { makeId } from '../../../../../utils/id';
 import { assertIsDefined, isDefined } from '../../../../../utils/is-defined';
 import { dateToTimeOnly } from '../../../../../utils/time-only';
-import { fullname } from '../../../../../utils/user.util';
+import { writerOf } from '../../../../../utils/user.util';
 import { Db } from '../../../../framework/database';
 import { TransparenceService } from '../../../../session/transparence/infrastructure/transparence.service';
 import { prismaFormationEnumToFormationEnum } from '../../../../shared/mappers/formation.mapper';
@@ -22,12 +22,6 @@ import { OfficialReportSessionMeeting } from '../../domain/official-report-sessi
 import type { OfficialReportRenderContext } from '../services/renderers/official-report.renderer';
 
 import { OfficialReportVersionFinder } from './official-report-version.finder';
-
-function writer(
-  user: { id: string; firstName: string; lastName: string } | null,
-): { id: string; name: string } | null {
-  return user ? { id: user.id, name: fullname(user) } : null;
-}
 
 @Injectable()
 export class OfficialReportRenderContextFinder {
@@ -177,7 +171,7 @@ export class OfficialReportRenderContextFinder {
           ? [
               [
                 file.nominationFileId,
-                { at: file.htmlEditedAt, by: writer(file.editor), html: file.htmlEdited },
+                { at: file.htmlEditedAt, by: writerOf(file.editor), html: file.htmlEdited },
               ] as const,
             ]
           : [],
@@ -261,7 +255,7 @@ export class OfficialReportRenderContextFinder {
               f.nominationFileId,
               {
                 editedAt: f.htmlEditedAt,
-                editedBy: writer(f.editor),
+                editedBy: writerOf(f.editor),
                 fromAgenda: f.htmlFromAgenda,
                 html: f.htmlEdited,
                 isOutdated: f.htmlOutdated,
@@ -294,7 +288,7 @@ export class OfficialReportRenderContextFinder {
         nominationFileId: isDefined(f.nominationFileId)
           ? makeId('NominationFileId', f.nominationFileId)
           : null,
-        note: f.note ? { editedAt: f.noteEditedAt, editedBy: writer(f.noteEditor), html: f.note } : null,
+        note: f.note ? { editedAt: f.noteEditedAt, editedBy: writerOf(f.noteEditor), html: f.note } : null,
         number: f.number,
         outcome: f.outcome,
         reporters: f.reporters,

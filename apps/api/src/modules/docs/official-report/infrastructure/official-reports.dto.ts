@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { dateOnlyJsonSchema } from '../../../../utils/date-only';
 import { timeOnlySchema } from '../../../../utils/time-only';
 import { editedHtml } from '../../shared/infrastructure/edited-html';
-import { DocBlockSchema } from '../domain/official-report-doc-block';
+import { DocBlockSchema, OfficialReportFileNoteSchema } from '../domain/official-report-doc-block';
 
 export class CreatedOfficialReportDto extends createZodDto(z.object({ id: z.uuid() })) {}
 
@@ -47,3 +47,5 @@ export class EditOfficialReportSectionIntroBlockDto extends createZodDto(z.objec
 export class EditOfficialReportFileNoteDto extends createZodDto(
   z.object({ html: editedHtml.refine((html) => load(html, null, false).text().trim() !== '') }),
 ) {}
+
+export class EditedOfficialReportFileNoteDto extends createZodDto(OfficialReportFileNoteSchema) {}

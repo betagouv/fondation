@@ -29,6 +29,7 @@ export class OfficialReportBlocksModel {
   readonly blocks: readonly OfficialReportBlock[];
   readonly officialReportId: string;
 
+  private readonly noteDrafts = new Map<string, string>();
   private readonly onDirtyChange: (isDirty: boolean) => void;
   private readonly pending = new Map<BlockKey, PendingChange>();
   private readonly persistor: OfficialReportEditionBlockPersistor;
@@ -47,7 +48,17 @@ export class OfficialReportBlocksModel {
   }
 
   get isDirty(): boolean {
-    return this.pending.size > 0;
+    return this.pending.size > 0 || this.noteDrafts.size > 0;
+  }
+
+  draftNote(nominationFileId: string, html: string | null): void {
+    if (html === null) {
+      this.noteDrafts.delete(nominationFileId);
+    } else {
+      this.noteDrafts.set(nominationFileId, html);
+    }
+
+    this.onDirtyChange(this.isDirty);
   }
 
   private stage(key: BlockKey, change: PendingChange | null): void {
@@ -82,12 +93,18 @@ export class OfficialReportBlocksModel {
       this.state?.set(key, change.block);
     }
 
+    for (const [nominationFileId, html] of this.noteDrafts) {
+      await this.persistor.editNote(nominationFileId, html);
+    }
+
     this.pending.clear();
+    this.noteDrafts.clear();
     this.onDirtyChange(false);
   }
 
   discard(): void {
     this.pending.clear();
+    this.noteDrafts.clear();
     this.onDirtyChange(false);
   }
 
@@ -371,6 +388,13 @@ class OfficialReportEditorDiff implements Iterable<OfficialReportEditionBlock> {
 
 export class OfficialReportEditionBlockPersistor {
   constructor(private readonly officialReportId: string) {}
+
+  editNote(nominationFileId: string, html: string): Promise<unknown> {
+    return $api.docs.editOfficialReportFileNote({
+      body: { html },
+      path: { nominationFileId, officialReportId: this.officialReportId },
+    });
+  }
 
   async reset({ block }: OfficialReportEditionBlock): Promise<unknown> {
     switch (block.kind) {

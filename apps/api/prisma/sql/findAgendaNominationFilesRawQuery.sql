@@ -49,7 +49,7 @@ FROM nominations_context.dossier_de_nomination ddn
         )
       ) AS magistrat
 
-    FROM nominations_context.magistrat mm
+    FROM data_administration_context.magistrat mm
       INNER JOIN data_administration_context."position" p ON p.id = mm.current_position_id::INT
       INNER JOIN data_administration_context."jurisdictions" j ON j.codejur = p.jurisdiction_id
       LEFT JOIN data_administration_context."jurisdictions" arr ON arr.codejur = j.arrondissement AND j.arrondissement != j.codejur

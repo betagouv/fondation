@@ -16,7 +16,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { FILE_EXTENSIONS, UseMultipartBody, type Multipart } from '../framework/files';
-import type { RoleEnum } from '../shared/role.enum';
+import { MEMBER_ROLES, type RoleEnum } from '../shared/role.enum';
 import { AuthedUser, AuthedUserId, HasRole } from '../simple-auth';
 
 import {
@@ -39,7 +39,7 @@ export class ReportController {
   constructor(private readonly reports: ReportService) {}
 
   @Post('/:reportId/files')
-  @HasRole()
+  @HasRole(...MEMBER_ROLES)
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseMultipartBody({
     schema: AttachReportFileDto,
@@ -61,7 +61,7 @@ export class ReportController {
   }
 
   @Delete('/:reportId/files')
-  @HasRole()
+  @HasRole(...MEMBER_ROLES)
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
   async detachFiles(
@@ -77,7 +77,7 @@ export class ReportController {
   }
 
   @Post('/:reportId/screenshots')
-  @HasRole()
+  @HasRole(...MEMBER_ROLES)
   @UseMultipartBody({
     schema: AttachScreenshotsDto,
     destination: ({ id, mimetype, request }) =>
@@ -97,7 +97,7 @@ export class ReportController {
   }
 
   @Get('/:reportId/files/url')
-  @HasRole()
+  @HasRole(...MEMBER_ROLES)
   @UsePipes(ZodValidationPipe)
   @ZodResponse({ type: GetReportFileUrlsResponseDto, status: HttpStatus.OK })
   async getReportFilesUrl(
@@ -123,7 +123,7 @@ export class ReportController {
   }
 
   @Patch('/:reportId')
-  @HasRole()
+  @HasRole(...MEMBER_ROLES)
   @UsePipes(ZodValidationPipe)
   @HttpCode(HttpStatus.NO_CONTENT)
   async updateReport(
@@ -139,7 +139,7 @@ export class ReportController {
   }
 
   @Put('/:reportId/rules/:ruleId')
-  @HasRole()
+  @HasRole(...MEMBER_ROLES)
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
   async updateReportRuleValidation(

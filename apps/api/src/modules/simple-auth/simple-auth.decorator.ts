@@ -11,7 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { ApiCookieAuth } from '@nestjs/swagger';
+import { ApiCookieAuth, ApiExtension } from '@nestjs/swagger';
 import { Request as ExpressRequest } from 'express';
 
 import { assertIsDefined, isDefined } from '../../utils/is-defined';
@@ -72,9 +72,17 @@ class HasRoleGuard implements CanActivate {
   }
 }
 
-/** ADMIN is no role but the admin right: the guard lets its holders through whatever the roles listed */
+/**
+ * ADMIN is no role but the admin right: the guard lets its holders through whatever the roles listed
+ *
+ * @remarks `x-roles` lets docs/droits-par-role.md be checked against the API, an empty list meaning any logged-in user
+ */
 export function HasRole(...roles: readonly (RoleEnum | 'ADMIN' | 'MACHINE')[]): MethodDecorator {
-  const decorators = [SetMetadata(META_ROLES, roles), UseGuards(mixin(HasRoleGuard))];
+  const decorators = [
+    SetMetadata(META_ROLES, roles),
+    UseGuards(mixin(HasRoleGuard)),
+    ApiExtension('x-roles', roles),
+  ];
 
   if (roles.length === 0 || roles.filter((x) => x !== 'MACHINE').length > 0) {
     decorators.push(ApiCookieAuth('sessionId'));

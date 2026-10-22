@@ -83,7 +83,7 @@ silver_nomination_files AS (
           jj."codejur"
         ) AS "current_position"
 
-      FROM nominations_context.magistrat AS mm
+      FROM data_administration_context.magistrat AS mm
         LEFT JOIN data_administration_context.position ON position.id = mm.current_position_id::INT
         LEFT JOIN data_administration_context."function" ON "function".id = position.function_id
         LEFT JOIN data_administration_context.jurisdictions jj ON jj.codejur = position."jurisdiction_id"

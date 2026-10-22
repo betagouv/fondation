@@ -6,9 +6,8 @@ import { assertNever } from '../../../utils/assert-never';
 import { makeId } from '../../../utils/id';
 import { Db } from '../../framework/database';
 import { prismaRoleEnumToRoleEnum } from '../../shared/mappers/role-enum.mapper';
+import { MEMBER_ROLES } from '../../shared/role.enum';
 import { ExcludedMemberJurisdictions, Member, MemberDisplayTitleUpdated } from '../domain/member';
-
-import { MEMBER_ROLES } from './member.utils';
 
 @Injectable()
 export class MemberRepository {
