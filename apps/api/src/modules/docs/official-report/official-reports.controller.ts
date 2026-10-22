@@ -31,6 +31,7 @@ import {
   CreateOfficialReportDto,
   DetailedOfficialReportDocumentDto,
   EditOfficialReportBlockDto,
+  EditedOfficialReportFileNoteDto,
   EditOfficialReportFileNoteDto,
   EditOfficialReportSectionIntroBlockDto,
   EditOfficialReportSectionTitleDto,
@@ -328,14 +329,14 @@ export class OfficialReportsController {
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Patch('/official-reports/:officialReportId/blocks/files/:nominationFileId/note')
-  @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
+  @ZodResponse({ status: HttpStatus.OK, type: EditedOfficialReportFileNoteDto })
   editOfficialReportFileNote(
     @AuthedUser() authUser: { id: string },
     @Param('officialReportId') officialReportId: string,
     @Param('nominationFileId') nominationFileId: string,
     @Body() body: EditOfficialReportFileNoteDto,
-  ): Promise<void> {
+  ): Promise<EditedOfficialReportFileNoteDto> {
     return this.officialReports.editOfficialReportFileNote({
       authorId: authUser.id,
       html: body.html,
