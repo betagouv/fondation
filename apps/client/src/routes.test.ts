@@ -4,29 +4,50 @@ import { join } from 'node:path';
 import type { LoaderFunction, LoaderFunctionArgs, RouteObject } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { AUTHORIZED_ROLES } from '@/features/auth/constants/authorized-roles.constants';
 import { queryClient } from '@queries/query-client';
 
 import { routes } from './routes';
 
-type View = { loaders: LoaderFunction[]; path: string };
+type View = { guards: LoaderFunction[]; path: string };
 type Access = { isPublic: boolean; member: boolean; path: string; secretariat: boolean };
 
-const MEMBER_ROLES = ['MEMBRE_COMMUN', 'MEMBRE_DU_PARQUET', 'MEMBRE_DU_SIEGE'] as const;
+// only the loaders made by roleGuard run: they ignore the arguments the test cannot provide
+const roleGuards = vi.hoisted(() => new WeakSet<LoaderFunction>());
+
+vi.mock('@/features/auth/guards/role-guard', async (importOriginal) => {
+  const { roleGuard, ...module } = await importOriginal<typeof import('@/features/auth/guards/role-guard')>();
+  return {
+    ...module,
+    roleGuard: (authorizedRoles: readonly unknown[]) => {
+      const guard = roleGuard(authorizedRoles);
+      roleGuards.add(guard);
+      return guard;
+    },
+  };
+});
 
 function collectViews(children: readonly RouteObject[], parent: View): View[] {
   return children.flatMap((route) => {
-    const path = route.path?.startsWith('/') ? route.path : parent.path;
-    const loaders = typeof route.loader === 'function' ? [...parent.loaders, route.loader] : parent.loaders;
+    if (route.path && !route.path.startsWith('/')) {
+      throw new Error(`${route.path} is relative: its view would take the path of its parent`);
+    }
+
+    const path = route.path ?? parent.path;
+    const guards =
+      typeof route.loader === 'function' && roleGuards.has(route.loader)
+        ? [...parent.guards, route.loader]
+        : parent.guards;
     const isView = !!(route.Component || route.element || route.lazy) && !!(route.path || route.index);
 
-    return [...(isView ? [{ loaders, path }] : []), ...collectViews(route.children ?? [], { loaders, path })];
+    return [...(isView ? [{ guards, path }] : []), ...collectViews(route.children ?? [], { guards, path })];
   });
 }
 
 async function allows(view: View, user: { isAdmin: boolean; role: string } | null): Promise<boolean> {
   vi.spyOn(queryClient, 'ensureQueryData').mockResolvedValue(user);
-  for (const loader of view.loaders) {
-    if ((await loader({} as LoaderFunctionArgs)) instanceof Response) return false;
+  for (const guard of view.guards) {
+    if ((await guard({} as LoaderFunctionArgs)) instanceof Response) return false;
   }
   return true;
 }
@@ -34,7 +55,8 @@ async function allows(view: View, user: { isAdmin: boolean; role: string } | nul
 async function accessOf(view: View): Promise<Access> {
   // one after the other: each check mocks the same session query
   const members = new Set<boolean>();
-  for (const role of MEMBER_ROLES) members.add(await allows(view, { isAdmin: false, role }));
+  for (const role of AUTHORIZED_ROLES.MEMBER as string[])
+    members.add(await allows(view, { isAdmin: false, role }));
   if (members.size > 1) throw new Error(`${view.path} lets some members in but not all of them`);
 
   return {
@@ -84,7 +106,7 @@ describe('routes', () => {
 
   it('match the views listed in docs/droits-par-role.md, with their roles', async () => {
     const listing = readFileSync(join(import.meta.dirname, '../../../docs/droits-par-role.md'), 'utf8');
-    const views = new Map(collectViews(routes, { loaders: [], path: '/' }).map((view) => [view.path, view]));
+    const views = new Map(collectViews(routes, { guards: [], path: '/' }).map((view) => [view.path, view]));
 
     const accesses: Access[] = [];
     for (const view of views.values()) accesses.push(await accessOf(view));
