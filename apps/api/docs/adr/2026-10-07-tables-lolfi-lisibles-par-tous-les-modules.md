@@ -19,7 +19,9 @@ Les tables de `data_administration_context` (`candidate`, `position`, `function`
 `jurisdictions`...) sont écrites par le module ingest, à chaque import LOLFI. Ce module n'expose
 qu'une lecture interne (`internalDetailsLolfiSession`, utilisée par session pour importer une
 session). Ces tables n'appartiennent à aucun module métier : elles décrivent les postes, les
-juridictions et les candidatures telles que LOLFI les transmet.
+juridictions et les candidatures telles que LOLFI les transmet. La table `magistrat`, elle aussi
+écrite par ingest (`insertMagistratRawQuery`), y vit depuis FON-326 : elle était rangée
+auparavant dans `nominations_context`.
 
 Plusieurs modules les lisaient déjà directement. FON-550 ajoute une nouvelle lecture : la fiche
 magistrat affiche le numéro de téléphone que LOLFI recopie sur chaque candidature.
@@ -35,9 +37,6 @@ magistrat affiche le numéro de téléphone que LOLFI recopie sur chaque candida
 
 ## Cas particuliers
 
-- **`magistrat`** est elle aussi une copie LOLFI : seul ingest l'écrit
-  (`insertMagistratRawQuery`). Rangée à l'origine dans `nominations_context`, elle vit depuis
-  FON-326 dans `data_administration_context` et relève de la règle générale.
 - **`excluded_jurisdictions`** n'était pas une table LOLFI, malgré son schéma d'origine. Seul le
   module members l'écrit (les juridictions qu'un membre exclut de l'auto-affectation) et ingest
   n'y touche jamais. Depuis FON-591, elle vit dans `identity_and_access_context`, à côté de
