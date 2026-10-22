@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { queryClient } from '@queries/query-client';
 
-import { routes } from './router';
+import { routes } from './routes';
 
 type View = { loaders: LoaderFunction[]; path: string };
 type Access = { isPublic: boolean; member: boolean; path: string; secretariat: boolean };
