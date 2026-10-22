@@ -120,7 +120,7 @@ export class SummaryController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
   async writeSummary(
-    @AuthedUser() user: { id: string },
+    @AuthedUser() user: { id: string; role: RoleEnum },
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
     @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
     @Body() body: WriteSummaryContentDto,
@@ -129,7 +129,7 @@ export class SummaryController {
       content: body.content,
       nominationFileId,
       sessionId,
-      userId: user.id,
+      user,
     });
   }
 
@@ -158,7 +158,7 @@ export class SummaryController {
     type: GeneratedSummaryAttachmentPublicUrlDto,
   })
   generateAttachmentPublicUrl(
-    @AuthedUser() user: { id: string },
+    @AuthedUser() user: { id: string; role: RoleEnum },
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
     @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
     @Param('fileId', ParseUUIDPipe) fileId: string,
@@ -167,7 +167,7 @@ export class SummaryController {
       fileId,
       nominationFileId,
       sessionId,
-      userId: user.id,
+      user,
     });
   }
 

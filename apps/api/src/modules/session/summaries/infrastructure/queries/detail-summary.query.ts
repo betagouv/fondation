@@ -24,6 +24,7 @@ import {
   expectedReportersCount,
 } from '../../../../shared/policies/auditioned-position.policy';
 import { canScheduleAudition } from '../../../../shared/policies/nomination-file.policies';
+import { canReadSummary } from '../../../../shared/policies/summary.policies';
 import { PriorityEnum } from '../../../../shared/priority.enum';
 import type { RoleEnum } from '../../../../shared/role.enum';
 import { TransparenceService } from '../../../transparence/infrastructure/transparence.service';
@@ -137,11 +138,11 @@ export class DetailSummaryQuery {
     const summary = nominationFile.summary;
     if (!summary) throw new NotFoundException();
 
-    const allAllowedReaders = new Set(
-      [summary.author?.id, ...summary.readers.map(({ user }) => user.id)].filter(isDefined),
+    const readable = canReadSummary(
+      { authorId: summary.author?.id ?? null, readerIds: summary.readers.map(({ user }) => user.id) },
+      { id: query.userId, role: query.role },
     );
-
-    if (summary.author && !allAllowedReaders.has(query.userId)) {
+    if (!readable) {
       this.logger.error(
         `Unauthorized access attempt from ${query.userId} to ${query.nominationFileId}`,
         query,

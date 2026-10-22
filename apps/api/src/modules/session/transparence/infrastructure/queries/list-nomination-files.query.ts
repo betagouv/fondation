@@ -38,6 +38,7 @@ import {
   expectedReportersCount,
 } from '../../../../shared/policies/auditioned-position.policy';
 import * as nominationFilesPolicies from '../../../../shared/policies/nomination-file.policies';
+import { canReadSummary, canWriteSummary } from '../../../../shared/policies/summary.policies';
 import { PriorityEnum } from '../../../../shared/priority.enum';
 import { isSecretariat, type RoleEnum } from '../../../../shared/role.enum';
 import {
@@ -315,10 +316,11 @@ export class ListNominationFilesQuery {
         })),
         summary: x.summary
           ? {
-              canRead:
-                x.summary.authorId === query.user.id ||
-                x.summary.readers.some((userId) => userId === query.user.id),
-              canWrite: x.summary.authorId === query.user.id,
+              canRead: canReadSummary(
+                { authorId: x.summary.authorId, readerIds: x.summary.readers },
+                query.user,
+              ),
+              canWrite: canWriteSummary(x.summary, query.user),
               id: x.id,
             }
           : null,
