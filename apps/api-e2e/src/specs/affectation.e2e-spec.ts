@@ -1,4 +1,5 @@
 import { test } from '../fixtures.ts';
+import * as api from '../generated/api/sdk.ts';
 import * as seed from '../utils/seed.ts';
 
 test.describe('Session Affectations E2E', () => {
@@ -39,6 +40,21 @@ test.describe('Session Affectations E2E', () => {
   test("an unaffected session does not appear in the member's list", async ({ expect, member }) => {
     const memberSessions = await member.members.listMemberSessions({ path: { userId: memberId } });
     expect(memberSessions.data!.items).not.toContainEqual(expect.objectContaining({ id: sessionId }));
+  });
+
+  test('shows a member no reporter while the affectation is only a draft', async ({ agent, expect, member }) => {
+    await agent.sessions.affectReporters({
+      body: { items: [{ nominationFileId, reporterIds: [memberId] }] },
+      path: { sessionId },
+      throwOnError: true,
+    });
+
+    const files = await api.sessions.listNominationFiles({
+      client: member['@client'],
+      path: { sessionId },
+      throwOnError: true,
+    });
+    expect(files.data.items.map(({ reporters }) => reporters)).toEqual([[]]);
   });
 
   test('never auto-affects a member a file of a jurisdiction they exclude', async ({ agent, expect, registerUser }) => {

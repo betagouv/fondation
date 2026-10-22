@@ -52,6 +52,27 @@ test.describe('Official report', () => {
     expect(await readinessOf()).toBeNull();
   });
 
+  test('should tell an agenda its affectation was never published while only a draft exists', async ({
+    agent,
+    docs,
+    expect,
+    member,
+  }) => {
+    const session = await docs.session();
+    const sessionId = session.id;
+    const [file] = session.files;
+    await agent.sessions.affectReporters({
+      body: { items: [{ nominationFileId: file!.id, reporterIds: [member['@user']!.id] }] },
+      path: { sessionId },
+      throwOnError: true,
+    });
+
+    const agenda = await docs.agenda(session, { files: [file!] });
+    const found = await agent.docs.findSessionDocs({ path: { sessionId } });
+    const listed = found.data!.items.find(({ id }) => id === agenda.id);
+    expect(listed?.type === 'agenda' && listed.officialReportReadiness).toEqual({ status: 'NEVER_PUBLISHED' });
+  });
+
   test('should report the session only once every file is acted in a validated official report', async ({
     agent,
     docs,
