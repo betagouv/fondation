@@ -1,5 +1,5 @@
 import * as Sentry from '@sentry/react';
-import { createBrowserRouter, redirect } from 'react-router';
+import { createBrowserRouter, redirect, type RouteObject } from 'react-router';
 
 import { AUTHORIZED_ROLES } from '@/features/auth/constants/authorized-roles.constants';
 import { roleGuard } from '@/features/auth/guards/role-guard';
@@ -9,7 +9,7 @@ import { ErrorPage } from '@/pages/error/ErrorPage';
 import { redirectToMemberMagistratDetails, ROUTE_PATHS } from '@/utils/route-path.utils';
 
 const sentryCreateBrowserRouter = Sentry.wrapCreateBrowserRouterV7(createBrowserRouter);
-export const router = sentryCreateBrowserRouter([
+export const routes: RouteObject[] = [
   {
     children: [
       {
@@ -468,4 +468,6 @@ export const router = sentryCreateBrowserRouter([
     hydrateFallbackElement: null,
     path: '/',
   },
-]);
+];
+
+export const router = sentryCreateBrowserRouter(routes);
