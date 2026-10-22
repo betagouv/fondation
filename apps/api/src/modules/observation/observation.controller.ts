@@ -123,12 +123,18 @@ export class ObservationController {
     type: GetObservationFileUrlResponseDto,
   })
   async getObservationFileUrl(
+    @AuthedUser() user: { role: RoleEnum },
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
     @Param('observationId', ParseUUIDPipe) observationId: string,
     @Param('fileId', ParseUUIDPipe) fileId: string,
   ): Promise<GetObservationFileUrlResponseDto> {
     return this.observations.getObservationFileUrl({
       fileId,
+      nominationFileId,
       observationId,
+      role: user.role,
+      sessionId,
     });
   }
 

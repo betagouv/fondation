@@ -259,9 +259,13 @@ export class ObservationService {
     return this.listObservationsQuery.handle(query);
   }
 
+  @Transactional()
   getObservationFileUrl(query: {
     fileId: string;
+    nominationFileId: string;
     observationId: string;
+    role: RoleEnum;
+    sessionId: string;
   }): Promise<GetObservationFileUrlResponseDto> {
     return this.getObservationFileUrlQuery.handle(query);
   }

@@ -893,6 +893,18 @@ export class TransparenceService {
     return session;
   }
 
+  /** @internal a member of one formation does not find the sessions of the other */
+  async internalGetVisibleSession(query: {
+    role: RoleEnum;
+    sessionId: string;
+  }): Promise<FoundNominationSession> {
+    const session = await this.internalGetSession(query);
+    const formation = roleToFormation(query.role);
+    if (formation && formation !== session.formation) throw new NotFoundException();
+
+    return session;
+  }
+
   /** @internal */
   internalFindSessionState(query: { sessionId: string }): Promise<NominationSessionState> {
     return this.sessionsFinder.state(query);

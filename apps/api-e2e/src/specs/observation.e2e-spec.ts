@@ -173,4 +173,62 @@ test.describe('Observation', () => {
     const readByOther = await otherReporter.observations.getObservationDetails({ path: observationPath });
     expect(readByOther.data!.memberComment).toBeNull();
   });
+
+  test('should only serve the file of an observation under its own nomination file', async ({
+    agent,
+    expect,
+    sessions,
+  }) => {
+    const session = await sessions.createOne(SESSION);
+    const [observed, other] = session.files.map(({ id }) => ({ nominationFileId: id, sessionId: session.id }));
+    const { data } = await agent.observations.createObservation({
+      body: {
+        files: [pdf('courrier.pdf')],
+        form: observationForm({ dateReception: '2026-05-02', magistratId: session.files[1]!.magistratId }),
+      },
+      path: observed!,
+      throwOnError: true,
+    });
+    const { data: listed } = await agent.observations.listObservations({ path: observed!, throwOnError: true });
+    const fileId = listed.observations[0]!.files[0]!.id;
+
+    const elsewhere = await agent.observations.getObservationFileUrl({
+      path: { ...other!, fileId, observationId: data.id },
+    });
+    expect(elsewhere.response?.status).toBe(404);
+  });
+
+  test('should not serve the observations of a session to a member of another formation', async ({
+    agent,
+    expect,
+    logIn,
+    sessions,
+  }) => {
+    const session = await sessions.createOne(SESSION);
+    const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+    const { data } = await agent.observations.createObservation({
+      body: {
+        files: [pdf('courrier.pdf')],
+        form: observationForm({ dateReception: '2026-05-02', magistratId: session.files[1]!.magistratId }),
+      },
+      path,
+      throwOnError: true,
+    });
+    const { data: listed } = await agent.observations.listObservations({ path, throwOnError: true });
+    const observationPath = { ...path, observationId: data.id };
+    const { data: detailed } = await agent.sessions.detailsNominationSession({
+      path: { sessionId: session.id },
+      throwOnError: true,
+    });
+
+    const outsider = await logIn(detailed.formation === 'PARQUET' ? 'MEMBRE_DU_SIEGE' : 'MEMBRE_DU_PARQUET');
+    const hidden = await Promise.all([
+      outsider.observations.listObservations({ path }),
+      outsider.observations.getObservationDetails({ path: observationPath }),
+      outsider.observations.getObservationFileUrl({
+        path: { ...observationPath, fileId: listed.observations[0]!.files[0]!.id },
+      }),
+    ]);
+    expect(hidden.map(({ response }) => response?.status)).toEqual([404, 404, 404]);
+  });
 });

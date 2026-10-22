@@ -34,7 +34,7 @@ export class GetObservationDetailsQuery {
     userId: string;
   }): Promise<GetObservationDetailsResponseDto> {
     return this.db.withTransaction(async () => {
-      const sessionState = await this.transparences.internalFindSessionState({ sessionId: query.sessionId });
+      const session = await this.transparences.internalGetVisibleSession(query);
 
       const observation = await this.db.tx.observation.findUnique({
         select: {
@@ -95,6 +95,7 @@ export class GetObservationDetailsQuery {
         where: {
           id: query.observationId,
           nominationFileId: query.nominationFileId,
+          sessionId: query.sessionId,
         },
       });
 
@@ -140,7 +141,7 @@ export class GetObservationDetailsQuery {
         followUp: observation.followUp,
         followUpComment: observation.followUpComment,
         id: observation.id,
-        isArchived: sessionState === 'ARCHIVED',
+        isArchived: session.isArchived,
         isMemberReporter: isUserReporter,
         memberComment: observation.memberComments[0]
           ? {
