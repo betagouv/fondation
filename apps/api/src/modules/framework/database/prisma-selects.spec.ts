@@ -34,7 +34,7 @@ describe('Prisma selects', () => {
 
     expect(
       files.flatMap(uncheckedSelects),
-      'each select and include given to Prisma needs `satisfies Prisma.<Model>Select`, see CLAUDE.md',
+      'each select and include given to Prisma needs `satisfies Prisma.<Model>Select`, see apps/api/CLAUDE.md',
     ).toEqual([]);
   });
 });
