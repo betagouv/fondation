@@ -49,6 +49,7 @@ export const OfficialReportFileBlock = {
           fromAgenda: block.fromAgenda,
           generatedHtml: block.generatedHtml,
           isPending: false,
+          name: block.name,
           nominationFileId: block.nominationFileId,
           note: block.note,
           officialReportId,
@@ -69,6 +70,7 @@ function FileBlockView(props: ReactNodeViewProps) {
     editedAt,
     editedBy,
     fromAgenda,
+    name,
     nominationFileId,
     note,
     officialReportId,
@@ -117,9 +119,11 @@ function FileBlockView(props: ReactNodeViewProps) {
       {nominationFileId && officialReportId && sessionId ? (
         <OfficialReportFileNote
           agendaAction={agendaAction}
+          name={name}
           nominationFileId={nominationFileId}
           note={note}
           officialReportId={officialReportId}
+          onDraftChange={(html) => props.editor.commands.draftFileNote(nominationFileId, html)}
           onStored={(stored) => {
             const pos = props.getPos();
             if (pos == null) return;
@@ -162,6 +166,7 @@ export const OfficialReportFileBlockNode = Node.create({
     fromAgenda: { default: false, rendered: false },
     generatedHtml: { default: null, rendered: false },
     isPending: { default: false, rendered: false },
+    name: { default: '', rendered: false },
     nominationFileId: { default: null },
     note: { default: null, rendered: false },
     officialReportId: { default: null, rendered: false },

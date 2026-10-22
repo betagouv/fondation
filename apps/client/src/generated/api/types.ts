@@ -1649,6 +1649,7 @@ export type DetailedOfficialReportDocumentDto = {
             name: string;
         } | null;
         fromAgenda: boolean;
+        name: string;
         note: {
             editedAt: string | null;
             editedBy: {
@@ -1681,6 +1682,15 @@ export type EditOfficialReportSectionIntroBlockDto = {
 };
 
 export type EditOfficialReportFileNoteDto = {
+    html: string;
+};
+
+export type EditedOfficialReportFileNoteDto = {
+    editedAt: string | null;
+    editedBy: {
+        id: string;
+        name: string;
+    } | null;
     html: string;
 };
 
@@ -4423,7 +4433,7 @@ export type EditOfficialReportFileNoteData = {
 };
 
 export type EditOfficialReportFileNoteResponses = {
-    204: void;
+    200: EditedOfficialReportFileNoteDto;
 };
 
 export type EditOfficialReportFileNoteResponse = EditOfficialReportFileNoteResponses[keyof EditOfficialReportFileNoteResponses];

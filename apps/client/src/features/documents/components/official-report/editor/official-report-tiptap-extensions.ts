@@ -39,6 +39,11 @@ const OfficialReportModelExtension = Extension.create<{ model: OfficialReportBlo
           return true;
         },
 
+      draftFileNote: (nominationFileId: string, html: string | null) => () => {
+        model?.draftNote(nominationFileId, html);
+        return true;
+      },
+
       resetBlock:
         (viewProps: ReactNodeViewProps) =>
         ({ editor }) => {
@@ -80,6 +85,14 @@ const OfficialReportUndoRedo = UndoRedo.extend<{ onHistory: ((editor: Editor) =>
     return { ...this.parent?.(), onHistory: null };
   },
 });
+
+declare module '@tiptap/core' {
+  interface Commands<ReturnType> {
+    officialReportModel: {
+      draftFileNote: (nominationFileId: string, html: string | null) => ReturnType;
+    };
+  }
+}
 
 export function buildOfficialReportExtensions(model: OfficialReportBlocksModel): AnyExtension[] {
   return [

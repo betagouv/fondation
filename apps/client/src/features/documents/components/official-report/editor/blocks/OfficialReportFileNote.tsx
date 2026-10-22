@@ -6,7 +6,7 @@ import { Paragraph } from '@tiptap/extension-paragraph';
 import Text from '@tiptap/extension-text';
 import { UndoRedo } from '@tiptap/extensions';
 import { EditorContent, EditorContext, useEditor, useEditorState } from '@tiptap/react';
-import { useId, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import { DocBlockEditedLine } from '@/features/documents/components/blocks/DocBlockEditedBadge';
@@ -23,9 +23,11 @@ type OfficialReportFileNoteState = Extract<OfficialReportBlock, { kind: 'file' }
 
 export function OfficialReportFileNote(props: {
   agendaAction: ReactNode;
+  name: string;
   nominationFileId: string;
   note: OfficialReportFileNoteState;
   officialReportId: string;
+  onDraftChange: (html: string | null) => void;
   onStored: (note: OfficialReportFileNoteState) => void;
   sessionId: string;
 }) {
@@ -36,13 +38,28 @@ export function OfficialReportFileNote(props: {
   const edition = useEditOfficialReportFileNoteMutation(mutation);
   const deletion = useDeleteOfficialReportFileNoteMutation(mutation);
 
+  // the button that started the action is gone once it ends, so the focus would fall back on the page
+  const actionRef = useRef<HTMLButtonElement>(null);
+  const [focusRequest, setFocusRequest] = useState(0);
+  useEffect(() => {
+    if (focusRequest > 0) actionRef.current?.focus();
+  }, [focusRequest]);
+  const focusAction = () => setFocusRequest((request) => request + 1);
+
+  const closeEditor = () => {
+    props.onDraftChange(null);
+    setIsEditing(false);
+    focusAction();
+  };
+
   const save = async (html: string) => {
     props.onStored(await edition.mutateAsync({ html, nominationFileId: props.nominationFileId }));
-    setIsEditing(false);
+    closeEditor();
   };
 
   const remove = async () => {
-    props.onStored(await deletion.mutateAsync({ nominationFileId: props.nominationFileId }));
+    await deletion.mutateAsync({ nominationFileId: props.nominationFileId });
+    props.onStored(null);
     setIsConfirmingDeletion(false);
   };
 
@@ -71,8 +88,9 @@ export function OfficialReportFileNote(props: {
           isSaving={edition.isPending}
           onCancel={() => {
             edition.reset();
-            setIsEditing(false);
+            closeEditor();
           }}
+          onDraftChange={props.onDraftChange}
           onSave={(html) => void save(html).catch(() => {})}
         />
       )}
@@ -87,6 +105,7 @@ export function OfficialReportFileNote(props: {
                 iconPosition="right"
                 onClick={() => setIsEditing(true)}
                 priority="tertiary no outline"
+                ref={actionRef}
                 size="small"
               >
                 <FormattedMessage defaultMessage="Modifier l'information" />
@@ -107,6 +126,7 @@ export function OfficialReportFileNote(props: {
               iconPosition="right"
               onClick={() => setIsEditing(true)}
               priority="tertiary no outline"
+              ref={actionRef}
               size="small"
             >
               <FormattedMessage defaultMessage="Ajouter une information sous le bloc" />
@@ -117,8 +137,13 @@ export function OfficialReportFileNote(props: {
       <OfficialReportFileNoteDeleteModal
         hasFailed={deletion.isError}
         isDeleting={deletion.isPending}
+        name={props.name}
         onClose={() => setIsConfirmingDeletion(false)}
-        onClosed={deletion.reset}
+        onClosed={() => {
+          // the dialog gives the focus back to the delete button on closing, which a deletion removed
+          if (deletion.isSuccess) focusAction();
+          deletion.reset();
+        }}
         onDelete={() => void remove().catch(() => {})}
         open={isConfirmingDeletion}
       />
@@ -131,15 +156,24 @@ function OfficialReportFileNoteEditor(props: {
   initialHtml: string;
   isSaving: boolean;
   onCancel: () => void;
+  onDraftChange: (html: string | null) => void;
   onSave: (html: string) => void;
 }) {
   const labelId = useId();
+  const storedHtml = useRef<string | null>(null);
 
   const editor = useEditor({
     autofocus: 'end',
     content: props.initialHtml,
     editorProps: { attributes: { 'aria-labelledby': labelId, class: 'fr-p-2v min-h-20 outline-none' } },
     extensions: [Document, Paragraph, Text, Bold, Italic, UndoRedo],
+    onCreate: ({ editor }) => {
+      storedHtml.current = editor.getHTML();
+    },
+    onUpdate: ({ editor }) => {
+      const html = editor.getHTML();
+      props.onDraftChange(editor.getText().trim() && html !== storedHtml.current ? html : null);
+    },
   });
   const isEmpty = useEditorState({ editor, selector: ({ editor }) => !editor?.getText().trim() });
 
@@ -180,6 +214,7 @@ function OfficialReportFileNoteEditor(props: {
 function OfficialReportFileNoteDeleteModal(props: {
   hasFailed: boolean;
   isDeleting: boolean;
+  name: string;
   onClose: () => void;
   onClosed: () => void;
   onDelete: () => void;
@@ -210,7 +245,10 @@ function OfficialReportFileNoteDeleteModal(props: {
       title={formatMessage({ defaultMessage: "Supprimer l'information" })}
     >
       <p className="fr-mb-0">
-        <FormattedMessage defaultMessage="L'information ajoutée sous cette proposition sera retirée du PV. Vous pourrez en ajouter une nouvelle." />
+        <FormattedMessage
+          defaultMessage="L'information ajoutée sous la proposition de {name} sera retirée du PV. Vous pourrez en ajouter une nouvelle."
+          values={{ name: props.name }}
+        />
       </p>
     </Modal>
   );
