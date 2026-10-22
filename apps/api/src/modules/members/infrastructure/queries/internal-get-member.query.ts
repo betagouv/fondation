@@ -10,7 +10,8 @@ import { GenderEnum } from '../../../shared/gender.enum';
 import { prismaGenderEnumToGenderEnum } from '../../../shared/mappers/gender-enum.mapper';
 import { prismaRoleEnumToRoleEnum } from '../../../shared/mappers/role-enum.mapper';
 import { RoleEnum } from '../../../shared/role.enum';
-import { isMember, MEMBER_ROLES } from '../member.utils';
+import { MEMBER_ROLES } from '../../../shared/role.enum';
+import { isMember } from '../member.utils';
 
 @Injectable()
 export class InternalGetMemberQuery {

@@ -18,7 +18,7 @@ import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { DateOnly } from '../../utils/date-only';
 import { FILE_EXTENSIONS, UseMultipartBody, type Multipart } from '../framework/files';
-import type { RoleEnum } from '../shared/role.enum';
+import { MEMBER_ROLES, type RoleEnum } from '../shared/role.enum';
 import { AuthedUser, AuthedUserId, HasRole } from '../simple-auth';
 
 import {
@@ -174,7 +174,7 @@ export class ObservationController {
   }
 
   @Post('/:observationId/member-comments/screenshots')
-  @HasRole('MEMBRE_COMMUN', 'MEMBRE_DU_PARQUET', 'MEMBRE_DU_SIEGE')
+  @HasRole(...MEMBER_ROLES)
   @UseMultipartBody({
     destination: ({ request, id, mimetype }) =>
       `sessions/${request.params.sessionId}/observations/${request.params.nominationFileId}/member-comments/${id}.${FILE_EXTENSIONS[mimetype]}`,
@@ -202,7 +202,7 @@ export class ObservationController {
   }
 
   @Put('/:observationId/member-comments')
-  @HasRole('MEMBRE_COMMUN', 'MEMBRE_DU_PARQUET', 'MEMBRE_DU_SIEGE')
+  @HasRole(...MEMBER_ROLES)
   @UsePipes(ZodValidationPipe)
   @HttpCode(HttpStatus.NO_CONTENT)
   async writeMemberComment(
