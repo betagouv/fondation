@@ -136,12 +136,16 @@ export class ObservationController {
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteObservation(
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
     @Param('observationId', ParseUUIDPipe) observationId: string,
     @AuthedUser() user: { id: string; impersonation?: { impersonatorId: string } },
   ): Promise<void> {
     await this.observations.deleteObservation({
       impersonatorId: user.impersonation?.impersonatorId ?? null,
+      nominationFileId,
       observationId,
+      sessionId,
       userId: user.id,
     });
   }
@@ -157,6 +161,8 @@ export class ObservationController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async updateObservation(
     @AuthedUser() user: { id: string; impersonation?: { impersonatorId: string } },
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
     @Param('observationId', ParseUUIDPipe) observationId: string,
     @Body() { form, files }: Multipart<typeof UpdateObservationDto>,
   ): Promise<void> {
@@ -168,7 +174,9 @@ export class ObservationController {
       impersonatorId: user.impersonation?.impersonatorId ?? null,
       linkedFiles: form.linkedObservationsAttachments,
       magistratId: form.magistratId,
+      nominationFileId,
       observationId,
+      sessionId,
       userId: user.id,
     });
   }
@@ -249,13 +257,17 @@ export class ObservationController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async followUpOnObservation(
     @AuthedUser() user: { id: string },
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
     @Param('observationId', ParseUUIDPipe) observationId: string,
     @Body() { followUp, comment }: FollowUpOnObservationDto,
   ) {
     await this.observations.followUpWith({
       comment,
       followUp,
+      nominationFileId,
       observationId,
+      sessionId,
       userId: user.id,
     });
   }

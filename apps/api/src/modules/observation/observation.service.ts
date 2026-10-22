@@ -132,10 +132,12 @@ export class ObservationService {
   @Transactional()
   async deleteObservation(command: {
     impersonatorId: string | null;
+    nominationFileId: string;
     observationId: string;
+    sessionId: string;
     userId: string;
   }): Promise<void> {
-    const observation = await this.observationRepository.findById(command.observationId);
+    const observation = await this.observationRepository.findById(command);
 
     observation.delete({
       ...command,
@@ -153,10 +155,12 @@ export class ObservationService {
     impersonatorId: string | null;
     linkedFiles: readonly { fileId: string; observationId: string }[];
     magistratId: string;
+    nominationFileId: string;
     observationId: string;
+    sessionId: string;
     userId: string;
   }): Promise<void> {
-    const observation = await this.observationRepository.findById(command.observationId);
+    const observation = await this.observationRepository.findById(command);
 
     if (command.magistratId !== observation.magistratId) {
       const existingObservation = await this.db.tx.observation.findUnique({
@@ -289,7 +293,7 @@ export class ObservationService {
       });
       const reporterIds = (reporters.get(command.nominationFileId) ?? []).map(({ id }) => id);
 
-      const observation = await this.observationRepository.findById(command.observationId);
+      const observation = await this.observationRepository.findById(command);
 
       try {
         observation.attachMemberCommentScreenshots({
@@ -338,7 +342,7 @@ export class ObservationService {
     });
     const reporterIds = (reporters.get(command.nominationFileId) ?? []).map(({ id }) => id);
 
-    const observation = await this.observationRepository.findById(command.observationId);
+    const observation = await this.observationRepository.findById(command);
 
     try {
       observation.writeMemberComment({
@@ -360,10 +364,12 @@ export class ObservationService {
   async followUpWith(command: {
     comment: string | null;
     followUp: string | null;
+    nominationFileId: string;
     observationId: string;
+    sessionId: string;
     userId: string | null;
   }): Promise<void> {
-    const observation = await this.observationRepository.findById(command.observationId);
+    const observation = await this.observationRepository.findById(command);
     observation.followUpWith(command);
     await this.observationRepository.persist(observation);
   }

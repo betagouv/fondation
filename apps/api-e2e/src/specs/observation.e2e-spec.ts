@@ -173,4 +173,34 @@ test.describe('Observation', () => {
     const readByOther = await otherReporter.observations.getObservationDetails({ path: observationPath });
     expect(readByOther.data!.memberComment).toBeNull();
   });
+
+  test('should not let a reporter comment an observation of another nomination file', async ({
+    agent,
+    expect,
+    member,
+    sessions,
+  }) => {
+    const session = await sessions.createOne(SESSION);
+    const [reported, other] = session.files;
+    await agent.sessions.affectReporters({
+      body: { items: [{ nominationFileId: reported!.id, reporterIds: [member['@user']!.id] }] },
+      path: { sessionId: session.id },
+      throwOnError: true,
+    });
+    await agent.sessions.publishNominationSessionAffectationsVersion({
+      path: { sessionId: session.id },
+      throwOnError: true,
+    });
+    const { data } = await agent.observations.createObservation({
+      body: { form: observationForm({ dateReception: '2026-05-02', magistratId: reported!.magistratId }) },
+      path: { nominationFileId: other!.id, sessionId: session.id },
+      throwOnError: true,
+    });
+
+    const written = await member.observations.writeMemberComment({
+      body: { comment: '<p>Hors de mon dossier</p>' },
+      path: { nominationFileId: reported!.id, observationId: data.id, sessionId: session.id },
+    });
+    expect(written.response?.status).toBe(404);
+  });
 });

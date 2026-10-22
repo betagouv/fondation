@@ -42,7 +42,11 @@ export class ObservationRepository {
     private readonly sessions: TransparenceService,
   ) {}
 
-  async findById(id: string): Promise<Observation> {
+  async findById(predicate: {
+    nominationFileId: string;
+    observationId: string;
+    sessionId: string;
+  }): Promise<Observation> {
     const result = await this.db.tx.observation.findUnique({
       select: {
         dateReception: true,
@@ -51,7 +55,11 @@ export class ObservationRepository {
         nominationFileId: true,
         sessionId: true,
       } satisfies Prisma.ObservationSelect,
-      where: { id },
+      where: {
+        id: predicate.observationId,
+        nominationFileId: predicate.nominationFileId,
+        sessionId: predicate.sessionId,
+      },
     });
 
     if (!result) throw new NotFoundException();
