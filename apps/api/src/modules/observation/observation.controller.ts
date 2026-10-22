@@ -174,7 +174,7 @@ export class ObservationController {
   }
 
   @Post('/:observationId/member-comments/screenshots')
-  @HasRole()
+  @HasRole('MEMBRE_COMMUN', 'MEMBRE_DU_PARQUET', 'MEMBRE_DU_SIEGE')
   @UseMultipartBody({
     destination: ({ request, id, mimetype }) =>
       `sessions/${request.params.sessionId}/observations/${request.params.nominationFileId}/member-comments/${id}.${FILE_EXTENSIONS[mimetype]}`,
@@ -202,7 +202,7 @@ export class ObservationController {
   }
 
   @Put('/:observationId/member-comments')
-  @HasRole()
+  @HasRole('MEMBRE_COMMUN', 'MEMBRE_DU_PARQUET', 'MEMBRE_DU_SIEGE')
   @UsePipes(ZodValidationPipe)
   @HttpCode(HttpStatus.NO_CONTENT)
   async writeMemberComment(

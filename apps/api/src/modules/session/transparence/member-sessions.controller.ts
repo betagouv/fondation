@@ -38,7 +38,7 @@ export class MemberSessionsController {
     return this.sessions.listMemberSessions({ typeDeSaisine: 'TRANSPARENCE_GDS', user: authUser });
   }
 
-  @HasRole()
+  @HasRole('MEMBRE_COMMUN', 'MEMBRE_DU_PARQUET', 'MEMBRE_DU_SIEGE')
   @Put('/:userId/sessions/transparence/garde-des-sceaux/:sessionId/files/:nominationFileId/memo')
   @HttpCode(HttpStatus.NO_CONTENT)
   async writeNominationFileMemberMemo(

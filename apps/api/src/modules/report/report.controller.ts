@@ -39,7 +39,7 @@ export class ReportController {
   constructor(private readonly reports: ReportService) {}
 
   @Post('/:reportId/files')
-  @HasRole()
+  @HasRole('MEMBRE_COMMUN', 'MEMBRE_DU_PARQUET', 'MEMBRE_DU_SIEGE')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseMultipartBody({
     schema: AttachReportFileDto,
@@ -61,7 +61,7 @@ export class ReportController {
   }
 
   @Delete('/:reportId/files')
-  @HasRole()
+  @HasRole('MEMBRE_COMMUN', 'MEMBRE_DU_PARQUET', 'MEMBRE_DU_SIEGE')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
   async detachFiles(
@@ -77,7 +77,7 @@ export class ReportController {
   }
 
   @Post('/:reportId/screenshots')
-  @HasRole()
+  @HasRole('MEMBRE_COMMUN', 'MEMBRE_DU_PARQUET', 'MEMBRE_DU_SIEGE')
   @UseMultipartBody({
     schema: AttachScreenshotsDto,
     destination: ({ id, mimetype, request }) =>
@@ -97,7 +97,7 @@ export class ReportController {
   }
 
   @Get('/:reportId/files/url')
-  @HasRole()
+  @HasRole('MEMBRE_COMMUN', 'MEMBRE_DU_PARQUET', 'MEMBRE_DU_SIEGE')
   @UsePipes(ZodValidationPipe)
   @ZodResponse({ type: GetReportFileUrlsResponseDto, status: HttpStatus.OK })
   async getReportFilesUrl(
@@ -123,7 +123,7 @@ export class ReportController {
   }
 
   @Patch('/:reportId')
-  @HasRole()
+  @HasRole('MEMBRE_COMMUN', 'MEMBRE_DU_PARQUET', 'MEMBRE_DU_SIEGE')
   @UsePipes(ZodValidationPipe)
   @HttpCode(HttpStatus.NO_CONTENT)
   async updateReport(
@@ -139,7 +139,7 @@ export class ReportController {
   }
 
   @Put('/:reportId/rules/:ruleId')
-  @HasRole()
+  @HasRole('MEMBRE_COMMUN', 'MEMBRE_DU_PARQUET', 'MEMBRE_DU_SIEGE')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
   async updateReportRuleValidation(
