@@ -188,7 +188,7 @@ aussi partagés ?
 
 2. **Chaque dossier technique est une couche distincte.** `queries/` n'est pas "un composant
    partagé" : c'est la **couche d'accès aux données**, avec sa propre convention (un registre
-   de clés par fichier, cf. `CLAUDE.md`). La garder visible et à part rend l'architecture
+   de clés par fichier, cf. `apps/client/CLAUDE.md`). La garder visible et à part rend l'architecture
    lisible d'un coup d'œil. Il en va de même pour `utils/` (fonctions pures).
 
 3. **Le test qui tranche** : ces fichiers seraient au même endroit qu'ils soient partagés ou
