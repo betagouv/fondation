@@ -24,7 +24,7 @@ import {
   expectedReportersCount,
 } from '../../../../shared/policies/auditioned-position.policy';
 import { canScheduleAudition } from '../../../../shared/policies/nomination-file.policies';
-import { canReadSummary } from '../../../../shared/policies/summary.policies';
+import { canReadSummary, canWriteSummary } from '../../../../shared/policies/summary.policies';
 import { PriorityEnum } from '../../../../shared/priority.enum';
 import type { RoleEnum } from '../../../../shared/role.enum';
 import { TransparenceService } from '../../../transparence/infrastructure/transparence.service';
@@ -138,9 +138,10 @@ export class DetailSummaryQuery {
     const summary = nominationFile.summary;
     if (!summary) throw new NotFoundException();
 
+    const user = { id: query.userId, role: query.role };
     const readable = canReadSummary(
       { authorId: summary.author?.id ?? null, readerIds: summary.readers.map(({ user }) => user.id) },
-      { id: query.userId, role: query.role },
+      user,
     );
     if (!readable) {
       this.logger.error(
@@ -210,6 +211,7 @@ export class DetailSummaryQuery {
               lastName: summary.author.lastName,
             }
           : null,
+        canWrite: canWriteSummary({ authorId: summary.author?.id ?? null }, user),
         content: summary.content,
         readers: summary.readers.map(({ user }) => ({
           firstName: user.firstName,
@@ -275,6 +277,7 @@ export class DetailedSummaryDto extends createZodDto(
       .nullable(),
 
     summary: z.object({
+      canWrite: z.boolean(),
       content: z.string(),
       author: z.object({ id: z.string(), firstName: z.string(), lastName: z.string() }).nullable(),
       attachments: z.array(

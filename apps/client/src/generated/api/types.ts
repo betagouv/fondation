@@ -877,6 +877,7 @@ export type DetailedSummaryDto = {
         status: 'FINAL' | 'PENDING';
     } | null;
     summary: {
+        canWrite: boolean;
         content: string;
         author: {
             id: string;
