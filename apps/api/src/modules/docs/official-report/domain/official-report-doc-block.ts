@@ -1,5 +1,6 @@
 import z from 'zod';
 
+import { writerSchema } from '../../../../utils/user.util';
 import { DOC_NOMINATION_FILE_OUTCOMES } from '../../shared/domain/doc-nomination-file-outcome';
 
 const AbstractDocBlock = z.object({
@@ -31,7 +32,7 @@ const BlockSectionIntroSchema = z.object({
 
 export const OfficialReportFileNoteSchema = z.object({
   editedAt: z.iso.datetime().nullable(),
-  editedBy: z.object({ id: z.string(), name: z.string() }).nullable(),
+  editedBy: writerSchema,
   html: z.string(),
 });
 
