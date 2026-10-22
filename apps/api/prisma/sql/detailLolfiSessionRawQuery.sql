@@ -54,7 +54,7 @@ FROM data_administration_context.nomination AS n
       jj.ville_jur,
       CONCAT_WS(' ', LOWER(func.label), jj.codejur) AS current_position
 
-    FROM nominations_context.magistrat mm
+    FROM data_administration_context.magistrat mm
       LEFT JOIN data_administration_context."position" pos ON pos.id = mm.current_position_id::INT
       LEFT JOIN data_administration_context."function" func ON func.id = pos.function_id
       LEFT JOIN data_administration_context."jurisdictions" jj ON jj.codejur = pos.jurisdiction_id

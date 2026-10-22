@@ -1,7 +1,7 @@
 -- @param {String} $1:search
 
 SELECT $1 as input, external_id AS "externalId", first_name, last_name
-FROM "nominations_context"."magistrat" AS m
+FROM "data_administration_context"."magistrat" AS m
 WHERE (
      $1 = LOWER(
        UNACCENT(

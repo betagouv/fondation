@@ -35,9 +35,9 @@ magistrat affiche le numéro de téléphone que LOLFI recopie sur chaque candida
 
 ## Cas particuliers
 
-- **`nominations_context.magistrat`** est elle aussi une copie LOLFI : seul ingest l'écrit
-  (`insertMagistratRawQuery`). Elle relève de la même règle, même si elle n'est pas rangée dans
-  `data_administration_context`.
+- **`magistrat`** est elle aussi une copie LOLFI : seul ingest l'écrit
+  (`insertMagistratRawQuery`). Rangée à l'origine dans `nominations_context`, elle vit depuis
+  FON-326 dans `data_administration_context` et relève de la règle générale.
 - **`excluded_jurisdictions`** n'était pas une table LOLFI, malgré son schéma d'origine. Seul le
   module members l'écrit (les juridictions qu'un membre exclut de l'auto-affectation) et ingest
   n'y touche jamais. Depuis FON-591, elle vit dans `identity_and_access_context`, à côté de
