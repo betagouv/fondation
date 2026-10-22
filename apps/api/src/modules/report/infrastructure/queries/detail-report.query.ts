@@ -10,7 +10,7 @@ import { Files } from '../../../framework/files';
 import { prismaReportStateEnumToReportState } from '../../../shared/mappers/rapport-statut.mapper';
 import { prismaReportFileUsageEnumToReportFileUsage } from '../../../shared/mappers/report-file-usage.mapper';
 import { ReportStateEnum } from '../../../shared/report-state.enum';
-import type { RoleEnum } from '../../../shared/role.enum';
+import { isSecretariat, type RoleEnum } from '../../../shared/role.enum';
 
 @Injectable()
 export class DetailReportQuery {
@@ -23,7 +23,7 @@ export class DetailReportQuery {
     reportId: string;
     user: { id: string; role: RoleEnum };
   }): Promise<DetailedReportDto> {
-    const reporterId = query.user.role !== 'ADJOINT_SECRETAIRE_GENERAL' ? query.user.id : undefined;
+    const reporterId = isSecretariat(query.user.role) ? undefined : query.user.id;
 
     const report = await this.db.tx.report.findUnique({
       select: {
