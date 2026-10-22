@@ -14,7 +14,7 @@ Concernant le style :
 - Éviter les commentaires au profit d'un code lisible qui reprend le vocabulaire métier. Un commentaire ne garde que ce que le code ne peut pas dire : un piège, une décision métier, une contrainte extérieure
 - Trier par ordre alphabétique les propriétés d'un objet, les clés d'un type et les attributs JSX. Exceptions : les dates calendaires (jour, mois, année), un ordre qui reflète l'interface, les DTO du back-end et les blocs existants qu'on ne touche pas
 
-Le projet est organisé dans un monorepo pnpm où l'on retrouve le back-end dans [apps/api](apps/api) et le front-end dans [apps/client](apps/client).
+Le projet est un monorepo pnpm. Les conventions de la base de données vivent dans [apps/api/CLAUDE.md](apps/api/CLAUDE.md) et celles du front-end dans [apps/client/CLAUDE.md](apps/client/CLAUDE.md) : elles se chargent quand on travaille dans ces dossiers.
 
 ## Recommandations TypeScript
 
@@ -56,14 +56,6 @@ function withDefinedUser<T extends { user: { id: string } | undefined }>(
 14. Quand 0 est une valeur légitime, tester avec `Number.isFinite` plutôt qu'avec une garde qui écarte les valeurs falsy
 
 ## Développement back-end
-
-### Socle technique
-
-Les briques essentielles du back-end sont :
-
-- [Nest.js](https://docs.nestjs.com/)
-- [Express.js](https://expressjs.com/en/5x/api.html)
-- [Prisma](https://www.prisma.io/docs/orm)
 
 ### Recommandations
 
@@ -195,6 +187,7 @@ export class UsersModule {}
 - Réutiliser la forme existante d'un concept avant d'en inventer une : par exemple, l'issue d'un dossier voyage partout en `{ value, comment }`
 - Préférer un statut à un booléen, des sous-objets à un `extend`, des objets `{ id, ... }` à des chaînes dans les tableaux et des noms compréhensibles hors de leur contexte (`session: { id, name, date }` plutôt que `dateTransparence`)
 - Les libellés d'affichage voyagent dans le DTO (`{ id, label }`) : ils ne sont ni reconstruits par jointure côté front ni concaténés en SQL
+- Un `if` côté front sur une valeur métier qui décide de ce que l'utilisateur peut ou doit faire est une capacité manquante dans le contrat (`canX`, `xRequired` ou un statut), calculée par le domaine du back (voir [l'ADR](docs/adr/2026-10-19-regles-metier-servies-comme-capacites.md))
 
 ### Performance et transactions
 
@@ -205,134 +198,6 @@ export class UsersModule {}
 - Pas de `Promise.all` sur `db.tx` : une transaction interactive ne supporte pas les requêtes concurrentes
 - Une transaction reste courte : les traitements longs (rendu d'un PDF, envoi d'un fichier au stockage) se font en dehors, puis la transaction enregistre le résultat
 - Supprimer un fichier passe par `Files.delete`, qui attend la validation de la transaction en cours : un fichier ne disparaît jamais du stockage alors que la base est revenue en arrière. Pour toute autre action qui ne doit avoir lieu qu'une fois les données enregistrées, utiliser `afterCommit`
-
-### Base de données
-
-Le projet utilise [Prisma ORM](https://www.prisma.io/docs/orm) pour :
-
-- Concevoir et maintenir les tables de la base de données
-- Accéder aux données et les modifier
-
-Certaines fonctionnalités de [PostgreSQL](https://www.postgresql.org/) n'existent pas vraiment dans Prisma. Pour le moment, il est préférable d'accepter ces contraintes.
-
-TypeScript ne vérifie pas les champs d'un `select` ou d'un `include` passé à Prisma : un champ inexistant compile sans erreur, alors que le `where` est bien vérifié. Chaque `select` et chaque `include` racine porte donc `satisfies`, qui vérifie aussi les relations imbriquées. Un test (`prisma-selects.spec.ts`) échoue s'il en manque un :
-
-```ts
-await this.db.tx.agenda.findMany({
-  where: { sessionId },
-  select: { id: true, versions: { select: { status: true } } } satisfies Prisma.AgendaSelect,
-});
-```
-
-Deux défauts en sont la cause : un changement de TypeScript 6.0 que son équipe considère comme voulu ([microsoft/TypeScript#64006](https://github.com/microsoft/TypeScript/issues/64006), fermé sans correction) et le générateur `prisma-client` de Prisma 7 ([prisma/orm#29519](https://github.com/prisma/orm/issues/29519)). Les `satisfies` et ce test ne pourront être retirés que si Prisma corrige son générateur.
-
-Chaque table est décrite dans un fichier `.prisma`. Ils se trouvent tous dans le dossier [prisma/schemas](apps/api/prisma/schemas/) et la configuration de Prisma se trouve dans [prisma.config.ts](apps/api/prisma.config.ts).
-
-Par convention :
-
-- Chaque entité nommée utilise le snake case en base, alors que le mapping dans Prisma est en camelCase. Par exemple, une table `User` serait définie ainsi :
-
-```prisma
-model User {
-  id String @db.Uuid @id
-  firstName String @map("first_name")
-  lastName String @map("last_name")
-  email String
-
-  @@map("user")
-  @@schema("identity_and_access_context")
-}
-```
-
-- Chaque enum suit la convention `PrismaXXXEnum`. Par exemple, une enum "status" serait définie ainsi :
-
-```prisma
-enum PrismaStatusEnum {
-  IDLE
-  RUNNING
-  FAILED
-  SUCCEEDED
-  CANCELED
-
-  @@map("status_enum")
-  @@schema("public")
-}
-```
-
-- Chaque entité est définie dans un schéma de la base de données
-- On privilégie la [troisième forme normale](https://en.wikipedia.org/wiki/Database_normalization) plutôt que la dénormalisation, sauf problème de performance à la lecture. Les tableaux et les objets JSON sont donc à éviter en stockage
-- À la lecture, en revanche, ces structures sont fortement conseillées quand elles permettent de rendre l'information sous la forme la plus utile au client
-
-- Les requêtes SQL vivent dans le dossier [prisma/sql](apps/api/prisma/sql). Elles sont nommées comme une fonction JavaScript valide. Lorsque les paramètres sont des scalaires, on les documente en haut du fichier avec la syntaxe fournie par Prisma :
-
-```sql
--- @param {String} $1:sessionId
-```
-
-- En règle générale, les entités de haut niveau ont une clé primaire en UUID (`id String @id @db.Uuid`). Les sous-entités qui les référencent utilisent une clé composée : `@@id([userId, sessionId])`
-
-- On conserve les conventions de nommage proposées par Prisma pour les clés primaires et étrangères
-- Dans certains cas, on doit donner un nom accessible uniquement depuis Prisma. Par convention, on utilise `primaryKey` pour la clé primaire. Par exemple, pour une clé primaire composée :
-
-```prisma
-model SessionAttachment {
-  sessionId String @db.Uuid
-  name String
-
-  @@id([sessionId, name], name: "primaryKey")
-}
-```
-
-## Développement front-end
-
-### Socle technique
-
-- [React](https://react.dev/)
-- [React Router](https://reactrouter.com/start/data/routing) en mode data
-- [Système de Design de l'État](https://www.systeme-de-design.gouv.fr/version-courante/fr), en particulier son implémentation [React](https://react-dsfr.codegouv.studio/)
-- [TanStack Query](https://tanstack.com/query)
-
-### Recommandations
-
-À garder en tête :
-
-- L'application doit être fluide (des temps de réponse courts) et compréhensible par différents profils d'utilisateurs, y compris ceux qui ont besoin d'une assistance
-- On suit les préconisations ARIA et on préfère les implémentations natives du navigateur (Chrome)
-
-Côté technique :
-
-- Toujours privilégier l'inférence de type quand c'est possible. Par exemple, plutôt que d'écrire un composant React ainsi :
-
-```tsx
-type MyAwesomeComponentProps = { foo: string };
-export const MyAwesomeComponent: React.FC<MyAwesomeComponentProps> = ({ foo }) => <p>{foo}</p>;
-```
-
-Préférer :
-
-```tsx
-export function MyAwesomeComponent(props: { foo: string }) {
-  return <p>{props.foo}</p>;
-}
-```
-
-- Préférer un `Context` au prop drilling
-- Croiser deux sources de données passe par un modèle construit une fois et partagé par un `Context`, pas par un hook appelé à chaque ligne
-- Un `if` sur une valeur métier qui décide de ce que l'utilisateur peut ou doit faire est une capacité manquante dans le contrat (`canX`, `xRequired` ou un statut), calculée par le domaine du back (voir [l'ADR](docs/adr/2026-10-19-regles-metier-servies-comme-capacites.md))
-- Un nom de composant se suffit à lui-même, même dans un dossier déjà ciblé : `MagistratDetailsContent` plutôt que `DetailsContent`
-- Le titre d'une story Storybook suit le dossier du composant qu'elle affiche : `Pages/...` pour un écran entier de `src/pages`, `Features/...` pour une brique de `src/features`, `Shared/...` pour un composant générique, `Layout/...` pour la coquille de l'application. Exception : l'en-tête et les tableaux des écrans de session, cœur de l'application, sont rangés sous `Session/<type de session>/...`. Les autres briques d'une session, comme le panneau latéral, restent sous `Features/...`
-- Une story montre un écran ou une brique en entier, jamais ses blocs un par un. Elle passe les états par des contrôles qui reprennent les valeurs de l'API : une seule story `Playground` suffit. Seule exception : une story `Usages` à côté, quand une galerie compare des variantes côte à côte (tailles, usages d'une icône)
-- Utiliser TanStack Query pour gérer l'état asynchrone de l'application (voir [État asynchrone](#état-asynchrone))
-
-### État asynchrone
-
-La synchronisation entre le client et le serveur utilise TanStack Query et le SDK généré avec [hey-api](https://heyapi.dev/openapi-ts/plugins/sdk).
-
-- Les queries et les mutations vivent dans le dossier [queries](apps/client/src/queries)
-- Chaque hook déclaré ici est responsable de sa propre API, avec ces règles :
-  - Chaque query utilise une clé tirée d'un registre de clés déclaré en haut du fichier
-  - Chaque clé doit pouvoir être identifiée pour invalider son contenu
-  - Si une mutation rend une query périmée, elle l'invalide
 
 ## Tests
 
