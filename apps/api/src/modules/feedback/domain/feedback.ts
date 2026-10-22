@@ -1,5 +1,5 @@
 import { formationToMemberRole } from '../../shared/formation-to-member-role';
-import type { RoleEnum } from '../../shared/role.enum';
+import { isSecretariat, type RoleEnum } from '../../shared/role.enum';
 
 export const MANUAL_WORK_SHARES = [
   'LESS_THAN_10',
@@ -81,7 +81,7 @@ export class Feedback {
   }
 
   static questionnaireOf(role: RoleEnum): Questionnaire | null {
-    if (role === 'ADJOINT_SECRETAIRE_GENERAL') return 'SECRETARIAT';
+    if (isSecretariat(role)) return 'SECRETARIAT';
     if (formationToMemberRole().includes(role)) return 'MEMBER';
     return null;
   }
