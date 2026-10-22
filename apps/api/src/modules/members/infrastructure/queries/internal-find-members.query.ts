@@ -5,7 +5,7 @@ import { Prisma } from '../../../../generated/prisma/client';
 import { PrismaRoleEnum } from '../../../../generated/prisma/enums';
 import { Db } from '../../../framework/database';
 import { FormationEnum } from '../../../shared/formation.enum';
-import { MEMBER_ROLES } from '../member.utils';
+import { MEMBER_ROLES } from '../../../shared/role.enum';
 
 @Injectable()
 export class InternalFindMembersQuery {

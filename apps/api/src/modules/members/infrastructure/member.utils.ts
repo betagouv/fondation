@@ -1,12 +1,7 @@
 import { assertNever } from '../../../utils/assert-never';
 import { FormationEnum } from '../../shared/formation.enum';
-import type { RoleEnum } from '../../shared/role.enum';
+import { MEMBER_ROLES, type RoleEnum } from '../../shared/role.enum';
 
-export const MEMBER_ROLES = [
-  'MEMBRE_COMMUN',
-  'MEMBRE_DU_PARQUET',
-  'MEMBRE_DU_SIEGE',
-] as const satisfies RoleEnum[keyof RoleEnum][];
 export type MemberRole = (typeof MEMBER_ROLES)[number];
 
 /** @return undefined means no restriction on the formation */

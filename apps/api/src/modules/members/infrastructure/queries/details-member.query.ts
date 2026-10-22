@@ -5,7 +5,8 @@ import { z } from 'zod';
 import { detailsMemberRawQuery } from '../../../../generated/prisma/sql';
 import { Db } from '../../../framework/database';
 import { GradeEnum } from '../../../shared/grade.enum';
-import { isMember, MEMBER_ROLES } from '../member.utils';
+import { MEMBER_ROLES } from '../../../shared/role.enum';
+import { isMember } from '../member.utils';
 
 @Injectable()
 export class DetailsMemberQuery {

@@ -170,7 +170,8 @@ src/
 ├─ i18n/        internationalisation
 ├─ layout/      ossature de l'application (header...)
 ├─ queries/     couche d'état asynchrone (TanStack Query + SDK)
-├─ router.tsx   l'objet routeur (arbre des routes), rendu par main.tsx
+├─ router.tsx   l'objet routeur, rendu par main.tsx
+├─ routes.tsx   l'arbre des routes, lu par router.tsx et routes.test.ts
 ├─ styles/      styles globaux + doc des couleurs DSFR
 ├─ test-utils/  fabriques et utilitaires de test
 └─ utils/       fonctions pures transverses
