@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { writerSchema } from '../../../../../utils/user.util';
 import { AgendaRenderer } from '../services/renderers/agenda.renderer';
 
 const AgendaBlockFileDtoSchema = z.object({
@@ -11,7 +12,7 @@ const AgendaBlockFileDtoSchema = z.object({
   nominationFileId: z.string().nullable(),
   edited: z.boolean(),
   editedAt: z.iso.datetime().nullable(),
-  editedBy: z.object({ id: z.string(), name: z.string() }).nullable(),
+  editedBy: writerSchema,
   outdated: z.boolean(),
   generatedHtml: z.string().optional(),
   html: z.string(),
