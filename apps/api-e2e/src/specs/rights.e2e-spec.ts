@@ -6,15 +6,21 @@ import { test } from '../fixtures.ts';
 type OpenApi = { paths: Record<string, Record<string, { 'x-roles'?: readonly string[] }>> };
 
 const MEMBER_ROLES = ['MEMBRE_COMMUN', 'MEMBRE_DU_PARQUET', 'MEMBRE_DU_SIEGE'];
-const WITHOUT_USER = 'sans utilisateur';
 
 const mark = (allowed: boolean) => (allowed ? '✓' : '—');
 
-function accessOf(roles: readonly string[] | undefined): string {
-  if (!roles || roles.includes('MACHINE')) return WITHOUT_USER;
+function accessOf(endpoint: string, roles: readonly string[] | undefined): string {
+  if (!roles) return 'public';
+  if (roles.includes('MACHINE')) {
+    if (roles.length === 1) return 'machine';
+    if (roles.length === 2 && roles.includes('ADMIN')) return 'machine ou Administrateur';
+    throw new Error(`${endpoint} lets machines in along with user roles`);
+  }
 
   const members = MEMBER_ROLES.filter((role) => roles.includes(role));
-  if (members.length > 0 && members.length < MEMBER_ROLES.length) return 'une partie des rôles de membre';
+  if (members.length > 0 && members.length < MEMBER_ROLES.length) {
+    throw new Error(`${endpoint} lets some members in but not all of them`);
+  }
 
   const member = roles.length === 0 || members.length > 0;
   const secretariat = roles.length === 0 || roles.includes('ADJOINT_SECRETAIRE_GENERAL');
@@ -25,7 +31,7 @@ function servedAccesses(spec: OpenApi): string[] {
   return Object.entries(spec.paths).flatMap(([path, operations]) =>
     Object.entries(operations).map(([method, operation]) => {
       const endpoint = `${method.toUpperCase()} ${path.replace(/^\/api/, '').replace(/\{(\w+)\}/g, ':$1')}`;
-      return `${endpoint} : ${accessOf(operation['x-roles'])}`;
+      return `${endpoint} : ${accessOf(endpoint, operation['x-roles'])}`;
     }),
   );
 }
@@ -49,7 +55,7 @@ function listedAccesses(listing: string): string[] {
       continue;
     }
 
-    if (part === '## Accès sans utilisateur') accesses.push(`${endpoint} : ${WITHOUT_USER}`);
+    if (part === '## Accès sans utilisateur') accesses.push(`${endpoint} : ${cells[headers.indexOf('Qui')]}`);
     if (part === "## Actions de l'API") {
       const member = cells[headers.indexOf('Membre')]!.startsWith('✓');
       const secretariat = cells[headers.indexOf('Secrétariat général')]!.startsWith('✓');
