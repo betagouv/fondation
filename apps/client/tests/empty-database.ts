@@ -13,8 +13,8 @@ export async function emptyDatabase(): Promise<void> {
       truncate "data_administration_context"."jurisdictions" cascade;
       truncate "data_administration_context"."function" cascade;
       truncate "data_administration_context"."grade" cascade;
+      truncate "data_administration_context"."magistrat" cascade;
 
-      truncate "nominations_context"."magistrat" cascade;
       truncate "nominations_context"."session" cascade;
 
       truncate "reports_context"."reports" cascade;

@@ -18,7 +18,7 @@ WITH bronze_nomination AS (
 silver_nomination AS (
   SELECT bn.*, tp.id AS real_targeted_position_id, cp.id AS real_current_position_id
   FROM bronze_nomination AS bn
-    INNER JOIN nominations_context.magistrat AS m ON m.external_id = bn.magistrat_id
+    INNER JOIN data_administration_context.magistrat AS m ON m.external_id = bn.magistrat_id
     INNER JOIN data_administration_context.session AS s ON s.id = bn.session_id
     INNER JOIN data_administration_context.position AS tp ON tp.id = bn.targeted_position_id
     LEFT JOIN data_administration_context.position AS cp ON cp.id = bn.current_position_id
@@ -73,7 +73,7 @@ SELECT
   CASE WHEN tp.id IS NULL THEN bn.targeted_position_id ELSE NULL END AS "unknownTargetPositionId",
   CASE WHEN cp.id IS NULL THEN bn.current_position_id ELSE NULL END AS "unknownCurrentPositionId"
 FROM bronze_nomination AS bn
-    LEFT JOIN nominations_context.magistrat AS m ON m.external_id = bn.magistrat_id
+    LEFT JOIN data_administration_context.magistrat AS m ON m.external_id = bn.magistrat_id
     LEFT JOIN data_administration_context.session AS s ON s.id = bn.session_id
     LEFT JOIN data_administration_context.position AS tp ON tp.id = bn.targeted_position_id
     LEFT JOIN data_administration_context.position AS cp ON cp.id = bn.current_position_id

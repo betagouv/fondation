@@ -40,7 +40,8 @@ silver_candidate AS (
     s.id AS observation_session_id
 
   FROM bronze_candidate
-    INNER JOIN nominations_context.magistrat AS m ON m.external_id = (bronze_candidate.magistrat_id)::TEXT
+    INNER JOIN data_administration_context.magistrat AS m
+      ON m.external_id = (bronze_candidate.magistrat_id)::TEXT
     LEFT JOIN data_administration_context."session" AS s ON s.id = bronze_candidate.observation_session_id
 ),
 
@@ -106,7 +107,8 @@ SELECT
   bronze_candidate.magistrat_id AS "unknownMagistratId",
   NULL AS "unknownSessionId"
 FROM bronze_candidate
-  LEFT JOIN nominations_context.magistrat AS m ON m.external_id = (bronze_candidate.magistrat_id)::TEXT
+  LEFT JOIN data_administration_context.magistrat AS m
+    ON m.external_id = (bronze_candidate.magistrat_id)::TEXT
 WHERE m.id IS NULL
 
 UNION
