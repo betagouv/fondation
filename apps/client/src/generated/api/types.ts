@@ -1037,9 +1037,6 @@ export type PaginatedJobsDto = {
         createdAt: string;
         startedAt: string | null;
         endedAt: string | null;
-        errors: Array<{
-            error: string;
-        }>;
     }>;
     totalCount: number;
     currentPageIndex: number;
@@ -1057,9 +1054,9 @@ export type DetailedJobDto = {
     startedAt: string | null;
     endedAt: string | null;
     status: 'IDLE' | 'RUNNING' | 'FAILED' | 'SUCCEEDED' | 'CANCELED';
-    errors: Array<{
-        error: string;
+    messages: Array<{
         severity: 'ERROR' | 'WARNING';
+        text: string;
     }>;
     files: Array<{
         id: string;
@@ -1071,11 +1068,11 @@ export type DetailedJobDto = {
         requirements: Array<{
             requiredFileId: string;
         }>;
-        errors: Array<{
+        messages: Array<{
             entityId: string | null;
             entityNumber: number | null;
-            error: string;
             severity: 'ERROR' | 'WARNING';
+            text: string;
         }>;
     }>;
 };

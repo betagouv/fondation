@@ -39,14 +39,14 @@ function inIngestionOrder(trees: readonly Tree[], depth = 0): Row[] {
 }
 
 function statusIcon(node: Row['node']) {
-  if (node.status !== 'FAILED' && node.errors.length > 0) return JOB_STATUS_ICONS.WARNING;
+  if (node.status !== 'FAILED' && node.messages.length > 0) return JOB_STATUS_ICONS.WARNING;
   return JOB_STATUS_ICONS[node.status];
 }
 
 function JobFileMessages(props: { file: Row['node'] }) {
   const { formatMessage } = useIntl();
   const entityName = ENTITY_NAMES[props.file.name];
-  const groups = bySeverity(props.file.errors);
+  const groups = bySeverity(props.file.messages);
 
   if (groups.length === 0) {
     return (
@@ -64,20 +64,20 @@ function JobFileMessages(props: { file: Row['node'] }) {
             {formatMessage(SeverityEnumCountMessages[severity], { count: messages.length })}
           </p>
           <ul className="fr-m-0 fr-p-0 flex list-none flex-col gap-1 text-sm">
-            {messages.map((error, index) => (
+            {messages.map((message, index) => (
               <li className="wrap-break-word" key={index}>
-                {error.entityNumber != null && (
+                {message.entityNumber != null && (
                   <span className="font-bold">
                     {entityName} n°{' '}
-                    {error.entityNumber} :{' '}
+                    {message.entityNumber} :{' '}
                   </span>
                 )}
-                {error.entityId != null && (
+                {message.entityId != null && (
                   <span className="font-bold">
-                    {entityName} #{error.entityId} :{' '}
+                    {entityName} #{message.entityId} :{' '}
                   </span>
                 )}
-                {error.error}
+                {message.text}
               </li>
             ))}
           </ul>
@@ -120,7 +120,7 @@ export function JobFilesList(props: { files: readonly JobFile[] }) {
                 )}
               />
               <span className="font-medium">{node.name}</span>
-              {bySeverity(node.errors).map(({ messages, severity }) => (
+              {bySeverity(node.messages).map(({ messages, severity }) => (
                 <span className={clsx('text-xs', SEVERITY_TEXT_COLORS[severity])} key={severity}>
                   {formatMessage(SeverityEnumCountMessages[severity], { count: messages.length })}
                 </span>

@@ -34,7 +34,6 @@ export class ListJobsQuery {
         createdAt: true,
         startedAt: true,
         endedAt: true,
-        errors: { select: { error: true } },
       } satisfies Prisma.IngestionJobSelect,
     });
 
@@ -58,6 +57,5 @@ export class PaginatedJobsDto extends createPaginatedZodDto(
     createdAt: z.iso.datetime(),
     startedAt: z.iso.datetime().nullable(),
     endedAt: z.iso.datetime().nullable(),
-    errors: z.array(z.object({ error: z.string() })),
   }),
 ) {}

@@ -87,8 +87,8 @@ export class IngestService {
         .update({
           where: { id: jobId },
           data: {
+            messages: { create: { text: describeErrorWithoutSecrets(e) } },
             status: 'FAILED',
-            errors: { create: { error: describeErrorWithoutSecrets(e) } },
           },
         })
         .catch((prismaError) => {
@@ -122,9 +122,9 @@ export class IngestService {
         this.logger.error(`Failed failing the files of job #${jobId}`, error);
       });
 
-    await this.db.tx.ingestionJobError
+    await this.db.tx.ingestionJobMessage
       .create({
-        data: { error: `Ingestion abandonnée : aucun statut final n'a été enregistré`, jobId },
+        data: { jobId, text: `Ingestion abandonnée : aucun statut final n'a été enregistré` },
       })
       .catch((error) => {
         this.logger.error(`Failed recording the error of job #${jobId}`, error);
@@ -160,10 +160,10 @@ export class IngestService {
         });
       }
     } else {
-      await this.db.tx.ingestionJobError.createMany({
+      await this.db.tx.ingestionJobMessage.createMany({
         data: props.result.errors.map(({ message }) => ({
           jobId: job.id,
-          error: message,
+          text: message,
         })),
       });
     }

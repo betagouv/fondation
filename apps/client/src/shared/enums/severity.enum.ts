@@ -2,7 +2,7 @@ import { defineMessages } from 'react-intl';
 
 import type { DetailedJobDto } from '@api/types';
 
-export type SeverityEnum = DetailedJobDto['errors'][number]['severity'];
+export type SeverityEnum = DetailedJobDto['messages'][number]['severity'];
 
 export const SeverityEnum = {
   ERROR: 'ERROR',

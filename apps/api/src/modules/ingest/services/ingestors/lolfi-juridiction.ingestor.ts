@@ -81,12 +81,12 @@ export class LolfiJuridictionIngestor {
 
       if (unknownJurisdictionTypes.length === 0) return;
 
-      await this.db.tx.ingestionJobFileError.createMany({
+      await this.db.tx.ingestionJobFileMessage.createMany({
         data: unknownJurisdictionTypes.map(({ codejur, type_jur }) => ({
           entityId: codejur,
-          error: `type de juridiction "${type_jur}" inconnu`,
           fileId: props.fileId,
           jobId: props.jobId,
+          text: `type de juridiction "${type_jur}" inconnu`,
         })),
       });
     } catch (error) {

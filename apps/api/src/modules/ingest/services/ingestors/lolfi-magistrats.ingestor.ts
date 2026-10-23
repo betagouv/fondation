@@ -34,17 +34,17 @@ export class LolfiMagistratsIngestor {
 
     // oxlint-disable-next-line require-yield
     async function* mapper(source: AsyncIterable<{ data: RawMagistrat; success: boolean }>) {
-      const errors: { entityId: string; error: string; severity: PrismaSeverityEnum }[] = [];
+      const messages: { entityId: string; severity: PrismaSeverityEnum; text: string }[] = [];
       const accumulator: RawMagistrat[] = [];
       const ids = new Set<number>();
 
       for await (const { data } of source) {
         if (ids.has(data.id)) {
           self.logger.warn(`Magistrat "${data.id}" is duplicated. Ignored`);
-          errors.push({
+          messages.push({
             entityId: String(data.id),
-            error: 'plusieurs occurrences dans le fichier, seule la première est enregistrée',
             severity: 'WARNING',
+            text: 'plusieurs occurrences dans le fichier, seule la première est enregistrée',
           });
           continue;
         }
@@ -54,21 +54,21 @@ export class LolfiMagistratsIngestor {
 
         if (accumulator.length >= 500) {
           await self.flush({
-            errors,
-            items: accumulator,
             fileId: options.file.id,
+            items: accumulator,
             jobId: options.job.id,
+            messages,
             result: mappingResult,
           });
         }
       }
 
-      if (accumulator.length > 0 || errors.length > 0) {
+      if (accumulator.length > 0 || messages.length > 0) {
         await self.flush({
-          errors,
-          items: accumulator,
           fileId: options.file.id,
+          items: accumulator,
           jobId: options.job.id,
+          messages,
           result: mappingResult,
         });
       }
@@ -95,14 +95,14 @@ export class LolfiMagistratsIngestor {
 
   @Transactional(Propagation.RequiresNew)
   private async flush(props: {
-    items: RawMagistrat[];
-    errors: { entityId: string; error: string; severity: PrismaSeverityEnum }[];
-    jobId: number;
     fileId: string;
+    items: RawMagistrat[];
+    jobId: number;
+    messages: { entityId: string; severity: PrismaSeverityEnum; text: string }[];
     result: { success: boolean };
   }) {
     try {
-      const errors = [...props.errors];
+      const messages = [...props.messages];
 
       if (props.items.length > 0) {
         const unknown = await this.db.tx.$queryRawTyped(insertMagistratRawQuery(props.items));
@@ -126,18 +126,18 @@ export class LolfiMagistratsIngestor {
 
           if (!error) continue;
 
-          errors.push({ entityId: String(entityId), error, severity: 'ERROR' });
+          messages.push({ entityId: String(entityId), severity: 'ERROR', text: error });
         }
       }
 
-      if (errors.length > 0) {
-        await this.db.tx.ingestionJobFileError.createMany({
-          data: errors.map(({ entityId, error, severity }) => ({
+      if (messages.length > 0) {
+        await this.db.tx.ingestionJobFileMessage.createMany({
+          data: messages.map(({ entityId, severity, text }) => ({
             entityId,
-            error,
             fileId: props.fileId,
             jobId: props.jobId,
             severity,
+            text,
           })),
         });
       }
@@ -145,7 +145,7 @@ export class LolfiMagistratsIngestor {
       this.logger.error(`Failed flushing MAGISTRATS.xml chunk`, error);
       props.result.success = false;
     } finally {
-      props.errors.length = 0;
+      props.messages.length = 0;
       props.items.length = 0;
     }
   }
