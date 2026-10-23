@@ -295,14 +295,9 @@ export function useFollowUpOnObservationMutation() {
       comment: string | null;
     }) => {
       const { sessionId, nominationFileId, observationId, followUp, comment } = mutation;
-      const body =
-        followUp === null
-          ? // FIXME: issue with code generation
-            { followUp: null as unknown as ObservationFollowUpEnum, comment: null }
-          : { followUp: followUp as ObservationFollowUpEnum, comment };
 
       await $api.observations.followUpOnObservation({
-        body,
+        body: { comment: followUp === null ? null : comment, followUp },
         path: { sessionId, nominationFileId, observationId },
       });
     },

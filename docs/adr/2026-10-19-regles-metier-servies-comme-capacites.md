@@ -62,5 +62,5 @@ vocabulaire. Celui-ci règle celui des prédicats : ce que l'utilisateur peut ou
     lit la capacité `canHoldAdminRight`. Il ne reste que la couleur de la fiche et le bouton d'usurpation.
 - `MemberTitle` a disparu avec FON-658. La distinction d'un membre se règle désormais par son rôle
   dans l'administration.
-- Avec OpenAPI 3.1 (FON-495), une capacité pourra aussi prendre la forme d'une union discriminée :
-  une issue `NON_VALIDATED` qui porte son commentaire obligatoire.
+- Une capacité peut aussi prendre la forme d'une union discriminée, que le contrat sait déjà exprimer
+  (`ApiOkDiscriminatedByType`) : une issue `NON_VALIDATED` qui porte son commentaire obligatoire.
