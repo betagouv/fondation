@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 
+import { load } from 'cheerio';
 import { documentPagedJs } from 'documents-assets';
 import { mock } from 'vitest-mock-extended';
 
@@ -41,9 +42,11 @@ describe('PdfRenderer', () => {
       </head></html>`);
 
       const [request] = http.htmlToPdf.mock.lastCall!;
+      const scripts = load(request['index.html'])('script[src*="paged"]');
 
-      expect(request['index.html']).not.toContain('unpkg.com');
-      expect(request['index.html']).toContain(`<script defer src="paged.polyfill.min.js"></script>`);
+      expect(scripts.toArray().map(({ attribs }) => attribs)).toEqual([
+        { defer: '', src: 'paged.polyfill.min.js' },
+      ]);
       expect(request.files?.map(({ name }) => name)).toEqual(['paged.polyfill.min.js']);
     });
   });

@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import * as Sentry from '@sentry/node';
+import { load } from 'cheerio';
 import { documentPagedJs } from 'documents-assets';
 
 import * as time from '../../../utils/time';
@@ -9,9 +10,6 @@ import { GotenbergHttpClient } from './gotenberg-http-client.service';
 const WAIT_FOR_EXPRESSION = `window.status === 'OK'`;
 
 const PAGED_JS = 'paged.polyfill.min.js';
-
-/** The documents frozen before paged.js left the templates still load it from unpkg */
-const PAGED_JS_SCRIPT = /<script\b[^>]*\bsrc="[^"]*paged[^"]*"[^>]*>\s*<\/script>/g;
 
 @Injectable()
 export class PdfRenderer {
@@ -48,14 +46,18 @@ export class PdfRenderer {
   }
 
   private withPagination(html: string): string {
-    return html.replace(PAGED_JS_SCRIPT, '').replace(
-      '<head>',
-      /* html */ `<head>
+    const $ = load(html);
+
+    // the documents frozen before paged.js left the templates still load it from unpkg
+    $('script[src*="paged"]').remove();
+    $('head').prepend(/* html */ `
       <script>
         window.status = 'IDLE';
         window.PagedConfig = { after: () => { window.status = 'OK'; } };
       </script>
-      <script defer src="${PAGED_JS}"></script>\n`,
-    );
+      <script defer src="${PAGED_JS}"></script>
+    `);
+
+    return $.html();
   }
 }
