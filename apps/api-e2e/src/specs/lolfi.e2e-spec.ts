@@ -7,6 +7,7 @@ import { inject } from 'vitest';
 
 import { test } from '../fixtures.ts';
 import type { LolfiFixture } from '../fixtures/lolfi.fixture.ts';
+import type { DetailedJobDto } from '../generated/api/types.ts';
 import type { TestStepsAdmin } from '../steps.ts';
 import * as seed from '../utils/seed.ts';
 import { waitFor } from '../utils/wait-for.ts';
@@ -350,16 +351,17 @@ test.describe('lolfi', () => {
     expect(job.status).toBe('SUCCEEDED');
 
     const reported = await waitFor(async () => {
-      const errors = await jobErrors(admin, job.id);
-      const reported = errors.find(mentioning(withoutProposition.id));
+      const messages = await jobMessages(admin, job.id);
+      const reported = messages.find(aboutTransparence(withoutProposition.id));
 
       assert.ok(reported, `transparence ${withoutProposition.id} not reported on job #${job.id}`);
+      assert.equal(reported.severity, 'WARNING');
       assert.ok(
-        !errors.some(mentioning(nominal.id)),
+        !messages.some(aboutTransparence(nominal.id)),
         `transparence ${nominal.id} produced a session and must not be reported`,
       );
 
-      return reported;
+      return reported.error;
     });
 
     expect(reported).toContain('1 candidature et aucune proposition, aucune session créée');
@@ -395,9 +397,10 @@ test.describe('lolfi', () => {
       const secondJob = await lolfi.ingest([broken]);
       expect(secondJob.status).toBe('SUCCEEDED');
       await waitFor(async () => {
-        const errors = await jobErrors(admin, secondJob.id);
-        assert.ok(
-          errors.some(mentioning(broken.id)),
+        const reported = (await jobMessages(admin, secondJob.id)).find(aboutTransparence(broken.id));
+        assert.equal(
+          reported?.severity,
+          'WARNING',
           `transparence ${broken.id} must stay reported on job #${secondJob.id}`,
         );
       });
@@ -438,16 +441,17 @@ test.describe('lolfi', () => {
     expect(job.status).toBe('SUCCEEDED');
 
     const reported = await waitFor(async () => {
-      const errors = await jobErrors(admin, job.id);
-      const reported = errors.find(mentioning(abandoned.id));
+      const messages = await jobMessages(admin, job.id);
+      const reported = messages.find(aboutTransparence(abandoned.id));
 
       assert.ok(reported, `transparence ${abandoned.id} not reported on job #${job.id}`);
+      assert.equal(reported.severity, 'WARNING');
       assert.ok(
-        !errors.some(mentioning(justAnnounced.id)),
+        !messages.some(aboutTransparence(justAnnounced.id)),
         `transparence ${justAnnounced.id} was just announced and must be left the time to fill up`,
       );
 
-      return reported;
+      return reported.error;
     });
 
     expect(reported).toContain('aucune candidature reçue');
@@ -484,7 +488,7 @@ test.describe('lolfi', () => {
       await waitFor(async () => {
         assert.equal(await recordedAnomaly(sql, complete.id), undefined, `the repair must be forgotten`);
       });
-      expect(await jobErrors(admin, repairedJobId)).not.toContainEqual(expect.stringContaining(`(${complete.id})`));
+      expect((await jobMessages(admin, repairedJobId)).some(aboutTransparence(complete.id))).toBe(false);
 
       await ingestUntilEnded(lolfi, broken);
       const alerts = await waitFor(async () => {
@@ -633,10 +637,16 @@ function berger() {
   } satisfies LolfiArchiveContent['sessions'][number]['candidates'][number];
 }
 
-async function jobErrors(admin: TestStepsAdmin, jobId: number): Promise<string[]> {
+async function jobMessages(admin: TestStepsAdmin, jobId: number): Promise<DetailedJobDto['errors']> {
   const { data } = await admin.jobs.detailsJob({ path: { jobId }, throwOnError: true });
 
-  return data!.errors.map(({ error }) => error);
+  return data!.errors;
+}
+
+function aboutTransparence(transparenceId: number): (message: { error: string }) => boolean {
+  const mentionsIt = mentioning(transparenceId);
+
+  return ({ error }) => mentionsIt(error);
 }
 
 async function findAlerts(transparenceId: number): Promise<{ text: string; title: string }[]> {

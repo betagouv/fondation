@@ -2,6 +2,7 @@ import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
+import { PrismaSeverityEnum } from '../../../../generated/prisma/enums';
 import { insertCandidatesRawQuery } from '../../../../generated/prisma/sql';
 import { Db } from '../../../framework/database';
 import { LolfiJob } from '../lolfi-job.type';
@@ -31,7 +32,7 @@ export class LolfiCandidatsIngestor {
 
     // oxlint-disable-next-line require-yield
     async function* mapper(source: AsyncIterable<{ data: RawCandidate; success: boolean }>) {
-      const errors: { entityId: string; error: string }[] = [];
+      const errors: { entityId: string; error: string; severity: PrismaSeverityEnum }[] = [];
       const accumulator: RawCandidate[] = [];
       const ids = new Set<number>();
 
@@ -40,7 +41,8 @@ export class LolfiCandidatsIngestor {
           self.logger.warn(`Candidate "${data.num_candidat}" is duplicated. Ignored`);
           errors.push({
             entityId: String(data.num_candidat),
-            error: `Candidat "${data.num_candidat}" dupliqué. La première occurrence est la seule sauvegardée`,
+            error: 'plusieurs occurrences dans le fichier, seule la première est enregistrée',
+            severity: 'WARNING',
           });
           continue;
         }
@@ -86,7 +88,7 @@ export class LolfiCandidatsIngestor {
   @Transactional(Propagation.RequiresNew)
   private async flush(props: {
     items: RawCandidate[];
-    errors: { entityId: string; error: string }[];
+    errors: { entityId: string; error: string; severity: PrismaSeverityEnum }[];
     jobId: number;
     fileId: string;
     result: { success: boolean };
@@ -103,24 +105,25 @@ export class LolfiCandidatsIngestor {
 
           const error =
             u.unknownMagistratId !== null
-              ? `Magistrat "${u.unknownMagistratId}" inconnu`
+              ? `magistrat "${u.unknownMagistratId}" inconnu`
               : u.unknownSessionId !== null
-                ? `Session observée "${u.unknownSessionId}" inconnue`
+                ? `session observée "${u.unknownSessionId}" inconnue`
                 : null;
 
           if (!error) continue;
 
-          errors.push({ entityId: String(entityId), error });
+          errors.push({ entityId: String(entityId), error, severity: 'ERROR' });
         }
       }
 
       if (errors.length > 0) {
         await this.db.tx.ingestionJobFileError.createMany({
-          data: errors.map(({ entityId, error }) => ({
-            error,
+          data: errors.map(({ entityId, error, severity }) => ({
             entityId,
-            jobId: props.jobId,
+            error,
             fileId: props.fileId,
+            jobId: props.jobId,
+            severity,
           })),
         });
       }

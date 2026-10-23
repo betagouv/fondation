@@ -3,7 +3,7 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { Prisma } from '../../../../generated/prisma/client';
-import { PrismaJobStatusEnum } from '../../../../generated/prisma/enums';
+import { PrismaJobStatusEnum, PrismaSeverityEnum } from '../../../../generated/prisma/enums';
 import { Db } from '../../../framework/database';
 
 @Injectable()
@@ -19,7 +19,7 @@ export class DetailsJobQuery {
         startedAt: true,
         endedAt: true,
         status: true,
-        errors: { select: { error: true }, orderBy: { id: 'asc' } },
+        errors: { select: { error: true, severity: true }, orderBy: { id: 'asc' } },
         files: {
           select: {
             fileId: true,
@@ -35,6 +35,7 @@ export class DetailsJobQuery {
                 entityId: true,
                 entityNumber: true,
                 error: true,
+                severity: true,
               },
             },
           },
@@ -67,7 +68,7 @@ export class DetailedJobDto extends createZodDto(
     startedAt: z.iso.datetime().nullable(),
     endedAt: z.iso.datetime().nullable(),
     status: z.enum(PrismaJobStatusEnum),
-    errors: z.array(z.object({ error: z.string() })),
+    errors: z.array(z.object({ error: z.string(), severity: z.enum(PrismaSeverityEnum) })),
     files: z.array(
       z.object({
         id: z.string(),
@@ -82,6 +83,7 @@ export class DetailedJobDto extends createZodDto(
             entityId: z.string().nullable(),
             entityNumber: z.number().nullable(),
             error: z.string(),
+            severity: z.enum(PrismaSeverityEnum),
           }),
         ),
       }),

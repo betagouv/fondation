@@ -92,13 +92,13 @@ export class LolfiPostesIngestor {
 
         const error =
           u.unknownFunctionId !== null
-            ? `Fonction "${u.unknownFunctionId}" inconnue`
+            ? `fonction "${u.unknownFunctionId}" inconnue`
             : u.unknownGradeId !== null
-              ? `Grade "${u.unknownGradeId}" inconnu`
+              ? `grade "${u.unknownGradeId}" inconnu`
               : u.unknownJurisdictionId !== null
-                ? `Juridiction "${u.unknownJurisdictionId}" inconnue`
+                ? `juridiction "${u.unknownJurisdictionId}" inconnue`
                 : u.unknownJurisdictionTypeId !== null
-                  ? `Type de juridiction "${u.unknownJurisdictionTypeId}" inconnue`
+                  ? `type de juridiction "${u.unknownJurisdictionTypeId}" inconnu`
                   : null;
         if (!error) continue;
 

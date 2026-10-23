@@ -83,10 +83,10 @@ export class LolfiJuridictionIngestor {
 
       await this.db.tx.ingestionJobFileError.createMany({
         data: unknownJurisdictionTypes.map(({ codejur, type_jur }) => ({
-          jobId: props.jobId,
-          fileId: props.fileId,
           entityId: codejur,
-          error: `Type de juridiction inconnue: "${type_jur}"`,
+          error: `type de juridiction "${type_jur}" inconnu`,
+          fileId: props.fileId,
+          jobId: props.jobId,
         })),
       });
     } catch (error) {

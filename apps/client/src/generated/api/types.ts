@@ -1059,6 +1059,7 @@ export type DetailedJobDto = {
     status: 'IDLE' | 'RUNNING' | 'FAILED' | 'SUCCEEDED' | 'CANCELED';
     errors: Array<{
         error: string;
+        severity: 'ERROR' | 'WARNING';
     }>;
     files: Array<{
         id: string;
@@ -1074,6 +1075,7 @@ export type DetailedJobDto = {
             entityId: string | null;
             entityNumber: number | null;
             error: string;
+            severity: 'ERROR' | 'WARNING';
         }>;
     }>;
 };
