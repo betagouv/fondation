@@ -114,8 +114,9 @@ export const ConfigSchema = z.object({
           process.env.PRO_CONNECT_CLIENT_SECRET,
         ),
       })
-      .optional()
-      .transform((x) => (x ? (x.domain && x.clientId && x.clientSecret ? x : undefined) : x)),
+      .transform(({ clientId, clientSecret, domain }) =>
+        clientId && clientSecret && domain ? { clientId, clientSecret, domain } : undefined,
+      ),
   ),
 
   s3: z.preprocess(
