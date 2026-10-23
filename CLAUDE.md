@@ -57,7 +57,7 @@ function withDefinedUser<T extends { user: { id: string } | undefined }>(
 
 ## Contrat d'API
 
-- On génère une spécification OpenAPI 3.0, utilisée par le front-end pour générer son client (via la commande `pnpm run openapi:generate`)
+- On génère une spécification OpenAPI 3.1, utilisée par le front-end pour générer son client (via la commande `pnpm run openapi:generate`)
 - Cette spécification suit les bonnes pratiques de Nest.js avec les décorateurs `@Api...` et exploite `nestjs-zod` pour le typage fort
 - Les DTO se nomment ainsi :
   - En entrée, du nom de l'action à effectuer suivi de `Dto`. Par exemple, pour l'action "supprimer une session" : `DeleteSessionDto`
