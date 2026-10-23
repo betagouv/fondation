@@ -104,7 +104,7 @@ export class JobFileIngestor {
       return this.failJobFile({
         file,
         jobId: job.id,
-        errors: [{ error: `Erreur technique: ${describeErrorWithoutSecrets(e)}` }],
+        errors: [{ error: `Erreur technique : ${describeErrorWithoutSecrets(e)}` }],
       });
     } finally {
       const duration = start! ? (performance.now() - start).toFixed(2) : null;

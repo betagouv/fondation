@@ -95,10 +95,10 @@ export class LolfiGradesIngestor {
 
       await this.db.tx.ingestionJobFileError.createMany({
         data: unknownMassGrades.map(({ grade, massGrade }) => ({
-          jobId: props.jobId,
-          fileId: props.fileId,
           entityId: grade,
-          error: `Masse grade inconnu: "${massGrade}"`,
+          error: `masse de grade "${massGrade}" inconnue`,
+          fileId: props.fileId,
+          jobId: props.jobId,
         })),
       });
     } catch (error) {

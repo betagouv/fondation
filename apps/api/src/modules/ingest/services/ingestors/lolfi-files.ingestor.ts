@@ -131,12 +131,14 @@ export class LolfiFilesIngestor {
 
       const label = transparence.name ?? 'sans libellé';
       const publishedOn = format(transparence.creationDate.toLocalStartOfDay(), 'dd/MM/yyyy');
-      const message = `Transparence "${label}" (${transparence.id}) du ${publishedOn}: ${reason}`;
+      const message = `Transparence "${label}" (${transparence.id}) du ${publishedOn} : ${reason}`;
 
       this.logger.warn(message);
-      await this.db.tx.ingestionJobError.create({ data: { jobId, error: message } }).catch((error) => {
-        this.logger.error(`Failed recording the transparence ${transparence.id} of job #${jobId}`, error);
-      });
+      await this.db.tx.ingestionJobError
+        .create({ data: { error: message, jobId, severity: 'WARNING' } })
+        .catch((error) => {
+          this.logger.error(`Failed recording the transparence ${transparence.id} of job #${jobId}`, error);
+        });
 
       // The job keeps reporting it every night, only the channel is spared the repetition
       if (alerted.get(transparence.id) === reason) continue;

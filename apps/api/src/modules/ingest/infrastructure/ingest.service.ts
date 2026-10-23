@@ -124,7 +124,7 @@ export class IngestService {
 
     await this.db.tx.ingestionJobError
       .create({
-        data: { jobId, error: `Job abandonné: aucun statut final n'a été écrit` },
+        data: { error: `Ingestion abandonnée : aucun statut final n'a été enregistré`, jobId },
       })
       .catch((error) => {
         this.logger.error(`Failed recording the error of job #${jobId}`, error);
