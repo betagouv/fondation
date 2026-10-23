@@ -36,10 +36,13 @@ export default defineConfig({
   // keep the dev server cache out of its reach so launching storybook does not
   // corrupt a running dev server (predev clears this cache instead)
   cacheDir: 'node_modules/.vite-app',
-  // TipTap is only reached through lazy routes: pre-bundling it avoids a mid-session
-  // re-optimization (504 "Outdated Optimize Dep" on navigation). @tiptap/pm is
-  // excluded because it only has subpath exports
   optimizeDeps: {
+    // paged.js is only served as a file to the document preview: pre-bundled, its ?url import
+    // would yield the bundled module instead of an address
+    exclude: ['pagedjs'],
+    // TipTap is only reached through lazy routes: pre-bundling it avoids a mid-session
+    // re-optimization (504 "Outdated Optimize Dep" on navigation). @tiptap/pm is
+    // excluded because it only has subpath exports
     include: Object.keys(pkg.dependencies).filter(
       (dep) => dep.startsWith('@tiptap/') && dep !== '@tiptap/pm',
     ),
@@ -61,6 +64,8 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      // pagedjs only exports its entry point: the browser bundle has to be reached by its path
+      'pagedjs/dist': resolve(import.meta.dirname, 'node_modules/pagedjs/dist'),
       '@queries': resolve(import.meta.dirname, 'src/queries'),
       '@api': resolve(import.meta.dirname, 'src/generated/api'),
       '@': resolve(import.meta.dirname, 'src'),

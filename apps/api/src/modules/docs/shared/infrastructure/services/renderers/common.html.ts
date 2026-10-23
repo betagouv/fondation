@@ -123,13 +123,6 @@ export function documentLayout<const T extends LayoutContext>(layout: T): Templa
       <!doctype html>
       <html lang="fr">
         <head>
-          <script
-            defer
-            crossorigin="anonymous"
-            integrity="sha384-y6+mefdjvGUaOPOrIMXHgP6Wwpza9G0N1QW1YUteLiwb50olbeI7H909UwZTMuVX"
-            src="https://unpkg.com/pagedjs@0.4.3/dist/paged.polyfill.min.js"
-          ></script>
-
           <style>
             ${css()}
           </style>
