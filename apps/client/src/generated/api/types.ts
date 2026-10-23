@@ -1037,9 +1037,6 @@ export type PaginatedJobsDto = {
         createdAt: string;
         startedAt: string | null;
         endedAt: string | null;
-        messages: Array<{
-            text: string;
-        }>;
     }>;
     totalCount: number;
     currentPageIndex: number;
