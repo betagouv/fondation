@@ -81,10 +81,10 @@ export function makeCreateSessionFixture(steps: TestStepsAdmin, lolfi: LolfiFixt
     const names = named.map(({ id, name }) => `${name} (${id})`);
     const job = await lolfi.ingest(named);
     if (job.status === 'FAILED') {
-      const { errors, files } = await steps.jobs
+      const { files, messages } = await steps.jobs
         .detailsJob({ path: { jobId: job.id }, throwOnError: true })
         .then(({ data }) => data);
-      assert.fail(`job #${job.id} failed: ${JSON.stringify({ errors, files: files.map((file) => file.errors) })}`);
+      assert.fail(`job #${job.id} failed: ${JSON.stringify({ files: files.map((file) => file.messages), messages })}`);
     }
 
     // the sessions are synchronised once the job succeeded

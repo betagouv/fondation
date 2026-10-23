@@ -106,12 +106,12 @@ export class LolfiPostesIngestor {
       }
 
       if (errors.length > 0) {
-        await this.db.tx.ingestionJobFileError.createMany({
+        await this.db.tx.ingestionJobFileMessage.createMany({
           data: errors.map(({ entityId, error }) => ({
-            error,
             entityId,
-            jobId: props.jobId,
             fileId: props.fileId,
+            jobId: props.jobId,
+            text: error,
           })),
         });
       }

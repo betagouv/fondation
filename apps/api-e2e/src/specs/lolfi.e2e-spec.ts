@@ -361,7 +361,7 @@ test.describe('lolfi', () => {
         `transparence ${nominal.id} produced a session and must not be reported`,
       );
 
-      return reported.error;
+      return reported.text;
     });
 
     expect(reported).toContain('1 candidature et aucune proposition, aucune session créée');
@@ -451,7 +451,7 @@ test.describe('lolfi', () => {
         `transparence ${justAnnounced.id} was just announced and must be left the time to fill up`,
       );
 
-      return reported.error;
+      return reported.text;
     });
 
     expect(reported).toContain('aucune candidature reçue');
@@ -637,16 +637,16 @@ function berger() {
   } satisfies LolfiArchiveContent['sessions'][number]['candidates'][number];
 }
 
-async function jobMessages(admin: TestStepsAdmin, jobId: number): Promise<DetailedJobDto['errors']> {
+async function jobMessages(admin: TestStepsAdmin, jobId: number): Promise<DetailedJobDto['messages']> {
   const { data } = await admin.jobs.detailsJob({ path: { jobId }, throwOnError: true });
 
-  return data!.errors;
+  return data!.messages;
 }
 
-function aboutTransparence(transparenceId: number): (message: { error: string }) => boolean {
+function aboutTransparence(transparenceId: number): (message: { text: string }) => boolean {
   const mentionsIt = mentioning(transparenceId);
 
-  return ({ error }) => mentionsIt(error);
+  return ({ text }) => mentionsIt(text);
 }
 
 async function findAlerts(transparenceId: number): Promise<{ text: string; title: string }[]> {

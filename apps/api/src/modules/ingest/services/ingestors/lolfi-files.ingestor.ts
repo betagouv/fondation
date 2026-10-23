@@ -134,8 +134,8 @@ export class LolfiFilesIngestor {
       const message = `Transparence "${label}" (${transparence.id}) du ${publishedOn} : ${reason}`;
 
       this.logger.warn(message);
-      await this.db.tx.ingestionJobError
-        .create({ data: { error: message, jobId, severity: 'WARNING' } })
+      await this.db.tx.ingestionJobMessage
+        .create({ data: { jobId, severity: 'WARNING', text: message } })
         .catch((error) => {
           this.logger.error(`Failed recording the transparence ${transparence.id} of job #${jobId}`, error);
         });
@@ -190,8 +190,8 @@ export class LolfiFilesIngestor {
 
     if (!error) return;
 
-    await this.db.tx.ingestionJobError
-      .create({ data: { jobId, error: describeErrorWithoutSecrets(error) } })
+    await this.db.tx.ingestionJobMessage
+      .create({ data: { jobId, text: describeErrorWithoutSecrets(error) } })
       .catch((createError) => {
         this.logger.error(`Failed recording the error of job #${jobId}`, createError);
       });

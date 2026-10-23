@@ -58,17 +58,17 @@ export function AdminJobDetailsPage() {
         <JobFilesList files={job.files} />
       </section>
 
-      {bySeverity(job.errors).map(({ messages, severity }) => (
+      {bySeverity(job.messages).map(({ messages, severity }) => (
         <section key={severity}>
           <h3 className="fr-h6 fr-mb-2v">
             {formatMessage(SeverityEnumCountMessages[severity], { count: messages.length })}
           </h3>
-          {messages.map(({ error }, i) => (
+          {messages.map(({ text }, i) => (
             <pre
               className="fr-p-4v overflow-x-auto rounded-sm bg-(--background-contrast-grey) font-mono text-sm wrap-break-word whitespace-pre-wrap"
               key={`job_${job.id}_${severity}_${i}`}
             >
-              {error}
+              {text}
             </pre>
           ))}
         </section>

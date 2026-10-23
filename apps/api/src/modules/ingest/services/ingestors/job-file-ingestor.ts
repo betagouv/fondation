@@ -151,16 +151,16 @@ export class JobFileIngestor {
           primaryKey: { jobId: context.jobId, fileId: context.file.id },
         },
         data: {
-          status: 'FAILED',
           endedAt: this.clock.now(),
-          errors: {
+          messages: {
             createMany: {
               data: context.errors.map((error) => ({
                 entityNumber: error.entityNumber,
-                error: error.error,
+                text: error.error,
               })),
             },
           },
+          status: 'FAILED',
         },
       })
       .catch((error) => {
