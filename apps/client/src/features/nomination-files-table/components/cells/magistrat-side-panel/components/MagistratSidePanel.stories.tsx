@@ -294,16 +294,6 @@ const handlers = [
   http.post('*/api/sessions/v2/:sessionId/files/reporters', noContent),
   http.put('*/api/sessions/v2/:sessionId/files/priorities', noContent),
 
-  http.get('*/api/sessions/v2/:sessionId/files/:nominationFileId/summary', () =>
-    HttpResponse.json<DetailedSummaryDto>(
-      makeSummary({
-        name: 'DURAND Camille',
-        position: 'Vice-présidente au tribunal judiciaire de LYON',
-        summary: { readers: [READER] },
-        targetedPosition: 'Conseillère à la cour d’appel de PARIS',
-      }),
-    ),
-  ),
   http.get('*/api/sessions/v2/:sessionId/files/:nominationFileId/summary/readers', () =>
     HttpResponse.json<FoundSummaryReadersDto>({
       items: MEMBERS.map(({ firstName, id, lastName, role }) => ({ firstName, id, lastName, role })),
@@ -542,8 +532,20 @@ const meta = {
     },
     view: { control: 'inline-radio', options: STORY_VIEWS },
   },
-  beforeEach: ({ msw }) => {
-    msw.use(...handlers);
+  beforeEach: ({ args, msw }) => {
+    msw.use(
+      ...handlers,
+      http.get('*/api/sessions/v2/:sessionId/files/:nominationFileId/summary', () =>
+        HttpResponse.json<DetailedSummaryDto>(
+          makeSummary({
+            name: 'DURAND Camille',
+            position: 'Vice-présidente au tribunal judiciaire de LYON',
+            summary: { canWrite: args.view === 'sg', readers: [READER] },
+            targetedPosition: 'Conseillère à la cour d’appel de PARIS',
+          }),
+        ),
+      ),
+    );
   },
   component: MagistratSidePanelStory,
   decorators: [

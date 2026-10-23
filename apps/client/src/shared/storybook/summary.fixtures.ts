@@ -123,6 +123,7 @@ export function makeSummary(
     summary: {
       attachments: [],
       author: SUMMARY_AUTHOR,
+      canWrite: true,
       content:
         '<p>Magistrate au parcours confirmé dont la candidature est portée par une expérience solide en juridiction, sur des fonctions civiles comme pénales.</p><h2>Points forts</h2><p>Les observations reçues soulignent une grande rigueur et un sens de l’écoute.</p>',
       readers: [],
