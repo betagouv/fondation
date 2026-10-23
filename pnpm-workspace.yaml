@@ -18,12 +18,20 @@ catalog:
   'vitest': 4.1.11
   'vitest-mock-extended': 5.1.1
   '@vitest/coverage-v8': 4.1.11
+  # The official documents are laid out by this exact build: the PdfRenderer tests check its digest
+  'pagedjs': 0.4.3
 
 preferFrozenLockfile: true
 minimumReleaseAge: 10080 # 7 days
 overrides:
   multer: 2.4.0
   node-xlsx>xlsx: '-'
+  # Only dist/paged.polyfill.min.js is used, which bundles everything it needs
+  pagedjs>@babel/polyfill: '-'
+  pagedjs>@babel/runtime: '-'
+  pagedjs>clear-cut: '-'
+  pagedjs>css-tree: '-'
+  pagedjs>event-emitter: '-'
   prosemirror-model: 1.25.12
   prosemirror-view: 1.42.6
   qs: 6.16.0

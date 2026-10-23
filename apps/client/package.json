@@ -62,6 +62,7 @@
     "date-fns": "4.4.0",
     "documents-assets": "workspace:*",
     "nuqs": "2.10.1",
+    "pagedjs": "catalog:",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-hook-form": "7.89.0",

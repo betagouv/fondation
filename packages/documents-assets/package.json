@@ -15,6 +15,9 @@
     "lint:check": "oxlint",
     "lint": "oxlint --fix"
   },
+  "dependencies": {
+    "pagedjs": "catalog:"
+  },
   "devDependencies": {
     "@types/node": "catalog:",
     "@typescript/native": "catalog:",
