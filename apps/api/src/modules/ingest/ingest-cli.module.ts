@@ -89,11 +89,15 @@ export class LolfiFreshnessCommand extends CommandRunner {
   constructor(
     private readonly ingestor: IngestService,
     private readonly tchap: Tchap,
+    @Inject(API_CONFIG_TOKEN) private readonly config: ApiConfig,
   ) {
     super();
   }
 
   async run(): Promise<void> {
+    // staging is fed by hand: no ingestion is expected there
+    if (this.config.isTestEnvironment) return;
+
     const { stale, lastSuccessAt } = await this.ingestor.checkIngestionFreshness();
     const since = lastSuccessAt ? format(lastSuccessAt, 'dd/MM/yyyy') : 'jamais';
 
