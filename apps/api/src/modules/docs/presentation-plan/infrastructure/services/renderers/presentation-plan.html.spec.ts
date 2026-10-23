@@ -157,6 +157,6 @@ describe('withEditedPresentationPlanContent', () => {
 
     expect($('[data-editable-content]').html()).toBe('<p>Contenu modifié</p>');
     expect($('h1').text()).toBe('Proposition du Garde des sceaux');
-    expect($('head script').attr('src')).toContain('pagedjs');
+    expect($('head script')).toHaveLength(0);
   });
 });

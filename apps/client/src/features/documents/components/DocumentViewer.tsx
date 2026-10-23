@@ -1,3 +1,4 @@
+import pagedJsUrl from 'pagedjs/dist/paged.polyfill.min.js?url';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 
@@ -71,7 +72,14 @@ function prepareForViewer(html: string): string {
   const script = doc.createElement('script');
   script.textContent = VIEWER_JS;
 
-  doc.head.append(viewer, script);
+  // the documents frozen before paged.js left the templates still load it from unpkg
+  doc.querySelectorAll('script[src*="paged"]').forEach((frozen) => frozen.remove());
+
+  const paged = doc.createElement('script');
+  paged.defer = true;
+  paged.src = pagedJsUrl;
+
+  doc.head.append(viewer, script, paged);
 
   return `<!doctype html>${doc.documentElement.outerHTML}`;
 }
