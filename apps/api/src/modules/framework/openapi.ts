@@ -47,6 +47,7 @@ export function openapi(app: INestApplication): void {
         SwaggerModule.createDocument(
           app,
           new DocumentBuilder()
+            .setOpenAPIVersion('3.1.0')
             .setDescription(`[raw JSON](/openapi/root.json)`)
             .addCookieAuth('sessionId', {
               name: 'sessionId',
@@ -61,7 +62,6 @@ export function openapi(app: INestApplication): void {
             .build(),
           { operationIdFactory: (_, methodKey) => methodKey },
         ),
-        { version: '3.0' },
       ),
     {
       jsonDocumentUrl: '/openapi/root.json',
