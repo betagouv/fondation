@@ -11,6 +11,8 @@ import { FormationEnum } from '../../../../shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from '../../../../shared/mappers/formation.mapper';
 import { prismaTypeDeSaisineEnumToTypeDeSaisine } from '../../../../shared/mappers/type-de-saisine-enum.mapper';
 import { NominationFileOutcome } from '../../../../shared/nomination-file-outcome.enum';
+import { canReadSession } from '../../../../shared/policies/session.policies';
+import type { RoleEnum } from '../../../../shared/role.enum';
 import { TypeDeSaisineEnum } from '../../../../shared/type-de-saisine.enum';
 import { sessionLabel } from '../../domain/session-label';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
@@ -25,17 +27,13 @@ export class DetailNominationSessionQuery {
   ) {}
 
   @Transactional()
-  async handle(query: {
-    /** undefined means no restriction on the formation */
-    formation: FormationEnum | undefined;
-    sessionId: string;
-  }): Promise<DetailedNominationSessionDto> {
+  async handle(query: { role: RoleEnum; sessionId: string }): Promise<DetailedNominationSessionDto> {
     const optionalVersion = await this.affectationVersionFinder.last({
       sessionId: query.sessionId,
     });
 
     const session = await this.db.tx.session.findUnique({
-      where: { id: query.sessionId, deletedAt: null, formation: query.formation },
+      where: { id: query.sessionId, deletedAt: null },
       select: {
         id: true,
         name: true,
@@ -63,7 +61,7 @@ export class DetailNominationSessionQuery {
       } satisfies Prisma.SessionSelect,
     });
 
-    if (!session) throw new NotFoundException();
+    if (!session || !canReadSession(session, query)) throw new NotFoundException();
 
     const affectationsCount = session.affectationVersions[0]?._count.affectations ?? 0;
     const isDeletable = session._count.attachments === 0 && affectationsCount === 0;

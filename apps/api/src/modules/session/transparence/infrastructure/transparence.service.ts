@@ -19,6 +19,7 @@ import {
   NominationFileOutcomeEnum,
 } from '../../../shared/nomination-file-outcome.enum';
 import * as policies from '../../../shared/policies/nomination-file.policies';
+import { canReadSession } from '../../../shared/policies/session.policies';
 import { PriorityEnum } from '../../../shared/priority.enum';
 import { roleToFormation, type RoleEnum } from '../../../shared/role.enum';
 import { TypeDeSaisineEnum } from '../../../shared/type-de-saisine.enum';
@@ -244,15 +245,10 @@ export class TransparenceService {
     user: { role: RoleEnum };
   }): Promise<void> {
     const session = await this.db.tx.session.findFirst({
-      select: { id: true } satisfies Prisma.SessionSelect,
-      where: {
-        deletedAt: null,
-        formation: roleToFormation(query.user.role),
-        id: query.sessionId,
-        typeDeSaisine: query.typeDeSaisine,
-      },
+      select: { formation: true } satisfies Prisma.SessionSelect,
+      where: { deletedAt: null, id: query.sessionId, typeDeSaisine: query.typeDeSaisine },
     });
-    if (!session) throw new NotFoundException();
+    if (!session || !canReadSession(session, query.user)) throw new NotFoundException();
   }
 
   @Transactional()
@@ -581,6 +577,7 @@ export class TransparenceService {
 
   listNominationFileAttachments(query: {
     nominationFileId: string;
+    role: RoleEnum;
     sessionId: string;
   }): Promise<ListedNominationFileAttachmentDto> {
     return this.listNominationFileAttachmentsQuery.handle(query);
@@ -589,27 +586,28 @@ export class TransparenceService {
   detailNominationFileAttachment(query: {
     fileId: string;
     nominationFileId: string;
+    role: RoleEnum;
     sessionId: string;
   }): Promise<DetailedNominationFileAttachmentDto> {
     return this.detailNominationFileAttachmentQuery.handle(query);
   }
 
-  listAttachments(query: { sessionId: string }): Promise<ListedNominationSessionAttachmentDto> {
+  listAttachments(query: {
+    role: RoleEnum;
+    sessionId: string;
+  }): Promise<ListedNominationSessionAttachmentDto> {
     return this.listNominationSessionAttachmentsQuery.handle(query);
   }
 
   detailAttachment(query: {
     fileId: string;
+    role: RoleEnum;
     sessionId: string;
   }): Promise<DetailedNominationSessionAttachmentDto> {
     return this.detailNominationSessionAttachmentQuery.handle(query);
   }
 
-  details(query: {
-    /** undefined means no restriction on the formation */
-    formation: FormationEnum | undefined;
-    sessionId: string;
-  }): Promise<DetailedNominationSessionDto> {
+  details(query: { role: RoleEnum; sessionId: string }): Promise<DetailedNominationSessionDto> {
     return this.detailNominationSessionQuery.handle(query);
   }
 
@@ -728,6 +726,7 @@ export class TransparenceService {
 
   getLolfiMagistratUrl(query: {
     nominationFileId: string;
+    role: RoleEnum;
     sessionId: string;
   }): Promise<LolfiMagistratUrlDto> {
     return this.getLolfiMagistratUrlQuery.handle(query);
@@ -894,15 +893,8 @@ export class TransparenceService {
   }
 
   /** @internal a member of one formation does not find the sessions of the other */
-  async internalGetVisibleSession(query: {
-    role: RoleEnum;
-    sessionId: string;
-  }): Promise<FoundNominationSession> {
-    const session = await this.internalGetSession(query);
-    const formation = roleToFormation(query.role);
-    if (formation && formation !== session.formation) throw new NotFoundException();
-
-    return session;
+  internalGetVisibleSession(query: { role: RoleEnum; sessionId: string }): Promise<FoundNominationSession> {
+    return this.sessionsFinder.getVisible(query);
   }
 
   /** @internal */

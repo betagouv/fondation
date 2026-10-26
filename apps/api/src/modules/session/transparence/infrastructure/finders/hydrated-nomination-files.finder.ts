@@ -16,6 +16,7 @@ import {
   type NominationFileOutcomeEnum,
 } from '../../../../shared/nomination-file-outcome.enum';
 import { canScheduleAudition } from '../../../../shared/policies/nomination-file.policies';
+import { canReadSession } from '../../../../shared/policies/session.policies';
 import type { RoleEnum } from '../../../../shared/role.enum';
 
 import { AffectationVersionFinder } from './affectation-version.finder';
@@ -31,6 +32,7 @@ export type HydratedNominationFile = {
   number: number | null;
   reporters: { id: string; firstName: string; lastName: string }[];
   session: {
+    canOpen: boolean;
     date: DateOnlyJson;
     formation: FormationEnum;
     id: string;
@@ -165,6 +167,7 @@ export class HydratedNominationFilesFinder {
           : null,
         reporters: file.reporters,
         session: {
+          canOpen: canReadSession(file.session, query),
           date: DateOnly.fromUtcDate(file.session.date).toJson(),
           formation: prismaFormationEnumToFormationEnum(file.session.formation),
           id: file.session.id,

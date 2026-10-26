@@ -2251,6 +2251,7 @@ export type ListedMagistratNominationFilesDto = {
                 day: number;
             };
             status: 'ONGOING' | 'REPORTED' | 'ARCHIVED';
+            canOpen: boolean;
         };
         auditionDate: {
             year: number;
@@ -2308,6 +2309,7 @@ export type ListedMagistratObservationsDto = {
                     day: number;
                 };
                 status: 'ONGOING' | 'REPORTED' | 'ARCHIVED';
+                canOpen: boolean;
             };
             auditionDate: {
                 year: number;

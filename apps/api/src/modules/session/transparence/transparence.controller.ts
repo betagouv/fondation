@@ -23,7 +23,7 @@ import { DateOnly } from '../../../utils/date-only';
 import { FILE_EXTENSIONS, FILE_MIME_TYPES, Multipart, UseMultipartBody } from '../../framework/files';
 import { ApiOkDiscriminatedByType } from '../../framework/openapi';
 import { ApiPaginated, Pagination, QueryPagination } from '../../framework/pagination';
-import { roleToFormation, type RoleEnum } from '../../shared/role.enum';
+import type { RoleEnum } from '../../shared/role.enum';
 import { AuthedUser, AuthedUserId, HasRole } from '../../simple-auth';
 
 import { LodamTransparenceFile } from './domain/transparence-file';
@@ -596,9 +596,10 @@ export class SessionController {
     type: ListedNominationSessionAttachmentDto,
   })
   async listNominationSessionAttachments(
+    @AuthedUser() user: { role: RoleEnum },
     @Param('sessionId') sessionId: string,
   ): Promise<ListedNominationSessionAttachmentDto> {
-    return this.sessions.listAttachments({ sessionId });
+    return this.sessions.listAttachments({ role: user.role, sessionId });
   }
 
   /** @warning this is a mutation */
@@ -609,10 +610,11 @@ export class SessionController {
     type: DetailedNominationSessionAttachmentDto,
   })
   async createNominationSessionAttachmentUrl(
+    @AuthedUser() user: { role: RoleEnum },
     @Param('sessionId') sessionId: string,
     @Param('fileId') fileId: string,
   ): Promise<DetailedNominationSessionAttachmentDto> {
-    return this.sessions.detailAttachment({ fileId, sessionId });
+    return this.sessions.detailAttachment({ fileId, role: user.role, sessionId });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
@@ -654,10 +656,11 @@ export class SessionController {
     type: ListedNominationFileAttachmentDto,
   })
   async listNominationFileAttachments(
+    @AuthedUser() user: { role: RoleEnum },
     @Param('sessionId') sessionId: string,
     @Param('nominationFileId') nominationFileId: string,
   ): Promise<ListedNominationFileAttachmentDto> {
-    return this.sessions.listNominationFileAttachments({ nominationFileId, sessionId });
+    return this.sessions.listNominationFileAttachments({ nominationFileId, role: user.role, sessionId });
   }
 
   /** @warning this is a mutation */
@@ -668,11 +671,17 @@ export class SessionController {
     type: DetailedNominationFileAttachmentDto,
   })
   async createNominationFileAttachmentUrl(
+    @AuthedUser() user: { role: RoleEnum },
     @Param('sessionId') sessionId: string,
     @Param('nominationFileId') nominationFileId: string,
     @Param('fileId') fileId: string,
   ): Promise<DetailedNominationFileAttachmentDto> {
-    return this.sessions.detailNominationFileAttachment({ fileId, nominationFileId, sessionId });
+    return this.sessions.detailNominationFileAttachment({
+      fileId,
+      nominationFileId,
+      role: user.role,
+      sessionId,
+    });
   }
 
   @HasRole()
@@ -693,7 +702,7 @@ export class SessionController {
     @Param('sessionId') sessionId: string,
     @AuthedUser() user: { role: RoleEnum },
   ): Promise<DetailedNominationSessionDto> {
-    return this.sessions.details({ formation: roleToFormation(user.role), sessionId });
+    return this.sessions.details({ role: user.role, sessionId });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
@@ -723,10 +732,11 @@ export class SessionController {
   @HasRole()
   @ZodResponse({ status: HttpStatus.OK, type: LolfiMagistratUrlDto })
   async getLolfiMagistratUrl(
+    @AuthedUser() user: { role: RoleEnum },
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
     @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
   ): Promise<LolfiMagistratUrlDto> {
-    return this.sessions.getLolfiMagistratUrl({ nominationFileId, sessionId });
+    return this.sessions.getLolfiMagistratUrl({ nominationFileId, role: user.role, sessionId });
   }
 
   @Delete('/:sessionId')

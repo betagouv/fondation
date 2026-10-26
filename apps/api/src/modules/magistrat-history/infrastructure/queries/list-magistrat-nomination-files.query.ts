@@ -47,6 +47,7 @@ export const MagistratNominationFileSchema = z.object({
     formation: z.enum(FormationEnum),
     date: dateOnlyJsonSchema,
     status: z.enum(SESSION_STATUSES),
+    canOpen: z.boolean(),
   }),
   auditionDate: dateOnlyJsonSchema.nullable(),
   auditionRequired: z.boolean(),

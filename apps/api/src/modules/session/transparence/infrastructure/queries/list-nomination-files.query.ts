@@ -37,9 +37,10 @@ import {
   expectedReportersCount,
 } from '../../../../shared/policies/auditioned-position.policy';
 import * as nominationFilesPolicies from '../../../../shared/policies/nomination-file.policies';
+import { canReadSession } from '../../../../shared/policies/session.policies';
 import { canReadSummary, canWriteSummary } from '../../../../shared/policies/summary.policies';
 import { PriorityEnum } from '../../../../shared/priority.enum';
-import { isSecretariat, roleToFormation, type RoleEnum } from '../../../../shared/role.enum';
+import { isSecretariat, type RoleEnum } from '../../../../shared/role.enum';
 import {
   NOMINATION_SESSION_FILE_STATUSES,
   transparenceFileStatus,
@@ -150,11 +151,13 @@ export class ListNominationFilesQuery {
     return file ?? null;
   }
 
-  private findVisibleSession(query: { sessionId: string; user: { role: RoleEnum } }) {
-    return this.db.tx.session.findFirst({
-      select: { archivedAt: true } satisfies Prisma.SessionSelect,
-      where: { deletedAt: null, formation: roleToFormation(query.user.role), id: query.sessionId },
+  private async findVisibleSession(query: { sessionId: string; user: { role: RoleEnum } }) {
+    const session = await this.db.tx.session.findFirst({
+      select: { archivedAt: true, formation: true } satisfies Prisma.SessionSelect,
+      where: { deletedAt: null, id: query.sessionId },
     });
+
+    return session && canReadSession(session, query.user) ? session : null;
   }
 
   private lastVersion(query: { sessionId: string; user: { role: RoleEnum } }) {
