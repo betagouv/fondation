@@ -5,7 +5,7 @@ packages:
 catalog:
   'zod': 4.4.3
   '@faker-js/faker': 10.6.0
-  'oxlint': 1.86.0
+  'oxlint': 1.87.0
   'oxlint-tsgolint': 0.25.0
   # TypeScript 7 has no compiler API yet: `typescript` stays on 6 for the tools that import it
   # (@hey-api/openapi-ts, prisma-selects.spec.ts) while `tsc` comes from 7.
