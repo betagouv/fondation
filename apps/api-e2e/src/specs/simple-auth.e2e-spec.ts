@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 
 import { test } from '../fixtures.ts';
+import { strongPassword } from '../fixtures/auth.fixture.ts';
 import { makeStepsFixtures } from '../steps.ts';
 import { cookieHeader } from '../utils/cookies.ts';
 
@@ -12,7 +13,7 @@ test.describe('Simple Auth E2E', () => {
         firstName: 'Ada',
         gender: 'FEMALE',
         lastName: 'Lovelace',
-        password: `${randomUUID()}:${randomUUID()}`,
+        password: `${strongPassword()}:${randomUUID()}`,
         role: 'MEMBRE_COMMUN',
       });
 
@@ -77,7 +78,7 @@ test.describe('Simple Auth E2E', () => {
       makeStepsFixtures({ baseUrl, cookies: [cookieHeader((await login(user.password)).response!)] });
     const asCurrent = await loggedIn();
     const asOther = await loggedIn();
-    const newPassword = randomUUID();
+    const newPassword = strongPassword();
 
     await asCurrent.auth.changePassword({
       body: { currentPassword: user.password, newPassword },

@@ -4,16 +4,16 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { useState, type SubmitEvent } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
+import { isStrongPassword, passwordRuleStates } from '@/utils/password.utils';
 import { ValidationError } from '@/utils/validation-error';
 import { useChangePasswordMutation } from '@queries/auth.queries';
-
-const MIN_LENGTH = 8;
 
 export function ChangePasswordForm() {
   const { formatMessage } = useIntl();
   const { error, isPending, isSuccess, mutate: changePassword, reset } = useChangePasswordMutation();
   const [mismatch, setMismatch] = useState(false);
-  const [tooShort, setTooShort] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [isSubmitted, setSubmitted] = useState(false);
 
   const onSubmit = (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -21,16 +21,20 @@ export function ChangePasswordForm() {
     const field = (name: string) => (form.elements.namedItem(name) as HTMLInputElement).value.trim();
 
     reset();
-    const newPassword = field('newPassword');
-    const short = newPassword.length < MIN_LENGTH;
-    const differs = newPassword !== field('confirmation');
-    setTooShort(short);
+    const differs = newPassword.trim() !== field('confirmation');
+    setSubmitted(true);
     setMismatch(differs);
-    if (short || differs) return;
+    if (!isStrongPassword(newPassword) || differs) return;
 
     changePassword(
-      { currentPassword: field('currentPassword'), newPassword },
-      { onSuccess: () => form.reset() },
+      { currentPassword: field('currentPassword'), newPassword: newPassword.trim() },
+      {
+        onSuccess: () => {
+          form.reset();
+          setNewPassword('');
+          setSubmitted(false);
+        },
+      },
     );
   };
 
@@ -71,30 +75,19 @@ export function ChangePasswordForm() {
           nativeInputProps={{ autoComplete: 'current-password', name: 'currentPassword', required: true }}
         />
         <PasswordInput
-          className="fr-mb-0 [&_.fr-hint-text]:mt-1"
-          hintText={formatMessage({ defaultMessage: '{count} caractères minimum' }, { count: MIN_LENGTH })}
+          className="fr-mb-0"
           label={formatMessage({ defaultMessage: 'Nouveau mot de passe' })}
-          messages={
-            tooShort
-              ? [
-                  {
-                    message: formatMessage(
-                      {
-                        defaultMessage:
-                          'Le mot de passe doit contenir au moins {count} caractères, hors espaces au début et à la fin',
-                      },
-                      { count: MIN_LENGTH },
-                    ),
-                    severity: 'error',
-                  },
-                ]
-              : []
-          }
-          messagesHint=""
+          messages={passwordRuleStates(newPassword, isSubmitted).map((rule) => ({
+            ...rule,
+            message: formatMessage(rule.message),
+          }))}
+          messagesHint={formatMessage({ defaultMessage: 'Votre mot de passe doit contenir :' })}
           nativeInputProps={{
             autoComplete: 'new-password',
             name: 'newPassword',
+            onChange: (event) => setNewPassword(event.target.value),
             required: true,
+            value: newPassword,
           }}
         />
         <PasswordInput

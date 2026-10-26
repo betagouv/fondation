@@ -27,7 +27,7 @@ export class AuthHttpClient {
       email: (defaultUser?.email || `test_email+e2e-${crypto.randomUUID()}-e2e@justice.fr`).toLowerCase(),
       firstName: (defaultUser?.firstName || faker.person.firstName()).toLowerCase(),
       lastName: (defaultUser?.lastName || faker.person.lastName()).toLowerCase(),
-      password: defaultUser?.password || faker.string.alphanumeric(20),
+      password: defaultUser?.password || `Aa1-${faker.string.alphanumeric(20)}`,
       gender: defaultUser?.gender ?? ('FEMALE' as const),
     };
 
