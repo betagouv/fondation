@@ -3,6 +3,7 @@ import { CommandRunner, InquirerService, Option, SubCommand } from 'nest-command
 import z from 'zod';
 
 import { GenderEnum } from '../../../shared/gender.enum';
+import { PasswordSchema } from '../../../shared/password.schema';
 import { RoleEnum } from '../../../shared/role.enum';
 import { SimpleAuthService } from '../../simple-auth.service';
 
@@ -62,7 +63,16 @@ export class RegisterUserCliCommand extends CommandRunner {
             return result.success;
           },
         },
-        { type: 'password', name: 'password', message: 'password:', mask: '*' },
+        {
+          type: 'password',
+          name: 'password',
+          message: 'password:',
+          mask: '*',
+          validate: (input: string) => {
+            const result = PasswordSchema.safeParse(input);
+            return result.success || z.prettifyError(result.error);
+          },
+        },
         {
           type: 'password',
           name: 'repeatPassword',
@@ -82,7 +92,11 @@ export class RegisterUserCliCommand extends CommandRunner {
       lastName: string;
       password: string;
     }>(prompts, options);
-    await this.auth.registerUser({ ...answers, isAdmin: options.isAdmin ?? false });
+    await this.auth.registerUser({
+      ...answers,
+      isAdmin: options.isAdmin ?? false,
+      password: PasswordSchema.parse(answers.password),
+    });
   }
 
   @Option({

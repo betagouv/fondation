@@ -2,6 +2,7 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { GenderEnum } from '../../../shared/gender.enum';
+import { PasswordSchema } from '../../../shared/password.schema';
 import { RoleEnum } from '../../../shared/role.enum';
 
 export const LoginDtoSchema = z.object({
@@ -11,11 +12,10 @@ export const LoginDtoSchema = z.object({
 
 export class LoginDto extends createZodDto(LoginDtoSchema) {}
 
-// trimmed like at login, which would otherwise refuse a password ending with a space
 export class ChangePasswordDto extends createZodDto(
   z.object({
     currentPassword: LoginDtoSchema.shape.password,
-    newPassword: z.string().trim().min(8),
+    newPassword: PasswordSchema,
   }),
 ) {}
 
@@ -25,7 +25,7 @@ export class RegisterUserDto extends createZodDto(
     lastName: z.string(),
     gender: z.enum(GenderEnum),
     email: z.email().toLowerCase(),
-    password: z.string(),
+    password: PasswordSchema,
     role: z.enum(RoleEnum).nullish(),
     isAdmin: z.boolean().optional(),
   }),
