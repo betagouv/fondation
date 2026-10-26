@@ -157,6 +157,26 @@ test.describe('Administration', () => {
     expect(updated.response?.status).toBe(204);
   });
 
+  test('should name who holds a title, with the role they keep once it is given to someone else', async ({
+    admin,
+    expect,
+    registerUser,
+  }) => {
+    const holder = await registerUser('MEMBRE_DU_PARQUET');
+    await admin.administration.updateRole({
+      body: { role: 'DEPUTY_PRESIDENT_PARQUET' },
+      path: { userId: holder.id },
+      throwOnError: true,
+    });
+
+    const { data } = await admin.administration.listTitleHolders({ throwOnError: true });
+
+    expect(data.items.find(({ title }) => title === 'DEPUTY_PRESIDENT_PARQUET')?.holder).toMatchObject({
+      id: holder.id,
+      nextRole: 'MEMBRE_PARQUET',
+    });
+  });
+
   test.describe('Given a logged-in member', () => {
     test('should log the member out when an admin changes the password', async ({ admin, expect, member }) => {
       await admin.administration.updatePassword({

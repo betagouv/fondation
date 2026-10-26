@@ -132,6 +132,16 @@ describe('AdminUserRole', () => {
   });
 
   it.each`
+    role                                   | title                         | duty                  | expected
+    ${RoleEnum.MEMBRE_DU_SIEGE}            | ${'PRESIDENT_SIEGE'}          | ${'PRESIDENT'}        | ${'MEMBRE_SIEGE'}
+    ${RoleEnum.MEMBRE_DU_PARQUET}          | ${'DEPUTY_PRESIDENT_PARQUET'} | ${'DEPUTY_PRESIDENT'} | ${'MEMBRE_PARQUET'}
+    ${RoleEnum.MEMBRE_COMMUN}              | ${'PRESIDENT_SIEGE'}          | ${'PRESIDENT'}        | ${'MEMBRE_COMMUN'}
+    ${RoleEnum.ADJOINT_SECRETAIRE_GENERAL} | ${'FIRST_SECRETARY'}          | ${'SECRETARY'}        | ${'SECRETARY'}
+  `('should leave a $role holding $title as $expected once untitled', ({ role, title, duty, expected }) => {
+    expect(AdminUserRole.from({ role, title, duty }).untitled().toString()).toBe(expected);
+  });
+
+  it.each`
     role                          | expected
     ${'PRESIDENT_SIEGE'}          | ${'MEMBRE_DU_SIEGE'}
     ${'DEPUTY_PRESIDENT_PARQUET'} | ${'MEMBRE_DU_PARQUET'}

@@ -50,6 +50,12 @@ export class AdminUserRole {
     return new AdminUserRole(target, this.identityRole);
   }
 
+  /** the holder of a title given to someone else keeps their role, as `UsersUntitled` leaves it */
+  untitled(): AdminUserRole {
+    const duty = AdminUserTitle.from(this._role).unTitle().duty;
+    return AdminUserRole.from({ duty, role: this.role, title: null });
+  }
+
   /** a president registered from the administration is a member of their formation rather than a common member */
   static ofNewAccount(role: AdminUserRoleEnum): AdminUserRole {
     return new AdminUserRole(role, null);

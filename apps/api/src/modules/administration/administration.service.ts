@@ -14,6 +14,10 @@ import { User } from './domain/user';
 import { AdminUserRoleEnum } from './domain/user-enum';
 import { ListUsersQueryDto } from './infrastructure/dto/administration.dto';
 import { DetailedAdminUserDto, DetailsUserQuery } from './infrastructure/queries/details-user.query';
+import {
+  ListTitleHoldersQuery,
+  ListedTitleHoldersDto,
+} from './infrastructure/queries/list-title-holders.query';
 import { ListUsersQuery, PaginatedAdminUserListItemDto } from './infrastructure/queries/list-users.query';
 import { UserRepository } from './infrastructure/repositories/user.repository';
 
@@ -25,6 +29,7 @@ export class AdministrationService {
     private readonly userRepository: UserRepository,
     private readonly listUsersQuery: ListUsersQuery,
     private readonly detailsUserQuery: DetailsUserQuery,
+    private readonly listTitleHoldersQuery: ListTitleHoldersQuery,
   ) {}
 
   listUsers(query: {
@@ -39,6 +44,10 @@ export class AdministrationService {
 
   detailsUser(query: { actorId: string; userId: string }): Promise<DetailedAdminUserDto> {
     return this.detailsUserQuery.handle(query);
+  }
+
+  listTitleHolders(): Promise<ListedTitleHoldersDto> {
+    return this.listTitleHoldersQuery.handle();
   }
 
   async createUser(command: {

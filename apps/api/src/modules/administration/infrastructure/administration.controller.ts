@@ -30,6 +30,7 @@ import {
   UpdateUserRoleDto,
 } from './dto/administration.dto';
 import { DetailedAdminUserDto } from './queries/details-user.query';
+import { ListedTitleHoldersDto } from './queries/list-title-holders.query';
 import { PaginatedAdminUserListItemDto } from './queries/list-users.query';
 
 @Controller('/api/administration/v1')
@@ -71,6 +72,13 @@ export class AdministrationController {
     @Param('userId', ParseUUIDPipe) userId: string,
   ): Promise<DetailedAdminUserDto> {
     return this.administration.detailsUser({ actorId: actor.id, userId });
+  }
+
+  @HasRole('ADMIN')
+  @Get('/title-holders')
+  @ZodResponse({ status: HttpStatus.OK, type: ListedTitleHoldersDto })
+  listTitleHolders(): Promise<ListedTitleHoldersDto> {
+    return this.administration.listTitleHolders();
   }
 
   @HasRole('ADMIN')
