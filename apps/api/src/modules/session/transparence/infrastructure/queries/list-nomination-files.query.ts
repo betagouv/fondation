@@ -20,7 +20,6 @@ import { Db } from '../../../../framework/database';
 import { createPaginatedZodDto, paginate, Pagination } from '../../../../framework/pagination';
 import { Sortable } from '../../../../framework/sorting';
 import { proposedMagistratName } from '../../../../magistrat/domain/magistrat-name';
-import { roleToFormation } from '../../../../members/infrastructure/member.utils';
 import { ObservationFollowUp } from '../../../../observation/domain/observation-follow-up';
 import { ObservationService } from '../../../../observation/observation.service';
 import { GradeEnum } from '../../../../shared/grade.enum';
@@ -39,7 +38,7 @@ import {
 } from '../../../../shared/policies/auditioned-position.policy';
 import * as nominationFilesPolicies from '../../../../shared/policies/nomination-file.policies';
 import { PriorityEnum } from '../../../../shared/priority.enum';
-import { isSecretariat, type RoleEnum } from '../../../../shared/role.enum';
+import { isSecretariat, roleToFormation, type RoleEnum } from '../../../../shared/role.enum';
 import {
   NOMINATION_SESSION_FILE_STATUSES,
   transparenceFileStatus,

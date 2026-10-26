@@ -5,11 +5,10 @@ import z from 'zod';
 import { listMemberGardeDesSceauxSessions } from '../../../../../generated/prisma/sql';
 import { DateOnly } from '../../../../../utils/date-only';
 import { Db } from '../../../../framework/database';
-import { roleToFormation } from '../../../../members/infrastructure/member.utils';
 import { FormationEnum } from '../../../../shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from '../../../../shared/mappers/formation.mapper';
 import { prismaTypeDeSaisineEnumToTypeDeSaisine } from '../../../../shared/mappers/type-de-saisine-enum.mapper';
-import type { RoleEnum } from '../../../../shared/role.enum';
+import { roleToFormation, type RoleEnum } from '../../../../shared/role.enum';
 import { TypeDeSaisineEnum } from '../../../../shared/type-de-saisine.enum';
 import { sessionLabel } from '../../domain/session-label';
 

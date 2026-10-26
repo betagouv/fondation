@@ -8,7 +8,6 @@ import { DateOnly } from '../../../../../utils/date-only';
 import { Db } from '../../../../framework/database';
 import { createPaginatedZodDto, paginate, Pagination } from '../../../../framework/pagination';
 import { Sortable } from '../../../../framework/sorting';
-import { roleToFormation } from '../../../../members/infrastructure/member.utils';
 import { FormationEnum } from '../../../../shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from '../../../../shared/mappers/formation.mapper';
 import { prismaTypeDeSaisineEnumToTypeDeSaisine } from '../../../../shared/mappers/type-de-saisine-enum.mapper';
@@ -16,7 +15,7 @@ import {
   ProposingAuthorityEnum,
   ProposingAuthorityEnumLabels,
 } from '../../../../shared/proposing-authority.enum';
-import { isSecretariat, type RoleEnum } from '../../../../shared/role.enum';
+import { isSecretariat, roleToFormation, type RoleEnum } from '../../../../shared/role.enum';
 import {
   TypeDeSaisineEnum,
   TypeDeSaisineEnumLabels,
