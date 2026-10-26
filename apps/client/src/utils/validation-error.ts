@@ -1,7 +1,16 @@
 import { HttpException } from './http-exception';
 
-export class ValidationError extends Error {}
+export class ValidationError extends Error {
+  static messageOf(error: Error | null): string | null {
+    return error instanceof ValidationError ? error.message : null;
+  }
 
+  static isOtherFailure(error: Error | null): boolean {
+    return !!error && !(error instanceof ValidationError);
+  }
+}
+
+/** a 400 or a 409 that names what the user must fix */
 export async function withValidationError<T>(request: () => Promise<T>): Promise<T> {
   try {
     return await request();
