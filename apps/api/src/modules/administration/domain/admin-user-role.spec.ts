@@ -130,4 +130,14 @@ describe('AdminUserRole', () => {
 
     expect(reTitled).toBeNull();
   });
+
+  it.each`
+    role                          | expected
+    ${'PRESIDENT_SIEGE'}          | ${'MEMBRE_DU_SIEGE'}
+    ${'DEPUTY_PRESIDENT_PARQUET'} | ${'MEMBRE_DU_PARQUET'}
+    ${'MEMBRE_COMMUN'}            | ${'MEMBRE_COMMUN'}
+    ${'FIRST_SECRETARY'}          | ${'ADJOINT_SECRETAIRE_GENERAL'}
+  `('should register a $role as $expected', ({ role, expected }) => {
+    expect(AdminUserRole.ofNewAccount(role).role).toBe(expected);
+  });
 });

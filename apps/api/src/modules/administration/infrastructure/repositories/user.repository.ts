@@ -51,6 +51,15 @@ export class UserRepository {
     });
   }
 
+  async isEmailTaken(email: string): Promise<boolean> {
+    const user = await this.db.tx.user.findFirst({
+      select: { id: true } satisfies Prisma.UserSelect,
+      where: { email: { equals: email, mode: 'insensitive' } },
+    });
+
+    return !!user;
+  }
+
   async isEmailTakenByAnotherUser(predicate: { email: string; userId: string }): Promise<boolean> {
     const user = await this.db.tx.user.findFirst({
       select: { id: true } satisfies Prisma.UserSelect,

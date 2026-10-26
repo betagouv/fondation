@@ -28,6 +28,31 @@ describe('User', () => {
     status: 'ACTIVE' as const,
   };
 
+  describe('registration', () => {
+    it('should give a new officer their whole role, duty included', () => {
+      const role = AdminUserRole.ofNewAccount('OFFICER');
+
+      const user = User.register({ id: 'user-2', role });
+
+      expect(user.messages).toEqual([new UserRoleUpdated('user-2', role)]);
+    });
+
+    it('should take the title of a new president back from its holder', () => {
+      const role = AdminUserRole.ofNewAccount('PRESIDENT_SIEGE');
+
+      const user = User.register({ id: 'user-2', role });
+
+      expect(user.messages).toEqual([
+        new UsersUntitled('user-2', 'PRESIDENT_SIEGE', AdminUserTitle.from('MEMBRE_SIEGE')),
+        new UserRoleUpdated('user-2', role),
+      ]);
+    });
+
+    it('should refuse an email another account already has', () => {
+      expect(() => User.assertEmailFree(true)).toThrow(EmailAlreadyTaken);
+    });
+  });
+
   it('should update email', () => {
     const user = User.from(baseProps);
     user.updateEmail({ email: 'new@email.com', isTakenByAnotherUser: false });

@@ -50,6 +50,11 @@ export class AdminUserRole {
     return new AdminUserRole(target, this.identityRole);
   }
 
+  /** a president registered from the administration is a member of their formation rather than a common member */
+  static ofNewAccount(role: AdminUserRoleEnum): AdminUserRole {
+    return new AdminUserRole(role, null);
+  }
+
   static from(props: {
     role: RoleEnum;
     duty: UserDutyEnum | null;

@@ -108,6 +108,21 @@ export class User {
     return new User(props.id, props.isAdmin, props.role, props.status);
   }
 
+  /** a new account takes its whole role at once, the title of its role taken back from its holder */
+  static register(props: { id: string; role: AdminUserRole }): User {
+    const user = new User(props.id, false, props.role, 'ACTIVE');
+    const target = AdminUserTitle.from(props.role.toString());
+    if (target.title) user.#messages.push(new UsersUntitled(user.id, target.title, target.unTitle()));
+
+    user.#messages.push(new UserRoleUpdated(user.id, props.role));
+    return user;
+  }
+
+  /** the login matches an email whatever its case, so an email opens one account only */
+  static assertEmailFree(isTaken: boolean): void {
+    if (isTaken) throw new EmailAlreadyTaken();
+  }
+
   canDeactivate(actorId: string): boolean {
     return this.status === 'ACTIVE' && actorId !== this.id;
   }
@@ -129,9 +144,8 @@ export class User {
     );
   }
 
-  /** the login matches an email whatever its case, so an email opens one account only */
   updateEmail(command: { email: string; isTakenByAnotherUser: boolean }): void {
-    if (command.isTakenByAnotherUser) throw new EmailAlreadyTaken();
+    User.assertEmailFree(command.isTakenByAnotherUser);
 
     this.#messages.push(new UserEmailUpdated(this.id, command.email));
   }

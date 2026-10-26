@@ -4,9 +4,11 @@ import { Injectable } from '@nestjs/common';
 import { Clock } from '../framework/clock';
 import { Pagination } from '../framework/pagination';
 import { Sortable } from '../framework/sorting';
+import { GenderEnum } from '../shared/gender.enum';
 import { UserStatus } from '../shared/user-status.enum';
 import { SimpleAuthService } from '../simple-auth';
 
+import { AdminUserRole } from './domain/admin-user-role';
 import { User } from './domain/user';
 import { AdminUserRoleEnum } from './domain/user-enum';
 import { ListUsersQueryDto } from './infrastructure/dto/administration.dto';
@@ -36,6 +38,29 @@ export class AdministrationService {
 
   detailsUser(query: { actorId: string; userId: string }): Promise<DetailedAdminUserDto> {
     return this.detailsUserQuery.handle(query);
+  }
+
+  @Transactional()
+  async createUser(command: {
+    actorId: string;
+    email: string;
+    firstName: string;
+    gender: GenderEnum;
+    lastName: string;
+    password: string;
+    role: AdminUserRoleEnum;
+  }): Promise<{ id: string }> {
+    User.assertEmailFree(await this.userRepository.isEmailTaken(command.email));
+
+    const role = AdminUserRole.ofNewAccount(command.role);
+    const { id } = await this.auth.internalRegisterUser({
+      ...command,
+      isAdmin: false,
+      registeredBy: command.actorId,
+      role: role.role,
+    });
+    await this.userRepository.persist(User.register({ id, role }));
+    return { id };
   }
 
   @Transactional()

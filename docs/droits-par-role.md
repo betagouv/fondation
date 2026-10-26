@@ -365,6 +365,7 @@ Dans les dossiers d'un magistrat, un Membre ne voit que l'affectation et les aud
 | Action                            | Endpoint                                               | Membre | Secrétariat général | Administrateur |
 | --------------------------------- | ------------------------------------------------------ | ------ | ------------------- | -------------- |
 | Lister les utilisateurs           | `GET /administration/v1/users`                         | —      | —                   | ✓              |
+| Créer un compte                   | `POST /administration/v1/users`                        | —      | —                   | ✓              |
 | Voir un utilisateur               | `GET /administration/v1/users/:userId`                 | —      | —                   | ✓              |
 | Modifier l'e-mail                 | `PUT /administration/v1/users/:userId/email`           | —      | —                   | ✓              |
 | Modifier le mot de passe          | `PUT /administration/v1/users/:userId/password`        | —      | —                   | ✓              |
