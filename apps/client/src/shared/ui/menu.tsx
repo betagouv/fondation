@@ -15,7 +15,7 @@ export const MenuTrigger = React.memo((props: ButtonProps) => (
 
 export const MenuContent = React.memo((props: React.PropsWithChildren) => (
   <BaseMenu.Portal>
-    <BaseMenu.Positioner className="z-10 outline-hidden" sideOffset={8} align="end">
+    <BaseMenu.Positioner className="z-(--z-index-popover) outline-hidden" sideOffset={8} align="end">
       <BaseMenu.Popup
         className={clsx(
           'flex origin-(--transform-origin) flex-col rounded-md border border-solid border-(--border-default-grey) bg-[canvas] shadow-lg',
@@ -40,6 +40,8 @@ export const MenuItem = React.memo((props: ButtonProps) => (
         priority="tertiary no outline"
         {...renderProps}
         {...props}
+        // the DSFR Button drops its onClick when it renders a link, which is how the menu closes
+        linkProps={props.linkProps && { ...props.linkProps, onClick: renderProps.onClick }}
         data-highlighted={state.highlighted}
         className={clsx(
           'w-full!',
