@@ -20,7 +20,7 @@ Ce document liste ce que chaque rôle peut voir et faire dans Fondation : les vu
   - _rapporteur du dossier_ : le membre est rapporteur du dossier dans l'affectation publiée ;
   - _session non archivée_ : la session n'est pas archivée ;
   - _auteur de la synthèse_ : l'utilisateur a rédigé la synthèse le premier ;
-  - _lecteur de la synthèse_ : l'utilisateur est l'auteur ou un lecteur de la synthèse ;
+  - _lecteur de la synthèse_ : l'utilisateur est l'auteur ou un lecteur de la synthèse ; tant qu'elle n'a pas d'auteur, le Secrétariat général aussi ;
   - _ses propres données_ : l'utilisateur de l'URL est celui qui est connecté.
 
 Les tests vérifient les rôles : une case `✓ si …` compte comme `✓`. Les conditions relèvent des tests du domaine. La colonne Administrateur n'est pas vérifiée.

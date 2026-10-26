@@ -1,4 +1,6 @@
 import { Id, makeId } from '../../../../utils/id';
+import { canWriteSummary } from '../../../shared/policies/summary.policies';
+import type { RoleEnum } from '../../../shared/role.enum';
 
 export class SummaryCreated {
   constructor(
@@ -114,12 +116,12 @@ export class Summary {
     );
   }
 
-  writeContent(command: { userId: string; content: string }): void {
-    if (this.authorId && command.userId !== this.authorId) {
-      throw new OnlyAuthorCanWriteSummary(this.id, this.authorId, command.userId);
+  writeContent(command: { content: string; user: { id: string; role: RoleEnum } }): void {
+    if (!canWriteSummary(this, command.user)) {
+      throw new OnlyAuthorCanWriteSummary(this.id, this.authorId, command.user.id);
     }
 
-    const newAuthorId = this.authorId ? null : command.userId;
+    const newAuthorId = this.authorId ? null : command.user.id;
     this.#messages.push(new SummaryContentWritten(this.id, command.content, newAuthorId));
   }
 
@@ -144,7 +146,7 @@ export class UnknownReader extends Error {
 export class OnlyAuthorCanWriteSummary extends Error {
   constructor(
     readonly nominationFileId: string,
-    readonly authorId: string,
+    readonly authorId: string | null,
     readonly userId: string,
   ) {
     super();
