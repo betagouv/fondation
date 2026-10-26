@@ -86,10 +86,23 @@ export class AuthUserRepository {
         role: event.role,
       },
     });
+    await this.db.tx.userStatusChange.create({
+      data: {
+        changedAt: event.registeredAt,
+        changedBy: event.registeredBy,
+        status: 'ACTIVE',
+        userId: event.id,
+      },
+    });
     if (!event.isAdmin) return;
 
     await this.db.tx.adminRightChange.create({
-      data: { change: 'GRANTED', changedAt: event.registeredAt, changedBy: null, userId: event.id },
+      data: {
+        change: 'GRANTED',
+        changedAt: event.registeredAt,
+        changedBy: event.registeredBy,
+        userId: event.id,
+      },
     });
   }
 

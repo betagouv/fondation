@@ -90,10 +90,12 @@ const meta = {
                   { changedAt: '2026-10-21T12:32:00.000Z', status: 'DEACTIVATED' },
                   { changedAt: '2026-10-15T07:10:00.000Z', status: 'ACTIVE' },
                   { changedAt: '2026-10-14T16:05:00.000Z', status: 'DEACTIVATED' },
+                  { changedAt: '2026-09-01T08:00:00.000Z', status: 'ACTIVE' },
                 ]
               : [
                   { changedAt: '2026-10-15T07:10:00.000Z', status: 'ACTIVE' },
                   { changedAt: '2026-10-14T16:05:00.000Z', status: 'DEACTIVATED' },
+                  { changedAt: '2026-09-01T08:00:00.000Z', status: 'ACTIVE' },
                 ],
           status: args.status,
         });

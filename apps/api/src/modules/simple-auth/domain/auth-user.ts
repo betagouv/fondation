@@ -33,6 +33,7 @@ export class AuthUserRegistered {
   readonly lastName: string;
   readonly password: string;
   readonly registeredAt: Date;
+  readonly registeredBy: string | null;
   readonly role: RoleEnum;
 
   constructor(props: {
@@ -44,6 +45,7 @@ export class AuthUserRegistered {
     lastName: string;
     password: AuthPassword;
     registeredAt: Date;
+    registeredBy: string | null;
     role: RoleEnum;
   }) {
     this.email = props.email;
@@ -54,6 +56,7 @@ export class AuthUserRegistered {
     this.lastName = props.lastName;
     this.password = props.password.toString();
     this.registeredAt = props.registeredAt;
+    this.registeredBy = props.registeredBy;
     this.role = props.role;
   }
 }
@@ -208,6 +211,7 @@ export class AuthUser {
     lastName: string;
     now: Date;
     password: AuthPassword;
+    registeredBy: string | null;
     role: RoleEnum;
   }) {
     if (props.isAdmin && !isSecretariat(props.role)) throw new AdminOutsideSecretariat();

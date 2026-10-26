@@ -34,6 +34,7 @@ describe('AuthUser', () => {
       lastName: 'Secrétariat',
       now,
       password: AuthPassword.from('hash'),
+      registeredBy: 'admin-1',
     } as const;
 
     it('should register an admin of the general secretariat', async () => {
@@ -43,7 +44,9 @@ describe('AuthUser', () => {
         role: 'ADJOINT_SECRETAIRE_GENERAL',
       });
 
-      expect(user.messages).toEqual([expect.objectContaining({ isAdmin: true, registeredAt: now })]);
+      expect(user.messages).toEqual([
+        expect.objectContaining({ isAdmin: true, registeredAt: now, registeredBy: 'admin-1' }),
+      ]);
       expect(user.messages[0]).toBeInstanceOf(AuthUserRegistered);
     });
 

@@ -17,6 +17,16 @@ import { ListedUsersDto, ListUsersQuery } from './infrastructure/queries/list-us
 import { AuthUserRepository } from './infrastructure/repositories/auth-user.repository';
 import { OpenIdAuthService } from './openid-auth.service';
 
+type UserRegistration = {
+  email: string;
+  firstName: string;
+  gender: GenderEnum;
+  isAdmin: boolean;
+  lastName: string;
+  password: string;
+  role: RoleEnum;
+};
+
 @Injectable()
 export class SimpleAuthService {
   constructor(
@@ -129,15 +139,15 @@ export class SimpleAuthService {
     await this.userRepository.persist(user);
   }
 
-  async registerUser(command: {
-    email: string;
-    firstName: string;
-    gender: GenderEnum;
-    isAdmin: boolean;
-    lastName: string;
-    password: string;
-    role: RoleEnum;
-  }): Promise<{ id: string }> {
+  @Transactional()
+  registerUser(command: UserRegistration): Promise<{ id: string }> {
+    return this.internalRegisterUser({ ...command, registeredBy: null });
+  }
+
+  @Transactional(Propagation.Mandatory)
+  async internalRegisterUser(
+    command: UserRegistration & { registeredBy: string | null },
+  ): Promise<{ id: string }> {
     const user = await AuthUser.register({
       ...command,
       now: this.clock.now(),
