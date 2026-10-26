@@ -132,7 +132,7 @@ test.describe('Agenda', () => {
     const readiness = await agent.docs.isSessionReadyForDocGeneration({ path: { sessionId } });
     expect(readiness.data).toMatchObject({
       agendaBlocker: null,
-      agendaWarning: 'UNPUBLISHED_CHANGES',
+      agendaWarning: 'NEVER_PUBLISHED',
       canCreateAgenda: true,
     });
 
@@ -146,6 +146,26 @@ test.describe('Agenda', () => {
       path: { sessionId },
     });
     expect(agenda.response?.status).toBe(201);
+  });
+
+  test('should list no reporter for an agenda while the affectation is only a draft', async ({
+    agent,
+    docs,
+    expect,
+    member,
+  }) => {
+    const session = await docs.session();
+    const sessionId = session.id;
+    const [file] = session.files;
+
+    await agent.sessions.affectReporters({
+      body: { items: [{ nominationFileId: file!.id, reporterIds: [member['@user']!.id] }] },
+      path: { sessionId },
+      throwOnError: true,
+    });
+
+    const foundFiles = await agent.docs.findAgendaNominationFiles({ path: { sessionId } });
+    expect(foundFiles.data!.items.map(({ reporters }) => reporters)).toEqual([[], []]);
   });
 
   test('should forget a reporter removed since the last publication', async ({ agent, docs, expect, member }) => {
