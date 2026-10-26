@@ -1,9 +1,10 @@
+import PasswordInput from '@codegouvfr/react-dsfr/blocks/PasswordInput';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Input from '@codegouvfr/react-dsfr/Input';
 import Select from '@codegouvfr/react-dsfr/Select';
 import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 import { useQueryClient } from '@tanstack/react-query';
-import { useCallback, useMemo, useState, type ChangeEvent, type ReactNode, type SyntheticEvent } from 'react';
+import { useCallback, useMemo, useState, type ReactNode, type SyntheticEvent } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
 
@@ -20,6 +21,7 @@ import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { DetailsCard, DetailsHeader, DetailsPageLayout } from '@/shared/ui/details';
 import { IconButton, iconButtonClassName } from '@/shared/ui/icon-button';
 import { Tooltip } from '@/shared/ui/tooltip';
+import { isStrongPassword, passwordRuleStates } from '@/utils/password.utils';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { memberFullName } from '@/utils/user.utils';
 import type { DetailedAdminUserDto } from '@api/types';
@@ -128,39 +130,24 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
   const [password, setPassword] = useState('');
   const { error, isPending, mutate: updatePassword, reset } = useUpdateUserPasswordMutation(props.user.id);
 
-  const [isDirty, setIsDirty] = useState<boolean>(false);
-  const formError = useMemo(
-    () =>
-      isDirty && password.trim().length === 0
-        ? formatMessage({ defaultMessage: 'Champ obligatoire' })
-        : undefined,
-    [isDirty, password, formatMessage],
-  );
-
-  const onChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      if (!isDirty) setIsDirty(true);
-      const value = e.target.value;
-      setPassword(value);
-    },
-    [isDirty, setIsDirty, setPassword],
-  );
+  const [isSubmitted, setSubmitted] = useState(false);
 
   const changeEdition = useCallback(
     (edition: boolean) => {
       setPassword('');
-      setIsDirty(false);
+      setSubmitted(false);
       setEditing(edition);
     },
-    [setEditing, setIsDirty],
+    [setEditing, setSubmitted],
   );
 
   const handleSave = useCallback(
     (e?: SyntheticEvent) => {
       e?.preventDefault();
 
+      setSubmitted(true);
       const trimmed = password.trim();
-      if (!trimmed) return;
+      if (!isStrongPassword(trimmed)) return;
       updatePassword(
         { password: trimmed },
         {
@@ -254,25 +241,35 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
       </div>
       {isEditing ? (
         <form onSubmit={handleSave}>
-          <Input
+          <PasswordInput
             hideLabel
+            hintText={formatMessage({
+              defaultMessage: `Ce mot de passe est provisoire : invitez l'utilisateur à le changer depuis "Mon compte".`,
+            })}
             label={formatMessage({ defaultMessage: 'Mot de passe' })}
+            messages={[
+              ...passwordRuleStates(password, isSubmitted).map((rule) => ({
+                ...rule,
+                message: formatMessage(rule.message),
+              })),
+              ...(error
+                ? [
+                    {
+                      message: formatMessage({ defaultMessage: 'Erreur à la mise à jour du mot de passe' }),
+                      severity: 'error' as const,
+                    },
+                  ]
+                : []),
+            ]}
+            messagesHint={formatMessage({ defaultMessage: 'Le mot de passe doit contenir :' })}
             nativeInputProps={{
               autoComplete: 'off',
               autoFocus: true,
-              onChange: onChange,
+              onChange: (event) => setPassword(event.target.value),
               placeholder: formatMessage({ defaultMessage: 'Nouveau mot de passe...' }),
               required: true,
-              type: 'password',
               value: password,
             }}
-            state={formError || error ? 'error' : undefined}
-            stateRelatedMessage={
-              formError ??
-              (error
-                ? formatMessage({ defaultMessage: 'Erreur à la mise à jour du mot de passe' })
-                : undefined)
-            }
           />
         </form>
       ) : (
