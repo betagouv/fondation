@@ -1,12 +1,13 @@
 import { useMemo } from 'react';
 import { useLocation } from 'react-router';
 
+import { isSecretariat } from '@/shared/enums/role.enum';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useUser } from '@queries/auth.queries';
 
 export function useIsSg(): boolean {
   const { user } = useUser();
-  return user?.role === 'ADJOINT_SECRETAIRE_GENERAL';
+  return !!user && isSecretariat(user.role);
 }
 
 export function useIsAdmin(): boolean {
