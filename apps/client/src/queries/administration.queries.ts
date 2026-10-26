@@ -32,6 +32,7 @@ export type AdminUsersSorting =
 const adminKeys = {
   all: () => ['admin'] as const,
   allUsers: () => ['admin', 'users'] as const,
+  titleHolders: () => ['admin', 'title-holders'] as const,
   user: (userId: string | undefined) => ['admin', 'user', userId] as const,
   users: (params: { filters: AdminUsersFilters; sorting: AdminUsersSorting }) =>
     ['admin', 'users', params] as const,
@@ -81,6 +82,15 @@ export function useAdminUserDetailQuery(userId: string | undefined) {
     queryFn: () =>
       $api.administration.detailsUser({ path: { userId: userId! } }).then(({ data = null }) => data),
     queryKey: adminKeys.user(userId),
+  });
+}
+
+export function useTitleHoldersQuery(options: { enabled: boolean }) {
+  return useQuery({
+    enabled: options.enabled,
+    queryFn: () =>
+      $api.administration.listTitleHolders({ throwOnError: true }).then(({ data }) => data.items),
+    queryKey: adminKeys.titleHolders(),
   });
 }
 

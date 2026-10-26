@@ -6,6 +6,7 @@ import Select from '@codegouvfr/react-dsfr/Select';
 import { useId, useState, type FormEvent } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
+import { useTitleTakenBackWarning } from '../hooks/useTitleTakenBackWarning';
 import { ROLE_OPTIONS, type AdminUserRoleEnum } from '../labels/admin-user-enum';
 import { Modal } from '@/shared/ui/modal';
 import { RequiredLabel } from '@/shared/ui/required-label';
@@ -27,6 +28,7 @@ export function AdminUserCreationModal(props: {
   const [user, setUser] = useState<Partial<CreateUserDto>>({});
   const [isSubmitted, setSubmitted] = useState(false);
   const formId = useId();
+  const titleTakenBack = useTitleTakenBackWarning(user.role, { enabled: props.open });
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
@@ -138,6 +140,8 @@ export function AdminUserCreationModal(props: {
             required: true,
             value: user.role ?? '',
           }}
+          state={titleTakenBack ? 'info' : 'default'}
+          stateRelatedMessage={titleTakenBack}
         >
           <option disabled hidden value="">
             {formatMessage({ defaultMessage: 'Sélectionner un rôle' })}

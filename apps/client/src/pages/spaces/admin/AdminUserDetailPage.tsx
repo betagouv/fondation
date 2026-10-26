@@ -9,6 +9,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
 
 import { AdminUserRole } from '@/features/administration/components/AdminUserRole';
+import { useTitleTakenBackWarning } from '@/features/administration/hooks/useTitleTakenBackWarning';
 import {
   PROMOTABLE_ROLES,
   ROLE_OPTIONS,
@@ -351,6 +352,7 @@ function RoleField(props: { user: DetailedAdminUserDto }) {
   const [role, setRole] = useState<AdminUserRoleEnum>(props.user.role);
 
   const { error, isPending, mutate: updateRole, reset } = useUpdateUserRoleMutation(props.user.id);
+  const titleTakenBack = useTitleTakenBackWarning(role, { enabled: isEditing, userId: props.user.id });
 
   const handleEdit = useCallback(() => {
     setRole(props.user.role);
@@ -415,9 +417,9 @@ function RoleField(props: { user: DetailedAdminUserDto }) {
                 })
               : undefined
           }
-          state={error ? 'error' : undefined}
+          state={error ? 'error' : titleTakenBack ? 'info' : undefined}
           stateRelatedMessage={
-            error ? intl.formatMessage({ defaultMessage: 'Erreur à la mise à jour du rôle' }) : undefined
+            error ? intl.formatMessage({ defaultMessage: 'Erreur à la mise à jour du rôle' }) : titleTakenBack
           }
         >
           {ROLE_OPTIONS.map((group) => {
