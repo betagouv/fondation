@@ -161,6 +161,7 @@ test.describe('Agenda', () => {
     await agent.sessions.affectReporters({
       body: { items: [{ nominationFileId: file!.id, reporterIds: [member['@user']!.id] }] },
       path: { sessionId },
+      throwOnError: true,
     });
 
     const foundFiles = await agent.docs.findAgendaNominationFiles({ path: { sessionId } });
