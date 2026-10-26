@@ -56,7 +56,7 @@ est un bon candidat. Il est toutefois un peu trop systématique.
 
 ```tsx
 export function Card(props: React.PropsWithChildren) {
-  return <div className="rounded shadow p-2 bg-[canvas]">{props.children}</div>;
+  return <div className="rounded bg-[canvas] p-2 shadow">{props.children}</div>;
 }
 ```
 
@@ -71,7 +71,7 @@ On déclare le type directement sur l'unique paramètre de la fonction, nommé `
 
 ```tsx
 export function Card(props: React.PropsWithChildren<{ className: string }>) {
-  return <div className={clsx('rounded shadow fr-p-2v bg-[canvas]', props.className)}>{props.children}</div>;
+  return <div className={clsx('fr-p-2v rounded bg-[canvas] shadow', props.className)}>{props.children}</div>;
 }
 ```
 
