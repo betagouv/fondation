@@ -381,6 +381,28 @@ test.describe('Magistrat E2E', () => {
     expect(memberNominationFiles.data!.items[0]).toMatchObject({ id: valrose.nominationFile.id });
   });
 
+  test('should list a nomination file of the other formation to a member without opening its session', async ({
+    agent,
+    expect,
+    logIn,
+    valrose,
+  }) => {
+    const { data: session } = await agent.sessions.detailsNominationSession({
+      path: { sessionId: valrose.session.id },
+      throwOnError: true,
+    });
+
+    const outsider = await logIn(session.formation === 'PARQUET' ? 'MEMBRE_DU_SIEGE' : 'MEMBRE_DU_PARQUET');
+    const { data } = await outsider.magistrats.listMagistratNominationFiles({
+      path: { magistratId: valrose.magistratId },
+      throwOnError: true,
+    });
+    expect(data.items[0]).toMatchObject({
+      id: valrose.nominationFile.id,
+      session: { canOpen: false, id: valrose.session.id },
+    });
+  });
+
   test('should expect an audition on an auditioned position', async ({ agent, expect, valrose }) => {
     const nominationFiles = await agent.magistrats.listMagistratNominationFiles({
       path: { magistratId: valrose.otherNominationFile.magistratId },

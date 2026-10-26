@@ -10,7 +10,8 @@ import { proposedMagistratName } from '../../../../magistrat/domain/magistrat-na
 import { MagistratService } from '../../../../magistrat/magistrat.service';
 import { ObservationService } from '../../../../observation/observation.service';
 import { canScheduleAudition } from '../../../../shared/policies/nomination-file.policies';
-import { isSecretariat, roleToFormation, type RoleEnum } from '../../../../shared/role.enum';
+import { canReadSession } from '../../../../shared/policies/session.policies';
+import { isSecretariat, type RoleEnum } from '../../../../shared/role.enum';
 
 import { AffectationVersionFinder } from './affectation-version.finder';
 import { AuditionPublicationFinder } from './audition-publication.finder';
@@ -65,10 +66,11 @@ export class SessionAuditionsFinder {
             targetedPosition: true,
           },
         },
+        formation: true,
       } satisfies Prisma.SessionSelect,
-      where: { deletedAt: null, formation: roleToFormation(query.role), id: query.sessionId },
+      where: { deletedAt: null, id: query.sessionId },
     });
-    if (!session) throw new NotFoundException();
+    if (!session || !canReadSession(session, query)) throw new NotFoundException();
 
     // the members get the table from its first publication on
     if (!isSecretariat(query.role) && !(await this.publications.last(query))) return [];

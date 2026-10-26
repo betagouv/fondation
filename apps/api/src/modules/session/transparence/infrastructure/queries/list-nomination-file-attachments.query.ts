@@ -6,15 +6,22 @@ import { Prisma } from '../../../../../generated/prisma/client';
 import { writerOf, writerSchema } from '../../../../../utils/user.util';
 import { Db } from '../../../../framework/database';
 import { NominationFileAttachmentTypeEnum } from '../../../../shared/nomination-file-attachment-type.enum';
+import type { RoleEnum } from '../../../../shared/role.enum';
+import { NominationSessionFinder } from '../finders/transparence-session.finder';
 
 @Injectable()
 export class ListNominationFileAttachmentsQuery {
-  constructor(private readonly db: Db) {}
+  constructor(
+    private readonly db: Db,
+    private readonly sessions: NominationSessionFinder,
+  ) {}
 
   async handle(query: {
     nominationFileId: string;
+    role: RoleEnum;
     sessionId: string;
   }): Promise<ListedNominationFileAttachmentDto> {
+    await this.sessions.getVisible(query);
     const nominationFile = await this.db.tx.dossierDeNomination.findUnique({
       select: {
         attachments: {

@@ -542,6 +542,49 @@ test.describe('Session E2E', () => {
       expect(forbidden.response?.status).toBe(404);
     }, 10_000);
 
+    test('should not serve the reads of a session to a member of another formation', async ({
+      agent,
+      logIn,
+      sessions,
+      expect,
+    }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+      const filePath = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+      await agent.sessions.uploadSessionAttachments({
+        body: { files: [makeFile({ name: 'circulaire.pdf', type: 'application/pdf' })] },
+        path: { sessionId: session.id },
+        throwOnError: true,
+      });
+      await agent.sessions.uploadNominationFileAttachments({
+        body: {
+          files: [makeFile({ name: 'fiche.pdf', type: 'application/pdf' })],
+          form: attachmentForm({ type: 'FICHE_DE_JURIDICTION' }),
+        },
+        path: filePath,
+        throwOnError: true,
+      });
+      const [{ data: sessionAttachments }, { data: fileAttachments }, { data: detailed }] = await Promise.all([
+        agent.sessions.listNominationSessionAttachments({ path: { sessionId: session.id }, throwOnError: true }),
+        agent.sessions.listNominationFileAttachments({ path: filePath, throwOnError: true }),
+        agent.sessions.detailsNominationSession({ path: { sessionId: session.id }, throwOnError: true }),
+      ]);
+
+      const outsider = await logIn(detailed.formation === 'PARQUET' ? 'MEMBRE_DU_SIEGE' : 'MEMBRE_DU_PARQUET');
+      const hidden = await Promise.all([
+        outsider.sessions.listNominationSessionAttachments({ path: { sessionId: session.id } }),
+        outsider.sessions.createNominationSessionAttachmentUrl({
+          path: { fileId: sessionAttachments.items[0]!.id, sessionId: session.id },
+        }),
+        outsider.sessions.listNominationFileAttachments({ path: filePath }),
+        outsider.sessions.createNominationFileAttachmentUrl({
+          path: { ...filePath, fileId: fileAttachments.items[0]!.id },
+        }),
+        outsider.sessions.listCurrentlyAffectedReporters({ path: { sessionId: session.id } }),
+        outsider.sessions.getLolfiMagistratUrl({ path: filePath }),
+      ]);
+      expect(hidden.map(({ response }) => response?.status)).toEqual([404, 404, 404, 404, 404, 404]);
+    }, 10_000);
+
     test('should not list to the members an archived session never published to them', async ({
       agent,
       expect,
