@@ -138,6 +138,14 @@ describe('expectedReportersCount', () => {
     ).toBe(2);
   });
 
+  it('expects a single reporter on a referendary advocate general at the Cour de cassation', () => {
+    expect(
+      expectedReportersCount(
+        file({ detectedJurisdictionId: 'CC  PARIS', detectedTargetedFunctionId: 'AGR' }),
+      ),
+    ).toBeNull();
+  });
+
   it('expects nothing in particular on a regular position', () => {
     expect(
       expectedReportersCount(file({ targetedPosition: 'Président de chambre CA AIX EN PROVENCE' })),
