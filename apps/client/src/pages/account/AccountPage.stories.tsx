@@ -24,6 +24,7 @@ function AccountPageStory(props: {
         client.setQueryData(authKeys.introspectSession(), {
           ...STORY_USERS[props.view],
           isImpersonated: props.isImpersonated,
+          passwordChange: props.isImpersonated ? 'IMPERSONATED' : 'ALLOWED',
         })
       }
       view={props.view}

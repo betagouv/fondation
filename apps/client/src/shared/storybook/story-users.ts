@@ -13,6 +13,7 @@ export const STORY_USERS = {
     isAdmin: false,
     isImpersonated: false,
     lastName: 'Petit',
+    passwordChange: 'ALLOWED',
     role: 'MEMBRE_DU_SIEGE',
   },
   sg: {
@@ -24,6 +25,7 @@ export const STORY_USERS = {
     isAdmin: false,
     isImpersonated: false,
     lastName: 'Bernard',
+    passwordChange: 'ALLOWED',
     role: 'ADJOINT_SECRETAIRE_GENERAL',
   },
 } satisfies Record<StoryView, SessionUser>;

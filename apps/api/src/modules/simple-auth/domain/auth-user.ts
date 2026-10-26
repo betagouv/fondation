@@ -15,6 +15,15 @@ export class DeactivatedUserNotImpersonable extends Error {}
 export class AdminOutsideSecretariat extends Error {}
 export class WrongCurrentPassword extends Error {}
 
+export const PASSWORD_CHANGES = ['ALLOWED', 'IMPERSONATED'] as const;
+export type PasswordChange = (typeof PASSWORD_CHANGES)[number];
+
+export class CannotChangePassword extends Error {
+  constructor(readonly reason: Exclude<PasswordChange, 'ALLOWED'>) {
+    super();
+  }
+}
+
 export class AuthUserRegistered {
   readonly id: string;
   readonly firstName: string;
@@ -156,14 +165,23 @@ export class AuthUser {
     this.#messages.push(new AuthUserPasswordRehashed(this.id, password.toString()));
   }
 
+  static passwordChangeOf(session: { isImpersonated: boolean }): PasswordChange {
+    return session.isImpersonated ? 'IMPERSONATED' : 'ALLOWED';
+  }
+
   async changePassword(command: {
     currentPassword: string;
+    hash: (plain: string) => Promise<AuthPassword>;
+    isImpersonated: boolean;
     keptSessionId: string;
-    password: AuthPassword;
+    newPassword: string;
   }): Promise<void> {
+    const passwordChange = AuthUser.passwordChangeOf(command);
+    if (passwordChange !== 'ALLOWED') throw new CannotChangePassword(passwordChange);
     if (!(await this.password.equals(command.currentPassword))) throw new WrongCurrentPassword();
 
-    this.#messages.push(new AuthUserPasswordChanged(this.id, command.password.toString()));
+    const password = await command.hash(command.newPassword);
+    this.#messages.push(new AuthUserPasswordChanged(this.id, password.toString()));
     this.revokeSessions(command);
   }
 

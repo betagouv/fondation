@@ -4,7 +4,8 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { useState, type SubmitEvent } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import { useChangePasswordMutation, WrongCurrentPasswordError } from '@queries/auth.queries';
+import { ValidationError } from '@/utils/validation-error';
+import { useChangePasswordMutation } from '@queries/auth.queries';
 
 const MIN_LENGTH = 8;
 
@@ -45,19 +46,19 @@ export function ChangePasswordForm() {
       {isSuccess && (
         <Alert
           className="fr-mb-6v"
+          description={formatMessage({ defaultMessage: 'Votre mot de passe a été changé.' })}
           severity="success"
           small
-          description={formatMessage({ defaultMessage: 'Votre mot de passe a été changé.' })}
         />
       )}
-      {error && !(error instanceof WrongCurrentPasswordError) && (
+      {error && !(error instanceof ValidationError) && (
         <Alert
           className="fr-mb-6v"
-          severity="error"
-          small
           description={formatMessage({
             defaultMessage: `Le mot de passe n'a pas pu être changé. Veuillez réessayer.`,
           })}
+          severity="error"
+          small
         />
       )}
 
@@ -65,16 +66,7 @@ export function ChangePasswordForm() {
         <PasswordInput
           className="fr-mb-0"
           label={formatMessage({ defaultMessage: 'Mot de passe actuel' })}
-          messages={
-            error instanceof WrongCurrentPasswordError
-              ? [
-                  {
-                    message: formatMessage({ defaultMessage: 'Le mot de passe actuel est incorrect' }),
-                    severity: 'error',
-                  },
-                ]
-              : []
-          }
+          messages={error instanceof ValidationError ? [{ message: error.message, severity: 'error' }] : []}
           messagesHint=""
           nativeInputProps={{ autoComplete: 'current-password', name: 'currentPassword', required: true }}
         />

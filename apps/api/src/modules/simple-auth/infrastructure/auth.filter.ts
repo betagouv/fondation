@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Catch,
   ExceptionFilter,
+  ForbiddenException,
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -9,6 +10,7 @@ import {
 import {
   AdminOutsideSecretariat,
   AuthUserNotAuthentifiable,
+  CannotChangePassword,
   DeactivatedUserNotImpersonable,
   WrongCurrentPassword,
 } from '../domain/auth-user';
@@ -16,6 +18,7 @@ import {
 @Catch(
   AdminOutsideSecretariat,
   AuthUserNotAuthentifiable,
+  CannotChangePassword,
   DeactivatedUserNotImpersonable,
   WrongCurrentPassword,
 )
@@ -24,6 +27,7 @@ export class AuthExceptionFilter implements ExceptionFilter {
     exception:
       | AdminOutsideSecretariat
       | AuthUserNotAuthentifiable
+      | CannotChangePassword
       | DeactivatedUserNotImpersonable
       | WrongCurrentPassword,
   ) {
@@ -35,6 +39,10 @@ export class AuthExceptionFilter implements ExceptionFilter {
 
     if (exception instanceof AuthUserNotAuthentifiable) {
       throw new UnauthorizedException();
+    }
+
+    if (exception instanceof CannotChangePassword) {
+      throw new ForbiddenException();
     }
 
     if (exception instanceof DeactivatedUserNotImpersonable) {

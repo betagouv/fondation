@@ -25,6 +25,7 @@ const STORY_USER: DetailedUserResponseDto = {
   isAdmin: false,
   isImpersonated: false,
   lastName: 'Lemoine',
+  passwordChange: 'ALLOWED',
   role: 'MEMBRE_COMMUN',
   title: null,
   userId: 'user-1',

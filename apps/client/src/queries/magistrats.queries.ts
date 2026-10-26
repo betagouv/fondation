@@ -6,7 +6,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 
-import { HttpException } from '@/utils/http-exception';
+import { withValidationError } from '@/utils/validation-error';
 import * as $api from '@api/sdk';
 import type { ListedMagistratPhoneNumbersDto, SearchMagistratsResponseDto } from '@api/types';
 
@@ -95,21 +95,6 @@ export function useMagistratPhoneNumbersQuery(props: { magistratId: string }) {
       return data.items;
     },
   });
-}
-
-export class ValidationError extends Error {}
-
-async function withValidationError<T>(request: () => Promise<T>): Promise<T> {
-  try {
-    return await request();
-  } catch (error) {
-    if (error instanceof HttpException && [400, 409].includes(error.statusCode)) {
-      const body = await error.response.json().catch(() => null);
-      if (body?.validationError) throw new ValidationError(String(body.validationError));
-    }
-
-    throw error;
-  }
 }
 
 export function useAddMagistratPhoneNumberMutation(props: { magistratId: string }) {

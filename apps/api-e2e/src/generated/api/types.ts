@@ -33,6 +33,7 @@ export type DetailedUserResponseDto = {
     formation: 'SIEGE' | 'PARQUET' | null;
     gender: 'MALE' | 'FEMALE';
     isImpersonated: boolean;
+    passwordChange: 'ALLOWED' | 'IMPERSONATED';
     isAdmin: boolean;
     displayTitle: string | null;
     duty: 'PRESIDENT' | 'DEPUTY_PRESIDENT' | 'SECRETARY' | 'OFFICER' | null;

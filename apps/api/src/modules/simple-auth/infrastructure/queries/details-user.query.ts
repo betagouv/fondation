@@ -13,6 +13,7 @@ import { prismaRoleEnumToRoleEnum } from '../../../shared/mappers/role-enum.mapp
 import { RoleEnum, roleToFormation } from '../../../shared/role.enum';
 import { USER_DUTIES } from '../../../shared/user-duty.enum';
 import { USER_TITLES } from '../../../shared/user-title.enum';
+import { AuthUser, PASSWORD_CHANGES } from '../../domain/auth-user';
 
 @Injectable()
 export class DetailsUserQuery {
@@ -43,10 +44,12 @@ export class DetailsUserQuery {
 
     const { id: userId, ...user } = maybeUser;
     const role = prismaRoleEnumToRoleEnum(user.role);
+    const isImpersonated = isDefined(query.impersonationId);
     return {
       ...user,
       userId,
-      isImpersonated: isDefined(query.impersonationId),
+      isImpersonated,
+      passwordChange: AuthUser.passwordChangeOf({ isImpersonated }),
       role,
       formation: roleToFormation(role) ?? null,
       gender: prismaGenderEnumToGenderEnum(user.gender),
@@ -65,6 +68,7 @@ export class DetailedUserResponseDto extends createZodDto(
     formation: z.enum(FormationEnum).nullable(),
     gender: z.enum(GenderEnum),
     isImpersonated: z.boolean(),
+    passwordChange: z.enum(PASSWORD_CHANGES),
     isAdmin: z.boolean(),
     displayTitle: z.string().nullable(),
     duty: z.enum(USER_DUTIES).nullable(),

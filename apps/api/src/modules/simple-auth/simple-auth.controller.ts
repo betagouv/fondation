@@ -2,7 +2,6 @@ import {
   BadRequestException,
   Body,
   Controller,
-  ForbiddenException,
   Get,
   HttpCode,
   HttpStatus,
@@ -118,9 +117,12 @@ export class SimpleAuthController {
     @AuthedUser() user: { id: string; sessionId: string; impersonation?: { id: string } },
     @Body() body: ChangePasswordDto,
   ): Promise<void> {
-    if (user.impersonation) throw new ForbiddenException();
-
-    return this.auth.changePassword({ ...body, sessionId: user.sessionId, userId: user.id });
+    return this.auth.changePassword({
+      ...body,
+      isImpersonated: !!user.impersonation,
+      sessionId: user.sessionId,
+      userId: user.id,
+    });
   }
 
   @Post('logout')

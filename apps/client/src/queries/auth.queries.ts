@@ -1,12 +1,13 @@
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { HttpException } from '../utils/http-exception';
+import { withValidationError } from '../utils/validation-error';
 import * as $api from '@api/sdk';
 import type { DetailedUserResponseDto } from '@api/types';
 
 export type SessionUser = Pick<
   DetailedUserResponseDto,
-  'email' | 'firstName' | 'formation' | 'isAdmin' | 'isImpersonated' | 'lastName' | 'role'
+  'email' | 'firstName' | 'formation' | 'isAdmin' | 'isImpersonated' | 'lastName' | 'passwordChange' | 'role'
 > & { civility: string; id: string };
 
 export const authKeys = {
@@ -33,6 +34,7 @@ export const sessionQueryOptions = queryOptions({
               lastName: data.lastName,
               isAdmin: data.isAdmin,
               isImpersonated: data.isImpersonated,
+              passwordChange: data.passwordChange,
               civility: `${data.gender === 'FEMALE' ? 'Madame' : 'Monsieur'} ${data.lastName.toUpperCase()}`,
             }
           : null,
@@ -72,21 +74,10 @@ export function usePasswordLogin() {
   });
 }
 
-export class WrongCurrentPasswordError extends Error {}
-
 export function useChangePasswordMutation() {
   return useMutation({
-    mutationFn: async (body: { currentPassword: string; newPassword: string }) => {
-      try {
-        await $api.auth.changePassword({ body, throwOnError: true });
-      } catch (error) {
-        if (error instanceof HttpException && error.statusCode === 400) {
-          const errorBody = await error.response.json().catch(() => null);
-          if (errorBody?.validationError) throw new WrongCurrentPasswordError();
-        }
-        throw error;
-      }
-    },
+    mutationFn: (body: { currentPassword: string; newPassword: string }) =>
+      withValidationError(() => $api.auth.changePassword({ body })),
   });
 }
 

@@ -1,11 +1,15 @@
-import { FormattedMessage } from 'react-intl';
+import { defineMessages, FormattedMessage, type MessageDescriptor } from 'react-intl';
 
 import { ChangePasswordForm } from '@/features/auth/components/ChangePasswordForm';
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { RoleEnumMessages } from '@/shared/enums/role.enum';
 import { DetailsCard, DetailsHeader, DetailsPageLayout } from '@/shared/ui/details';
 import { memberFullName } from '@/utils/user.utils';
-import { useUser } from '@queries/auth.queries';
+import { type SessionUser, useUser } from '@queries/auth.queries';
+
+const PASSWORD_CHANGE_REFUSALS = defineMessages({
+  IMPERSONATED: { defaultMessage: "Le mot de passe ne se change pas à la place d'un utilisateur." },
+} satisfies Record<Exclude<SessionUser['passwordChange'], 'ALLOWED'>, MessageDescriptor>);
 
 export function AccountPage() {
   const { user } = useUser();
@@ -49,18 +53,28 @@ export function AccountPage() {
                 <FormattedMessage {...RoleEnumMessages[user.role]} />
               </dd>
             </div>
+            {user.isAdmin && (
+              <div>
+                <dt className="font-bold">
+                  <FormattedMessage defaultMessage="Droit administrateur" />
+                </dt>
+                <dd className="fr-mt-2v fr-px-4v fr-py-2v rounded-sm border border-(--border-default-grey) bg-(--background-alt-grey)">
+                  <FormattedMessage defaultMessage="Oui" />
+                </dd>
+              </div>
+            )}
           </dl>
         </DetailsCard>
       }
       wideIdentity
     >
       <DetailsCard className="grow">
-        {user.isImpersonated ? (
-          <p className="fr-mb-0">
-            <FormattedMessage defaultMessage="Le mot de passe ne se change pas à la place d'un utilisateur." />
-          </p>
-        ) : (
+        {user.passwordChange === 'ALLOWED' ? (
           <ChangePasswordForm />
+        ) : (
+          <p className="fr-mb-0">
+            <FormattedMessage {...PASSWORD_CHANGE_REFUSALS[user.passwordChange]} />
+          </p>
         )}
       </DetailsCard>
     </DetailsPageLayout>

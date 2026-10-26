@@ -91,6 +91,7 @@ export class SimpleAuthService {
   @Transactional()
   async changePassword(command: {
     currentPassword: string;
+    isImpersonated: boolean;
     newPassword: string;
     sessionId: string;
     userId: string;
@@ -98,8 +99,10 @@ export class SimpleAuthService {
     const user = await this.userRepository.find(command.userId);
     await user.changePassword({
       currentPassword: command.currentPassword,
+      hash: (plain) => this.passwordHasher.hash(plain),
+      isImpersonated: command.isImpersonated,
       keptSessionId: command.sessionId,
-      password: await this.passwordHasher.hash(command.newPassword),
+      newPassword: command.newPassword,
     });
     await this.userRepository.persist(user);
   }

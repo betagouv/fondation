@@ -43,6 +43,7 @@ describe('roleGuard', () => {
     firstName: 'Ada',
     lastName: 'Lovelace',
     isImpersonated: false,
+    passwordChange: 'ALLOWED' as const,
     civility: 'Madame LOVELACE',
   };
 
