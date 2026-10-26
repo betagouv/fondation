@@ -13,6 +13,7 @@ import { AuthSession } from './auth-session';
 export class AuthUserNotAuthentifiable extends Error {}
 export class DeactivatedUserNotImpersonable extends Error {}
 export class AdminOutsideSecretariat extends Error {}
+export class WrongCurrentPassword extends Error {}
 
 export class AuthUserRegistered {
   readonly id: string;
@@ -78,6 +79,13 @@ export class AuthUserPasswordRehashed {
   ) {}
 }
 
+export class AuthUserPasswordChanged {
+  constructor(
+    readonly id: string,
+    readonly password: string,
+  ) {}
+}
+
 export class AuthImpersonationStarted {
   constructor(
     readonly id: string,
@@ -109,6 +117,7 @@ type AuthUserEvent =
   | AuthUserUnAuthenticated
   | AuthUserSessionsRevoked
   | AuthUserPasswordRehashed
+  | AuthUserPasswordChanged
   | AuthImpersonationStarted
   | AuthImpersonationRevoked
   | AuthOpenIdRequestCompleted;
@@ -145,6 +154,17 @@ export class AuthUser {
 
   rehashPassword(password: AuthPassword): void {
     this.#messages.push(new AuthUserPasswordRehashed(this.id, password.toString()));
+  }
+
+  async changePassword(command: {
+    currentPassword: string;
+    keptSessionId: string;
+    password: AuthPassword;
+  }): Promise<void> {
+    if (!(await this.password.equals(command.currentPassword))) throw new WrongCurrentPassword();
+
+    this.#messages.push(new AuthUserPasswordChanged(this.id, command.password.toString()));
+    this.revokeSessions(command);
   }
 
   unAuthenticate(sessionId: string): void {

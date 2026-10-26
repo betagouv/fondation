@@ -26,15 +26,16 @@ export class DetailsUserQuery {
     const maybeUser = await this.db.tx.user.findUnique({
       where: { id: query.userId },
       select: {
-        id: true,
+        displayTitle: true,
+        duty: true,
+        email: true,
         firstName: true,
+        gender: true,
+        id: true,
+        isAdmin: true,
         lastName: true,
         role: true,
-        isAdmin: true,
-        gender: true,
-        duty: true,
         title: true,
-        displayTitle: true,
       } satisfies Prisma.UserSelect,
     });
 
@@ -58,6 +59,7 @@ export class DetailedUserResponseDto extends createZodDto(
     userId: z.string(),
     firstName: z.string(),
     lastName: z.string(),
+    email: z.string(),
     role: z.enum(RoleEnum),
     /** null when the user is not restricted to a formation */
     formation: z.enum(FormationEnum).nullable(),

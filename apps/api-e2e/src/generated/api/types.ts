@@ -28,6 +28,7 @@ export type DetailedUserResponseDto = {
     userId: string;
     firstName: string;
     lastName: string;
+    email: string;
     role: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL';
     formation: 'SIEGE' | 'PARQUET' | null;
     gender: 'MALE' | 'FEMALE';
@@ -36,6 +37,11 @@ export type DetailedUserResponseDto = {
     displayTitle: string | null;
     duty: 'PRESIDENT' | 'DEPUTY_PRESIDENT' | 'SECRETARY' | 'OFFICER' | null;
     title: 'PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_PARQUET' | 'FIRST_SECRETARY' | null;
+};
+
+export type ChangePasswordDto = {
+    currentPassword: string;
+    newPassword: string;
 };
 
 export type ListedOpenIdProvidersDto = {
@@ -2458,6 +2464,19 @@ export type IntrospectSessionResponses = {
 
 export type IntrospectSessionResponse = IntrospectSessionResponses[keyof IntrospectSessionResponses];
 
+export type ChangePasswordData = {
+    body: ChangePasswordDto;
+    path?: never;
+    query?: never;
+    url: '/api/auth/v2/password';
+};
+
+export type ChangePasswordResponses = {
+    204: void;
+};
+
+export type ChangePasswordResponse = ChangePasswordResponses[keyof ChangePasswordResponses];
+
 export type LogoutData = {
     body?: never;
     path?: never;
@@ -4771,9 +4790,9 @@ export type CreateObservationResponse = CreateObservationResponses[keyof CreateO
 export type DeleteObservationData = {
     body?: never;
     path: {
-        observationId: string;
-        nominationFileId: string;
         sessionId: string;
+        nominationFileId: string;
+        observationId: string;
     };
     query?: never;
     url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}';
@@ -4805,9 +4824,9 @@ export type GetObservationDetailsResponse = GetObservationDetailsResponses[keyof
 export type UpdateObservationData = {
     body: UpdateObservationDto;
     path: {
-        observationId: string;
-        nominationFileId: string;
         sessionId: string;
+        nominationFileId: string;
+        observationId: string;
     };
     query?: never;
     url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}';
@@ -4891,9 +4910,9 @@ export type ScheduleObservantAuditionResponse = ScheduleObservantAuditionRespons
 export type FollowUpOnObservationData = {
     body: FollowUpOnObservationDto;
     path: {
-        observationId: string;
-        nominationFileId: string;
         sessionId: string;
+        nominationFileId: string;
+        observationId: string;
     };
     query?: never;
     url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}/follow-up';

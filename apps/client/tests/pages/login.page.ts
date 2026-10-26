@@ -14,7 +14,7 @@ export class LoginPage {
     await this.passwordInput.fill(options.password);
     await this.submitButton.click();
 
-    await this.app.userLogoutButton.waitFor();
+    await this.app.userMenuButton.waitFor();
   }
 
   private get emailInput(): Locator {

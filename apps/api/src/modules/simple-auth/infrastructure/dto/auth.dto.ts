@@ -11,6 +11,14 @@ export const LoginDtoSchema = z.object({
 
 export class LoginDto extends createZodDto(LoginDtoSchema) {}
 
+// trimmed like at login, which would otherwise refuse a password ending with a space
+export class ChangePasswordDto extends createZodDto(
+  z.object({
+    currentPassword: LoginDtoSchema.shape.password,
+    newPassword: z.string().trim().min(8),
+  }),
+) {}
+
 export class RegisterUserDto extends createZodDto(
   z.object({
     firstName: z.string(),

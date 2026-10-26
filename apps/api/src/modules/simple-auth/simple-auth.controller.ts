@@ -2,12 +2,14 @@ import {
   BadRequestException,
   Body,
   Controller,
+  ForbiddenException,
   Get,
   HttpCode,
   HttpStatus,
   NotFoundException,
   Param,
   Post,
+  Put,
   Req,
   Res,
   UseFilters,
@@ -33,7 +35,12 @@ import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 import { AuthImpersonation } from './domain/auth-impersonation';
 import { AuthSession } from './domain/auth-session';
 import { AuthExceptionFilter } from './infrastructure/auth.filter';
-import { LoginDto, RegisteredUserDto, RegisterUserDto } from './infrastructure/dto/auth.dto';
+import {
+  ChangePasswordDto,
+  LoginDto,
+  RegisteredUserDto,
+  RegisterUserDto,
+} from './infrastructure/dto/auth.dto';
 import { DevelopmentEnvironmentGuard } from './infrastructure/guards/development-environment.guard';
 import { DetailedUserResponseDto } from './infrastructure/queries/details-user.query';
 import { AuthedUser, HasRole } from './simple-auth.decorator';
@@ -101,6 +108,19 @@ export class SimpleAuthController {
       userId: user.id,
       impersonationId: user.impersonation?.id,
     });
+  }
+
+  @Put('password')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @HasRole()
+  @UsePipes(ZodValidationPipe)
+  changePassword(
+    @AuthedUser() user: { id: string; sessionId: string; impersonation?: { id: string } },
+    @Body() body: ChangePasswordDto,
+  ): Promise<void> {
+    if (user.impersonation) throw new ForbiddenException();
+
+    return this.auth.changePassword({ ...body, sessionId: user.sessionId, userId: user.id });
   }
 
   @Post('logout')

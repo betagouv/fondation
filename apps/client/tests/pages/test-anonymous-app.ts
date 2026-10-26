@@ -9,7 +9,8 @@ export class TestAnonymousApp {
 
   constructor(readonly page: Page) {}
 
-  get userLogoutButton(): Locator {
-    return this.page.getByRole(`banner`).getByRole('button', { name: 'Se déconnecter' });
+  get userMenuButton(): Locator {
+    // the DSFR copies the header's quick access into the mobile menu, hidden on a desktop
+    return this.page.getByRole(`banner`).locator('button[aria-haspopup="menu"]:visible');
   }
 }

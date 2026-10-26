@@ -6,7 +6,7 @@ import type { DetailedUserResponseDto } from '@api/types';
 
 export type SessionUser = Pick<
   DetailedUserResponseDto,
-  'firstName' | 'formation' | 'isAdmin' | 'isImpersonated' | 'lastName' | 'role'
+  'email' | 'firstName' | 'formation' | 'isAdmin' | 'isImpersonated' | 'lastName' | 'role'
 > & { civility: string; id: string };
 
 export const authKeys = {
@@ -26,6 +26,7 @@ export const sessionQueryOptions = queryOptions({
         data
           ? {
               id: data.userId,
+              email: data.email,
               role: data.role,
               formation: data.formation,
               firstName: data.firstName,
@@ -68,6 +69,24 @@ export function usePasswordLogin() {
       return $api.auth.login({ headers: { authorization: `Basic ${authorization}` } });
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: authKeys.introspectSession() }),
+  });
+}
+
+export class WrongCurrentPasswordError extends Error {}
+
+export function useChangePasswordMutation() {
+  return useMutation({
+    mutationFn: async (body: { currentPassword: string; newPassword: string }) => {
+      try {
+        await $api.auth.changePassword({ body, throwOnError: true });
+      } catch (error) {
+        if (error instanceof HttpException && error.statusCode === 400) {
+          const errorBody = await error.response.json().catch(() => null);
+          if (errorBody?.validationError) throw new WrongCurrentPasswordError();
+        }
+        throw error;
+      }
+    },
   });
 }
 

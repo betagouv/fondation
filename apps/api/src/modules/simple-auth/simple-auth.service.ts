@@ -88,6 +88,22 @@ export class SimpleAuthService {
     return this.listUsersQuery.handle(query);
   }
 
+  @Transactional()
+  async changePassword(command: {
+    currentPassword: string;
+    newPassword: string;
+    sessionId: string;
+    userId: string;
+  }): Promise<void> {
+    const user = await this.userRepository.find(command.userId);
+    await user.changePassword({
+      currentPassword: command.currentPassword,
+      keptSessionId: command.sessionId,
+      password: await this.passwordHasher.hash(command.newPassword),
+    });
+    await this.userRepository.persist(user);
+  }
+
   async unAuthenticate(command: { userId: string; sessionId: string }): Promise<void> {
     const user = await this.userRepository.find(command.userId);
     user.unAuthenticate(command.sessionId);

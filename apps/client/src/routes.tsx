@@ -29,6 +29,11 @@ export const routes: RouteObject[] = [
       {
         children: [
           {
+            path: ROUTE_PATHS.ACCOUNT,
+            lazy: () =>
+              import('@/pages/account/AccountPage').then(({ AccountPage }) => ({ Component: AccountPage })),
+          },
+          {
             path: ROUTE_PATHS.FEEDBACK,
             lazy: () =>
               import('@/pages/feedback/FeedbackPage').then(({ FeedbackPage }) => ({

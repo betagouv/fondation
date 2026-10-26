@@ -18,6 +18,7 @@ const FILE_URL = 'about:blank';
 const STORY_USER: DetailedUserResponseDto = {
   displayTitle: null,
   duty: null,
+  email: 'nadia.lemoine@justice.fr',
   firstName: 'Nadia',
   formation: null,
   gender: 'FEMALE',
@@ -31,6 +32,7 @@ const STORY_USER: DetailedUserResponseDto = {
 
 const STORY_SG_USER: DetailedUserResponseDto = {
   ...STORY_USER,
+  email: 'claire.mercier@justice.fr',
   firstName: 'Claire',
   lastName: 'Mercier',
   role: 'ADJOINT_SECRETAIRE_GENERAL',

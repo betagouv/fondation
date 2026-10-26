@@ -4,6 +4,7 @@ export const SIDE_PANEL_DOSSIER_PARAM = 'dossier';
 
 export const ROUTE_PATHS = {
   ACCESSIBILITY: '/accessibilite',
+  ACCOUNT: '/mon-compte',
   ADMIN: {
     DETAILS_JOB: '/admin/jobs/:jobId',
     FEEDBACKS: '/admin/avis',

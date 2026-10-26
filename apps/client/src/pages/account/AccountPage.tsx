@@ -1,0 +1,68 @@
+import { FormattedMessage } from 'react-intl';
+
+import { ChangePasswordForm } from '@/features/auth/components/ChangePasswordForm';
+import { useIsSg } from '@/features/auth/hooks/roles.hook';
+import { RoleEnumMessages } from '@/shared/enums/role.enum';
+import { DetailsCard, DetailsHeader, DetailsPageLayout } from '@/shared/ui/details';
+import { memberFullName } from '@/utils/user.utils';
+import { useUser } from '@queries/auth.queries';
+
+export function AccountPage() {
+  const { user } = useUser();
+  const isSg = useIsSg();
+
+  if (!user) return null;
+
+  return (
+    <DetailsPageLayout
+      background={isSg ? 'cafeCreme' : 'blueFrance'}
+      header={
+        <DetailsHeader
+          backThroughHistory
+          backTo="/"
+          overline={<FormattedMessage defaultMessage="Mon compte" />}
+          title={memberFullName(user)}
+        />
+      }
+      identity={
+        <DetailsCard className="grow">
+          <h2 className="fr-h4">
+            <FormattedMessage defaultMessage="Mes informations" />
+          </h2>
+          <p className="fr-mb-6v text-(--text-mention-grey)">
+            <FormattedMessage defaultMessage="Pour les modifier, vous pouvez vous adresser à un administrateur." />
+          </p>
+          <dl className="m-0 flex flex-col gap-y-4 p-0">
+            <div>
+              <dt className="font-bold">
+                <FormattedMessage defaultMessage="Adresse électronique" />
+              </dt>
+              <dd className="fr-mt-2v fr-px-4v fr-py-2v rounded-sm border border-(--border-default-grey) bg-(--background-alt-grey)">
+                {user.email}
+              </dd>
+            </div>
+            <div>
+              <dt className="font-bold">
+                <FormattedMessage defaultMessage="Rôle" />
+              </dt>
+              <dd className="fr-mt-2v fr-px-4v fr-py-2v rounded-sm border border-(--border-default-grey) bg-(--background-alt-grey)">
+                <FormattedMessage {...RoleEnumMessages[user.role]} />
+              </dd>
+            </div>
+          </dl>
+        </DetailsCard>
+      }
+      wideIdentity
+    >
+      <DetailsCard className="grow">
+        {user.isImpersonated ? (
+          <p className="fr-mb-0">
+            <FormattedMessage defaultMessage="Le mot de passe ne se change pas à la place d'un utilisateur." />
+          </p>
+        ) : (
+          <ChangePasswordForm />
+        )}
+      </DetailsCard>
+    </DetailsPageLayout>
+  );
+}

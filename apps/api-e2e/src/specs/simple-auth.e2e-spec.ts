@@ -65,6 +65,31 @@ test.describe('Simple Auth E2E', () => {
     });
   });
 
+  test('should log in with the password a user changed, keeping only the session that changed it', async ({
+    baseUrl,
+    expect,
+    registerUser,
+  }) => {
+    const user = await registerUser('MEMBRE_COMMUN');
+    const anonymous = makeStepsFixtures({ baseUrl });
+    const login = (password: string) => anonymous.auth.login({ body: { email: user.email, password } });
+    const loggedIn = async () =>
+      makeStepsFixtures({ baseUrl, cookies: [cookieHeader((await login(user.password)).response!)] });
+    const asCurrent = await loggedIn();
+    const asOther = await loggedIn();
+    const newPassword = randomUUID();
+
+    await asCurrent.auth.changePassword({
+      body: { currentPassword: user.password, newPassword },
+      throwOnError: true,
+    });
+
+    expect((await login(newPassword)).response?.status).toBe(204);
+    expect((await login(user.password)).response?.status).toBe(401);
+    expect((await asCurrent.auth.introspectSession()).response?.status).toBe(200);
+    expect((await asOther.auth.introspectSession()).response?.status).toBe(401);
+  });
+
   test('should act as the impersonated user until the impersonation is over', async ({
     baseUrl,
     expect,

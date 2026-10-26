@@ -5,8 +5,11 @@ import {
   AdminOutsideSecretariat,
   AuthUser,
   AuthUserNotAuthentifiable,
+  AuthUserPasswordChanged,
   AuthUserRegistered,
+  AuthUserSessionsRevoked,
   DeactivatedUserNotImpersonable,
+  WrongCurrentPassword,
 } from './auth-user';
 
 describe('AuthUser', () => {
@@ -46,6 +49,32 @@ describe('AuthUser', () => {
       await expect(
         AuthUser.register({ ...registration, isAdmin: true, role: 'MEMBRE_COMMUN' }),
       ).rejects.toThrow(AdminOutsideSecretariat);
+    });
+  });
+
+  describe('password change', () => {
+    const user = async () =>
+      AuthUser.from({ id: 'user-1', password: await bcrypt.hash('current', 4), status: 'ACTIVE' });
+    const command = { keptSessionId: 'session-1', password: AuthPassword.from('new hash') };
+
+    it('should change the password and revoke every other session', async () => {
+      const changing = await user();
+
+      await changing.changePassword({ ...command, currentPassword: 'current' });
+
+      expect(changing.messages).toEqual([
+        new AuthUserPasswordChanged('user-1', 'new hash'),
+        new AuthUserSessionsRevoked('user-1', 'session-1'),
+      ]);
+    });
+
+    it('should refuse a wrong current password', async () => {
+      const changing = await user();
+
+      await expect(changing.changePassword({ ...command, currentPassword: 'wrong' })).rejects.toThrow(
+        WrongCurrentPassword,
+      );
+      expect(changing.messages).toEqual([]);
     });
   });
 
