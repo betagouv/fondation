@@ -107,4 +107,34 @@ test.describe('Members E2E', () => {
       expect(erased.data!.memo).toEqual({ value: null });
     });
   });
+
+  test.describe('Given a user with role MEMBRE_DU_SIEGE', () => {
+    test('cannot find a file of a PARQUET session to write their notes on', async ({ logIn, sessions, expect }) => {
+      const session = await sessions.createOne({
+        name: `Notes (${randomUUID()})`,
+        createdAt: '22/04/2026',
+        candidates: [
+          {
+            firstName: 'ETIENNE',
+            lastName: 'TREVOUX',
+            position: {
+              grade: 'G3',
+              jurisdiction: seed.jurisdictions['CA  LYON'],
+              function: seed.functions.PR,
+            },
+            targetPosition: {
+              grade: 'G3',
+              jurisdiction: seed.jurisdictions['CA  GRENOBLE'],
+              function: seed.functions.PR,
+            },
+          },
+        ],
+      });
+      const member = await logIn('MEMBRE_DU_SIEGE');
+      const path = { nominationFileId: session.files[0]!.id, sessionId: session.id, userId: member['@user']!.id };
+
+      const refused = await member.members.writeNominationFileMemberMemo({ body: { memo: 'À relire' }, path });
+      expect(refused.response?.status).toBe(404);
+    });
+  });
 });

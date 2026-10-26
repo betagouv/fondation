@@ -23,8 +23,7 @@ import { DateOnly } from '../../../utils/date-only';
 import { FILE_EXTENSIONS, FILE_MIME_TYPES, Multipart, UseMultipartBody } from '../../framework/files';
 import { ApiOkDiscriminatedByType } from '../../framework/openapi';
 import { ApiPaginated, Pagination, QueryPagination } from '../../framework/pagination';
-import { roleToFormation } from '../../members/infrastructure/member.utils';
-import type { RoleEnum } from '../../shared/role.enum';
+import { roleToFormation, type RoleEnum } from '../../shared/role.enum';
 import { AuthedUser, AuthedUserId, HasRole } from '../../simple-auth';
 
 import { LodamTransparenceFile } from './domain/transparence-file';

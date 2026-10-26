@@ -12,7 +12,6 @@ import { Db } from '../../../framework/database';
 import { Pagination } from '../../../framework/pagination';
 import { Sortable } from '../../../framework/sorting';
 import { MembersService } from '../../../members';
-import { roleToFormation } from '../../../members/infrastructure/member.utils';
 import { FormationEnum } from '../../../shared/formation.enum';
 import { NominationFileAttachmentTypeEnum } from '../../../shared/nomination-file-attachment-type.enum';
 import {
@@ -21,7 +20,7 @@ import {
 } from '../../../shared/nomination-file-outcome.enum';
 import * as policies from '../../../shared/policies/nomination-file.policies';
 import { PriorityEnum } from '../../../shared/priority.enum';
-import type { RoleEnum } from '../../../shared/role.enum';
+import { roleToFormation, type RoleEnum } from '../../../shared/role.enum';
 import { TypeDeSaisineEnum } from '../../../shared/type-de-saisine.enum';
 import { SessionTransparence } from '../domain/session-transparence';
 import { LodamTransparenceFile } from '../domain/transparence-file';
@@ -716,6 +715,7 @@ export class TransparenceService {
   }) {
     const { memo, nominationFileId, user } = command;
     const session = await this.nominationSessionRepository.find(command.sessionId, {
+      formation: roleToFormation(user.role),
       nominationFileIds: new Set([nominationFileId]),
     });
     const reporters = await this.versions.findPublishedReporters({ nominationFileIds: [nominationFileId] });

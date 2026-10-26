@@ -8,10 +8,9 @@ import { Clock } from '../../../../framework/clock';
 import { Db } from '../../../../framework/database';
 import { proposedMagistratName } from '../../../../magistrat/domain/magistrat-name';
 import { MagistratService } from '../../../../magistrat/magistrat.service';
-import { roleToFormation } from '../../../../members/infrastructure/member.utils';
 import { ObservationService } from '../../../../observation/observation.service';
 import { canScheduleAudition } from '../../../../shared/policies/nomination-file.policies';
-import { isSecretariat, type RoleEnum } from '../../../../shared/role.enum';
+import { isSecretariat, roleToFormation, type RoleEnum } from '../../../../shared/role.enum';
 
 import { AffectationVersionFinder } from './affectation-version.finder';
 import { AuditionPublicationFinder } from './audition-publication.finder';
