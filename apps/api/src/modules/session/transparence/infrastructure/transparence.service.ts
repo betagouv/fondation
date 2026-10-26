@@ -19,8 +19,8 @@ import {
   NominationFileOutcomeEnum,
 } from '../../../shared/nomination-file-outcome.enum';
 import * as policies from '../../../shared/policies/nomination-file.policies';
-import { PriorityEnum } from '../../../shared/priority.enum';
 import { canReadSession } from '../../../shared/policies/session.policies';
+import { PriorityEnum } from '../../../shared/priority.enum';
 import { roleToFormation, type RoleEnum } from '../../../shared/role.enum';
 import { TypeDeSaisineEnum } from '../../../shared/type-de-saisine.enum';
 import { SessionTransparence } from '../domain/session-transparence';
@@ -577,6 +577,7 @@ export class TransparenceService {
 
   listNominationFileAttachments(query: {
     nominationFileId: string;
+    role: RoleEnum;
     sessionId: string;
   }): Promise<ListedNominationFileAttachmentDto> {
     return this.listNominationFileAttachmentsQuery.handle(query);
@@ -585,17 +586,22 @@ export class TransparenceService {
   detailNominationFileAttachment(query: {
     fileId: string;
     nominationFileId: string;
+    role: RoleEnum;
     sessionId: string;
   }): Promise<DetailedNominationFileAttachmentDto> {
     return this.detailNominationFileAttachmentQuery.handle(query);
   }
 
-  listAttachments(query: { sessionId: string }): Promise<ListedNominationSessionAttachmentDto> {
+  listAttachments(query: {
+    role: RoleEnum;
+    sessionId: string;
+  }): Promise<ListedNominationSessionAttachmentDto> {
     return this.listNominationSessionAttachmentsQuery.handle(query);
   }
 
   detailAttachment(query: {
     fileId: string;
+    role: RoleEnum;
     sessionId: string;
   }): Promise<DetailedNominationSessionAttachmentDto> {
     return this.detailNominationSessionAttachmentQuery.handle(query);
@@ -720,6 +726,7 @@ export class TransparenceService {
 
   getLolfiMagistratUrl(query: {
     nominationFileId: string;
+    role: RoleEnum;
     sessionId: string;
   }): Promise<LolfiMagistratUrlDto> {
     return this.getLolfiMagistratUrlQuery.handle(query);
