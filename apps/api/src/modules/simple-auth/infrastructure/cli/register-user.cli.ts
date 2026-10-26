@@ -8,23 +8,23 @@ import { RoleEnum } from '../../../shared/role.enum';
 import { SimpleAuthService } from '../../simple-auth.service';
 
 const RegisterUserKey = {
-  gender: 'gender',
-  role: 'role',
-  firstName: 'firstName',
-  lastName: 'lastName',
   email: 'email',
-  password: 'password',
+  firstName: 'firstName',
+  gender: 'gender',
   isAdmin: 'isAdmin',
+  lastName: 'lastName',
+  password: 'password',
+  role: 'role',
 } as const;
 
 type RegisterUserOptions = {
-  [RegisterUserKey.gender]: GenderEnum;
-  [RegisterUserKey.role]: RoleEnum;
-  [RegisterUserKey.firstName]: string;
-  [RegisterUserKey.lastName]: string;
   [RegisterUserKey.email]: string;
-  [RegisterUserKey.password]: string;
+  [RegisterUserKey.firstName]: string;
+  [RegisterUserKey.gender]: GenderEnum;
   [RegisterUserKey.isAdmin]?: boolean;
+  [RegisterUserKey.lastName]: string;
+  [RegisterUserKey.password]: string;
+  [RegisterUserKey.role]: RoleEnum;
 };
 
 @SubCommand({ name: 'register' })
@@ -40,23 +40,23 @@ export class RegisterUserCliCommand extends CommandRunner {
     const prompts: QuestionMap[keyof QuestionMap][] = (
       [
         {
-          type: 'list',
-          name: 'role',
           choices: Object.values(RoleEnum),
           message: 'role:',
+          name: 'role',
+          type: 'list',
         },
         {
-          type: 'list',
-          name: 'gender',
           choices: Object.values(GenderEnum),
           message: 'gender:',
+          name: 'gender',
+          type: 'list',
         },
-        { type: 'input', name: 'firstName', message: 'first name:' },
-        { type: 'input', name: 'lastName', message: 'last name:' },
+        { message: 'first name:', name: 'firstName', type: 'input' },
+        { message: 'last name:', name: 'lastName', type: 'input' },
         {
-          type: 'input',
-          name: 'email',
           message: 'email:',
+          name: 'email',
+          type: 'input',
           validate: (input: string) => {
             const result = z.email().safeParse(input);
             if (!result.success) return z.prettifyError(result.error);
@@ -64,20 +64,20 @@ export class RegisterUserCliCommand extends CommandRunner {
           },
         },
         {
-          type: 'password',
-          name: 'password',
-          message: 'password:',
           mask: '*',
+          message: 'password:',
+          name: 'password',
+          type: 'password',
           validate: (input: string) => {
             const result = PasswordSchema.safeParse(input);
             return result.success || z.prettifyError(result.error);
           },
         },
         {
-          type: 'password',
-          name: 'repeatPassword',
-          message: 'repeat password:',
           mask: '*',
+          message: 'repeat password:',
+          name: 'repeatPassword',
+          type: 'password',
           validate: (input: string, answers: { password: string }) =>
             input === answers.password ? true : `Passwords should be identical`,
         },
@@ -85,12 +85,12 @@ export class RegisterUserCliCommand extends CommandRunner {
     ).filter((prompt) => !(options as any)[prompt.name]);
 
     const answers = await this.inquirer.inquirer.prompt<{
-      role: RoleEnum;
-      gender: GenderEnum;
       email: string;
       firstName: string;
+      gender: GenderEnum;
       lastName: string;
       password: string;
+      role: RoleEnum;
     }>(prompts, options);
     await this.auth.registerUser({
       ...answers,

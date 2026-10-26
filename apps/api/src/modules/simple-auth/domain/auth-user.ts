@@ -25,33 +25,33 @@ export class CannotChangePassword extends Error {
 }
 
 export class AuthUserRegistered {
-  readonly id: string;
-  readonly firstName: string;
-  readonly lastName: string;
-  readonly role: RoleEnum;
-  readonly isAdmin: boolean;
   readonly email: string;
-  readonly password: string;
+  readonly firstName: string;
   readonly gender: GenderEnum;
+  readonly id: string;
+  readonly isAdmin: boolean;
+  readonly lastName: string;
+  readonly password: string;
+  readonly role: RoleEnum;
 
   constructor(props: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    role: RoleEnum;
-    isAdmin: boolean;
     email: string;
-    password: AuthPassword;
+    firstName: string;
     gender: GenderEnum;
+    id: string;
+    isAdmin: boolean;
+    lastName: string;
+    password: AuthPassword;
+    role: RoleEnum;
   }) {
-    this.id = props.id;
-    this.firstName = props.firstName;
-    this.lastName = props.lastName;
-    this.role = props.role;
-    this.isAdmin = props.isAdmin;
     this.email = props.email;
-    this.password = props.password.toString();
+    this.firstName = props.firstName;
     this.gender = props.gender;
+    this.id = props.id;
+    this.isAdmin = props.isAdmin;
+    this.lastName = props.lastName;
+    this.password = props.password.toString();
+    this.role = props.role;
   }
 }
 
@@ -73,10 +73,10 @@ export class AuthUserAuthenticated {
   constructor(
     readonly id: string,
     readonly session: {
+      data: { userId: string };
+      durationMs: number;
       id: string;
       startedAt: Date;
-      durationMs: number;
-      data: { userId: string };
     },
   ) {}
 }
@@ -117,8 +117,8 @@ export class AuthOpenIdRequestCompleted {
 }
 
 export type AuthenticationStrategy =
-  | { type: 'password'; plainPassword: string }
-  | { type: 'openid'; request: { id: Id<'OpenIdRequest'>; provider: OpenIdProvider } };
+  | { plainPassword: string; type: 'password' }
+  | { request: { id: Id<'OpenIdRequest'>; provider: OpenIdProvider }; type: 'openid' };
 
 type AuthUserEvent =
   | AuthUserRegistered
@@ -198,13 +198,13 @@ export class AuthUser {
   }
 
   static async register(props: {
-    firstName: string;
-    lastName: string;
-    role: RoleEnum;
-    isAdmin: boolean;
     email: string;
-    password: AuthPassword;
+    firstName: string;
     gender: GenderEnum;
+    isAdmin: boolean;
+    lastName: string;
+    password: AuthPassword;
+    role: RoleEnum;
   }) {
     if (props.isAdmin && !isSecretariat(props.role)) throw new AdminOutsideSecretariat();
     const email = await z.email().toLowerCase().parseAsync(props.email);

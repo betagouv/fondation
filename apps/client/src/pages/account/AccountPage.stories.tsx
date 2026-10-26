@@ -35,11 +35,11 @@ function AccountPageStory(props: {
 }
 
 const meta = {
-  args: { answer: 'CHANGED', isImpersonated: false, view: 'member' },
   argTypes: {
     answer: { control: 'inline-radio', options: ANSWERS },
     view: { control: 'inline-radio', options: STORY_VIEWS },
   },
+  args: { answer: 'CHANGED', isImpersonated: false, view: 'member' },
   beforeEach: ({ args, msw }) => {
     msw.use(
       http.put('*/api/auth/v2/password', () =>

@@ -46,17 +46,17 @@ test.describe('Simple Auth E2E', () => {
   });
 
   test.describe('Given a logged-in user', () => {
-    test('should have an introspectable session', async ({ member, expect }) => {
+    test('should have an introspectable session', async ({ expect, member }) => {
       const introspectRes = await member.auth.introspectSession();
       expect(introspectRes.response?.status).toBe(200);
     });
 
-    test('should tell the deployed version', async ({ member, expect }) => {
+    test('should tell the deployed version', async ({ expect, member }) => {
       const introspectRes = await member.auth.introspectSession();
       expect(introspectRes.response?.headers.get('X-App-Version')).toBe('e2e');
     });
 
-    test('should logout', async ({ member, expect }) => {
+    test('should logout', async ({ expect, member }) => {
       const logoutRes = await member.auth.logout();
       expect(logoutRes.response?.status).toBe(204);
 

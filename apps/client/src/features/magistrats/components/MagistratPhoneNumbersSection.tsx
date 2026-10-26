@@ -111,8 +111,8 @@ export function MagistratPhoneNumbersSection(props: { magistratId: string; magis
         <MagistratPhoneNumberModal
           hasFailed={hasFailed(addPhoneNumber.error)}
           isSaving={addPhoneNumber.isPending}
-          onClose={close}
           numberError={numberError(addPhoneNumber.error)}
+          onClose={close}
           onClosed={closed}
           onSave={(phoneNumber) => addPhoneNumber.mutate(phoneNumber, { onSuccess: close })}
           open={editing.open}

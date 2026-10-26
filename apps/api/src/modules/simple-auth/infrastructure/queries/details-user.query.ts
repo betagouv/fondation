@@ -21,11 +21,10 @@ export class DetailsUserQuery {
 
   @Transactional()
   async handle(query: {
-    userId: string;
     impersonationId: string | undefined;
+    userId: string;
   }): Promise<DetailedUserResponseDto> {
     const maybeUser = await this.db.tx.user.findUnique({
-      where: { id: query.userId },
       select: {
         displayTitle: true,
         duty: true,
@@ -38,6 +37,7 @@ export class DetailsUserQuery {
         role: true,
         title: true,
       } satisfies Prisma.UserSelect,
+      where: { id: query.userId },
     });
 
     if (!maybeUser) throw new NotFoundException();
@@ -47,12 +47,12 @@ export class DetailsUserQuery {
     const isImpersonated = isDefined(query.impersonationId);
     return {
       ...user,
-      userId,
+      formation: roleToFormation(role) ?? null,
+      gender: prismaGenderEnumToGenderEnum(user.gender),
       isImpersonated,
       passwordChange: AuthUser.passwordChangeOf({ isImpersonated }),
       role,
-      formation: roleToFormation(role) ?? null,
-      gender: prismaGenderEnumToGenderEnum(user.gender),
+      userId,
     };
   }
 }

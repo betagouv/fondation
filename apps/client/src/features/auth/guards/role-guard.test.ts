@@ -35,16 +35,16 @@ describe('isAuthorized', () => {
 
 describe('roleGuard', () => {
   const member = {
-    id: '5f6478c1-46a1-4b64-8cbd-4a0d67101d7e',
-    email: 'ada.lovelace@justice.fr',
-    isAdmin: false,
-    role: 'MEMBRE_DU_SIEGE' as const,
-    formation: 'SIEGE' as const,
-    firstName: 'Ada',
-    lastName: 'Lovelace',
-    isImpersonated: false,
-    passwordChange: 'ALLOWED' as const,
     civility: 'Madame LOVELACE',
+    email: 'ada.lovelace@justice.fr',
+    firstName: 'Ada',
+    formation: 'SIEGE' as const,
+    id: '5f6478c1-46a1-4b64-8cbd-4a0d67101d7e',
+    isAdmin: false,
+    isImpersonated: false,
+    lastName: 'Lovelace',
+    passwordChange: 'ALLOWED' as const,
+    role: 'MEMBRE_DU_SIEGE' as const,
   };
 
   afterEach(() => {

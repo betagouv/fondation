@@ -10,7 +10,7 @@ import { memberFullName, toInitials } from '@/utils/user.utils';
 import { useLogout, useUser } from '@queries/auth.queries';
 
 export const Avatar: FC = () => {
-  const { user, isError } = useUser();
+  const { isError, user } = useUser();
 
   const navigate = useNavigate();
   const { mutateAsync } = useLogout();
