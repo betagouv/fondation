@@ -43,26 +43,35 @@ export function MagistratNominationFilesTable({
           const words = session.name.split(' ');
           const lastWord = words.pop();
           const leadingWords = words.join(' ');
+          const sessionName = (
+            <>
+              {leadingWords && `${leadingWords} `}
+              <span className="whitespace-nowrap">
+                {lastWord}
+                {isOngoing && (
+                  <Badge
+                    className="ml-1.5 min-h-0! px-1.5! align-middle text-[0.5625rem]! leading-4! whitespace-nowrap"
+                    noIcon
+                    severity="info"
+                    small
+                  >
+                    <FormattedMessage defaultMessage="En cours" />
+                  </Badge>
+                )}
+              </span>
+            </>
+          );
 
           return (
             <span className="flex min-w-0 flex-col items-start">
               <span className="w-full">
-                <Link className="fr-link fr-link--sm fr-reset-link underline-offset-4!" to={sessionPath}>
-                  {leadingWords && `${leadingWords} `}
-                  <span className="whitespace-nowrap">
-                    {lastWord}
-                    {isOngoing && (
-                      <Badge
-                        className="ml-1.5 min-h-0! px-1.5! align-middle text-[0.5625rem]! leading-4! whitespace-nowrap"
-                        noIcon
-                        severity="info"
-                        small
-                      >
-                        <FormattedMessage defaultMessage="En cours" />
-                      </Badge>
-                    )}
-                  </span>
-                </Link>
+                {session.canOpen ? (
+                  <Link className="fr-link fr-link--sm fr-reset-link underline-offset-4!" to={sessionPath}>
+                    {sessionName}
+                  </Link>
+                ) : (
+                  <span className="text-sm">{sessionName}</span>
+                )}
               </span>
               <span className="mt-2 text-xs text-(--text-mention-grey)">
                 {formatMessage(

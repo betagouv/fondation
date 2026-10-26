@@ -57,6 +57,7 @@ const NOMINATION_FILES: MagistratNominationFile[] = [
       { firstName: 'Antoine', id: 'user-2', lastName: 'Roche' },
     ],
     session: {
+      canOpen: true,
       date: { day: 20, month: 2, year: 2026 },
       formation: 'SIEGE',
       id: 'session-1',
@@ -77,6 +78,7 @@ const NOMINATION_FILES: MagistratNominationFile[] = [
     outcome: { comment: null, value: 'VALIDATED' },
     reporters: [{ firstName: 'Marie', id: 'user-3', lastName: 'Lefevre' }],
     session: {
+      canOpen: false,
       date: { day: 18, month: 6, year: 2021 },
       formation: 'SIEGE',
       id: 'session-2',

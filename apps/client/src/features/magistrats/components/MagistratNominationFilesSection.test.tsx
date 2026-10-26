@@ -41,6 +41,7 @@ function makeNominationFile(overrides?: Partial<MagistratNominationFile>): Magis
     outcome: null,
     reporters: [],
     session: {
+      canOpen: true,
       date: { day: 20, month: 2, year: 2026 },
       formation: 'SIEGE',
       id: 'session-1',
@@ -104,6 +105,21 @@ describe('MagistratNominationFilesSection', () => {
     renderSection();
 
     expect(screen.queryByText('À programmer')).not.toBeInTheDocument();
+  });
+
+  it('names without a link a session the user cannot open', () => {
+    query = {
+      ...query,
+      data: {
+        pages: [
+          { items: [makeNominationFile({ session: { ...makeNominationFile().session, canOpen: false } })] },
+        ],
+      },
+    };
+    renderSection();
+
+    expect(screen.getByText(/Transparence Annuelle/)).toBeInTheDocument();
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
 
   it('loads the next page once the last row is shown', () => {
