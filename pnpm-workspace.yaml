@@ -24,7 +24,7 @@ catalog:
 preferFrozenLockfile: true
 minimumReleaseAge: 10080 # 7 days
 overrides:
-  multer: 2.4.0
+  multer: 2.5.0
   node-xlsx>xlsx: '-'
   # Only dist/paged.polyfill.min.js is used, which bundles everything it needs
   pagedjs>@babel/polyfill: '-'
@@ -72,3 +72,5 @@ minimumReleaseAgeExclude:
   - vite@8.3.3
   # Renovate security update: storybook@10.6.2
   - storybook@10.6.2
+  # Renovate security update: multer@2.5.0
+  - multer@2.5.0
