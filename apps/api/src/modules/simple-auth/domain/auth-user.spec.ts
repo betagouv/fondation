@@ -32,6 +32,7 @@ describe('AuthUser', () => {
       firstName: 'Agent',
       gender: 'FEMALE',
       lastName: 'Secrétariat',
+      now,
       password: AuthPassword.from('hash'),
     } as const;
 
@@ -42,7 +43,7 @@ describe('AuthUser', () => {
         role: 'ADJOINT_SECRETAIRE_GENERAL',
       });
 
-      expect(user.messages).toEqual([expect.objectContaining({ isAdmin: true })]);
+      expect(user.messages).toEqual([expect.objectContaining({ isAdmin: true, registeredAt: now })]);
       expect(user.messages[0]).toBeInstanceOf(AuthUserRegistered);
     });
 

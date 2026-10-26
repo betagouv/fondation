@@ -140,6 +140,7 @@ export class SimpleAuthService {
   }): Promise<{ id: string }> {
     const user = await AuthUser.register({
       ...command,
+      now: this.clock.now(),
       password: await this.passwordHasher.hash(command.password),
     });
     await this.userRepository.persist(user);

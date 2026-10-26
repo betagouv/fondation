@@ -72,9 +72,10 @@ export class AuthUserRepository {
     });
   }
 
-  private persistUserRegistered(event: AuthUserRegistered) {
-    return this.db.tx.user.create({
+  private async persistUserRegistered(event: AuthUserRegistered) {
+    await this.db.tx.user.create({
       data: {
+        createdAt: event.registeredAt,
         email: event.email,
         firstName: event.firstName,
         gender: event.gender,
@@ -84,6 +85,11 @@ export class AuthUserRepository {
         password: event.password,
         role: event.role,
       },
+    });
+    if (!event.isAdmin) return;
+
+    await this.db.tx.adminRightChange.create({
+      data: { change: 'GRANTED', changedAt: event.registeredAt, changedBy: null, userId: event.id },
     });
   }
 

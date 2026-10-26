@@ -32,6 +32,7 @@ export class AuthUserRegistered {
   readonly isAdmin: boolean;
   readonly lastName: string;
   readonly password: string;
+  readonly registeredAt: Date;
   readonly role: RoleEnum;
 
   constructor(props: {
@@ -42,6 +43,7 @@ export class AuthUserRegistered {
     isAdmin: boolean;
     lastName: string;
     password: AuthPassword;
+    registeredAt: Date;
     role: RoleEnum;
   }) {
     this.email = props.email;
@@ -51,6 +53,7 @@ export class AuthUserRegistered {
     this.isAdmin = props.isAdmin;
     this.lastName = props.lastName;
     this.password = props.password.toString();
+    this.registeredAt = props.registeredAt;
     this.role = props.role;
   }
 }
@@ -203,6 +206,7 @@ export class AuthUser {
     gender: GenderEnum;
     isAdmin: boolean;
     lastName: string;
+    now: Date;
     password: AuthPassword;
     role: RoleEnum;
   }) {
@@ -218,6 +222,7 @@ export class AuthUser {
         firstName: props.firstName.toLowerCase(),
         id,
         lastName: props.lastName.toLowerCase(),
+        registeredAt: props.now,
       }),
     );
     return user;
