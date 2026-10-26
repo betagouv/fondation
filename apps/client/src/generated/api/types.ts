@@ -4775,9 +4775,9 @@ export type CreateObservationResponse = CreateObservationResponses[keyof CreateO
 export type DeleteObservationData = {
     body?: never;
     path: {
-        observationId: string;
-        nominationFileId: string;
         sessionId: string;
+        nominationFileId: string;
+        observationId: string;
     };
     query?: never;
     url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}';
@@ -4809,9 +4809,9 @@ export type GetObservationDetailsResponse = GetObservationDetailsResponses[keyof
 export type UpdateObservationData = {
     body: UpdateObservationDto;
     path: {
-        observationId: string;
-        nominationFileId: string;
         sessionId: string;
+        nominationFileId: string;
+        observationId: string;
     };
     query?: never;
     url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}';
@@ -4826,10 +4826,10 @@ export type UpdateObservationResponse = UpdateObservationResponses[keyof UpdateO
 export type GetObservationFileUrlData = {
     body?: never;
     path: {
+        sessionId: string;
+        nominationFileId: string;
         observationId: string;
         fileId: string;
-        nominationFileId: string;
-        sessionId: string;
     };
     query?: never;
     url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}/files/{fileId}/url';
@@ -4895,9 +4895,9 @@ export type ScheduleObservantAuditionResponse = ScheduleObservantAuditionRespons
 export type FollowUpOnObservationData = {
     body: FollowUpOnObservationDto;
     path: {
-        observationId: string;
-        nominationFileId: string;
         sessionId: string;
+        nominationFileId: string;
+        observationId: string;
     };
     query?: never;
     url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}/follow-up';
