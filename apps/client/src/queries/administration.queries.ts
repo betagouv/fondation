@@ -91,14 +91,16 @@ export function useCreateUserMutation() {
       withValidationError(() => $api.administration.createUser({ body, throwOnError: true })).then(
         ({ data }) => data,
       ),
-    // the role given may take a title back from another account
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: adminKeys.all() });
-      queryClient.invalidateQueries({ queryKey: docsKeys.members() });
-      queryClient.invalidateQueries({ queryKey: memberKeys.allListedMembers() });
-      queryClient.invalidateQueries({ queryKey: officialReportKeys.listSecretaries() });
-    },
+    onSuccess: () => invalidateAfterRoleChange(queryClient),
   });
+}
+
+/** the role given may take a title back from another account */
+function invalidateAfterRoleChange(queryClient: QueryClient) {
+  queryClient.invalidateQueries({ queryKey: adminKeys.all() });
+  queryClient.invalidateQueries({ queryKey: docsKeys.members() });
+  queryClient.invalidateQueries({ queryKey: memberKeys.allListedMembers() });
+  queryClient.invalidateQueries({ queryKey: officialReportKeys.listSecretaries() });
 }
 
 function updateUser(queryClient: QueryClient, userId: string, patch: Partial<DetailedAdminUserDto>) {
@@ -127,10 +129,7 @@ export function useUpdateUserRoleMutation(userId: string) {
   return useMutation({
     mutationFn: (body: { role: AdminUserRoleEnum }) =>
       $api.administration.updateRole({ body, path: { userId } }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: adminKeys.user(userId) });
-      queryClient.invalidateQueries({ queryKey: docsKeys.members() });
-    },
+    onSuccess: () => invalidateAfterRoleChange(queryClient),
   });
 }
 
