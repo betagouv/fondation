@@ -10,7 +10,6 @@ import { useOpenSummaryAttachment } from '@/features/summary/hooks/useOpenSummar
 import { useArchivedSession } from '@/shared/context/archived-session';
 import { ExpandableText } from '@/shared/ui/expandable-text';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import { useUser } from '@queries/auth.queries';
 import { useSummaryQuery } from '@queries/summary.queries';
 
 import { containsImage, toPlainText } from './summary-text';
@@ -60,8 +59,6 @@ function SummaryContent(props: SummaryTarget) {
 }
 
 function ReadableSummary(props: SummaryTarget) {
-  const { user } = useUser();
-  const isSg = useIsSg();
   const { nominationFileId, sessionId } = props;
   const { data, isLoading } = useSummaryQuery({ nominationFileId, sessionId });
 
@@ -85,14 +82,12 @@ function ReadableSummary(props: SummaryTarget) {
     );
   }
 
-  const canWriteSummary = !!user?.id && (data.summary.author ? user.id === data.summary.author.id : isSg);
-
   const link = ROUTE_PATHS.SUMMARY.replace(':sessionId', sessionId).replace(':fileId', nominationFileId);
 
   return (
     <SummaryContext
       value={{
-        canWriteSummary,
+        canWriteSummary: data.summary.canWrite,
         nominationFileId,
         sessionId,
         summary: data,
@@ -109,7 +104,7 @@ function ReadableSummary(props: SummaryTarget) {
               size="small"
               withCount={false}
             />
-            {props.withOpenLink && canWriteSummary && (
+            {props.withOpenLink && data.summary.canWrite && (
               <Button
                 className="btn-compact"
                 iconId="fr-icon-arrow-right-line"
@@ -124,7 +119,7 @@ function ReadableSummary(props: SummaryTarget) {
           </div>
         }
         headingLevel={props.headingLevel}
-        mention={canWriteSummary && <SharedWithMention count={data.summary.readers.length} />}
+        mention={data.summary.canWrite && <SharedWithMention count={data.summary.readers.length} />}
       >
         <SummaryText
           attachments={data.summary.attachments}

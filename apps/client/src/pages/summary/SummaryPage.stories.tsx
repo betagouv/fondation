@@ -41,7 +41,7 @@ function SummaryPageStory(props: { view: StoryView }) {
             nominationFileId: SUMMARY_NOMINATION_FILE_ID,
             sessionId: STORY_SESSION_ID,
           }),
-          SUMMARY,
+          { ...SUMMARY, summary: { ...SUMMARY.summary, canWrite: props.view === 'sg' } },
         );
       }}
       view={props.view}

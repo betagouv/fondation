@@ -69,6 +69,8 @@ export class ListObservationsQuery {
     role: RoleEnum;
     sessionId: string;
   }): Promise<ListObservationsResponseDto> {
+    await this.transparences.internalGetVisibleSession(query);
+
     const observations = await this.db.tx.observation.findMany({
       orderBy: { createdAt: 'desc' },
       select: {

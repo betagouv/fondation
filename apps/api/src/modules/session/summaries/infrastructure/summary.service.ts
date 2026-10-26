@@ -96,7 +96,7 @@ export class SummaryService {
     content: string;
     nominationFileId: string;
     sessionId: string;
-    userId: string;
+    user: { id: string; role: RoleEnum };
   }): Promise<void> {
     const summary = await this.summaryRepository.find(command);
     summary.writeContent(command);
@@ -139,7 +139,7 @@ export class SummaryService {
     fileId: string;
     nominationFileId: string;
     sessionId: string;
-    userId: string;
+    user: { id: string; role: RoleEnum };
   }): Promise<GeneratedSummaryAttachmentPublicUrlDto> {
     return this.generateAttachmentPublicUrlQuery.handle(query);
   }

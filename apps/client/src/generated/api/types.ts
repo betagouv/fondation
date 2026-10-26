@@ -883,6 +883,7 @@ export type DetailedSummaryDto = {
         status: 'FINAL' | 'PENDING';
     } | null;
     summary: {
+        canWrite: boolean;
         content: string;
         author: {
             id: string;
@@ -4844,10 +4845,10 @@ export type UpdateObservationResponse = UpdateObservationResponses[keyof UpdateO
 export type GetObservationFileUrlData = {
     body?: never;
     path: {
+        sessionId: string;
+        nominationFileId: string;
         observationId: string;
         fileId: string;
-        nominationFileId: string;
-        sessionId: string;
     };
     query?: never;
     url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}/files/{fileId}/url';
