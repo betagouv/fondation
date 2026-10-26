@@ -88,10 +88,14 @@ export function isAuditionRequired(
 
 const AUDITIONED_REPORTERS = 2;
 
+function hasSingleReporter(file: AuditionedPosition): boolean {
+  return file.detectedTargetedFunctionId === 'AGR' && file.detectedJurisdictionId === 'CC  PARIS';
+}
+
 /**
  * Follows the position only: requesting or dismissing an audition leaves the expected reporters unchanged.
  * @see https://www.notion.so/2-Proposer-automatiquement-deux-rapporteurs-sur-certains-postes-26aa2ff25f1581848cc0eef5a4d77252
  */
 export function expectedReportersCount(file: AuditionedPosition): number | null {
-  return isAuditionExpected(file) ? AUDITIONED_REPORTERS : null;
+  return isAuditionExpected(file) && !hasSingleReporter(file) ? AUDITIONED_REPORTERS : null;
 }
