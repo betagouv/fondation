@@ -23,7 +23,7 @@ import { DateOnly } from '../../../utils/date-only';
 import { FILE_EXTENSIONS, FILE_MIME_TYPES, Multipart, UseMultipartBody } from '../../framework/files';
 import { ApiOkDiscriminatedByType } from '../../framework/openapi';
 import { ApiPaginated, Pagination, QueryPagination } from '../../framework/pagination';
-import { roleToFormation, type RoleEnum } from '../../shared/role.enum';
+import type { RoleEnum } from '../../shared/role.enum';
 import { AuthedUser, AuthedUserId, HasRole } from '../../simple-auth';
 
 import { LodamTransparenceFile } from './domain/transparence-file';
@@ -693,7 +693,7 @@ export class SessionController {
     @Param('sessionId') sessionId: string,
     @AuthedUser() user: { role: RoleEnum },
   ): Promise<DetailedNominationSessionDto> {
-    return this.sessions.details({ formation: roleToFormation(user.role), sessionId });
+    return this.sessions.details({ role: user.role, sessionId });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')

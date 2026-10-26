@@ -6,6 +6,8 @@ import { Db } from '../../../../framework/database';
 import { FormationEnum } from '../../../../shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from '../../../../shared/mappers/formation.mapper';
 import { prismaTypeDeSaisineEnumToTypeDeSaisine } from '../../../../shared/mappers/type-de-saisine-enum.mapper';
+import { canReadSession } from '../../../../shared/policies/session.policies';
+import type { RoleEnum } from '../../../../shared/role.enum';
 import { TypeDeSaisineEnum } from '../../../../shared/type-de-saisine.enum';
 
 export type NominationSessionState = 'ARCHIVED' | 'DELETED' | 'OPEN';
@@ -62,6 +64,14 @@ export class NominationSessionFinder {
         },
       ]),
     );
+  }
+
+  async getVisible(query: { role: RoleEnum; sessionId: string }): Promise<FoundNominationSession> {
+    const sessions = await this.find({ sessionIds: [query.sessionId] });
+    const session = sessions.get(query.sessionId);
+    if (!session || !canReadSession(session, query)) throw new NotFoundException();
+
+    return session;
   }
 
   async formation(query: { sessionId: string }): Promise<FormationEnum> {
