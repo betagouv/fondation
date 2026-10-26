@@ -5,7 +5,6 @@ import {
   ForbiddenException,
   Logger,
   NestInterceptor,
-  NotFoundException,
 } from '@nestjs/common';
 import { catchError, Observable, throwError } from 'rxjs';
 
@@ -17,7 +16,6 @@ import {
   CannotScheduleAuditionOnNominationFile,
   CantUpdateNominationFiles,
   MemberMemoNotAllowed,
-  NominationFileOfAnotherFormation,
   NonFormationMemberDefinedAsReporter,
   PositionAuditionCannotBeDismissed,
   SessionTransparenceAffectationHasUnassignableReporters,
@@ -129,10 +127,6 @@ export class TransparenceExceptionFilter implements NestInterceptor {
             return new ForbiddenException({
               validationErrors: [`impossible de prendre des notes personnelles sur ce dossier`],
             });
-          }
-
-          if (err instanceof NominationFileOfAnotherFormation) {
-            return new NotFoundException(undefined, { cause: err });
           }
 
           if (err instanceof CannotScheduleAuditionOnNominationFile) {

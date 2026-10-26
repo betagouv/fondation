@@ -81,6 +81,7 @@ export class SessionTransparenceRepository {
   async find(
     id: string,
     options: {
+      formation?: FormationEnum;
       nominationFileIds?: Set<string>;
     } = {},
   ): Promise<SessionTransparence> {
@@ -91,7 +92,7 @@ export class SessionTransparenceRepository {
         id: true,
         typeDeSaisine: true,
       } satisfies Prisma.SessionSelect,
-      where: { deletedAt: null, id },
+      where: { deletedAt: null, formation: options.formation, id },
     });
 
     if (!session) throw new NotFoundException();

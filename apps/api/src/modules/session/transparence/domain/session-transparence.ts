@@ -3,7 +3,6 @@ import { makeId } from '../../../../utils/id';
 import { isDefined } from '../../../../utils/is-defined';
 import { partition } from '../../../../utils/iterables';
 import { TimeOnly } from '../../../../utils/time-only';
-import { roleToFormation } from '../../../members/infrastructure/member.utils';
 import { FormationEnum } from '../../../shared/formation.enum';
 import { NominationFileAttachmentTypeEnum } from '../../../shared/nomination-file-attachment-type.enum';
 import {
@@ -350,12 +349,6 @@ export class PositionAuditionCannotBeDismissed extends Error {
 }
 
 export class MemberMemoNotAllowed extends Error {
-  constructor(readonly nominationFileId: string) {
-    super();
-  }
-}
-
-export class NominationFileOfAnotherFormation extends Error {
   constructor(readonly nominationFileId: string) {
     super();
   }
@@ -742,11 +735,6 @@ export class SessionTransparence {
     reporterIds: readonly string[];
     user: { id: string; role: RoleEnum };
   }) {
-    const userFormation = roleToFormation(command.user.role);
-    if (userFormation && userFormation !== this.formation) {
-      throw new NominationFileOfAnotherFormation(command.nominationFileId);
-    }
-
     if (!this.files.has(command.nominationFileId) || !policies.canKeepMemberMemo(command, command.user)) {
       throw new MemberMemoNotAllowed(command.nominationFileId);
     }

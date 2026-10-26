@@ -12,7 +12,6 @@ import {
   CantUpdateNominationFiles,
   LodamSessionTransparenceFilesCreated,
   MemberMemoNotAllowed,
-  NominationFileOfAnotherFormation,
   NonFormationMemberDefinedAsReporter,
   PositionAuditionCannotBeDismissed,
   SessionTransparence,
@@ -1249,36 +1248,6 @@ describe('SessionTransparence', () => {
           user: member,
         }),
       ).toThrow(MemberMemoNotAllowed);
-    });
-
-    it('refuses notes to a member of the other formation', () => {
-      expect(() =>
-        session().writeNominationFileMemberMemo({
-          memo: 'À relire',
-          nominationFileId: 'nomination-file-id-1',
-          reporterIds: [],
-          user: { id: 'member-2', role: 'MEMBRE_DU_PARQUET' },
-        }),
-      ).toThrow(NominationFileOfAnotherFormation);
-    });
-
-    it('keeps the notes of a common member on both formations', () => {
-      const transparence = session();
-      transparence.writeNominationFileMemberMemo({
-        memo: 'À relire',
-        nominationFileId: 'nomination-file-id-1',
-        reporterIds: [],
-        user: { id: 'member-3', role: 'MEMBRE_COMMUN' },
-      });
-
-      expect(transparence.messages).toEqual([
-        new SessionTransparenceFileMemberMemoWritten(
-          'member-3',
-          'session-id',
-          'nomination-file-id-1',
-          'À relire',
-        ),
-      ]);
     });
   });
 });

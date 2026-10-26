@@ -716,6 +716,7 @@ export class TransparenceService {
   }) {
     const { memo, nominationFileId, user } = command;
     const session = await this.nominationSessionRepository.find(command.sessionId, {
+      formation: roleToFormation(user.role),
       nominationFileIds: new Set([nominationFileId]),
     });
     const reporters = await this.versions.findPublishedReporters({ nominationFileIds: [nominationFileId] });
