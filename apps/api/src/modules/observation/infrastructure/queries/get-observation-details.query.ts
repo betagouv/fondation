@@ -78,7 +78,6 @@ export class GetObservationDetailsQuery {
             select: {
               comment: true,
               screenshots: {
-                where: { detachedAt: null },
                 select: {
                   file: {
                     select: {
@@ -87,6 +86,7 @@ export class GetObservationDetailsQuery {
                     },
                   },
                 },
+                where: { detachedAt: null },
               },
             },
             take: 1,

@@ -461,11 +461,11 @@ export const routes: RouteObject[] = [
             path: '/admin/users/:userId',
           },
           {
-            path: ROUTE_PATHS.ADMIN.HELP,
             lazy: () =>
               import('@/pages/spaces/admin/AdminHelpPage').then(({ AdminHelpPage }) => ({
                 Component: AdminHelpPage,
               })),
+            path: ROUTE_PATHS.ADMIN.HELP,
           },
           {
             path: ROUTE_PATHS.ADMIN.USERS,

@@ -1,8 +1,10 @@
 import { useCurrentEditor, useEditorState } from '@tiptap/react';
+import { useIntl } from 'react-intl';
 
 import { EditorButton } from './EditorButton';
 
 export function IndentDecreaseButton() {
+  const { formatMessage } = useIntl();
   const { editor } = useCurrentEditor();
   const disabled = useEditorState({
     editor,
@@ -24,7 +26,7 @@ export function IndentDecreaseButton() {
       disabled={!!disabled}
       iconId="ri-indent-decrease"
       onClick={decreaseIndent}
-      title="Diminuer le retrait"
+      title={formatMessage({ defaultMessage: 'Diminuer le retrait' })}
     />
   );
 }

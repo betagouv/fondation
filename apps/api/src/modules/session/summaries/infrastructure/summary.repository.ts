@@ -118,11 +118,11 @@ export class SummaryRepository {
 
   private async persistSummaryContentWritten(message: SummaryContentWritten) {
     await this.db.tx.summary.update({
-      where: { nominationFileId: message.id },
       data: {
         content: message.content,
         ...(message.newAuthorId ? { authorId: message.newAuthorId } : {}),
       },
+      where: { nominationFileId: message.id },
     });
     await this.markScreenshotsAbsentFrom(message);
   }

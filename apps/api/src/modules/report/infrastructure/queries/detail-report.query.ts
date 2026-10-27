@@ -29,7 +29,6 @@ export class DetailReportQuery {
       select: {
         comment: true,
         files: {
-          where: { detachedAt: null },
           select: {
             file: {
               select: {
@@ -43,6 +42,7 @@ export class DetailReportQuery {
             },
             usage: true,
           },
+          where: { detachedAt: null },
         },
         id: true,
         nominationFileId: true,

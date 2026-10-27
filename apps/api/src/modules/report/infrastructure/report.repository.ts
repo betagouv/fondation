@@ -104,8 +104,8 @@ export class ReportRepository {
 
   private async persistReportUpdated(message: ReportUpdated) {
     await this.db.tx.report.update({
+      data: { comment: message.data.comment, state: message.data.status },
       where: { id: message.id },
-      data: { state: message.data.status, comment: message.data.comment },
     });
     if (message.data.comment !== undefined) {
       await this.markScreenshotsAbsentFrom({ comment: message.data.comment, reportId: message.id });

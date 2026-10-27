@@ -59,11 +59,6 @@ export function wrapNotionCallouts(content: Fragment, callout: NodeType): Fragme
 
 /** the "à savoir" block of a help page, stored as an aside and shown as the DSFR callout */
 export const Callout = Node.create({
-  content: 'block+',
-  defining: true,
-  group: 'block',
-  name: 'callout',
-
   addCommands() {
     return {
       toggleCallout:
@@ -87,6 +82,11 @@ export const Callout = Node.create({
       }),
     ];
   },
+
+  content: 'block+',
+  defining: true,
+  group: 'block',
+  name: 'callout',
 
   parseHTML() {
     return [{ tag: 'aside' }];

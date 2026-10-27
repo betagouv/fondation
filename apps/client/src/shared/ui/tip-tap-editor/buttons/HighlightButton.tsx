@@ -1,8 +1,10 @@
 import { useCurrentEditor, useEditorState } from '@tiptap/react';
+import { useIntl } from 'react-intl';
 
 import { EditorButton } from './EditorButton';
 
 export function HighlightButton() {
+  const { formatMessage } = useIntl();
   const { editor } = useCurrentEditor();
   const disabled = useEditorState({
     editor,
@@ -20,7 +22,7 @@ export function HighlightButton() {
       iconId="fr-icon-mark-pen-line"
       mark="highlight"
       onClick={toggleHighlight}
-      title="Surligner"
+      title={formatMessage({ defaultMessage: 'Surligner' })}
     />
   );
 }
