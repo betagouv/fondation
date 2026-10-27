@@ -54,6 +54,7 @@ model User {
   observationMemberComments            ObservationMemberComment[]
   memos                                MemberMemo[]
   authorOfSummaries                    Summary[]
+  editorOfHelpPages                    HelpPage[]
   readerOfSummaries                    SummaryReader[]
   followedUpObservations               Observation[]                          @relation("user_to_observation_follow_up")
   validatedSessions                    Session[]

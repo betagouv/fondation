@@ -1,33 +1,42 @@
 import { EditorContent, EditorContext, useEditor, type EditorContextValue } from '@tiptap/react';
 import clsx from 'clsx';
-import { useCallback, useMemo, useState } from 'react';
+import { type ReactNode, useCallback, useMemo, useState } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { useDebouncedCallback } from 'use-debounce';
 
 import { useBeforeUnloadOrUnmount } from '@/shared/hooks/useBeforeUnload';
 
+import type { EditorFeatures } from './extensions/constant';
 import type { FilesUploader } from './extensions/editor-file-uploader';
 import { useTipTapExtensions } from './extensions/useTipTapExtensions';
 import { MenuBar } from './MenuBar';
 
 type TipTapEditorProps = {
   ariaLabelledby: string;
+  /** false: every change reaches `onChange` at once and the caller saves it when it decides to */
+  autosave?: boolean;
+  features?: EditorFeatures;
   onChange?: (value: string) => void;
   readOnly?: boolean;
+  /** what the toolbar shows at its right end, such as a way to the preview */
+  toolbarEnd?: ReactNode;
   uploadFiles?: FilesUploader;
   value: string | undefined;
 };
 
 export const TipTapEditor = ({
   ariaLabelledby,
+  autosave = true,
+  features = 'text',
   onChange,
   readOnly,
+  toolbarEnd,
   uploadFiles,
   value,
 }: TipTapEditorProps) => {
-  const extensions = useTipTapExtensions({ uploadFiles });
+  const extensions = useTipTapExtensions({ features, uploadFiles });
 
-  const onChangeDebounced = useDebouncedCallback((next: string) => onChange?.(next), 2_000);
+  const onChangeDebounced = useDebouncedCallback((next: string) => onChange?.(next), autosave ? 2_000 : 0);
   const [html, setHtml] = useState<string>(value ?? '');
   const onUpdate = useCallback(
     (value: string) => {
@@ -45,6 +54,8 @@ export const TipTapEditor = ({
     editorProps: { attributes: { 'aria-labelledby': ariaLabelledby } },
     extensions,
     onUpdate: ({ editor }) => {
+      // the ids given to the titles on creation change the document without anyone writing
+      if (!editor.isInitialized) return;
       onUpdate(editor.getHTML());
     },
   });
@@ -58,9 +69,9 @@ export const TipTapEditor = ({
   return (
     <EditorContext.Provider value={providerValue}>
       <div className="fr-p-4v bg-(--background-default-grey)">
-        {!readOnly && <MenuBar />}
+        {!readOnly && <MenuBar end={toolbarEnd} features={features} />}
         <EditorContent editor={editor} />
-        {!readOnly && (
+        {!readOnly && autosave && (
           <div
             aria-live="polite"
             className={clsx(

@@ -17,6 +17,7 @@ export type TestSteps = typeof api & { ['@client']: Client; ['@user']: { id: str
 export type TestStepsMember = Pick<TestSteps, 'archivedSessions' | 'reports' | 'files' | '@client' | '@user'> & {
   auth: Pick<(typeof api)['auth'], 'introspectSession' | 'logout'>;
   feedback: Pick<TestSteps['feedback'], 'answerFeedback' | 'findFeedback'>;
+  help: Pick<TestSteps['help'], 'detailHelpPage'>;
   summaries: Pick<TestSteps['summaries'], 'detailSummary' | 'generateAttachmentPublicUrl'>;
   members: Pick<
     TestSteps['members'],
@@ -45,7 +46,7 @@ export type TestStepsAdmin = Omit<TestSteps, 'members'> & {
 // an intersection merges the keys of a namespace: one narrowed below must first leave the complement
 export type TestStepsAgent = Omit<
   Complement<TestSteps, TestStepsMember>,
-  'administration' | 'auth' | 'feedback' | 'ingest' | 'jobs' | 'magistrats'
+  'administration' | 'auth' | 'feedback' | 'help' | 'ingest' | 'jobs' | 'magistrats'
 > & {
   archivedSessions: TestSteps['archivedSessions'];
   auth: Omit<
@@ -55,6 +56,7 @@ export type TestStepsAgent = Omit<
   feedback: Omit<TestSteps['feedback'], 'listFeedbacksAsExcel'>;
   // the secretariat also opens the attachments it serves
   files: TestSteps['files'];
+  help: TestStepsMember['help'];
   magistrats: Omit<TestSteps['magistrats'], 'searchMagistratAuthorization'>;
   // the secretariat also reads the observations it receives
   observations: TestSteps['observations'];

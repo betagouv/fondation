@@ -2423,6 +2423,40 @@ export type AnswerFeedbackDto = {
     } | null;
 };
 
+export type HelpPageEnum = 'MEMBRE' | 'SECRETARIAT_GENERAL';
+
+export type DetailedHelpPageDto = {
+    content: string;
+    screenshots: Array<{
+        id: string;
+        name: string;
+        type: string;
+        url: string;
+    }>;
+    updatedAt: string;
+    updatedBy: {
+        id: string;
+        name: string;
+    } | null;
+};
+
+export type IncludeFilesInHelpPageContentDto = {
+    files: Array<Blob | File>;
+};
+
+export type IncludedFilesInHelpPageContentDto = {
+    items: Array<{
+        id: string;
+        name: string;
+        type: string;
+        url: string;
+    }>;
+};
+
+export type WriteHelpPageContentDto = {
+    content: string;
+};
+
 export type GetFileByFileUrlData = {
     body?: never;
     path: {
@@ -5160,3 +5194,48 @@ export type AnswerFeedbackResponses = {
 };
 
 export type AnswerFeedbackResponse = AnswerFeedbackResponses[keyof AnswerFeedbackResponses];
+
+export type DetailHelpPageData = {
+    body?: never;
+    path: {
+        page: HelpPageEnum;
+    };
+    query?: never;
+    url: '/api/help/v1/pages/{page}';
+};
+
+export type DetailHelpPageResponses = {
+    200: DetailedHelpPageDto;
+};
+
+export type DetailHelpPageResponse = DetailHelpPageResponses[keyof DetailHelpPageResponses];
+
+export type IncludeFilesInHelpPageContentData = {
+    body: IncludeFilesInHelpPageContentDto;
+    path: {
+        page: HelpPageEnum;
+    };
+    query?: never;
+    url: '/api/help/v1/pages/{page}/screenshots';
+};
+
+export type IncludeFilesInHelpPageContentResponses = {
+    200: IncludedFilesInHelpPageContentDto;
+};
+
+export type IncludeFilesInHelpPageContentResponse = IncludeFilesInHelpPageContentResponses[keyof IncludeFilesInHelpPageContentResponses];
+
+export type WriteHelpPageContentData = {
+    body: WriteHelpPageContentDto;
+    path: {
+        page: HelpPageEnum;
+    };
+    query?: never;
+    url: '/api/help/v1/pages/{page}/content';
+};
+
+export type WriteHelpPageContentResponses = {
+    204: void;
+};
+
+export type WriteHelpPageContentResponse = WriteHelpPageContentResponses[keyof WriteHelpPageContentResponses];

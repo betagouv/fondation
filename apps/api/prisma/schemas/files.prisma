@@ -18,6 +18,7 @@ model File {
   attachedToObservationMemberComments ObservationMemberCommentScreenshot[]
   attachedToSummaries                 SummaryAttachment[]
   includedInSummariesContent          SummaryScreenshot[]
+  includedInHelpPagesContent          HelpPageScreenshot[]
   ingestionJobFile                    IngestionJobFile[]
   agendaPdf                           AgendaVersion[]                      @relation("agenda_pdf_file")
   officialReportPdf                   OfficialReportVersion[]              @relation("official_report_pdf_file")
