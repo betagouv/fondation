@@ -12,6 +12,7 @@ import {
 import { Prisma } from '../../../../generated/prisma/client';
 import { assertNever } from '../../../../utils/assert-never';
 import { makeId } from '../../../../utils/id';
+import { fileIdsReferencedIn } from '../../../../utils/rich-text-html';
 import { Clock } from '../../../framework/clock';
 import { Db } from '../../../framework/database';
 import { Files } from '../../../framework/files/files';
@@ -196,7 +197,7 @@ export class ObservationRepository {
   }
 
   private async persistObservationMemberCommentWritten(message: ObservationMemberCommentWritten) {
-    return this.db.tx.observationMemberComment.upsert({
+    await this.db.tx.observationMemberComment.upsert({
       create: {
         comment: message.comment,
         observationId: message.observationId,
@@ -212,6 +213,26 @@ export class ObservationRepository {
           userId: message.userId,
         },
       },
+    });
+    await this.markScreenshotsAbsentFrom(message);
+  }
+
+  // a screenshot leaves with the comment that embedded it and comes back with it, an undo included
+  private async markScreenshotsAbsentFrom(message: {
+    comment: string;
+    observationId: string;
+    userId: string;
+  }) {
+    const embedded = [...fileIdsReferencedIn(message.comment)];
+    const comment = { observationId: message.observationId, userId: message.userId };
+
+    await this.db.tx.observationMemberCommentScreenshot.updateMany({
+      data: { detachedAt: this.clock.now() },
+      where: { ...comment, detachedAt: null, fileId: { notIn: embedded } },
+    });
+    await this.db.tx.observationMemberCommentScreenshot.updateMany({
+      data: { detachedAt: null },
+      where: { ...comment, detachedAt: { not: null }, fileId: { in: embedded } },
     });
   }
 

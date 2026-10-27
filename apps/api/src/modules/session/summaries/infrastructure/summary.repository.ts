@@ -3,6 +3,8 @@ import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/commo
 
 import { Prisma } from '../../../../generated/prisma/client';
 import { assertNever } from '../../../../utils/assert-never';
+import { fileIdsReferencedIn } from '../../../../utils/rich-text-html';
+import { Clock } from '../../../framework/clock';
 import { Db } from '../../../framework/database';
 import { Files } from '../../../framework/files';
 import { TransparenceService } from '../../transparence/infrastructure/transparence.service';
@@ -19,6 +21,7 @@ import {
 @Injectable()
 export class SummaryRepository {
   constructor(
+    private readonly clock: Clock,
     private readonly db: Db,
     private readonly files: Files,
     @Inject(forwardRef(() => TransparenceService))
@@ -113,13 +116,28 @@ export class SummaryRepository {
     });
   }
 
-  private persistSummaryContentWritten(message: SummaryContentWritten) {
-    return this.db.tx.summary.update({
+  private async persistSummaryContentWritten(message: SummaryContentWritten) {
+    await this.db.tx.summary.update({
       where: { nominationFileId: message.id },
       data: {
         content: message.content,
         ...(message.newAuthorId ? { authorId: message.newAuthorId } : {}),
       },
+    });
+    await this.markScreenshotsAbsentFrom(message);
+  }
+
+  // a screenshot leaves with the text that embedded it and comes back with it, an undo included
+  private async markScreenshotsAbsentFrom(message: { content: string; id: string }) {
+    const embedded = [...fileIdsReferencedIn(message.content)];
+
+    await this.db.tx.summaryScreenshot.updateMany({
+      data: { detachedAt: this.clock.now() },
+      where: { detachedAt: null, fileId: { notIn: embedded }, summaryId: message.id },
+    });
+    await this.db.tx.summaryScreenshot.updateMany({
+      data: { detachedAt: null },
+      where: { detachedAt: { not: null }, fileId: { in: embedded }, summaryId: message.id },
     });
   }
 

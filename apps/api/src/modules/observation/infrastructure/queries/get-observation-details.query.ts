@@ -78,6 +78,7 @@ export class GetObservationDetailsQuery {
             select: {
               comment: true,
               screenshots: {
+                where: { detachedAt: null },
                 select: {
                   file: {
                     select: {

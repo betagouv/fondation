@@ -10,6 +10,8 @@ import {
 
 import { Prisma } from '../../../generated/prisma/client';
 import { assertNever } from '../../../utils/assert-never';
+import { fileIdsReferencedIn } from '../../../utils/rich-text-html';
+import { Clock } from '../../framework/clock';
 import { Db } from '../../framework/database';
 import { Files } from '../../framework/files';
 import { TransparenceService } from '../../session/transparence/infrastructure/transparence.service';
@@ -26,6 +28,7 @@ export class ReportRepository {
   private readonly logger = new Logger(ReportRepository.name);
 
   constructor(
+    private readonly clock: Clock,
     private readonly db: Db,
     private readonly files: Files,
     @Inject(forwardRef(() => TransparenceService))
@@ -100,9 +103,27 @@ export class ReportRepository {
   }
 
   private async persistReportUpdated(message: ReportUpdated) {
-    return this.db.tx.report.update({
+    await this.db.tx.report.update({
       where: { id: message.id },
       data: { state: message.data.status, comment: message.data.comment },
+    });
+    if (message.data.comment !== undefined) {
+      await this.markScreenshotsAbsentFrom({ comment: message.data.comment, reportId: message.id });
+    }
+  }
+
+  // a screenshot leaves with the comment that embedded it and comes back with it, an undo included
+  private async markScreenshotsAbsentFrom(message: { comment: string; reportId: string }) {
+    const embedded = [...fileIdsReferencedIn(message.comment)];
+    const screenshots = { reportId: message.reportId, usage: 'EMBEDDED_SCREENSHOT' as const };
+
+    await this.db.tx.reportFile.updateMany({
+      data: { detachedAt: this.clock.now() },
+      where: { ...screenshots, detachedAt: null, fileId: { notIn: embedded } },
+    });
+    await this.db.tx.reportFile.updateMany({
+      data: { detachedAt: null },
+      where: { ...screenshots, detachedAt: { not: null }, fileId: { in: embedded } },
     });
   }
 

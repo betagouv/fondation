@@ -29,6 +29,7 @@ export class DetailReportQuery {
       select: {
         comment: true,
         files: {
+          where: { detachedAt: null },
           select: {
             file: {
               select: {

@@ -115,6 +115,7 @@ export class DetailSummaryQuery {
                   select: {
                     file: { select: { id: true, name: true, path: true } },
                   },
+                  where: { detachedAt: null },
                 },
               },
             },

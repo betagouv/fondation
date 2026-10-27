@@ -172,6 +172,15 @@ test.describe('Observation', () => {
 
     const readByOther = await otherReporter.observations.getObservationDetails({ path: observationPath });
     expect(readByOther.data!.memberComment).toBeNull();
+
+    // a screenshot the comment no longer embeds leaves with the next writing
+    await member.observations.writeMemberComment({
+      body: { comment: '<p>À rapprocher du dossier de 2024</p>' },
+      path: observationPath,
+      throwOnError: true,
+    });
+    const reread = await member.observations.getObservationDetails({ path: observationPath });
+    expect(reread.data!.memberComment!.screenshots).toEqual([]);
   });
 
   test('should not let a reporter comment an observation of another nomination file', async ({
