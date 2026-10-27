@@ -21,7 +21,7 @@
     "vitest": "catalog:"
   },
   "engines": {
-    "node": "24",
+    "node": ">=24.22.1 <25",
     "pnpm": "11"
   }
 }
