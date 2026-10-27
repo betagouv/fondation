@@ -45,7 +45,7 @@ jobs:
         if: ${{ inputs.result == 'success' }}
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
         with:
-          node-version: '24.12.0'
+          node-version: '24.22.1'
           package-manager-cache: false
 
       # The tags follow the staging iterations and a production release may span several of them.
