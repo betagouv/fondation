@@ -191,7 +191,7 @@ export function AdminUserListPage() {
       <Breadcrumb
         ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane pour l'Administration" })}
         breadcrumb={{
-          currentPageLabel: formatMessage({ defaultMessage: 'Utilisateurs' }),
+          currentPageLabel: formatMessage({ defaultMessage: 'Gérer les utilisateurs' }),
           segments: [{ label: formatMessage({ defaultMessage: 'Administration' }), to: {} }],
         }}
         id="administration-breadcrumb"
@@ -201,7 +201,7 @@ export function AdminUserListPage() {
         bar={(isPinned) => (
           <div className={clsx('flex flex-col gap-y-6', { 'fr-container': isPinned })}>
             <h1 className="fr-h3 fr-mb-0">
-              <FormattedMessage defaultMessage="Utilisateurs" />
+              <FormattedMessage defaultMessage="Gérer les utilisateurs" />
               {data && <DataTableCount loaded={users.length} total={data.totalCount} />}
             </h1>
             <div className="flex items-center justify-between gap-4">

@@ -655,7 +655,10 @@ function AdminUserDetailHeader(props: { action?: ReactNode; name: string }) {
             currentPageLabel: props.name,
             segments: [
               { label: formatMessage({ defaultMessage: 'Administration' }), to: {} },
-              { label: formatMessage({ defaultMessage: 'Utilisateurs' }), to: ROUTE_PATHS.ADMIN.USERS },
+              {
+                label: formatMessage({ defaultMessage: 'Gérer les utilisateurs' }),
+                to: ROUTE_PATHS.ADMIN.USERS,
+              },
             ],
           }}
           className="fr-mt-0"

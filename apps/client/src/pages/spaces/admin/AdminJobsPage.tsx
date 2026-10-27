@@ -162,7 +162,7 @@ export function AdminJobsPage() {
       <Breadcrumb
         ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane pour l'Administration" })}
         breadcrumb={{
-          currentPageLabel: formatMessage({ defaultMessage: 'Ingestions' }),
+          currentPageLabel: formatMessage({ defaultMessage: 'Suivre les ingestions' }),
           segments: [{ label: formatMessage({ defaultMessage: 'Administration' }), to: {} }],
         }}
         id="administration-breadcrumb"
@@ -173,7 +173,7 @@ export function AdminJobsPage() {
           <div className={clsx('flex flex-col gap-y-6', { 'fr-container': isPinned })}>
             <div className="flex items-center justify-between gap-4">
               <h1 className="fr-h3 fr-mb-0">
-                <FormattedMessage defaultMessage="Ingestions" />
+                <FormattedMessage defaultMessage="Suivre les ingestions" />
                 {data && <DataTableCount loaded={jobs.length} total={data.totalCount} />}
               </h1>
               <Button

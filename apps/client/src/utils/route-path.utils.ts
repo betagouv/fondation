@@ -5,13 +5,14 @@ export const SIDE_PANEL_DOSSIER_PARAM = 'dossier';
 export const ROUTE_PATHS = {
   ACCESSIBILITY: '/accessibilite',
   ADMIN: {
-    DETAILS_JOB: '/admin/jobs/:jobId',
+    DETAILS_JOB: '/admin/ingestions/:jobId',
     FEEDBACKS: '/admin/avis',
+    HELP: '/admin/aide',
     INGEST_LOLFI: '/admin/lolfi',
-    LIST_JOBS: '/admin/jobs',
+    LIST_JOBS: '/admin/ingestions',
     ROOT: '/admin',
-    USERS: '/admin/users',
-    USER_DETAIL: '/admin/users/:userId',
+    USERS: '/admin/utilisateurs',
+    USER_DETAIL: '/admin/utilisateurs/:userId',
   },
   FEEDBACK: '/avis',
   HELP: '/aide',
@@ -69,7 +70,6 @@ export const ROUTE_PATHS = {
     OBSERVATION_DETAILS:
       '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/:sessionId/dossiers/:nominationFileId/observations/:observationId',
   },
-  USER_MANUAL: '/aide/manuel',
 } as const;
 
 type RoutePath = typeof ROUTE_PATHS;
