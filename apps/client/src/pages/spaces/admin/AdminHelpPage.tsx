@@ -103,21 +103,21 @@ export function AdminHelpPage() {
             <h1 className="fr-h3 fr-mb-0" id={TITLE_ID}>
               <FormattedMessage defaultMessage="Rédiger le centre d'aide" />
             </h1>
-            <p className="fr-mb-0 max-w-3xl leading-7 text-(--text-mention-grey)" data-collapse-natural>
-              <FormattedMessage defaultMessage="Une page par espace, lue depuis le bouton Centre d'aide de l'en-tête. Les modifications sont visibles dès leur enregistrement." />
-            </p>
-            {data?.updatedBy && (
-              <p className="fr-hint-text fr-mb-0 -mb-4 self-end" data-collapse-natural>
-                <FormattedMessage
-                  defaultMessage="Mise à jour le {date} à {time} par {name}"
-                  values={{
-                    date: formatDate(data.updatedAt, { format: 'zonedDateShort' }),
-                    name: data.updatedBy.name,
-                    time: formatTime(data.updatedAt, { format: 'zonedTimeShort' }),
-                  }}
-                />
+            <div className="flex flex-wrap items-center gap-4">
+              <p className="fr-mb-0 max-w-3xl leading-7 text-(--text-mention-grey)" data-collapse-natural>
+                <FormattedMessage defaultMessage="Une page par espace, lue depuis le bouton Centre d'aide de l'en-tête. Les modifications sont visibles dès leur enregistrement." />
               </p>
-            )}
+              {!isPreviewing && (
+                <div className="ml-auto flex flex-wrap items-center gap-4">
+                  <Button disabled={draft === null} onClick={discard} priority="secondary">
+                    <FormattedMessage defaultMessage="Abandonner" />
+                  </Button>
+                  <Button disabled={draft === null || isSaving} onClick={() => void save().catch(() => {})}>
+                    <FormattedMessage defaultMessage="Enregistrer" />
+                  </Button>
+                </div>
+              )}
+            </div>
             {/* the tabs of the DSFR carry their panel along: here the panel stays with the page while the tabs pin */}
             <div className="flex flex-wrap items-end justify-between gap-4 border-b border-(--border-default-grey)">
               <ul className="fr-tabs__list fr-p-0 order-first! my-0! w-auto!" role="tablist">
@@ -135,14 +135,18 @@ export function AdminHelpPage() {
                   </li>
                 ))}
               </ul>
-              <div className="fr-pb-2v flex flex-wrap items-center gap-4">
-                <Button disabled={draft === null} onClick={discard} priority="secondary">
-                  <FormattedMessage defaultMessage="Abandonner" />
-                </Button>
-                <Button disabled={draft === null || isSaving} onClick={() => void save().catch(() => {})}>
-                  <FormattedMessage defaultMessage="Enregistrer" />
-                </Button>
-              </div>
+              {data?.updatedBy && (
+                <p className="fr-hint-text fr-mb-0 fr-pb-2v">
+                  <FormattedMessage
+                    defaultMessage="Mise à jour le {date} à {time} par {name}"
+                    values={{
+                      date: formatDate(data.updatedAt, { format: 'zonedDateShort' }),
+                      name: data.updatedBy.name,
+                      time: formatTime(data.updatedAt, { format: 'zonedTimeShort' }),
+                    }}
+                  />
+                </p>
+              )}
             </div>
           </div>
         )}
@@ -172,7 +176,7 @@ export function AdminHelpPage() {
                       <FormattedMessage defaultMessage="Retour à l'édition" />
                     </Button>
                   </div>
-                  <div className="fr-p-6v">
+                  <div className="fr-px-6v fr-pb-6v">
                     <HelpPageContent content={draft ?? data.content} />
                   </div>
                 </>
