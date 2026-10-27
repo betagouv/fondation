@@ -2459,6 +2459,12 @@ export type WriteHelpPageContentDto = {
 
 export type GetFileByFileUrlData = {
     body?: never;
+    headers?: {
+        /**
+         * the range of bytes a video player asks
+         */
+        range?: string;
+    };
     path: {
         fileUrlId: string;
     };

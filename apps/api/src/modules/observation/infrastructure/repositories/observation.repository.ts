@@ -217,7 +217,6 @@ export class ObservationRepository {
     await this.markScreenshotsAbsentFrom(message);
   }
 
-  // a screenshot leaves with the comment that embedded it and comes back with it, an undo included
   private async markScreenshotsAbsentFrom(message: {
     comment: string;
     observationId: string;

@@ -93,7 +93,7 @@ export function helpPageHandlers(state: HelpPageState) {
         id: `pasted-${Date.now()}-${index}`,
         name: file.name,
         type: file.type,
-        url: placeholderScreenshot(file.name),
+        url: URL.createObjectURL(file),
       }));
       pageOf(params.page).screenshots.push(...items);
 

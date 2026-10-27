@@ -112,7 +112,6 @@ export class ReportRepository {
     }
   }
 
-  // a screenshot leaves with the comment that embedded it and comes back with it, an undo included
   private async markScreenshotsAbsentFrom(message: { comment: string; reportId: string }) {
     const embedded = [...fileIdsReferencedIn(message.comment)];
     const screenshots = { reportId: message.reportId, usage: 'EMBEDDED_SCREENSHOT' as const };

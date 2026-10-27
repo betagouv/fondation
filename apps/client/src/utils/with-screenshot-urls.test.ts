@@ -27,6 +27,16 @@ describe('withScreenshotUrls', () => {
     );
   });
 
+  it('points a video to the url of its file the same way', () => {
+    const video = { id: 'file-2', name: 'demo.mp4', url: 'https://storage.test/demo.mp4' };
+
+    expect(
+      withScreenshotUrls('<video src="https://expired.test" data-file-id="file-2"></video>', [video]),
+    ).toBe(
+      '<video src="https://storage.test/demo.mp4" data-file-id="file-2" data-file-name="demo.mp4"></video>',
+    );
+  });
+
   it('leaves an image without screenshot as it is', () => {
     expect(withScreenshotUrls('<img src="https://example.org/a.png">', [screenshot])).toBe(
       '<img src="https://example.org/a.png">',

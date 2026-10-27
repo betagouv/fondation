@@ -1,8 +1,10 @@
 import { useCurrentEditor, useEditorState } from '@tiptap/react';
+import { useIntl } from 'react-intl';
 
 import { EditorButton } from './EditorButton';
 
 export function HorizontalRuleButton() {
+  const { formatMessage } = useIntl();
   const { editor } = useCurrentEditor();
   const disabled = useEditorState({
     editor,
@@ -14,7 +16,7 @@ export function HorizontalRuleButton() {
       disabled={!!disabled}
       iconId="ri-separator"
       onClick={() => editor?.chain().focus().setHorizontalRule().run()}
-      title="Séparateur"
+      title={formatMessage({ defaultMessage: 'Séparateur' })}
     />
   );
 }

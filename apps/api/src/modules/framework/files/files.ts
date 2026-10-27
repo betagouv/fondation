@@ -19,6 +19,8 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { HttpService } from '@nestjs/axios';
 import {
+  HttpException,
+  HttpStatus,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -28,6 +30,7 @@ import {
   type OnApplicationBootstrap,
 } from '@nestjs/common';
 import * as Sentry from '@sentry/node';
+import { isAxiosError } from 'axios';
 import { lastValueFrom } from 'rxjs';
 
 import { Prisma } from '../../../generated/prisma/client';
@@ -451,8 +454,8 @@ export class Files implements OnApplicationBootstrap {
 
   async getFileContent(
     fileUrlId: string,
-    options?: { download?: boolean },
-  ): Promise<{ expiresAt: Date; file: StreamableFile }> {
+    options?: { download?: boolean; range?: string },
+  ): Promise<{ contentRange: string | null; expiresAt: Date; file: StreamableFile }> {
     const file = await this.db.withTransaction(Propagation.RequiresNew, () =>
       this.db.tx.filePublicUrl.findUnique({
         select: {
@@ -466,15 +469,16 @@ export class Files implements OnApplicationBootstrap {
 
     if (!file) throw new NotFoundException();
 
-    let headers: Record<string, string> = {};
+    // the storage answers the range of bytes a video player asks, to seek or to start before the end of the download
+    const headers: Record<string, string> = options?.range ? { Range: options.range } : {};
     if (this.hasSse) {
       const { SSECustomerAlgorithm, SSECustomerKey, SSECustomerKeyMD5 } = this.sseHeaders;
 
-      headers = {
+      Object.assign(headers, {
         'x-amz-server-side-encryption-customer-algorithm': SSECustomerAlgorithm,
         'x-amz-server-side-encryption-customer-key': SSECustomerKey,
         'x-amz-server-side-encryption-customer-key-MD5': SSECustomerKeyMD5,
-      };
+      });
     }
 
     const response = await lastValueFrom(
@@ -487,14 +491,22 @@ export class Files implements OnApplicationBootstrap {
         this.reportMissingFromStorage(file.file);
         throw new FileMissingFromStorage();
       }
+      if (isAxiosError(error) && error.response?.status === HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE) {
+        throw new HttpException('range past the end of the file', HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE);
+      }
 
       throw error;
     });
 
+    const length = Number(response.headers['content-length']);
+
     return {
+      contentRange:
+        response.status === HttpStatus.PARTIAL_CONTENT ? String(response.headers['content-range']) : null,
       expiresAt: file.expiresAt,
       file: new StreamableFile(response.data, {
         disposition: contentDisposition({ download: options?.download, name: file.file.name }),
+        length: Number.isFinite(length) ? length : undefined,
         type: filenameToMimeType(file.file.name),
       }),
     };

@@ -70,6 +70,17 @@ describe('sanitizeRichTextHtml', () => {
     expect(sanitizeRichTextHtml(written)).toBe(written);
   });
 
+  it('keeps of a video its source on the web and its player, never a way to start it alone', () => {
+    const written = `<video controls="" preload="metadata" src="https://storage.test/demo.mp4" data-file-id="file-2" data-file-name="demo.mp4"></video>`;
+
+    expect(sanitizeRichTextHtml(written)).toBe(written);
+    expect(
+      sanitizeRichTextHtml(
+        `<video autoplay="" loop="" muted="" preload="everything" src="javascript:alert(1)" onplay="alert(1)"></video>`,
+      ),
+    ).toBe('<video></video>');
+  });
+
   it('keeps of a link only an address on the web or a section of the page', () => {
     expect(
       sanitizeRichTextHtml(

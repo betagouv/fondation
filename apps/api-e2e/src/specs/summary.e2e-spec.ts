@@ -36,7 +36,6 @@ test.describe('Summary E2E', () => {
 
     const { data } = await agent.summaries.detailSummary({ path, throwOnError: true });
     expect(data.summary.screenshots.map(({ id }) => id)).toEqual([kept!.id]);
-    // the file stays a while, an undo may bring the screenshot back
     expect(await isStored(sql, removed!.id)).toBe(true);
   });
 

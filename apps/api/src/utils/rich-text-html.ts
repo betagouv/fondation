@@ -14,6 +14,8 @@ const sectionId: AttributeRule = (value) => /^[\w-]+$/.test(value);
 const webUrl: AttributeRule = (value) => ['http:', 'https:'].includes(URL.parse(value)?.protocol ?? '');
 const mailAddress: AttributeRule = (value) => URL.parse(value)?.protocol === 'mailto:';
 
+const preload: AttributeRule = (value) => /^(auto|metadata|none)$/.test(value);
+
 const noAttribute: ReadonlyMap<string, AttributeRule> = new Map();
 const titleAttributes: ReadonlyMap<string, AttributeRule> = new Map([['data-id', sectionId]]);
 const cellAttributes: ReadonlyMap<string, AttributeRule> = new Map([
@@ -61,9 +63,18 @@ const ATTRIBUTES_BY_EDITOR_TAG: AttributesByTag = new Map([
   ['tr', noAttribute],
   ['u', noAttribute],
   ['ul', noAttribute],
+  [
+    'video',
+    new Map([
+      ['controls', anyValue],
+      ['data-file-id', anyValue],
+      ['data-file-name', anyValue],
+      ['preload', preload],
+      ['src', webUrl],
+    ]),
+  ],
 ]);
 
-/** the files the rich text embeds, by the identity the editor writes on each of them */
 export function fileIdsReferencedIn(html: string): Set<string> {
   const $ = load(html, null, false);
 

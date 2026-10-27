@@ -32,6 +32,7 @@ import {
 import type { FilesUploader } from './editor-file-uploader';
 import { FileHandler } from './file-handler-extension';
 import { ImageUploadPreview } from './ImageUploadPreview';
+import { Video } from './video-extension';
 
 export function useTipTapExtensions(opts?: {
   features?: EditorFeatures;
@@ -80,7 +81,9 @@ export function useTipTapExtensions(opts?: {
           alwaysPreserveAspectRatio: true,
         },
       }),
-      ...(opts?.uploadFiles ? [ImageUploadPreview(opts.uploadFiles), FileHandler(opts.uploadFiles)] : []),
+      ...(opts?.uploadFiles
+        ? [ImageUploadPreview(opts.uploadFiles), FileHandler(opts.uploadFiles, { withVideos: isPage })]
+        : []),
       ...(isPage
         ? [
             // a title keeps its identity through its renames, so a link to a section survives them
@@ -94,6 +97,7 @@ export function useTipTapExtensions(opts?: {
             HorizontalRule,
             Callout,
             TableKit.configure({ table: { resizable: false } }),
+            Video,
           ]
         : []),
     ],

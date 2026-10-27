@@ -158,7 +158,7 @@ export function AdminHelpPage() {
         >
           {data && (
             <>
-              {/* the preview shows the page as its readers will see it, summary included, while the editor keeps its state out of sight */}
+              {/* the editor stays mounted, out of sight, to keep its state */}
               {isPreviewing && (
                 <>
                   <div className="fr-p-2v flex justify-end pt-3.5!">

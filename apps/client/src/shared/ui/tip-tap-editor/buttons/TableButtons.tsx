@@ -1,8 +1,10 @@
 import { useCurrentEditor, useEditorState } from '@tiptap/react';
+import { useIntl } from 'react-intl';
 
 import { EditorButton } from './EditorButton';
 
 export function InsertTableButton() {
+  const { formatMessage } = useIntl();
   const { editor } = useCurrentEditor();
   const disabled = useEditorState({
     editor,
@@ -15,12 +17,13 @@ export function InsertTableButton() {
       iconId="fr-icon-table-line"
       mark="table"
       onClick={() => editor?.chain().focus().insertTable({ cols: 3, rows: 3, withHeaderRow: true }).run()}
-      title="Insérer un tableau"
+      title={formatMessage({ defaultMessage: 'Insérer un tableau' })}
     />
   );
 }
 
 export function TableRowAndColumnButtons() {
+  const { formatMessage } = useIntl();
   const { editor } = useCurrentEditor();
   const isInTable = useEditorState({
     editor,
@@ -35,31 +38,31 @@ export function TableRowAndColumnButtons() {
         disabled={false}
         iconId="ri-insert-row-bottom"
         onClick={() => editor?.chain().focus().addRowAfter().run()}
-        title="Ajouter une ligne"
+        title={formatMessage({ defaultMessage: 'Ajouter une ligne' })}
       />
       <EditorButton
         disabled={false}
         iconId="ri-delete-row"
         onClick={() => editor?.chain().focus().deleteRow().run()}
-        title="Supprimer la ligne"
+        title={formatMessage({ defaultMessage: 'Supprimer la ligne' })}
       />
       <EditorButton
         disabled={false}
         iconId="ri-insert-column-right"
         onClick={() => editor?.chain().focus().addColumnAfter().run()}
-        title="Ajouter une colonne"
+        title={formatMessage({ defaultMessage: 'Ajouter une colonne' })}
       />
       <EditorButton
         disabled={false}
         iconId="ri-delete-column"
         onClick={() => editor?.chain().focus().deleteColumn().run()}
-        title="Supprimer la colonne"
+        title={formatMessage({ defaultMessage: 'Supprimer la colonne' })}
       />
       <EditorButton
         disabled={false}
         iconId="ri-delete-bin-line"
         onClick={() => editor?.chain().focus().deleteTable().run()}
-        title="Supprimer le tableau"
+        title={formatMessage({ defaultMessage: 'Supprimer le tableau' })}
       />
     </>
   );

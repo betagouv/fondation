@@ -1,10 +1,12 @@
 // oxlint-disable typescript/unbound-method
+import { Readable } from 'node:stream';
+
 import { NoSuchKey, S3ServiceException } from '@aws-sdk/client-s3';
 import { HttpService } from '@nestjs/axios';
-import { NotFoundException } from '@nestjs/common';
+import { HttpException, NotFoundException } from '@nestjs/common';
 import * as Sentry from '@sentry/node';
-import { AxiosError, AxiosHeaders } from 'axios';
-import { throwError } from 'rxjs';
+import { AxiosError, AxiosHeaders, type AxiosResponse } from 'axios';
+import { of, throwError } from 'rxjs';
 import { mock, type MockProxy } from 'vitest-mock-extended';
 
 import { FileDelegate, FilePublicUrlDelegate } from '../../../generated/prisma/models';
@@ -149,6 +151,40 @@ describe('Files', () => {
 
       await expect(files.getFileContent('public-url-id')).rejects.toBeInstanceOf(AxiosError);
       expect(Sentry.captureMessage).not.toHaveBeenCalled();
+    });
+
+    function storageStreams(response: Pick<AxiosResponse, 'headers' | 'status'>) {
+      http.get.mockReturnValue(of({ ...response, data: Readable.from(['abcd']) } as AxiosResponse));
+    }
+
+    it('asks the storage for the range of bytes the reader wants and tells the one it answers', async () => {
+      storageStreams({ headers: { 'content-length': '4', 'content-range': 'bytes 0-3/10' }, status: 206 });
+
+      const answer = await files.getFileContent('public-url-id', { range: 'bytes=0-3' });
+
+      expect(http.get).toHaveBeenCalledWith(
+        'https://s3.example/observations/courrier.pdf',
+        expect.objectContaining({ headers: expect.objectContaining({ Range: 'bytes=0-3' }) }),
+      );
+      expect(answer.contentRange).toBe('bytes 0-3/10');
+      expect(answer.file.getHeaders().length).toBe(4);
+    });
+
+    it('answers the whole file, and no range, to a reader who asks none', async () => {
+      storageStreams({ headers: { 'content-length': '4' }, status: 200 });
+
+      const answer = await files.getFileContent('public-url-id');
+
+      expect(answer.contentRange).toBeNull();
+      expect(http.get.mock.calls[0]?.[1]?.headers).not.toHaveProperty('Range');
+    });
+
+    it('refuses a range past the end of the file as such', async () => {
+      storageAnswers(416);
+
+      await expect(files.getFileContent('public-url-id', { range: 'bytes=99-' })).rejects.toSatisfy(
+        (error) => error instanceof HttpException && error.getStatus() === 416,
+      );
     });
 
     it('keeps an unknown or expired public url apart from a file the storage lost', async () => {

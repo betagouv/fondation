@@ -166,7 +166,6 @@ test.describe('Report E2E', () => {
     const { data } = await member.reports.detailReport({ path: { reportId }, throwOnError: true });
     expect(data.screenshots.map(({ id }) => id)).toEqual([kept!.id]);
 
-    // the comment embeds it again: the screenshot is back
     await member.reports.updateReport({
       body: {
         comment: `<p>Avis</p><img data-file-id="${kept!.id}" src="${kept!.url}"><img data-file-id="${removed!.id}" src="${removed!.url}">`,

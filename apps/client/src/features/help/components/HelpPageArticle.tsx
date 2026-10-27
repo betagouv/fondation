@@ -8,7 +8,7 @@ import { HelpPageContent } from './HelpPageContent';
 /** an emptied editor leaves an empty paragraph behind */
 function isBlank(content: string): boolean {
   const { body } = new DOMParser().parseFromString(content, 'text/html');
-  return !body.textContent?.trim() && !body.querySelector('img, table, hr');
+  return !body.textContent?.trim() && !body.querySelector('img, table, hr, video');
 }
 
 export function HelpPageArticle(props: { page: HelpPageEnum }) {

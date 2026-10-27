@@ -1,10 +1,17 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import { generateHTML, generateJSON } from '@tiptap/core';
 import { useCallback, useMemo } from 'react';
-import { FormattedMessage } from 'react-intl';
+import { defineMessages, FormattedMessage, useIntl } from 'react-intl';
 
+import { useRequestFailure } from '@/shared/hooks/useRequestFailure';
 import { type FilesUploader, TipTapEditor, useTipTapExtensions } from '@/shared/ui/tip-tap-editor';
+import { useToasts } from '@/shared/ui/toast';
 import { type HelpPageEnum, useIncludeFilesInHelpPageContentMutation } from '@queries/help.queries';
+
+const UPLOAD_FAILURES = defineMessages({
+  refused: { defaultMessage: 'Une image pèse 5 Mo au plus, une vidéo mp4 ou webm 50 Mo au plus.' },
+  timeout: { defaultMessage: "L'envoi a dépassé 5 minutes : la connexion est trop lente pour ce fichier." },
+});
 
 export function HelpPageEditor(props: {
   ariaLabelledby: string;
@@ -15,6 +22,9 @@ export function HelpPageEditor(props: {
   page: HelpPageEnum;
 }) {
   const { content, onDraftChange, page } = props;
+  const { formatMessage } = useIntl();
+  const toasts = useToasts();
+  const describeFailure = useRequestFailure(UPLOAD_FAILURES);
   const { mutateAsync: includeFiles } = useIncludeFilesInHelpPageContentMutation();
   // the stored html loses what the editor writes for itself, such as the class of a callout: the editor's own rendering is the reference
   const extensions = useTipTapExtensions({ features: 'page' });
@@ -25,10 +35,16 @@ export function HelpPageEditor(props: {
 
   const uploadFiles: FilesUploader = useCallback(
     async (files: readonly File[]) => {
-      const { items } = await includeFiles({ files, page });
+      const { items } = await includeFiles({ files, page }).catch((error: unknown) => {
+        toasts.error({
+          description: describeFailure(error),
+          title: formatMessage({ defaultMessage: "Le fichier n'a pas pu être ajouté" }),
+        });
+        throw error;
+      });
       return items.map(({ id, name, url }) => ({ id, name, url: new URL(url) }));
     },
-    [includeFiles, page],
+    [describeFailure, formatMessage, includeFiles, page, toasts],
   );
 
   const onChange = useCallback(

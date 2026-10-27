@@ -47,7 +47,7 @@ export const MenuBar = (props: { end?: ReactNode; features: EditorFeatures }) =>
             <TableRowAndColumnButtons />
           </>
         )}
-        <ImageUploadButton />
+        <ImageUploadButton features={props.features} />
         {props.end && <div className="relative -top-0.5 -mr-2 ml-auto">{props.end}</div>}
       </div>
     </div>

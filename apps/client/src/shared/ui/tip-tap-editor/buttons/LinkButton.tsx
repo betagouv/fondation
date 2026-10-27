@@ -3,7 +3,7 @@ import Input from '@codegouvfr/react-dsfr/Input';
 import Select from '@codegouvfr/react-dsfr/Select';
 import { useCurrentEditor, useEditorState } from '@tiptap/react';
 import { useState } from 'react';
-import { FormattedMessage } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 
 import { isAllowedLink, isSectionAnchor } from '../extensions/constant';
 import { Modal } from '@/shared/ui/modal/Modal';
@@ -11,6 +11,7 @@ import { Modal } from '@/shared/ui/modal/Modal';
 import { EditorButton } from './EditorButton';
 
 export function LinkButton() {
+  const { formatMessage } = useIntl();
   const { editor } = useCurrentEditor();
   const [isOpen, setIsOpen] = useState(false);
   const [href, setHref] = useState('');
@@ -43,7 +44,6 @@ export function LinkButton() {
   const setLink = () => {
     if (!editor || !href.trim()) return;
 
-    // an address typed without its scheme is a web address
     const address = href.trim();
     const target = isAllowedLink(address) ? address : `https://${address}`;
 
@@ -65,7 +65,13 @@ export function LinkButton() {
 
   return (
     <>
-      <EditorButton disabled={!!disabled} iconId="fr-icon-link" mark="link" onClick={open} title="Lien" />
+      <EditorButton
+        disabled={!!disabled}
+        iconId="fr-icon-link"
+        mark="link"
+        onClick={open}
+        title={formatMessage({ defaultMessage: 'Lien' })}
+      />
       <Modal
         actions={
           <>

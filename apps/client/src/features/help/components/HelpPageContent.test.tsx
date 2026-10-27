@@ -41,13 +41,18 @@ describe('HelpPageContent', () => {
     expect(numbered.container.querySelector('.fondation-title-pictogram')).toBeNull();
   });
 
-  it('keeps the links, the tables and the separators, and opens the other sites apart', () => {
+  it('keeps the links, the tables, the separators and the videos, and opens the other sites apart', () => {
     const { container } = renderContent(
       '<p><a href="https://lolfi.justice.fr/">LOLFI</a> <a href="#intro">haut</a></p><hr>' +
         '<table><tbody><tr><th>Profil</th></tr><tr><td>Siège</td></tr></tbody></table>' +
-        '<aside><p>À savoir</p></aside>',
+        '<aside><p>À savoir</p></aside>' +
+        '<video src="https://storage.test/demo.mp4" data-file-id="v1" data-file-name="demo.mp4"></video>',
     );
     const article = container.querySelector('article')!;
+
+    expect(article.querySelector('video[controls][preload="metadata"]')?.getAttribute('src')).toBe(
+      'https://storage.test/demo.mp4',
+    );
 
     expect(article.querySelector('a[href="https://lolfi.justice.fr/"]')?.getAttribute('target')).toBe(
       '_blank',

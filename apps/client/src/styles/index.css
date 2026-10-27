@@ -138,6 +138,13 @@ li {
   max-width: 100%;
 }
 
+.ProseMirror video,
+.fondation-rich-text video {
+  display: block;
+  margin: 0 0 1.5rem;
+  max-width: 100%;
+}
+
 .ProseMirror,
 .fondation-rich-text {
   table {

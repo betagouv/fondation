@@ -2,7 +2,19 @@ import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
 import { richTextHtml } from '../../../utils/rich-text-html';
-import { FILE_MIME_TYPES } from '../../framework/files';
+import { FILE_MIME_TYPES, type FileMimeType } from '../../framework/files';
+
+const IMAGE_MIME_TYPES: readonly FileMimeType[] = [
+  FILE_MIME_TYPES.gif,
+  FILE_MIME_TYPES.heic,
+  FILE_MIME_TYPES.jpg,
+  FILE_MIME_TYPES.png,
+  FILE_MIME_TYPES.webp,
+];
+const VIDEO_MIME_TYPES: readonly FileMimeType[] = [FILE_MIME_TYPES.mp4, FILE_MIME_TYPES.webm];
+const IMAGE_MAX_BYTES = 5 * 1_024 * 1_024;
+// the whole file sits in memory before it reaches the storage: to raise once measured on staging
+const VIDEO_MAX_BYTES = 50 * 1_024 * 1_024;
 
 export class IncludeFilesInHelpPageContentDto extends createZodDto(
   // hack for the openapi schema, and keep the content-type validation
@@ -14,8 +26,14 @@ export class IncludeFilesInHelpPageContentDto extends createZodDto(
         z.array(
           z
             .file()
-            .max(5 * 1_024 * 1_024)
-            .mime([FILE_MIME_TYPES.jpg, FILE_MIME_TYPES.png, FILE_MIME_TYPES.heic, FILE_MIME_TYPES.webp]),
+            .mime([...IMAGE_MIME_TYPES, ...VIDEO_MIME_TYPES])
+            .max(VIDEO_MAX_BYTES)
+            .refine(
+              (file) => VIDEO_MIME_TYPES.includes(file.type as FileMimeType) || file.size <= IMAGE_MAX_BYTES,
+              {
+                message: `an image weighs ${IMAGE_MAX_BYTES} bytes at most`,
+              },
+            ),
         ),
       ),
   }),

@@ -28,7 +28,6 @@ function wrapLeadingPictogram($title: Element): void {
   $first.parentNode?.insertBefore($pictogram, $first);
 }
 
-/** the titles become anchors and the links to other sites open apart from the page */
 function withNavigation(html: string): { html: string; sections: Section[] } {
   const { body } = new DOMParser().parseFromString(html, 'text/html');
   const sections: Section[] = [];

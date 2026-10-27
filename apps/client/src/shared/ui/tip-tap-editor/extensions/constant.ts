@@ -8,7 +8,14 @@ export type EditorFeatures = (typeof EDITOR_FEATURES)[number];
 export const dataFileIdKey = 'data-file-id';
 export const dataFileNameKey = 'data-file-name';
 
-/** the identity a title keeps through its renames, written by the UniqueID extension */
+export const IMAGE_MIME_TYPES = ['image/gif', 'image/heic', 'image/jpeg', 'image/png', 'image/webp'] as const;
+/** the formats a browser plays on its own: nothing converts a video on the server */
+export const VIDEO_MIME_TYPES = ['video/mp4', 'video/webm'] as const;
+
+export function isVideo(file: { type: string }): boolean {
+  return (VIDEO_MIME_TYPES as readonly string[]).includes(file.type);
+}
+
 export const headingIdKey = 'data-id';
 
 export function isSectionAnchor(href: string): boolean {

@@ -127,7 +127,6 @@ export class SummaryRepository {
     await this.markScreenshotsAbsentFrom(message);
   }
 
-  // a screenshot leaves with the text that embedded it and comes back with it, an undo included
   private async markScreenshotsAbsentFrom(message: { content: string; id: string }) {
     const embedded = [...fileIdsReferencedIn(message.content)];
 

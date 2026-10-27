@@ -41,7 +41,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "Le centre d'aide, lu depuis le bouton de l'en-tête (sg, member) : la page de l'espace de la personne connectée, dont les titres forment le sommaire latéral. Une page jamais rédigée (BLANK) le dit, sans sommaire. L'administrateur (admin) rédige les deux pages depuis l'espace Administration, une par onglet : enregistrement à la demande, brouillon retenu sur sa page, aperçu tel que les lecteurs verront la page. Une capture collée dans le texte est remplacée par une image de substitution.",
+          "Le centre d'aide, lu depuis le bouton de l'en-tête (sg, member) : la page de l'espace de la personne connectée, dont les titres forment le sommaire latéral. Une page jamais rédigée (BLANK) le dit, sans sommaire. L'administrateur (admin) rédige les deux pages depuis l'espace Administration, une par onglet : enregistrement à la demande, brouillon retenu sur sa page, aperçu tel que les lecteurs verront la page. Une capture ou une vidéo ajoutée au texte est lue depuis la mémoire du navigateur.",
       },
     },
     layout: 'fullscreen',

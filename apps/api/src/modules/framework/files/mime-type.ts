@@ -9,6 +9,8 @@ export const FILE_MIME_TYPES = {
   heic: 'image/heic',
   gif: 'image/gif',
   webp: 'image/webp',
+  mp4: 'video/mp4',
+  webm: 'video/webm',
   doc: 'application/msword',
   docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   odt: 'application/vnd.oasis.opendocument.text',
