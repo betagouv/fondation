@@ -1,9 +1,37 @@
+<%
+  require 'uri'
+  api_origin = URI.join(ENV['VITE_API_URL'], '/')
+  matomo_origin = URI.join(ENV['VITE_MATOMO_BASE_URL'], '/') unless ENV['VITE_MATOMO_BASE_URL'].to_s.empty?
+  sentry_dsn = URI(ENV['VITE_SENTRY_DSN']) unless ENV['VITE_SENTRY_DSN'].to_s.empty?
+
+  # The document viewer frame inherits this policy: the templates and the rich text carry inline styles
+  csp = {
+    'default-src' => ["'self'"],
+    'base-uri' => ["'self'"],
+    'connect-src' => ["'self'", api_origin, matomo_origin],
+    'font-src' => ["'self'", 'data:'],
+    'form-action' => ["'self'"],
+    'frame-ancestors' => ["'none'"],
+    'img-src' => ["'self'", 'data:', 'blob:', api_origin, matomo_origin],
+    'media-src' => ["'self'", 'blob:', api_origin],
+    'object-src' => ["'none'"],
+    'script-src' => ["'self'", matomo_origin],
+    'style-src' => ["'self'", "'unsafe-inline'"],
+    'report-uri' => (['/monitoring/csp'] if sentry_dsn),
+  }.filter_map { |directive, sources| [directive, *sources.compact].join(' ') if sources }.join('; ')
+%>
 root /app/dist;
+
+# With a variable in proxy_pass, nginx resolves the name on each call instead of failing to start without DNS
+resolver <%= File.read('/etc/resolv.conf').scan(/^nameserver\s+(\S+)/).flatten.map { |ip| ip.include?(':') ? "[#{ip}]" : ip }.join(' ') %> valid=300s;
 
 location / {
   add_header X-Content-Type-Options "nosniff";
   add_header X-Frame-Options "DENY";
   add_header Cache-Control "no-store";
+  # Report-Only until the reports from the staging show what the policy would block
+  add_header Content-Security-Policy-Report-Only "<%= csp %>";
+  add_header Strict-Transport-Security "max-age=31536000";
   try_files $uri /index.html;
 }
 
@@ -19,11 +47,20 @@ location /assets/ {
 # Ad blockers and network proxies may drop calls to the Sentry domain. Only the body goes through, so neither the cookies nor the
 # browser IP added by the router are forwarded, as with sendDefaultPii: false
 location = /monitoring {
-  # With a variable, nginx resolves the name on each call instead of failing to start without DNS
-  resolver <%= File.read('/etc/resolv.conf').scan(/^nameserver\s+(\S+)/).flatten.map { |ip| ip.include?(':') ? "[#{ip}]" : ip }.join(' ') %> valid=300s;
   set $sentry https://sentry.incubateur.net/api/235/envelope/;
   proxy_pass $sentry;
   proxy_pass_request_headers off;
   proxy_set_header Content-Type $content_type;
   proxy_ssl_server_name on;
 }
+<% if sentry_dsn %>
+
+# The browser sends the CSP violations without the Sentry key, which the tunnel adds as the SDK does for the events
+location = /monitoring/csp {
+  set $sentry_csp "https://sentry.incubateur.net/api/235/security/?sentry_key=<%= sentry_dsn.user %>&sentry_environment=<%= ENV['VITE_DEPLOY_ENV'] %>";
+  proxy_pass $sentry_csp;
+  proxy_pass_request_headers off;
+  proxy_set_header Content-Type $content_type;
+  proxy_ssl_server_name on;
+}
+<% end %>
