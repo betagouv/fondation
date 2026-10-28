@@ -34,8 +34,8 @@ const ADMIN_USER_ROLE_LABELS = {
     neutral: 'Secrétaire général(e)',
   },
   MEMBRE_COMMUN: { FEMALE: 'Membre commun', MALE: 'Membre commun', neutral: 'Membre commun' },
-  MEMBRE_PARQUET: { FEMALE: 'Membre du Parquet', MALE: 'Membre du Parquet', neutral: 'Membre du Parquet' },
-  MEMBRE_SIEGE: { FEMALE: 'Membre du Siège', MALE: 'Membre du Siège', neutral: 'Membre du Siège' },
+  MEMBRE_PARQUET: { FEMALE: 'Membre du parquet', MALE: 'Membre du parquet', neutral: 'Membre du parquet' },
+  MEMBRE_SIEGE: { FEMALE: 'Membre du siège', MALE: 'Membre du siège', neutral: 'Membre du siège' },
   OFFICER: {
     FEMALE: 'Agente du pôle nomination',
     MALE: 'Agent du pôle nomination',

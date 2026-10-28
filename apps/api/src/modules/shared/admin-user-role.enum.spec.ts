@@ -14,7 +14,7 @@ describe('adminUserRoleLabel', () => {
     ${'SECRETARY'}                | ${undefined} | ${'Secrétaire général(e) adjoint(e)'}
     ${'OFFICER'}                  | ${'MALE'}    | ${'Agent du pôle nomination'}
     ${'OFFICER'}                  | ${'FEMALE'}  | ${'Agente du pôle nomination'}
-    ${'MEMBRE_SIEGE'}             | ${'FEMALE'}  | ${'Membre du Siège'}
+    ${'MEMBRE_SIEGE'}             | ${'FEMALE'}  | ${'Membre du siège'}
     ${'MEMBRE_COMMUN'}            | ${undefined} | ${'Membre commun'}
   `('should label $role for the gender $gender as "$expected"', ({ expected, gender, role }) => {
     expect(adminUserRoleLabel(role, gender)).toBe(expected);

@@ -22,7 +22,7 @@ const USERS = {
     id: 'user-2',
     isAdmin: false,
     lastName: 'Garnier',
-    role: { group: 'MEMBER', id: 'MEMBRE_SIEGE', label: 'Membre du Siège' },
+    role: { group: 'MEMBER', id: 'MEMBRE_SIEGE', label: 'Membre du siège' },
   },
   secretariat: {
     displayTitle: null,
@@ -65,13 +65,13 @@ const ROLE_GROUPS: ListedAdminUserRolesDto['items'] = [
     label: 'Membre',
     roles: [
       { id: 'MEMBRE_COMMUN', label: 'Membre commun' },
-      { id: 'MEMBRE_PARQUET', label: 'Membre du Parquet' },
-      { id: 'MEMBRE_SIEGE', label: 'Membre du Siège' },
+      { id: 'MEMBRE_PARQUET', label: 'Membre du parquet' },
+      { id: 'MEMBRE_SIEGE', label: 'Membre du siège' },
     ],
   },
   {
     id: 'SECRETARIAT',
-    label: 'Secrétariat Général',
+    label: 'Secrétariat général',
     roles: [
       { id: 'FIRST_SECRETARY', label: 'Secrétaire général(e)' },
       { id: 'SECRETARY', label: 'Secrétaire général(e) adjoint(e)' },
@@ -107,7 +107,7 @@ const meta = {
               holder: {
                 id: 'user-1',
                 name: 'Isabelle\u00A0GAUTHIER',
-                nextRole: { id: 'MEMBRE_SIEGE', label: 'Membre du Siège' },
+                nextRole: { id: 'MEMBRE_SIEGE', label: 'Membre du siège' },
               },
               role: { id: 'PRESIDENT_SIEGE', label: 'Présidente de la formation du siège' },
             },

@@ -29,7 +29,7 @@ describe('useTitleTakenBackWarning', () => {
             holder: {
               id: 'holder',
               name: 'Isabelle GAUTHIER',
-              nextRole: { id: 'MEMBRE_SIEGE', label: 'Membre du Siège' },
+              nextRole: { id: 'MEMBRE_SIEGE', label: 'Membre du siège' },
             },
             role: { id: 'PRESIDENT_SIEGE', label: 'Présidente de la formation du siège' },
           },
@@ -45,7 +45,7 @@ describe('useTitleTakenBackWarning', () => {
 
     await waitFor(() =>
       expect(result.current).toBe(
-        'Isabelle GAUTHIER perdra la fonction de Présidente de la formation du siège et deviendra Membre du Siège.',
+        'Isabelle GAUTHIER perdra la fonction de Présidente de la formation du siège et deviendra Membre du siège.',
       ),
     );
   });

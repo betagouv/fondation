@@ -6,7 +6,7 @@ export type AdminUserRoleGroup = (typeof ADMIN_USER_ROLE_GROUPS)[number];
 export const adminUserRoleGroupLabel = {
   MEMBER: 'Membre',
   PRESIDENCY: 'Présidents / Suppléants',
-  SECRETARIAT: 'Secrétariat Général',
+  SECRETARIAT: 'Secrétariat général',
 } as const satisfies Record<AdminUserRoleGroup, string>;
 
 const GROUP_OF_ROLE = {

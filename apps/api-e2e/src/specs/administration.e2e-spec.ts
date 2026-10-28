@@ -178,7 +178,7 @@ test.describe('Administration', () => {
 
     expect(data.items.find(({ role }) => role.id === 'DEPUTY_PRESIDENT_PARQUET')?.holder).toMatchObject({
       id: holder.id,
-      nextRole: { id: 'MEMBRE_PARQUET', label: 'Membre du Parquet' },
+      nextRole: { id: 'MEMBRE_PARQUET', label: 'Membre du parquet' },
     });
   });
 
