@@ -7,7 +7,6 @@ import { isDefined } from '../../../../utils/is-defined';
 import { writerOf, writerSchema } from '../../../../utils/user.util';
 import { Db } from '../../../framework/database';
 import { Files } from '../../../framework/files';
-import { FILE_MIME_TYPES, filenameToMimeType } from '../../../framework/files/mime-type';
 import type { RoleEnum } from '../../../shared/role.enum';
 import { canReadHelpPage, type HelpPageEnum } from '../../domain/help-page';
 
@@ -45,7 +44,6 @@ export class DetailHelpPageQuery {
           return {
             id: file.id,
             name: file.name,
-            type: filenameToMimeType(file.name) ?? FILE_MIME_TYPES.bin,
             url: url.toString(),
           };
         })
@@ -63,7 +61,6 @@ export class DetailedHelpPageDto extends createZodDto(
       z.object({
         id: z.string(),
         name: z.string(),
-        type: z.string(),
         url: z.url(),
       }),
     ),

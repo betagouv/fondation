@@ -58,7 +58,6 @@ function makeHelpPage(page: HelpPageEnum, state: HelpPageState): DetailedHelpPag
       {
         id: SCREENSHOT_ID,
         name: 'tableau-de-bord.png',
-        type: 'image/png',
         url: placeholderScreenshot('Capture du tableau de bord'),
       },
     ],
@@ -68,7 +67,7 @@ function makeHelpPage(page: HelpPageEnum, state: HelpPageState): DetailedHelpPag
 }
 
 // the pages live for the story: what is saved is read back on the next load, as with the API
-export function helpPageHandlers(state: HelpPageState) {
+export function helpPageHandlers(state: HelpPageState, readerPage: HelpPageEnum) {
   const pages: Record<HelpPageEnum, DetailedHelpPageDto> = {
     MEMBRE: makeHelpPage('MEMBRE', state),
     SECRETARIAT_GENERAL: makeHelpPage('SECRETARIAT_GENERAL', state),
@@ -76,6 +75,7 @@ export function helpPageHandlers(state: HelpPageState) {
   const pageOf = (param: string | readonly string[] | undefined) => pages[String(param) as HelpPageEnum];
 
   return [
+    http.get('*/api/help/v1/page', () => HttpResponse.json(pages[readerPage])),
     http.get('*/api/help/v1/pages/:page', ({ params }) => HttpResponse.json(pageOf(params.page))),
     http.put('*/api/help/v1/pages/:page/content', async ({ params, request }) => {
       const { content } = (await request.json()) as WriteHelpPageContentDto;
@@ -92,7 +92,6 @@ export function helpPageHandlers(state: HelpPageState) {
       const items = files.map((file, index) => ({
         id: `pasted-${Date.now()}-${index}`,
         name: file.name,
-        type: file.type,
         url: URL.createObjectURL(file),
       }));
       pageOf(params.page).screenshots.push(...items);

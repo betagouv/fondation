@@ -38,10 +38,10 @@ export class HelpPageRepository {
       data: { content: message.content, updatedById: message.editorId },
       where: { page: message.page },
     });
-    await this.markScreenshotsAbsentFrom(message);
+    await this.syncScreenshotsWith(message);
   }
 
-  private async markScreenshotsAbsentFrom(message: { content: string; page: HelpPageEnum }) {
+  private async syncScreenshotsWith(message: { content: string; page: HelpPageEnum }) {
     const embedded = [...fileIdsReferencedIn(message.content)];
 
     await this.db.tx.helpPageScreenshot.updateMany({
@@ -54,10 +54,11 @@ export class HelpPageRepository {
     });
   }
 
-  // the page itself is untouched: its date and its author are those of its last writing
+  // the page itself is untouched: its date and its author are those of its last writing.
+  // A file stays set aside until saved content embeds it, so that an abandoned draft is purged
   private persistIncludedFilesInHelpPageContent(message: IncludedFilesInHelpPageContent) {
     return this.db.tx.helpPageScreenshot.createMany({
-      data: message.fileIds.map((fileId) => ({ fileId, page: message.page })),
+      data: message.fileIds.map((fileId) => ({ detachedAt: this.clock.now(), fileId, page: message.page })),
     });
   }
 }

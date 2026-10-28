@@ -1,7 +1,7 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import { type HelpPageEnum, useHelpPageQuery } from '@queries/help.queries';
+import type { DetailedHelpPageDto } from '@api/types';
 
 import { HelpPageContent } from './HelpPageContent';
 
@@ -11,11 +11,11 @@ function isBlank(content: string): boolean {
   return !body.textContent?.trim() && !body.querySelector('img, table, hr, video');
 }
 
-export function HelpPageArticle(props: { page: HelpPageEnum }) {
+export function HelpPageArticle(props: { helpPage: DetailedHelpPageDto | undefined; isError: boolean }) {
   const { formatMessage } = useIntl();
-  const { data, isError } = useHelpPageQuery({ page: props.page });
+  const { helpPage: data } = props;
 
-  if (isError) {
+  if (props.isError) {
     return (
       <Alert
         description={formatMessage({ defaultMessage: "La page d'aide n'a pas pu être chargée." })}

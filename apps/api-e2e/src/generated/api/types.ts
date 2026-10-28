@@ -2459,7 +2459,6 @@ export type DetailedHelpPageDto = {
     screenshots: Array<{
         id: string;
         name: string;
-        type: string;
         url: string;
     }>;
     updatedAt: string;
@@ -2477,7 +2476,6 @@ export type IncludedFilesInHelpPageContentDto = {
     items: Array<{
         id: string;
         name: string;
-        type: string;
         url: string;
     }>;
 };
@@ -5313,3 +5311,16 @@ export type WriteHelpPageContentResponses = {
 };
 
 export type WriteHelpPageContentResponse = WriteHelpPageContentResponses[keyof WriteHelpPageContentResponses];
+
+export type DetailReaderHelpPageData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/help/v1/page';
+};
+
+export type DetailReaderHelpPageResponses = {
+    200: DetailedHelpPageDto;
+};
+
+export type DetailReaderHelpPageResponse = DetailReaderHelpPageResponses[keyof DetailReaderHelpPageResponses];

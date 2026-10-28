@@ -1,16 +1,15 @@
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { HelpPageArticle } from '@/features/help/components/HelpPageArticle';
+import { HelpPageUpdate } from '@/features/help/components/HelpPageUpdate';
 import { PinnedHeader } from '@/shared/components/pinned-header';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { DetailsHeader } from '@/shared/ui/details';
-import { type HelpPageEnum, useHelpPageQuery } from '@queries/help.queries';
+import { useReaderHelpPageQuery } from '@queries/help.queries';
 
 export function HelpCenterPage() {
-  const { formatDate, formatMessage, formatTime } = useIntl();
-  const page: HelpPageEnum = useIsSg() ? 'SECRETARIAT_GENERAL' : 'MEMBRE';
-  const { data } = useHelpPageQuery({ page });
+  const { formatMessage } = useIntl();
+  const { data, isError } = useReaderHelpPageQuery();
 
   return (
     <PinnedHeader
@@ -19,18 +18,7 @@ export function HelpCenterPage() {
           <DetailsHeader
             action={
               <div className="flex flex-wrap items-center gap-4">
-                {data?.updatedBy && (
-                  <p className="fr-hint-text fr-mb-0">
-                    <FormattedMessage
-                      defaultMessage="Mise à jour le {date} à {time} par {name}"
-                      values={{
-                        date: formatDate(data.updatedAt, { format: 'zonedDateShort' }),
-                        name: data.updatedBy.name,
-                        time: formatTime(data.updatedAt, { format: 'zonedTimeShort' }),
-                      }}
-                    />
-                  </p>
-                )}
+                {data && <HelpPageUpdate helpPage={data} />}
               </div>
             }
             backTo="/"
@@ -54,7 +42,7 @@ export function HelpCenterPage() {
       contentClassName="flex grow flex-col"
     >
       <div className="fr-container fr-py-6v fr-pb-10v grow">
-        <HelpPageArticle page={page} />
+        <HelpPageArticle helpPage={data} isError={isError} />
       </div>
     </PinnedHeader>
   );

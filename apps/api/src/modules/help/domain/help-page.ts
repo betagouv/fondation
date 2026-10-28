@@ -11,6 +11,10 @@ export function canReadHelpPage(page: HelpPageEnum, reader: { role: RoleEnum }):
   return page === 'MEMBRE' || isSecretariat(reader.role);
 }
 
+export function helpPageOf(reader: { role: RoleEnum }): HelpPageEnum {
+  return isSecretariat(reader.role) ? 'SECRETARIAT_GENERAL' : 'MEMBRE';
+}
+
 export class HelpPageContentWritten {
   constructor(
     readonly content: string,

@@ -1,7 +1,7 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
-import { richTextHtml } from '../../../utils/rich-text-html';
+import { richPageHtml } from '../../../utils/rich-text-html';
 import { FILE_MIME_TYPES, type FileMimeType } from '../../framework/files';
 
 const IMAGE_MIME_TYPES: readonly FileMimeType[] = [
@@ -14,7 +14,7 @@ const IMAGE_MIME_TYPES: readonly FileMimeType[] = [
 const VIDEO_MIME_TYPES: readonly FileMimeType[] = [FILE_MIME_TYPES.mp4, FILE_MIME_TYPES.webm];
 const IMAGE_MAX_BYTES = 5 * 1_024 * 1_024;
 // the whole file sits in memory before it reaches the storage: to raise once measured on staging
-const VIDEO_MAX_BYTES = 50 * 1_024 * 1_024;
+export const VIDEO_MAX_BYTES = 50 * 1_024 * 1_024;
 
 export class IncludeFilesInHelpPageContentDto extends createZodDto(
   // hack for the openapi schema, and keep the content-type validation
@@ -45,11 +45,10 @@ export class IncludedFilesInHelpPageContentDto extends createZodDto(
       z.object({
         id: z.string(),
         name: z.string(),
-        type: z.string(),
         url: z.url(),
       }),
     ),
   }),
 ) {}
 
-export class WriteHelpPageContentDto extends createZodDto(z.object({ content: richTextHtml })) {}
+export class WriteHelpPageContentDto extends createZodDto(z.object({ content: richPageHtml })) {}

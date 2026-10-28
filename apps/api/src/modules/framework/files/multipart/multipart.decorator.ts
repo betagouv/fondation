@@ -25,16 +25,18 @@ import { StoreFileInterceptor } from './store-file.interceptor';
  * ```
  */
 export function UseMultipartBody<Schema extends z.ZodObject>(options: {
-  schema: ZodDto<Schema>;
-  destination?: MultipartDestinationFactory;
-  overrideFiles?: false;
   deleteOnFail?: false;
+  destination?: MultipartDestinationFactory;
+  /** the schema only checks a file once fully received: this cuts the upload as soon as it goes over */
+  maxFileBytes?: number;
+  overrideFiles?: false;
+  schema: ZodDto<Schema>;
 }): MethodDecorator {
   return applyDecorators(
     ApiConsumes('multipart/form-data'),
     ApiBody({ type: options.schema }),
     UseInterceptors(
-      AnyFilesInterceptor(),
+      AnyFilesInterceptor({ limits: { fileSize: options.maxFileBytes } }),
       new MultipartBodyInterceptor({
         ...options,
         schema: options.schema.schema,

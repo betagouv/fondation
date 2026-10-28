@@ -48,7 +48,7 @@ export const MenuBar = (props: { end?: ReactNode; features: EditorFeatures }) =>
           </>
         )}
         <ImageUploadButton features={props.features} />
-        {props.end && <div className="relative -top-0.5 -mr-2 ml-auto">{props.end}</div>}
+        {props.end && <div className="relative -top-0.5 -mr-5 ml-auto">{props.end}</div>}
       </div>
     </div>
   );

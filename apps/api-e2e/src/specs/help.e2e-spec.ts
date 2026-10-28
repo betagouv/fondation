@@ -3,7 +3,7 @@ import { makeFile } from '../utils/files.ts';
 import { isStored } from '../utils/screenshots.ts';
 
 test.describe('Help E2E', () => {
-  test('should let an admin write a help page that every user reads with its screenshots', async ({
+  test('should let an admin write the help page that a member reads with its screenshots', async ({
     admin,
     expect,
     member,
@@ -22,10 +22,9 @@ test.describe('Help E2E', () => {
       `<img data-file-id="${screenshot!.id}" src="${screenshot!.url}"><hr>` +
       `<h2 data-id="profils">Profils</h2><table><tbody><tr><th>Profil</th><th>Sessions</th></tr>` +
       `<tr><td>Membre siège</td><td>Formation siège</td></tr></tbody></table><aside><p>À savoir</p></aside>`;
-    const written = await admin.help.writeHelpPageContent({ body: { content }, path });
-    expect(written.response?.status).toBe(204);
+    await admin.help.writeHelpPageContent({ body: { content }, path, throwOnError: true });
 
-    const read = await member.help.detailHelpPage({ path, throwOnError: true });
+    const read = await member.help.detailReaderHelpPage({ throwOnError: true });
     expect(read.data.content).toBe(content);
     expect(read.data.screenshots.map(({ id }) => id)).toContain(screenshot!.id);
     expect(read.data.updatedBy?.id).toBe(admin['@user']!.id);
@@ -52,6 +51,19 @@ test.describe('Help E2E', () => {
     expect(reread.data.screenshots.map(({ id }) => id).sort()).toEqual([kept!.id, removed!.id].sort());
   });
 
+  test('should keep a file out of the help page until its content embeds it', async ({ admin, expect, member }) => {
+    const path = { page: 'MEMBRE' as const };
+    const included = await admin.help.includeFilesInHelpPageContent({
+      body: { files: [makeFile({ name: 'abandoned.png', type: 'image/png' })] },
+      path,
+      throwOnError: true,
+    });
+    const [abandoned] = included.data.items;
+
+    const read = await member.help.detailHelpPage({ path, throwOnError: true });
+    expect(read.data.screenshots.map(({ id }) => id)).not.toContain(abandoned!.id);
+  });
+
   test('should let an admin embed a video that its readers play by ranges of bytes', async ({ admin, expect }) => {
     const path = { page: 'SECRETARIAT_GENERAL' as const };
     const video = makeFile({ name: 'demo.mp4', size: 64, type: 'video/mp4' });
@@ -62,7 +74,6 @@ test.describe('Help E2E', () => {
       throwOnError: true,
     });
     const [embedded] = included.data.items;
-    expect(embedded?.type).toBe('video/mp4');
 
     const content =
       `<p>En vidéo</p><video controls="" preload="metadata" src="${embedded!.url}" ` +

@@ -364,6 +364,7 @@ Dans les dossiers d'un magistrat, un Membre ne voit que l'affectation et les aud
 
 | Action                                               | Endpoint                                | Membre                       | Secrétariat général | Administrateur |
 | ---------------------------------------------------- | --------------------------------------- | ---------------------------- | ------------------- | -------------- |
+| Lire la page d'aide de son espace                    | `GET /help/v1/page`                     | ✓                            | ✓                   | ✓              |
 | Lire une page d'aide                                 | `GET /help/v1/pages/:page`              | ✓ si page de l'espace membre | ✓                   | ✓              |
 | Rédiger une page d'aide                              | `PUT /help/v1/pages/:page/content`      | —                            | —                   | ✓              |
 | Ajouter des captures ou des vidéos à une page d'aide | `POST /help/v1/pages/:page/screenshots` | —                            | —                   | ✓              |

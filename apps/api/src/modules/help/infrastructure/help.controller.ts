@@ -23,6 +23,7 @@ import { HelpService } from '../help.service';
 import {
   IncludedFilesInHelpPageContentDto,
   IncludeFilesInHelpPageContentDto,
+  VIDEO_MAX_BYTES,
   WriteHelpPageContentDto,
 } from './help.dto';
 import { DetailedHelpPageDto } from './queries/detail-help-page.query';
@@ -53,6 +54,7 @@ export class HelpController {
 
       return `help/${page}/${id}.${FILE_EXTENSIONS[mimetype]}`;
     },
+    maxFileBytes: VIDEO_MAX_BYTES,
     schema: IncludeFilesInHelpPageContentDto,
   })
   @ZodResponse({ status: HttpStatus.OK, type: IncludedFilesInHelpPageContentDto })

@@ -17,8 +17,7 @@ export type TestSteps = typeof api & { ['@client']: Client; ['@user']: { id: str
 export type TestStepsMember = Pick<TestSteps, 'archivedSessions' | 'reports' | 'files' | '@client' | '@user'> & {
   auth: Pick<(typeof api)['auth'], 'introspectSession' | 'logout'>;
   feedback: Pick<TestSteps['feedback'], 'answerFeedback' | 'findFeedback'>;
-  help: Pick<TestSteps['help'], 'detailHelpPage'>;
-  summaries: Pick<TestSteps['summaries'], 'detailSummary' | 'generateAttachmentPublicUrl'>;
+  help: Pick<TestSteps['help'], 'detailHelpPage' | 'detailReaderHelpPage'>;
   members: Pick<
     TestSteps['members'],
     | 'listMemberSessionReports'
@@ -34,6 +33,7 @@ export type TestStepsMember = Pick<TestSteps, 'archivedSessions' | 'reports' | '
     | 'listObservations'
     | 'writeMemberComment'
   >;
+  summaries: Pick<TestSteps['summaries'], 'detailSummary' | 'generateAttachmentPublicUrl'>;
 };
 
 export type TestStepsAdmin = Omit<TestSteps, 'members'> & {

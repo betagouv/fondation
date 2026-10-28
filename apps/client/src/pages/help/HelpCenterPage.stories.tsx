@@ -34,7 +34,7 @@ const meta = {
     view: { control: 'inline-radio', options: VIEWS },
   },
   beforeEach: ({ args, msw }) => {
-    msw.use(...helpPageHandlers(args.state));
+    msw.use(...helpPageHandlers(args.state, args.view === 'member' ? 'MEMBRE' : 'SECRETARIAT_GENERAL'));
   },
   component: HelpCenterPageStory,
   parameters: {

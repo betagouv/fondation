@@ -5,6 +5,7 @@ import { defineMessage, FormattedMessage, useIntl } from 'react-intl';
 
 import { HelpPageContent } from '@/features/help/components/HelpPageContent';
 import { HelpPageEditor } from '@/features/help/components/HelpPageEditor';
+import { HelpPageUpdate } from '@/features/help/components/HelpPageUpdate';
 import { PinnedHeader } from '@/shared/components/pinned-header';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { useUnsavedChangesGuard } from '@/shared/hooks/useUnsavedChangesGuard';
@@ -20,7 +21,7 @@ const HELP_TABS: readonly { label: { defaultMessage: string }; page: HelpPageEnu
 ];
 
 export function AdminHelpPage() {
-  const { formatDate, formatMessage, formatTime } = useIntl();
+  const { formatMessage } = useIntl();
   const toasts = useToasts();
   const { waitForConfirmation } = useConfirmModal();
   const [page, setPage] = useState<HelpPageEnum>('SECRETARIAT_GENERAL');
@@ -135,18 +136,7 @@ export function AdminHelpPage() {
                   </li>
                 ))}
               </ul>
-              {data?.updatedBy && (
-                <p className="fr-hint-text fr-mb-0 fr-pb-2v">
-                  <FormattedMessage
-                    defaultMessage="Mise à jour le {date} à {time} par {name}"
-                    values={{
-                      date: formatDate(data.updatedAt, { format: 'zonedDateShort' }),
-                      name: data.updatedBy.name,
-                      time: formatTime(data.updatedAt, { format: 'zonedTimeShort' }),
-                    }}
-                  />
-                </p>
-              )}
+              {data && <HelpPageUpdate className="fr-pb-2v" helpPage={data} />}
             </div>
           </div>
         )}
@@ -165,10 +155,9 @@ export function AdminHelpPage() {
               {/* the editor stays mounted, out of sight, to keep its state */}
               {isPreviewing && (
                 <>
-                  <div className="fr-p-2v flex justify-end pt-3.5!">
+                  <div className="fr-px-3v fr-py-2v flex justify-end pt-3.5!">
                     <Button
                       iconId="fr-icon-edit-line"
-                      iconPosition="right"
                       onClick={() => setIsPreviewing(false)}
                       priority="tertiary no outline"
                       size="small"

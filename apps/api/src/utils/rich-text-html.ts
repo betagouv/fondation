@@ -23,14 +23,11 @@ const cellAttributes: ReadonlyMap<string, AttributeRule> = new Map([
   ['rowspan', integer],
 ]);
 
-const ATTRIBUTES_BY_EDITOR_TAG: AttributesByTag = new Map([
-  ['a', new Map([['href', (value) => webUrl(value) || mailAddress(value) || sectionAnchor(value)]])],
-  ['aside', noAttribute],
+const ATTRIBUTES_BY_TEXT_TAG: AttributesByTag = new Map([
   ['em', noAttribute],
-  ['h1', titleAttributes],
-  ['h2', titleAttributes],
-  ['h3', titleAttributes],
-  ['hr', noAttribute],
+  ['h1', noAttribute],
+  ['h2', noAttribute],
+  ['h3', noAttribute],
   [
     'img',
     new Map([
@@ -55,14 +52,25 @@ const ATTRIBUTES_BY_EDITOR_TAG: AttributesByTag = new Map([
   ['p', noAttribute],
   ['span', new Map([['style', color]])],
   ['strong', noAttribute],
+  ['u', noAttribute],
+  ['ul', noAttribute],
+]);
+
+// the links, tables and videos of a help page stay out of the reports, summaries and comments of the members
+const ATTRIBUTES_BY_PAGE_TAG: AttributesByTag = new Map([
+  ...ATTRIBUTES_BY_TEXT_TAG,
+  ['a', new Map([['href', (value) => webUrl(value) || mailAddress(value) || sectionAnchor(value)]])],
+  ['aside', noAttribute],
+  ['h1', titleAttributes],
+  ['h2', titleAttributes],
+  ['h3', titleAttributes],
+  ['hr', noAttribute],
   ['table', noAttribute],
   ['tbody', noAttribute],
   ['td', cellAttributes],
   ['th', cellAttributes],
   ['thead', noAttribute],
   ['tr', noAttribute],
-  ['u', noAttribute],
-  ['ul', noAttribute],
   [
     'video',
     new Map([
@@ -88,7 +96,13 @@ export function fileIdsReferencedIn(html: string): Set<string> {
 
 /** mirrors the rich text editor: a tag it does not write is unwrapped to its text rather than dropped */
 export function sanitizeRichTextHtml(html: string): string {
-  return sanitizeHtml(html, ATTRIBUTES_BY_EDITOR_TAG);
+  return sanitizeHtml(html, ATTRIBUTES_BY_TEXT_TAG);
+}
+
+export function sanitizeRichPageHtml(html: string): string {
+  return sanitizeHtml(html, ATTRIBUTES_BY_PAGE_TAG);
 }
 
 export const richTextHtml = z.string().transform(sanitizeRichTextHtml);
+
+export const richPageHtml = z.string().transform(sanitizeRichPageHtml);

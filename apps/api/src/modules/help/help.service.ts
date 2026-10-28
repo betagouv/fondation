@@ -4,10 +4,9 @@ import { Injectable } from '@nestjs/common';
 import { isDefined } from '../../utils/is-defined';
 import { Db } from '../framework/database';
 import { Files } from '../framework/files';
-import { FILE_MIME_TYPES, filenameToMimeType } from '../framework/files/mime-type';
 import type { RoleEnum } from '../shared/role.enum';
 
-import type { HelpPageEnum } from './domain/help-page';
+import { helpPageOf, type HelpPageEnum } from './domain/help-page';
 import { HelpPageRepository } from './infrastructure/help-page.repository';
 import { IncludedFilesInHelpPageContentDto } from './infrastructure/help.dto';
 import { DetailedHelpPageDto, DetailHelpPageQuery } from './infrastructure/queries/detail-help-page.query';
@@ -24,6 +23,11 @@ export class HelpService {
   @Transactional()
   detailHelpPage(query: { page: HelpPageEnum; user: { role: RoleEnum } }): Promise<DetailedHelpPageDto> {
     return this.detailHelpPageQuery.handle(query);
+  }
+
+  @Transactional()
+  detailReaderHelpPage(query: { user: { role: RoleEnum } }): Promise<DetailedHelpPageDto> {
+    return this.detailHelpPageQuery.handle({ page: helpPageOf(query.user), user: query.user });
   }
 
   async includeFilesIntoContent(command: {
@@ -45,7 +49,6 @@ export class HelpService {
         return {
           id,
           name: file.name,
-          type: filenameToMimeType(file.name) ?? FILE_MIME_TYPES.bin,
           url: url.toString(),
         };
       })

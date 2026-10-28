@@ -7,7 +7,9 @@ import type { DetailedHelpPageDto, HelpPageEnum } from '@api/types';
 export type { HelpPageEnum };
 
 export const helpKeys = {
+  all: () => ['help'] as const,
   detailHelpPage: (props?: { page: HelpPageEnum }) => ['help', 'detailHelpPage', props] as const,
+  detailReaderHelpPage: () => ['help', 'detailReaderHelpPage'] as const,
 };
 
 export const useHelpPageQuery = (options: { page: HelpPageEnum }) =>
@@ -19,6 +21,18 @@ export const useHelpPageQuery = (options: { page: HelpPageEnum }) =>
       return data;
     },
     queryKey: helpKeys.detailHelpPage(options),
+    refetchOnWindowFocus: false,
+  });
+
+export const useReaderHelpPageQuery = () =>
+  useQuery({
+    queryFn: async () => {
+      const { data } = await $api.help.detailReaderHelpPage({ throwOnError: true });
+      data.content = withScreenshotUrls(data.content, data.screenshots);
+
+      return data;
+    },
+    queryKey: helpKeys.detailReaderHelpPage(),
     refetchOnWindowFocus: false,
   });
 
@@ -56,7 +70,6 @@ export function useWriteHelpPageContentMutation() {
         throwOnError: true,
       });
     },
-    onSuccess: (_, { page }) =>
-      queryClient.invalidateQueries({ queryKey: helpKeys.detailHelpPage({ page }) }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: helpKeys.all() }),
   });
 }

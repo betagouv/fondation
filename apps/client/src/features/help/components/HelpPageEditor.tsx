@@ -9,6 +9,7 @@ import { useToasts } from '@/shared/ui/toast';
 import { type HelpPageEnum, useIncludeFilesInHelpPageContentMutation } from '@queries/help.queries';
 
 const UPLOAD_FAILURES = defineMessages({
+  // see IMAGE_MAX_BYTES and VIDEO_MAX_BYTES in apps/api/src/modules/help/infrastructure/help.dto.ts
   refused: { defaultMessage: 'Une image pèse 5 Mo au plus, une vidéo mp4 ou webm 50 Mo au plus.' },
   timeout: { defaultMessage: "L'envoi a dépassé 5 minutes : la connexion est trop lente pour ce fichier." },
 });
@@ -63,7 +64,6 @@ export function HelpPageEditor(props: {
         toolbarEnd={
           <Button
             iconId="fr-icon-eye-line"
-            iconPosition="right"
             onClick={props.onPreview}
             priority="tertiary no outline"
             size="small"
