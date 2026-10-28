@@ -1,9 +1,11 @@
+import Button from '@codegouvfr/react-dsfr/Button';
 import { createColumnHelper, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import clsx from 'clsx';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
-import { generatePath } from 'react-router';
+import { generatePath, useNavigate } from 'react-router';
 
+import { AdminUserCreationModal } from '@/features/administration/components/AdminUserCreationModal';
 import { AdminUserRole } from '@/features/administration/components/AdminUserRole';
 import { ROLE_OPTIONS, type AdminUserRoleEnum } from '@/features/administration/labels/admin-user-enum';
 import { PinnedHeader } from '@/shared/components/pinned-header';
@@ -22,8 +24,13 @@ import { SearchInput } from '@/shared/ui/search-input';
 import { Tooltip } from '@/shared/ui/tooltip';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { capitalize } from '@/utils/string.utils';
+import { ValidationError } from '@/utils/validation-error';
 import type { PaginatedAdminUserListItemDto } from '@api/types';
-import { type AdminUsersSorting, useInfiniteAdminUsersQuery } from '@queries/administration.queries';
+import {
+  type AdminUsersSorting,
+  useCreateUserMutation,
+  useInfiniteAdminUsersQuery,
+} from '@queries/administration.queries';
 
 type AdminUserItem = PaginatedAdminUserListItemDto['items'][number];
 const h = createColumnHelper<AdminUserItem>();
@@ -137,6 +144,47 @@ function EditButton(props: { user: AdminUserItem }) {
   );
 }
 
+function CreateUserButton() {
+  const navigate = useNavigate();
+  const createUser = useCreateUserMutation();
+  // the modal outlives the closing, for it to fade out with its content
+  const [creation, setCreation] = useState<{ open: boolean } | null>(null);
+
+  const close = () => {
+    setCreation((current) => current && { open: false });
+    createUser.reset();
+  };
+
+  return (
+    <>
+      <Button
+        className="btn-compact"
+        iconId="fr-icon-user-add-line"
+        onClick={() => setCreation({ open: true })}
+        priority="secondary"
+        size="small"
+      >
+        <FormattedMessage defaultMessage="Créer un compte" />
+      </Button>
+      {creation ? (
+        <AdminUserCreationModal
+          emailError={ValidationError.messageOf(createUser.error)}
+          hasFailed={ValidationError.isOtherFailure(createUser.error)}
+          isSaving={createUser.isPending}
+          onClose={close}
+          onClosed={() => setCreation(null)}
+          onSave={(user) =>
+            createUser.mutate(user, {
+              onSuccess: ({ id }) => navigate(generatePath(ROUTE_PATHS.ADMIN.USER_DETAIL, { userId: id })),
+            })
+          }
+          open={creation.open}
+        />
+      ) : null}
+    </>
+  );
+}
+
 export function AdminUserListPage() {
   const { formatMessage } = useIntl();
   const { onColumnFiltersChange, onSortingChange, setTableState, tableState } = useDataTableUrlState({
@@ -200,10 +248,13 @@ export function AdminUserListPage() {
       <PinnedHeader
         bar={(isPinned) => (
           <div className={clsx('flex flex-col gap-y-6', { 'fr-container': isPinned })}>
-            <h1 className="fr-h3 fr-mb-0">
-              <FormattedMessage defaultMessage="Gérer les utilisateurs" />
-              {data && <DataTableCount loaded={users.length} total={data.totalCount} />}
-            </h1>
+            <div className="flex items-center justify-between gap-4">
+              <h1 className="fr-h3 fr-mb-0">
+                <FormattedMessage defaultMessage="Gérer les utilisateurs" />
+                {data && <DataTableCount loaded={users.length} total={data.totalCount} />}
+              </h1>
+              <CreateUserButton />
+            </div>
             <div className="flex items-center justify-between gap-4">
               <DataTableFilters table={table} />
               <SearchInput

@@ -20,6 +20,10 @@ export type AuthUser = {
   gender: 'MALE' | 'FEMALE';
 };
 
+export function strongPassword(): string {
+  return `Aa1-${crypto.randomUUID()}`;
+}
+
 export async function registerUser<Role extends RoleEnum>(options: {
   client: Client;
   user: Role | (Partial<Omit<RegisterUserDto, 'role'>> & { role: Role });
@@ -36,7 +40,7 @@ export async function registerUser<Role extends RoleEnum>(options: {
     firstName: inputUser.firstName ?? faker.person.firstName(),
     lastName: inputUser.lastName ?? faker.person.lastName(),
     gender: inputUser.gender ?? faker.helpers.arrayElement(['MALE', 'FEMALE']),
-    password: inputUser.password ?? crypto.randomUUID(),
+    password: inputUser.password ?? strongPassword(),
   } satisfies RegisterUserDto;
 
   const client = options.client;

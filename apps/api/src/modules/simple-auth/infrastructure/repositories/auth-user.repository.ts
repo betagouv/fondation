@@ -11,8 +11,8 @@ import {
   AuthOpenIdRequestCompleted,
   AuthUser,
   AuthUserAuthenticated,
+  AuthUserPasswordChanged,
   AuthUserPasswordRehashed,
-  AuthUserRegistered,
   AuthUserSessionsRevoked,
   AuthUserUnAuthenticated,
 } from '../../domain/auth-user';
@@ -44,11 +44,11 @@ export class AuthUserRepository {
   @Transactional()
   async persist(user: AuthUser): Promise<void> {
     for (const event of user.messages) {
-      if (event instanceof AuthUserRegistered) await this.persistUserRegistered(event);
-      else if (event instanceof AuthUserAuthenticated) await this.persistUserAuthenticated(event);
+      if (event instanceof AuthUserAuthenticated) await this.persistUserAuthenticated(event);
       else if (event instanceof AuthUserUnAuthenticated) await this.persistAuthUserUnAuthenticated(event);
       else if (event instanceof AuthUserSessionsRevoked) await this.persistAuthUserSessionsRevoked(event);
-      else if (event instanceof AuthUserPasswordRehashed) await this.persistPasswordRehashed(event);
+      else if (event instanceof AuthUserPasswordRehashed || event instanceof AuthUserPasswordChanged)
+        await this.persistPassword(event);
       else if (event instanceof AuthImpersonationStarted) await this.persistImpersonationStarted(event);
       else if (event instanceof AuthImpersonationRevoked) await this.persistImpersonationRevoked(event);
       else if (event instanceof AuthOpenIdRequestCompleted)
@@ -70,22 +70,7 @@ export class AuthUserRepository {
     });
   }
 
-  private persistUserRegistered(event: AuthUserRegistered) {
-    return this.db.tx.user.create({
-      data: {
-        email: event.email,
-        firstName: event.firstName,
-        gender: event.gender,
-        id: event.id,
-        isAdmin: event.isAdmin,
-        lastName: event.lastName,
-        password: event.password,
-        role: event.role,
-      },
-    });
-  }
-
-  private persistPasswordRehashed(event: AuthUserPasswordRehashed) {
+  private persistPassword(event: AuthUserPasswordRehashed | AuthUserPasswordChanged) {
     return this.db.tx.user.update({ data: { password: event.password }, where: { id: event.id } });
   }
 

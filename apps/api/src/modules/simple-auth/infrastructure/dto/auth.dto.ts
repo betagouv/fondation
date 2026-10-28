@@ -1,8 +1,7 @@
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { GenderEnum } from '../../../shared/gender.enum';
-import { RoleEnum } from '../../../shared/role.enum';
+import { PasswordSchema } from '../../../shared/password.schema';
 
 export const LoginDtoSchema = z.object({
   email: z.string().trim().pipe(z.email()),
@@ -11,16 +10,9 @@ export const LoginDtoSchema = z.object({
 
 export class LoginDto extends createZodDto(LoginDtoSchema) {}
 
-export class RegisterUserDto extends createZodDto(
+export class ChangePasswordDto extends createZodDto(
   z.object({
-    firstName: z.string(),
-    lastName: z.string(),
-    gender: z.enum(GenderEnum),
-    email: z.email().toLowerCase(),
-    password: z.string(),
-    role: z.enum(RoleEnum).nullish(),
-    isAdmin: z.boolean().optional(),
+    currentPassword: LoginDtoSchema.shape.password,
+    newPassword: PasswordSchema,
   }),
 ) {}
-
-export class RegisteredUserDto extends createZodDto(z.object({ id: z.uuid() })) {}

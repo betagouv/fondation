@@ -8,20 +8,6 @@ export type ClientOptions = {
     baseUrl: string;
 };
 
-export type RegisterUserDto = {
-    firstName: string;
-    lastName: string;
-    gender: 'MALE' | 'FEMALE';
-    email: string;
-    password: string;
-    role?: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | null;
-    isAdmin?: boolean;
-};
-
-export type RegisteredUserDto = {
-    id: string;
-};
-
 export type LoginDto = {
     email: string;
     password: string;
@@ -31,14 +17,21 @@ export type DetailedUserResponseDto = {
     userId: string;
     firstName: string;
     lastName: string;
+    email: string;
     role: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL';
     formation: 'SIEGE' | 'PARQUET' | null;
     gender: 'MALE' | 'FEMALE';
     isImpersonated: boolean;
+    passwordChange: 'ALLOWED' | 'IMPERSONATED';
     isAdmin: boolean;
     displayTitle: string | null;
     duty: 'PRESIDENT' | 'DEPUTY_PRESIDENT' | 'SECRETARY' | 'OFFICER' | null;
     title: 'PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_PARQUET' | 'FIRST_SECRETARY' | null;
+};
+
+export type ChangePasswordDto = {
+    currentPassword: string;
+    newPassword: string;
 };
 
 export type ListedOpenIdProvidersDto = {
@@ -2355,6 +2348,19 @@ export type PaginatedAdminUserListItemDto = {
     };
 };
 
+export type CreateUserDto = {
+    email: string;
+    firstName: string;
+    gender: 'MALE' | 'FEMALE';
+    lastName: string;
+    password: string;
+    role: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+};
+
+export type CreatedUserDto = {
+    id: string;
+};
+
 export type DetailedAdminUserDto = {
     id: string;
     firstName: string;
@@ -2377,6 +2383,18 @@ export type DetailedAdminUserDto = {
     }>;
 };
 
+export type ListedTitleHoldersDto = {
+    items: Array<{
+        holder: {
+            gender: 'MALE' | 'FEMALE';
+            id: string;
+            name: string;
+            nextRole: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+        };
+        role: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+    }>;
+};
+
 export type UpdateUserEmailDto = {
     email: string;
 };
@@ -2391,6 +2409,20 @@ export type UpdateUserRoleDto = {
 
 export type UpdateUserDisplayTitleDto = {
     displayTitle: string | null;
+};
+
+export type RegisterUserDto = {
+    email: string;
+    firstName: string;
+    gender: 'MALE' | 'FEMALE';
+    isAdmin?: boolean;
+    lastName: string;
+    password: string;
+    role?: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | null;
+};
+
+export type RegisteredUserDto = {
+    id: string;
 };
 
 export type FoundFeedbackDto = {
@@ -2503,6 +2535,19 @@ export type IntrospectSessionResponses = {
 };
 
 export type IntrospectSessionResponse = IntrospectSessionResponses[keyof IntrospectSessionResponses];
+
+export type ChangePasswordData = {
+    body: ChangePasswordDto;
+    path?: never;
+    query?: never;
+    url: '/api/auth/v2/password';
+};
+
+export type ChangePasswordResponses = {
+    204: void;
+};
+
+export type ChangePasswordResponse = ChangePasswordResponses[keyof ChangePasswordResponses];
 
 export type LogoutData = {
     body?: never;
@@ -5029,6 +5074,19 @@ export type ListUsersResponses = {
 
 export type ListUsersResponse = ListUsersResponses[keyof ListUsersResponses];
 
+export type CreateUserData = {
+    body: CreateUserDto;
+    path?: never;
+    query?: never;
+    url: '/api/administration/v1/users';
+};
+
+export type CreateUserResponses = {
+    201: CreatedUserDto;
+};
+
+export type CreateUserResponse = CreateUserResponses[keyof CreateUserResponses];
+
 export type DetailsUserData = {
     body?: never;
     path: {
@@ -5043,6 +5101,19 @@ export type DetailsUserResponses = {
 };
 
 export type DetailsUserResponse = DetailsUserResponses[keyof DetailsUserResponses];
+
+export type ListTitleHoldersData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/administration/v1/title-holders';
+};
+
+export type ListTitleHoldersResponses = {
+    200: ListedTitleHoldersDto;
+};
+
+export type ListTitleHoldersResponse = ListTitleHoldersResponses[keyof ListTitleHoldersResponses];
 
 export type UpdateEmailData = {
     body: UpdateUserEmailDto;

@@ -2,12 +2,11 @@ import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
 import { Clock } from '../framework/clock';
-import { GenderEnum } from '../shared/gender.enum';
 import type { RoleEnum } from '../shared/role.enum';
 
 import { AuthImpersonation } from './domain/auth-impersonation';
 import { AuthSession } from './domain/auth-session';
-import { AuthUser, AuthUserNotAuthentifiable } from './domain/auth-user';
+import { AuthUserNotAuthentifiable } from './domain/auth-user';
 import { PasswordHasher } from './infrastructure/password-hasher';
 import { DetailsUserFromImpersonationQuery } from './infrastructure/queries/details-user-from-impesronation-id.query';
 import { DetailsUserFromSessionIdQuery } from './infrastructure/queries/details-user-from-session-id.query';
@@ -42,9 +41,9 @@ export class SimpleAuthService {
   }
 
   findImpersonatedUser(impersonation: {
-    id: string;
     authSessionId: string;
-  }): Promise<{ id: string; isAdmin: boolean; role: string; impersonatorId: string } | null> {
+    id: string;
+  }): Promise<{ id: string; impersonatorId: string; isAdmin: boolean; role: string } | null> {
     return this.detailsUserFromImpersonationQuery.handle(impersonation);
   }
 
@@ -70,25 +69,44 @@ export class SimpleAuthService {
   }
 
   detailsUser(query: {
-    userId: string;
     impersonationId: string | undefined;
+    userId: string;
   }): Promise<DetailedUserResponseDto> {
     return this.detailsUserQuery.handle(query);
   }
 
   listUsers(query: {
     activeOnly?: true;
-    search?: string;
-    roles?: readonly RoleEnum[];
-    includeIds?: readonly string[];
     excludeIds?: readonly string[];
+    includeIds?: readonly string[];
     includeIdsOnly?: true;
     limit?: number;
+    roles?: readonly RoleEnum[];
+    search?: string;
   }): Promise<ListedUsersDto> {
     return this.listUsersQuery.handle(query);
   }
 
-  async unAuthenticate(command: { userId: string; sessionId: string }): Promise<void> {
+  @Transactional()
+  async changePassword(command: {
+    currentPassword: string;
+    isImpersonated: boolean;
+    newPassword: string;
+    sessionId: string;
+    userId: string;
+  }): Promise<void> {
+    const user = await this.userRepository.find(command.userId);
+    await user.changePassword({
+      currentPassword: command.currentPassword,
+      hash: (plain) => this.passwordHasher.hash(plain),
+      isImpersonated: command.isImpersonated,
+      keptSessionId: command.sessionId,
+      newPassword: command.newPassword,
+    });
+    await this.userRepository.persist(user);
+  }
+
+  async unAuthenticate(command: { sessionId: string; userId: string }): Promise<void> {
     const user = await this.userRepository.find(command.userId);
     user.unAuthenticate(command.sessionId);
     await this.userRepository.persist(user);
@@ -104,27 +122,10 @@ export class SimpleAuthService {
     await this.userRepository.persist(user);
   }
 
-  async unImpersonate(command: { userId: string; impersonationId: string }): Promise<void> {
+  async unImpersonate(command: { impersonationId: string; userId: string }): Promise<void> {
     const user = await this.userRepository.find(command.userId);
     user.unImpersonate({ impersonationId: command.impersonationId });
     await this.userRepository.persist(user);
-  }
-
-  async registerUser(command: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    password: string;
-    role: RoleEnum;
-    isAdmin: boolean;
-    gender: GenderEnum;
-  }): Promise<{ id: string }> {
-    const user = await AuthUser.register({
-      ...command,
-      password: await this.passwordHasher.hash(command.password),
-    });
-    await this.userRepository.persist(user);
-    return { id: user.id };
   }
 
   async internalHashPassword(plain: string): Promise<string> {
@@ -133,9 +134,9 @@ export class SimpleAuthService {
   }
 
   async impersonate(command: {
-    userId: string;
     authSessionId: string;
     targetUserId: string;
+    userId: string;
   }): Promise<AuthImpersonation> {
     const user = await this.userRepository.find(command.userId);
     const target = await this.userRepository.find(command.targetUserId);

@@ -4,6 +4,7 @@ export const SIDE_PANEL_DOSSIER_PARAM = 'dossier';
 
 export const ROUTE_PATHS = {
   ACCESSIBILITY: '/accessibilite',
+  ACCOUNT: '/mon-compte',
   ADMIN: {
     DETAILS_JOB: '/admin/ingestions/:jobId',
     FEEDBACKS: '/admin/avis',
@@ -109,7 +110,7 @@ export const getObservationDetailsPath = (props: {
   observationId: string;
   sessionId: string;
 }) => {
-  const { sessionId, nominationFileId, observationId } = props;
+  const { nominationFileId, observationId, sessionId } = props;
   if (props.context === 'membre') {
     return generatePath(ROUTE_PATHS.TRANSPARENCES.OBSERVATION_DETAILS, {
       nominationFileId,
@@ -129,7 +130,7 @@ export const getObservationDetailsPath = (props: {
 export const redirectToMemberMagistratDetails = ({ params }: { params: { magistratId?: string } }) =>
   redirect(getMagistratDetailsPath({ context: 'membre', magistratId: params.magistratId ?? '' }));
 
-export const getMagistratDetailsPath = (props: { magistratId: string; context: 'sg' | 'membre' }) => {
+export const getMagistratDetailsPath = (props: { context: 'sg' | 'membre'; magistratId: string }) => {
   if (props.context === 'membre') {
     return generatePath(ROUTE_PATHS.MEMBER.MAGISTRAT_DETAILS, { magistratId: props.magistratId });
   }

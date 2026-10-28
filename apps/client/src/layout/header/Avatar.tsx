@@ -1,17 +1,16 @@
 import { Badge } from '@codegouvfr/react-dsfr/Badge';
-import Button from '@codegouvfr/react-dsfr/Button';
 import type { FC } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { useNavigate } from 'react-router';
 
 import { RoleEnumMessages } from '@/shared/enums/role.enum';
-import { Tooltip } from '@/shared/ui/tooltip';
+import { MenuContent, MenuItem, MenuRoot, MenuTrigger } from '@/shared/ui/menu';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { memberFullName, toInitials } from '@/utils/user.utils';
 import { useLogout, useUser } from '@queries/auth.queries';
 
 export const Avatar: FC = () => {
-  const { user, isError } = useUser();
+  const { isError, user } = useUser();
 
   const navigate = useNavigate();
   const { mutateAsync } = useLogout();
@@ -35,20 +34,40 @@ export const Avatar: FC = () => {
           <FormattedMessage {...RoleEnumMessages[user.role]} />
         )}
       </Badge>
-      <Button className="fr-mb-0" onClick={onClickLogout}>
-        <div className="fr-py-2v flex items-center gap-8 rounded-sm">
-          <div className="flex items-center gap-2">
-            <Tooltip label={memberFullName(user)}>
-              <span className="inline-flex size-8 items-center justify-center rounded-full bg-(--background-default-grey-active) text-sm font-medium text-(--text-default-grey)">
-                {toInitials(user)}
-              </span>
-            </Tooltip>
-            <div className="font-semibold hover:cursor-pointer" id="avatar-logout">
-              <FormattedMessage defaultMessage="Se déconnecter" />
-            </div>
-          </div>
-        </div>
-      </Button>
+      <MenuRoot>
+        <MenuTrigger
+          className="fr-mb-0 after:ml-1! after:transition-transform data-popup-open:after:rotate-180"
+          iconId="fr-icon-arrow-down-s-line"
+          iconPosition="right"
+          priority="tertiary no outline"
+        >
+          <span
+            aria-hidden
+            className="mr-2 inline-flex size-8 items-center justify-center rounded-full bg-(--background-default-grey-active) text-sm font-medium text-(--text-default-grey)"
+          >
+            {toInitials(user)}
+          </span>
+          {memberFullName(user)}
+        </MenuTrigger>
+        <MenuContent>
+          <MenuItem
+            className="px-4! py-3!"
+            iconId="fr-icon-account-circle-line"
+            linkProps={{ to: ROUTE_PATHS.ACCOUNT }}
+            size="small"
+          >
+            <FormattedMessage defaultMessage="Mon compte" />
+          </MenuItem>
+          <MenuItem
+            className="px-4! py-3!"
+            iconId="fr-icon-logout-box-r-line"
+            onClick={onClickLogout}
+            size="small"
+          >
+            <FormattedMessage defaultMessage="Se déconnecter" />
+          </MenuItem>
+        </MenuContent>
+      </MenuRoot>
     </>
   );
 };

@@ -5,7 +5,7 @@ import { generatePath } from 'react-router';
 import { PROMOTABLE_ROLES, ROLE_OPTIONS } from '@/features/administration/labels/admin-user-enum';
 import { PageStory } from '@/shared/storybook/PageStory';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import type { DetailedAdminUserDto } from '@api/types';
+import type { DetailedAdminUserDto, ListedTitleHoldersDto } from '@api/types';
 
 import { AdminUserDetailPage } from './AdminUserDetailPage';
 
@@ -70,6 +70,21 @@ const meta = {
   },
   beforeEach: ({ args, msw }) => {
     msw.use(
+      http.get('*/api/administration/v1/title-holders', () =>
+        HttpResponse.json<ListedTitleHoldersDto>({
+          items: [
+            {
+              holder: {
+                gender: 'FEMALE',
+                id: 'user-1',
+                name: 'Isabelle\u00A0GAUTHIER',
+                nextRole: 'MEMBRE_SIEGE',
+              },
+              role: 'PRESIDENT_SIEGE',
+            },
+          ],
+        }),
+      ),
       http.get('*/api/administration/v1/users/:userId', ({ params }) => {
         const user = Object.values(USERS).find(({ id }) => id === params.userId);
         if (!user) return new HttpResponse(null, { status: 404 });
@@ -90,10 +105,12 @@ const meta = {
                   { changedAt: '2026-10-21T12:32:00.000Z', status: 'DEACTIVATED' },
                   { changedAt: '2026-10-15T07:10:00.000Z', status: 'ACTIVE' },
                   { changedAt: '2026-10-14T16:05:00.000Z', status: 'DEACTIVATED' },
+                  { changedAt: '2026-09-01T08:00:00.000Z', status: 'ACTIVE' },
                 ]
               : [
                   { changedAt: '2026-10-15T07:10:00.000Z', status: 'ACTIVE' },
                   { changedAt: '2026-10-14T16:05:00.000Z', status: 'DEACTIVATED' },
+                  { changedAt: '2026-09-01T08:00:00.000Z', status: 'ACTIVE' },
                 ],
           status: args.status,
         });

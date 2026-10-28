@@ -7,6 +7,7 @@ import { IconButton } from '@/shared/ui/icon-button';
 import { Tooltip } from '@/shared/ui/tooltip';
 import { formatDateOnly } from '@/utils/date-only.util';
 import { formatPhoneNumber } from '@/utils/string.utils';
+import { ValidationError } from '@/utils/validation-error';
 import { useUser } from '@queries/auth.queries';
 import {
   type MagistratPhoneNumber,
@@ -14,7 +15,6 @@ import {
   useDeleteMagistratPhoneNumberMutation,
   useMagistratPhoneNumbersQuery,
   useUpdateMagistratPhoneNumberMutation,
-  ValidationError,
 } from '@queries/magistrats.queries';
 
 import { MagistratPhoneNumberDeleteModal } from './MagistratPhoneNumberDeleteModal';
@@ -61,8 +61,6 @@ export function MagistratPhoneNumbersSection(props: { magistratId: string; magis
     deletePhoneNumber.reset();
   };
   const closed = () => setEditing(null);
-  const numberError = (error: Error | null) => (error instanceof ValidationError ? error.message : null);
-  const hasFailed = (error: Error | null) => !!error && !(error instanceof ValidationError);
   const [firstPhoneNumber, ...otherPhoneNumbers] = phoneNumbers ?? [];
   const isOnTitleLine =
     otherPhoneNumbers.length === 0 && !(firstPhoneNumber?.source === 'FONDATION' && firstPhoneNumber.label);
@@ -109,10 +107,10 @@ export function MagistratPhoneNumbersSection(props: { magistratId: string; magis
 
       {editing?.action === 'ADD' ? (
         <MagistratPhoneNumberModal
-          hasFailed={hasFailed(addPhoneNumber.error)}
+          hasFailed={ValidationError.isOtherFailure(addPhoneNumber.error)}
           isSaving={addPhoneNumber.isPending}
+          numberError={ValidationError.messageOf(addPhoneNumber.error)}
           onClose={close}
-          numberError={numberError(addPhoneNumber.error)}
           onClosed={closed}
           onSave={(phoneNumber) => addPhoneNumber.mutate(phoneNumber, { onSuccess: close })}
           open={editing.open}
@@ -122,11 +120,11 @@ export function MagistratPhoneNumbersSection(props: { magistratId: string; magis
 
       {editing?.action === 'UPDATE' ? (
         <MagistratPhoneNumberModal
-          hasFailed={hasFailed(updatePhoneNumber.error)}
+          hasFailed={ValidationError.isOtherFailure(updatePhoneNumber.error)}
           initialPhoneNumber={editing.phoneNumber}
           isSaving={updatePhoneNumber.isPending}
           key={editing.phoneNumber.id}
-          numberError={numberError(updatePhoneNumber.error)}
+          numberError={ValidationError.messageOf(updatePhoneNumber.error)}
           onClose={close}
           onClosed={closed}
           onSave={(phoneNumber) =>
