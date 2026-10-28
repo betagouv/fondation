@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   CallHandler,
+  ConflictException,
   ExecutionContext,
   Injectable,
   NestInterceptor,
@@ -8,6 +9,7 @@ import {
 import { catchError, Observable, throwError } from 'rxjs';
 
 import {
+  AgendaAlreadyValidated,
   AgendaDocumentNotStored,
   AgendaFilesAlreadyReported,
   EmptyAgenda,
@@ -31,6 +33,10 @@ export class AgendasFilter implements NestInterceptor {
             return new BadRequestException({
               validationError: `Le document n'a pas pu être enregistré, l'ordre du jour n'est donc pas validé`,
             });
+          }
+
+          if (err instanceof AgendaAlreadyValidated) {
+            return new ConflictException({ validationError: `L'ordre du jour est déjà validé` });
           }
 
           if (err instanceof UnknownAgendaFileBlock) {

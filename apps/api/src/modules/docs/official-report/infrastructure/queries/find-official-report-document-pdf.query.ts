@@ -84,10 +84,12 @@ export class FindOfficialReportDocumentPdfQuery {
     const [pdfFileId] = await this.files.create([{ buffer, name, path, mimeType: FILE_MIME_TYPES.pdf }]);
 
     if (pdfFileId) {
-      await this.db.tx.officialReportVersion.update({
-        where: { id: versionId },
+      // a validation sent twice renders twice: the PDF the other one attached meanwhile stays
+      const { count } = await this.db.tx.officialReportVersion.updateMany({
         data: { pdfId: pdfFileId },
+        where: { id: versionId, pdfId: officialReport.pdf?.id ?? null },
       });
+      if (count === 0) this.files.delete([{ id: pdfFileId, path: path.split('/') }]);
     } else {
       this.logger.warn(`Failed storing the PDF file`);
     }

@@ -35,10 +35,13 @@ export class ValidatePresentationPlanUseCase {
     const agendaIds = plan.agendas.map(({ agendaId }) => agendaId);
     const { html, pdf } = await this.findPresentationPlanDocumentPdfQuery.render({ id: command.id });
 
-    await this.settle({ ...command, agendaIds, html, pdfId: pdf.id }).catch((error: unknown) => {
-      this.files.delete([pdf]);
-      throw error;
-    });
+    const attached = await this.settle({ ...command, agendaIds, html, pdfId: pdf.id }).catch(
+      (error: unknown) => {
+        this.files.delete([pdf]);
+        throw error;
+      },
+    );
+    if (!attached) this.files.delete([pdf]);
   }
 
   /** two notices validated at once with a shared agenda would each take it from the other */
@@ -49,21 +52,25 @@ export class ValidatePresentationPlanUseCase {
     id: string;
     pdfId: string;
     validatorId: string;
-  }): Promise<void> {
+  }): Promise<boolean> {
     await this.db.tx.$queryRawTyped(lockAgendasRawQuery(command.agendaIds));
 
     // another validation may have taken an agenda meanwhile, even from a text edited by hand that still reads it
     const stored = await this.db.tx.justicePresentationPlan.findUnique({
       where: { id: command.id },
       select: {
-        html: true,
         agendas: { select: { agendaId: true } },
+        html: true,
+        pdfId: true,
       } satisfies Prisma.JusticePresentationPlanSelect,
     });
     const agendaIds = new Set(stored?.agendas.map(({ agendaId }) => agendaId));
     if (stored?.html !== command.html || agendaIds.symmetricDifference(new Set(command.agendaIds)).size > 0) {
       throw new JusticePresentationPlanChangedWhileValidated();
     }
+
+    // a validation sent twice finds the notice validated by the other one
+    if (stored.pdfId) return false;
 
     await this.db.tx.justicePresentationPlan.update({
       where: { id: command.id },
@@ -86,5 +93,7 @@ export class ValidatePresentationPlanUseCase {
       });
       await this.justicePresentationPlanRepository.persist(draft);
     }
+
+    return true;
   }
 }

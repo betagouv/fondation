@@ -2,6 +2,7 @@ import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, StreamableFile } from '@nestjs/common';
 
 import { Prisma } from '../../../generated/prisma/client';
+import { lockAgendasRawQuery } from '../../../generated/prisma/sql';
 import { DateOnly, DateOnlyJson } from '../../../utils/date-only';
 import { isDefined } from '../../../utils/is-defined';
 import { Clock } from '../../framework/clock';
@@ -180,6 +181,9 @@ export class AgendasService {
     await this.findAgendaDocumentPdfQuery.ensure({ id: command.agendaId });
 
     await this.db.withTransaction(async () => {
+      // a validation sent twice waits for the first one, then finds the agenda validated
+      await this.db.tx.$queryRawTyped(lockAgendasRawQuery([command.agendaId]));
+
       await this.announcingSentenceChanges(command.agendaId, async () => {
         const agenda = await this.agendaRepository.find({
           actorId: command.authorId,

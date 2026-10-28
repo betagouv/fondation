@@ -1,7 +1,7 @@
 import { HttpException } from './http-exception';
 
 export class ValidationError extends Error {
-  static messageOf(error: Error | null): string | null {
+  static messageOf(error: unknown): string | null {
     return error instanceof ValidationError ? error.message : null;
   }
 

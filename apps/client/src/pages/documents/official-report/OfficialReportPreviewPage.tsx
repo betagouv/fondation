@@ -13,6 +13,7 @@ import { useDateAndTime } from '@/shared/hooks/useDateAndTime';
 import { useDocumentFailure } from '@/shared/hooks/useDocumentFailure';
 import { AlertBanner } from '@/shared/ui/alert-banner';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import { ValidationError } from '@/utils/validation-error';
 import {
   useDetailsOfficialReportQuery,
   useDiscardOfficialReportDraftMutation,
@@ -155,7 +156,10 @@ export function OfficialReportPreviewPage() {
               <AlertBanner
                 className="justify-center px-4 py-3"
                 icon="fr-icon-error-fill"
-                message={describeFailure(validate.error ?? discardDraft.error)}
+                message={
+                  ValidationError.messageOf(validate.error) ??
+                  describeFailure(validate.error ?? discardDraft.error)
+                }
                 tone="error"
               />
             )}

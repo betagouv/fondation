@@ -220,6 +220,18 @@ test.describe('Official report', () => {
     );
   });
 
+  test('should answer 409 to an official report validation sent twice', async ({ agent, docs, expect, member }) => {
+    const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
+    const { id: officialReportId } = await docs.officialReport(await docs.agenda(session));
+
+    const validations = await Promise.all([
+      agent.docs.validateOfficialReport({ path: { officialReportId } }),
+      agent.docs.validateOfficialReport({ path: { officialReportId } }),
+    ]);
+    const statuses = validations.map(({ response }) => Number(response?.status));
+    expect(statuses.toSorted((a, b) => a - b)).toEqual([204, 409]);
+  });
+
   test('should not tell a change on a new official report nobody edited', async ({ agent, docs, expect, member }) => {
     const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
     const { id: officialReportId } = await docs.officialReport(await docs.agenda(session));
