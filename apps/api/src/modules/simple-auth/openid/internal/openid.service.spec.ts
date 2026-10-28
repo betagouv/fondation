@@ -47,7 +47,6 @@ describe('OpenIdService', () => {
     clientId: 'client-id',
     clientSecret: 'client-secret',
     claims: null,
-    supportedCodeChallengeMethods: new Set(['S256']),
     wellKnown: new URL('/api/v2/.well-known/openid-configuration', ISSUER).toString(),
   } satisfies OpenIdConfig;
   const clock = { now: () => NOW } as Clock;
@@ -66,12 +65,12 @@ describe('OpenIdService', () => {
       expect(request.authorizationUrl).toBeDefined();
       expect(request.state).toBeDefined();
       expect(request.state.nonce).toBeDefined();
-      expect(request.state.challenge?.toHashString()).toBeDefined();
 
       expect(params.get('response_type')).toBe('code');
       expect(params.get('client_id')).toBe('client-id');
       expect(params.get('redirect_uri')).toBe('https://api.test/api/openid/callback/test-openid');
       expect(params.get('scope')).toBe('openid email');
+      expect(params.get('code_challenge')).toBe(request.state.challenge.toHashString());
       expect(params.get('code_challenge_method')).toBe('S256');
       expect(params.get('acr_values')).toBe('eidas1');
     });
@@ -101,7 +100,7 @@ describe('OpenIdService', () => {
         request: {
           id: request.id,
           nonce: request.state.nonce,
-          challenge: request.state.challenge?.toBuffer() ?? null,
+          challenge: request.state.challenge.toBuffer(),
           createdAt: request.state.createdAt,
           expiresAt: request.state.expiresAt,
         },
@@ -112,7 +111,7 @@ describe('OpenIdService', () => {
       expect(body.get('grant_type')).toBe('authorization_code');
       expect(body.get('code')).toBe('the-code');
       expect(body.get('client_secret')).toBe('client-secret');
-      expect(body.get('code_verifier')).toBe(request.state.challenge?.toString());
+      expect(body.get('code_verifier')).toBe(request.state.challenge.toString());
     });
   });
 });

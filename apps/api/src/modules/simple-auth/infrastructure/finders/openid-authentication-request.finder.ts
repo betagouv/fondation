@@ -14,7 +14,7 @@ export class OpenIdAuthenticationRequestFinder {
 
   @Transactional()
   async find(query: { provider: OpenIdProvider; state: string }): Promise<{
-    challenge: Buffer | null;
+    challenge: Buffer;
     nonce: Buffer;
     createdAt: Date;
     expiresAt: Date;
@@ -41,7 +41,7 @@ export class OpenIdAuthenticationRequestFinder {
     return {
       ...found,
       id: makeId('OpenIdRequest', found.id),
-      challenge: found.challenge ? Buffer.from(found.challenge) : null,
+      challenge: Buffer.from(found.challenge),
       nonce: Buffer.from(found.nonce),
     };
   }

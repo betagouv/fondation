@@ -4,11 +4,11 @@ import { Id, makeId } from '../../../../utils/id';
 import * as time from '../../../../utils/time';
 import { OpenIdProvider } from '../openid.provider';
 
-import { OpenIdConfig } from './openid-config';
+import { OPENID_CODE_CHALLENGE_METHOD, OpenIdConfig } from './openid-config';
 
 type OpenIdRequestState = {
   nonce: Buffer;
-  challenge: OpenIdPkceChallenge | null;
+  challenge: OpenIdPkceChallenge;
   createdAt: Date;
   expiresAt: Date;
 };
@@ -38,14 +38,12 @@ export class OpenIdAuthenticationRequest {
         client_id: this.config.clientId,
         redirect_uri: this.config.urls.redirect.toString(),
         scope: this.config.scopes.join(' '),
+        code_challenge: this.state.challenge.toHashString(),
+        code_challenge_method: this.state.challenge.method,
       }).toString();
 
     if (this.config.claims) url.searchParams.set('claims', this.config.claims.toString());
     if (this.config.acr) url.searchParams.set('acr_values', this.config.acr);
-    if (this.state.challenge) {
-      url.searchParams.set('code_challenge', this.state.challenge.toHashString());
-      url.searchParams.set('code_challenge_method', this.state.challenge.method);
-    }
 
     return url;
   }
@@ -57,10 +55,9 @@ export class OpenIdAuthenticationRequest {
       grant_type: 'authorization_code',
       client_id: this.config.clientId,
       client_secret: this.config.clientSecret,
+      code_verifier: this.state.challenge.toString(),
       redirect_uri: this.config.urls.redirect.toString(),
     });
-
-    if (this.state.challenge) body.set('code_verifier', this.state.challenge.toString());
 
     return {
       url,
@@ -72,10 +69,8 @@ export class OpenIdAuthenticationRequest {
 
   static create(props: { now: Date; config: OpenIdConfig }): OpenIdAuthenticationRequest {
     const expiresAt = new Date(props.now.getTime() + this.REQUEST_DURATION);
-    const challenge = OpenIdPkceChallenge.create(props.config);
-
     const state: OpenIdRequestState = {
-      challenge,
+      challenge: OpenIdPkceChallenge.create(),
       expiresAt,
       createdAt: props.now,
       nonce: randomBytes(32),
@@ -85,7 +80,7 @@ export class OpenIdAuthenticationRequest {
   }
 
   static from(props: {
-    challenge: Buffer | null;
+    challenge: Buffer;
     nonce: Buffer;
     createdAt: Date;
     expiresAt: Date;
@@ -105,17 +100,15 @@ export class OpenIdAuthenticationRequest {
 
     return new OpenIdAuthenticationRequest(props.id, config, {
       ...state,
-      challenge: challenge ? OpenIdPkceChallenge.from(challenge) : null,
+      challenge: OpenIdPkceChallenge.from(challenge),
     });
   }
 }
 
-// this requires `$.code_challenge_methods_supported.includes('S256)` in .well-known
 class OpenIdPkceChallenge {
   private static readonly CHALLENGE_SIZE = 32;
 
-  private static method = 'S256';
-  readonly method = OpenIdPkceChallenge.method;
+  readonly method = OPENID_CODE_CHALLENGE_METHOD;
 
   private constructor(private readonly buffer: Buffer) {}
 
@@ -139,10 +132,7 @@ class OpenIdPkceChallenge {
     return new OpenIdPkceChallenge(verifier);
   }
 
-  static create(config: OpenIdConfig): OpenIdPkceChallenge | null {
-    if (config.enableCodeChallenge === false || !config.supportedCodeChallengeMethods?.has(this.method)) {
-      return null;
-    }
+  static create(): OpenIdPkceChallenge {
     return this.from(randomBytes(this.CHALLENGE_SIZE));
   }
 
