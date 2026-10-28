@@ -3,7 +3,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { FormationEnum } from '@/shared/enums/formation.enum';
 import { useTab } from '@/shared/hooks/useTab';
 import type { PlainDateOnly } from '@/utils/date-only.util';
-import { HttpException } from '@/utils/http-exception';
 import { withValidationError } from '@/utils/validation-error';
 import * as $api from '@api/sdk';
 import type { FoundDocsMembersDto, FoundJusticeContactsDto } from '@api/types';
@@ -662,19 +661,8 @@ export function useUpdatePresentationPlanHtmlMutation(planId: string) {
 export function useValidatePresentationPlanMutation(mutation: { planId: string; onSuccess?: () => unknown }) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async () => {
-      try {
-        await $api.docs.validatePresentationPlan({ path: { planId: mutation.planId } });
-      } catch (error) {
-        if (error instanceof HttpException && [400, 409].includes(error.statusCode)) {
-          const body = await error.response.json().catch(() => null);
-          if (body?.validationError)
-            throw Object.assign(new Error(), { validationError: body.validationError });
-        }
-
-        throw error;
-      }
-    },
+    mutationFn: () =>
+      withValidationError(() => $api.docs.validatePresentationPlan({ path: { planId: mutation.planId } })),
 
     // validating takes the notice's agendas away from the other drafts, and a refused one has changed meanwhile
     onSettled: async (_, error) => {

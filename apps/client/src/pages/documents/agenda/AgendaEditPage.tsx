@@ -16,9 +16,8 @@ import { useDocumentFailure } from '@/shared/hooks/useDocumentFailure';
 import { useUnsavedChangesGuard } from '@/shared/hooks/useUnsavedChangesGuard';
 import { AlertBanner } from '@/shared/ui/alert-banner';
 import { useToasts } from '@/shared/ui/toast';
-import { HttpException } from '@/utils/http-exception';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import { ValidationError } from '@/utils/validation-error';
+import { ValidationError, withValidationError } from '@/utils/validation-error';
 import {
   agendaKeys,
   officialReportKeys,
@@ -81,7 +80,7 @@ export function AgendaEditPage() {
     setIsSaving(true);
     setSaveError(null);
     try {
-      const saved = await editorRef.current?.save();
+      const saved = await withValidationError(async () => editorRef.current?.save());
 
       // the blocks are read again so the edition mention carries the stored date, and
       // the rendered document with them: the server dropped the one it had stored
@@ -126,8 +125,7 @@ export function AgendaEditPage() {
       if (error instanceof AgendaEmptied) throw error;
 
       // the server explains a refused agenda far better than any message written here
-      const refusal = error instanceof HttpException ? await error.response.json().catch(() => null) : null;
-      setSaveError(refusal?.validationError ?? describeFailure(error));
+      setSaveError(ValidationError.messageOf(error) ?? describeFailure(error));
 
       throw error;
     } finally {

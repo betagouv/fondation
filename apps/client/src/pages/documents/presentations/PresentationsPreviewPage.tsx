@@ -10,6 +10,7 @@ import { PresentationBreadcrumb } from '@/features/documents/components/presenta
 import { useDocumentFailure } from '@/shared/hooks/useDocumentFailure';
 import { AlertBanner } from '@/shared/ui/alert-banner';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import { ValidationError } from '@/utils/validation-error';
 import {
   useJusticePresentationPlanHtmlQuery,
   useJusticePresentationPlanMetadataQuery,
@@ -104,11 +105,7 @@ export function PresentationPreviewPage() {
               <AlertBanner
                 className="justify-center px-4 py-3"
                 icon="fr-icon-error-fill"
-                message={
-                  'validationError' in validate.error
-                    ? String(validate.error.validationError)
-                    : describeFailure(validate.error)
-                }
+                message={ValidationError.messageOf(validate.error) ?? describeFailure(validate.error)}
                 tone="error"
               />
             )}
