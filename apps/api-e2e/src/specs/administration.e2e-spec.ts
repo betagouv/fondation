@@ -35,6 +35,41 @@ test.describe('Administration', () => {
     expect(details.data!.email).toBe(credentials.email);
   });
 
+  test('should let an account an admin created log in with its initial password, listed under the role it was given', async ({
+    admin,
+    baseUrl,
+    expect,
+    sql,
+  }) => {
+    const credentials = { email: `created+${crypto.randomUUID()}@example.fr`, password: strongPassword() };
+
+    const { data: created } = await admin.administration.createUser({
+      body: {
+        ...credentials,
+        firstName: 'Joséphine',
+        gender: 'FEMALE',
+        lastName: 'Pibault',
+        role: 'OFFICER',
+      },
+      throwOnError: true,
+    });
+
+    const anonymous = makeStepsFixtures({ baseUrl });
+    const { response } = await anonymous.auth.login({ body: credentials });
+    expect(response?.status).toBe(204);
+    const { data: officers } = await admin.administration.listUsers({
+      query: { roles: ['OFFICER'], search: credentials.email },
+      throwOnError: true,
+    });
+    expect(officers.items).toEqual([
+      expect.objectContaining({ id: created.id, isAdmin: false, role: 'OFFICER', status: 'ACTIVE' }),
+    ]);
+    const changes = await sql`
+      select status, changed_by as "changedBy" from identity_and_access_context.user_status_changes
+      where user_id = ${created.id}`;
+    expect(changes).toEqual([{ changedBy: admin['@user']!.id, status: 'ACTIVE' }]);
+  });
+
   test('should refuse to give a user the email of another one, however it is typed', async ({
     admin,
     baseUrl,
@@ -189,7 +224,7 @@ test.describe('Administration', () => {
   });
 
   test.describe('Given a deactivated member', () => {
-    test('should detail the account with its status changes, the latest first', async ({
+    test('should detail the account with its status changes since its creation, the latest first', async ({
       admin,
       expect,
       registerUser,
@@ -199,8 +234,16 @@ test.describe('Administration', () => {
       await admin.administration.reactivate({ path: { userId: user.id }, throwOnError: true });
       await admin.administration.deactivate({ path: { userId: user.id }, throwOnError: true });
 
-      const { data } = await admin.administration.detailsUser({ path: { userId: user.id }, throwOnError: true });
-      expect(data.statusChanges.map(({ status }) => status)).toEqual(['DEACTIVATED', 'ACTIVE', 'DEACTIVATED']);
+      const { data } = await admin.administration.detailsUser({
+        path: { userId: user.id },
+        throwOnError: true,
+      });
+      expect(data.statusChanges.map(({ status }) => status)).toEqual([
+        'DEACTIVATED',
+        'ACTIVE',
+        'DEACTIVATED',
+        'ACTIVE',
+      ]);
       expect(data.deactivatedAt).toBe(data.statusChanges[0]!.changedAt);
     });
 

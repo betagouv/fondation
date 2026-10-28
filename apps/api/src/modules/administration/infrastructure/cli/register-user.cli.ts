@@ -5,7 +5,7 @@ import z from 'zod';
 import { GenderEnum } from '../../../shared/gender.enum';
 import { PasswordSchema } from '../../../shared/password.schema';
 import { RoleEnum } from '../../../shared/role.enum';
-import { SimpleAuthService } from '../../simple-auth.service';
+import { AdministrationService } from '../../administration.service';
 
 const RegisterUserKey = {
   email: 'email',
@@ -31,7 +31,7 @@ type RegisterUserOptions = {
 export class RegisterUserCliCommand extends CommandRunner {
   constructor(
     private readonly inquirer: InquirerService,
-    private readonly auth: SimpleAuthService,
+    private readonly administration: AdministrationService,
   ) {
     super();
   }
@@ -92,7 +92,7 @@ export class RegisterUserCliCommand extends CommandRunner {
       password: string;
       role: RoleEnum;
     }>(prompts, options);
-    await this.auth.registerUser({
+    await this.administration.registerUser({
       ...answers,
       isAdmin: options.isAdmin ?? false,
       password: PasswordSchema.parse(answers.password),

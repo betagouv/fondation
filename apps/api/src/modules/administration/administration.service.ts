@@ -4,9 +4,12 @@ import { Injectable } from '@nestjs/common';
 import { Clock } from '../framework/clock';
 import { Pagination } from '../framework/pagination';
 import { Sortable } from '../framework/sorting';
+import { GenderEnum } from '../shared/gender.enum';
+import type { RoleEnum } from '../shared/role.enum';
 import { UserStatus } from '../shared/user-status.enum';
 import { SimpleAuthService } from '../simple-auth';
 
+import { AdminUserRole } from './domain/admin-user-role';
 import { User } from './domain/user';
 import { AdminUserRoleEnum } from './domain/user-enum';
 import { ListUsersQueryDto } from './infrastructure/dto/administration.dto';
@@ -38,6 +41,61 @@ export class AdministrationService {
     return this.detailsUserQuery.handle(query);
   }
 
+  async createUser(command: {
+    actorId: string;
+    email: string;
+    firstName: string;
+    gender: GenderEnum;
+    lastName: string;
+    password: string;
+    role: AdminUserRoleEnum;
+  }): Promise<{ id: string }> {
+    return this.register({
+      ...command,
+      hashedPassword: await this.auth.internalHashPassword(command.password),
+      isAdmin: false,
+      registeredBy: command.actorId,
+      role: AdminUserRole.ofNewAccount(command.role),
+    });
+  }
+
+  /** for the CLI and the development route, which register an account outside the administration */
+  async registerUser(command: {
+    email: string;
+    firstName: string;
+    gender: GenderEnum;
+    isAdmin: boolean;
+    lastName: string;
+    password: string;
+    role: RoleEnum;
+  }): Promise<{ id: string }> {
+    return this.register({
+      ...command,
+      hashedPassword: await this.auth.internalHashPassword(command.password),
+      registeredBy: null,
+      role: AdminUserRole.from({ duty: null, role: command.role, title: null }),
+    });
+  }
+
+  // the password is hashed before, for the slow hash not to hold a connection of the pool
+  @Transactional()
+  private async register(command: {
+    email: string;
+    firstName: string;
+    gender: GenderEnum;
+    hashedPassword: string;
+    isAdmin: boolean;
+    lastName: string;
+    registeredBy: string | null;
+    role: AdminUserRole;
+  }): Promise<{ id: string }> {
+    User.assertEmailFree(await this.userRepository.isEmailTaken(command.email));
+
+    const user = User.register({ ...command, now: this.clock.now() });
+    await this.userRepository.persist(user);
+    return { id: user.id };
+  }
+
   @Transactional()
   async updateEmail(command: { userId: string; email: string }): Promise<void> {
     const user = await this.userRepository.findById(command.userId);
@@ -48,10 +106,22 @@ export class AdministrationService {
     await this.userRepository.persist(user);
   }
 
-  @Transactional()
   async updatePassword(command: { actorSessionId: string; password: string; userId: string }): Promise<void> {
+    await this.updateHashedPassword({
+      ...command,
+      hashedPassword: await this.auth.internalHashPassword(command.password),
+    });
+  }
+
+  // the password is hashed before, for the slow hash not to hold a connection of the pool
+  @Transactional()
+  private async updateHashedPassword(command: {
+    actorSessionId: string;
+    hashedPassword: string;
+    userId: string;
+  }): Promise<void> {
     const user = await this.userRepository.findById(command.userId);
-    user.updatePassword(await this.auth.internalHashPassword(command.password));
+    user.updatePassword(command.hashedPassword);
     await this.userRepository.persist(user);
     // an admin changing their own password stays logged in
     await this.auth.internalRevokeSessions({ keptSessionId: command.actorSessionId, userId: command.userId });

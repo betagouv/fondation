@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Param,
   ParseUUIDPipe,
+  Post,
   Put,
   Query,
   UseInterceptors,
@@ -20,6 +21,8 @@ import { AdministrationService } from '../administration.service';
 
 import { AdministrationErrorMapper } from './administration.filter';
 import {
+  CreatedUserDto,
+  CreateUserDto,
   ListUsersQueryDto,
   UpdateUserDisplayTitleDto,
   UpdateUserEmailDto,
@@ -50,6 +53,14 @@ export class AdministrationController {
       sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
       statuses: query.statuses,
     });
+  }
+
+  @HasRole('ADMIN')
+  @Post('/users')
+  @UsePipes(ZodValidationPipe)
+  @ZodResponse({ status: HttpStatus.CREATED, type: CreatedUserDto })
+  createUser(@AuthedUser() actor: { id: string }, @Body() body: CreateUserDto): Promise<CreatedUserDto> {
+    return this.administration.createUser({ ...body, actorId: actor.id });
   }
 
   @HasRole('ADMIN')

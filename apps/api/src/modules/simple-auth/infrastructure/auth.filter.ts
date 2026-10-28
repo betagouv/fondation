@@ -8,35 +8,21 @@ import {
 } from '@nestjs/common';
 
 import {
-  AdminOutsideSecretariat,
   AuthUserNotAuthentifiable,
   CannotChangePassword,
   DeactivatedUserNotImpersonable,
   WrongCurrentPassword,
 } from '../domain/auth-user';
 
-@Catch(
-  AdminOutsideSecretariat,
-  AuthUserNotAuthentifiable,
-  CannotChangePassword,
-  DeactivatedUserNotImpersonable,
-  WrongCurrentPassword,
-)
+@Catch(AuthUserNotAuthentifiable, CannotChangePassword, DeactivatedUserNotImpersonable, WrongCurrentPassword)
 export class AuthExceptionFilter implements ExceptionFilter {
   catch(
     exception:
-      | AdminOutsideSecretariat
       | AuthUserNotAuthentifiable
       | CannotChangePassword
       | DeactivatedUserNotImpersonable
       | WrongCurrentPassword,
   ) {
-    if (exception instanceof AdminOutsideSecretariat) {
-      throw new BadRequestException({
-        validationError: `Le droit administrateur est réservé au secrétariat général`,
-      });
-    }
-
     if (exception instanceof AuthUserNotAuthentifiable) {
       throw new UnauthorizedException();
     }

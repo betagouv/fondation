@@ -606,22 +606,30 @@ function AccessCard(props: { user: DetailedAdminUserDto }) {
 
 function AccountStatusHistory(props: { statusChanges: DetailedAdminUserDto['statusChanges'] }) {
   const { formatDate, formatMessage, formatTime } = useIntl();
-  if (props.statusChanges.length < 2) return null;
+  if (props.statusChanges.length === 0) return null;
 
   return (
     <Tooltip
       className="-ml-2"
       label={
         <ul className="fr-m-0 fr-p-0 flex list-none flex-col gap-1.5">
-          {props.statusChanges.map(({ changedAt, status }) => {
+          {props.statusChanges.map(({ changedAt, status }, index) => {
             const values = {
               date: formatDate(changedAt, { format: 'zonedDateShort' }),
               time: formatTime(changedAt, { format: 'zonedTimeShort' }),
             };
+            // the oldest change, last of the list, is the creation of the account
+            const isCreation = index === props.statusChanges.length - 1;
             return (
               <li className="fr-p-0 flex items-center gap-2" key={changedAt}>
-                <UserStatusBadge status={status} />
-                <FormattedMessage defaultMessage="le {date} à {time}" values={values} />
+                {isCreation ? (
+                  <FormattedMessage defaultMessage="Créé le {date} à {time}" values={values} />
+                ) : (
+                  <>
+                    <UserStatusBadge status={status} />
+                    <FormattedMessage defaultMessage="le {date} à {time}" values={values} />
+                  </>
+                )}
               </li>
             );
           })}

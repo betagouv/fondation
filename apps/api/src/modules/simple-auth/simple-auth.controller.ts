@@ -12,18 +12,9 @@ import {
   Req,
   Res,
   UseFilters,
-  UseGuards,
   UsePipes,
 } from '@nestjs/common';
-import {
-  ApiBasicAuth,
-  ApiBody,
-  ApiConsumes,
-  ApiExcludeEndpoint,
-  ApiExtraModels,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBasicAuth, ApiBody, ApiConsumes, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
   type CookieOptions,
   type Request as ExpressRequest,
@@ -34,19 +25,12 @@ import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 import { AuthImpersonation } from './domain/auth-impersonation';
 import { AuthSession } from './domain/auth-session';
 import { AuthExceptionFilter } from './infrastructure/auth.filter';
-import {
-  ChangePasswordDto,
-  LoginDto,
-  RegisteredUserDto,
-  RegisterUserDto,
-} from './infrastructure/dto/auth.dto';
-import { DevelopmentEnvironmentGuard } from './infrastructure/guards/development-environment.guard';
+import { ChangePasswordDto, LoginDto } from './infrastructure/dto/auth.dto';
 import { DetailedUserResponseDto } from './infrastructure/queries/details-user.query';
 import { AuthedUser, HasRole } from './simple-auth.decorator';
 import { SimpleAuthService } from './simple-auth.service';
 
 @ApiTags('Auth')
-@ApiExtraModels(RegisterUserDto, RegisteredUserDto)
 @UseFilters(AuthExceptionFilter)
 @Controller('/api/auth/v2')
 export class SimpleAuthController {
@@ -155,19 +139,6 @@ export class SimpleAuthController {
 
     await this.auth.unAuthenticate({ sessionId, userId });
     this.unDecorateResponse(response, 'sessionId').end();
-  }
-
-  @Post('register')
-  @ApiExcludeEndpoint()
-  @UsePipes(ZodValidationPipe)
-  @UseGuards(DevelopmentEnvironmentGuard)
-  @ZodResponse({ status: HttpStatus.CREATED, type: RegisteredUserDto })
-  registerUser(@Body() body: RegisterUserDto): Promise<RegisteredUserDto> {
-    return this.auth.registerUser({
-      ...body,
-      isAdmin: body.isAdmin ?? false,
-      role: body.role ?? 'MEMBRE_COMMUN',
-    });
   }
 
   @Post('users/:userId/impersonations')

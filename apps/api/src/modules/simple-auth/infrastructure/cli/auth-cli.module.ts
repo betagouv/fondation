@@ -2,10 +2,9 @@ import { forwardRef, Module } from '@nestjs/common';
 import { Command, CommandRunner } from 'nest-commander';
 
 import { AdministrationModule } from '../../../administration/administration.module';
+import { RegisterUserCliCommand } from '../../../administration/infrastructure/cli/register-user.cli';
 import { UpdateDisplayTitlesCliCommand } from '../../../administration/infrastructure/cli/update-display-titles.cli';
 import { SimpleAuthModule } from '../../simple-auth.module';
-
-import { RegisterUserCliCommand } from './register-user.cli';
 
 @Command({
   name: 'user',

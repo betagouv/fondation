@@ -1,3 +1,5 @@
+import { makeId } from '../../../utils/id';
+import { GenderEnum } from '../../shared/gender.enum';
 import { isSecretariat } from '../../shared/role.enum';
 import { UserStatus } from '../../shared/user-status.enum';
 import { UserTitleEnum } from '../../shared/user-title.enum';
@@ -5,6 +7,43 @@ import { UserTitleEnum } from '../../shared/user-title.enum';
 import { AdminUserRole } from './admin-user-role';
 import { AdminUserTitle } from './admin-user-title';
 import { ADMIN_USER_ROLES_ENUM, AdminUserRoleEnum, adminUserRoleEnumToIdentityRoles } from './user-enum';
+
+export class UserRegistered {
+  readonly email: string;
+  readonly firstName: string;
+  readonly gender: GenderEnum;
+  readonly hashedPassword: string;
+  readonly isAdmin: boolean;
+  readonly lastName: string;
+  readonly registeredAt: Date;
+  readonly registeredBy: string | null;
+  readonly role: AdminUserRole;
+  readonly userId: string;
+
+  constructor(props: {
+    email: string;
+    firstName: string;
+    gender: GenderEnum;
+    hashedPassword: string;
+    isAdmin: boolean;
+    lastName: string;
+    registeredAt: Date;
+    registeredBy: string | null;
+    role: AdminUserRole;
+    userId: string;
+  }) {
+    this.email = props.email;
+    this.firstName = props.firstName;
+    this.gender = props.gender;
+    this.hashedPassword = props.hashedPassword;
+    this.isAdmin = props.isAdmin;
+    this.lastName = props.lastName;
+    this.registeredAt = props.registeredAt;
+    this.registeredBy = props.registeredBy;
+    this.role = props.role;
+    this.userId = props.userId;
+  }
+}
 
 export class UserEmailUpdated {
   constructor(
@@ -75,6 +114,7 @@ export class UserReactivated {
 }
 
 export type UserEvent =
+  | UserRegistered
   | UserEmailUpdated
   | UserPasswordUpdated
   | UserRoleUpdated
@@ -108,6 +148,43 @@ export class User {
     return new User(props.id, props.isAdmin, props.role, props.status);
   }
 
+  /** a new account takes its whole role at once, the title of its role taken back from its holder */
+  static register(props: {
+    email: string;
+    firstName: string;
+    gender: GenderEnum;
+    hashedPassword: string;
+    isAdmin: boolean;
+    lastName: string;
+    now: Date;
+    registeredBy: string | null;
+    role: AdminUserRole;
+  }): User {
+    const user = new User(makeId(), props.isAdmin, props.role, 'ACTIVE');
+    if (props.isAdmin && !user.canHoldAdminRight()) throw new CantPromoteMemberToAdmin();
+
+    const target = AdminUserTitle.from(props.role.toString());
+    if (target.title) user.#messages.push(new UsersUntitled(user.id, target.title, target.unTitle()));
+
+    user.#messages.push(
+      new UserRegistered({
+        ...props,
+        email: props.email.toLowerCase(),
+        firstName: props.firstName.toLowerCase(),
+        lastName: props.lastName.toLowerCase(),
+        registeredAt: props.now,
+        userId: user.id,
+      }),
+      new UserRoleUpdated(user.id, props.role),
+    );
+    return user;
+  }
+
+  /** the login matches an email whatever its case, so an email opens one account only */
+  static assertEmailFree(isTaken: boolean): void {
+    if (isTaken) throw new EmailAlreadyTaken();
+  }
+
   canDeactivate(actorId: string): boolean {
     return this.status === 'ACTIVE' && actorId !== this.id;
   }
@@ -129,9 +206,8 @@ export class User {
     );
   }
 
-  /** the login matches an email whatever its case, so an email opens one account only */
   updateEmail(command: { email: string; isTakenByAnotherUser: boolean }): void {
-    if (command.isTakenByAnotherUser) throw new EmailAlreadyTaken();
+    User.assertEmailFree(command.isTakenByAnotherUser);
 
     this.#messages.push(new UserEmailUpdated(this.id, command.email));
   }

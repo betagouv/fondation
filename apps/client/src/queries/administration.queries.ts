@@ -8,8 +8,14 @@ import {
 } from '@tanstack/react-query';
 
 import type { AdminUserRoleEnum } from '@/features/administration/labels/admin-user-enum';
+import { withValidationError } from '@/utils/validation-error';
 import * as $api from '@api/sdk';
-import type { DetailedAdminUserDto, ListUsersData, PaginatedAdminUserListItemDto } from '@api/types';
+import type {
+  CreateUserDto,
+  DetailedAdminUserDto,
+  ListUsersData,
+  PaginatedAdminUserListItemDto,
+} from '@api/types';
 
 import { docsKeys, officialReportKeys } from './agenda.queries';
 import { memberKeys } from './members.queries';
@@ -24,6 +30,7 @@ export type AdminUsersSorting =
   | [{ desc: boolean; id: NonNullable<NonNullable<ListUsersData['query']>['sortBy']> }];
 
 const adminKeys = {
+  all: () => ['admin'] as const,
   allUsers: () => ['admin', 'users'] as const,
   user: (userId: string | undefined) => ['admin', 'user', userId] as const,
   users: (params: { filters: AdminUsersFilters; sorting: AdminUsersSorting }) =>
@@ -74,6 +81,23 @@ export function useAdminUserDetailQuery(userId: string | undefined) {
     queryFn: () =>
       $api.administration.detailsUser({ path: { userId: userId! } }).then(({ data = null }) => data),
     queryKey: adminKeys.user(userId),
+  });
+}
+
+export function useCreateUserMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: CreateUserDto) =>
+      withValidationError(() => $api.administration.createUser({ body, throwOnError: true })).then(
+        ({ data }) => data,
+      ),
+    // the role given may take a title back from another account
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: adminKeys.all() });
+      queryClient.invalidateQueries({ queryKey: docsKeys.members() });
+      queryClient.invalidateQueries({ queryKey: memberKeys.allListedMembers() });
+      queryClient.invalidateQueries({ queryKey: officialReportKeys.listSecretaries() });
+    },
   });
 }
 

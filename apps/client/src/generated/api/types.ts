@@ -8,20 +8,6 @@ export type ClientOptions = {
     baseUrl: string;
 };
 
-export type RegisterUserDto = {
-    firstName: string;
-    lastName: string;
-    gender: 'MALE' | 'FEMALE';
-    email: string;
-    password: string;
-    role?: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | null;
-    isAdmin?: boolean;
-};
-
-export type RegisteredUserDto = {
-    id: string;
-};
-
 export type LoginDto = {
     email: string;
     password: string;
@@ -2362,6 +2348,19 @@ export type PaginatedAdminUserListItemDto = {
     };
 };
 
+export type CreateUserDto = {
+    email: string;
+    firstName: string;
+    gender: 'MALE' | 'FEMALE';
+    lastName: string;
+    password: string;
+    role: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+};
+
+export type CreatedUserDto = {
+    id: string;
+};
+
 export type DetailedAdminUserDto = {
     id: string;
     firstName: string;
@@ -2398,6 +2397,20 @@ export type UpdateUserRoleDto = {
 
 export type UpdateUserDisplayTitleDto = {
     displayTitle: string | null;
+};
+
+export type RegisterUserDto = {
+    email: string;
+    firstName: string;
+    gender: 'MALE' | 'FEMALE';
+    isAdmin?: boolean;
+    lastName: string;
+    password: string;
+    role?: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | null;
+};
+
+export type RegisteredUserDto = {
+    id: string;
 };
 
 export type FoundFeedbackDto = {
@@ -5008,6 +5021,19 @@ export type ListUsersResponses = {
 };
 
 export type ListUsersResponse = ListUsersResponses[keyof ListUsersResponses];
+
+export type CreateUserData = {
+    body: CreateUserDto;
+    path?: never;
+    query?: never;
+    url: '/api/administration/v1/users';
+};
+
+export type CreateUserResponses = {
+    201: CreatedUserDto;
+};
+
+export type CreateUserResponse = CreateUserResponses[keyof CreateUserResponses];
 
 export type DetailsUserData = {
     body?: never;
