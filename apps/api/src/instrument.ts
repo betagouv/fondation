@@ -1,14 +1,14 @@
 import * as Sentry from '@sentry/node';
 
 import { loadConfig } from './modules/framework/config';
-import { WITHOUT_REQUEST_DATA } from './modules/framework/observability';
+import { WITHOUT_PERSONAL_DATA } from './modules/framework/observability';
 import { assertIsDefined } from './utils/is-defined';
 
 // Stays synchronous: Sentry only instruments the modules (express, pg, http) required after its init
 const config = loadConfig();
 if (config.isProduction) {
   Sentry.init({
-    ...WITHOUT_REQUEST_DATA,
+    ...WITHOUT_PERSONAL_DATA,
     dsn: assertIsDefined('sentryDsn' in config ? config.sentryDsn : undefined, 'sentry DSN in not available'),
     sampleRate: 1.0,
     tracesSampleRate: 0.2,
