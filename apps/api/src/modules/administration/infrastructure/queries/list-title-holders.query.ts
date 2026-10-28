@@ -9,7 +9,6 @@ import { Db } from '../../../framework/database';
 import { GenderEnum } from '../../../shared/gender.enum';
 import { prismaGenderEnumToGenderEnum } from '../../../shared/mappers/gender-enum.mapper';
 import { prismaRoleEnumToRoleEnum } from '../../../shared/mappers/role-enum.mapper';
-import { USER_TITLES } from '../../../shared/user-title.enum';
 import { AdminUserRole } from '../../domain/admin-user-role';
 import { ADMIN_USER_ROLES_ENUM } from '../../domain/user-enum';
 
@@ -33,11 +32,10 @@ export class ListTitleHoldersQuery {
 
     return {
       items: holders.map((holder) => {
-        const title = assertIsDefined(holder.title);
         const role = AdminUserRole.from({
           duty: holder.duty,
           role: prismaRoleEnumToRoleEnum(holder.role),
-          title,
+          title: assertIsDefined(holder.title),
         });
 
         return {
@@ -47,7 +45,7 @@ export class ListTitleHoldersQuery {
             name: fullname(holder),
             nextRole: role.untitled().toString(),
           },
-          title,
+          role: role.toString(),
         };
       }),
     };
@@ -65,7 +63,7 @@ export class ListedTitleHoldersDto extends createZodDto(
           name: z.string(),
           nextRole: z.enum(ADMIN_USER_ROLES_ENUM),
         }),
-        title: z.enum(USER_TITLES),
+        role: z.enum(ADMIN_USER_ROLES_ENUM),
       }),
     ),
   }),

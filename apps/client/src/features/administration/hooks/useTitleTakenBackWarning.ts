@@ -11,7 +11,7 @@ export function useTitleTakenBackWarning(
   const { formatMessage } = useIntl();
   const { data: titleHolders } = useTitleHoldersQuery({ enabled: options.enabled });
 
-  const holder = titleHolders?.find(({ title }) => title === role)?.holder;
+  const holder = titleHolders?.find((titleHolder) => titleHolder.role === role)?.holder;
   if (!role || !holder || holder.id === options.userId) return undefined;
 
   return formatMessage(

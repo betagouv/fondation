@@ -26,7 +26,7 @@ describe('useTitleTakenBackWarning', () => {
         items: [
           {
             holder: { gender: 'FEMALE', id: 'holder', name: 'Isabelle GAUTHIER', nextRole: 'MEMBRE_SIEGE' },
-            title: 'PRESIDENT_SIEGE',
+            role: 'PRESIDENT_SIEGE',
           },
         ],
       },

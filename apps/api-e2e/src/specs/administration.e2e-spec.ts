@@ -171,7 +171,7 @@ test.describe('Administration', () => {
 
     const { data } = await admin.administration.listTitleHolders({ throwOnError: true });
 
-    expect(data.items.find(({ title }) => title === 'DEPUTY_PRESIDENT_PARQUET')?.holder).toMatchObject({
+    expect(data.items.find(({ role }) => role === 'DEPUTY_PRESIDENT_PARQUET')?.holder).toMatchObject({
       id: holder.id,
       nextRole: 'MEMBRE_PARQUET',
     });

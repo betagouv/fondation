@@ -80,7 +80,7 @@ const meta = {
                 name: 'Isabelle\u00A0GAUTHIER',
                 nextRole: 'MEMBRE_SIEGE',
               },
-              title: 'PRESIDENT_SIEGE',
+              role: 'PRESIDENT_SIEGE',
             },
           ],
         }),
