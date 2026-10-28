@@ -13,6 +13,7 @@ import {
   AgendaDocumentNotStored,
   AgendaDraftChangedByTheApplication,
   AgendaFilesAlreadyReported,
+  AgendaWithoutValidatedVersion,
   EmptyAgenda,
   UnknownAgendaFileBlock,
 } from '../domain/agenda';
@@ -43,6 +44,12 @@ export class AgendasFilter implements NestInterceptor {
           if (err instanceof AgendaDraftChangedByTheApplication) {
             return new ConflictException({
               validationError: `L'application a modifié ce brouillon : il ne peut plus être écarté`,
+            });
+          }
+
+          if (err instanceof AgendaWithoutValidatedVersion) {
+            return new ConflictException({
+              validationError: `Ce document n'a jamais été validé : il n'y a pas de version à laquelle revenir`,
             });
           }
 

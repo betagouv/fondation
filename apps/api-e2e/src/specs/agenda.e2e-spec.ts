@@ -263,6 +263,13 @@ test.describe('Agenda', () => {
     expect(statuses.toSorted((a, b) => a - b)).toEqual([204, 409]);
   });
 
+  test('should refuse to discard the draft of an agenda never validated', async ({ agent, docs, expect }) => {
+    const { id: agendaId } = await docs.agenda(await docs.session());
+
+    const discarded = await agent.docs.discardAgendaDraft({ path: { agendaId } });
+    expect(discarded.response?.status).toBe(409);
+  });
+
   test('should refuse to discard a draft the application opened', async ({
     agent,
     docs,

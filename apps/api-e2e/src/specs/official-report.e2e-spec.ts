@@ -243,6 +243,19 @@ test.describe('Official report', () => {
     });
   });
 
+  test('should refuse to discard the draft of an official report never validated', async ({
+    agent,
+    docs,
+    expect,
+    member,
+  }) => {
+    const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
+    const { id: officialReportId } = await docs.officialReport(await docs.agenda(session));
+
+    const discarded = await agent.docs.discardOfficialReportDraft({ path: { officialReportId } });
+    expect(discarded.response?.status).toBe(409);
+  });
+
   test('should keep an official report edition made after a validation, and undo it when discarded', async ({
     agent,
     docs,

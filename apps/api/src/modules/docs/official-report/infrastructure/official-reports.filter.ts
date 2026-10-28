@@ -14,6 +14,7 @@ import {
   OfficialReportDocumentNotStored,
   OfficialReportDraftChangedByTheApplication,
   OfficialReportFileNotHeld,
+  OfficialReportWithoutValidatedVersion,
 } from '../domain/official-report';
 import { OfficialReportAgendaAlreadyReported } from '../domain/official-report-agenda';
 import {
@@ -82,6 +83,12 @@ export class OfficialReportsFilter implements NestInterceptor {
           if (err instanceof OfficialReportDraftChangedByTheApplication) {
             return new ConflictException({
               validationError: `L'application a modifié ce brouillon : il ne peut plus être écarté`,
+            });
+          }
+
+          if (err instanceof OfficialReportWithoutValidatedVersion) {
+            return new ConflictException({
+              validationError: `Ce document n'a jamais été validé : il n'y a pas de version à laquelle revenir`,
             });
           }
 
