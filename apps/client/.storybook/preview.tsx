@@ -1,4 +1,6 @@
 import '@codegouvfr/react-dsfr/main.css';
+// as in index.html: the DSFR post-build cannot detect the title icons the editor names by level
+import '@codegouvfr/react-dsfr/dsfr/utility/icons/icons-editor/icons-editor.main.min.css';
 import '../src/styles/index.css';
 import { startReactDsfr } from '@codegouvfr/react-dsfr/spa';
 import addonA11y from '@storybook/addon-a11y';

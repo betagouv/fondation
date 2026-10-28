@@ -53,7 +53,7 @@ export class IngestLolfiCommand extends CommandRunner {
 
       this.logger.error(`#${jobId} failed`);
       await this.tchap.alert({
-        text: `${failure}\n\n${this.config.frontendOriginUrl}/admin/jobs/${jobId}`,
+        text: `${failure}\n\n${this.config.frontendOriginUrl}/admin/ingestions/${jobId}`,
         title: '🚨 Ingestion LOLFI en échec',
       });
 

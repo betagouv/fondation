@@ -86,6 +86,7 @@ export class GetObservationDetailsQuery {
                     },
                   },
                 },
+                where: { detachedAt: null },
               },
             },
             take: 1,

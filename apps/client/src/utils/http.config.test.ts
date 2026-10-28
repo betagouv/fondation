@@ -2,7 +2,35 @@ import { describe, expect, it } from 'vitest';
 
 import sdk from '../generated/api/sdk.ts?raw';
 
-import { LONG_RUNNING_ROUTES, routeToPattern } from './http.config';
+import { LONG_RUNNING_ROUTES, routeToPattern, timeoutFor, UPLOAD_ROUTES } from './http.config';
+
+describe('timeoutFor', () => {
+  it('gives a reading ten seconds, a writing a minute and an upload five minutes', () => {
+    expect(timeoutFor(new Request('https://api.dev/api/sessions/v2/s1/files'))).toBe(10_000);
+    expect(timeoutFor(new Request('https://api.dev/api/files/v1/f1'))).toBe(60_000);
+    expect(
+      timeoutFor(new Request('https://api.dev/api/help/v1/pages/MEMBRE/content', { method: 'PUT' })),
+    ).toBe(60_000);
+    expect(
+      timeoutFor(new Request('https://api.dev/api/help/v1/pages/MEMBRE/screenshots', { method: 'POST' })),
+    ).toBe(300_000);
+  });
+});
+
+describe('UPLOAD_ROUTES', () => {
+  it.each(UPLOAD_ROUTES)('%s still exists in the generated sdk', (route) => {
+    expect(sdk).toContain(`url: '${route}'`);
+  });
+
+  it.each([
+    ['/api/help/v1/pages/MEMBRE/screenshots', true],
+    ['https://api.dev/api/help/v1/pages/SECRETARIAT_GENERAL/screenshots', true],
+    ['/api/help/v1/pages/MEMBRE/content', false],
+  ])('matches %s: %s', (url, expected) => {
+    const patterns = UPLOAD_ROUTES.map(routeToPattern);
+    expect(patterns.some((pattern) => pattern.test(url))).toBe(expected);
+  });
+});
 
 describe('LONG_RUNNING_ROUTES', () => {
   it.each(LONG_RUNNING_ROUTES)('%s still exists in the generated sdk', (route) => {

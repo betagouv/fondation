@@ -1,4 +1,4 @@
-import { sanitizeRichTextHtml } from './rich-text-html';
+import { fileIdsReferencedIn, sanitizeRichPageHtml, sanitizeRichTextHtml } from './rich-text-html';
 
 describe('sanitizeRichTextHtml', () => {
   it('keeps what the editor writes as it is', () => {
@@ -55,13 +55,59 @@ describe('sanitizeRichTextHtml', () => {
   });
 
   it('unwraps the tags the editor does not write, down to their text', () => {
-    expect(
-      sanitizeRichTextHtml(`<p><a href="javascript:alert(1)">Ada</a></p><constructor>x</constructor>`),
-    ).toBe('<p>Ada</p>x');
+    expect(sanitizeRichTextHtml(`<p><font color="red">Ada</font></p><constructor>x</constructor>`)).toBe(
+      '<p>Ada</p>x',
+    );
     expect(sanitizeRichTextHtml(`<svg><p>Ada</p></svg><math><mi>x</mi></math>`)).toBe('<p>Ada</p>x');
+  });
+
+  it('unwraps the links, the tables and the videos of a help page to their text', () => {
+    expect(
+      sanitizeRichTextHtml(
+        `<p><a href="https://lolfi.justice.fr/">LOLFI</a></p><table><tbody><tr><td>Siège</td></tr></tbody></table><video src="https://storage.test/demo.mp4"></video>`,
+      ),
+    ).toBe('<p>LOLFI</p>Siège');
+  });
+
+  it('keeps the links, the tables and the separators of a help page as the editor writes them', () => {
+    const written =
+      `<h2 data-id="a1b2-c3">Profils</h2><p><a href="https://lolfi.justice.fr/">LOLFI</a>, <a href="mailto:csm@justice.fr">le CSM</a> et <a href="#a1b2-c3">plus haut</a></p>` +
+      `<hr><table><tbody><tr><th colspan="2">Profil</th></tr><tr><td>Siège</td><td rowspan="1">Parquet</td></tr></tbody></table>` +
+      `<aside><p>À savoir</p></aside>`;
+
+    expect(sanitizeRichPageHtml(written)).toBe(written);
+  });
+
+  it('keeps of a video its source on the web and its player, never a way to start it alone', () => {
+    const written = `<video controls="" preload="metadata" src="https://storage.test/demo.mp4" data-file-id="file-2" data-file-name="demo.mp4"></video>`;
+
+    expect(sanitizeRichPageHtml(written)).toBe(written);
+    expect(
+      sanitizeRichPageHtml(
+        `<video autoplay="" loop="" muted="" preload="everything" src="javascript:alert(1)" onplay="alert(1)"></video>`,
+      ),
+    ).toBe('<video></video>');
+  });
+
+  it('keeps of a link only an address on the web or a section of the page', () => {
+    expect(
+      sanitizeRichPageHtml(
+        `<a href="javascript:alert(1)">a</a><a href="tel:0102030405">t</a><a href="#top" target="_blank">b</a><h2 data-id="x y">c</h2><aside class="x">d</aside>`,
+      ),
+    ).toBe('<a>a</a><a>t</a><a href="#top">b</a><h2>c</h2><aside>d</aside>');
   });
 
   it('removes the comments', () => {
     expect(sanitizeRichTextHtml(`<p>Ada<!-- <script>alert(1)</script> --></p>`)).toBe('<p>Ada</p>');
+  });
+});
+
+describe('fileIdsReferencedIn', () => {
+  it('lists the files the text embeds, once each', () => {
+    expect(
+      fileIdsReferencedIn(
+        '<p>Avis<img data-file-id="file-1" src="https://storage.test/a.png"></p><img data-file-id="file-2"><img data-file-id="file-1"><img src="x">',
+      ),
+    ).toEqual(new Set(['file-1', 'file-2']));
   });
 });

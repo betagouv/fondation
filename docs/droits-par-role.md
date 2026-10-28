@@ -42,8 +42,7 @@ Après la connexion, un Membre arrive sur `/transparences`, le Secrétariat gén
 | URL                                                   | Vue                                          | Membre                      | Secrétariat général         | Administrateur              |
 | ----------------------------------------------------- | -------------------------------------------- | --------------------------- | --------------------------- | --------------------------- |
 | `/avis`                                               | Questionnaire de satisfaction                | ✓                           | ✓                           | ✓                           |
-| `/aide`                                               | Aide                                         | ✓                           | ✓                           | ✓                           |
-| `/aide/manuel`                                        | Manuel utilisateur                           | ✓                           | ✓                           | ✓                           |
+| `/aide`                                               | Centre d'aide de l'espace du lecteur         | ✓                           | ✓                           | ✓                           |
 | `/mon-compte`                                         | Son compte et son mot de passe               | ✓                           | ✓                           | ✓                           |
 | `/session/:sessionId/dossier/:fileId/synthese`        | Synthèse d'un dossier                        | ✓ si lecteur de la synthèse | ✓ si lecteur de la synthèse | ✓ si lecteur de la synthèse |
 | `/session/:sessionId/dossier/:fileId/lolfi-magistrat` | Redirection vers la fiche Lolfi du magistrat | ✓ si sa formation           | ✓                           | ✓                           |
@@ -108,14 +107,15 @@ Le menu propose Accueil, Créer une session, Gérer les sessions, Restitutions, 
 
 ### Espace administration
 
-| URL                    | Vue                                                                                                                     | Membre | Secrétariat général | Administrateur |
-| ---------------------- | ----------------------------------------------------------------------------------------------------------------------- | ------ | ------------------- | -------------- |
-| `/admin/lolfi`         | Import d'une archive Lolfi                                                                                              | —      | —                   | ✓              |
-| `/admin/jobs`          | Liste des traitements en arrière-plan                                                                                   | —      | —                   | ✓              |
-| `/admin/jobs/:jobId`   | Détail d'un traitement                                                                                                  | —      | —                   | ✓              |
-| `/admin/avis`          | Export des réponses au questionnaire                                                                                    | —      | —                   | ✓              |
-| `/admin/users`         | Liste des utilisateurs                                                                                                  | —      | —                   | ✓              |
-| `/admin/users/:userId` | Fiche d'un utilisateur : e-mail, mot de passe, rôle, titre, droit d'administrateur, désactivation, connexion à sa place | —      | —                   | ✓              |
+| URL                           | Vue                                                                                                                     | Membre | Secrétariat général | Administrateur |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ------ | ------------------- | -------------- |
+| `/admin/lolfi`                | Import d'une archive Lolfi                                                                                              | —      | —                   | ✓              |
+| `/admin/ingestions`           | Liste des traitements en arrière-plan                                                                                   | —      | —                   | ✓              |
+| `/admin/ingestions/:jobId`    | Détail d'un traitement                                                                                                  | —      | —                   | ✓              |
+| `/admin/avis`                 | Export des réponses au questionnaire                                                                                    | —      | —                   | ✓              |
+| `/admin/aide`                 | Édition des pages d'aide                                                                                                | —      | —                   | ✓              |
+| `/admin/utilisateurs`         | Liste des utilisateurs                                                                                                  | —      | —                   | ✓              |
+| `/admin/utilisateurs/:userId` | Fiche d'un utilisateur : e-mail, mot de passe, rôle, titre, droit d'administrateur, désactivation, connexion à sa place | —      | —                   | ✓              |
 
 ## Actions de l'API
 
@@ -359,6 +359,15 @@ Dans les dossiers d'un magistrat, un Membre ne voit que l'affectation et les aud
 | Générer le HTML                       | `GET /docs/v1/presentation-plans/:planId.html`            | —      | ✓                   | ✓              |
 | Télécharger le PDF                    | `GET /docs/v1/presentation-plans/:planId/url`             | —      | ✓                   | ✓              |
 | Supprimer                             | `DELETE /docs/v1/presentation-plans/:planId`              | —      | ✓                   | ✓              |
+
+### Centre d'aide
+
+| Action                                               | Endpoint                                | Membre                       | Secrétariat général | Administrateur |
+| ---------------------------------------------------- | --------------------------------------- | ---------------------------- | ------------------- | -------------- |
+| Lire la page d'aide de son espace                    | `GET /help/v1/page`                     | ✓                            | ✓                   | ✓              |
+| Lire une page d'aide                                 | `GET /help/v1/pages/:page`              | ✓ si page de l'espace membre | ✓                   | ✓              |
+| Rédiger une page d'aide                              | `PUT /help/v1/pages/:page/content`      | —                            | —                   | ✓              |
+| Ajouter des captures ou des vidéos à une page d'aide | `POST /help/v1/pages/:page/screenshots` | —                            | —                   | ✓              |
 
 ### Administration
 

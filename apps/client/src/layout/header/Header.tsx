@@ -124,6 +124,7 @@ export const AppHeader = () => {
         ROUTE_PATHS.ADMIN.USERS,
         ROUTE_PATHS.ADMIN.USER_DETAIL,
         ROUTE_PATHS.ADMIN.FEEDBACKS,
+        ROUTE_PATHS.ADMIN.HELP,
       ]),
       menuLinks: [
         {
@@ -131,7 +132,7 @@ export const AppHeader = () => {
           linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.INGEST_LOLFI },
           text: (
             <span className={clsx('fr-icon-file-add-line', NAV_ICON_CLASS)}>
-              {formatMessage({ defaultMessage: 'Import LOLFI manuel' })}
+              {formatMessage({ defaultMessage: 'Importer une archive LOLFI' })}
             </span>
           ),
         },
@@ -140,7 +141,7 @@ export const AppHeader = () => {
           linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.LIST_JOBS },
           text: (
             <span className={clsx('ri-play-circle-line', NAV_ICON_CLASS)}>
-              {formatMessage({ defaultMessage: 'Ingestions' })}
+              {formatMessage({ defaultMessage: 'Suivre les ingestions' })}
             </span>
           ),
         },
@@ -149,7 +150,7 @@ export const AppHeader = () => {
           linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.USERS },
           text: (
             <span className={clsx('ri-user-settings-line', NAV_ICON_CLASS)}>
-              {formatMessage({ defaultMessage: 'Gestion des utilisateurs' })}
+              {formatMessage({ defaultMessage: 'Gérer les utilisateurs' })}
             </span>
           ),
         },
@@ -158,7 +159,16 @@ export const AppHeader = () => {
           linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.FEEDBACKS },
           text: (
             <span className={clsx('fr-icon-feedback-line', NAV_ICON_CLASS)}>
-              {formatMessage({ defaultMessage: 'Avis des utilisateurs' })}
+              {formatMessage({ defaultMessage: 'Consulter les avis' })}
+            </span>
+          ),
+        },
+        {
+          isActive: routeMatches([ROUTE_PATHS.ADMIN.HELP]),
+          linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.HELP },
+          text: (
+            <span className={clsx('fr-icon-questionnaire-line', NAV_ICON_CLASS)}>
+              {formatMessage({ defaultMessage: "Rédiger le centre d'aide" })}
             </span>
           ),
         },

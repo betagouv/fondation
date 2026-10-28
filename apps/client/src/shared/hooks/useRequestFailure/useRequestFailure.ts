@@ -3,11 +3,13 @@ import { defineMessages, useIntl, type MessageDescriptor } from 'react-intl';
 
 import { HttpException } from '@/utils/http-exception';
 
-export type FailureReason = 'forbidden' | 'missing' | 'timeout' | 'unavailable' | 'unknown';
+export type FailureReason = 'forbidden' | 'missing' | 'refused' | 'timeout' | 'unavailable' | 'unknown';
 
 const REASON_BY_STATUS: Record<number, FailureReason> = {
+  400: 'refused',
   403: 'forbidden',
   404: 'missing',
+  413: 'refused',
   503: 'unavailable',
 };
 
@@ -26,8 +28,12 @@ function failureOf(error: unknown): { code: number | null; reason: FailureReason
   return { code: error.statusCode, reason: REASON_BY_STATUS[error.statusCode] ?? 'unknown' };
 }
 
-/** retrying cannot bring back what is missing */
-function adviceOf(failure: { code: number | null; reason: FailureReason }): MessageDescriptor {
+/** retrying cannot bring back what is missing, and a refusal the caller explains needs no advice */
+function adviceOf(
+  failure: { code: number | null; reason: FailureReason },
+  explained: boolean,
+): MessageDescriptor | null {
+  if (failure.reason === 'refused' && explained) return null;
   if (failure.reason === 'missing') return ADVICES.report;
   return Number.isFinite(failure.code) ? ADVICES.retryWithCode : ADVICES.retry;
 }
@@ -39,9 +45,11 @@ export function useRequestFailure(reasons: Readonly<Partial<Record<FailureReason
     (error: unknown) => {
       const failure = failureOf(error);
       const reason = reasons[failure.reason];
-      const advice = formatMessage(adviceOf(failure), { code: failure.code });
+      const advice = adviceOf(failure, !!reason);
 
-      return reason ? `${formatMessage(reason)} ${advice}` : advice;
+      return [reason && formatMessage(reason), advice && formatMessage(advice, { code: failure.code })]
+        .filter((part): part is string => !!part)
+        .join(' ');
     },
     [formatMessage, reasons],
   );

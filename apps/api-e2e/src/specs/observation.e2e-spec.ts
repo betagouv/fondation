@@ -174,6 +174,42 @@ test.describe('Observation', () => {
     expect(readByOther.data!.memberComment).toBeNull();
   });
 
+  test('should set aside the screenshots an observation comment no longer embeds', async ({
+    agent,
+    expect,
+    member,
+    sessions,
+  }) => {
+    const session = await sessions.createOne(SESSION, { reporters: [member['@user']!] });
+    const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+    const { data } = await agent.observations.createObservation({
+      body: { form: observationForm({ dateReception: '2026-05-02', magistratId: session.files[1]!.magistratId }) },
+      path,
+      throwOnError: true,
+    });
+    const observationPath = { ...path, observationId: data.id };
+    const attached = await member.observations.attachMemberCommentScreenshots({
+      body: { files: [makeFile({ name: 'a.png', type: 'image/png' }), makeFile({ name: 'b.png', type: 'image/png' })] },
+      path: observationPath,
+      throwOnError: true,
+    });
+    const [kept, removed] = attached.data.items;
+
+    const comment = `<p>Avis</p><img data-file-id="${kept!.id}" src="${kept!.url}">`;
+    await member.observations.writeMemberComment({ body: { comment }, path: observationPath, throwOnError: true });
+    const read = await member.observations.getObservationDetails({ path: observationPath, throwOnError: true });
+    expect(read.data.memberComment!.screenshots.map(({ id }) => id)).toEqual([kept!.id]);
+
+    const restored = `${comment}<img data-file-id="${removed!.id}" src="${removed!.url}">`;
+    await member.observations.writeMemberComment({
+      body: { comment: restored },
+      path: observationPath,
+      throwOnError: true,
+    });
+    const reread = await member.observations.getObservationDetails({ path: observationPath, throwOnError: true });
+    expect(reread.data.memberComment!.screenshots.map(({ id }) => id).sort()).toEqual([kept!.id, removed!.id].sort());
+  });
+
   test('should not let a reporter comment an observation of another nomination file', async ({
     agent,
     expect,

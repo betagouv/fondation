@@ -1,20 +1,44 @@
-import type { Sql } from 'postgres';
-
 import { test } from '../fixtures.ts';
+import { makeFile } from '../utils/files.ts';
+import { isStored } from '../utils/screenshots.ts';
 import * as seed from '../utils/seed.ts';
 import { waitFor } from '../utils/wait-for.ts';
-
-async function isStored(sql: Sql, fileId: string): Promise<boolean> {
-  const [row] = await sql<{ count: bigint }[]>`select count(*) from files_context.files where id = ${fileId}`;
-
-  return Number(row?.count ?? 0) > 0;
-}
 
 function pdf(name: string) {
   return new File(['%PDF-1.4'], name, { type: 'application/pdf' });
 }
 
 test.describe('Summary E2E', () => {
+  test('should set aside the screenshots a summary no longer embeds', async ({ agent, expect, sessions, sql }) => {
+    const session = await sessions.createOne({
+      candidates: [
+        {
+          firstName: 'HONORINE',
+          lastName: 'VALROSE',
+          position: { function: seed.functions.PR, grade: 'G3', jurisdiction: seed.jurisdictions['CA  LYON'] },
+          targetPosition: { function: seed.functions.PR, grade: 'G3', jurisdiction: seed.jurisdictions['CA  REIMS'] },
+        },
+      ],
+      createdAt: '22/04/2026',
+    });
+    const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+    await agent.summaries.createSummary({ path, throwOnError: true });
+
+    const included = await agent.summaries.includeFilesInContent({
+      body: { files: [makeFile({ name: 'a.png', type: 'image/png' }), makeFile({ name: 'b.png', type: 'image/png' })] },
+      path,
+      throwOnError: true,
+    });
+    const [kept, removed] = included.data.items;
+
+    const content = `<p>Synthèse</p><img data-file-id="${kept!.id}" src="${kept!.url}">`;
+    await agent.summaries.writeSummary({ body: { content }, path, throwOnError: true });
+
+    const { data } = await agent.summaries.detailSummary({ path, throwOnError: true });
+    expect(data.summary.screenshots.map(({ id }) => id)).toEqual([kept!.id]);
+    expect(await isStored(sql, removed!.id)).toBe(true);
+  });
+
   test('should remind the audition and the reporters expected on an auditioned position', async ({
     agent,
     expect,

@@ -1,8 +1,10 @@
 import { useCurrentEditor, useEditorState } from '@tiptap/react';
+import { useIntl } from 'react-intl';
 
 import { EditorButton } from './EditorButton';
 
 export function ItalicButton() {
+  const { formatMessage } = useIntl();
   const { editor } = useCurrentEditor();
   const disabled = useEditorState({
     editor,
@@ -20,7 +22,7 @@ export function ItalicButton() {
       iconId="fr-icon-italic"
       mark="italic"
       onClick={toggleItalic}
-      title="Italique"
+      title={formatMessage({ defaultMessage: 'Italique' })}
     />
   );
 }

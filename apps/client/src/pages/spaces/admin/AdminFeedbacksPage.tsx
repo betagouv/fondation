@@ -15,14 +15,14 @@ export function AdminFeedbacksPage() {
       <Breadcrumb
         ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane pour l'Administration" })}
         breadcrumb={{
-          currentPageLabel: formatMessage({ defaultMessage: 'Avis des utilisateurs' }),
+          currentPageLabel: formatMessage({ defaultMessage: 'Consulter les avis' }),
           segments: [{ label: formatMessage({ defaultMessage: 'Administration' }), to: {} }],
         }}
         id="administration-breadcrumb"
       />
 
       <h1 className="fr-h3 fr-mb-4v">
-        <FormattedMessage defaultMessage="Avis des utilisateurs" />
+        <FormattedMessage defaultMessage="Consulter les avis" />
       </h1>
       <p className="fr-mb-6v max-w-3xl leading-7 text-(--text-mention-grey)">
         <FormattedMessage defaultMessage="Avis des membres et du secrétariat général, donnés depuis l'en-tête." />

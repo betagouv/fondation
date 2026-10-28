@@ -174,7 +174,7 @@ pnpm --filter lolfi generate:fictitious-archive   # => packages/lolfi/LOLFI_CSM_
 ```
 
 L'archive s'envoie avec un compte administrateur : menu "Administration", puis "Import LOLFI manuel"
-([/admin/lolfi](http://localhost:5173/admin/lolfi) en local). Le suivi est sur `/admin/jobs`.
+([/admin/lolfi](http://localhost:5173/admin/lolfi) en local). Le suivi est sur `/admin/ingestions`.
 
 ### Remettre à zéro
 
