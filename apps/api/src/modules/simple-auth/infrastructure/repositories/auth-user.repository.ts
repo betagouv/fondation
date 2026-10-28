@@ -4,6 +4,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '../../../../generated/prisma/client';
 import { assertNever } from '../../../../utils/assert-never';
 import { Db } from '../../../framework/database';
+import { prismaRoleEnumToRoleEnum } from '../../../shared/mappers/role-enum.mapper';
 import { userStatusOf } from '../../../shared/user-status.enum';
 import {
   AuthImpersonationRevoked,
@@ -23,22 +24,25 @@ export class AuthUserRepository {
 
   async findByEmail(email: string): Promise<AuthUser | null> {
     const user = await this.db.tx.user.findFirst({
-      select: { deactivatedAt: true, id: true, password: true } satisfies Prisma.UserSelect,
+      select: { deactivatedAt: true, id: true, password: true, role: true } satisfies Prisma.UserSelect,
       where: { email: { equals: email, mode: 'insensitive' } },
     });
 
-    return user && AuthUser.from({ ...user, status: userStatusOf(user) });
+    return (
+      user &&
+      AuthUser.from({ ...user, role: prismaRoleEnumToRoleEnum(user.role), status: userStatusOf(user) })
+    );
   }
 
   async find(id: string): Promise<AuthUser> {
     const user = await this.db.tx.user.findUnique({
-      select: { deactivatedAt: true, id: true, password: true } satisfies Prisma.UserSelect,
+      select: { deactivatedAt: true, id: true, password: true, role: true } satisfies Prisma.UserSelect,
       where: { id },
     });
 
     if (!user) throw new NotFoundException();
 
-    return AuthUser.from({ ...user, status: userStatusOf(user) });
+    return AuthUser.from({ ...user, role: prismaRoleEnumToRoleEnum(user.role), status: userStatusOf(user) });
   }
 
   @Transactional()

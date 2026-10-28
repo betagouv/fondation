@@ -128,7 +128,7 @@ const meta = {
           ),
           canDeactivate: args.status === 'ACTIVE',
           canHoldAdminRight: user.role.group === 'SECRETARIAT',
-          canImpersonate: args.status === 'ACTIVE',
+          canImpersonate: args.status === 'ACTIVE' && user.role.group !== 'SECRETARIAT',
           canReactivate: args.status === 'DEACTIVATED',
           deactivatedAt: args.status === 'DEACTIVATED' ? '2026-10-21T12:32:00.000Z' : null,
           statusChanges:

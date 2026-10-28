@@ -10,18 +10,14 @@ import {
 import {
   AuthUserNotAuthentifiable,
   CannotChangePassword,
-  DeactivatedUserNotImpersonable,
+  UserNotImpersonable,
   WrongCurrentPassword,
 } from '../domain/auth-user';
 
-@Catch(AuthUserNotAuthentifiable, CannotChangePassword, DeactivatedUserNotImpersonable, WrongCurrentPassword)
+@Catch(AuthUserNotAuthentifiable, CannotChangePassword, UserNotImpersonable, WrongCurrentPassword)
 export class AuthExceptionFilter implements ExceptionFilter {
   catch(
-    exception:
-      | AuthUserNotAuthentifiable
-      | CannotChangePassword
-      | DeactivatedUserNotImpersonable
-      | WrongCurrentPassword,
+    exception: AuthUserNotAuthentifiable | CannotChangePassword | UserNotImpersonable | WrongCurrentPassword,
   ) {
     if (exception instanceof AuthUserNotAuthentifiable) {
       throw new UnauthorizedException();
@@ -31,8 +27,8 @@ export class AuthExceptionFilter implements ExceptionFilter {
       throw new ForbiddenException();
     }
 
-    if (exception instanceof DeactivatedUserNotImpersonable) {
-      throw new BadRequestException({ validationError: `Impossible d'usurper un compte désactivé` });
+    if (exception instanceof UserNotImpersonable) {
+      throw new BadRequestException({ validationError: `Seul le compte actif d'un membre peut être usurpé` });
     }
 
     // a 400 and not a 401, which the client would take for the end of the session

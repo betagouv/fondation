@@ -38,11 +38,8 @@ export class DetailsUserQuery {
     });
     if (!user) throw new NotFoundException();
 
-    const role = AdminUserRole.from({
-      duty: user.duty,
-      role: prismaRoleEnumToRoleEnum(user.role),
-      title: user.title,
-    });
+    const identityRole = prismaRoleEnumToRoleEnum(user.role);
+    const role = AdminUserRole.from({ duty: user.duty, role: identityRole, title: user.title });
     const gender = prismaGenderEnumToGenderEnum(user.gender);
     const status = userStatusOf(user);
     const admin = User.from({ id: user.id, isAdmin: user.isAdmin, role, status });
@@ -51,7 +48,7 @@ export class DetailsUserQuery {
       assignableRoles: admin.assignableRoles(),
       canDeactivate: admin.canDeactivate(query.actorId),
       canHoldAdminRight: admin.canHoldAdminRight(),
-      canImpersonate: AuthUser.canBeImpersonated({ status }),
+      canImpersonate: AuthUser.canBeImpersonated({ role: identityRole, status }),
       canReactivate: admin.canReactivate(),
       deactivatedAt: user.deactivatedAt?.toISOString() ?? null,
       displayTitle: user.displayTitle ?? null,

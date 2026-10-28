@@ -704,15 +704,12 @@ function ImpersonateButton(props: { userId: string }) {
 
 function AdminLoadedUserDetail(props: { user: DetailedAdminUserDto }) {
   const { user } = props;
-  /** the secretariat accounts are never impersonated: only a member's screens are worth checking */
-  const isSecretariat = user.role.group === 'SECRETARIAT';
-
   return (
     <DetailsPageLayout
-      background={isSecretariat ? 'cafeCreme' : 'blueFrance'}
+      background={user.role.group === 'SECRETARIAT' ? 'cafeCreme' : 'blueFrance'}
       header={
         <AdminUserDetailHeader
-          action={isSecretariat || !user.canImpersonate ? undefined : <ImpersonateButton userId={user.id} />}
+          action={user.canImpersonate ? <ImpersonateButton userId={user.id} /> : undefined}
           name={memberFullName(user)}
         />
       }
