@@ -2,6 +2,10 @@ import pagedJsUrl from 'pagedjs/dist/paged.polyfill.min.js?url';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 
+// The frame inherits the CSP of the app, which runs no inline script: a plain file, as Vite would inline
+// a file this small as a data: URL
+import viewerJsUrl from './document-viewer.js?url&no-inline';
+
 const VIEWER_CSS = /* css */ `
   /** @warning no min-height here: it would keep the measured height from shrinking back with the frame */
   html { overflow-x: hidden; }
@@ -9,56 +13,6 @@ const VIEWER_CSS = /* css */ `
   .pagedjs_pages { display: flex; flex-direction: column; row-gap: 2rem; align-items: center; padding: 0; }
   .pagedjs_page { margin: 0; }
   .pagedjs_sheet { background: white; box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1); }
-`;
-
-const VIEWER_JS = /* js */ `
-  function reportHeight() {
-    parent.postMessage({ type: 'CONTENT_HEIGHT', height: document.documentElement.scrollHeight }, '*');
-  }
-
-  function observeHeight() {
-    new ResizeObserver(reportHeight).observe(document.documentElement);
-    reportHeight();
-  }
-
-  // reporting before paged.js paginates would size the frame on the unpaginated column, then shrink it
-  if (document.querySelector('script[src*="paged"]')) {
-    setTimeout(function () {
-      if (!document.querySelector('.pagedjs_pages')) observeHeight();
-    }, 3000);
-  } else {
-    addEventListener('load', observeHeight);
-  }
-
-  function after() {
-    var pages = document.querySelector('.pagedjs_pages');
-    var firstSheet = document.querySelector('.pagedjs_sheet');
-    if (!pages || !firstSheet) return;
-
-    // zoom takes part in layout, where a scale transform stays invisible to the flow
-    function resize() {
-      pages.style.zoom = '';
-      var sheetWidth = firstSheet.offsetWidth;
-      if (!sheetWidth) return;
-      pages.style.zoom = (document.documentElement.clientWidth * 0.9) / sheetWidth;
-      reportHeight();
-    }
-
-    resize();
-    new ResizeObserver(resize).observe(document.documentElement);
-    if (document.fonts) document.fonts.ready.then(resize);
-  }
-
-  // only the window that embedded us may rewrite the document, never a page embedding the app
-  addEventListener('message', function (event) {
-    if (event.source !== parent) return;
-    if (event.data && event.data.type === 'UPDATE_CONTENT') {
-      var node = document.querySelector('[data-editable-content]');
-      if (node) node.innerHTML = event.data.html;
-    }
-  });
-
-  window.PagedConfig = { after };
 `;
 
 /** Parsed, not string-replaced: a document without a head would silently render unstyled */
@@ -70,7 +24,7 @@ function prepareForViewer(html: string): string {
   viewer.textContent = VIEWER_CSS;
 
   const script = doc.createElement('script');
-  script.textContent = VIEWER_JS;
+  script.src = viewerJsUrl;
 
   // the documents frozen before paged.js left the templates still load it from unpkg
   doc.querySelectorAll('script[src*="paged"]').forEach((frozen) => frozen.remove());
