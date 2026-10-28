@@ -151,7 +151,12 @@ export function useValidateAgendaMutation(mutation: {
 }) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: () => $api.docs.validateAgenda({ path: { agendaId: mutation.agendaId } }),
+    mutationFn: () =>
+      $api.docs.validateAgenda({ path: { agendaId: mutation.agendaId } }).catch((err) => {
+        // another tab validated it meanwhile: what was asked is done
+        if (err instanceof HttpException && err.statusCode === 409) return;
+        throw err;
+      }),
 
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: agendaKeys.findSessionDocs(mutation.sessionId) });
@@ -414,7 +419,13 @@ export function useValidateOfficialReportMutation(mutation: {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () =>
-      $api.docs.validateOfficialReport({ path: { officialReportId: mutation.officialReportId } }),
+      $api.docs
+        .validateOfficialReport({ path: { officialReportId: mutation.officialReportId } })
+        .catch((err) => {
+          // another tab validated it meanwhile: what was asked is done
+          if (err instanceof HttpException && err.statusCode === 409) return;
+          throw err;
+        }),
 
     onSuccess: async () => {
       await queryClient.invalidateQueries({

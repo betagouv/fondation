@@ -45,6 +45,19 @@ test.describe('Notice', () => {
     expect(after.data!.url).not.toBe(before.data!.url);
   });
 
+  test('should validate a notice sent twice, and serve its PDF', async ({ agent, docs, expect }) => {
+    const { id: planId } = await docs.notice([await docs.agenda(await docs.session())]);
+
+    const validations = await Promise.all([
+      agent.docs.validatePresentationPlan({ path: { planId } }),
+      agent.docs.validatePresentationPlan({ path: { planId } }),
+    ]);
+    expect(validations.map(({ response }) => response?.status)).toEqual([204, 204]);
+
+    const pdf = await agent.docs.detailsJusticePresentationPlanPdfDocument({ path: { planId } });
+    expect(pdf.response?.status).toBe(200);
+  });
+
   test('should tell a notice that its agenda no longer says what it copied', async ({
     agent,
     docs,

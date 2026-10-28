@@ -220,6 +220,21 @@ test.describe('Official report', () => {
     );
   });
 
+  test('should validate an official report sent twice, and serve its PDF', async ({ agent, docs, expect, member }) => {
+    const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
+    const { id: officialReportId } = await docs.officialReport(await docs.agenda(session));
+
+    const validations = await Promise.all([
+      agent.docs.validateOfficialReport({ path: { officialReportId } }),
+      agent.docs.validateOfficialReport({ path: { officialReportId } }),
+    ]);
+    const statuses = validations.map(({ response }) => Number(response?.status));
+    expect(statuses.toSorted((a, b) => a - b)).toEqual([204, 409]);
+
+    const pdf = await agent.docs.generateOfficialReportPdf({ path: { officialReportId } });
+    expect(pdf.response?.status).toBe(200);
+  });
+
   test('should not tell a change on a new official report nobody edited', async ({ agent, docs, expect, member }) => {
     const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
     const { id: officialReportId } = await docs.officialReport(await docs.agenda(session));

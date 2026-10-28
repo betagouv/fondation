@@ -1,9 +1,11 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { forwardRef, Inject, Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
 
+import { lockOfficialReportRawQuery } from '../../../generated/prisma/sql';
 import { DateOnly, DateOnlyJson } from '../../../utils/date-only';
 import { isDefined } from '../../../utils/is-defined';
 import { Clock } from '../../framework/clock';
+import { Db } from '../../framework/database';
 import { MembersService } from '../../members';
 import { TransparenceService } from '../../session/transparence/infrastructure/transparence.service';
 import { SimpleAuthService } from '../../simple-auth';
@@ -55,6 +57,7 @@ export class OfficialReportsService {
     private readonly officialReportVersionFinder: OfficialReportVersionFinder,
 
     private readonly clock: Clock,
+    private readonly db: Db,
     private readonly auth: SimpleAuthService,
     private readonly members: MembersService,
     @Inject(forwardRef(() => TransparenceService))
@@ -256,9 +259,15 @@ export class OfficialReportsService {
   async validateOfficialReport(command: { id: string; authorId: string }): Promise<void> {
     // rendering and uploading the PDF stay out of the transaction: they would hold a connection for seconds
     await this.findOfficialReportDocumentPdfQuery.ensure({ id: command.id });
-    await this.withOfficialReport({ actorId: command.authorId, id: command.id }, (report) =>
-      report.validate({ at: this.clock.now(), authorId: command.authorId }),
-    );
+
+    await this.db.withTransaction(async () => {
+      // a validation sent twice waits for the first one, then finds the official report validated
+      await this.db.tx.$queryRawTyped(lockOfficialReportRawQuery(command.id));
+
+      await this.withOfficialReport({ actorId: command.authorId, id: command.id }, (report) =>
+        report.validate({ at: this.clock.now(), authorId: command.authorId }),
+      );
+    });
   }
 
   async discardOfficialReportDraft(command: { id: string }): Promise<void> {

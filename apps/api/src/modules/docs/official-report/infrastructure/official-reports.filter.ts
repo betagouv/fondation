@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   CallHandler,
+  ConflictException,
   ExecutionContext,
   Injectable,
   NestInterceptor,
@@ -8,7 +9,11 @@ import {
 } from '@nestjs/common';
 import { catchError, Observable, throwError } from 'rxjs';
 
-import { OfficialReportDocumentNotStored, OfficialReportFileNotHeld } from '../domain/official-report';
+import {
+  OfficialReportAlreadyValidated,
+  OfficialReportDocumentNotStored,
+  OfficialReportFileNotHeld,
+} from '../domain/official-report';
 import { OfficialReportAgendaAlreadyReported } from '../domain/official-report-agenda';
 import {
   InvalidChairmanDuty,
@@ -67,6 +72,10 @@ export class OfficialReportsFilter implements NestInterceptor {
             return new BadRequestException({
               validationError: `Le document n'a pas pu être enregistré, le PV n'est donc pas validé`,
             });
+          }
+
+          if (err instanceof OfficialReportAlreadyValidated) {
+            return new ConflictException({ validationError: `Le PV est déjà validé` });
           }
 
           if (err instanceof OfficialReportAgendaAlreadyReported) {

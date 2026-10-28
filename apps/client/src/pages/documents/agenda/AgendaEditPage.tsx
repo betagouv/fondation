@@ -45,6 +45,7 @@ export function AgendaEditPage() {
 
   const [pendingRevalidations, setPendingRevalidations] = useState({ others: 0, propositions: 0 });
   const [isSaving, setIsSaving] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [editorKey, setEditorKey] = useState(() => crypto.randomUUID());
 
@@ -60,13 +61,17 @@ export function AgendaEditPage() {
   const validateAndReturnToOfficialReport = useCallback(async () => {
     if (!officialReportPath) return;
 
+    setIsValidating(true);
     setSaveError(null);
     try {
       const { data: latest } = await refetchMetadata();
       if (latest?.status === 'DRAFT') await validateAgenda();
       await navigate(officialReportPath);
     } catch (error) {
-      setSaveError(describeFailure(error));
+      const refusal = error instanceof HttpException ? await error.response.json().catch(() => null) : null;
+      setSaveError(refusal?.validationError ?? describeFailure(error));
+    } finally {
+      setIsValidating(false);
     }
   }, [describeFailure, navigate, officialReportPath, refetchMetadata, validateAgenda]);
 
@@ -141,7 +146,7 @@ export function AgendaEditPage() {
   ]);
 
   const { isDirty, setDirty } = useUnsavedChangesGuard({ onSave: save });
-  const canValidate = !isSaving && !isDirty && metadata?.status === 'DRAFT';
+  const canValidate = !isSaving && !isValidating && !isDirty && metadata?.status === 'DRAFT';
 
   // nothing was sent, so the stored blocks are still the last save
   const cancel = () => {

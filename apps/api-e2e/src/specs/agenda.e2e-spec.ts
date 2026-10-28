@@ -247,6 +247,20 @@ test.describe('Agenda', () => {
     expect(writtenBlock!.editedBy).not.toBeNull();
   });
 
+  test('should validate an agenda sent twice, and serve its PDF', async ({ agent, docs, expect }) => {
+    const { id: agendaId } = await docs.agenda(await docs.session());
+
+    const validations = await Promise.all([
+      agent.docs.validateAgenda({ path: { agendaId } }),
+      agent.docs.validateAgenda({ path: { agendaId } }),
+    ]);
+    const statuses = validations.map(({ response }) => Number(response?.status));
+    expect(statuses.toSorted((a, b) => a - b)).toEqual([204, 409]);
+
+    const pdf = await agent.docs.generateAgendaPdf({ path: { agendaId } });
+    expect(pdf.response?.status).toBe(200);
+  });
+
   test('should tell apart a draft the application opened from one a person works on', async ({
     agent,
     docs,
