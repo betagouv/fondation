@@ -7,15 +7,16 @@ export const WITHOUT_PERSONAL_DATA = {
   beforeBreadcrumb: withoutQueryInBreadcrumb,
   beforeSend: withoutQueryInRequest,
   beforeSendTransaction: withoutQueryInTransaction,
+  // TODO: see apps/api/src/modules/framework/observability.ts
   dataCollection: {
     cookies: false,
     databaseQueryData: false,
     frameContextLines: 7,
     genAI: { inputs: false, outputs: false },
-    graphQL: { document: true, variables: true },
+    graphQL: { document: true, variables: false },
     httpBodies: [],
     httpHeaders: false,
-    stackFrameVariables: true,
+    stackFrameVariables: false,
     urlQueryParams: false,
     userInfo: false,
   },

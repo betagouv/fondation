@@ -27,6 +27,7 @@ describe('Sentry', () => {
   });
 
   beforeEach(() => {
+    Sentry.getIsolationScope().clearBreadcrumbs();
     envelopes.length = 0;
   });
 
