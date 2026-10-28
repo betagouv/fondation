@@ -2,7 +2,7 @@ import { DateOnly } from '../../../../../../utils/date-only';
 import { Id } from '../../../../../../utils/id';
 import { isDefined } from '../../../../../../utils/is-defined';
 import { fullname } from '../../../../../../utils/user.util';
-import { adminUserRoleLabel } from '../../../../../shared/admin-user-role.enum';
+import { adminUserRoleLabel, signatoryRoleLabel } from '../../../../../shared/admin-user-role.enum';
 import { FormationEnum } from '../../../../../shared/formation.enum';
 import {
   DocNominationFileOutcomeEnum,
@@ -334,25 +334,10 @@ function displayConclusion(
 }
 
 function displayFooterSignatures(ctx: OfficialReportRenderContext): SafeHtml {
-  const secretary =
-    ctx.secretary.title === 'FIRST_SECRETARY'
-      ? ctx.secretary.gender === 'MALE'
-        ? `le secrétaire général,`
-        : `la secrétaire générale,`
-      : ctx.secretary.gender === 'MALE'
-        ? `le secrétaire général adjoint,`
-        : `la secrétaire générale adjointe,`;
-
-  const president =
-    ctx.chairman.title === 'PRESIDENT_PARQUET' || ctx.chairman.title === 'PRESIDENT_SIEGE'
-      ? ctx.chairman.gender === 'MALE'
-        ? `le président,`
-        : `la présidente,`
-      : ctx.chairman.title === 'DEPUTY_PRESIDENT_PARQUET' || ctx.chairman.title === 'DEPUTY_PRESIDENT_SIEGE'
-        ? ctx.chairman.gender === 'MALE'
-          ? `le président suppléant,`
-          : `la présidente suppléante,`
-        : '';
+  const secretary = `${signatoryRoleLabel(ctx.secretary.title ?? 'SECRETARY', ctx.secretary.gender)},`;
+  const president = ctx.chairman.title
+    ? `${signatoryRoleLabel(ctx.chairman.title, ctx.chairman.gender)},`
+    : '';
 
   return html`
     <section class="signatures">

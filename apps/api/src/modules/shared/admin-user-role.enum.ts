@@ -62,3 +62,18 @@ const ADMIN_USER_ROLE_LABELS = {
 export function adminUserRoleLabel(role: AdminUserRoleEnum, gender: GenderEnum | undefined): string {
   return ADMIN_USER_ROLE_LABELS[role][gender ?? 'neutral'];
 }
+
+/** the signatures of the official report keep their article and drop the formation */
+const SIGNATORY_ROLE_LABELS = {
+  DEPUTY_PRESIDENT_PARQUET: { FEMALE: 'la présidente suppléante', MALE: 'le président suppléant' },
+  DEPUTY_PRESIDENT_SIEGE: { FEMALE: 'la présidente suppléante', MALE: 'le président suppléant' },
+  FIRST_SECRETARY: { FEMALE: 'la secrétaire générale', MALE: 'le secrétaire général' },
+  PRESIDENT_PARQUET: { FEMALE: 'la présidente', MALE: 'le président' },
+  PRESIDENT_SIEGE: { FEMALE: 'la présidente', MALE: 'le président' },
+  SECRETARY: { FEMALE: 'la secrétaire générale adjointe', MALE: 'le secrétaire général adjoint' },
+} as const satisfies Partial<Record<AdminUserRoleEnum, Record<GenderEnum, string>>>;
+export type SignatoryRole = keyof typeof SIGNATORY_ROLE_LABELS;
+
+export function signatoryRoleLabel(role: SignatoryRole, gender: GenderEnum): string {
+  return SIGNATORY_ROLE_LABELS[role][gender];
+}
