@@ -8,20 +8,6 @@ export type ClientOptions = {
     baseUrl: string;
 };
 
-export type RegisterUserDto = {
-    firstName: string;
-    lastName: string;
-    gender: 'MALE' | 'FEMALE';
-    email: string;
-    password: string;
-    role?: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | null;
-    isAdmin?: boolean;
-};
-
-export type RegisteredUserDto = {
-    id: string;
-};
-
 export type LoginDto = {
     email: string;
     password: string;
@@ -2411,6 +2397,20 @@ export type UpdateUserRoleDto = {
 
 export type UpdateUserDisplayTitleDto = {
     displayTitle: string | null;
+};
+
+export type RegisterUserDto = {
+    email: string;
+    firstName: string;
+    gender: 'MALE' | 'FEMALE';
+    isAdmin?: boolean;
+    lastName: string;
+    password: string;
+    role?: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | null;
+};
+
+export type RegisteredUserDto = {
+    id: string;
 };
 
 export type FoundFeedbackDto = {

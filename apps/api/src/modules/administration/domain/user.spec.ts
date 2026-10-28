@@ -12,6 +12,7 @@ import {
   UserEmailUpdated,
   UserPromotedToAdmin,
   UserReactivated,
+  UserRegistered,
   UserRoleUpdated,
   UsersUntitled,
 } from './user';
@@ -29,23 +30,64 @@ describe('User', () => {
   };
 
   describe('registration', () => {
+    const registration = {
+      email: 'Agent@Example.fr',
+      firstName: 'Agent',
+      gender: 'FEMALE',
+      hashedPassword: 'hash',
+      isAdmin: false,
+      lastName: 'Secrétariat',
+      now: new Date('2026-10-20T09:00:00Z'),
+      registeredBy: 'admin-1',
+    } as const;
+
     it('should give a new officer their whole role, duty included', () => {
       const role = AdminUserRole.ofNewAccount('OFFICER');
 
-      const user = User.register({ id: 'user-2', role });
+      const user = User.register({ ...registration, role });
 
-      expect(user.messages).toEqual([new UserRoleUpdated('user-2', role)]);
+      expect(user.messages).toEqual([
+        new UserRegistered({
+          ...registration,
+          email: 'agent@example.fr',
+          firstName: 'agent',
+          lastName: 'secrétariat',
+          registeredAt: registration.now,
+          role,
+          userId: user.id,
+        }),
+        new UserRoleUpdated(user.id, role),
+      ]);
     });
 
     it('should take the title of a new president back from its holder', () => {
       const role = AdminUserRole.ofNewAccount('PRESIDENT_SIEGE');
 
-      const user = User.register({ id: 'user-2', role });
+      const user = User.register({ ...registration, role });
 
       expect(user.messages).toEqual([
-        new UsersUntitled('user-2', 'PRESIDENT_SIEGE', AdminUserTitle.from('MEMBRE_SIEGE')),
-        new UserRoleUpdated('user-2', role),
+        new UsersUntitled(user.id, 'PRESIDENT_SIEGE', AdminUserTitle.from('MEMBRE_SIEGE')),
+        expect.any(UserRegistered),
+        new UserRoleUpdated(user.id, role),
       ]);
+    });
+
+    it('should give the admin right to a new account of the general secretariat', () => {
+      const user = User.register({
+        ...registration,
+        isAdmin: true,
+        role: AdminUserRole.ofNewAccount('OFFICER'),
+      });
+
+      expect(user.messages).toContainEqual(
+        expect.objectContaining({ isAdmin: true, registeredBy: 'admin-1' }),
+      );
+    });
+
+    it('should refuse the admin right to a new member', () => {
+      expect(() =>
+        User.register({ ...registration, isAdmin: true, role: AdminUserRole.ofNewAccount('MEMBRE_COMMUN') }),
+      ).toThrow(CantPromoteMemberToAdmin);
     });
 
     it('should refuse an email another account already has', () => {

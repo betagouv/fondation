@@ -13,7 +13,6 @@ import {
   AuthUserAuthenticated,
   AuthUserPasswordChanged,
   AuthUserPasswordRehashed,
-  AuthUserRegistered,
   AuthUserSessionsRevoked,
   AuthUserUnAuthenticated,
 } from '../../domain/auth-user';
@@ -45,8 +44,7 @@ export class AuthUserRepository {
   @Transactional()
   async persist(user: AuthUser): Promise<void> {
     for (const event of user.messages) {
-      if (event instanceof AuthUserRegistered) await this.persistUserRegistered(event);
-      else if (event instanceof AuthUserAuthenticated) await this.persistUserAuthenticated(event);
+      if (event instanceof AuthUserAuthenticated) await this.persistUserAuthenticated(event);
       else if (event instanceof AuthUserUnAuthenticated) await this.persistAuthUserUnAuthenticated(event);
       else if (event instanceof AuthUserSessionsRevoked) await this.persistAuthUserSessionsRevoked(event);
       else if (event instanceof AuthUserPasswordRehashed || event instanceof AuthUserPasswordChanged)
@@ -68,40 +66,6 @@ export class AuthUserRepository {
         expiresAt,
         sessionId: event.session.id,
         user: { connect: { id: event.id } },
-      },
-    });
-  }
-
-  private async persistUserRegistered(event: AuthUserRegistered) {
-    await this.db.tx.user.create({
-      data: {
-        createdAt: event.registeredAt,
-        email: event.email,
-        firstName: event.firstName,
-        gender: event.gender,
-        id: event.id,
-        isAdmin: event.isAdmin,
-        lastName: event.lastName,
-        password: event.password,
-        role: event.role,
-      },
-    });
-    await this.db.tx.userStatusChange.create({
-      data: {
-        changedAt: event.registeredAt,
-        changedBy: event.registeredBy,
-        status: 'ACTIVE',
-        userId: event.id,
-      },
-    });
-    if (!event.isAdmin) return;
-
-    await this.db.tx.adminRightChange.create({
-      data: {
-        change: 'GRANTED',
-        changedAt: event.registeredAt,
-        changedBy: event.registeredBy,
-        userId: event.id,
       },
     });
   }

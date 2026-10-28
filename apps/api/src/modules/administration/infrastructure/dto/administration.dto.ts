@@ -4,6 +4,7 @@ import z from 'zod';
 import { createSortableDto } from '../../../framework/sorting';
 import { GenderEnum } from '../../../shared/gender.enum';
 import { PasswordSchema } from '../../../shared/password.schema';
+import { RoleEnum } from '../../../shared/role.enum';
 import { USER_STATUSES, UserStatus } from '../../../shared/user-status.enum';
 import { ADMIN_USER_ROLES_ENUM, AdminUserRoleEnum } from '../../domain/user-enum';
 
@@ -46,3 +47,17 @@ export class UpdateUserRoleDto extends createZodDto(z.object({ role: z.enum(ADMI
 export class UpdateUserDisplayTitleDto extends createZodDto(
   z.object({ displayTitle: z.string().nullable() }),
 ) {}
+
+export class RegisterUserDto extends createZodDto(
+  z.object({
+    email: z.email().toLowerCase(),
+    firstName: z.string(),
+    gender: z.enum(GenderEnum),
+    isAdmin: z.boolean().optional(),
+    lastName: z.string(),
+    password: PasswordSchema,
+    role: z.enum(RoleEnum).nullish(),
+  }),
+) {}
+
+export class RegisteredUserDto extends createZodDto(z.object({ id: z.uuid() })) {}
