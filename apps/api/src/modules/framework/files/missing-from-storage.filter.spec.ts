@@ -27,4 +27,21 @@ describe('MissingFromStorageFilter', () => {
     expect(page).toContain('<title>Pièce jointe introuvable</title>');
     expect(page).toContain('Cette pièce jointe est introuvable. Prévenez le support.');
   });
+
+  it('answers a page without any style, which the API CSP would block', () => {
+    const response = mock<ExpressResponse>();
+    response.status.mockReturnValue(response);
+    response.type.mockReturnValue(response);
+    const host = mock<ArgumentsHost>();
+    host.switchToHttp.mockReturnValue({
+      getNext: vi.fn(),
+      getRequest: () => ({ path: '/api/files/v1/public-url-id' }),
+      getResponse: () => response,
+    } as never);
+
+    new MissingFromStorageFilter().catch(new FileMissingFromStorage(), host);
+
+    const [page] = response.send.mock.calls[0]!;
+    expect(page).not.toMatch(/<style|style=/);
+  });
 });

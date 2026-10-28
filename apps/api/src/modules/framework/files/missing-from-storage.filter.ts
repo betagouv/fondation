@@ -3,17 +3,17 @@ import type { Request as ExpressRequest, Response as ExpressResponse } from 'exp
 
 import { FileMissingFromStorage } from './missing-from-storage';
 
-// "Ouvrir" navigates a new tab straight to the file: the browser shows this page, not the client
+// "Ouvrir" navigates a new tab straight to the file: the browser shows this page, not the client.
+// The API CSP blocks any style: the color-scheme meta alone keeps the dark mode
 const MISSING_ATTACHMENT_PAGE = `<!doctype html>
-<html lang="fr" style="color-scheme: light dark">
+<html lang="fr">
   <head>
     <meta charset="utf-8" />
+    <meta name="color-scheme" content="light dark" />
     <title>Pièce jointe introuvable</title>
   </head>
-  <body style="background: Canvas; margin: 0">
-    <p style="color: CanvasText; font-family: system-ui, sans-serif; margin: 2rem">
-      Cette pièce jointe est introuvable. Prévenez le support.
-    </p>
+  <body>
+    <p>Cette pièce jointe est introuvable. Prévenez le support.</p>
   </body>
 </html>`;
 
