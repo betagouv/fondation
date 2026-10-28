@@ -82,6 +82,7 @@ const SqlNominationFilesSchema = z
       lastName: z.string().trim().nonempty(),
       marriedName: z.string().trim().nullable(),
       position: z.object({
+        administrativePositionId: z.string().trim().nullable(),
         arrondissement: SqlJurisdictionSchema.nullable(),
         function: SqlFunctionSchema.nullable(),
         grade: z.enum(GradeEnum),

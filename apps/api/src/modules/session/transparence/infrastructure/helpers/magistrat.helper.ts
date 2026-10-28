@@ -6,9 +6,26 @@ export function buildMemberName(member: { gender: GenderEnum; firstName: string;
   return `${member.gender === GenderEnum.FEMALE ? 'Mme' : 'M.'}\u00A0${capitalize(member.firstName.toLowerCase())}\u00A0${member.lastName.toUpperCase()}`;
 }
 
+// the codes seen in production: one LOLFI adds falls back to "sans affectation"
+const PLACEMENTS = new Map([
+  ['CPR', 'congé parental'],
+  ['D47-1', 'disponibilité'],
+  ['D47-1B', 'disponibilité'],
+  ['D47-2', 'disponibilité'],
+  ['D4B', 'disponibilité'],
+  ['D7D', 'disponibilité'],
+  ['DET', 'détachement'],
+  ['DETJUD', 'détachement'],
+  ['DI3', 'disponibilité'],
+  ['DI6', 'disponibilité'],
+]);
+
+const NATIONAL_PROSECUTOR_OFFICES = new Set(['PNA PARIS', 'PNACPARIS', 'PNF PARIS']);
+
 export function buildPosition(options: {
   civility: Civility;
   position: {
+    administrativePositionId?: string | null;
     jurisdiction: { id: string; label: string };
     arrondissement: { id: string; label: string } | null;
     function: {
@@ -22,9 +39,13 @@ export function buildPosition(options: {
 }): string | null {
   const { civility, position } = options;
 
-  if (position.jurisdiction.id === 'SANS AFFECTATION') return 'sans affectation';
+  if (['DETACHEMENT', 'SANS AFFECTATION'].includes(position.jurisdiction.id)) {
+    const placed =
+      PLACEMENTS.get(position.administrativePositionId ?? '') ??
+      (position.jurisdiction.id === 'DETACHEMENT' ? 'détachement' : null);
 
-  if (position.jurisdiction.id === 'DETACHEMENT') return 'en détachement';
+    return placed ? `magistrat placé en position de ${placed}` : 'sans affectation';
+  }
 
   if (position.function === null) return null;
 
@@ -33,19 +54,20 @@ export function buildPosition(options: {
       ? position.jurisdiction.label
       : position.jurisdiction.label[0]!.toLowerCase() + position.jurisdiction.label.slice(1);
 
-  if (
-    (civility === 'M.' && !position.function.labelOneMale) ||
-    (civility === 'MME' && !position.function.labelOneFemale)
-  ) {
-    return `${position.function.label.toLowerCase()}, ${codejur}`;
+  // LOLFI keeps "des fonctions" for the premier vice-président only, not for the vice-président
+  const gendered = (
+    civility === 'M.' ? position.function.labelOneMale : position.function.labelOneFemale
+  )?.replace("des fonctions de l'application des peines", "de l'application des peines");
+  // LOLFI capitalizes a few labels, which always sit mid-sentence
+  let label = gendered
+    ? gendered[0]!.toLowerCase() + gendered.slice(1)
+    : position.function.label.toLowerCase().replace('république', 'République');
+
+  if (NATIONAL_PROSECUTOR_OFFICES.has(position.jurisdiction.id)) {
+    return `${label} près le tribunal judiciaire de Paris`;
   }
 
-  let label: string;
-  if (civility === 'M.') {
-    label = position.function.labelOneMale!;
-  } else {
-    label = position.function.labelOneFemale!;
-  }
+  if (!gendered) return `${label}, ${codejur}`;
 
   if (position.function.id === 'JCP' || position.function.id === 'VPCP' || position.function.id === '1VPCP') {
     if (position.arrondissement) {
@@ -57,7 +79,7 @@ export function buildPosition(options: {
     }
   }
 
-  if (position.jurisdiction.id === 'AC  PARIS') {
+  if (['AC  PARIS', 'IGSJPARIS'].includes(position.jurisdiction.id)) {
     return label;
   }
 

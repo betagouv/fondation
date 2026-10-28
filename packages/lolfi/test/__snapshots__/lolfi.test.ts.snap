@@ -72,6 +72,24 @@ exports[`lolfi > should create LOLFI files 3`] = `
     <lolfi>
   
       <posads num="1">
+        <posad>CPR</posad>
+<libelle>Congé parental</libelle>
+<reel>1</reel>
+      </posads>
+    
+      <posads num="2">
+        <posad>D47-2</posad>
+<libelle>Dispo. conjoint ou PACS</libelle>
+<reel>0</reel>
+      </posads>
+    
+      <posads num="3">
+        <posad>DET</posad>
+<libelle>Détachement</libelle>
+<reel>1</reel>
+      </posads>
+    
+      <posads num="4">
         <posad>PT</posad>
 <libelle>Plein temps</libelle>
 <reel>1</reel>

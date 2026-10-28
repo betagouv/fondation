@@ -87,7 +87,129 @@ describe('magistrat helpers', () => {
         },
       });
 
-      expect(got).toBe('en détachement');
+      expect(got).toBe('magistrat placé en position de détachement');
+    });
+
+    it.each`
+      administrativePositionId | expected
+      ${'D47-2'}               | ${'magistrat placé en position de disponibilité'}
+      ${'CPR'}                 | ${'magistrat placé en position de congé parental'}
+      ${'DETJUD'}              | ${'magistrat placé en position de détachement'}
+      ${'PT'}                  | ${'sans affectation'}
+    `(
+      'should place a magistrat without affectation in the administrative position "$administrativePositionId"',
+      ({ administrativePositionId, expected }) => {
+        const got = buildPosition({
+          ...base,
+          position: {
+            administrativePositionId,
+            arrondissement: null,
+            function: null,
+            jurisdiction: { id: 'SANS AFFECTATION', label: 'Sans affectation' },
+          },
+        });
+
+        expect(got).toBe(expected);
+      },
+    );
+
+    it('should name an inspector without the inspection', () => {
+      const got = buildPosition({
+        civility: 'MME',
+        position: {
+          arrondissement: null,
+          function: {
+            addition: null,
+            id: 'IJ',
+            label: 'Inspecteur de la justice',
+            labelOneFemale: 'inspectrice de la justice',
+            labelOneMale: 'inspecteur de la justice',
+          },
+          jurisdiction: { id: 'IGSJPARIS', label: 'Inspection Générale des Services Judiciaires' },
+        },
+      });
+
+      expect(got).toBe('inspectrice de la justice');
+    });
+
+    it('should lowercase a gendered label LOLFI capitalizes', () => {
+      const got = buildPosition({
+        civility: 'M.',
+        position: {
+          arrondissement: null,
+          function: {
+            addition: null,
+            id: 'IGSJ',
+            label: 'Inspecteur Général des services judiciaires',
+            labelOneFemale: 'Inspectrice générale des services judiciaires',
+            labelOneMale: 'Inspecteur général des services judiciaires',
+          },
+          jurisdiction: { id: 'IGSJPARIS', label: 'Inspection Générale des Services Judiciaires' },
+        },
+      });
+
+      expect(got).toBe('inspecteur général des services judiciaires');
+    });
+
+    it('should place a national prosecutor near the Paris judicial court', () => {
+      const got = buildPosition({
+        civility: 'M.',
+        position: {
+          arrondissement: null,
+          function: {
+            addition: 'près le {codejur}',
+            id: 'PR F',
+            label: 'Procureur de la République Financier',
+            labelOneFemale: 'procureure de la République financière',
+            labelOneMale: 'procureur de la République financier',
+          },
+          jurisdiction: { id: 'PNF PARIS', label: 'Parquet National Financier de Paris' },
+        },
+      });
+
+      expect(got).toBe('procureur de la République financier près le tribunal judiciaire de Paris');
+    });
+
+    it('should keep the capital of République in a function without a gendered label', () => {
+      const got = buildPosition({
+        civility: 'M.',
+        position: {
+          arrondissement: null,
+          function: {
+            addition: null,
+            id: 'PRACOADJ',
+            label: 'Procureur de la République anti-criminalité organisée adjoint',
+            labelOneFemale: null,
+            labelOneMale: null,
+          },
+          jurisdiction: { id: 'PNACPARIS', label: 'Parquet National Anti-Criminalité Organisée de Paris' },
+        },
+      });
+
+      expect(got).toBe(
+        'procureur de la République anti-criminalité organisée adjoint près le tribunal judiciaire de Paris',
+      );
+    });
+
+    it('should drop "des fonctions" from the premier vice-président chargé de l\'application des peines', () => {
+      const got = buildPosition({
+        civility: 'MME',
+        position: {
+          arrondissement: null,
+          function: {
+            addition: 'au {codejur}',
+            id: '1VPAP',
+            label: "Premier Vice-Président chargé des fonctions de Juge de l' Application des Peines",
+            labelOneFemale: "première vice-présidente chargée des fonctions de l'application des peines",
+            labelOneMale: "premier vice-président chargé des fonctions de l'application des peines",
+          },
+          jurisdiction: { id: 'TJ  AGEN', label: "Tribunal judiciaire d'Agen" },
+        },
+      });
+
+      expect(got).toBe(
+        "première vice-présidente chargée de l'application des peines au tribunal judiciaire d'Agen",
+      );
     });
 
     it('should handle the hidden jurisdiction AC PARIS', () => {

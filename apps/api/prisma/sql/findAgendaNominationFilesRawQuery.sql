@@ -36,6 +36,7 @@ FROM nominations_context.dossier_de_nomination ddn
         'externalId', mm.external_id::INT,
 
         'position', JSON_BUILD_OBJECT(
+          'administrativePositionId', mm.admin_position,
           'grade', mm.grade,
           'jurisdiction', JSON_BUILD_OBJECT('id', j.codejur, 'label', j.libelle),
           'arrondissement', CASE WHEN arr.codejur IS NULL THEN NULL ELSE JSON_BUILD_OBJECT('id', arr.codejur, 'label', arr.libelle) END,
