@@ -203,9 +203,10 @@ export class AgendasService {
   async discardAgendaDraft(command: { agendaId: string }): Promise<void> {
     await this.announcingSentenceChanges(command.agendaId, async () => {
       const hasValidatedVersion = await this.agendaVersionFinder.published({ agendaId: command.agendaId });
+      const changesBy = await this.agendaVersionFinder.draftChangesBy({ agendaId: command.agendaId });
 
       const agenda = await this.agendaRepository.find({ actorId: null, agendaId: command.agendaId });
-      agenda.discardDraft({ hasValidatedVersion: isDefined(hasValidatedVersion) });
+      agenda.discardDraft({ changesBy, hasValidatedVersion: isDefined(hasValidatedVersion) });
       await this.agendaRepository.persist(agenda);
     });
   }

@@ -18,12 +18,14 @@ const MODES = ['preview', 'edit'] as const;
 
 type Lifecycle = Pick<
   DetailedPresentationPlanMetadataDto,
-  'draft' | 'isPresented' | 'presentation' | 'status' | 'validation'
+  'canEdit' | 'canValidate' | 'draft' | 'isPresented' | 'presentation' | 'status' | 'validation'
 >;
 
 // a notice is validated once only: no draft over a validated version, unlike the agenda and the report
 const LIFECYCLES = {
   draft: {
+    canEdit: true,
+    canValidate: true,
     draft: {
       openedAt: '2026-09-24T07:21:00.000Z',
       openedBy: STORY_AUTHORS.sg,
@@ -38,6 +40,8 @@ const LIFECYCLES = {
     validation: null,
   },
   validated: {
+    canEdit: true,
+    canValidate: false,
     draft: null,
     isPresented: false,
     presentation: null,
@@ -45,6 +49,8 @@ const LIFECYCLES = {
     validation: DOCUMENT_VALIDATION,
   },
   presented: {
+    canEdit: false,
+    canValidate: false,
     draft: null,
     isPresented: true,
     presentation: {

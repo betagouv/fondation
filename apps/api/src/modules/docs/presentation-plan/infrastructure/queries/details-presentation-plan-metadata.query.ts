@@ -11,6 +11,7 @@ import { writerOf, writerSchema } from '../../../../../utils/user.util';
 import { Db } from '../../../../framework/database';
 import { FormationEnum } from '../../../../shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from '../../../../shared/mappers/formation.mapper';
+import { canValidateDocument } from '../../../shared/domain/document.policies';
 import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../../../shared/infrastructure/agenda-content';
 import {
   draftTrace,
@@ -20,6 +21,7 @@ import {
   traceOf,
   traceSchema,
 } from '../../../shared/infrastructure/document-trace';
+import { canEditPresentationPlan } from '../../domain/presentation-plan.policies';
 import { presentationPlanStatusOf, presentationPlanStatusSchema } from '../presentation-plan-status';
 
 const chairmanSchema = z.object({ firstName: z.string(), lastName: z.string() });
@@ -96,6 +98,8 @@ export class DetailsPresentationPlanMetadataQuery {
       outdated: plan.outdated,
       status,
       isPresented: plan.isPresented,
+      canEdit: canEditPresentationPlan(plan),
+      canValidate: canValidateDocument({ isValidated: status === 'VALIDATED' }),
       // a notice has no version underneath: its draft is the notice itself, never opened by the application
       draft: draftTrace({ ...plan, status, systemUpdatedAt: null, systemUpdates: [] }),
       validation: status === 'VALIDATED' ? traceOf(plan.validatedAt, plan.validator) : null,
@@ -146,6 +150,8 @@ export class DetailedPresentationPlanMetadataDto extends createZodDto(
     outdated: z.boolean(),
     status: presentationPlanStatusSchema,
     isPresented: z.boolean(),
+    canEdit: z.boolean(),
+    canValidate: z.boolean(),
     draft: draftTraceSchema,
     validation: traceSchema,
     /** null while the notice is not presented */

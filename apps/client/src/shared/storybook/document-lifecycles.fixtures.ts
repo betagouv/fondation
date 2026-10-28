@@ -9,12 +9,20 @@ export const DOCUMENT_VALIDATION = {
 
 type DocumentLifecycle = Pick<
   DetailedAgendaMetadata,
-  'draft' | 'draftChangesBy' | 'hasValidatedVersion' | 'status' | 'validation'
+  | 'canDiscardDraft'
+  | 'canValidate'
+  | 'draft'
+  | 'draftChangesBy'
+  | 'hasValidatedVersion'
+  | 'status'
+  | 'validation'
 >;
 
 // the agenda and the official report share their lifecycle, as the API tells it in their metadata
 export const DOCUMENT_LIFECYCLES = {
   neverValidated: {
+    canDiscardDraft: false,
+    canValidate: true,
     draft: {
       openedAt: '2026-09-24T13:25:00.000Z',
       openedBy: STORY_AUTHORS.sg,
@@ -29,6 +37,8 @@ export const DOCUMENT_LIFECYCLES = {
     validation: null,
   },
   validated: {
+    canDiscardDraft: false,
+    canValidate: false,
     draft: null,
     draftChangesBy: null,
     hasValidatedVersion: true,
@@ -36,6 +46,8 @@ export const DOCUMENT_LIFECYCLES = {
     validation: DOCUMENT_VALIDATION,
   },
   draftByPerson: {
+    canDiscardDraft: true,
+    canValidate: true,
     draft: {
       openedAt: '2026-09-24T13:25:00.000Z',
       openedBy: STORY_AUTHORS.sg,
@@ -50,6 +62,8 @@ export const DOCUMENT_LIFECYCLES = {
     validation: DOCUMENT_VALIDATION,
   },
   draftBySystem: {
+    canDiscardDraft: false,
+    canValidate: true,
     draft: {
       openedAt: '2026-09-24T13:10:00.000Z',
       openedBy: null,

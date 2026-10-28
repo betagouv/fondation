@@ -4,6 +4,11 @@ import { assertIsDefined } from '../../../../utils/is-defined';
 import { GenderEnum } from '../../../shared/gender.enum';
 import { UserTitleEnum } from '../../../shared/user-title.enum';
 import { type DocSystemUpdateCause } from '../../shared/domain/doc-system-update-cause';
+import {
+  canDiscardDraft,
+  canValidateDocument,
+  type DraftChangesBy,
+} from '../../shared/domain/document.policies';
 
 import { AgendaNominationFile } from './agenda-nomination-file';
 import { AgendaFilesDiff, AgendaMetadataDiff, AgendaSnapshot } from './agenda-snapshot';
@@ -138,6 +143,7 @@ export class AgendaAlreadyValidated extends Error {}
 export class AgendaDocumentNotStored extends Error {}
 
 export class AgendaWithoutValidatedVersion extends Error {}
+export class AgendaDraftChangedByTheApplication extends Error {}
 
 export class UnknownAgendaFileBlock extends Error {}
 
@@ -208,16 +214,17 @@ export class Agenda {
   }
 
   validate(command: { at: Date; authorId: string }): void {
-    if (this.#isValidated) throw new AgendaAlreadyValidated();
+    if (!canValidateDocument({ isValidated: this.#isValidated })) throw new AgendaAlreadyValidated();
     if (!this.#isDocumentStored) throw new AgendaDocumentNotStored();
 
     this.#messages.push(new AgendaValidated(this.id, command.at, makeId('AuthorId', command.authorId)));
     this.#isValidated = true;
   }
 
-  discardDraft(command: { hasValidatedVersion: boolean }): void {
+  discardDraft(command: { changesBy: DraftChangesBy | null; hasValidatedVersion: boolean }): void {
     if (this.#isValidated) return;
     if (!command.hasValidatedVersion) throw new AgendaWithoutValidatedVersion();
+    if (!canDiscardDraft(command)) throw new AgendaDraftChangedByTheApplication();
 
     this.#messages.push(new AgendaDraftDiscarded(this.id));
     this.#isValidated = true;

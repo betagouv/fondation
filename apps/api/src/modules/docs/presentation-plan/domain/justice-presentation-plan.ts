@@ -13,6 +13,7 @@ import {
   JusticePresentationPlanSettings,
   type PlainJusticePresentationPlanSettings,
 } from './justice-presentation-plan-settings';
+import { canEditPresentationPlan, canPresentPlan } from './presentation-plan.policies';
 
 export class JusticePresentationPlanCreated {
   constructor(
@@ -145,9 +146,10 @@ export class JusticePresentationPlan {
     return plan;
   }
 
-  /** the presented notice is the one the DSJ received: rewriting it would drop the pdf that left */
   update(command: UpdateJusticePresentationPlanCommand): void {
-    if (this.isPresented) throw new JusticePresentationPlanAlreadyPresented();
+    if (!canEditPresentationPlan({ isPresented: this.isPresented })) {
+      throw new JusticePresentationPlanAlreadyPresented();
+    }
 
     const settings = assertIsDefined(this.settings, 'unknown presentation plan settings');
     const state = this.buildState({
@@ -180,8 +182,10 @@ export class JusticePresentationPlan {
   }
 
   present(command: { endTime: TimeOnly; presenterId: string }): void {
-    if (!this.isValidated) throw new JusticePresentationPlanNotValidated();
     if (this.isPresented) throw new JusticePresentationPlanAlreadyPresented();
+    if (!canPresentPlan({ isPresented: this.isPresented, isValidated: this.isValidated })) {
+      throw new JusticePresentationPlanNotValidated();
+    }
 
     this.#messages.push(new JusticePresentationPlanPresented(this.id, command.endTime, command.presenterId));
   }

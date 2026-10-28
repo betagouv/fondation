@@ -44,26 +44,31 @@ export function PresentationPreviewPage() {
     <DocumentScreen
       actions={
         !isPending &&
-        html &&
-        !metadata?.isPresented && (
+        html && (
           <>
-            <Button
-              linkProps={{
-                to: generatePath(ROUTE_PATHS.SG.PRESENTATIONS_UPDATE, { planId: planId! }),
-              }}
-              priority="secondary"
-            >
-              <FormattedMessage defaultMessage="Éditer les métadonnées" />
-            </Button>
-            <Button
-              linkProps={{ to: generatePath(ROUTE_PATHS.SG.PRESENTATIONS_EDIT, { planId: planId! }) }}
-              priority="secondary"
-            >
-              <FormattedMessage defaultMessage="Éditer le texte" />
-            </Button>
-            <Button disabled={isValidating} onClick={() => validate.mutate()}>
-              <FormattedMessage defaultMessage="Valider le document" />
-            </Button>
+            {metadata?.canEdit && (
+              <>
+                <Button
+                  linkProps={{
+                    to: generatePath(ROUTE_PATHS.SG.PRESENTATIONS_UPDATE, { planId: planId! }),
+                  }}
+                  priority="secondary"
+                >
+                  <FormattedMessage defaultMessage="Éditer les métadonnées" />
+                </Button>
+                <Button
+                  linkProps={{ to: generatePath(ROUTE_PATHS.SG.PRESENTATIONS_EDIT, { planId: planId! }) }}
+                  priority="secondary"
+                >
+                  <FormattedMessage defaultMessage="Éditer le texte" />
+                </Button>
+              </>
+            )}
+            {metadata?.canValidate && (
+              <Button disabled={isValidating} onClick={() => validate.mutate()}>
+                <FormattedMessage defaultMessage="Valider le document" />
+              </Button>
+            )}
           </>
         )
       }

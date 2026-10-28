@@ -3,9 +3,11 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { Prisma } from '../../../../../generated/prisma/client';
 import { lockAgendasRawQuery } from '../../../../../generated/prisma/sql';
+import { isDefined } from '../../../../../utils/is-defined';
 import { Clock } from '../../../../framework/clock';
 import { Db } from '../../../../framework/database';
 import { Files } from '../../../../framework/files';
+import { canValidateDocument } from '../../../shared/domain/document.policies';
 import { JusticePresentationPlanChangedWhileValidated } from '../../domain/justice-presentation-plan';
 import { FindPresentationPlanDocumentPdfQuery } from '../queries/find-presentation-plan-document-pdf.query';
 import { JusticePresentationPlanRepository } from '../repositories/justice-presentation-plan.repository';
@@ -30,7 +32,7 @@ export class ValidatePresentationPlanUseCase {
       } satisfies Prisma.JusticePresentationPlanSelect,
     });
     if (!plan) throw new NotFoundException();
-    if (plan.pdfId) return;
+    if (!canValidateDocument({ isValidated: isDefined(plan.pdfId) })) return;
 
     const agendaIds = plan.agendas.map(({ agendaId }) => agendaId);
     const { html, pdf } = await this.findPresentationPlanDocumentPdfQuery.render({ id: command.id });
@@ -70,7 +72,7 @@ export class ValidatePresentationPlanUseCase {
     }
 
     // a validation sent twice finds the notice validated by the other one
-    if (stored.pdfId) return false;
+    if (!canValidateDocument({ isValidated: isDefined(stored.pdfId) })) return false;
 
     await this.db.tx.justicePresentationPlan.update({
       where: { id: command.id },

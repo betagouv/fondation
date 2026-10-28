@@ -3,6 +3,11 @@ import { assertIsDefined } from '../../../../utils/is-defined';
 import type { FormationEnum } from '../../../shared/formation.enum';
 import { type DocNominationFileOutcomeEnum } from '../../shared/domain/doc-nomination-file-outcome';
 import { type DocSystemUpdateCause } from '../../shared/domain/doc-system-update-cause';
+import {
+  canDiscardDraft,
+  canValidateDocument,
+  type DraftChangesBy,
+} from '../../shared/domain/document.policies';
 
 import {
   InvalidateOfficialReportCommand,
@@ -196,6 +201,7 @@ export class OfficialReportDocumentNotStored extends Error {}
 export class OfficialReportAlreadyValidated extends Error {}
 
 export class OfficialReportWithoutValidatedVersion extends Error {}
+export class OfficialReportDraftChangedByTheApplication extends Error {}
 
 export class OfficialReportFileNotHeld extends Error {}
 
@@ -273,7 +279,8 @@ export class OfficialReport {
   }
 
   validate(command: { at: Date; authorId: string }): void {
-    if (this.state.isValidated) throw new OfficialReportAlreadyValidated();
+    if (!canValidateDocument({ isValidated: this.state.isValidated }))
+      throw new OfficialReportAlreadyValidated();
     if (!this.state.isDocumentStored) throw new OfficialReportDocumentNotStored();
 
     this.#messages.push(
@@ -282,9 +289,10 @@ export class OfficialReport {
     this.state.isValidated = true;
   }
 
-  discardDraft(command: { hasValidatedVersion: boolean }): void {
+  discardDraft(command: { changesBy: DraftChangesBy | null; hasValidatedVersion: boolean }): void {
     if (this.state.isValidated) return;
     if (!command.hasValidatedVersion) throw new OfficialReportWithoutValidatedVersion();
+    if (!canDiscardDraft(command)) throw new OfficialReportDraftChangedByTheApplication();
 
     this.#messages.push(new OfficialReportDraftDiscarded(this.id));
     this.state.isValidated = true;

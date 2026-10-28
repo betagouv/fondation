@@ -1337,6 +1337,8 @@ export type DetailedAgendaMetadata = {
     outdated: boolean;
     outdatedPropositions: number;
     hasValidatedVersion: boolean;
+    canValidate: boolean;
+    canDiscardDraft: boolean;
     draftChangesBy: 'PERSON' | 'PERSON_AND_SYSTEM' | 'SYSTEM' | null;
     draft: {
         openedAt: string;
@@ -1543,6 +1545,8 @@ export type DetailedOfficialReportMetadataDto = {
     outdated: boolean;
     outdatedPropositions: number;
     hasValidatedVersion: boolean;
+    canValidate: boolean;
+    canDiscardDraft: boolean;
     draftChangesBy: 'PERSON' | 'PERSON_AND_SYSTEM' | 'SYSTEM' | null;
     draft: {
         openedAt: string;
@@ -1749,6 +1753,8 @@ export type DetailedPresentationPlanMetadataDto = {
     outdated: boolean;
     status: 'DRAFT' | 'VALIDATED';
     isPresented: boolean;
+    canEdit: boolean;
+    canValidate: boolean;
     draft: {
         openedAt: string;
         openedBy: {
@@ -1883,6 +1889,7 @@ export type ListedNonPresentedPlansDto = {
         outdated: boolean;
         hasRemovedAgendas: boolean;
         status: 'DRAFT' | 'VALIDATED';
+        canPresent: boolean;
         createdAt: string;
         createdBy: {
             id: string;

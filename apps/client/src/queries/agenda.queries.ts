@@ -173,7 +173,8 @@ export function useDiscardAgendaDraftMutation(mutation: {
 }) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: () => $api.docs.discardAgendaDraft({ path: { agendaId: mutation.agendaId } }),
+    mutationFn: () =>
+      withValidationError(() => $api.docs.discardAgendaDraft({ path: { agendaId: mutation.agendaId } })),
 
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: agendaKeys.findSessionDocs(mutation.sessionId) });
@@ -441,7 +442,9 @@ export function useDiscardOfficialReportDraftMutation(mutation: {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () =>
-      $api.docs.discardOfficialReportDraft({ path: { officialReportId: mutation.officialReportId } }),
+      withValidationError(() =>
+        $api.docs.discardOfficialReportDraft({ path: { officialReportId: mutation.officialReportId } }),
+      ),
 
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: agendaKeys.findSessionDocs(mutation.sessionId) });

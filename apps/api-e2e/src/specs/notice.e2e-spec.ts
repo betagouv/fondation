@@ -101,7 +101,7 @@ test.describe('Notice', () => {
     const { id: planId } = await docs.notice([agenda]);
 
     const created = await agent.docs.listNonPresentedPlans();
-    expect(created.data!.items.find(({ id }) => id === planId)?.status).toBe('DRAFT');
+    expect(created.data!.items.find(({ id }) => id === planId)).toMatchObject({ canPresent: false, status: 'DRAFT' });
 
     await agent.docs.generatePresentationPlanHtml({ path: { planId } });
 
@@ -123,12 +123,16 @@ test.describe('Notice', () => {
 
     const validated = await agent.docs.listNonPresentedPlans();
     const ready = validated.data!.items.find(({ id }) => id === planId);
-    expect(ready?.status).toBe('VALIDATED');
+    expect(ready).toMatchObject({ canPresent: true, status: 'VALIDATED' });
     // validating settles the notice, it does not rewrite it
     expect(ready?.updatedAt).toBeNull();
 
     const validatedMetadata = await agent.docs.detailsPresentationPlanMetadata({ path: { planId } });
-    expect(validatedMetadata.data!.validation).toEqual({ at: expect.any(String), by: ready?.createdBy });
+    expect(validatedMetadata.data).toMatchObject({
+      canEdit: true,
+      canValidate: false,
+      validation: { at: expect.any(String), by: ready?.createdBy },
+    });
 
     const rewritten =
       '<html><body><div data-editable-content><p>Le garde des Sceaux renonce au délai.</p></div></body></html>';
@@ -151,10 +155,10 @@ test.describe('Notice', () => {
     expect(presented.response?.status).toBe(204);
 
     const presentedMetadata = await agent.docs.detailsPresentationPlanMetadata({ path: { planId } });
-    expect(presentedMetadata.data!.presentation).toEqual({
-      by: ready?.createdBy,
-      date: MEETING_DATE,
-      endTime: { hours: 11, minutes: 0, seconds: 0 },
+    expect(presentedMetadata.data).toMatchObject({
+      canEdit: false,
+      canValidate: false,
+      presentation: { by: ready?.createdBy, date: MEETING_DATE, endTime: { hours: 11, minutes: 0, seconds: 0 } },
     });
 
     // presenting twice would append a second ending time to the text and its pdf

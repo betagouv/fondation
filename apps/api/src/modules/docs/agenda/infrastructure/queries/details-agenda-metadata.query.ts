@@ -8,6 +8,7 @@ import { dateOnlyJsonSchema } from '../../../../../utils/date-only';
 import { DateOnly } from '../../../../../utils/date-only';
 import { isDefined } from '../../../../../utils/is-defined';
 import { Db } from '../../../../framework/database';
+import { canDiscardDraft, canValidateDocument } from '../../../shared/domain/document.policies';
 import {
   DRAFT_TRACE_SELECT,
   draftTrace,
@@ -57,13 +58,18 @@ export class DetailsAgendaMetadataQuery {
         })
       : null;
 
+    const changesBy = draftChangesBy(version);
+    const hasValidatedVersion = isDefined(publishedId);
+
     return {
       id: version.agendaId,
       status: version.status,
       outdated: version.outdated,
       outdatedPropositions: version._count.nominationFiles,
-      hasValidatedVersion: isDefined(publishedId),
-      draftChangesBy: draftChangesBy(version),
+      hasValidatedVersion,
+      canValidate: canValidateDocument({ isValidated: version.status === 'VALIDATED' }),
+      canDiscardDraft: canDiscardDraft({ changesBy, hasValidatedVersion }),
+      draftChangesBy: changesBy,
       draft: draftTrace(version),
       validation: traceOf(published?.validatedAt, published?.validator),
       chairmanId: version.chairmanId,
@@ -82,8 +88,10 @@ export class DetailedAgendaMetadata extends createZodDto(
     outdated: z.boolean(),
     /** zero while the introduction or the conclusion is the one waiting */
     outdatedPropositions: z.number().int(),
-    /** a validated version remains underneath, so the draft can be discarded */
+    /** a validated version remains underneath the draft */
     hasValidatedVersion: z.boolean(),
+    canValidate: z.boolean(),
+    canDiscardDraft: z.boolean(),
     draftChangesBy: draftChangesBySchema,
     draft: draftTraceSchema,
     validation: traceSchema,

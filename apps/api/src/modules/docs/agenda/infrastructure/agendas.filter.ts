@@ -11,6 +11,7 @@ import { catchError, Observable, throwError } from 'rxjs';
 import {
   AgendaAlreadyValidated,
   AgendaDocumentNotStored,
+  AgendaDraftChangedByTheApplication,
   AgendaFilesAlreadyReported,
   EmptyAgenda,
   UnknownAgendaFileBlock,
@@ -37,6 +38,12 @@ export class AgendasFilter implements NestInterceptor {
 
           if (err instanceof AgendaAlreadyValidated) {
             return new ConflictException({ validationError: `L'ordre du jour est déjà validé` });
+          }
+
+          if (err instanceof AgendaDraftChangedByTheApplication) {
+            return new ConflictException({
+              validationError: `L'application a modifié ce brouillon : il ne peut plus être écarté`,
+            });
           }
 
           if (err instanceof UnknownAgendaFileBlock) {

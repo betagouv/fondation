@@ -12,6 +12,7 @@ import { catchError, Observable, throwError } from 'rxjs';
 import {
   OfficialReportAlreadyValidated,
   OfficialReportDocumentNotStored,
+  OfficialReportDraftChangedByTheApplication,
   OfficialReportFileNotHeld,
 } from '../domain/official-report';
 import { OfficialReportAgendaAlreadyReported } from '../domain/official-report-agenda';
@@ -76,6 +77,12 @@ export class OfficialReportsFilter implements NestInterceptor {
 
           if (err instanceof OfficialReportAlreadyValidated) {
             return new ConflictException({ validationError: `Le PV est déjà validé` });
+          }
+
+          if (err instanceof OfficialReportDraftChangedByTheApplication) {
+            return new ConflictException({
+              validationError: `L'application a modifié ce brouillon : il ne peut plus être écarté`,
+            });
           }
 
           if (err instanceof OfficialReportAgendaAlreadyReported) {
