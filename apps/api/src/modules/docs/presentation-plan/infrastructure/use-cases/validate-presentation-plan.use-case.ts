@@ -35,12 +35,13 @@ export class ValidatePresentationPlanUseCase {
     const agendaIds = plan.agendas.map(({ agendaId }) => agendaId);
     const { html, pdf } = await this.findPresentationPlanDocumentPdfQuery.render({ id: command.id });
 
-    let settled = false;
-    try {
-      settled = await this.settle({ ...command, agendaIds, html, pdfId: pdf.id });
-    } finally {
-      if (!settled) this.files.delete([pdf]);
-    }
+    const attached = await this.settle({ ...command, agendaIds, html, pdfId: pdf.id }).catch(
+      (error: unknown) => {
+        this.files.delete([pdf]);
+        throw error;
+      },
+    );
+    if (!attached) this.files.delete([pdf]);
   }
 
   /** two notices validated at once with a shared agenda would each take it from the other */

@@ -18,6 +18,7 @@ import { AlertBanner } from '@/shared/ui/alert-banner';
 import { useToasts } from '@/shared/ui/toast';
 import { HttpException } from '@/utils/http-exception';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import { ValidationError } from '@/utils/validation-error';
 import {
   agendaKeys,
   officialReportKeys,
@@ -68,8 +69,7 @@ export function AgendaEditPage() {
       if (latest?.status === 'DRAFT') await validateAgenda();
       await navigate(officialReportPath);
     } catch (error) {
-      const refusal = error instanceof HttpException ? await error.response.json().catch(() => null) : null;
-      setSaveError(refusal?.validationError ?? describeFailure(error));
+      setSaveError(ValidationError.messageOf(error) ?? describeFailure(error));
     } finally {
       setIsValidating(false);
     }

@@ -4,6 +4,7 @@ import type { FormationEnum } from '@/shared/enums/formation.enum';
 import { useTab } from '@/shared/hooks/useTab';
 import type { PlainDateOnly } from '@/utils/date-only.util';
 import { HttpException } from '@/utils/http-exception';
+import { withValidationError } from '@/utils/validation-error';
 import * as $api from '@api/sdk';
 import type { FoundDocsMembersDto, FoundJusticeContactsDto } from '@api/types';
 
@@ -152,11 +153,7 @@ export function useValidateAgendaMutation(mutation: {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () =>
-      $api.docs.validateAgenda({ path: { agendaId: mutation.agendaId } }).catch((err) => {
-        // another tab validated it meanwhile: what was asked is done
-        if (err instanceof HttpException && err.statusCode === 409) return;
-        throw err;
-      }),
+      withValidationError(() => $api.docs.validateAgenda({ path: { agendaId: mutation.agendaId } })),
 
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: agendaKeys.findSessionDocs(mutation.sessionId) });
@@ -419,13 +416,9 @@ export function useValidateOfficialReportMutation(mutation: {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () =>
-      $api.docs
-        .validateOfficialReport({ path: { officialReportId: mutation.officialReportId } })
-        .catch((err) => {
-          // another tab validated it meanwhile: what was asked is done
-          if (err instanceof HttpException && err.statusCode === 409) return;
-          throw err;
-        }),
+      withValidationError(() =>
+        $api.docs.validateOfficialReport({ path: { officialReportId: mutation.officialReportId } }),
+      ),
 
     onSuccess: async () => {
       await queryClient.invalidateQueries({
