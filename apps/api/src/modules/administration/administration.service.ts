@@ -106,10 +106,22 @@ export class AdministrationService {
     await this.userRepository.persist(user);
   }
 
-  @Transactional()
   async updatePassword(command: { actorSessionId: string; password: string; userId: string }): Promise<void> {
+    await this.updateHashedPassword({
+      ...command,
+      hashedPassword: await this.auth.internalHashPassword(command.password),
+    });
+  }
+
+  // the password is hashed before, for the slow hash not to hold a connection of the pool
+  @Transactional()
+  private async updateHashedPassword(command: {
+    actorSessionId: string;
+    hashedPassword: string;
+    userId: string;
+  }): Promise<void> {
     const user = await this.userRepository.findById(command.userId);
-    user.updatePassword(await this.auth.internalHashPassword(command.password));
+    user.updatePassword(command.hashedPassword);
     await this.userRepository.persist(user);
     // an admin changing their own password stays logged in
     await this.auth.internalRevokeSessions({ keptSessionId: command.actorSessionId, userId: command.userId });
