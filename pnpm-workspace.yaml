@@ -24,6 +24,9 @@ catalog:
 preferFrozenLockfile: true
 minimumReleaseAge: 10080 # 7 days
 overrides:
+  # Security updates: these parents pin the vulnerable version exactly
+  '@hey-api/json-schema-ref-parser>js-yaml': 4.3.2
+  '@nestjs/swagger>js-yaml': 5.4.2
   fast-uri: 3.1.9
   multer: 2.5.0
   node-xlsx>xlsx: '-'
@@ -33,6 +36,8 @@ overrides:
   pagedjs>clear-cut: '-'
   pagedjs>css-tree: '-'
   pagedjs>event-emitter: '-'
+  # Security update: prisma pins the vulnerable version exactly
+  prisma>mysql2: 3.24.6
   prosemirror-model: 1.25.12
   prosemirror-view: 1.42.6
   qs: 6.16.0
