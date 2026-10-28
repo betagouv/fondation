@@ -7,11 +7,11 @@ import { useId, useState, type FormEvent } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useTitleTakenBackWarning } from '../hooks/useTitleTakenBackWarning';
-import { ROLE_OPTIONS, type AdminUserRoleEnum } from '../labels/admin-user-enum';
 import { Modal } from '@/shared/ui/modal';
 import { RequiredLabel } from '@/shared/ui/required-label';
 import { isStrongPassword, passwordRuleStates } from '@/utils/password.utils';
 import type { CreateUserDto } from '@api/types';
+import { type AdminUserRoleEnum, useAdminUserRolesQuery } from '@queries/administration.queries';
 
 const NON_BLANK = '.*\\S.*';
 
@@ -29,6 +29,7 @@ export function AdminUserCreationModal(props: {
   const [isSubmitted, setSubmitted] = useState(false);
   const formId = useId();
   const titleTakenBack = useTitleTakenBackWarning(user.role, { enabled: props.open });
+  const { data: roleGroups } = useAdminUserRolesQuery(user.gender, { enabled: props.open });
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
@@ -146,18 +147,15 @@ export function AdminUserCreationModal(props: {
           <option disabled hidden value="">
             {formatMessage({ defaultMessage: 'Sélectionner un rôle' })}
           </option>
-          {ROLE_OPTIONS.map((group) => {
-            const groupLabel = formatMessage(group.label);
-            return (
-              <optgroup key={groupLabel} label={groupLabel}>
-                {group.options.map(({ id, label }) => (
-                  <option key={id} value={id}>
-                    {formatMessage(label, { gender: user.gender })}
-                  </option>
-                ))}
-              </optgroup>
-            );
-          })}
+          {roleGroups?.map((group) => (
+            <optgroup key={group.id} label={group.label}>
+              {group.roles.map((role) => (
+                <option key={role.id} value={role.id}>
+                  {role.label}
+                </option>
+              ))}
+            </optgroup>
+          ))}
         </Select>
         <PasswordInput
           hintText={formatMessage({ defaultMessage: 'À transmettre hors de Fondation' })}

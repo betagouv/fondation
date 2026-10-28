@@ -4,6 +4,7 @@ import { captureException } from '@sentry/node';
 import { Prisma } from '../../../../generated/prisma/client';
 import { Clock } from '../../../framework/clock';
 import { Db } from '../../../framework/database';
+import { prismaRoleEnumToRoleEnum } from '../../../shared/mappers/role-enum.mapper';
 import { userStatusOf } from '../../../shared/user-status.enum';
 import { AuthUser } from '../../domain/auth-user';
 
@@ -35,7 +36,11 @@ export class DetailsUserFromImpersonationQuery {
       } satisfies Prisma.AuthImpersonationSelect,
     });
 
-    if (!found || !AuthUser.canBeImpersonated({ status: userStatusOf(found.impersonatedUser) })) return null;
+    if (!found) return null;
+
+    const { impersonatedUser } = found;
+    const role = prismaRoleEnumToRoleEnum(impersonatedUser.role);
+    if (!AuthUser.canBeImpersonated({ role, status: userStatusOf(impersonatedUser) })) return null;
 
     if (found.session.sessionId !== impersonation.authSessionId) {
       // should not happen

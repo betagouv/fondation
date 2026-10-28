@@ -4,6 +4,7 @@ import z from 'zod';
 
 import { Prisma } from '../../../../generated/prisma/client';
 import { Db } from '../../../framework/database';
+import { ADMIN_USER_ROLES_ENUM } from '../../../shared/admin-user-role.enum';
 import { GenderEnum } from '../../../shared/gender.enum';
 import { prismaGenderEnumToGenderEnum } from '../../../shared/mappers/gender-enum.mapper';
 import { prismaRoleEnumToRoleEnum } from '../../../shared/mappers/role-enum.mapper';
@@ -11,7 +12,7 @@ import { USER_STATUSES, userStatusOf } from '../../../shared/user-status.enum';
 import { AuthUser } from '../../../simple-auth/domain/auth-user';
 import { AdminUserRole } from '../../domain/admin-user-role';
 import { User } from '../../domain/user';
-import { ADMIN_USER_ROLES_ENUM } from '../../domain/user-enum';
+import { servedAdminUserRole, ServedAdminUserRoleSchema } from '../dto/administration.dto';
 
 @Injectable()
 export class DetailsUserQuery {
@@ -37,11 +38,9 @@ export class DetailsUserQuery {
     });
     if (!user) throw new NotFoundException();
 
-    const role = AdminUserRole.from({
-      duty: user.duty,
-      role: prismaRoleEnumToRoleEnum(user.role),
-      title: user.title,
-    });
+    const identityRole = prismaRoleEnumToRoleEnum(user.role);
+    const role = AdminUserRole.from({ duty: user.duty, role: identityRole, title: user.title });
+    const gender = prismaGenderEnumToGenderEnum(user.gender);
     const status = userStatusOf(user);
     const admin = User.from({ id: user.id, isAdmin: user.isAdmin, role, status });
 
@@ -49,17 +48,17 @@ export class DetailsUserQuery {
       assignableRoles: admin.assignableRoles(),
       canDeactivate: admin.canDeactivate(query.actorId),
       canHoldAdminRight: admin.canHoldAdminRight(),
-      canImpersonate: AuthUser.canBeImpersonated({ status }),
+      canImpersonate: AuthUser.canBeImpersonated({ role: identityRole, status }),
       canReactivate: admin.canReactivate(),
       deactivatedAt: user.deactivatedAt?.toISOString() ?? null,
       displayTitle: user.displayTitle ?? null,
       email: user.email,
       firstName: user.firstName,
-      gender: prismaGenderEnumToGenderEnum(user.gender),
+      gender,
       id: user.id,
       isAdmin: user.isAdmin,
       lastName: user.lastName,
-      role: role.toString(),
+      role: servedAdminUserRole(role, gender),
       status,
       statusChanges: user.statusChanges.map(({ changedAt, status }) => ({
         changedAt: changedAt.toISOString(),
@@ -75,7 +74,7 @@ export class DetailedAdminUserDto extends createZodDto(
     firstName: z.string(),
     lastName: z.string(),
     email: z.string(),
-    role: z.enum(ADMIN_USER_ROLES_ENUM),
+    role: ServedAdminUserRoleSchema,
     gender: z.enum(GenderEnum),
     displayTitle: z.string().nullable(),
     isAdmin: z.boolean(),

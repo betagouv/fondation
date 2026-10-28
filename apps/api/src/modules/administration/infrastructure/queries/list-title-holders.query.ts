@@ -6,11 +6,10 @@ import { Prisma } from '../../../../generated/prisma/client';
 import { assertIsDefined } from '../../../../utils/is-defined';
 import { fullname } from '../../../../utils/user.util';
 import { Db } from '../../../framework/database';
-import { GenderEnum } from '../../../shared/gender.enum';
 import { prismaGenderEnumToGenderEnum } from '../../../shared/mappers/gender-enum.mapper';
 import { prismaRoleEnumToRoleEnum } from '../../../shared/mappers/role-enum.mapper';
 import { AdminUserRole } from '../../domain/admin-user-role';
-import { ADMIN_USER_ROLES_ENUM } from '../../domain/user-enum';
+import { labeledAdminUserRole, LabeledAdminUserRoleSchema } from '../dto/administration.dto';
 
 @Injectable()
 export class ListTitleHoldersQuery {
@@ -38,14 +37,15 @@ export class ListTitleHoldersQuery {
           title: assertIsDefined(holder.title),
         });
 
+        const gender = prismaGenderEnumToGenderEnum(holder.gender);
+
         return {
           holder: {
-            gender: prismaGenderEnumToGenderEnum(holder.gender),
             id: holder.id,
             name: fullname(holder),
-            nextRole: role.untitled().toString(),
+            nextRole: labeledAdminUserRole(role.untitled().toString(), gender),
           },
-          role: role.toString(),
+          role: labeledAdminUserRole(role.toString(), gender),
         };
       }),
     };
@@ -57,13 +57,11 @@ export class ListedTitleHoldersDto extends createZodDto(
     items: z.array(
       z.object({
         holder: z.object({
-          // TODO: see FON-699, which serves the role labels agreed to the gender
-          gender: z.enum(GenderEnum),
           id: z.string(),
           name: z.string(),
-          nextRole: z.enum(ADMIN_USER_ROLES_ENUM),
+          nextRole: LabeledAdminUserRoleSchema,
         }),
-        role: z.enum(ADMIN_USER_ROLES_ENUM),
+        role: LabeledAdminUserRoleSchema,
       }),
     ),
   }),

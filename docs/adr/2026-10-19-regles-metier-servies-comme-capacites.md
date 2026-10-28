@@ -58,8 +58,9 @@ vocabulaire. Celui-ci règle celui des prédicats : ce que l'utilisateur peut ou
 - Des prédicats restent dans le client, chacun suivi par un ticket :
   - `isAuditionMissing` et `areReportersMissing` (`utils/audition-expectation.util.ts`) : FON-646 ;
   - `hasSomethingToLose` (`PresentationPlanProvider`) : FON-647 ;
-  - `PROMOTABLE_ROLES` (`AdminUserDetailPage`) : FON-648. Depuis FON-658, le toggle administrateur
-    lit la capacité `canHoldAdminRight`. Il ne reste que la couleur de la fiche et le bouton d'usurpation.
+- `PROMOTABLE_ROLES` a disparu avec FON-699. Le toggle administrateur lit `canHoldAdminRight` depuis
+  FON-658, le bouton d'usurpation lit `canImpersonate`, qui refuse un compte du Secrétariat général, et
+  la couleur de la fiche suit le groupe servi avec le rôle.
 - `MemberTitle` a disparu avec FON-658. La distinction d'un membre se règle désormais par son rôle
   dans l'administration.
 - Une capacité peut aussi prendre la forme d'une union discriminée, que le contrat sait déjà exprimer

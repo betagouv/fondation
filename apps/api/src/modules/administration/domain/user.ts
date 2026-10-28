@@ -1,4 +1,5 @@
 import { makeId } from '../../../utils/id';
+import { ADMIN_USER_ROLES_ENUM, AdminUserRoleEnum } from '../../shared/admin-user-role.enum';
 import { GenderEnum } from '../../shared/gender.enum';
 import { isSecretariat } from '../../shared/role.enum';
 import { UserStatus } from '../../shared/user-status.enum';
@@ -6,7 +7,7 @@ import { UserTitleEnum } from '../../shared/user-title.enum';
 
 import { AdminUserRole } from './admin-user-role';
 import { AdminUserTitle } from './admin-user-title';
-import { ADMIN_USER_ROLES_ENUM, AdminUserRoleEnum, adminUserRoleEnumToIdentityRoles } from './user-enum';
+import { adminUserRoleEnumToIdentityRoles } from './user-enum';
 
 export class UserRegistered {
   readonly email: string;

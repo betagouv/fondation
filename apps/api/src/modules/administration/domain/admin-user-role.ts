@@ -1,12 +1,13 @@
 import { assertNever } from '../../../utils/assert-never';
 import { assertIsDefined } from '../../../utils/is-defined';
+import type { AdminUserRoleEnum } from '../../shared/admin-user-role.enum';
 import type { RoleEnum } from '../../shared/role.enum';
 import { UserDutyEnum } from '../../shared/user-duty.enum';
 import { UserTitleEnum } from '../../shared/user-title.enum';
 
+import { AdminUserRoleGroup, adminUserRoleGroupOf } from './admin-user-role-group';
 import { AdminUserTitle } from './admin-user-title';
 import {
-  AdminUserRoleEnum,
   adminUserRoleEnumToDuty,
   adminUserRoleEnumToIdentityRoles,
   adminUserRoleEnumToTitle,
@@ -28,6 +29,10 @@ export class AdminUserRole {
 
   get title(): UserTitleEnum | null {
     return adminUserRoleEnumToTitle(this._role);
+  }
+
+  get group(): AdminUserRoleGroup {
+    return adminUserRoleGroupOf(this._role);
   }
 
   get duty(): UserDutyEnum | null {

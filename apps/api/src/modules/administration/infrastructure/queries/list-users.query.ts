@@ -7,19 +7,17 @@ import { assertIsDefined } from '../../../../utils/is-defined';
 import { Db } from '../../../framework/database';
 import { createPaginatedZodDto, paginate, Pagination } from '../../../framework/pagination';
 import { Sortable } from '../../../framework/sorting';
-import { GenderEnum } from '../../../shared/gender.enum';
+import { AdminUserRoleEnum } from '../../../shared/admin-user-role.enum';
 import { prismaGenderEnumToGenderEnum } from '../../../shared/mappers/gender-enum.mapper';
 import { prismaRoleEnumToRoleEnum } from '../../../shared/mappers/role-enum.mapper';
 import { USER_STATUSES, UserStatus, userStatusOf } from '../../../shared/user-status.enum';
 import { AdminUserRole } from '../../domain/admin-user-role';
 import {
-  ADMIN_USER_ROLES_ENUM,
-  AdminUserRoleEnum,
   adminUserRoleEnumToDuty,
   adminUserRoleEnumToIdentityRoles,
   adminUserRoleEnumToTitle,
 } from '../../domain/user-enum';
-import { ListUsersQueryDto } from '../dto/administration.dto';
+import { ListUsersQueryDto, servedAdminUserRole, ServedAdminUserRoleSchema } from '../dto/administration.dto';
 
 @Injectable()
 export class ListUsersQuery {
@@ -93,12 +91,14 @@ export class ListUsersQuery {
     return paginate({
       items: items.map(({ deactivatedAt, duty, gender, role, title, ...u }) => ({
         ...u,
-        gender: prismaGenderEnumToGenderEnum(gender),
-        role: AdminUserRole.from({
-          duty: duty ?? null,
-          role: prismaRoleEnumToRoleEnum(role),
-          title: title ?? null,
-        }).toString(),
+        role: servedAdminUserRole(
+          AdminUserRole.from({
+            duty: duty ?? null,
+            role: prismaRoleEnumToRoleEnum(role),
+            title: title ?? null,
+          }),
+          prismaGenderEnumToGenderEnum(gender),
+        ),
         status: userStatusOf({ deactivatedAt }),
       })),
       pagination: query.pagination,
@@ -113,8 +113,7 @@ export class PaginatedAdminUserListItemDto extends createPaginatedZodDto(
     firstName: z.string(),
     lastName: z.string(),
     email: z.string(),
-    gender: z.enum(GenderEnum),
-    role: z.enum(ADMIN_USER_ROLES_ENUM),
+    role: ServedAdminUserRoleSchema,
     isAdmin: z.boolean(),
     status: z.enum(USER_STATUSES),
   }),

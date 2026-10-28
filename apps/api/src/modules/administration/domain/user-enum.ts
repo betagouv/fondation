@@ -1,23 +1,8 @@
 import { assertNever } from '../../../utils/assert-never';
+import type { AdminUserRoleEnum } from '../../shared/admin-user-role.enum';
 import type { RoleEnum } from '../../shared/role.enum';
 import type { UserDutyEnum } from '../../shared/user-duty.enum';
 import type { UserTitleEnum } from '../../shared/user-title.enum';
-
-export const ADMIN_USER_ROLES_ENUM = [
-  'FIRST_SECRETARY',
-  'SECRETARY',
-  'OFFICER',
-
-  'PRESIDENT_SIEGE',
-  'DEPUTY_PRESIDENT_SIEGE',
-  'PRESIDENT_PARQUET',
-  'DEPUTY_PRESIDENT_PARQUET',
-
-  'MEMBRE_PARQUET',
-  'MEMBRE_SIEGE',
-  'MEMBRE_COMMUN',
-] as const;
-export type AdminUserRoleEnum = (typeof ADMIN_USER_ROLES_ENUM)[number];
 
 export function adminUserRoleEnumToTitle(role: AdminUserRoleEnum): UserTitleEnum | null {
   switch (role) {
