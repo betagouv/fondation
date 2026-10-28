@@ -19,15 +19,16 @@ import { API_CONFIG_TOKEN, ApiConfig } from './config';
 // Every key is set: as soon as dataCollection is given, the missing ones collect everything, cookies and bodies included.
 // The HTTP server of the SDK 10.76 ignores httpBodies and still reads the incoming body unless told otherwise
 export const WITHOUT_PERSONAL_DATA = {
+  // TODO: see apps/client/src/observability.ts
   dataCollection: {
     cookies: false,
     databaseQueryData: false,
     frameContextLines: 7,
     genAI: { inputs: false, outputs: false },
-    graphQL: { document: true, variables: true },
+    graphQL: { document: true, variables: false },
     httpBodies: [],
     httpHeaders: false,
-    stackFrameVariables: true,
+    stackFrameVariables: false,
     urlQueryParams: false,
     userInfo: false,
   },
