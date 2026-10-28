@@ -1,8 +1,11 @@
 <%
+  require 'json'
   require 'uri'
-  api_origin = URI.join(ENV['VITE_API_URL'], '/')
-  matomo_origin = URI.join(ENV['VITE_MATOMO_BASE_URL'], '/') unless ENV['VITE_MATOMO_BASE_URL'].to_s.empty?
-  sentry_dsn = URI(ENV['VITE_SENTRY_DSN']) unless ENV['VITE_SENTRY_DSN'].to_s.empty?
+  # Written by the build-client workflow: the VITE_ variables live in GitHub, not in Scalingo
+  build_env = JSON.parse(File.read('/app/build-env.json'))
+  api_origin = URI.join(build_env['VITE_API_URL'], '/')
+  matomo_origin = URI.join(build_env['VITE_MATOMO_BASE_URL'], '/') unless build_env['VITE_MATOMO_BASE_URL'].to_s.empty?
+  sentry_dsn = URI(build_env['VITE_SENTRY_DSN']) unless build_env['VITE_SENTRY_DSN'].to_s.empty?
 
   # The document viewer frame inherits this policy: the templates and the rich text carry inline styles
   csp = {
@@ -57,7 +60,7 @@ location = /monitoring {
 
 # The browser sends the CSP violations without the Sentry key, which the tunnel adds as the SDK does for the events
 location = /monitoring/csp {
-  set $sentry_csp "https://sentry.incubateur.net/api/235/security/?sentry_key=<%= sentry_dsn.user %>&sentry_environment=<%= ENV['VITE_DEPLOY_ENV'] %>";
+  set $sentry_csp "https://sentry.incubateur.net/api/235/security/?sentry_key=<%= sentry_dsn.user %>&sentry_environment=<%= build_env['VITE_DEPLOY_ENV'] %>";
   proxy_pass $sentry_csp;
   proxy_pass_request_headers off;
   proxy_set_header Content-Type $content_type;
