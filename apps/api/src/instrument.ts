@@ -1,6 +1,7 @@
 import * as Sentry from '@sentry/node';
 
 import { loadConfig } from './modules/framework/config';
+import { WITHOUT_REQUEST_DATA } from './modules/framework/observability';
 import { assertIsDefined } from './utils/is-defined';
 
 async function initInstrumentation(): Promise<void> {
@@ -13,6 +14,7 @@ async function initInstrumentation(): Promise<void> {
   );
 
   Sentry.init({
+    ...WITHOUT_REQUEST_DATA,
     dsn,
     sampleRate: 1.0,
     tracesSampleRate: 0.2,
