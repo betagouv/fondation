@@ -16,6 +16,14 @@ import * as time from '../../utils/time';
 
 import { API_CONFIG_TOKEN, ApiConfig } from './config';
 
+// Even without sendDefaultPii, the SDK attaches the body, the headers and the cookies of the request to every event
+export const WITHOUT_REQUEST_DATA = {
+  integrations: (defaults) => [
+    ...defaults.filter(({ name }) => name !== 'RequestData'),
+    Sentry.httpIntegration({ maxIncomingRequestBodySize: 'none' }),
+  ],
+} satisfies Sentry.NodeOptions;
+
 @Injectable()
 export class SentryService {
   private readonly isEnabled: boolean = false;
@@ -28,10 +36,10 @@ export class SentryService {
   captureException(exception: unknown, request: ExpressRequest, status: number): void {
     if (!this.isEnabled) return;
 
-    const { route, body, headers, method } = request;
+    const { route, method } = request;
     Sentry.withScope((scope) => {
       scope.setTags({ url: (route as IRoute).path });
-      scope.setExtras({ method, headers, body, status });
+      scope.setExtras({ method, status });
       if (request.user && request.user.type === 'human') {
         scope.setUser({ id: request.user.id });
       } else if (request.userId) {
