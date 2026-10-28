@@ -124,10 +124,10 @@ export class SummaryRepository {
       },
       where: { nominationFileId: message.id },
     });
-    await this.markScreenshotsAbsentFrom(message);
+    await this.syncScreenshotsWith(message);
   }
 
-  private async markScreenshotsAbsentFrom(message: { content: string; id: string }) {
+  private async syncScreenshotsWith(message: { content: string; id: string }) {
     const embedded = [...fileIdsReferencedIn(message.content)];
 
     await this.db.tx.summaryScreenshot.updateMany({

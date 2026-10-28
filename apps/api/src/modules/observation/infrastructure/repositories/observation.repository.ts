@@ -214,14 +214,10 @@ export class ObservationRepository {
         },
       },
     });
-    await this.markScreenshotsAbsentFrom(message);
+    await this.syncScreenshotsWith(message);
   }
 
-  private async markScreenshotsAbsentFrom(message: {
-    comment: string;
-    observationId: string;
-    userId: string;
-  }) {
+  private async syncScreenshotsWith(message: { comment: string; observationId: string; userId: string }) {
     const embedded = [...fileIdsReferencedIn(message.comment)];
     const comment = { observationId: message.observationId, userId: message.userId };
 

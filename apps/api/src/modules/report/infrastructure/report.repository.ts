@@ -108,11 +108,11 @@ export class ReportRepository {
       where: { id: message.id },
     });
     if (message.data.comment !== undefined) {
-      await this.markScreenshotsAbsentFrom({ comment: message.data.comment, reportId: message.id });
+      await this.syncScreenshotsWith({ comment: message.data.comment, reportId: message.id });
     }
   }
 
-  private async markScreenshotsAbsentFrom(message: { comment: string; reportId: string }) {
+  private async syncScreenshotsWith(message: { comment: string; reportId: string }) {
     const embedded = [...fileIdsReferencedIn(message.comment)];
     const screenshots = { reportId: message.reportId, usage: 'EMBEDDED_SCREENSHOT' as const };
 
