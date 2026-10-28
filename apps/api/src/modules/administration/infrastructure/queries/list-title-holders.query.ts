@@ -6,11 +6,11 @@ import { Prisma } from '../../../../generated/prisma/client';
 import { assertIsDefined } from '../../../../utils/is-defined';
 import { fullname } from '../../../../utils/user.util';
 import { Db } from '../../../framework/database';
+import { ADMIN_USER_ROLES_ENUM } from '../../../shared/admin-user-role.enum';
 import { GenderEnum } from '../../../shared/gender.enum';
 import { prismaGenderEnumToGenderEnum } from '../../../shared/mappers/gender-enum.mapper';
 import { prismaRoleEnumToRoleEnum } from '../../../shared/mappers/role-enum.mapper';
 import { AdminUserRole } from '../../domain/admin-user-role';
-import { ADMIN_USER_ROLES_ENUM } from '../../domain/user-enum';
 
 @Injectable()
 export class ListTitleHoldersQuery {

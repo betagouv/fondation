@@ -4,6 +4,7 @@ import { Injectable } from '@nestjs/common';
 import { Clock } from '../framework/clock';
 import { Pagination } from '../framework/pagination';
 import { Sortable } from '../framework/sorting';
+import { AdminUserRoleEnum } from '../shared/admin-user-role.enum';
 import { GenderEnum } from '../shared/gender.enum';
 import type { RoleEnum } from '../shared/role.enum';
 import { UserStatus } from '../shared/user-status.enum';
@@ -11,7 +12,6 @@ import { SimpleAuthService } from '../simple-auth';
 
 import { AdminUserRole } from './domain/admin-user-role';
 import { User } from './domain/user';
-import { AdminUserRoleEnum } from './domain/user-enum';
 import { ListUsersQueryDto } from './infrastructure/dto/administration.dto';
 import { DetailedAdminUserDto, DetailsUserQuery } from './infrastructure/queries/details-user.query';
 import {

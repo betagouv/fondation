@@ -1,5 +1,6 @@
+import { ADMIN_USER_ROLES_ENUM, AdminUserRoleEnum } from '../../shared/admin-user-role.enum';
+
 import { AdminUserTitle } from './admin-user-title';
-import { ADMIN_USER_ROLES_ENUM, AdminUserRoleEnum } from './user-enum';
 
 describe('AdminUserTitle', () => {
   it('should always map to the same values', () => {

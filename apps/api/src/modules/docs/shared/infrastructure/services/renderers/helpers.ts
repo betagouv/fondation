@@ -36,7 +36,12 @@ export function displayTitled(props: {
   const output = props.gender === GenderEnum.MALE ? `M. ${fullname(props)}` : `Mme ${fullname(props)}`;
 
   if (!title) return output;
-  return `${output}, ${title[0]!.toLowerCase() + title.slice(1)}`;
+  return `${output}, ${lowerFirst(title)}`;
+}
+
+/** a label written to start a line, put back in the middle of a sentence */
+export function lowerFirst(label: string): string {
+  return label.charAt(0).toLowerCase() + label.slice(1);
 }
 
 const shortDate = new Intl.DateTimeFormat('fr', {

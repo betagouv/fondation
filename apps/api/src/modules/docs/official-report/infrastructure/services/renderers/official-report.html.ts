@@ -2,6 +2,7 @@ import { DateOnly } from '../../../../../../utils/date-only';
 import { Id } from '../../../../../../utils/id';
 import { isDefined } from '../../../../../../utils/is-defined';
 import { fullname } from '../../../../../../utils/user.util';
+import { adminUserRoleLabel } from '../../../../../shared/admin-user-role.enum';
 import { FormationEnum } from '../../../../../shared/formation.enum';
 import {
   DocNominationFileOutcomeEnum,
@@ -15,6 +16,7 @@ import {
   conjunctionList,
   date,
   displayTitled,
+  lowerFirst,
   readsTheSame,
   requiresElision,
 } from '../../../../shared/infrastructure/services/renderers/helpers';
@@ -129,17 +131,16 @@ function displayFileContent(ctx: {
 function displayChairmanTitle(ctx: OfficialReportRenderContext): string | null {
   if (!ctx.chairman.title) return null;
 
-  const formationLabel = ctx.agenda.formation === 'PARQUET' ? 'parquet' : 'siège';
-  const presidentTitle =
-    ctx.chairman.title === 'DEPUTY_PRESIDENT_PARQUET' || ctx.chairman.title === 'DEPUTY_PRESIDENT_SIEGE'
-      ? ctx.chairman.gender === 'MALE'
-        ? `président suppléant de la formation ${formationLabel}`
-        : `présidente suppléante de la formation ${formationLabel}`
-      : ctx.chairman.gender === 'MALE'
-        ? `président de la formation ${formationLabel}`
-        : `présidente de la formation ${formationLabel}`;
+  const formation = ctx.agenda.formation === 'PARQUET' ? 'PARQUET' : 'SIEGE';
+  const isDeputy =
+    ctx.chairman.title === 'DEPUTY_PRESIDENT_PARQUET' || ctx.chairman.title === 'DEPUTY_PRESIDENT_SIEGE';
 
-  return presidentTitle;
+  return lowerFirst(
+    adminUserRoleLabel(
+      isDeputy ? `DEPUTY_PRESIDENT_${formation}` : `PRESIDENT_${formation}`,
+      ctx.chairman.gender,
+    ),
+  );
 }
 
 function displayIntroduction(
@@ -170,14 +171,9 @@ function displayIntroduction(
     )}
   </ul>`;
 
-  const secretaryTitle =
-    ctx.secretary.title === 'FIRST_SECRETARY'
-      ? ctx.secretary.gender === 'MALE'
-        ? `secrétaire général`
-        : `secrétaire générale`
-      : ctx.secretary.gender === 'MALE'
-        ? `secrétaire général adjoint`
-        : `secrétaire générale adjointe`;
+  const secretaryTitle = lowerFirst(
+    adminUserRoleLabel(ctx.secretary.title ?? 'SECRETARY', ctx.secretary.gender),
+  );
   const secretary = html`${ctx.secretary.gender === 'MALE' ? 'M.' : 'Mme'}&nbsp;${fullname(ctx.secretary)},
   ${secretaryTitle}`;
 

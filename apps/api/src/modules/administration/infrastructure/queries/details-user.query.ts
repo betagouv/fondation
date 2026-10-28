@@ -4,6 +4,7 @@ import z from 'zod';
 
 import { Prisma } from '../../../../generated/prisma/client';
 import { Db } from '../../../framework/database';
+import { ADMIN_USER_ROLES_ENUM } from '../../../shared/admin-user-role.enum';
 import { GenderEnum } from '../../../shared/gender.enum';
 import { prismaGenderEnumToGenderEnum } from '../../../shared/mappers/gender-enum.mapper';
 import { prismaRoleEnumToRoleEnum } from '../../../shared/mappers/role-enum.mapper';
@@ -11,7 +12,6 @@ import { USER_STATUSES, userStatusOf } from '../../../shared/user-status.enum';
 import { AuthUser } from '../../../simple-auth/domain/auth-user';
 import { AdminUserRole } from '../../domain/admin-user-role';
 import { User } from '../../domain/user';
-import { ADMIN_USER_ROLES_ENUM } from '../../domain/user-enum';
 
 @Injectable()
 export class DetailsUserQuery {

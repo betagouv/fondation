@@ -2,11 +2,11 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { createSortableDto } from '../../../framework/sorting';
+import { ADMIN_USER_ROLES_ENUM, AdminUserRoleEnum } from '../../../shared/admin-user-role.enum';
 import { GenderEnum } from '../../../shared/gender.enum';
 import { PasswordSchema } from '../../../shared/password.schema';
 import { RoleEnum } from '../../../shared/role.enum';
 import { USER_STATUSES, UserStatus } from '../../../shared/user-status.enum';
-import { ADMIN_USER_ROLES_ENUM, AdminUserRoleEnum } from '../../domain/user-enum';
 
 export class ListUsersQueryDto extends createSortableDto(
   z.object({
