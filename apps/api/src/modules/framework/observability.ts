@@ -16,12 +16,22 @@ import * as time from '../../utils/time';
 
 import { API_CONFIG_TOKEN, ApiConfig } from './config';
 
-// Even without sendDefaultPii, the SDK attaches the body, the headers and the cookies of the request to every event
-export const WITHOUT_REQUEST_DATA = {
-  integrations: (defaults) => [
-    ...defaults.filter(({ name }) => name !== 'RequestData'),
-    Sentry.httpIntegration({ maxIncomingRequestBodySize: 'none' }),
-  ],
+// Every key is set: as soon as dataCollection is given, the missing ones collect everything, cookies and bodies included.
+// The HTTP server of the SDK 10.76 ignores httpBodies and still reads the incoming body unless told otherwise
+export const WITHOUT_PERSONAL_DATA = {
+  dataCollection: {
+    cookies: false,
+    databaseQueryData: false,
+    frameContextLines: 7,
+    genAI: { inputs: false, outputs: false },
+    graphQL: { document: true, variables: true },
+    httpBodies: [],
+    httpHeaders: false,
+    stackFrameVariables: true,
+    urlQueryParams: false,
+    userInfo: false,
+  },
+  integrations: [Sentry.httpIntegration({ maxIncomingRequestBodySize: 'none' })],
 } satisfies Sentry.NodeOptions;
 
 @Injectable()
