@@ -33,20 +33,20 @@ export class DetailsAgendaMetadataQuery {
     const publishedId = await this.agendaVersionFinder.published({ agendaId: query.agendaId });
 
     const version = await this.db.tx.agendaVersion.findUnique({
-      where: { id: versionId },
       select: {
-        agendaId: true,
-        status: true,
-        outdated: true,
-        chairmanId: true,
-        date: true,
-        sessionMeetingDate: true,
-        isManuallyEdited: true,
-        createdBy: true,
-        updatedBy: true,
         ...DRAFT_TRACE_SELECT,
         _count: { select: { nominationFiles: { where: { htmlOutdated: true } } } },
+        agendaId: true,
+        chairmanId: true,
+        createdBy: true,
+        date: true,
+        isManuallyEdited: true,
+        outdated: true,
+        sessionMeetingDate: true,
+        status: true,
+        updatedBy: true,
       } satisfies Prisma.AgendaVersionSelect,
+      where: { id: versionId },
     });
 
     if (!version) throw new NotFoundException();
@@ -67,8 +67,8 @@ export class DetailsAgendaMetadataQuery {
       outdated: version.outdated,
       outdatedPropositions: version._count.nominationFiles,
       hasValidatedVersion,
-      canValidate: canValidateDocument({ isValidated: version.status === 'VALIDATED' }),
       canDiscardDraft: canDiscardDraft({ changesBy, hasValidatedVersion }),
+      canValidate: canValidateDocument({ isValidated: version.status === 'VALIDATED' }),
       draftChangesBy: changesBy,
       draft: draftTrace(version),
       validation: traceOf(published?.validatedAt, published?.validator),
@@ -88,10 +88,9 @@ export class DetailedAgendaMetadata extends createZodDto(
     outdated: z.boolean(),
     /** zero while the introduction or the conclusion is the one waiting */
     outdatedPropositions: z.number().int(),
-    /** a validated version remains underneath the draft */
     hasValidatedVersion: z.boolean(),
-    canValidate: z.boolean(),
     canDiscardDraft: z.boolean(),
+    canValidate: z.boolean(),
     draftChangesBy: draftChangesBySchema,
     draft: draftTraceSchema,
     validation: traceSchema,

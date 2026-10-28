@@ -274,7 +274,6 @@ export class AgendasService {
   /** the sentence each proposition reads today, empty when the agenda leaves it to the template */
   private async readableSentences(agendaId: string): Promise<Map<string, string>> {
     const agenda = await this.db.tx.agenda.findFirst({
-      where: { id: agendaId, officialReportId: { not: null } },
       select: {
         versions: {
           ...AGENDA_CONTENT_VERSIONS,
@@ -284,6 +283,7 @@ export class AgendasService {
           },
         },
       } satisfies Prisma.AgendaSelect,
+      where: { id: agendaId, officialReportId: { not: null } },
     });
 
     return new Map(

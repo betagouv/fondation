@@ -34,14 +34,16 @@ export class DetailsOfficialReportQuery {
       officialReportId: query.officialReportId,
     });
     const version = await this.db.tx.officialReportVersion.findUnique({
-      where: { id: versionId },
       select: {
+        ...DRAFT_TRACE_SELECT,
+        _count: { select: { nominationFiles: { where: { htmlOutdated: true } } } },
         chairmanId: true,
         createdBy: true,
         hasRenunciation: true,
         isManuallyEdited: true,
         justiceDepartmentContactId: true,
         members: { select: { isAbsent: true, memberId: true } },
+        officialReport: { select: { agenda: { select: { id: true } }, id: true } },
         outdated: true,
         secretaryId: true,
         sessionMeetingDate: true,
@@ -49,10 +51,8 @@ export class DetailsOfficialReportQuery {
         sessionMeetingStartingTime: true,
         status: true,
         updatedBy: true,
-        ...DRAFT_TRACE_SELECT,
-        _count: { select: { nominationFiles: { where: { htmlOutdated: true } } } },
-        officialReport: { select: { agenda: { select: { id: true } }, id: true } },
       } satisfies Prisma.OfficialReportVersionSelect,
+      where: { id: versionId },
     });
 
     if (!version) throw new NotFoundException();
@@ -63,11 +63,11 @@ export class DetailsOfficialReportQuery {
 
     const published = publishedId
       ? await this.db.tx.officialReportVersion.findUnique({
-          where: { id: publishedId },
           select: {
             ...VALIDATION_TRACE_SELECT,
-            skippedUpdates: { select: { cause: true }, orderBy: { at: 'asc' } },
+            skippedUpdates: { orderBy: { at: 'asc' }, select: { cause: true } },
           } satisfies Prisma.OfficialReportVersionSelect,
+          where: { id: publishedId },
         })
       : null;
 
@@ -89,8 +89,8 @@ export class DetailsOfficialReportQuery {
       justiceDepartmentContactId: report.justiceDepartmentContactId?.toString() ?? null,
       isManuallyEdited: report.isManuallyEdited,
       hasValidatedVersion,
-      canValidate: canValidateDocument({ isValidated: version.status === 'VALIDATED' }),
       canDiscardDraft: canDiscardDraft({ changesBy, hasValidatedVersion }),
+      canValidate: canValidateDocument({ isValidated: version.status === 'VALIDATED' }),
       draftChangesBy: changesBy,
       draft: draftTrace(version),
       changedSinceValidation: published?.skippedUpdates.map(({ cause }) => cause) ?? [],
@@ -119,10 +119,9 @@ export class DetailedOfficialReportMetadataDto extends createZodDto(
     outdated: z.boolean(),
     /** zero while the introduction or the conclusion is the one waiting */
     outdatedPropositions: z.number().int(),
-    /** a validated version remains underneath the draft */
     hasValidatedVersion: z.boolean(),
-    canValidate: z.boolean(),
     canDiscardDraft: z.boolean(),
+    canValidate: z.boolean(),
     draftChangesBy: draftChangesBySchema,
     draft: draftTraceSchema,
     /** what changed elsewhere since the validated version, which kept the meeting as it was held */

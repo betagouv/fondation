@@ -32,60 +32,60 @@ export class DetailsPresentationPlanMetadataQuery {
 
   async handle(query: { id: string }): Promise<DetailedPresentationPlanMetadataDto> {
     const plan = await this.db.tx.justicePresentationPlan.findUnique({
-      where: { id: query.id },
       select: {
-        id: true,
-        chairmanId: true,
-        secretaryId: true,
-        date: true,
-        time: true,
-        outdated: true,
-        pdfId: true,
-        isPresented: true,
-        isManuallyEdited: true,
-        justiceDepartmentContactId: true,
-        hasRenunciation: true,
-        createdAt: true,
-        author: { select: { firstName: true, id: true, lastName: true } },
-        updatedAt: true,
-        editor: { select: { firstName: true, id: true, lastName: true } },
-        validatedAt: true,
-        validator: { select: { firstName: true, id: true, lastName: true } },
-        endTime: true,
-        presenter: { select: { firstName: true, id: true, lastName: true } },
-        members: { select: { memberId: true, isAbsent: true } },
         agendas: {
           select: {
+            agenda: { select: { formation: true } },
             agendaId: true,
             comment: true,
-            agenda: { select: { formation: true } },
           },
         },
+        author: { select: { firstName: true, id: true, lastName: true } },
+        chairmanId: true,
+        createdAt: true,
+        date: true,
+        editor: { select: { firstName: true, id: true, lastName: true } },
+        endTime: true,
+        hasRenunciation: true,
+        id: true,
+        isManuallyEdited: true,
+        isPresented: true,
+        justiceDepartmentContactId: true,
+        members: { select: { isAbsent: true, memberId: true } },
+        outdated: true,
+        pdfId: true,
+        presenter: { select: { firstName: true, id: true, lastName: true } },
         removedAgendas: {
           orderBy: { removedAt: 'asc' },
           select: {
-            agendaId: true,
-            removedAt: true,
-            remover: { select: { id: true, firstName: true, lastName: true } },
             agenda: {
               select: {
                 versions: {
                   ...AGENDA_CONTENT_VERSIONS,
                   select: {
-                    status: true,
-                    sessionMeetingDate: true,
                     chairmanFirstName: true,
                     chairmanLastName: true,
+                    sessionMeetingDate: true,
+                    status: true,
                   },
                 },
               },
             },
+            agendaId: true,
+            removedAt: true,
+            remover: { select: { firstName: true, id: true, lastName: true } },
             takenBy: {
-              select: { id: true, date: true, time: true, chairmanFirstName: true, chairmanLastName: true },
+              select: { chairmanFirstName: true, chairmanLastName: true, date: true, id: true, time: true },
             },
           },
         },
+        secretaryId: true,
+        time: true,
+        updatedAt: true,
+        validatedAt: true,
+        validator: { select: { firstName: true, id: true, lastName: true } },
       } satisfies Prisma.JusticePresentationPlanSelect,
+      where: { id: query.id },
     });
 
     if (!plan) throw new NotFoundException();

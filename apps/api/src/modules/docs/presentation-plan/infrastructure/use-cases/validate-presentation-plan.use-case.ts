@@ -25,11 +25,11 @@ export class ValidatePresentationPlanUseCase {
   // rendering and uploading the pdf stay out of the transaction: they would hold a connection for seconds
   async handle(command: { id: string; validatorId: string }): Promise<void> {
     const plan = await this.db.tx.justicePresentationPlan.findUnique({
-      where: { id: command.id },
       select: {
-        pdfId: true,
         agendas: { select: { agendaId: true } },
+        pdfId: true,
       } satisfies Prisma.JusticePresentationPlanSelect,
+      where: { id: command.id },
     });
     if (!plan) throw new NotFoundException();
     if (!canValidateDocument({ isValidated: isDefined(plan.pdfId) })) return;
@@ -59,12 +59,12 @@ export class ValidatePresentationPlanUseCase {
 
     // another validation may have taken an agenda meanwhile, even from a text edited by hand that still reads it
     const stored = await this.db.tx.justicePresentationPlan.findUnique({
-      where: { id: command.id },
       select: {
         agendas: { select: { agendaId: true } },
         html: true,
         pdfId: true,
       } satisfies Prisma.JusticePresentationPlanSelect,
+      where: { id: command.id },
     });
     const agendaIds = new Set(stored?.agendas.map(({ agendaId }) => agendaId));
     if (stored?.html !== command.html || agendaIds.symmetricDifference(new Set(command.agendaIds)).size > 0) {
@@ -75,15 +75,15 @@ export class ValidatePresentationPlanUseCase {
     if (!canValidateDocument({ isValidated: isDefined(stored.pdfId) })) return false;
 
     await this.db.tx.justicePresentationPlan.update({
-      where: { id: command.id },
       data: { pdfId: command.pdfId, validatedAt: this.clock.now(), validatedBy: command.validatorId },
+      where: { id: command.id },
     });
     await this.db.tx.justicePresentationPlanRemovedAgenda.deleteMany({ where: { planId: command.id } });
 
     const drafts = await this.db.tx.justicePresentationPlanToAgenda.findMany({
-      where: { agendaId: { in: command.agendaIds }, planId: { not: command.id } },
       distinct: ['planId'],
       select: { planId: true } satisfies Prisma.JusticePresentationPlanToAgendaSelect,
+      where: { agendaId: { in: command.agendaIds }, planId: { not: command.id } },
     });
 
     for (const { planId } of drafts) {

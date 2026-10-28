@@ -1337,8 +1337,8 @@ export type DetailedAgendaMetadata = {
     outdated: boolean;
     outdatedPropositions: number;
     hasValidatedVersion: boolean;
-    canValidate: boolean;
     canDiscardDraft: boolean;
+    canValidate: boolean;
     draftChangesBy: 'PERSON' | 'PERSON_AND_SYSTEM' | 'SYSTEM' | null;
     draft: {
         openedAt: string;
@@ -1545,8 +1545,8 @@ export type DetailedOfficialReportMetadataDto = {
     outdated: boolean;
     outdatedPropositions: number;
     hasValidatedVersion: boolean;
-    canValidate: boolean;
     canDiscardDraft: boolean;
+    canValidate: boolean;
     draftChangesBy: 'PERSON' | 'PERSON_AND_SYSTEM' | 'SYSTEM' | null;
     draft: {
         openedAt: string;

@@ -94,8 +94,8 @@ export class OfficialReportsService {
     const session = await this.sessions.internalGetSession({ sessionId: command.sessionId });
 
     const secretary = await this.auth.detailsUser({
-      userId: command.secretaryId,
       impersonationId: undefined,
+      userId: command.secretaryId,
     });
 
     const {
@@ -116,16 +116,16 @@ export class OfficialReportsService {
         justiceDepartmentContactId: BigInt(command.justiceDepartmentContactId),
 
         agenda: {
-          id: agenda.id,
-          formation: agenda.formation,
           date: DateOnly.fromJson(agenda.date),
-          session: { id: agenda.session.id, date: DateOnly.fromJson(agenda.session.date) },
+          formation: agenda.formation,
+          id: agenda.id,
+          session: { date: DateOnly.fromJson(agenda.session.date), id: agenda.session.id },
         },
 
         sessionMeeting: OfficialReportSessionMeeting.from({
-          startTime: command.sessionMeetingTime,
-          endTime: command.sessionMeetingEndingTime,
           date: DateOnly.fromJson(command.sessionMeetingDate),
+          endTime: command.sessionMeetingEndingTime,
+          startTime: command.sessionMeetingTime,
         }),
 
         // oxlint-disable-next-line typescript/no-misused-spread
@@ -165,8 +165,8 @@ export class OfficialReportsService {
     const report = await this.officialReportRepository.find({ actorId: command.authorId, id: command.id });
 
     const secretary = await this.auth.detailsUser({
-      userId: command.secretaryId,
       impersonationId: undefined,
+      userId: command.secretaryId,
     });
     const chairman = await this.members.internalGetMember({ id: command.chairmanId });
     const members = await this.members.internalFindMembersByFormation({
@@ -177,15 +177,15 @@ export class OfficialReportsService {
     const {
       items: [agenda],
     } = await this.agendaFinder.findReportableInOfficialReport({
+      ids: new Set([report.snapshot.meta.agenda.id]),
       ignoreOfficialReportId: command.id,
       sessionId: report.snapshot.meta.agenda.session.id,
-      ids: new Set([report.snapshot.meta.agenda.id]),
     });
     if (!agenda) throw new NotFoundException();
 
     const { items: agendaFiles } = await this.docsNominationFilesFinder.findByAgendaIds({
-      ignoreOfficialReportId: report.id,
       agendaIds: new Set([agenda.id]),
+      ignoreOfficialReportId: report.id,
     });
 
     report.update({
@@ -193,16 +193,16 @@ export class OfficialReportsService {
       officialReport: {
         hasRenunciation: command.hasRenunciation,
         agenda: {
-          id: agenda.id,
-          formation: agenda.formation,
           date: DateOnly.fromJson(agenda.date),
-          session: { id: agenda.session.id, date: DateOnly.fromJson(agenda.session.date) },
+          formation: agenda.formation,
+          id: agenda.id,
+          session: { date: DateOnly.fromJson(agenda.session.date), id: agenda.session.id },
         },
         justiceDepartmentContactId: BigInt(command.justiceDepartmentContactId),
         sessionMeeting: OfficialReportSessionMeeting.from({
-          startTime: command.sessionMeetingTime,
-          endTime: command.sessionMeetingEndingTime,
           date: DateOnly.fromJson(command.sessionMeetingDate),
+          endTime: command.sessionMeetingEndingTime,
+          startTime: command.sessionMeetingTime,
         }),
         // oxlint-disable-next-line typescript/no-misused-spread
         chairman: OfficialReportChairman.from({ ...chairman, expectedFormation: report.formation }),
@@ -221,8 +221,8 @@ export class OfficialReportsService {
           file.outcome !== null
             ? [
                 {
-                  outcome: file.outcome,
                   nominationFileId: file.id,
+                  outcome: file.outcome,
                   reporters: file.reporters.map(({ fullTitledName }) => fullTitledName),
                 },
               ]
@@ -379,7 +379,7 @@ export class OfficialReportsService {
     html: string;
   }): Promise<void> {
     return this.withOfficialReport({ actorId: command.authorId, id: command.id }, (report) =>
-      report.editSectionIntro({ outcome: command.outcome, html: command.html }),
+      report.editSectionIntro({ html: command.html, outcome: command.outcome }),
     );
   }
 

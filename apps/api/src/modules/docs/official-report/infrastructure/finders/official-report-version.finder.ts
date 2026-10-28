@@ -14,9 +14,9 @@ export class OfficialReportVersionFinder {
   @Transactional()
   async published(query: { officialReportId: string }): Promise<string | null> {
     const version = await this.db.tx.officialReportVersion.findFirst({
+      orderBy: { version: 'desc' },
       select: { id: true } satisfies Prisma.OfficialReportVersionSelect,
       where: { officialReportId: query.officialReportId, status: 'VALIDATED' },
-      orderBy: { version: 'desc' },
     });
 
     return version?.id ?? null;
@@ -29,9 +29,9 @@ export class OfficialReportVersionFinder {
   @Transactional()
   async latest(query: { officialReportId: string }): Promise<string> {
     const version = await this.db.tx.officialReportVersion.findFirst({
+      orderBy: { version: 'desc' },
       select: { id: true } satisfies Prisma.OfficialReportVersionSelect,
       where: { officialReportId: query.officialReportId },
-      orderBy: { version: 'desc' },
     });
 
     if (!version) throw new NotFoundException();

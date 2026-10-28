@@ -90,7 +90,6 @@ function PresentationPreviewPageStory(props: {
   const metadata: DetailedPresentationPlanMetadataDto = {
     ...LIFECYCLES[props.lifecycle],
     absentMemberIds: [],
-    recordedMemberIds: [],
     agendas: [{ comment: '', id: 'agenda-1' }],
     chairmanId: null,
     date: { day: 23, month: 9, year: 2026 },
@@ -100,6 +99,7 @@ function PresentationPreviewPageStory(props: {
     isManuallyEdited: props.manuallyEdited,
     justiceDepartmentContactId: null,
     outdated: props.outdated,
+    recordedMemberIds: [],
     removedAgendas: props.agendaRemoved && props.lifecycle === 'draft' ? [REMOVED_AGENDA] : [],
     secretaryId: null,
     time: { hours: 10, minutes: 0, seconds: 0 },
