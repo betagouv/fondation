@@ -44,6 +44,7 @@ Après la connexion, un Membre arrive sur `/transparences`, le Secrétariat gén
 | `/avis`                                               | Questionnaire de satisfaction                | ✓                           | ✓                           | ✓                           |
 | `/aide`                                               | Aide                                         | ✓                           | ✓                           | ✓                           |
 | `/aide/manuel`                                        | Manuel utilisateur                           | ✓                           | ✓                           | ✓                           |
+| `/mon-compte`                                         | Son compte et son mot de passe               | ✓                           | ✓                           | ✓                           |
 | `/session/:sessionId/dossier/:fileId/synthese`        | Synthèse d'un dossier                        | ✓ si lecteur de la synthèse | ✓ si lecteur de la synthèse | ✓ si lecteur de la synthèse |
 | `/session/:sessionId/dossier/:fileId/lolfi-magistrat` | Redirection vers la fiche Lolfi du magistrat | ✓ si sa formation           | ✓                           | ✓                           |
 
@@ -126,13 +127,14 @@ Le préfixe `/api` est omis.
 | ---------------------------------------------- | -------------------------------------------- | ------------------------ | ------------------------ | ------------------------ |
 | Savoir qui est connecté                        | `GET /auth/v2/introspect`                    | ✓                        | ✓                        | ✓                        |
 | Se déconnecter                                 | `POST /auth/v2/logout`                       | ✓                        | ✓                        | ✓                        |
+| Changer son mot de passe                       | `PUT /auth/v2/password`                      | ✓                        | ✓                        | ✓                        |
 | Se connecter à la place d'un utilisateur       | `POST /auth/v2/users/:userId/impersonations` | —                        | —                        | ✓                        |
 | Répondre au questionnaire de satisfaction      | `POST /feedbacks/v1/answer`                  | ✓                        | ✓                        | —                        |
 | Voir sa dernière réponse au questionnaire      | `GET /feedbacks/v1/mine`                     | ✓ si ses propres données | ✓ si ses propres données | ✓ si ses propres données |
 | Exporter les réponses au questionnaire (Excel) | `GET /feedbacks/v1/answers.xlsx`             | —                        | —                        | ✓                        |
 | Télécharger un fichier par son lien temporaire | `GET /files/v1/:fileUrlId`                   | ✓                        | ✓                        | ✓                        |
 
-Le lien de téléchargement temporaire fonctionne comme un jeton : quiconque le détient télécharge le fichier. Une réponse donnée à la place d'un utilisateur n'est pas enregistrée.
+Le lien de téléchargement temporaire fonctionne comme un jeton : quiconque le détient télécharge le fichier. Une réponse donnée à la place d'un utilisateur n'est pas enregistrée. Un mot de passe ne se change jamais à la place d'un utilisateur.
 
 ### Sessions
 

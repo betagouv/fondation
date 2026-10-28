@@ -13,35 +13,45 @@ import { AuthSession } from './auth-session';
 export class AuthUserNotAuthentifiable extends Error {}
 export class DeactivatedUserNotImpersonable extends Error {}
 export class AdminOutsideSecretariat extends Error {}
+export class WrongCurrentPassword extends Error {}
+
+export const PASSWORD_CHANGES = ['ALLOWED', 'IMPERSONATED'] as const;
+export type PasswordChange = (typeof PASSWORD_CHANGES)[number];
+
+export class CannotChangePassword extends Error {
+  constructor(readonly reason: Exclude<PasswordChange, 'ALLOWED'>) {
+    super();
+  }
+}
 
 export class AuthUserRegistered {
-  readonly id: string;
-  readonly firstName: string;
-  readonly lastName: string;
-  readonly role: RoleEnum;
-  readonly isAdmin: boolean;
   readonly email: string;
-  readonly password: string;
+  readonly firstName: string;
   readonly gender: GenderEnum;
+  readonly id: string;
+  readonly isAdmin: boolean;
+  readonly lastName: string;
+  readonly password: string;
+  readonly role: RoleEnum;
 
   constructor(props: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    role: RoleEnum;
-    isAdmin: boolean;
     email: string;
-    password: AuthPassword;
+    firstName: string;
     gender: GenderEnum;
+    id: string;
+    isAdmin: boolean;
+    lastName: string;
+    password: AuthPassword;
+    role: RoleEnum;
   }) {
-    this.id = props.id;
-    this.firstName = props.firstName;
-    this.lastName = props.lastName;
-    this.role = props.role;
-    this.isAdmin = props.isAdmin;
     this.email = props.email;
-    this.password = props.password.toString();
+    this.firstName = props.firstName;
     this.gender = props.gender;
+    this.id = props.id;
+    this.isAdmin = props.isAdmin;
+    this.lastName = props.lastName;
+    this.password = props.password.toString();
+    this.role = props.role;
   }
 }
 
@@ -63,15 +73,22 @@ export class AuthUserAuthenticated {
   constructor(
     readonly id: string,
     readonly session: {
+      data: { userId: string };
+      durationMs: number;
       id: string;
       startedAt: Date;
-      durationMs: number;
-      data: { userId: string };
     },
   ) {}
 }
 
 export class AuthUserPasswordRehashed {
+  constructor(
+    readonly id: string,
+    readonly password: string,
+  ) {}
+}
+
+export class AuthUserPasswordChanged {
   constructor(
     readonly id: string,
     readonly password: string,
@@ -100,8 +117,8 @@ export class AuthOpenIdRequestCompleted {
 }
 
 export type AuthenticationStrategy =
-  | { type: 'password'; plainPassword: string }
-  | { type: 'openid'; request: { id: Id<'OpenIdRequest'>; provider: OpenIdProvider } };
+  | { plainPassword: string; type: 'password' }
+  | { request: { id: Id<'OpenIdRequest'>; provider: OpenIdProvider }; type: 'openid' };
 
 type AuthUserEvent =
   | AuthUserRegistered
@@ -109,6 +126,7 @@ type AuthUserEvent =
   | AuthUserUnAuthenticated
   | AuthUserSessionsRevoked
   | AuthUserPasswordRehashed
+  | AuthUserPasswordChanged
   | AuthImpersonationStarted
   | AuthImpersonationRevoked
   | AuthOpenIdRequestCompleted;
@@ -147,6 +165,26 @@ export class AuthUser {
     this.#messages.push(new AuthUserPasswordRehashed(this.id, password.toString()));
   }
 
+  static passwordChangeOf(session: { isImpersonated: boolean }): PasswordChange {
+    return session.isImpersonated ? 'IMPERSONATED' : 'ALLOWED';
+  }
+
+  async changePassword(command: {
+    currentPassword: string;
+    hash: (plain: string) => Promise<AuthPassword>;
+    isImpersonated: boolean;
+    keptSessionId: string;
+    newPassword: string;
+  }): Promise<void> {
+    const passwordChange = AuthUser.passwordChangeOf(command);
+    if (passwordChange !== 'ALLOWED') throw new CannotChangePassword(passwordChange);
+    if (!(await this.password.equals(command.currentPassword))) throw new WrongCurrentPassword();
+
+    const password = await command.hash(command.newPassword);
+    this.#messages.push(new AuthUserPasswordChanged(this.id, password.toString()));
+    this.revokeSessions(command);
+  }
+
   unAuthenticate(sessionId: string): void {
     this.#messages.push(new AuthUserUnAuthenticated(this.id, sessionId));
   }
@@ -160,13 +198,13 @@ export class AuthUser {
   }
 
   static async register(props: {
-    firstName: string;
-    lastName: string;
-    role: RoleEnum;
-    isAdmin: boolean;
     email: string;
-    password: AuthPassword;
+    firstName: string;
     gender: GenderEnum;
+    isAdmin: boolean;
+    lastName: string;
+    password: AuthPassword;
+    role: RoleEnum;
   }) {
     if (props.isAdmin && !isSecretariat(props.role)) throw new AdminOutsideSecretariat();
     const email = await z.email().toLowerCase().parseAsync(props.email);

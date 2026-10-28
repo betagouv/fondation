@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 
 import { test } from '../fixtures.ts';
+import { strongPassword } from '../fixtures/auth.fixture.ts';
 import { makeStepsFixtures } from '../steps.ts';
 import { cookieHeader } from '../utils/cookies.ts';
 
@@ -12,7 +13,7 @@ test.describe('Simple Auth E2E', () => {
         firstName: 'Ada',
         gender: 'FEMALE',
         lastName: 'Lovelace',
-        password: `${randomUUID()}:${randomUUID()}`,
+        password: `${strongPassword()}:${randomUUID()}`,
         role: 'MEMBRE_COMMUN',
       });
 
@@ -46,23 +47,48 @@ test.describe('Simple Auth E2E', () => {
   });
 
   test.describe('Given a logged-in user', () => {
-    test('should have an introspectable session', async ({ member, expect }) => {
+    test('should have an introspectable session', async ({ expect, member }) => {
       const introspectRes = await member.auth.introspectSession();
       expect(introspectRes.response?.status).toBe(200);
     });
 
-    test('should tell the deployed version', async ({ member, expect }) => {
+    test('should tell the deployed version', async ({ expect, member }) => {
       const introspectRes = await member.auth.introspectSession();
       expect(introspectRes.response?.headers.get('X-App-Version')).toBe('e2e');
     });
 
-    test('should logout', async ({ member, expect }) => {
+    test('should logout', async ({ expect, member }) => {
       const logoutRes = await member.auth.logout();
       expect(logoutRes.response?.status).toBe(204);
 
       const [setCookie] = logoutRes.response!.headers.getSetCookie();
       expect(setCookie).toMatch(/Expires=Thu, 01 Jan 1970 00:00:00/);
     });
+  });
+
+  test('should log in with the password a user changed, keeping only the session that changed it', async ({
+    baseUrl,
+    expect,
+    registerUser,
+  }) => {
+    const user = await registerUser('MEMBRE_COMMUN');
+    const anonymous = makeStepsFixtures({ baseUrl });
+    const login = (password: string) => anonymous.auth.login({ body: { email: user.email, password } });
+    const loggedIn = async () =>
+      makeStepsFixtures({ baseUrl, cookies: [cookieHeader((await login(user.password)).response!)] });
+    const asCurrent = await loggedIn();
+    const asOther = await loggedIn();
+    const newPassword = strongPassword();
+
+    await asCurrent.auth.changePassword({
+      body: { currentPassword: user.password, newPassword },
+      throwOnError: true,
+    });
+
+    expect((await login(newPassword)).response?.status).toBe(204);
+    expect((await login(user.password)).response?.status).toBe(401);
+    expect((await asCurrent.auth.introspectSession()).response?.status).toBe(200);
+    expect((await asOther.auth.introspectSession()).response?.status).toBe(401);
   });
 
   test('should act as the impersonated user until the impersonation is over', async ({

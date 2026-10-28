@@ -1,4 +1,5 @@
 import { test } from '../fixtures.ts';
+import { strongPassword } from '../fixtures/auth.fixture.ts';
 import { makeStepsFixtures } from '../steps.ts';
 import { cookieHeader } from '../utils/cookies.ts';
 
@@ -10,7 +11,7 @@ test.describe('Administration', () => {
     registerUser,
   }) => {
     const user = await registerUser('MEMBRE_COMMUN');
-    const credentials = { email: `renamed+${crypto.randomUUID()}@example.fr`, password: crypto.randomUUID() };
+    const credentials = { email: `renamed+${crypto.randomUUID()}@example.fr`, password: strongPassword() };
 
     await admin.administration.updateEmail({
       body: { email: credentials.email },
@@ -124,7 +125,7 @@ test.describe('Administration', () => {
   test.describe('Given a logged-in member', () => {
     test('should log the member out when an admin changes the password', async ({ admin, expect, member }) => {
       await admin.administration.updatePassword({
-        body: { password: crypto.randomUUID() },
+        body: { password: strongPassword() },
         path: { userId: member['@user']!.id },
         throwOnError: true,
       });
@@ -144,7 +145,7 @@ test.describe('Administration', () => {
   test.describe('Given a logged-in admin', () => {
     test('should keep the admin logged in when they change their own password', async ({ admin, expect }) => {
       await admin.administration.updatePassword({
-        body: { password: crypto.randomUUID() },
+        body: { password: strongPassword() },
         path: { userId: admin['@user']!.id },
         throwOnError: true,
       });

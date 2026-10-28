@@ -1,12 +1,13 @@
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { HttpException } from '../utils/http-exception';
+import { withValidationError } from '../utils/validation-error';
 import * as $api from '@api/sdk';
 import type { DetailedUserResponseDto } from '@api/types';
 
 export type SessionUser = Pick<
   DetailedUserResponseDto,
-  'firstName' | 'formation' | 'isAdmin' | 'isImpersonated' | 'lastName' | 'role'
+  'email' | 'firstName' | 'formation' | 'isAdmin' | 'isImpersonated' | 'lastName' | 'passwordChange' | 'role'
 > & { civility: string; id: string };
 
 export const authKeys = {
@@ -15,24 +16,22 @@ export const authKeys = {
 };
 
 export const sessionQueryOptions = queryOptions({
-  refetchOnWindowFocus: false,
-  staleTime: 10 * 60 * 1_000,
-
-  queryKey: authKeys.introspectSession(),
   queryFn: () =>
     $api.auth
       .introspectSession()
       .then(({ data }): SessionUser | null =>
         data
           ? {
-              id: data.userId,
-              role: data.role,
-              formation: data.formation,
+              civility: `${data.gender === 'FEMALE' ? 'Madame' : 'Monsieur'} ${data.lastName.toUpperCase()}`,
+              email: data.email,
               firstName: data.firstName,
-              lastName: data.lastName,
+              formation: data.formation,
+              id: data.userId,
               isAdmin: data.isAdmin,
               isImpersonated: data.isImpersonated,
-              civility: `${data.gender === 'FEMALE' ? 'Madame' : 'Monsieur'} ${data.lastName.toUpperCase()}`,
+              lastName: data.lastName,
+              passwordChange: data.passwordChange,
+              role: data.role,
             }
           : null,
       )
@@ -40,6 +39,9 @@ export const sessionQueryOptions = queryOptions({
         if (err instanceof HttpException && err.statusCode === 401) return null;
         throw err;
       }),
+  queryKey: authKeys.introspectSession(),
+  refetchOnWindowFocus: false,
+  staleTime: 10 * 60 * 1_000,
 });
 
 export const useUser = () => {
@@ -71,6 +73,13 @@ export function usePasswordLogin() {
   });
 }
 
+export function useChangePasswordMutation() {
+  return useMutation({
+    mutationFn: (body: { currentPassword: string; newPassword: string }) =>
+      withValidationError(() => $api.auth.changePassword({ body })),
+  });
+}
+
 export function useImpersonateMutation(props: { userId: string }) {
   return useMutation({
     mutationFn: () => $api.auth.impersonate({ path: { userId: props.userId } }),
@@ -86,8 +95,8 @@ export function usePrepareOpenIdLoginMutation(props: { provider: string }) {
 const MINUTES = 1_000 * 60;
 export function useListOpenIdProvidersQuery() {
   return useQuery({
-    staleTime: 10 * MINUTES,
-    queryKey: authKeys.openIdProviders(),
     queryFn: () => $api.auth.listOpenIdProviders().then(({ data = null }) => data),
+    queryKey: authKeys.openIdProviders(),
+    staleTime: 10 * MINUTES,
   });
 }

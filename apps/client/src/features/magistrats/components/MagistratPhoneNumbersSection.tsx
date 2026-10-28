@@ -7,6 +7,7 @@ import { IconButton } from '@/shared/ui/icon-button';
 import { Tooltip } from '@/shared/ui/tooltip';
 import { formatDateOnly } from '@/utils/date-only.util';
 import { formatPhoneNumber } from '@/utils/string.utils';
+import { ValidationError } from '@/utils/validation-error';
 import { useUser } from '@queries/auth.queries';
 import {
   type MagistratPhoneNumber,
@@ -14,7 +15,6 @@ import {
   useDeleteMagistratPhoneNumberMutation,
   useMagistratPhoneNumbersQuery,
   useUpdateMagistratPhoneNumberMutation,
-  ValidationError,
 } from '@queries/magistrats.queries';
 
 import { MagistratPhoneNumberDeleteModal } from './MagistratPhoneNumberDeleteModal';
@@ -111,8 +111,8 @@ export function MagistratPhoneNumbersSection(props: { magistratId: string; magis
         <MagistratPhoneNumberModal
           hasFailed={hasFailed(addPhoneNumber.error)}
           isSaving={addPhoneNumber.isPending}
-          onClose={close}
           numberError={numberError(addPhoneNumber.error)}
+          onClose={close}
           onClosed={closed}
           onSave={(phoneNumber) => addPhoneNumber.mutate(phoneNumber, { onSuccess: close })}
           open={editing.open}

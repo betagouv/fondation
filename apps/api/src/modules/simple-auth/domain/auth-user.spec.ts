@@ -5,8 +5,12 @@ import {
   AdminOutsideSecretariat,
   AuthUser,
   AuthUserNotAuthentifiable,
+  AuthUserPasswordChanged,
   AuthUserRegistered,
+  AuthUserSessionsRevoked,
+  CannotChangePassword,
   DeactivatedUserNotImpersonable,
+  WrongCurrentPassword,
 } from './auth-user';
 
 describe('AuthUser', () => {
@@ -46,6 +50,47 @@ describe('AuthUser', () => {
       await expect(
         AuthUser.register({ ...registration, isAdmin: true, role: 'MEMBRE_COMMUN' }),
       ).rejects.toThrow(AdminOutsideSecretariat);
+    });
+  });
+
+  describe('password change', () => {
+    const user = async () =>
+      AuthUser.from({ id: 'user-1', password: await bcrypt.hash('current', 4), status: 'ACTIVE' });
+    const command = () => ({
+      currentPassword: 'current',
+      hash: vi.fn(async (plain: string) => AuthPassword.from(`hash of ${plain}`)),
+      isImpersonated: false,
+      keptSessionId: 'session-1',
+      newPassword: 'new password',
+    });
+
+    it('should change the password and revoke every other session', async () => {
+      const changing = await user();
+
+      await changing.changePassword(command());
+
+      expect(changing.messages).toEqual([
+        new AuthUserPasswordChanged('user-1', 'hash of new password'),
+        new AuthUserSessionsRevoked('user-1', 'session-1'),
+      ]);
+    });
+
+    it('should refuse a wrong current password without hashing the new one', async () => {
+      const changing = await user();
+      const wrong = { ...command(), currentPassword: 'wrong' };
+
+      await expect(changing.changePassword(wrong)).rejects.toThrow(WrongCurrentPassword);
+      expect(wrong.hash).not.toHaveBeenCalled();
+      expect(changing.messages).toEqual([]);
+    });
+
+    it('should refuse to change the password while impersonating', async () => {
+      const changing = await user();
+
+      await expect(changing.changePassword({ ...command(), isImpersonated: true })).rejects.toThrow(
+        CannotChangePassword,
+      );
+      expect(changing.messages).toEqual([]);
     });
   });
 

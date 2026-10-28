@@ -13,6 +13,7 @@ import { prismaRoleEnumToRoleEnum } from '../../../shared/mappers/role-enum.mapp
 import { RoleEnum, roleToFormation } from '../../../shared/role.enum';
 import { USER_DUTIES } from '../../../shared/user-duty.enum';
 import { USER_TITLES } from '../../../shared/user-title.enum';
+import { AuthUser, PASSWORD_CHANGES } from '../../domain/auth-user';
 
 @Injectable()
 export class DetailsUserQuery {
@@ -20,35 +21,38 @@ export class DetailsUserQuery {
 
   @Transactional()
   async handle(query: {
-    userId: string;
     impersonationId: string | undefined;
+    userId: string;
   }): Promise<DetailedUserResponseDto> {
     const maybeUser = await this.db.tx.user.findUnique({
-      where: { id: query.userId },
       select: {
-        id: true,
+        displayTitle: true,
+        duty: true,
+        email: true,
         firstName: true,
+        gender: true,
+        id: true,
+        isAdmin: true,
         lastName: true,
         role: true,
-        isAdmin: true,
-        gender: true,
-        duty: true,
         title: true,
-        displayTitle: true,
       } satisfies Prisma.UserSelect,
+      where: { id: query.userId },
     });
 
     if (!maybeUser) throw new NotFoundException();
 
     const { id: userId, ...user } = maybeUser;
     const role = prismaRoleEnumToRoleEnum(user.role);
+    const isImpersonated = isDefined(query.impersonationId);
     return {
       ...user,
-      userId,
-      isImpersonated: isDefined(query.impersonationId),
-      role,
       formation: roleToFormation(role) ?? null,
       gender: prismaGenderEnumToGenderEnum(user.gender),
+      isImpersonated,
+      passwordChange: AuthUser.passwordChangeOf({ isImpersonated }),
+      role,
+      userId,
     };
   }
 }
@@ -58,11 +62,13 @@ export class DetailedUserResponseDto extends createZodDto(
     userId: z.string(),
     firstName: z.string(),
     lastName: z.string(),
+    email: z.string(),
     role: z.enum(RoleEnum),
     /** null when the user is not restricted to a formation */
     formation: z.enum(FormationEnum).nullable(),
     gender: z.enum(GenderEnum),
     isImpersonated: z.boolean(),
+    passwordChange: z.enum(PASSWORD_CHANGES),
     isAdmin: z.boolean(),
     displayTitle: z.string().nullable(),
     duty: z.enum(USER_DUTIES).nullable(),

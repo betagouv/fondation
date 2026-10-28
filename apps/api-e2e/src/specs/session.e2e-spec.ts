@@ -7,6 +7,7 @@ import type { LolfiArchiveContent } from 'lolfi';
 import type { Sql } from 'postgres';
 
 import { test } from '../fixtures.ts';
+import { strongPassword } from '../fixtures/auth.fixture.ts';
 import * as api from '../generated/api/sdk.ts';
 import type {
   ImportNominationSessionFromLodamXlsxDto,
@@ -84,7 +85,7 @@ test.describe('Session E2E', () => {
         firstName: 'Charles',
         gender: 'MALE',
         lastName: 'ANDOCHE',
-        password: randomUUID(),
+        password: strongPassword(),
         role: 'MEMBRE_COMMUN',
       });
 
@@ -93,7 +94,7 @@ test.describe('Session E2E', () => {
         firstName: 'Côme',
         gender: 'MALE',
         lastName: 'DURAND',
-        password: randomUUID(),
+        password: strongPassword(),
         role: 'MEMBRE_DU_PARQUET',
       });
     });
