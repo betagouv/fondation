@@ -62,7 +62,12 @@ test.describe('Administration', () => {
       throwOnError: true,
     });
     expect(officers.items).toEqual([
-      expect.objectContaining({ id: created.id, isAdmin: false, role: 'OFFICER', status: 'ACTIVE' }),
+      expect.objectContaining({
+        id: created.id,
+        isAdmin: false,
+        role: { group: 'SECRETARIAT', id: 'OFFICER', label: 'Agente du pôle nomination' },
+        status: 'ACTIVE',
+      }),
     ]);
     const changes = await sql`
       select status, changed_by as "changedBy" from identity_and_access_context.user_status_changes
@@ -171,9 +176,9 @@ test.describe('Administration', () => {
 
     const { data } = await admin.administration.listTitleHolders({ throwOnError: true });
 
-    expect(data.items.find(({ role }) => role === 'DEPUTY_PRESIDENT_PARQUET')?.holder).toMatchObject({
+    expect(data.items.find(({ role }) => role.id === 'DEPUTY_PRESIDENT_PARQUET')?.holder).toMatchObject({
       id: holder.id,
-      nextRole: 'MEMBRE_PARQUET',
+      nextRole: { id: 'MEMBRE_PARQUET', label: 'Membre du Parquet' },
     });
   });
 

@@ -23,6 +23,8 @@ import { AdministrationErrorMapper } from './administration.filter';
 import {
   CreatedUserDto,
   CreateUserDto,
+  ListAdminUserRolesQueryDto,
+  ListedAdminUserRolesDto,
   ListUsersQueryDto,
   UpdateUserDisplayTitleDto,
   UpdateUserEmailDto,
@@ -72,6 +74,14 @@ export class AdministrationController {
     @Param('userId', ParseUUIDPipe) userId: string,
   ): Promise<DetailedAdminUserDto> {
     return this.administration.detailsUser({ actorId: actor.id, userId });
+  }
+
+  @HasRole('ADMIN')
+  @Get('/roles')
+  @UsePipes(ZodValidationPipe)
+  @ZodResponse({ status: HttpStatus.OK, type: ListedAdminUserRolesDto })
+  listRoles(@Query() query: ListAdminUserRolesQueryDto): ListedAdminUserRolesDto {
+    return this.administration.listRoles(query);
   }
 
   @HasRole('ADMIN')

@@ -2,11 +2,21 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { createSortableDto } from '../../../framework/sorting';
-import { ADMIN_USER_ROLES_ENUM, AdminUserRoleEnum } from '../../../shared/admin-user-role.enum';
+import {
+  ADMIN_USER_ROLES_ENUM,
+  AdminUserRoleEnum,
+  adminUserRoleLabel,
+} from '../../../shared/admin-user-role.enum';
 import { GenderEnum } from '../../../shared/gender.enum';
 import { PasswordSchema } from '../../../shared/password.schema';
 import { RoleEnum } from '../../../shared/role.enum';
 import { USER_STATUSES, UserStatus } from '../../../shared/user-status.enum';
+import { AdminUserRole } from '../../domain/admin-user-role';
+import {
+  ADMIN_USER_ROLE_GROUPS,
+  adminUserRoleGroupLabel,
+  adminUserRolesOf,
+} from '../../domain/admin-user-role-group';
 
 export class ListUsersQueryDto extends createSortableDto(
   z.object({
@@ -22,6 +32,46 @@ export class ListUsersQueryDto extends createSortableDto(
       .transform((x) => (x ? ([] as UserStatus[]).concat(x) : x)),
   }),
 ) {}
+
+export const ServedAdminUserRoleSchema = z.object({
+  group: z.enum(ADMIN_USER_ROLE_GROUPS),
+  id: z.enum(ADMIN_USER_ROLES_ENUM),
+  label: z.string(),
+});
+
+export function servedAdminUserRole(
+  role: AdminUserRole,
+  gender: GenderEnum,
+): z.infer<typeof ServedAdminUserRoleSchema> {
+  return { group: role.group, id: role.toString(), label: adminUserRoleLabel(role.toString(), gender) };
+}
+
+export class ListAdminUserRolesQueryDto extends createZodDto(
+  z.object({ gender: z.enum(GenderEnum).optional() }),
+) {}
+
+export class ListedAdminUserRolesDto extends createZodDto(
+  z.object({
+    items: z.array(
+      z.object({
+        id: z.enum(ADMIN_USER_ROLE_GROUPS),
+        label: z.string(),
+        roles: z.array(z.object({ id: z.enum(ADMIN_USER_ROLES_ENUM), label: z.string() })),
+      }),
+    ),
+  }),
+) {}
+
+/** @param gender undefined gives the neutral forms, for the filter of the list of accounts */
+export function listedAdminUserRoles(gender: GenderEnum | undefined): ListedAdminUserRolesDto {
+  return {
+    items: ADMIN_USER_ROLE_GROUPS.map((group) => ({
+      id: group,
+      label: adminUserRoleGroupLabel[group],
+      roles: adminUserRolesOf(group).map((role) => ({ id: role, label: adminUserRoleLabel(role, gender) })),
+    })),
+  };
+}
 
 export class CreateUserDto extends createZodDto(
   z.object({

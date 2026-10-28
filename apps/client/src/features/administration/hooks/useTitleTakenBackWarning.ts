@@ -1,7 +1,6 @@
 import { useIntl } from 'react-intl';
 
-import { AdminUserRoleLabel, type AdminUserRoleEnum } from '../labels/admin-user-enum';
-import { useTitleHoldersQuery } from '@/queries/administration.queries';
+import { type AdminUserRoleEnum, useTitleHoldersQuery } from '@/queries/administration.queries';
 
 export function useTitleTakenBackWarning(
   role: AdminUserRoleEnum | undefined,
@@ -10,15 +9,15 @@ export function useTitleTakenBackWarning(
   const { formatMessage } = useIntl();
   const { data: titleHolders } = useTitleHoldersQuery({ enabled: options.enabled });
 
-  const holder = titleHolders?.find((titleHolder) => titleHolder.role === role)?.holder;
-  if (!role || !holder || holder.id === options.userId) return undefined;
+  const titleHolder = titleHolders?.find((item) => item.role.id === role);
+  if (!titleHolder || titleHolder.holder.id === options.userId) return undefined;
 
   return formatMessage(
     { defaultMessage: '{name} perdra la fonction de {title} et deviendra {nextRole}.' },
     {
-      name: holder.name,
-      nextRole: formatMessage(AdminUserRoleLabel[holder.nextRole], { gender: holder.gender }),
-      title: formatMessage(AdminUserRoleLabel[role], { gender: holder.gender }),
+      name: titleHolder.holder.name,
+      nextRole: titleHolder.holder.nextRole.label,
+      title: titleHolder.role.label,
     },
   );
 }

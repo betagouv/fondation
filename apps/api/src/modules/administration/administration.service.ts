@@ -12,7 +12,11 @@ import { SimpleAuthService } from '../simple-auth';
 
 import { AdminUserRole } from './domain/admin-user-role';
 import { User } from './domain/user';
-import { ListUsersQueryDto } from './infrastructure/dto/administration.dto';
+import {
+  ListedAdminUserRolesDto,
+  listedAdminUserRoles,
+  ListUsersQueryDto,
+} from './infrastructure/dto/administration.dto';
 import { DetailedAdminUserDto, DetailsUserQuery } from './infrastructure/queries/details-user.query';
 import {
   ListTitleHoldersQuery,
@@ -44,6 +48,10 @@ export class AdministrationService {
 
   detailsUser(query: { actorId: string; userId: string }): Promise<DetailedAdminUserDto> {
     return this.detailsUserQuery.handle(query);
+  }
+
+  listRoles(query: { gender?: GenderEnum }): ListedAdminUserRolesDto {
+    return listedAdminUserRoles(query.gender);
   }
 
   listTitleHolders(): Promise<ListedTitleHoldersDto> {

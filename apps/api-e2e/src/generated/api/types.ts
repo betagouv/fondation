@@ -2330,8 +2330,11 @@ export type PaginatedAdminUserListItemDto = {
         firstName: string;
         lastName: string;
         email: string;
-        gender: 'MALE' | 'FEMALE';
-        role: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+        role: {
+            group: 'PRESIDENCY' | 'MEMBER' | 'SECRETARIAT';
+            id: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+            label: string;
+        };
         isAdmin: boolean;
         status: 'ACTIVE' | 'DEACTIVATED';
     }>;
@@ -2363,7 +2366,11 @@ export type DetailedAdminUserDto = {
     firstName: string;
     lastName: string;
     email: string;
-    role: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+    role: {
+        group: 'PRESIDENCY' | 'MEMBER' | 'SECRETARIAT';
+        id: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+        label: string;
+    };
     gender: 'MALE' | 'FEMALE';
     displayTitle: string | null;
     isAdmin: boolean;
@@ -2380,15 +2387,31 @@ export type DetailedAdminUserDto = {
     }>;
 };
 
+export type ListedAdminUserRolesDto = {
+    items: Array<{
+        id: 'PRESIDENCY' | 'MEMBER' | 'SECRETARIAT';
+        label: string;
+        roles: Array<{
+            id: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+            label: string;
+        }>;
+    }>;
+};
+
 export type ListedTitleHoldersDto = {
     items: Array<{
         holder: {
-            gender: 'MALE' | 'FEMALE';
             id: string;
             name: string;
-            nextRole: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+            nextRole: {
+                id: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+                label: string;
+            };
         };
-        role: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+        role: {
+            id: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+            label: string;
+        };
     }>;
 };
 
@@ -5096,6 +5119,21 @@ export type DetailsUserResponses = {
 };
 
 export type DetailsUserResponse = DetailsUserResponses[keyof DetailsUserResponses];
+
+export type ListRolesData = {
+    body?: never;
+    path?: never;
+    query?: {
+        gender?: 'MALE' | 'FEMALE';
+    };
+    url: '/api/administration/v1/roles';
+};
+
+export type ListRolesResponses = {
+    200: ListedAdminUserRolesDto;
+};
+
+export type ListRolesResponse = ListRolesResponses[keyof ListRolesResponses];
 
 export type ListTitleHoldersData = {
     body?: never;

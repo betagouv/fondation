@@ -12,6 +12,7 @@ import { USER_STATUSES, userStatusOf } from '../../../shared/user-status.enum';
 import { AuthUser } from '../../../simple-auth/domain/auth-user';
 import { AdminUserRole } from '../../domain/admin-user-role';
 import { User } from '../../domain/user';
+import { servedAdminUserRole, ServedAdminUserRoleSchema } from '../dto/administration.dto';
 
 @Injectable()
 export class DetailsUserQuery {
@@ -42,6 +43,7 @@ export class DetailsUserQuery {
       role: prismaRoleEnumToRoleEnum(user.role),
       title: user.title,
     });
+    const gender = prismaGenderEnumToGenderEnum(user.gender);
     const status = userStatusOf(user);
     const admin = User.from({ id: user.id, isAdmin: user.isAdmin, role, status });
 
@@ -55,11 +57,11 @@ export class DetailsUserQuery {
       displayTitle: user.displayTitle ?? null,
       email: user.email,
       firstName: user.firstName,
-      gender: prismaGenderEnumToGenderEnum(user.gender),
+      gender,
       id: user.id,
       isAdmin: user.isAdmin,
       lastName: user.lastName,
-      role: role.toString(),
+      role: servedAdminUserRole(role, gender),
       status,
       statusChanges: user.statusChanges.map(({ changedAt, status }) => ({
         changedAt: changedAt.toISOString(),
@@ -75,7 +77,7 @@ export class DetailedAdminUserDto extends createZodDto(
     firstName: z.string(),
     lastName: z.string(),
     email: z.string(),
-    role: z.enum(ADMIN_USER_ROLES_ENUM),
+    role: ServedAdminUserRoleSchema,
     gender: z.enum(GenderEnum),
     displayTitle: z.string().nullable(),
     isAdmin: z.boolean(),

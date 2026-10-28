@@ -7,7 +7,6 @@ import {
   type QueryClient,
 } from '@tanstack/react-query';
 
-import type { AdminUserRoleEnum } from '@/features/administration/labels/admin-user-enum';
 import { withValidationError } from '@/utils/validation-error';
 import * as $api from '@api/sdk';
 import type {
@@ -19,6 +18,8 @@ import type {
 
 import { docsKeys, officialReportKeys } from './agenda.queries';
 import { memberKeys } from './members.queries';
+
+export type AdminUserRoleEnum = CreateUserDto['role'];
 
 export type AdminUsersFilters = {
   roles?: AdminUserRoleEnum[];
@@ -32,6 +33,7 @@ export type AdminUsersSorting =
 const adminKeys = {
   all: () => ['admin'] as const,
   allUsers: () => ['admin', 'users'] as const,
+  roles: (gender: CreateUserDto['gender'] | undefined) => ['admin', 'roles', gender] as const,
   titleHolders: () => ['admin', 'title-holders'] as const,
   user: (userId: string | undefined) => ['admin', 'user', userId] as const,
   users: (params: { filters: AdminUsersFilters; sorting: AdminUsersSorting }) =>
@@ -82,6 +84,20 @@ export function useAdminUserDetailQuery(userId: string | undefined) {
     queryFn: () =>
       $api.administration.detailsUser({ path: { userId: userId! } }).then(({ data = null }) => data),
     queryKey: adminKeys.user(userId),
+  });
+}
+
+/** @param gender undefined gives the neutral forms, for the filter of the list of accounts */
+export function useAdminUserRolesQuery(
+  gender: CreateUserDto['gender'] | undefined,
+  options: { enabled: boolean },
+) {
+  return useQuery({
+    enabled: options.enabled,
+    queryFn: () =>
+      $api.administration.listRoles({ query: { gender }, throwOnError: true }).then(({ data }) => data.items),
+    queryKey: adminKeys.roles(gender),
+    staleTime: Infinity,
   });
 }
 

@@ -8,13 +8,7 @@ import { useCallback, useMemo, useState, type ReactNode, type SyntheticEvent } f
 import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
 
-import { AdminUserRole } from '@/features/administration/components/AdminUserRole';
 import { useTitleTakenBackWarning } from '@/features/administration/hooks/useTitleTakenBackWarning';
-import {
-  PROMOTABLE_ROLES,
-  ROLE_OPTIONS,
-  type AdminUserRoleEnum,
-} from '@/features/administration/labels/admin-user-enum';
 import { UserStatusBadge } from '@/shared/components/user-status-badge';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { useTab } from '@/shared/hooks/useTab';
@@ -27,7 +21,9 @@ import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { memberFullName } from '@/utils/user.utils';
 import type { DetailedAdminUserDto } from '@api/types';
 import {
+  type AdminUserRoleEnum,
   useAdminUserDetailQuery,
+  useAdminUserRolesQuery,
   useDeactivateUserMutation,
   useDemoteUserFromAdmin,
   usePromoteUserToAdmin,
@@ -349,25 +345,26 @@ function AdminUserPromotionToggle(props: { user: DetailedAdminUserDto }) {
 function RoleField(props: { user: DetailedAdminUserDto }) {
   const intl = useIntl();
   const [isEditing, setEditing] = useState(false);
-  const [role, setRole] = useState<AdminUserRoleEnum>(props.user.role);
+  const [role, setRole] = useState<AdminUserRoleEnum>(props.user.role.id);
+  const { data: roleGroups } = useAdminUserRolesQuery(props.user.gender, { enabled: isEditing });
 
   const { error, isPending, mutate: updateRole, reset } = useUpdateUserRoleMutation(props.user.id);
   const titleTakenBack = useTitleTakenBackWarning(role, { enabled: isEditing, userId: props.user.id });
 
   const handleEdit = useCallback(() => {
-    setRole(props.user.role);
+    setRole(props.user.role.id);
     reset();
     setEditing(true);
-  }, [props.user.role, reset]);
+  }, [props.user.role.id, reset]);
 
   const handleSave = useCallback(() => {
-    if (role === props.user.role) {
+    if (role === props.user.role.id) {
       setEditing(false);
       return;
     }
 
     updateRole({ role }, { onSuccess: () => setEditing(false) });
-  }, [props.user.role, role, updateRole]);
+  }, [props.user.role.id, role, updateRole]);
 
   return (
     <div>
@@ -422,22 +419,23 @@ function RoleField(props: { user: DetailedAdminUserDto }) {
             error ? intl.formatMessage({ defaultMessage: 'Erreur à la mise à jour du rôle' }) : titleTakenBack
           }
         >
-          {ROLE_OPTIONS.map((group) => {
-            const groupLabel = intl.formatMessage(group.label);
-            return (
-              <optgroup key={groupLabel} label={groupLabel}>
-                {group.options.map(({ id, label }) => (
-                  <option disabled={!props.user.assignableRoles.includes(id)} key={id} value={id}>
-                    {intl.formatMessage(label, { gender: props.user.gender })}
-                  </option>
-                ))}
-              </optgroup>
-            );
-          })}
+          {roleGroups?.map((group) => (
+            <optgroup key={group.id} label={group.label}>
+              {group.roles.map((option) => (
+                <option
+                  disabled={!props.user.assignableRoles.includes(option.id)}
+                  key={option.id}
+                  value={option.id}
+                >
+                  {option.label}
+                </option>
+              ))}
+            </optgroup>
+          ))}
         </Select>
       ) : (
         <dd className="fr-mt-2v fr-px-4v fr-py-2v rounded-sm border border-(--border-default-grey) bg-(--background-alt-grey)">
-          <AdminUserRole gender={props.user.gender} value={props.user.role} />
+          {props.user.role.label}
         </dd>
       )}
     </div>
@@ -707,7 +705,7 @@ function ImpersonateButton(props: { userId: string }) {
 function AdminLoadedUserDetail(props: { user: DetailedAdminUserDto }) {
   const { user } = props;
   /** the secretariat accounts are never impersonated: only a member's screens are worth checking */
-  const isSecretariat = PROMOTABLE_ROLES.includes(user.role);
+  const isSecretariat = user.role.group === 'SECRETARIAT';
 
   return (
     <DetailsPageLayout

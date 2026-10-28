@@ -6,8 +6,6 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, useNavigate } from 'react-router';
 
 import { AdminUserCreationModal } from '@/features/administration/components/AdminUserCreationModal';
-import { AdminUserRole } from '@/features/administration/components/AdminUserRole';
-import { ROLE_OPTIONS, type AdminUserRoleEnum } from '@/features/administration/labels/admin-user-enum';
 import { PinnedHeader } from '@/shared/components/pinned-header';
 import { UserStatusBadge } from '@/shared/components/user-status-badge';
 import { UserStatusEnum, UserStatusEnumMessages } from '@/shared/enums/user-status.enum';
@@ -27,7 +25,9 @@ import { capitalize } from '@/utils/string.utils';
 import { ValidationError } from '@/utils/validation-error';
 import type { PaginatedAdminUserListItemDto } from '@api/types';
 import {
+  type AdminUserRoleEnum,
   type AdminUsersSorting,
+  useAdminUserRolesQuery,
   useCreateUserMutation,
   useInfiniteAdminUsersQuery,
 } from '@queries/administration.queries';
@@ -37,6 +37,7 @@ const h = createColumnHelper<AdminUserItem>();
 
 function useAdminUserColumns() {
   const { formatMessage } = useIntl();
+  const { data: roleGroups } = useAdminUserRolesQuery(undefined, { enabled: true });
 
   return useMemo(
     () => [
@@ -67,7 +68,7 @@ function useAdminUserColumns() {
       h.accessor('role', {
         cell: ({ getValue, row }) => (
           <span className="inline-flex items-center gap-1">
-            <AdminUserRole gender={row.original.gender} value={getValue()} />
+            {getValue().label}
             {row.original.isAdmin && (
               <Tooltip focusable label={formatMessage({ defaultMessage: 'Administrateur' })}>
                 <span
@@ -87,12 +88,7 @@ function useAdminUserColumns() {
             filterId: 'role',
             label: formatMessage({ defaultMessage: 'Rôle' }),
             type: 'enum',
-            values: ROLE_OPTIONS.flatMap((group) =>
-              group.options.map(({ id, label }) => ({
-                id,
-                label: formatMessage(label, { gender: undefined }),
-              })),
-            ),
+            values: roleGroups?.flatMap((group) => group.roles) ?? [],
           },
         },
         size: 260,
@@ -123,7 +119,7 @@ function useAdminUserColumns() {
         size: 80,
       }),
     ],
-    [formatMessage],
+    [formatMessage, roleGroups],
   );
 }
 
