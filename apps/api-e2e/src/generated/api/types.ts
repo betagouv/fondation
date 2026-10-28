@@ -2380,6 +2380,18 @@ export type DetailedAdminUserDto = {
     }>;
 };
 
+export type ListedTitleHoldersDto = {
+    items: Array<{
+        holder: {
+            gender: 'MALE' | 'FEMALE';
+            id: string;
+            name: string;
+            nextRole: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+        };
+        role: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+    }>;
+};
+
 export type UpdateUserEmailDto = {
     email: string;
 };
@@ -5046,6 +5058,19 @@ export type DetailsUserResponses = {
 };
 
 export type DetailsUserResponse = DetailsUserResponses[keyof DetailsUserResponses];
+
+export type ListTitleHoldersData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/administration/v1/title-holders';
+};
+
+export type ListTitleHoldersResponses = {
+    200: ListedTitleHoldersDto;
+};
+
+export type ListTitleHoldersResponse = ListTitleHoldersResponses[keyof ListTitleHoldersResponses];
 
 export type UpdateEmailData = {
     body: UpdateUserEmailDto;
