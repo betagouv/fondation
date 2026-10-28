@@ -14,7 +14,6 @@ import { canReadSession } from '../../../../shared/policies/session.policies';
 import { isSecretariat, type RoleEnum } from '../../../../shared/role.enum';
 
 import { AffectationVersionFinder } from './affectation-version.finder';
-import { AuditionPublicationFinder } from './audition-publication.finder';
 import { AuditionsSeenFinder } from './auditions-seen.finder';
 
 const AUDITION_ROLES = ['OBSERVANT', 'PROPOSED'] as const;
@@ -40,7 +39,6 @@ export class SessionAuditionsFinder {
     private readonly auditionsSeen: AuditionsSeenFinder,
     private readonly clock: Clock,
     private readonly db: Db,
-    private readonly publications: AuditionPublicationFinder,
     private readonly versions: AffectationVersionFinder,
 
     private readonly magistrats: MagistratService,
@@ -72,8 +70,6 @@ export class SessionAuditionsFinder {
     });
     if (!session || !canReadSession(session, query)) throw new NotFoundException();
 
-    // the members get the table from its first publication on
-    if (!isSecretariat(query.role) && !(await this.publications.last(query))) return [];
     const now = this.clock.now();
     const files = new Map(session.dossierDeNominations.map((file) => [file.id, file]));
 
