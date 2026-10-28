@@ -31,7 +31,6 @@ import { SimpleAuthService } from './simple-auth.service';
           clientSecret: config.proConnect.clientSecret,
           wellKnown: new URL('/api/v2/.well-known/openid-configuration', config.proConnect.domain).toString(),
           scopes: ['openid', 'given_name', 'usual_name', 'email'],
-          enableCodeChallenge: false,
         };
       },
     }),

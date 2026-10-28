@@ -25,6 +25,15 @@ export class JwtUnknownKey extends JwtError {
   }
 }
 
+export class JwtUnexpectedAudience extends JwtError {
+  constructor(
+    readonly provided: readonly string[],
+    readonly expected: string,
+  ) {
+    super();
+  }
+}
+
 export class JwtUnexpectedIssuer extends JwtError {
   constructor(
     readonly provided: string,
@@ -40,21 +49,42 @@ export class JwtDecoder {
     ES256: 'sha256',
   };
 
+  private readonly clientId: string;
   private readonly issuer: string;
   private readonly keys: readonly Jwk[];
   private readonly expectedNonce: Buffer;
 
   constructor(config: OpenIdConfig, request: OpenIdAuthenticationRequest) {
+    this.clientId = config.clientId;
     this.keys = config.keys;
     this.issuer = config.issuer;
     this.expectedNonce = request.state.nonce;
+  }
+
+  decodeIdToken<T extends Record<string, unknown> = {}>(options: {
+    token: string;
+    now: Date;
+    schema?: z.ZodType<T>;
+  }): JwtPayload & Omit<T, 'iss' | 'exp'> {
+    const payload = this.decode(options);
+    const { aud, azp, nonce } = IdTokenClaimsSchema.parse(payload);
+
+    const audiences = typeof aud === 'string' ? [aud] : (aud ?? []);
+    const azpRequired = audiences.length > 1 || azp !== undefined;
+    if (!audiences.includes(this.clientId) || (azpRequired && azp !== this.clientId)) {
+      throw new JwtUnexpectedAudience(audiences, this.clientId);
+    }
+
+    if (nonce !== this.expectedNonce.toString('base64url')) throw new JwtInvalidNonce();
+
+    return payload;
   }
 
   decode<T extends Record<string, unknown> = {}>(options: {
     token: string;
     now: Date;
     schema?: z.ZodType<T>;
-  }): JwtPayload & Omit<T, 'iss' | 'exp' | 'nonce'> {
+  }): JwtPayload & Omit<T, 'iss' | 'exp'> {
     const [rawHeader, rawPayload, rawSignature] = options.token.split('.');
     if (!rawHeader || !rawPayload || !rawSignature) {
       throw new JwtMalformed();
@@ -97,7 +127,7 @@ export class JwtDecoder {
     rawPayload: string,
     now: Date,
     schema: z.ZodType<T> | undefined,
-  ): JwtPayload & Omit<T, 'iss' | 'exp' | 'nonce'> {
+  ): JwtPayload & Omit<T, 'iss' | 'exp'> {
     const payload = JwtDecoder.parse(
       rawPayload,
       schema instanceof z.ZodObject ? JwtPayloadSchema.and(schema) : JwtPayloadSchema,
@@ -105,10 +135,6 @@ export class JwtDecoder {
 
     if (this.issuer !== payload.iss) {
       throw new JwtUnexpectedIssuer(payload.iss, this.issuer);
-    }
-
-    if (payload.nonce && this.expectedNonce.toString('base64url') !== payload.nonce) {
-      throw new JwtInvalidNonce();
     }
 
     if (typeof payload.exp !== 'number' || payload.exp * SECONDS <= now.getTime()) {
@@ -127,7 +153,11 @@ const JwtHeaderSchema = z.looseObject({ alg: z.string().nonempty(), kid: z.strin
 const JwtPayloadSchema = z.looseObject({
   exp: z.number().gt(0),
   iss: z.string().nonempty(),
-  nonce: z.base64url().optional(),
+});
+const IdTokenClaimsSchema = z.object({
+  aud: z.union([z.string(), z.array(z.string())]).optional(),
+  azp: z.string().optional(),
+  nonce: z.string().optional(),
 });
 
 type JwtPayload = z.infer<typeof JwtPayloadSchema>;
