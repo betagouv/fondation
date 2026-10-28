@@ -39,7 +39,6 @@ export function displayTitled(props: {
   return `${output}, ${lowerFirst(title)}`;
 }
 
-/** a label written to start a line, put back in the middle of a sentence */
 export function lowerFirst(label: string): string {
   return label.charAt(0).toLowerCase() + label.slice(1);
 }

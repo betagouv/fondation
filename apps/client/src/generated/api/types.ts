@@ -2334,9 +2334,9 @@ export type PaginatedAdminUserListItemDto = {
         lastName: string;
         email: string;
         role: {
-            group: 'PRESIDENCY' | 'MEMBER' | 'SECRETARIAT';
             id: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
             label: string;
+            group: 'PRESIDENCY' | 'MEMBER' | 'SECRETARIAT';
         };
         isAdmin: boolean;
         status: 'ACTIVE' | 'DEACTIVATED';
@@ -2370,9 +2370,9 @@ export type DetailedAdminUserDto = {
     lastName: string;
     email: string;
     role: {
-        group: 'PRESIDENCY' | 'MEMBER' | 'SECRETARIAT';
         id: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
         label: string;
+        group: 'PRESIDENCY' | 'MEMBER' | 'SECRETARIAT';
     };
     gender: 'MALE' | 'FEMALE';
     displayTitle: string | null;

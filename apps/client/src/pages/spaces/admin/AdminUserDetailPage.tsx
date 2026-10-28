@@ -346,7 +346,7 @@ function RoleField(props: { user: DetailedAdminUserDto }) {
   const intl = useIntl();
   const [isEditing, setEditing] = useState(false);
   const [role, setRole] = useState<AdminUserRoleEnum>(props.user.role.id);
-  const { data: roleGroups } = useAdminUserRolesQuery(props.user.gender, { enabled: isEditing });
+  const { data: roleGroups } = useAdminUserRolesQuery(props.user.gender, { enabled: true });
 
   const { error, isPending, mutate: updateRole, reset } = useUpdateUserRoleMutation(props.user.id);
   const titleTakenBack = useTitleTakenBackWarning(role, { enabled: isEditing, userId: props.user.id });

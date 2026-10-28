@@ -94,6 +94,7 @@ export function useAdminUserRolesQuery(
 ) {
   return useQuery({
     enabled: options.enabled,
+    placeholderData: (previous) => previous,
     queryFn: () =>
       $api.administration.listRoles({ query: { gender }, throwOnError: true }).then(({ data }) => data.items),
     queryKey: adminKeys.roles(gender),

@@ -33,17 +33,24 @@ export class ListUsersQueryDto extends createSortableDto(
   }),
 ) {}
 
-export const ServedAdminUserRoleSchema = z.object({
+export const LabeledAdminUserRoleSchema = z.object({ id: z.enum(ADMIN_USER_ROLES_ENUM), label: z.string() });
+
+export function labeledAdminUserRole(
+  role: AdminUserRoleEnum,
+  gender: GenderEnum | undefined,
+): z.infer<typeof LabeledAdminUserRoleSchema> {
+  return { id: role, label: adminUserRoleLabel(role, gender) };
+}
+
+export const ServedAdminUserRoleSchema = LabeledAdminUserRoleSchema.extend({
   group: z.enum(ADMIN_USER_ROLE_GROUPS),
-  id: z.enum(ADMIN_USER_ROLES_ENUM),
-  label: z.string(),
 });
 
 export function servedAdminUserRole(
   role: AdminUserRole,
   gender: GenderEnum,
 ): z.infer<typeof ServedAdminUserRoleSchema> {
-  return { group: role.group, id: role.toString(), label: adminUserRoleLabel(role.toString(), gender) };
+  return { ...labeledAdminUserRole(role.toString(), gender), group: role.group };
 }
 
 export class ListAdminUserRolesQueryDto extends createZodDto(
@@ -56,19 +63,18 @@ export class ListedAdminUserRolesDto extends createZodDto(
       z.object({
         id: z.enum(ADMIN_USER_ROLE_GROUPS),
         label: z.string(),
-        roles: z.array(z.object({ id: z.enum(ADMIN_USER_ROLES_ENUM), label: z.string() })),
+        roles: z.array(LabeledAdminUserRoleSchema),
       }),
     ),
   }),
 ) {}
 
-/** @param gender undefined gives the neutral forms, for the filter of the list of accounts */
 export function listedAdminUserRoles(gender: GenderEnum | undefined): ListedAdminUserRolesDto {
   return {
     items: ADMIN_USER_ROLE_GROUPS.map((group) => ({
       id: group,
       label: adminUserRoleGroupLabel[group],
-      roles: adminUserRolesOf(group).map((role) => ({ id: role, label: adminUserRoleLabel(role, gender) })),
+      roles: adminUserRolesOf(group).map((role) => labeledAdminUserRole(role, gender)),
     })),
   };
 }
