@@ -13,7 +13,7 @@ export type RegisterUserDto = {
     lastName: string;
     gender: 'MALE' | 'FEMALE';
     email: string;
-    password: string;
+    password: unknown & unknown & unknown & unknown;
     role?: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | null;
     isAdmin?: boolean;
 };
@@ -45,7 +45,7 @@ export type DetailedUserResponseDto = {
 
 export type ChangePasswordDto = {
     currentPassword: string;
-    newPassword: string;
+    newPassword: unknown & unknown & unknown & unknown;
 };
 
 export type ListedOpenIdProvidersDto = {
@@ -2389,7 +2389,7 @@ export type UpdateUserEmailDto = {
 };
 
 export type UpdateUserPasswordDto = {
-    password: string;
+    password: unknown & unknown & unknown & unknown;
 };
 
 export type UpdateUserRoleDto = {
