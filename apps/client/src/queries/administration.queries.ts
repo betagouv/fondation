@@ -101,12 +101,12 @@ export function useCreateUserMutation() {
       withValidationError(() => $api.administration.createUser({ body, throwOnError: true })).then(
         ({ data }) => data,
       ),
-    onSuccess: () => invalidateAfterRoleChange(queryClient),
+    onSuccess: () => invalidateUserAccess(queryClient),
   });
 }
 
-/** the role given may take a title back from another account */
-function invalidateAfterRoleChange(queryClient: QueryClient) {
+/** every account, as a role given may take a title back from another one */
+function invalidateUserAccess(queryClient: QueryClient) {
   queryClient.invalidateQueries({ queryKey: adminKeys.all() });
   queryClient.invalidateQueries({ queryKey: docsKeys.members() });
   queryClient.invalidateQueries({ queryKey: memberKeys.allListedMembers() });
@@ -139,7 +139,7 @@ export function useUpdateUserRoleMutation(userId: string) {
   return useMutation({
     mutationFn: (body: { role: AdminUserRoleEnum }) =>
       $api.administration.updateRole({ body, path: { userId } }),
-    onSuccess: () => invalidateAfterRoleChange(queryClient),
+    onSuccess: () => invalidateUserAccess(queryClient),
   });
 }
 
@@ -178,20 +178,12 @@ function updateAdminRight(queryClient: QueryClient, userId: string, isAdmin: boo
   queryClient.invalidateQueries({ queryKey: docsKeys.members() });
 }
 
-function invalidateUserAccess(queryClient: QueryClient, userId: string) {
-  queryClient.invalidateQueries({ queryKey: adminKeys.user(userId) });
-  queryClient.invalidateQueries({ queryKey: adminKeys.allUsers() });
-  queryClient.invalidateQueries({ queryKey: docsKeys.members() });
-  queryClient.invalidateQueries({ queryKey: memberKeys.allListedMembers() });
-  queryClient.invalidateQueries({ queryKey: officialReportKeys.listSecretaries() });
-}
-
 export function useDeactivateUserMutation(userId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: () => $api.administration.deactivate({ path: { userId } }),
-    onSuccess: () => invalidateUserAccess(queryClient, userId),
+    onSuccess: () => invalidateUserAccess(queryClient),
   });
 }
 
@@ -200,6 +192,6 @@ export function useReactivateUserMutation(userId: string) {
 
   return useMutation({
     mutationFn: () => $api.administration.reactivate({ path: { userId } }),
-    onSuccess: () => invalidateUserAccess(queryClient, userId),
+    onSuccess: () => invalidateUserAccess(queryClient),
   });
 }
