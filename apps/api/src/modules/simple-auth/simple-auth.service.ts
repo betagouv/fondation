@@ -87,7 +87,6 @@ export class SimpleAuthService {
     return this.listUsersQuery.handle(query);
   }
 
-  @Transactional()
   async changePassword(command: {
     currentPassword: string;
     isImpersonated: boolean;
