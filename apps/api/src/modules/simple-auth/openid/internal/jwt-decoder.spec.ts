@@ -138,6 +138,12 @@ describe('JwtDecoder', () => {
 
       expect(() => verifier.decodeIdToken({ token, now: NOW })).toThrow(JwtUnexpectedAudience);
     });
+
+    it('rejects a single audience when the authorized party is another client', () => {
+      const token = signJwt(privateKey, 'key-1', { ...validPayload, azp: 'other-client' });
+
+      expect(() => verifier.decodeIdToken({ token, now: NOW })).toThrow(JwtUnexpectedAudience);
+    });
   });
 
   it('should validate the payload', () => {

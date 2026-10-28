@@ -70,7 +70,8 @@ export class JwtDecoder {
     const { aud, azp, nonce } = IdTokenClaimsSchema.parse(payload);
 
     const audiences = typeof aud === 'string' ? [aud] : (aud ?? []);
-    if (!audiences.includes(this.clientId) || (audiences.length > 1 && azp !== this.clientId)) {
+    const azpRequired = audiences.length > 1 || azp !== undefined;
+    if (!audiences.includes(this.clientId) || (azpRequired && azp !== this.clientId)) {
       throw new JwtUnexpectedAudience(audiences, this.clientId);
     }
 
