@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { IntlProvider } from 'react-intl';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { useTitleHoldersQuery } from '@/queries/administration.queries';
 import * as $api from '@api/sdk';
 
 import { useTitleTakenBackWarning } from './useTitleTakenBackWarning';
@@ -47,11 +48,14 @@ describe('useTitleTakenBackWarning', () => {
 
   it('stays silent when the role is given back to its holder', async () => {
     const { result } = renderHook(
-      () => useTitleTakenBackWarning('PRESIDENT_SIEGE', { enabled: true, userId: 'holder' }),
+      () => ({
+        titleHolders: useTitleHoldersQuery({ enabled: true }),
+        warning: useTitleTakenBackWarning('PRESIDENT_SIEGE', { enabled: true, userId: 'holder' }),
+      }),
       { wrapper },
     );
 
-    await waitFor(() => expect($api.administration.listTitleHolders).toHaveBeenCalled());
-    expect(result.current).toBeUndefined();
+    await waitFor(() => expect(result.current.titleHolders.isSuccess).toBe(true));
+    expect(result.current.warning).toBeUndefined();
   });
 });
