@@ -111,6 +111,7 @@ describe('OpenIdService', () => {
       const body = new URLSearchParams(httpRequest.mock.calls[0]![0].data);
       expect(body.get('grant_type')).toBe('authorization_code');
       expect(body.get('code')).toBe('the-code');
+      expect(body.get('client_secret')).toBe('client-secret');
       expect(body.get('code_verifier')).toBe(request.state.challenge?.toString());
     });
   });

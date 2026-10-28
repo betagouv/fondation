@@ -56,14 +56,11 @@ export class OpenIdAuthenticationRequest {
       code,
       grant_type: 'authorization_code',
       client_id: this.config.clientId,
+      client_secret: this.config.clientSecret,
       redirect_uri: this.config.urls.redirect.toString(),
     });
 
-    if (this.state.challenge) {
-      body.set('code_verifier', this.state.challenge.toString());
-    } else {
-      body.set('client_secret', this.config.clientSecret);
-    }
+    if (this.state.challenge) body.set('code_verifier', this.state.challenge.toString());
 
     return {
       url,
