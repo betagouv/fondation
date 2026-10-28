@@ -89,8 +89,8 @@ export type OfficialReportRenderContext = {
 function header(ctx: OfficialReportRenderContext): SafeHtml {
   return html`
     <h1>
-      Procès-verbal de restitution de la séance du ${date(ctx.sessionMeeting.date, 'dd/MM/yyyy')} tenue à
-      Paris au Conseil supérieur de la magistrature
+      Procès-verbal de restitution de la séance du ${date(ctx.sessionMeeting.date, 'in words')} tenue à Paris
+      au Conseil supérieur de la magistrature
     </h1>
     <p class="formation">
       ${
@@ -151,15 +151,10 @@ function displayIntroduction(
 
   const presidentTitle = displayChairmanTitle(ctx);
 
-  const presence = [
-    `Sous la présidence de ${fullname(ctx.chairman)}`,
-    ctx.chairman.displayTitle,
-    presidentTitle,
-    `en présence des membres du Conseil supérieur de la magistrature suivants\u00A0:`,
-  ]
+  const presence = [`Sous la présidence de ${fullname(ctx.chairman)}`, ctx.chairman.displayTitle]
     .filter(Boolean)
     .join(', ');
-  const intro = html`<p>${presence}</p>`;
+  const intro = html`<p>${presence}&nbsp;:</p>`;
 
   const membersList = html`<ul>
     ${SafeHtml.join(

@@ -30,6 +30,18 @@ describe('renderer helpers', () => {
       expect(String(renderDate({ year: 2026, month: 6, day: 11 }, 'do MMMM yyyy'))).toBe('11 juin 2026');
       expect(String(renderDate({ year: 2026, month: 6, day: 21 }, 'do MMMM yyyy'))).toBe('21 juin 2026');
     });
+
+    it.each`
+      day   | month | year    | expected
+      ${1}  | ${7}  | ${2026} | ${'premier juillet deux mille vingt-six'}
+      ${21} | ${3}  | ${2031} | ${'vingt et un mars deux mille trente et un'}
+      ${17} | ${12} | ${2071} | ${'dix-sept décembre deux mille soixante et onze'}
+      ${30} | ${1}  | ${2080} | ${'trente janvier deux mille quatre-vingts'}
+      ${31} | ${5}  | ${2099} | ${'trente et un mai deux mille quatre-vingt-dix-neuf'}
+      ${9}  | ${9}  | ${2000} | ${'neuf septembre deux mille'}
+    `('writes $day/$month/$year in words', ({ day, month, year, expected }) => {
+      expect(String(renderDate({ day, month, year }, 'in words'))).toBe(expected);
+    });
   });
 
   describe('requiresElision', () => {
