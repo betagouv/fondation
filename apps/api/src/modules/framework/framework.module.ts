@@ -11,6 +11,7 @@ import { HealthModule } from './health';
 import { HttpModule } from './http';
 import { ObservabilityModule } from './observability';
 import { PdfModule } from './pdf';
+import { SecurityHeadersModule } from './security-headers';
 import { TchapModule } from './tchap';
 
 @Global()
@@ -26,6 +27,7 @@ import { TchapModule } from './tchap';
     HttpModule.register(),
     ObservabilityModule,
     PdfModule,
+    SecurityHeadersModule,
     TchapModule,
     FaviconModule,
   ],
