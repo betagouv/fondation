@@ -1,29 +1,23 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Input from '@codegouvfr/react-dsfr/Input';
 import { useState } from 'react';
-import { FormattedMessage, useIntl } from 'react-intl';
+import { FormattedMessage } from 'react-intl';
 
 import { generatePassword } from '@/utils/password.utils';
 
 export function GeneratedPasswordInput(props: {
   error?: string;
+  hint: string;
   label: string;
   onChange: (password: string) => void;
   password: string;
 }) {
-  const { formatMessage } = useIntl();
   const [isCopied, setCopied] = useState(false);
 
   return (
     <>
       <Input
-        hintText={
-          <span className="fr-mt-2v block">
-            {formatMessage({
-              defaultMessage: `Le mot de passe provisoire est à communiquer à la personne. Elle devra ensuite le modifier depuis "Mon compte"`,
-            })}
-          </span>
-        }
+        hintText={<span className="fr-mt-2v block">{props.hint}</span>}
         label={props.label}
         nativeInputProps={{ className: 'font-mono', readOnly: true, value: props.password }}
         state={props.error ? 'error' : undefined}
@@ -41,9 +35,9 @@ export function GeneratedPasswordInput(props: {
           type="button"
         >
           {isCopied ? (
-            <FormattedMessage defaultMessage="Copié" />
+            <FormattedMessage defaultMessage="Mot de passe copié" />
           ) : (
-            <FormattedMessage defaultMessage="Copier" />
+            <FormattedMessage defaultMessage="Copier le mot de passe" />
           )}
         </Button>
         <Button
@@ -56,7 +50,7 @@ export function GeneratedPasswordInput(props: {
           size="small"
           type="button"
         >
-          <FormattedMessage defaultMessage="Générer un autre" />
+          <FormattedMessage defaultMessage="Générer un autre mot de passe" />
         </Button>
       </div>
     </>

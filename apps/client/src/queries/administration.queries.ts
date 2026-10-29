@@ -140,9 +140,10 @@ function updateUser(queryClient: QueryClient, userId: string, patch: Partial<Det
 export function useUpdateUserNameMutation(userId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (body: { firstName: string; lastName: string }) =>
+    mutationFn: (body: { firstName?: string; lastName?: string }) =>
       $api.administration.updateName({ body, path: { userId } }),
-    onSuccess: () => {
+    onSuccess: (_, body) => {
+      updateUser(queryClient, userId, body);
       invalidateUserAccess(queryClient);
       queryClient.invalidateQueries({ queryKey: authKeys.introspectSession() });
     },

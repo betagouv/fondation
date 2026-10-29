@@ -56,6 +56,7 @@ function EmailField(props: { user: DetailedAdminUserDto }) {
   const handleSave = (event?: SyntheticEvent) => {
     event?.preventDefault();
     const trimmed = email.trim();
+    if (!trimmed) return;
     if (trimmed === props.user.email) {
       setEditing(false);
       return;
@@ -162,10 +163,7 @@ function NameField(props: { part: keyof typeof NAME_PARTS; user: DetailedAdminUs
       setEditing(false);
       return;
     }
-    mutate(
-      { firstName: props.user.firstName, lastName: props.user.lastName, [props.part]: trimmed },
-      { onSuccess: () => setEditing(false) },
-    );
+    mutate({ [props.part]: trimmed }, { onSuccess: () => setEditing(false) });
   };
 
   return (
@@ -337,6 +335,9 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
           <Button
             disabled={isPending}
             iconId="fr-icon-refresh-line"
+            nativeButtonProps={{
+              'aria-label': formatMessage({ defaultMessage: 'Réinitialiser le mot de passe' }),
+            }}
             onClick={() => changeEdition(true)}
             priority="tertiary no outline"
             size="small"
@@ -352,6 +353,9 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
             error={
               error ? formatMessage({ defaultMessage: 'Erreur à la mise à jour du mot de passe' }) : undefined
             }
+            hint={formatMessage({
+              defaultMessage: `La personne sera déconnectée de toutes ses sessions. Le mot de passe provisoire est à lui communiquer. Elle devra ensuite le modifier depuis "Mon compte"`,
+            })}
             label={formatMessage({ defaultMessage: 'Nouveau mot de passe' })}
             onChange={setPassword}
             password={password}
@@ -688,33 +692,35 @@ function AccessCard(props: { user: DetailedAdminUserDto }) {
         </div>
       </div>
       <AdminUserPromotionToggle user={props.user} />
-      <div className="fr-pt-6v mt-auto flex justify-end">
-        {props.user.canDeactivate && (
-          <Button
-            className="text-(--text-default-error)!"
-            disabled={deactivate.isPending}
-            iconId="fr-icon-lock-line"
-            onClick={onDeactivate}
-            priority="tertiary"
-            size="small"
-            type="button"
-          >
-            <FormattedMessage defaultMessage="Désactiver le compte" />
-          </Button>
-        )}
-        {props.user.canReactivate && (
-          <Button
-            disabled={reactivate.isPending}
-            iconId="fr-icon-lock-unlock-line"
-            onClick={() => reactivate.mutate()}
-            priority="secondary"
-            size="small"
-            type="button"
-          >
-            <FormattedMessage defaultMessage="Réactiver le compte" />
-          </Button>
-        )}
-      </div>
+      {(props.user.canDeactivate || props.user.canReactivate) && (
+        <div className="fr-pt-6v mt-auto flex justify-end">
+          {props.user.canDeactivate && (
+            <Button
+              className="text-(--text-default-error)!"
+              disabled={deactivate.isPending}
+              iconId="fr-icon-lock-line"
+              onClick={onDeactivate}
+              priority="tertiary"
+              size="small"
+              type="button"
+            >
+              <FormattedMessage defaultMessage="Désactiver le compte" />
+            </Button>
+          )}
+          {props.user.canReactivate && (
+            <Button
+              disabled={reactivate.isPending}
+              iconId="fr-icon-lock-unlock-line"
+              onClick={() => reactivate.mutate()}
+              priority="secondary"
+              size="small"
+              type="button"
+            >
+              <FormattedMessage defaultMessage="Réactiver le compte" />
+            </Button>
+          )}
+        </div>
+      )}
     </DetailsCard>
   );
 }

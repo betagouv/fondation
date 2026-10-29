@@ -170,6 +170,9 @@ export function AdminUserCreationModal(props: {
           ))}
         </Select>
         <GeneratedPasswordInput
+          hint={formatMessage({
+            defaultMessage: `Le mot de passe provisoire est à communiquer à la personne. Elle devra ensuite le modifier depuis "Mon compte"`,
+          })}
           label={formatMessage({ defaultMessage: 'Mot de passe initial' })}
           onChange={(password) => setUser((current) => ({ ...current, password }))}
           password={user.password}
