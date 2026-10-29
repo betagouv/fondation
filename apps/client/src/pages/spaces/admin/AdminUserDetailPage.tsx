@@ -332,19 +332,21 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
             </Button>
           </div>
         ) : (
-          <Button
-            disabled={isPending}
-            iconId="fr-icon-refresh-line"
-            nativeButtonProps={{
-              'aria-label': formatMessage({ defaultMessage: 'Réinitialiser le mot de passe' }),
-            }}
-            onClick={() => changeEdition(true)}
-            priority="tertiary no outline"
-            size="small"
-            type="button"
-          >
-            <FormattedMessage defaultMessage="Réinitialiser" />
-          </Button>
+          props.user.canResetPassword && (
+            <Button
+              disabled={isPending}
+              iconId="fr-icon-refresh-line"
+              nativeButtonProps={{
+                'aria-label': formatMessage({ defaultMessage: 'Réinitialiser le mot de passe' }),
+              }}
+              onClick={() => changeEdition(true)}
+              priority="tertiary no outline"
+              size="small"
+              type="button"
+            >
+              <FormattedMessage defaultMessage="Réinitialiser" />
+            </Button>
+          )
         )}
       </div>
       {isEditing ? (

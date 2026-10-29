@@ -12,6 +12,7 @@ import {
   CantDeactivateOwnAccount,
   CantGiveAdminAMemberRole,
   CantPromoteMemberToAdmin,
+  CantResetPasswordOfDeactivatedAccount,
   EmailAlreadyTaken,
 } from '../domain/user';
 
@@ -36,6 +37,12 @@ export class AdministrationErrorMapper implements NestInterceptor {
           if (error instanceof CantDeactivateOwnAccount) {
             return new BadRequestException({
               validationError: `Impossible de désactiver son propre compte`,
+            });
+          }
+
+          if (error instanceof CantResetPasswordOfDeactivatedAccount) {
+            return new BadRequestException({
+              validationError: `Impossible de réinitialiser le mot de passe d'un compte désactivé`,
             });
           }
 

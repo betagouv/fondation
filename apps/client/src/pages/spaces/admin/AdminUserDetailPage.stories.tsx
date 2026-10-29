@@ -43,6 +43,7 @@ const USERS = {
     | 'canHoldAdminRight'
     | 'canImpersonate'
     | 'canReactivate'
+    | 'canResetPassword'
     | 'deactivatedAt'
     | 'status'
     | 'statusChanges'
@@ -130,6 +131,7 @@ const meta = {
           canHoldAdminRight: user.role.group === 'SECRETARIAT',
           canImpersonate: args.status === 'ACTIVE' && user.role.group !== 'SECRETARIAT',
           canReactivate: args.status === 'DEACTIVATED',
+          canResetPassword: args.status === 'ACTIVE',
           deactivatedAt: args.status === 'DEACTIVATED' ? '2026-10-21T12:32:00.000Z' : null,
           statusChanges:
             args.status === 'DEACTIVATED'

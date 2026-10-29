@@ -2400,6 +2400,7 @@ export type DetailedAdminUserDto = {
     canHoldAdminRight: boolean;
     canImpersonate: boolean;
     canReactivate: boolean;
+    canResetPassword: boolean;
     assignableRoles: Array<'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN'>;
     deactivatedAt: string | null;
     statusChanges: Array<{
