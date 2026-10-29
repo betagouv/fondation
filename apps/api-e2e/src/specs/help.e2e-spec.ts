@@ -21,7 +21,8 @@ test.describe('Help E2E', () => {
       `<h1 data-id="traiter">Traiter un dossier</h1><p>Étapes, voir <a href="#profils">les profils</a></p>` +
       `<img data-file-id="${screenshot!.id}" src="${screenshot!.url}"><hr>` +
       `<h2 data-id="profils">Profils</h2><table><tbody><tr><th>Profil</th><th>Sessions</th></tr>` +
-      `<tr><td>Membre siège</td><td>Formation siège</td></tr></tbody></table><aside><p>À savoir</p></aside>`;
+      `<tr><td>Membre siège</td><td>Formation siège</td></tr></tbody></table>` +
+      `<aside data-kind="warning"><p><strong>Attention</strong></p></aside>`;
     await admin.help.writeHelpPageContent({ body: { content }, path, throwOnError: true });
 
     const read = await member.help.detailReaderHelpPage({ throwOnError: true });

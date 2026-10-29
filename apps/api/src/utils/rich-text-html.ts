@@ -15,6 +15,7 @@ const webUrl: AttributeRule = (value) => ['http:', 'https:'].includes(URL.parse(
 const mailAddress: AttributeRule = (value) => URL.parse(value)?.protocol === 'mailto:';
 
 const preload: AttributeRule = (value) => /^(auto|metadata|none)$/.test(value);
+const calloutKind: AttributeRule = (value) => /^(tip|warning)$/.test(value);
 
 const noAttribute: ReadonlyMap<string, AttributeRule> = new Map();
 const titleAttributes: ReadonlyMap<string, AttributeRule> = new Map([['data-id', sectionId]]);
@@ -60,7 +61,7 @@ const ATTRIBUTES_BY_TEXT_TAG: AttributesByTag = new Map([
 const ATTRIBUTES_BY_PAGE_TAG: AttributesByTag = new Map([
   ...ATTRIBUTES_BY_TEXT_TAG,
   ['a', new Map([['href', (value) => webUrl(value) || mailAddress(value) || sectionAnchor(value)]])],
-  ['aside', noAttribute],
+  ['aside', new Map([['data-kind', calloutKind]])],
   ['h1', titleAttributes],
   ['h2', titleAttributes],
   ['h3', titleAttributes],
