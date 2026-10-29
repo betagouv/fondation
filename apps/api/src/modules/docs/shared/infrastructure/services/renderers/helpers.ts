@@ -8,10 +8,10 @@ import { UserTitleEnum } from '../../../../../shared/user-title.enum';
 import { SafeHtml } from './safe-html';
 
 export function titled(props: {
-  title: UserTitleEnum | null;
   firstName: string;
-  lastName: string;
   gender: GenderEnum;
+  lastName: string;
+  title: UserTitleEnum | null;
 }): string {
   if (!props.title || props.title === 'FIRST_SECRETARY') return fullname(props);
 
@@ -27,10 +27,10 @@ export function titled(props: {
 }
 
 export function displayTitled(props: {
-  firstName: string;
-  lastName: string;
   displayTitle: string | null;
+  firstName: string;
   gender: GenderEnum;
+  lastName: string;
 }): string {
   const title = props.displayTitle?.trim() || null;
   const output = props.gender === GenderEnum.MALE ? `M. ${fullname(props)}` : `Mme ${fullname(props)}`;

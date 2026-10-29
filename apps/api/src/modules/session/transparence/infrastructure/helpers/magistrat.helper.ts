@@ -2,7 +2,7 @@ import { capitalize } from '../../../../../utils/capitalize';
 import { type Civility } from '../../../../magistrat/domain/magistrat-name';
 import { GenderEnum } from '../../../../shared/gender.enum';
 
-export function buildMemberName(member: { gender: GenderEnum; firstName: string; lastName: string }): string {
+export function buildMemberName(member: { firstName: string; gender: GenderEnum; lastName: string }): string {
   return `${member.gender === GenderEnum.FEMALE ? 'Mme' : 'M.'}\u00A0${capitalize(member.firstName.toLowerCase())}\u00A0${member.lastName.toUpperCase()}`;
 }
 

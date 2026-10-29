@@ -44,11 +44,11 @@ export class InternalFindDocsNominationFilesQuery {
     const items = await z.array(SqlNominationFilesSchema).parseAsync(rows);
     const identified = new Set(items.map(({ id }) => id));
     const sessionFiles = await this.db.tx.dossierDeNomination.findMany({
+      select: { id: true } satisfies Prisma.DossierDeNominationSelect,
       where: {
         sessionId: query.sessionId,
         ...(query.ids ? { id: { in: [...query.ids] } } : {}),
       },
-      select: { id: true } satisfies Prisma.DossierDeNominationSelect,
     });
 
     return {
@@ -131,45 +131,43 @@ const SqlNominationFilesSchema = z
           });
 
     const reporters = item.reporters.map((u) => ({
-      id: u.id,
-      gender: u.gender,
       firstName: u.firstName,
-      lastName: u.lastName,
       fullTitledName: buildMemberName({
         firstName: u.firstName,
         gender: u.gender,
         lastName: u.lastName,
       }),
+      gender: u.gender,
+      id: u.id,
+      lastName: u.lastName,
     }));
 
     return {
-      reporters,
       id: item.id,
+      magistrat: {
+        externalId: item.magistrat.externalId,
+        id: item.magistrat.id,
+        name: magistratTitledFullName(item.magistrat),
+        position: {
+          functionId: item.magistrat.position.function?.id ?? null,
+          grade: item.magistrat.position.grade,
+          jurisdictionId: item.magistrat.position.jurisdiction?.id ?? null,
+          label: currentPosition,
+        },
+      },
       number: item.number,
       outcome: nominationFileOutcome
         ? {
-            value: nominationFileOutcome.outcome,
             comment: nominationFileOutcome.comment,
+            value: nominationFileOutcome.outcome,
           }
         : null,
-
-      magistrat: {
-        name: magistratTitledFullName(item.magistrat),
-        id: item.magistrat.id,
-        externalId: item.magistrat.externalId,
-        position: {
-          grade: item.magistrat.position.grade,
-          label: currentPosition,
-          functionId: item.magistrat.position.function?.id ?? null,
-          jurisdictionId: item.magistrat.position.jurisdiction?.id ?? null,
-        },
-      },
-
+      reporters,
       targetPosition: {
-        grade: item.targetPosition.grade,
-        label: targetedPosition,
         functionId: item.targetPosition.function?.id ?? null,
+        grade: item.targetPosition.grade,
         jurisdictionId: item.targetPosition.jurisdiction?.id ?? null,
+        label: targetedPosition,
       },
     };
   });
