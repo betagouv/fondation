@@ -107,15 +107,15 @@ Le menu propose Accueil, Créer une session, Gérer les sessions, Restitutions, 
 
 ### Espace administration
 
-| URL                           | Vue                                                                                                                     | Membre | Secrétariat général | Administrateur |
-| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ------ | ------------------- | -------------- |
-| `/admin/lolfi`                | Import d'une archive Lolfi                                                                                              | —      | —                   | ✓              |
-| `/admin/ingestions`           | Liste des traitements en arrière-plan                                                                                   | —      | —                   | ✓              |
-| `/admin/ingestions/:jobId`    | Détail d'un traitement                                                                                                  | —      | —                   | ✓              |
-| `/admin/avis`                 | Export des réponses au questionnaire                                                                                    | —      | —                   | ✓              |
-| `/admin/aide`                 | Édition des pages d'aide                                                                                                | —      | —                   | ✓              |
-| `/admin/utilisateurs`         | Liste des utilisateurs                                                                                                  | —      | —                   | ✓              |
-| `/admin/utilisateurs/:userId` | Fiche d'un utilisateur : e-mail, mot de passe, rôle, titre, droit d'administrateur, désactivation, connexion à sa place | —      | —                   | ✓              |
+| URL                           | Vue                                                                                                                                  | Membre | Secrétariat général | Administrateur |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ------ | ------------------- | -------------- |
+| `/admin/lolfi`                | Import d'une archive Lolfi                                                                                                           | —      | —                   | ✓              |
+| `/admin/ingestions`           | Liste des traitements en arrière-plan                                                                                                | —      | —                   | ✓              |
+| `/admin/ingestions/:jobId`    | Détail d'un traitement                                                                                                               | —      | —                   | ✓              |
+| `/admin/avis`                 | Export des réponses au questionnaire                                                                                                 | —      | —                   | ✓              |
+| `/admin/aide`                 | Édition des pages d'aide                                                                                                             | —      | —                   | ✓              |
+| `/admin/utilisateurs`         | Liste des utilisateurs                                                                                                               | —      | —                   | ✓              |
+| `/admin/utilisateurs/:userId` | Fiche d'un utilisateur : nom, prénom, e-mail, mot de passe, rôle, titre, droit d'administrateur, désactivation, connexion à sa place | —      | —                   | ✓              |
 
 ## Actions de l'API
 
@@ -379,6 +379,7 @@ Dans les dossiers d'un magistrat, un Membre ne voit que l'affectation et les aud
 | Voir les rôles proposés           | `GET /administration/v1/roles`                         | —      | —                   | ✓              |
 | Voir les titulaires des fonctions | `GET /administration/v1/title-holders`                 | —      | —                   | ✓              |
 | Modifier l'e-mail                 | `PUT /administration/v1/users/:userId/email`           | —      | —                   | ✓              |
+| Modifier le nom ou le prénom      | `PUT /administration/v1/users/:userId/name`            | —      | —                   | ✓              |
 | Modifier le mot de passe          | `PUT /administration/v1/users/:userId/password`        | —      | —                   | ✓              |
 | Modifier le rôle                  | `PUT /administration/v1/users/:userId/role`            | —      | —                   | ✓              |
 | Modifier le titre affiché         | `PUT /administration/v1/users/:userId/display-title`   | —      | —                   | ✓              |
