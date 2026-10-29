@@ -18,6 +18,7 @@ import {
   JusticePresentationPlan,
   JusticePresentationPlanAlreadyPresented,
 } from './domain/justice-presentation-plan';
+import { canEditPresentationPlan } from './domain/presentation-plan.policies';
 import {
   DetailedPresentationPlanMetadataDto,
   DetailsPresentationPlanMetadataQuery,
@@ -292,7 +293,7 @@ export class PresentationPlansService {
       where: { id: command.id },
     });
     if (!plan) throw new NotFoundException();
-    if (plan.isPresented) throw new JusticePresentationPlanAlreadyPresented();
+    if (!canEditPresentationPlan(plan)) throw new JusticePresentationPlanAlreadyPresented();
 
     await this.db.tx.justicePresentationPlan.update({
       data: {
@@ -317,7 +318,7 @@ export class PresentationPlansService {
       where: { id: command.id },
     });
     if (!plan) throw new NotFoundException();
-    if (plan.isPresented) throw new JusticePresentationPlanAlreadyPresented();
+    if (!canEditPresentationPlan(plan)) throw new JusticePresentationPlanAlreadyPresented();
 
     const html = await this.findPresentationPlanDocumentQuery.handle({ forceNew: true, id: command.id });
     await this.db.tx.justicePresentationPlan.update({

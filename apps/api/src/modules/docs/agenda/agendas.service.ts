@@ -203,9 +203,10 @@ export class AgendasService {
   async discardAgendaDraft(command: { agendaId: string }): Promise<void> {
     await this.announcingSentenceChanges(command.agendaId, async () => {
       const hasValidatedVersion = await this.agendaVersionFinder.published({ agendaId: command.agendaId });
+      const changesBy = await this.agendaVersionFinder.draftChangesBy({ agendaId: command.agendaId });
 
       const agenda = await this.agendaRepository.find({ actorId: null, agendaId: command.agendaId });
-      agenda.discardDraft({ hasValidatedVersion: isDefined(hasValidatedVersion) });
+      agenda.discardDraft({ changesBy, hasValidatedVersion: isDefined(hasValidatedVersion) });
       await this.agendaRepository.persist(agenda);
     });
   }
@@ -273,7 +274,6 @@ export class AgendasService {
   /** the sentence each proposition reads today, empty when the agenda leaves it to the template */
   private async readableSentences(agendaId: string): Promise<Map<string, string>> {
     const agenda = await this.db.tx.agenda.findFirst({
-      where: { id: agendaId, officialReportId: { not: null } },
       select: {
         versions: {
           ...AGENDA_CONTENT_VERSIONS,
@@ -283,6 +283,7 @@ export class AgendasService {
           },
         },
       } satisfies Prisma.AgendaSelect,
+      where: { id: agendaId, officialReportId: { not: null } },
     });
 
     return new Map(

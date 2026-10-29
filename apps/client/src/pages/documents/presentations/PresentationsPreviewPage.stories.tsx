@@ -18,12 +18,14 @@ const MODES = ['preview', 'edit'] as const;
 
 type Lifecycle = Pick<
   DetailedPresentationPlanMetadataDto,
-  'draft' | 'isPresented' | 'presentation' | 'status' | 'validation'
+  'canEdit' | 'canValidate' | 'draft' | 'isPresented' | 'presentation' | 'status' | 'validation'
 >;
 
 // a notice is validated once only: no draft over a validated version, unlike the agenda and the report
 const LIFECYCLES = {
   draft: {
+    canEdit: true,
+    canValidate: true,
     draft: {
       openedAt: '2026-09-24T07:21:00.000Z',
       openedBy: STORY_AUTHORS.sg,
@@ -38,6 +40,8 @@ const LIFECYCLES = {
     validation: null,
   },
   validated: {
+    canEdit: true,
+    canValidate: false,
     draft: null,
     isPresented: false,
     presentation: null,
@@ -45,6 +49,8 @@ const LIFECYCLES = {
     validation: DOCUMENT_VALIDATION,
   },
   presented: {
+    canEdit: false,
+    canValidate: false,
     draft: null,
     isPresented: true,
     presentation: {
@@ -84,7 +90,6 @@ function PresentationPreviewPageStory(props: {
   const metadata: DetailedPresentationPlanMetadataDto = {
     ...LIFECYCLES[props.lifecycle],
     absentMemberIds: [],
-    recordedMemberIds: [],
     agendas: [{ comment: '', id: 'agenda-1' }],
     chairmanId: null,
     date: { day: 23, month: 9, year: 2026 },
@@ -94,6 +99,7 @@ function PresentationPreviewPageStory(props: {
     isManuallyEdited: props.manuallyEdited,
     justiceDepartmentContactId: null,
     outdated: props.outdated,
+    recordedMemberIds: [],
     removedAgendas: props.agendaRemoved && props.lifecycle === 'draft' ? [REMOVED_AGENDA] : [],
     secretaryId: null,
     time: { hours: 10, minutes: 0, seconds: 0 },
@@ -101,7 +107,7 @@ function PresentationPreviewPageStory(props: {
   storyMetadata = metadata;
 
   // the edit page sends a presented notice back to its preview
-  const isEditing = props.mode === 'edit' && !metadata.isPresented;
+  const isEditing = props.mode === 'edit' && metadata.canEdit;
   const path = isEditing ? ROUTE_PATHS.SG.PRESENTATIONS_EDIT : ROUTE_PATHS.SG.PRESENTATIONS_PREVIEW;
 
   return (

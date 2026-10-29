@@ -6,7 +6,9 @@ import { lockAgendasRawQuery } from '../../../../../generated/prisma/sql';
 import { Clock } from '../../../../framework/clock';
 import { Db } from '../../../../framework/database';
 import { Files } from '../../../../framework/files';
+import { canValidateDocument } from '../../../shared/domain/document.policies';
 import { JusticePresentationPlanChangedWhileValidated } from '../../domain/justice-presentation-plan';
+import { presentationPlanStatusOf } from '../presentation-plan-status';
 import { FindPresentationPlanDocumentPdfQuery } from '../queries/find-presentation-plan-document-pdf.query';
 import { JusticePresentationPlanRepository } from '../repositories/justice-presentation-plan.repository';
 
@@ -23,14 +25,14 @@ export class ValidatePresentationPlanUseCase {
   // rendering and uploading the pdf stay out of the transaction: they would hold a connection for seconds
   async handle(command: { id: string; validatorId: string }): Promise<void> {
     const plan = await this.db.tx.justicePresentationPlan.findUnique({
-      where: { id: command.id },
       select: {
-        pdfId: true,
         agendas: { select: { agendaId: true } },
+        pdfId: true,
       } satisfies Prisma.JusticePresentationPlanSelect,
+      where: { id: command.id },
     });
     if (!plan) throw new NotFoundException();
-    if (plan.pdfId) return;
+    if (!canValidateDocument({ isValidated: presentationPlanStatusOf(plan) === 'VALIDATED' })) return;
 
     const agendaIds = plan.agendas.map(({ agendaId }) => agendaId);
     const { html, pdf } = await this.findPresentationPlanDocumentPdfQuery.render({ id: command.id });
@@ -57,12 +59,12 @@ export class ValidatePresentationPlanUseCase {
 
     // another validation may have taken an agenda meanwhile, even from a text edited by hand that still reads it
     const stored = await this.db.tx.justicePresentationPlan.findUnique({
-      where: { id: command.id },
       select: {
         agendas: { select: { agendaId: true } },
         html: true,
         pdfId: true,
       } satisfies Prisma.JusticePresentationPlanSelect,
+      where: { id: command.id },
     });
     const agendaIds = new Set(stored?.agendas.map(({ agendaId }) => agendaId));
     if (stored?.html !== command.html || agendaIds.symmetricDifference(new Set(command.agendaIds)).size > 0) {
@@ -70,18 +72,18 @@ export class ValidatePresentationPlanUseCase {
     }
 
     // a validation sent twice finds the notice validated by the other one
-    if (stored.pdfId) return false;
+    if (!canValidateDocument({ isValidated: presentationPlanStatusOf(stored) === 'VALIDATED' })) return false;
 
     await this.db.tx.justicePresentationPlan.update({
-      where: { id: command.id },
       data: { pdfId: command.pdfId, validatedAt: this.clock.now(), validatedBy: command.validatorId },
+      where: { id: command.id },
     });
     await this.db.tx.justicePresentationPlanRemovedAgenda.deleteMany({ where: { planId: command.id } });
 
     const drafts = await this.db.tx.justicePresentationPlanToAgenda.findMany({
-      where: { agendaId: { in: command.agendaIds }, planId: { not: command.id } },
       distinct: ['planId'],
       select: { planId: true } satisfies Prisma.JusticePresentationPlanToAgendaSelect,
+      where: { agendaId: { in: command.agendaIds }, planId: { not: command.id } },
     });
 
     for (const { planId } of drafts) {

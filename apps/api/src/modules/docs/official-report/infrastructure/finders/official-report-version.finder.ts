@@ -3,6 +3,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { Prisma } from '../../../../../generated/prisma/client';
 import { Db } from '../../../../framework/database';
+import { type DraftChangesBy } from '../../../shared/domain/draft-changes-by';
+import { draftChangesBy } from '../../../shared/infrastructure/draft-changes-by';
 
 @Injectable()
 export class OfficialReportVersionFinder {
@@ -12,9 +14,9 @@ export class OfficialReportVersionFinder {
   @Transactional()
   async published(query: { officialReportId: string }): Promise<string | null> {
     const version = await this.db.tx.officialReportVersion.findFirst({
+      orderBy: { version: 'desc' },
       select: { id: true } satisfies Prisma.OfficialReportVersionSelect,
       where: { officialReportId: query.officialReportId, status: 'VALIDATED' },
-      orderBy: { version: 'desc' },
     });
 
     return version?.id ?? null;
@@ -27,13 +29,29 @@ export class OfficialReportVersionFinder {
   @Transactional()
   async latest(query: { officialReportId: string }): Promise<string> {
     const version = await this.db.tx.officialReportVersion.findFirst({
+      orderBy: { version: 'desc' },
       select: { id: true } satisfies Prisma.OfficialReportVersionSelect,
       where: { officialReportId: query.officialReportId },
-      orderBy: { version: 'desc' },
     });
 
     if (!version) throw new NotFoundException();
 
     return version.id;
+  }
+
+  @Transactional()
+  async draftChangesBy(query: { officialReportId: string }): Promise<DraftChangesBy | null> {
+    const draft = await this.db.tx.officialReportVersion.findFirst({
+      orderBy: { version: 'desc' },
+      select: {
+        createdBy: true,
+        status: true,
+        systemUpdatedAt: true,
+        updatedBy: true,
+      } satisfies Prisma.OfficialReportVersionSelect,
+      where: { officialReportId: query.officialReportId, status: 'DRAFT' },
+    });
+
+    return draft ? draftChangesBy(draft) : null;
   }
 }

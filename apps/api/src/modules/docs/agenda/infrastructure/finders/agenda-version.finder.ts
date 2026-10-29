@@ -3,6 +3,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { Prisma } from '../../../../../generated/prisma/client';
 import { Db } from '../../../../framework/database';
+import { type DraftChangesBy } from '../../../shared/domain/draft-changes-by';
+import { draftChangesBy } from '../../../shared/infrastructure/draft-changes-by';
 
 @Injectable()
 export class AgendaVersionFinder {
@@ -35,5 +37,21 @@ export class AgendaVersionFinder {
     if (!version) throw new NotFoundException();
 
     return version.id;
+  }
+
+  @Transactional()
+  async draftChangesBy(query: { agendaId: string }): Promise<DraftChangesBy | null> {
+    const draft = await this.db.tx.agendaVersion.findFirst({
+      orderBy: { version: 'desc' },
+      select: {
+        createdBy: true,
+        status: true,
+        systemUpdatedAt: true,
+        updatedBy: true,
+      } satisfies Prisma.AgendaVersionSelect,
+      where: { agendaId: query.agendaId, status: 'DRAFT' },
+    });
+
+    return draft ? draftChangesBy(draft) : null;
   }
 }

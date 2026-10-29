@@ -213,7 +213,12 @@ test.describe('Agenda', () => {
     });
 
     const metadata = await agent.docs.detailsAgendaMetadata({ path: { agendaId } });
-    expect(metadata.data).toMatchObject({ hasValidatedVersion: true, status: 'DRAFT' });
+    expect(metadata.data).toMatchObject({
+      canDiscardDraft: true,
+      canValidate: true,
+      hasValidatedVersion: true,
+      status: 'DRAFT',
+    });
 
     const discarded = await agent.docs.discardAgendaDraft({ path: { agendaId } });
     expect(discarded.response?.status).toBe(204);
@@ -256,6 +261,41 @@ test.describe('Agenda', () => {
     ]);
     const statuses = validations.map(({ response }) => Number(response?.status));
     expect(statuses.toSorted((a, b) => a - b)).toEqual([204, 409]);
+  });
+
+  test('should refuse to discard the draft of an agenda never validated', async ({ agent, docs, expect }) => {
+    const { id: agendaId } = await docs.agenda(await docs.session());
+
+    const discarded = await agent.docs.discardAgendaDraft({ path: { agendaId } });
+    expect(discarded.response?.status).toBe(409);
+  });
+
+  test('should refuse to discard a draft the application opened', async ({
+    agent,
+    docs,
+    expect,
+    member,
+    registerUser,
+  }) => {
+    const otherReporter = await registerUser('MEMBRE_DU_PARQUET');
+    const session = await docs.session({ reporters: [member['@user']!] });
+    const sessionId = session.id;
+    const { id: agendaId } = await docs.agenda(session, { status: 'VALIDATED' });
+
+    // the new reporters land in a draft the application opens on its own
+    await agent.sessions.affectReporters({
+      body: {
+        items: session.files.map(({ id }) => ({ nominationFileId: id, reporterIds: [otherReporter.id] })),
+      },
+      path: { sessionId },
+    });
+    await agent.sessions.publishNominationSessionAffectationsVersion({ path: { sessionId } });
+
+    const metadata = await agent.docs.detailsAgendaMetadata({ path: { agendaId } });
+    expect(metadata.data).toMatchObject({ canDiscardDraft: false, canValidate: true, draftChangesBy: 'SYSTEM' });
+
+    const discarded = await agent.docs.discardAgendaDraft({ path: { agendaId } });
+    expect(discarded.response?.status).toBe(409);
   });
 
   test('should tell apart a draft the application opened from one a person works on', async ({

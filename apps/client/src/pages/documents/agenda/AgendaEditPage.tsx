@@ -65,7 +65,7 @@ export function AgendaEditPage() {
     setSaveError(null);
     try {
       const { data: latest } = await refetchMetadata();
-      if (latest?.status === 'DRAFT') await validateAgenda();
+      if (latest?.canValidate) await validateAgenda();
       await navigate(officialReportPath);
     } catch (error) {
       setSaveError(ValidationError.messageOf(error) ?? describeFailure(error));
@@ -144,7 +144,7 @@ export function AgendaEditPage() {
   ]);
 
   const { isDirty, setDirty } = useUnsavedChangesGuard({ onSave: save });
-  const canValidate = !isSaving && !isValidating && !isDirty && metadata?.status === 'DRAFT';
+  const canValidate = !isSaving && !isValidating && !isDirty && !!metadata?.canValidate;
 
   // nothing was sent, so the stored blocks are still the last save
   const cancel = () => {

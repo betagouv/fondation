@@ -243,6 +243,19 @@ test.describe('Official report', () => {
     });
   });
 
+  test('should refuse to discard the draft of an official report never validated', async ({
+    agent,
+    docs,
+    expect,
+    member,
+  }) => {
+    const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
+    const { id: officialReportId } = await docs.officialReport(await docs.agenda(session));
+
+    const discarded = await agent.docs.discardOfficialReportDraft({ path: { officialReportId } });
+    expect(discarded.response?.status).toBe(409);
+  });
+
   test('should keep an official report edition made after a validation, and undo it when discarded', async ({
     agent,
     docs,
@@ -264,13 +277,23 @@ test.describe('Official report', () => {
     expect(edited.response?.status).toBe(204);
 
     const afterEdition = await agent.docs.detailsOfficialReport({ path: { officialReportId } });
-    expect(afterEdition.data).toMatchObject({ hasValidatedVersion: true, status: 'DRAFT' });
+    expect(afterEdition.data).toMatchObject({
+      canDiscardDraft: true,
+      canValidate: true,
+      hasValidatedVersion: true,
+      status: 'DRAFT',
+    });
 
     const discarded = await agent.docs.discardOfficialReportDraft({ path: { officialReportId } });
     expect(discarded.response?.status).toBe(204);
 
     const afterDiscard = await agent.docs.detailsOfficialReport({ path: { officialReportId } });
-    expect(afterDiscard.data).toMatchObject({ hasValidatedVersion: true, status: 'VALIDATED' });
+    expect(afterDiscard.data).toMatchObject({
+      canDiscardDraft: false,
+      canValidate: false,
+      hasValidatedVersion: true,
+      status: 'VALIDATED',
+    });
   });
 
   test('should speak of a single proposition when the agenda holds only one', async ({

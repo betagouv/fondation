@@ -11,6 +11,7 @@ import { writerOf, writerSchema } from '../../../../../utils/user.util';
 import { Db } from '../../../../framework/database';
 import { FormationEnum } from '../../../../shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from '../../../../shared/mappers/formation.mapper';
+import { canValidateDocument } from '../../../shared/domain/document.policies';
 import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../../../shared/infrastructure/agenda-content';
 import {
   draftTrace,
@@ -20,6 +21,7 @@ import {
   traceOf,
   traceSchema,
 } from '../../../shared/infrastructure/document-trace';
+import { canEditPresentationPlan } from '../../domain/presentation-plan.policies';
 import { presentationPlanStatusOf, presentationPlanStatusSchema } from '../presentation-plan-status';
 
 const chairmanSchema = z.object({ firstName: z.string(), lastName: z.string() });
@@ -30,60 +32,60 @@ export class DetailsPresentationPlanMetadataQuery {
 
   async handle(query: { id: string }): Promise<DetailedPresentationPlanMetadataDto> {
     const plan = await this.db.tx.justicePresentationPlan.findUnique({
-      where: { id: query.id },
       select: {
-        id: true,
-        chairmanId: true,
-        secretaryId: true,
-        date: true,
-        time: true,
-        outdated: true,
-        pdfId: true,
-        isPresented: true,
-        isManuallyEdited: true,
-        justiceDepartmentContactId: true,
-        hasRenunciation: true,
-        createdAt: true,
-        author: { select: { firstName: true, id: true, lastName: true } },
-        updatedAt: true,
-        editor: { select: { firstName: true, id: true, lastName: true } },
-        validatedAt: true,
-        validator: { select: { firstName: true, id: true, lastName: true } },
-        endTime: true,
-        presenter: { select: { firstName: true, id: true, lastName: true } },
-        members: { select: { memberId: true, isAbsent: true } },
         agendas: {
           select: {
+            agenda: { select: { formation: true } },
             agendaId: true,
             comment: true,
-            agenda: { select: { formation: true } },
           },
         },
+        author: { select: { firstName: true, id: true, lastName: true } },
+        chairmanId: true,
+        createdAt: true,
+        date: true,
+        editor: { select: { firstName: true, id: true, lastName: true } },
+        endTime: true,
+        hasRenunciation: true,
+        id: true,
+        isManuallyEdited: true,
+        isPresented: true,
+        justiceDepartmentContactId: true,
+        members: { select: { isAbsent: true, memberId: true } },
+        outdated: true,
+        pdfId: true,
+        presenter: { select: { firstName: true, id: true, lastName: true } },
         removedAgendas: {
           orderBy: { removedAt: 'asc' },
           select: {
-            agendaId: true,
-            removedAt: true,
-            remover: { select: { id: true, firstName: true, lastName: true } },
             agenda: {
               select: {
                 versions: {
                   ...AGENDA_CONTENT_VERSIONS,
                   select: {
-                    status: true,
-                    sessionMeetingDate: true,
                     chairmanFirstName: true,
                     chairmanLastName: true,
+                    sessionMeetingDate: true,
+                    status: true,
                   },
                 },
               },
             },
+            agendaId: true,
+            removedAt: true,
+            remover: { select: { firstName: true, id: true, lastName: true } },
             takenBy: {
-              select: { id: true, date: true, time: true, chairmanFirstName: true, chairmanLastName: true },
+              select: { chairmanFirstName: true, chairmanLastName: true, date: true, id: true, time: true },
             },
           },
         },
+        secretaryId: true,
+        time: true,
+        updatedAt: true,
+        validatedAt: true,
+        validator: { select: { firstName: true, id: true, lastName: true } },
       } satisfies Prisma.JusticePresentationPlanSelect,
+      where: { id: query.id },
     });
 
     if (!plan) throw new NotFoundException();
@@ -96,6 +98,8 @@ export class DetailsPresentationPlanMetadataQuery {
       outdated: plan.outdated,
       status,
       isPresented: plan.isPresented,
+      canEdit: canEditPresentationPlan(plan),
+      canValidate: canValidateDocument({ isValidated: status === 'VALIDATED' }),
       // a notice has no version underneath: its draft is the notice itself, never opened by the application
       draft: draftTrace({ ...plan, status, systemUpdatedAt: null, systemUpdates: [] }),
       validation: status === 'VALIDATED' ? traceOf(plan.validatedAt, plan.validator) : null,
@@ -146,6 +150,8 @@ export class DetailedPresentationPlanMetadataDto extends createZodDto(
     outdated: z.boolean(),
     status: presentationPlanStatusSchema,
     isPresented: z.boolean(),
+    canEdit: z.boolean(),
+    canValidate: z.boolean(),
     draft: draftTraceSchema,
     validation: traceSchema,
     /** null while the notice is not presented */
