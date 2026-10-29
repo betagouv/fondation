@@ -1,6 +1,4 @@
-export const DRAFT_CHANGES_BY = ['PERSON', 'PERSON_AND_SYSTEM', 'SYSTEM'] as const;
-
-export type DraftChangesBy = (typeof DRAFT_CHANGES_BY)[number];
+import { type DraftChangesBy } from './draft-changes-by';
 
 export function canValidateDocument(document: { isValidated: boolean }): boolean {
   return !document.isValidated;

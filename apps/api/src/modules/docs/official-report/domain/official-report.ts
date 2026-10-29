@@ -3,11 +3,8 @@ import { assertIsDefined } from '../../../../utils/is-defined';
 import type { FormationEnum } from '../../../shared/formation.enum';
 import { type DocNominationFileOutcomeEnum } from '../../shared/domain/doc-nomination-file-outcome';
 import { type DocSystemUpdateCause } from '../../shared/domain/doc-system-update-cause';
-import {
-  canDiscardDraft,
-  canValidateDocument,
-  type DraftChangesBy,
-} from '../../shared/domain/document.policies';
+import { canDiscardDraft, canValidateDocument } from '../../shared/domain/document.policies';
+import { type DraftChangesBy } from '../../shared/domain/draft-changes-by';
 
 import {
   InvalidateOfficialReportCommand,

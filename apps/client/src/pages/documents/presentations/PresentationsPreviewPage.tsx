@@ -98,9 +98,9 @@ export function PresentationPreviewPage() {
             {metadata?.outdated && (
               <PresentationDriftBanner
                 editionPath={
-                  metadata.isPresented
-                    ? undefined
-                    : generatePath(ROUTE_PATHS.SG.PRESENTATIONS_UPDATE, { planId: planId! })
+                  metadata.canEdit
+                    ? generatePath(ROUTE_PATHS.SG.PRESENTATIONS_UPDATE, { planId: planId! })
+                    : undefined
                 }
               />
             )}

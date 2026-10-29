@@ -107,7 +107,7 @@ function PresentationPreviewPageStory(props: {
   storyMetadata = metadata;
 
   // the edit page sends a presented notice back to its preview
-  const isEditing = props.mode === 'edit' && !metadata.isPresented;
+  const isEditing = props.mode === 'edit' && metadata.canEdit;
   const path = isEditing ? ROUTE_PATHS.SG.PRESENTATIONS_EDIT : ROUTE_PATHS.SG.PRESENTATIONS_PREVIEW;
 
   return (

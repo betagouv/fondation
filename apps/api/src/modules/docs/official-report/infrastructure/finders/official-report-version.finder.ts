@@ -3,7 +3,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { Prisma } from '../../../../../generated/prisma/client';
 import { Db } from '../../../../framework/database';
-import { type DraftChangesBy } from '../../../shared/domain/document.policies';
+import { type DraftChangesBy } from '../../../shared/domain/draft-changes-by';
 import { draftChangesBy } from '../../../shared/infrastructure/draft-changes-by';
 
 @Injectable()

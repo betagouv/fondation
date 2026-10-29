@@ -1,7 +1,7 @@
 import z from 'zod';
 
 import { type DocSystemUpdateCause } from '../domain/doc-system-update-cause';
-import { DRAFT_CHANGES_BY, type DraftChangesBy } from '../domain/document.policies';
+import { DRAFT_CHANGES_BY, type DraftChangesBy } from '../domain/draft-changes-by';
 
 export const draftChangesBySchema = z.enum(DRAFT_CHANGES_BY).nullable();
 

@@ -43,7 +43,7 @@ export class AgendasFilter implements NestInterceptor {
 
           if (err instanceof AgendaDraftChangedByTheApplication) {
             return new ConflictException({
-              validationError: `L'application a modifié ce brouillon : il ne peut plus être écarté`,
+              validationError: `L'application a modifié ce brouillon entre-temps : il n'est plus possible de revenir à la version validée`,
             });
           }
 
