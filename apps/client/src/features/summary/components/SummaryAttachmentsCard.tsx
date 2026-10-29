@@ -52,8 +52,15 @@ export function SummaryAttachmentsCard() {
 function SummaryAttachmentInput() {
   const { canWriteSummary, nominationFileId, sessionId, summary } = useSummary();
   const { isPending, mutate } = useAttachSummaryFilesMutation();
+  const notifyFailure = useAttachmentFailureToast();
 
   if (!canWriteSummary) return null;
+
+  const attach = (files: File[]) =>
+    mutate(
+      { files, nominationFileId, sessionId },
+      { onError: (error) => notifyFailure('upload', files.map(({ name }) => name).join(', '), error) },
+    );
 
   return (
     <div className="fr-mt-6v">
@@ -64,7 +71,7 @@ function SummaryAttachmentInput() {
         isPending={isPending}
         label={<FormattedMessage defaultMessage="Ajouter un fichier" />}
         multiple
-        onChange={(files) => files.length > 0 && mutate({ files, nominationFileId, sessionId })}
+        onChange={(files) => files.length > 0 && attach(files)}
       />
     </div>
   );
