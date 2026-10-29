@@ -356,7 +356,7 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
               error ? formatMessage({ defaultMessage: 'Erreur à la mise à jour du mot de passe' }) : undefined
             }
             hint={formatMessage({
-              defaultMessage: `La personne sera déconnectée de toutes ses sessions. Le mot de passe provisoire est à lui communiquer. Elle devra ensuite le modifier depuis "Mon compte"`,
+              defaultMessage: `Transmettez ce mot de passe provisoire à la personne. Elle sera déconnectée sur tous ses appareils. À sa prochaine connexion, elle devra le remplacer depuis "Mon compte"`,
             })}
             label={formatMessage({ defaultMessage: 'Nouveau mot de passe' })}
             onChange={setPassword}

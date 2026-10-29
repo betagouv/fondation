@@ -6,7 +6,7 @@ export function buildMemberName(member: { gender: GenderEnum; firstName: string;
   return `${member.gender === GenderEnum.FEMALE ? 'Mme' : 'M.'}\u00A0${capitalize(member.firstName.toLowerCase())}\u00A0${member.lastName.toUpperCase()}`;
 }
 
-// the codes seen in production: one LOLFI adds falls back to "sans affectation"
+// the codes seen in production: a code LOLFI adds later falls back to "sans affectation"
 const PLACEMENTS = new Map([
   ['CPR', 'congé parental'],
   ['D47-1', 'disponibilité'],
@@ -31,15 +31,15 @@ export function buildPosition(options: {
   civility: Civility;
   position: {
     administrativePositionId?: string | null;
-    jurisdiction: { id: string; label: string };
     arrondissement: { id: string; label: string } | null;
     function: {
+      addition: string | null;
       id: string;
       label: string;
-      labelOneMale: string | null;
       labelOneFemale: string | null;
-      addition: string | null;
+      labelOneMale: string | null;
     } | null;
+    jurisdiction: { id: string; label: string };
   };
 }): string | null {
   const { civility, position } = options;
