@@ -96,8 +96,16 @@ export class UpdateUserEmailDto extends createZodDto(
   z.object({ email: z.string().trim().toLowerCase().pipe(z.email()) }),
 ) {}
 
+/** each part is edited on its own, for two edits in a row not to overwrite one another */
 export class UpdateUserNameDto extends createZodDto(
-  z.object({ firstName: z.string().trim().nonempty(), lastName: z.string().trim().nonempty() }),
+  z
+    .object({
+      firstName: z.string().trim().nonempty().optional(),
+      lastName: z.string().trim().nonempty().optional(),
+    })
+    .refine(({ firstName, lastName }) => firstName !== undefined || lastName !== undefined, {
+      message: 'Le nom ou le prénom est attendu',
+    }),
 ) {}
 
 export class UpdateUserPasswordDto extends createZodDto(z.object({ password: PasswordSchema })) {}

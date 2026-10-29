@@ -2434,8 +2434,8 @@ export type ListedTitleHoldersDto = {
 };
 
 export type UpdateUserNameDto = {
-    firstName: string;
-    lastName: string;
+    firstName?: string;
+    lastName?: string;
 };
 
 export type UpdateUserEmailDto = {
@@ -3770,7 +3770,7 @@ export type ListMembersData = {
         sortBy?: 'firstName' | 'lastName';
         sortDirection?: 'asc' | 'desc';
         search?: string;
-        formations?: Array<'SIEGE' | 'PARQUET' | 'COMMUN'>;
+        formations?: Array<'COMMUN' | 'PARQUET' | 'SIEGE'>;
         statuses?: Array<'ACTIVE' | 'DEACTIVATED'>;
         page?: number;
         limit?: number;

@@ -35,17 +35,22 @@ test.describe('Administration', () => {
     expect(details.data!.email).toBe(credentials.email);
   });
 
-  test('should show a user under the name an admin corrected', async ({ admin, expect, registerUser }) => {
+  test('should show a user under the last name an admin corrected, keeping their first name', async ({
+    admin,
+    expect,
+    registerUser,
+  }) => {
     const user = await registerUser('MEMBRE_COMMUN');
+    const { data: before } = await admin.administration.detailsUser({ path: { userId: user.id }, throwOnError: true });
 
     await admin.administration.updateName({
-      body: { firstName: ' Joséphine ', lastName: 'Pibault-Laurent' },
+      body: { lastName: ' Pibault-Laurent ' },
       path: { userId: user.id },
       throwOnError: true,
     });
 
     const { data } = await admin.administration.detailsUser({ path: { userId: user.id }, throwOnError: true });
-    expect(data).toMatchObject({ firstName: 'Joséphine', lastName: 'Pibault-Laurent' });
+    expect(data).toMatchObject({ firstName: before.firstName, lastName: 'Pibault-Laurent' });
   });
 
   test('should let an account an admin created log in with its initial password, listed under the role it was given', async ({

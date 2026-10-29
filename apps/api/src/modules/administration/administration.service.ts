@@ -114,7 +114,7 @@ export class AdministrationService {
   }
 
   @Transactional()
-  async updateName(command: { firstName: string; lastName: string; userId: string }): Promise<void> {
+  async updateName(command: { firstName?: string; lastName?: string; userId: string }): Promise<void> {
     const user = await this.userRepository.findById(command.userId);
     user.updateName(command);
     await this.userRepository.persist(user);

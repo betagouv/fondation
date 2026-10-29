@@ -56,8 +56,8 @@ export class UserEmailUpdated {
 export class UserNameUpdated {
   constructor(
     readonly userId: string,
-    readonly firstName: string,
-    readonly lastName: string,
+    readonly firstName: string | undefined,
+    readonly lastName: string | undefined,
   ) {}
 }
 
@@ -222,7 +222,7 @@ export class User {
     this.#messages.push(new UserEmailUpdated(this.id, command.email));
   }
 
-  updateName(command: { firstName: string; lastName: string }): void {
+  updateName(command: { firstName?: string; lastName?: string }): void {
     this.#messages.push(new UserNameUpdated(this.id, command.firstName, command.lastName));
   }
 
