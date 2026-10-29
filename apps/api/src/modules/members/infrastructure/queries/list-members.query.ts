@@ -6,9 +6,8 @@ import { PrismaRoleEnum } from '../../../../generated/prisma/enums';
 import { listMembersRawQuery } from '../../../../generated/prisma/sql';
 import { Db } from '../../../framework/database';
 import { createPaginatedZodDto, paginate, Pagination } from '../../../framework/pagination';
-import { MEMBER_ROLES } from '../../../shared/role.enum';
 import { USER_STATUSES, UserStatus, userStatusOf } from '../../../shared/user-status.enum';
-import { isMember } from '../member.utils';
+import { isMember, memberFormationOf, MemberFormationSchema } from '../member.utils';
 
 @Injectable()
 export class ListMembersQuery {
@@ -68,8 +67,9 @@ export class ListMembersQuery {
     );
 
     return paginate({
-      items: items.filter(isMember).map(({ deactivatedAt, ...member }) => ({
+      items: items.filter(isMember).map(({ deactivatedAt, role, ...member }) => ({
         ...member,
+        formation: memberFormationOf(role),
         status: userStatusOf({ deactivatedAt }),
       })),
       pagination: query.pagination,
@@ -82,7 +82,7 @@ const MemberListItemDtoSchema = z.object({
   id: z.string(),
   firstName: z.string(),
   lastName: z.string(),
-  role: z.enum(MEMBER_ROLES),
+  formation: MemberFormationSchema,
   excludedJurisdictions: z.array(z.object({ id: z.string(), label: z.string().nullable() })),
   status: z.enum(USER_STATUSES),
 });

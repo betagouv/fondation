@@ -5,8 +5,7 @@ import { z } from 'zod';
 import { detailsMemberRawQuery } from '../../../../generated/prisma/sql';
 import { Db } from '../../../framework/database';
 import { GradeEnum } from '../../../shared/grade.enum';
-import { MEMBER_ROLES } from '../../../shared/role.enum';
-import { isMember } from '../member.utils';
+import { isMember, memberFormationOf, MemberFormationSchema } from '../member.utils';
 
 @Injectable()
 export class DetailsMemberQuery {
@@ -20,7 +19,7 @@ export class DetailsMemberQuery {
     return {
       id: user.id,
       email: user.email,
-      role: user.role,
+      formation: memberFormationOf(user.role),
       firstName: user.firstName,
       lastName: user.lastName,
       gender: user.gender,
@@ -48,7 +47,7 @@ export class DetailedMemberDto extends createZodDto(
     email: z.string(),
     firstName: z.string(),
     lastName: z.string(),
-    role: z.enum(MEMBER_ROLES),
+    formation: MemberFormationSchema,
     gender: z.string(),
     displayTitle: z.string().nullable(),
 
