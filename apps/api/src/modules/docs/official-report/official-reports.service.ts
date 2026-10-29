@@ -1,9 +1,11 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { forwardRef, Inject, Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
 
+import { lockOfficialReportRawQuery } from '../../../generated/prisma/sql';
 import { DateOnly, DateOnlyJson } from '../../../utils/date-only';
 import { isDefined } from '../../../utils/is-defined';
 import { Clock } from '../../framework/clock';
+import { Db } from '../../framework/database';
 import { MembersService } from '../../members';
 import { TransparenceService } from '../../session/transparence/infrastructure/transparence.service';
 import { SimpleAuthService } from '../../simple-auth';
@@ -55,6 +57,7 @@ export class OfficialReportsService {
     private readonly officialReportVersionFinder: OfficialReportVersionFinder,
 
     private readonly clock: Clock,
+    private readonly db: Db,
     private readonly auth: SimpleAuthService,
     private readonly members: MembersService,
     @Inject(forwardRef(() => TransparenceService))
@@ -91,8 +94,8 @@ export class OfficialReportsService {
     const session = await this.sessions.internalGetSession({ sessionId: command.sessionId });
 
     const secretary = await this.auth.detailsUser({
-      userId: command.secretaryId,
       impersonationId: undefined,
+      userId: command.secretaryId,
     });
 
     const {
@@ -113,16 +116,16 @@ export class OfficialReportsService {
         justiceDepartmentContactId: BigInt(command.justiceDepartmentContactId),
 
         agenda: {
-          id: agenda.id,
-          formation: agenda.formation,
           date: DateOnly.fromJson(agenda.date),
-          session: { id: agenda.session.id, date: DateOnly.fromJson(agenda.session.date) },
+          formation: agenda.formation,
+          id: agenda.id,
+          session: { date: DateOnly.fromJson(agenda.session.date), id: agenda.session.id },
         },
 
         sessionMeeting: OfficialReportSessionMeeting.from({
-          startTime: command.sessionMeetingTime,
-          endTime: command.sessionMeetingEndingTime,
           date: DateOnly.fromJson(command.sessionMeetingDate),
+          endTime: command.sessionMeetingEndingTime,
+          startTime: command.sessionMeetingTime,
         }),
 
         // oxlint-disable-next-line typescript/no-misused-spread
@@ -162,8 +165,8 @@ export class OfficialReportsService {
     const report = await this.officialReportRepository.find({ actorId: command.authorId, id: command.id });
 
     const secretary = await this.auth.detailsUser({
-      userId: command.secretaryId,
       impersonationId: undefined,
+      userId: command.secretaryId,
     });
     const chairman = await this.members.internalGetMember({ id: command.chairmanId });
     const members = await this.members.internalFindMembersByFormation({
@@ -174,15 +177,15 @@ export class OfficialReportsService {
     const {
       items: [agenda],
     } = await this.agendaFinder.findReportableInOfficialReport({
+      ids: new Set([report.snapshot.meta.agenda.id]),
       ignoreOfficialReportId: command.id,
       sessionId: report.snapshot.meta.agenda.session.id,
-      ids: new Set([report.snapshot.meta.agenda.id]),
     });
     if (!agenda) throw new NotFoundException();
 
     const { items: agendaFiles } = await this.docsNominationFilesFinder.findByAgendaIds({
-      ignoreOfficialReportId: report.id,
       agendaIds: new Set([agenda.id]),
+      ignoreOfficialReportId: report.id,
     });
 
     report.update({
@@ -190,16 +193,16 @@ export class OfficialReportsService {
       officialReport: {
         hasRenunciation: command.hasRenunciation,
         agenda: {
-          id: agenda.id,
-          formation: agenda.formation,
           date: DateOnly.fromJson(agenda.date),
-          session: { id: agenda.session.id, date: DateOnly.fromJson(agenda.session.date) },
+          formation: agenda.formation,
+          id: agenda.id,
+          session: { date: DateOnly.fromJson(agenda.session.date), id: agenda.session.id },
         },
         justiceDepartmentContactId: BigInt(command.justiceDepartmentContactId),
         sessionMeeting: OfficialReportSessionMeeting.from({
-          startTime: command.sessionMeetingTime,
-          endTime: command.sessionMeetingEndingTime,
           date: DateOnly.fromJson(command.sessionMeetingDate),
+          endTime: command.sessionMeetingEndingTime,
+          startTime: command.sessionMeetingTime,
         }),
         // oxlint-disable-next-line typescript/no-misused-spread
         chairman: OfficialReportChairman.from({ ...chairman, expectedFormation: report.formation }),
@@ -218,8 +221,8 @@ export class OfficialReportsService {
           file.outcome !== null
             ? [
                 {
-                  outcome: file.outcome,
                   nominationFileId: file.id,
+                  outcome: file.outcome,
                   reporters: file.reporters.map(({ fullTitledName }) => fullTitledName),
                 },
               ]
@@ -256,16 +259,24 @@ export class OfficialReportsService {
   async validateOfficialReport(command: { id: string; authorId: string }): Promise<void> {
     // rendering and uploading the PDF stay out of the transaction: they would hold a connection for seconds
     await this.findOfficialReportDocumentPdfQuery.ensure({ id: command.id });
-    await this.withOfficialReport({ actorId: command.authorId, id: command.id }, (report) =>
-      report.validate({ at: this.clock.now(), authorId: command.authorId }),
-    );
+
+    await this.db.withTransaction(async () => {
+      // a validation sent twice waits for the first one, then finds the official report validated
+      await this.db.tx.$queryRawTyped(lockOfficialReportRawQuery(command.id));
+
+      await this.withOfficialReport({ actorId: command.authorId, id: command.id }, (report) =>
+        report.validate({ at: this.clock.now(), authorId: command.authorId }),
+      );
+    });
   }
 
+  @Transactional()
   async discardOfficialReportDraft(command: { id: string }): Promise<void> {
     const publishedId = await this.officialReportVersionFinder.published({ officialReportId: command.id });
+    const changesBy = await this.officialReportVersionFinder.draftChangesBy({ officialReportId: command.id });
 
     await this.withOfficialReport({ actorId: null, id: command.id }, (report) =>
-      report.discardDraft({ hasValidatedVersion: isDefined(publishedId) }),
+      report.discardDraft({ changesBy, hasValidatedVersion: isDefined(publishedId) }),
     );
   }
 
@@ -368,7 +379,7 @@ export class OfficialReportsService {
     html: string;
   }): Promise<void> {
     return this.withOfficialReport({ actorId: command.authorId, id: command.id }, (report) =>
-      report.editSectionIntro({ outcome: command.outcome, html: command.html }),
+      report.editSectionIntro({ html: command.html, outcome: command.outcome }),
     );
   }
 

@@ -75,11 +75,11 @@ const { member } = STORY_USERS;
 const READER = { firstName: member.firstName, id: member.id, lastName: member.lastName };
 
 const MEMBERS: PaginatedMemberListItemDto['items'] = [
-  { ...READER, excludedJurisdictions: [], role: 'MEMBRE_DU_SIEGE', status: 'ACTIVE' },
+  { ...READER, excludedJurisdictions: [], formation: { id: 'SIEGE', label: 'Siège' }, status: 'ACTIVE' },
   ...REPORTERS.map((reporter) => ({
     ...reporter,
     excludedJurisdictions: [],
-    role: 'MEMBRE_DU_SIEGE' as const,
+    formation: { id: 'SIEGE' as const, label: 'Siège' },
     status: 'ACTIVE' as const,
   })),
 ];
@@ -296,7 +296,12 @@ const handlers = [
 
   http.get('*/api/sessions/v2/:sessionId/files/:nominationFileId/summary/readers', () =>
     HttpResponse.json<FoundSummaryReadersDto>({
-      items: MEMBERS.map(({ firstName, id, lastName, role }) => ({ firstName, id, lastName, role })),
+      items: MEMBERS.map(({ firstName, id, lastName }) => ({
+        firstName,
+        id,
+        lastName,
+        role: 'MEMBRE_DU_SIEGE' as const,
+      })),
     }),
   ),
   http.put('*/api/sessions/v2/:sessionId/files/:nominationFileId/summary/readers', noContent),

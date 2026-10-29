@@ -2,6 +2,7 @@ import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, StreamableFile } from '@nestjs/common';
 
 import { Prisma } from '../../../generated/prisma/client';
+import { lockAgendasRawQuery } from '../../../generated/prisma/sql';
 import { DateOnly, DateOnlyJson } from '../../../utils/date-only';
 import { isDefined } from '../../../utils/is-defined';
 import { Clock } from '../../framework/clock';
@@ -180,6 +181,9 @@ export class AgendasService {
     await this.findAgendaDocumentPdfQuery.ensure({ id: command.agendaId });
 
     await this.db.withTransaction(async () => {
+      // a validation sent twice waits for the first one, then finds the agenda validated
+      await this.db.tx.$queryRawTyped(lockAgendasRawQuery([command.agendaId]));
+
       await this.announcingSentenceChanges(command.agendaId, async () => {
         const agenda = await this.agendaRepository.find({
           actorId: command.authorId,
@@ -199,9 +203,10 @@ export class AgendasService {
   async discardAgendaDraft(command: { agendaId: string }): Promise<void> {
     await this.announcingSentenceChanges(command.agendaId, async () => {
       const hasValidatedVersion = await this.agendaVersionFinder.published({ agendaId: command.agendaId });
+      const changesBy = await this.agendaVersionFinder.draftChangesBy({ agendaId: command.agendaId });
 
       const agenda = await this.agendaRepository.find({ actorId: null, agendaId: command.agendaId });
-      agenda.discardDraft({ hasValidatedVersion: isDefined(hasValidatedVersion) });
+      agenda.discardDraft({ changesBy, hasValidatedVersion: isDefined(hasValidatedVersion) });
       await this.agendaRepository.persist(agenda);
     });
   }
@@ -269,7 +274,6 @@ export class AgendasService {
   /** the sentence each proposition reads today, empty when the agenda leaves it to the template */
   private async readableSentences(agendaId: string): Promise<Map<string, string>> {
     const agenda = await this.db.tx.agenda.findFirst({
-      where: { id: agendaId, officialReportId: { not: null } },
       select: {
         versions: {
           ...AGENDA_CONTENT_VERSIONS,
@@ -279,6 +283,7 @@ export class AgendasService {
           },
         },
       } satisfies Prisma.AgendaSelect,
+      where: { id: agendaId, officialReportId: { not: null } },
     });
 
     return new Map(

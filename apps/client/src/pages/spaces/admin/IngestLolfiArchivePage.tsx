@@ -98,14 +98,14 @@ export function IngestLolfiArchivePage() {
       <Breadcrumb
         ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane pour l'Administration" })}
         breadcrumb={{
-          currentPageLabel: formatMessage({ defaultMessage: 'Import LOLFI manuel' }),
+          currentPageLabel: formatMessage({ defaultMessage: 'Importer une archive LOLFI' }),
           segments: [{ label: formatMessage({ defaultMessage: 'Administration' }), to: {} }],
         }}
         id="administration-breadcrumb"
       />
 
       <h1 className="fr-h3">
-        <FormattedMessage defaultMessage="Ingérer une archive LOLFI" />
+        <FormattedMessage defaultMessage="Importer une archive LOLFI" />
       </h1>
 
       {asyncErrors && asyncErrors.length > 0 && (

@@ -1,10 +1,10 @@
+import { ADMIN_USER_ROLES_ENUM } from '../../shared/admin-user-role.enum';
 import { RoleEnum } from '../../shared/role.enum';
 import { USER_DUTIES } from '../../shared/user-duty.enum';
 import { USER_TITLES } from '../../shared/user-title.enum';
 
 import { AdminUserRole } from './admin-user-role';
 import { AdminUserTitle } from './admin-user-title';
-import { ADMIN_USER_ROLES_ENUM } from './user-enum';
 
 describe('AdminUserRole', () => {
   it('handle all possible combinations without throwing', () => {
@@ -129,5 +129,25 @@ describe('AdminUserRole', () => {
     }).reTitle(AdminUserTitle.from('SECRETARY'));
 
     expect(reTitled).toBeNull();
+  });
+
+  it.each`
+    role                                   | title                         | duty                  | expected
+    ${RoleEnum.MEMBRE_DU_SIEGE}            | ${'PRESIDENT_SIEGE'}          | ${'PRESIDENT'}        | ${'MEMBRE_SIEGE'}
+    ${RoleEnum.MEMBRE_DU_PARQUET}          | ${'DEPUTY_PRESIDENT_PARQUET'} | ${'DEPUTY_PRESIDENT'} | ${'MEMBRE_PARQUET'}
+    ${RoleEnum.MEMBRE_COMMUN}              | ${'PRESIDENT_SIEGE'}          | ${'PRESIDENT'}        | ${'MEMBRE_COMMUN'}
+    ${RoleEnum.ADJOINT_SECRETAIRE_GENERAL} | ${'FIRST_SECRETARY'}          | ${'SECRETARY'}        | ${'SECRETARY'}
+  `('should leave a $role holding $title as $expected once untitled', ({ role, title, duty, expected }) => {
+    expect(AdminUserRole.from({ role, title, duty }).untitled().toString()).toBe(expected);
+  });
+
+  it.each`
+    role                          | expected
+    ${'PRESIDENT_SIEGE'}          | ${'MEMBRE_DU_SIEGE'}
+    ${'DEPUTY_PRESIDENT_PARQUET'} | ${'MEMBRE_DU_PARQUET'}
+    ${'MEMBRE_COMMUN'}            | ${'MEMBRE_COMMUN'}
+    ${'FIRST_SECRETARY'}          | ${'ADJOINT_SECRETAIRE_GENERAL'}
+  `('should register a $role as $expected', ({ role, expected }) => {
+    expect(AdminUserRole.ofNewAccount(role).role).toBe(expected);
   });
 });

@@ -4,6 +4,7 @@ import { AdministrationModule } from './administration/administration.module';
 import { DocsModule } from './docs/docs.module';
 import { FeedbackModule } from './feedback/feedback.module';
 import { FrameworkModule } from './framework/framework.module';
+import { HelpModule } from './help/help.module';
 import { IngestModule } from './ingest/ingest.module';
 import { MagistratHistoryModule } from './magistrat-history/magistrat-history.module';
 import { MagistratModule } from './magistrat/magistrat.module';
@@ -28,6 +29,7 @@ import { SimpleAuthModule } from './simple-auth';
     AdministrationModule,
     DocsModule,
     FeedbackModule,
+    HelpModule,
   ],
 })
 class FondationModule {}

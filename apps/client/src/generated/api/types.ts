@@ -8,20 +8,6 @@ export type ClientOptions = {
     baseUrl: string;
 };
 
-export type RegisterUserDto = {
-    firstName: string;
-    lastName: string;
-    gender: 'MALE' | 'FEMALE';
-    email: string;
-    password: string;
-    role?: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | null;
-    isAdmin?: boolean;
-};
-
-export type RegisteredUserDto = {
-    id: string;
-};
-
 export type LoginDto = {
     email: string;
     password: string;
@@ -33,6 +19,11 @@ export type DetailedUserResponseDto = {
     lastName: string;
     email: string;
     role: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL';
+    displayedRole: {
+        id: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+        label: string;
+        group: 'PRESIDENCY' | 'MEMBER' | 'SECRETARIAT';
+    };
     formation: 'SIEGE' | 'PARQUET' | null;
     gender: 'MALE' | 'FEMALE';
     isImpersonated: boolean;
@@ -930,7 +921,10 @@ export type PaginatedMemberListItemDto = {
         id: string;
         firstName: string;
         lastName: string;
-        role: 'MEMBRE_COMMUN' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_DU_SIEGE';
+        formation: {
+            id: 'COMMUN' | 'PARQUET' | 'SIEGE';
+            label: string;
+        };
         excludedJurisdictions: Array<{
             id: string;
             label: string | null;
@@ -952,7 +946,10 @@ export type DetailedMemberDto = {
     email: string;
     firstName: string;
     lastName: string;
-    role: 'MEMBRE_COMMUN' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_DU_SIEGE';
+    formation: {
+        id: 'COMMUN' | 'PARQUET' | 'SIEGE';
+        label: string;
+    };
     gender: string;
     displayTitle: string | null;
     excludedJurisdictions: Array<{
@@ -1354,6 +1351,8 @@ export type DetailedAgendaMetadata = {
     outdated: boolean;
     outdatedPropositions: number;
     hasValidatedVersion: boolean;
+    canDiscardDraft: boolean;
+    canValidate: boolean;
     draftChangesBy: 'PERSON' | 'PERSON_AND_SYSTEM' | 'SYSTEM' | null;
     draft: {
         openedAt: string;
@@ -1560,6 +1559,8 @@ export type DetailedOfficialReportMetadataDto = {
     outdated: boolean;
     outdatedPropositions: number;
     hasValidatedVersion: boolean;
+    canDiscardDraft: boolean;
+    canValidate: boolean;
     draftChangesBy: 'PERSON' | 'PERSON_AND_SYSTEM' | 'SYSTEM' | null;
     draft: {
         openedAt: string;
@@ -1766,6 +1767,8 @@ export type DetailedPresentationPlanMetadataDto = {
     outdated: boolean;
     status: 'DRAFT' | 'VALIDATED';
     isPresented: boolean;
+    canEdit: boolean;
+    canValidate: boolean;
     draft: {
         openedAt: string;
         openedBy: {
@@ -1900,6 +1903,7 @@ export type ListedNonPresentedPlansDto = {
         outdated: boolean;
         hasRemovedAgendas: boolean;
         status: 'DRAFT' | 'VALIDATED';
+        canPresent: boolean;
         createdAt: string;
         createdBy: {
             id: string;
@@ -2347,8 +2351,11 @@ export type PaginatedAdminUserListItemDto = {
         firstName: string;
         lastName: string;
         email: string;
-        gender: 'MALE' | 'FEMALE';
-        role: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+        role: {
+            id: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+            label: string;
+            group: 'PRESIDENCY' | 'MEMBER' | 'SECRETARIAT';
+        };
         isAdmin: boolean;
         status: 'ACTIVE' | 'DEACTIVATED';
     }>;
@@ -2362,12 +2369,29 @@ export type PaginatedAdminUserListItemDto = {
     };
 };
 
+export type CreateUserDto = {
+    email: string;
+    firstName: string;
+    gender: 'MALE' | 'FEMALE';
+    lastName: string;
+    password: string;
+    role: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+};
+
+export type CreatedUserDto = {
+    id: string;
+};
+
 export type DetailedAdminUserDto = {
     id: string;
     firstName: string;
     lastName: string;
     email: string;
-    role: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+    role: {
+        id: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+        label: string;
+        group: 'PRESIDENCY' | 'MEMBER' | 'SECRETARIAT';
+    };
     gender: 'MALE' | 'FEMALE';
     displayTitle: string | null;
     isAdmin: boolean;
@@ -2376,12 +2400,46 @@ export type DetailedAdminUserDto = {
     canHoldAdminRight: boolean;
     canImpersonate: boolean;
     canReactivate: boolean;
+    canResetPassword: boolean;
     assignableRoles: Array<'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN'>;
     deactivatedAt: string | null;
     statusChanges: Array<{
         changedAt: string;
         status: 'ACTIVE' | 'DEACTIVATED';
     }>;
+};
+
+export type ListedAdminUserRolesDto = {
+    items: Array<{
+        id: 'PRESIDENCY' | 'MEMBER' | 'SECRETARIAT';
+        label: string;
+        roles: Array<{
+            id: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+            label: string;
+        }>;
+    }>;
+};
+
+export type ListedTitleHoldersDto = {
+    items: Array<{
+        holder: {
+            id: string;
+            name: string;
+            nextRole: {
+                id: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+                label: string;
+            };
+        };
+        role: {
+            id: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+            label: string;
+        };
+    }>;
+};
+
+export type UpdateUserNameDto = {
+    firstName?: string;
+    lastName?: string;
 };
 
 export type UpdateUserEmailDto = {
@@ -2398,6 +2456,20 @@ export type UpdateUserRoleDto = {
 
 export type UpdateUserDisplayTitleDto = {
     displayTitle: string | null;
+};
+
+export type RegisterUserDto = {
+    email: string;
+    firstName: string;
+    gender: 'MALE' | 'FEMALE';
+    isAdmin?: boolean;
+    lastName: string;
+    password: string;
+    role?: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | null;
+};
+
+export type RegisteredUserDto = {
+    id: string;
 };
 
 export type FoundFeedbackDto = {
@@ -2430,8 +2502,46 @@ export type AnswerFeedbackDto = {
     } | null;
 };
 
+export type HelpPageEnum = 'MEMBRE' | 'SECRETARIAT_GENERAL';
+
+export type DetailedHelpPageDto = {
+    content: string;
+    screenshots: Array<{
+        id: string;
+        name: string;
+        url: string;
+    }>;
+    updatedAt: string;
+    updatedBy: {
+        id: string;
+        name: string;
+    } | null;
+};
+
+export type IncludeFilesInHelpPageContentDto = {
+    files: Array<Blob | File>;
+};
+
+export type IncludedFilesInHelpPageContentDto = {
+    items: Array<{
+        id: string;
+        name: string;
+        url: string;
+    }>;
+};
+
+export type WriteHelpPageContentDto = {
+    content: string;
+};
+
 export type GetFileByFileUrlData = {
     body?: never;
+    headers?: {
+        /**
+         * the range of bytes a video player asks
+         */
+        range?: string;
+    };
     path: {
         fileUrlId: string;
     };
@@ -3664,7 +3774,7 @@ export type ListMembersData = {
         sortBy?: 'firstName' | 'lastName';
         sortDirection?: 'asc' | 'desc';
         search?: string;
-        formations?: Array<'SIEGE' | 'PARQUET' | 'COMMUN'>;
+        formations?: Array<'COMMUN' | 'PARQUET' | 'SIEGE'>;
         statuses?: Array<'ACTIVE' | 'DEACTIVATED'>;
         page?: number;
         limit?: number;
@@ -5009,6 +5119,19 @@ export type ListUsersResponses = {
 
 export type ListUsersResponse = ListUsersResponses[keyof ListUsersResponses];
 
+export type CreateUserData = {
+    body: CreateUserDto;
+    path?: never;
+    query?: never;
+    url: '/api/administration/v1/users';
+};
+
+export type CreateUserResponses = {
+    201: CreatedUserDto;
+};
+
+export type CreateUserResponse = CreateUserResponses[keyof CreateUserResponses];
+
 export type DetailsUserData = {
     body?: never;
     path: {
@@ -5023,6 +5146,49 @@ export type DetailsUserResponses = {
 };
 
 export type DetailsUserResponse = DetailsUserResponses[keyof DetailsUserResponses];
+
+export type ListRolesData = {
+    body?: never;
+    path?: never;
+    query?: {
+        gender?: 'MALE' | 'FEMALE';
+    };
+    url: '/api/administration/v1/roles';
+};
+
+export type ListRolesResponses = {
+    200: ListedAdminUserRolesDto;
+};
+
+export type ListRolesResponse = ListRolesResponses[keyof ListRolesResponses];
+
+export type ListTitleHoldersData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/administration/v1/title-holders';
+};
+
+export type ListTitleHoldersResponses = {
+    200: ListedTitleHoldersDto;
+};
+
+export type ListTitleHoldersResponse = ListTitleHoldersResponses[keyof ListTitleHoldersResponses];
+
+export type UpdateNameData = {
+    body: UpdateUserNameDto;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/administration/v1/users/{userId}/name';
+};
+
+export type UpdateNameResponses = {
+    204: void;
+};
+
+export type UpdateNameResponse = UpdateNameResponses[keyof UpdateNameResponses];
 
 export type UpdateEmailData = {
     body: UpdateUserEmailDto;
@@ -5180,3 +5346,61 @@ export type AnswerFeedbackResponses = {
 };
 
 export type AnswerFeedbackResponse = AnswerFeedbackResponses[keyof AnswerFeedbackResponses];
+
+export type DetailHelpPageData = {
+    body?: never;
+    path: {
+        page: HelpPageEnum;
+    };
+    query?: never;
+    url: '/api/help/v1/pages/{page}';
+};
+
+export type DetailHelpPageResponses = {
+    200: DetailedHelpPageDto;
+};
+
+export type DetailHelpPageResponse = DetailHelpPageResponses[keyof DetailHelpPageResponses];
+
+export type IncludeFilesInHelpPageContentData = {
+    body: IncludeFilesInHelpPageContentDto;
+    path: {
+        page: HelpPageEnum;
+    };
+    query?: never;
+    url: '/api/help/v1/pages/{page}/screenshots';
+};
+
+export type IncludeFilesInHelpPageContentResponses = {
+    200: IncludedFilesInHelpPageContentDto;
+};
+
+export type IncludeFilesInHelpPageContentResponse = IncludeFilesInHelpPageContentResponses[keyof IncludeFilesInHelpPageContentResponses];
+
+export type WriteHelpPageContentData = {
+    body: WriteHelpPageContentDto;
+    path: {
+        page: HelpPageEnum;
+    };
+    query?: never;
+    url: '/api/help/v1/pages/{page}/content';
+};
+
+export type WriteHelpPageContentResponses = {
+    204: void;
+};
+
+export type WriteHelpPageContentResponse = WriteHelpPageContentResponses[keyof WriteHelpPageContentResponses];
+
+export type DetailReaderHelpPageData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/help/v1/page';
+};
+
+export type DetailReaderHelpPageResponses = {
+    200: DetailedHelpPageDto;
+};
+
+export type DetailReaderHelpPageResponse = DetailReaderHelpPageResponses[keyof DetailReaderHelpPageResponses];

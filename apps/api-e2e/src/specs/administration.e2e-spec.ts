@@ -35,6 +35,64 @@ test.describe('Administration', () => {
     expect(details.data!.email).toBe(credentials.email);
   });
 
+  test('should show a user under the last name an admin corrected, keeping their first name', async ({
+    admin,
+    expect,
+    registerUser,
+  }) => {
+    const user = await registerUser('MEMBRE_COMMUN');
+    const { data: before } = await admin.administration.detailsUser({ path: { userId: user.id }, throwOnError: true });
+
+    await admin.administration.updateName({
+      body: { lastName: ' Pibault-Laurent ' },
+      path: { userId: user.id },
+      throwOnError: true,
+    });
+
+    const { data } = await admin.administration.detailsUser({ path: { userId: user.id }, throwOnError: true });
+    expect(data).toMatchObject({ firstName: before.firstName, lastName: 'Pibault-Laurent' });
+  });
+
+  test('should let an account an admin created log in with its initial password, listed under the role it was given', async ({
+    admin,
+    baseUrl,
+    expect,
+    sql,
+  }) => {
+    const credentials = { email: `created+${crypto.randomUUID()}@example.fr`, password: strongPassword() };
+
+    const { data: created } = await admin.administration.createUser({
+      body: {
+        ...credentials,
+        firstName: 'Joséphine',
+        gender: 'FEMALE',
+        lastName: 'Pibault',
+        role: 'OFFICER',
+      },
+      throwOnError: true,
+    });
+
+    const anonymous = makeStepsFixtures({ baseUrl });
+    const { response } = await anonymous.auth.login({ body: credentials });
+    expect(response?.status).toBe(204);
+    const { data: officers } = await admin.administration.listUsers({
+      query: { roles: ['OFFICER'], search: credentials.email },
+      throwOnError: true,
+    });
+    expect(officers.items).toEqual([
+      expect.objectContaining({
+        id: created.id,
+        isAdmin: false,
+        role: { group: 'SECRETARIAT', id: 'OFFICER', label: 'Agente du pôle nomination' },
+        status: 'ACTIVE',
+      }),
+    ]);
+    const changes = await sql`
+      select status, changed_by as "changedBy" from identity_and_access_context.user_status_changes
+      where user_id = ${created.id}`;
+    expect(changes).toEqual([{ changedBy: admin['@user']!.id, status: 'ACTIVE' }]);
+  });
+
   test('should refuse to give a user the email of another one, however it is typed', async ({
     admin,
     baseUrl,
@@ -122,6 +180,26 @@ test.describe('Administration', () => {
     expect(updated.response?.status).toBe(204);
   });
 
+  test('should name who holds a title, with the role they keep once it is given to someone else', async ({
+    admin,
+    expect,
+    registerUser,
+  }) => {
+    const holder = await registerUser('MEMBRE_DU_PARQUET');
+    await admin.administration.updateRole({
+      body: { role: 'DEPUTY_PRESIDENT_PARQUET' },
+      path: { userId: holder.id },
+      throwOnError: true,
+    });
+
+    const { data } = await admin.administration.listTitleHolders({ throwOnError: true });
+
+    expect(data.items.find(({ role }) => role.id === 'DEPUTY_PRESIDENT_PARQUET')?.holder).toMatchObject({
+      id: holder.id,
+      nextRole: { id: 'MEMBRE_PARQUET', label: 'Membre du parquet' },
+    });
+  });
+
   test.describe('Given a logged-in member', () => {
     test('should log the member out when an admin changes the password', async ({ admin, expect, member }) => {
       await admin.administration.updatePassword({
@@ -189,7 +267,7 @@ test.describe('Administration', () => {
   });
 
   test.describe('Given a deactivated member', () => {
-    test('should detail the account with its status changes, the latest first', async ({
+    test('should detail the account with its status changes since its creation, the latest first, and no password reset', async ({
       admin,
       expect,
       registerUser,
@@ -199,9 +277,18 @@ test.describe('Administration', () => {
       await admin.administration.reactivate({ path: { userId: user.id }, throwOnError: true });
       await admin.administration.deactivate({ path: { userId: user.id }, throwOnError: true });
 
-      const { data } = await admin.administration.detailsUser({ path: { userId: user.id }, throwOnError: true });
-      expect(data.statusChanges.map(({ status }) => status)).toEqual(['DEACTIVATED', 'ACTIVE', 'DEACTIVATED']);
+      const { data } = await admin.administration.detailsUser({
+        path: { userId: user.id },
+        throwOnError: true,
+      });
+      expect(data.statusChanges.map(({ status }) => status)).toEqual([
+        'DEACTIVATED',
+        'ACTIVE',
+        'DEACTIVATED',
+        'ACTIVE',
+      ]);
       expect(data.deactivatedAt).toBe(data.statusChanges[0]!.changedAt);
+      expect(data.canResetPassword).toBe(false);
     });
 
     test('should refuse the login of the member', async ({ admin, baseUrl, expect, registerUser }) => {

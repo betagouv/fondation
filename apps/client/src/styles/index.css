@@ -133,8 +133,107 @@ li {
   grid-template-columns: minmax(0, 1fr);
 }
 
-.ProseMirror img {
+.ProseMirror img,
+.fondation-rich-text img {
   max-width: 100%;
+}
+
+.ProseMirror video,
+.fondation-rich-text video {
+  display: block;
+  margin: 0 0 1.5rem;
+  max-width: 100%;
+}
+
+.ProseMirror,
+.fondation-rich-text {
+  table {
+    border-collapse: collapse;
+    margin: 0 0 1.5rem;
+    table-layout: fixed;
+    width: 100%;
+  }
+
+  th,
+  td {
+    border: 1px solid var(--border-default-grey);
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    vertical-align: top;
+
+    > p:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  th {
+    background: var(--background-alt-grey);
+    font-weight: 700;
+  }
+
+  .selectedCell {
+    background: var(--background-contrast-info);
+  }
+
+  hr {
+    border: 0;
+    border-top: 1px solid var(--border-default-grey);
+    margin: 0 0 1.5rem;
+  }
+
+  /* a title reached from the side menu stops under the pinned header rather than behind it */
+  &.fondation-help-article :is(h2, h3, h4) {
+    scroll-margin-top: calc(var(--fondation-table-header-top) + 1rem);
+  }
+
+  /* a help page is read under the title of the screen, which the site sets at the size of an h3 */
+  &.fondation-help-article h2 {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+
+  &.fondation-help-article h3 {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
+
+  &.fondation-help-article h4 {
+    font-size: 1.125rem;
+    line-height: 1.5rem;
+  }
+
+  /* middle aligns on the lowercase letters: the pictogram is lifted to the middle of the capitals and digits */
+  .fondation-title-pictogram {
+    display: inline-block;
+    font-size: 0.8em;
+    line-height: 1;
+    margin-right: 0.35em;
+    position: relative;
+    top: -0.12em;
+    vertical-align: middle;
+  }
+
+  /* the DSFR stacks the callout icon above its text: here it sits on the first line, at the size of the text */
+  .fr-callout {
+    padding: 1rem 1.5rem 1rem 3rem;
+
+    &::before {
+      --icon-size: 1.25rem;
+      left: 1.25rem;
+      margin: 0;
+      position: absolute;
+      top: 1.125rem;
+    }
+
+    > p {
+      font-size: 1rem;
+      line-height: 1.5rem;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
 }
 
 .ProseMirror > div > div {

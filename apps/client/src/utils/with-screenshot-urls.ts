@@ -9,15 +9,15 @@ export function withScreenshotUrls(
   const byName = new Map(screenshots.map((s) => [s.name, s]));
 
   const { body } = new DOMParser().parseFromString(html, 'text/html');
-  for (const $img of body.querySelectorAll('img')) {
-    const fileId = $img.getAttribute(dataFileIdKey);
-    const fileName = $img.getAttribute(dataFileNameKey);
+  for (const $media of body.querySelectorAll<HTMLImageElement | HTMLVideoElement>('img, video')) {
+    const fileId = $media.getAttribute(dataFileIdKey);
+    const fileName = $media.getAttribute(dataFileNameKey);
     const screenshot = (fileId && byId.get(fileId)) || (fileName && byName.get(fileName));
     if (!screenshot) continue;
 
-    $img.setAttribute(dataFileIdKey, screenshot.id);
-    $img.setAttribute(dataFileNameKey, screenshot.name);
-    $img.src = screenshot.url;
+    $media.setAttribute(dataFileIdKey, screenshot.id);
+    $media.setAttribute(dataFileNameKey, screenshot.name);
+    $media.src = screenshot.url;
   }
 
   return body.innerHTML;

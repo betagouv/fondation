@@ -42,6 +42,7 @@ export class DetailReportQuery {
             },
             usage: true,
           },
+          where: { detachedAt: null },
         },
         id: true,
         nominationFileId: true,

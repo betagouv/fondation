@@ -1,4 +1,5 @@
 import { useCurrentEditor, useEditorState } from '@tiptap/react';
+import { useIntl } from 'react-intl';
 
 import type { HeadingLevel } from '../extensions/constant';
 
@@ -9,6 +10,7 @@ type HeadingButtonProps = {
 };
 
 export function HeadingButton({ level }: HeadingButtonProps) {
+  const { formatMessage } = useIntl();
   const { editor } = useCurrentEditor();
   const disabled = useEditorState({
     editor,
@@ -27,7 +29,7 @@ export function HeadingButton({ level }: HeadingButtonProps) {
       iconId={`fr-icon-h-${level}`}
       mark="heading"
       onClick={toggleHeading}
-      title={`H${level}`}
+      title={formatMessage({ defaultMessage: 'Titre {level}' }, { level })}
     />
   );
 }

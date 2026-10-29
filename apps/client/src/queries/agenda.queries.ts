@@ -3,25 +3,25 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { FormationEnum } from '@/shared/enums/formation.enum';
 import { useTab } from '@/shared/hooks/useTab';
 import type { PlainDateOnly } from '@/utils/date-only.util';
-import { HttpException } from '@/utils/http-exception';
+import { withValidationError } from '@/utils/validation-error';
 import * as $api from '@api/sdk';
 import type { FoundDocsMembersDto, FoundJusticeContactsDto } from '@api/types';
 
 import { sessionKeys } from './nomination-sessions.queries';
 
 export const agendaKeys = {
-  findAgendaNominationFiles: (query: { sessionId: string }) =>
-    ['agenda', 'findAgendaNominationFiles', query.sessionId] as const,
   agendaHtml: (id: string) => ['agenda', 'agendaHtml', id] as const,
   allSessionDocs: () => ['agenda', 'findSessionDocs'] as const,
+  detailsAgendaFiles: (query: { agendaId: string | undefined | null }) =>
+    ['agenda', 'detailsAgendaFiles', query.agendaId ?? undefined] as const,
+  detailsAgendaMetadata: (query: { agendaId: string | undefined | null }) =>
+    ['agenda', 'detailsAgendaMetadata', query.agendaId ?? undefined] as const,
+  documentBlocks: (id: string | undefined | null) => ['agenda', 'documentBlocks', id ?? undefined] as const,
+  findAgendaNominationFiles: (query: { sessionId: string }) =>
+    ['agenda', 'findAgendaNominationFiles', query.sessionId] as const,
   findSessionDocs: (sessionId: string) => ['agenda', 'findSessionDocs', sessionId] as const,
   isSessionReadyForDocGeneration: (sessionId: string) =>
     ['agenda', 'isSessionReadyForDocGeneration', sessionId] as const,
-  detailsAgendaMetadata: (query: { agendaId: string | undefined | null }) =>
-    ['agenda', 'detailsAgendaMetadata', query.agendaId ?? undefined] as const,
-  detailsAgendaFiles: (query: { agendaId: string | undefined | null }) =>
-    ['agenda', 'detailsAgendaFiles', query.agendaId ?? undefined] as const,
-  documentBlocks: (id: string | undefined | null) => ['agenda', 'documentBlocks', id ?? undefined] as const,
 };
 
 export function useCreateAgendaMutation() {
@@ -36,13 +36,13 @@ export function useCreateAgendaMutation() {
     }) =>
       $api.docs
         .createAgenda({
-          path: { sessionId: command.sessionId },
           body: {
-            nominationFileIds: command.nominationFileIds,
-            date: command.date,
-            sessionMeetingDate: command.sessionMeetingDate,
             chairmanId: command.chairmanId,
+            date: command.date,
+            nominationFileIds: command.nominationFileIds,
+            sessionMeetingDate: command.sessionMeetingDate,
           },
+          path: { sessionId: command.sessionId },
         })
         .then(({ data }) => data!),
 
@@ -60,7 +60,6 @@ export function useCreateAgendaMutation() {
 export const useDetailsAgendaMetadataQuery = (query: { agendaId: string | undefined | null }) =>
   useQuery({
     enabled: !!query.agendaId,
-    queryKey: agendaKeys.detailsAgendaMetadata(query),
     queryFn: async () => {
       if (!query.agendaId) return;
 
@@ -69,18 +68,19 @@ export const useDetailsAgendaMetadataQuery = (query: { agendaId: string | undefi
       });
       return data;
     },
+    queryKey: agendaKeys.detailsAgendaMetadata(query),
   });
 
 export const useDetailsAgendaFilesQuery = (query: { agendaId: string | undefined | null }) =>
   useQuery({
     enabled: !!query.agendaId,
-    queryKey: agendaKeys.detailsAgendaFiles(query),
     queryFn: async () => {
       if (!query.agendaId) return null;
 
       const { data = null } = await $api.docs.detailsAgendaFiles({ path: { agendaId: query.agendaId } });
       return data;
     },
+    queryKey: agendaKeys.detailsAgendaFiles(query),
   });
 
 export function useUpdateAgendaMetadataMutation(sessionId: string, agendaId: string) {
@@ -88,12 +88,12 @@ export function useUpdateAgendaMetadataMutation(sessionId: string, agendaId: str
   return useMutation({
     mutationFn: (command: { sessionMeetingDate: PlainDateOnly; date: PlainDateOnly; chairmanId: string }) =>
       $api.docs.updateAgendaMetadata({
-        path: { agendaId },
         body: {
+          chairmanId: command.chairmanId,
           date: command.date,
           sessionMeetingDate: command.sessionMeetingDate,
-          chairmanId: command.chairmanId,
         },
+        path: { agendaId },
       }),
 
     onSuccess: () => {
@@ -111,8 +111,8 @@ export function useUpdateAgendaFilesMutation(sessionId: string, agendaId: string
   return useMutation({
     mutationFn: (command: { nominationFileIds: string[] }) =>
       $api.docs.updateAgendaFiles({
-        path: { agendaId },
         body: { nominationFileIds: command.nominationFileIds },
+        path: { agendaId },
       }),
 
     onSuccess: () => {
@@ -130,14 +130,14 @@ export function useUpdateAgendaFilesMutation(sessionId: string, agendaId: string
 export const useAgendaHtmlQuery = (query: { id: string | undefined }) =>
   useQuery({
     enabled: !!query.id,
-    queryKey: agendaKeys.agendaHtml(query.id ?? ''),
     queryFn: () =>
       $api.docs
         .generateAgendaHtml({
-          path: { agendaId: query.id! },
           parseAs: 'text',
+          path: { agendaId: query.id! },
         })
         .then(({ data }) => (data ?? null) as string | null),
+    queryKey: agendaKeys.agendaHtml(query.id ?? ''),
   });
 
 const htmlMutationKeys = {
@@ -151,7 +151,8 @@ export function useValidateAgendaMutation(mutation: {
 }) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: () => $api.docs.validateAgenda({ path: { agendaId: mutation.agendaId } }),
+    mutationFn: () =>
+      withValidationError(() => $api.docs.validateAgenda({ path: { agendaId: mutation.agendaId } })),
 
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: agendaKeys.findSessionDocs(mutation.sessionId) });
@@ -172,7 +173,8 @@ export function useDiscardAgendaDraftMutation(mutation: {
 }) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: () => $api.docs.discardAgendaDraft({ path: { agendaId: mutation.agendaId } }),
+    mutationFn: () =>
+      withValidationError(() => $api.docs.discardAgendaDraft({ path: { agendaId: mutation.agendaId } })),
 
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: agendaKeys.findSessionDocs(mutation.sessionId) });
@@ -194,37 +196,37 @@ export function useDiscardAgendaDraftMutation(mutation: {
 export const useAgendaDocumentBlocksQuery = (query: { id: string | undefined | null }) =>
   useQuery({
     enabled: !!query.id,
-    queryKey: agendaKeys.documentBlocks(query.id),
     queryFn: () =>
       $api.docs
         .detailsAgendaDocumentBlocks({ path: { agendaId: query.id! } })
         .then(({ data = null }) => data),
+    queryKey: agendaKeys.documentBlocks(query.id),
   });
 
 export const useFindAgendaNominationFilesQuery = (query: { enabled?: boolean; sessionId: string }) =>
   useQuery({
     enabled: query.enabled ?? true,
-    queryKey: agendaKeys.findAgendaNominationFiles({ sessionId: query.sessionId }),
     queryFn: () =>
       $api.docs
         .findAgendaNominationFiles({ path: { sessionId: query.sessionId } })
         .then(({ data = null }) => data),
+    queryKey: agendaKeys.findAgendaNominationFiles({ sessionId: query.sessionId }),
   });
 
 export const useFindSessionDocsQuery = (query: { sessionId: string }) =>
   useQuery({
-    queryKey: agendaKeys.findSessionDocs(query.sessionId),
     queryFn: () =>
       $api.docs
         .findSessionDocs({ path: { sessionId: query.sessionId }, priority: 'low' })
         .then(({ data = null }) => data),
+    queryKey: agendaKeys.findSessionDocs(query.sessionId),
   });
 
 export const useDetailsSessionAgendaMutation = () =>
   useMutation({
     mutationFn: async (command: { sessionId: string; agendaId: string }) => {
       const { data, response } = await $api.docs.detailsSessionAgenda({
-        path: { sessionId: command.sessionId, agendaId: command.agendaId },
+        path: { agendaId: command.agendaId, sessionId: command.sessionId },
       });
 
       if (!data) throw new Error(`agenda document unavailable (${response?.status})`);
@@ -236,7 +238,7 @@ export const useDetailsSessionOfficialReportsMutation = () =>
   useMutation({
     mutationFn: async (command: { sessionId: string; officialReportId: string }) => {
       const { data, response } = await $api.docs.detailsSessionOfficialReport({
-        path: { sessionId: command.sessionId, officialReportId: command.officialReportId },
+        path: { officialReportId: command.officialReportId, sessionId: command.sessionId },
       });
 
       if (!data) throw new Error(`official report document unavailable (${response?.status})`);
@@ -246,11 +248,11 @@ export const useDetailsSessionOfficialReportsMutation = () =>
 
 export const useIsSessionReadyForDocGenerationQuery = (query: { sessionId: string }) =>
   useQuery({
-    queryKey: agendaKeys.isSessionReadyForDocGeneration(query.sessionId),
     queryFn: () =>
       $api.docs
         .isSessionReadyForDocGeneration({ path: { sessionId: query.sessionId } })
         .then(({ data = null }) => data),
+    queryKey: agendaKeys.isSessionReadyForDocGeneration(query.sessionId),
   });
 
 export function useDeleteAgenda(sessionId: string) {
@@ -273,13 +275,16 @@ export function useDeleteAgenda(sessionId: string) {
 export const officialReportKeys = {
   all: <const T extends unknown[]>(...parts: T) => ['officialReport', ...parts] as const,
 
-  listSecretaries: () => officialReportKeys.all('listSecretaries'),
+  details: (id: string | null | undefined) => officialReportKeys.all(id),
+
+  document: (id: string) => officialReportKeys.all(id, 'document'),
+
+  html: (id: string) => officialReportKeys.all(id, 'html'),
+
   listAgendas: (query: { ignoreOfficialReportId?: string; sessionId: string }) =>
     officialReportKeys.all('listAgendas', query.sessionId, query.ignoreOfficialReportId),
 
-  details: (id: string | null | undefined) => officialReportKeys.all(id),
-  document: (id: string) => officialReportKeys.all(id, 'document'),
-  html: (id: string) => officialReportKeys.all(id, 'html'),
+  listSecretaries: () => officialReportKeys.all('listSecretaries'),
 };
 
 export const useListAgendasForNewOfficialReportQuery = (query: {
@@ -287,7 +292,6 @@ export const useListAgendasForNewOfficialReportQuery = (query: {
   ignoreOfficialReportId?: string;
 }) =>
   useQuery({
-    queryKey: officialReportKeys.listAgendas(query),
     queryFn: () =>
       $api.docs
         .listAgendasForNewOfficialReport({
@@ -295,14 +299,15 @@ export const useListAgendasForNewOfficialReportQuery = (query: {
           query: { ignoreOfficialReportId: query.ignoreOfficialReportId },
         })
         .then(({ data = null }) => data),
+    queryKey: officialReportKeys.listAgendas(query),
   });
 
 export const useListSecretariesGeneralQuery = () =>
   useQuery({
+    queryFn: () => $api.docs.listSecretariesGeneral().then(({ data = null }) => data),
+    queryKey: officialReportKeys.listSecretaries(),
     refetchOnMount: false,
     refetchOnWindowFocus: false,
-    queryKey: officialReportKeys.listSecretaries(),
-    queryFn: () => $api.docs.listSecretariesGeneral().then(({ data = null }) => data),
   });
 
 export function useCreateOfficialReportMutation() {
@@ -322,18 +327,18 @@ export function useCreateOfficialReportMutation() {
     }) =>
       $api.docs
         .createOfficialReport({
-          path: { sessionId: command.sessionId },
           body: {
-            sessionMeetingDate: command.sessionMeetingDate,
-            sessionMeetingTime: command.sessionMeetingTime,
-            sessionMeetingEndingTime: command.sessionMeetingEndingTime,
+            absentMemberIds: command.members as [string, ...string[]],
+            agendaId: command.agendaId,
+            chairmanId: command.chairmanId,
             hasRenunciation: command.hasRenunciation,
             justiceDepartmentContactId: command.justiceDepartmentContactId,
-            chairmanId: command.chairmanId,
             secretaryId: command.secretaryId,
-            agendaId: command.agendaId,
-            absentMemberIds: command.members as [string, ...string[]],
+            sessionMeetingDate: command.sessionMeetingDate,
+            sessionMeetingEndingTime: command.sessionMeetingEndingTime,
+            sessionMeetingTime: command.sessionMeetingTime,
           },
+          path: { sessionId: command.sessionId },
         })
         .then(({ data }) => data!),
     onSuccess(_, { sessionId }) {
@@ -347,14 +352,14 @@ export function useCreateOfficialReportMutation() {
 export const useOfficialReportHtmlQuery = (query: { id: string | undefined }) =>
   useQuery({
     enabled: !!query.id,
-    queryKey: officialReportKeys.html(query.id ?? ''),
     queryFn: () =>
       $api.docs
         .generateOfficialReportHtml({
-          path: { officialReportId: query.id! },
           parseAs: 'text',
+          path: { officialReportId: query.id! },
         })
         .then(({ data }) => (data ?? null) as string | null),
+    queryKey: officialReportKeys.html(query.id ?? ''),
   });
 
 export const useOfficialReportDocumentQuery = (query: { id: string | undefined | null }) =>
@@ -414,7 +419,9 @@ export function useValidateOfficialReportMutation(mutation: {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () =>
-      $api.docs.validateOfficialReport({ path: { officialReportId: mutation.officialReportId } }),
+      withValidationError(() =>
+        $api.docs.validateOfficialReport({ path: { officialReportId: mutation.officialReportId } }),
+      ),
 
     onSuccess: async () => {
       await queryClient.invalidateQueries({
@@ -438,7 +445,9 @@ export function useDiscardOfficialReportDraftMutation(mutation: {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () =>
-      $api.docs.discardOfficialReportDraft({ path: { officialReportId: mutation.officialReportId } }),
+      withValidationError(() =>
+        $api.docs.discardOfficialReportDraft({ path: { officialReportId: mutation.officialReportId } }),
+      ),
 
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: agendaKeys.findSessionDocs(mutation.sessionId) });
@@ -469,7 +478,6 @@ export function useDeleteOfficialReportMutation(sessionId: string) {
 export const useDetailsOfficialReportQuery = (query: { officialReportId: string | undefined | null }) =>
   useQuery({
     enabled: !!query.officialReportId,
-    queryKey: officialReportKeys.details(query.officialReportId),
     queryFn: async () => {
       if (!query.officialReportId) return;
 
@@ -478,6 +486,7 @@ export const useDetailsOfficialReportQuery = (query: { officialReportId: string 
       });
       return data;
     },
+    queryKey: officialReportKeys.details(query.officialReportId),
   });
 
 export function useUpdateOfficialReportMutation(sessionId: string) {
@@ -496,17 +505,17 @@ export function useUpdateOfficialReportMutation(sessionId: string) {
     }) =>
       $api.docs
         .updateOfficialReport({
-          path: { officialReportId: command.officialReportId },
           body: {
-            sessionMeetingDate: command.sessionMeetingDate,
-            sessionMeetingTime: command.sessionMeetingTime,
-            sessionMeetingEndingTime: command.sessionMeetingEndingTime,
+            absentMemberIds: command.members as [string, ...string[]],
+            chairmanId: command.chairmanId,
             hasRenunciation: command.hasRenunciation,
             justiceDepartmentContactId: command.justiceDepartmentContactId,
-            chairmanId: command.chairmanId,
             secretaryId: command.secretaryId,
-            absentMemberIds: command.members as [string, ...string[]],
+            sessionMeetingDate: command.sessionMeetingDate,
+            sessionMeetingEndingTime: command.sessionMeetingEndingTime,
+            sessionMeetingTime: command.sessionMeetingTime,
           },
+          path: { officialReportId: command.officialReportId },
         })
         .then(({ data }) => data!),
 
@@ -536,13 +545,13 @@ export const useListPresentationPlansAgendasQuery = (
   options: { ignorePlanId?: string | undefined | null } = {},
 ) =>
   useQuery({
-    queryKey: presentationPlanKeys.planAgendas({ ignore: options.ignorePlanId }),
     queryFn: async () => {
       const { data = null } = await $api.docs.listPresentationPlanAgendas({
         query: { ignore: options.ignorePlanId ?? undefined },
       });
       return data;
     },
+    queryKey: presentationPlanKeys.planAgendas({ ignore: options.ignorePlanId }),
   });
 
 export function useCreateJusticePresentationPlanMutation() {
@@ -608,7 +617,6 @@ export const useJusticePresentationPlanMetadataQuery = (options: {
 }) =>
   useQuery({
     enabled: !!options.presentationPlanId,
-    queryKey: presentationPlanKeys.planMetadata({ id: options.presentationPlanId }),
     queryFn: async () => {
       if (!options.presentationPlanId) return null;
       const { data = null } = await $api.docs.detailsPresentationPlanMetadata({
@@ -617,6 +625,7 @@ export const useJusticePresentationPlanMetadataQuery = (options: {
 
       return data;
     },
+    queryKey: presentationPlanKeys.planMetadata({ id: options.presentationPlanId }),
   });
 
 export const useJusticePresentationPlanHtmlQuery = (options: {
@@ -624,7 +633,6 @@ export const useJusticePresentationPlanHtmlQuery = (options: {
 }) =>
   useQuery({
     enabled: !!options.presentationPlanId,
-    queryKey: presentationPlanKeys.planHtml({ id: options.presentationPlanId }),
     queryFn: async () => {
       if (!options.presentationPlanId) return null;
 
@@ -634,17 +642,18 @@ export const useJusticePresentationPlanHtmlQuery = (options: {
 
       return data as string | null;
     },
+    queryKey: presentationPlanKeys.planHtml({ id: options.presentationPlanId }),
   });
 
 export function useUpdatePresentationPlanHtmlMutation(planId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationKey: htmlMutationKeys.presentationPlanHtml,
     mutationFn: ({ html }: { html: string }) =>
       $api.docs.updatePresentationPlanHtml({
-        path: { planId },
         body: { html: new Blob([html], { type: 'text/html' }) },
+        path: { planId },
       }),
+    mutationKey: htmlMutationKeys.presentationPlanHtml,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: presentationPlanKeys.nonPresented() });
       queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planAgendas({ ignore: undefined }) });
@@ -658,19 +667,8 @@ export function useUpdatePresentationPlanHtmlMutation(planId: string) {
 export function useValidatePresentationPlanMutation(mutation: { planId: string; onSuccess?: () => unknown }) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async () => {
-      try {
-        await $api.docs.validatePresentationPlan({ path: { planId: mutation.planId } });
-      } catch (error) {
-        if (error instanceof HttpException && [400, 409].includes(error.statusCode)) {
-          const body = await error.response.json().catch(() => null);
-          if (body?.validationError)
-            throw Object.assign(new Error(), { validationError: body.validationError });
-        }
-
-        throw error;
-      }
-    },
+    mutationFn: () =>
+      withValidationError(() => $api.docs.validatePresentationPlan({ path: { planId: mutation.planId } })),
 
     // validating takes the notice's agendas away from the other drafts, and a refused one has changed meanwhile
     onSettled: async (_, error) => {
@@ -729,7 +727,7 @@ export function usePresentPlansMutation() {
 
       for (const planId of mutation.planIds) {
         try {
-          await $api.docs.presentPlan({ path: { planId }, body: { endTime: mutation.endTime } });
+          await $api.docs.presentPlan({ body: { endTime: mutation.endTime }, path: { planId } });
           presentedIds.push(planId);
         } catch (error: unknown) {
           return { failure: { error, planId }, presentedIds };
@@ -754,23 +752,23 @@ export function usePresentPlansMutation() {
 
 export const useListNonPresentedPlansQuery = () =>
   useQuery({
-    queryKey: presentationPlanKeys.nonPresented(),
     queryFn: async () => {
       const { data = null } = await $api.docs.listNonPresentedPlans();
       return data;
     },
+    queryKey: presentationPlanKeys.nonPresented(),
   });
 
 export const useListPresentedPlansQuery = (query: Partial<{ pageIndex: number; pageSize: number }> = {}) =>
   useQuery({
-    queryKey: presentationPlanKeys.presented(query),
     queryFn: async () => {
       const { data = null } = await $api.docs.listPresentedPlans({
-        query: { page: (query.pageIndex ?? 0) + 1, limit: query.pageSize },
+        query: { limit: query.pageSize, page: (query.pageIndex ?? 0) + 1 },
       });
 
       return data;
     },
+    queryKey: presentationPlanKeys.presented(query),
   });
 
 export function useOpenJusticePresentationPlanPdfDocumentMutation() {
@@ -788,13 +786,13 @@ export function useOpenJusticePresentationPlanPdfDocumentMutation() {
 }
 
 export const docsKeys = {
-  members: (formation?: 'SIEGE' | 'PARQUET', includeIds?: readonly string[]) =>
-    ['docs', 'members', formation, includeIds?.length ? includeIds : undefined].filter(Boolean),
   justiceContacts: (query: { search?: string } = {}) => [
     'docs',
     'justiceContacts',
     query.search ? { search: query.search } : undefined,
   ],
+  members: (formation?: 'SIEGE' | 'PARQUET', includeIds?: readonly string[]) =>
+    ['docs', 'members', formation, includeIds?.length ? includeIds : undefined].filter(Boolean),
 };
 
 const MINUTES = 60 * 1_000;
@@ -805,8 +803,6 @@ export const useDocsMembersQuery = <T = FoundDocsMembersDto | null>(query: {
 }) =>
   useQuery({
     enabled: !!query.formation,
-    staleTime: 20 * MINUTES,
-    queryKey: docsKeys.members(query.formation, query.includeIds),
     queryFn: () => {
       if (!query.formation) return null;
       return $api.docs
@@ -818,20 +814,22 @@ export const useDocsMembersQuery = <T = FoundDocsMembersDto | null>(query: {
         })
         .then(({ data = null }) => data);
     },
+    queryKey: docsKeys.members(query.formation, query.includeIds),
     select: query.select,
+    staleTime: 20 * MINUTES,
   });
 
 export const useFindJusticeContacts = (query: { search: string | undefined }) =>
   useQuery({
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    queryKey: docsKeys.justiceContacts(query),
     queryFn: () =>
       $api.docs
         .searchJusticeContact({
           query: { search: query.search },
         })
         .then(({ data = null }) => data),
+    queryKey: docsKeys.justiceContacts(query),
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 
 export function useCreateJusticeContactMutation() {

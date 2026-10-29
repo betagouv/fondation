@@ -2,12 +2,11 @@ import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
 import { Clock } from '../framework/clock';
-import { GenderEnum } from '../shared/gender.enum';
 import type { RoleEnum } from '../shared/role.enum';
 
 import { AuthImpersonation } from './domain/auth-impersonation';
 import { AuthSession } from './domain/auth-session';
-import { AuthUser, AuthUserNotAuthentifiable } from './domain/auth-user';
+import { AuthUserNotAuthentifiable } from './domain/auth-user';
 import { PasswordHasher } from './infrastructure/password-hasher';
 import { DetailsUserFromImpersonationQuery } from './infrastructure/queries/details-user-from-impesronation-id.query';
 import { DetailsUserFromSessionIdQuery } from './infrastructure/queries/details-user-from-session-id.query';
@@ -88,7 +87,6 @@ export class SimpleAuthService {
     return this.listUsersQuery.handle(query);
   }
 
-  @Transactional()
   async changePassword(command: {
     currentPassword: string;
     isImpersonated: boolean;
@@ -127,23 +125,6 @@ export class SimpleAuthService {
     const user = await this.userRepository.find(command.userId);
     user.unImpersonate({ impersonationId: command.impersonationId });
     await this.userRepository.persist(user);
-  }
-
-  async registerUser(command: {
-    email: string;
-    firstName: string;
-    gender: GenderEnum;
-    isAdmin: boolean;
-    lastName: string;
-    password: string;
-    role: RoleEnum;
-  }): Promise<{ id: string }> {
-    const user = await AuthUser.register({
-      ...command,
-      password: await this.passwordHasher.hash(command.password),
-    });
-    await this.userRepository.persist(user);
-    return { id: user.id };
   }
 
   async internalHashPassword(plain: string): Promise<string> {

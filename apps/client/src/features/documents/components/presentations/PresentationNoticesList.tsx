@@ -51,6 +51,7 @@ function InnerPresentationNoticesList() {
       updatedAt: item.updatedAt,
       updatedBy: item.updatedBy,
     },
+    canPresent: item.canPresent,
     date: formatDateOnly(item.date),
     formation: item.formation,
     hasRemovedAgendas: item.hasRemovedAgendas,
@@ -153,7 +154,16 @@ function InnerPresentationNoticesList() {
     <div className="flex flex-col gap-y-8">
       <ul className="fr-m-0 fr-p-0 grid list-none grid-cols-[auto_auto_auto_minmax(0,1fr)_auto]">
         {planItems.map((plan) => {
-          const { startTime: _, authoring, hasRemovedAgendas, isDraft, name, outdated, ...item } = plan;
+          const {
+            startTime: _,
+            authoring,
+            canPresent,
+            hasRemovedAgendas,
+            isDraft,
+            name,
+            outdated,
+            ...item
+          } = plan;
 
           return (
             <li
@@ -163,7 +173,7 @@ function InnerPresentationNoticesList() {
               <SelectionCheckbox
                 ariaLabel={name}
                 checked={selection.has(plan)}
-                disabled={isDraft}
+                disabled={!canPresent}
                 onChange={onCheckboxChange}
                 value={item.id}
               />

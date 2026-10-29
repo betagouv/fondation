@@ -4,6 +4,7 @@ import {
   OfficialReport,
   OfficialReportAlreadyValidated,
   OfficialReportDocumentNotStored,
+  OfficialReportDraftChangedByTheApplication,
   OfficialReportDraftDiscarded,
   OfficialReportDraftEdited,
   OfficialReportDraftOpened,
@@ -312,7 +313,7 @@ describe('OfficialReport', () => {
     it('should have nothing to discard', () => {
       const report = validated();
 
-      report.discardDraft({ hasValidatedVersion: true });
+      report.discardDraft({ changesBy: 'PERSON', hasValidatedVersion: true });
 
       expect(report.messages).toEqual([]);
     });
@@ -374,7 +375,7 @@ describe('OfficialReport', () => {
     it('should be discarded when a validated version remains underneath', () => {
       const report = makeReport();
 
-      report.discardDraft({ hasValidatedVersion: true });
+      report.discardDraft({ changesBy: 'PERSON', hasValidatedVersion: true });
 
       expect(report.messages).toEqual([new OfficialReportDraftDiscarded(report.id)]);
     });
@@ -382,10 +383,22 @@ describe('OfficialReport', () => {
     it('should refuse to be discarded when nothing was ever validated', () => {
       const report = makeReport();
 
-      expect(() => report.discardDraft({ hasValidatedVersion: false })).toThrow(
+      expect(() => report.discardDraft({ changesBy: 'PERSON', hasValidatedVersion: false })).toThrow(
         OfficialReportWithoutValidatedVersion,
       );
       expect(report.messages).toEqual([]);
     });
+
+    it.each(['SYSTEM', 'PERSON_AND_SYSTEM'] as const)(
+      'should refuse to be discarded when the application changed it (%s)',
+      (changesBy) => {
+        const report = makeReport();
+
+        expect(() => report.discardDraft({ changesBy, hasValidatedVersion: true })).toThrow(
+          OfficialReportDraftChangedByTheApplication,
+        );
+        expect(report.messages).toEqual([]);
+      },
+    );
   });
 });

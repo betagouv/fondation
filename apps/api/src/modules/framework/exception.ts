@@ -16,7 +16,8 @@ import { SentryService } from './observability';
 export class CatchEverythingFilter implements ExceptionFilter {
   private readonly logger = new Logger(CatchEverythingFilter.name);
 
-  constructor(@Optional() private readonly sentryService: SentryService | undefined) {}
+  // A union type would be emitted as Object: Nest would never find the provider
+  constructor(@Optional() private readonly sentryService?: SentryService) {}
 
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();

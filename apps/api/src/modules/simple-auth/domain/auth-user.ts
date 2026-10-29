@@ -1,8 +1,5 @@
-import z from 'zod';
-
-import { Id, makeId } from '../../../utils/id';
-import { GenderEnum } from '../../shared/gender.enum';
-import { isSecretariat, type RoleEnum } from '../../shared/role.enum';
+import { Id } from '../../../utils/id';
+import { isSecretariat, RoleEnum } from '../../shared/role.enum';
 import { UserStatus } from '../../shared/user-status.enum';
 import { OpenIdProvider } from '../openid';
 
@@ -11,8 +8,7 @@ import { AuthPassword } from './auth-password';
 import { AuthSession } from './auth-session';
 
 export class AuthUserNotAuthentifiable extends Error {}
-export class DeactivatedUserNotImpersonable extends Error {}
-export class AdminOutsideSecretariat extends Error {}
+export class UserNotImpersonable extends Error {}
 export class WrongCurrentPassword extends Error {}
 
 export const PASSWORD_CHANGES = ['ALLOWED', 'IMPERSONATED'] as const;
@@ -21,37 +17,6 @@ export type PasswordChange = (typeof PASSWORD_CHANGES)[number];
 export class CannotChangePassword extends Error {
   constructor(readonly reason: Exclude<PasswordChange, 'ALLOWED'>) {
     super();
-  }
-}
-
-export class AuthUserRegistered {
-  readonly email: string;
-  readonly firstName: string;
-  readonly gender: GenderEnum;
-  readonly id: string;
-  readonly isAdmin: boolean;
-  readonly lastName: string;
-  readonly password: string;
-  readonly role: RoleEnum;
-
-  constructor(props: {
-    email: string;
-    firstName: string;
-    gender: GenderEnum;
-    id: string;
-    isAdmin: boolean;
-    lastName: string;
-    password: AuthPassword;
-    role: RoleEnum;
-  }) {
-    this.email = props.email;
-    this.firstName = props.firstName;
-    this.gender = props.gender;
-    this.id = props.id;
-    this.isAdmin = props.isAdmin;
-    this.lastName = props.lastName;
-    this.password = props.password.toString();
-    this.role = props.role;
   }
 }
 
@@ -121,7 +86,6 @@ export type AuthenticationStrategy =
   | { request: { id: Id<'OpenIdRequest'>; provider: OpenIdProvider }; type: 'openid' };
 
 type AuthUserEvent =
-  | AuthUserRegistered
   | AuthUserAuthenticated
   | AuthUserUnAuthenticated
   | AuthUserSessionsRevoked
@@ -135,6 +99,7 @@ export class AuthUser {
   constructor(
     readonly id: string,
     readonly password: AuthPassword,
+    readonly role: RoleEnum,
     readonly status: UserStatus,
   ) {}
 
@@ -193,42 +158,17 @@ export class AuthUser {
     this.#messages.push(new AuthUserSessionsRevoked(this.id, command.keptSessionId));
   }
 
-  static from(props: { id: string; password: string; status: UserStatus }): AuthUser {
-    return new AuthUser(props.id, AuthPassword.from(props.password), props.status);
+  static from(props: { id: string; password: string; role: RoleEnum; status: UserStatus }): AuthUser {
+    return new AuthUser(props.id, AuthPassword.from(props.password), props.role, props.status);
   }
 
-  static async register(props: {
-    email: string;
-    firstName: string;
-    gender: GenderEnum;
-    isAdmin: boolean;
-    lastName: string;
-    password: AuthPassword;
-    role: RoleEnum;
-  }) {
-    if (props.isAdmin && !isSecretariat(props.role)) throw new AdminOutsideSecretariat();
-    const email = await z.email().toLowerCase().parseAsync(props.email);
-    const id = makeId('AuthUserId');
-
-    const user = new AuthUser(id, props.password, 'ACTIVE');
-    user.#messages.push(
-      new AuthUserRegistered({
-        ...props,
-        email,
-        firstName: props.firstName.toLowerCase(),
-        id,
-        lastName: props.lastName.toLowerCase(),
-      }),
-    );
-    return user;
-  }
-
-  static canBeImpersonated(user: { status: UserStatus }): boolean {
-    return user.status === 'ACTIVE';
+  /** an admin acts in place of a member, never of someone from the secretariat, whose screens are their own */
+  static canBeImpersonated(user: { role: RoleEnum; status: UserStatus }): boolean {
+    return user.status === 'ACTIVE' && !isSecretariat(user.role);
   }
 
   impersonate(props: { authSessionId: string; now: Date; target: AuthUser }): AuthImpersonation {
-    if (!AuthUser.canBeImpersonated(props.target)) throw new DeactivatedUserNotImpersonable();
+    if (!AuthUser.canBeImpersonated(props.target)) throw new UserNotImpersonable();
 
     const impersonation = AuthImpersonation.start({
       authSessionId: props.authSessionId,

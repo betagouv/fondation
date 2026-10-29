@@ -4,6 +4,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '../../../../generated/prisma/client';
 import { assertNever } from '../../../../utils/assert-never';
 import { Db } from '../../../framework/database';
+import { prismaRoleEnumToRoleEnum } from '../../../shared/mappers/role-enum.mapper';
 import { userStatusOf } from '../../../shared/user-status.enum';
 import {
   AuthImpersonationRevoked,
@@ -13,7 +14,6 @@ import {
   AuthUserAuthenticated,
   AuthUserPasswordChanged,
   AuthUserPasswordRehashed,
-  AuthUserRegistered,
   AuthUserSessionsRevoked,
   AuthUserUnAuthenticated,
 } from '../../domain/auth-user';
@@ -24,29 +24,31 @@ export class AuthUserRepository {
 
   async findByEmail(email: string): Promise<AuthUser | null> {
     const user = await this.db.tx.user.findFirst({
-      select: { deactivatedAt: true, id: true, password: true } satisfies Prisma.UserSelect,
+      select: { deactivatedAt: true, id: true, password: true, role: true } satisfies Prisma.UserSelect,
       where: { email: { equals: email, mode: 'insensitive' } },
     });
 
-    return user && AuthUser.from({ ...user, status: userStatusOf(user) });
+    return (
+      user &&
+      AuthUser.from({ ...user, role: prismaRoleEnumToRoleEnum(user.role), status: userStatusOf(user) })
+    );
   }
 
   async find(id: string): Promise<AuthUser> {
     const user = await this.db.tx.user.findUnique({
-      select: { deactivatedAt: true, id: true, password: true } satisfies Prisma.UserSelect,
+      select: { deactivatedAt: true, id: true, password: true, role: true } satisfies Prisma.UserSelect,
       where: { id },
     });
 
     if (!user) throw new NotFoundException();
 
-    return AuthUser.from({ ...user, status: userStatusOf(user) });
+    return AuthUser.from({ ...user, role: prismaRoleEnumToRoleEnum(user.role), status: userStatusOf(user) });
   }
 
   @Transactional()
   async persist(user: AuthUser): Promise<void> {
     for (const event of user.messages) {
-      if (event instanceof AuthUserRegistered) await this.persistUserRegistered(event);
-      else if (event instanceof AuthUserAuthenticated) await this.persistUserAuthenticated(event);
+      if (event instanceof AuthUserAuthenticated) await this.persistUserAuthenticated(event);
       else if (event instanceof AuthUserUnAuthenticated) await this.persistAuthUserUnAuthenticated(event);
       else if (event instanceof AuthUserSessionsRevoked) await this.persistAuthUserSessionsRevoked(event);
       else if (event instanceof AuthUserPasswordRehashed || event instanceof AuthUserPasswordChanged)
@@ -68,21 +70,6 @@ export class AuthUserRepository {
         expiresAt,
         sessionId: event.session.id,
         user: { connect: { id: event.id } },
-      },
-    });
-  }
-
-  private persistUserRegistered(event: AuthUserRegistered) {
-    return this.db.tx.user.create({
-      data: {
-        email: event.email,
-        firstName: event.firstName,
-        gender: event.gender,
-        id: event.id,
-        isAdmin: event.isAdmin,
-        lastName: event.lastName,
-        password: event.password,
-        role: event.role,
       },
     });
   }

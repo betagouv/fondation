@@ -149,6 +149,34 @@ test.describe('Report E2E', () => {
     expect(unknownSessionRes.response?.status).toBe(404);
   });
 
+  test('should set aside the screenshots a report comment no longer embeds', async ({ expect, member }) => {
+    const attached = await member.reports.attachScreenshots({
+      body: { files: [makeFile({ name: 'a.png', type: 'image/png' }), makeFile({ name: 'b.png', type: 'image/png' })] },
+      path: { reportId },
+      throwOnError: true,
+    });
+    const [kept, removed] = attached.data.items;
+
+    await member.reports.updateReport({
+      body: { comment: `<p>Avis</p><img data-file-id="${kept!.id}" src="${kept!.url}">` },
+      path: { reportId },
+      throwOnError: true,
+    });
+
+    const { data } = await member.reports.detailReport({ path: { reportId }, throwOnError: true });
+    expect(data.screenshots.map(({ id }) => id)).toEqual([kept!.id]);
+
+    await member.reports.updateReport({
+      body: {
+        comment: `<p>Avis</p><img data-file-id="${kept!.id}" src="${kept!.url}"><img data-file-id="${removed!.id}" src="${removed!.url}">`,
+      },
+      path: { reportId },
+      throwOnError: true,
+    });
+    const reread = await member.reports.detailReport({ path: { reportId }, throwOnError: true });
+    expect(reread.data.screenshots.map(({ id }) => id).sort()).toEqual([kept!.id, removed!.id].sort());
+  });
+
   test('should attach files to a report', async ({ member, expect }) => {
     const file = makeFile({ name: `image_${crypto.randomUUID()}.png`, type: 'image/png' });
 

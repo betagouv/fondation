@@ -6,6 +6,7 @@ export type StoryView = (typeof STORY_VIEWS)[number];
 export const STORY_USERS = {
   member: {
     civility: 'Monsieur PETIT',
+    displayedRole: { group: 'MEMBER', id: 'MEMBRE_SIEGE', label: 'Membre du siège' },
     email: 'jean.petit@justice.fr',
     firstName: 'Jean',
     formation: 'SIEGE',
@@ -18,6 +19,7 @@ export const STORY_USERS = {
   },
   sg: {
     civility: 'Madame BERNARD',
+    displayedRole: { group: 'SECRETARIAT', id: 'SECRETARY', label: 'Secrétaire générale adjointe' },
     email: 'sophie.bernard@justice.fr',
     firstName: 'Sophie',
     formation: null,

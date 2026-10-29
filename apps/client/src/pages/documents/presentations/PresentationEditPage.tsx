@@ -122,7 +122,7 @@ export function PresentationEditPage() {
   const isReverting = revert.isPending;
   const title = formatMessage({ defaultMessage: 'Notice de restitution' });
 
-  if (metadata?.isPresented) return <Navigate replace to={previewPath} />;
+  if (metadata && !metadata.canEdit) return <Navigate replace to={previewPath} />;
 
   return (
     <DocumentScreen

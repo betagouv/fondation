@@ -2,14 +2,12 @@ import * as bcrypt from 'bcrypt';
 
 import { AuthPassword } from './auth-password';
 import {
-  AdminOutsideSecretariat,
   AuthUser,
   AuthUserNotAuthentifiable,
   AuthUserPasswordChanged,
-  AuthUserRegistered,
   AuthUserSessionsRevoked,
   CannotChangePassword,
-  DeactivatedUserNotImpersonable,
+  UserNotImpersonable,
   WrongCurrentPassword,
 } from './auth-user';
 
@@ -18,7 +16,7 @@ describe('AuthUser', () => {
 
   it('should refuse to authenticate a deactivated user with the right password', async () => {
     const password = await bcrypt.hash('secret', 4);
-    const user = AuthUser.from({ id: 'user-1', password, status: 'DEACTIVATED' });
+    const user = AuthUser.from({ id: 'user-1', password, role: 'MEMBRE_DU_SIEGE', status: 'DEACTIVATED' });
 
     await expect(user.authenticate({ now, plainPassword: 'secret', type: 'password' })).rejects.toThrow(
       AuthUserNotAuthentifiable,
@@ -26,36 +24,14 @@ describe('AuthUser', () => {
     expect(user.messages).toEqual([]);
   });
 
-  describe('registration', () => {
-    const registration = {
-      email: 'agent@example.fr',
-      firstName: 'Agent',
-      gender: 'FEMALE',
-      lastName: 'Secrétariat',
-      password: AuthPassword.from('hash'),
-    } as const;
-
-    it('should register an admin of the general secretariat', async () => {
-      const user = await AuthUser.register({
-        ...registration,
-        isAdmin: true,
-        role: 'ADJOINT_SECRETAIRE_GENERAL',
-      });
-
-      expect(user.messages).toEqual([expect.objectContaining({ isAdmin: true })]);
-      expect(user.messages[0]).toBeInstanceOf(AuthUserRegistered);
-    });
-
-    it('should refuse the admin right to a member', async () => {
-      await expect(
-        AuthUser.register({ ...registration, isAdmin: true, role: 'MEMBRE_COMMUN' }),
-      ).rejects.toThrow(AdminOutsideSecretariat);
-    });
-  });
-
   describe('password change', () => {
     const user = async () =>
-      AuthUser.from({ id: 'user-1', password: await bcrypt.hash('current', 4), status: 'ACTIVE' });
+      AuthUser.from({
+        id: 'user-1',
+        password: await bcrypt.hash('current', 4),
+        role: 'MEMBRE_DU_SIEGE',
+        status: 'ACTIVE',
+      });
     const command = () => ({
       currentPassword: 'current',
       hash: vi.fn(async (plain: string) => AuthPassword.from(`hash of ${plain}`)),
@@ -94,12 +70,38 @@ describe('AuthUser', () => {
     });
   });
 
-  it('should refuse to impersonate a deactivated user', () => {
-    const admin = AuthUser.from({ id: 'admin-1', password: '', status: 'ACTIVE' });
-    const target = AuthUser.from({ id: 'user-1', password: '', status: 'DEACTIVATED' });
+  describe('impersonation', () => {
+    const admin = AuthUser.from({
+      id: 'admin-1',
+      password: '',
+      role: 'ADJOINT_SECRETAIRE_GENERAL',
+      status: 'ACTIVE',
+    });
 
-    expect(() => admin.impersonate({ authSessionId: 'session-1', now, target })).toThrow(
-      DeactivatedUserNotImpersonable,
-    );
+    it('should refuse to impersonate a deactivated member', () => {
+      const target = AuthUser.from({
+        id: 'user-1',
+        password: '',
+        role: 'MEMBRE_DU_SIEGE',
+        status: 'DEACTIVATED',
+      });
+
+      expect(() => admin.impersonate({ authSessionId: 'session-1', now, target })).toThrow(
+        UserNotImpersonable,
+      );
+    });
+
+    it('should refuse to impersonate someone from the secretariat, whose screens are those of the admin', () => {
+      const target = AuthUser.from({
+        id: 'user-1',
+        password: '',
+        role: 'ADJOINT_SECRETAIRE_GENERAL',
+        status: 'ACTIVE',
+      });
+
+      expect(() => admin.impersonate({ authSessionId: 'session-1', now, target })).toThrow(
+        UserNotImpersonable,
+      );
+    });
   });
 });

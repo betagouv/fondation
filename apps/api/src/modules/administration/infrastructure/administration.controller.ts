@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Param,
   ParseUUIDPipe,
+  Post,
   Put,
   Query,
   UseInterceptors,
@@ -20,13 +21,19 @@ import { AdministrationService } from '../administration.service';
 
 import { AdministrationErrorMapper } from './administration.filter';
 import {
+  CreatedUserDto,
+  CreateUserDto,
+  ListAdminUserRolesQueryDto,
+  ListedAdminUserRolesDto,
   ListUsersQueryDto,
   UpdateUserDisplayTitleDto,
   UpdateUserEmailDto,
+  UpdateUserNameDto,
   UpdateUserPasswordDto,
   UpdateUserRoleDto,
 } from './dto/administration.dto';
 import { DetailedAdminUserDto } from './queries/details-user.query';
+import { ListedTitleHoldersDto } from './queries/list-title-holders.query';
 import { PaginatedAdminUserListItemDto } from './queries/list-users.query';
 
 @Controller('/api/administration/v1')
@@ -53,6 +60,14 @@ export class AdministrationController {
   }
 
   @HasRole('ADMIN')
+  @Post('/users')
+  @UsePipes(ZodValidationPipe)
+  @ZodResponse({ status: HttpStatus.CREATED, type: CreatedUserDto })
+  createUser(@AuthedUser() actor: { id: string }, @Body() body: CreateUserDto): Promise<CreatedUserDto> {
+    return this.administration.createUser({ ...body, actorId: actor.id });
+  }
+
+  @HasRole('ADMIN')
   @Get('/users/:userId')
   @ZodResponse({ status: HttpStatus.OK, type: DetailedAdminUserDto })
   detailsUser(
@@ -60,6 +75,32 @@ export class AdministrationController {
     @Param('userId', ParseUUIDPipe) userId: string,
   ): Promise<DetailedAdminUserDto> {
     return this.administration.detailsUser({ actorId: actor.id, userId });
+  }
+
+  @HasRole('ADMIN')
+  @Get('/roles')
+  @UsePipes(ZodValidationPipe)
+  @ZodResponse({ status: HttpStatus.OK, type: ListedAdminUserRolesDto })
+  listRoles(@Query() query: ListAdminUserRolesQueryDto): ListedAdminUserRolesDto {
+    return this.administration.listRoles(query);
+  }
+
+  @HasRole('ADMIN')
+  @Get('/title-holders')
+  @ZodResponse({ status: HttpStatus.OK, type: ListedTitleHoldersDto })
+  listTitleHolders(): Promise<ListedTitleHoldersDto> {
+    return this.administration.listTitleHolders();
+  }
+
+  @HasRole('ADMIN')
+  @Put('/users/:userId/name')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UsePipes(ZodValidationPipe)
+  updateName(
+    @Param('userId', ParseUUIDPipe) userId: string,
+    @Body() { firstName, lastName }: UpdateUserNameDto,
+  ): Promise<void> {
+    return this.administration.updateName({ firstName, lastName, userId });
   }
 
   @HasRole('ADMIN')

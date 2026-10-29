@@ -1,4 +1,4 @@
-import { redirect, type RouteObject } from 'react-router';
+import { generatePath, redirect, type RouteObject } from 'react-router';
 
 import { AUTHORIZED_ROLES } from '@/features/auth/constants/authorized-roles.constants';
 import { roleGuard } from '@/features/auth/guards/role-guard';
@@ -41,15 +41,15 @@ export const routes: RouteObject[] = [
             path: ROUTE_PATHS.FEEDBACK,
           },
           {
-            lazy: () => import('@/pages/help/HelpPage').then(({ HelpPage }) => ({ Component: HelpPage })),
+            lazy: () =>
+              import('@/pages/help/HelpCenterPage').then(({ HelpCenterPage }) => ({
+                Component: HelpCenterPage,
+              })),
             path: ROUTE_PATHS.HELP,
           },
           {
-            lazy: () =>
-              import('@/pages/help/UserManualPage').then(({ UserManualPage }) => ({
-                Component: UserManualPage,
-              })),
-            path: ROUTE_PATHS.USER_MANUAL,
+            loader: () => redirect(ROUTE_PATHS.HELP),
+            path: '/aide/manuel',
           },
           {
             lazy: () =>
@@ -446,6 +446,31 @@ export const routes: RouteObject[] = [
                 Component: AdminFeedbacksPage,
               })),
             path: ROUTE_PATHS.ADMIN.FEEDBACKS,
+          },
+          {
+            loader: () => redirect(ROUTE_PATHS.ADMIN.LIST_JOBS),
+            path: '/admin/jobs',
+          },
+          {
+            loader: ({ params }) =>
+              redirect(generatePath(ROUTE_PATHS.ADMIN.DETAILS_JOB, { jobId: params.jobId! })),
+            path: '/admin/jobs/:jobId',
+          },
+          {
+            loader: () => redirect(ROUTE_PATHS.ADMIN.USERS),
+            path: '/admin/users',
+          },
+          {
+            loader: ({ params }) =>
+              redirect(generatePath(ROUTE_PATHS.ADMIN.USER_DETAIL, { userId: params.userId! })),
+            path: '/admin/users/:userId',
+          },
+          {
+            lazy: () =>
+              import('@/pages/spaces/admin/AdminHelpPage').then(({ AdminHelpPage }) => ({
+                Component: AdminHelpPage,
+              })),
+            path: ROUTE_PATHS.ADMIN.HELP,
           },
           {
             lazy: () =>

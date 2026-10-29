@@ -5,6 +5,11 @@ import z from 'zod';
 
 import { Prisma } from '../../../../generated/prisma/client';
 import { isDefined } from '../../../../utils/is-defined';
+import { AdminUserRole } from '../../../administration/domain/admin-user-role';
+import {
+  servedAdminUserRole,
+  ServedAdminUserRoleSchema,
+} from '../../../administration/infrastructure/dto/administration.dto';
 import { Db } from '../../../framework/database';
 import { FormationEnum } from '../../../shared/formation.enum';
 import { GenderEnum } from '../../../shared/gender.enum';
@@ -44,11 +49,16 @@ export class DetailsUserQuery {
 
     const { id: userId, ...user } = maybeUser;
     const role = prismaRoleEnumToRoleEnum(user.role);
+    const gender = prismaGenderEnumToGenderEnum(user.gender);
     const isImpersonated = isDefined(query.impersonationId);
     return {
       ...user,
+      displayedRole: servedAdminUserRole(
+        AdminUserRole.from({ duty: user.duty, role, title: user.title }),
+        gender,
+      ),
       formation: roleToFormation(role) ?? null,
-      gender: prismaGenderEnumToGenderEnum(user.gender),
+      gender,
       isImpersonated,
       passwordChange: AuthUser.passwordChangeOf({ isImpersonated }),
       role,
@@ -64,6 +74,7 @@ export class DetailedUserResponseDto extends createZodDto(
     lastName: z.string(),
     email: z.string(),
     role: z.enum(RoleEnum),
+    displayedRole: ServedAdminUserRoleSchema,
     /** null when the user is not restricted to a formation */
     formation: z.enum(FormationEnum).nullable(),
     gender: z.enum(GenderEnum),

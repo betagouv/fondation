@@ -16,6 +16,25 @@ import * as time from '../../utils/time';
 
 import { API_CONFIG_TOKEN, ApiConfig } from './config';
 
+// Every key is set: as soon as dataCollection is given, the missing ones collect everything, cookies and bodies included.
+// The HTTP server of the SDK 10.76 ignores httpBodies and still reads the incoming body unless told otherwise
+export const WITHOUT_PERSONAL_DATA = {
+  // TODO: see apps/client/src/observability.ts
+  dataCollection: {
+    cookies: false,
+    databaseQueryData: false,
+    frameContextLines: 7,
+    genAI: { inputs: false, outputs: false },
+    graphQL: { document: true, variables: false },
+    httpBodies: [],
+    httpHeaders: false,
+    stackFrameVariables: false,
+    urlQueryParams: false,
+    userInfo: false,
+  },
+  integrations: [Sentry.httpIntegration({ maxIncomingRequestBodySize: 'none' })],
+} satisfies Sentry.NodeOptions;
+
 @Injectable()
 export class SentryService {
   private readonly isEnabled: boolean = false;
@@ -28,10 +47,10 @@ export class SentryService {
   captureException(exception: unknown, request: ExpressRequest, status: number): void {
     if (!this.isEnabled) return;
 
-    const { route, body, headers, method } = request;
+    const { route, method } = request;
     Sentry.withScope((scope) => {
       scope.setTags({ url: (route as IRoute).path });
-      scope.setExtras({ method, headers, body, status });
+      scope.setExtras({ method, status });
       if (request.user && request.user.type === 'human') {
         scope.setUser({ id: request.user.id });
       } else if (request.userId) {

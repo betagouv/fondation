@@ -1,12 +1,13 @@
 import { assertNever } from '../../../utils/assert-never';
 import { assertIsDefined } from '../../../utils/is-defined';
+import type { AdminUserRoleEnum } from '../../shared/admin-user-role.enum';
 import type { RoleEnum } from '../../shared/role.enum';
 import { UserDutyEnum } from '../../shared/user-duty.enum';
 import { UserTitleEnum } from '../../shared/user-title.enum';
 
+import { AdminUserRoleGroup, adminUserRoleGroupOf } from './admin-user-role-group';
 import { AdminUserTitle } from './admin-user-title';
 import {
-  AdminUserRoleEnum,
   adminUserRoleEnumToDuty,
   adminUserRoleEnumToIdentityRoles,
   adminUserRoleEnumToTitle,
@@ -30,6 +31,10 @@ export class AdminUserRole {
     return adminUserRoleEnumToTitle(this._role);
   }
 
+  get group(): AdminUserRoleGroup {
+    return adminUserRoleGroupOf(this._role);
+  }
+
   get duty(): UserDutyEnum | null {
     return adminUserRoleEnumToDuty(this._role);
   }
@@ -48,6 +53,17 @@ export class AdminUserRole {
     if (target === this._role) return null;
 
     return new AdminUserRole(target, this.identityRole);
+  }
+
+  /** the holder of a title given to someone else keeps their role, as `UsersUntitled` leaves it */
+  untitled(): AdminUserRole {
+    const duty = AdminUserTitle.from(this._role).unTitle().duty;
+    return AdminUserRole.from({ duty, role: this.role, title: null });
+  }
+
+  /** a president registered from the administration is a member of their formation rather than a common member */
+  static ofNewAccount(role: AdminUserRoleEnum): AdminUserRole {
+    return new AdminUserRole(role, null);
   }
 
   static from(props: {

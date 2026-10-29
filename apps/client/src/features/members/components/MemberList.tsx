@@ -5,7 +5,6 @@ import { useCallback, useMemo } from 'react';
 import { defineMessages, FormattedMessage, useIntl } from 'react-intl';
 
 import { PinnedHeader } from '@/shared/components/pinned-header';
-import { RoleEnumMessages } from '@/shared/enums/role.enum';
 import {
   DataTable,
   DataTableCount,
@@ -50,8 +49,8 @@ function useMemberColumns() {
         size: 220,
       }),
 
-      h.accessor('role', {
-        cell: ({ getValue }) => <FormattedMessage {...RoleEnumMessages[getValue()]} />,
+      h.accessor('formation', {
+        cell: ({ getValue }) => getValue().label,
         enableSorting: false,
         header: formatMessage({ defaultMessage: 'Formation' }),
         id: 'formation',

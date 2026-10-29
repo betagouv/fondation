@@ -82,10 +82,12 @@ export class FindAgendaDocumentPdfQuery {
     const [pdfFileId] = await this.files.create([{ buffer, name, path, mimeType: FILE_MIME_TYPES.pdf }]);
 
     if (pdfFileId) {
-      await this.db.tx.agendaVersion.update({
-        where: { id: versionId },
+      // a validation sent twice renders twice: the PDF the other one attached meanwhile stays
+      const { count } = await this.db.tx.agendaVersion.updateMany({
         data: { pdfFileId },
+        where: { id: versionId, pdfFileId: version.pdf?.id ?? null },
       });
+      if (count === 0) this.files.delete([{ id: pdfFileId, path: path.split('/') }]);
     } else {
       this.logger.warn(`Failed storing the PDF file`);
     }

@@ -2,10 +2,9 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { http, HttpResponse } from 'msw';
 import { generatePath } from 'react-router';
 
-import { PROMOTABLE_ROLES, ROLE_OPTIONS } from '@/features/administration/labels/admin-user-enum';
 import { PageStory } from '@/shared/storybook/PageStory';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import type { DetailedAdminUserDto } from '@api/types';
+import type { DetailedAdminUserDto, ListedAdminUserRolesDto, ListedTitleHoldersDto } from '@api/types';
 
 import { AdminUserDetailPage } from './AdminUserDetailPage';
 
@@ -23,7 +22,7 @@ const USERS = {
     id: 'user-2',
     isAdmin: false,
     lastName: 'Garnier',
-    role: 'MEMBRE_SIEGE',
+    role: { group: 'MEMBER', id: 'MEMBRE_SIEGE', label: 'Membre du siège' },
   },
   secretariat: {
     displayTitle: null,
@@ -33,7 +32,7 @@ const USERS = {
     id: 'user-3',
     isAdmin: true,
     lastName: 'Dupont',
-    role: 'SECRETARY',
+    role: { group: 'SECRETARIAT', id: 'SECRETARY', label: 'Secrétaire général adjoint' },
   },
 } satisfies Record<
   Account,
@@ -44,11 +43,43 @@ const USERS = {
     | 'canHoldAdminRight'
     | 'canImpersonate'
     | 'canReactivate'
+    | 'canResetPassword'
     | 'deactivatedAt'
     | 'status'
     | 'statusChanges'
   >
 >;
+
+const ROLE_GROUPS: ListedAdminUserRolesDto['items'] = [
+  {
+    id: 'PRESIDENCY',
+    label: 'Présidents / Suppléants',
+    roles: [
+      { id: 'PRESIDENT_PARQUET', label: 'Président(e) de la formation du parquet' },
+      { id: 'PRESIDENT_SIEGE', label: 'Président(e) de la formation du siège' },
+      { id: 'DEPUTY_PRESIDENT_PARQUET', label: 'Président(e) suppléant(e) de la formation du parquet' },
+      { id: 'DEPUTY_PRESIDENT_SIEGE', label: 'Président(e) suppléant(e) de la formation du siège' },
+    ],
+  },
+  {
+    id: 'MEMBER',
+    label: 'Membre',
+    roles: [
+      { id: 'MEMBRE_COMMUN', label: 'Membre commun' },
+      { id: 'MEMBRE_PARQUET', label: 'Membre du parquet' },
+      { id: 'MEMBRE_SIEGE', label: 'Membre du siège' },
+    ],
+  },
+  {
+    id: 'SECRETARIAT',
+    label: 'Secrétariat général',
+    roles: [
+      { id: 'FIRST_SECRETARY', label: 'Secrétaire général(e)' },
+      { id: 'SECRETARY', label: 'Secrétaire général(e) adjoint(e)' },
+      { id: 'OFFICER', label: 'Agent(e) du pôle nomination' },
+    ],
+  },
+];
 
 function AdminUserDetailPageStory(props: { account: Account; status: Status }) {
   return (
@@ -70,19 +101,37 @@ const meta = {
   },
   beforeEach: ({ args, msw }) => {
     msw.use(
+      http.get('*/api/administration/v1/title-holders', () =>
+        HttpResponse.json<ListedTitleHoldersDto>({
+          items: [
+            {
+              holder: {
+                id: 'user-1',
+                name: 'Isabelle\u00A0GAUTHIER',
+                nextRole: { id: 'MEMBRE_SIEGE', label: 'Membre du siège' },
+              },
+              role: { id: 'PRESIDENT_SIEGE', label: 'Présidente de la formation du siège' },
+            },
+          ],
+        }),
+      ),
+      http.get('*/api/administration/v1/roles', () =>
+        HttpResponse.json<ListedAdminUserRolesDto>({ items: ROLE_GROUPS }),
+      ),
       http.get('*/api/administration/v1/users/:userId', ({ params }) => {
         const user = Object.values(USERS).find(({ id }) => id === params.userId);
         if (!user) return new HttpResponse(null, { status: 404 });
 
         return HttpResponse.json<DetailedAdminUserDto>({
           ...user,
-          assignableRoles: user.isAdmin
-            ? PROMOTABLE_ROLES
-            : ROLE_OPTIONS.flatMap(({ options }) => options.map(({ id }) => id)),
+          assignableRoles: ROLE_GROUPS.filter(({ id }) => !user.isAdmin || id === 'SECRETARIAT').flatMap(
+            ({ roles }) => roles.map(({ id }) => id),
+          ),
           canDeactivate: args.status === 'ACTIVE',
-          canHoldAdminRight: PROMOTABLE_ROLES.includes(user.role),
-          canImpersonate: args.status === 'ACTIVE',
+          canHoldAdminRight: user.role.group === 'SECRETARIAT',
+          canImpersonate: args.status === 'ACTIVE' && user.role.group !== 'SECRETARIAT',
           canReactivate: args.status === 'DEACTIVATED',
+          canResetPassword: args.status === 'ACTIVE',
           deactivatedAt: args.status === 'DEACTIVATED' ? '2026-10-21T12:32:00.000Z' : null,
           statusChanges:
             args.status === 'DEACTIVATED'
@@ -90,10 +139,12 @@ const meta = {
                   { changedAt: '2026-10-21T12:32:00.000Z', status: 'DEACTIVATED' },
                   { changedAt: '2026-10-15T07:10:00.000Z', status: 'ACTIVE' },
                   { changedAt: '2026-10-14T16:05:00.000Z', status: 'DEACTIVATED' },
+                  { changedAt: '2026-09-01T08:00:00.000Z', status: 'ACTIVE' },
                 ]
               : [
                   { changedAt: '2026-10-15T07:10:00.000Z', status: 'ACTIVE' },
                   { changedAt: '2026-10-14T16:05:00.000Z', status: 'DEACTIVATED' },
+                  { changedAt: '2026-09-01T08:00:00.000Z', status: 'ACTIVE' },
                 ],
           status: args.status,
         });

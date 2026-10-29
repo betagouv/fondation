@@ -1,8 +1,10 @@
 import { useCurrentEditor, useEditorState } from '@tiptap/react';
+import { useIntl } from 'react-intl';
 
 import { EditorButton } from './EditorButton';
 
 export function UnderlineButton() {
+  const { formatMessage } = useIntl();
   const { editor } = useCurrentEditor();
   const disabled = useEditorState({
     editor,
@@ -20,7 +22,7 @@ export function UnderlineButton() {
       iconId="ri-underline"
       mark="underline"
       onClick={toggleUnderline}
-      title="Souligner"
+      title={formatMessage({ defaultMessage: 'Souligner' })}
     />
   );
 }

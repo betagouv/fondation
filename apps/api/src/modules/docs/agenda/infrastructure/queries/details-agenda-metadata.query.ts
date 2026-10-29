@@ -8,6 +8,7 @@ import { dateOnlyJsonSchema } from '../../../../../utils/date-only';
 import { DateOnly } from '../../../../../utils/date-only';
 import { isDefined } from '../../../../../utils/is-defined';
 import { Db } from '../../../../framework/database';
+import { canDiscardDraft, canValidateDocument } from '../../../shared/domain/document.policies';
 import {
   DRAFT_TRACE_SELECT,
   draftTrace,
@@ -32,20 +33,20 @@ export class DetailsAgendaMetadataQuery {
     const publishedId = await this.agendaVersionFinder.published({ agendaId: query.agendaId });
 
     const version = await this.db.tx.agendaVersion.findUnique({
-      where: { id: versionId },
       select: {
-        agendaId: true,
-        status: true,
-        outdated: true,
-        chairmanId: true,
-        date: true,
-        sessionMeetingDate: true,
-        isManuallyEdited: true,
-        createdBy: true,
-        updatedBy: true,
         ...DRAFT_TRACE_SELECT,
         _count: { select: { nominationFiles: { where: { htmlOutdated: true } } } },
+        agendaId: true,
+        chairmanId: true,
+        createdBy: true,
+        date: true,
+        isManuallyEdited: true,
+        outdated: true,
+        sessionMeetingDate: true,
+        status: true,
+        updatedBy: true,
       } satisfies Prisma.AgendaVersionSelect,
+      where: { id: versionId },
     });
 
     if (!version) throw new NotFoundException();
@@ -57,13 +58,18 @@ export class DetailsAgendaMetadataQuery {
         })
       : null;
 
+    const changesBy = draftChangesBy(version);
+    const hasValidatedVersion = isDefined(publishedId);
+
     return {
       id: version.agendaId,
       status: version.status,
       outdated: version.outdated,
       outdatedPropositions: version._count.nominationFiles,
-      hasValidatedVersion: isDefined(publishedId),
-      draftChangesBy: draftChangesBy(version),
+      hasValidatedVersion,
+      canDiscardDraft: canDiscardDraft({ changesBy, hasValidatedVersion }),
+      canValidate: canValidateDocument({ isValidated: version.status === 'VALIDATED' }),
+      draftChangesBy: changesBy,
       draft: draftTrace(version),
       validation: traceOf(published?.validatedAt, published?.validator),
       chairmanId: version.chairmanId,
@@ -82,8 +88,9 @@ export class DetailedAgendaMetadata extends createZodDto(
     outdated: z.boolean(),
     /** zero while the introduction or the conclusion is the one waiting */
     outdatedPropositions: z.number().int(),
-    /** a validated version remains underneath, so the draft can be discarded */
     hasValidatedVersion: z.boolean(),
+    canDiscardDraft: z.boolean(),
+    canValidate: z.boolean(),
     draftChangesBy: draftChangesBySchema,
     draft: draftTraceSchema,
     validation: traceSchema,

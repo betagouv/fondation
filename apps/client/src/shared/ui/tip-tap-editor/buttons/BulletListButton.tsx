@@ -1,8 +1,10 @@
 import { useCurrentEditor, useEditorState } from '@tiptap/react';
+import { useIntl } from 'react-intl';
 
 import { EditorButton } from './EditorButton';
 
 export function BulletListButton() {
+  const { formatMessage } = useIntl();
   const { editor } = useCurrentEditor();
   const disabled = useEditorState({
     editor,
@@ -20,7 +22,7 @@ export function BulletListButton() {
       iconId="fr-icon-list-unordered"
       mark="bulletList"
       onClick={toggleBulletList}
-      title="Liste à puces"
+      title={formatMessage({ defaultMessage: 'Liste à puces' })}
     />
   );
 }

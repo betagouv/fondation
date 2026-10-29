@@ -144,7 +144,7 @@ export class LolfiFilesIngestor {
       if (alerted.get(transparence.id) === reason) continue;
 
       const sent = await this.tchap.alert({
-        text: `${message}\n\n${this.frontendOriginUrl}/admin/jobs/${jobId}`,
+        text: `${message}\n\n${this.frontendOriginUrl}/admin/ingestions/${jobId}`,
         title: '🚨 Transparence LOLFI incomplète',
       });
 

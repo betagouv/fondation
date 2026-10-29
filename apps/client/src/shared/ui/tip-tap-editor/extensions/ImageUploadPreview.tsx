@@ -2,7 +2,7 @@ import { Node, NodeViewWrapper, ReactNodeViewRenderer, type ReactNodeViewProps }
 
 import { Pulse } from '@/shared/ui/loaders';
 
-import { makeEditorImageUploader, type FilesUploader } from './editor-file-uploader';
+import { makeEditorFilesUploader, type FilesUploader } from './editor-file-uploader';
 
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
@@ -15,7 +15,24 @@ declare module '@tiptap/core' {
 function ImageUploadNodeView(props: ReactNodeViewProps<HTMLImageElement>) {
   const { src, width, height } = props.node.attrs;
 
-  if (!src) return null;
+  if (!src) {
+    return (
+      <NodeViewWrapper>
+        <div
+          style={{
+            alignItems: 'center',
+            background: 'var(--background-alt-grey)',
+            display: 'flex',
+            height: 120,
+            justifyContent: 'center',
+            margin: '8px 0',
+          }}
+        >
+          <Pulse />
+        </div>
+      </NodeViewWrapper>
+    );
+  }
 
   return (
     <NodeViewWrapper>
@@ -87,7 +104,7 @@ export const ImageUploadPreview = (filesUploader: FilesUploader) =>
     },
 
     addCommands() {
-      const showFileUploading = makeEditorImageUploader(filesUploader);
+      const showFileUploading = makeEditorFilesUploader(filesUploader);
       return {
         uploadFiles:
           (options?: { files?: FileList | readonly File[] | null | undefined }) =>

@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   CallHandler,
+  ConflictException,
   ExecutionContext,
   Injectable,
   NestInterceptor,
@@ -8,7 +9,13 @@ import {
 } from '@nestjs/common';
 import { catchError, Observable, throwError } from 'rxjs';
 
-import { OfficialReportDocumentNotStored, OfficialReportFileNotHeld } from '../domain/official-report';
+import {
+  OfficialReportAlreadyValidated,
+  OfficialReportDocumentNotStored,
+  OfficialReportDraftChangedByTheApplication,
+  OfficialReportFileNotHeld,
+  OfficialReportWithoutValidatedVersion,
+} from '../domain/official-report';
 import { OfficialReportAgendaAlreadyReported } from '../domain/official-report-agenda';
 import {
   InvalidChairmanDuty,
@@ -66,6 +73,22 @@ export class OfficialReportsFilter implements NestInterceptor {
           if (err instanceof OfficialReportDocumentNotStored) {
             return new BadRequestException({
               validationError: `Le document n'a pas pu être enregistré, le PV n'est donc pas validé`,
+            });
+          }
+
+          if (err instanceof OfficialReportAlreadyValidated) {
+            return new ConflictException({ validationError: `Le PV est déjà validé` });
+          }
+
+          if (err instanceof OfficialReportDraftChangedByTheApplication) {
+            return new ConflictException({
+              validationError: `L'application a modifié ce brouillon entre-temps : il n'est plus possible de revenir à la version validée`,
+            });
+          }
+
+          if (err instanceof OfficialReportWithoutValidatedVersion) {
+            return new ConflictException({
+              validationError: `Ce document n'a jamais été validé : il n'y a pas de version à laquelle revenir`,
             });
           }
 

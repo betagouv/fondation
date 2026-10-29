@@ -18,9 +18,14 @@
     "enabled": true,
     "prConcurrentLimit": 1
   },
+  "lockFileMaintenance": {
+    "description": "On the first Sunday of the month, in the slot of the other updates",
+    "enabled": true,
+    "schedule": ["* 6-19 1-7 * 0"]
+  },
   "packageRules": [
     {
-      "description": "zod 4.5+ emits `type: [X, 'null']` for nullable fields, which nestjs-zod does not convert to OpenAPI 3.0 `nullable`",
+      "description": "zod 4.5+ emits `type: [X, 'null']` for nullable fields, which nestjs-zod 5.5 turns into `type: 'array'`, even in OpenAPI 3.1",
       "matchPackageNames": ["zod"],
       "allowedVersions": "<4.5.0"
     },

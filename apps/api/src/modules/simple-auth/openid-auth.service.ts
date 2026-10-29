@@ -30,7 +30,7 @@ export class OpenIdAuthService {
         createdAt,
         id: request.id,
         provider: request.provider,
-        challenge: challenge ? Uint8Array.from(challenge.toBuffer()) : undefined,
+        challenge: Uint8Array.from(challenge.toBuffer()),
         nonce: Uint8Array.from(nonce),
       },
     });

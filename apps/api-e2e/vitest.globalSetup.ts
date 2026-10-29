@@ -53,6 +53,10 @@ async function truncate() {
     truncate "jobs"."lolfi_transparence_anomaly" cascade;
 
     truncate "docs"."agenda" cascade;
+
+    -- truncating the users takes the help pages along, which the migration created once
+    insert into "nominations_context"."help_pages" ("content", "page", "updated_at")
+    values ('', 'MEMBRE', now()), ('', 'SECRETARIAT_GENERAL', now());
   `.simple();
 
   await sql.end();
