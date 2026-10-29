@@ -1,13 +1,13 @@
-import PasswordInput from '@codegouvfr/react-dsfr/blocks/PasswordInput';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Input from '@codegouvfr/react-dsfr/Input';
 import Select from '@codegouvfr/react-dsfr/Select';
 import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo, useState, type ReactNode, type SyntheticEvent } from 'react';
-import { FormattedMessage, useIntl } from 'react-intl';
+import { defineMessage, FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
 
+import { GeneratedPasswordInput } from '@/features/administration/components/GeneratedPasswordInput';
 import { useTitleTakenBackWarning } from '@/features/administration/hooks/useTitleTakenBackWarning';
 import { UserStatusBadge } from '@/shared/components/user-status-badge';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
@@ -16,8 +16,9 @@ import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { DetailsCard, DetailsHeader, DetailsPageLayout } from '@/shared/ui/details';
 import { IconButton, iconButtonClassName } from '@/shared/ui/icon-button';
 import { Tooltip } from '@/shared/ui/tooltip';
-import { isStrongPassword, passwordRuleStates } from '@/utils/password.utils';
+import { generatePassword } from '@/utils/password.utils';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import { capitalize } from '@/utils/string.utils';
 import { memberFullName } from '@/utils/user.utils';
 import type { DetailedAdminUserDto } from '@api/types';
 import {
@@ -30,6 +31,7 @@ import {
   useReactivateUserMutation,
   useUpdateUserDisplayTitleMutation,
   useUpdateUserEmailMutation,
+  useUpdateUserNameMutation,
   useUpdateUserPasswordMutation,
   useUpdateUserRoleMutation,
 } from '@queries/administration.queries';
@@ -51,7 +53,8 @@ function EmailField(props: { user: DetailedAdminUserDto }) {
     setEditing(true);
   }, [props, setEditing, setEmail]);
 
-  const handleSave = () => {
+  const handleSave = (event?: SyntheticEvent) => {
+    event?.preventDefault();
     const trimmed = email.trim();
     if (trimmed === props.user.email) {
       setEditing(false);
@@ -61,7 +64,7 @@ function EmailField(props: { user: DetailedAdminUserDto }) {
   };
 
   return (
-    <div>
+    <div className="md:col-span-2">
       <div className="fr-mb-2v flex justify-between">
         <dt className="font-bold">
           <FormattedMessage defaultMessage="Email" />
@@ -78,7 +81,13 @@ function EmailField(props: { user: DetailedAdminUserDto }) {
             >
               <FormattedMessage defaultMessage="Fermer" />
             </Button>
-            <Button disabled={isPending} onClick={handleSave} priority="primary" size="small" type="button">
+            <Button
+              disabled={isPending || !email.trim() || email.trim() === props.user.email}
+              onClick={handleSave}
+              priority="primary"
+              size="small"
+              type="button"
+            >
               <FormattedMessage defaultMessage="Ok" />
             </Button>
           </div>
@@ -120,6 +129,113 @@ function EmailField(props: { user: DetailedAdminUserDto }) {
   );
 }
 
+const NAME_PARTS = {
+  firstName: {
+    display: (value: string) => capitalize(value),
+    edit: defineMessage({ defaultMessage: 'Éditer le prénom' }),
+    label: defineMessage({ defaultMessage: 'Prénom' }),
+  },
+  lastName: {
+    display: (value: string) => value.toUpperCase(),
+    edit: defineMessage({ defaultMessage: 'Éditer le nom' }),
+    label: defineMessage({ defaultMessage: 'Nom' }),
+  },
+};
+
+function NameField(props: { part: keyof typeof NAME_PARTS; user: DetailedAdminUserDto }) {
+  const { formatMessage } = useIntl();
+  const part = NAME_PARTS[props.part];
+  const [isEditing, setEditing] = useState(false);
+  const [value, setValue] = useState(props.user[props.part]);
+  const { error, isPending, mutate } = useUpdateUserNameMutation(props.user.id);
+
+  const handleEdit = () => {
+    setValue(props.user[props.part]);
+    setEditing(true);
+  };
+
+  const handleSave = (event?: SyntheticEvent) => {
+    event?.preventDefault();
+    const trimmed = value.trim();
+    if (!trimmed) return;
+    if (trimmed === props.user[props.part]) {
+      setEditing(false);
+      return;
+    }
+    mutate(
+      { firstName: props.user.firstName, lastName: props.user.lastName, [props.part]: trimmed },
+      { onSuccess: () => setEditing(false) },
+    );
+  };
+
+  return (
+    <div>
+      <div className="fr-mb-2v flex justify-between">
+        <dt className="font-bold">
+          <FormattedMessage {...part.label} />
+        </dt>
+        {isEditing ? (
+          <div className="flex gap-1">
+            <Button
+              disabled={isPending}
+              iconId="fr-icon-close-line"
+              onClick={() => setEditing(false)}
+              priority="tertiary no outline"
+              size="small"
+              type="button"
+            >
+              <FormattedMessage defaultMessage="Fermer" />
+            </Button>
+            <Button
+              disabled={isPending || !value.trim() || value.trim() === props.user[props.part]}
+              onClick={handleSave}
+              priority="primary"
+              size="small"
+              type="button"
+            >
+              <FormattedMessage defaultMessage="Ok" />
+            </Button>
+          </div>
+        ) : (
+          <IconButton
+            disabled={isPending}
+            iconId="fr-icon-edit-fill"
+            label={formatMessage(part.edit)}
+            onClick={handleEdit}
+            small
+          />
+        )}
+      </div>
+      {isEditing ? (
+        <form onSubmit={handleSave}>
+          <Input
+            hideLabel
+            label={formatMessage(part.label)}
+            nativeInputProps={{
+              autoComplete: 'off',
+              autoFocus: true,
+              onChange: (e) => setValue(e.target.value),
+              value,
+            }}
+            state={!value.trim() || error ? 'error' : undefined}
+            stateRelatedMessage={
+              !value.trim()
+                ? formatMessage({ defaultMessage: 'Champ obligatoire' })
+                : error
+                  ? formatMessage({ defaultMessage: 'Erreur à la mise à jour du nom' })
+                  : undefined
+            }
+          />
+        </form>
+      ) : (
+        <dd className="fr-px-4v fr-py-2v rounded-sm border border-(--border-default-grey) bg-(--background-alt-grey)">
+          {part.display(props.user[props.part])}
+        </dd>
+      )}
+    </div>
+  );
+}
+
 function PasswordField(props: { user: DetailedAdminUserDto }) {
   const { formatMessage } = useIntl();
   const confirmation = useConfirmModal();
@@ -127,26 +243,17 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
   const [password, setPassword] = useState('');
   const { error, isPending, mutate: updatePassword, reset } = useUpdateUserPasswordMutation(props.user.id);
 
-  const [isSubmitted, setSubmitted] = useState(false);
-
-  const changeEdition = useCallback(
-    (edition: boolean) => {
-      setPassword('');
-      setSubmitted(false);
-      setEditing(edition);
-    },
-    [setEditing, setSubmitted],
-  );
+  const changeEdition = useCallback((edition: boolean) => {
+    setPassword(edition ? generatePassword() : '');
+    setEditing(edition);
+  }, []);
 
   const handleSave = useCallback(
     (e?: SyntheticEvent) => {
       e?.preventDefault();
 
-      setSubmitted(true);
-      const trimmed = password.trim();
-      if (!isStrongPassword(trimmed)) return;
       updatePassword(
-        { password: trimmed },
+        { password },
         {
           onSuccess: async () => {
             changeEdition(false);
@@ -205,7 +312,7 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
   );
 
   return (
-    <div>
+    <div className="md:col-span-2">
       <div className="fr-mb-2v flex justify-between">
         <dt className="font-bold">
           <FormattedMessage defaultMessage="Mot de passe" />
@@ -227,46 +334,27 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
             </Button>
           </div>
         ) : (
-          <IconButton
+          <Button
             disabled={isPending}
-            iconId="fr-icon-edit-fill"
-            label={formatMessage({ defaultMessage: 'Modifier le mot de passe' })}
+            iconId="fr-icon-refresh-line"
             onClick={() => changeEdition(true)}
-            small
-          />
+            priority="tertiary no outline"
+            size="small"
+            type="button"
+          >
+            <FormattedMessage defaultMessage="Réinitialiser" />
+          </Button>
         )}
       </div>
       {isEditing ? (
         <form onSubmit={handleSave}>
-          <PasswordInput
-            hideLabel
-            hintText={formatMessage({
-              defaultMessage: `Ce mot de passe est provisoire : invitez l'utilisateur à le changer depuis "Mon compte".`,
-            })}
-            label={formatMessage({ defaultMessage: 'Mot de passe' })}
-            messages={[
-              ...passwordRuleStates(password, isSubmitted).map((rule) => ({
-                ...rule,
-                message: formatMessage(rule.message),
-              })),
-              ...(error
-                ? [
-                    {
-                      message: formatMessage({ defaultMessage: 'Erreur à la mise à jour du mot de passe' }),
-                      severity: 'error' as const,
-                    },
-                  ]
-                : []),
-            ]}
-            messagesHint={formatMessage({ defaultMessage: 'Le mot de passe doit contenir :' })}
-            nativeInputProps={{
-              autoComplete: 'off',
-              autoFocus: true,
-              onChange: (event) => setPassword(event.target.value),
-              placeholder: formatMessage({ defaultMessage: 'Nouveau mot de passe...' }),
-              required: true,
-              value: password,
-            }}
+          <GeneratedPasswordInput
+            error={
+              error ? formatMessage({ defaultMessage: 'Erreur à la mise à jour du mot de passe' }) : undefined
+            }
+            label={formatMessage({ defaultMessage: 'Nouveau mot de passe' })}
+            onChange={setPassword}
+            password={password}
           />
         </form>
       ) : (
@@ -367,7 +455,7 @@ function RoleField(props: { user: DetailedAdminUserDto }) {
   }, [props.user.role.id, role, updateRole]);
 
   return (
-    <div>
+    <div className="md:col-span-2">
       <div className="fr-mb-2v flex justify-between">
         <dt className="font-bold">
           <FormattedMessage defaultMessage="Rôle" />
@@ -384,7 +472,13 @@ function RoleField(props: { user: DetailedAdminUserDto }) {
             >
               <FormattedMessage defaultMessage="Fermer" />
             </Button>
-            <Button disabled={isPending} onClick={handleSave} priority="primary" size="small" type="button">
+            <Button
+              disabled={isPending || role === props.user.role.id}
+              onClick={handleSave}
+              priority="primary"
+              size="small"
+              type="button"
+            >
               <FormattedMessage defaultMessage="Ok" />
             </Button>
           </div>
@@ -453,6 +547,8 @@ function DisplayTitleField(props: { user: DetailedAdminUserDto }) {
     setEditing(true);
   };
 
+  const isUnchanged = (displayTitle.trim() || null) === props.user.displayTitle;
+
   const handleSave = useCallback(
     (e: SyntheticEvent) => {
       e.preventDefault();
@@ -475,9 +571,27 @@ function DisplayTitleField(props: { user: DetailedAdminUserDto }) {
           <FormattedMessage defaultMessage="Titre" />
         </dt>
         {isEditing ? (
-          <Button disabled={isPending} onClick={handleSave} priority="primary" size="small">
-            <FormattedMessage defaultMessage="Ok" />
-          </Button>
+          <div className="flex gap-1">
+            <Button
+              disabled={isPending}
+              iconId="fr-icon-close-line"
+              onClick={() => setEditing(false)}
+              priority="tertiary no outline"
+              size="small"
+              type="button"
+            >
+              <FormattedMessage defaultMessage="Fermer" />
+            </Button>
+            <Button
+              disabled={isPending || isUnchanged}
+              onClick={handleSave}
+              priority="primary"
+              size="small"
+              type="button"
+            >
+              <FormattedMessage defaultMessage="Ok" />
+            </Button>
+          </div>
         ) : (
           <IconButton
             disabled={isPending}
@@ -533,7 +647,7 @@ function AccessCard(props: { user: DetailedAdminUserDto }) {
       content: (
         <p>
           <FormattedMessage
-            defaultMessage="<bold>{fullName}</bold> ne pourra plus se connecter à Fondation et sa session en cours sera fermée. Son nom reste sur les dossiers, rapports et documents existants."
+            defaultMessage="<bold>{fullName}</bold> ne pourra plus se connecter à Fondation et sa session en cours sera fermée. Son nom reste sur les dossiers, rapports et documents existants. Le compte pourra être réactivé à tout moment."
             values={{
               bold: (chunks) => <strong>{chunks}</strong>,
               fullName: memberFullName(props.user),
@@ -549,36 +663,10 @@ function AccessCard(props: { user: DetailedAdminUserDto }) {
   }, [confirmation, deactivate, formatMessage, props.user]);
 
   return (
-    <DetailsCard className="grow">
-      <div className="fr-mb-6v flex items-center justify-between gap-4">
-        <h2 className="fr-h4 fr-mb-0">
-          <FormattedMessage defaultMessage="Accès" />
-        </h2>
-        {props.user.canDeactivate && (
-          <Button
-            disabled={deactivate.isPending}
-            iconId="fr-icon-lock-line"
-            onClick={onDeactivate}
-            priority="secondary"
-            size="small"
-            type="button"
-          >
-            <FormattedMessage defaultMessage="Désactiver le compte" />
-          </Button>
-        )}
-        {props.user.canReactivate && (
-          <Button
-            disabled={reactivate.isPending}
-            iconId="fr-icon-lock-unlock-line"
-            onClick={() => reactivate.mutate()}
-            priority="secondary"
-            size="small"
-            type="button"
-          >
-            <FormattedMessage defaultMessage="Réactiver le compte" />
-          </Button>
-        )}
-      </div>
+    <DetailsCard className="flex grow flex-col">
+      <h2 className="fr-h4 fr-mb-6v">
+        <FormattedMessage defaultMessage="Accès" />
+      </h2>
       <div>
         <p className="fr-mb-2v font-bold">
           <FormattedMessage defaultMessage="Compte" />
@@ -600,6 +688,33 @@ function AccessCard(props: { user: DetailedAdminUserDto }) {
         </div>
       </div>
       <AdminUserPromotionToggle user={props.user} />
+      <div className="fr-pt-6v mt-auto flex justify-end">
+        {props.user.canDeactivate && (
+          <Button
+            className="text-(--text-default-error)!"
+            disabled={deactivate.isPending}
+            iconId="fr-icon-lock-line"
+            onClick={onDeactivate}
+            priority="tertiary"
+            size="small"
+            type="button"
+          >
+            <FormattedMessage defaultMessage="Désactiver le compte" />
+          </Button>
+        )}
+        {props.user.canReactivate && (
+          <Button
+            disabled={reactivate.isPending}
+            iconId="fr-icon-lock-unlock-line"
+            onClick={() => reactivate.mutate()}
+            priority="secondary"
+            size="small"
+            type="button"
+          >
+            <FormattedMessage defaultMessage="Réactiver le compte" />
+          </Button>
+        )}
+      </div>
     </DetailsCard>
   );
 }
@@ -734,7 +849,9 @@ function AdminLoadedUserDetail(props: { user: DetailedAdminUserDto }) {
         <h2 className="fr-h4">
           <FormattedMessage defaultMessage="Compte" />
         </h2>
-        <dl className="m-0 flex flex-col gap-y-6 p-0">
+        <dl className="m-0 grid gap-x-6 gap-y-6 p-0 md:grid-cols-2">
+          <NameField part="lastName" user={user} />
+          <NameField part="firstName" user={user} />
           <EmailField user={user} />
           <PasswordField user={user} />
           <RoleField user={user} />

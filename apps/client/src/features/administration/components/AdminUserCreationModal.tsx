@@ -1,4 +1,3 @@
-import PasswordInput from '@codegouvfr/react-dsfr/blocks/PasswordInput';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Input from '@codegouvfr/react-dsfr/Input';
 import RadioButtons from '@codegouvfr/react-dsfr/RadioButtons';
@@ -9,11 +8,20 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { useTitleTakenBackWarning } from '../hooks/useTitleTakenBackWarning';
 import { Modal } from '@/shared/ui/modal';
 import { RequiredLabel } from '@/shared/ui/required-label';
-import { isStrongPassword, passwordRuleStates } from '@/utils/password.utils';
+import { generatePassword } from '@/utils/password.utils';
 import type { CreateUserDto } from '@api/types';
 import { type AdminUserRoleEnum, useAdminUserRolesQuery } from '@queries/administration.queries';
 
+import { GeneratedPasswordInput } from './GeneratedPasswordInput';
+
 const NON_BLANK = '.*\\S.*';
+
+function toCompleteUser(user: Partial<CreateUserDto> & { password: string }): CreateUserDto | null {
+  const { email, firstName, gender, lastName, password, role } = user;
+  if (!email?.trim() || !firstName?.trim() || !gender || !lastName?.trim() || !role) return null;
+
+  return { email, firstName, gender, lastName, password, role };
+}
 
 export function AdminUserCreationModal(props: {
   emailError: string | null;
@@ -25,20 +33,17 @@ export function AdminUserCreationModal(props: {
   open: boolean;
 }) {
   const { formatMessage } = useIntl();
-  const [user, setUser] = useState<Partial<CreateUserDto>>({});
-  const [isSubmitted, setSubmitted] = useState(false);
+  const [user, setUser] = useState<Partial<CreateUserDto> & { password: string }>(() => ({
+    password: generatePassword(),
+  }));
   const formId = useId();
   const titleTakenBack = useTitleTakenBackWarning(user.role, { enabled: props.open });
   const { data: roleGroups } = useAdminUserRolesQuery(user.gender, { enabled: props.open });
+  const completeUser = toCompleteUser(user);
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    setSubmitted(true);
-    const { email, firstName, gender, lastName, password, role } = user;
-    if (!email || !firstName || !gender || !lastName || !password || !isStrongPassword(password) || !role)
-      return;
-
-    props.onSave({ email, firstName, gender, lastName, password, role });
+    if (completeUser) props.onSave(completeUser);
   };
 
   return (
@@ -53,17 +58,22 @@ export function AdminUserCreationModal(props: {
           <Button onClick={props.onClose} priority="secondary" type="button">
             <FormattedMessage defaultMessage="Annuler" />
           </Button>
-          <Button disabled={props.isSaving} nativeButtonProps={{ form: formId }} type="submit">
-            <FormattedMessage defaultMessage="Créer le compte" />
+          <Button
+            disabled={props.isSaving || !completeUser}
+            nativeButtonProps={{ form: formId }}
+            type="submit"
+          >
+            <FormattedMessage defaultMessage="Enregistrer" />
           </Button>
         </>
       }
       onClose={props.onClose}
       onClosed={props.onClosed}
       open={props.open}
-      title={formatMessage({ defaultMessage: 'Créer un compte' })}
+      size="large"
+      title={formatMessage({ defaultMessage: 'Ajouter un utilisateur' })}
     >
-      <form id={formId} onSubmit={submit}>
+      <form className="fr-mt-6v" id={formId} onSubmit={submit}>
         <RadioButtons
           legend={
             <RequiredLabel>
@@ -85,34 +95,36 @@ export function AdminUserCreationModal(props: {
           }))}
           orientation="horizontal"
         />
-        <Input
-          label={
-            <RequiredLabel>
-              <FormattedMessage defaultMessage="Prénom" />
-            </RequiredLabel>
-          }
-          nativeInputProps={{
-            autoComplete: 'off',
-            onChange: (event) => setUser((current) => ({ ...current, firstName: event.target.value })),
-            pattern: NON_BLANK,
-            required: true,
-            value: user.firstName ?? '',
-          }}
-        />
-        <Input
-          label={
-            <RequiredLabel>
-              <FormattedMessage defaultMessage="Nom" />
-            </RequiredLabel>
-          }
-          nativeInputProps={{
-            autoComplete: 'off',
-            onChange: (event) => setUser((current) => ({ ...current, lastName: event.target.value })),
-            pattern: NON_BLANK,
-            required: true,
-            value: user.lastName ?? '',
-          }}
-        />
+        <div className="grid gap-x-6 md:grid-cols-2">
+          <Input
+            label={
+              <RequiredLabel>
+                <FormattedMessage defaultMessage="Nom" />
+              </RequiredLabel>
+            }
+            nativeInputProps={{
+              autoComplete: 'off',
+              onChange: (event) => setUser((current) => ({ ...current, lastName: event.target.value })),
+              pattern: NON_BLANK,
+              required: true,
+              value: user.lastName ?? '',
+            }}
+          />
+          <Input
+            label={
+              <RequiredLabel>
+                <FormattedMessage defaultMessage="Prénom" />
+              </RequiredLabel>
+            }
+            nativeInputProps={{
+              autoComplete: 'off',
+              onChange: (event) => setUser((current) => ({ ...current, firstName: event.target.value })),
+              pattern: NON_BLANK,
+              required: true,
+              value: user.firstName ?? '',
+            }}
+          />
+        </div>
         <Input
           label={
             <RequiredLabel>
@@ -157,24 +169,10 @@ export function AdminUserCreationModal(props: {
             </optgroup>
           ))}
         </Select>
-        <PasswordInput
-          hintText={formatMessage({ defaultMessage: 'À transmettre hors de Fondation' })}
-          label={
-            <RequiredLabel>
-              <FormattedMessage defaultMessage="Mot de passe initial" />
-            </RequiredLabel>
-          }
-          messages={passwordRuleStates(user.password ?? '', isSubmitted).map((rule) => ({
-            ...rule,
-            message: formatMessage(rule.message),
-          }))}
-          messagesHint={formatMessage({ defaultMessage: 'Le mot de passe doit contenir :' })}
-          nativeInputProps={{
-            autoComplete: 'new-password',
-            onChange: (event) => setUser((current) => ({ ...current, password: event.target.value })),
-            required: true,
-            value: user.password ?? '',
-          }}
+        <GeneratedPasswordInput
+          label={formatMessage({ defaultMessage: 'Mot de passe initial' })}
+          onChange={(password) => setUser((current) => ({ ...current, password }))}
+          password={user.password}
         />
       </form>
     </Modal>

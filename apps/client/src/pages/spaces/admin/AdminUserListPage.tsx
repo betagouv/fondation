@@ -160,7 +160,7 @@ function CreateUserButton() {
         priority="secondary"
         size="small"
       >
-        <FormattedMessage defaultMessage="Créer un compte" />
+        <FormattedMessage defaultMessage="Ajouter un utilisateur" />
       </Button>
       {creation ? (
         <AdminUserCreationModal
