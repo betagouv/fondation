@@ -126,4 +126,18 @@ test.describe('Simple Auth E2E', () => {
     const revoked = await asImpersonated.auth.introspectSession();
     expect(revoked.response?.status).toBe(401);
   });
+
+  test('should describe the logged-in user by the role an admin gave them', async ({ admin, baseUrl, expect }) => {
+    const credentials = { email: `officer+${randomUUID()}@example.fr`, password: strongPassword() };
+    await admin.administration.createUser({
+      body: { ...credentials, firstName: 'Joséphine', gender: 'FEMALE', lastName: 'Pibault', role: 'OFFICER' },
+      throwOnError: true,
+    });
+    const { response } = await makeStepsFixtures({ baseUrl }).auth.login({ body: credentials, throwOnError: true });
+    const officer = makeStepsFixtures({ baseUrl, cookies: [cookieHeader(response)] });
+
+    const { data } = await officer.auth.introspectSession({ throwOnError: true });
+
+    expect(data.displayedRole).toEqual({ group: 'SECRETARIAT', id: 'OFFICER', label: 'Agente du pôle nomination' });
+  });
 });
