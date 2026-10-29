@@ -15,6 +15,7 @@ import {
   UserDisplayTitleUpdated,
   UserEmailUpdated,
   UserEvent,
+  UserNameUpdated,
   UserPasswordUpdated,
   UserPromotedToAdmin,
   UserReactivated,
@@ -120,6 +121,7 @@ export class UserRepository {
     for (const message of user.messages as UserEvent[]) {
       if (message instanceof UserRegistered) await this.persistUserRegistered(message);
       else if (message instanceof UserEmailUpdated) await this.persistEmailUpdated(message);
+      else if (message instanceof UserNameUpdated) await this.persistNameUpdated(message);
       else if (message instanceof UserPasswordUpdated) await this.persistPasswordUpdated(message);
       else if (message instanceof UserRoleUpdated) await this.persistRoleUpdated(message);
       else if (message instanceof UserDisplayTitleUpdated) await this.persistDisplayTitleUpdated(message);
@@ -175,6 +177,13 @@ export class UserRepository {
   private persistEmailUpdated(message: UserEmailUpdated) {
     return this.db.tx.user.update({
       data: { email: message.email },
+      where: { id: message.userId },
+    });
+  }
+
+  private persistNameUpdated(message: UserNameUpdated) {
+    return this.db.tx.user.update({
+      data: { firstName: message.firstName, lastName: message.lastName },
       where: { id: message.userId },
     });
   }

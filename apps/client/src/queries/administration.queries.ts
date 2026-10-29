@@ -17,6 +17,7 @@ import type {
 } from '@api/types';
 
 import { docsKeys, officialReportKeys } from './agenda.queries';
+import { sessionQueryOptions } from './auth.queries';
 import { memberKeys } from './members.queries';
 
 export type AdminUserRoleEnum = CreateUserDto['role'];
@@ -134,6 +135,21 @@ function updateUser(queryClient: QueryClient, userId: string, patch: Partial<Det
   queryClient.setQueryData(adminKeys.user(userId), (data: DetailedAdminUserDto | undefined) =>
     data ? { ...data, ...patch } : data,
   );
+}
+
+export function useUpdateUserNameMutation(userId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: { firstName?: string; lastName?: string }) =>
+      $api.administration.updateName({ body, path: { userId } }),
+    onSuccess: (_, body) => {
+      updateUser(queryClient, userId, body);
+      invalidateUserAccess(queryClient);
+      if (queryClient.getQueryData(sessionQueryOptions.queryKey)?.id === userId) {
+        queryClient.invalidateQueries({ queryKey: sessionQueryOptions.queryKey });
+      }
+    },
+  });
 }
 
 export function useUpdateUserEmailMutation(userId: string) {

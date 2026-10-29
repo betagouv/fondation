@@ -59,9 +59,30 @@ export function MemberDisplayTitle(props: { member: { displayTitle: string | nul
         </dt>
 
         {isEditing ? (
-          <Button disabled={isUpdating} onClick={toggleEdition} priority="primary" size="small">
-            <FormattedMessage defaultMessage="Ok" />
-          </Button>
+          <div className="flex gap-1">
+            <Button
+              disabled={isUpdating}
+              iconId="fr-icon-close-line"
+              onClick={() => {
+                setDisplayTitle(props.member.displayTitle ?? '');
+                setEditing(false);
+              }}
+              priority="tertiary no outline"
+              size="small"
+              type="button"
+            >
+              <FormattedMessage defaultMessage="Fermer" />
+            </Button>
+            <Button
+              disabled={isUpdating || displayTitle.trim() === (props.member.displayTitle ?? '')}
+              onClick={toggleEdition}
+              priority="primary"
+              size="small"
+              type="button"
+            >
+              <FormattedMessage defaultMessage="Ok" />
+            </Button>
+          </div>
         ) : (
           <IconButton
             disabled={isUpdating}

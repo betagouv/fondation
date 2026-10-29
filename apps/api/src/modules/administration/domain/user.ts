@@ -53,6 +53,14 @@ export class UserEmailUpdated {
   ) {}
 }
 
+export class UserNameUpdated {
+  constructor(
+    readonly userId: string,
+    readonly firstName: string | undefined,
+    readonly lastName: string | undefined,
+  ) {}
+}
+
 export class UserPasswordUpdated {
   constructor(
     readonly userId: string,
@@ -117,6 +125,7 @@ export class UserReactivated {
 export type UserEvent =
   | UserRegistered
   | UserEmailUpdated
+  | UserNameUpdated
   | UserPasswordUpdated
   | UserRoleUpdated
   | UsersUntitled
@@ -129,6 +138,7 @@ export type UserEvent =
 export class CantPromoteMemberToAdmin extends Error {}
 export class CantGiveAdminAMemberRole extends Error {}
 export class CantDeactivateOwnAccount extends Error {}
+export class CantResetPasswordOfDeactivatedAccount extends Error {}
 export class EmailAlreadyTaken extends Error {}
 
 export class User {
@@ -194,6 +204,10 @@ export class User {
     return this.status === 'DEACTIVATED';
   }
 
+  canResetPassword(): boolean {
+    return this.status === 'ACTIVE';
+  }
+
   /** the admin right belongs to the general secretariat, so an admin keeps one of its roles */
   canHoldAdminRight(): boolean {
     return isSecretariat(this.role.role);
@@ -213,7 +227,13 @@ export class User {
     this.#messages.push(new UserEmailUpdated(this.id, command.email));
   }
 
+  updateName(command: { firstName?: string; lastName?: string }): void {
+    this.#messages.push(new UserNameUpdated(this.id, command.firstName, command.lastName));
+  }
+
   updatePassword(hashedPassword: string): void {
+    if (!this.canResetPassword()) throw new CantResetPasswordOfDeactivatedAccount();
+
     this.#messages.push(new UserPasswordUpdated(this.id, hashedPassword));
   }
 

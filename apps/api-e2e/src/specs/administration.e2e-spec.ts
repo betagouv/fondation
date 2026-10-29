@@ -35,6 +35,24 @@ test.describe('Administration', () => {
     expect(details.data!.email).toBe(credentials.email);
   });
 
+  test('should show a user under the last name an admin corrected, keeping their first name', async ({
+    admin,
+    expect,
+    registerUser,
+  }) => {
+    const user = await registerUser('MEMBRE_COMMUN');
+    const { data: before } = await admin.administration.detailsUser({ path: { userId: user.id }, throwOnError: true });
+
+    await admin.administration.updateName({
+      body: { lastName: ' Pibault-Laurent ' },
+      path: { userId: user.id },
+      throwOnError: true,
+    });
+
+    const { data } = await admin.administration.detailsUser({ path: { userId: user.id }, throwOnError: true });
+    expect(data).toMatchObject({ firstName: before.firstName, lastName: 'Pibault-Laurent' });
+  });
+
   test('should let an account an admin created log in with its initial password, listed under the role it was given', async ({
     admin,
     baseUrl,
@@ -249,7 +267,7 @@ test.describe('Administration', () => {
   });
 
   test.describe('Given a deactivated member', () => {
-    test('should detail the account with its status changes since its creation, the latest first', async ({
+    test('should detail the account with its status changes since its creation, the latest first, and no password reset', async ({
       admin,
       expect,
       registerUser,
@@ -270,6 +288,7 @@ test.describe('Administration', () => {
         'ACTIVE',
       ]);
       expect(data.deactivatedAt).toBe(data.statusChanges[0]!.changedAt);
+      expect(data.canResetPassword).toBe(false);
     });
 
     test('should refuse the login of the member', async ({ admin, baseUrl, expect, registerUser }) => {

@@ -59,7 +59,7 @@ test.describe('Members E2E', () => {
       ]);
     });
 
-    test('lists members with their excluded jurisdictions', async ({ agent, expect }) => {
+    test('lists members with their formation and excluded jurisdictions', async ({ agent, expect }) => {
       await agent.members.excludeJurisdictions({ path: { userId: memberId }, body: { jurisdictionIds } });
 
       const members = await agent.members.listMembers({
@@ -69,6 +69,7 @@ test.describe('Members E2E', () => {
 
       const member = members.data?.items.find(({ id }) => id === memberId);
       expect(member?.excludedJurisdictions).toEqual([expect.objectContaining({ id: expect.stringMatching(/LYON/i) })]);
+      expect(member?.formation).toEqual({ id: 'COMMUN', label: 'Commun' });
     });
   });
 

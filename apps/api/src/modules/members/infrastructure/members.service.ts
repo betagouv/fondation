@@ -7,6 +7,7 @@ import { UserStatus } from '../../shared/user-status.enum';
 
 import { ExcludedJurisdictionsFinder } from './finders/excluded-jurisdictions.finder';
 import { MemberRepository } from './member-repository';
+import { MemberFormation } from './member.utils';
 import { DetailedMemberDto, DetailsMemberQuery } from './queries/details-member.query';
 import {
   InternalFindMembersByFormationQuery,
@@ -32,7 +33,7 @@ export class MembersService {
 
   listMembers(query: {
     pagination: Pagination;
-    formations: ('SIEGE' | 'PARQUET' | 'COMMUN')[] | undefined;
+    formations: MemberFormation[] | undefined;
     search: string | undefined;
     sortBy: 'firstName' | 'lastName' | undefined;
     sortDirection: 'asc' | 'desc' | undefined;

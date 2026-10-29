@@ -36,6 +36,7 @@ describe('isAuthorized', () => {
 describe('roleGuard', () => {
   const member = {
     civility: 'Madame LOVELACE',
+    displayedRole: { group: 'MEMBER' as const, id: 'MEMBRE_SIEGE' as const, label: 'Membre du siège' },
     email: 'ada.lovelace@justice.fr',
     firstName: 'Ada',
     formation: 'SIEGE' as const,

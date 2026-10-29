@@ -4,6 +4,7 @@ import {
   CantDeactivateOwnAccount,
   CantGiveAdminAMemberRole,
   CantPromoteMemberToAdmin,
+  CantResetPasswordOfDeactivatedAccount,
   EmailAlreadyTaken,
   User,
   UserDeactivated,
@@ -261,6 +262,13 @@ describe('User', () => {
       user.reactivate({ actorId: 'admin-1', now });
 
       expect(user.messages).toEqual([]);
+    });
+
+    it('should refuse to reset the password of a deactivated user', () => {
+      const user = User.from({ ...baseProps, status: 'DEACTIVATED' });
+
+      expect(() => user.updatePassword('hashed')).toThrow(CantResetPasswordOfDeactivatedAccount);
+      expect(user.canResetPassword()).toBe(false);
     });
   });
 });

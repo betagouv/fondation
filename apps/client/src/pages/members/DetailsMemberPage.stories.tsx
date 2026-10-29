@@ -16,10 +16,10 @@ const MEMBER: DetailedMemberDto = {
     { id: 'TJ  VILLEFRANCHE SUR SAONE', label: 'Tribunal judiciaire de Villefranche-sur-Saône' },
   ],
   firstName: 'Hélène',
+  formation: { id: 'SIEGE', label: 'Siège' },
   gender: 'FEMALE',
   id: 'member-2',
   lastName: 'Garnier',
-  role: 'MEMBRE_DU_SIEGE',
   stats: [
     { count: 4, targetedGrade: 'I', year: 2026 },
     { count: 7, targetedGrade: 'HH', year: 2026 },
