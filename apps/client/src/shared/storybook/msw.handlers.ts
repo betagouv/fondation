@@ -16,6 +16,7 @@ const noContent = () => new HttpResponse(null, { status: 204 });
 const FILE_URL = 'about:blank';
 
 const STORY_USER: DetailedUserResponseDto = {
+  displayedRole: { group: 'MEMBER', id: 'MEMBRE_COMMUN', label: 'Membre commun' },
   displayTitle: null,
   duty: null,
   email: 'nadia.lemoine@justice.fr',
@@ -33,6 +34,7 @@ const STORY_USER: DetailedUserResponseDto = {
 
 const STORY_SG_USER: DetailedUserResponseDto = {
   ...STORY_USER,
+  displayedRole: { group: 'SECRETARIAT', id: 'SECRETARY', label: 'Secrétaire générale adjointe' },
   email: 'claire.mercier@justice.fr',
   firstName: 'Claire',
   lastName: 'Mercier',

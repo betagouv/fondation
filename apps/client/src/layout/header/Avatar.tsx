@@ -3,7 +3,6 @@ import type { FC } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { useNavigate } from 'react-router';
 
-import { RoleEnumMessages } from '@/shared/enums/role.enum';
 import { MenuContent, MenuItem, MenuRoot, MenuTrigger } from '@/shared/ui/menu';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { memberFullName, toInitials } from '@/utils/user.utils';
@@ -28,11 +27,7 @@ export const Avatar: FC = () => {
   return (
     <>
       <Badge className="fr-mx-2v fr-mt-0 fr-ml-3v self-center" noIcon small>
-        {user.isAdmin ? (
-          <FormattedMessage defaultMessage="Administrateur" />
-        ) : (
-          <FormattedMessage {...RoleEnumMessages[user.role]} />
-        )}
+        {user.isAdmin ? <FormattedMessage defaultMessage="Administrateur" /> : user.displayedRole.label}
       </Badge>
       <MenuRoot>
         <MenuTrigger
