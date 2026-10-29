@@ -16,6 +16,11 @@ export type DetailedUserResponseDto = {
     lastName: string;
     email: string;
     role: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL';
+    displayedRole: {
+        id: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+        label: string;
+        group: 'PRESIDENCY' | 'MEMBER' | 'SECRETARIAT';
+    };
     formation: 'SIEGE' | 'PARQUET' | null;
     gender: 'MALE' | 'FEMALE';
     isImpersonated: boolean;
@@ -913,7 +918,10 @@ export type PaginatedMemberListItemDto = {
         id: string;
         firstName: string;
         lastName: string;
-        role: 'MEMBRE_COMMUN' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_DU_SIEGE';
+        formation: {
+            id: 'COMMUN' | 'PARQUET' | 'SIEGE';
+            label: string;
+        };
         excludedJurisdictions: Array<{
             id: string;
             label: string | null;
@@ -935,7 +943,10 @@ export type DetailedMemberDto = {
     email: string;
     firstName: string;
     lastName: string;
-    role: 'MEMBRE_COMMUN' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_DU_SIEGE';
+    formation: {
+        id: 'COMMUN' | 'PARQUET' | 'SIEGE';
+        label: string;
+    };
     gender: string;
     displayTitle: string | null;
     excludedJurisdictions: Array<{
@@ -2420,6 +2431,11 @@ export type ListedTitleHoldersDto = {
             label: string;
         };
     }>;
+};
+
+export type UpdateUserNameDto = {
+    firstName: string;
+    lastName: string;
 };
 
 export type UpdateUserEmailDto = {
@@ -5154,6 +5170,21 @@ export type ListTitleHoldersResponses = {
 };
 
 export type ListTitleHoldersResponse = ListTitleHoldersResponses[keyof ListTitleHoldersResponses];
+
+export type UpdateNameData = {
+    body: UpdateUserNameDto;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/administration/v1/users/{userId}/name';
+};
+
+export type UpdateNameResponses = {
+    204: void;
+};
+
+export type UpdateNameResponse = UpdateNameResponses[keyof UpdateNameResponses];
 
 export type UpdateEmailData = {
     body: UpdateUserEmailDto;
