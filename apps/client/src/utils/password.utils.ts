@@ -45,7 +45,11 @@ const PASSWORD_ALPHABETS = [
 ] as const;
 
 function randomIndex(length: number): number {
-  return crypto.getRandomValues(new Uint32Array(1))[0]! % length;
+  const unbiasedLimit = 2 ** 32 - (2 ** 32 % length);
+  const value = new Uint32Array(1);
+  do crypto.getRandomValues(value);
+  while (value[0]! >= unbiasedLimit);
+  return value[0]! % length;
 }
 
 function randomCharacter(alphabet: string): string {

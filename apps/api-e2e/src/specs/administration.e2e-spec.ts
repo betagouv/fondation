@@ -267,7 +267,7 @@ test.describe('Administration', () => {
   });
 
   test.describe('Given a deactivated member', () => {
-    test('should detail the account with its status changes since its creation, the latest first', async ({
+    test('should detail the account with its status changes since its creation, the latest first, and no password reset', async ({
       admin,
       expect,
       registerUser,
@@ -288,6 +288,7 @@ test.describe('Administration', () => {
         'ACTIVE',
       ]);
       expect(data.deactivatedAt).toBe(data.statusChanges[0]!.changedAt);
+      expect(data.canResetPassword).toBe(false);
     });
 
     test('should refuse the login of the member', async ({ admin, baseUrl, expect, registerUser }) => {
