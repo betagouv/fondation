@@ -42,7 +42,8 @@ export const MenuBar = (props: { end?: ReactNode; features: EditorFeatures }) =>
           <>
             <LinkButton />
             <HorizontalRuleButton />
-            <CalloutButton />
+            <CalloutButton kind="tip" />
+            <CalloutButton kind="warning" />
             <InsertTableButton />
             <TableRowAndColumnButtons />
           </>

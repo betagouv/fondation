@@ -73,7 +73,7 @@ describe('sanitizeRichTextHtml', () => {
     const written =
       `<h2 data-id="a1b2-c3">Profils</h2><p><a href="https://lolfi.justice.fr/">LOLFI</a>, <a href="mailto:csm@justice.fr">le CSM</a> et <a href="#a1b2-c3">plus haut</a></p>` +
       `<hr><table><tbody><tr><th colspan="2">Profil</th></tr><tr><td>Siège</td><td rowspan="1">Parquet</td></tr></tbody></table>` +
-      `<aside><p>À savoir</p></aside>`;
+      `<aside data-kind="warning"><p>Attention</p></aside>`;
 
     expect(sanitizeRichPageHtml(written)).toBe(written);
   });
@@ -92,7 +92,7 @@ describe('sanitizeRichTextHtml', () => {
   it('keeps of a link only an address on the web or a section of the page', () => {
     expect(
       sanitizeRichPageHtml(
-        `<a href="javascript:alert(1)">a</a><a href="tel:0102030405">t</a><a href="#top" target="_blank">b</a><h2 data-id="x y">c</h2><aside class="x">d</aside>`,
+        `<a href="javascript:alert(1)">a</a><a href="tel:0102030405">t</a><a href="#top" target="_blank">b</a><h2 data-id="x y">c</h2><aside class="x" data-kind="danger">d</aside>`,
       ),
     ).toBe('<a>a</a><a>t</a><a href="#top">b</a><h2>c</h2><aside>d</aside>');
   });
