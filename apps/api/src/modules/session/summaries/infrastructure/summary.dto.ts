@@ -13,7 +13,7 @@ export class CreatedSummaryDto extends createZodDto(
 
 export class AttachSummaryFilesDto extends createZodDto(
   z.object({
-    files: z.array(z.file().max(5 * 1_024 * 1_024)).nonempty(),
+    files: z.array(z.file()).nonempty(),
   }),
 ) {}
 

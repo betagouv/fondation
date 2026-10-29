@@ -7,6 +7,7 @@ import { useToasts } from '@/shared/ui/toast';
 const TITLES = defineMessages({
   download: { defaultMessage: 'Le téléchargement de "{name}" a échoué' },
   open: { defaultMessage: 'L\'ouverture de "{name}" a échoué' },
+  upload: { defaultMessage: 'L\'ajout de "{name}" a échoué' },
 });
 
 const REASONS = defineMessages({
