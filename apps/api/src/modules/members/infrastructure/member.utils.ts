@@ -23,7 +23,6 @@ export function memberFormationOf(role: MemberRole): z.infer<typeof MemberFormat
   return MEMBER_FORMATION_BY_ROLE[role];
 }
 
-/** no formation asked means every member */
 export function memberRolesOf(formations: readonly MemberFormation[]): MemberRole[] {
   return MEMBER_ROLES.filter(
     (role) => formations.length === 0 || formations.includes(MEMBER_FORMATION_BY_ROLE[role].id),

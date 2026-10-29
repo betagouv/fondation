@@ -36,7 +36,7 @@ export function passwordRuleStates(password: string, isSubmitted: boolean) {
   }));
 }
 
-// no 0/O, 1/l/I: the password is read out to the person it was made for
+// the password is read out to the person, so no character is mistaken for another
 const PASSWORD_ALPHABETS = [
   'ABCDEFGHJKLMNPQRSTUVWXYZ',
   'abcdefghijkmnopqrstuvwxyz',
