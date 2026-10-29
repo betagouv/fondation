@@ -94,7 +94,7 @@ describe('magistrat helpers', () => {
       administrativePositionId | expected
       ${'D47-2'}               | ${'magistrat placé en position de disponibilité'}
       ${'CPR'}                 | ${'magistrat placé en position de congé parental'}
-      ${'DETJUD'}              | ${'magistrat placé en position de détachement'}
+      ${'DETJUD'}              | ${'sans affectation'}
       ${'PT'}                  | ${'sans affectation'}
     `(
       'should place a magistrat without affectation in the administrative position "$administrativePositionId"',
@@ -188,6 +188,27 @@ describe('magistrat helpers', () => {
 
       expect(got).toBe(
         'procureur de la République anti-criminalité organisée adjoint près le tribunal judiciaire de Paris',
+      );
+    });
+
+    it('should name the vice-président of a section as the CSM does', () => {
+      const got = buildPosition({
+        civility: 'MME',
+        position: {
+          arrondissement: null,
+          function: {
+            addition: null,
+            id: 'VPSEC',
+            label: 'Vice-Président chargé du service de la section',
+            labelOneFemale: null,
+            labelOneMale: null,
+          },
+          jurisdiction: { id: 'TJ  AGEN', label: "Tribunal judiciaire d'Agen" },
+        },
+      });
+
+      expect(got).toBe(
+        "vice-présidente chargée de la présidence d'une section détachée au tribunal judiciaire d'Agen",
       );
     });
 

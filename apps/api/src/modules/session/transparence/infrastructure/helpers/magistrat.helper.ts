@@ -15,12 +15,17 @@ const PLACEMENTS = new Map([
   ['D4B', 'disponibilité'],
   ['D7D', 'disponibilité'],
   ['DET', 'détachement'],
-  ['DETJUD', 'détachement'],
   ['DI3', 'disponibilité'],
   ['DI6', 'disponibilité'],
 ]);
 
 const NATIONAL_PROSECUTOR_OFFICES = new Set(['PNA PARIS', 'PNACPARIS', 'PNF PARIS']);
+
+// LOLFI names it "chargé du service de la section", which the CSM never writes
+const DETACHED_SECTION_PRESIDENCY = {
+  female: "vice-présidente chargée de la présidence d'une section détachée",
+  male: "vice-président chargé de la présidence d'une section détachée",
+};
 
 export function buildPosition(options: {
   civility: Civility;
@@ -53,6 +58,10 @@ export function buildPosition(options: {
     position.jurisdiction.id === 'CC  PARIS'
       ? position.jurisdiction.label
       : position.jurisdiction.label[0]!.toLowerCase() + position.jurisdiction.label.slice(1);
+
+  if (position.function.id === 'VPSEC') {
+    return `${DETACHED_SECTION_PRESIDENCY[civility === 'M.' ? 'male' : 'female']} au ${codejur}`;
+  }
 
   // LOLFI keeps "des fonctions" for the premier vice-président only, not for the vice-président
   const gendered = (
