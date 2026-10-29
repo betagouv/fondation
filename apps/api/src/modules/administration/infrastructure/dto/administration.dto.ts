@@ -96,6 +96,10 @@ export class UpdateUserEmailDto extends createZodDto(
   z.object({ email: z.string().trim().toLowerCase().pipe(z.email()) }),
 ) {}
 
+export class UpdateUserNameDto extends createZodDto(
+  z.object({ firstName: z.string().trim().nonempty(), lastName: z.string().trim().nonempty() }),
+) {}
+
 export class UpdateUserPasswordDto extends createZodDto(z.object({ password: PasswordSchema })) {}
 
 export class UpdateUserRoleDto extends createZodDto(z.object({ role: z.enum(ADMIN_USER_ROLES_ENUM) })) {}

@@ -28,6 +28,7 @@ import {
   ListUsersQueryDto,
   UpdateUserDisplayTitleDto,
   UpdateUserEmailDto,
+  UpdateUserNameDto,
   UpdateUserPasswordDto,
   UpdateUserRoleDto,
 } from './dto/administration.dto';
@@ -89,6 +90,17 @@ export class AdministrationController {
   @ZodResponse({ status: HttpStatus.OK, type: ListedTitleHoldersDto })
   listTitleHolders(): Promise<ListedTitleHoldersDto> {
     return this.administration.listTitleHolders();
+  }
+
+  @HasRole('ADMIN')
+  @Put('/users/:userId/name')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UsePipes(ZodValidationPipe)
+  updateName(
+    @Param('userId', ParseUUIDPipe) userId: string,
+    @Body() { firstName, lastName }: UpdateUserNameDto,
+  ): Promise<void> {
+    return this.administration.updateName({ firstName, lastName, userId });
   }
 
   @HasRole('ADMIN')

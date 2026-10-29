@@ -53,6 +53,14 @@ export class UserEmailUpdated {
   ) {}
 }
 
+export class UserNameUpdated {
+  constructor(
+    readonly userId: string,
+    readonly firstName: string,
+    readonly lastName: string,
+  ) {}
+}
+
 export class UserPasswordUpdated {
   constructor(
     readonly userId: string,
@@ -117,6 +125,7 @@ export class UserReactivated {
 export type UserEvent =
   | UserRegistered
   | UserEmailUpdated
+  | UserNameUpdated
   | UserPasswordUpdated
   | UserRoleUpdated
   | UsersUntitled
@@ -211,6 +220,10 @@ export class User {
     User.assertEmailFree(command.isTakenByAnotherUser);
 
     this.#messages.push(new UserEmailUpdated(this.id, command.email));
+  }
+
+  updateName(command: { firstName: string; lastName: string }): void {
+    this.#messages.push(new UserNameUpdated(this.id, command.firstName, command.lastName));
   }
 
   updatePassword(hashedPassword: string): void {
