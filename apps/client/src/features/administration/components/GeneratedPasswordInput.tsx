@@ -1,6 +1,6 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Input from '@codegouvfr/react-dsfr/Input';
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { FormattedMessage } from 'react-intl';
 
 import { generatePassword } from '@/utils/password.utils';
@@ -13,13 +13,14 @@ export function GeneratedPasswordInput(props: {
   password: string;
 }) {
   const [isCopied, setCopied] = useState(false);
+  const inputId = useId();
 
   return (
     <>
       <Input
         hintText={<span className="fr-mt-2v block">{props.hint}</span>}
         label={props.label}
-        nativeInputProps={{ className: 'font-mono', readOnly: true, value: props.password }}
+        nativeInputProps={{ className: 'font-mono', id: inputId, readOnly: true, value: props.password }}
         state={props.error ? 'error' : undefined}
         stateRelatedMessage={props.error}
       />
@@ -27,8 +28,13 @@ export function GeneratedPasswordInput(props: {
         <Button
           iconId={isCopied ? 'fr-icon-check-line' : 'fr-icon-clipboard-line'}
           onClick={async () => {
-            await navigator.clipboard.writeText(props.password);
-            setCopied(true);
+            try {
+              await navigator.clipboard.writeText(props.password);
+              setCopied(true);
+            } catch {
+              // the browser refuses the clipboard outside a secure context: the text is selected for a manual copy
+              (document.getElementById(inputId) as HTMLInputElement | null)?.select();
+            }
           }}
           priority="tertiary"
           size="small"

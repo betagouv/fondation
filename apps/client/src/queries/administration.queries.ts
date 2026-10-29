@@ -17,7 +17,7 @@ import type {
 } from '@api/types';
 
 import { docsKeys, officialReportKeys } from './agenda.queries';
-import { authKeys } from './auth.queries';
+import { sessionQueryOptions } from './auth.queries';
 import { memberKeys } from './members.queries';
 
 export type AdminUserRoleEnum = CreateUserDto['role'];
@@ -145,7 +145,9 @@ export function useUpdateUserNameMutation(userId: string) {
     onSuccess: (_, body) => {
       updateUser(queryClient, userId, body);
       invalidateUserAccess(queryClient);
-      queryClient.invalidateQueries({ queryKey: authKeys.introspectSession() });
+      if (queryClient.getQueryData(sessionQueryOptions.queryKey)?.id === userId) {
+        queryClient.invalidateQueries({ queryKey: sessionQueryOptions.queryKey });
+      }
     },
   });
 }
