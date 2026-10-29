@@ -207,6 +207,31 @@ test.describe('Auditions E2E', () => {
     );
   });
 
+  test('should show the members an audition to schedule until its date is published', async ({
+    agent,
+    expect,
+    member,
+    sessions,
+  }) => {
+    const siege = await sessions.createOne(SIEGE_SESSION);
+    const path = { nominationFileId: siege.files[0]!.id, sessionId: siege.id };
+    const listMemberAuditions = () =>
+      api.sessions
+        .listSessionAuditions({ client: member['@client'], path: { sessionId: siege.id }, throwOnError: true })
+        .then(({ data }) => data!.items.map(({ audition }) => audition));
+
+    await agent.sessions.updateNominationFileAuditionRequest({ body: { requested: true }, path, throwOnError: true });
+    await agent.sessions.updateNominationFileAuditionDate({
+      body: { auditionDate: { day: 12, month: 12, year: 2028 }, auditionTime: { hours: 9, minutes: 30 } },
+      path,
+      throwOnError: true,
+    });
+    expect(await listMemberAuditions()).toEqual([null]);
+
+    await agent.sessions.publishSessionAuditions({ path: { sessionId: siege.id }, throwOnError: true });
+    expect(await listMemberAuditions()).toMatchObject([{ time: { hours: 9, minutes: 30 } }]);
+  });
+
   test('should give the latest saved phone number of a magistrat, else the LOLFI one', async ({
     agent,
     expect,

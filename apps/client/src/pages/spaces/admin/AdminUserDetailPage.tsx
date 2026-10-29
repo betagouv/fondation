@@ -356,7 +356,7 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
               error ? formatMessage({ defaultMessage: 'Erreur à la mise à jour du mot de passe' }) : undefined
             }
             hint={formatMessage({
-              defaultMessage: `La personne sera déconnectée de toutes ses sessions. Le mot de passe provisoire est à lui communiquer. Elle devra ensuite le modifier depuis "Mon compte"`,
+              defaultMessage: `Transmettez ce mot de passe provisoire à la personne. Elle sera déconnectée sur tous ses appareils. À sa prochaine connexion, elle devra le remplacer depuis "Mon compte"`,
             })}
             label={formatMessage({ defaultMessage: 'Nouveau mot de passe' })}
             onChange={setPassword}
@@ -500,13 +500,6 @@ function RoleField(props: { user: DetailedAdminUserDto }) {
       </div>
       {isEditing ? (
         <Select
-          label=""
-          nativeSelectProps={{
-            'aria-label': intl.formatMessage({ defaultMessage: 'Rôle' }),
-            autoFocus: true,
-            onChange: (e) => setRole(e.target.value as AdminUserRoleEnum),
-            value: role,
-          }}
           hint={
             props.user.isAdmin
               ? intl.formatMessage({
@@ -514,6 +507,13 @@ function RoleField(props: { user: DetailedAdminUserDto }) {
                 })
               : undefined
           }
+          label=""
+          nativeSelectProps={{
+            'aria-label': intl.formatMessage({ defaultMessage: 'Rôle' }),
+            autoFocus: true,
+            onChange: (e) => setRole(e.target.value as AdminUserRoleEnum),
+            value: role,
+          }}
           state={error ? 'error' : titleTakenBack ? 'info' : undefined}
           stateRelatedMessage={
             error ? intl.formatMessage({ defaultMessage: 'Erreur à la mise à jour du rôle' }) : titleTakenBack
@@ -774,8 +774,8 @@ function AdminUserDetailHeader(props: { action?: ReactNode; name: string }) {
   return (
     <DetailsHeader
       action={props.action}
-      backTo={ROUTE_PATHS.ADMIN.USERS}
       backThroughHistory
+      backTo={ROUTE_PATHS.ADMIN.USERS}
       breadcrumb={
         <Breadcrumb
           ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane pour l'Administration" })}

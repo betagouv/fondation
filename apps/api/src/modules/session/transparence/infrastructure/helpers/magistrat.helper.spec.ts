@@ -6,8 +6,8 @@ describe('magistrat helpers', () => {
   describe('buildMemberName', () => {
     it.each`
       magistrat                                                                    | expected
-      ${{ gender: GenderEnum.MALE, firstName: 'JEAN-CHARLES', lastName: 'HENRI' }} | ${'M.\u00A0Jean-Charles\u00A0HENRI'}
-      ${{ gender: GenderEnum.FEMALE, firstName: 'MARIE', lastName: 'SKŁODOWSKA' }} | ${'Mme\u00A0Marie\u00A0SKŁODOWSKA'}
+      ${{ firstName: 'JEAN-CHARLES', gender: GenderEnum.MALE, lastName: 'HENRI' }} | ${'M.\u00A0Jean-Charles\u00A0HENRI'}
+      ${{ firstName: 'MARIE', gender: GenderEnum.FEMALE, lastName: 'SKŁODOWSKA' }} | ${'Mme\u00A0Marie\u00A0SKŁODOWSKA'}
     `(`should render as $expected`, ({ magistrat, expected }) => {
       expect(buildMemberName(magistrat)).toBe(expected);
     });
@@ -18,14 +18,14 @@ describe('magistrat helpers', () => {
       civility: 'M.' as const,
       position: {
         arrondissement: null,
-        jurisdiction: { id: 'CA  LYON', label: "Cour d'appel de Lyon" },
         function: {
+          addition: 'de la {codejur}',
           id: 'PP',
           label: 'Premier Président',
-          labelOneMale: 'premier président',
           labelOneFemale: 'première présidente',
-          addition: 'de la {codejur}',
+          labelOneMale: 'premier président',
         },
+        jurisdiction: { id: 'CA  LYON', label: "Cour d'appel de Lyon" },
       },
     };
 
@@ -68,8 +68,8 @@ describe('magistrat helpers', () => {
       const got = buildPosition({
         ...base,
         position: {
-          function: null,
           arrondissement: null,
+          function: null,
           jurisdiction: { id: 'SANS AFFECTATION', label: 'Sans affectation' },
         },
       });
@@ -81,13 +81,156 @@ describe('magistrat helpers', () => {
       const got = buildPosition({
         ...base,
         position: {
-          function: null,
           arrondissement: null,
+          function: null,
           jurisdiction: { id: 'DETACHEMENT', label: 'Personnels détachés' },
         },
       });
 
-      expect(got).toBe('en détachement');
+      expect(got).toBe('magistrat placé en position de détachement');
+    });
+
+    it.each`
+      administrativePositionId | expected
+      ${'D47-2'}               | ${'magistrat placé en position de disponibilité'}
+      ${'CPR'}                 | ${'magistrat placé en position de congé parental'}
+      ${'DETJUD'}              | ${'sans affectation'}
+      ${'PT'}                  | ${'sans affectation'}
+    `(
+      'should place a magistrat without affectation in the administrative position "$administrativePositionId"',
+      ({ administrativePositionId, expected }) => {
+        const got = buildPosition({
+          ...base,
+          position: {
+            administrativePositionId,
+            arrondissement: null,
+            function: null,
+            jurisdiction: { id: 'SANS AFFECTATION', label: 'Sans affectation' },
+          },
+        });
+
+        expect(got).toBe(expected);
+      },
+    );
+
+    it('should name an inspector without the inspection', () => {
+      const got = buildPosition({
+        civility: 'MME',
+        position: {
+          arrondissement: null,
+          function: {
+            addition: null,
+            id: 'IJ',
+            label: 'Inspecteur de la justice',
+            labelOneFemale: 'inspectrice de la justice',
+            labelOneMale: 'inspecteur de la justice',
+          },
+          jurisdiction: { id: 'IGSJPARIS', label: 'Inspection Générale des Services Judiciaires' },
+        },
+      });
+
+      expect(got).toBe('inspectrice de la justice');
+    });
+
+    it('should lowercase a gendered label LOLFI capitalizes', () => {
+      const got = buildPosition({
+        civility: 'M.',
+        position: {
+          arrondissement: null,
+          function: {
+            addition: null,
+            id: 'IGSJ',
+            label: 'Inspecteur Général des services judiciaires',
+            labelOneFemale: 'Inspectrice générale des services judiciaires',
+            labelOneMale: 'Inspecteur général des services judiciaires',
+          },
+          jurisdiction: { id: 'IGSJPARIS', label: 'Inspection Générale des Services Judiciaires' },
+        },
+      });
+
+      expect(got).toBe('inspecteur général des services judiciaires');
+    });
+
+    it('should place a national prosecutor near the Paris judicial court', () => {
+      const got = buildPosition({
+        civility: 'M.',
+        position: {
+          arrondissement: null,
+          function: {
+            addition: 'près le {codejur}',
+            id: 'PR F',
+            label: 'Procureur de la République Financier',
+            labelOneFemale: 'procureure de la République financière',
+            labelOneMale: 'procureur de la République financier',
+          },
+          jurisdiction: { id: 'PNF PARIS', label: 'Parquet National Financier de Paris' },
+        },
+      });
+
+      expect(got).toBe('procureur de la République financier près le tribunal judiciaire de Paris');
+    });
+
+    it('should keep the capital of République in a function without a gendered label', () => {
+      const got = buildPosition({
+        civility: 'M.',
+        position: {
+          arrondissement: null,
+          function: {
+            addition: null,
+            id: 'PRACOADJ',
+            label: 'Procureur de la République anti-criminalité organisée adjoint',
+            labelOneFemale: null,
+            labelOneMale: null,
+          },
+          jurisdiction: { id: 'PNACPARIS', label: 'Parquet National Anti-Criminalité Organisée de Paris' },
+        },
+      });
+
+      expect(got).toBe(
+        'procureur de la République anti-criminalité organisée adjoint près le tribunal judiciaire de Paris',
+      );
+    });
+
+    it('should name the vice-président of a section as the CSM does', () => {
+      const got = buildPosition({
+        civility: 'MME',
+        position: {
+          arrondissement: null,
+          function: {
+            addition: null,
+            id: 'VPSEC',
+            label: 'Vice-Président chargé du service de la section',
+            labelOneFemale: null,
+            labelOneMale: null,
+          },
+          jurisdiction: { id: 'TJ  AGEN', label: "Tribunal judiciaire d'Agen" },
+        },
+      });
+
+      expect(got).toBe(
+        "vice-présidente chargée de la présidence d'une section détachée au tribunal judiciaire d'Agen",
+      );
+    });
+
+    it('should drop "des fonctions" from the premier vice-président chargé de l\'application des peines', () => {
+      const got = buildPosition({
+        civility: 'MME',
+        position: {
+          arrondissement: null,
+          function: {
+            addition: 'au {codejur}',
+            id: '1VPAP',
+            label: "Premier Vice-Président chargé des fonctions de Juge de l' Application des Peines",
+            labelOneFemale: "première vice-présidente chargée des fonctions de l'application des peines",
+            labelOneMale: "premier vice-président chargé des fonctions de l'application des peines",
+          },
+          jurisdiction: { id: 'TJ  AGEN', label: "Tribunal judiciaire d'Agen" },
+        },
+      });
+
+      expect(got).toBe(
+        "première vice-présidente chargée de l'application des peines au tribunal judiciaire d'Agen",
+      );
     });
 
     it('should handle the hidden jurisdiction AC PARIS', () => {
@@ -95,14 +238,14 @@ describe('magistrat helpers', () => {
         civility: 'MME',
         position: {
           arrondissement: null,
-          jurisdiction: { id: 'AC  PARIS', label: 'Administration Centrale' },
           function: {
             addition: null,
             id: 'MACJ',
             label: "Substitut à l'Administration Centrale de la Justice",
-            labelOneMale: "substitut à l'administration centrale du ministère de la justice",
             labelOneFemale: "substitute à l'administration centrale du ministère de la justice",
+            labelOneMale: "substitut à l'administration centrale du ministère de la justice",
           },
+          jurisdiction: { id: 'AC  PARIS', label: 'Administration Centrale' },
         },
       });
 
@@ -111,10 +254,10 @@ describe('magistrat helpers', () => {
 
     it.each`
       positionFunction                                                                             | civility | expected
-      ${{ id: '1AG', labelOneMale: 'premier avocat général', addition: 'près la {codejur}' }}      | ${'M.'}  | ${'premier avocat général à la Cour de cassation'}
-      ${{ id: '1AG', labelOneFemale: 'première avocate générale', addition: 'près la {codejur}' }} | ${'MME'} | ${'première avocate générale à la Cour de cassation'}
-      ${{ id: 'AG', labelOneMale: 'avocat général', addition: 'près la {codejur}' }}               | ${'M.'}  | ${'avocat général à la Cour de cassation'}
-      ${{ id: 'AG', labelOneFemale: 'avocate générale', addition: 'près la {codejur}' }}           | ${'MME'} | ${'avocate générale à la Cour de cassation'}
+      ${{ addition: 'près la {codejur}', id: '1AG', labelOneMale: 'premier avocat général' }}      | ${'M.'}  | ${'premier avocat général à la Cour de cassation'}
+      ${{ addition: 'près la {codejur}', id: '1AG', labelOneFemale: 'première avocate générale' }} | ${'MME'} | ${'première avocate générale à la Cour de cassation'}
+      ${{ addition: 'près la {codejur}', id: 'AG', labelOneMale: 'avocat général' }}               | ${'M.'}  | ${'avocat général à la Cour de cassation'}
+      ${{ addition: 'près la {codejur}', id: 'AG', labelOneFemale: 'avocate générale' }}           | ${'MME'} | ${'avocate générale à la Cour de cassation'}
     `(
       'should handle the "$positionFunction.id" with civility "$civility" in jurisdiction "CC  PARIS"',
       ({ positionFunction, civility, expected }) => {
@@ -136,14 +279,14 @@ describe('magistrat helpers', () => {
         civility: 'M.',
         position: {
           arrondissement: null,
-          jurisdiction: { id: 'CA  LYON', label: "Cour d'appel de Lyon" },
           function: {
-            id: '1AG',
-            labelOneMale: 'premier avocat général',
             addition: 'près la {codejur}',
-            labelOneFemale: '',
+            id: '1AG',
             label: '',
+            labelOneFemale: '',
+            labelOneMale: 'premier avocat général',
           },
+          jurisdiction: { id: 'CA  LYON', label: "Cour d'appel de Lyon" },
         },
       });
 
@@ -155,14 +298,14 @@ describe('magistrat helpers', () => {
         civility: 'MME',
         position: {
           arrondissement: null,
-          jurisdiction: { id: 'AC  PARIS', label: 'Administration Centrale' },
           function: {
             addition: null,
             id: 'MACJ',
             label: "Substitut à l'Administration Centrale de la Justice",
-            labelOneMale: "substitut à l'administration centrale du ministère de la justice",
             labelOneFemale: "substitute à l'administration centrale du ministère de la justice",
+            labelOneMale: "substitut à l'administration centrale du ministère de la justice",
           },
+          jurisdiction: { id: 'AC  PARIS', label: 'Administration Centrale' },
         },
       });
 
@@ -177,16 +320,16 @@ describe('magistrat helpers', () => {
             id: 'TJ  CLERMONT FERRAND',
             label: 'Tribunal judiciaire de Clermont-Ferrand',
           },
+          function: {
+            addition: 'affecté au {codejur}',
+            id: 'JCP',
+            label: 'Juge des contentieux de la protection',
+            labelOneFemale: 'juge des contentieux de la protection',
+            labelOneMale: 'juge des contentieux de la protection',
+          },
           jurisdiction: {
             id: 'TPR  RIOM',
             label: 'Tribunal de proximité de Riom',
-          },
-          function: {
-            id: 'JCP',
-            addition: 'affecté au {codejur}',
-            label: 'Juge des contentieux de la protection',
-            labelOneMale: 'juge des contentieux de la protection',
-            labelOneFemale: 'juge des contentieux de la protection',
           },
         },
       });
@@ -204,16 +347,16 @@ describe('magistrat helpers', () => {
             id: 'TJ  CLERMONT FERRAND',
             label: 'Tribunal judiciaire de Clermont-Ferrand',
           },
+          function: {
+            addition: 'affecté au {codejur}',
+            id: 'JCP',
+            label: 'Juge des contentieux de la protection',
+            labelOneFemale: 'juge des contentieux de la protection',
+            labelOneMale: 'juge des contentieux de la protection',
+          },
           jurisdiction: {
             id: 'TPR  RIOM',
             label: 'Tribunal de proximité de Riom',
-          },
-          function: {
-            id: 'JCP',
-            addition: 'affecté au {codejur}',
-            label: 'Juge des contentieux de la protection',
-            labelOneMale: 'juge des contentieux de la protection',
-            labelOneFemale: 'juge des contentieux de la protection',
           },
         },
       });
@@ -231,16 +374,16 @@ describe('magistrat helpers', () => {
             id: 'TJ  CLERMONT FERRAND',
             label: 'Tribunal judiciaire de Clermont-Ferrand',
           },
+          function: {
+            addition: 'affecté au {codejur}',
+            id: 'VPCP',
+            label: 'Vice-Président chargé des fonctions de juge des contentieux de la protection',
+            labelOneFemale: 'vice-présidente chargée des fonctions de juge des contentieux de la protection',
+            labelOneMale: 'vice-président chargé des fonctions de juge des contentieux de la protection',
+          },
           jurisdiction: {
             id: 'TPR  RIOM',
             label: 'Tribunal de proximité de Riom',
-          },
-          function: {
-            id: 'VPCP',
-            addition: 'affecté au {codejur}',
-            label: 'Vice-Président chargé des fonctions de juge des contentieux de la protection',
-            labelOneMale: 'vice-président chargé des fonctions de juge des contentieux de la protection',
-            labelOneFemale: 'vice-présidente chargée des fonctions de juge des contentieux de la protection',
           },
         },
       });
@@ -258,16 +401,16 @@ describe('magistrat helpers', () => {
             id: 'TJ  CLERMONT FERRAND',
             label: 'Tribunal judiciaire de Clermont-Ferrand',
           },
+          function: {
+            addition: 'affecté au {codejur}',
+            id: 'VPCP',
+            label: 'Vice-Président chargé des fonctions de juge des contentieux de la protection',
+            labelOneFemale: 'vice-présidente chargée des fonctions de juge des contentieux de la protection',
+            labelOneMale: 'vice-président chargé des fonctions de juge des contentieux de la protection',
+          },
           jurisdiction: {
             id: 'TPR  RIOM',
             label: 'Tribunal de proximité de Riom',
-          },
-          function: {
-            id: 'VPCP',
-            addition: 'affecté au {codejur}',
-            label: 'Vice-Président chargé des fonctions de juge des contentieux de la protection',
-            labelOneMale: 'vice-président chargé des fonctions de juge des contentieux de la protection',
-            labelOneFemale: 'vice-présidente chargée des fonctions de juge des contentieux de la protection',
           },
         },
       });
@@ -282,16 +425,16 @@ describe('magistrat helpers', () => {
         civility: 'M.',
         position: {
           arrondissement: null,
+          function: {
+            addition: 'affecté au {codejur}',
+            id: 'JCP',
+            label: 'Juge des contentieux de la protection',
+            labelOneFemale: 'juge des contentieux de la protection',
+            labelOneMale: 'juge des contentieux de la protection',
+          },
           jurisdiction: {
             id: 'TPR  CLERMONT FERRAND',
             label: 'Tribunal judiciaire de Clermont-Ferrand',
-          },
-          function: {
-            id: 'JCP',
-            addition: 'affecté au {codejur}',
-            label: 'Juge des contentieux de la protection',
-            labelOneMale: 'juge des contentieux de la protection',
-            labelOneFemale: 'juge des contentieux de la protection',
           },
         },
       });
@@ -304,14 +447,14 @@ describe('magistrat helpers', () => {
         civility: 'M.',
         position: {
           arrondissement: null,
-          jurisdiction: { id: 'CC  PARIS', label: 'Cour de Cassation' },
           function: {
-            id: 'C',
             addition: 'à la {codejur}',
+            id: 'C',
             label: 'Conseiller',
-            labelOneMale: 'conseiller',
             labelOneFemale: 'conseillère',
+            labelOneMale: 'conseiller',
           },
+          jurisdiction: { id: 'CC  PARIS', label: 'Cour de Cassation' },
         },
       });
 
@@ -323,14 +466,14 @@ describe('magistrat helpers', () => {
         civility: 'M.',
         position: {
           arrondissement: null,
-          jurisdiction: { id: 'CC  PARIS', label: 'Cour de Cassation' },
           function: {
-            id: 'C',
             addition: null,
+            id: 'C',
             label: 'Conseiller',
-            labelOneMale: 'conseiller',
             labelOneFemale: 'conseillère',
+            labelOneMale: 'conseiller',
           },
+          jurisdiction: { id: 'CC  PARIS', label: 'Cour de Cassation' },
         },
       });
 

@@ -2,6 +2,7 @@ import { test } from '../fixtures.ts';
 import { type CreatedAgenda, MEETING_DATE } from '../fixtures/docs.fixture.ts';
 import type { PaginatedNominationFiles } from '../generated/api/types.ts';
 import type { TestStepsAgent } from '../steps.ts';
+import * as seed from '../utils/seed.ts';
 
 function statusOf(items: PaginatedNominationFiles['items'], nominationFileId: string) {
   return items.find(({ id }) => id === nominationFileId)?.content.status;
@@ -341,6 +342,32 @@ test.describe('Agenda', () => {
 
     await affect(member['@user']!.id);
     expect(await draftOf()).toBe('PERSON_AND_SYSTEM');
+  });
+
+  test('should name the administrative position of a magistrat without affectation', async ({
+    agent,
+    docs,
+    expect,
+    sessions,
+  }) => {
+    const session = await sessions.createOne({
+      candidates: [
+        {
+          administrativePosition: 'D47-2',
+          firstName: 'SIMONE',
+          lastName: 'WEIL',
+          position: { grade: 'G3', jurisdiction: { id: 'SANS AFFECTATION', label: 'Sans affectation' } },
+          targetPosition: { function: seed.functions.PR, grade: 'G3', jurisdiction: seed.jurisdictions['CA  LYON'] },
+        },
+      ],
+      createdAt: '23/04/2026',
+    });
+    await agent.sessions.validateSession({ path: { sessionId: session.id }, throwOnError: true });
+    const { id: agendaId } = await docs.agenda(session);
+
+    const blocks = await agent.docs.detailsAgendaDocumentBlocks({ path: { agendaId }, throwOnError: true });
+
+    expect(blocks.data.blocks[0]!.html).toContain('actuellement magistrat placé en position de disponibilité (G3)');
   });
 
   test('should not tell a change on a new agenda nobody edited', async ({ agent, docs, expect }) => {

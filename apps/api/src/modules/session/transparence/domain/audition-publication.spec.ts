@@ -43,6 +43,17 @@ describe('PublishableAuditions.equals', () => {
     expect(auditions().equals(dismissed)).toBe(false);
   });
 
+  it('ignores an audition request, which reaches the members without a publication', () => {
+    const requested = auditions({
+      nominationFiles: new Map([
+        ['file-1', { audition: AT_NINE, requested: true }],
+        ['file-2', { audition: null, requested: true }],
+      ]),
+    });
+
+    expect(auditions().equals(requested)).toBe(true);
+  });
+
   it('tells an added observant apart', () => {
     const added = auditions({
       observants: new Map([
