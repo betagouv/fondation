@@ -53,6 +53,15 @@ describe('useAttachmentFailureToast', () => {
     });
   });
 
+  it('names the files an upload failed for', () => {
+    renderUseAttachmentFailureToast()('upload', 'avis.pdf, rapport.pdf', failureWith(400));
+
+    expect(error).toHaveBeenCalledWith({
+      description: 'Réessayez et prévenez le support si cela persiste (code 400).',
+      title: 'L\'ajout de "avis.pdf, rapport.pdf" a échoué',
+    });
+  });
+
   it('suggests to retry any other failure of an opening', () => {
     renderUseAttachmentFailureToast()('open', 'courrier.pdf', failureWith(500));
 
