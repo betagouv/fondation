@@ -39,52 +39,48 @@ export function Upload(props: {
   const [refusal, setRefusal] = useState<Refusal | null>(null);
 
   return (
-    <label
-      className={clsx(
-        'fr-p-4v block bg-(--background-alt-grey)',
-        isLocked ? 'cursor-default' : 'cursor-pointer',
-      )}
-      htmlFor={inputId}
-    >
-      <span className={clsx('fr-label', (props.hasError || refusal) && 'fr-label--error')}>
-        {props.label}
-        {props.hint && <span className="fr-hint-text mt-3">{props.hint}</span>}
-      </span>
+    <div className="fr-p-4v bg-(--background-alt-grey)">
+      <label className={clsx('block', isLocked ? 'cursor-default' : 'cursor-pointer')} htmlFor={inputId}>
+        <span className={clsx('fr-label', (props.hasError || refusal) && 'fr-label--error')}>
+          {props.label}
+          {props.hint && <span className="fr-hint-text mt-3">{props.hint}</span>}
+        </span>
 
-      <input
-        accept={props.accept}
-        aria-describedby={refusal ? errorId : undefined}
-        className="fr-upload mt-4"
-        disabled={isLocked}
-        id={inputId}
-        multiple={props.multiple}
-        onChange={(event) => {
-          const files = [...(event.target.files ?? [])];
-          const refused = refusalOf(files, maxBytes);
-          setRefusal(refused);
-          if (refused || props.clearOnChange) event.target.value = '';
-          if (!refused) props.onChange(files);
-          // the input is now empty: the parent must forget the selection it holds
-          else if (!props.clearOnChange) props.onChange([]);
-        }}
-        type="file"
-      />
+        <input
+          accept={props.accept}
+          aria-describedby={refusal ? errorId : undefined}
+          className="fr-upload mt-4"
+          disabled={isLocked}
+          id={inputId}
+          multiple={props.multiple}
+          onChange={(event) => {
+            const files = [...(event.target.files ?? [])];
+            const refused = refusalOf(files, maxBytes);
+            setRefusal(refused);
+            if (refused || props.clearOnChange) event.target.value = '';
+            if (!refused) props.onChange(files);
+            // the input is now empty: the parent must forget the selection it holds
+            else if (!props.clearOnChange) props.onChange([]);
+          }}
+          type="file"
+        />
+      </label>
 
       {refusal && (
-        <span className="fr-error-text block" id={errorId} role="alert">
+        <p className="fr-error-text fr-mb-0" id={errorId} role="alert">
           <FormattedMessage
             {...REFUSALS[refusal.reason]}
             values={{ ...refusal, files: FILES_PER_UPLOAD, megabytes: maxBytes / 1_024 / 1_024 }}
           />
-        </span>
+        </p>
       )}
 
       {props.isPending && (
-        <span aria-live="polite" className="fr-mt-2v block text-sm text-(--text-mention-grey)">
+        <p aria-live="polite" className="fr-mt-2v fr-mb-0 text-sm text-(--text-mention-grey)">
           <span aria-hidden="true" className="fr-icon-refresh-line fr-icon--sm fr-mr-1v" />
           <FormattedMessage defaultMessage="Import du fichier en cours..." />
-        </span>
+        </p>
       )}
-    </label>
+    </div>
   );
 }

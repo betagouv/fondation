@@ -59,6 +59,15 @@ describe('Upload', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('Le fichier "lourd.pdf" dépasse 50 Mo.');
   });
 
+  it('describes the refusal without adding it to the field name', async () => {
+    const input = renderUpload(vi.fn(), { clearOnChange: true });
+
+    await userEvent.upload(input, [heavyFile()]);
+
+    expect(input).toHaveAccessibleName('Ajouter un fichier');
+    expect(input).toHaveAccessibleDescription('Le fichier "lourd.pdf" dépasse 50 Mo.');
+  });
+
   it('empties the held selection once a new one is refused', async () => {
     const onChange = vi.fn();
     const input = renderUpload(onChange);
