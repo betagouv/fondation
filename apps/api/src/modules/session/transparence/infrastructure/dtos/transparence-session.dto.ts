@@ -57,9 +57,6 @@ export class UpdateNominationSessionDto extends createZodDto(
 
 export class WriteSessionCommentDto extends createZodDto(z.object({ comment: z.string().max(50000) })) {}
 
-/** @deprecated */
-export class UploadSessionAttachmentDto extends createZodDto(z.object({ file: z.file() })) {}
-
 export class UploadSessionAttachmentsDto extends createZodDto(
   z.object({
     files: z.preprocess((x) => ([] as unknown[]).concat(x), z.array(z.file().max(ATTACHMENT_MAX_BYTES))),
