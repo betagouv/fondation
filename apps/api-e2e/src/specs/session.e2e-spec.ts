@@ -371,6 +371,40 @@ test.describe('Session E2E', () => {
       expect(response?.status).toBe(413);
     });
 
+    test('should take twenty attachments and their type in one upload on a file', async ({
+      agent,
+      expect,
+      sessions,
+    }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+      const listed = await agent.sessions.listNominationFiles({ path: { sessionId: session.id } });
+      const path = { nominationFileId: listed.data!.items[0]!.id, sessionId: session.id };
+      const files = Array.from({ length: 20 }, (_, i) => makeFile({ name: `piece-${i}.pdf`, type: 'application/pdf' }));
+
+      const { response } = await agent.sessions.uploadNominationFileAttachments({
+        body: { files, form: attachmentForm({ type: 'AUTRE' }) },
+        path,
+      });
+
+      expect(response?.status).toBe(204);
+      const attachments = await agent.sessions.listNominationFileAttachments({ path });
+      expect(attachments.data!.items).toHaveLength(20);
+    });
+
+    test('should refuse more than twenty attachments in one upload', async ({ agent, expect, sessions }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+      const listed = await agent.sessions.listNominationFiles({ path: { sessionId: session.id } });
+      const path = { nominationFileId: listed.data!.items[0]!.id, sessionId: session.id };
+      const files = Array.from({ length: 21 }, (_, i) => makeFile({ name: `piece-${i}.pdf`, type: 'application/pdf' }));
+
+      const { response } = await agent.sessions.uploadNominationFileAttachments({
+        body: { files, form: attachmentForm({ type: 'AUTRE' }) },
+        path,
+      });
+
+      expect(response?.status).toBe(400);
+    });
+
     test('should give back the attachments of a session until one is removed', async ({ agent, expect, sessions }) => {
       const { id: sessionId } = await sessions.createOne(TREVOUX_SESSION);
       await agent.sessions.uploadSessionAttachments({
