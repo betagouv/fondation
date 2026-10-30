@@ -203,8 +203,8 @@ function SummaryReaderPicker(props: { onChange: (readers: string[]) => void; rea
 
       <div className="fr-px-4v fr-pt-4v max-h-[45dvh] overflow-y-auto border border-(--border-default-grey)">
         {matching.length === 0 ? (
-          <p className="fr-pb-4v text-(--text-mention-grey)">
-            <FormattedMessage defaultMessage="Aucune personne ne correspond à cette recherche." />
+          <p className="fr-mb-0 fr-pb-4v text-sm text-(--text-mention-grey)">
+            <FormattedMessage defaultMessage="Aucune personne ne correspond à cette recherche" />
           </p>
         ) : (
           <Checkbox
