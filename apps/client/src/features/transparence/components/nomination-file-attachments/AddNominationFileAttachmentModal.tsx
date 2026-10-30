@@ -4,6 +4,7 @@ import Select from '@codegouvfr/react-dsfr/Select';
 import { useCallback, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
+import { useRequestFailure } from '@/shared/hooks/useRequestFailure';
 import { Modal } from '@/shared/ui/modal';
 import { RequiredLabel } from '@/shared/ui/required-label';
 import { Upload } from '@/shared/ui/upload';
@@ -26,7 +27,8 @@ export function AddNominationFileAttachmentModal(props: {
 
   const [files, setFiles] = useState<readonly File[]>([]);
   const [type, setType] = useState<NominationFileAttachmentTypeEnum | ''>('');
-  const { mutate: add, isPending, isError, reset } = useAddNominationFileAttachmentsMutation();
+  const { error, isPending, mutate: add, reset } = useAddNominationFileAttachmentsMutation();
+  const describeFailure = useRequestFailure();
 
   const close = useCallback(() => {
     setFiles([]);
@@ -91,16 +93,15 @@ export function AddNominationFileAttachmentModal(props: {
         ))}
       </Select>
 
-      {isError && (
+      {error && (
         <Alert
           className="fr-mt-2v"
           closable
-          description={formatMessage({
-            defaultMessage: "L'ajout de la pièce jointe a échoué. Veuillez réessayer.",
-          })}
+          description={describeFailure(error)}
           onClose={reset}
           severity="error"
           small
+          title={formatMessage({ defaultMessage: "L'ajout de la pièce jointe a échoué" })}
         />
       )}
     </Modal>

@@ -15,6 +15,18 @@ describe('timeoutFor', () => {
       timeoutFor(new Request('https://api.dev/api/help/v1/pages/MEMBRE/screenshots', { method: 'POST' })),
     ).toBe(300_000);
   });
+
+  it('gives five minutes to the upload of an attachment, not to its listing nor its removal', () => {
+    const attachments = 'https://api.dev/api/sessions/v2/s1/files/f1/summary/attachments';
+    expect(timeoutFor(new Request(attachments, { method: 'POST' }))).toBe(300_000);
+    expect(
+      timeoutFor(
+        new Request('https://api.dev/api/sessions/v2/s1/files/f1/observations/o1', { method: 'PATCH' }),
+      ),
+    ).toBe(300_000);
+    expect(timeoutFor(new Request('https://api.dev/api/sessions/v2/s1/files/f1/observations'))).toBe(10_000);
+    expect(timeoutFor(new Request(`${attachments}?fileIds=a`, { method: 'DELETE' }))).toBe(60_000);
+  });
 });
 
 describe('UPLOAD_ROUTES', () => {

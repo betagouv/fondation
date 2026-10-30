@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 import { isDefined } from '../../../../utils/is-defined';
 import { richTextHtml } from '../../../../utils/rich-text-html';
-import { FILE_MIME_TYPES } from '../../../framework/files';
+import { ATTACHMENT_MAX_BYTES, FILE_MIME_TYPES } from '../../../framework/files';
 import { ListedUsersDto } from '../../../simple-auth/infrastructure/queries/list-users.query';
 
 export class CreatedSummaryDto extends createZodDto(
@@ -14,7 +14,7 @@ export class CreatedSummaryDto extends createZodDto(
 
 export class AttachSummaryFilesDto extends createZodDto(
   z.object({
-    files: z.array(z.file()).nonempty(),
+    files: z.array(z.file().max(ATTACHMENT_MAX_BYTES)).nonempty(),
   }),
 ) {}
 
