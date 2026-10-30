@@ -904,12 +904,15 @@ export type DetailedSummaryDto = {
     };
 };
 
-export type FoundSummaryReadersDto = {
+export type ListedSummaryReadersDto = {
     items: Array<{
-        id: string;
+        displayedRole: {
+            id: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+            label: string;
+        };
         firstName: string;
+        id: string;
         lastName: string;
-        role: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL';
     }>;
 };
 
@@ -3716,24 +3719,21 @@ export type WriteSummaryResponses = {
 
 export type WriteSummaryResponse = WriteSummaryResponses[keyof WriteSummaryResponses];
 
-export type SearchSummaryReadersData = {
+export type ListSummaryReadersData = {
     body?: never;
     path: {
-        nominationFileId: string;
         sessionId: string;
+        nominationFileId: string;
     };
-    query?: {
-        search?: string;
-        includeIds?: Array<string>;
-    };
+    query?: never;
     url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/summary/readers';
 };
 
-export type SearchSummaryReadersResponses = {
-    200: FoundSummaryReadersDto;
+export type ListSummaryReadersResponses = {
+    200: ListedSummaryReadersDto;
 };
 
-export type SearchSummaryReadersResponse = SearchSummaryReadersResponses[keyof SearchSummaryReadersResponses];
+export type ListSummaryReadersResponse = ListSummaryReadersResponses[keyof ListSummaryReadersResponses];
 
 export type UpdateSummaryReadersListData = {
     body: UpdateSummaryReadersListDto;

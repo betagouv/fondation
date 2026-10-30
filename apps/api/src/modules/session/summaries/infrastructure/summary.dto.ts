@@ -4,7 +4,6 @@ import { z } from 'zod';
 import { isDefined } from '../../../../utils/is-defined';
 import { richTextHtml } from '../../../../utils/rich-text-html';
 import { ATTACHMENT_MAX_BYTES, FILE_MIME_TYPES } from '../../../framework/files';
-import { ListedUsersDto } from '../../../simple-auth/infrastructure/queries/list-users.query';
 
 export class CreatedSummaryDto extends createZodDto(
   z.object({
@@ -60,14 +59,3 @@ export class IncludedFilesInSummaryContentDto extends createZodDto(
 export class WriteSummaryContentDto extends createZodDto(z.object({ content: richTextHtml })) {}
 
 export class UpdateSummaryReadersListDto extends createZodDto(z.object({ readerIds: z.array(z.string()) })) {}
-
-export class SearchSummaryReaderDto extends createZodDto(
-  z.object({
-    search: z.string().min(3).optional(),
-    includeIds: z
-      .preprocess((x) => (x ? ([] as unknown[]).concat(x) : x), z.array(z.uuidv4()).nonempty().optional())
-      .optional(),
-  }),
-) {}
-
-export class FoundSummaryReadersDto extends ListedUsersDto {}

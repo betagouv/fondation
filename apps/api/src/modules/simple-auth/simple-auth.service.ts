@@ -2,7 +2,6 @@ import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
 import { Clock } from '../framework/clock';
-import type { RoleEnum } from '../shared/role.enum';
 
 import { AuthImpersonation } from './domain/auth-impersonation';
 import { AuthSession } from './domain/auth-session';
@@ -12,7 +11,6 @@ import { DetailsUserFromImpersonationQuery } from './infrastructure/queries/deta
 import { DetailsUserFromSessionIdQuery } from './infrastructure/queries/details-user-from-session-id.query';
 import { DetailedUserResponseDto, DetailsUserQuery } from './infrastructure/queries/details-user.query';
 import { FindMachineQuery } from './infrastructure/queries/find-machine.query';
-import { ListedUsersDto, ListUsersQuery } from './infrastructure/queries/list-users.query';
 import { AuthUserRepository } from './infrastructure/repositories/auth-user.repository';
 import { OpenIdAuthService } from './openid-auth.service';
 
@@ -23,7 +21,6 @@ export class SimpleAuthService {
     private readonly detailsUserQuery: DetailsUserQuery,
     private readonly detailsUserFromSessionQuery: DetailsUserFromSessionIdQuery,
     private readonly detailsUserFromImpersonationQuery: DetailsUserFromImpersonationQuery,
-    private readonly listUsersQuery: ListUsersQuery,
     private readonly userRepository: AuthUserRepository,
     private readonly findMachineQuery: FindMachineQuery,
     private readonly clock: Clock,
@@ -73,18 +70,6 @@ export class SimpleAuthService {
     userId: string;
   }): Promise<DetailedUserResponseDto> {
     return this.detailsUserQuery.handle(query);
-  }
-
-  listUsers(query: {
-    activeOnly?: true;
-    excludeIds?: readonly string[];
-    includeIds?: readonly string[];
-    includeIdsOnly?: true;
-    limit?: number;
-    roles?: readonly RoleEnum[];
-    search?: string;
-  }): Promise<ListedUsersDto> {
-    return this.listUsersQuery.handle(query);
   }
 
   async changePassword(command: {

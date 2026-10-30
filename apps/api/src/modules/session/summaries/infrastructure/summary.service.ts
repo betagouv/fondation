@@ -6,7 +6,6 @@ import { Db } from '../../../framework/database';
 import { Files } from '../../../framework/files';
 import { FILE_MIME_TYPES, filenameToMimeType } from '../../../framework/files/mime-type';
 import type { RoleEnum } from '../../../shared/role.enum';
-import { SimpleAuthService } from '../../../simple-auth';
 import { Summary } from '../domain/summary';
 
 import { DetailedSummaryDto, DetailSummaryQuery } from './queries/detail-summary.query';
@@ -14,6 +13,7 @@ import {
   GeneratedSummaryAttachmentPublicUrlDto,
   GetSummaryAttachmentUrlQuery,
 } from './queries/get-summary-attachment-url.query';
+import { ListedSummaryReadersDto, ListSummaryReadersQuery } from './queries/list-summary-readers.query';
 import { IncludedFilesInSummaryContentDto } from './summary.dto';
 import { SummaryRepository } from './summary.repository';
 
@@ -23,9 +23,9 @@ export class SummaryService {
     private readonly summaryRepository: SummaryRepository,
     private readonly files: Files,
     private readonly db: Db,
-    private readonly users: SimpleAuthService,
     private readonly detailSummaryQuery: DetailSummaryQuery,
     private readonly generateAttachmentPublicUrlQuery: GetSummaryAttachmentUrlQuery,
+    private readonly listReadersQuery: ListSummaryReadersQuery,
   ) {}
 
   @Transactional()
@@ -111,12 +111,7 @@ export class SummaryService {
     userId: string;
   }): Promise<void> {
     const summary = await this.summaryRepository.find(command);
-    const { items: availableUsers } = await this.users.listUsers({
-      activeOnly: true,
-      excludeIds: [command.userId],
-      includeIds: command.readerIds,
-      includeIdsOnly: true,
-    });
+    const { items: availableUsers } = await this.listReadersQuery.handle(command);
     summary.updateReadersList({
       availableUserIds: new Set(availableUsers.map(({ id }) => id)),
       readerIds: command.readerIds,
@@ -142,5 +137,14 @@ export class SummaryService {
     user: { id: string; role: RoleEnum };
   }): Promise<GeneratedSummaryAttachmentPublicUrlDto> {
     return this.generateAttachmentPublicUrlQuery.handle(query);
+  }
+
+  @Transactional()
+  listReaders(query: {
+    nominationFileId: string;
+    sessionId: string;
+    userId: string;
+  }): Promise<ListedSummaryReadersDto> {
+    return this.listReadersQuery.handle(query);
   }
 }
