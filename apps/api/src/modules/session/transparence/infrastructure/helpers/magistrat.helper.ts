@@ -72,6 +72,9 @@ export function buildPosition(options: {
     ? gendered[0]!.toLowerCase() + gendered.slice(1)
     : position.function.label.toLowerCase().replace('république', 'République');
 
+  // the CSM writes "Justice" with a capital for the head of the inspection only
+  if (position.function.id === 'IG-CIGJ') label = label.replace('de la justice', 'de la Justice');
+
   if (NATIONAL_PROSECUTOR_OFFICES.has(position.jurisdiction.id)) {
     return `${label} près le tribunal judiciaire de Paris`;
   }

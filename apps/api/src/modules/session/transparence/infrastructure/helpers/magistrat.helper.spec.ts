@@ -132,6 +132,25 @@ describe('magistrat helpers', () => {
       expect(got).toBe('inspectrice de la justice');
     });
 
+    it('should capitalize "Justice" for the head of the inspection', () => {
+      const got = buildPosition({
+        civility: 'M.',
+        position: {
+          arrondissement: null,
+          function: {
+            addition: null,
+            id: 'IG-CIGJ',
+            label: "Inspecteur général, chef de l'inspection générale de la justice",
+            labelOneFemale: "inspectrice générale, chèfe de l'inspection générale de la justice",
+            labelOneMale: "inspecteur général, chef de l'inspection générale de la justice",
+          },
+          jurisdiction: { id: 'IGSJPARIS', label: 'Inspection Générale des Services Judiciaires' },
+        },
+      });
+
+      expect(got).toBe("inspecteur général, chef de l'inspection générale de la Justice");
+    });
+
     it('should lowercase a gendered label LOLFI capitalizes', () => {
       const got = buildPosition({
         civility: 'M.',
