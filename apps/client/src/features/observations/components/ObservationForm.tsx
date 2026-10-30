@@ -306,7 +306,6 @@ export function ObservationForm({
               accept={DOCUMENT_FILE_TYPES}
               hint={<FormattedMessage defaultMessage="Formats supportés : png, jpeg, pdf, doc et docx" />}
               key={uploadKey}
-              label={<FormattedMessage defaultMessage="Importer un fichier" />}
               multiple
               onChange={field.onChange}
             />

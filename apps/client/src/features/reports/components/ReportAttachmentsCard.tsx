@@ -25,7 +25,6 @@ export function ReportAttachmentsCard(props: {
           disabled={props.isReadOnly}
           hint={<FormattedMessage defaultMessage="Formats supportés : png, jpeg, pdf, doc et docx." />}
           isPending={props.isPending}
-          label={<FormattedMessage defaultMessage="Ajouter un fichier" />}
           multiple
           onChange={props.onFilesAttached}
         />
