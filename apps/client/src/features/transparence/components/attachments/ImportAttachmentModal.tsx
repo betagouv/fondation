@@ -3,6 +3,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { useCallback, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
+import { useRequestFailure } from '@/shared/hooks/useRequestFailure';
 import { Modal } from '@/shared/ui/modal';
 import { useToasts } from '@/shared/ui/toast';
 import { Upload } from '@/shared/ui/upload';
@@ -12,23 +13,24 @@ import { useAddNominationSessionAttachmentMutation } from '@queries/nomination-s
 export function ImportAttachmentModal(props: { onClose: () => void; open: boolean; sessionId: string }) {
   const { formatMessage } = useIntl();
   const toasts = useToasts();
+  const describeFailure = useRequestFailure();
 
   const [files, setFiles] = useState<File[]>([]);
   const [attempt, setAttempt] = useState(0);
-  const [hasFailed, setHasFailed] = useState(false);
+  const [failure, setFailure] = useState<unknown>(null);
   const { mutate: importAttachments, isPending } = useAddNominationSessionAttachmentMutation();
 
   const onImport = useCallback(() => {
     if (files.length === 0) return;
 
-    setHasFailed(false);
+    setFailure(null);
     importAttachments(
       { files, sessionId: props.sessionId },
       {
-        onError: () => {
+        onError: (error) => {
           setFiles([]);
           setAttempt((current) => current + 1);
-          setHasFailed(true);
+          setFailure(error);
         },
         onSuccess: () => {
           toasts.success({ title: formatMessage({ defaultMessage: 'Données actualisées' }) });
@@ -54,12 +56,10 @@ export function ImportAttachmentModal(props: { onClose: () => void; open: boolea
       open={props.open}
       title={<FormattedMessage defaultMessage="Importer des pièces jointes" />}
     >
-      {hasFailed && (
+      {failure !== null && (
         <Alert
           className="fr-mb-4v"
-          description={formatMessage({
-            defaultMessage: 'Réessayez et prévenez le support si cela persiste.',
-          })}
+          description={describeFailure(failure)}
           role="alert"
           severity="error"
           small

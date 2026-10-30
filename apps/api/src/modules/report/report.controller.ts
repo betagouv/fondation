@@ -42,9 +42,9 @@ export class ReportController {
   @HasRole(...MEMBER_ROLES)
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseMultipartBody({
-    schema: AttachReportFileDto,
     destination: ({ request, id, mimetype }) =>
       `reports/${request.params.reportId}/${id}.${FILE_EXTENSIONS[mimetype]}`,
+    schema: AttachReportFileDto,
   })
   attachFiles(
     @Param('reportId') reportId: string,

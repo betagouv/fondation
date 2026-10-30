@@ -6,6 +6,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { z } from 'zod';
 
 import { useConfirmModal } from '@/shared/context/confirm-modal';
+import { useRequestFailure } from '@/shared/hooks/useRequestFailure';
 import { RequiredLabel } from '@/shared/ui/required-label';
 import { Upload } from '@/shared/ui/upload';
 import { DOCUMENT_FILE_TYPES } from '@/shared/ui/upload/file-types';
@@ -97,6 +98,7 @@ export function ObservationForm({
     reset: resetUpdateMutation,
     error: updateError,
   } = useUpdateObservationMutation();
+  const describeFailure = useRequestFailure();
 
   const files = watch('files') ?? [];
 
@@ -226,13 +228,12 @@ export function ObservationForm({
     <form className="flex flex-col gap-6" id="observation-form" onSubmit={handleFormSubmit(onSubmit)}>
       {createError || updateError ? (
         <p className="fr-mb-0 text-(--text-default-error)">
-          {createError?.message ||
-            updateError?.message ||
-            (isEditing ? (
-              <FormattedMessage defaultMessage="Erreur pendant la mise à jour" />
-            ) : (
-              <FormattedMessage defaultMessage="Erreur à la création" />
-            ))}
+          {isEditing ? (
+            <FormattedMessage defaultMessage="Erreur pendant la mise à jour." />
+          ) : (
+            <FormattedMessage defaultMessage="Erreur à la création." />
+          )}{' '}
+          {describeFailure(createError ?? updateError)}
         </p>
       ) : null}
       <MagistratCombobox

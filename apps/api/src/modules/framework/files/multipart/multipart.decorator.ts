@@ -4,6 +4,8 @@ import { ApiBody, ApiConsumes } from '@nestjs/swagger';
 import { type ZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { ATTACHMENT_MAX_BYTES } from '../attachment-max-bytes';
+
 import { MultipartBodyInterceptor } from './multipart.interceptor';
 import { MultipartDestinationFactory } from './multipart.types';
 import { StoreFileInterceptor } from './store-file.interceptor';
@@ -36,7 +38,7 @@ export function UseMultipartBody<Schema extends z.ZodObject>(options: {
     ApiConsumes('multipart/form-data'),
     ApiBody({ type: options.schema }),
     UseInterceptors(
-      AnyFilesInterceptor({ limits: { fileSize: options.maxFileBytes } }),
+      AnyFilesInterceptor({ limits: { fileSize: options.maxFileBytes ?? ATTACHMENT_MAX_BYTES } }),
       new MultipartBodyInterceptor({
         ...options,
         schema: options.schema.schema,

@@ -3,7 +3,7 @@ import z from 'zod';
 
 import { DateOnly } from '../../../../../utils/date-only';
 import { isDefined } from '../../../../../utils/is-defined';
-import { FILE_MIME_TYPES } from '../../../../framework/files';
+import { ATTACHMENT_MAX_BYTES, FILE_MIME_TYPES } from '../../../../framework/files';
 import { createSortableDto } from '../../../../framework/sorting';
 import { FormationEnum } from '../../../../shared/formation.enum';
 import { NominationFileAttachmentTypeEnum } from '../../../../shared/nomination-file-attachment-type.enum';
@@ -57,18 +57,15 @@ export class UpdateNominationSessionDto extends createZodDto(
 
 export class WriteSessionCommentDto extends createZodDto(z.object({ comment: z.string().max(50000) })) {}
 
-/** @deprecated */
-export class UploadSessionAttachmentDto extends createZodDto(z.object({ file: z.file() })) {}
-
 export class UploadSessionAttachmentsDto extends createZodDto(
   z.object({
-    files: z.preprocess((x) => ([] as unknown[]).concat(x), z.array(z.file())),
+    files: z.preprocess((x) => ([] as unknown[]).concat(x), z.array(z.file().max(ATTACHMENT_MAX_BYTES))),
   }),
 ) {}
 
 export class UploadNominationFileAttachmentsDto extends createZodDto(
   z.object({
-    files: z.preprocess((x) => ([] as unknown[]).concat(x), z.array(z.file())),
+    files: z.preprocess((x) => ([] as unknown[]).concat(x), z.array(z.file().max(ATTACHMENT_MAX_BYTES))),
     form: z.object({ type: z.enum(NominationFileAttachmentTypeEnum) }),
   }),
 ) {}

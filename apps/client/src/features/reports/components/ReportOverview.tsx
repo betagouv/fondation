@@ -6,6 +6,7 @@ import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { AuditionAnnouncedBanner, AuditionScheduledBanner } from '@/shared/components/audition-banner';
 import { ArchiveBannerPortal } from '@/shared/components/banners';
 import type { ReportStatusEnum } from '@/shared/enums/report-status.enum';
+import { useAttachmentFailureToast } from '@/shared/hooks/useAttachmentFailureToast';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { DetailsPageLayout } from '@/shared/ui/details';
 import { PageContentLayout } from '@/shared/ui/PageContentLayout';
@@ -47,6 +48,7 @@ export function ReportOverview({ id }: { id: string }) {
   const { mutate: attachReportFiles } = useAttachReportFilesMutation();
   const { mutate: detachReportFiles } = useDetachReportFilesMutation();
   const { mutate: updateReport } = useUpdateReportMutation();
+  const notifyFailure = useAttachmentFailureToast();
 
   if (isPending || (retrievedReport && (nominationFileQuery.isPending || sessionQuery.isPending))) {
     return (
@@ -88,11 +90,10 @@ export function ReportOverview({ id }: { id: string }) {
   const onUpdateState = (status: ReportStatusEnum) => updateReport({ data: { status }, reportId: id });
 
   const onFilesAttached = (files: File[]) => {
-    attachReportFiles({
-      files,
-      reportId: id,
-      usage: 'ATTACHMENT',
-    });
+    attachReportFiles(
+      { files, reportId: id, usage: 'ATTACHMENT' },
+      { onError: (error) => notifyFailure('upload', files.map(({ name }) => name).join(', '), error) },
+    );
   };
 
   const onAttachedFileDeleted = async (fileName: string) => {

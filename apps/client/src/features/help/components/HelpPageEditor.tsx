@@ -25,7 +25,7 @@ export function HelpPageEditor(props: {
   const { content, onDraftChange, page } = props;
   const { formatMessage } = useIntl();
   const toasts = useToasts();
-  const describeFailure = useRequestFailure(UPLOAD_FAILURES);
+  const describeFailure = useRequestFailure({ ...UPLOAD_FAILURES, tooLarge: UPLOAD_FAILURES.refused });
   const { mutateAsync: includeFiles } = useIncludeFilesInHelpPageContentMutation();
   // the stored html loses what the editor writes for itself, such as the class of a callout: the editor's own rendering is the reference
   const extensions = useTipTapExtensions({ features: 'page' });

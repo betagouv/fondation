@@ -357,6 +357,20 @@ test.describe('Session E2E', () => {
       expect(updatedFile?.hasJurisdictionSheet).toBe(false);
     });
 
+    test('should refuse a session attachment heavier than fifty mebibytes', async ({ agent, expect, sessions }) => {
+      const { id: sessionId } = await sessions.createOne(TREVOUX_SESSION);
+      const heavy = new File([new Uint8Array(50 * 1_024 * 1_024 + 1)], 'circulaire.docx', {
+        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      });
+
+      const { response } = await agent.sessions.uploadSessionAttachments({
+        body: { files: [heavy] },
+        path: { sessionId },
+      });
+
+      expect(response?.status).toBe(413);
+    });
+
     test('should give back the attachments of a session until one is removed', async ({ agent, expect, sessions }) => {
       const { id: sessionId } = await sessions.createOne(TREVOUX_SESSION);
       await agent.sessions.uploadSessionAttachments({

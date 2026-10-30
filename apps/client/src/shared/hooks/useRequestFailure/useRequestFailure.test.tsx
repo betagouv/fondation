@@ -32,7 +32,13 @@ function renderUseRequestFailure(reasons: Readonly<Partial<Record<FailureReason,
 describe('useRequestFailure', () => {
   it('explains a refusal the caller knows, without suggesting to retry', () => {
     expect(renderUseRequestFailure(REASONS)(failureWith(400))).toBe('Une image pèse 5 Mo au plus.');
-    expect(renderUseRequestFailure(REASONS)(failureWith(413))).toBe('Une image pèse 5 Mo au plus.');
+  });
+
+  it('explains a file too large by itself, unless the caller does', () => {
+    expect(renderUseRequestFailure({})(failureWith(413))).toBe('Le fichier dépasse 50 Mo.');
+    expect(renderUseRequestFailure({ tooLarge: REASONS.refused })(failureWith(413))).toBe(
+      'Une image pèse 5 Mo au plus.',
+    );
   });
 
   it('suggests to retry a refusal the caller cannot explain', () => {
