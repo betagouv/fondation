@@ -61,10 +61,10 @@ export function Upload(props: {
       )}
 
       {props.isPending && (
-        <p aria-live="polite" className="fr-mt-2v fr-mb-0 text-sm text-(--text-mention-grey)">
+        <span aria-live="polite" className="fr-mt-2v block text-sm text-(--text-mention-grey)">
           <span aria-hidden="true" className="fr-icon-refresh-line fr-icon--sm fr-mr-1v" />
           <FormattedMessage defaultMessage="Import du fichier en cours..." />
-        </p>
+        </span>
       )}
     </label>
   );
