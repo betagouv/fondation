@@ -1,9 +1,24 @@
 import clsx from 'clsx';
 import { useId, useState, type ReactNode } from 'react';
-import { FormattedMessage } from 'react-intl';
+import { defineMessages, FormattedMessage } from 'react-intl';
 
-// see FILES_PER_UPLOAD in apps/api/src/modules/framework/files
+// see apps/api/src/modules/framework/files
+export const ATTACHMENT_MAX_BYTES = 50 * 1_024 * 1_024;
 export const FILES_PER_UPLOAD = 20;
+
+type Refusal = { name: string; reason: 'tooLarge' } | { reason: 'tooMany' };
+
+const REFUSALS = defineMessages({
+  tooLarge: { defaultMessage: 'Le fichier "{name}" dépasse {megabytes} Mo.' },
+  tooMany: { defaultMessage: '{files} fichiers au plus par envoi.' },
+});
+
+function refusalOf(files: readonly File[], maxBytes: number): Refusal | null {
+  if (files.length > FILES_PER_UPLOAD) return { reason: 'tooMany' };
+
+  const heavy = files.find((file) => file.size > maxBytes);
+  return heavy ? { name: heavy.name, reason: 'tooLarge' } : null;
+}
 
 export function Upload(props: {
   accept?: string;
@@ -13,13 +28,15 @@ export function Upload(props: {
   hint?: ReactNode;
   isPending?: boolean;
   label: ReactNode;
+  maxBytes?: number;
   multiple?: boolean;
   onChange: (files: File[]) => void;
 }) {
   const inputId = useId();
   const errorId = useId();
   const isLocked = props.disabled || props.isPending;
-  const [tooMany, setTooMany] = useState(false);
+  const maxBytes = props.maxBytes ?? ATTACHMENT_MAX_BYTES;
+  const [refusal, setRefusal] = useState<Refusal | null>(null);
 
   return (
     <label
@@ -29,33 +46,35 @@ export function Upload(props: {
       )}
       htmlFor={inputId}
     >
-      <span className={clsx('fr-label', (props.hasError || tooMany) && 'fr-label--error')}>
+      <span className={clsx('fr-label', (props.hasError || refusal) && 'fr-label--error')}>
         {props.label}
         {props.hint && <span className="fr-hint-text mt-3">{props.hint}</span>}
       </span>
 
       <input
         accept={props.accept}
-        aria-describedby={tooMany ? errorId : undefined}
+        aria-describedby={refusal ? errorId : undefined}
         className="fr-upload mt-4"
         disabled={isLocked}
         id={inputId}
         multiple={props.multiple}
         onChange={(event) => {
           const files = [...(event.target.files ?? [])];
-          const refused = files.length > FILES_PER_UPLOAD;
-          setTooMany(refused);
+          const refused = refusalOf(files, maxBytes);
+          setRefusal(refused);
           if (refused || props.clearOnChange) event.target.value = '';
           if (!refused) props.onChange(files);
+          // the input is now empty: the parent must forget the selection it holds
+          else if (!props.clearOnChange) props.onChange([]);
         }}
         type="file"
       />
 
-      {tooMany && (
+      {refusal && (
         <span className="fr-error-text block" id={errorId} role="alert">
           <FormattedMessage
-            defaultMessage="{max} fichiers au plus par envoi."
-            values={{ max: FILES_PER_UPLOAD }}
+            {...REFUSALS[refusal.reason]}
+            values={{ ...refusal, files: FILES_PER_UPLOAD, megabytes: maxBytes / 1_024 / 1_024 }}
           />
         </span>
       )}
