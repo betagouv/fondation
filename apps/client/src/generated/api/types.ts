@@ -2405,6 +2405,10 @@ export type DetailedAdminUserDto = {
     deactivatedAt: string | null;
     statusChanges: Array<{
         changedAt: string;
+        changedBy: {
+            id: string;
+            name: string;
+        } | null;
         status: 'ACTIVE' | 'DEACTIVATED';
     }>;
 };

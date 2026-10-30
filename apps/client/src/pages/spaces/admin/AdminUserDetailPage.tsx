@@ -14,8 +14,7 @@ import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { useTab } from '@/shared/hooks/useTab';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { DetailsCard, DetailsHeader, DetailsPageLayout } from '@/shared/ui/details';
-import { IconButton, iconButtonClassName } from '@/shared/ui/icon-button';
-import { Tooltip } from '@/shared/ui/tooltip';
+import { IconButton } from '@/shared/ui/icon-button';
 import { generatePassword } from '@/utils/password.utils';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { capitalize } from '@/utils/string.utils';
@@ -670,11 +669,38 @@ function AccessCard(props: { user: DetailedAdminUserDto }) {
 
   return (
     <DetailsCard className="flex grow flex-col">
-      <h2 className="fr-h4 fr-mb-6v">
-        <FormattedMessage defaultMessage="Accès" />
-      </h2>
+      <div className="fr-mb-6v flex items-center justify-between gap-4">
+        <h2 className="fr-h4 fr-mb-0">
+          <FormattedMessage defaultMessage="Accès" />
+        </h2>
+        {props.user.canDeactivate && (
+          <Button
+            className="text-(--text-default-error)!"
+            disabled={deactivate.isPending}
+            iconId="fr-icon-lock-line"
+            onClick={onDeactivate}
+            priority="tertiary"
+            size="small"
+            type="button"
+          >
+            <FormattedMessage defaultMessage="Désactiver le compte" />
+          </Button>
+        )}
+        {props.user.canReactivate && (
+          <Button
+            disabled={reactivate.isPending}
+            iconId="fr-icon-lock-unlock-line"
+            onClick={() => reactivate.mutate()}
+            priority="secondary"
+            size="small"
+            type="button"
+          >
+            <FormattedMessage defaultMessage="Réactiver le compte" />
+          </Button>
+        )}
+      </div>
       <div>
-        <p className="fr-mb-2v font-bold">
+        <p className="fr-mb-3v font-bold">
           <FormattedMessage defaultMessage="Compte" />
         </p>
         <div className="flex items-center gap-3">
@@ -690,81 +716,63 @@ function AccessCard(props: { user: DetailedAdminUserDto }) {
               />
             </span>
           )}
-          <AccountStatusHistory statusChanges={props.user.statusChanges} />
         </div>
+        <AccountStatusHistory statusChanges={props.user.statusChanges} />
       </div>
       <AdminUserPromotionToggle user={props.user} />
-      {(props.user.canDeactivate || props.user.canReactivate) && (
-        <div className="fr-pt-6v mt-auto flex justify-end">
-          {props.user.canDeactivate && (
-            <Button
-              className="text-(--text-default-error)!"
-              disabled={deactivate.isPending}
-              iconId="fr-icon-lock-line"
-              onClick={onDeactivate}
-              priority="tertiary"
-              size="small"
-              type="button"
-            >
-              <FormattedMessage defaultMessage="Désactiver le compte" />
-            </Button>
-          )}
-          {props.user.canReactivate && (
-            <Button
-              disabled={reactivate.isPending}
-              iconId="fr-icon-lock-unlock-line"
-              onClick={() => reactivate.mutate()}
-              priority="secondary"
-              size="small"
-              type="button"
-            >
-              <FormattedMessage defaultMessage="Réactiver le compte" />
-            </Button>
-          )}
-        </div>
-      )}
     </DetailsCard>
   );
 }
 
 function AccountStatusHistory(props: { statusChanges: DetailedAdminUserDto['statusChanges'] }) {
   const { formatDate, formatMessage, formatTime } = useIntl();
+  const { user: currentUser } = useUser();
   if (props.statusChanges.length === 0) return null;
 
   return (
-    <Tooltip
-      className="-ml-2"
-      label={
-        <ul className="fr-m-0 fr-p-0 flex list-none flex-col gap-1.5">
-          {props.statusChanges.map(({ changedAt, status }, index) => {
-            const values = {
-              date: formatDate(changedAt, { format: 'zonedDateShort' }),
-              time: formatTime(changedAt, { format: 'zonedTimeShort' }),
-            };
-            // the oldest change, last of the list, is the creation of the account
-            const isCreation = index === props.statusChanges.length - 1;
-            return (
-              <li className="fr-p-0 flex items-center gap-2" key={changedAt}>
-                {isCreation ? (
-                  <FormattedMessage defaultMessage="Créé le {date} à {time}" values={values} />
-                ) : (
-                  <>
-                    <UserStatusBadge status={status} />
-                    <FormattedMessage defaultMessage="le {date} à {time}" values={values} />
-                  </>
-                )}
-              </li>
-            );
-          })}
-        </ul>
-      }
-    >
-      <button
-        aria-label={formatMessage({ defaultMessage: 'Historique du compte' })}
-        className={iconButtonClassName({ iconId: 'fr-icon-information-line', small: true })}
-        type="button"
-      />
-    </Tooltip>
+    <section aria-label={formatMessage({ defaultMessage: 'Historique du compte' })} className="fr-mt-5v">
+      <p className="fr-text--xs fr-mb-2v font-bold text-(--text-mention-grey) uppercase">
+        <FormattedMessage defaultMessage="Historique" />
+      </p>
+      <ul className="fr-m-0 fr-p-0 fr-pl-4v flex list-none flex-col gap-3 border-l border-(--border-default-grey)">
+        {props.statusChanges.map(({ changedAt, changedBy, status }, index) => {
+          // the oldest change, last of the list, is the creation of the account
+          const change =
+            index === props.statusChanges.length - 1
+              ? 'created'
+              : status === 'DEACTIVATED'
+                ? 'deactivated'
+                : 'reactivated';
+          return (
+            <li className="fr-p-0 relative" key={changedAt}>
+              <span
+                aria-hidden
+                className={`absolute top-1.5 -left-[calc(1rem+4.5px)] size-2 rounded-full ${index === 0 ? 'bg-(--background-action-high-blue-france)' : 'bg-(--border-default-grey)'}`}
+              />
+              <p className="fr-text--xs fr-mb-0 text-(--text-mention-grey)">
+                <FormattedMessage
+                  defaultMessage="{date} à {time}"
+                  values={{
+                    date: formatDate(changedAt, { format: 'zonedDateShort' }),
+                    time: formatTime(changedAt, { format: 'zonedTimeShort' }),
+                  }}
+                />
+              </p>
+              <p className="fr-text--sm fr-mb-0">
+                <FormattedMessage
+                  defaultMessage="{change, select, created {Compte créé} deactivated {Compte désactivé} other {Compte réactivé}}{who, select, self { par vous} someone { par {name}} other {}}"
+                  values={{
+                    change,
+                    name: changedBy?.name,
+                    who: !changedBy ? 'nobody' : changedBy.id === currentUser?.id ? 'self' : 'someone',
+                  }}
+                />
+              </p>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }
 
