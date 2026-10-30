@@ -12,6 +12,7 @@ const ACCOUNTS = ['secretariat', 'member'] as const;
 type Account = (typeof ACCOUNTS)[number];
 const STATUSES = ['ACTIVE', 'DEACTIVATED'] as const satisfies readonly DetailedAdminUserDto['status'][];
 type Status = (typeof STATUSES)[number];
+const AUTHOR = { id: 'admin-1', name: 'Claire MARTIN' };
 
 const USERS = {
   member: {
@@ -136,15 +137,15 @@ const meta = {
           statusChanges:
             args.status === 'DEACTIVATED'
               ? [
-                  { changedAt: '2026-10-21T12:32:00.000Z', status: 'DEACTIVATED' },
-                  { changedAt: '2026-10-15T07:10:00.000Z', status: 'ACTIVE' },
-                  { changedAt: '2026-10-14T16:05:00.000Z', status: 'DEACTIVATED' },
-                  { changedAt: '2026-09-01T08:00:00.000Z', status: 'ACTIVE' },
+                  { changedAt: '2026-10-21T12:32:00.000Z', changedBy: AUTHOR, status: 'DEACTIVATED' },
+                  { changedAt: '2026-10-15T07:10:00.000Z', changedBy: AUTHOR, status: 'ACTIVE' },
+                  { changedAt: '2026-10-14T16:05:00.000Z', changedBy: AUTHOR, status: 'DEACTIVATED' },
+                  { changedAt: '2026-09-01T08:00:00.000Z', changedBy: null, status: 'ACTIVE' },
                 ]
               : [
-                  { changedAt: '2026-10-15T07:10:00.000Z', status: 'ACTIVE' },
-                  { changedAt: '2026-10-14T16:05:00.000Z', status: 'DEACTIVATED' },
-                  { changedAt: '2026-09-01T08:00:00.000Z', status: 'ACTIVE' },
+                  { changedAt: '2026-10-15T07:10:00.000Z', changedBy: AUTHOR, status: 'ACTIVE' },
+                  { changedAt: '2026-10-14T16:05:00.000Z', changedBy: AUTHOR, status: 'DEACTIVATED' },
+                  { changedAt: '2026-09-01T08:00:00.000Z', changedBy: null, status: 'ACTIVE' },
                 ],
           status: args.status,
         });

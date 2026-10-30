@@ -267,7 +267,7 @@ test.describe('Administration', () => {
   });
 
   test.describe('Given a deactivated member', () => {
-    test('should detail the account with its status changes since its creation, the latest first, and no password reset', async ({
+    test('should detail the account with its status changes and their authors since its creation, the latest first, and no password reset', async ({
       admin,
       expect,
       registerUser,
@@ -281,11 +281,12 @@ test.describe('Administration', () => {
         path: { userId: user.id },
         throwOnError: true,
       });
-      expect(data.statusChanges.map(({ status }) => status)).toEqual([
-        'DEACTIVATED',
-        'ACTIVE',
-        'DEACTIVATED',
-        'ACTIVE',
+      const adminId = admin['@user']!.id;
+      expect(data.statusChanges.map(({ changedBy, status }) => ({ by: changedBy?.id ?? null, status }))).toEqual([
+        { by: adminId, status: 'DEACTIVATED' },
+        { by: adminId, status: 'ACTIVE' },
+        { by: adminId, status: 'DEACTIVATED' },
+        { by: null, status: 'ACTIVE' },
       ]);
       expect(data.deactivatedAt).toBe(data.statusChanges[0]!.changedAt);
       expect(data.canResetPassword).toBe(false);

@@ -3,6 +3,7 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { Prisma } from '../../../../generated/prisma/client';
+import { writerOf, writerSchema } from '../../../../utils/user.util';
 import { Db } from '../../../framework/database';
 import { ADMIN_USER_ROLES_ENUM } from '../../../shared/admin-user-role.enum';
 import { GenderEnum } from '../../../shared/gender.enum';
@@ -31,7 +32,14 @@ export class DetailsUserQuery {
         isAdmin: true,
         lastName: true,
         role: true,
-        statusChanges: { orderBy: { changedAt: 'desc' }, select: { changedAt: true, status: true } },
+        statusChanges: {
+          orderBy: { changedAt: 'desc' },
+          select: {
+            author: { select: { firstName: true, id: true, lastName: true } },
+            changedAt: true,
+            status: true,
+          },
+        },
         title: true,
       } satisfies Prisma.UserSelect,
       where: { id: query.userId },
@@ -61,8 +69,9 @@ export class DetailsUserQuery {
       lastName: user.lastName,
       role: servedAdminUserRole(role, gender),
       status,
-      statusChanges: user.statusChanges.map(({ changedAt, status }) => ({
+      statusChanges: user.statusChanges.map(({ author, changedAt, status }) => ({
         changedAt: changedAt.toISOString(),
+        changedBy: writerOf(author),
         status,
       })),
     };
@@ -87,6 +96,8 @@ export class DetailedAdminUserDto extends createZodDto(
     canResetPassword: z.boolean(),
     assignableRoles: z.array(z.enum(ADMIN_USER_ROLES_ENUM)),
     deactivatedAt: z.iso.datetime().nullable(),
-    statusChanges: z.array(z.object({ changedAt: z.iso.datetime(), status: z.enum(USER_STATUSES) })),
+    statusChanges: z.array(
+      z.object({ changedAt: z.iso.datetime(), changedBy: writerSchema, status: z.enum(USER_STATUSES) }),
+    ),
   }),
 ) {}
