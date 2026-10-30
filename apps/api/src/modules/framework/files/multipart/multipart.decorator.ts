@@ -5,6 +5,7 @@ import { type ZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { ATTACHMENT_MAX_BYTES } from '../attachment-max-bytes';
+import { FILES_PER_UPLOAD } from '../files-per-upload';
 
 import { MultipartBodyInterceptor } from './multipart.interceptor';
 import { MultipartDestinationFactory } from './multipart.types';
@@ -38,7 +39,10 @@ export function UseMultipartBody<Schema extends z.ZodObject>(options: {
     ApiConsumes('multipart/form-data'),
     ApiBody({ type: options.schema }),
     UseInterceptors(
-      AnyFilesInterceptor({ limits: { fileSize: options.maxFileBytes ?? ATTACHMENT_MAX_BYTES } }),
+      // a json field travels as a blob, which multer counts as a file
+      AnyFilesInterceptor({
+        limits: { files: FILES_PER_UPLOAD + 1, fileSize: options.maxFileBytes ?? ATTACHMENT_MAX_BYTES },
+      }),
       new MultipartBodyInterceptor({
         ...options,
         schema: options.schema.schema,
