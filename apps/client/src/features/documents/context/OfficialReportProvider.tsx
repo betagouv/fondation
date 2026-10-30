@@ -53,6 +53,17 @@ export function OfficialReportProvider(props: PropsWithChildren) {
     }));
   }, [officialReportMetadata]);
 
+  const recordedMemberIds = useMemo(
+    () =>
+      officialReportMetadata
+        ? [
+            ...(officialReportMetadata.chairmanId ? [officialReportMetadata.chairmanId] : []),
+            ...officialReportMetadata.recordedMembers,
+          ]
+        : [],
+    [officialReportMetadata],
+  );
+
   const isFetching = useMemo(
     () =>
       sessionFetching ||
@@ -117,6 +128,7 @@ export function OfficialReportProvider(props: PropsWithChildren) {
         changedSinceValidation: officialReportMetadata?.changedSinceValidation ?? [],
         isSubmitting: createOfficialReport.isPending || updateOfficialReport.isPending,
         officialReportId,
+        recordedMemberIds,
         report: state,
         session: { id: sessionId, formation: session?.formation ?? 'SIEGE' },
         submit,

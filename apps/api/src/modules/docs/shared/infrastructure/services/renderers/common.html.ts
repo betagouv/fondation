@@ -1,6 +1,6 @@
 import { documentFontFaces, documentLogo } from 'documents-assets';
 
-import type { Pretty, UnionToIntersection } from 'src/utils/types';
+import type { Pretty, UnionToIntersection } from '../../../../../../utils/types';
 
 import { Template, TemplateFunction } from './templates.types';
 
@@ -103,7 +103,7 @@ export function commonDocumentCss(): string {
   `;
 }
 
-type LayoutContext = Record<'css' | 'header' | 'content' | 'footer', TemplateFunction<never>>;
+type LayoutContext = Record<'header' | 'content' | 'footer', TemplateFunction<never>> & { css: () => string };
 
 type MergedCtx<Fns> = Pretty<
   UnionToIntersection<
@@ -115,38 +115,31 @@ export function documentLayout<const T extends LayoutContext>(layout: T): Templa
   return new Template(function (ctx: MergedCtx<T[keyof T]>) {
     // FIXME: once we refactored all docs.
     const { css, header, content, footer } = layout as Record<
-      'css' | 'header' | 'content' | 'footer',
+      'header' | 'content' | 'footer',
       TemplateFunction<any>
-    >;
+    > & { css: () => string };
 
     return /* html */ `
       <!doctype html>
       <html lang="fr">
         <head>
-          <script
-            defer
-            crossorigin="anonymous"
-            integrity="sha384-y6+mefdjvGUaOPOrIMXHgP6Wwpza9G0N1QW1YUteLiwb50olbeI7H909UwZTMuVX"
-            src="https://unpkg.com/pagedjs@0.4.3/dist/paged.polyfill.min.js"
-          ></script>
-
           <style>
-            ${css(ctx)}
+            ${css()}
           </style>
         </head>
         <body>
           <header>${documentLogo()}</header>
 
           <main>
-            <div class="header">${header(ctx)}</div>
+            <div class="header">${header(ctx).toString()}</div>
 
             <footer>
               <div class="drapeau"></div>
             </footer>
 
-            <div class="content" data-editable-content>${content(ctx)}</div>
+            <div class="content" data-editable-content>${content(ctx).toString()}</div>
 
-            <div class="footer">${footer(ctx)}</div>
+            <div class="footer">${footer(ctx).toString()}</div>
           </main>
         </body>
       </html>

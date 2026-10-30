@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 
 const ASSETS = join(__dirname, '..', 'assets');
 
@@ -37,13 +37,11 @@ export function documentLogo(): string {
   return readFileSync(join(ASSETS, 'logo-csm.svg'), 'utf8');
 }
 
-export function missingDocumentFonts(): string[] {
-  return DOCUMENT_FONTS.filter(({ file }) => {
-    try {
-      readFileSync(join(ASSETS, 'fonts', file));
-      return false;
-    } catch {
-      return true;
-    }
-  }).map(({ file }) => file);
+let pagedJs: Buffer<ArrayBuffer> | undefined;
+
+export function documentPagedJs(): Buffer<ArrayBuffer> {
+  // pagedjs only exports its entry point, lib/index.cjs: the browser bundle is reached from there
+  pagedJs ??= readFileSync(join(dirname(require.resolve('pagedjs')), '..', 'dist', 'paged.polyfill.min.js'));
+
+  return pagedJs;
 }

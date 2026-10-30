@@ -47,11 +47,23 @@ function Page(props: PropsWithChildren) {
   );
 }
 
-function ToastPlayground(props: Sample) {
+const QUEUE: Sample[] = [
+  {
+    description: 'Réessayez et prévenez le support si cela persiste.',
+    title: 'Le document n’a pas pu être ouvert',
+    tone: 'error',
+  },
+  { actionLabel: 'Voir l’ODJ', title: '3 propositions ajoutées à l’ODJ en préparation', tone: 'success' },
+];
+
+function ToastPlayground({ queued, ...sample }: Sample & { queued: boolean }) {
   return (
-    <Page>
-      <PinnedToast {...props} />
-    </Page>
+    <ToastProvider key={String(queued)}>
+      <Page>
+        {queued && QUEUE.map((toast) => <PinnedToast key={toast.title} {...toast} />)}
+        <PinnedToast {...sample} />
+      </Page>
+    </ToastProvider>
   );
 }
 
@@ -59,13 +71,6 @@ const meta = {
   title: 'Shared/Toast',
   component: ToastPlayground,
   parameters: { controls: { sort: 'alpha' }, layout: 'fullscreen' },
-  decorators: [
-    (Story) => (
-      <ToastProvider>
-        <Story />
-      </ToastProvider>
-    ),
-  ],
   argTypes: {
     actionLabel: { control: 'text' },
     description: { control: 'text' },
@@ -73,6 +78,7 @@ const meta = {
     tone: { control: 'inline-radio', options: ['success', 'error'] },
   },
   args: {
+    queued: false,
     title: 'Session publiée avec succès',
     tone: 'success',
   },
@@ -80,47 +86,4 @@ const meta = {
 
 export default meta;
 
-type Story = StoryObj<typeof meta>;
-
-export const Playground: Story = {};
-
-export const LongConfirmation: Story = {
-  args: {
-    description: 'Les membres de la formation peuvent désormais consulter leurs affectations.',
-    title: '12 propositions ajoutées à l’ordre du jour en préparation',
-  },
-};
-
-export const WithAction: Story = {
-  args: {
-    actionLabel: 'Voir l’ODJ',
-    title: '3 propositions ajoutées à l’ODJ en préparation',
-  },
-};
-
-export const Failure: Story = {
-  args: {
-    description: 'Réessayez et prévenez le support si cela persiste.',
-    title: 'Le document n’a pas pu être ouvert',
-    tone: 'error',
-  },
-};
-
-export const FullQueue: Story = {
-  parameters: { controls: { disable: true } },
-  render: () => (
-    <Page>
-      <PinnedToast title="Session publiée avec succès" tone="success" />
-      <PinnedToast
-        description="Réessayez et prévenez le support si cela persiste."
-        title="Le document n’a pas pu être ouvert"
-        tone="error"
-      />
-      <PinnedToast
-        actionLabel="Voir l’ODJ"
-        title="3 propositions ajoutées à l’ODJ en préparation"
-        tone="success"
-      />
-    </Page>
-  ),
-};
+export const Playground: StoryObj<typeof meta> = {};

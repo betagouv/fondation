@@ -1,5 +1,5 @@
+import { GradeEnum } from '../../../shared/grade.enum';
 import { DocNominationFileOutcomeEnum } from '../../shared/domain/doc-nomination-file-outcome';
-import { GradeEnum } from 'src/modules/shared/grade.enum';
 
 export type AgendaNominationFile = {
   id: string;

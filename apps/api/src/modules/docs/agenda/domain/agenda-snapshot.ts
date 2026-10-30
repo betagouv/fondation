@@ -1,6 +1,6 @@
-import { DocInvalidation } from 'src/modules/docs/shared/domain/invalidation/official-report-invalidated.integration-event';
-import { DateOnly } from 'src/utils/date-only';
-import { Id } from 'src/utils/id';
+import { DateOnly } from '../../../../utils/date-only';
+import { Id } from '../../../../utils/id';
+import { DocInvalidation } from '../../shared/domain/doc-invalidation';
 
 type AgendaSnapshotFile = {
   id: bigint;

@@ -5,8 +5,8 @@ import { parse } from 'node-xlsx';
 
 import { test as base } from '../fixtures.ts';
 import * as api from '../generated/api/sdk.ts';
-import type { CreateObservationDto } from '../generated/api/types.ts';
 import { makeFile } from '../utils/files.ts';
+import { observationForm } from '../utils/observation.ts';
 import * as seed from '../utils/seed.ts';
 
 const VALROSE_SESSION: LolfiArchiveContent['sessions'][number] = {
@@ -47,23 +47,12 @@ const VALROSE_SESSION: LolfiArchiveContent['sessions'][number] = {
   name: 'Transparence annuelle',
 };
 
-function observationForm(form: CreateObservationDto['form']): CreateObservationDto['form'] {
-  return new Blob([JSON.stringify(form)], {
-    type: 'application/json',
-  }) as unknown as CreateObservationDto['form'];
-}
-
-const test = base.extend('valrose', async ({ agent, sessions }) => {
+const test = base.extend('valrose', async ({ sessions }) => {
   const session = await sessions.createOne(VALROSE_SESSION);
-
-  const nominationFiles = await agent.sessions
-    .listNominationFiles({ path: { sessionId: session.id }, throwOnError: true })
-    .then(({ data }) => data!.items);
-  const nominationFile = nominationFiles.find((file) => /valrose/i.test(file.content.nomMagistrat));
-  const otherNominationFile = nominationFiles.find((file) => !/valrose/i.test(file.content.nomMagistrat));
+  const [nominationFile, otherNominationFile] = session.files;
 
   return {
-    magistratId: nominationFile!.content.detectedMagistratId!,
+    magistratId: nominationFile!.magistratId,
     nominationFile: nominationFile!,
     otherNominationFile: otherNominationFile!,
     session,
@@ -88,6 +77,7 @@ test.describe('Magistrat E2E', () => {
       id: valrose.magistratId,
       lastName: expect.stringMatching(/^valrose$/i),
       name: 'Mme\u00A0VALROSE\u00A0Honorine (ép. DUBOIS)',
+      status: 'ACTIVE',
     });
   });
 
@@ -266,13 +256,13 @@ test.describe('Magistrat E2E', () => {
 
     expect(phoneNumbers.response?.status).toBe(200);
     expect(phoneNumbers.data).toEqual({
-      items: [{ date: { year: 2026, month: 4, day: 22 }, number: '06.12.34.56.78', source: 'LOLFI' }],
+      items: [{ date: { day: 22, month: 4, year: 2026 }, number: '06.12.34.56.78', source: 'LOLFI' }],
     });
   });
 
   test('should list the saved phone numbers before the LOLFI ones', async ({ agent, expect, valrose }) => {
     const today = { day: expect.any(Number), month: expect.any(Number), year: expect.any(Number) };
-    const lolfi = { date: { year: 2026, month: 4, day: 22 }, number: '06.12.34.56.78', source: 'LOLFI' };
+    const lolfi = { date: { day: 22, month: 4, year: 2026 }, number: '06.12.34.56.78', source: 'LOLFI' };
     const { data: me } = await agent.auth.introspectSession();
     const savedBy = { id: me!.userId, name: expect.any(String) };
 
@@ -325,7 +315,7 @@ test.describe('Magistrat E2E', () => {
     expect(deleted.response?.status).toBe(204);
     const remaining = await agent.magistrats.listMagistratPhoneNumbers({ path, throwOnError: true });
     expect(remaining.data.items).toEqual([
-      { date: { year: 2026, month: 4, day: 22 }, number: '06.12.34.56.78', source: 'LOLFI' },
+      { date: { day: 22, month: 4, year: 2026 }, number: '06.12.34.56.78', source: 'LOLFI' },
     ]);
   });
 
@@ -334,10 +324,7 @@ test.describe('Magistrat E2E', () => {
     const candidate = { ...VALROSE_SESSION.candidates[0]!, id: crypto.randomInt(1_000, 900_000) };
     const lolfiSession = { ...VALROSE_SESSION, candidates: [candidate], id: crypto.randomInt(1_000, 900_000) };
     const session = await sessions.createOne(lolfiSession);
-    const [nominationFile] = await agent.sessions
-      .listNominationFiles({ path: { sessionId: session.id }, throwOnError: true })
-      .then(({ data }) => data!.items);
-    const path = { magistratId: nominationFile!.content.detectedMagistratId! };
+    const path = { magistratId: session.files[0]!.magistratId };
 
     await agent.magistrats.addMagistratPhoneNumber({
       body: { label: 'Conjointe', number: '07 00 00 00 00' },
@@ -356,7 +343,7 @@ test.describe('Magistrat E2E', () => {
         savedBy: expect.any(Object),
         source: 'FONDATION',
       },
-      { date: { year: 2026, month: 4, day: 22 }, number: '06 98 76 54 32', source: 'LOLFI' },
+      { date: { day: 22, month: 4, year: 2026 }, number: '06 98 76 54 32', source: 'LOLFI' },
     ]);
   });
 
@@ -394,9 +381,31 @@ test.describe('Magistrat E2E', () => {
     expect(memberNominationFiles.data!.items[0]).toMatchObject({ id: valrose.nominationFile.id });
   });
 
+  test('should list a nomination file of the other formation to a member without opening its session', async ({
+    agent,
+    expect,
+    logIn,
+    valrose,
+  }) => {
+    const { data: session } = await agent.sessions.detailsNominationSession({
+      path: { sessionId: valrose.session.id },
+      throwOnError: true,
+    });
+
+    const outsider = await logIn(session.formation === 'PARQUET' ? 'MEMBRE_DU_SIEGE' : 'MEMBRE_DU_PARQUET');
+    const { data } = await outsider.magistrats.listMagistratNominationFiles({
+      path: { magistratId: valrose.magistratId },
+      throwOnError: true,
+    });
+    expect(data.items[0]).toMatchObject({
+      id: valrose.nominationFile.id,
+      session: { canOpen: false, id: valrose.session.id },
+    });
+  });
+
   test('should expect an audition on an auditioned position', async ({ agent, expect, valrose }) => {
     const nominationFiles = await agent.magistrats.listMagistratNominationFiles({
-      path: { magistratId: valrose.otherNominationFile.content.detectedMagistratId! },
+      path: { magistratId: valrose.otherNominationFile.magistratId },
     });
 
     expect(nominationFiles.response?.status).toBe(200);
@@ -414,7 +423,7 @@ test.describe('Magistrat E2E', () => {
     expect(outcomeRes.response?.status).toBe(204);
 
     const nominationFiles = await agent.magistrats.listMagistratNominationFiles({
-      path: { magistratId: valrose.otherNominationFile.content.detectedMagistratId! },
+      path: { magistratId: valrose.otherNominationFile.magistratId },
     });
 
     expect(nominationFiles.response?.status).toBe(200);
@@ -432,7 +441,7 @@ test.describe('Magistrat E2E', () => {
   }) => {
     await agent.sessions.affectReporters({
       body: {
-        items: [{ nominationFileId: valrose.nominationFile.id, priorities: [], reporterIds: [member['@user']!.id] }],
+        items: [{ nominationFileId: valrose.nominationFile.id, reporterIds: [member['@user']!.id] }],
       },
       path: { sessionId: valrose.session.id },
       throwOnError: true,
@@ -631,13 +640,9 @@ test.describe('Magistrat E2E', () => {
     valrose,
   }) => {
     const laterSession = await sessions.createOne({ ...VALROSE_SESSION, createdAt: '22/05/2026' });
-    const laterFiles = await agent.sessions.listNominationFiles({
-      path: { sessionId: laterSession.id },
-      throwOnError: true,
-    });
     for (const [sessionId, nominationFileId] of [
       [valrose.session.id, valrose.nominationFile.id],
-      [laterSession.id, laterFiles.data!.items[0]!.id],
+      [laterSession.id, laterSession.files[0]!.id],
     ] as const) {
       await agent.observations.createObservation({
         body: {
@@ -668,9 +673,11 @@ test.describe('Magistrat E2E', () => {
   });
 
   test('should order the observations of a session by nomination file number', async ({ agent, expect, valrose }) => {
-    const [lowerFile, higherFile] = [valrose.nominationFile, valrose.otherNominationFile].sort(
-      (a, b) => a.content.numeroDeDossier! - b.content.numeroDeDossier!,
-    );
+    const { data: files } = await agent.sessions.listNominationFiles({
+      path: { sessionId: valrose.session.id },
+      throwOnError: true,
+    });
+    const [lowerFile, higherFile] = files.items.sort((a, b) => a.content.numeroDeDossier! - b.content.numeroDeDossier!);
 
     await agent.observations.createObservation({
       body: {

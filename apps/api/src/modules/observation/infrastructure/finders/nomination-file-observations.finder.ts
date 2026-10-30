@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { load } from 'cheerio';
 
+import { Prisma } from '../../../../generated/prisma/client';
+import { assertPgParams } from '../../../../utils/assert-pg-params';
+import { Db } from '../../../framework/database';
+import { magistratFullName } from '../../../magistrat/domain/magistrat-name';
 import type { ObservationFollowUpEnum } from '../../domain/observation-follow-up';
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { magistratFullName } from 'src/modules/magistrat/domain/magistrat-name';
-import { assertPgParams } from 'src/utils/assert-pg-params';
 
 type Observant = { id: string; name: string };
 

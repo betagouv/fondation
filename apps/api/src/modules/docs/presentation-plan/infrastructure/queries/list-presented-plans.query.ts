@@ -2,17 +2,17 @@ import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import z from 'zod';
 
+import { Prisma } from '../../../../../generated/prisma/client';
+import { dateOnlyJsonSchema } from '../../../../../utils/date-only';
+import { DateOnly } from '../../../../../utils/date-only';
+import { assertIsDefined } from '../../../../../utils/is-defined';
+import { dateToTimeOnly, timeOnlySchema } from '../../../../../utils/time-only';
+import { writerOf, writerSchema } from '../../../../../utils/user.util';
+import { Db } from '../../../../framework/database';
+import { createPaginatedZodDto, paginate, Pagination } from '../../../../framework/pagination';
+import { FormationEnum } from '../../../../shared/formation.enum';
+import { prismaFormationEnumToFormationEnum } from '../../../../shared/mappers/formation.mapper';
 import { presentationPlanStatusOf, presentationPlanStatusSchema } from '../presentation-plan-status';
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
-import { dateOnlyJsonSchema } from 'src/utils/date-only';
-import { DateOnly } from 'src/utils/date-only';
-import { assertIsDefined } from 'src/utils/is-defined';
-import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
-import { writerOf, writerSchema } from 'src/utils/user.util';
 
 @Injectable()
 export class ListPresentedPlansQuery {

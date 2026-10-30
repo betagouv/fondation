@@ -1,14 +1,15 @@
 import { faker } from '@faker-js/faker';
 
-import { DocInvalidation } from '../../shared/domain/invalidation/official-report-invalidated.integration-event';
-import { GenderEnum } from 'src/modules/shared/gender.enum';
-import { DateOnly } from 'src/utils/date-only';
-import { makeId } from 'src/utils/id';
+import { DateOnly } from '../../../../utils/date-only';
+import { makeId } from '../../../../utils/id';
+import { GenderEnum } from '../../../shared/gender.enum';
+import { DocInvalidation } from '../../shared/domain/doc-invalidation';
 
 import {
   Agenda,
   AgendaAlreadyValidated,
   AgendaDocumentNotStored,
+  AgendaDraftChangedByTheApplication,
   AgendaDraftDiscarded,
   AgendaDraftEdited,
   AgendaDraftOpened,
@@ -374,7 +375,7 @@ describe('Agenda', () => {
     it('should be discarded when a validated version remains underneath', () => {
       const agenda = makeAgenda();
 
-      agenda.discardDraft({ hasValidatedVersion: true });
+      agenda.discardDraft({ changesBy: 'PERSON', hasValidatedVersion: true });
 
       expect(agenda.messages).toEqual([new AgendaDraftDiscarded(agenda.id)]);
     });
@@ -382,9 +383,21 @@ describe('Agenda', () => {
     it('should refuse to be discarded without a validated version to fall back on', () => {
       const agenda = makeAgenda();
 
-      const act = () => agenda.discardDraft({ hasValidatedVersion: false });
+      const act = () => agenda.discardDraft({ changesBy: 'PERSON', hasValidatedVersion: false });
 
       expect(act).toThrow(AgendaWithoutValidatedVersion);
     });
+
+    it.each(['SYSTEM', 'PERSON_AND_SYSTEM'] as const)(
+      'should refuse to be discarded when the application changed it (%s)',
+      (changesBy) => {
+        const agenda = makeAgenda();
+
+        const act = () => agenda.discardDraft({ changesBy, hasValidatedVersion: true });
+
+        expect(act).toThrow(AgendaDraftChangedByTheApplication);
+        expect(agenda.messages).toEqual([]);
+      },
+    );
   });
 });

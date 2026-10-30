@@ -8,6 +8,7 @@ import {
   GetObjectCommand,
   HeadBucketCommand,
   HeadObjectCommand,
+  ListObjectsV2Command,
   ListObjectVersionsCommand,
   PutBucketCorsCommand,
   S3Client,
@@ -18,6 +19,8 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { HttpService } from '@nestjs/axios';
 import {
+  HttpException,
+  HttpStatus,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -27,17 +30,18 @@ import {
   type OnApplicationBootstrap,
 } from '@nestjs/common';
 import * as Sentry from '@sentry/node';
+import { isAxiosError } from 'axios';
 import { lastValueFrom } from 'rxjs';
 
+import { Prisma } from '../../../generated/prisma/client';
+import { makeId } from '../../../utils/id';
+import { assertIsDefined } from '../../../utils/is-defined';
+import { noop } from '../../../utils/noop';
+import { ignoreAsync, isFulfilled } from '../../../utils/promises';
+import * as time from '../../../utils/time';
 import { Clock } from '../clock';
-import { Prisma } from 'src/generated/prisma/client';
-import { API_CONFIG_TOKEN, type ApiConfig } from 'src/modules/framework/config';
-import { afterCommit, Db } from 'src/modules/framework/database';
-import { makeId } from 'src/utils/id';
-import { assertIsDefined } from 'src/utils/is-defined';
-import { noop } from 'src/utils/noop';
-import { ignoreAsync, isFulfilled } from 'src/utils/promises';
-import * as time from 'src/utils/time';
+import { API_CONFIG_TOKEN, type ApiConfig } from '../config';
+import { afterCommit, Db } from '../database';
 
 import { contentDisposition } from './content-disposition';
 import { type FondationFile, type StoredSize } from './files.types';
@@ -450,8 +454,8 @@ export class Files implements OnApplicationBootstrap {
 
   async getFileContent(
     fileUrlId: string,
-    options?: { download?: boolean },
-  ): Promise<{ expiresAt: Date; file: StreamableFile }> {
+    options?: { download?: boolean; range?: string },
+  ): Promise<{ contentRange: string | null; expiresAt: Date; file: StreamableFile }> {
     const file = await this.db.withTransaction(Propagation.RequiresNew, () =>
       this.db.tx.filePublicUrl.findUnique({
         select: {
@@ -465,15 +469,16 @@ export class Files implements OnApplicationBootstrap {
 
     if (!file) throw new NotFoundException();
 
-    let headers: Record<string, string> = {};
+    // the storage answers the range of bytes a video player asks, to seek or to start before the end of the download
+    const headers: Record<string, string> = options?.range ? { Range: options.range } : {};
     if (this.hasSse) {
       const { SSECustomerAlgorithm, SSECustomerKey, SSECustomerKeyMD5 } = this.sseHeaders;
 
-      headers = {
+      Object.assign(headers, {
         'x-amz-server-side-encryption-customer-algorithm': SSECustomerAlgorithm,
         'x-amz-server-side-encryption-customer-key': SSECustomerKey,
         'x-amz-server-side-encryption-customer-key-MD5': SSECustomerKeyMD5,
-      };
+      });
     }
 
     const response = await lastValueFrom(
@@ -486,14 +491,22 @@ export class Files implements OnApplicationBootstrap {
         this.reportMissingFromStorage(file.file);
         throw new FileMissingFromStorage();
       }
+      if (isAxiosError(error) && error.response?.status === HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE) {
+        throw new HttpException('range past the end of the file', HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE);
+      }
 
       throw error;
     });
 
+    const length = Number(response.headers['content-length']);
+
     return {
+      contentRange:
+        response.status === HttpStatus.PARTIAL_CONTENT ? String(response.headers['content-range']) : null,
       expiresAt: file.expiresAt,
       file: new StreamableFile(response.data, {
         disposition: contentDisposition({ download: options?.download, name: file.file.name }),
+        length: Number.isFinite(length) ? length : undefined,
         type: filenameToMimeType(file.file.name),
       }),
     };
@@ -542,6 +555,37 @@ export class Files implements OnApplicationBootstrap {
       if (error.$metadata.httpStatusCode === 404) return { status: 'MISSING' };
       if (error.$metadata.httpStatusCode === 403) return { status: 'REFUSED' };
       throw error;
+    }
+  }
+
+  async *storedObjects(): AsyncGenerator<{ key: string; size: number; writtenAt: Date }> {
+    let ContinuationToken: string | undefined;
+    do {
+      const page = await this.client.send(
+        new ListObjectsV2Command({ Bucket: this.bucketName, ContinuationToken }),
+      );
+      for (const object of page.Contents ?? []) {
+        yield {
+          key: assertIsDefined(object.Key, 'object without key'),
+          size: object.Size ?? 0,
+          writtenAt: assertIsDefined(object.LastModified, `no date for ${object.Key}`),
+        };
+      }
+      ContinuationToken = page.NextContinuationToken;
+    } while (ContinuationToken);
+  }
+
+  /** by their exact keys: objects written before the paths were normalized keep raw spaces, which encoding again would miss */
+  async deleteStoredObjects(keys: readonly string[]): Promise<void> {
+    // S3 deletes at most 1 000 objects per request
+    for (let start = 0; start < keys.length; start += 1_000) {
+      const { Errors = [] } = await this.client.send(
+        new DeleteObjectsCommand({
+          Bucket: this.bucketName,
+          Delete: { Objects: keys.slice(start, start + 1_000).map((Key) => ({ Key })), Quiet: true },
+        }),
+      );
+      if (Errors.length > 0) throw new Error(`Failed deleting ${Errors.length} objects ${inspect(Errors)}`);
     }
   }
 

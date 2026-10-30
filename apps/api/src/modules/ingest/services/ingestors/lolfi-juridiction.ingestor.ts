@@ -2,9 +2,9 @@ import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
+import { insertJurisdictionsRawQuery } from '../../../../generated/prisma/sql';
+import { Db } from '../../../framework/database';
 import { LolfiJob } from '../lolfi-job.type';
-import { insertJurisdictionsRawQuery } from 'src/generated/prisma/sql';
-import { Db } from 'src/modules/framework/database';
 
 import { JobFileIngestor } from './job-file-ingestor';
 import { RawLolfiDate } from './lolfi-ingestor.util';
@@ -81,12 +81,12 @@ export class LolfiJuridictionIngestor {
 
       if (unknownJurisdictionTypes.length === 0) return;
 
-      await this.db.tx.ingestionJobFileError.createMany({
+      await this.db.tx.ingestionJobFileMessage.createMany({
         data: unknownJurisdictionTypes.map(({ codejur, type_jur }) => ({
-          jobId: props.jobId,
-          fileId: props.fileId,
           entityId: codejur,
-          error: `Type de juridiction inconnue: "${type_jur}"`,
+          fileId: props.fileId,
+          jobId: props.jobId,
+          text: `type de juridiction "${type_jur}" inconnu`,
         })),
       });
     } catch (error) {

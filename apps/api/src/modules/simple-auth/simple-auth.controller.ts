@@ -8,21 +8,13 @@ import {
   NotFoundException,
   Param,
   Post,
+  Put,
   Req,
   Res,
   UseFilters,
-  UseGuards,
   UsePipes,
 } from '@nestjs/common';
-import {
-  ApiBasicAuth,
-  ApiBody,
-  ApiConsumes,
-  ApiExcludeEndpoint,
-  ApiExtraModels,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBasicAuth, ApiBody, ApiConsumes, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
   type CookieOptions,
   type Request as ExpressRequest,
@@ -33,22 +25,20 @@ import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 import { AuthImpersonation } from './domain/auth-impersonation';
 import { AuthSession } from './domain/auth-session';
 import { AuthExceptionFilter } from './infrastructure/auth.filter';
-import { LoginDto, RegisteredUserDto, RegisterUserDto } from './infrastructure/dto/auth.dto';
-import { DevelopmentEnvironmentGuard } from './infrastructure/guards/development-environment.guard';
+import { ChangePasswordDto, LoginDto } from './infrastructure/dto/auth.dto';
 import { DetailedUserResponseDto } from './infrastructure/queries/details-user.query';
 import { AuthedUser, HasRole } from './simple-auth.decorator';
 import { SimpleAuthService } from './simple-auth.service';
 
 @ApiTags('Auth')
-@ApiExtraModels(RegisterUserDto, RegisteredUserDto)
 @UseFilters(AuthExceptionFilter)
 @Controller('/api/auth/v2')
 export class SimpleAuthController {
   private static readonly COOKIE_OPTIONS: CookieOptions = {
-    signed: true,
     httpOnly: true,
-    secure: true,
     sameSite: 'strict',
+    secure: true,
+    signed: true,
   };
 
   constructor(private readonly auth: SimpleAuthService) {}
@@ -57,15 +47,15 @@ export class SimpleAuthController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
   @ApiConsumes('application/json', 'application/x-www-form-urlencoded')
-  @ApiBody({ type: LoginDto, required: false })
+  @ApiBody({ required: false, type: LoginDto })
   @ApiBasicAuth()
   @ApiResponse({
-    status: HttpStatus.NO_CONTENT,
     headers: {
       'Set-Cookie': {
         example: 'sessionId=f256088e-e97a-4b56-919a-20af8329421a',
       },
     },
+    status: HttpStatus.NO_CONTENT,
   })
   async login(
     @Body() body: LoginDto | undefined,
@@ -87,18 +77,35 @@ export class SimpleAuthController {
     }
 
     const session = await this.auth.login(body);
-    this.decorateResponse(res, session).end();
+    // an impersonation left over, ended or of an account deactivated since, would refuse every request of the new session
+    this.unDecorateResponse(this.decorateResponse(res, session), 'impersonationId').end();
   }
 
   @Get('introspect')
   @HasRole()
-  @ZodResponse({ type: DetailedUserResponseDto, status: HttpStatus.OK })
+  @ZodResponse({ status: HttpStatus.OK, type: DetailedUserResponseDto })
   introspectSession(
     @AuthedUser() user: { id: string; impersonation?: { id: string } },
   ): Promise<DetailedUserResponseDto> {
     return this.auth.detailsUser({
-      userId: user.id,
       impersonationId: user.impersonation?.id,
+      userId: user.id,
+    });
+  }
+
+  @Put('password')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @HasRole()
+  @UsePipes(ZodValidationPipe)
+  changePassword(
+    @AuthedUser() user: { id: string; impersonation?: { id: string }; sessionId: string },
+    @Body() body: ChangePasswordDto,
+  ): Promise<void> {
+    return this.auth.changePassword({
+      ...body,
+      isImpersonated: !!user.impersonation,
+      sessionId: user.sessionId,
+      userId: user.id,
     });
   }
 
@@ -109,8 +116,8 @@ export class SimpleAuthController {
     @AuthedUser()
     user: {
       id: string;
-      sessionId: string;
       impersonation?: { id: string; impersonatorId: string };
+      sessionId: string;
     },
     @Res() response: ExpressResponse,
   ): Promise<void> {
@@ -118,32 +125,20 @@ export class SimpleAuthController {
       throw new NotFoundException();
     }
 
-    const { id: userId, sessionId, impersonation } = user;
+    const { id: userId, impersonation, sessionId } = user;
 
     if (impersonation) {
       const { id: impersonationId, impersonatorId: userId } = impersonation;
       await this.auth.unImpersonate({
-        userId,
         impersonationId,
+        userId,
       });
       this.unDecorateResponse(response, 'impersonationId').end();
       return;
     }
 
-    await this.auth.unAuthenticate({ userId, sessionId });
+    await this.auth.unAuthenticate({ sessionId, userId });
     this.unDecorateResponse(response, 'sessionId').end();
-  }
-
-  @Post('register')
-  @ApiExcludeEndpoint()
-  @UsePipes(ZodValidationPipe)
-  @UseGuards(DevelopmentEnvironmentGuard)
-  @ZodResponse({ status: HttpStatus.CREATED, type: RegisteredUserDto })
-  registerUser(@Body() body: RegisterUserDto): Promise<RegisteredUserDto> {
-    return this.auth.registerUser({
-      ...body,
-      role: body.role ?? 'MEMBRE_COMMUN',
-    });
   }
 
   @Post('users/:userId/impersonations')
@@ -156,8 +151,8 @@ export class SimpleAuthController {
   ): Promise<void> {
     const impersonation = await this.auth.impersonate({
       authSessionId: user.sessionId,
-      userId: user.id,
       targetUserId,
+      userId: user.id,
     });
 
     this.decorateResponse(res, impersonation).end();

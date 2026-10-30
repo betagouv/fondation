@@ -1,9 +1,11 @@
+import { load } from 'cheerio';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
-import { DocBlockSchema } from '../domain/official-report-doc-block';
-import { dateOnlyJsonSchema } from 'src/utils/date-only';
-import { timeOnlySchema } from 'src/utils/time-only';
+import { dateOnlyJsonSchema } from '../../../../utils/date-only';
+import { timeOnlySchema } from '../../../../utils/time-only';
+import { editedHtml } from '../../shared/infrastructure/edited-html';
+import { DocBlockSchema, OfficialReportFileNoteSchema } from '../domain/official-report-doc-block';
 
 export class CreatedOfficialReportDto extends createZodDto(z.object({ id: z.uuid() })) {}
 
@@ -35,9 +37,15 @@ export class DetailedOfficialReportDocumentDto extends createZodDto(
 ) {}
 
 export class EditOfficialReportBlockDto extends createZodDto(
-  z.object({ html: z.string(), outdated: z.boolean() }),
+  z.object({ html: editedHtml, outdated: z.boolean() }),
 ) {}
 
 export class EditOfficialReportSectionTitleDto extends createZodDto(z.object({ text: z.string() })) {}
 
-export class EditOfficialReportSectionIntroBlockDto extends createZodDto(z.object({ html: z.string() })) {}
+export class EditOfficialReportSectionIntroBlockDto extends createZodDto(z.object({ html: editedHtml })) {}
+
+export class EditOfficialReportFileNoteDto extends createZodDto(
+  z.object({ html: editedHtml.refine((html) => load(html, null, false).text().trim() !== '') }),
+) {}
+
+export class EditedOfficialReportFileNoteDto extends createZodDto(OfficialReportFileNoteSchema) {}

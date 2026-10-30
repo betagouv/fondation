@@ -1,25 +1,11 @@
-import { useIntl, type MessageDescriptor } from 'react-intl';
+import { useIntl } from 'react-intl';
 
-export function DataTableCount(props: {
-  className?: string;
-  /** a plural message taking `count`, such as `{count, plural, one {session} other {sessions}}`; bare numbers without */
-  label?: MessageDescriptor;
-  loaded: number;
-  total: number;
-}) {
+export function DataTableCount(props: { loaded: number; total: number }) {
   const { formatMessage } = useIntl();
   const { loaded, total } = props;
-  const label = props.label ? formatMessage(props.label, { count: total }) : undefined;
+  if (total === 0) return null;
 
-  return (
-    <span className={props.className}>
-      {label
-        ? loaded < total
-          ? formatMessage({ defaultMessage: '{loaded} {label} sur {total}' }, { label, loaded, total })
-          : formatMessage({ defaultMessage: '{total} {label}' }, { label, total })
-        : loaded < total
-          ? formatMessage({ defaultMessage: '{loaded} sur {total}' }, { loaded, total })
-          : total}
-    </span>
-  );
+  const count =
+    loaded < total ? formatMessage({ defaultMessage: '{loaded} sur {total}' }, { loaded, total }) : total;
+  return <span className="fr-ml-2v text-sm font-normal text-(--text-mention-grey)">({count})</span>;
 }

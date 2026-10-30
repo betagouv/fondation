@@ -57,7 +57,7 @@ const TONES = {
   yellow: 'bg-(--background-contrast-yellow-tournesol)',
 };
 
-function DocBlockEditedLine(props: {
+export function DocBlockEditedLine(props: {
   at: string;
   label: NonNullable<ReactNode>;
   tone: keyof typeof TONES;

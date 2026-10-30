@@ -1,4 +1,13 @@
-import { Id, makeId } from 'src/utils/id';
+import { Id, makeId } from '../../../../utils/id';
+import type { FormationEnum } from '../../../shared/formation.enum';
+import { canWriteSummary } from '../../../shared/policies/summary.policies';
+import type { RoleEnum } from '../../../shared/role.enum';
+import type { UserTitleEnum } from '../../../shared/user-title.enum';
+
+const PRESIDENT_OF = {
+  PARQUET: 'PRESIDENT_PARQUET',
+  SIEGE: 'PRESIDENT_SIEGE',
+} as const satisfies Record<FormationEnum, UserTitleEnum>;
 
 export class SummaryCreated {
   constructor(
@@ -55,22 +64,43 @@ export class Summary {
   constructor(
     readonly id: Id<'SummaryId'>,
     readonly authorId: string | null,
+    private readonly readerIds: ReadonlySet<string>,
   ) {}
 
-  static from(props: { authorId: string | null; id: string; sessionId: string; sessionIsArchived: boolean }) {
+  static from(props: {
+    authorId: string | null;
+    id: string;
+    readerIds: readonly string[];
+    sessionId: string;
+    sessionIsArchived: boolean;
+  }) {
     if (props.sessionIsArchived) throw new SummarySessionIsArchived(props.sessionId);
 
-    return new Summary(makeId('SummaryId', props.id), props.authorId);
+    return new Summary(makeId('SummaryId', props.id), props.authorId, new Set(props.readerIds));
   }
 
   static create(props: { nominationFileId: string; sessionId: string; sessionIsArchived: boolean }): Summary {
     if (props.sessionIsArchived) throw new SummarySessionIsArchived(props.sessionId);
 
-    const summary = new Summary(makeId('SummaryId', props.nominationFileId), null);
+    const summary = new Summary(makeId('SummaryId', props.nominationFileId), null, new Set());
 
     summary.#messages.push(new SummaryCreated(props.sessionId, summary.id));
 
     return summary;
+  }
+
+  /** asked by the CSM on 2026-10-30, not to scroll for the two readers of nearly every summary */
+  static inReadingOrder<T extends { firstName: string; lastName: string; title: UserTitleEnum | null }>(
+    readers: readonly T[],
+    formation: FormationEnum,
+  ): T[] {
+    const rank = ({ title }: T) =>
+      title === PRESIDENT_OF[formation] ? 0 : title === 'FIRST_SECRETARY' ? 1 : 2;
+    const byName = (a: string, b: string) => a.localeCompare(b, 'fr', { sensitivity: 'base' });
+
+    return readers.toSorted(
+      (a, b) => rank(a) - rank(b) || byName(a.lastName, b.lastName) || byName(a.firstName, b.firstName),
+    );
   }
 
   attachFiles(command: { fileIds: readonly string[] }): void {
@@ -91,9 +121,10 @@ export class Summary {
     this.#messages.push(new IncludedFilesInSummaryContent(this.id, command.fileIds));
   }
 
+  /** a reader deactivated since stays a reader, but no longer joins a summary */
   updateReadersList(command: { availableUserIds: Set<string>; readerIds: readonly string[] }): void {
     for (const readerId of command.readerIds) {
-      if (!command.availableUserIds.has(readerId)) {
+      if (!command.availableUserIds.has(readerId) && !this.readerIds.has(readerId)) {
         throw new UnknownReader(readerId);
       }
     }
@@ -106,12 +137,12 @@ export class Summary {
     );
   }
 
-  writeContent(command: { userId: string; content: string }): void {
-    if (this.authorId && command.userId !== this.authorId) {
-      throw new OnlyAuthorCanWriteSummary(this.id, this.authorId, command.userId);
+  writeContent(command: { content: string; user: { id: string; role: RoleEnum } }): void {
+    if (!canWriteSummary(this, command.user)) {
+      throw new OnlyAuthorCanWriteSummary(this.id, this.authorId, command.user.id);
     }
 
-    const newAuthorId = this.authorId ? null : command.userId;
+    const newAuthorId = this.authorId ? null : command.user.id;
     this.#messages.push(new SummaryContentWritten(this.id, command.content, newAuthorId));
   }
 
@@ -136,7 +167,7 @@ export class UnknownReader extends Error {
 export class OnlyAuthorCanWriteSummary extends Error {
   constructor(
     readonly nominationFileId: string,
-    readonly authorId: string,
+    readonly authorId: string | null,
     readonly userId: string,
   ) {
     super();

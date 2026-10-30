@@ -19,13 +19,12 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
-import { FILE_EXTENSIONS, FILE_MIME_TYPES, Multipart, UseMultipartBody } from 'src/modules/framework/files';
-import { ApiOkDiscriminatedByType } from 'src/modules/framework/openapi';
-import { ApiPaginated, Pagination, QueryPagination } from 'src/modules/framework/pagination';
-import { roleToFormation } from 'src/modules/members/infrastructure/member.utils';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import { AuthedUser, AuthedUserId, HasRole } from 'src/modules/simple-auth';
-import { DateOnly } from 'src/utils/date-only';
+import { DateOnly } from '../../../utils/date-only';
+import { FILE_EXTENSIONS, FILE_MIME_TYPES, Multipart, UseMultipartBody } from '../../framework/files';
+import { ApiOkDiscriminatedByType } from '../../framework/openapi';
+import { ApiPaginated, Pagination, QueryPagination } from '../../framework/pagination';
+import type { RoleEnum } from '../../shared/role.enum';
+import { AuthedUser, AuthedUserId, HasRole } from '../../simple-auth';
 
 import { LodamTransparenceFile } from './domain/transparence-file';
 import { AutoAffectationDto } from './infrastructure/dtos/auto-affectation.dto';
@@ -37,6 +36,7 @@ import {
   UpdateCommentDto,
   UpdateMissingEvaluationCommentDto,
   UpdateMissingEvaluationDto,
+  UpdateNominationFilesPrioritiesDto,
 } from './infrastructure/dtos/nomination-file.dto';
 import {
   CountedSessionAuditionsDto,
@@ -208,11 +208,22 @@ export class SessionController {
     @Param('sessionId') sessionId: string,
     @Body() body: AffectReportersDto,
   ): Promise<void> {
-    await this.sessions.affectReportersAndPriorities({
+    await this.sessions.affectReporters({
       affectations: body.items,
       authorId: userId,
       sessionId,
     });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Put('/:sessionId/files/priorities')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UsePipes(ZodValidationPipe)
+  async updateNominationFilesPriorities(
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Body() body: UpdateNominationFilesPrioritiesDto,
+  ): Promise<void> {
+    await this.sessions.updateNominationFilesPriorities({ items: body.items, sessionId });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
@@ -554,7 +565,7 @@ export class SessionController {
   @Put('/:sessionId/multiattachments')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseMultipartBody({
-    destination: ({ request, id, mimetype }) =>
+    destination: ({ id, mimetype, request }) =>
       `sessions/${request.params.sessionId}/${id}.${FILE_EXTENSIONS[mimetype]}`,
     schema: UploadSessionAttachmentsDto,
   })
@@ -585,9 +596,10 @@ export class SessionController {
     type: ListedNominationSessionAttachmentDto,
   })
   async listNominationSessionAttachments(
+    @AuthedUser() user: { role: RoleEnum },
     @Param('sessionId') sessionId: string,
   ): Promise<ListedNominationSessionAttachmentDto> {
-    return this.sessions.listAttachments({ sessionId });
+    return this.sessions.listAttachments({ role: user.role, sessionId });
   }
 
   /** @warning this is a mutation */
@@ -598,17 +610,18 @@ export class SessionController {
     type: DetailedNominationSessionAttachmentDto,
   })
   async createNominationSessionAttachmentUrl(
+    @AuthedUser() user: { role: RoleEnum },
     @Param('sessionId') sessionId: string,
     @Param('fileId') fileId: string,
   ): Promise<DetailedNominationSessionAttachmentDto> {
-    return this.sessions.detailAttachment({ fileId, sessionId });
+    return this.sessions.detailAttachment({ fileId, role: user.role, sessionId });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Put('/:sessionId/files/:nominationFileId/attachments')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseMultipartBody({
-    destination: ({ request, id, mimetype }) =>
+    destination: ({ id, mimetype, request }) =>
       `sessions/${request.params.sessionId}/files/${request.params.nominationFileId}/${id}.${FILE_EXTENSIONS[mimetype]}`,
     schema: UploadNominationFileAttachmentsDto,
   })
@@ -643,10 +656,11 @@ export class SessionController {
     type: ListedNominationFileAttachmentDto,
   })
   async listNominationFileAttachments(
+    @AuthedUser() user: { role: RoleEnum },
     @Param('sessionId') sessionId: string,
     @Param('nominationFileId') nominationFileId: string,
   ): Promise<ListedNominationFileAttachmentDto> {
-    return this.sessions.listNominationFileAttachments({ nominationFileId, sessionId });
+    return this.sessions.listNominationFileAttachments({ nominationFileId, role: user.role, sessionId });
   }
 
   /** @warning this is a mutation */
@@ -657,11 +671,17 @@ export class SessionController {
     type: DetailedNominationFileAttachmentDto,
   })
   async createNominationFileAttachmentUrl(
+    @AuthedUser() user: { role: RoleEnum },
     @Param('sessionId') sessionId: string,
     @Param('nominationFileId') nominationFileId: string,
     @Param('fileId') fileId: string,
   ): Promise<DetailedNominationFileAttachmentDto> {
-    return this.sessions.detailNominationFileAttachment({ fileId, nominationFileId, sessionId });
+    return this.sessions.detailNominationFileAttachment({
+      fileId,
+      nominationFileId,
+      role: user.role,
+      sessionId,
+    });
   }
 
   @HasRole()
@@ -682,7 +702,7 @@ export class SessionController {
     @Param('sessionId') sessionId: string,
     @AuthedUser() user: { role: RoleEnum },
   ): Promise<DetailedNominationSessionDto> {
-    return this.sessions.details({ formation: roleToFormation(user.role), sessionId });
+    return this.sessions.details({ role: user.role, sessionId });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
@@ -712,10 +732,11 @@ export class SessionController {
   @HasRole()
   @ZodResponse({ status: HttpStatus.OK, type: LolfiMagistratUrlDto })
   async getLolfiMagistratUrl(
+    @AuthedUser() user: { role: RoleEnum },
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
     @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
   ): Promise<LolfiMagistratUrlDto> {
-    return this.sessions.getLolfiMagistratUrl({ nominationFileId, sessionId });
+    return this.sessions.getLolfiMagistratUrl({ nominationFileId, role: user.role, sessionId });
   }
 
   @Delete('/:sessionId')

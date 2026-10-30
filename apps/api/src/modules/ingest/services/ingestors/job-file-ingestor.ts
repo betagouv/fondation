@@ -5,13 +5,13 @@ import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 import { fr } from 'zod/locales';
 
+import { describeErrorWithoutSecrets } from '../../../../utils/describe-error-without-secrets';
+import { ResultBuilder } from '../../../../utils/result';
+import { Clock } from '../../../framework/clock';
+import { Db } from '../../../framework/database';
+import { Files } from '../../../framework/files';
 import { LolfiJob } from '../lolfi-job.type';
 import { LolfiNode, LolfiXmlSaxParser } from '../lolfi-xml-sax-parser';
-import { Clock } from 'src/modules/framework/clock';
-import { Db } from 'src/modules/framework/database';
-import { Files } from 'src/modules/framework/files';
-import { describeErrorWithoutSecrets } from 'src/utils/describe-error-without-secrets';
-import { ResultBuilder } from 'src/utils/result';
 
 @Injectable()
 export class JobFileIngestor {
@@ -104,7 +104,7 @@ export class JobFileIngestor {
       return this.failJobFile({
         file,
         jobId: job.id,
-        errors: [{ error: `Erreur technique: ${describeErrorWithoutSecrets(e)}` }],
+        errors: [{ error: `Erreur technique : ${describeErrorWithoutSecrets(e)}` }],
       });
     } finally {
       const duration = start! ? (performance.now() - start).toFixed(2) : null;
@@ -151,16 +151,16 @@ export class JobFileIngestor {
           primaryKey: { jobId: context.jobId, fileId: context.file.id },
         },
         data: {
-          status: 'FAILED',
           endedAt: this.clock.now(),
-          errors: {
+          messages: {
             createMany: {
               data: context.errors.map((error) => ({
                 entityNumber: error.entityNumber,
-                error: error.error,
+                text: error.error,
               })),
             },
           },
+          status: 'FAILED',
         },
       })
       .catch((error) => {

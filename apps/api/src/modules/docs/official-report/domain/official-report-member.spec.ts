@@ -1,5 +1,5 @@
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import { RoleEnum } from 'src/modules/shared/role.enum';
+import { FormationEnum } from '../../../shared/formation.enum';
+import { RoleEnum } from '../../../shared/role.enum';
 
 import {
   InvalidMemberDuty,
@@ -15,10 +15,6 @@ describe('OfficialReportMember', () => {
     expect(() => OfficialReportMember.from(makeMember({ role: 'ADJOINT_SECRETAIRE_GENERAL' }))).toThrow(
       InvalidMemberRole,
     );
-  });
-
-  it('should prevent creating a member from an ADMIN', () => {
-    expect(() => OfficialReportMember.from(makeMember({ role: 'ADMIN' }))).toThrow(InvalidMemberRole);
   });
 
   it.each`

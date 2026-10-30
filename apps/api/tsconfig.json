@@ -36,10 +36,6 @@
       "multer"
     ],
 
-    "paths": {
-      "src/*": ["./src/*"]
-    },
-
     "inlineSources": true,
 
     // Set `sourceRoot` to  "/" to strip the build path prefix

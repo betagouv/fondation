@@ -10,15 +10,11 @@ import presentationNoticeCss from './__fixtures__/presentation-notice.css?raw';
 import presentationNoticeMain from './__fixtures__/presentation-notice.main.html?raw';
 
 /** Captured from the api renderers, never retold: regenerate from their snapshots when they move */
-const PAGED_JS =
-  '<script defer crossorigin="anonymous" src="https://unpkg.com/pagedjs@0.4.3/dist/paged.polyfill.min.js"></script>';
-
-function document(props: { css: string; main: string; paged?: boolean }): string {
+function document(props: { css: string; main: string }): string {
   return /* html */ `
     <!doctype html>
     <html lang="fr">
       <head>
-        ${props.paged === false ? '' : PAGED_JS}
         <style>${DOCUMENT_FONT_FACES}${commonCss}${props.css}</style>
       </head>
       <body>
@@ -29,14 +25,14 @@ function document(props: { css: string; main: string; paged?: boolean }): string
   `;
 }
 
-export function agendaDocument(props: { paged?: boolean } = {}): string {
-  return document({ css: agendaCss, main: agendaMain, paged: props.paged });
+export function agendaDocument(): string {
+  return document({ css: agendaCss, main: agendaMain });
 }
 
-export function officialReportDocument(props: { paged?: boolean } = {}): string {
-  return document({ css: officialReportCss, main: officialReportMain, paged: props.paged });
+export function officialReportDocument(): string {
+  return document({ css: officialReportCss, main: officialReportMain });
 }
 
-export function presentationNoticeDocument(props: { paged?: boolean } = {}): string {
-  return document({ css: presentationNoticeCss, main: presentationNoticeMain, paged: props.paged });
+export function presentationNoticeDocument(): string {
+  return document({ css: presentationNoticeCss, main: presentationNoticeMain });
 }

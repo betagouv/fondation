@@ -1,7 +1,8 @@
-import { UserDutyEnum, UserTitleEnum } from 'src/modules/administration/domain/user-enum';
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import { GenderEnum } from 'src/modules/shared/gender.enum';
-import { isSecretariat, RoleEnum } from 'src/modules/shared/role.enum';
+import { FormationEnum } from '../../../shared/formation.enum';
+import { GenderEnum } from '../../../shared/gender.enum';
+import { isSecretariat, RoleEnum } from '../../../shared/role.enum';
+import { UserDutyEnum } from '../../../shared/user-duty.enum';
+import { UserTitleEnum } from '../../../shared/user-title.enum';
 
 export class OfficialReportMember {
   constructor(
@@ -16,6 +17,26 @@ export class OfficialReportMember {
 
   equals(other: OfficialReportMember): boolean {
     return typeof this.id === 'string' && typeof other.id === 'string' && this.id === other.id;
+  }
+
+  static recorded(member: {
+    firstName: string;
+    gender: GenderEnum;
+    isAbsent: boolean;
+    lastName: string;
+    memberId: string;
+    sort: number;
+    title: string | null;
+  }): OfficialReportMember {
+    return new OfficialReportMember(
+      member.memberId,
+      member.firstName,
+      member.lastName,
+      member.gender,
+      member.sort,
+      member.title,
+      member.isAbsent,
+    );
   }
 
   static from(props: {

@@ -2,9 +2,9 @@ import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
+import { insertAdministrativePositionsRawQuery } from '../../../../generated/prisma/sql';
+import { Db } from '../../../framework/database';
 import { LolfiJob } from '../lolfi-job.type';
-import { insertAdministrativePositionsRawQuery } from 'src/generated/prisma/sql';
-import { Db } from 'src/modules/framework/database';
 
 import { JobFileIngestor } from './job-file-ingestor';
 
@@ -79,7 +79,7 @@ const RawPauseSchema = z.object({
   reel: z
     .string()
     .regex(/^\d(?:,\d+)?$/, {
-      error: ({ input }) => `nombre entre 0,0 et 1,0 attendu. "${input}" fourni`,
+      error: ({ input }) => `nombre entre 0,0 et 1,0 attendu, "${input}" reçu`,
     })
     .transform((x) => Number(x.replace(',', '.')))
     .pipe(z.number().gte(0.0).lte(1.0)),

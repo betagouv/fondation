@@ -1,11 +1,18 @@
 import type { Editor } from '@tiptap/core';
 
-import { dataFileIdKey, dataFileNameKey } from './constant';
+import { dataFileIdKey, dataFileNameKey, isVideo } from './constant';
 
 export type FilesUploader = (files: readonly File[]) => Promise<{ id: string; url: URL; name: string }[]>;
 
-export function makeEditorImageUploader(uploader: FilesUploader) {
+const PREVIEW_NODE = 'imagePreview';
+
+function previewOf(editor: Editor, fileName: string) {
+  return editor.$nodes(PREVIEW_NODE)?.find(($node) => $node.attributes['dataFileName'] === fileName);
+}
+
+export function makeEditorFilesUploader(uploader: FilesUploader) {
   return function (options: { editor: Editor; files: readonly File[]; pos?: number }) {
+    const { editor } = options;
     let uploadDone = false;
     const files = options.files.map((file) => {
       const ext = file.name.split('.').at(-1);
@@ -16,58 +23,54 @@ export function makeEditorImageUploader(uploader: FilesUploader) {
     });
 
     for (const file of files) {
-      readAsImage(file)
-        .then(($img) => {
+      // a video waits without a picture: its first frame would need the whole file
+      const preview = isVideo(file)
+        ? Promise.resolve({})
+        : readAsImage(file).then(($img) => ({ height: $img.height, src: $img.src, width: $img.width }));
+
+      preview
+        .then((attrs) => {
           if (uploadDone) return;
 
-          /** @see {@link } */
-          const node = {
-            type: 'imagePreview',
-            attrs: {
-              src: $img.src,
-              width: $img.width,
-              height: $img.height,
-              dataFileName: file.name,
-            },
-          };
-
+          const node = { attrs: { ...attrs, dataFileName: file.name }, type: PREVIEW_NODE };
           if (options.pos !== undefined && options.pos !== null) {
-            options.editor.commands.insertContentAt(options.pos, node);
+            editor.commands.insertContentAt(options.pos, node);
           } else {
-            options.editor.commands.insertContent(node);
+            editor.commands.insertContent(node);
           }
         })
         .catch(() => {});
     }
 
-    uploader(files).then((uploadedFiles) => {
-      uploadDone = true;
-      for (const { id: fileId, name, url } of uploadedFiles) {
-        const content = {
-          type: 'image',
-          attrs: { src: url.toString(), [dataFileIdKey]: fileId, [dataFileNameKey]: name },
-        };
+    uploader(files)
+      .then((uploadedFiles) => {
+        uploadDone = true;
+        for (const { id: fileId, name, url } of uploadedFiles) {
+          const file = files.find((f) => f.name === name);
+          const content = {
+            attrs: { src: url.toString(), [dataFileIdKey]: fileId, [dataFileNameKey]: name },
+            type: file && isVideo(file) ? 'video' : 'image',
+          };
 
-        let found = false;
-        const $nodes = options.editor.$nodes(`imagePreview`) ?? [];
-        for (const $node of $nodes) {
-          if ($node.attributes['dataFileName'] === name) {
-            found = true;
-            const pos = $node.pos;
-
-            options.editor
+          const $preview = previewOf(editor, name);
+          if ($preview) {
+            editor
               .chain()
-              .deleteRange({ from: pos, to: pos + $node.size })
-              .insertContentAt(pos, content)
+              .deleteRange({ from: $preview.pos, to: $preview.pos + $preview.size })
+              .insertContentAt($preview.pos, content)
               .run();
+          } else {
+            editor.commands.insertContent(content);
           }
         }
-
-        if (!found) {
-          options.editor.commands.insertContent(content);
+      })
+      .catch(() => {
+        uploadDone = true;
+        for (const file of files) {
+          const $preview = previewOf(editor, file.name);
+          if ($preview) editor.commands.deleteRange({ from: $preview.pos, to: $preview.pos + $preview.size });
         }
-      }
-    });
+      });
   };
 }
 

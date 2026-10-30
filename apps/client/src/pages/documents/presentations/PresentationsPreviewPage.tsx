@@ -10,6 +10,7 @@ import { PresentationBreadcrumb } from '@/features/documents/components/presenta
 import { useDocumentFailure } from '@/shared/hooks/useDocumentFailure';
 import { AlertBanner } from '@/shared/ui/alert-banner';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import { ValidationError } from '@/utils/validation-error';
 import {
   useJusticePresentationPlanHtmlQuery,
   useJusticePresentationPlanMetadataQuery,
@@ -43,26 +44,31 @@ export function PresentationPreviewPage() {
     <DocumentScreen
       actions={
         !isPending &&
-        html &&
-        !metadata?.isPresented && (
+        html && (
           <>
-            <Button
-              linkProps={{
-                to: generatePath(ROUTE_PATHS.SG.PRESENTATIONS_UPDATE, { planId: planId! }),
-              }}
-              priority="secondary"
-            >
-              <FormattedMessage defaultMessage="Éditer les métadonnées" />
-            </Button>
-            <Button
-              linkProps={{ to: generatePath(ROUTE_PATHS.SG.PRESENTATIONS_EDIT, { planId: planId! }) }}
-              priority="secondary"
-            >
-              <FormattedMessage defaultMessage="Éditer le texte" />
-            </Button>
-            <Button disabled={isValidating} onClick={() => validate.mutate()}>
-              <FormattedMessage defaultMessage="Valider le document" />
-            </Button>
+            {metadata?.canEdit && (
+              <>
+                <Button
+                  linkProps={{
+                    to: generatePath(ROUTE_PATHS.SG.PRESENTATIONS_UPDATE, { planId: planId! }),
+                  }}
+                  priority="secondary"
+                >
+                  <FormattedMessage defaultMessage="Éditer les métadonnées" />
+                </Button>
+                <Button
+                  linkProps={{ to: generatePath(ROUTE_PATHS.SG.PRESENTATIONS_EDIT, { planId: planId! }) }}
+                  priority="secondary"
+                >
+                  <FormattedMessage defaultMessage="Éditer le texte" />
+                </Button>
+              </>
+            )}
+            {metadata?.canValidate && (
+              <Button disabled={isValidating} onClick={() => validate.mutate()}>
+                <FormattedMessage defaultMessage="Valider le document" />
+              </Button>
+            )}
           </>
         )
       }
@@ -92,9 +98,9 @@ export function PresentationPreviewPage() {
             {metadata?.outdated && (
               <PresentationDriftBanner
                 editionPath={
-                  metadata.isPresented
-                    ? undefined
-                    : generatePath(ROUTE_PATHS.SG.PRESENTATIONS_UPDATE, { planId: planId! })
+                  metadata.canEdit
+                    ? generatePath(ROUTE_PATHS.SG.PRESENTATIONS_UPDATE, { planId: planId! })
+                    : undefined
                 }
               />
             )}
@@ -104,11 +110,7 @@ export function PresentationPreviewPage() {
               <AlertBanner
                 className="justify-center px-4 py-3"
                 icon="fr-icon-error-fill"
-                message={
-                  'validationError' in validate.error
-                    ? String(validate.error.validationError)
-                    : describeFailure(validate.error)
-                }
+                message={ValidationError.messageOf(validate.error) ?? describeFailure(validate.error)}
                 tone="error"
               />
             )}

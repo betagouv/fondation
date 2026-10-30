@@ -11,15 +11,16 @@
   "scripts": {
     "types:check": "tsc --noEmit -p .",
     "build": "tsc -p tsconfig.build.json",
-    "generate:fictitious-archive": "node --require @swc-node/register fictitious-archive/generate-fictitious-archive.ts",
+    "generate:fictitious-archive": "tsc -p tsconfig.fictitious-archive.json && node .fictitious-archive/fictitious-archive/generate-fictitious-archive.js",
     "lint:check": "oxlint",
     "lint": "oxlint --fix",
-    "test": "node --test --require @swc-node/register test/*.test.ts"
+    "test": "vitest run"
   },
   "devDependencies": {
-    "@swc-node/register": "1.12.1",
     "@types/node": "catalog:",
-    "typescript": "catalog:"
+    "@typescript/native": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "dependencies": {
     "@faker-js/faker": "catalog:",

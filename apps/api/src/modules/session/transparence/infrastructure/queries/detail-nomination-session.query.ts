@@ -3,17 +3,20 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { Prisma } from '../../../../../generated/prisma/client';
+import { DateOnly, dateOnlyJsonSchema } from '../../../../../utils/date-only';
+import { assertIsDefined } from '../../../../../utils/is-defined';
+import { Db } from '../../../../framework/database';
+import { FormationEnum } from '../../../../shared/formation.enum';
+import { prismaFormationEnumToFormationEnum } from '../../../../shared/mappers/formation.mapper';
+import { prismaTypeDeSaisineEnumToTypeDeSaisine } from '../../../../shared/mappers/type-de-saisine-enum.mapper';
+import { NominationFileOutcome } from '../../../../shared/nomination-file-outcome.enum';
+import { canReadSession } from '../../../../shared/policies/session.policies';
+import type { RoleEnum } from '../../../../shared/role.enum';
+import { TypeDeSaisineEnum } from '../../../../shared/type-de-saisine.enum';
+import { sessionLabel } from '../../domain/session-label';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 import { ReportedSessionsFinder } from '../finders/reported-sessions.finder';
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
-import { prismaTypeDeSaisineEnumToTypeDeSaisine } from 'src/modules/shared/mappers/type-de-saisine-enum.mapper';
-import { NominationFileOutcome } from 'src/modules/shared/nomination-file-outcome.enum';
-import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
-import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
-import { assertIsDefined } from 'src/utils/is-defined';
 
 @Injectable()
 export class DetailNominationSessionQuery {
@@ -24,17 +27,13 @@ export class DetailNominationSessionQuery {
   ) {}
 
   @Transactional()
-  async handle(query: {
-    /** undefined means no restriction on the formation */
-    formation: FormationEnum | undefined;
-    sessionId: string;
-  }): Promise<DetailedNominationSessionDto> {
+  async handle(query: { role: RoleEnum; sessionId: string }): Promise<DetailedNominationSessionDto> {
     const optionalVersion = await this.affectationVersionFinder.last({
       sessionId: query.sessionId,
     });
 
     const session = await this.db.tx.session.findUnique({
-      where: { id: query.sessionId, deletedAt: null, formation: query.formation },
+      where: { id: query.sessionId, deletedAt: null },
       select: {
         id: true,
         name: true,
@@ -62,7 +61,7 @@ export class DetailNominationSessionQuery {
       } satisfies Prisma.SessionSelect,
     });
 
-    if (!session) throw new NotFoundException();
+    if (!session || !canReadSession(session, query)) throw new NotFoundException();
 
     const affectationsCount = session.affectationVersions[0]?._count.affectations ?? 0;
     const isDeletable = session._count.attachments === 0 && affectationsCount === 0;
@@ -73,10 +72,12 @@ export class DetailNominationSessionQuery {
     const isArchivable = !!session.validatedAt && !session.archivedAt && unreportedCount === 0;
 
     const formation = prismaFormationEnumToFormationEnum(session.formation);
+    const date = DateOnly.fromUtcDate(session.date);
 
     return {
       id: session.id,
       name: session.name,
+      label: sessionLabel({ date, name: session.name }),
       formation,
       outcomes: NominationFileOutcome.selectableOutcomes(formation),
       observationsClosingDate: DateOnly.fromUtcDate(
@@ -85,7 +86,7 @@ export class DetailNominationSessionQuery {
           `${session.id} no observation closing date`,
         ),
       ).toJson(),
-      date: DateOnly.fromUtcDate(session.date).toJson(),
+      date: date.toJson(),
       dueDate: DateOnly.fromOptionalUtcDate(session.transparenceGds?.dueDate)?.toJson() ?? null,
       positionStartDate:
         DateOnly.fromOptionalUtcDate(session.transparenceGds?.positionStartDate)?.toJson() ?? null,
@@ -102,6 +103,7 @@ export class DetailedNominationSessionDto extends createZodDto(
   z.object({
     id: z.string(),
     name: z.string(),
+    label: z.string(),
     formation: z.enum(FormationEnum),
     outcomes: z.array(
       z.object({

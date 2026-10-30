@@ -3,7 +3,7 @@ import {
   NominationFileOutcomeRequiresComment,
   UnknownNominationFileOutcome,
   type NominationFileOutcomeEnum,
-} from 'src/modules/shared/nomination-file-outcome.enum';
+} from './nomination-file-outcome.enum';
 
 describe('NominationFileOutcome', () => {
   it('should throw when no comment is provided, while requiring one', () => {
@@ -50,7 +50,7 @@ describe('NominationFileOutcome', () => {
   });
 
   describe('commentSeenBy', () => {
-    it.each(['ADJOINT_SECRETAIRE_GENERAL', 'ADMIN'] as const)('shows the comment to %s', (role) => {
+    it.each(['ADJOINT_SECRETAIRE_GENERAL'] as const)('shows the comment to %s', (role) => {
       expect(NominationFileOutcome.commentSeenBy({ comment: 'a comment', role })).toBe('a comment');
     });
 

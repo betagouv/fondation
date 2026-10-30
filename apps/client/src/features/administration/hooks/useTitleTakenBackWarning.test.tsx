@@ -1,0 +1,65 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { renderHook, waitFor } from '@testing-library/react';
+import type { ReactNode } from 'react';
+import { IntlProvider } from 'react-intl';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { useTitleHoldersQuery } from '@/queries/administration.queries';
+import * as $api from '@api/sdk';
+
+import { useTitleTakenBackWarning } from './useTitleTakenBackWarning';
+
+function wrapper(props: { children: ReactNode }) {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return (
+    <QueryClientProvider client={client}>
+      <IntlProvider defaultLocale="fr" locale="fr">
+        {props.children}
+      </IntlProvider>
+    </QueryClientProvider>
+  );
+}
+
+describe('useTitleTakenBackWarning', () => {
+  beforeEach(() => {
+    vi.spyOn($api.administration, 'listTitleHolders').mockResolvedValue({
+      data: {
+        items: [
+          {
+            holder: {
+              id: 'holder',
+              name: 'Isabelle GAUTHIER',
+              nextRole: { id: 'MEMBRE_SIEGE', label: 'Membre du siège' },
+            },
+            role: { id: 'PRESIDENT_SIEGE', label: 'Présidente de la formation du siège' },
+          },
+        ],
+      },
+    } as unknown as Awaited<ReturnType<typeof $api.administration.listTitleHolders>>);
+  });
+
+  it('names the holder of the title and the role they keep', async () => {
+    const { result } = renderHook(() => useTitleTakenBackWarning('PRESIDENT_SIEGE', { enabled: true }), {
+      wrapper,
+    });
+
+    await waitFor(() =>
+      expect(result.current).toBe(
+        'Isabelle GAUTHIER perdra la fonction de Présidente de la formation du siège et deviendra Membre du siège.',
+      ),
+    );
+  });
+
+  it('stays silent when the role is given back to its holder', async () => {
+    const { result } = renderHook(
+      () => ({
+        titleHolders: useTitleHoldersQuery({ enabled: true }),
+        warning: useTitleTakenBackWarning('PRESIDENT_SIEGE', { enabled: true, userId: 'holder' }),
+      }),
+      { wrapper },
+    );
+
+    await waitFor(() => expect(result.current.titleHolders.isSuccess).toBe(true));
+    expect(result.current.warning).toBeUndefined();
+  });
+});

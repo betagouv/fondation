@@ -2,19 +2,19 @@ import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/commo
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { Prisma } from '../../../../generated/prisma/client';
+import { auditionScheduleSchema } from '../../../../utils/audition-schedule';
+import { buildMagistratLolfiUrl } from '../../../../utils/build-magistrat-lolfi-url';
+import { DateOnly, dateOnlyJsonSchema } from '../../../../utils/date-only';
+import { isDefined } from '../../../../utils/is-defined';
+import { writerOf, writerSchema } from '../../../../utils/user.util';
+import { Db } from '../../../framework/database';
+import { Files } from '../../../framework/files';
+import { magistratFullName } from '../../../magistrat/domain/magistrat-name';
+import { TransparenceService } from '../../../session/transparence/infrastructure/transparence.service';
+import type { RoleEnum } from '../../../shared/role.enum';
 import { ObservantAudition, UNSCHEDULABLE_REASONS } from '../../domain/observant-audition';
 import { ObservationFollowUp } from '../../domain/observation-follow-up';
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { Files } from 'src/modules/framework/files';
-import { magistratFullName } from 'src/modules/magistrat/domain/magistrat-name';
-import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import { auditionScheduleSchema } from 'src/utils/audition-schedule';
-import { buildMagistratLolfiUrl } from 'src/utils/build-magistrat-lolfi-url';
-import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
-import { isDefined } from 'src/utils/is-defined';
-import { fullname } from 'src/utils/user.util';
 
 @Injectable()
 export class GetObservationDetailsQuery {
@@ -34,7 +34,7 @@ export class GetObservationDetailsQuery {
     userId: string;
   }): Promise<GetObservationDetailsResponseDto> {
     return this.db.withTransaction(async () => {
-      const sessionState = await this.transparences.internalFindSessionState({ sessionId: query.sessionId });
+      const session = await this.transparences.internalGetVisibleSession(query);
 
       const observation = await this.db.tx.observation.findUnique({
         select: {
@@ -86,6 +86,7 @@ export class GetObservationDetailsQuery {
                     },
                   },
                 },
+                where: { detachedAt: null },
               },
             },
             take: 1,
@@ -95,6 +96,7 @@ export class GetObservationDetailsQuery {
         where: {
           id: query.observationId,
           nominationFileId: query.nominationFileId,
+          sessionId: query.sessionId,
         },
       });
 
@@ -132,7 +134,7 @@ export class GetObservationDetailsQuery {
         description: observation.description,
         files: observation.files.map(({ file }) => ({
           addedAt: file.createdAt.toISOString(),
-          addedBy: file.createdBy ? { id: file.createdBy.id, name: fullname(file.createdBy) } : null,
+          addedBy: writerOf(file.createdBy),
           id: file.id,
           name: file.name,
           size: file.sizeInBytes,
@@ -140,7 +142,7 @@ export class GetObservationDetailsQuery {
         followUp: observation.followUp,
         followUpComment: observation.followUpComment,
         id: observation.id,
-        isArchived: sessionState === 'ARCHIVED',
+        isArchived: session.isArchived,
         isMemberReporter: isUserReporter,
         memberComment: observation.memberComments[0]
           ? {
@@ -204,7 +206,7 @@ const ObservationAttachmentSchema = z.object({
   name: z.string(),
   size: z.number().int().nullable(),
   addedAt: z.iso.datetime(),
-  addedBy: z.object({ id: z.string(), name: z.string() }).nullable(),
+  addedBy: writerSchema,
 });
 
 const ObservationFileSchema = z.object({

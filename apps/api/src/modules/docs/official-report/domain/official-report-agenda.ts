@@ -1,6 +1,6 @@
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import { DateOnly } from 'src/utils/date-only';
-import { Id } from 'src/utils/id';
+import { DateOnly } from '../../../../utils/date-only';
+import { Id } from '../../../../utils/id';
+import { FormationEnum } from '../../../shared/formation.enum';
 
 export class OfficialReportAgenda {
   private constructor(

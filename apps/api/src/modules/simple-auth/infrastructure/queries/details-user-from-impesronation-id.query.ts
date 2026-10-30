@@ -1,9 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { captureException } from '@sentry/node';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { Clock } from 'src/modules/framework/clock';
-import { Db } from 'src/modules/framework/database';
+import { Prisma } from '../../../../generated/prisma/client';
+import { Clock } from '../../../framework/clock';
+import { Db } from '../../../framework/database';
+import { prismaRoleEnumToRoleEnum } from '../../../shared/mappers/role-enum.mapper';
+import { userStatusOf } from '../../../shared/user-status.enum';
+import { AuthUser } from '../../domain/auth-user';
 
 @Injectable()
 export class DetailsUserFromImpersonationQuery {
@@ -17,23 +20,27 @@ export class DetailsUserFromImpersonationQuery {
   async handle(impersonation: {
     id: string;
     authSessionId: string;
-  }): Promise<{ id: string; role: string; impersonatorId: string } | null> {
+  }): Promise<{ id: string; isAdmin: boolean; role: string; impersonatorId: string } | null> {
     const found = await this.db.tx.authImpersonation.findFirst({
       where: { id: impersonation.id },
       select: {
         expiresAt: true,
-        impersonatedUser: { select: { id: true, role: true } },
+        impersonatedUser: { select: { deactivatedAt: true, id: true, isAdmin: true, role: true } },
         session: {
           select: {
             sessionId: true,
             expiresAt: true,
-            user: { select: { id: true, role: true } },
+            user: { select: { id: true, isAdmin: true } },
           },
         },
       } satisfies Prisma.AuthImpersonationSelect,
     });
 
     if (!found) return null;
+
+    const { impersonatedUser } = found;
+    const role = prismaRoleEnumToRoleEnum(impersonatedUser.role);
+    if (!AuthUser.canBeImpersonated({ role, status: userStatusOf(impersonatedUser) })) return null;
 
     if (found.session.sessionId !== impersonation.authSessionId) {
       // should not happen
@@ -50,12 +57,11 @@ export class DetailsUserFromImpersonationQuery {
       return null;
     }
 
-    if (found.session.user.role !== 'ADMIN') {
+    if (!found.session.user.isAdmin) {
       // should not happen
       captureException(
         Object.assign(new Error(`Received impersonated request from non ADMIN user`), {
           userId: found.session.user.id,
-          userRole: found.session.user.role,
         }),
       );
       this.logger.error(
@@ -72,6 +78,7 @@ export class DetailsUserFromImpersonationQuery {
 
     return {
       id: found.impersonatedUser.id,
+      isAdmin: found.impersonatedUser.isAdmin,
       role: found.impersonatedUser.role,
       impersonatorId: found.session.user.id,
     };

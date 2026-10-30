@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 
+import { auditionScheduleKey } from '../../../../../utils/audition-schedule';
+import { unaccent } from '../../../../../utils/unaccent';
+import { Db } from '../../../../framework/database';
+import { paginate, type Pagination } from '../../../../framework/pagination';
+import type { RoleEnum } from '../../../../shared/role.enum';
 import type { ListedSessionAuditionsDto } from '../dtos/session-audition.dto';
 import { type SessionAudition, SessionAuditionsFinder } from '../finders/session-auditions.finder';
-import { Db } from 'src/modules/framework/database';
-import { paginate, type Pagination } from 'src/modules/framework/pagination';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import { auditionScheduleKey } from 'src/utils/audition-schedule';
-import { unaccent } from 'src/utils/unaccent';
 
 export function sortByName(a: SessionAudition, b: SessionAudition): number {
   return a.magistrat.name.localeCompare(b.magistrat.name);

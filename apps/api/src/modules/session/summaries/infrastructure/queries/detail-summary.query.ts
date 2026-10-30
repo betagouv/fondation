@@ -2,31 +2,32 @@ import { forwardRef, Inject, Injectable, Logger, NotFoundException } from '@nest
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { Files } from 'src/modules/framework/files';
-import { FILE_MIME_TYPES, filenameToMimeType } from 'src/modules/framework/files/mime-type';
-import { proposedMagistratName } from 'src/modules/magistrat/domain/magistrat-name';
-import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
-import { GradeEnum } from 'src/modules/shared/grade.enum';
-import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
-import { isGrade } from 'src/modules/shared/mappers/grade.mapper';
-import { prismaPrioriteEnumToPriorityEnum } from 'src/modules/shared/mappers/priorite.mapper';
+import { Prisma } from '../../../../../generated/prisma/client';
+import { DateOnly, dateOnlyJsonSchema } from '../../../../../utils/date-only';
+import { isDefined } from '../../../../../utils/is-defined';
+import { timeOnlySchema } from '../../../../../utils/time-only';
+import { writerOf, writerSchema } from '../../../../../utils/user.util';
+import { Db } from '../../../../framework/database';
+import { Files } from '../../../../framework/files';
+import { FILE_MIME_TYPES, filenameToMimeType } from '../../../../framework/files/mime-type';
+import { proposedMagistratName } from '../../../../magistrat/domain/magistrat-name';
+import { GradeEnum } from '../../../../shared/grade.enum';
+import { prismaFormationEnumToFormationEnum } from '../../../../shared/mappers/formation.mapper';
+import { isGrade } from '../../../../shared/mappers/grade.mapper';
+import { prismaPrioriteEnumToPriorityEnum } from '../../../../shared/mappers/priorite.mapper';
 import {
   NominationFileOutcome,
   nominationFileOutcomeLabel,
-} from 'src/modules/shared/nomination-file-outcome.enum';
+} from '../../../../shared/nomination-file-outcome.enum';
 import {
   AUDITION_REQUIREMENTS,
   expectedReportersCount,
-} from 'src/modules/shared/policies/auditioned-position.policy';
-import { canScheduleAudition } from 'src/modules/shared/policies/nomination-file.policies';
-import { PriorityEnum } from 'src/modules/shared/priority.enum';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
-import { isDefined } from 'src/utils/is-defined';
-import { timeOnlySchema } from 'src/utils/time-only';
-import { fullname } from 'src/utils/user.util';
+} from '../../../../shared/policies/auditioned-position.policy';
+import { canScheduleAudition } from '../../../../shared/policies/nomination-file.policies';
+import { canReadSummary, canWriteSummary } from '../../../../shared/policies/summary.policies';
+import { PriorityEnum } from '../../../../shared/priority.enum';
+import type { RoleEnum } from '../../../../shared/role.enum';
+import { TransparenceService } from '../../../transparence/infrastructure/transparence.service';
 
 @Injectable()
 export class DetailSummaryQuery {
@@ -114,6 +115,7 @@ export class DetailSummaryQuery {
                   select: {
                     file: { select: { id: true, name: true, path: true } },
                   },
+                  where: { detachedAt: null },
                 },
               },
             },
@@ -137,11 +139,12 @@ export class DetailSummaryQuery {
     const summary = nominationFile.summary;
     if (!summary) throw new NotFoundException();
 
-    const allAllowedReaders = new Set(
-      [summary.author?.id, ...summary.readers.map(({ user }) => user.id)].filter(isDefined),
+    const user = { id: query.userId, role: query.role };
+    const readable = canReadSummary(
+      { authorId: summary.author?.id ?? null, readerIds: summary.readers.map(({ user }) => user.id) },
+      user,
     );
-
-    if (summary.author && !allAllowedReaders.has(query.userId)) {
+    if (!readable) {
       this.logger.error(
         `Unauthorized access attempt from ${query.userId} to ${query.nominationFileId}`,
         query,
@@ -196,7 +199,7 @@ export class DetailSummaryQuery {
       summary: {
         attachments: summary.attachments.map(({ file }) => ({
           addedAt: file.createdAt.toISOString(),
-          addedBy: file.createdBy ? { id: file.createdBy.id, name: fullname(file.createdBy) } : null,
+          addedBy: writerOf(file.createdBy),
           id: file.id,
           name: file.name,
           size: file.sizeInBytes,
@@ -209,6 +212,7 @@ export class DetailSummaryQuery {
               lastName: summary.author.lastName,
             }
           : null,
+        canWrite: canWriteSummary({ authorId: summary.author?.id ?? null }, user),
         content: summary.content,
         readers: summary.readers.map(({ user }) => ({
           firstName: user.firstName,
@@ -274,12 +278,13 @@ export class DetailedSummaryDto extends createZodDto(
       .nullable(),
 
     summary: z.object({
+      canWrite: z.boolean(),
       content: z.string(),
       author: z.object({ id: z.string(), firstName: z.string(), lastName: z.string() }).nullable(),
       attachments: z.array(
         z.object({
           addedAt: z.iso.datetime(),
-          addedBy: z.object({ id: z.string(), name: z.string() }).nullable(),
+          addedBy: writerSchema,
           id: z.string(),
           name: z.string(),
           size: z.number().int().nullable(),

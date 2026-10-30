@@ -1,4 +1,4 @@
-import * as time from 'src/utils/time';
+import * as time from '../../../utils/time';
 
 const EXPIRATION_DELAY = 2 * time.HOURS;
 

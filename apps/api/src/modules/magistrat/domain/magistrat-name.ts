@@ -1,4 +1,4 @@
-import { capitalize } from 'src/utils/capitalize';
+import { capitalize } from '../../../utils/capitalize';
 
 export const CIVILITIES = ['M.', 'MME'] as const;
 export type Civility = (typeof CIVILITIES)[number];

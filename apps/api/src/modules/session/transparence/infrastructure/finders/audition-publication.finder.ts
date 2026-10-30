@@ -1,10 +1,10 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 
+import { Prisma } from '../../../../../generated/prisma/client';
+import { toAuditionSchedule, toOptionalAuditionSchedule } from '../../../../../utils/audition-schedule';
+import { Db } from '../../../../framework/database';
+import { ObservationService } from '../../../../observation/observation.service';
 import { PublishableAuditions } from '../../domain/audition-publication';
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { ObservationService } from 'src/modules/observation/observation.service';
-import { toAuditionSchedule, toOptionalAuditionSchedule } from 'src/utils/audition-schedule';
 
 export type AuditionPublication = {
   auditions: PublishableAuditions;

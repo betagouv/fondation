@@ -2,7 +2,7 @@
 -- @param $2:ignoreIds?
 
 SELECT COUNT(m.id)
-FROM nominations_context."magistrat" m
+FROM data_administration_context."magistrat" m
 
 WHERE (
   1=1

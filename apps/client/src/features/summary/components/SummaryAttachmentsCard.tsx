@@ -69,7 +69,6 @@ function SummaryAttachmentInput() {
         disabled={summary.isArchived}
         hint={<FormattedMessage defaultMessage="Tout type de fichier supporté" />}
         isPending={isPending}
-        label={<FormattedMessage defaultMessage="Ajouter un fichier" />}
         multiple
         onChange={(files) => files.length > 0 && attach(files)}
       />

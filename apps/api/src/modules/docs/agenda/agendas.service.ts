@@ -1,20 +1,17 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, StreamableFile } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
 
+import { Prisma } from '../../../generated/prisma/client';
+import { lockAgendasRawQuery } from '../../../generated/prisma/sql';
+import { DateOnly, DateOnlyJson } from '../../../utils/date-only';
+import { isDefined } from '../../../utils/is-defined';
+import { Clock } from '../../framework/clock';
 import { Db } from '../../framework/database';
 import { MembersService } from '../../members';
-import {
-  DocInvalidatedIntegrationEvent,
-  DocInvalidation,
-} from '../shared/domain/invalidation/official-report-invalidated.integration-event';
 import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../shared/infrastructure/agenda-content';
 import { ActedNominationFilesFinder } from '../shared/infrastructure/finders/acted-nomination-files.finder';
 import { DocsNominationFilesFinder } from '../shared/infrastructure/finders/docs-nomination-files.finder';
-import { Prisma } from 'src/generated/prisma/client';
-import { Clock } from 'src/modules/framework/clock';
-import { DateOnly, DateOnlyJson } from 'src/utils/date-only';
-import { isDefined } from 'src/utils/is-defined';
+import { InvalidateDocsUseCase } from '../shared/infrastructure/use-cases/invalidate-docs.use-case';
 
 import { Agenda } from './domain/agenda';
 import { CreatedAgendaDto } from './infrastructure/agendas.dto';
@@ -38,7 +35,6 @@ import {
 import { FindAgendaDocumentPdfQuery } from './infrastructure/queries/find-agenda-document-pdf.query';
 import { FindAgendaDocumentQuery } from './infrastructure/queries/find-agenda-document.query';
 import { AgendaRepository } from './infrastructure/repositories/agenda.repository';
-import { InvalidateAgendasUseCase } from './infrastructure/use-cases/invalidate-agenda.use-case';
 
 @Injectable()
 export class AgendasService {
@@ -53,11 +49,9 @@ export class AgendasService {
     private readonly detailsSessionAgendaQuery: DetailsSessionAgendaQuery,
     private readonly findAgendaDocumentPdfQuery: FindAgendaDocumentPdfQuery,
     private readonly findAgendaDocumentQuery: FindAgendaDocumentQuery,
-    private readonly invalidateAgendaUseCase: InvalidateAgendasUseCase,
+    private readonly invalidateDocsUseCase: InvalidateDocsUseCase,
     private readonly clock: Clock,
     private readonly db: Db,
-
-    private readonly events: EventEmitter2,
 
     private readonly members: MembersService,
   ) {}
@@ -109,6 +103,7 @@ export class AgendasService {
     return { id: agenda.id };
   }
 
+  @Transactional()
   async updateAgendaMetadata(command: {
     agendaId: string;
     authorId: string;
@@ -116,62 +111,46 @@ export class AgendasService {
     date: DateOnlyJson;
     sessionMeetingDate: DateOnlyJson;
   }): Promise<void> {
-    const invalidations = await this.db.withTransaction(async () => {
-      const agenda = await this.agendaRepository.find({
-        actorId: command.authorId,
-        agendaId: command.agendaId,
-      });
-      const diff = agenda.updateMetadata({
-        authorId: command.authorId,
-        chairmanId: command.chairmanId,
-        date: DateOnly.fromJson(command.date),
-        sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
-      });
-
-      await this.agendaRepository.persist(agenda);
-
-      return diff.hasAny ? diff.officialReportInvalidations : [];
+    const agenda = await this.agendaRepository.find({
+      actorId: command.authorId,
+      agendaId: command.agendaId,
+    });
+    const diff = agenda.updateMetadata({
+      authorId: command.authorId,
+      chairmanId: command.chairmanId,
+      date: DateOnly.fromJson(command.date),
+      sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
     });
 
-    await this.emitInvalidations(invalidations);
+    await this.agendaRepository.persist(agenda);
+
+    if (diff.hasAny) await this.invalidateDocsUseCase.handle(diff.officialReportInvalidations);
   }
 
+  @Transactional()
   async updateAgendaFiles(command: {
     agendaId: string;
     authorId: string;
     nominationFileIds: readonly string[];
   }): Promise<void> {
-    const invalidations = await this.db.withTransaction(async () => {
-      const agenda = await this.agendaRepository.find({
-        actorId: command.authorId,
-        agendaId: command.agendaId,
-      });
-      const nominationFileIds = new Set(command.nominationFileIds);
-      const actedNominationFileIds = await this.actedNominationFilesFinder.find({
-        fileIds: nominationFileIds,
-      });
-
-      const diff = agenda.updateFiles({
-        actedNominationFileIds,
-        authorId: command.authorId,
-        nominationFileIds,
-      });
-
-      await this.agendaRepository.persist(agenda);
-
-      return diff.hasAny ? diff.officialReportInvalidations : [];
+    const agenda = await this.agendaRepository.find({
+      actorId: command.authorId,
+      agendaId: command.agendaId,
+    });
+    const nominationFileIds = new Set(command.nominationFileIds);
+    const actedNominationFileIds = await this.actedNominationFilesFinder.find({
+      fileIds: nominationFileIds,
     });
 
-    await this.emitInvalidations(invalidations);
-  }
+    const diff = agenda.updateFiles({
+      actedNominationFileIds,
+      authorId: command.authorId,
+      nominationFileIds,
+    });
 
-  private async emitInvalidations(invalidations: readonly DocInvalidation[]): Promise<void> {
-    for (const invalidation of invalidations) {
-      await this.events.emitAsync(
-        DocInvalidatedIntegrationEvent.name,
-        new DocInvalidatedIntegrationEvent(invalidation),
-      );
-    }
+    await this.agendaRepository.persist(agenda);
+
+    if (diff.hasAny) await this.invalidateDocsUseCase.handle(diff.officialReportInvalidations);
   }
 
   @Transactional()
@@ -181,11 +160,11 @@ export class AgendasService {
     await this.agendaRepository.persist(agenda);
   }
 
-  getOrCreateAgendaDocument(query: { forceNew?: boolean; id: string }): Promise<string> {
+  getOrCreateAgendaDocument(query: { id: string }): Promise<string> {
     return this.findAgendaDocumentQuery.handle(query);
   }
 
-  getOrCreateAgendaDocumentPdf(query: { forceNew?: boolean; id: string }): Promise<StreamableFile> {
+  getOrCreateAgendaDocumentPdf(query: { id: string }): Promise<StreamableFile> {
     return this.findAgendaDocumentPdfQuery.handle(query);
   }
 
@@ -201,30 +180,35 @@ export class AgendasService {
     // rendering and uploading the PDF stay out of the transaction: they would hold a connection for seconds
     await this.findAgendaDocumentPdfQuery.ensure({ id: command.agendaId });
 
-    await this.announcingSentenceChanges(command.agendaId, () =>
-      this.db.withTransaction(async () => {
+    await this.db.withTransaction(async () => {
+      // a validation sent twice waits for the first one, then finds the agenda validated
+      await this.db.tx.$queryRawTyped(lockAgendasRawQuery([command.agendaId]));
+
+      await this.announcingSentenceChanges(command.agendaId, async () => {
         const agenda = await this.agendaRepository.find({
           actorId: command.authorId,
           agendaId: command.agendaId,
         });
         agenda.validate({ at: this.clock.now(), authorId: command.authorId });
         await this.agendaRepository.persist(agenda);
-      }),
-    );
+      });
 
-    await this.emitInvalidations([{ payload: { agendaId: command.agendaId }, type: 'AgendaValidated' }]);
+      await this.invalidateDocsUseCase.handle([
+        { payload: { agendaId: command.agendaId }, type: 'AgendaValidated' },
+      ]);
+    });
   }
 
+  @Transactional()
   async discardAgendaDraft(command: { agendaId: string }): Promise<void> {
-    await this.announcingSentenceChanges(command.agendaId, () =>
-      this.db.withTransaction(async () => {
-        const hasValidatedVersion = await this.agendaVersionFinder.published({ agendaId: command.agendaId });
+    await this.announcingSentenceChanges(command.agendaId, async () => {
+      const hasValidatedVersion = await this.agendaVersionFinder.published({ agendaId: command.agendaId });
+      const changesBy = await this.agendaVersionFinder.draftChangesBy({ agendaId: command.agendaId });
 
-        const agenda = await this.agendaRepository.find({ actorId: null, agendaId: command.agendaId });
-        agenda.discardDraft({ hasValidatedVersion: isDefined(hasValidatedVersion) });
-        await this.agendaRepository.persist(agenda);
-      }),
-    );
+      const agenda = await this.agendaRepository.find({ actorId: null, agendaId: command.agendaId });
+      agenda.discardDraft({ changesBy, hasValidatedVersion: isDefined(hasValidatedVersion) });
+      await this.agendaRepository.persist(agenda);
+    });
   }
 
   @Transactional()
@@ -235,34 +219,31 @@ export class AgendasService {
     html: string;
     outdated: boolean;
   }): Promise<void> {
-    await this.announcingSentenceChanges(command.agendaId, () =>
-      this.db.withTransaction(async () => {
-        const agenda = await this.agendaRepository.find({
-          actorId: command.authorId,
-          agendaId: command.agendaId,
-        });
-        agenda.editFileBlock({
-          authorId: command.authorId,
-          fileId: command.fileId,
-          html: command.html,
-          outdated: command.outdated,
-        });
-        await this.agendaRepository.persist(agenda);
-      }),
-    );
+    await this.announcingSentenceChanges(command.agendaId, async () => {
+      const agenda = await this.agendaRepository.find({
+        actorId: command.authorId,
+        agendaId: command.agendaId,
+      });
+      agenda.editFileBlock({
+        authorId: command.authorId,
+        fileId: command.fileId,
+        html: command.html,
+        outdated: command.outdated,
+      });
+      await this.agendaRepository.persist(agenda);
+    });
   }
 
+  @Transactional()
   async resetAgendaFileBlock(command: { agendaId: string; authorId: string; fileId: bigint }): Promise<void> {
-    await this.announcingSentenceChanges(command.agendaId, () =>
-      this.db.withTransaction(async () => {
-        const agenda = await this.agendaRepository.find({
-          actorId: command.authorId,
-          agendaId: command.agendaId,
-        });
-        agenda.resetFileBlock({ fileId: command.fileId });
-        await this.agendaRepository.persist(agenda);
-      }),
-    );
+    await this.announcingSentenceChanges(command.agendaId, async () => {
+      const agenda = await this.agendaRepository.find({
+        actorId: command.authorId,
+        agendaId: command.agendaId,
+      });
+      agenda.resetFileBlock({ fileId: command.fileId });
+      await this.agendaRepository.persist(agenda);
+    });
   }
 
   /**
@@ -282,7 +263,7 @@ export class AgendasService {
       ),
     );
 
-    await this.emitInvalidations(
+    await this.invalidateDocsUseCase.handle(
       [...changed].map((nominationFileId) => ({
         payload: { agendaId, nominationFileId },
         type: 'AgendaFileBlockEdited',
@@ -293,7 +274,6 @@ export class AgendasService {
   /** the sentence each proposition reads today, empty when the agenda leaves it to the template */
   private async readableSentences(agendaId: string): Promise<Map<string, string>> {
     const agenda = await this.db.tx.agenda.findFirst({
-      where: { id: agendaId, officialReportId: { not: null } },
       select: {
         versions: {
           ...AGENDA_CONTENT_VERSIONS,
@@ -303,6 +283,7 @@ export class AgendasService {
           },
         },
       } satisfies Prisma.AgendaSelect,
+      where: { id: agendaId, officialReportId: { not: null } },
     });
 
     return new Map(
@@ -318,9 +299,5 @@ export class AgendasService {
 
   detailsAgendaDocumentBlocks(query: { agendaId: string }): Promise<DetailedAgendaDocumentBlocksDto> {
     return this.detailsAgendaDocumentBlocksQuery.handle(query);
-  }
-
-  internalInvalidateAgendas(invalidation: DocInvalidation): Promise<void> {
-    return this.invalidateAgendaUseCase.handle(invalidation);
   }
 }

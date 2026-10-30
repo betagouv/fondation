@@ -6,6 +6,7 @@ import { RequiredLabel } from './RequiredLabel';
 const meta = {
   title: 'Shared/RequiredLabel',
   component: RequiredLabel,
+  render: (args) => <Input label={<RequiredLabel {...args} />} nativeInputProps={{ required: true }} />,
   parameters: { layout: 'padded' },
   tags: ['autodocs'],
   argTypes: {
@@ -16,12 +17,4 @@ const meta = {
 
 export default meta;
 
-type Story = StoryObj<typeof meta>;
-
-export const Playground: Story = {};
-
-export const WithinInputLabel: Story = {
-  render: (args) => (
-    <Input label={<RequiredLabel>{args.children}</RequiredLabel>} nativeInputProps={{ required: true }} />
-  ),
-};
+export const Playground: StoryObj<typeof meta> = {};

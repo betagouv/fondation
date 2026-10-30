@@ -2,10 +2,10 @@ import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
+import { insertFunctionsRawQuery } from '../../../../generated/prisma/sql';
+import { Db } from '../../../framework/database';
+import { formationEnumToPrismaFormationEnum } from '../../../shared/mappers/formation.mapper';
 import { LolfiJob } from '../lolfi-job.type';
-import { insertFunctionsRawQuery } from 'src/generated/prisma/sql';
-import { Db } from 'src/modules/framework/database';
-import { formationEnumToPrismaFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
 
 import { JobFileIngestor } from './job-file-ingestor';
 
@@ -77,7 +77,7 @@ const RawFunctionSchema = z.object({
   tri: z.coerce.number().int().gte(-32_768).lte(32_767),
   lieufc: z
     .union([z.literal('0'), z.literal('1'), z.literal('2')], {
-      error: (iss) => `0, 1 ou 2 attendu. ${JSON.stringify(iss.input)} fourni`,
+      error: (iss) => `0, 1 ou 2 attendu, ${JSON.stringify(iss.input)} reçu`,
     })
     .transform((x) =>
       x === '0' ? null : formationEnumToPrismaFormationEnum(x === '1' ? 'SIEGE' : 'PARQUET'),

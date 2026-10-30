@@ -1,10 +1,10 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { assertPgParams } from 'src/utils/assert-pg-params';
-import { isDefined } from 'src/utils/is-defined';
+import { Prisma } from '../../../../../generated/prisma/client';
+import { assertPgParams } from '../../../../../utils/assert-pg-params';
+import { isDefined } from '../../../../../utils/is-defined';
+import { Db } from '../../../../framework/database';
 
 export type NominationFileLinkedDoc = {
   agenda: { sessionMeetingDate: Date };

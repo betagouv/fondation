@@ -1,15 +1,17 @@
-import { UserTitleEnum } from 'src/modules/administration/domain/user-enum';
-import { GenderEnum } from 'src/modules/shared/gender.enum';
-import { DateOnlyJson } from 'src/utils/date-only';
-import { DateOnly } from 'src/utils/date-only';
-import { unaccent } from 'src/utils/unaccent';
-import { fullname } from 'src/utils/user.util';
+import { DateOnlyJson } from '../../../../../../utils/date-only';
+import { DateOnly } from '../../../../../../utils/date-only';
+import { unaccent } from '../../../../../../utils/unaccent';
+import { fullname } from '../../../../../../utils/user.util';
+import { GenderEnum } from '../../../../../shared/gender.enum';
+import { UserTitleEnum } from '../../../../../shared/user-title.enum';
+
+import { SafeHtml } from './safe-html';
 
 export function titled(props: {
-  title: UserTitleEnum | null;
   firstName: string;
-  lastName: string;
   gender: GenderEnum;
+  lastName: string;
+  title: UserTitleEnum | null;
 }): string {
   if (!props.title || props.title === 'FIRST_SECRETARY') return fullname(props);
 
@@ -25,16 +27,20 @@ export function titled(props: {
 }
 
 export function displayTitled(props: {
-  firstName: string;
-  lastName: string;
   displayTitle: string | null;
+  firstName: string;
   gender: GenderEnum;
+  lastName: string;
 }): string {
   const title = props.displayTitle?.trim() || null;
   const output = props.gender === GenderEnum.MALE ? `M. ${fullname(props)}` : `Mme ${fullname(props)}`;
 
   if (!title) return output;
-  return `${output}, ${title[0]!.toLowerCase() + title.slice(1)}`;
+  return `${output}, ${lowerFirst(title)}`;
+}
+
+export function lowerFirst(label: string): string {
+  return label.charAt(0).toLowerCase() + label.slice(1);
 }
 
 const shortDate = new Intl.DateTimeFormat('fr', {
@@ -52,13 +58,13 @@ const longDate = new Intl.DateTimeFormat('fr', {
 });
 
 type DateFormat = 'dd/MM/yyyy' | 'do MMMM yyyy';
-export function date(date: DateOnly | DateOnlyJson, format: DateFormat = 'dd/MM/yyyy'): string {
+export function date(date: DateOnly | DateOnlyJson, format: DateFormat = 'dd/MM/yyyy'): SafeHtml {
   const dateOnly = date instanceof DateOnly ? date : DateOnly.fromJson(date);
-  if (format === 'dd/MM/yyyy') return shortDate.format(dateOnly.toDate());
+  if (format === 'dd/MM/yyyy') return new SafeHtml(shortDate.format(dateOnly.toDate()));
 
   // In French only the first of the month takes an ordinal
   const formatted = longDate.format(dateOnly.toDate());
-  return dateOnly.toJson().day === 1 ? formatted.replace(/^1 /, `1<sup>er</sup> `) : formatted;
+  return new SafeHtml(dateOnly.toJson().day === 1 ? formatted.replace(/^1 /, `1<sup>er</sup> `) : formatted);
 }
 
 const elidingInitials = new Set(['a', 'e', 'i', 'o', 'u', 'y', 'h']);
@@ -69,14 +75,16 @@ export function requiresElision(word: string): boolean {
 
 /**
  * the template and the editor write the same sentence differently, so the editor's own paragraph
- * wrappers and its spacing are set aside. The emphasis is not: putting a name in bold is an
- * edition of its own.
+ * wrappers, its spacing and the quotes the template escapes but the editor leaves as is are set
+ * aside. The emphasis is not: putting a name in bold is an edition of its own.
  */
 export function readsTheSame(left: string, right: string): boolean {
   const words = (html: string) =>
     html
       .replace(/<\/?(p|div|li|ul|ol|h[1-6]|br)\s*\/?>/gi, ' ')
       .replace(/&nbsp;/g, ' ')
+      .replace(/&#39;/g, "'")
+      .replace(/&quot;/g, '"')
       .replace(/\s+/g, ' ')
       .trim();
 

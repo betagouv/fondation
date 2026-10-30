@@ -1,10 +1,10 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { OpenIdProvider } from 'src/modules/simple-auth/openid';
-import { Id, makeId } from 'src/utils/id';
+import { Prisma } from '../../../../generated/prisma/client';
+import { Id, makeId } from '../../../../utils/id';
+import { Db } from '../../../framework/database';
+import { OpenIdProvider } from '../../openid';
 
 @Injectable()
 export class OpenIdAuthenticationRequestFinder {
@@ -14,7 +14,7 @@ export class OpenIdAuthenticationRequestFinder {
 
   @Transactional()
   async find(query: { provider: OpenIdProvider; state: string }): Promise<{
-    challenge: Buffer | null;
+    challenge: Buffer;
     nonce: Buffer;
     createdAt: Date;
     expiresAt: Date;
@@ -41,7 +41,7 @@ export class OpenIdAuthenticationRequestFinder {
     return {
       ...found,
       id: makeId('OpenIdRequest', found.id),
-      challenge: found.challenge ? Buffer.from(found.challenge) : null,
+      challenge: Buffer.from(found.challenge),
       nonce: Buffer.from(found.nonce),
     };
   }

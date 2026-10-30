@@ -6,11 +6,12 @@ import { Injectable, OnApplicationBootstrap } from '@nestjs/common';
 import { MultipartFile } from '../multipart/multipart.file';
 
 import { ImageSanitizer } from './image.sanitizer';
+import { Mp4Sanitizer } from './mp4.sanitizer';
 import { PdfSanitizer } from './pdf.sanitizer';
 
 @Injectable()
 export class Sanitizer implements OnApplicationBootstrap {
-  private readonly sanitizers = [new PdfSanitizer(), new ImageSanitizer()];
+  private readonly sanitizers = [new PdfSanitizer(), new ImageSanitizer(), new Mp4Sanitizer()];
 
   async sanitize(file: MultipartFile): Promise<MultipartFile> {
     const transformers = this.sanitizers.filter((s) => s.handles(file.mimeType)).map((x) => x.sanitize());

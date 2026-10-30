@@ -1,12 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
-import { prismaTypeDeSaisineEnumToTypeDeSaisine } from 'src/modules/shared/mappers/type-de-saisine-enum.mapper';
-import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
-import { DateOnly } from 'src/utils/date-only';
+import { Prisma } from '../../../../../generated/prisma/client';
+import { DateOnly } from '../../../../../utils/date-only';
+import { Db } from '../../../../framework/database';
+import { FormationEnum } from '../../../../shared/formation.enum';
+import { prismaFormationEnumToFormationEnum } from '../../../../shared/mappers/formation.mapper';
+import { prismaTypeDeSaisineEnumToTypeDeSaisine } from '../../../../shared/mappers/type-de-saisine-enum.mapper';
+import { canReadSession } from '../../../../shared/policies/session.policies';
+import type { RoleEnum } from '../../../../shared/role.enum';
+import { TypeDeSaisineEnum } from '../../../../shared/type-de-saisine.enum';
 
 export type NominationSessionState = 'ARCHIVED' | 'DELETED' | 'OPEN';
 
@@ -62,6 +64,14 @@ export class NominationSessionFinder {
         },
       ]),
     );
+  }
+
+  async getVisible(query: { role: RoleEnum; sessionId: string }): Promise<FoundNominationSession> {
+    const sessions = await this.find({ sessionIds: [query.sessionId] });
+    const session = sessions.get(query.sessionId);
+    if (!session || !canReadSession(session, query)) throw new NotFoundException();
+
+    return session;
   }
 
   async formation(query: { sessionId: string }): Promise<FormationEnum> {

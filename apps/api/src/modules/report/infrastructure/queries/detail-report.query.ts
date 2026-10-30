@@ -2,15 +2,15 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { Files } from 'src/modules/framework/files';
-import { prismaReportStateEnumToReportState } from 'src/modules/shared/mappers/rapport-statut.mapper';
-import { prismaReportFileUsageEnumToReportFileUsage } from 'src/modules/shared/mappers/report-file-usage.mapper';
-import { ReportStateEnum } from 'src/modules/shared/report-state.enum';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import { isDefined } from 'src/utils/is-defined';
-import { fullname } from 'src/utils/user.util';
+import { Prisma } from '../../../../generated/prisma/client';
+import { isDefined } from '../../../../utils/is-defined';
+import { writerOf, writerSchema } from '../../../../utils/user.util';
+import { Db } from '../../../framework/database';
+import { Files } from '../../../framework/files';
+import { prismaReportStateEnumToReportState } from '../../../shared/mappers/rapport-statut.mapper';
+import { prismaReportFileUsageEnumToReportFileUsage } from '../../../shared/mappers/report-file-usage.mapper';
+import { ReportStateEnum } from '../../../shared/report-state.enum';
+import { isSecretariat, type RoleEnum } from '../../../shared/role.enum';
 
 @Injectable()
 export class DetailReportQuery {
@@ -23,7 +23,7 @@ export class DetailReportQuery {
     reportId: string;
     user: { id: string; role: RoleEnum };
   }): Promise<DetailedReportDto> {
-    const reporterId = query.user.role !== 'ADJOINT_SECRETAIRE_GENERAL' ? query.user.id : undefined;
+    const reporterId = isSecretariat(query.user.role) ? undefined : query.user.id;
 
     const report = await this.db.tx.report.findUnique({
       select: {
@@ -42,6 +42,7 @@ export class DetailReportQuery {
             },
             usage: true,
           },
+          where: { detachedAt: null },
         },
         id: true,
         nominationFileId: true,
@@ -55,7 +56,7 @@ export class DetailReportQuery {
 
     const reportFiles = report.files.map(({ file, usage }) => ({
       addedAt: file.createdAt.toISOString(),
-      addedBy: file.createdBy ? { id: file.createdBy.id, name: fullname(file.createdBy) } : null,
+      addedBy: writerOf(file.createdBy),
       id: file.id,
       name: file.name,
       path: file.path,
@@ -77,7 +78,7 @@ export class DetailReportQuery {
       attachments: attachments.map((f) => ({
         addedAt: f.addedAt,
         addedBy: f.addedBy,
-        fileId: f.id,
+        id: f.id,
         name: f.name,
         size: f.size,
         usage: f.usage,
@@ -86,7 +87,7 @@ export class DetailReportQuery {
       id: report.id,
       nominationFileId: report.nominationFileId,
       screenshots: screenshots.map((f) => ({
-        fileId: f.id,
+        id: f.id,
         name: f.name,
         url: f.url,
         usage: f.usage,
@@ -125,7 +126,7 @@ export class DetailedReportDto extends createZodDto(
       z.object({
         usage: z.enum(['EMBEDDED_SCREENSHOT']),
         name: z.string(),
-        fileId: z.string(),
+        id: z.string(),
         url: z.url(),
       }),
     ),
@@ -134,10 +135,10 @@ export class DetailedReportDto extends createZodDto(
       z.object({
         usage: z.enum(['ATTACHMENT']),
         name: z.string(),
-        fileId: z.string(),
+        id: z.string(),
         size: z.number().int().nullable(),
         addedAt: z.iso.datetime(),
-        addedBy: z.object({ id: z.string(), name: z.string() }).nullable(),
+        addedBy: writerSchema,
       }),
     ),
   }),

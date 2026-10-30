@@ -1,4 +1,4 @@
-import { unaccent } from 'src/utils/unaccent';
+import { unaccent } from '../../../utils/unaccent';
 
 // LOLFI codes of the positions the CSM hears before deciding, whatever the jurisdiction:
 // the deputies of the national prosecutor's offices have their own function code (PRA F, PRATA, PRACOADJ)

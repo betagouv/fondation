@@ -1,10 +1,10 @@
+import { assertIsDefined } from '../../../../../utils/is-defined';
 import type { OfficialReportAgenda } from '../official-report-agenda';
 import type { OfficialReportChairman } from '../official-report-chairman';
 import type { OfficialReportMembersList } from '../official-report-member-list';
 import type { OfficialReportSecretary } from '../official-report-secretary';
 import type { OfficialReportSessionMeeting } from '../official-report-session-meeting';
 import type { OfficialReportSnapshotDiff, UpdateOfficialReportCommand } from '../official-report-types';
-import { assertIsDefined } from 'src/utils/is-defined';
 
 import type {
   PlainOfficialReportSnapshot,

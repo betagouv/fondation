@@ -2,9 +2,9 @@ import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
+import { insertPositionsRawQuery } from '../../../../generated/prisma/sql';
+import { Db } from '../../../framework/database';
 import { LolfiJob } from '../lolfi-job.type';
-import { insertPositionsRawQuery } from 'src/generated/prisma/sql';
-import { Db } from 'src/modules/framework/database';
 
 import { JobFileIngestor } from './job-file-ingestor';
 
@@ -92,13 +92,13 @@ export class LolfiPostesIngestor {
 
         const error =
           u.unknownFunctionId !== null
-            ? `Fonction "${u.unknownFunctionId}" inconnue`
+            ? `fonction "${u.unknownFunctionId}" inconnue`
             : u.unknownGradeId !== null
-              ? `Grade "${u.unknownGradeId}" inconnu`
+              ? `grade "${u.unknownGradeId}" inconnu`
               : u.unknownJurisdictionId !== null
-                ? `Juridiction "${u.unknownJurisdictionId}" inconnue`
+                ? `juridiction "${u.unknownJurisdictionId}" inconnue`
                 : u.unknownJurisdictionTypeId !== null
-                  ? `Type de juridiction "${u.unknownJurisdictionTypeId}" inconnue`
+                  ? `type de juridiction "${u.unknownJurisdictionTypeId}" inconnu`
                   : null;
         if (!error) continue;
 
@@ -106,12 +106,12 @@ export class LolfiPostesIngestor {
       }
 
       if (errors.length > 0) {
-        await this.db.tx.ingestionJobFileError.createMany({
+        await this.db.tx.ingestionJobFileMessage.createMany({
           data: errors.map(({ entityId, error }) => ({
-            error,
             entityId,
-            jobId: props.jobId,
             fileId: props.fileId,
+            jobId: props.jobId,
+            text: error,
           })),
         });
       }

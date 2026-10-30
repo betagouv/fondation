@@ -13,7 +13,7 @@ WITH candidature AS (
       ON target_function.id = target_position.function_id
 
     -- the builder falls back on the magistrat's current formation, this must stay aligned with it
-    LEFT JOIN nominations_context.magistrat AS m ON m.external_id = n.magistrat_id
+    LEFT JOIN data_administration_context.magistrat AS m ON m.external_id = n.magistrat_id
     LEFT JOIN data_administration_context."position" AS current_position
       ON current_position.id = m.current_position_id::INT
     LEFT JOIN data_administration_context."function" AS current_function

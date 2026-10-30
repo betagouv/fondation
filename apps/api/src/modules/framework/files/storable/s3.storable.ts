@@ -10,9 +10,9 @@ import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Inject, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 
+import * as time from '../../../../utils/time';
 import { Clock } from '../../clock';
 import { API_CONFIG_TOKEN, ApiConfig } from '../../config';
-import * as time from 'src/utils/time';
 
 import { StorageResult } from './result.storable';
 import { S3Client } from './s3';

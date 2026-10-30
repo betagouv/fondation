@@ -12,8 +12,8 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { ZodResponse } from 'nestjs-zod';
 
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import { AuthedUser, HasRole } from 'src/modules/simple-auth';
+import { MEMBER_ROLES, type RoleEnum } from '../../shared/role.enum';
+import { AuthedUser, HasRole } from '../../simple-auth';
 
 import { WriteNominationFileMemberMemoDto } from './infrastructure/dtos/nomination-file.dto';
 import { ListedMemberSessionsDto } from './infrastructure/queries/list-member-sessions.query';
@@ -38,7 +38,7 @@ export class MemberSessionsController {
     return this.sessions.listMemberSessions({ typeDeSaisine: 'TRANSPARENCE_GDS', user: authUser });
   }
 
-  @HasRole()
+  @HasRole(...MEMBER_ROLES)
   @Put('/:userId/sessions/transparence/garde-des-sceaux/:sessionId/files/:nominationFileId/memo')
   @HttpCode(HttpStatus.NO_CONTENT)
   async writeNominationFileMemberMemo(

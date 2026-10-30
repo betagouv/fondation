@@ -1,5 +1,5 @@
-import { formationToMemberRole } from 'src/modules/shared/formation-to-member-role';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
+import { formationToMemberRole } from '../../shared/formation-to-member-role';
+import { isSecretariat, type RoleEnum } from '../../shared/role.enum';
 
 export const MANUAL_WORK_SHARES = [
   'LESS_THAN_10',
@@ -45,6 +45,7 @@ export type FeedbackAnswers = {
 
 export type Respondent = {
   id: string;
+  isAdmin: boolean;
   isImpersonated: boolean;
   role: RoleEnum;
 };
@@ -80,14 +81,14 @@ export class Feedback {
   }
 
   static questionnaireOf(role: RoleEnum): Questionnaire | null {
-    if (role === 'ADJOINT_SECRETAIRE_GENERAL') return 'SECRETARIAT';
+    if (isSecretariat(role)) return 'SECRETARIAT';
     if (formationToMemberRole().includes(role)) return 'MEMBER';
     return null;
   }
 
   static accessOf(respondent: Respondent, environment: { isTest: boolean }): FeedbackAccess | null {
     // the admins read the answers: theirs would skew the secretariat's, except where nothing is real
-    if (respondent.role === 'ADMIN')
+    if (respondent.isAdmin)
       return { mode: environment.isTest ? 'TEST' : 'PREVIEW', questionnaire: 'SECRETARIAT' };
     const questionnaire = Feedback.questionnaireOf(respondent.role);
     if (!questionnaire) return null;

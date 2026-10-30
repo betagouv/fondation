@@ -1,10 +1,8 @@
-import {
-  AdminUserRoleEnum,
-  adminUserRoleEnumToDuty,
-  adminUserRoleEnumToTitle,
-  UserDutyEnum,
-  UserTitleEnum,
-} from './user-enum';
+import { AdminUserRoleEnum } from '../../shared/admin-user-role.enum';
+import { UserDutyEnum } from '../../shared/user-duty.enum';
+import { UserTitleEnum } from '../../shared/user-title.enum';
+
+import { adminUserRoleEnumToDuty, adminUserRoleEnumToTitle } from './user-enum';
 
 export class AdminUserTitle {
   get title(): UserTitleEnum | null {

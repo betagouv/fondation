@@ -2,9 +2,10 @@ import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
+import { PrismaSeverityEnum } from '../../../../generated/prisma/enums';
+import { insertCandidatesRawQuery } from '../../../../generated/prisma/sql';
+import { Db } from '../../../framework/database';
 import { LolfiJob } from '../lolfi-job.type';
-import { insertCandidatesRawQuery } from 'src/generated/prisma/sql';
-import { Db } from 'src/modules/framework/database';
 
 import { JobFileIngestor } from './job-file-ingestor';
 import { RawLolfiDate } from './lolfi-ingestor.util';
@@ -31,16 +32,17 @@ export class LolfiCandidatsIngestor {
 
     // oxlint-disable-next-line require-yield
     async function* mapper(source: AsyncIterable<{ data: RawCandidate; success: boolean }>) {
-      const errors: { entityId: string; error: string }[] = [];
+      const messages: { entityId: string; severity: PrismaSeverityEnum; text: string }[] = [];
       const accumulator: RawCandidate[] = [];
       const ids = new Set<number>();
 
       for await (const { data } of source) {
         if (ids.has(data.num_candidat)) {
           self.logger.warn(`Candidate "${data.num_candidat}" is duplicated. Ignored`);
-          errors.push({
+          messages.push({
             entityId: String(data.num_candidat),
-            error: `Candidat "${data.num_candidat}" dupliqué. La première occurrence est la seule sauvegardée`,
+            severity: 'WARNING',
+            text: 'plusieurs occurrences dans le fichier, seule la première est enregistrée',
           });
           continue;
         }
@@ -50,21 +52,21 @@ export class LolfiCandidatsIngestor {
 
         if (accumulator.length >= 500) {
           await self.flush({
-            errors,
-            items: accumulator,
             fileId: options.file.id,
+            items: accumulator,
             jobId: options.job.id,
+            messages,
             result: mappingResult,
           });
         }
       }
 
-      if (accumulator.length > 0 || errors.length > 0) {
+      if (accumulator.length > 0 || messages.length > 0) {
         await self.flush({
-          errors,
-          items: accumulator,
           fileId: options.file.id,
+          items: accumulator,
           jobId: options.job.id,
+          messages,
           result: mappingResult,
         });
       }
@@ -85,14 +87,14 @@ export class LolfiCandidatsIngestor {
 
   @Transactional(Propagation.RequiresNew)
   private async flush(props: {
-    items: RawCandidate[];
-    errors: { entityId: string; error: string }[];
-    jobId: number;
     fileId: string;
+    items: RawCandidate[];
+    jobId: number;
+    messages: { entityId: string; severity: PrismaSeverityEnum; text: string }[];
     result: { success: boolean };
   }) {
     try {
-      const errors = [...props.errors];
+      const messages = [...props.messages];
 
       if (props.items.length > 0) {
         const unknown = await this.db.tx.$queryRawTyped(insertCandidatesRawQuery(props.items));
@@ -103,24 +105,25 @@ export class LolfiCandidatsIngestor {
 
           const error =
             u.unknownMagistratId !== null
-              ? `Magistrat "${u.unknownMagistratId}" inconnu`
+              ? `magistrat "${u.unknownMagistratId}" inconnu`
               : u.unknownSessionId !== null
-                ? `Session observée "${u.unknownSessionId}" inconnue`
+                ? `session observée "${u.unknownSessionId}" inconnue`
                 : null;
 
           if (!error) continue;
 
-          errors.push({ entityId: String(entityId), error });
+          messages.push({ entityId: String(entityId), severity: 'ERROR', text: error });
         }
       }
 
-      if (errors.length > 0) {
-        await this.db.tx.ingestionJobFileError.createMany({
-          data: errors.map(({ entityId, error }) => ({
-            error,
+      if (messages.length > 0) {
+        await this.db.tx.ingestionJobFileMessage.createMany({
+          data: messages.map(({ entityId, severity, text }) => ({
             entityId,
-            jobId: props.jobId,
             fileId: props.fileId,
+            jobId: props.jobId,
+            severity,
+            text,
           })),
         });
       }
@@ -128,7 +131,7 @@ export class LolfiCandidatsIngestor {
       this.logger.error(`Failed flushing CANDIDATS.xml chunk`, error);
       props.result.success = false;
     } finally {
-      props.errors.length = 0;
+      props.messages.length = 0;
       props.items.length = 0;
     }
   }

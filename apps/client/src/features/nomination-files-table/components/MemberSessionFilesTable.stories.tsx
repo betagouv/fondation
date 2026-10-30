@@ -36,35 +36,24 @@ function MemberSessionFilesTableStory(props: { formation: FormationEnum; session
 }
 
 const meta = {
-  title: 'Session/Transparence/MemberSessionFilesTable',
-  component: MemberSessionFilesTableStory,
+  args: { formation: FormationEnum.SIEGE, sessionId: 'with-reports' },
+  argTypes: {
+    formation: { control: 'inline-radio', options: Object.values(FormationEnum) },
+    sessionId: { control: 'inline-radio', options: Object.keys(sessions) },
+  },
   beforeEach: ({ msw }) => {
     msw.use(...authHandlers, ...makeSessionHandlers(sessions));
   },
+  component: MemberSessionFilesTableStory,
   parameters: {
     layout: 'fullscreen',
     router: {
       initialEntries: ['/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/with-reports'],
     },
   },
-  tags: ['autodocs'],
-  argTypes: {
-    formation: { control: 'inline-radio', options: Object.values(FormationEnum) },
-    sessionId: { control: 'inline-radio', options: Object.keys(sessions) },
-  },
-  args: { formation: FormationEnum.SIEGE, sessionId: 'with-reports' },
+  title: 'Session/Transparence/MemberSessionFilesTable',
 } satisfies Meta<typeof MemberSessionFilesTableStory>;
 
 export default meta;
 
-type Story = StoryObj<typeof meta>;
-
-export const Playground: Story = {};
-
-export const NoReportStarted: Story = {
-  args: { sessionId: 'without-report' },
-};
-
-export const Empty: Story = {
-  args: { sessionId: 'empty' },
-};
+export const Playground: StoryObj<typeof meta> = {};

@@ -3,6 +3,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { FileList, FileListItem } from '@/shared/components/file-list';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
+import { useAttachmentFailureToast } from '@/shared/hooks/useAttachmentFailureToast';
 import { DetailsCard } from '@/shared/ui/details';
 import { Upload } from '@/shared/ui/upload';
 import { DOCUMENT_FILE_TYPES } from '@/shared/ui/upload/file-types';
@@ -22,22 +23,34 @@ export function ObservationAttachmentsCard(props: {
   const isSg = useIsSg();
   const { waitForConfirmation } = useConfirmModal();
   const { isPending, mutate } = useUpdateObservationMutation();
+  const notifyFailure = useAttachmentFailureToast();
 
   const { files } = props.observation;
   const canEdit = isSg && !props.isArchived;
 
   // the update endpoint rewrites the whole form: omitting the description would erase it
-  const update = (changes: { detachFileIds?: string[]; files?: File[] }) =>
-    mutate({
-      ...changes,
-      dateReception: dateOnlyToIso(props.observation.receptionDate),
-      description: props.observation.description,
-      linkedObservationsAttachments: [],
-      magistratId: props.observation.observant.id,
-      nominationFileId: props.nominationFileId,
-      observationId: props.observation.id,
-      sessionId: props.sessionId,
-    });
+  const update = (
+    changes: { detachFileIds?: string[]; files?: File[] },
+    onError?: (error: unknown) => void,
+  ) =>
+    mutate(
+      {
+        ...changes,
+        dateReception: dateOnlyToIso(props.observation.receptionDate),
+        description: props.observation.description,
+        linkedObservationsAttachments: [],
+        magistratId: props.observation.observant.id,
+        nominationFileId: props.nominationFileId,
+        observationId: props.observation.id,
+        sessionId: props.sessionId,
+      },
+      { onError },
+    );
+
+  const attach = (added: File[]) =>
+    update({ files: added }, (error) =>
+      notifyFailure('upload', added.map(({ name }) => name).join(', '), error),
+    );
 
   const onDelete = async (fileId: string) => {
     const { isConfirmed } = await waitForConfirmation({
@@ -90,9 +103,8 @@ export function ObservationAttachmentsCard(props: {
             clearOnChange
             hint={<FormattedMessage defaultMessage="Formats supportés : png, jpeg, pdf, doc et docx" />}
             isPending={isPending}
-            label={<FormattedMessage defaultMessage="Ajouter un fichier" />}
             multiple
-            onChange={(added) => added.length > 0 && update({ files: added })}
+            onChange={(added) => added.length > 0 && attach(added)}
           />
         </div>
       )}

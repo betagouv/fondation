@@ -1,16 +1,18 @@
 // oxlint-disable typescript/unbound-method
+import { Readable } from 'node:stream';
+
 import { NoSuchKey, S3ServiceException } from '@aws-sdk/client-s3';
 import { HttpService } from '@nestjs/axios';
-import { NotFoundException } from '@nestjs/common';
+import { HttpException, NotFoundException } from '@nestjs/common';
 import * as Sentry from '@sentry/node';
-import { AxiosError, AxiosHeaders } from 'axios';
-import { throwError } from 'rxjs';
+import { AxiosError, AxiosHeaders, type AxiosResponse } from 'axios';
+import { of, throwError } from 'rxjs';
 import { mock, type MockProxy } from 'vitest-mock-extended';
 
-import { FileDelegate, FilePublicUrlDelegate } from 'src/generated/prisma/models';
-import { Clock } from 'src/modules/framework/clock';
-import { ApiConfig } from 'src/modules/framework/config';
-import { Db } from 'src/modules/framework/database';
+import { FileDelegate, FilePublicUrlDelegate } from '../../../generated/prisma/models';
+import { Clock } from '../clock';
+import { ApiConfig } from '../config';
+import { Db } from '../database';
 
 import { Files } from './files';
 import { FileMissingFromStorage } from './missing-from-storage';
@@ -151,6 +153,40 @@ describe('Files', () => {
       expect(Sentry.captureMessage).not.toHaveBeenCalled();
     });
 
+    function storageStreams(response: Pick<AxiosResponse, 'headers' | 'status'>) {
+      http.get.mockReturnValue(of({ ...response, data: Readable.from(['abcd']) } as AxiosResponse));
+    }
+
+    it('asks the storage for the range of bytes the reader wants and tells the one it answers', async () => {
+      storageStreams({ headers: { 'content-length': '4', 'content-range': 'bytes 0-3/10' }, status: 206 });
+
+      const answer = await files.getFileContent('public-url-id', { range: 'bytes=0-3' });
+
+      expect(http.get).toHaveBeenCalledWith(
+        'https://s3.example/observations/courrier.pdf',
+        expect.objectContaining({ headers: expect.objectContaining({ Range: 'bytes=0-3' }) }),
+      );
+      expect(answer.contentRange).toBe('bytes 0-3/10');
+      expect(answer.file.getHeaders().length).toBe(4);
+    });
+
+    it('answers the whole file, and no range, to a reader who asks none', async () => {
+      storageStreams({ headers: { 'content-length': '4' }, status: 200 });
+
+      const answer = await files.getFileContent('public-url-id');
+
+      expect(answer.contentRange).toBeNull();
+      expect(http.get.mock.calls[0]?.[1]?.headers).not.toHaveProperty('Range');
+    });
+
+    it('refuses a range past the end of the file as such', async () => {
+      storageAnswers(416);
+
+      await expect(files.getFileContent('public-url-id', { range: 'bytes=99-' })).rejects.toSatisfy(
+        (error) => error instanceof HttpException && error.getStatus() === 416,
+      );
+    });
+
     it('keeps an unknown or expired public url apart from a file the storage lost', async () => {
       tx.filePublicUrl.findUnique.mockResolvedValue(null);
 
@@ -187,6 +223,44 @@ describe('Files', () => {
 
       await expect(files.getFile({ fileId: 'file-id' })).rejects.toBe(failure);
       expect(Sentry.captureMessage).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('storedObjects', () => {
+    it('reads every page of the storage', async () => {
+      const writtenAt = new Date('2025-06-01');
+      send
+        .mockResolvedValueOnce({
+          Contents: [{ Key: 'a.pdf', LastModified: writtenAt, Size: 12 }],
+          NextContinuationToken: 'next',
+        })
+        .mockResolvedValueOnce({ Contents: [{ Key: 'b.pdf', LastModified: writtenAt, Size: 34 }] });
+
+      const objects = await Array.fromAsync(files.storedObjects());
+
+      expect(objects).toEqual([
+        { key: 'a.pdf', size: 12, writtenAt },
+        { key: 'b.pdf', size: 34, writtenAt },
+      ]);
+      expect(send.mock.calls[1]![0].input.ContinuationToken).toBe('next');
+    });
+  });
+
+  describe('deleteStoredObjects', () => {
+    it('deletes by batches of a thousand objects', async () => {
+      send.mockResolvedValue({});
+      const keys = Array.from({ length: 1_001 }, (_, index) => `${index}.pdf`);
+
+      await files.deleteStoredObjects(keys);
+
+      expect(send).toHaveBeenCalledTimes(2);
+      expect(send.mock.calls[1]![0].input.Delete.Objects).toEqual([{ Key: '1000.pdf' }]);
+    });
+
+    it('lets the caller know an object could not be deleted', async () => {
+      send.mockResolvedValue({ Errors: [{ Key: 'a.pdf' }] });
+
+      await expect(files.deleteStoredObjects(['a.pdf'])).rejects.toThrow('Failed deleting 1 objects');
     });
   });
 });

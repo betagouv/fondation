@@ -33,9 +33,9 @@ export type TableMetaFilterAsyncList = {
 type TableMetaFilter = TableMetaFilterEnum | TableMetaFilterAsyncList;
 
 declare module '@tanstack/react-table' {
-  interface ColumnMeta {
-    cellBackground?: (row: Row<RowData>) => string | undefined;
-    cellClassName?: (row: Row<RowData>) => string | undefined;
+  interface ColumnMeta<TData extends RowData, TValue> {
+    cellBackground?: (row: Row<TData>) => string | undefined;
+    cellClassName?: (row: Row<TData>) => string | undefined;
     /** shown in the filter bar of the table, and set on the column filters state under `filterId` */
     filters?: TableMetaFilter;
     headerClassName?: string;

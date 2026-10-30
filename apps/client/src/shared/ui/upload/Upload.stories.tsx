@@ -11,7 +11,6 @@ const meta = {
   },
   args: {
     hint: 'Formats supportés : png, jpeg et pdf',
-    label: 'Importer un fichier',
     multiple: true,
     onChange: () => {},
   },
@@ -19,14 +18,4 @@ const meta = {
 
 export default meta;
 
-type Story = StoryObj<typeof meta>;
-
-export const Playground: Story = {};
-
-export const Pending: Story = {
-  args: { isPending: true },
-};
-
-export const Failed: Story = {
-  args: { hasError: true },
-};
+export const Playground: StoryObj<typeof meta> = {};

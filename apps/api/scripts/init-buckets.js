@@ -13,7 +13,7 @@ async function main() {
     },
   });
 
-  const BUCKETS = ['sandbox-csm-fondation-reports-context', 'sandbox-csm-fondation-transparences-context'];
+  const BUCKETS = ['sandbox-csm-fondation-reports-context'];
 
   for (const bucketName of BUCKETS) {
     try {

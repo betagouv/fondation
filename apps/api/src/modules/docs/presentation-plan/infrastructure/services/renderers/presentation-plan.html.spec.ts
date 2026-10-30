@@ -1,10 +1,12 @@
 import { load } from 'cheerio';
 
-import { DateOnly } from 'src/utils/date-only';
+import { DateOnly } from '../../../../../../utils/date-only';
 
 import {
   presentationPlanTemplate,
+  removePresentationTimeDocMeetingSessionEndingTime,
   updatePresentationTimeDocMeetingSessionEndingTime,
+  withEditedPresentationPlanContent,
 } from './presentation-plan.html';
 
 const baseCtx = {
@@ -94,6 +96,34 @@ describe('presentationPlanTemplate', () => {
     expect($('main').html()).toMatchSnapshot();
   });
 
+  it('reads a name and a comment written in HTML as text', () => {
+    const name = '<img src=x onerror=alert(1)>';
+    const comment = '<script>alert(1)</script>';
+    const [session] = baseCtx.sessions;
+    const [agenda] = session.agendas;
+    const $ = load(
+      presentationPlanTemplate.render({
+        ...baseCtx,
+        sessions: [
+          {
+            ...session,
+            agendas: [
+              {
+                ...agenda,
+                comments: [comment],
+                nominationFiles: agenda.nominationFiles.map((file) => ({ ...file, name })),
+              },
+            ],
+          },
+        ],
+      }),
+    );
+
+    expect($('main img, main script')).toHaveLength(0);
+    expect($('main li strong').first().text()).toBe(name);
+    expect($('main').text()).toContain(comment);
+  });
+
   it('should add the end time', () => {
     const html = presentationPlanTemplate.render(baseCtx);
     const result = updatePresentationTimeDocMeetingSessionEndingTime({
@@ -102,5 +132,31 @@ describe('presentationPlanTemplate', () => {
     });
 
     expect(result).toContain('Heure de fin de la séance de restitution&nbsp;: 18:10');
+  });
+
+  it('should give back the text read before the presentation once the end time is removed', () => {
+    const html = presentationPlanTemplate.render(baseCtx);
+    const presented = updatePresentationTimeDocMeetingSessionEndingTime({
+      html,
+      meetingSessionEndingTime: { hours: 18, minutes: 10, seconds: 0 },
+    });
+
+    expect(removePresentationTimeDocMeetingSessionEndingTime({ html: presented })).toBe(load(html).html());
+  });
+});
+
+describe('withEditedPresentationPlanContent', () => {
+  it('keeps of an edited notice only its sanitized content, around the template', () => {
+    const html = presentationPlanTemplate.render(baseCtx);
+    const edited =
+      `<html><head><script>alert(1)</script></head><body><h1>Autre titre</h1>` +
+      `<div data-editable-content><p onclick="alert(1)">Contenu <img src=x onerror=alert(1)>modifié</p></div>` +
+      `</body></html>`;
+
+    const $ = load(withEditedPresentationPlanContent({ edited, html }));
+
+    expect($('[data-editable-content]').html()).toBe('<p>Contenu modifié</p>');
+    expect($('h1').text()).toBe('Proposition du Garde des sceaux');
+    expect($('head script')).toHaveLength(0);
   });
 });

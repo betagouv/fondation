@@ -32,7 +32,7 @@ UNION ALL
       c.phone,
       c.updated_at,
       comparable.phone AS comparable_phone
-    FROM nominations_context.magistrat AS m
+    FROM data_administration_context.magistrat AS m
       INNER JOIN data_administration_context.candidate AS c ON c.magistrat_id = m.external_id
       -- compared like the saved numbers: only digits and a leading + kept, +33 standing for 0
       CROSS JOIN LATERAL (

@@ -13,6 +13,7 @@ import { useDocsMembersQuery } from '@queries/agenda.queries';
 export function AbsentMemberSelector(
   props: UseControllerProps<{ memberIds: string[]; chairmanId: string }, 'memberIds'> & {
     formation: FormationEnum | null;
+    includeIds?: readonly string[];
   },
 ) {
   const { formatMessage } = useIntl();
@@ -22,6 +23,7 @@ export function AbsentMemberSelector(
 
   const { data: membersData, isPending: membersPending } = useDocsMembersQuery({
     formation: props.formation ?? undefined,
+    includeIds: props.includeIds,
   });
   const members = React.useMemo(
     () => new Map((membersData?.items ?? []).map((member) => [member.id, member])),

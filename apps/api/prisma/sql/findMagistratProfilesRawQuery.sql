@@ -12,7 +12,7 @@ SELECT
   latest_saved."label" AS "phoneLabel",
   -- the latest number saved by the secretariat, else the one of the latest candidacy
   COALESCE(latest_saved.number, latest_candidacy.phone) AS phone
-FROM nominations_context.magistrat AS m
+FROM data_administration_context.magistrat AS m
   LEFT JOIN
     data_administration_context."position" AS pos
     ON pos.id = NULLIF(m.current_position_id, '')::INT

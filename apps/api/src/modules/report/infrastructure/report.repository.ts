@@ -8,6 +8,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
+import { Prisma } from '../../../generated/prisma/client';
+import { assertNever } from '../../../utils/assert-never';
+import { fileIdsReferencedIn } from '../../../utils/rich-text-html';
+import { Clock } from '../../framework/clock';
+import { Db } from '../../framework/database';
+import { Files } from '../../framework/files';
+import { TransparenceService } from '../../session/transparence/infrastructure/transparence.service';
 import {
   Report,
   ReportFilesAttached,
@@ -15,17 +22,13 @@ import {
   ReportRuleValidationUpdated,
   ReportUpdated,
 } from '../domain/report';
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { Files } from 'src/modules/framework/files';
-import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
-import { assertNever } from 'src/utils/assert-never';
 
 @Injectable()
 export class ReportRepository {
   private readonly logger = new Logger(ReportRepository.name);
 
   constructor(
+    private readonly clock: Clock,
     private readonly db: Db,
     private readonly files: Files,
     @Inject(forwardRef(() => TransparenceService))
@@ -100,9 +103,26 @@ export class ReportRepository {
   }
 
   private async persistReportUpdated(message: ReportUpdated) {
-    return this.db.tx.report.update({
+    await this.db.tx.report.update({
+      data: { comment: message.data.comment, state: message.data.status },
       where: { id: message.id },
-      data: { state: message.data.status, comment: message.data.comment },
+    });
+    if (message.data.comment !== undefined) {
+      await this.syncScreenshotsWith({ comment: message.data.comment, reportId: message.id });
+    }
+  }
+
+  private async syncScreenshotsWith(message: { comment: string; reportId: string }) {
+    const embedded = [...fileIdsReferencedIn(message.comment)];
+    const screenshots = { reportId: message.reportId, usage: 'EMBEDDED_SCREENSHOT' as const };
+
+    await this.db.tx.reportFile.updateMany({
+      data: { detachedAt: this.clock.now() },
+      where: { ...screenshots, detachedAt: null, fileId: { notIn: embedded } },
+    });
+    await this.db.tx.reportFile.updateMany({
+      data: { detachedAt: null },
+      where: { ...screenshots, detachedAt: { not: null }, fileId: { in: embedded } },
     });
   }
 

@@ -42,6 +42,7 @@ export function AgendaMetadataForm(props: {
 }) {
   const formId = useId();
   const { defaultValues: metadata } = props;
+  const recordedChairmanIds = useMemo(() => (metadata?.chairmanId ? [metadata.chairmanId] : []), [metadata]);
   const defaultValues = useMemo(
     () => ({
       chairmanId: metadata?.chairmanId ?? '',
@@ -136,6 +137,7 @@ export function AgendaMetadataForm(props: {
           // oxlint-disable-next-line typescript/no-explicit-any
           control={control as any}
           formation={props.formation}
+          includeIds={recordedChairmanIds}
           name="chairmanId"
         />
 

@@ -1,4 +1,4 @@
-import { Prisma, PrismaRuleGroupEnum, PrismaRuleNameEnum } from 'src/generated/prisma/client';
+import { Prisma, PrismaRuleGroupEnum, PrismaRuleNameEnum } from '../../../generated/prisma/client';
 
 export function getAllNominationSessionReportRules(): Prisma.ReportRuleCreateManyReportInput[] {
   const managementRules: readonly [PrismaRuleGroupEnum, PrismaRuleNameEnum][] = (

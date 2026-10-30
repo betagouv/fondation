@@ -1,11 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
 
+import { Prisma } from '../../../../generated/prisma/client';
+import { countLolfiSessionDesignations } from '../../../../generated/prisma/sql';
+import { DateOnly } from '../../../../utils/date-only';
+import { API_CONFIG_TOKEN, ApiConfig } from '../../../framework/config';
+import { Db } from '../../../framework/database';
 import { ReceivedDesignations } from '../../domain/incomplete-transparence';
-import { Prisma } from 'src/generated/prisma/client';
-import { countLolfiSessionDesignations } from 'src/generated/prisma/sql';
-import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
-import { Db } from 'src/modules/framework/database';
-import { DateOnly } from 'src/utils/date-only';
 
 const FIRST_SYNCHRONISED_PUBLICATION = new Date(Date.UTC(2026, 5, 1));
 

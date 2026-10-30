@@ -16,10 +16,10 @@ import {
 import { ApiParam, ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
-import { FILE_EXTENSIONS, UseMultipartBody, type Multipart } from 'src/modules/framework/files';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import { AuthedUser, AuthedUserId, HasRole } from 'src/modules/simple-auth';
-import { DateOnly } from 'src/utils/date-only';
+import { DateOnly } from '../../utils/date-only';
+import { FILE_EXTENSIONS, UseMultipartBody, type Multipart } from '../framework/files';
+import { MEMBER_ROLES, type RoleEnum } from '../shared/role.enum';
+import { AuthedUser, AuthedUserId, HasRole } from '../simple-auth';
 
 import {
   AttachMemberCommentScreenshotsDto,
@@ -123,12 +123,18 @@ export class ObservationController {
     type: GetObservationFileUrlResponseDto,
   })
   async getObservationFileUrl(
+    @AuthedUser() user: { role: RoleEnum },
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
     @Param('observationId', ParseUUIDPipe) observationId: string,
     @Param('fileId', ParseUUIDPipe) fileId: string,
   ): Promise<GetObservationFileUrlResponseDto> {
     return this.observations.getObservationFileUrl({
       fileId,
+      nominationFileId,
       observationId,
+      role: user.role,
+      sessionId,
     });
   }
 
@@ -136,12 +142,16 @@ export class ObservationController {
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteObservation(
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
     @Param('observationId', ParseUUIDPipe) observationId: string,
     @AuthedUser() user: { id: string; impersonation?: { impersonatorId: string } },
   ): Promise<void> {
     await this.observations.deleteObservation({
       impersonatorId: user.impersonation?.impersonatorId ?? null,
+      nominationFileId,
       observationId,
+      sessionId,
       userId: user.id,
     });
   }
@@ -157,6 +167,8 @@ export class ObservationController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async updateObservation(
     @AuthedUser() user: { id: string; impersonation?: { impersonatorId: string } },
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
     @Param('observationId', ParseUUIDPipe) observationId: string,
     @Body() { form, files }: Multipart<typeof UpdateObservationDto>,
   ): Promise<void> {
@@ -168,13 +180,15 @@ export class ObservationController {
       impersonatorId: user.impersonation?.impersonatorId ?? null,
       linkedFiles: form.linkedObservationsAttachments,
       magistratId: form.magistratId,
+      nominationFileId,
       observationId,
+      sessionId,
       userId: user.id,
     });
   }
 
   @Post('/:observationId/member-comments/screenshots')
-  @HasRole()
+  @HasRole(...MEMBER_ROLES)
   @UseMultipartBody({
     destination: ({ request, id, mimetype }) =>
       `sessions/${request.params.sessionId}/observations/${request.params.nominationFileId}/member-comments/${id}.${FILE_EXTENSIONS[mimetype]}`,
@@ -202,7 +216,7 @@ export class ObservationController {
   }
 
   @Put('/:observationId/member-comments')
-  @HasRole()
+  @HasRole(...MEMBER_ROLES)
   @UsePipes(ZodValidationPipe)
   @HttpCode(HttpStatus.NO_CONTENT)
   async writeMemberComment(
@@ -249,13 +263,17 @@ export class ObservationController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async followUpOnObservation(
     @AuthedUser() user: { id: string },
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
     @Param('observationId', ParseUUIDPipe) observationId: string,
     @Body() { followUp, comment }: FollowUpOnObservationDto,
   ) {
     await this.observations.followUpWith({
       comment,
       followUp,
+      nominationFileId,
       observationId,
+      sessionId,
       userId: user.id,
     });
   }

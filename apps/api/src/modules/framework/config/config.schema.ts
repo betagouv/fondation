@@ -15,6 +15,12 @@ export const ConfigSchema = z.object({
 
   cookieSecret: z.prefault(z.string().min(32), process.env.COOKIE_SECRET!),
 
+  // bcrypt writes the cost into each hash: changing it only applies to the passwords hashed afterwards
+  passwordHashCost: z.prefault(
+    process.env.NODE_ENV === 'production' ? z.int().min(10).max(31) : z.int().min(4).max(31),
+    Number(process.env.PASSWORD_HASH_COST || 10),
+  ),
+
   originUrl: z.prefault(z.url().regex(/[^/]$/), process.env.ORIGIN_URL!),
 
   frontendOriginUrl: z.prefault(z.url().regex(/[^/]$/), process.env.FRONTEND_ORIGIN_URL!),
@@ -108,8 +114,9 @@ export const ConfigSchema = z.object({
           process.env.PRO_CONNECT_CLIENT_SECRET,
         ),
       })
-      .optional()
-      .transform((x) => (x ? (x.domain && x.clientId && x.clientSecret ? x : undefined) : x)),
+      .transform(({ clientId, clientSecret, domain }) =>
+        clientId && clientSecret && domain ? { clientId, clientSecret, domain } : undefined,
+      ),
   ),
 
   s3: z.preprocess(

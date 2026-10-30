@@ -2,22 +2,25 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { Prisma } from '../../../../../generated/prisma/client';
+import { Db } from '../../../../framework/database';
+import { isSecretariat, type RoleEnum } from '../../../../shared/role.enum';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { isSecretariat, type RoleEnum } from 'src/modules/shared/role.enum';
+import { NominationSessionFinder } from '../finders/transparence-session.finder';
 
 @Injectable()
 export class ListCurrentlyAffectedReportersQuery {
   constructor(
     private readonly db: Db,
     private readonly versions: AffectationVersionFinder,
+    private readonly sessions: NominationSessionFinder,
   ) {}
 
   // the members only know the published affectations
   async handle(query: { role: RoleEnum; sessionId: string }) {
     const { sessionId } = query;
     const version = await this.db.withTransaction(async () => {
+      await this.sessions.getVisible(query);
       const txVersion = isSecretariat(query.role)
         ? await this.versions.last({ sessionId })
         : await this.versions.lastPublished({ sessionId });

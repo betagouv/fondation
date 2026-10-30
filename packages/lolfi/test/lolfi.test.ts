@@ -1,11 +1,12 @@
-import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
 
 import { faker } from '@faker-js/faker';
+import { describe, expect, it } from 'vitest';
 
 import { generateLolfiFiles } from '../src/generate-lolfi-files';
 
 describe('lolfi', () => {
-  it('should create LOLFI files', async (t) => {
+  it('should create LOLFI files', async () => {
     faker.seed(987123123);
     const files = generateLolfiFiles(
       {
@@ -48,11 +49,11 @@ describe('lolfi', () => {
     );
 
     for await (const file of files) {
-      t.assert.snapshot(file);
+      expect(file).toMatchSnapshot();
     }
   });
 
-  it('should write the referential and the magistrate details it is given', async (t) => {
+  it('should write the referential and the magistrate details it is given', async () => {
     const prosecutor = {
       formation: 'PARQUET',
       id: 'SUB',
@@ -114,32 +115,32 @@ describe('lolfi', () => {
       files.set(file.filename, file.buffer);
     }
 
-    t.assert.match(files.get('POSADS.xml')!, /<libelle>Exclusion tempo\. &lt;à 15 jours<\/libelle>/);
+    assert.match(files.get('POSADS.xml')!, /<libelle>Exclusion tempo\. &lt;à 15 jours<\/libelle>/);
 
     const magistrats = files.get('MAGISTRATS.xml');
-    t.assert.match(magistrats!, /<civilite>MME<\/civilite>/);
-    t.assert.match(magistrats!, /<date_naiss>14\/03\/1985<\/date_naiss>/);
-    t.assert.match(magistrats!, /<date_grade>01\/12\/2025<\/date_grade>/);
-    t.assert.match(magistrats!, /<date_nomination>15\/07\/2019<\/date_nomination>/);
-    t.assert.match(magistrats!, /<date_installation>02\/09\/2019<\/date_installation>/);
-    t.assert.match(magistrats!, /<historique>Auditrice de justice, 01\/09\/2010\. - Substitute/);
+    assert.match(magistrats!, /<civilite>MME<\/civilite>/);
+    assert.match(magistrats!, /<date_naiss>14\/03\/1985<\/date_naiss>/);
+    assert.match(magistrats!, /<date_grade>01\/12\/2025<\/date_grade>/);
+    assert.match(magistrats!, /<date_nomination>15\/07\/2019<\/date_nomination>/);
+    assert.match(magistrats!, /<date_installation>02\/09\/2019<\/date_installation>/);
+    assert.match(magistrats!, /<historique>Auditrice de justice, 01\/09\/2010\. - Substitute/);
 
-    t.assert.match(files.get('CANDIDATS.xml')!, /<tel_perso>06 39 98 12 34<\/tel_perso>/);
+    assert.match(files.get('CANDIDATS.xml')!, /<tel_perso>06 39 98 12 34<\/tel_perso>/);
 
     const jurisdictions = files.get('JURIDICTIONS.xml');
-    t.assert.match(jurisdictions!, /<codejur>TPR CANNES<\/codejur>[\s\S]*?<ville>Cannes<\/ville>/);
-    t.assert.match(
+    assert.match(jurisdictions!, /<codejur>TPR CANNES<\/codejur>[\s\S]*?<ville>Cannes<\/ville>/);
+    assert.match(
       jurisdictions!,
       /<codejur>CA {2}BASTIA<\/codejur>[\s\S]*?<libelle>Cour d'appel de Bastia<\/libelle>/,
     );
-    t.assert.match(
+    assert.match(
       jurisdictions!,
       /<codejur>TPR CANNES<\/codejur>[\s\S]*?<arrondissement>TJ {2}GRASSE<\/arrondissement>\n<codepos>06400<\/codepos>[\s\S]*?<ressort>CA {2}AIX EN PROVENCE<\/ressort>/,
     );
-    t.assert.doesNotMatch(jurisdictions!, /CA {2}(CANNES|AJACCIO)/);
+    assert.doesNotMatch(jurisdictions!, /CA {2}(CANNES|AJACCIO)/);
   });
 
-  it('should keep a ressort declared after the jurisdictions it covers', async (t) => {
+  it('should keep a ressort declared after the jurisdictions it covers', async () => {
     let jurisdictions = '';
     for await (const file of generateLolfiFiles(
       {
@@ -164,14 +165,14 @@ describe('lolfi', () => {
       if (file.filename === 'JURIDICTIONS.xml') jurisdictions = file.buffer;
     }
 
-    t.assert.match(
+    assert.match(
       jurisdictions,
       /<codejur>TSA MAMOUDZOU<\/codejur>[\s\S]*?<libelle>Tribunal supérieur d'appel de Mamoudzou</,
     );
-    t.assert.doesNotMatch(jurisdictions, /<codejur>CA<\/codejur>/);
+    assert.doesNotMatch(jurisdictions, /<codejur>CA<\/codejur>/);
   });
 
-  it('should attach a jurisdiction without ressort to the court of appeal of its city', async (t) => {
+  it('should attach a jurisdiction without ressort to the court of appeal of its city', async () => {
     let jurisdictions = '';
     for await (const file of generateLolfiFiles(
       { jurisdictions: [{ id: 'TPR CANNES', label: 'Tribunal de proximité de Cannes' }], sessions: [] },
@@ -180,7 +181,7 @@ describe('lolfi', () => {
       if (file.filename === 'JURIDICTIONS.xml') jurisdictions = file.buffer;
     }
 
-    t.assert.match(jurisdictions, /<codejur>TPR CANNES<\/codejur>[\s\S]*?<ressort>CA {2}CANNES<\/ressort>/);
-    t.assert.doesNotMatch(jurisdictions, /<codejur>CA<\/codejur>/);
+    assert.match(jurisdictions, /<codejur>TPR CANNES<\/codejur>[\s\S]*?<ressort>CA {2}CANNES<\/ressort>/);
+    assert.doesNotMatch(jurisdictions, /<codejur>CA<\/codejur>/);
   });
 });

@@ -1,7 +1,7 @@
 import { load } from 'cheerio';
 
-import { GenderEnum } from 'src/modules/shared/gender.enum';
-import { DateOnly } from 'src/utils/date-only';
+import { DateOnly } from '../../../../../../utils/date-only';
+import { GenderEnum } from '../../../../../shared/gender.enum';
 
 import { agendaBlocks, AgendaRenderContext, agendaTemplate } from './agenda.html';
 
@@ -39,6 +39,19 @@ describe('agendaTemplate', () => {
     expect($('main').html()).toMatchSnapshot();
   });
 
+  it('reads a name written in HTML as text', () => {
+    const name = '<img src=x onerror=alert(1)>';
+    const $ = load(
+      agendaTemplate.render({
+        ...baseContext,
+        nominationFiles: [{ ...baseContext.nominationFiles[0]!, name }],
+      }),
+    );
+
+    expect($('main img')).toHaveLength(0);
+    expect($('[data-file="1"] strong').text()).toBe(name);
+  });
+
   // Zone independence is proven where the formatter lives, in helpers.spec: here we only check
   // that the rendering context carries the day it was given, rather than an instant
   it('dates the agenda on the day it was set', () => {
@@ -56,8 +69,8 @@ describe('agendaTemplate', () => {
           "edited": false,
           "editedAt": null,
           "editedBy": null,
-          "generatedHtml": "<strong>MME Émilie du CHÂTELET</strong>, actuellement présidente à la cour d'appel de Lyon (G3), au poste de présidente à la cour d'appel de Grenoble (G3), au rapport de MME Rosalind FRANKLIN.",
-          "html": "<strong>MME Émilie du CHÂTELET</strong>, actuellement présidente à la cour d'appel de Lyon (G3), au poste de présidente à la cour d'appel de Grenoble (G3), au rapport de MME Rosalind FRANKLIN.",
+          "generatedHtml": "<strong>MME Émilie du CHÂTELET</strong>, actuellement présidente à la cour d&#39;appel de Lyon (G3), au poste de présidente à la cour d&#39;appel de Grenoble (G3), au rapport de MME Rosalind FRANKLIN.",
+          "html": "<strong>MME Émilie du CHÂTELET</strong>, actuellement présidente à la cour d&#39;appel de Lyon (G3), au poste de présidente à la cour d&#39;appel de Grenoble (G3), au rapport de MME Rosalind FRANKLIN.",
           "id": 1n,
           "kind": "file",
           "nominationFileId": "nf-1",
@@ -98,7 +111,7 @@ describe('agendaTemplate', () => {
           "edited": true,
           "editedAt": 2026-03-12T10:00:00.000Z,
           "editedBy": null,
-          "generatedHtml": "<strong>MME Émilie du CHÂTELET</strong>, actuellement présidente à la cour d'appel de Lyon (G3), au poste de présidente à la cour d'appel de Grenoble (G3), au rapport de MME Rosalind FRANKLIN.",
+          "generatedHtml": "<strong>MME Émilie du CHÂTELET</strong>, actuellement présidente à la cour d&#39;appel de Lyon (G3), au poste de présidente à la cour d&#39;appel de Grenoble (G3), au rapport de MME Rosalind FRANKLIN.",
           "html": "<span>custom html</span>",
           "id": 1n,
           "kind": "file",

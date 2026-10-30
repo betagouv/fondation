@@ -1,6 +1,6 @@
-import { PrismaTypeDeSaisineEnum } from 'src/generated/prisma/client';
-import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
-import { assertNever } from 'src/utils/assert-never';
+import { PrismaTypeDeSaisineEnum } from '../../../generated/prisma/client';
+import { assertNever } from '../../../utils/assert-never';
+import { TypeDeSaisineEnum } from '../type-de-saisine.enum';
 
 export function prismaTypeDeSaisineEnumToTypeDeSaisine(value: PrismaTypeDeSaisineEnum): TypeDeSaisineEnum {
   switch (value) {

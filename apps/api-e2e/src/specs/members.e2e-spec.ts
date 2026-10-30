@@ -59,7 +59,7 @@ test.describe('Members E2E', () => {
       ]);
     });
 
-    test('lists members with their excluded jurisdictions', async ({ agent, expect }) => {
+    test('lists members with their formation and excluded jurisdictions', async ({ agent, expect }) => {
       await agent.members.excludeJurisdictions({ path: { userId: memberId }, body: { jurisdictionIds } });
 
       const members = await agent.members.listMembers({
@@ -69,6 +69,7 @@ test.describe('Members E2E', () => {
 
       const member = members.data?.items.find(({ id }) => id === memberId);
       expect(member?.excludedJurisdictions).toEqual([expect.objectContaining({ id: expect.stringMatching(/LYON/i) })]);
+      expect(member?.formation).toEqual({ id: 'COMMUN', label: 'Commun' });
     });
   });
 
@@ -95,8 +96,7 @@ test.describe('Members E2E', () => {
         ],
       });
       const member = await logIn('MEMBRE_COMMUN');
-      const { data: files } = await member.sessions.listNominationFiles({ path: { sessionId: session.id } });
-      const file = { nominationFileId: files!.items[0]!.id, sessionId: session.id };
+      const file = { nominationFileId: session.files[0]!.id, sessionId: session.id };
       const path = { ...file, userId: member['@user']!.id };
 
       await member.members.writeNominationFileMemberMemo({ body: { memo: 'À relire' }, path, throwOnError: true });
@@ -106,6 +106,36 @@ test.describe('Members E2E', () => {
       await member.members.writeNominationFileMemberMemo({ body: { memo: '' }, path, throwOnError: true });
       const erased = await member.sessions.detailNominationFile({ path: file });
       expect(erased.data!.memo).toEqual({ value: null });
+    });
+  });
+
+  test.describe('Given a user with role MEMBRE_DU_SIEGE', () => {
+    test('cannot find a file of a PARQUET session to write their notes on', async ({ logIn, sessions, expect }) => {
+      const session = await sessions.createOne({
+        name: `Notes (${randomUUID()})`,
+        createdAt: '22/04/2026',
+        candidates: [
+          {
+            firstName: 'ETIENNE',
+            lastName: 'TREVOUX',
+            position: {
+              grade: 'G3',
+              jurisdiction: seed.jurisdictions['CA  LYON'],
+              function: seed.functions.PR,
+            },
+            targetPosition: {
+              grade: 'G3',
+              jurisdiction: seed.jurisdictions['CA  GRENOBLE'],
+              function: seed.functions.PR,
+            },
+          },
+        ],
+      });
+      const member = await logIn('MEMBRE_DU_SIEGE');
+      const path = { nominationFileId: session.files[0]!.id, sessionId: session.id, userId: member['@user']!.id };
+
+      const refused = await member.members.writeNominationFileMemberMemo({ body: { memo: 'À relire' }, path });
+      expect(refused.response?.status).toBe(404);
     });
   });
 });

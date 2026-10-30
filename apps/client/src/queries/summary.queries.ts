@@ -1,36 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { withScreenshotUrls } from '@/utils/with-screenshot-urls';
 import * as $api from '@api/sdk';
 import type { DetailedSummaryDto } from '@api/types';
 
 export const summaryKeys = {
   detailsSummary: (props?: { nominationFileId: string; sessionId: string }) =>
     ['summaries', 'detailsSummary', props] as const,
-  searchSummaryReaders: (props?: {
-    includeIds?: readonly string[];
-    nominationFileId: string;
-    search?: string;
-    sessionId: string;
-  }) => ['summaries', 'searchSummaryReaders', props] as const,
+  listSummaryReaders: (props?: { nominationFileId: string; sessionId: string }) =>
+    ['summaries', 'listSummaryReaders', props] as const,
 };
-
-function injectScreenshotUrls(
-  content: string,
-  screenshots: readonly { id: string; name: string; url: string }[],
-): string {
-  const byId = new Map(screenshots.map((s) => [s.id, s.url]));
-  const byName = new Map(screenshots.map((s) => [s.name, s.url]));
-
-  const { body } = new DOMParser().parseFromString(content, 'text/html');
-  for (const $img of body.querySelectorAll('img')) {
-    const url =
-      ($img.dataset.fileId && byId.get($img.dataset.fileId)) ||
-      ($img.dataset.fileName && byName.get($img.dataset.fileName));
-    if (url) $img.src = url;
-  }
-
-  return body.innerHTML;
-}
 
 export const useSummaryQuery = (options: { nominationFileId: string; sessionId: string }) =>
   useQuery({
@@ -38,7 +17,7 @@ export const useSummaryQuery = (options: { nominationFileId: string; sessionId: 
       const { data } = await $api.summaries.detailSummary({ path: options });
 
       if (data) {
-        data.summary.content = injectScreenshotUrls(data.summary.content, data.summary.screenshots);
+        data.summary.content = withScreenshotUrls(data.summary.content, data.summary.screenshots);
       }
 
       return data ?? null;
@@ -173,33 +152,13 @@ export function useWriteSummaryMutation() {
   });
 }
 
-export const useSearchSummaryReadersQuery = (options: {
-  includeIds?: string[];
-  nominationFileId: string;
-  search?: string;
-  sessionId: string;
-}) =>
+export const useSummaryReadersQuery = (options: { nominationFileId: string; sessionId: string }) =>
   useQuery({
-    placeholderData: (prev) => prev,
     queryFn: async () => {
-      const { includeIds, nominationFileId, search, sessionId } = options;
-      const { data } = await $api.summaries.searchSummaryReaders({
-        path: { nominationFileId, sessionId },
-        query: (search ?? '').length > 2 ? { search } : (includeIds ?? []).length ? { includeIds } : {},
-      });
-
-      if (data && !options.search && options.includeIds && options.includeIds.length > 0) {
-        data?.items.sort((a, b) => {
-          if (options.includeIds!.includes(a.id) && !options.includeIds!.includes(b.id)) return -1;
-          if (options.includeIds!.includes(b.id) && !options.includeIds!.includes(a.id)) return 1;
-
-          return 0;
-        });
-      }
-
-      return data ?? null;
+      const { data } = await $api.summaries.listSummaryReaders({ path: options, throwOnError: true });
+      return data;
     },
-    queryKey: summaryKeys.searchSummaryReaders(options),
+    queryKey: summaryKeys.listSummaryReaders(options),
     staleTime: 30_000,
   });
 
@@ -220,9 +179,14 @@ export function useUpdateSummaryReadersMutation() {
     },
 
     onSuccess: (_, { nominationFileId, sessionId }) =>
-      queryClient.invalidateQueries({
-        queryKey: summaryKeys.detailsSummary({ nominationFileId, sessionId }),
-      }),
+      Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: summaryKeys.detailsSummary({ nominationFileId, sessionId }),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: summaryKeys.listSummaryReaders({ nominationFileId, sessionId }),
+        }),
+      ]),
   });
 }
 

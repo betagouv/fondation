@@ -28,7 +28,34 @@ export function routeToPattern(route: string): RegExp {
   return new RegExp(`${source}(\\?|#|$)`);
 }
 
+/** an upload lasts as long as the line is slow, whatever the server does: a video takes minutes */
+export const UPLOAD_ROUTES = [
+  '/api/help/v1/pages/{page}/screenshots',
+  '/api/reports/v2/{reportId}/files',
+  '/api/sessions/v2/{sessionId}/files/{nominationFileId}/attachments',
+  '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations',
+  '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}',
+  '/api/sessions/v2/{sessionId}/files/{nominationFileId}/summary/attachments',
+  '/api/sessions/v2/{sessionId}/multiattachments',
+] as const;
+
 const LONG_RUNNING_PATTERNS = LONG_RUNNING_ROUTES.map(routeToPattern);
+const UPLOAD_PATTERNS = UPLOAD_ROUTES.map(routeToPattern);
+// Node drops a request still arriving after 5 minutes (requestTimeout, left to its default by the API): to raise one, raise both
+const UPLOAD_TIMEOUT_MS = 5 * 60_000;
+
+export function timeoutFor(init: string | URL | Request): number {
+  const url = typeof init === 'string' ? init : init instanceof URL ? init.toString() : init.url;
+  const isQuery =
+    init instanceof URL || (typeof init !== 'string' && [undefined, 'GET'].includes(init.method));
+  // the same route lists or removes attachments: only a writing carries a file
+  const isWriting = init instanceof Request && ['PATCH', 'POST', 'PUT'].includes(init.method);
+  if (isWriting && UPLOAD_PATTERNS.some((pattern) => pattern.test(url))) return UPLOAD_TIMEOUT_MS;
+
+  const isLongRunningUrl = LONG_RUNNING_PATTERNS.some((pattern) => pattern.test(url));
+
+  return isQuery && !isLongRunningUrl ? 10_000 : 60_000;
+}
 
 /** @see https://heyapi.dev/openapi-ts/clients/fetch#runtime-api */
 export const createClientConfig: CreateClientConfig = (config) => ({
@@ -36,14 +63,7 @@ export const createClientConfig: CreateClientConfig = (config) => ({
   baseUrl: getBaseUrl(),
   credentials: 'include',
   fetch: async (init) => {
-    const url = typeof init === 'string' ? init : init instanceof URL ? init.toString() : init.url;
-    const isLongRunningUrl = LONG_RUNNING_PATTERNS.some((pattern) => pattern.test(url));
-
-    const isQuery =
-      init instanceof URL || (typeof init !== 'string' && [undefined, 'GET'].includes(init.method));
-    const timeout = isQuery && !isLongRunningUrl ? 10_000 : 60_000;
-
-    const response = await globalThis.fetch(init, { signal: AbortSignal.timeout(timeout) });
+    const response = await globalThis.fetch(init, { signal: AbortSignal.timeout(timeoutFor(init)) });
     appVersion.observe(response);
     return httpAssert(response);
   },

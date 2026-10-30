@@ -2,19 +2,18 @@ import assert from 'node:assert';
 
 import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { Clock } from 'src/modules/framework/clock';
-import { Db } from 'src/modules/framework/database';
-import { proposedMagistratName } from 'src/modules/magistrat/domain/magistrat-name';
-import { MagistratService } from 'src/modules/magistrat/magistrat.service';
-import { roleToFormation } from 'src/modules/members/infrastructure/member.utils';
-import { ObservationService } from 'src/modules/observation/observation.service';
-import { canScheduleAudition } from 'src/modules/shared/policies/nomination-file.policies';
-import { isSecretariat, type RoleEnum } from 'src/modules/shared/role.enum';
-import { type AuditionSchedule, isPastAudition } from 'src/utils/audition-schedule';
+import { Prisma } from '../../../../../generated/prisma/client';
+import { type AuditionSchedule, isPastAudition } from '../../../../../utils/audition-schedule';
+import { Clock } from '../../../../framework/clock';
+import { Db } from '../../../../framework/database';
+import { proposedMagistratName } from '../../../../magistrat/domain/magistrat-name';
+import { MagistratService } from '../../../../magistrat/magistrat.service';
+import { ObservationService } from '../../../../observation/observation.service';
+import { canScheduleAudition } from '../../../../shared/policies/nomination-file.policies';
+import { canReadSession } from '../../../../shared/policies/session.policies';
+import { isSecretariat, type RoleEnum } from '../../../../shared/role.enum';
 
 import { AffectationVersionFinder } from './affectation-version.finder';
-import { AuditionPublicationFinder } from './audition-publication.finder';
 import { AuditionsSeenFinder } from './auditions-seen.finder';
 
 const AUDITION_ROLES = ['OBSERVANT', 'PROPOSED'] as const;
@@ -40,7 +39,6 @@ export class SessionAuditionsFinder {
     private readonly auditionsSeen: AuditionsSeenFinder,
     private readonly clock: Clock,
     private readonly db: Db,
-    private readonly publications: AuditionPublicationFinder,
     private readonly versions: AffectationVersionFinder,
 
     private readonly magistrats: MagistratService,
@@ -66,13 +64,12 @@ export class SessionAuditionsFinder {
             targetedPosition: true,
           },
         },
+        formation: true,
       } satisfies Prisma.SessionSelect,
-      where: { deletedAt: null, formation: roleToFormation(query.role), id: query.sessionId },
+      where: { deletedAt: null, id: query.sessionId },
     });
-    if (!session) throw new NotFoundException();
+    if (!session || !canReadSession(session, query)) throw new NotFoundException();
 
-    // the members get the table from its first publication on
-    if (!isSecretariat(query.role) && !(await this.publications.last(query))) return [];
     const now = this.clock.now();
     const files = new Map(session.dossierDeNominations.map((file) => [file.id, file]));
 

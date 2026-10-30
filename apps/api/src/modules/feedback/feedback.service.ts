@@ -1,7 +1,7 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { Inject, Injectable, StreamableFile } from '@nestjs/common';
 
-import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
+import { API_CONFIG_TOKEN, ApiConfig } from '../framework/config';
 
 import { Feedback, type FeedbackAnswers, type Respondent } from './domain/feedback';
 import { FeedbackRepository } from './infrastructure/feedback.repository';

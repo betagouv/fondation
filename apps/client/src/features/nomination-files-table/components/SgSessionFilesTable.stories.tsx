@@ -37,8 +37,9 @@ const sessions: Record<string, SessionDataset> = {
 };
 
 const bulkActionHandlers = [
-  http.put('*/api/sessions/v2/:sessionId/files/reporters', () => new HttpResponse(null, { status: 204 })),
+  http.post('*/api/sessions/v2/:sessionId/files/reporters', () => new HttpResponse(null, { status: 204 })),
   http.put('*/api/sessions/v2/:sessionId/files/outcome', () => new HttpResponse(null, { status: 204 })),
+  http.put('*/api/sessions/v2/:sessionId/files/priorities', () => new HttpResponse(null, { status: 204 })),
 ];
 
 function SgSessionFilesTableStory(props: {
@@ -73,38 +74,22 @@ function SgSessionFilesTableStory(props: {
 }
 
 const meta = {
-  title: 'Session/Transparence/SgSessionFilesTable',
-  component: SgSessionFilesTableStory,
+  args: { canManage: true, formation: FormationEnum.SIEGE, sessionId: 'draft' },
+  argTypes: {
+    formation: { control: 'inline-radio', options: Object.values(FormationEnum) },
+    sessionId: { control: 'inline-radio', options: Object.keys(sessions) },
+  },
   beforeEach: ({ msw }) => {
     msw.use(...bulkActionHandlers, ...sgAuthHandlers, ...makeSessionHandlers(sessions));
   },
+  component: SgSessionFilesTableStory,
   parameters: {
     layout: 'fullscreen',
     router: { initialEntries: ['/secretariat-general/session/draft'] },
   },
-  tags: ['autodocs'],
-  argTypes: {
-    canManage: { control: 'boolean' },
-    formation: { control: 'inline-radio', options: Object.values(FormationEnum) },
-    sessionId: { control: 'inline-radio', options: Object.keys(sessions) },
-  },
-  args: { canManage: true, formation: FormationEnum.SIEGE, sessionId: 'draft' },
+  title: 'Session/Transparence/SgSessionFilesTable',
 } satisfies Meta<typeof SgSessionFilesTableStory>;
 
 export default meta;
 
-type Story = StoryObj<typeof meta>;
-
-export const Playground: Story = {};
-
-export const PublishedAffectations: Story = {
-  args: { sessionId: 'published' },
-};
-
-export const Archived: Story = {
-  args: { canManage: false },
-};
-
-export const Empty: Story = {
-  args: { sessionId: 'empty' },
-};
+export const Playground: StoryObj<typeof meta> = {};

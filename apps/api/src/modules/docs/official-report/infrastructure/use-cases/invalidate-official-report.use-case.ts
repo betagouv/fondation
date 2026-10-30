@@ -1,21 +1,20 @@
-import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
+import { Prisma } from '../../../../../generated/prisma/client';
+import { assertNever } from '../../../../../utils/assert-never';
+import { isDefined } from '../../../../../utils/is-defined';
+import { Db } from '../../../../framework/database';
+import { DocInvalidation } from '../../../shared/domain/doc-invalidation';
+import { nominationFileOutcomeToDocNominationFileOutcome } from '../../../shared/domain/doc-nomination-file-outcome';
 import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../../../shared/infrastructure/agenda-content';
+import { DocsNominationFilesFinder } from '../../../shared/infrastructure/finders/docs-nomination-files.finder';
+import { readsTheSame } from '../../../shared/infrastructure/services/renderers/helpers';
 import { InvalidateOfficialReportCommand } from '../../domain/official-report-types';
 import { OfficialReportVersionFinder } from '../finders/official-report-version.finder';
 import { OfficialReportRepository } from '../repositories/official-report.repository';
-import { Prisma } from 'src/generated/prisma/client';
-import { nominationFileOutcomeToDocNominationFileOutcome } from 'src/modules/docs/shared/domain/doc-nomination-file-outcome';
-import { DocInvalidation } from 'src/modules/docs/shared/domain/invalidation/official-report-invalidated.integration-event';
-import { DocsNominationFilesFinder } from 'src/modules/docs/shared/infrastructure/finders/docs-nomination-files.finder';
-import { readsTheSame } from 'src/modules/docs/shared/infrastructure/services/renderers/helpers';
-import { Db } from 'src/modules/framework/database';
-import { assertNever } from 'src/utils/assert-never';
-import { isDefined } from 'src/utils/is-defined';
 
 @Injectable()
-export class InternalInvalidateOfficialReportUseCase {
+export class InvalidateOfficialReportUseCase {
   constructor(
     private readonly db: Db,
     private readonly docsNominationFilesFinder: DocsNominationFilesFinder,
@@ -23,7 +22,6 @@ export class InternalInvalidateOfficialReportUseCase {
     private readonly officialReportVersionFinder: OfficialReportVersionFinder,
   ) {}
 
-  @Transactional()
   async handle(invalidation: DocInvalidation): Promise<void> {
     switch (invalidation.type) {
       case 'SessionAffectationVersionPublished':
@@ -41,8 +39,8 @@ export class InternalInvalidateOfficialReportUseCase {
       case 'AgendaFileBlockEdited':
         return this.invalidate(await this.mapAgendaFileBlockEdited({ invalidation }));
 
-      case 'NominationFileOutcomeUpdated':
-        return this.invalidate(await this.mapNominationFileOutcomeUpdated({ invalidation }));
+      case 'NominationFilesOutcomeUpdated':
+        return this.invalidate(await this.mapNominationFilesOutcomeUpdated({ invalidation }));
 
       // the report already answered when the draft was opened, and its own draft carries the answer
       case 'AgendaValidated':
@@ -66,33 +64,40 @@ export class InternalInvalidateOfficialReportUseCase {
     }
   }
 
-  private async mapNominationFileOutcomeUpdated(query: {
-    invalidation: Extract<DocInvalidation, { type: 'NominationFileOutcomeUpdated' }>;
+  private async mapNominationFilesOutcomeUpdated(query: {
+    invalidation: Extract<DocInvalidation, { type: 'NominationFilesOutcomeUpdated' }>;
   }): Promise<InvalidateOfficialReportCommand[]> {
-    const { nominationFileId, comment, outcome } = query.invalidation.payload;
+    const files = query.invalidation.payload.files.flatMap(({ comment, nominationFileId, outcome }) =>
+      isDefined(outcome)
+        ? [
+            {
+              nominationFileId,
+              outcome: { comment, value: nominationFileOutcomeToDocNominationFileOutcome(outcome) },
+            },
+          ]
+        : [],
+    );
+    if (files.length === 0) return [];
 
-    if (!isDefined(outcome)) return [];
-
-    // a report holding a draft carries the file twice, and it is invalidated once
-    const files = await this.db.tx.officialReportNominationFile.findMany({
-      where: { nominationFileId: query.invalidation.payload.nominationFileId },
+    const reportFiles = await this.db.tx.officialReportNominationFile.findMany({
+      where: { nominationFileId: { in: files.map(({ nominationFileId }) => nominationFileId) } },
       select: {
+        nominationFileId: true,
         version: { select: { officialReportId: true } },
       } satisfies Prisma.OfficialReportNominationFileSelect,
-      distinct: ['versionId'],
     });
 
-    return [...new Set(files.map((file) => file.version.officialReportId))].map((officialReportId) => ({
+    // a report holding a draft carries a file twice, and it is invalidated once
+    const nominationFileIdsPerReport = new Map<string, Set<string | null>>();
+    for (const { nominationFileId, version } of reportFiles) {
+      const nominationFileIds = nominationFileIdsPerReport.get(version.officialReportId) ?? new Set();
+      nominationFileIdsPerReport.set(version.officialReportId, nominationFileIds.add(nominationFileId));
+    }
+
+    return [...nominationFileIdsPerReport].map(([officialReportId, nominationFileIds]) => ({
       type: 'NominationFilesOutcomeUpdated',
       id: officialReportId,
-      payload: {
-        files: [
-          {
-            nominationFileId,
-            outcome: { comment, value: nominationFileOutcomeToDocNominationFileOutcome(outcome) },
-          },
-        ],
-      },
+      payload: { files: files.filter(({ nominationFileId }) => nominationFileIds.has(nominationFileId)) },
     }));
   }
 

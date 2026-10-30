@@ -1,9 +1,13 @@
 import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { Files } from 'src/modules/framework/files';
+import { Prisma } from '../../../../generated/prisma/client';
+import { assertNever } from '../../../../utils/assert-never';
+import { fileIdsReferencedIn } from '../../../../utils/rich-text-html';
+import { Clock } from '../../../framework/clock';
+import { Db } from '../../../framework/database';
+import { Files } from '../../../framework/files';
+import { TransparenceService } from '../../transparence/infrastructure/transparence.service';
 import {
   AttachedFilesToSummary,
   DetachedFilesFromSummary,
@@ -12,13 +16,12 @@ import {
   SummaryContentWritten,
   SummaryCreated,
   UpdatedSummaryReaderList,
-} from 'src/modules/session/summaries/domain/summary';
-import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
-import { assertNever } from 'src/utils/assert-never';
+} from '../domain/summary';
 
 @Injectable()
 export class SummaryRepository {
   constructor(
+    private readonly clock: Clock,
     private readonly db: Db,
     private readonly files: Files,
     @Inject(forwardRef(() => TransparenceService))
@@ -36,13 +39,18 @@ export class SummaryRepository {
     const sessionIsArchived = await this.isSessionArchived(query);
     const summary = await this.db.tx.summary.findUnique({
       where: { nominationFileId: query.nominationFileId, nominationFile: { sessionId: query.sessionId } },
-      select: { authorId: true, nominationFileId: true } satisfies Prisma.SummarySelect,
+      select: {
+        authorId: true,
+        nominationFileId: true,
+        readers: { select: { userId: true } },
+      } satisfies Prisma.SummarySelect,
     });
     if (!summary) throw new NotFoundException();
 
     return Summary.from({
       authorId: summary.authorId,
       id: summary.nominationFileId,
+      readerIds: summary.readers.map(({ userId }) => userId),
       sessionId: query.sessionId,
       sessionIsArchived,
     });
@@ -85,19 +93,16 @@ export class SummaryRepository {
   }
 
   private async persistDetachedFilesFromSummary(message: DetachedFilesFromSummary) {
-    await this.db.tx.summaryAttachment.deleteMany({
-      where: {
-        summaryId: message.id,
-        fileId: { in: message.fileIds as string[] },
-      },
+    // a file attached elsewhere is not this summary's to delete
+    const where = { fileId: { in: [...message.fileIds] }, summaryId: message.id };
+    const attachments = await this.db.tx.summaryAttachment.findMany({
+      where,
+      select: { file: { select: { id: true, path: true } } } satisfies Prisma.SummaryAttachmentSelect,
     });
 
-    const files = await this.db.tx.file.findMany({
-      select: { id: true, path: true } satisfies Prisma.FileSelect,
-      where: { id: { in: message.fileIds as string[] } },
-    });
+    await this.db.tx.summaryAttachment.deleteMany({ where });
 
-    this.files.delete(files);
+    this.files.delete(attachments.map(({ file }) => file));
   }
 
   private persistIncludedFilesInSummaryContent(message: IncludedFilesInSummaryContent) {
@@ -111,13 +116,27 @@ export class SummaryRepository {
     });
   }
 
-  private persistSummaryContentWritten(message: SummaryContentWritten) {
-    return this.db.tx.summary.update({
-      where: { nominationFileId: message.id },
+  private async persistSummaryContentWritten(message: SummaryContentWritten) {
+    await this.db.tx.summary.update({
       data: {
         content: message.content,
         ...(message.newAuthorId ? { authorId: message.newAuthorId } : {}),
       },
+      where: { nominationFileId: message.id },
+    });
+    await this.syncScreenshotsWith(message);
+  }
+
+  private async syncScreenshotsWith(message: { content: string; id: string }) {
+    const embedded = [...fileIdsReferencedIn(message.content)];
+
+    await this.db.tx.summaryScreenshot.updateMany({
+      data: { detachedAt: this.clock.now() },
+      where: { detachedAt: null, fileId: { notIn: embedded }, summaryId: message.id },
+    });
+    await this.db.tx.summaryScreenshot.updateMany({
+      data: { detachedAt: null },
+      where: { detachedAt: { not: null }, fileId: { in: embedded }, summaryId: message.id },
     });
   }
 

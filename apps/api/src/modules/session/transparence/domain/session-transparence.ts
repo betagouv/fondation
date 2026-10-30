@@ -1,18 +1,19 @@
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import { NominationFileAttachmentTypeEnum } from 'src/modules/shared/nomination-file-attachment-type.enum';
+import { DateOnly } from '../../../../utils/date-only';
+import { makeId } from '../../../../utils/id';
+import { isDefined } from '../../../../utils/is-defined';
+import { partition } from '../../../../utils/iterables';
+import { TimeOnly } from '../../../../utils/time-only';
+import { FormationEnum } from '../../../shared/formation.enum';
+import { NominationFileAttachmentTypeEnum } from '../../../shared/nomination-file-attachment-type.enum';
 import {
   NominationFileOutcome,
   NominationFileOutcomeEnum,
-} from 'src/modules/shared/nomination-file-outcome.enum';
-import * as policies from 'src/modules/shared/policies/nomination-file.policies';
-import { PriorityEnum } from 'src/modules/shared/priority.enum';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import { TypeDeSaisineEnum } from 'src/modules/shared/type-de-saisine.enum';
-import { DateOnly } from 'src/utils/date-only';
-import { makeId } from 'src/utils/id';
-import { isDefined } from 'src/utils/is-defined';
-import { partition } from 'src/utils/iterables';
-import { TimeOnly } from 'src/utils/time-only';
+} from '../../../shared/nomination-file-outcome.enum';
+import * as policies from '../../../shared/policies/nomination-file.policies';
+import { PriorityEnum } from '../../../shared/priority.enum';
+import type { RoleEnum } from '../../../shared/role.enum';
+import { TypeDeSaisineEnum } from '../../../shared/type-de-saisine.enum';
+import { UserStatus } from '../../../shared/user-status.enum';
 
 import type { PublishableAuditions } from './audition-publication';
 import { AutoAffectations } from './auto-affectation';
@@ -287,14 +288,15 @@ export class NonFormationMemberDefinedAsReporter extends Error {
   }
 }
 
-export class SessionTransparenceAffectationHasUnknownReporter extends Error {
+export class SessionTransparenceAffectationHasUnassignableReporters extends Error {
   constructor(
     readonly errors: readonly {
+      deactivatedReporters: readonly string[];
       fileNumber: number;
-      reporters: readonly string[];
+      unknownReporters: readonly string[];
     }[],
   ) {
-    super(`Impossible d'affecter un membre inconnu`);
+    super(`Impossible d'affecter un membre inconnu ou désactivé`);
   }
 }
 
@@ -438,7 +440,11 @@ export class SessionTransparence {
       command.formationMembers.map((member) => [member.fullName.toLowerCase(), member] as const),
     );
     const nominationFileEntities: LodamTransparenceFileEntity[] = [];
-    const unknownReporters: { fileNumber: number; reporters: string[] }[] = [];
+    const unassignableReporters: {
+      deactivatedReporters: string[];
+      fileNumber: number;
+      unknownReporters: string[];
+    }[] = [];
     const affectations: {
       nominationFileId: string;
       reporterIds: readonly string[];
@@ -447,21 +453,21 @@ export class SessionTransparence {
     for (const file of command.files) {
       const reporterIds: string[] = [];
       const fileUnknownReporters: string[] = [];
+      const fileDeactivatedReporters: string[] = [];
 
       for (const reporter of file.reporters) {
         const member = memberPerFullName.get(reporter.toLowerCase());
 
-        if (member) {
-          reporterIds.push(member.id);
-        } else {
-          fileUnknownReporters.push(reporter);
-        }
+        if (!member) fileUnknownReporters.push(reporter);
+        else if (member.status === 'DEACTIVATED') fileDeactivatedReporters.push(reporter);
+        else reporterIds.push(member.id);
       }
 
-      if (fileUnknownReporters.length) {
-        unknownReporters.push({
+      if (fileUnknownReporters.length || fileDeactivatedReporters.length) {
+        unassignableReporters.push({
+          deactivatedReporters: fileDeactivatedReporters,
           fileNumber: file.fileNumber,
-          reporters: fileUnknownReporters,
+          unknownReporters: fileUnknownReporters,
         });
       } else {
         const nominationFileId = makeId('NominationFileId');
@@ -473,8 +479,8 @@ export class SessionTransparence {
       }
     }
 
-    if (unknownReporters.length) {
-      throw new SessionTransparenceAffectationHasUnknownReporter(unknownReporters);
+    if (unassignableReporters.length) {
+      throw new SessionTransparenceAffectationHasUnassignableReporters(unassignableReporters);
     }
 
     session.files = new Map(
@@ -520,6 +526,8 @@ export class SessionTransparence {
   affectNominationFileReporters(command: {
     authorId: string | null;
     formationMemberIds: Set<string>;
+    // a reporter deactivated since stays on the files they already have, without being offered for new ones
+    assignedReporterIds?: ReadonlyMap<string, ReadonlySet<string>>;
     affectations: readonly {
       nominationFileId: string;
       reporterIds: readonly string[];
@@ -540,12 +548,12 @@ export class SessionTransparence {
       );
     }
 
-    const allReporterIds = Array.from(
-      new Set(command.affectations.flatMap(({ reporterIds }) => reporterIds)),
-    );
-
-    const allReportersAreFormationMembers = allReporterIds.every((reporterId) =>
-      command.formationMemberIds.has(reporterId),
+    const allReportersAreFormationMembers = command.affectations.every(({ nominationFileId, reporterIds }) =>
+      reporterIds.every(
+        (reporterId) =>
+          command.formationMemberIds.has(reporterId) ||
+          !!command.assignedReporterIds?.get(nominationFileId)?.has(reporterId),
+      ),
     );
 
     if (!allReportersAreFormationMembers) {
@@ -852,7 +860,7 @@ export type CreateLodamSessionTransparenceCommand = {
   dueDate: DateOnly | null;
   files: readonly LodamTransparenceFile[];
   formation: FormationEnum;
-  formationMembers: readonly { id: string; fullName: string }[];
+  formationMembers: readonly { id: string; fullName: string; status: UserStatus }[];
   name: string;
   observationClosingDate: DateOnly;
   positionStartDate: DateOnly | null;

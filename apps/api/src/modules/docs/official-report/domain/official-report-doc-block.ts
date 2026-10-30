@@ -1,6 +1,7 @@
 import z from 'zod';
 
-import { DOC_NOMINATION_FILE_OUTCOMES } from 'src/modules/docs/shared/domain/doc-nomination-file-outcome';
+import { writerSchema } from '../../../../utils/user.util';
+import { DOC_NOMINATION_FILE_OUTCOMES } from '../../shared/domain/doc-nomination-file-outcome';
 
 const AbstractDocBlock = z.object({
   weight: z.number().int().gte(0),
@@ -29,6 +30,12 @@ const BlockSectionIntroSchema = z.object({
   kind: z.literal('section-intro'),
 });
 
+export const OfficialReportFileNoteSchema = z.object({
+  editedAt: z.iso.datetime().nullable(),
+  editedBy: writerSchema,
+  html: z.string(),
+});
+
 const BlockFileSchema = z.object({
   ...AbstractHtmlBlock.shape,
   kind: z.literal('file'),
@@ -38,11 +45,13 @@ const BlockFileSchema = z.object({
   /** the agenda the proposition comes from, the one place its sentence is written */
   agendaId: z.string().nullable(),
   agendaEditedAt: z.iso.datetime().nullable(),
-  agendaEditedBy: z.object({ id: z.string(), name: z.string() }).nullable(),
+  agendaEditedBy: writerSchema,
   editedAt: z.iso.datetime().nullable(),
-  editedBy: z.object({ id: z.string(), name: z.string() }).nullable(),
+  editedBy: writerSchema,
   /** the text comes from the agenda, so the report is not the one to credit for it */
   fromAgenda: z.boolean(),
+  name: z.string(),
+  note: OfficialReportFileNoteSchema.nullable(),
 });
 
 const BlockConclusionSchema = z.object({

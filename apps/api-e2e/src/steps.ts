@@ -17,7 +17,7 @@ export type TestSteps = typeof api & { ['@client']: Client; ['@user']: { id: str
 export type TestStepsMember = Pick<TestSteps, 'archivedSessions' | 'reports' | 'files' | '@client' | '@user'> & {
   auth: Pick<(typeof api)['auth'], 'introspectSession' | 'logout'>;
   feedback: Pick<TestSteps['feedback'], 'answerFeedback' | 'findFeedback'>;
-  summaries: Pick<TestSteps['summaries'], 'detailSummary' | 'detachSummaryFiles' | 'generateAttachmentPublicUrl'>;
+  help: Pick<TestSteps['help'], 'detailHelpPage' | 'detailReaderHelpPage'>;
   members: Pick<
     TestSteps['members'],
     | 'listMemberSessionReports'
@@ -27,8 +27,13 @@ export type TestStepsMember = Pick<TestSteps, 'archivedSessions' | 'reports' | '
   >;
   observations: Pick<
     TestSteps['observations'],
-    'listObservations' | 'getObservationDetails' | 'getObservationFileUrl' | 'listObservationsAttachments'
+    | 'attachMemberCommentScreenshots'
+    | 'getObservationDetails'
+    | 'getObservationFileUrl'
+    | 'listObservations'
+    | 'writeMemberComment'
   >;
+  summaries: Pick<TestSteps['summaries'], 'detailSummary' | 'generateAttachmentPublicUrl'>;
 };
 
 export type TestStepsAdmin = Omit<TestSteps, 'members'> & {
@@ -38,20 +43,27 @@ export type TestStepsAdmin = Omit<TestSteps, 'members'> & {
   >;
 };
 
+// an intersection merges the keys of a namespace: one narrowed below must first leave the complement
 export type TestStepsAgent = Omit<
-  Complement<TestSteps, TestStepsMember> & {
-    archivedSessions: TestSteps['archivedSessions'];
-    auth: Omit<(typeof api)['auth'], 'login' | 'listOpenIdProviders' | 'prepareOpenIdRequest' | 'callback'>;
-    feedback: TestSteps['feedback'];
-    // the secretariat also opens the attachments it serves
-    files: TestSteps['files'];
-    // the secretariat also reads the observations it receives
-    observations: TestSteps['observations'];
-    // the secretariat also reads the summaries it writes
-    summaries: Pick<TestSteps['summaries'], 'detailSummary'>;
-  },
-  'administration' | 'ingest'
->;
+  Complement<TestSteps, TestStepsMember>,
+  'administration' | 'auth' | 'feedback' | 'help' | 'ingest' | 'jobs' | 'magistrats'
+> & {
+  archivedSessions: TestSteps['archivedSessions'];
+  auth: Omit<
+    (typeof api)['auth'],
+    'callback' | 'impersonate' | 'listOpenIdProviders' | 'login' | 'prepareOpenIdRequest'
+  >;
+  feedback: Omit<TestSteps['feedback'], 'listFeedbacksAsExcel'>;
+  // the secretariat also opens the attachments it serves
+  files: TestSteps['files'];
+  help: TestStepsMember['help'];
+  magistrats: Omit<TestSteps['magistrats'], 'searchMagistratAuthorization'>;
+  // the secretariat also reads the observations it receives
+  observations: TestSteps['observations'];
+  // the secretariat also reads the summaries it writes
+  summaries: Pick<TestSteps['summaries'], 'detailSummary'>;
+  ['@user']: TestSteps['@user'];
+};
 
 function createSdk(client: Client, user?: { id: string }): TestSteps {
   return new Proxy(api as TestSteps, {

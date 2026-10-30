@@ -2,13 +2,13 @@ import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import z from 'zod';
 
+import { PrismaMagistratStatusEnum } from '../../../../generated/prisma/enums';
+import { searchMagistratRawQuery, searchMagistratTotalCountRawQuery } from '../../../../generated/prisma/sql';
+import { toMagistratFullTextQuery } from '../../../../utils/fulltext-search';
+import { Db } from '../../../framework/database';
+import { createPaginatedZodDto, paginate, Pagination } from '../../../framework/pagination';
 import { magistratFullName, magistratUsedName } from '../../domain/magistrat-name';
 import { magistratGradeAndJurisdiction } from '../../domain/magistrat-position';
-import { PrismaMagistratStatusEnum } from 'src/generated/prisma/enums';
-import { searchMagistratRawQuery, searchMagistratTotalCountRawQuery } from 'src/generated/prisma/sql';
-import { Db } from 'src/modules/framework/database';
-import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
-import { toMagistratFullTextQuery } from 'src/utils/fulltext-search';
 
 import { PositionSchema } from './detail-magistrat.query';
 

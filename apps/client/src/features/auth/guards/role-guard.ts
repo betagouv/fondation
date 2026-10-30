@@ -5,10 +5,10 @@ import { sessionQueryOptions } from '@queries/auth.queries';
 import { queryClient } from '@queries/query-client';
 
 export function isAuthorized(
-  user: { role: string } | null | undefined,
+  user: { isAdmin: boolean; role: string } | null | undefined,
   authorizedRoles: readonly unknown[],
 ): boolean {
-  return !!user && (user.role === 'ADMIN' || authorizedRoles.includes(user.role));
+  return !!user && (user.isAdmin || authorizedRoles.includes(user.role));
 }
 
 export function roleGuard(authorizedRoles: readonly unknown[]) {

@@ -1,7 +1,8 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
-import { dateOnlyJsonSchema } from 'src/utils/date-only';
+import { dateOnlyJsonSchema } from '../../../../utils/date-only';
+import { editedHtml } from '../../shared/infrastructure/edited-html';
 
 export class CreateOrUpdateAgendaDto extends createZodDto(
   z.object({
@@ -29,5 +30,5 @@ export class UpdateAgendaFilesDto extends createZodDto(
 export class CreatedAgendaDto extends createZodDto(z.object({ id: z.uuid() })) {}
 
 export class EditAgendaFileBlockDto extends createZodDto(
-  z.object({ html: z.string(), outdated: z.boolean() }),
+  z.object({ html: editedHtml, outdated: z.boolean() }),
 ) {}

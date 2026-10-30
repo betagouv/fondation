@@ -16,7 +16,7 @@ export async function waitFor<T>(
     let lastError: unknown;
 
     signal.addEventListener('abort', () => {
-      reject(new Error(`Function timed-out ${options.timeout}`, { cause: lastError }));
+      reject(new Error(`Function timed out after ${timeout} ms`, { cause: lastError }));
     });
 
     const wrapper = (): Promise<unknown> =>

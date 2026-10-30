@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';
 
 import { ConfirmModalProvider } from '@/shared/context/confirm-modal';
-import { sessionDocsHandlers } from '@/shared/storybook/msw.handlers';
+import { sessionDocsHandlers, sgAuthHandlers } from '@/shared/storybook/msw.handlers';
 import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
 import { ToastProvider } from '@/shared/ui/toast';
 import type { PlainDateOnly } from '@/utils/date-only.util';
@@ -135,61 +135,6 @@ const DOCS: SessionDocument[] = [
   anOfficialReport({ ...DRAFT, id: 'pv-02-09', meetingDate: { day: 2, month: 9, year: 2026 } }),
 ];
 
-function Actions(doc: SessionDocument) {
-  return <SessionDocumentActions disabled={false} doc={doc} sessionId={SESSION_ID} />;
-}
-
-function NewOfficialReport(agenda: AgendaDocument) {
-  return <NewOfficialReportButton agenda={agenda} sessionId={SESSION_ID} />;
-}
-
-const setIsActing = fn().mockName('setIsActing');
-
-function DocName(doc: SessionDocument) {
-  return <DocActionDetails disabled={false} doc={doc} sessionId={SESSION_ID} setIsActing={setIsActing} />;
-}
-
-const meta = {
-  args: {
-    actions: Actions,
-    groups: groupSessionDocuments(DOCS),
-    newOfficialReport: NewOfficialReport,
-    renderName: DocName,
-  },
-  beforeEach: ({ msw }) => {
-    msw.use(...sessionDocsHandlers);
-  },
-  component: SessionDocumentsTable,
-  decorators: [
-    (Story) => (
-      <StoryQueryClient>
-        <ToastProvider>
-          <ConfirmModalProvider>
-            <Story />
-          </ConfirmModalProvider>
-        </ToastProvider>
-      </StoryQueryClient>
-    ),
-  ],
-  parameters: { controls: { include: ['groups'] }, layout: 'padded' },
-  tags: ['autodocs'],
-  title: 'Session/Transparence/SessionDocumentsTable',
-} satisfies Meta<typeof SessionDocumentsTable>;
-
-export default meta;
-
-type Story = StoryObj<typeof meta>;
-
-export const Playground: Story = {};
-
-export const Empty: Story = {
-  args: { groups: [] },
-};
-
-export const Archived: Story = {
-  args: { actions: undefined, newOfficialReport: undefined },
-};
-
 const CHANGES_IN_PROGRESS = {
   draftChangesBy: 'PERSON',
   draftUpdate: { at: '2026-09-22T17:40:00.000Z', by: CAMILLE, causes: [], origin: 'PERSON' },
@@ -249,6 +194,51 @@ function aMeeting(index: number): SessionDocument[] {
   }
 }
 
-export const ManyRows: Story = {
-  args: { groups: groupSessionDocuments(Array.from({ length: 25 }, (_, index) => aMeeting(index)).flat()) },
-};
+const DOCUMENTS = {
+  empty: [],
+  everyState: DOCS,
+  many: Array.from({ length: 25 }, (_, index) => aMeeting(index)).flat(),
+} satisfies Record<string, SessionDocument[]>;
+type Documents = keyof typeof DOCUMENTS;
+
+const setIsActing = fn().mockName('setIsActing');
+
+function SessionDocumentsTableStory(props: { documents: Documents; isArchived: boolean }) {
+  return (
+    <StoryQueryClient>
+      <ToastProvider>
+        <ConfirmModalProvider>
+          <SessionDocumentsTable
+            actions={(doc) =>
+              props.isArchived ? null : (
+                <SessionDocumentActions disabled={false} doc={doc} sessionId={SESSION_ID} />
+              )
+            }
+            groups={groupSessionDocuments(DOCUMENTS[props.documents])}
+            newOfficialReport={(agenda) =>
+              props.isArchived ? null : <NewOfficialReportButton agenda={agenda} sessionId={SESSION_ID} />
+            }
+            renderName={(doc) => (
+              <DocActionDetails disabled={false} doc={doc} sessionId={SESSION_ID} setIsActing={setIsActing} />
+            )}
+          />
+        </ConfirmModalProvider>
+      </ToastProvider>
+    </StoryQueryClient>
+  );
+}
+
+const meta = {
+  args: { documents: 'everyState', isArchived: false },
+  argTypes: { documents: { control: 'inline-radio', options: Object.keys(DOCUMENTS) } },
+  beforeEach: ({ msw }) => {
+    msw.use(...sgAuthHandlers, ...sessionDocsHandlers);
+  },
+  component: SessionDocumentsTableStory,
+  parameters: { layout: 'padded' },
+  title: 'Session/Transparence/SessionDocumentsTable',
+} satisfies Meta<typeof SessionDocumentsTableStory>;
+
+export default meta;
+
+export const Playground: StoryObj<typeof meta> = {};

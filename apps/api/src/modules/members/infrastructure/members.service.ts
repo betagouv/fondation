@@ -1,12 +1,13 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
-import { MemberTitleEnum } from '../domain/member-enums';
-import { Pagination } from 'src/modules/framework/pagination';
-import { FormationEnum } from 'src/modules/shared/formation.enum';
+import { Pagination } from '../../framework/pagination';
+import { FormationEnum } from '../../shared/formation.enum';
+import { UserStatus } from '../../shared/user-status.enum';
 
 import { ExcludedJurisdictionsFinder } from './finders/excluded-jurisdictions.finder';
 import { MemberRepository } from './member-repository';
+import { MemberFormation } from './member.utils';
 import { DetailedMemberDto, DetailsMemberQuery } from './queries/details-member.query';
 import {
   InternalFindMembersByFormationQuery,
@@ -32,10 +33,11 @@ export class MembersService {
 
   listMembers(query: {
     pagination: Pagination;
-    formations: ('SIEGE' | 'PARQUET' | 'COMMUN')[] | undefined;
+    formations: MemberFormation[] | undefined;
     search: string | undefined;
     sortBy: 'firstName' | 'lastName' | undefined;
     sortDirection: 'asc' | 'desc' | undefined;
+    statuses: readonly UserStatus[];
   }): Promise<PaginatedMemberListItemDto> {
     return this.listMembersQuery.handle(query);
   }
@@ -58,13 +60,6 @@ export class MembersService {
     await this.memberRepository.persist(member);
   }
 
-  @Transactional()
-  async updateTitle(command: { userId: string; title: MemberTitleEnum | null }): Promise<void> {
-    const member = await this.memberRepository.find(command.userId);
-    member.updateTitle(command.title);
-    await this.memberRepository.persist(member);
-  }
-
   /** @internal */
   findMembers(query: {
     ids: readonly string[] | undefined;
@@ -77,7 +72,7 @@ export class MembersService {
   findMembersByFullName(query: {
     formation: FormationEnum | undefined;
     fullNames: readonly string[];
-  }): Promise<{ fullName: string; id: string; firstName: string; lastName: string }[]> {
+  }): Promise<{ fullName: string; id: string; firstName: string; lastName: string; status: UserStatus }[]> {
     return this.internalFindMembersByFullName.handle(query);
   }
 
@@ -94,7 +89,10 @@ export class MembersService {
   }
 
   /** @internal */
-  internalFindMembersByFormation(query: { formation: FormationEnum }): Promise<InternalMemberListDto[]> {
+  internalFindMembersByFormation(query: {
+    formation: FormationEnum;
+    includeIds?: readonly string[];
+  }): Promise<InternalMemberListDto[]> {
     return this.internalFindMembersByFormationQuery.handle(query);
   }
 }

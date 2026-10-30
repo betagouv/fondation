@@ -6,6 +6,7 @@ import {
   useReactTable,
   type CellContext,
 } from '@tanstack/react-table';
+import clsx from 'clsx';
 import { createContext, useContext, useMemo, type ReactNode } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, Link, useLocation } from 'react-router';
@@ -142,7 +143,8 @@ function AgendaPresentationTrace(props: { doc: SessionDocument }) {
   const { by, date, endTime, planId } = doc.presentation;
 
   return (
-    <Trace>
+    // a link inside a line of text reads smaller than the text around it at the same size
+    <Trace className="text-[12.2px]">
       <FormattedMessage
         defaultMessage="Restitué dans <notice>la notice</notice> du {moment}{who, select, self { par vous} someone { par {author}} other {}}"
         values={{
@@ -172,8 +174,10 @@ function OutdatedDocument(props: { state: SessionDocumentGroupState | undefined 
   );
 }
 
-function Trace(props: { children: ReactNode }) {
-  return <span className="text-xs text-(--text-mention-grey)">{props.children}</span>;
+function Trace(props: { children: ReactNode; className?: string }) {
+  return (
+    <span className={clsx(props.className ?? 'text-xs', 'text-(--text-mention-grey)')}>{props.children}</span>
+  );
 }
 
 function SessionDocumentItem(props: { doc: SessionDocument }) {

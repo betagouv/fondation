@@ -2,11 +2,9 @@ import { useCallback } from 'react';
 import { useIntl } from 'react-intl';
 import { useNavigate } from 'react-router';
 
-import { transparencyToLabel } from '@/features/transparence/labels/labels-mappers';
 import { type FormationEnum, FormationEnumMessages } from '@/shared/enums/formation.enum';
 import type { BreadcrumbVM } from '@/shared/ui/Breadcrumb';
 
-import type { PlainDateOnly } from './date-only.util';
 import { getDetailSessionGdsPath, ROUTE_PATHS } from './route-path.utils';
 import { assertNever } from './types.util';
 
@@ -23,7 +21,7 @@ type TransparencesCurrentPageType =
   | {
       name: typeof TransparencesCurrentPage.gdsReport;
       nominationFileName: string;
-      session: { date: PlainDateOnly; id: string; name: string };
+      session: { id: string; label: string };
     };
 
 export function useTransparencesBreadCrumb(): (currentPage: TransparencesCurrentPageType) => BreadcrumbVM {
@@ -63,11 +61,9 @@ export function useTransparencesBreadCrumb(): (currentPage: TransparencesCurrent
 
         case TransparencesCurrentPage.gdsReport: {
           const { session } = currentPage;
-          const transparencyLabel = transparencyToLabel(session.name, session.date);
-
           const path = getDetailSessionGdsPath({ sessionId: session.id });
           const transparencySegment = {
-            label: transparencyLabel,
+            label: session.label,
             to: path,
             onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
               event.preventDefault();

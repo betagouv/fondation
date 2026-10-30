@@ -1,13 +1,11 @@
 import {
   Body,
   Controller,
-  DefaultValuePipe,
   Delete,
   Get,
   HttpCode,
   HttpStatus,
   Param,
-  ParseBoolPipe,
   ParseUUIDPipe,
   Patch,
   Post,
@@ -21,9 +19,9 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiConsumes, ApiOperation, ApiProduces, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
+import { ApiPaginated, Pagination, QueryPagination } from '../../framework/pagination';
+import { AuthedUser, HasRole } from '../../simple-auth';
 import { FoundAgendasDto } from '../shared/infrastructure/finders/agenda.finder';
-import { ApiPaginated, Pagination, QueryPagination } from 'src/modules/framework/pagination';
-import { AuthedUser, HasRole } from 'src/modules/simple-auth';
 
 import {
   CreatedJusticePresentationPlanDto,
@@ -58,16 +56,8 @@ export class PresentationPlansController {
   @Get('/presentation-plans/:planId.html')
   @ApiProduces('text/html')
   @ApiResponse({ content: { 'text/html': {} } })
-  @ApiQuery({ name: 'force', type: 'boolean', required: false, default: false })
-  generatePresentationPlanHtml(
-    @Param('planId') planId: string,
-    @Query('force', new ParseBoolPipe({ optional: true }), new DefaultValuePipe(false))
-    forceNew: boolean,
-  ): Promise<string> {
-    return this.presentationPlans.findPresentationPlanDocument({
-      forceNew,
-      id: planId,
-    });
+  generatePresentationPlanHtml(@Param('planId') planId: string): Promise<string> {
+    return this.presentationPlans.findPresentationPlanDocument({ id: planId });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')

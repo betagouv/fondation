@@ -1,6 +1,6 @@
-import { PrismaReportFileUsageEnum } from 'src/generated/prisma/enums';
-import { ReportFileUsageEnum } from 'src/modules/shared/report-file-usage.enum';
-import { assertNever } from 'src/utils/assert-never';
+import { PrismaReportFileUsageEnum } from '../../../generated/prisma/enums';
+import { assertNever } from '../../../utils/assert-never';
+import { ReportFileUsageEnum } from '../report-file-usage.enum';
 
 export function prismaReportFileUsageEnumToReportFileUsage(
   value: PrismaReportFileUsageEnum,

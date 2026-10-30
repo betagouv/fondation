@@ -1,11 +1,11 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
+import { Prisma } from '../../../../../generated/prisma/client';
+import { Db } from '../../../../framework/database';
+import { paginate, Pagination } from '../../../../framework/pagination';
+import type { RoleEnum } from '../../../../shared/role.enum';
 import { HydratedNominationFilesFinder } from '../finders/hydrated-nomination-files.finder';
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { paginate, Pagination } from 'src/modules/framework/pagination';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
 
 @Injectable()
 export class InternalListMagistratNominationFilesQuery {

@@ -3,10 +3,10 @@ import { ApiTags } from '@nestjs/swagger';
 import { type CookieOptions, type Response as ExpressResponse } from 'express';
 import { ZodResponse } from 'nestjs-zod';
 
+import { API_CONFIG_TOKEN, ApiConfig } from '../../framework/config';
+import { OpenIdProvider } from '../openid';
 import { OpenIdProviderParam } from '../openid/openid.decorator';
 import { SimpleAuthService } from '../simple-auth.service';
-import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
-import { OpenIdProvider } from 'src/modules/simple-auth/openid';
 
 import { OpenIdCallbackQueryDto, PreparedOpenIdRequestDto } from './dto/openid.dto';
 import { ListedOpenIdProvidersDto, ListOpenIdProvidersQuery } from './queries/list-openid-providers.query';
@@ -56,6 +56,7 @@ export class OpenIdAuthController {
       const { code, state } = query;
       const session = await this.auth.openId.login({ code, state, provider });
       res.cookie('sessionId', session.id, { ...SESSION_COOKIE_OPTIONS, expires: session.expiresAt });
+      res.clearCookie('impersonationId', SESSION_COOKIE_OPTIONS);
     } catch (error) {
       this.logger.error('Error while login with openid', error);
       redirect.searchParams.set('error', 'true');

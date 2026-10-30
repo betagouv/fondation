@@ -1,6 +1,15 @@
 import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 
+import { Prisma } from '../../../../../generated/prisma/client';
+import { assertNever } from '../../../../../utils/assert-never';
+import { DateOnly } from '../../../../../utils/date-only';
+import { assertIsDefined, isDefined } from '../../../../../utils/is-defined';
+import { dateToTimeOnly, timeOnlyToDate } from '../../../../../utils/time-only';
+import { Clock } from '../../../../framework/clock';
+import { Db } from '../../../../framework/database';
+import { Files } from '../../../../framework/files';
+import { prismaFormationEnumToFormationEnum } from '../../../../shared/mappers/formation.mapper';
 import { DocNominationFileOutcomeEnum } from '../../../shared/domain/doc-nomination-file-outcome';
 import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../../../shared/infrastructure/agenda-content';
 import { DocsNominationFilesFinder } from '../../../shared/infrastructure/finders/docs-nomination-files.finder';
@@ -17,15 +26,6 @@ import {
 import { JusticePresentationPlanContent } from '../../domain/justice-presentation-plan-content';
 import { JusticePresentationPlanSettings } from '../../domain/justice-presentation-plan-settings';
 import { presentationPlanStatusOf } from '../presentation-plan-status';
-import { Prisma } from 'src/generated/prisma/client';
-import { Clock } from 'src/modules/framework/clock';
-import { Db } from 'src/modules/framework/database';
-import { Files } from 'src/modules/framework/files';
-import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
-import { assertNever } from 'src/utils/assert-never';
-import { DateOnly } from 'src/utils/date-only';
-import { assertIsDefined, isDefined } from 'src/utils/is-defined';
-import { dateToTimeOnly, timeOnlyToDate } from 'src/utils/time-only';
 
 @Injectable()
 export class JusticePresentationPlanRepository {
@@ -305,7 +305,7 @@ export class JusticePresentationPlanRepository {
   private async persistJusticePresentationPlanUnPresented(message: JusticePresentationPlanUnPresented) {
     await this.db.tx.justicePresentationPlan.update({
       where: { id: message.id },
-      data: { isPresented: false, presentedAt: null, presentedBy: null },
+      data: { endTime: null, isPresented: false, presentedAt: null, presentedBy: null },
     });
   }
 

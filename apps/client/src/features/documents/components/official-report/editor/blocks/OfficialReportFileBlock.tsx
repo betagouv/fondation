@@ -19,6 +19,7 @@ import { DocBlockEditedBadge } from '@/features/documents/components/blocks/DocB
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 
 import { type OfficialReportBlock } from './official-report-blocks.type';
+import { OfficialReportFileNote } from './OfficialReportFileNote';
 
 type JsonOfficialReportFileBlock = Extract<OfficialReportBlock, { kind: 'file' }>;
 export const OfficialReportFileBlock = {
@@ -48,7 +49,9 @@ export const OfficialReportFileBlock = {
           fromAgenda: block.fromAgenda,
           generatedHtml: block.generatedHtml,
           isPending: false,
+          name: block.name,
           nominationFileId: block.nominationFileId,
+          note: block.note,
           officialReportId,
           outdated: block.outdated,
         },
@@ -67,11 +70,29 @@ function FileBlockView(props: ReactNodeViewProps) {
     editedAt,
     editedBy,
     fromAgenda,
+    name,
     nominationFileId,
+    note,
+    officialReportId,
     outdated,
   } = props.node.attrs;
   const { sessionId } = useParams<{ sessionId: string }>();
   const { pathname } = useLocation();
+
+  const agendaAction = agendaId && sessionId && (
+    <Button
+      iconId="fr-icon-edit-line"
+      iconPosition="right"
+      linkProps={{
+        state: { officialReportPath: pathname },
+        to: generatePath(ROUTE_PATHS.SG.AGENDA_EDIT, { agendaId, sessionId }),
+      }}
+      priority="tertiary no outline"
+      size="small"
+    >
+      <FormattedMessage defaultMessage="Corriger le bloc dans l'ODJ" />
+    </Button>
+  );
 
   return (
     <NodeViewWrapper
@@ -95,21 +116,31 @@ function FileBlockView(props: ReactNodeViewProps) {
         <NodeViewContent contentEditable={false} />
       </div>
 
-      {agendaId && sessionId && (
-        <div className="flex justify-end" contentEditable={false}>
-          <Button
-            iconId="fr-icon-edit-line"
-            iconPosition="right"
-            linkProps={{
-              state: { officialReportPath: pathname },
-              to: generatePath(ROUTE_PATHS.SG.AGENDA_EDIT, { agendaId, sessionId }),
-            }}
-            priority="tertiary no outline"
-            size="small"
-          >
-            <FormattedMessage defaultMessage="Corriger dans l'ODJ" />
-          </Button>
-        </div>
+      {nominationFileId && officialReportId && sessionId ? (
+        <OfficialReportFileNote
+          agendaAction={agendaAction}
+          name={name}
+          nominationFileId={nominationFileId}
+          note={note}
+          officialReportId={officialReportId}
+          onDraftChange={(html) => props.editor.commands.draftFileNote(nominationFileId, html)}
+          onStored={(stored) => {
+            const pos = props.getPos();
+            if (pos == null) return;
+
+            // the note is already stored: undoing the report's text must not bring an older one back
+            props.editor.view.dispatch(
+              props.editor.state.tr.setNodeAttribute(pos, 'note', stored).setMeta('addToHistory', false),
+            );
+          }}
+          sessionId={sessionId}
+        />
+      ) : (
+        agendaAction && (
+          <div className="flex justify-end" contentEditable={false}>
+            {agendaAction}
+          </div>
+        )
       )}
 
       <DocBlockDriftBanner {...props} acknowledgeable={false} />
@@ -135,7 +166,9 @@ export const OfficialReportFileBlockNode = Node.create({
     fromAgenda: { default: false, rendered: false },
     generatedHtml: { default: null, rendered: false },
     isPending: { default: false, rendered: false },
+    name: { default: '', rendered: false },
     nominationFileId: { default: null },
+    note: { default: null, rendered: false },
     officialReportId: { default: null, rendered: false },
     outdated: { default: false },
   }),

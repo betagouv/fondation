@@ -155,9 +155,14 @@ repeat password: *****
 ```
 
 Rôles disponibles : `MEMBRE_DU_SIEGE`, `MEMBRE_DU_PARQUET`, `MEMBRE_COMMUN`,
-`ADJOINT_SECRETAIRE_GENERAL`, `ADMIN` (enum `PrismaRoleEnum` dans
+`ADJOINT_SECRETAIRE_GENERAL` (enum `PrismaRoleEnum` dans
 [apps/api/prisma/schemas/identity.prisma](./apps/api/prisma/schemas/identity.prisma)).
-Il est recommandé de créer un membre commun et un agent du secrétariat général.
+Le droit administrateur s'ajoute au rôle `ADJOINT_SECRETAIRE_GENERAL` avec l'option `--admin`.
+L'option `--technical` en fait le compte d'un développeur : il n'est proposé dans aucune liste du CSM
+et lui seul crée ou marque d'autres comptes techniques.
+
+Il est recommandé de créer ainsi son propre compte, avec `--role ADJOINT_SECRETAIRE_GENERAL --admin --technical`,
+puis les autres depuis l'écran d'administration de l'application.
 
 8. Accès à l'application : [http://localhost:5173](http://localhost:5173)
 
@@ -172,8 +177,8 @@ outre-mer) y sont garantis.
 pnpm --filter lolfi generate:fictitious-archive   # => packages/lolfi/LOLFI_CSM_fictitious.zip
 ```
 
-L'archive s'envoie avec un compte `ADMIN` : menu "Administration", puis "Import LOLFI manuel"
-([/admin/lolfi](http://localhost:5173/admin/lolfi) en local). Le suivi est sur `/admin/jobs`.
+L'archive s'envoie avec un compte administrateur : menu "Administration", puis "Importer une archive LOLFI"
+([/admin/lolfi](http://localhost:5173/admin/lolfi) en local). Le suivi est sur `/admin/ingestions`.
 
 ### Remettre à zéro
 
@@ -308,7 +313,7 @@ pnpm run openapi:generate
 L'api est exploitée dans des hooks custom qui retournent la `Query` ou la `Mutation`
 de @tanstack/react-query dans le dossier [apps/client/src/queries](./apps/client/src/queries).
 Les types générés sont importables depuis `@api/types` et les conventions d'écriture de ces
-hooks sont décrites dans [CLAUDE.md](./CLAUDE.md).
+hooks sont décrites dans [apps/client/CLAUDE.md](./apps/client/CLAUDE.md).
 
 ## Storybook
 
@@ -327,8 +332,10 @@ d'utilisation à destination du métier est intégré au Storybook (page "Guide 
 ## Contribution
 
 > [!NOTE]
-> Le fichier [CLAUDE.md](./CLAUDE.md) contient de nombreuses informations relatives au style
-> utilisé dans le projet. Il s'adresse aux LLMs mais sert aussi de référence aux développeurs.
+> Les fichiers `CLAUDE.md` contiennent de nombreuses informations relatives au style utilisé dans
+> le projet : [CLAUDE.md](./CLAUDE.md) pour le transverse, [apps/api/CLAUDE.md](./apps/api/CLAUDE.md)
+> pour le back-end et la base de données, [apps/client/CLAUDE.md](./apps/client/CLAUDE.md) pour le
+> front-end. Ils s'adressent aux LLMs mais servent aussi de référence aux développeurs.
 >
 > Autrement, ne pas hésiter à se référer à ce document :
 > [https://github.com/zakirullin/cognitive-load/blob/main/README.md](https://github.com/zakirullin/cognitive-load/blob/main/README.md)

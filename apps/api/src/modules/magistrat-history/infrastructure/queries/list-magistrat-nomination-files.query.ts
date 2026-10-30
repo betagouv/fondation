@@ -1,16 +1,16 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import z from 'zod';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { createPaginatedZodDto, Pagination } from 'src/modules/framework/pagination';
-import { SESSION_STATUSES } from 'src/modules/session/transparence/infrastructure/finders/hydrated-nomination-files.finder';
-import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import { NominationFileOutcome } from 'src/modules/shared/nomination-file-outcome.enum';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import { dateOnlyJsonSchema } from 'src/utils/date-only';
-import { timeOnlySchema } from 'src/utils/time-only';
+import { Prisma } from '../../../../generated/prisma/client';
+import { dateOnlyJsonSchema } from '../../../../utils/date-only';
+import { timeOnlySchema } from '../../../../utils/time-only';
+import { Db } from '../../../framework/database';
+import { createPaginatedZodDto, Pagination } from '../../../framework/pagination';
+import { SESSION_STATUSES } from '../../../session/transparence/infrastructure/finders/hydrated-nomination-files.finder';
+import { TransparenceService } from '../../../session/transparence/infrastructure/transparence.service';
+import { FormationEnum } from '../../../shared/formation.enum';
+import { NominationFileOutcome } from '../../../shared/nomination-file-outcome.enum';
+import type { RoleEnum } from '../../../shared/role.enum';
 
 @Injectable()
 export class ListMagistratNominationFilesQuery {
@@ -47,6 +47,7 @@ export const MagistratNominationFileSchema = z.object({
     formation: z.enum(FormationEnum),
     date: dateOnlyJsonSchema,
     status: z.enum(SESSION_STATUSES),
+    canOpen: z.boolean(),
   }),
   auditionDate: dateOnlyJsonSchema.nullable(),
   auditionRequired: z.boolean(),

@@ -1,8 +1,9 @@
 import z from 'zod';
 
 import { type DocSystemUpdateCause } from '../domain/doc-system-update-cause';
+import { DRAFT_CHANGES_BY, type DraftChangesBy } from '../domain/draft-changes-by';
 
-export const draftChangesBySchema = z.enum(['PERSON', 'PERSON_AND_SYSTEM', 'SYSTEM']).nullable();
+export const draftChangesBySchema = z.enum(DRAFT_CHANGES_BY).nullable();
 
 type Person = { id: string; firstName: string; lastName: string };
 
@@ -51,7 +52,7 @@ export function draftChangesBy(version: {
   status: 'DRAFT' | 'VALIDATED';
   systemUpdatedAt: Date | null;
   updatedBy: string | null;
-}): z.infer<typeof draftChangesBySchema> {
+}): DraftChangesBy | null {
   if (version.status === 'VALIDATED') return null;
 
   const byPerson = Boolean(version.createdBy || version.updatedBy);

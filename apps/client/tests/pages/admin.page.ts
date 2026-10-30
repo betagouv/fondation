@@ -7,8 +7,8 @@ class LolfiIngestPage {
 
   async goto(): Promise<this> {
     await this.app.nav.getByText('Administration').click();
-    await this.app.page.getByText('Import LOLFI manuel').click();
-    await this.app.page.getByRole('heading', { name: 'Ingérer une archive LOLFI' }).waitFor();
+    await this.app.page.getByRole('link', { name: 'Importer une archive LOLFI' }).click();
+    await this.app.page.getByRole('heading', { name: 'Importer une archive LOLFI' }).waitFor();
 
     return this;
   }
@@ -26,7 +26,7 @@ class LolfiIngestPage {
     const lolfiIngestionPromise = this.app.page.waitForResponse('**/api/ingest/v1/lolfi');
 
     await this.app.page.getByRole('button', { name: 'Enregistrer' }).click();
-    await this.app.page.getByRole('heading', { level: 1, name: 'Ingestions' }).waitFor();
+    await this.app.page.getByRole('heading', { level: 1, name: 'Suivre les ingestions' }).waitFor();
 
     let { id: jobId } = await (await lolfiIngestionPromise).json();
 

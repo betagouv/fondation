@@ -9,19 +9,20 @@ model File {
   /// @deprecated
   storageProvider PrismaStorageProviderEnum @default(SCALEWAY) @map("storage_provider") @ignore
 
-  createdBy                           User?                                @relation("file_creator", fields: [createdById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  agendaPdf                           AgendaVersion[]                      @relation("agenda_pdf_file")
+  attachedToNominationFiles           NominationFileAttachment[]
+  attachedToObservationMemberComments ObservationMemberCommentScreenshot[]
+  attachedToObservations              ObservationFile[]
   attachedToReports                   ReportFile[]
   attachedToSessions                  SessionAttachment[]
-  attachedToNominationFiles           NominationFileAttachment[]
-  filePublicUrls                      FilePublicUrl[]
-  attachedToObservations              ObservationFile[]
-  attachedToObservationMemberComments ObservationMemberCommentScreenshot[]
   attachedToSummaries                 SummaryAttachment[]
+  createdBy                           User?                                @relation("file_creator", fields: [createdById], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  filePublicUrls                      FilePublicUrl[]
+  includedInHelpPagesContent          HelpPageScreenshot[]
   includedInSummariesContent          SummaryScreenshot[]
   ingestionJobFile                    IngestionJobFile[]
-  agendaPdf                           AgendaVersion[]                      @relation("agenda_pdf_file")
-  officialReportPdf                   OfficialReportVersion[]              @relation("official_report_pdf_file")
   justicePresentationPdf              JusticePresentationPlan[]            @relation("justice_presentation_pdf")
+  officialReportPdf                   OfficialReportVersion[]              @relation("official_report_pdf_file")
 
   @@map("files")
   @@schema("files_context")

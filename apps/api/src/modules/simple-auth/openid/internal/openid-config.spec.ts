@@ -2,10 +2,21 @@ import { HttpService } from '@nestjs/axios';
 import { of } from 'rxjs';
 import { vi, type Mock } from 'vitest';
 
-import { internalOpenIdConfigFactory, OpenIdConfig } from './openid-config';
+import { internalOpenIdConfigFactory, OpenIdConfig, UnsupportedOpenIdCodeChallenge } from './openid-config';
 
 const ISSUER = 'https://issuer.test';
 const WELL_KNOWN = `${ISSUER}/.well-known/openid-configuration`;
+
+const DISCOVERY = {
+  issuer: ISSUER,
+  authorization_endpoint: `${ISSUER}/authorize`,
+  token_endpoint: `${ISSUER}/token`,
+  userinfo_endpoint: `${ISSUER}/userinfo`,
+  jwks_uri: `${ISSUER}/jwks`,
+  end_session_endpoint: `${ISSUER}/session/end`,
+  scopes_supported: ['openid', 'email'],
+  code_challenge_methods_supported: ['S256'],
+};
 
 describe('OpenIdConfig', () => {
   async function makeConfig(http: { get?: Mock } = {}): Promise<OpenIdConfig> {
@@ -26,21 +37,11 @@ describe('OpenIdConfig', () => {
   }
 
   it('should expose the normalized metadata fetched from the discovery and jwks endpoints', async () => {
-    const get = vi.fn().mockImplementation((url: string) =>
-      of({
-        data: url.endsWith('/jwks')
-          ? { keys: [{ kty: 'RSA', kid: 'key-1' }] }
-          : {
-              issuer: ISSUER,
-              authorization_endpoint: `${ISSUER}/authorize`,
-              token_endpoint: `${ISSUER}/token`,
-              userinfo_endpoint: `${ISSUER}/userinfo`,
-              jwks_uri: `${ISSUER}/jwks`,
-              end_session_endpoint: `${ISSUER}/session/end`,
-              scopes_supported: ['openid', 'email'],
-            },
-      }),
-    );
+    const get = vi
+      .fn()
+      .mockImplementation((url: string) =>
+        of({ data: url.endsWith('/jwks') ? { keys: [{ kty: 'RSA', kid: 'key-1' }] } : DISCOVERY }),
+      );
 
     const config = await makeConfig({ get });
 
@@ -63,6 +64,15 @@ describe('OpenIdConfig', () => {
     expect(config.endpoints.authorization.toString()).toBe(`${ISSUER}/authorize`);
     expect(config.endpoints.token.toString()).toBe(`${ISSUER}/token`);
     expect(config.endpoints.userInfo.toString()).toBe(`${ISSUER}/userinfo`);
+  });
+
+  it('refuses to start when the provider does not support PKCE with S256', async () => {
+    const get = vi
+      .fn()
+      .mockReturnValue(of({ data: { ...DISCOVERY, code_challenge_methods_supported: ['plain'] } }));
+    const config = await makeConfig({ get });
+
+    await expect((config as any).onApplicationBootstrap()).rejects.toThrow(UnsupportedOpenIdCodeChallenge);
   });
 
   it('should be undefined when accessing discovered data before discovery', async () => {

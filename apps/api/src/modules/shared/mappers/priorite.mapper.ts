@@ -1,6 +1,6 @@
-import { PrismaPrioriteEnum } from 'src/generated/prisma/enums';
-import { PriorityEnum } from 'src/modules/shared/priority.enum';
-import { assertNever } from 'src/utils/assert-never';
+import { PrismaPrioriteEnum } from '../../../generated/prisma/enums';
+import { assertNever } from '../../../utils/assert-never';
+import { PriorityEnum } from '../priority.enum';
 
 export function prismaPrioriteEnumToPriorityEnum(value: PrismaPrioriteEnum): PriorityEnum {
   switch (value) {

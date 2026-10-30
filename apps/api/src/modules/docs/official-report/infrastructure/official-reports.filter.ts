@@ -1,13 +1,21 @@
 import {
   BadRequestException,
   CallHandler,
+  ConflictException,
   ExecutionContext,
   Injectable,
   NestInterceptor,
+  NotFoundException,
 } from '@nestjs/common';
 import { catchError, Observable, throwError } from 'rxjs';
 
-import { OfficialReportDocumentNotStored } from '../domain/official-report';
+import {
+  OfficialReportAlreadyValidated,
+  OfficialReportDocumentNotStored,
+  OfficialReportDraftChangedByTheApplication,
+  OfficialReportFileNotHeld,
+  OfficialReportWithoutValidatedVersion,
+} from '../domain/official-report';
 import { OfficialReportAgendaAlreadyReported } from '../domain/official-report-agenda';
 import {
   InvalidChairmanDuty,
@@ -68,6 +76,22 @@ export class OfficialReportsFilter implements NestInterceptor {
             });
           }
 
+          if (err instanceof OfficialReportAlreadyValidated) {
+            return new ConflictException({ validationError: `Le PV est déjà validé` });
+          }
+
+          if (err instanceof OfficialReportDraftChangedByTheApplication) {
+            return new ConflictException({
+              validationError: `L'application a modifié ce brouillon entre-temps : il n'est plus possible de revenir à la version validée`,
+            });
+          }
+
+          if (err instanceof OfficialReportWithoutValidatedVersion) {
+            return new ConflictException({
+              validationError: `Ce document n'a jamais été validé : il n'y a pas de version à laquelle revenir`,
+            });
+          }
+
           if (err instanceof OfficialReportAgendaAlreadyReported) {
             return new BadRequestException({
               validationError: `L'ODJ fait déjà partie d'un PV de restitution`,
@@ -84,6 +108,8 @@ export class OfficialReportsFilter implements NestInterceptor {
               validationError: `Certains utilisateurs désignés ne peuvent pas participer à la séance de restitution`,
             });
           }
+
+          if (err instanceof OfficialReportFileNotHeld) return new NotFoundException();
 
           if (err instanceof EmptyMembersList) {
             return new BadRequestException({

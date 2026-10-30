@@ -2,18 +2,28 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { findMagistratExternalIdByFullName } from 'src/generated/prisma/sql';
-import { Db } from 'src/modules/framework/database';
-import { buildMagistratLolfiUrl } from 'src/utils/build-magistrat-lolfi-url';
-import { unaccent } from 'src/utils/unaccent';
+import { Prisma } from '../../../../../generated/prisma/client';
+import { findMagistratExternalIdByFullName } from '../../../../../generated/prisma/sql';
+import { buildMagistratLolfiUrl } from '../../../../../utils/build-magistrat-lolfi-url';
+import { unaccent } from '../../../../../utils/unaccent';
+import { Db } from '../../../../framework/database';
+import type { RoleEnum } from '../../../../shared/role.enum';
+import { NominationSessionFinder } from '../finders/transparence-session.finder';
 
 @Injectable()
 export class GetLolfiMagistratUrlQuery {
-  constructor(private readonly db: Db) {}
+  constructor(
+    private readonly db: Db,
+    private readonly sessions: NominationSessionFinder,
+  ) {}
 
-  async handle(query: { sessionId: string; nominationFileId: string }): Promise<LolfiMagistratUrlDto> {
+  async handle(query: {
+    nominationFileId: string;
+    role: RoleEnum;
+    sessionId: string;
+  }): Promise<LolfiMagistratUrlDto> {
     const id = await this.db.withTransaction(async () => {
+      await this.sessions.getVisible(query);
       const nominationFile = await this.db.tx.dossierDeNomination.findUnique({
         where: { id: query.nominationFileId, sessionId: query.sessionId },
         select: {

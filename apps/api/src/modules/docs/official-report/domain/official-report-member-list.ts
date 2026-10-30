@@ -1,4 +1,4 @@
-import { unaccent } from 'src/utils/unaccent';
+import { unaccent } from '../../../../utils/unaccent';
 
 import { OfficialReportMember } from './official-report-member';
 
@@ -24,6 +24,12 @@ export class OfficialReportMembersList {
     }
 
     return true;
+  }
+
+  /** a member recorded at the meeting stays once no longer offered (deactivated since, or moved to another formation) */
+  keepingRecorded(recorded: OfficialReportMembersList): OfficialReportMembersList {
+    const kept = recorded.members.entries().filter(([id]) => !this.members.has(id));
+    return new OfficialReportMembersList(new Map([...this.members, ...kept]));
   }
 
   static from(members: readonly OfficialReportMember[]) {

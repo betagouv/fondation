@@ -2,15 +2,21 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { fullname } from 'src/utils/user.util';
+import { Prisma } from '../../../../../generated/prisma/client';
+import { writerOf, writerSchema } from '../../../../../utils/user.util';
+import { Db } from '../../../../framework/database';
+import type { RoleEnum } from '../../../../shared/role.enum';
+import { NominationSessionFinder } from '../finders/transparence-session.finder';
 
 @Injectable()
 export class ListNominationSessionAttachmentsQuery {
-  constructor(private readonly db: Db) {}
+  constructor(
+    private readonly db: Db,
+    private readonly sessions: NominationSessionFinder,
+  ) {}
 
-  async handle(query: { sessionId: string }): Promise<ListedNominationSessionAttachmentDto> {
+  async handle(query: { role: RoleEnum; sessionId: string }): Promise<ListedNominationSessionAttachmentDto> {
+    await this.sessions.getVisible(query);
     const session = await this.db.tx.session.findUnique({
       select: {
         attachments: {
@@ -37,8 +43,8 @@ export class ListNominationSessionAttachmentsQuery {
         id: file.id,
         name: file.name,
         addedAt: file.createdAt.toISOString(),
-        addedBy: file.createdBy ? { id: file.createdBy.id, name: fullname(file.createdBy) } : null,
-        sizeInBytes: file.sizeInBytes,
+        addedBy: writerOf(file.createdBy),
+        size: file.sizeInBytes,
       })),
     };
   }
@@ -51,8 +57,8 @@ export class ListedNominationSessionAttachmentDto extends createZodDto(
         name: z.string(),
         id: z.string(),
         addedAt: z.iso.datetime(),
-        addedBy: z.object({ id: z.string(), name: z.string() }).nullable(),
-        sizeInBytes: z.number().int().nullable(),
+        addedBy: writerSchema,
+        size: z.number().int().nullable(),
       }),
     ),
   }),

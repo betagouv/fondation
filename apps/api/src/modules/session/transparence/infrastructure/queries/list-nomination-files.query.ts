@@ -4,6 +4,43 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { Prisma } from '../../../../../generated/prisma/client';
+import { PrismaPrioriteEnum } from '../../../../../generated/prisma/enums';
+import {
+  listNominationFilesCountRawQuery,
+  listNominationFilesRawQuery,
+} from '../../../../../generated/prisma/sql';
+import { auditionScheduleSchema } from '../../../../../utils/audition-schedule';
+import { DateOnly, dateOnlyJsonSchema } from '../../../../../utils/date-only';
+import { toFullTextQuery } from '../../../../../utils/fulltext-search';
+import { partition } from '../../../../../utils/iterables';
+import { timeOnlySchema } from '../../../../../utils/time-only';
+import { DocsService } from '../../../../docs/docs.service';
+import { Db } from '../../../../framework/database';
+import { createPaginatedZodDto, paginate, Pagination } from '../../../../framework/pagination';
+import { Sortable } from '../../../../framework/sorting';
+import { proposedMagistratName } from '../../../../magistrat/domain/magistrat-name';
+import { ObservationFollowUp } from '../../../../observation/domain/observation-follow-up';
+import { ObservationService } from '../../../../observation/observation.service';
+import { GradeEnum } from '../../../../shared/grade.enum';
+import {
+  priorityEnumToPrismaPrioriteEnum,
+  prismaPrioriteEnumToPriorityEnum,
+} from '../../../../shared/mappers/priorite.mapper';
+import { NominationFileLockEnum } from '../../../../shared/nomination-file-lock.enum';
+import {
+  NominationFileOutcome,
+  NominationFileOutcomeEnum,
+} from '../../../../shared/nomination-file-outcome.enum';
+import {
+  AUDITION_REQUIREMENTS,
+  expectedReportersCount,
+} from '../../../../shared/policies/auditioned-position.policy';
+import * as nominationFilesPolicies from '../../../../shared/policies/nomination-file.policies';
+import { canReadSession } from '../../../../shared/policies/session.policies';
+import { canReadSummary, canWriteSummary } from '../../../../shared/policies/summary.policies';
+import { PriorityEnum } from '../../../../shared/priority.enum';
+import { isSecretariat, type RoleEnum } from '../../../../shared/role.enum';
 import {
   NOMINATION_SESSION_FILE_STATUSES,
   transparenceFileStatus,
@@ -13,39 +50,6 @@ import { AffectationVersionFinder, OptionalAffectationVersion } from '../finders
 import { AuditionsSeenFinder } from '../finders/auditions-seen.finder';
 import { NominationFileJurisdictionsFinder } from '../finders/nomination-file-jurisdictions.finder';
 import { SessionReportedFilesFinder } from '../finders/session-reported-files.finder';
-import { Prisma } from 'src/generated/prisma/client';
-import { PrismaPrioriteEnum } from 'src/generated/prisma/enums';
-import { listNominationFilesCountRawQuery, listNominationFilesRawQuery } from 'src/generated/prisma/sql';
-import { DocsService } from 'src/modules/docs/docs.service';
-import { Db } from 'src/modules/framework/database';
-import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
-import { Sortable } from 'src/modules/framework/sorting';
-import { proposedMagistratName } from 'src/modules/magistrat/domain/magistrat-name';
-import { roleToFormation } from 'src/modules/members/infrastructure/member.utils';
-import { ObservationFollowUp } from 'src/modules/observation/domain/observation-follow-up';
-import { ObservationService } from 'src/modules/observation/observation.service';
-import { GradeEnum } from 'src/modules/shared/grade.enum';
-import {
-  priorityEnumToPrismaPrioriteEnum,
-  prismaPrioriteEnumToPriorityEnum,
-} from 'src/modules/shared/mappers/priorite.mapper';
-import { NominationFileLockEnum } from 'src/modules/shared/nomination-file-lock.enum';
-import {
-  NominationFileOutcome,
-  NominationFileOutcomeEnum,
-} from 'src/modules/shared/nomination-file-outcome.enum';
-import {
-  AUDITION_REQUIREMENTS,
-  expectedReportersCount,
-} from 'src/modules/shared/policies/auditioned-position.policy';
-import * as nominationFilesPolicies from 'src/modules/shared/policies/nomination-file.policies';
-import { PriorityEnum } from 'src/modules/shared/priority.enum';
-import { isSecretariat, type RoleEnum } from 'src/modules/shared/role.enum';
-import { auditionScheduleSchema } from 'src/utils/audition-schedule';
-import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
-import { toFullTextQuery } from 'src/utils/fulltext-search';
-import { partition } from 'src/utils/iterables';
-import { timeOnlySchema } from 'src/utils/time-only';
 
 @Injectable()
 export class ListNominationFilesQuery {
@@ -147,11 +151,13 @@ export class ListNominationFilesQuery {
     return file ?? null;
   }
 
-  private findVisibleSession(query: { sessionId: string; user: { role: RoleEnum } }) {
-    return this.db.tx.session.findFirst({
-      select: { archivedAt: true } satisfies Prisma.SessionSelect,
-      where: { deletedAt: null, formation: roleToFormation(query.user.role), id: query.sessionId },
+  private async findVisibleSession(query: { sessionId: string; user: { role: RoleEnum } }) {
+    const session = await this.db.tx.session.findFirst({
+      select: { archivedAt: true, formation: true } satisfies Prisma.SessionSelect,
+      where: { deletedAt: null, id: query.sessionId },
     });
+
+    return session && canReadSession(session, query.user) ? session : null;
   }
 
   private lastVersion(query: { sessionId: string; user: { role: RoleEnum } }) {
@@ -312,10 +318,11 @@ export class ListNominationFilesQuery {
         })),
         summary: x.summary
           ? {
-              canRead:
-                x.summary.authorId === query.user.id ||
-                x.summary.readers.some((userId) => userId === query.user.id),
-              canWrite: x.summary.authorId === query.user.id,
+              canRead: canReadSummary(
+                { authorId: x.summary.authorId, readerIds: x.summary.readers },
+                query.user,
+              ),
+              canWrite: canWriteSummary(x.summary, query.user),
               id: x.id,
             }
           : null,

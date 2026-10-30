@@ -1,40 +1,32 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 
+import { Prisma } from '../../../../../generated/prisma/client';
+import { DateOnly } from '../../../../../utils/date-only';
+import { makeId } from '../../../../../utils/id';
+import { assertIsDefined, isDefined } from '../../../../../utils/is-defined';
+import { dateToTimeOnly } from '../../../../../utils/time-only';
+import { writerOf } from '../../../../../utils/user.util';
+import { Db } from '../../../../framework/database';
+import { TransparenceService } from '../../../../session/transparence/infrastructure/transparence.service';
+import { prismaFormationEnumToFormationEnum } from '../../../../shared/mappers/formation.mapper';
+import { prismaGenderEnumToGenderEnum } from '../../../../shared/mappers/gender-enum.mapper';
+import { prismaRoleEnumToRoleEnum } from '../../../../shared/mappers/role-enum.mapper';
+import { DocNominationFileOutcomeEnum } from '../../../shared/domain/doc-nomination-file-outcome';
+import { agendaContentOf } from '../../../shared/infrastructure/agenda-content';
 import { OfficialReportChairman } from '../../domain/official-report-chairman';
 import { OfficialReportMember } from '../../domain/official-report-member';
 import { OfficialReportMembersList } from '../../domain/official-report-member-list';
 import { OfficialReportSecretary } from '../../domain/official-report-secretary';
 import { OfficialReportSessionMeeting } from '../../domain/official-report-session-meeting';
 import type { OfficialReportRenderContext } from '../services/renderers/official-report.renderer';
-import { Prisma } from 'src/generated/prisma/client';
-import { DocNominationFileOutcomeEnum } from 'src/modules/docs/shared/domain/doc-nomination-file-outcome';
-import { agendaContentOf } from 'src/modules/docs/shared/infrastructure/agenda-content';
-import { Db } from 'src/modules/framework/database';
-import { MembersService } from 'src/modules/members';
-import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
-import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
-import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
-import { prismaRoleEnumToRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
-import { DateOnly } from 'src/utils/date-only';
-import { makeId } from 'src/utils/id';
-import { assertIsDefined, isDefined } from 'src/utils/is-defined';
-import { dateToTimeOnly } from 'src/utils/time-only';
-import { fullname } from 'src/utils/user.util';
 
 import { OfficialReportVersionFinder } from './official-report-version.finder';
-
-function writer(
-  user: { id: string; firstName: string; lastName: string } | null,
-): { id: string; name: string } | null {
-  return user ? { id: user.id, name: fullname(user) } : null;
-}
 
 @Injectable()
 export class OfficialReportRenderContextFinder {
   constructor(
     private readonly db: Db,
-    private readonly members: MembersService,
     private readonly officialReportVersionFinder: OfficialReportVersionFinder,
     @Inject(forwardRef(() => TransparenceService))
     private readonly sessions: TransparenceService,
@@ -44,103 +36,108 @@ export class OfficialReportRenderContextFinder {
   async find(query: { officialReportId: string }): Promise<OfficialReportRenderContext> {
     const versionId = await this.officialReportVersionFinder.latest(query);
     const report = await this.db.tx.officialReportVersion.findUnique({
-      where: { id: versionId },
       select: {
+        chairman: {
+          select: {
+            displayTitle: true,
+            duty: true,
+            firstName: true,
+            gender: true,
+            id: true,
+            lastName: true,
+            role: true,
+            sort: true,
+            title: true,
+          },
+        },
+        conclusionHtml: true,
+        conclusionOutdated: true,
         hasRenunciation: true,
+        introHtml: true,
+        introOutdated: true,
         justiceDepartmentContactName: true,
-
-        sessionMeetingDate: true,
-        sessionMeetingStartingTime: true,
-        sessionMeetingEndingTime: true,
-
+        members: {
+          select: {
+            firstName: true,
+            gender: true,
+            isAbsent: true,
+            lastName: true,
+            memberId: true,
+            sort: true,
+            title: true,
+          },
+        },
+        nominationFiles: {
+          orderBy: { number: 'asc' },
+          select: {
+            editor: { select: { firstName: true, id: true, lastName: true } },
+            grade: true,
+            htmlEdited: true,
+            htmlEditedAt: true,
+            htmlFromAgenda: true,
+            htmlOutdated: true,
+            id: true,
+            name: true,
+            nominationFileId: true,
+            note: true,
+            noteEditedAt: true,
+            noteEditor: { select: { firstName: true, id: true, lastName: true } },
+            number: true,
+            outcome: true,
+            position: true,
+            reporters: true,
+            targetedGrade: true,
+            targetedPosition: true,
+          },
+        },
         officialReport: {
           select: {
             agenda: {
               select: {
+                formation: true,
                 id: true,
                 sessionId: true,
-                formation: true,
                 versions: {
-                  take: 2,
                   orderBy: { version: 'desc' },
                   select: {
+                    _count: { select: { nominationFiles: true } },
                     date: true,
-                    status: true,
                     nominationFiles: {
                       select: {
-                        nominationFileId: true,
+                        editor: { select: { firstName: true, id: true, lastName: true } },
                         htmlEdited: true,
                         htmlEditedAt: true,
-                        editor: { select: { id: true, firstName: true, lastName: true } },
+                        nominationFileId: true,
                       },
                       where: { htmlEdited: { not: null } },
                     },
+                    status: true,
                   },
+                  take: 2,
                 },
               },
             },
           },
         },
-
-        chairman: {
-          select: {
-            id: true,
-            lastName: true,
-            firstName: true,
-            title: true,
-            displayTitle: true,
-            duty: true,
-            role: true,
-            gender: true,
-            sort: true,
-          },
-        },
-
         secretary: {
           select: {
-            id: true,
-            lastName: true,
-            firstName: true,
-            title: true,
             displayTitle: true,
             duty: true,
-            role: true,
+            firstName: true,
             gender: true,
-          },
-        },
-
-        members: { select: { memberId: true, isAbsent: true } },
-
-        nominationFiles: {
-          orderBy: { number: 'asc' },
-          select: {
             id: true,
-            number: true,
-            nominationFileId: true,
-
-            name: true,
-            position: true,
-            grade: true,
-            targetedPosition: true,
-            targetedGrade: true,
-            reporters: true,
-            outcome: true,
-
-            htmlEdited: true,
-            htmlOutdated: true,
-            htmlEditedAt: true,
-            htmlFromAgenda: true,
-            editor: { select: { id: true, firstName: true, lastName: true } },
+            lastName: true,
+            role: true,
+            title: true,
           },
         },
-
-        introHtml: true,
-        introOutdated: true,
-        conclusionHtml: true,
-        conclusionOutdated: true,
+        sectionIntros: { select: { html: true, outcome: true } },
         sectionTitles: { select: { outcome: true, title: true } },
-        sectionIntros: { select: { outcome: true, html: true } },
+        sessionMeetingDate: true,
+        sessionMeetingEndingTime: true,
+        sessionMeetingStartingTime: true,
       } satisfies Prisma.OfficialReportVersionSelect,
+      where: { id: versionId },
     });
 
     if (!report) throw new NotFoundException();
@@ -166,16 +163,15 @@ export class OfficialReportRenderContextFinder {
     // the report speaks of the agenda as it was validated, and of its draft only while the agenda
     // has never been validated, which is the one case where nothing else exists to speak of
     const agendaContent = agendaContentOf(agenda?.versions ?? []);
-    const agendaDate = agendaContent?.date;
-    if (!agenda || !agendaDate) throw new NotFoundException();
+    if (!agenda || !agendaContent) throw new NotFoundException();
 
     const agendaProposals = new Map(
-      (agendaContent?.nominationFiles ?? []).flatMap((file) =>
+      agendaContent.nominationFiles.flatMap((file) =>
         file.nominationFileId && file.htmlEdited
           ? [
               [
                 file.nominationFileId,
-                { at: file.htmlEditedAt, by: writer(file.editor), html: file.htmlEdited },
+                { at: file.htmlEditedAt, by: writerOf(file.editor), html: file.htmlEdited },
               ] as const,
             ]
           : [],
@@ -192,9 +188,9 @@ export class OfficialReportRenderContextFinder {
     );
     const chairman = OfficialReportChairman.from({
       ...rawChairman,
-      role: prismaRoleEnumToRoleEnum(rawChairman.role),
-      gender: prismaGenderEnumToGenderEnum(rawChairman.gender),
       expectedFormation: formation,
+      gender: prismaGenderEnumToGenderEnum(rawChairman.gender),
+      role: prismaRoleEnumToRoleEnum(rawChairman.role),
     });
 
     const rawSecretary = assertIsDefined(
@@ -203,23 +199,14 @@ export class OfficialReportRenderContextFinder {
     );
     const secretary = OfficialReportSecretary.from({
       ...rawSecretary,
-      role: prismaRoleEnumToRoleEnum(rawSecretary.role),
       gender: prismaGenderEnumToGenderEnum(rawSecretary.gender),
+      role: prismaRoleEnumToRoleEnum(rawSecretary.role),
     });
 
-    const absentMembers = new Map(
-      report.members.map(({ memberId, isAbsent }) => [memberId, isAbsent] as const),
-    );
-    const members = await this.members.internalFindMembersByFormation({ formation });
-
     const membersList = OfficialReportMembersList.from(
-      members.flatMap((member) => {
-        const isAbsent = absentMembers.get(member.id);
-        if (!isDefined(isAbsent)) return [];
-
-        // oxlint-disable-next-line typescript/no-misused-spread
-        return [OfficialReportMember.from({ ...member, isAbsent, expectedFormation: formation })];
-      }),
+      report.members.map((member) =>
+        OfficialReportMember.recorded({ ...member, gender: prismaGenderEnumToGenderEnum(member.gender) }),
+      ),
     );
 
     const userDefinedInto = report.introHtml?.trim()
@@ -234,12 +221,12 @@ export class OfficialReportRenderContextFinder {
       const html = title?.trim();
       if (!html) return [];
 
-      return [{ type: 'title' as const, outcome, html }];
+      return [{ html, outcome, type: 'title' as const }];
     });
-    const sectionIntros = report.sectionIntros.map(({ outcome, html }) => ({
-      type: 'intro' as const,
-      outcome,
+    const sectionIntros = report.sectionIntros.map(({ html, outcome }) => ({
       html,
+      outcome,
+      type: 'intro' as const,
     }));
 
     const userDefinedOutcomes = [...sectionTitles, ...sectionIntros].reduce(
@@ -267,11 +254,11 @@ export class OfficialReportRenderContextFinder {
             [
               f.nominationFileId,
               {
+                editedAt: f.htmlEditedAt,
+                editedBy: writerOf(f.editor),
+                fromAgenda: f.htmlFromAgenda,
                 html: f.htmlEdited,
                 isOutdated: f.htmlOutdated,
-                editedAt: f.htmlEditedAt,
-                editedBy: writer(f.editor),
-                fromAgenda: f.htmlFromAgenda,
               },
             ] as const,
         ),
@@ -279,41 +266,47 @@ export class OfficialReportRenderContextFinder {
 
     const sessionMeeting = OfficialReportSessionMeeting.from({
       date: DateOnly.fromUtcDate(report.sessionMeetingDate),
-      startTime: dateToTimeOnly(report.sessionMeetingStartingTime),
       endTime: dateToTimeOnly(report.sessionMeetingEndingTime),
+      startTime: dateToTimeOnly(report.sessionMeetingStartingTime),
     });
 
     return {
-      chairman,
-      secretary,
-      sessionMeeting,
-      members: membersList,
-      hasRenouncement: report.hasRenunciation,
-      justiceDepartmentContact: report.justiceDepartmentContactName,
-      agendaProposals,
-      fileAgendas,
-      session: { date: session.date, id: agenda.sessionId },
-      agenda: { id: agenda.id, formation, date: DateOnly.fromUtcDate(agendaDate) },
-      userDefinedBlocks: {
-        intro: userDefinedInto,
-        conclusion: userDefinedConclusion,
-        files: userDefinedFiles,
-        outcomes: userDefinedOutcomes,
+      agenda: {
+        date: DateOnly.fromUtcDate(agendaContent.date),
+        formation,
+        id: agenda.id,
+        propositionCount: agendaContent._count.nominationFiles,
       },
+      agendaProposals,
+      chairman,
+      fileAgendas,
       files: report.nominationFiles.map((f) => ({
+        currentGrade: f.grade,
+        currentPosition: f.position,
         id: f.id,
-        number: f.number,
+        name: f.name,
         nominationFileId: isDefined(f.nominationFileId)
           ? makeId('NominationFileId', f.nominationFileId)
           : null,
-        name: f.name,
-        currentPosition: f.position,
-        currentGrade: f.grade,
-        targetedPosition: f.targetedPosition ?? '',
-        targetedGrade: f.targetedGrade,
-        reporters: f.reporters,
+        note: f.note ? { editedAt: f.noteEditedAt, editedBy: writerOf(f.noteEditor), html: f.note } : null,
+        number: f.number,
         outcome: f.outcome,
+        reporters: f.reporters,
+        targetedGrade: f.targetedGrade,
+        targetedPosition: f.targetedPosition ?? '',
       })),
+      hasRenouncement: report.hasRenunciation,
+      justiceDepartmentContact: report.justiceDepartmentContactName,
+      members: membersList,
+      secretary,
+      session: { date: session.date, id: agenda.sessionId },
+      sessionMeeting,
+      userDefinedBlocks: {
+        conclusion: userDefinedConclusion,
+        files: userDefinedFiles,
+        intro: userDefinedInto,
+        outcomes: userDefinedOutcomes,
+      },
     } satisfies OfficialReportRenderContext;
   }
 }

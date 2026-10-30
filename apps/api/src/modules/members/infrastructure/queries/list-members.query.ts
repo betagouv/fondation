@@ -2,11 +2,18 @@ import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
 
-import { isMember, MEMBER_ROLES } from '../member.utils';
-import { PrismaRoleEnum } from 'src/generated/prisma/enums';
-import { listMembersRawQuery } from 'src/generated/prisma/sql';
-import { Db } from 'src/modules/framework/database';
-import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
+import { listMembersRawQuery } from '../../../../generated/prisma/sql';
+import { Db } from '../../../framework/database';
+import { createPaginatedZodDto, paginate, Pagination } from '../../../framework/pagination';
+import { roleEnumToPrismaRoleEnum } from '../../../shared/mappers/role-enum.mapper';
+import { USER_STATUSES, UserStatus, userStatusOf } from '../../../shared/user-status.enum';
+import {
+  isMember,
+  MemberFormation,
+  memberFormationOf,
+  MemberFormationSchema,
+  memberRolesOf,
+} from '../member.utils';
 
 @Injectable()
 export class ListMembersQuery {
@@ -15,27 +22,21 @@ export class ListMembersQuery {
   @Transactional()
   async handle(query: {
     pagination: Pagination;
-    formations: readonly ('PARQUET' | 'SIEGE' | 'COMMUN')[] | undefined;
+    formations: readonly MemberFormation[] | undefined;
     search: string | undefined;
     sortBy: 'firstName' | 'lastName' | undefined;
     sortDirection: 'asc' | 'desc' | undefined;
+    statuses: readonly UserStatus[];
   }): Promise<PaginatedMemberListItemDto> {
-    const roles: PrismaRoleEnum[] =
-      (query.formations ?? [])?.length === 0
-        ? ['MEMBRE_COMMUN', 'MEMBRE_DU_SIEGE', 'MEMBRE_DU_PARQUET']
-        : (query.formations ?? []).flatMap((formation) =>
-            formation === 'PARQUET'
-              ? ['MEMBRE_DU_PARQUET']
-              : formation === 'SIEGE'
-                ? ['MEMBRE_DU_SIEGE']
-                : formation === 'COMMUN'
-                  ? ['MEMBRE_COMMUN']
-                  : [],
-          );
+    const includesActive = query.statuses.includes('ACTIVE');
+    const includesDeactivated = query.statuses.includes('DEACTIVATED');
+
+    const roles = memberRolesOf(query.formations ?? []).map(roleEnumToPrismaRoleEnum);
 
     const totalCount = await this.db.tx.user.count({
       where: {
-        role: { in: roles },
+        deactivatedAt:
+          includesActive === includesDeactivated ? undefined : includesActive ? null : { not: null },
         OR: query.search
           ? [
               { email: { contains: query.search, mode: 'insensitive' } },
@@ -43,6 +44,7 @@ export class ListMembersQuery {
               { lastName: { contains: query.search, mode: 'insensitive' } },
             ]
           : undefined,
+        role: { in: roles },
       },
     });
 
@@ -54,13 +56,19 @@ export class ListMembersQuery {
         query.sortDirection || null,
         query.pagination.limit,
         (query.pagination.page - 1) * query.pagination.limit,
+        includesActive,
+        includesDeactivated,
       ),
     );
 
     return paginate({
-      totalCount,
-      items: items.filter(isMember),
+      items: items.filter(isMember).map(({ deactivatedAt, role, ...member }) => ({
+        ...member,
+        formation: memberFormationOf(role),
+        status: userStatusOf({ deactivatedAt }),
+      })),
       pagination: query.pagination,
+      totalCount,
     });
   }
 }
@@ -69,8 +77,9 @@ const MemberListItemDtoSchema = z.object({
   id: z.string(),
   firstName: z.string(),
   lastName: z.string(),
-  role: z.enum(MEMBER_ROLES),
+  formation: MemberFormationSchema,
   excludedJurisdictions: z.array(z.object({ id: z.string(), label: z.string().nullable() })),
+  status: z.enum(USER_STATUSES),
 });
 
 export class PaginatedMemberListItemDto extends createPaginatedZodDto(MemberListItemDtoSchema) {}

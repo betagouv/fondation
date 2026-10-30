@@ -39,7 +39,7 @@ function SessionTab(props: {
     <>
       <i aria-hidden className={clsx(props.icon, 'fr-icon--sm')} />
       {props.label}
-      {props.count !== undefined && (
+      {!!props.count && (
         <>
           {' '}
           <span

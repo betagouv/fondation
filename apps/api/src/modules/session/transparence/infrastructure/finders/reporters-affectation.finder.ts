@@ -1,8 +1,8 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
+import { Prisma } from '../../../../../generated/prisma/client';
+import { Db } from '../../../../framework/database';
 
 import { AffectationVersionFinder } from './affectation-version.finder';
 import { SessionReportedFilesFinder } from './session-reported-files.finder';
@@ -33,5 +33,25 @@ export class ReportersAffectationFinder {
     });
 
     return { isLocked: reportedFileIds.has(query.nominationFileId), reportersCount };
+  }
+
+  @Transactional()
+  async findAssigned(query: {
+    nominationFileIds: readonly string[];
+    sessionId: string;
+  }): Promise<Map<string, Set<string>>> {
+    const version = await this.versions.last({ sessionId: query.sessionId });
+    if (version.isNone()) return new Map();
+
+    const reporters = await this.db.tx.nominationFileToReporter.findMany({
+      select: { nominationFileId: true, userId: true } satisfies Prisma.NominationFileToReporterSelect,
+      where: { nominationFileId: { in: query.nominationFileIds as string[] }, versionId: version.id },
+    });
+
+    const assigned = new Map<string, Set<string>>();
+    for (const { nominationFileId, userId } of reporters) {
+      assigned.set(nominationFileId, (assigned.get(nominationFileId) ?? new Set()).add(userId));
+    }
+    return assigned;
   }
 }

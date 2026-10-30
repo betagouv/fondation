@@ -2,9 +2,10 @@ import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
+import { PrismaSeverityEnum } from '../../../../generated/prisma/enums';
+import { insertMagistratRawQuery, updateMagistratStatusesRawQuery } from '../../../../generated/prisma/sql';
+import { Db } from '../../../framework/database';
 import { LolfiJob } from '../lolfi-job.type';
-import { insertMagistratRawQuery, updateMagistratStatusesRawQuery } from 'src/generated/prisma/sql';
-import { Db } from 'src/modules/framework/database';
 
 import { JobFileIngestor } from './job-file-ingestor';
 import { RawLolfiDate } from './lolfi-ingestor.util';
@@ -33,16 +34,17 @@ export class LolfiMagistratsIngestor {
 
     // oxlint-disable-next-line require-yield
     async function* mapper(source: AsyncIterable<{ data: RawMagistrat; success: boolean }>) {
-      const errors: { entityId: string; error: string }[] = [];
+      const messages: { entityId: string; severity: PrismaSeverityEnum; text: string }[] = [];
       const accumulator: RawMagistrat[] = [];
       const ids = new Set<number>();
 
       for await (const { data } of source) {
         if (ids.has(data.id)) {
           self.logger.warn(`Magistrat "${data.id}" is duplicated. Ignored`);
-          errors.push({
+          messages.push({
             entityId: String(data.id),
-            error: `Magistrat "${data.id}" dupliqué. La première occurrence est la seule sauvegardée`,
+            severity: 'WARNING',
+            text: 'plusieurs occurrences dans le fichier, seule la première est enregistrée',
           });
           continue;
         }
@@ -52,21 +54,21 @@ export class LolfiMagistratsIngestor {
 
         if (accumulator.length >= 500) {
           await self.flush({
-            errors,
-            items: accumulator,
             fileId: options.file.id,
+            items: accumulator,
             jobId: options.job.id,
+            messages,
             result: mappingResult,
           });
         }
       }
 
-      if (accumulator.length > 0 || errors.length > 0) {
+      if (accumulator.length > 0 || messages.length > 0) {
         await self.flush({
-          errors,
-          items: accumulator,
           fileId: options.file.id,
+          items: accumulator,
           jobId: options.job.id,
+          messages,
           result: mappingResult,
         });
       }
@@ -93,14 +95,14 @@ export class LolfiMagistratsIngestor {
 
   @Transactional(Propagation.RequiresNew)
   private async flush(props: {
-    items: RawMagistrat[];
-    errors: { entityId: string; error: string }[];
-    jobId: number;
     fileId: string;
+    items: RawMagistrat[];
+    jobId: number;
+    messages: { entityId: string; severity: PrismaSeverityEnum; text: string }[];
     result: { success: boolean };
   }) {
     try {
-      const errors = [...props.errors];
+      const messages = [...props.messages];
 
       if (props.items.length > 0) {
         const unknown = await this.db.tx.$queryRawTyped(insertMagistratRawQuery(props.items));
@@ -111,30 +113,31 @@ export class LolfiMagistratsIngestor {
 
           const error =
             u.unknownGrade !== null
-              ? `Grade "${u.unknownGrade}" inconnu`
+              ? `grade "${u.unknownGrade}" inconnu`
               : u.unknownPositionId !== null
-                ? `Poste "${u.unknownPositionId}" inconnu`
+                ? `poste actuel "${u.unknownPositionId}" inconnu`
                 : u.unknownAdminPosition !== null
-                  ? `POSAD (<posad>) "${u.unknownAdminPosition}" inconnue`
+                  ? `position administrative "${u.unknownAdminPosition}" inconnue`
                   : u.unknownPrevAdminPosition !== null
-                    ? `POSAD (<posad_prev>) "${u.unknownPrevAdminPosition}" inconnue`
+                    ? `position administrative précédente "${u.unknownPrevAdminPosition}" inconnue`
                     : u.unknownPrevAdminPosition2 !== null
-                      ? `POSAD (<posad_prev2>) "${u.unknownPrevAdminPosition2}" inconnue`
+                      ? `position administrative avant-précédente "${u.unknownPrevAdminPosition2}" inconnue`
                       : null;
 
           if (!error) continue;
 
-          errors.push({ entityId: String(entityId), error });
+          messages.push({ entityId: String(entityId), severity: 'ERROR', text: error });
         }
       }
 
-      if (errors.length > 0) {
-        await this.db.tx.ingestionJobFileError.createMany({
-          data: errors.map(({ entityId, error }) => ({
-            error,
+      if (messages.length > 0) {
+        await this.db.tx.ingestionJobFileMessage.createMany({
+          data: messages.map(({ entityId, severity, text }) => ({
             entityId,
-            jobId: props.jobId,
             fileId: props.fileId,
+            jobId: props.jobId,
+            severity,
+            text,
           })),
         });
       }
@@ -142,7 +145,7 @@ export class LolfiMagistratsIngestor {
       this.logger.error(`Failed flushing MAGISTRATS.xml chunk`, error);
       props.result.success = false;
     } finally {
-      props.errors.length = 0;
+      props.messages.length = 0;
       props.items.length = 0;
     }
   }
@@ -187,7 +190,7 @@ const RawMagistratSchema = z.object({
     .trim()
     /** @warning this is NOT a RawLolfiDate */
     .regex(/\d\d\/\d\d\/\d\d/, {
-      error: ({ input }) => `DD/MM/YY attendu vs. "${input}"`,
+      error: ({ input }) => `date au format JJ/MM/AA attendue, "${input}" reçu`,
     })
     .transform((x) => {
       const [date, month, year] = x.split('/');

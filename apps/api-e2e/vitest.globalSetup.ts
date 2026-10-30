@@ -8,6 +8,7 @@ import postgres from 'postgres';
 import { type TestProject } from 'vitest/node';
 
 import { makeLoggedInUserFixture } from './src/fixtures/auth.fixture.ts';
+import { makeLolfiFixture } from './src/fixtures/lolfi.fixture.ts';
 import { makeCreateSessionFixture } from './src/fixtures/session.fixture.ts';
 import { TestStepsAdmin } from './src/steps.ts';
 import { functions, jurisdictions } from './src/utils/seed.ts';
@@ -40,8 +41,8 @@ async function truncate() {
     truncate "data_administration_context"."jurisdictions" cascade;
     truncate "data_administration_context"."function" cascade;
     truncate "data_administration_context"."grade" cascade;
+    truncate "data_administration_context"."magistrat" cascade;
 
-    truncate "nominations_context"."magistrat" cascade;
     truncate "nominations_context"."session" cascade;
 
     truncate "reports_context"."reports" cascade;
@@ -52,6 +53,10 @@ async function truncate() {
     truncate "jobs"."lolfi_transparence_anomaly" cascade;
 
     truncate "docs"."agenda" cascade;
+
+    -- truncating the users takes the help pages along, which the migration created once
+    insert into "nominations_context"."help_pages" ("content", "page", "updated_at")
+    values ('', 'MEMBRE', now()), ('', 'SECRETARIAT_GENERAL', now());
   `.simple();
 
   await sql.end();
@@ -71,7 +76,7 @@ async function seed(apiUrl: string) {
   const logIn = makeLoggedInUserFixture(apiUrl);
 
   const admin: TestStepsAdmin = await logIn('ADMIN');
-  const sessions = makeCreateSessionFixture(admin);
+  const sessions = makeCreateSessionFixture(admin, makeLolfiFixture({ admin, baseUrl: apiUrl }));
 
   await sessions.createMany([
     {
@@ -112,7 +117,7 @@ async function seed(apiUrl: string) {
             jurisdiction: jurisdictions['TJ  GRASSE'],
           },
           firstName: `user #3 first name`,
-          lastName: 'user #4 last name',
+          lastName: 'user #3 last name',
         },
         {
           position: {
@@ -123,7 +128,7 @@ async function seed(apiUrl: string) {
             function: functions.PR,
             jurisdiction: jurisdictions['TJ  TOULON'],
           },
-          firstName: `user #3 first name`,
+          firstName: `user #4 first name`,
           lastName: 'user #4 last name',
         },
       ],

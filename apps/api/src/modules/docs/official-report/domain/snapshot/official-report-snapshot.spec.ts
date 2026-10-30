@@ -1,3 +1,4 @@
+import { DateOnly } from '../../../../../utils/date-only';
 import { OfficialReportChairman } from '../official-report-chairman';
 import { OfficialReportMember } from '../official-report-member';
 import { OfficialReportMembersList } from '../official-report-member-list';
@@ -5,7 +6,6 @@ import { OfficialReportSecretary } from '../official-report-secretary';
 import { OfficialReportSessionMeeting } from '../official-report-session-meeting';
 import * as helpers from '../official-report-test-utils';
 import { UpdateOfficialReportCommand } from '../official-report-types';
-import { DateOnly } from 'src/utils/date-only';
 
 import { OfficialReportSnapshot, PlainOfficialReportSnapshot } from './official-report-snapshot';
 import { OfficialReportSnapshotFile, PlainOfficialReportSnapshotFile } from './official-report-snapshot-file';
@@ -294,6 +294,7 @@ describe('OfficialReportSnapshot', () => {
             OfficialReportSnapshotFile.from({
               hasManuallyEditedHtml: true,
               nominationFileId: 'file-1',
+              note: null,
               outcome: { value: 'VALIDATED', comment: null },
               reporters: ['M. John DOE'],
             }),
@@ -367,6 +368,7 @@ describe('OfficialReportSnapshot', () => {
             OfficialReportSnapshotFile.from({
               nominationFileId,
               hasManuallyEditedHtml: false,
+              note: null,
               outcome: { value: 'VALIDATED', comment: null },
               reporters: ['M. John DOE'],
             }),
@@ -391,6 +393,7 @@ describe('OfficialReportSnapshot', () => {
             OfficialReportSnapshotFile.from({
               nominationFileId: 'file-1',
               hasManuallyEditedHtml: true,
+              note: null,
               reporters: ['M. John DOE'],
               outcome: { value: 'VALIDATED', comment: null },
             }),
@@ -436,6 +439,7 @@ function makeSnapshot(props: Partial<PlainOfficialReportSnapshot> = {}) {
   const file = {
     nominationFileId: 'file-1',
     hasManuallyEditedHtml: false,
+    note: null,
     outcome: { value: 'VALIDATED', comment: null },
     reporters: ['M. John DOE'],
   } as const satisfies PlainOfficialReportSnapshotFile;

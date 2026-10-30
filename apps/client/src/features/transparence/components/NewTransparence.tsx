@@ -297,7 +297,6 @@ export function NewTransparence() {
                             </RequiredLabel>
                           }
                           onChange={([file]) => {
-                            if (!file) return;
                             resetTransparencyMutation();
                             onChange(file);
                           }}

@@ -5,7 +5,6 @@ import { useCallback, useMemo } from 'react';
 import { defineMessages, FormattedMessage, useIntl } from 'react-intl';
 
 import { PinnedHeader } from '@/shared/components/pinned-header';
-import { RoleEnumMessages } from '@/shared/enums/role.enum';
 import {
   DataTable,
   DataTableCount,
@@ -50,8 +49,8 @@ function useMemberColumns() {
         size: 220,
       }),
 
-      h.accessor('role', {
-        cell: ({ getValue }) => <FormattedMessage {...RoleEnumMessages[getValue()]} />,
+      h.accessor('formation', {
+        cell: ({ getValue }) => getValue().label,
         enableSorting: false,
         header: formatMessage({ defaultMessage: 'Formation' }),
         id: 'formation',
@@ -162,11 +161,7 @@ export function MemberList() {
         <div className={clsx('flex flex-col gap-y-6', { 'fr-container': isPinned })}>
           <h1 className="fr-h3 fr-mb-0">
             <FormattedMessage defaultMessage="Membres" />
-            {data && (
-              <span className="fr-ml-2v text-sm font-normal text-(--text-mention-grey)">
-                (<DataTableCount loaded={members.length} total={data.totalCount} />)
-              </span>
-            )}
+            {data && <DataTableCount loaded={members.length} total={data.totalCount} />}
           </h1>
           <div className="flex items-center justify-between gap-4">
             <DataTableFilters table={table} />

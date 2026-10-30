@@ -4,8 +4,8 @@ import { inspect } from 'node:util';
 import { Logger } from '@nestjs/common';
 import * as xlsx from 'node-xlsx';
 
-import { GradeEnum } from 'src/modules/shared/grade.enum';
-import { DateOnly } from 'src/utils/date-only';
+import { DateOnly } from '../../../../utils/date-only';
+import { GradeEnum } from '../../../shared/grade.enum';
 
 import { LodamTransparenceFile } from './transparence-file';
 

@@ -35,6 +35,7 @@ const SESSION: DetailedNominationSessionDto = {
   isArchived: false,
   isDeletable: true,
   isValidated: false,
+  label: 'T 12/03/2028 (Transparence du 12 mars 2028)',
   name: 'Transparence du 12 mars 2028',
   observationsClosingDate: { year: 2028, month: 2, day: 1 },
   outcomes: [],

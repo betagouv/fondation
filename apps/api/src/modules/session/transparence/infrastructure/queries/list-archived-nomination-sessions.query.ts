@@ -2,27 +2,26 @@ import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import z from 'zod';
 
-import { ListArchivedSessionsQueryDto } from '../dtos/transparence-session.dto';
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
-import { Sortable } from 'src/modules/framework/sorting';
-import { roleToFormation } from 'src/modules/members/infrastructure/member.utils';
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
-import { prismaTypeDeSaisineEnumToTypeDeSaisine } from 'src/modules/shared/mappers/type-de-saisine-enum.mapper';
+import { Prisma } from '../../../../../generated/prisma/client';
+import { dateOnlyJsonSchema } from '../../../../../utils/date-only';
+import { DateOnly } from '../../../../../utils/date-only';
+import { Db } from '../../../../framework/database';
+import { createPaginatedZodDto, paginate, Pagination } from '../../../../framework/pagination';
+import { Sortable } from '../../../../framework/sorting';
+import { FormationEnum } from '../../../../shared/formation.enum';
+import { prismaFormationEnumToFormationEnum } from '../../../../shared/mappers/formation.mapper';
+import { prismaTypeDeSaisineEnumToTypeDeSaisine } from '../../../../shared/mappers/type-de-saisine-enum.mapper';
 import {
   ProposingAuthorityEnum,
   ProposingAuthorityEnumLabels,
-} from 'src/modules/shared/proposing-authority.enum';
-import { isSecretariat, type RoleEnum } from 'src/modules/shared/role.enum';
+} from '../../../../shared/proposing-authority.enum';
+import { isSecretariat, roleToFormation, type RoleEnum } from '../../../../shared/role.enum';
 import {
   TypeDeSaisineEnum,
   TypeDeSaisineEnumLabels,
   typeDeSaisineProposingAuthority,
-} from 'src/modules/shared/type-de-saisine.enum';
-import { dateOnlyJsonSchema } from 'src/utils/date-only';
-import { DateOnly } from 'src/utils/date-only';
+} from '../../../../shared/type-de-saisine.enum';
+import { ListArchivedSessionsQueryDto } from '../dtos/transparence-session.dto';
 
 @Injectable()
 export class ListArchivedNominationSessionsQuery {

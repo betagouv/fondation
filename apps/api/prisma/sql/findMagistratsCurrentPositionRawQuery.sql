@@ -3,7 +3,7 @@
 SELECT
     m.id AS "magistratId",
     CONCAT_WS(' ', func.label, jj.libelle) AS "currentPosition"
-FROM nominations_context."magistrat" AS m
+FROM data_administration_context."magistrat" AS m
 LEFT JOIN
     data_administration_context."position" AS pos
     ON pos.id = NULLIF(m.current_position_id, '')::INT

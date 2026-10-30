@@ -1,8 +1,10 @@
 import { useCurrentEditor, useEditorState } from '@tiptap/react';
+import { useIntl } from 'react-intl';
 
 import { EditorButton } from './EditorButton';
 
 export function RedoButton() {
+  const { formatMessage } = useIntl();
   const { editor } = useCurrentEditor();
   const disabled = useEditorState({
     editor,
@@ -20,7 +22,7 @@ export function RedoButton() {
       iconId="fr-icon-arrow-go-forward-line"
       mark="redo"
       onClick={redoChanges}
-      title="Rétablir"
+      title={formatMessage({ defaultMessage: 'Rétablir' })}
     />
   );
 }

@@ -7,6 +7,8 @@ import { DetailsHeader } from '@/shared/ui/details';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import type { DetailedMagistratDto } from '@api/types';
 
+import { MagistratStatusBadge } from './MagistratStatusBadge';
+
 type MagistratDetailsHeaderProps = {
   context: 'sg' | 'membre';
   magistrat: DetailedMagistratDto;
@@ -60,6 +62,7 @@ export function MagistratDetailsHeader({ context, magistrat }: MagistratDetailsH
       overline={<FormattedMessage defaultMessage="Fiche magistrat" />}
       title={
         <TitleNameIcons name={magistrat.name}>
+          <MagistratStatusBadge className="fr-ml-2v fr-mr-3v" status={magistrat.status} />
           <LolfiLink href={magistrat.externalUrl} small />
         </TitleNameIcons>
       }

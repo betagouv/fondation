@@ -6,8 +6,11 @@ la [doc officielle](https://storybook.js.org/docs) mais montre comment on l'util
 ## C'est quoi, pourquoi
 
 Storybook rend un composant React **isolé du reste de l'application** : pas de serveur, pas de
-login, pas de navigation. Une **story** = un composant rendu avec un jeu de props donné. On
-écrit une story par état métier significatif (vide, rempli, lecture seule, vue SG vs membre...).
+login, pas de navigation. Une **story** = un composant rendu avec un jeu de props donné. Ici, une
+story montre un écran ou une brique **en entier**, jamais ses blocs un par un. Ses états métier
+(vide, rempli, lecture seule, vue SG ou membre...) passent par des **controls** qui reprennent les
+valeurs de l'API : une seule story `Playground` suffit. Seule exception : une story `Usages` à côté,
+quand une galerie compare des variantes côte à côte (voir `Shared/IconLink` et `Shared/IconButton`).
 
 L'analogie côté back : les **args d'une story sont aux composants ce que les fixtures sont aux
 tests** : un jeu de données d'entrée nommé qui matérialise un cas.
@@ -61,9 +64,12 @@ Points clés :
 - `satisfies Meta<typeof Card>` + `StoryObj<typeof meta>` : les `args` sont **typés d'après
   les vraies props** du composant. Si une prop change, la story ne compile plus.
 - Le nom de l'export devient le nom affiché (`Default`, `EditableEmpty` => "Editable Empty").
-- `title` : `Shared/...` pour les briques génériques, `Features/<Écran>/...` pour les composants
-  métier, où `<Écran>` est l'endroit où le composant vit (`SidePanel`, `Details`...).
-- `tags: ['autodocs']` : toujours, c'est la convention du projet.
+- `title` : il suit le dossier du composant. `Pages/...` pour un écran entier de `src/pages`,
+  `Features/...` pour une brique de `src/features`, `Shared/...` pour un composant générique,
+  `Layout/...` pour la coquille de l'application. L'en-tête et les tableaux des écrans de session
+  sont rangés à part sous `Session/<type de session>/...`
+- `tags: ['autodocs']` : génère une page "Docs". Utile pour un composant partagé, inutile pour
+  une page.
 
 ## Args et Controls
 
@@ -112,16 +118,21 @@ Deux raccourcis à connaître :
 
 La liste complète est dans la [doc des controls](https://storybook.js.org/docs/essentials/controls#annotation).
 
-Les stories dérivent les unes des autres par leurs args, inutile de tout répéter :
+Plutôt qu'une story par état, on donne au `meta` des args par défaut et des controls
+qui couvrent les états réels, puis une seule story :
 
 ```tsx
-export const EditableUpcoming: Story = { args: { auditionDateTime: UPCOMING_AT } };
-export const ReadonlyMemberUpcoming: Story = {
-  args: { auditionDateTime: UPCOMING_AT, editable: false },
-};
+const meta = {
+  args: { questionnaire: 'MEMBER', status: 'NOT_ANSWERED' },
+  argTypes: { status: { control: 'inline-radio', options: STATUSES } },
+  // ...
+} satisfies Meta<typeof FeedbackPageStory>;
+
+export const Playground: StoryObj<typeof meta> = {};
 ```
 
-Les args non redéfinis viennent du `meta.args`.
+Les valeurs des controls viennent de l'API (DTO, règles du back) : une combinaison que l'API
+n'envoie jamais n'a pas sa place dans une story.
 
 ## Les spécificités du projet
 
@@ -131,7 +142,8 @@ Les args non redéfinis viennent du `meta.args`.
 
 - le CSS DSFR + `startReactDsfr` (thème clair)
 - `IntlProvider` de react-intl en `fr`
-- un `MemoryRouter` de react-router
+- un routeur de données react-router en mémoire et l'adaptateur nuqs
+- MSW (`msw-storybook-addon`), avec les réponses du panneau latéral déjà branchées
 
 Donc : pas besoin d'ajouter ces providers dans une story. Si le composant lit l'URL
 (`useParams`, route SG vs membre...), on configure le router par story :
@@ -149,35 +161,58 @@ const meta = {
 
 ### Composant qui fait des queries Tanstack Query
 
-On ne mocke pas le réseau : on **seed le cache** avec
-[`StoryQueryClient`](../src/shared/storybook/StoryQueryClient.tsx) et les factories de
-`src/test-utils/factories/`. Quand le composant a besoin de contexte (provider, données), on
-écrit un petit composant wrapper qui devient le `component` du meta. Voir
-[`AuditionDate.stories.tsx`](../src/features/nomination-files-table/components/cells/magistrat-side-panel/components/audition-date/AuditionDate.stories.tsx)
-pour un exemple complet :
+Deux façons de lui donner ses données, souvent combinées :
+
+- **précharger le cache** avec [`StoryQueryClient`](../src/shared/storybook/StoryQueryClient.tsx)
+  (`seed={(client) => client.setQueryData(key, data)}`) et les factories de
+  `src/test-utils/factories/`
+- **répondre aux requêtes** avec MSW (`msw.use(http.get(...))` dans `beforeEach`), quand le
+  composant charge ou enregistre lui-même : l'URL et la méthode viennent de
+  `src/generated/api/sdk.ts`
+
+Quand le composant a besoin de contexte (providers, données, route), on écrit un petit composant
+wrapper qui devient le `component` du meta. Pour une page, le wrapper passe par
+[`PageStory`](../src/shared/storybook/PageStory.tsx) : les providers de `PageLayout`,
+l'utilisateur connecté (SG ou membre) et la vraie route. Voir
+[`FeedbackPage.stories.tsx`](../src/pages/feedback/FeedbackPage.stories.tsx) :
 
 ```tsx
-function AuditionDateStory(props: { editable: boolean; auditionDateTime: number | null }) {
-  const nominationFile = makeSessionNominationFile({/* ... */});
+function FeedbackPageStory(props: { questionnaire: Feedback['questionnaire']; status: Status }) {
+  const feedback = /* construit d'après les controls */;
+
   return (
-    <StoryQueryClient>
-      <NominationFilesTableContext value={/* ... */}>
-        <AuditionDate editable={props.editable} nominationFile={nominationFile} />
-      </NominationFilesTableContext>
-    </StoryQueryClient>
+    <PageStory
+      key={`${props.status}-${props.questionnaire}`}
+      location={ROUTE_PATHS.FEEDBACK}
+      path={ROUTE_PATHS.FEEDBACK}
+      seed={(client) => client.setQueryData(feedbackKeys.mine, feedback)}
+      view={props.questionnaire === 'SECRETARIAT' ? 'sg' : 'member'}
+    >
+      <FeedbackPage />
+    </PageStory>
   );
 }
 
 const meta = {
-  title: 'Features/SidePanel/AuditionDate',
-  component: AuditionDateStory, // le wrapper, pas le composant nu
+  beforeEach: ({ msw }) => {
+    msw.use(http.post('*/api/feedbacks/v1/answer', () => new HttpResponse(null, { status: 204 })));
+  },
+  component: FeedbackPageStory, // le wrapper, pas la page nue
+  title: 'Pages/Feedback',
   // ...
-} satisfies Meta<typeof AuditionDateStory>;
+} satisfies Meta<typeof FeedbackPageStory>;
 ```
 
 Les props du wrapper deviennent les args : on choisit ainsi des controls **métier** simples
-(`editable`, `auditionDateTime`) plutôt que d'exposer des structures complexes. Pour seeder
-une query : `<StoryQueryClient seed={(client) => client.setQueryData(key, data)}>`.
+(`status`, `questionnaire`) plutôt que d'exposer des structures complexes.
+
+Deux pièges :
+
+- `PageStory` précharge le cache **une seule fois**. Le wrapper porte donc une `key` faite des
+  args qui changent les données, pour repartir de zéro quand un control change.
+- Les réponses MSW sont branchées une fois, au chargement de la story. Si l'une d'elles dépend
+  d'un control, le wrapper range la valeur dans une variable du fichier que la réponse lit (voir
+  [`ArchivedSessionsTable.stories.tsx`](../src/features/sessions/components/ArchivedSessionsTable.stories.tsx)).
 
 ## Pour aller plus loin
 

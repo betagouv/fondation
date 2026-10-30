@@ -1,15 +1,15 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 
-import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
+import { API_CONFIG_TOKEN, ApiConfig } from '../framework/config';
 
 import { OpenIdAuthenticationRequestFinder } from './infrastructure/finders/openid-authentication-request.finder';
 import { OpenIdAuthController } from './infrastructure/openid-auth.controller';
+import { PasswordHasher } from './infrastructure/password-hasher';
 import { DetailsUserFromImpersonationQuery } from './infrastructure/queries/details-user-from-impesronation-id.query';
 import { DetailsUserFromSessionIdQuery } from './infrastructure/queries/details-user-from-session-id.query';
 import { DetailsUserQuery } from './infrastructure/queries/details-user.query';
 import { FindMachineQuery } from './infrastructure/queries/find-machine.query';
 import { ListOpenIdProvidersQuery } from './infrastructure/queries/list-openid-providers.query';
-import { ListUsersQuery } from './infrastructure/queries/list-users.query';
 import { AuthUserRepository } from './infrastructure/repositories/auth-user.repository';
 import { OpenIdModule, OpenIdProviderOptions } from './openid';
 import { OpenIdAuthService } from './openid-auth.service';
@@ -30,7 +30,6 @@ import { SimpleAuthService } from './simple-auth.service';
           clientSecret: config.proConnect.clientSecret,
           wellKnown: new URL('/api/v2/.well-known/openid-configuration', config.proConnect.domain).toString(),
           scopes: ['openid', 'given_name', 'usual_name', 'email'],
-          enableCodeChallenge: false,
         };
       },
     }),
@@ -43,9 +42,9 @@ import { SimpleAuthService } from './simple-auth.service';
     DetailsUserQuery,
     FindMachineQuery,
     ListOpenIdProvidersQuery,
-    ListUsersQuery,
     OpenIdAuthenticationRequestFinder,
     OpenIdAuthService,
+    PasswordHasher,
     SimpleAuthService,
   ],
   exports: [SimpleAuthService],

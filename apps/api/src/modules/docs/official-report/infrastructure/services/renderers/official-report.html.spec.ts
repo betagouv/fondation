@@ -1,12 +1,12 @@
 import { load } from 'cheerio';
 
-import { OfficialReportChairman } from 'src/modules/docs/official-report/domain/official-report-chairman';
-import { OfficialReportMember } from 'src/modules/docs/official-report/domain/official-report-member';
-import { OfficialReportMembersList } from 'src/modules/docs/official-report/domain/official-report-member-list';
-import { OfficialReportSecretary } from 'src/modules/docs/official-report/domain/official-report-secretary';
-import { OfficialReportSessionMeeting } from 'src/modules/docs/official-report/domain/official-report-session-meeting';
-import { DateOnly } from 'src/utils/date-only';
-import { makeId } from 'src/utils/id';
+import { DateOnly } from '../../../../../../utils/date-only';
+import { makeId } from '../../../../../../utils/id';
+import { OfficialReportChairman } from '../../../domain/official-report-chairman';
+import { OfficialReportMember } from '../../../domain/official-report-member';
+import { OfficialReportMembersList } from '../../../domain/official-report-member-list';
+import { OfficialReportSecretary } from '../../../domain/official-report-secretary';
+import { OfficialReportSessionMeeting } from '../../../domain/official-report-session-meeting';
 
 import {
   officialReportBlocks,
@@ -18,9 +18,10 @@ describe('officialReportTemplate', () => {
   const baseContext = {
     session: { id: makeId('SessionId'), date: DateOnly.fromJson({ day: 22, month: 6, year: 2026 }) },
     agenda: {
-      id: makeId('AgendaId'),
       date: DateOnly.fromJson({ day: 1, month: 7, year: 2026 }),
       formation: 'SIEGE',
+      id: makeId('AgendaId'),
+      propositionCount: 5,
     },
 
     hasRenouncement: true,
@@ -84,64 +85,69 @@ describe('officialReportTemplate', () => {
 
     files: [
       {
-        id: 0n,
-        number: 100_0,
-        nominationFileId: makeId('NominationFileId', 'nf-0'),
-        name: 'MME Françoise BARRÉ-SINOUSSI',
         currentGrade: 'G3',
         currentPosition: "présidente à la cour d'Appel de Lyon",
+        id: 0n,
+        name: 'MME Françoise BARRÉ-SINOUSSI',
+        nominationFileId: makeId('NominationFileId', 'nf-0'),
+        note: null,
+        number: 100_0,
+        outcome: 'VALIDATED',
         reporters: ['MME Marguerite PEREY'],
         targetedGrade: 'G3',
         targetedPosition: `présidente à la cour d'appel de Grenoble`,
-        outcome: 'VALIDATED',
       },
       {
-        id: 1n,
-        number: 100_1,
-        nominationFileId: makeId('NominationFileId', 'nf-1'),
-        name: 'MME Jacqueline FERRAND',
         currentGrade: 'G3',
         currentPosition: "présidente à la cour d'Appel de Amiens",
+        id: 1n,
+        name: 'MME Jacqueline FERRAND',
+        nominationFileId: makeId('NominationFileId', 'nf-1'),
+        note: null,
+        number: 100_1,
+        outcome: 'NON_VALIDATED',
         reporters: ['MME Sophie GERMAIN'],
         targetedGrade: 'G3',
         targetedPosition: `présidente à la cour d'appel de Reims`,
-        outcome: 'NON_VALIDATED',
       },
       {
-        id: 2n,
-        number: 100_2,
-        nominationFileId: makeId('NominationFileId', 'nf-2'),
-        name: 'MME Barbara McCLINTOCK',
         currentGrade: 'G3',
         currentPosition: "président à la cour d'Appel de Valence",
+        id: 2n,
+        name: 'MME Barbara McCLINTOCK',
+        nominationFileId: makeId('NominationFileId', 'nf-2'),
+        note: null,
+        number: 100_2,
+        outcome: 'NON_VALIDATED',
         reporters: ['MME Marguerite PEREY'],
         targetedGrade: 'G3',
         targetedPosition: `président à la cour d'appel de Riom`,
-        outcome: 'NON_VALIDATED',
       },
       {
-        id: 3n,
-        number: 100_3,
-        nominationFileId: makeId('NominationFileId', 'nf-3'),
-        name: 'MME Marthe GAUTIER',
         currentGrade: 'G3',
         currentPosition: "présidente à la cour d'Appel de Lille",
+        id: 3n,
+        name: 'MME Marthe GAUTIER',
+        nominationFileId: makeId('NominationFileId', 'nf-3'),
+        note: null,
+        number: 100_3,
+        outcome: 'SUSPENDED',
         reporters: ['MME Irène JOLIOT-CURIE'],
         targetedGrade: 'G3',
         targetedPosition: `présidente à la cour d'appel de Marseille`,
-        outcome: 'SUSPENDED',
       },
       {
-        id: 4n,
-        number: 100_4,
-        nominationFileId: makeId('NominationFileId', 'nf-4'),
-        name: 'MME Marthe GAUTIER',
         currentGrade: 'G3',
         currentPosition: "présidente à la cour d'Appel de Strasbourg",
+        id: 4n,
+        name: 'MME Marthe GAUTIER',
+        nominationFileId: makeId('NominationFileId', 'nf-4'),
+        note: null,
+        number: 100_4,
+        outcome: 'WITHDRAWN',
         reporters: ['MME Sophie GERMAIN'],
         targetedGrade: 'G3',
         targetedPosition: `présidente à la cour d'appel de Dijon`,
-        outcome: 'WITHDRAWN',
       },
     ],
 
@@ -164,10 +170,34 @@ describe('officialReportTemplate', () => {
     expect($('main').html()).toMatchSnapshot();
   });
 
+  it('reads a name written in HTML as text', () => {
+    const name = '<img src=x onerror=alert(1)>';
+    const $ = load(
+      officialReportTemplate.render({
+        ...baseContext,
+        files: baseContext.files.map((file) => ({ ...file, name })),
+      }),
+    );
+
+    expect($('main img')).toHaveLength(0);
+    expect($('main ol strong').first().text()).toBe(name);
+  });
+
   it('should not display the renouncement when false', () => {
     const $ = load(officialReportTemplate.render({ ...baseContext, hasRenouncement: false }));
 
     expect($('main').html()).not.toContain(`indique renoncer au délai de convocation`);
+  });
+
+  it('should speak of a single proposition when the agenda holds only one', () => {
+    const $ = load(
+      officialReportTemplate.render({
+        ...baseContext,
+        agenda: { ...baseContext.agenda, propositionCount: 1 },
+      }),
+    );
+
+    expect($('main').text()).toContain(`de l'avis émis par le Conseil sur la proposition figurant`);
   });
 
   it('should include non president members in end-time', () => {
@@ -219,6 +249,21 @@ describe('officialReportTemplate', () => {
     );
   });
 
+  it('should write the note under the paragraph of its proposition', () => {
+    const note = { editedAt: null, editedBy: null, html: '<p>Une information propre au PV</p>' };
+    const $ = load(
+      officialReportTemplate.render({
+        ...baseContext,
+        files: baseContext.files.map((file, index) => ({ ...file, note: index === 0 ? note : null })),
+      }),
+    );
+
+    expect($('main ol li:contains("BARRÉ-SINOUSSI")').html()).toContain(
+      /* html */ `au rapport de MME Marguerite PEREY.<p>Une information propre au PV</p>`,
+    );
+    expect($('main ol p:contains("Une information propre au PV")')).toHaveLength(1);
+  });
+
   it('should not credit the reader for a block reading as the report proposes', () => {
     const [file] = baseContext.files;
     const proposed = Array.from(officialReportBlocks(baseContext)).find(
@@ -250,6 +295,29 @@ describe('officialReportTemplate', () => {
     );
 
     expect(stored).toMatchObject({ edited: false, editedAt: null, fromAgenda: false });
+  });
+
+  it('should credit the reader for a section written by hand', () => {
+    const blocks = Array.from(
+      officialReportBlocks({
+        ...baseContext,
+        userDefinedBlocks: {
+          ...baseContext.userDefinedBlocks,
+          outcomes: {
+            WITHDRAWN: {
+              intro: { html: '<p>Une section écrite à la main</p>', isOutdated: false },
+              title: { html: 'Un titre écrit à la main', isOutdated: false },
+            },
+          },
+        },
+      }),
+    );
+
+    const withdrawn = blocks.filter(
+      (block) =>
+        (block.kind === 'section-title' || block.kind === 'section-intro') && block.outcome === 'WITHDRAWN',
+    );
+    expect(withdrawn).toMatchObject([{ edited: true }, { edited: true }]);
   });
 
   it('should order files', () => {

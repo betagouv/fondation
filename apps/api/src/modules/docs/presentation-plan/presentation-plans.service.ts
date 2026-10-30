@@ -1,24 +1,24 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 
+import { Prisma } from '../../../generated/prisma/client';
+import { DateOnly, DateOnlyJson } from '../../../utils/date-only';
+import { assertIsDefined } from '../../../utils/is-defined';
+import { partition } from '../../../utils/iterables';
+import { TimeOnly } from '../../../utils/time-only';
+import { Clock } from '../../framework/clock';
 import { Db } from '../../framework/database';
+import { Files } from '../../framework/files';
 import { Pagination } from '../../framework/pagination';
 import { MembersService } from '../../members';
 import { SimpleAuthService } from '../../simple-auth';
-import { DocInvalidation } from '../shared/domain/invalidation/official-report-invalidated.integration-event';
 import { AgendaFinder, FoundAgendasDto } from '../shared/infrastructure/finders/agenda.finder';
-import { Prisma } from 'src/generated/prisma/client';
-import { Clock } from 'src/modules/framework/clock';
-import { Files } from 'src/modules/framework/files';
-import { DateOnly, DateOnlyJson } from 'src/utils/date-only';
-import { assertIsDefined } from 'src/utils/is-defined';
-import { partition } from 'src/utils/iterables';
-import { TimeOnly } from 'src/utils/time-only';
 
 import {
   JusticePresentationPlan,
   JusticePresentationPlanAlreadyPresented,
 } from './domain/justice-presentation-plan';
+import { canEditPresentationPlan } from './domain/presentation-plan.policies';
 import {
   DetailedPresentationPlanMetadataDto,
   DetailsPresentationPlanMetadataQuery,
@@ -35,8 +35,11 @@ import {
   ListPresentedPlansQuery,
 } from './infrastructure/queries/list-presented-plans.query';
 import { JusticePresentationPlanRepository } from './infrastructure/repositories/justice-presentation-plan.repository';
-import { updatePresentationTimeDocMeetingSessionEndingTime } from './infrastructure/services/renderers/presentation-plan.html';
-import { InternalInvalidatePresentationPlanUseCase } from './infrastructure/use-cases/invalidate-presentation-plan.use-case';
+import {
+  removePresentationTimeDocMeetingSessionEndingTime,
+  updatePresentationTimeDocMeetingSessionEndingTime,
+  withEditedPresentationPlanContent,
+} from './infrastructure/services/renderers/presentation-plan.html';
 import { ValidatePresentationPlanUseCase } from './infrastructure/use-cases/validate-presentation-plan.use-case';
 
 @Injectable()
@@ -51,7 +54,6 @@ export class PresentationPlansService {
     private readonly detailsPresentationPlanPdfDocumentQuery: DetailsPresentationPlanPdfDocumentQuery,
     private readonly findPresentationPlanDocumentPdfQuery: FindPresentationPlanDocumentPdfQuery,
     private readonly findPresentationPlanDocumentQuery: FindPresentationPlanDocumentQuery,
-    private readonly internalInvalidatePresentationPlanUseCase: InternalInvalidatePresentationPlanUseCase,
     private readonly justicePresentationPlanRepository: JusticePresentationPlanRepository,
     private readonly listNonPresentedPlansQuery: ListNonPresentedPlansQuery,
     private readonly listPresentedPlansQuery: ListPresentedPlansQuery,
@@ -64,10 +66,6 @@ export class PresentationPlansService {
 
   findPresentationPlanAgendas(query: { ignorePlanId: string | undefined }): Promise<FoundAgendasDto> {
     return this.agendaFinder.findAwaitingPresentationPlan(query);
-  }
-
-  internalInvalidatePresentationPlan(cause: DocInvalidation): Promise<void> {
-    return this.internalInvalidatePresentationPlanUseCase.handle(cause);
   }
 
   detailsPresentationPlanMetadata(query: { id: string }): Promise<DetailedPresentationPlanMetadataDto> {
@@ -115,21 +113,21 @@ export class PresentationPlansService {
     }));
 
     const secretary = await this.auth.detailsUser({
-      userId: command.secretaryId,
       impersonationId: undefined,
+      userId: command.secretaryId,
     });
 
     const plan = JusticePresentationPlan.create({
       agendas,
+      authorId: command.authorId,
       chairman,
+      date: DateOnly.fromJson(command.date),
+      hasRenunciation: command.hasRenunciation,
+      justiceContactId: command.justiceContactId,
+      members: planMembers,
       // oxlint-disable-next-line typescript/no-misused-spread
       secretary: { ...secretary, id: secretary.userId },
-      justiceContactId: command.justiceContactId,
-      authorId: command.authorId,
       time: command.time,
-      hasRenunciation: command.hasRenunciation,
-      date: DateOnly.fromJson(command.date),
-      members: planMembers,
     });
 
     await this.justicePresentationPlanRepository.persist(plan);
@@ -169,6 +167,7 @@ export class PresentationPlansService {
     const { formation } = assertIsDefined(agendas[0]);
     const members = await this.members.internalFindMembersByFormation({
       formation,
+      includeIds: plan.recordedMemberIds,
     });
 
     const [[chairman], allMembers] = partition(members, (m) => m.id === command.chairmanId);
@@ -182,21 +181,21 @@ export class PresentationPlansService {
     const planMembers = allMembers.map((m) => ({ id: m.id, isAbsent: absentMembersSet.has(m.id) }));
 
     const secretary = await this.auth.detailsUser({
-      userId: command.secretaryId,
       impersonationId: undefined,
+      userId: command.secretaryId,
     });
 
     plan.update({
       agendas,
+      authorId: command.authorId,
       chairman,
+      date: DateOnly.fromJson(command.date),
       hasRenunciation: command.hasRenunciation,
+      justiceContactId: command.justiceContactId,
+      members: planMembers,
       // oxlint-disable-next-line typescript/no-misused-spread
       secretary: { ...secretary, id: secretary.userId },
-      justiceContactId: command.justiceContactId,
-      authorId: command.authorId,
       time: command.time,
-      date: DateOnly.fromJson(command.date),
-      members: planMembers,
     });
 
     await this.justicePresentationPlanRepository.persist(plan);
@@ -211,7 +210,7 @@ export class PresentationPlansService {
     await this.justicePresentationPlanRepository.persist(plan);
   }
 
-  findPresentationPlanDocument(query: { id: string; forceNew?: boolean }): Promise<string> {
+  findPresentationPlanDocument(query: { id: string }): Promise<string> {
     return this.findPresentationPlanDocumentQuery.handle(query);
   }
 
@@ -234,8 +233,8 @@ export class PresentationPlansService {
       await this.justicePresentationPlanRepository.persist(plan);
 
       const htmlPlan = await this.db.tx.justicePresentationPlan.findUnique({
-        where: { id: command.id },
         select: { html: true } satisfies Prisma.JusticePresentationPlanSelect,
+        where: { id: command.id },
       });
 
       if (!htmlPlan || !htmlPlan.html) {
@@ -249,19 +248,36 @@ export class PresentationPlansService {
       });
 
       await this.db.tx.justicePresentationPlan.update({
-        where: { id: command.id },
         data: { html: updatedHtml },
+        where: { id: command.id },
       });
     });
 
     await this.findPresentationPlanDocumentPdfQuery.renew({ id: command.id });
   }
 
-  @Transactional()
   async unPresentPlan(command: { id: string }): Promise<void> {
-    const plan = await this.justicePresentationPlanRepository.find({ id: command.id });
-    plan.unPresent();
-    await this.justicePresentationPlanRepository.persist(plan);
+    await this.db.withTransaction(async () => {
+      const plan = await this.justicePresentationPlanRepository.find({ id: command.id });
+      plan.unPresent();
+      await this.justicePresentationPlanRepository.persist(plan);
+
+      const { html } = await this.db.tx.justicePresentationPlan.findUniqueOrThrow({
+        select: { html: true } satisfies Prisma.JusticePresentationPlanSelect,
+        where: { id: command.id },
+      });
+
+      await this.db.tx.justicePresentationPlan.update({
+        data: {
+          html: removePresentationTimeDocMeetingSessionEndingTime({
+            html: assertIsDefined(html, 'a presented notice holds the text it was read with'),
+          }),
+        },
+        where: { id: command.id },
+      });
+    });
+
+    await this.findPresentationPlanDocumentPdfQuery.renew({ id: command.id });
   }
 
   async detailsPresentationPlanPdfDocument(query: { id: string }): Promise<{ id: string; url: string }> {
@@ -270,17 +286,16 @@ export class PresentationPlansService {
 
   async resetPresentationPlanDocument(command: { authorId: string; id: string }): Promise<void> {
     const plan = await this.db.tx.justicePresentationPlan.findUnique({
-      where: { id: command.id },
       select: {
         isPresented: true,
         pdf: { select: { id: true, path: true } },
       } satisfies Prisma.JusticePresentationPlanSelect,
+      where: { id: command.id },
     });
     if (!plan) throw new NotFoundException();
-    if (plan.isPresented) throw new JusticePresentationPlanAlreadyPresented();
+    if (!canEditPresentationPlan(plan)) throw new JusticePresentationPlanAlreadyPresented();
 
     await this.db.tx.justicePresentationPlan.update({
-      where: { id: command.id },
       data: {
         html: null,
         isManuallyEdited: false,
@@ -288,6 +303,7 @@ export class PresentationPlansService {
         updatedAt: this.clock.now(),
         updatedBy: command.authorId,
       },
+      where: { id: command.id },
     });
 
     if (plan.pdf) this.files.delete([plan.pdf]);
@@ -295,24 +311,25 @@ export class PresentationPlansService {
 
   async updatePresentationPlanHtml(command: { authorId: string; html: Buffer; id: string }): Promise<void> {
     const plan = await this.db.tx.justicePresentationPlan.findUnique({
-      where: { id: command.id },
       select: {
         isPresented: true,
         pdf: { select: { id: true, path: true } },
       } satisfies Prisma.JusticePresentationPlanSelect,
+      where: { id: command.id },
     });
     if (!plan) throw new NotFoundException();
-    if (plan.isPresented) throw new JusticePresentationPlanAlreadyPresented();
+    if (!canEditPresentationPlan(plan)) throw new JusticePresentationPlanAlreadyPresented();
 
+    const html = await this.findPresentationPlanDocumentQuery.handle({ forceNew: true, id: command.id });
     await this.db.tx.justicePresentationPlan.update({
-      where: { id: command.id },
       data: {
-        html: command.html.toString('utf-8'),
+        html: withEditedPresentationPlanContent({ edited: command.html.toString('utf-8'), html }),
         isManuallyEdited: true,
         pdfId: null,
         updatedAt: this.clock.now(),
         updatedBy: command.authorId,
       },
+      where: { id: command.id },
     });
 
     if (plan.pdf) this.files.delete([plan.pdf]);

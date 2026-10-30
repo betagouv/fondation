@@ -2,10 +2,11 @@ import * as crypto from 'node:crypto';
 
 import { faker } from '@faker-js/faker/locale/fr';
 
-import { USER_DUTIES, USER_TITLES } from 'src/modules/administration/domain/user-enum';
-import { GenderEnum } from 'src/modules/shared/gender.enum';
-import { DateOnly } from 'src/utils/date-only';
-import { makeId } from 'src/utils/id';
+import { DateOnly } from '../../../../utils/date-only';
+import { makeId } from '../../../../utils/id';
+import { GenderEnum } from '../../../shared/gender.enum';
+import { USER_DUTIES } from '../../../shared/user-duty.enum';
+import { USER_TITLES } from '../../../shared/user-title.enum';
 
 import { OfficialReportAgenda } from './official-report-agenda';
 import { OfficialReportChairman } from './official-report-chairman';
@@ -111,6 +112,7 @@ export function makeSnapshot(props: Partial<PlainOfficialReportSnapshot> = {}): 
         OfficialReportSnapshotFile.from({
           nominationFileId: 'file-1',
           hasManuallyEditedHtml: false,
+          note: null,
           reporters: ['M. John DOE'],
           outcome: { value: 'VALIDATED', comment: null },
         }),

@@ -3,8 +3,8 @@ import { Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { lastValueFrom } from 'rxjs';
 import z from 'zod';
 
-import { ApiConfig } from 'src/modules/framework/config';
-import { Pretty } from 'src/utils/types';
+import { Pretty } from '../../../../utils/types';
+import { ApiConfig } from '../../../framework/config';
 
 import { OpenIdClaims } from './openid-claims';
 import { Jwk, JwksSchema } from './openid.schema';
@@ -65,7 +65,7 @@ class DiscoveredOpenIdConfig implements OnApplicationBootstrap {
   /** this is the main reason of this class: discovering the config before the app starts */
   async onApplicationBootstrap(): Promise<void> {
     const { data: configuration } = await lastValueFrom(this.http.get(this.options.wellKnown));
-    const { jwksUri, supportedClaims, supportedScopes, ...metadata } =
+    const { jwksUri, supportedClaims, supportedCodeChallengeMethods, supportedScopes, ...metadata } =
       await InternalOpenIdDiscoveredSchema.parseAsync(configuration);
 
     this.claims?.assertIsSupported(supportedClaims);
@@ -76,6 +76,11 @@ class DiscoveredOpenIdConfig implements OnApplicationBootstrap {
       throw new UnsupportedOpenIdScopes(unsupportedScopes);
     }
 
+    if (!supportedCodeChallengeMethods.has(OPENID_CODE_CHALLENGE_METHOD)) {
+      this.logger.error(`unsupported code challenge method ${OPENID_CODE_CHALLENGE_METHOD}`);
+      throw new UnsupportedOpenIdCodeChallenge();
+    }
+
     const { data: jwks } = await lastValueFrom(this.http.get(jwksUri.toString()));
     const { keys } = await JwksSchema.parseAsync(jwks);
 
@@ -83,11 +88,15 @@ class DiscoveredOpenIdConfig implements OnApplicationBootstrap {
   }
 }
 
+export const OPENID_CODE_CHALLENGE_METHOD = 'S256';
+
 export class UnsupportedOpenIdScopes extends Error {
   constructor(readonly scopes: readonly string[]) {
     super();
   }
 }
+
+export class UnsupportedOpenIdCodeChallenge extends Error {}
 
 /** @internal user provided options for each provider */
 const InternalOpenIdProviderOptionsSchema = z.object({
@@ -100,9 +109,6 @@ const InternalOpenIdProviderOptionsSchema = z.object({
   scopes: z.array(z.string()).default([]),
   claims: OpenIdClaims.schema.optional(),
   acr: z.string().optional(),
-
-  /** @default true if the configuration allows code challenge, it will be provided, unless disabled here */
-  enableCodeChallenge: z.boolean().optional(),
 });
 
 /** @public */
@@ -119,14 +125,12 @@ const InternalOpenIdDiscoveredSchema = z
     claims_supported: z.array(z.string()).default([]),
     scopes_supported: z.array(z.string()).default([]),
     grant_types_supported: z.array(z.string()).default([]),
-    code_challenge_methods_supported: z.array(z.string()).optional(),
+    code_challenge_methods_supported: z.array(z.string()).default([]),
   })
   .transform((x) => ({
     supportedClaims: new Set(x.claims_supported),
     supportedScopes: new Set(x.scopes_supported),
-    supportedCodeChallengeMethods: x.code_challenge_methods_supported
-      ? new Set(x.code_challenge_methods_supported)
-      : null,
+    supportedCodeChallengeMethods: new Set(x.code_challenge_methods_supported),
     jwksUri: new URL(x.jwks_uri),
     issuer: x.issuer,
     endpoints: {
@@ -145,7 +149,6 @@ type InternalOpenIdConventionConfig = {
 type InternalOpenIdDiscoveredConfig = {
   issuer: string;
   keys: readonly Jwk[];
-  supportedCodeChallengeMethods: Set<string> | null;
   endpoints: { token: URL; authorization: URL; userInfo: URL };
 };
 

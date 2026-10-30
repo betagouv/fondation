@@ -44,24 +44,4 @@ const meta = {
 
 export default meta;
 
-type Story = StoryObj<typeof meta>;
-
-export const Playground: Story = {};
-
-export const Tones: Story = {
-  parameters: { controls: { disable: true } },
-  render: ({ buttonAction, icon }) => (
-    <div className="flex flex-col gap-4">
-      {TONES.map((tone) => (
-        <AlertBannerStory
-          buttonAction={buttonAction}
-          className={LAYOUT}
-          icon={icon}
-          key={tone}
-          message={`Une alerte au ton ${tone}`}
-          tone={tone}
-        />
-      ))}
-    </div>
-  ),
-};
+export const Playground: StoryObj<typeof meta> = {};

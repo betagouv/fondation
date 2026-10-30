@@ -2,11 +2,10 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
-import { MEMBER_TITLES, toMemberTitle } from '../../domain/member-enums';
-import { isMember, MEMBER_ROLES } from '../member.utils';
-import { detailsMemberRawQuery } from 'src/generated/prisma/sql';
-import { Db } from 'src/modules/framework/database';
-import { GradeEnum } from 'src/modules/shared/grade.enum';
+import { detailsMemberRawQuery } from '../../../../generated/prisma/sql';
+import { Db } from '../../../framework/database';
+import { GradeEnum } from '../../../shared/grade.enum';
+import { isMember, memberFormationOf, MemberFormationSchema } from '../member.utils';
 
 @Injectable()
 export class DetailsMemberQuery {
@@ -20,12 +19,11 @@ export class DetailsMemberQuery {
     return {
       id: user.id,
       email: user.email,
-      role: user.role,
+      formation: memberFormationOf(user.role),
       firstName: user.firstName,
       lastName: user.lastName,
       gender: user.gender,
       displayTitle: user.displayTitle ?? null,
-      title: toMemberTitle(user.title),
       excludedJurisdictions: ((user.excludedJurisdictions as any[]) ?? []).map(
         (j: { id: string; label: string }) => ({
           id: j.id,
@@ -49,10 +47,9 @@ export class DetailedMemberDto extends createZodDto(
     email: z.string(),
     firstName: z.string(),
     lastName: z.string(),
-    role: z.enum(MEMBER_ROLES),
+    formation: MemberFormationSchema,
     gender: z.string(),
     displayTitle: z.string().nullable(),
-    title: z.enum(MEMBER_TITLES).nullable(),
 
     excludedJurisdictions: z.array(z.object({ id: z.string(), label: z.string().nullable() })),
 

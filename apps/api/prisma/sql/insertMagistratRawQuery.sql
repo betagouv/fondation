@@ -29,7 +29,7 @@ WITH bronze_magistrat AS (
 ),
 
 gold_magistrats AS (
-  INSERT INTO nominations_context.magistrat (
+  INSERT INTO data_administration_context.magistrat (
     birth_date,
     grade_date,
     installation_date,

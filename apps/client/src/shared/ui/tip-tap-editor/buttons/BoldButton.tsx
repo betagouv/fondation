@@ -1,10 +1,12 @@
 import { useCurrentEditor, useEditorState } from '@tiptap/react';
+import { useIntl } from 'react-intl';
 
 import { headingLevels } from '../extensions/constant';
 
 import { EditorButton } from './EditorButton';
 
 export function BoldButton() {
+  const { formatMessage } = useIntl();
   const { editor } = useCurrentEditor();
   const disabled = useEditorState({
     editor,
@@ -23,6 +25,12 @@ export function BoldButton() {
   };
 
   return (
-    <EditorButton disabled={!!disabled} iconId="fr-icon-bold" mark="bold" onClick={toggleBold} title="Gras" />
+    <EditorButton
+      disabled={!!disabled}
+      iconId="fr-icon-bold"
+      mark="bold"
+      onClick={toggleBold}
+      title={formatMessage({ defaultMessage: 'Gras' })}
+    />
   );
 }

@@ -7,6 +7,7 @@ import type { OfficialReportSnapshotDiff } from '../official-report-types';
 export type PlainOfficialReportSnapshotFile = {
   hasManuallyEditedHtml: boolean;
   nominationFileId: string | null;
+  note: string | null;
   outcome: {
     comment: string | null;
     value: DocNominationFileOutcomeEnum;
@@ -20,6 +21,7 @@ export class OfficialReportSnapshotFile {
     readonly reporters: readonly string[],
     readonly outcome: { comment: string | null; value: DocNominationFileOutcomeEnum },
     readonly hasManuallyEditedHtml: boolean,
+    readonly note: string | null,
   ) {}
 
   static from(plain: PlainOfficialReportSnapshotFile): OfficialReportSnapshotFile {
@@ -28,6 +30,7 @@ export class OfficialReportSnapshotFile {
       plain.reporters,
       plain.outcome,
       plain.hasManuallyEditedHtml,
+      plain.note,
     );
   }
 

@@ -1,42 +1,8 @@
-import { PrismaUserDutyEnum, PrismaUserTitleEnum } from 'src/generated/prisma/enums';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import { assertNever } from 'src/utils/assert-never';
-
-export const USER_TITLES = [
-  'PRESIDENT_SIEGE',
-  'PRESIDENT_PARQUET',
-  'DEPUTY_PRESIDENT_SIEGE',
-  'DEPUTY_PRESIDENT_PARQUET',
-  'FIRST_SECRETARY',
-] as const;
-export type UserTitleEnum = (typeof USER_TITLES)[number];
-
-export const USER_DUTIES = ['PRESIDENT', 'DEPUTY_PRESIDENT', 'SECRETARY', 'OFFICER'] as const;
-export type UserDutyEnum = (typeof USER_DUTIES)[number];
-
-export function toUserTitle(value: PrismaUserTitleEnum | null): UserTitleEnum | null {
-  return USER_TITLES.includes(value as UserTitleEnum) ? (value as UserTitleEnum) : null;
-}
-
-export function toUserDuty(value: PrismaUserDutyEnum | null): UserDutyEnum | null {
-  return USER_DUTIES.includes(value as UserDutyEnum) ? (value as UserDutyEnum) : null;
-}
-
-export const ADMIN_USER_ROLES_ENUM = [
-  'FIRST_SECRETARY',
-  'SECRETARY',
-  'OFFICER',
-
-  'PRESIDENT_SIEGE',
-  'DEPUTY_PRESIDENT_SIEGE',
-  'PRESIDENT_PARQUET',
-  'DEPUTY_PRESIDENT_PARQUET',
-
-  'MEMBRE_PARQUET',
-  'MEMBRE_SIEGE',
-  'MEMBRE_COMMUN',
-] as const;
-export type AdminUserRoleEnum = (typeof ADMIN_USER_ROLES_ENUM)[number];
+import { assertNever } from '../../../utils/assert-never';
+import type { AdminUserRoleEnum } from '../../shared/admin-user-role.enum';
+import type { RoleEnum } from '../../shared/role.enum';
+import type { UserDutyEnum } from '../../shared/user-duty.enum';
+import type { UserTitleEnum } from '../../shared/user-title.enum';
 
 export function adminUserRoleEnumToTitle(role: AdminUserRoleEnum): UserTitleEnum | null {
   switch (role) {
@@ -114,7 +80,7 @@ export function adminUserRoleEnumToIdentityRoles(role: AdminUserRoleEnum): RoleE
     case 'FIRST_SECRETARY':
     case 'SECRETARY':
     case 'OFFICER':
-      return ['ADMIN', 'ADJOINT_SECRETAIRE_GENERAL'];
+      return ['ADJOINT_SECRETAIRE_GENERAL'];
 
     default:
       return assertNever(role);

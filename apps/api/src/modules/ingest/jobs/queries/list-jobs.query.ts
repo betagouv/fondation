@@ -2,10 +2,10 @@ import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import z from 'zod';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { PrismaJobStatusEnum } from 'src/generated/prisma/enums';
-import { Db } from 'src/modules/framework/database';
-import { createPaginatedZodDto, paginate, Pagination } from 'src/modules/framework/pagination';
+import { Prisma } from '../../../../generated/prisma/client';
+import { PrismaJobStatusEnum } from '../../../../generated/prisma/enums';
+import { Db } from '../../../framework/database';
+import { createPaginatedZodDto, paginate, Pagination } from '../../../framework/pagination';
 
 @Injectable()
 export class ListJobsQuery {
@@ -34,7 +34,6 @@ export class ListJobsQuery {
         createdAt: true,
         startedAt: true,
         endedAt: true,
-        errors: { select: { error: true } },
       } satisfies Prisma.IngestionJobSelect,
     });
 
@@ -58,6 +57,5 @@ export class PaginatedJobsDto extends createPaginatedZodDto(
     createdAt: z.iso.datetime(),
     startedAt: z.iso.datetime().nullable(),
     endedAt: z.iso.datetime().nullable(),
-    errors: z.array(z.object({ error: z.string() })),
   }),
 ) {}

@@ -10,16 +10,16 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
+import { Prisma } from '../../generated/prisma/client';
+import type { AuditionSchedule } from '../../utils/audition-schedule';
+import type { DateOnly } from '../../utils/date-only';
+import { isDefined } from '../../utils/is-defined';
+import type { TimeOnly } from '../../utils/time-only';
+import { Db } from '../framework/database';
+import { Files } from '../framework/files';
+import type { StoredFile } from '../framework/files/multipart/multipart.types';
 import { TransparenceService } from '../session/transparence/infrastructure/transparence.service';
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { Files } from 'src/modules/framework/files';
-import type { StoredFile } from 'src/modules/framework/files/multipart/multipart.types';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import type { AuditionSchedule } from 'src/utils/audition-schedule';
-import type { DateOnly } from 'src/utils/date-only';
-import { isDefined } from 'src/utils/is-defined';
-import type { TimeOnly } from 'src/utils/time-only';
+import type { RoleEnum } from '../shared/role.enum';
 
 import {
   Observation,
@@ -132,10 +132,12 @@ export class ObservationService {
   @Transactional()
   async deleteObservation(command: {
     impersonatorId: string | null;
+    nominationFileId: string;
     observationId: string;
+    sessionId: string;
     userId: string;
   }): Promise<void> {
-    const observation = await this.observationRepository.findById(command.observationId);
+    const observation = await this.observationRepository.findById(command);
 
     observation.delete({
       ...command,
@@ -153,10 +155,12 @@ export class ObservationService {
     impersonatorId: string | null;
     linkedFiles: readonly { fileId: string; observationId: string }[];
     magistratId: string;
+    nominationFileId: string;
     observationId: string;
+    sessionId: string;
     userId: string;
   }): Promise<void> {
-    const observation = await this.observationRepository.findById(command.observationId);
+    const observation = await this.observationRepository.findById(command);
 
     if (command.magistratId !== observation.magistratId) {
       const existingObservation = await this.db.tx.observation.findUnique({
@@ -259,9 +263,13 @@ export class ObservationService {
     return this.listObservationsQuery.handle(query);
   }
 
+  @Transactional()
   getObservationFileUrl(query: {
     fileId: string;
+    nominationFileId: string;
     observationId: string;
+    role: RoleEnum;
+    sessionId: string;
   }): Promise<GetObservationFileUrlResponseDto> {
     return this.getObservationFileUrlQuery.handle(query);
   }
@@ -289,7 +297,7 @@ export class ObservationService {
       });
       const reporterIds = (reporters.get(command.nominationFileId) ?? []).map(({ id }) => id);
 
-      const observation = await this.observationRepository.findById(command.observationId);
+      const observation = await this.observationRepository.findById(command);
 
       try {
         observation.attachMemberCommentScreenshots({
@@ -338,7 +346,7 @@ export class ObservationService {
     });
     const reporterIds = (reporters.get(command.nominationFileId) ?? []).map(({ id }) => id);
 
-    const observation = await this.observationRepository.findById(command.observationId);
+    const observation = await this.observationRepository.findById(command);
 
     try {
       observation.writeMemberComment({
@@ -360,10 +368,12 @@ export class ObservationService {
   async followUpWith(command: {
     comment: string | null;
     followUp: string | null;
+    nominationFileId: string;
     observationId: string;
+    sessionId: string;
     userId: string | null;
   }): Promise<void> {
-    const observation = await this.observationRepository.findById(command.observationId);
+    const observation = await this.observationRepository.findById(command);
     observation.followUpWith(command);
     await this.observationRepository.persist(observation);
   }

@@ -1,19 +1,13 @@
 import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable, NotFoundException } from '@nestjs/common';
 
-import {
-  ExcludedMemberJurisdictions,
-  Member,
-  MemberDisplayTitleUpdated,
-  MemberTitleUpdated,
-} from '../domain/member';
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { prismaRoleEnumToRoleEnum } from 'src/modules/shared/mappers/role-enum.mapper';
-import { assertNever } from 'src/utils/assert-never';
-import { makeId } from 'src/utils/id';
-
-import { MEMBER_ROLES } from './member.utils';
+import { Prisma } from '../../../generated/prisma/client';
+import { assertNever } from '../../../utils/assert-never';
+import { makeId } from '../../../utils/id';
+import { Db } from '../../framework/database';
+import { prismaRoleEnumToRoleEnum } from '../../shared/mappers/role-enum.mapper';
+import { MEMBER_ROLES } from '../../shared/role.enum';
+import { ExcludedMemberJurisdictions, Member, MemberDisplayTitleUpdated } from '../domain/member';
 
 @Injectable()
 export class MemberRepository {
@@ -63,7 +57,6 @@ export class MemberRepository {
         await this.persistExcludedMemberJurisdictions(message);
       else if (message instanceof MemberDisplayTitleUpdated)
         await this.persistMemberDisplayTitleUpdated(message);
-      else if (message instanceof MemberTitleUpdated) await this.persistMemberTitleUpdated(message);
       else assertNever(message);
     }
   }
@@ -90,18 +83,6 @@ export class MemberRepository {
     return this.db.tx.user.update({
       where: { id: message.userId },
       data: { displayTitle: message.displayTitle },
-    });
-  }
-
-  private async persistMemberTitleUpdated(message: MemberTitleUpdated) {
-    await this.db.tx.user.updateMany({
-      where: { title: message.title },
-      data: { title: null, duty: null },
-    });
-
-    await this.db.tx.user.update({
-      where: { id: message.userId },
-      data: { title: message.title, duty: message.duty },
     });
   }
 }

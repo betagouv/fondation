@@ -17,6 +17,8 @@ import { useIngestLolfiArchiveMutation } from '@queries/ingest.queries';
 
 const ZIP_MIME_TYPES = ['application/zip', 'application/x-zip-compressed'];
 const ZIP_FILE_TYPES = [...ZIP_MIME_TYPES, '.zip'].join(',');
+// see ingestLolfiArchive in apps/api/src/modules/ingest
+const LOLFI_ARCHIVE_MAX_BYTES = 30 * 1_024 * 1_024;
 
 type FormSchema = { archive: File };
 
@@ -98,14 +100,14 @@ export function IngestLolfiArchivePage() {
       <Breadcrumb
         ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane pour l'Administration" })}
         breadcrumb={{
-          currentPageLabel: formatMessage({ defaultMessage: 'Import LOLFI manuel' }),
+          currentPageLabel: formatMessage({ defaultMessage: 'Importer une archive LOLFI' }),
           segments: [{ label: formatMessage({ defaultMessage: 'Administration' }), to: {} }],
         }}
         id="administration-breadcrumb"
       />
 
       <h1 className="fr-h3">
-        <FormattedMessage defaultMessage="Ingérer une archive LOLFI" />
+        <FormattedMessage defaultMessage="Importer une archive LOLFI" />
       </h1>
 
       {asyncErrors && asyncErrors.length > 0 && (
@@ -141,8 +143,8 @@ export function IngestLolfiArchivePage() {
                     <FormattedMessage defaultMessage="Archive LOLFI" />
                   </RequiredLabel>
                 }
+                maxBytes={LOLFI_ARCHIVE_MAX_BYTES}
                 onChange={([file]) => {
-                  if (!file) return;
                   resetMutation();
                   onChange(file);
                 }}

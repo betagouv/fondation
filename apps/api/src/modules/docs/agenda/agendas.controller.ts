@@ -1,28 +1,25 @@
 import {
   Body,
   Controller,
-  DefaultValuePipe,
   Delete,
   Get,
   Header,
   HttpCode,
   HttpStatus,
   Param,
-  ParseBoolPipe,
   Patch,
   Post,
   Put,
-  Query,
   StreamableFile,
   UseInterceptors,
   UsePipes,
 } from '@nestjs/common';
-import { ApiOkResponse, ApiParam, ApiProduces, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiOkResponse, ApiParam, ApiProduces, ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
-import { FILE_MIME_TYPES } from 'src/modules/framework/files';
-import { ParseBigIntPipe } from 'src/modules/framework/pipes';
-import { AuthedUser, HasRole } from 'src/modules/simple-auth';
+import { FILE_MIME_TYPES } from '../../framework/files';
+import { ParseBigIntPipe } from '../../framework/pipes';
+import { AuthedUser, HasRole } from '../../simple-auth';
 
 import { AgendasService } from './agendas.service';
 import {
@@ -112,25 +109,15 @@ export class AgendasController {
   @ApiProduces('text/html')
   @ApiOkResponse({ content: { 'text/html': {} } })
   @Header('content-type', 'text/html')
-  @ApiQuery({ name: 'force', required: false, type: 'boolean', default: false })
-  generateAgendaHtml(
-    @Param('agendaId') agendaId: string,
-    @Query('force', new ParseBoolPipe({ optional: true }), new DefaultValuePipe(false))
-    forceNew: boolean,
-  ): Promise<string> {
-    return this.agendas.getOrCreateAgendaDocument({ id: agendaId, forceNew });
+  generateAgendaHtml(@Param('agendaId') agendaId: string): Promise<string> {
+    return this.agendas.getOrCreateAgendaDocument({ id: agendaId });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/agendas/:agendaId.pdf')
   @ApiOkResponse({ content: { [FILE_MIME_TYPES.pdf]: {} } })
-  @ApiQuery({ name: 'force', required: false, type: 'boolean', default: false })
-  generateAgendaPdf(
-    @Param('agendaId') agendaId: string,
-    @Query('force', new ParseBoolPipe({ optional: true }), new DefaultValuePipe(false))
-    forceNew: boolean,
-  ): Promise<StreamableFile> {
-    return this.agendas.getOrCreateAgendaDocumentPdf({ id: agendaId, forceNew });
+  generateAgendaPdf(@Param('agendaId') agendaId: string): Promise<StreamableFile> {
+    return this.agendas.getOrCreateAgendaDocumentPdf({ id: agendaId });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')

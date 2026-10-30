@@ -1,8 +1,8 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
-import { dateOnlyJsonSchema } from 'src/utils/date-only';
-import { timeOnlySchema } from 'src/utils/time-only';
+import { dateOnlyJsonSchema } from '../../../../utils/date-only';
+import { timeOnlySchema } from '../../../../utils/time-only';
 
 export class CreatedJusticePresentationPlanDto extends createZodDto(z.object({ id: z.string() })) {}
 

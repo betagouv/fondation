@@ -1,4 +1,4 @@
-import { GradeEnum } from 'src/modules/shared/grade.enum';
+import { GradeEnum } from '../../../../shared/grade.enum';
 
 /**
  * @warning this is only used in the database to sort on the grade

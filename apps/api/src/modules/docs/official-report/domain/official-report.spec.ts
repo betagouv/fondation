@@ -1,19 +1,24 @@
-import { makeId } from 'src/utils/id';
+import { makeId } from '../../../../utils/id';
 
 import {
   OfficialReport,
   OfficialReportAlreadyValidated,
   OfficialReportDocumentNotStored,
+  OfficialReportDraftChangedByTheApplication,
   OfficialReportDraftDiscarded,
   OfficialReportDraftEdited,
   OfficialReportDraftOpened,
   OfficialReportDraftUpdatedBySystem,
+  OfficialReportFileNoteDeleted,
+  OfficialReportFileNoteEdited,
+  OfficialReportFileNotHeld,
   OfficialReportFileReset,
   OfficialReportIntroEdited,
   OfficialReportUpdateSkipped,
   OfficialReportValidated,
   OfficialReportWithoutValidatedVersion,
 } from './official-report';
+import { OfficialReportMembersList } from './official-report-member-list';
 import * as helpers from './official-report-test-utils';
 import type { UpdateOfficialReportCommand } from './official-report-types';
 import {
@@ -163,6 +168,77 @@ describe('OfficialReport', () => {
     });
   });
 
+  describe('a note under a proposition', () => {
+    const withNote = (state: { isValidated?: boolean } = {}) =>
+      makeReport({
+        ...state,
+        snapshot: {
+          files: new Map([
+            [
+              'file-1',
+              OfficialReportSnapshotFile.from({
+                hasManuallyEditedHtml: false,
+                nominationFileId: 'file-1',
+                note: '<p>note</p>',
+                outcome: { comment: null, value: 'VALIDATED' },
+                reporters: ['M. John DOE'],
+              }),
+            ],
+          ]),
+        },
+      });
+
+    it('should be written by the person who edits the report', () => {
+      const report = makeReport({ isValidated: true });
+
+      report.editFileNote({ authorId: AUTHOR, html: '<p>note</p>', nominationFileId: 'file-1' });
+
+      expect(report.messages).toEqual([
+        new OfficialReportDraftOpened(report.id, AUTHOR),
+        new OfficialReportFileNoteEdited(report.id, 'file-1', '<p>note</p>', AUTHOR),
+      ]);
+    });
+
+    it('should leave a validated report as it is when the same note is written again', () => {
+      const report = withNote({ isValidated: true });
+
+      report.editFileNote({ authorId: AUTHOR, html: '<p>note</p>', nominationFileId: 'file-1' });
+
+      expect(report.messages).toEqual([]);
+    });
+
+    it('should be deleted', () => {
+      const report = withNote();
+
+      report.deleteFileNote({ nominationFileId: 'file-1' });
+
+      expect(report.messages).toEqual([
+        new OfficialReportDraftEdited(report.id, AUTHOR),
+        new OfficialReportFileNoteDeleted(report.id, 'file-1'),
+      ]);
+    });
+
+    it('should leave a validated report as it is when there is no note to delete', () => {
+      const report = makeReport({ isValidated: true });
+
+      report.deleteFileNote({ nominationFileId: 'file-1' });
+
+      expect(report.messages).toEqual([]);
+    });
+
+    it('should refuse a proposition the report does not carry', () => {
+      const report = makeReport();
+
+      expect(() =>
+        report.editFileNote({ authorId: AUTHOR, html: '<p>note</p>', nominationFileId: 'file-unknown' }),
+      ).toThrow(OfficialReportFileNotHeld);
+      expect(() => report.deleteFileNote({ nominationFileId: 'file-unknown' })).toThrow(
+        OfficialReportFileNotHeld,
+      );
+      expect(report.messages).toEqual([]);
+    });
+  });
+
   describe('a validated report', () => {
     const validated = () => makeReport({ isValidated: true });
 
@@ -214,6 +290,7 @@ describe('OfficialReport', () => {
               OfficialReportSnapshotFile.from({
                 hasManuallyEditedHtml: false,
                 nominationFileId: 'file-1',
+                note: null,
                 outcome: { comment: null, value: 'SUSPENDED' },
                 reporters: ['M. John DOE'],
               }),
@@ -236,7 +313,7 @@ describe('OfficialReport', () => {
     it('should have nothing to discard', () => {
       const report = validated();
 
-      report.discardDraft({ hasValidatedVersion: true });
+      report.discardDraft({ changesBy: 'PERSON', hasValidatedVersion: true });
 
       expect(report.messages).toEqual([]);
     });
@@ -271,6 +348,19 @@ describe('OfficialReport', () => {
       expect(report.messages).toEqual([]);
     });
 
+    it('should keep a recorded member who is no longer offered, with the recorded absence', () => {
+      const report = makeReport();
+      const metadata = sameMetadataOf(report);
+      const offered = metadata.members.toSortedArray().filter(({ id }) => id !== 'member-2');
+
+      report.update({
+        authorId: AUTHOR,
+        officialReport: { ...metadata, members: OfficialReportMembersList.from(offered) },
+      });
+
+      expect(report.messages).toEqual([]);
+    });
+
     it('should not fork another draft', () => {
       const report = makeReport();
 
@@ -285,7 +375,7 @@ describe('OfficialReport', () => {
     it('should be discarded when a validated version remains underneath', () => {
       const report = makeReport();
 
-      report.discardDraft({ hasValidatedVersion: true });
+      report.discardDraft({ changesBy: 'PERSON', hasValidatedVersion: true });
 
       expect(report.messages).toEqual([new OfficialReportDraftDiscarded(report.id)]);
     });
@@ -293,10 +383,22 @@ describe('OfficialReport', () => {
     it('should refuse to be discarded when nothing was ever validated', () => {
       const report = makeReport();
 
-      expect(() => report.discardDraft({ hasValidatedVersion: false })).toThrow(
+      expect(() => report.discardDraft({ changesBy: 'PERSON', hasValidatedVersion: false })).toThrow(
         OfficialReportWithoutValidatedVersion,
       );
       expect(report.messages).toEqual([]);
     });
+
+    it.each(['SYSTEM', 'PERSON_AND_SYSTEM'] as const)(
+      'should refuse to be discarded when the application changed it (%s)',
+      (changesBy) => {
+        const report = makeReport();
+
+        expect(() => report.discardDraft({ changesBy, hasValidatedVersion: true })).toThrow(
+          OfficialReportDraftChangedByTheApplication,
+        );
+        expect(report.messages).toEqual([]);
+      },
+    );
   });
 });

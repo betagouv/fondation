@@ -2,15 +2,16 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { Prisma } from '../../../../../generated/prisma/client';
+import { dateOnlyJsonSchema } from '../../../../../utils/date-only';
+import { DateOnly } from '../../../../../utils/date-only';
+import { dateToTimeOnly, timeOnlySchema } from '../../../../../utils/time-only';
+import { writerOf, writerSchema } from '../../../../../utils/user.util';
+import { Db } from '../../../../framework/database';
+import { FormationEnum } from '../../../../shared/formation.enum';
+import { prismaFormationEnumToFormationEnum } from '../../../../shared/mappers/formation.mapper';
+import { canPresentPlan } from '../../domain/presentation-plan.policies';
 import { presentationPlanStatusOf, presentationPlanStatusSchema } from '../presentation-plan-status';
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
-import { dateOnlyJsonSchema } from 'src/utils/date-only';
-import { DateOnly } from 'src/utils/date-only';
-import { dateToTimeOnly, timeOnlySchema } from 'src/utils/time-only';
-import { writerOf, writerSchema } from 'src/utils/user.util';
 
 @Injectable()
 export class ListNonPresentedPlansQuery {
@@ -19,22 +20,23 @@ export class ListNonPresentedPlansQuery {
   async handle(): Promise<ListedNonPresentedPlansDto> {
     const plans = await this.db.tx.justicePresentationPlan.findMany({
       select: {
-        id: true,
+        agendas: {
+          select: { agenda: { select: { formation: true } } },
+          take: 1,
+        },
+        author: { select: { firstName: true, id: true, lastName: true } },
+        chairmanFirstName: true,
+        chairmanLastName: true,
+        createdAt: true,
         date: true,
-        time: true,
+        editor: { select: { firstName: true, id: true, lastName: true } },
+        id: true,
+        isPresented: true,
         outdated: true,
         pdfId: true,
-        createdAt: true,
+        removedAgendas: { select: { agendaId: true }, take: 1 },
+        time: true,
         updatedAt: true,
-        author: { select: { id: true, firstName: true, lastName: true } },
-        editor: { select: { id: true, firstName: true, lastName: true } },
-        chairmanLastName: true,
-        chairmanFirstName: true,
-        agendas: {
-          take: 1,
-          select: { agenda: { select: { formation: true } } },
-        },
-        removedAgendas: { take: 1, select: { agendaId: true } },
       } satisfies Prisma.JusticePresentationPlanSelect,
       where: { isPresented: false },
     });
@@ -44,6 +46,7 @@ export class ListNonPresentedPlansQuery {
         if (!plan.agendas[0]?.agenda?.formation) return [];
 
         const { formation } = plan.agendas[0].agenda;
+        const status = presentationPlanStatusOf(plan);
         return [
           {
             id: plan.id,
@@ -55,7 +58,11 @@ export class ListNonPresentedPlansQuery {
             createdBy: writerOf(plan.author),
             updatedAt: plan.updatedAt?.toISOString() ?? null,
             updatedBy: writerOf(plan.editor),
-            status: presentationPlanStatusOf(plan),
+            status,
+            canPresent: canPresentPlan({
+              isPresented: plan.isPresented,
+              isValidated: status === 'VALIDATED',
+            }),
             formation: prismaFormationEnumToFormationEnum(formation),
             chairman: { firstName: plan.chairmanFirstName, lastName: plan.chairmanLastName },
           },
@@ -75,6 +82,7 @@ export class ListedNonPresentedPlansDto extends createZodDto(
         outdated: z.boolean(),
         hasRemovedAgendas: z.boolean(),
         status: presentationPlanStatusSchema,
+        canPresent: z.boolean(),
         createdAt: z.iso.datetime(),
         createdBy: writerSchema,
         updatedAt: z.iso.datetime().nullable(),

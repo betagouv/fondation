@@ -4,6 +4,9 @@ import { ApiBody, ApiConsumes } from '@nestjs/swagger';
 import { type ZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { ATTACHMENT_MAX_BYTES } from '../attachment-max-bytes';
+import { FILES_PER_UPLOAD } from '../files-per-upload';
+
 import { MultipartBodyInterceptor } from './multipart.interceptor';
 import { MultipartDestinationFactory } from './multipart.types';
 import { StoreFileInterceptor } from './store-file.interceptor';
@@ -25,16 +28,21 @@ import { StoreFileInterceptor } from './store-file.interceptor';
  * ```
  */
 export function UseMultipartBody<Schema extends z.ZodObject>(options: {
-  schema: ZodDto<Schema>;
-  destination?: MultipartDestinationFactory;
-  overrideFiles?: false;
   deleteOnFail?: false;
+  destination?: MultipartDestinationFactory;
+  /** the schema only checks a file once fully received: this cuts the upload as soon as it goes over */
+  maxFileBytes?: number;
+  overrideFiles?: false;
+  schema: ZodDto<Schema>;
 }): MethodDecorator {
   return applyDecorators(
     ApiConsumes('multipart/form-data'),
     ApiBody({ type: options.schema }),
     UseInterceptors(
-      AnyFilesInterceptor(),
+      // a json field travels as a blob, which multer counts as a file
+      AnyFilesInterceptor({
+        limits: { files: FILES_PER_UPLOAD + 1, fileSize: options.maxFileBytes ?? ATTACHMENT_MAX_BYTES },
+      }),
       new MultipartBodyInterceptor({
         ...options,
         schema: options.schema.schema,

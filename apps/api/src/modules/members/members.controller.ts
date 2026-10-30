@@ -12,15 +12,11 @@ import {
 } from '@nestjs/common';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
-import { ApiPaginated, Pagination, QueryPagination } from 'src/modules/framework/pagination';
-import { HasRole } from 'src/modules/simple-auth';
+import { ApiPaginated, Pagination, QueryPagination } from '../framework/pagination';
+import { HasRole } from '../simple-auth';
 
 import { ListMembersQueryDto } from './infrastructure/dtos/members.dto';
-import {
-  ExcludeJurisdictionsDto,
-  UpdateMemberDisplayTitleDto,
-  UpdateMemberTitleDto,
-} from './infrastructure/member.dto';
+import { ExcludeJurisdictionsDto, UpdateMemberDisplayTitleDto } from './infrastructure/member.dto';
 import { MembersService } from './infrastructure/members.service';
 import { DetailedMemberDto } from './infrastructure/queries/details-member.query';
 import { PaginatedMemberListItemDto } from './infrastructure/queries/list-members.query';
@@ -45,6 +41,7 @@ export class MembersController {
       search: query.search,
       sortBy: query.sortBy,
       sortDirection: query.sortDirection,
+      statuses: query.statuses,
     });
   }
 
@@ -75,13 +72,5 @@ export class MembersController {
     @Body() { displayTitle }: UpdateMemberDisplayTitleDto,
   ): Promise<void> {
     return this.members.updateDisplayTitle({ userId, displayTitle });
-  }
-
-  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
-  @Put('/:userId/title')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @UsePipes(ZodValidationPipe)
-  updateTitle(@Param('userId') userId: string, @Body() { title }: UpdateMemberTitleDto): Promise<void> {
-    return this.members.updateTitle({ userId, title });
   }
 }

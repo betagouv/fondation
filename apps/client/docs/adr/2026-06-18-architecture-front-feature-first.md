@@ -170,7 +170,8 @@ src/
 ├─ i18n/        internationalisation
 ├─ layout/      ossature de l'application (header...)
 ├─ queries/     couche d'état asynchrone (TanStack Query + SDK)
-├─ router.tsx   l'objet routeur (arbre des routes), rendu par main.tsx
+├─ router.tsx   l'objet routeur, rendu par main.tsx
+├─ routes.tsx   l'arbre des routes, lu par router.tsx et routes.test.ts
 ├─ styles/      styles globaux + doc des couleurs DSFR
 ├─ test-utils/  fabriques et utilitaires de test
 └─ utils/       fonctions pures transverses
@@ -188,7 +189,7 @@ aussi partagés ?
 
 2. **Chaque dossier technique est une couche distincte.** `queries/` n'est pas "un composant
    partagé" : c'est la **couche d'accès aux données**, avec sa propre convention (un registre
-   de clés par fichier, cf. `CLAUDE.md`). La garder visible et à part rend l'architecture
+   de clés par fichier, cf. `apps/client/CLAUDE.md`). La garder visible et à part rend l'architecture
    lisible d'un coup d'œil. Il en va de même pour `utils/` (fonctions pures).
 
 3. **Le test qui tranche** : ces fichiers seraient au même endroit qu'ils soient partagés ou

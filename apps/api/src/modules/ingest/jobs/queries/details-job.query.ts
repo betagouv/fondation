@@ -2,9 +2,9 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { PrismaJobStatusEnum } from 'src/generated/prisma/enums';
-import { Db } from 'src/modules/framework/database';
+import { Prisma } from '../../../../generated/prisma/client';
+import { PrismaJobStatusEnum, PrismaSeverityEnum } from '../../../../generated/prisma/enums';
+import { Db } from '../../../framework/database';
 
 @Injectable()
 export class DetailsJobQuery {
@@ -19,7 +19,7 @@ export class DetailsJobQuery {
         startedAt: true,
         endedAt: true,
         status: true,
-        errors: { select: { error: true }, orderBy: { id: 'asc' } },
+        messages: { select: { severity: true, text: true }, orderBy: { id: 'asc' } },
         files: {
           select: {
             fileId: true,
@@ -29,12 +29,13 @@ export class DetailsJobQuery {
             endedAt: true,
             file: { select: { name: true } },
             requirements: { select: { requiredFileId: true } },
-            errors: {
+            messages: {
               orderBy: { id: 'asc' },
               select: {
                 entityId: true,
                 entityNumber: true,
-                error: true,
+                severity: true,
+                text: true,
               },
             },
           },
@@ -67,7 +68,7 @@ export class DetailedJobDto extends createZodDto(
     startedAt: z.iso.datetime().nullable(),
     endedAt: z.iso.datetime().nullable(),
     status: z.enum(PrismaJobStatusEnum),
-    errors: z.array(z.object({ error: z.string() })),
+    messages: z.array(z.object({ severity: z.enum(PrismaSeverityEnum), text: z.string() })),
     files: z.array(
       z.object({
         id: z.string(),
@@ -77,11 +78,12 @@ export class DetailedJobDto extends createZodDto(
         startedAt: z.iso.datetime().nullable(),
         endedAt: z.iso.datetime().nullable(),
         requirements: z.array(z.object({ requiredFileId: z.string() })),
-        errors: z.array(
+        messages: z.array(
           z.object({
             entityId: z.string().nullable(),
             entityNumber: z.number().nullable(),
-            error: z.string(),
+            severity: z.enum(PrismaSeverityEnum),
+            text: z.string(),
           }),
         ),
       }),

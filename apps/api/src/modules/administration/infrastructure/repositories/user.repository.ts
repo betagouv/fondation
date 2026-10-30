@@ -1,25 +1,33 @@
 import { Transactional } from '@nestjs-cls/transactional';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 
+import { Prisma } from '../../../../generated/prisma/client';
+import { assertNever } from '../../../../utils/assert-never';
+import { Db } from '../../../framework/database';
+import { prismaRoleEnumToRoleEnum, roleEnumToPrismaRoleEnum } from '../../../shared/mappers/role-enum.mapper';
+import { userStatusOf } from '../../../shared/user-status.enum';
 import { AdminUserRole } from '../../domain/admin-user-role';
 import {
+  EmailAlreadyTaken,
   User,
+  UserDeactivated,
   UserDemotedFromAdmin,
   UserDisplayTitleUpdated,
   UserEmailUpdated,
   UserEvent,
+  UserNameUpdated,
   UserPasswordUpdated,
   UserPromotedToAdmin,
+  UserReactivated,
+  UserRegistered,
   UserRoleUpdated,
+  UserTechnicalAccountUpdated,
   UsersUntitled,
 } from '../../domain/user';
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import {
-  prismaRoleEnumToRoleEnum,
-  roleEnumToPrismaRoleEnum,
-} from 'src/modules/shared/mappers/role-enum.mapper';
-import { assertNever } from 'src/utils/assert-never';
+
+function isUniqueViolation(err: unknown): boolean {
+  return err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002';
+}
 
 @Injectable()
 export class UserRepository {
@@ -27,30 +35,63 @@ export class UserRepository {
 
   async findById(userId: string): Promise<User> {
     const user = await this.db.tx.user.findUnique({
-      where: { id: userId },
       select: {
+        deactivatedAt: true,
+        duty: true,
         id: true,
+        isAdmin: true,
+        isTechnical: true,
         role: true,
         title: true,
-        duty: true,
       } satisfies Prisma.UserSelect,
+      where: { id: userId },
     });
     if (!user) throw new NotFoundException();
 
     return User.from({
       id: user.id,
+      isAdmin: user.isAdmin,
+      isTechnical: user.isTechnical,
       role: AdminUserRole.from({
+        duty: user.duty,
         role: prismaRoleEnumToRoleEnum(user.role),
         title: user.title,
-        duty: user.duty,
       }),
+      status: userStatusOf(user),
     });
+  }
+
+  async isEmailTaken(email: string): Promise<boolean> {
+    const user = await this.db.tx.user.findFirst({
+      select: { id: true } satisfies Prisma.UserSelect,
+      where: { email: { equals: email, mode: 'insensitive' } },
+    });
+
+    return !!user;
+  }
+
+  async isEmailTakenByAnotherUser(predicate: { email: string; userId: string }): Promise<boolean> {
+    const user = await this.db.tx.user.findFirst({
+      select: { id: true } satisfies Prisma.UserSelect,
+      where: { email: { equals: predicate.email, mode: 'insensitive' }, id: { not: predicate.userId } },
+    });
+
+    return !!user;
   }
 
   async findManyByLastName(lastNames: readonly string[]): Promise<Map<string, User>> {
     const users = await this.db.tx.user.findMany({
+      select: {
+        deactivatedAt: true,
+        duty: true,
+        id: true,
+        isAdmin: true,
+        isTechnical: true,
+        lastName: true,
+        role: true,
+        title: true,
+      } satisfies Prisma.UserSelect,
       where: { lastName: { in: lastNames as string[], mode: 'insensitive' } },
-      select: { id: true, lastName: true, role: true, title: true, duty: true } satisfies Prisma.UserSelect,
     });
 
     return new Map(
@@ -58,11 +99,14 @@ export class UserRepository {
         user.lastName.toUpperCase(),
         User.from({
           id: user.id,
+          isAdmin: user.isAdmin,
+          isTechnical: user.isTechnical,
           role: AdminUserRole.from({
+            duty: user.duty,
             role: prismaRoleEnumToRoleEnum(user.role),
             title: user.title,
-            duty: user.duty,
           }),
+          status: userStatusOf(user),
         }),
       ]),
     );
@@ -80,67 +124,209 @@ export class UserRepository {
 
   private async persistUser(user: User): Promise<void> {
     for (const message of user.messages as UserEvent[]) {
-      if (message instanceof UserEmailUpdated) await this.persistEmailUpdated(message);
+      if (message instanceof UserRegistered) await this.persistUserRegistered(message);
+      else if (message instanceof UserEmailUpdated) await this.persistEmailUpdated(message);
+      else if (message instanceof UserNameUpdated) await this.persistNameUpdated(message);
       else if (message instanceof UserPasswordUpdated) await this.persistPasswordUpdated(message);
       else if (message instanceof UserRoleUpdated) await this.persistRoleUpdated(message);
       else if (message instanceof UserDisplayTitleUpdated) await this.persistDisplayTitleUpdated(message);
       else if (message instanceof UsersUntitled) await this.persistUsersUntitled(message);
       else if (message instanceof UserPromotedToAdmin) await this.persistUserPromotedToAdmin(message);
       else if (message instanceof UserDemotedFromAdmin) await this.persistUserDemotedFromAdmin(message);
+      else if (message instanceof UserTechnicalAccountUpdated)
+        await this.persistTechnicalAccountUpdated(message);
+      else if (message instanceof UserDeactivated) await this.persistUserDeactivated(message);
+      else if (message instanceof UserReactivated) await this.persistUserReactivated(message);
       else assertNever(message);
     }
   }
 
+  /** the title is given by the role update that follows, to tell a concurrent request taking the email from one taking the title */
+  private async persistUserRegistered(message: UserRegistered) {
+    await this.db.tx.user
+      .create({
+        data: {
+          createdAt: message.registeredAt,
+          email: message.email,
+          firstName: message.firstName,
+          gender: message.gender,
+          id: message.userId,
+          isAdmin: message.isAdmin,
+          isTechnical: message.isTechnical,
+          lastName: message.lastName,
+          password: message.hashedPassword,
+          role: roleEnumToPrismaRoleEnum(message.role.role),
+        },
+      })
+      .catch((err: unknown) => {
+        if (isUniqueViolation(err)) throw new EmailAlreadyTaken();
+        throw err;
+      });
+    await this.db.tx.userStatusChange.create({
+      data: {
+        changedAt: message.registeredAt,
+        changedBy: message.registeredBy,
+        status: 'ACTIVE',
+        userId: message.userId,
+      },
+    });
+    if (message.isTechnical) {
+      await this.db.tx.technicalAccountChange.create({
+        data: {
+          changedAt: message.registeredAt,
+          changedBy: message.registeredBy,
+          isTechnical: true,
+          userId: message.userId,
+        },
+      });
+    }
+    if (!message.isAdmin) return;
+
+    await this.db.tx.adminRightChange.create({
+      data: {
+        change: 'GRANTED',
+        changedAt: message.registeredAt,
+        changedBy: message.registeredBy,
+        userId: message.userId,
+      },
+    });
+  }
+
   private persistEmailUpdated(message: UserEmailUpdated) {
     return this.db.tx.user.update({
-      where: { id: message.userId },
       data: { email: message.email },
+      where: { id: message.userId },
+    });
+  }
+
+  private persistNameUpdated(message: UserNameUpdated) {
+    return this.db.tx.user.update({
+      data: { firstName: message.firstName, lastName: message.lastName },
+      where: { id: message.userId },
     });
   }
 
   private persistPasswordUpdated(message: UserPasswordUpdated) {
     return this.db.tx.user.update({
-      where: { id: message.userId },
       data: { password: message.hashedPassword },
+      where: { id: message.userId },
     });
   }
 
+  // a concurrent request gave the same title to another account, which a retry takes back
   private persistRoleUpdated(message: UserRoleUpdated) {
-    return this.db.tx.user.update({
-      where: { id: message.userId },
-      data: {
-        role: roleEnumToPrismaRoleEnum(message.role.role),
-        duty: message.role.duty,
-        title: message.role.title,
-      },
-    });
+    return this.db.tx.user
+      .update({
+        data: {
+          duty: message.role.duty,
+          role: roleEnumToPrismaRoleEnum(message.role.role),
+          title: message.role.title,
+        },
+        where: { id: message.userId },
+      })
+      .catch((err: unknown) => {
+        if (isUniqueViolation(err)) throw new ConflictException();
+        throw err;
+      });
   }
 
   private persistUsersUntitled(message: UsersUntitled) {
     return this.db.tx.user.updateMany({
+      data: { duty: message.targetRole.duty, title: message.targetRole.title },
       where: { title: message.sourceTitle },
-      data: { title: message.targetRole.title, duty: message.targetRole.duty },
     });
   }
 
   private persistDisplayTitleUpdated(message: UserDisplayTitleUpdated) {
     return this.db.tx.user.update({
-      where: { id: message.userId },
       data: { displayTitle: message.displayTitle },
+      where: { id: message.userId },
     });
   }
 
-  private persistUserPromotedToAdmin(message: UserPromotedToAdmin) {
-    return this.db.tx.user.update({
-      where: { id: message.userId },
-      data: { role: 'ADMIN' },
+  /** the conditions on the current state keep a concurrent request from recording the same change twice */
+  private async persistUserPromotedToAdmin(message: UserPromotedToAdmin) {
+    const { count } = await this.db.tx.user.updateMany({
+      data: { isAdmin: true },
+      where: { id: message.userId, isAdmin: false },
+    });
+    if (count === 0) return;
+
+    await this.db.tx.adminRightChange.create({
+      data: {
+        change: 'GRANTED',
+        changedAt: message.promotedAt,
+        changedBy: message.promotedBy,
+        userId: message.userId,
+      },
     });
   }
 
-  private persistUserDemotedFromAdmin(message: UserDemotedFromAdmin) {
-    return this.db.tx.user.update({
-      where: { id: message.userId },
-      data: { role: 'ADJOINT_SECRETAIRE_GENERAL' },
+  private async persistTechnicalAccountUpdated(message: UserTechnicalAccountUpdated) {
+    const { count } = await this.db.tx.user.updateMany({
+      data: { isTechnical: message.isTechnical },
+      where: { id: message.userId, isTechnical: !message.isTechnical },
+    });
+    if (count === 0) return;
+
+    await this.db.tx.technicalAccountChange.create({
+      data: {
+        changedAt: message.changedAt,
+        changedBy: message.changedBy,
+        isTechnical: message.isTechnical,
+        userId: message.userId,
+      },
+    });
+  }
+
+  private async persistUserDemotedFromAdmin(message: UserDemotedFromAdmin) {
+    const { count } = await this.db.tx.user.updateMany({
+      data: { isAdmin: false },
+      where: { id: message.userId, isAdmin: true },
+    });
+    if (count === 0) return;
+
+    await this.db.tx.adminRightChange.create({
+      data: {
+        change: 'REVOKED',
+        changedAt: message.demotedAt,
+        changedBy: message.demotedBy,
+        userId: message.userId,
+      },
+    });
+  }
+
+  private async persistUserDeactivated(message: UserDeactivated) {
+    const { count } = await this.db.tx.user.updateMany({
+      data: { deactivatedAt: message.deactivatedAt },
+      where: { deactivatedAt: null, id: message.userId },
+    });
+    if (count === 0) return;
+
+    await this.db.tx.userStatusChange.create({
+      data: {
+        changedAt: message.deactivatedAt,
+        changedBy: message.deactivatedBy,
+        status: 'DEACTIVATED',
+        userId: message.userId,
+      },
+    });
+  }
+
+  private async persistUserReactivated(message: UserReactivated) {
+    const { count } = await this.db.tx.user.updateMany({
+      data: { deactivatedAt: null },
+      where: { deactivatedAt: { not: null }, id: message.userId },
+    });
+    if (count === 0) return;
+
+    await this.db.tx.userStatusChange.create({
+      data: {
+        changedAt: message.reactivatedAt,
+        changedBy: message.reactivatedBy,
+        status: 'ACTIVE',
+        userId: message.userId,
+      },
     });
   }
 }

@@ -3,7 +3,7 @@ import {
   TransactionalAdapterPrisma,
 } from '@nestjs-cls/transactional-adapter-prisma';
 
-import { type PrismaClient } from 'src/generated/prisma/client';
+import { type PrismaClient } from '../../../generated/prisma/client';
 
 import { type Db } from './db';
 

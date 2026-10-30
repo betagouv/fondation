@@ -1,7 +1,7 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
-import { Pagination } from 'src/modules/framework/pagination';
+import { Pagination } from '../framework/pagination';
 
 import {
   MagistratProfilesFinder,

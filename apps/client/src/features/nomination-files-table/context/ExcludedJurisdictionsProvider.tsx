@@ -14,6 +14,8 @@ export function ExcludedJurisdictionsProvider(props: PropsWithChildren) {
     enabled: isSg,
     formations: ['COMMUN', formation],
     pagination: { pageIndex: 0, pageSize: 100 },
+    // a reporter deactivated since keeps the files they have, and the conflicts of their excluded jurisdictions
+    statuses: ['ACTIVE', 'DEACTIVATED'],
   });
 
   const model = useMemo(() => MemberExcludedJurisdictions.fromMembers(data?.items ?? []), [data]);

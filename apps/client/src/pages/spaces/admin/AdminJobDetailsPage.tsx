@@ -1,13 +1,16 @@
-import { FormattedMessage } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 import { useParams } from 'react-router';
 
 import { JobFilesList } from '@/features/jobs/components/JobFilesList';
 import { JobStatusBadge } from '@/features/jobs/components/JobStatusBadge';
+import { bySeverity } from '@/features/jobs/utils/by-severity.utils';
 import { formatJobDuration } from '@/features/jobs/utils/format-job-duration.utils';
+import { SeverityEnumCountMessages } from '@/shared/enums/severity.enum';
 import { useDateAndTime } from '@/shared/hooks/useDateAndTime';
 import { useDetailsJobQuery } from '@queries/jobs.queries';
 
 export function AdminJobDetailsPage() {
+  const { formatMessage } = useIntl();
   const dateAndTime = useDateAndTime();
   const params = useParams<{ jobId: string }>();
   const jobId = parseInt(String(params.jobId), 10);
@@ -55,21 +58,21 @@ export function AdminJobDetailsPage() {
         <JobFilesList files={job.files} />
       </section>
 
-      {job.errors.length > 0 && (
-        <section>
+      {bySeverity(job.messages).map(({ messages, severity }) => (
+        <section key={severity}>
           <h3 className="fr-h6 fr-mb-2v">
-            <FormattedMessage defaultMessage="Erreurs" />
+            {formatMessage(SeverityEnumCountMessages[severity], { count: messages.length })}
           </h3>
-          {job.errors.map(({ error }, i) => (
+          {messages.map(({ text }, i) => (
             <pre
               className="fr-p-4v overflow-x-auto rounded-sm bg-(--background-contrast-grey) font-mono text-sm wrap-break-word whitespace-pre-wrap"
-              key={`job_${job.id}_error_${i}`}
+              key={`job_${job.id}_${severity}_${i}`}
             >
-              {error}
+              {text}
             </pre>
           ))}
         </section>
-      )}
+      ))}
     </div>
   );
 }

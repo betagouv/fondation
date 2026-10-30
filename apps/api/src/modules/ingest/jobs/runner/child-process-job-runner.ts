@@ -4,8 +4,8 @@ import * as path from 'node:path';
 import { Inject, Injectable, Logger, OnApplicationShutdown } from '@nestjs/common';
 import z, { ZodSafeParseResult } from 'zod';
 
-import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
-import { isDefined } from 'src/utils/is-defined';
+import { isDefined } from '../../../../utils/is-defined';
+import { API_CONFIG_TOKEN, ApiConfig } from '../../../framework/config';
 
 import { FailedToStartJob } from './job-errors';
 

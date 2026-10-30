@@ -5,23 +5,42 @@ packages:
 catalog:
   'zod': 4.4.3
   '@faker-js/faker': 10.6.0
-  'oxlint': 1.82.0
+  'oxlint': 1.87.0
   'oxlint-tsgolint': 0.25.0
-  'typescript': 6.0.3
-  '@types/node': 26.6.3
+  # TypeScript 7 has no compiler API yet: `typescript` stays on 6 for the tools that import it
+  # (@hey-api/openapi-ts, prisma-selects.spec.ts) while `tsc` comes from 7.
+  # 6.0.2 is the version of the wrapper, which still resolves typescript 6.0.3.
+  # TODO: see https://github.com/hey-api/hey-api/issues/4235
+  'typescript': npm:@typescript/typescript6@6.0.2
+  '@typescript/native': npm:typescript@7.0.2
+  '@types/node': 26.6.5
   '@hey-api/openapi-ts': 0.99.0
   'vitest': 4.1.11
   'vitest-mock-extended': 5.1.1
   '@vitest/coverage-v8': 4.1.11
+  # The official documents are laid out by this exact build: the PdfRenderer tests check its digest
+  'pagedjs': 0.4.3
 
 preferFrozenLockfile: true
 minimumReleaseAge: 10080 # 7 days
 overrides:
-  multer: 2.4.0
+  # Security updates: these parents pin the vulnerable version exactly
+  '@hey-api/json-schema-ref-parser>js-yaml': 4.3.2
+  '@nestjs/swagger>js-yaml': 5.4.2
+  fast-uri: 3.1.9
+  multer: 2.5.0
   node-xlsx>xlsx: '-'
+  # Only dist/paged.polyfill.min.js is used, which bundles everything it needs
+  pagedjs>@babel/polyfill: '-'
+  pagedjs>@babel/runtime: '-'
+  pagedjs>clear-cut: '-'
+  pagedjs>css-tree: '-'
+  pagedjs>event-emitter: '-'
+  # Security update: prisma pins the vulnerable version exactly
+  prisma>mysql2: 3.24.6
   prosemirror-model: 1.25.12
   prosemirror-view: 1.42.6
-  qs: 6.16.0
+  qs: 6.16.1
 
 # jest-dom augments `vitest` without depending on it, so pnpm resolves its
 # augmentation against the api's vitest instead of the client's. Declaring the
@@ -51,7 +70,17 @@ minimumReleaseAgeExclude:
   - '@hey-api/openapi-ts@0.97.3'
   # Renovate security update: axios@1.18.0
   - axios@1.18.0
+  # Security update: body-parser@2.4.0
+  - body-parser@2.4.0
   # Renovate security update: react-router@8.3.0
   - react-router@8.3.0
   # Renovate security update: @tiptap/core@3.30.4 || 3.30.5
   - '@tiptap/core@3.30.4 || 3.30.5'
+  # Renovate security update: vite@8.3.3
+  - vite@8.3.3
+  # Renovate security update: storybook@10.6.2
+  - storybook@10.6.2
+  # Renovate security update: multer@2.5.0
+  - multer@2.5.0
+  # Renovate security update: qs@6.16.1
+  - qs@6.16.1

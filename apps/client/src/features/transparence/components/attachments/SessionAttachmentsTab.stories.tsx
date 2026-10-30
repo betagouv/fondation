@@ -4,6 +4,7 @@ import { http, HttpResponse } from 'msw';
 import { fn } from 'storybook/test';
 
 import { ConfirmModalProvider } from '@/shared/context/confirm-modal';
+import { STORY_VIEWS, type StoryView } from '@/shared/storybook/story-users';
 import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
 import { DeleteFileButton } from '@/shared/ui/DeleteFileButton';
 import { ToastProvider } from '@/shared/ui/toast';
@@ -22,21 +23,21 @@ const ATTACHMENTS: Attachments = [
     addedBy: { id: 'user-1', name: 'Léa MARTIN' },
     id: 'file-1',
     name: 'Fiche de juridiction CA DOUAI.pdf',
-    sizeInBytes: 248_000,
+    size: 248_000,
   },
   {
     addedAt: '2028-02-11T08:30:00.000Z',
     addedBy: { id: 'user-1', name: 'Léa MARTIN' },
     id: 'file-2',
     name: 'Note DSJ - évaluations manquantes.pdf',
-    sizeInBytes: 1_240_000,
+    size: 1_240_000,
   },
   {
     addedAt: '2028-03-02T08:30:00.000Z',
     addedBy: { id: 'user-1', name: 'Léa MARTIN' },
     id: 'file-3',
     name: 'Tableau des effectifs 2028.xlsx',
-    sizeInBytes: 86_000,
+    size: 86_000,
   },
 ];
 
@@ -45,13 +46,13 @@ const MANY_ATTACHMENTS: Attachments = Array.from({ length: 100 }, (_, index) => 
   addedBy: null,
   id: `file-${index}`,
   name: `Fiche de juridiction ${index + 1}.pdf`,
-  sizeInBytes: 120_000 + index * 4_096,
+  size: 120_000 + index * 4_096,
 }));
 
 const sessions: Record<string, Attachments> = {
-  draft: ATTACHMENTS,
   empty: [],
-  'many-attachments': MANY_ATTACHMENTS,
+  few: ATTACHMENTS,
+  many: MANY_ATTACHMENTS,
 };
 
 const attachmentsHandlers = [
@@ -76,47 +77,58 @@ const attachmentsHandlers = [
 const onDelete = fn().mockName('onDelete');
 const onImport = fn().mockName('onImport');
 
-const managerProps = {
-  extraActions: (attachment: Attachments[number]) => (
-    <DeleteFileButton fileName={attachment.name} onDelete={() => onDelete(attachment.name)} />
-  ),
-  headerEnd: (
-    <Button className="py-2!" iconId="fr-icon-add-line" onClick={onImport} priority="primary" size="small">
-      Ajouter une pièce jointe
-    </Button>
-  ),
-};
+// as the transparence page: only the SG adds or deletes an attachment, and not once the session is archived
+function SessionAttachmentsTabStory(props: { isArchived: boolean; sessionId: string; view: StoryView }) {
+  const canManage = props.view === 'sg' && !props.isArchived;
+
+  return (
+    <StoryQueryClient>
+      <ToastProvider>
+        <ConfirmModalProvider>
+          <SessionAttachmentsTab
+            extraActions={
+              canManage
+                ? (attachment) => (
+                    <DeleteFileButton fileName={attachment.name} onDelete={() => onDelete(attachment.name)} />
+                  )
+                : undefined
+            }
+            filtersSlot={null}
+            headerEnd={
+              canManage && (
+                <Button
+                  className="py-2!"
+                  iconId="fr-icon-add-line"
+                  onClick={onImport}
+                  priority="primary"
+                  size="small"
+                >
+                  Ajouter une pièce jointe
+                </Button>
+              )
+            }
+            sessionId={props.sessionId}
+          />
+        </ConfirmModalProvider>
+      </ToastProvider>
+    </StoryQueryClient>
+  );
+}
 
 const meta = {
-  args: { filtersSlot: null, sessionId: 'draft' },
+  args: { isArchived: false, sessionId: 'few', view: 'sg' },
+  argTypes: {
+    sessionId: { control: 'inline-radio', options: Object.keys(sessions) },
+    view: { control: 'inline-radio', options: STORY_VIEWS },
+  },
   beforeEach: ({ msw }) => {
     msw.use(...attachmentsHandlers);
   },
-  component: SessionAttachmentsTab,
-  decorators: [
-    (Story) => (
-      <StoryQueryClient>
-        <ToastProvider>
-          <ConfirmModalProvider>
-            <Story />
-          </ConfirmModalProvider>
-        </ToastProvider>
-      </StoryQueryClient>
-    ),
-  ],
-  parameters: { controls: { disable: true }, layout: 'padded' },
-  tags: ['autodocs'],
+  component: SessionAttachmentsTabStory,
+  parameters: { layout: 'padded' },
   title: 'Session/Transparence/SessionAttachmentsTable',
-} satisfies Meta<typeof SessionAttachmentsTab>;
+} satisfies Meta<typeof SessionAttachmentsTabStory>;
 
 export default meta;
 
-type Story = StoryObj<typeof meta>;
-
-export const Playground: Story = { args: managerProps };
-
-export const Empty: Story = { args: { ...managerProps, sessionId: 'empty' } };
-
-export const ManyRows: Story = { args: { ...managerProps, sessionId: 'many-attachments' } };
-
-export const Member: Story = {};
+export const Playground: StoryObj<typeof meta> = {};

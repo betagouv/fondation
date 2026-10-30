@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
+import { Prisma } from '../../../../../generated/prisma/client';
+import { Db } from '../../../../framework/database';
 
 @Injectable()
 export class FindJusticeContactsQuery {

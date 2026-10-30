@@ -4,8 +4,8 @@ import { AxiosError } from 'axios';
 import { lastValueFrom } from 'rxjs';
 import { z } from 'zod';
 
-import { Clock } from 'src/modules/framework/clock';
-import { Id } from 'src/utils/id';
+import { Id } from '../../../../utils/id';
+import { Clock } from '../../../framework/clock';
 
 import { JwtDecoder } from './jwt-decoder';
 import { OpenIdConfig } from './openid-config';
@@ -29,7 +29,7 @@ export class InternalOpenIdService {
   async authenticate(command: {
     code: string;
     request: {
-      challenge: Buffer | null;
+      challenge: Buffer;
       nonce: Buffer;
       createdAt: Date;
       expiresAt: Date;
@@ -42,7 +42,7 @@ export class InternalOpenIdService {
     const tokens = await this.exchangeCode(command.code, request);
     const decoder = new JwtDecoder(this.config, request);
 
-    const idToken = decoder.decode({
+    const idToken = decoder.decodeIdToken({
       now,
       token: tokens.id_token,
       schema: z.object({ email: z.string().optional() }),

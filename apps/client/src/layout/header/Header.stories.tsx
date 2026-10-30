@@ -1,43 +1,68 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { QueryClient } from '@tanstack/react-query';
 import { http, HttpResponse } from 'msw';
+import { generatePath, Route, Routes } from 'react-router';
 
 import { ArchivedSessionContext } from '@/shared/context/archived-session';
+import type { RoleEnum } from '@/shared/enums/role.enum';
+import { STORY_SESSION_ID } from '@/shared/storybook/story-session';
+import { STORY_USERS } from '@/shared/storybook/story-users';
 import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
-import { authKeys } from '@queries/auth.queries';
+import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import { authKeys, type SessionUser } from '@queries/auth.queries';
 
 import { AppHeader } from './Header';
 
-const VIEWS = ['admin', 'member', 'sg'] as const;
-type View = (typeof VIEWS)[number];
+const USERS = {
+  ADJOINT_SECRETAIRE_GENERAL: STORY_USERS.sg,
+  ADMIN: { ...STORY_USERS.sg, isAdmin: true },
+  MEMBRE_DU_SIEGE: STORY_USERS.member,
+} satisfies Partial<Record<'ADMIN' | RoleEnum, SessionUser>>;
+type Role = keyof typeof USERS;
 
-const ROLES = { admin: 'ADMIN', member: 'MEMBRE_COMMUN', sg: 'ADJOINT_SECRETAIRE_GENERAL' } as const;
+const PAGES = ['home', 'archives', 'archivedSession', 'magistratSearch'] as const;
+type Page = (typeof PAGES)[number];
 
-function seed(view: View) {
-  return (client: QueryClient) =>
-    client.setQueryData(authKeys.introspectSession(), {
-      civility: 'Madame MERCIER',
-      firstName: 'Claire',
-      id: `user-${view}`,
-      isImpersonated: false,
-      lastName: 'Mercier',
-      role: ROLES[view],
-    });
-}
+const SG_LOCATIONS = {
+  archivedSession: generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId: STORY_SESSION_ID }),
+  archives: ROUTE_PATHS.SG.ARCHIVED_SESSIONS,
+  home: ROUTE_PATHS.SG.DASHBOARD,
+  magistratSearch: ROUTE_PATHS.SG.MAGISTRAT_SEARCH,
+} satisfies Record<Page, string>;
 
-function AppHeaderStory(props: { isArchived: boolean; view: View }) {
+const MEMBER_LOCATIONS = {
+  archivedSession: generatePath(ROUTE_PATHS.TRANSPARENCES.DETAIL_SESSION_GDS, {
+    sessionId: STORY_SESSION_ID,
+  }),
+  archives: ROUTE_PATHS.TRANSPARENCES.ARCHIVED_SESSIONS,
+  home: ROUTE_PATHS.TRANSPARENCES.DASHBOARD,
+  magistratSearch: ROUTE_PATHS.MEMBER.MAGISTRAT_SEARCH,
+} satisfies Record<Page, string>;
+
+function AppHeaderStory(props: { page: Page; role: Role }) {
+  const locations = props.role === 'MEMBRE_DU_SIEGE' ? MEMBER_LOCATIONS : SG_LOCATIONS;
+
   return (
-    <StoryQueryClient key={props.view} seed={seed(props.view)}>
-      <ArchivedSessionContext value={{ isArchived: props.isArchived, setIsArchived: () => {} }}>
-        <AppHeader />
+    <StoryQueryClient
+      key={props.role}
+      seed={(client) => client.setQueryData(authKeys.introspectSession(), USERS[props.role])}
+    >
+      <ArchivedSessionContext
+        value={{ isArchived: props.page === 'archivedSession', setIsArchived: () => {} }}
+      >
+        <Routes location={locations[props.page]}>
+          <Route element={<AppHeader />} path="*" />
+        </Routes>
       </ArchivedSessionContext>
     </StoryQueryClient>
   );
 }
 
 const meta = {
-  argTypes: { view: { control: 'inline-radio', options: VIEWS } },
-  args: { isArchived: false, view: 'member' },
+  args: { page: 'home', role: 'MEMBRE_DU_SIEGE' },
+  argTypes: {
+    page: { control: 'inline-radio', options: PAGES },
+    role: { control: 'inline-radio', options: Object.keys(USERS) },
+  },
   beforeEach: ({ msw }) => {
     msw.use(http.get('*/api/sessions/v2/new/count', () => HttpResponse.json({ count: 2 })));
   },
@@ -50,7 +75,6 @@ const meta = {
       },
     },
     layout: 'fullscreen',
-    router: { initialEntries: ['/secretariat-general'], path: '*' },
   },
   tags: ['autodocs'],
   title: 'Layout/Header',
@@ -58,26 +82,4 @@ const meta = {
 
 export default meta;
 
-type Story = StoryObj<typeof meta>;
-
-export const Member: Story = {
-  parameters: { router: { initialEntries: ['/magistrats'], path: '*' } },
-};
-
-export const MemberArchives: Story = {
-  parameters: { router: { initialEntries: ['/transparences/archives/sessions'], path: '*' } },
-};
-
-export const MemberArchivedSession: Story = {
-  args: { isArchived: true },
-  parameters: {
-    router: {
-      initialEntries: ['/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/session-1'],
-      path: '*',
-    },
-  },
-};
-
-export const Sg: Story = { args: { view: 'sg' } };
-
-export const Admin: Story = { args: { view: 'admin' } };
+export const Playground: StoryObj<typeof meta> = {};

@@ -7,6 +7,18 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
+import { Prisma } from '../../../../../generated/prisma/client';
+import { assertNever } from '../../../../../utils/assert-never';
+import { DateOnly } from '../../../../../utils/date-only';
+import { makeId } from '../../../../../utils/id';
+import { isDefined } from '../../../../../utils/is-defined';
+import { Clock } from '../../../../framework/clock';
+import { Db } from '../../../../framework/database';
+import { Files } from '../../../../framework/files';
+import { MembersService } from '../../../../members';
+import { TransparenceService } from '../../../../session/transparence/infrastructure/transparence.service';
+import { formationEnumToPrismaFormationEnum } from '../../../../shared/mappers/formation.mapper';
+import { DocsNominationFilesFinder } from '../../../shared/infrastructure/finders/docs-nomination-files.finder';
 import {
   Agenda,
   AgendaCreated,
@@ -24,18 +36,6 @@ import {
 } from '../../domain/agenda';
 import { AgendaSnapshot } from '../../domain/agenda-snapshot';
 import { AgendaVersionFinder } from '../finders/agenda-version.finder';
-import { Prisma } from 'src/generated/prisma/client';
-import { DocsNominationFilesFinder } from 'src/modules/docs/shared/infrastructure/finders/docs-nomination-files.finder';
-import { Clock } from 'src/modules/framework/clock';
-import { Db } from 'src/modules/framework/database';
-import { Files } from 'src/modules/framework/files';
-import { MembersService } from 'src/modules/members';
-import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
-import { formationEnumToPrismaFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
-import { assertNever } from 'src/utils/assert-never';
-import { DateOnly } from 'src/utils/date-only';
-import { makeId } from 'src/utils/id';
-import { isDefined } from 'src/utils/is-defined';
 
 @Injectable()
 export class AgendaRepository {
@@ -196,8 +196,6 @@ export class AgendaRepository {
     await this.db.tx.agendaVersion.update({
       where: { id: versionId },
       data: {
-        createdBy: message.authorId,
-
         date: message.update.date.toDate(),
         sessionMeetingDate: message.update.sessionMeetingDate.toDate(),
 

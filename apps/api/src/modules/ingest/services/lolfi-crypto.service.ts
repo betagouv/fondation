@@ -5,9 +5,9 @@ import * as util from 'node:util';
 
 import { Inject, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 
-import { API_CONFIG_TOKEN, ApiConfig } from 'src/modules/framework/config';
-import { FILE_MIME_TYPES } from 'src/modules/framework/files';
-import { ignoreAsync } from 'src/utils/promises';
+import { ignoreAsync } from '../../../utils/promises';
+import { API_CONFIG_TOKEN, ApiConfig } from '../../framework/config';
+import { FILE_MIME_TYPES } from '../../framework/files';
 
 const exec = util.promisify(cp.exec);
 

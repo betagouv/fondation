@@ -1,21 +1,35 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { Files } from 'src/modules/framework/files';
+import { Prisma } from '../../../../generated/prisma/client';
+import { Db } from '../../../framework/database';
+import { Files } from '../../../framework/files';
+import { TransparenceService } from '../../../session/transparence/infrastructure/transparence.service';
+import type { RoleEnum } from '../../../shared/role.enum';
 
 @Injectable()
 export class GetObservationFileUrlQuery {
   constructor(
     private readonly db: Db,
     private readonly files: Files,
+
+    @Inject(forwardRef(() => TransparenceService))
+    private readonly transparences: TransparenceService,
   ) {}
 
-  async handle(query: { observationId: string; fileId: string }): Promise<GetObservationFileUrlResponseDto> {
+  async handle(query: {
+    fileId: string;
+    nominationFileId: string;
+    observationId: string;
+    role: RoleEnum;
+    sessionId: string;
+  }): Promise<GetObservationFileUrlResponseDto> {
+    await this.transparences.internalGetVisibleSession(query);
+
     const observationFile = await this.db.tx.observationFile.findUnique({
       where: {
+        observation: { nominationFileId: query.nominationFileId, sessionId: query.sessionId },
         observationId_fileId: {
           observationId: query.observationId,
           fileId: query.fileId,

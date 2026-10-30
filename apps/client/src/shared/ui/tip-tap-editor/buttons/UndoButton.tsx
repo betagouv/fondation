@@ -1,8 +1,10 @@
 import { useCurrentEditor, useEditorState } from '@tiptap/react';
+import { useIntl } from 'react-intl';
 
 import { EditorButton } from './EditorButton';
 
 export function UndoButton() {
+  const { formatMessage } = useIntl();
   const { editor } = useCurrentEditor();
   const disabled = useEditorState({
     editor,
@@ -20,7 +22,7 @@ export function UndoButton() {
       iconId="fr-icon-arrow-go-back-line"
       mark="undo"
       onClick={undoChanges}
-      title="Annuler"
+      title={formatMessage({ defaultMessage: 'Annuler' })}
     />
   );
 }

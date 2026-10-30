@@ -2,22 +2,22 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { Prisma } from '../../../../generated/prisma/client';
+import { findMagistratsCurrentPositionRawQuery } from '../../../../generated/prisma/sql';
+import { auditionScheduleSchema } from '../../../../utils/audition-schedule';
+import { writerOf, writerSchema } from '../../../../utils/user.util';
+import { Db } from '../../../framework/database';
+import { magistratFullName } from '../../../magistrat/domain/magistrat-name';
+import { TransparenceService } from '../../../session/transparence/infrastructure/transparence.service';
+import type { RoleEnum } from '../../../shared/role.enum';
 import { ObservationFollowUp } from '../../domain/observation-follow-up';
-import { Prisma } from 'src/generated/prisma/client';
-import { findMagistratsCurrentPositionRawQuery } from 'src/generated/prisma/sql';
-import { Db } from 'src/modules/framework/database';
-import { magistratFullName } from 'src/modules/magistrat/domain/magistrat-name';
-import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import { auditionScheduleSchema } from 'src/utils/audition-schedule';
-import { fullname } from 'src/utils/user.util';
 
 const ObservationFileSchema = z.object({
   id: z.string(),
   name: z.string(),
   size: z.number().int().nullable(),
   addedAt: z.iso.datetime(),
-  addedBy: z.object({ id: z.string(), name: z.string() }).nullable(),
+  addedBy: writerSchema,
 });
 
 const ObservationSchema = z.object({
@@ -69,6 +69,8 @@ export class ListObservationsQuery {
     role: RoleEnum;
     sessionId: string;
   }): Promise<ListObservationsResponseDto> {
+    await this.transparences.internalGetVisibleSession(query);
+
     const observations = await this.db.tx.observation.findMany({
       orderBy: { createdAt: 'desc' },
       select: {
@@ -140,7 +142,7 @@ export class ListObservationsQuery {
           description: obs.description,
           files: obs.files.map(({ file }) => ({
             addedAt: file.createdAt.toISOString(),
-            addedBy: file.createdBy ? { id: file.createdBy.id, name: fullname(file.createdBy) } : null,
+            addedBy: writerOf(file.createdBy),
             id: file.id,
             name: file.name,
             size: file.sizeInBytes,

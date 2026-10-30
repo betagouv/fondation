@@ -1,7 +1,7 @@
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import { assertNever } from 'src/utils/assert-never';
+import { assertNever } from '../../utils/assert-never';
 
 import { FormationEnum } from './formation.enum';
+import type { RoleEnum } from './role.enum';
 
 export function formationToMemberRole(formation?: FormationEnum): RoleEnum[] {
   switch (formation) {

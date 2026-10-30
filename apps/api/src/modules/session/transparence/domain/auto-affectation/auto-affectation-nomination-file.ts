@@ -1,6 +1,6 @@
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import { GradeEnum } from 'src/modules/shared/grade.enum';
-import { DateOnly } from 'src/utils/date-only';
+import { DateOnly } from '../../../../../utils/date-only';
+import { FormationEnum } from '../../../../shared/formation.enum';
+import { GradeEnum } from '../../../../shared/grade.enum';
 
 import { AutoAffectationWorkload } from './auto-affectation-file-workload';
 

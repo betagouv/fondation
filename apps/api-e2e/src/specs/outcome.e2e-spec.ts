@@ -25,17 +25,14 @@ test.describe('Session Outcomes E2E', () => {
   let sessionId: string;
   let fileIds: string[];
 
-  test.beforeEach(async ({ agent, sessions, expect }) => {
+  test.beforeEach(async ({ sessions }) => {
     const session = await sessions.createOne({
       name: 'Transparence issues',
       createdAt: '22/04/2026',
       candidates: [candidate('ETIENNE', 'TREVOUX'), candidate('CAMILLE', 'BERNARD'), candidate('SOPHIE', 'MARTIN')],
     });
     sessionId = session.id;
-
-    const files = await agent.sessions.listNominationFiles({ path: { sessionId } });
-    expect(files.response?.status).toBe(200);
-    fileIds = files.data!.items.map(({ id }) => id);
+    fileIds = session.files.map(({ id }) => id);
   });
 
   function outcomesByFileId(agent: TestStepsAgent) {

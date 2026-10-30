@@ -1,5 +1,7 @@
-import { oneLine } from 'common-tags';
-
+import { DateOnly } from '../../../../../../utils/date-only';
+import { FormationEnum } from '../../../../../shared/formation.enum';
+import { GenderEnum } from '../../../../../shared/gender.enum';
+import { UserTitleEnum } from '../../../../../shared/user-title.enum';
 import {
   commonDocumentCss,
   documentLayout,
@@ -11,14 +13,9 @@ import {
   requiresElision,
   titled,
 } from '../../../../shared/infrastructure/services/renderers/helpers';
+import { html, SafeHtml } from '../../../../shared/infrastructure/services/renderers/safe-html';
 import { Template } from '../../../../shared/infrastructure/services/renderers/templates.types';
 import { AgendaBlockFile } from '../../../domain/agenda-doc-block';
-import { UserTitleEnum } from 'src/modules/administration/domain/user-enum';
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import { GenderEnum } from 'src/modules/shared/gender.enum';
-import { DateOnly } from 'src/utils/date-only';
-
-const html = oneLine;
 
 type AgendaRenderContextNominationFile = {
   id: bigint;
@@ -56,7 +53,7 @@ export type AgendaRenderContext = {
   };
 };
 
-function agendaHeader(ctx: AgendaRenderContext): string {
+function agendaHeader(ctx: AgendaRenderContext): SafeHtml {
   return html`
     <h1>Avis du Conseil supérieur de la magistrature</h1>
     <p class="formation">
@@ -78,9 +75,9 @@ function displayFileContent(ctx: {
   root: AgendaRenderContext;
   file: AgendaRenderContextNominationFile;
   ignoreUserDefinedContent?: true;
-}): string {
+}): SafeHtml {
   const userDefinedContent = ctx.root.userDefinedBlocks.files.get(ctx.file.id)?.html;
-  if (!ctx.ignoreUserDefinedContent && userDefinedContent) return userDefinedContent;
+  if (!ctx.ignoreUserDefinedContent && userDefinedContent) return new SafeHtml(userDefinedContent);
 
   const currentPosition = ctx.file.currentPosition
     ? `, actuellement ${ctx.file.currentPosition} (${ctx.file.currentGrade})`
@@ -91,24 +88,27 @@ function displayFileContent(ctx: {
   const reporters =
     ctx.file.reporters.length > 0 ? `, au rapport de ${conjunctionList(ctx.file.reporters)}` : '';
 
-  return /* html */ `<strong>${ctx.file.name}</strong>${currentPosition}${targetPosition}${reporters}.`;
+  return html`<strong>${ctx.file.name}</strong>${currentPosition}${targetPosition}${reporters}.`;
 }
 
 function agendaNominationParagraph(ctx: {
   root: AgendaRenderContext;
   file: AgendaRenderContextNominationFile;
   index: number;
-}): string {
+}): SafeHtml {
   return html`<p data-file="${ctx.index}">${displayFileContent({ root: ctx.root, file: ctx.file })}</p>`;
 }
 
-function agendaContent(ctx: AgendaRenderContext): string {
-  return html` ${ctx.nominationFiles
-    .map((file, index) => agendaNominationParagraph({ root: ctx, file, index: index + 1 }))
-    .join('\n')}`;
+function agendaContent(ctx: AgendaRenderContext): SafeHtml {
+  return html` ${SafeHtml.join(
+    ctx.nominationFiles.map((file, index) =>
+      agendaNominationParagraph({ root: ctx, file, index: index + 1 }),
+    ),
+    '\n',
+  )}`;
 }
 
-function agendaFooter(ctx: AgendaRenderContext): string {
+function agendaFooter(ctx: AgendaRenderContext): SafeHtml {
   return html`
     <p class="redaction-place">Fait à Paris, le ${date(ctx.date, 'do MMMM yyyy')}</p>
     <p class="signature">${titled(ctx.chairman)}</p>
@@ -193,8 +193,8 @@ export function* agendaBlocks(ctx: AgendaRenderContext): Iterable<AgendaBlockFil
 
     // every block carries the text the document proposes, so the editor can mark what the reader
     // changes as they type, before anything is saved. An untouched block reads the same both ways.
-    const generatedHtml = displayFileContent({ root: ctx, file, ignoreUserDefinedContent: true });
-    const html = userDefined?.html ? displayFileContent({ root: ctx, file }) : generatedHtml;
+    const generatedHtml = displayFileContent({ root: ctx, file, ignoreUserDefinedContent: true }).toString();
+    const html = userDefined?.html ? displayFileContent({ root: ctx, file }).toString() : generatedHtml;
     const edited = Boolean(userDefined?.html) && !readsTheSame(html, generatedHtml);
 
     yield {

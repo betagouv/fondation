@@ -1,5 +1,5 @@
-import { DateOnly } from 'src/utils/date-only';
-import { TimeOnly } from 'src/utils/time-only';
+import { DateOnly } from '../../../../utils/date-only';
+import { TimeOnly } from '../../../../utils/time-only';
 
 export type PlainJusticePresentationPlanSettings = {
   agendas: readonly { comment: string | null; id: string }[];
@@ -14,6 +14,14 @@ export type PlainJusticePresentationPlanSettings = {
 
 export class JusticePresentationPlanSettings {
   private constructor(private readonly plain: PlainJusticePresentationPlanSettings) {}
+
+  get chairmanId(): string | null {
+    return this.plain.chairmanId;
+  }
+
+  get members(): readonly { id: string; isAbsent: boolean }[] {
+    return this.plain.members;
+  }
 
   static from(plain: PlainJusticePresentationPlanSettings): JusticePresentationPlanSettings {
     return new JusticePresentationPlanSettings(plain);

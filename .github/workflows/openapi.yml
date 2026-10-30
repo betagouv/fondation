@@ -28,7 +28,7 @@ jobs:
       GOTENBERG_API_URL: http://gotenberg.example.com
     services:
       postgres:
-        image: postgres:17.9@sha256:2a0d0fe14825b0939f78a8cad5cd4e6aa68bf94d0e5dd96e24b6d23af4315545
+        image: postgres:17.10@sha256:7958605b474b3d264a969cb3a123d6aa00ad1e1fe9da8a69984dabb704d93317
         env:
           POSTGRES_USER: fondation
           POSTGRES_PASSWORD: secret
@@ -52,13 +52,13 @@ jobs:
 
       - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
         with:
-          version: 11.27.0
+          version: 11.28.5
           run_install: false
 
       - name: Use Node.js
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
         with:
-          node-version: '24.12.0'
+          node-version: '24.22.1'
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -76,7 +76,7 @@ jobs:
       - name: Create buckets if necessary
         run: node apps/api/scripts/init-buckets.js
 
-      - name: Generate OpenAPI clients and check public endpoints
+      - name: Generate OpenAPI clients
         shell: bash
         run: |
           setsid pnpm --filter api start:e2e &
@@ -86,7 +86,6 @@ jobs:
           timeout 90 bash -c 'until curl -sf http://localhost:3000/openapi/root.json > /dev/null; do sleep 1; done'
 
           pnpm run openapi:generate
-          node apps/api/scripts/check-public-endpoints.mjs
         env:
           PORT: '3000'
 
@@ -120,36 +119,3 @@ jobs:
             --head "$branch" \
             --title "chore(FON-000): sync generated OpenAPI clients" \
             --body "Generated OpenAPI clients drifted from the contract on \`develop\`. This PR regenerates them via \`pnpm run openapi:generate\`."
-
-      - name: Open a pull request when public endpoints allowlist drifts
-        shell: bash
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GIT_ACTOR: ${{ github.actor }}
-          GIT_ACTOR_EMAIL: ${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com
-        run: |
-          if [ -z "$(git status --porcelain -- apps/api/public-endpoints.json)" ]; then
-            echo "Public endpoints allowlist is already up to date."
-            exit 0
-          fi
-
-          branch="chore/openapi-public-endpoints"
-          git config user.name "$GIT_ACTOR"
-          git config user.email "$GIT_ACTOR_EMAIL"
-          git stash push -- apps/api/public-endpoints.json
-          git checkout -B "$branch" origin/develop
-          git stash pop
-          git add apps/api/public-endpoints.json
-          git commit -m "chore(FON-000): sync public endpoints allowlist"
-          git push --force origin "$branch"
-
-          if [ -n "$(gh pr list --head "$branch" --state open --json number --jq '.[].number')" ]; then
-            echo "An open pull request already tracks $branch; it now points at the fresh commit."
-            exit 0
-          fi
-
-          gh pr create \
-            --base develop \
-            --head "$branch" \
-            --title "chore(FON-000): sync public endpoints allowlist" \
-            --body "The public endpoints allowlist at \`apps/api/public-endpoints.json\` drifted from the OpenAPI document on \`develop\`. Review the diff carefully: **any new entry means an endpoint is now exposed without authentication requirement**. Confirm this is intentional, and add a comment above the entry explaining why it must stay public."

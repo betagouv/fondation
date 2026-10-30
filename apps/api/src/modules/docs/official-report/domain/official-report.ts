@@ -1,8 +1,10 @@
+import { makeId, type Id } from '../../../../utils/id';
+import { assertIsDefined } from '../../../../utils/is-defined';
+import type { FormationEnum } from '../../../shared/formation.enum';
 import { type DocNominationFileOutcomeEnum } from '../../shared/domain/doc-nomination-file-outcome';
 import { type DocSystemUpdateCause } from '../../shared/domain/doc-system-update-cause';
-import type { FormationEnum } from 'src/modules/shared/formation.enum';
-import { makeId, type Id } from 'src/utils/id';
-import { assertIsDefined } from 'src/utils/is-defined';
+import { canDiscardDraft, canValidateDocument } from '../../shared/domain/document.policies';
+import { type DraftChangesBy } from '../../shared/domain/draft-changes-by';
 
 import {
   InvalidateOfficialReportCommand,
@@ -58,6 +60,22 @@ export class OfficialReportConclusionReset {
 }
 
 export class OfficialReportFileReset {
+  constructor(
+    readonly officialReportId: Id<'OfficialReportId'>,
+    readonly nominationFileId: string,
+  ) {}
+}
+
+export class OfficialReportFileNoteEdited {
+  constructor(
+    readonly officialReportId: Id<'OfficialReportId'>,
+    readonly nominationFileId: string,
+    readonly html: string,
+    readonly authorId: string,
+  ) {}
+}
+
+export class OfficialReportFileNoteDeleted {
   constructor(
     readonly officialReportId: Id<'OfficialReportId'>,
     readonly nominationFileId: string,
@@ -150,6 +168,8 @@ export type OfficialReportEvent =
   | OfficialReportConclusionEdited
   | OfficialReportConclusionReset
   | OfficialReportFileReset
+  | OfficialReportFileNoteEdited
+  | OfficialReportFileNoteDeleted
   | OfficialReportSectionTitleEdited
   | OfficialReportSectionTitleReset
   | OfficialReportSectionIntroEdited
@@ -178,6 +198,9 @@ export class OfficialReportDocumentNotStored extends Error {}
 export class OfficialReportAlreadyValidated extends Error {}
 
 export class OfficialReportWithoutValidatedVersion extends Error {}
+export class OfficialReportDraftChangedByTheApplication extends Error {}
+
+export class OfficialReportFileNotHeld extends Error {}
 
 type OfficialReportState = { isDocumentStored: boolean; isValidated: boolean };
 
@@ -188,6 +211,11 @@ export class OfficialReport {
   readonly #messages: OfficialReportEvent[] = [];
   get messages(): readonly OfficialReportEvent[] {
     return this.#messages;
+  }
+
+  get recordedMemberIds(): string[] {
+    const { chairman, members } = this.snapshot.meta;
+    return [...(chairman.id ? [chairman.id] : []), ...members.map(({ id }) => id)];
   }
 
   get formation(): FormationEnum {
@@ -248,7 +276,8 @@ export class OfficialReport {
   }
 
   validate(command: { at: Date; authorId: string }): void {
-    if (this.state.isValidated) throw new OfficialReportAlreadyValidated();
+    if (!canValidateDocument({ isValidated: this.state.isValidated }))
+      throw new OfficialReportAlreadyValidated();
     if (!this.state.isDocumentStored) throw new OfficialReportDocumentNotStored();
 
     this.#messages.push(
@@ -257,9 +286,10 @@ export class OfficialReport {
     this.state.isValidated = true;
   }
 
-  discardDraft(command: { hasValidatedVersion: boolean }): void {
+  discardDraft(command: { changesBy: DraftChangesBy | null; hasValidatedVersion: boolean }): void {
     if (this.state.isValidated) return;
     if (!command.hasValidatedVersion) throw new OfficialReportWithoutValidatedVersion();
+    if (!canDiscardDraft(command)) throw new OfficialReportDraftChangedByTheApplication();
 
     this.#messages.push(new OfficialReportDraftDiscarded(this.id));
     this.state.isValidated = true;
@@ -299,7 +329,10 @@ export class OfficialReport {
   }
 
   update(command: UpdateOfficialReportCommand): void {
-    const { changed, diff, next } = this.snapshot.update(command.officialReport);
+    const { changed, diff, next } = this.snapshot.update({
+      ...command.officialReport,
+      members: command.officialReport.members.keepingRecorded(this.snapshot.meta.members),
+    });
     if (!changed) return;
 
     this.openDraft();
@@ -334,6 +367,24 @@ export class OfficialReport {
   resetFile(command: { nominationFileId: string }): void {
     this.openDraft();
     this.#messages.push(new OfficialReportFileReset(this.id, command.nominationFileId));
+  }
+
+  editFileNote(command: { authorId: string; html: string; nominationFileId: string }): void {
+    if (!this.snapshot.holdsFile(command.nominationFileId)) throw new OfficialReportFileNotHeld();
+    if (this.snapshot.noteOf(command.nominationFileId) === command.html) return;
+
+    this.openDraft();
+    this.#messages.push(
+      new OfficialReportFileNoteEdited(this.id, command.nominationFileId, command.html, command.authorId),
+    );
+  }
+
+  deleteFileNote(command: { nominationFileId: string }): void {
+    if (!this.snapshot.holdsFile(command.nominationFileId)) throw new OfficialReportFileNotHeld();
+    if (this.snapshot.noteOf(command.nominationFileId) === null) return;
+
+    this.openDraft();
+    this.#messages.push(new OfficialReportFileNoteDeleted(this.id, command.nominationFileId));
   }
 
   editSectionTitle(command: { outcome: DocNominationFileOutcomeEnum; text: string }): void {

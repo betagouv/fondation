@@ -1,12 +1,9 @@
 import { defineConfig } from 'vitest/config';
 
-const srcDir = new URL('./src/', import.meta.url).pathname;
-
 export default defineConfig({
   oxc: { decorator: { emitDecoratorMetadata: true, legacy: true } },
-  resolve: { alias: [{ find: /^src\//, replacement: srcDir }] },
   test: {
-    name: 'unit',
+    name: 'api',
     globals: true,
     environment: 'node',
     env: { TZ: 'Etc/UTC' },

@@ -8,7 +8,8 @@ import { RegisteredUserDto, type RegisterUserDto } from '../generated/api/types.
 import { makeStepsFixtures, TestSteps } from '../steps.ts';
 import { registrationToken } from '../utils/e2e-tokens.ts';
 
-export type RoleEnum = NonNullable<RegisterUserDto['role']>;
+/** ADMIN stands for a member of the general secretariat who holds the admin right, DEVELOPER for its technical account */
+export type RoleEnum = NonNullable<RegisterUserDto['role']> | 'ADMIN' | 'DEVELOPER';
 
 export type AuthUser = {
   id: string;
@@ -19,21 +20,29 @@ export type AuthUser = {
   gender: 'MALE' | 'FEMALE';
 };
 
+export function strongPassword(): string {
+  return `Aa1-${crypto.randomUUID()}`;
+}
+
 export async function registerUser<Role extends RoleEnum>(options: {
   client: Client;
   user: Role | (Partial<Omit<RegisterUserDto, 'role'>> & { role: Role });
 }): Promise<AuthUser> {
-  const inputUser = (
-    typeof options.user === 'string' ? { role: options.user } : options.user
-  ) as Partial<RegisterUserDto>;
+  const inputUser = (typeof options.user === 'string' ? { role: options.user } : options.user) as Partial<
+    Omit<RegisterUserDto, 'role'>
+  > & { role: RoleEnum };
+  const isTechnical = inputUser.role === 'DEVELOPER';
+  const isAdmin = isTechnical || inputUser.role === 'ADMIN';
   const user = {
-    role: inputUser.role as Role,
+    isAdmin,
+    isTechnical,
+    role: isAdmin ? 'ADJOINT_SECRETAIRE_GENERAL' : (inputUser.role as Exclude<RoleEnum, 'ADMIN' | 'DEVELOPER'>),
     // faker emails collide over a whole run, while the address must be unique
     email: inputUser.email ?? faker.internet.email().replace('@', `+${crypto.randomUUID()}@`),
     firstName: inputUser.firstName ?? faker.person.firstName(),
     lastName: inputUser.lastName ?? faker.person.lastName(),
     gender: inputUser.gender ?? faker.helpers.arrayElement(['MALE', 'FEMALE']),
-    password: inputUser.password ?? crypto.randomUUID(),
+    password: inputUser.password ?? strongPassword(),
   } satisfies RegisterUserDto;
 
   const client = options.client;

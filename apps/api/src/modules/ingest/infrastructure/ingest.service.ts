@@ -1,5 +1,9 @@
 import { ConflictException, Injectable, Logger } from '@nestjs/common';
 
+import { Prisma } from '../../../generated/prisma/client';
+import { describeErrorWithoutSecrets } from '../../../utils/describe-error-without-secrets';
+import { Clock } from '../../framework/clock';
+import { Db } from '../../framework/database';
 import { isExpired } from '../domain/expired-job';
 import { withLolfiFileRequirements } from '../domain/requirements';
 import { isStale } from '../domain/stale-ingestion';
@@ -10,10 +14,6 @@ import {
   IngestedLolfiArchiveFailed,
   LolfiArchiveIngestor,
 } from '../services/lolfi-archive-ingest';
-import { Prisma } from 'src/generated/prisma/client';
-import { Clock } from 'src/modules/framework/clock';
-import { Db } from 'src/modules/framework/database';
-import { describeErrorWithoutSecrets } from 'src/utils/describe-error-without-secrets';
 
 import {
   DetailedLolfiSession,
@@ -87,8 +87,8 @@ export class IngestService {
         .update({
           where: { id: jobId },
           data: {
+            messages: { create: { text: describeErrorWithoutSecrets(e) } },
             status: 'FAILED',
-            errors: { create: { error: describeErrorWithoutSecrets(e) } },
           },
         })
         .catch((prismaError) => {
@@ -122,9 +122,9 @@ export class IngestService {
         this.logger.error(`Failed failing the files of job #${jobId}`, error);
       });
 
-    await this.db.tx.ingestionJobError
+    await this.db.tx.ingestionJobMessage
       .create({
-        data: { jobId, error: `Job abandonné: aucun statut final n'a été écrit` },
+        data: { jobId, text: `Ingestion abandonnée : aucun statut final n'a été enregistré` },
       })
       .catch((error) => {
         this.logger.error(`Failed recording the error of job #${jobId}`, error);
@@ -160,10 +160,10 @@ export class IngestService {
         });
       }
     } else {
-      await this.db.tx.ingestionJobError.createMany({
+      await this.db.tx.ingestionJobMessage.createMany({
         data: props.result.errors.map(({ message }) => ({
           jobId: job.id,
-          error: message,
+          text: message,
         })),
       });
     }

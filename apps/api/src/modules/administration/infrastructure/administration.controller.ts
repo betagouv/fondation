@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Param,
   ParseUUIDPipe,
+  Post,
   Put,
   Query,
   UseInterceptors,
@@ -14,19 +15,25 @@ import {
 } from '@nestjs/common';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
+import { ApiPaginated, Pagination, QueryPagination } from '../../framework/pagination';
+import { AuthedUser, HasRole } from '../../simple-auth';
 import { AdministrationService } from '../administration.service';
-import { ApiPaginated, Pagination, QueryPagination } from 'src/modules/framework/pagination';
-import { HasRole } from 'src/modules/simple-auth';
 
 import { AdministrationErrorMapper } from './administration.filter';
 import {
+  CreatedUserDto,
+  CreateUserDto,
+  ListAdminUserRolesQueryDto,
+  ListedAdminUserRolesDto,
   ListUsersQueryDto,
   UpdateUserDisplayTitleDto,
   UpdateUserEmailDto,
+  UpdateUserNameDto,
   UpdateUserPasswordDto,
   UpdateUserRoleDto,
 } from './dto/administration.dto';
 import { DetailedAdminUserDto } from './queries/details-user.query';
+import { ListedTitleHoldersDto } from './queries/list-title-holders.query';
 import { PaginatedAdminUserListItemDto } from './queries/list-users.query';
 
 @Controller('/api/administration/v1')
@@ -38,24 +45,62 @@ export class AdministrationController {
   @Get('/users')
   @ApiPaginated()
   @UsePipes(ZodValidationPipe)
-  @ZodResponse({ type: PaginatedAdminUserListItemDto, status: HttpStatus.OK })
+  @ZodResponse({ status: HttpStatus.OK, type: PaginatedAdminUserListItemDto })
   listUsers(
     @QueryPagination() pagination: Pagination,
     @Query() query: ListUsersQueryDto,
   ): Promise<PaginatedAdminUserListItemDto> {
     return this.administration.listUsers({
       pagination,
-      search: query.search,
       roles: query.roles,
+      search: query.search,
       sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
+      statuses: query.statuses,
     });
   }
 
   @HasRole('ADMIN')
+  @Post('/users')
+  @UsePipes(ZodValidationPipe)
+  @ZodResponse({ status: HttpStatus.CREATED, type: CreatedUserDto })
+  createUser(@AuthedUser() actor: { id: string }, @Body() body: CreateUserDto): Promise<CreatedUserDto> {
+    return this.administration.createUser({ ...body, actorId: actor.id });
+  }
+
+  @HasRole('ADMIN')
   @Get('/users/:userId')
-  @ZodResponse({ type: DetailedAdminUserDto, status: HttpStatus.OK })
-  detailsUser(@Param('userId', ParseUUIDPipe) userId: string): Promise<DetailedAdminUserDto> {
-    return this.administration.detailsUser({ userId });
+  @ZodResponse({ status: HttpStatus.OK, type: DetailedAdminUserDto })
+  detailsUser(
+    @AuthedUser() actor: { id: string },
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ): Promise<DetailedAdminUserDto> {
+    return this.administration.detailsUser({ actorId: actor.id, userId });
+  }
+
+  @HasRole('ADMIN')
+  @Get('/roles')
+  @UsePipes(ZodValidationPipe)
+  @ZodResponse({ status: HttpStatus.OK, type: ListedAdminUserRolesDto })
+  listRoles(@Query() query: ListAdminUserRolesQueryDto): ListedAdminUserRolesDto {
+    return this.administration.listRoles(query);
+  }
+
+  @HasRole('ADMIN')
+  @Get('/title-holders')
+  @ZodResponse({ status: HttpStatus.OK, type: ListedTitleHoldersDto })
+  listTitleHolders(): Promise<ListedTitleHoldersDto> {
+    return this.administration.listTitleHolders();
+  }
+
+  @HasRole('ADMIN')
+  @Put('/users/:userId/name')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UsePipes(ZodValidationPipe)
+  updateName(
+    @Param('userId', ParseUUIDPipe) userId: string,
+    @Body() { firstName, lastName }: UpdateUserNameDto,
+  ): Promise<void> {
+    return this.administration.updateName({ firstName, lastName, userId });
   }
 
   @HasRole('ADMIN')
@@ -66,7 +111,7 @@ export class AdministrationController {
     @Param('userId', ParseUUIDPipe) userId: string,
     @Body() { email }: UpdateUserEmailDto,
   ): Promise<void> {
-    return this.administration.updateEmail({ userId, email });
+    return this.administration.updateEmail({ email, userId });
   }
 
   @HasRole('ADMIN')
@@ -74,10 +119,11 @@ export class AdministrationController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
   updatePassword(
+    @AuthedUser() actor: { sessionId: string },
     @Param('userId', ParseUUIDPipe) userId: string,
     @Body() { password }: UpdateUserPasswordDto,
   ): Promise<void> {
-    return this.administration.updatePassword({ userId, password });
+    return this.administration.updatePassword({ actorSessionId: actor.sessionId, password, userId });
   }
 
   @HasRole('ADMIN')
@@ -88,7 +134,7 @@ export class AdministrationController {
     @Param('userId', ParseUUIDPipe) userId: string,
     @Body() { role }: UpdateUserRoleDto,
   ): Promise<void> {
-    return this.administration.updateRole({ userId, role });
+    return this.administration.updateRole({ role, userId });
   }
 
   @HasRole('ADMIN')
@@ -99,20 +145,66 @@ export class AdministrationController {
     @Param('userId', ParseUUIDPipe) userId: string,
     @Body() { displayTitle }: UpdateUserDisplayTitleDto,
   ): Promise<void> {
-    return this.administration.updateDisplayTitle({ userId, displayTitle });
+    return this.administration.updateDisplayTitle({ displayTitle, userId });
   }
 
   @HasRole('ADMIN')
   @Put('/users/:userId/promotion')
   @HttpCode(HttpStatus.NO_CONTENT)
-  promoteToAdmin(@Param('userId', ParseUUIDPipe) userId: string): Promise<void> {
-    return this.administration.promoteToAdmin({ userId });
+  promoteToAdmin(
+    @AuthedUser() actor: { id: string },
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ): Promise<void> {
+    return this.administration.promoteToAdmin({ actorId: actor.id, userId });
   }
 
   @HasRole('ADMIN')
   @Delete('/users/:userId/promotion')
   @HttpCode(HttpStatus.NO_CONTENT)
-  demoteFromAdmin(@Param('userId', ParseUUIDPipe) userId: string): Promise<void> {
-    return this.administration.demoteFromAdmin({ userId });
+  demoteFromAdmin(
+    @AuthedUser() actor: { id: string },
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ): Promise<void> {
+    return this.administration.demoteFromAdmin({ actorId: actor.id, userId });
+  }
+
+  @HasRole('ADMIN')
+  @Put('/users/:userId/technical-account')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  markTechnicalAccount(
+    @AuthedUser() actor: { id: string },
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ): Promise<void> {
+    return this.administration.updateTechnicalAccount({ actorId: actor.id, isTechnical: true, userId });
+  }
+
+  @HasRole('ADMIN')
+  @Delete('/users/:userId/technical-account')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  unmarkTechnicalAccount(
+    @AuthedUser() actor: { id: string },
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ): Promise<void> {
+    return this.administration.updateTechnicalAccount({ actorId: actor.id, isTechnical: false, userId });
+  }
+
+  @HasRole('ADMIN')
+  @Put('/users/:userId/deactivation')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  deactivate(
+    @AuthedUser() actor: { id: string },
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ): Promise<void> {
+    return this.administration.deactivate({ actorId: actor.id, userId });
+  }
+
+  @HasRole('ADMIN')
+  @Delete('/users/:userId/deactivation')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  reactivate(
+    @AuthedUser() actor: { id: string },
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ): Promise<void> {
+    return this.administration.reactivate({ actorId: actor.id, userId });
   }
 }

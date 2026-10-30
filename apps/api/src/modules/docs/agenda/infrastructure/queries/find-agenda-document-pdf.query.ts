@@ -1,12 +1,12 @@
 import { Injectable, Logger, NotFoundException, StreamableFile } from '@nestjs/common';
 
+import { Prisma } from '../../../../../generated/prisma/client';
+import { DateOnly } from '../../../../../utils/date-only';
+import { Db } from '../../../../framework/database';
+import { contentDisposition, FILE_MIME_TYPES, Files } from '../../../../framework/files';
+import { PdfRenderer } from '../../../../framework/pdf';
 import { docFileName } from '../../../shared/domain/doc-file-name';
 import { AgendaVersionFinder } from '../finders/agenda-version.finder';
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { contentDisposition, FILE_MIME_TYPES, Files } from 'src/modules/framework/files';
-import { PdfRenderer } from 'src/modules/framework/pdf';
-import { DateOnly } from 'src/utils/date-only';
 
 import { FindAgendaDocumentQuery } from './find-agenda-document.query';
 
@@ -82,10 +82,12 @@ export class FindAgendaDocumentPdfQuery {
     const [pdfFileId] = await this.files.create([{ buffer, name, path, mimeType: FILE_MIME_TYPES.pdf }]);
 
     if (pdfFileId) {
-      await this.db.tx.agendaVersion.update({
-        where: { id: versionId },
+      // a validation sent twice renders twice: the PDF the other one attached meanwhile stays
+      const { count } = await this.db.tx.agendaVersion.updateMany({
         data: { pdfFileId },
+        where: { id: versionId, pdfFileId: version.pdf?.id ?? null },
       });
+      if (count === 0) this.files.delete([{ id: pdfFileId, path: path.split('/') }]);
     } else {
       this.logger.warn(`Failed storing the PDF file`);
     }

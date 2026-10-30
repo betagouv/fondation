@@ -13,6 +13,7 @@ import { useDateAndTime } from '@/shared/hooks/useDateAndTime';
 import { useDocumentFailure } from '@/shared/hooks/useDocumentFailure';
 import { AlertBanner } from '@/shared/ui/alert-banner';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import { ValidationError } from '@/utils/validation-error';
 import {
   useDetailsOfficialReportQuery,
   useDiscardOfficialReportDraftMutation,
@@ -29,7 +30,7 @@ export function OfficialReportPreviewPage() {
 
   const { officialReportId, sessionId } = useParams<{ officialReportId: string; sessionId: string }>();
 
-  const { data: html, isPending } = useOfficialReportHtmlQuery({ force: false, id: officialReportId });
+  const { data: html, isPending } = useOfficialReportHtmlQuery({ id: officialReportId });
   const { data: metadata } = useDetailsOfficialReportQuery({ officialReportId });
 
   const validate = useValidateOfficialReportMutation({
@@ -96,13 +97,12 @@ export function OfficialReportPreviewPage() {
           >
             <FormattedMessage defaultMessage="Éditer le texte" />
           </Button>
-          {/* what the application brought in is taken without asking: only a person's draft is theirs to drop */}
-          {isDraft && metadata.hasValidatedVersion && metadata.draftChangesBy === 'PERSON' && (
+          {metadata?.canDiscardDraft && (
             <Button disabled={isBusy} onClick={() => void revertToValidated()} priority="secondary">
               <FormattedMessage defaultMessage="Revenir à la version validée" />
             </Button>
           )}
-          {isDraft && (
+          {metadata?.canValidate && (
             <Button disabled={isBusy} onClick={() => validate.mutate()}>
               {validate.isPending ? (
                 <FormattedMessage defaultMessage="Validation en cours..." />
@@ -155,7 +155,10 @@ export function OfficialReportPreviewPage() {
               <AlertBanner
                 className="justify-center px-4 py-3"
                 icon="fr-icon-error-fill"
-                message={describeFailure(validate.error ?? discardDraft.error)}
+                message={
+                  ValidationError.messageOf(validate.error ?? discardDraft.error) ??
+                  describeFailure(validate.error ?? discardDraft.error)
+                }
                 tone="error"
               />
             )}

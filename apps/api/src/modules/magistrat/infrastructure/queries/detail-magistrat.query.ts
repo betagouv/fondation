@@ -2,13 +2,14 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { Prisma } from '../../../../generated/prisma/client';
+import { PrismaMagistratStatusEnum } from '../../../../generated/prisma/enums';
+import { buildMagistratLolfiUrl } from '../../../../utils/build-magistrat-lolfi-url';
+import { DateOnly, dateOnlyJsonSchema } from '../../../../utils/date-only';
+import { Db } from '../../../framework/database';
+import { GradeEnum } from '../../../shared/grade.enum';
+import { isGrade } from '../../../shared/mappers/grade.mapper';
 import { magistratTitledFullName } from '../../domain/magistrat-name';
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { GradeEnum } from 'src/modules/shared/grade.enum';
-import { isGrade } from 'src/modules/shared/mappers/grade.mapper';
-import { buildMagistratLolfiUrl } from 'src/utils/build-magistrat-lolfi-url';
-import { DateOnly, dateOnlyJsonSchema } from 'src/utils/date-only';
 
 @Injectable()
 export class DetailMagistratQuery {
@@ -34,6 +35,7 @@ export class DetailMagistratQuery {
           careerHistory: true,
           currentPositionId: true,
           externalId: true,
+          status: true,
         } satisfies Prisma.MagistratSelect,
       });
 
@@ -61,6 +63,7 @@ export class DetailMagistratQuery {
         currentPosition,
         careerHistory: magistrat.careerHistory,
         externalUrl: buildMagistratLolfiUrl(magistrat.externalId),
+        status: magistrat.status,
       };
     });
   }
@@ -114,5 +117,6 @@ export class DetailedMagistratDto extends createZodDto(
     currentPosition: PositionSchema.nullable(),
     careerHistory: z.string().nullable(),
     externalUrl: z.url(),
+    status: z.enum(PrismaMagistratStatusEnum),
   }),
 ) {}

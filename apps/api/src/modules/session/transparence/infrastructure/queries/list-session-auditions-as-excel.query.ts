@@ -1,14 +1,14 @@
 import { Injectable, StreamableFile } from '@nestjs/common';
 import { build } from 'node-xlsx';
 
+import { capitalize } from '../../../../../utils/capitalize';
+import type { DateOnlyJson } from '../../../../../utils/date-only';
+import { formatPhoneNumber } from '../../../../../utils/format-phone-number';
+import { timeOnlyToString } from '../../../../../utils/time-only';
+import { Db } from '../../../../framework/database';
+import { contentDisposition, FILE_MIME_TYPES } from '../../../../framework/files';
+import type { RoleEnum } from '../../../../shared/role.enum';
 import { SessionAuditionsFinder } from '../finders/session-auditions.finder';
-import { Db } from 'src/modules/framework/database';
-import { contentDisposition, FILE_MIME_TYPES } from 'src/modules/framework/files';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import { capitalize } from 'src/utils/capitalize';
-import type { DateOnlyJson } from 'src/utils/date-only';
-import { formatPhoneNumber } from 'src/utils/format-phone-number';
-import { timeOnlyToString } from 'src/utils/time-only';
 
 import { sortByName } from './list-session-auditions.query';
 

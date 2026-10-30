@@ -1,9 +1,25 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Route, Routes } from 'react-router';
+
+import { ROUTE_PATHS } from '@/utils/route-path.utils';
 
 import { AppFooter } from './AppFooter';
 
+const LOCATIONS = { app: ROUTE_PATHS.TRANSPARENCES.DASHBOARD, login: ROUTE_PATHS.LOGIN } as const;
+type Page = keyof typeof LOCATIONS;
+
+function AppFooterStory(props: { page: Page }) {
+  return (
+    <Routes location={LOCATIONS[props.page]}>
+      <Route element={<AppFooter />} path="*" />
+    </Routes>
+  );
+}
+
 const meta = {
-  component: AppFooter,
+  args: { page: 'app' },
+  argTypes: { page: { control: 'inline-radio', options: Object.keys(LOCATIONS) } },
+  component: AppFooterStory,
   parameters: {
     docs: {
       description: {
@@ -15,12 +31,8 @@ const meta = {
   },
   tags: ['autodocs'],
   title: 'Layout/Footer',
-} satisfies Meta<typeof AppFooter>;
+} satisfies Meta<typeof AppFooterStory>;
 
 export default meta;
 
-type Story = StoryObj<typeof meta>;
-
-export const InTheApp: Story = { parameters: { router: { initialEntries: ['/transparences'] } } };
-
-export const OnLogin: Story = { parameters: { router: { initialEntries: ['/login'] } } };
+export const Playground: StoryObj<typeof meta> = {};

@@ -3,20 +3,21 @@ import assert from 'node:assert';
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { proposedMagistratName } from 'src/modules/magistrat/domain/magistrat-name';
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
+import { Prisma } from '../../../../../generated/prisma/client';
+import { assertPgParams } from '../../../../../utils/assert-pg-params';
+import { DateOnly, type DateOnlyJson } from '../../../../../utils/date-only';
+import type { TimeOnly } from '../../../../../utils/time-only';
+import { Db } from '../../../../framework/database';
+import { proposedMagistratName } from '../../../../magistrat/domain/magistrat-name';
+import { FormationEnum } from '../../../../shared/formation.enum';
+import { prismaFormationEnumToFormationEnum } from '../../../../shared/mappers/formation.mapper';
 import {
   NominationFileOutcome,
   type NominationFileOutcomeEnum,
-} from 'src/modules/shared/nomination-file-outcome.enum';
-import { canScheduleAudition } from 'src/modules/shared/policies/nomination-file.policies';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import { assertPgParams } from 'src/utils/assert-pg-params';
-import { DateOnly, type DateOnlyJson } from 'src/utils/date-only';
-import type { TimeOnly } from 'src/utils/time-only';
+} from '../../../../shared/nomination-file-outcome.enum';
+import { canScheduleAudition } from '../../../../shared/policies/nomination-file.policies';
+import { canReadSession } from '../../../../shared/policies/session.policies';
+import type { RoleEnum } from '../../../../shared/role.enum';
 
 import { AffectationVersionFinder } from './affectation-version.finder';
 import { AuditionsSeenFinder } from './auditions-seen.finder';
@@ -31,6 +32,7 @@ export type HydratedNominationFile = {
   number: number | null;
   reporters: { id: string; firstName: string; lastName: string }[];
   session: {
+    canOpen: boolean;
     date: DateOnlyJson;
     formation: FormationEnum;
     id: string;
@@ -165,6 +167,7 @@ export class HydratedNominationFilesFinder {
           : null,
         reporters: file.reporters,
         session: {
+          canOpen: canReadSession(file.session, query),
           date: DateOnly.fromUtcDate(file.session.date).toJson(),
           formation: prismaFormationEnumToFormationEnum(file.session.formation),
           id: file.session.id,

@@ -2,11 +2,12 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { Files } from 'src/modules/framework/files';
-import { FILE_MIME_TYPES, filenameToMimeType } from 'src/modules/framework/files/mime-type';
-import { isDefined } from 'src/utils/is-defined';
+import { Prisma } from '../../../../../generated/prisma/client';
+import { Db } from '../../../../framework/database';
+import { Files } from '../../../../framework/files';
+import { FILE_MIME_TYPES, filenameToMimeType } from '../../../../framework/files/mime-type';
+import { canReadSummary } from '../../../../shared/policies/summary.policies';
+import type { RoleEnum } from '../../../../shared/role.enum';
 
 @Injectable()
 export class GetSummaryAttachmentUrlQuery {
@@ -16,10 +17,10 @@ export class GetSummaryAttachmentUrlQuery {
   ) {}
 
   async handle(query: {
-    userId: string;
-    sessionId: string;
-    nominationFileId: string;
     fileId: string;
+    nominationFileId: string;
+    sessionId: string;
+    user: { id: string; role: RoleEnum };
   }): Promise<GeneratedSummaryAttachmentPublicUrlDto> {
     const session = await this.db.tx.session.findUnique({
       where: { id: query.sessionId, deletedAt: null },
@@ -55,13 +56,11 @@ export class GetSummaryAttachmentUrlQuery {
     const file = summary.attachments[0]?.file;
     if (!file) throw new NotFoundException();
 
-    const allReaders = ([] as (string | null)[])
-      .concat(
-        summary.readers.map(({ userId }) => userId),
-        summary.authorId,
-      )
-      .filter(isDefined);
-    if (!allReaders.includes(query.userId)) throw new NotFoundException();
+    const readable = canReadSummary(
+      { authorId: summary.authorId, readerIds: summary.readers.map(({ userId }) => userId) },
+      query.user,
+    );
+    if (!readable) throw new NotFoundException();
 
     const { [file.id]: url } = await this.files.getPublicUrls([file.id]);
     if (!url) throw new NotFoundException();

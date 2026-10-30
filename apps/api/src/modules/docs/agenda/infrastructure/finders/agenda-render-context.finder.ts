@@ -2,14 +2,14 @@ import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import z from 'zod';
 
+import { Prisma } from '../../../../../generated/prisma/client';
+import { DateOnly } from '../../../../../utils/date-only';
+import { writerOf } from '../../../../../utils/user.util';
+import { Db } from '../../../../framework/database';
+import { prismaFormationEnumToFormationEnum } from '../../../../shared/mappers/formation.mapper';
+import { prismaGenderEnumToGenderEnum } from '../../../../shared/mappers/gender-enum.mapper';
+import { USER_TITLES } from '../../../../shared/user-title.enum';
 import type { AgendaRenderContext } from '../services/renderers/agenda.renderer';
-import { Prisma } from 'src/generated/prisma/client';
-import { USER_TITLES } from 'src/modules/administration/domain/user-enum';
-import { Db } from 'src/modules/framework/database';
-import { prismaFormationEnumToFormationEnum } from 'src/modules/shared/mappers/formation.mapper';
-import { prismaGenderEnumToGenderEnum } from 'src/modules/shared/mappers/gender-enum.mapper';
-import { DateOnly } from 'src/utils/date-only';
-import { fullname } from 'src/utils/user.util';
 
 import { AgendaVersionFinder } from './agenda-version.finder';
 
@@ -68,7 +68,7 @@ export class AgendaRenderContextFinder {
                 html: f.htmlEdited,
                 isOutdated: f.htmlOutdated,
                 editedAt: f.htmlEditedAt,
-                editedBy: f.editor ? { id: f.editor.id, name: fullname(f.editor) } : null,
+                editedBy: writerOf(f.editor),
               },
             ] as const,
         ),

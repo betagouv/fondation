@@ -1,5 +1,18 @@
-import { oneLine } from 'common-tags';
-
+import { DateOnly } from '../../../../../../utils/date-only';
+import { Id } from '../../../../../../utils/id';
+import { isDefined } from '../../../../../../utils/is-defined';
+import { fullname } from '../../../../../../utils/user.util';
+import {
+  adminUserRoleLabel,
+  type ChairmanRole,
+  chairmanRoleLabel,
+  signatoryRoleLabel,
+} from '../../../../../shared/admin-user-role.enum';
+import { FormationEnum } from '../../../../../shared/formation.enum';
+import {
+  DocNominationFileOutcomeEnum,
+  docNominationFileOutcomeSectionTitle,
+} from '../../../../shared/domain/doc-nomination-file-outcome';
 import {
   commonDocumentCss,
   documentLayout,
@@ -8,77 +21,64 @@ import {
   conjunctionList,
   date,
   displayTitled,
+  lowerFirst,
   readsTheSame,
   requiresElision,
 } from '../../../../shared/infrastructure/services/renderers/helpers';
+import { html, SafeHtml } from '../../../../shared/infrastructure/services/renderers/safe-html';
 import { Template } from '../../../../shared/infrastructure/services/renderers/templates.types';
+import { OfficialReportChairman } from '../../../domain/official-report-chairman';
 import type { DocBlock } from '../../../domain/official-report-doc-block';
-import { OfficialReportChairman } from 'src/modules/docs/official-report/domain/official-report-chairman';
-import { OfficialReportMembersList } from 'src/modules/docs/official-report/domain/official-report-member-list';
-import { OfficialReportSecretary } from 'src/modules/docs/official-report/domain/official-report-secretary';
-import { OfficialReportSessionMeeting } from 'src/modules/docs/official-report/domain/official-report-session-meeting';
-import {
-  DocNominationFileOutcomeEnum,
-  docNominationFileOutcomeSectionTitle,
-} from 'src/modules/docs/shared/domain/doc-nomination-file-outcome';
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import { DateOnly } from 'src/utils/date-only';
-import { Id } from 'src/utils/id';
-import { isDefined } from 'src/utils/is-defined';
-import { fullname } from 'src/utils/user.util';
+import { OfficialReportMembersList } from '../../../domain/official-report-member-list';
+import { OfficialReportSecretary } from '../../../domain/official-report-secretary';
+import { OfficialReportSessionMeeting } from '../../../domain/official-report-session-meeting';
 
 type NominationFileId = Id<'NominationFileId'>;
 
 type OfficialReportRenderContextNominationFile = {
-  id: bigint;
-  number: number;
-  nominationFileId: NominationFileId | null;
-
-  name: string;
-  currentPosition: string | null;
   currentGrade: string;
-  targetedPosition: string;
-  targetedGrade: string;
-  reporters: readonly string[];
+  currentPosition: string | null;
+  id: bigint;
+  name: string;
+  nominationFileId: NominationFileId | null;
+  note: { editedAt: Date | null; editedBy: { id: string; name: string } | null; html: string } | null;
+  number: number;
   outcome: DocNominationFileOutcomeEnum;
+  reporters: readonly string[];
+  targetedGrade: string;
+  targetedPosition: string;
 };
 
 export type OfficialReportRenderContext = {
-  session: { id: string; date: DateOnly };
-  agenda: { id: string; date: DateOnly; formation: FormationEnum };
-
-  hasRenouncement: boolean;
-  justiceDepartmentContact: string;
-
-  chairman: OfficialReportChairman;
-  secretary: OfficialReportSecretary;
-  members: OfficialReportMembersList;
-  sessionMeeting: OfficialReportSessionMeeting;
-
-  files: readonly OfficialReportRenderContextNominationFile[];
-
+  agenda: { date: DateOnly; formation: FormationEnum; id: string; propositionCount: number };
   /** the sentence the agenda carries for a file: what the report's block is offered when they part ways */
   agendaProposals: ReadonlyMap<
     string,
     { at: Date | null; by: { id: string; name: string } | null; html: string }
   >;
-
+  chairman: OfficialReportChairman;
   /** the agenda each proposition comes from, where its sentence is written */
   fileAgendas: ReadonlyMap<string, string>;
-
+  files: readonly OfficialReportRenderContextNominationFile[];
+  hasRenouncement: boolean;
+  justiceDepartmentContact: string;
+  members: OfficialReportMembersList;
+  secretary: OfficialReportSecretary;
+  session: { date: DateOnly; id: string };
+  sessionMeeting: OfficialReportSessionMeeting;
   userDefinedBlocks: {
-    intro: { html: string; isOutdated: boolean } | undefined;
     conclusion: { html: string; isOutdated: boolean } | undefined;
     files: Record<
       NominationFileId,
       {
-        html: string | null;
-        isOutdated: boolean;
         editedAt: Date | null;
         editedBy: { id: string; name: string } | null;
         fromAgenda: boolean;
+        html: string | null;
+        isOutdated: boolean;
       }
     >;
+    intro: { html: string; isOutdated: boolean } | undefined;
     outcomes: {
       [K in DocNominationFileOutcomeEnum]?: {
         [KK in 'title' | 'intro']?: { html: string; isOutdated: boolean };
@@ -87,12 +87,10 @@ export type OfficialReportRenderContext = {
   };
 };
 
-const html = oneLine;
-
-function header(ctx: OfficialReportRenderContext): string {
+function header(ctx: OfficialReportRenderContext): SafeHtml {
   return html`
     <h1>
-      Procès-verbal de restitution de la séance du ${date(ctx.sessionMeeting.date, 'dd/MM/yyyy')} tenue à
+      Procès-verbal de restitution de la séance du ${date(ctx.sessionMeeting.date, 'do MMMM yyyy')} tenue à
       Paris au Conseil supérieur de la magistrature
     </h1>
     <p class="formation">
@@ -107,13 +105,13 @@ function header(ctx: OfficialReportRenderContext): string {
 
 function displayFileContent(ctx: {
   file: OfficialReportRenderContextNominationFile;
-  root: OfficialReportRenderContext;
   ignoreUserDefinedContent?: true;
-}): string {
+  root: OfficialReportRenderContext;
+}): SafeHtml {
   const userDefinedFileContent = ctx.file.nominationFileId
     ? ctx.root.userDefinedBlocks.files[ctx.file.nominationFileId]?.html
     : undefined;
-  if (!ctx.ignoreUserDefinedContent && userDefinedFileContent) return userDefinedFileContent;
+  if (!ctx.ignoreUserDefinedContent && userDefinedFileContent) return new SafeHtml(userDefinedFileContent);
 
   const currentPosition = ctx.file.currentPosition
     ? `, actuellement ${ctx.file.currentPosition} (${ctx.file.currentGrade})`
@@ -129,59 +127,56 @@ function displayFileContent(ctx: {
   return html`<strong>${ctx.file.name}</strong>${currentPosition}${targetedPosition}${reporters}.`;
 }
 
+function chairmanRole(chairman: OfficialReportChairman): ChairmanRole | null {
+  if (!chairman.title) return null;
+
+  return chairman.title === 'DEPUTY_PRESIDENT_PARQUET' || chairman.title === 'DEPUTY_PRESIDENT_SIEGE'
+    ? 'DEPUTY_PRESIDENT'
+    : 'PRESIDENT';
+}
+
 function displayChairmanTitle(ctx: OfficialReportRenderContext): string | null {
-  if (!ctx.chairman.title) return null;
+  const role = chairmanRole(ctx.chairman);
+  if (!role) return null;
 
-  const formationLabel = ctx.agenda.formation === 'PARQUET' ? 'parquet' : 'siège';
-  const presidentTitle =
-    ctx.chairman.title === 'DEPUTY_PRESIDENT_PARQUET' || ctx.chairman.title === 'DEPUTY_PRESIDENT_SIEGE'
-      ? ctx.chairman.gender === 'MALE'
-        ? `président suppléant de la formation ${formationLabel}`
-        : `présidente suppléante de la formation ${formationLabel}`
-      : ctx.chairman.gender === 'MALE'
-        ? `président de la formation ${formationLabel}`
-        : `présidente de la formation ${formationLabel}`;
-
-  return presidentTitle;
+  const formation = ctx.agenda.formation === 'PARQUET' ? 'PARQUET' : 'SIEGE';
+  return lowerFirst(adminUserRoleLabel(`${role}_${formation}`, ctx.chairman.gender));
 }
 
 function displayIntroduction(
   ctx: OfficialReportRenderContext,
   opts?: { ignoreUserDefinedContent?: true },
-): string {
+): SafeHtml {
   if (!opts?.ignoreUserDefinedContent && ctx.userDefinedBlocks.intro?.html)
-    return ctx.userDefinedBlocks.intro.html;
+    return new SafeHtml(ctx.userDefinedBlocks.intro.html);
 
   const presidentTitle = displayChairmanTitle(ctx);
 
-  const intro = [
-    `<p>Sous la présidence de ${fullname(ctx.chairman)}`,
+  const role = chairmanRole(ctx.chairman);
+  const presence = [
+    `Sous la présidence ${requiresElision(ctx.chairman.firstName) ? `d'` : 'de '}${fullname(ctx.chairman)}`,
     ctx.chairman.displayTitle,
-    presidentTitle,
-    `en présence des membres du Conseil supérieur de la magistrature suivants\u00A0:</p>`,
+    role && chairmanRoleLabel(role, ctx.chairman.gender),
+    'en présence de\u00A0:',
   ]
     .filter(Boolean)
     .join(', ');
+  const intro = html`<p>${presence}</p>`;
 
   const membersList = html`<ul>
-    ${ctx.members
-      .toSortedArray()
-      .filter((member) => !member.isAbsent && (ctx.chairman.id === null || member.id !== ctx.chairman.id))
-      .map((member) => `<li>${displayTitled(member)}</li>`)
-      .join('')}
+    ${SafeHtml.join(
+      ctx.members
+        .toSortedArray()
+        .filter((member) => !member.isAbsent && (ctx.chairman.id === null || member.id !== ctx.chairman.id))
+        .map((member) => html`<li>${displayTitled(member)}</li>`),
+    )}
   </ul>`;
 
-  const secretary =
-    (ctx.secretary.gender === 'MALE' ? `M.&nbsp;` : `Mme&nbsp;`) +
-    fullname(ctx.secretary) +
-    ', ' +
-    (ctx.secretary.title === 'FIRST_SECRETARY'
-      ? ctx.secretary.gender === 'MALE'
-        ? `secrétaire général`
-        : `secrétaire générale`
-      : ctx.secretary.gender === 'MALE'
-        ? `secrétaire général adjoint`
-        : `secrétaire générale adjointe`);
+  const secretaryTitle = lowerFirst(
+    adminUserRoleLabel(ctx.secretary.title ?? 'SECRETARY', ctx.secretary.gender),
+  );
+  const secretary = html`${ctx.secretary.gender === 'MALE' ? 'M.' : 'Mme'}&nbsp;${fullname(ctx.secretary)},
+  ${secretaryTitle}`;
 
   const renouncement = ctx.hasRenouncement
     ? html`<p>
@@ -189,28 +184,34 @@ function displayIntroduction(
         l'article 35 du décret n°94-199 du 9&nbsp;mars&nbsp;1994 relatif au Conseil supérieur de la
         magistrature.
       </p>`
-    : '';
+    : html``;
 
   const { hours, minutes } = ctx.sessionMeeting.start;
   const sessionMeetingTime = [hours, minutes].map((x) => x.toString().padStart(2, '0')).join(':');
+  const opinions =
+    ctx.agenda.propositionCount === 1
+      ? html`de l'avis émis par le Conseil sur la proposition figurant`
+      : html`des avis émis par le Conseil sur les propositions figurant`;
   const opening = html`<p>
     À ${sessionMeetingTime}, ${fullname(ctx.chairman)}${presidentTitle ? `, ${presidentTitle}` : ''}, déclare
-    la séance ouverte. ${ctx.chairman.gender === 'MALE' ? 'Il' : 'Elle'} fait part des avis émis par le
-    Conseil sur les propositions figurant à l'ordre du jour arrêté le ${date(ctx.agenda.date, 'do MMMM yyyy')}
-    sur la circulaire de transparence du ${date(ctx.session.date, 'do MMMM yyyy')}&nbsp;:
+    la séance ouverte. ${ctx.chairman.gender === 'MALE' ? 'Il' : 'Elle'} fait part ${opinions} à l'ordre du
+    jour arrêté le ${date(ctx.agenda.date, 'do MMMM yyyy')} sur la circulaire de transparence du
+    ${date(ctx.session.date, 'do MMMM yyyy')}&nbsp;:
   </p>`;
 
-  return (
-    intro +
-    membersList +
-    html`<p><strong>En présence de&nbsp;:</strong></p>` +
-    html`<ul>
-      <li>${secretary}</li>
-      <li>${ctx.justiceDepartmentContact}</li>
-    </ul>` +
-    renouncement +
-    opening
-  );
+  const attendees = html`<ul>
+    <li>${secretary}</li>
+    <li>${ctx.justiceDepartmentContact}</li>
+  </ul>`;
+
+  return SafeHtml.join([
+    intro,
+    membersList,
+    html`<p><strong>En présence de&nbsp;:</strong></p>`,
+    attendees,
+    renouncement,
+    opening,
+  ]);
 }
 
 const OUTCOME_ORDER = new Map<DocNominationFileOutcomeEnum, number>([
@@ -222,82 +223,96 @@ const OUTCOME_ORDER = new Map<DocNominationFileOutcomeEnum, number>([
 
 function groupFilesByOutcome(
   ctx: OfficialReportRenderContext,
-): { outcome: DocNominationFileOutcomeEnum; files: readonly OfficialReportRenderContextNominationFile[] }[] {
+): { files: readonly OfficialReportRenderContextNominationFile[]; outcome: DocNominationFileOutcomeEnum }[] {
   return Map.groupBy(ctx.files, (file) => file.outcome)
     .entries()
-    .map(([outcome, files]) => ({ outcome, files: files.sort((a, b) => a.number - b.number) }))
+    .map(([outcome, files]) => ({ files: files.sort((a, b) => a.number - b.number), outcome }))
     .toArray()
     .sort((a, b) => (OUTCOME_ORDER.get(a.outcome) ?? 10) - (OUTCOME_ORDER.get(b.outcome) ?? 10));
 }
 
-function displaySectionTitle(ctx: {
-  root: OfficialReportRenderContext;
-  outcome: DocNominationFileOutcomeEnum;
-  count: number;
-}): string {
+function displaySectionTitle(
+  ctx: {
+    count: number;
+    outcome: DocNominationFileOutcomeEnum;
+    root: OfficialReportRenderContext;
+  },
+  opts?: { ignoreUserDefinedContent?: true },
+): string {
   return (
-    ctx.root.userDefinedBlocks.outcomes[ctx.outcome]?.title?.html ??
+    (opts?.ignoreUserDefinedContent
+      ? undefined
+      : ctx.root.userDefinedBlocks.outcomes[ctx.outcome]?.title?.html) ??
     docNominationFileOutcomeSectionTitle({
+      count: ctx.count,
       formation: ctx.root.agenda.formation,
       outcome: ctx.outcome,
-      count: ctx.count,
     })
   );
 }
 
-function displaySectionIntro(ctx: {
-  count: number;
-  outcome: DocNominationFileOutcomeEnum;
-  root: OfficialReportRenderContext;
-}): string {
+function displaySectionIntro(
+  ctx: {
+    count: number;
+    outcome: DocNominationFileOutcomeEnum;
+    root: OfficialReportRenderContext;
+  },
+  opts?: { ignoreUserDefinedContent?: true },
+): SafeHtml {
   const userDefinedSectionIntro = ctx.root.userDefinedBlocks.outcomes[ctx.outcome]?.intro?.html;
-  if (userDefinedSectionIntro) return userDefinedSectionIntro;
+  if (!opts?.ignoreUserDefinedContent && userDefinedSectionIntro)
+    return new SafeHtml(userDefinedSectionIntro);
+
+  const propositions =
+    ctx.count > 1
+      ? html`les propositions de nomination suivantes&nbsp;:`
+      : html`la proposition de nomination suivante&nbsp;:`;
 
   switch (ctx.outcome) {
     case 'VALIDATED':
     case 'NON_VALIDATED': {
       const outcome = docNominationFileOutcomeSectionTitle({
+        count: 1,
         formation: ctx.root.agenda.formation,
         outcome: ctx.outcome,
-        count: 1,
       }).toLowerCase();
-      return `<p>Le Conseil a émis un ${outcome} sur ${
-        ctx.count > 1
-          ? `les propositions de nomination suivantes&nbsp;:`
-          : `la proposition de nomination suivante&nbsp;:`
-      }</p>`;
+      return html`<p>Le Conseil a émis un ${outcome} sur ${propositions}</p>`;
     }
 
     case 'SUSPENDED':
-      return `<p>Le Conseil sursoit à statuer sur ${
-        ctx.count > 1
-          ? `les propositions de nomination suivantes&nbsp;:`
-          : `la proposition de nomination suivante&nbsp;:`
-      }</p>`;
+      return html`<p>Le Conseil sursoit à statuer sur ${propositions}</p>`;
 
-    case 'WITHDRAWN':
-      return `<p>Le Conseil constate le retrait ${
+    case 'WITHDRAWN': {
+      const withdrawn =
         ctx.count > 1
-          ? `des propositions de nomination suivantes&nbsp;:`
-          : `de la proposition de nomination suivante&nbsp;:`
-      }</p>`;
+          ? html`des propositions de nomination suivantes&nbsp;:`
+          : html`de la proposition de nomination suivante&nbsp;:`;
+      return html`<p>Le Conseil constate le retrait ${withdrawn}</p>`;
+    }
   }
 }
 
-function content(ctx: OfficialReportRenderContext): string {
+function content(ctx: OfficialReportRenderContext): SafeHtml {
   const introContent = displayIntroduction(ctx);
 
-  const sections = groupFilesByOutcome(ctx)
-    .map(
-      ({ outcome, files }) => html`
-        <h2>${displaySectionTitle({ root: ctx, count: files.length, outcome })}</h2>
-        ${displaySectionIntro({ root: ctx, count: files.length, outcome })}
+  const sections = SafeHtml.join(
+    groupFilesByOutcome(ctx).map(
+      ({ files, outcome }) => html`
+        <h2>${displaySectionTitle({ count: files.length, outcome, root: ctx })}</h2>
+        ${displaySectionIntro({ count: files.length, outcome, root: ctx })}
         <ol>
-          ${files.map((file) => /* html */ `<li>${displayFileContent({ file, root: ctx })}</li>`).join('\n')}
+          ${SafeHtml.join(
+            files.map((file) => {
+              const note = file.note ? new SafeHtml(file.note.html) : '';
+              return html`<li>${displayFileContent({ file, root: ctx })}${note}</li>`;
+            }),
+            '\n',
+          )}
         </ol>
       `,
-    )
-    .join('\n');
+    ),
+    '\n',
+  );
 
   return html` ${introContent} ${sections} `;
 }
@@ -305,38 +320,25 @@ function content(ctx: OfficialReportRenderContext): string {
 function displayConclusion(
   ctx: OfficialReportRenderContext,
   opts?: { ignoreUserDefinedContent?: true },
-): string {
+): SafeHtml {
   const userDefinedConclusion = ctx.userDefinedBlocks.conclusion?.html;
-  if (!opts?.ignoreUserDefinedContent && userDefinedConclusion) return userDefinedConclusion;
+  if (!opts?.ignoreUserDefinedContent && userDefinedConclusion) return new SafeHtml(userDefinedConclusion);
 
   const { hours, minutes } = ctx.sessionMeeting.end;
   const endTime = [hours, minutes].map((x) => x.toString().padStart(2, '0')).join(':');
 
   const presidentTitle = displayChairmanTitle(ctx);
 
-  return /* html */ `<p class="end-time"><em>À ${endTime}, ${fullname(ctx.chairman)}${presidentTitle ? `, ${presidentTitle}` : ''}, clôture la séance.</em></p>`;
+  const closing = `À ${endTime}, ${fullname(ctx.chairman)}${presidentTitle ? `, ${presidentTitle}` : ''}, clôture la séance.`;
+
+  return html`<p class="end-time"><em>${closing}</em></p>`;
 }
 
-function displayFooterSignatures(ctx: OfficialReportRenderContext): string {
-  const secretary =
-    ctx.secretary.title === 'FIRST_SECRETARY'
-      ? ctx.secretary.gender === 'MALE'
-        ? `le secrétaire général,`
-        : `la secrétaire générale,`
-      : ctx.secretary.gender === 'MALE'
-        ? `le secrétaire général adjoint,`
-        : `la secrétaire générale adjointe,`;
-
-  const president =
-    ctx.chairman.title === 'PRESIDENT_PARQUET' || ctx.chairman.title === 'PRESIDENT_SIEGE'
-      ? ctx.chairman.gender === 'MALE'
-        ? `le président,`
-        : `la présidente,`
-      : ctx.chairman.title === 'DEPUTY_PRESIDENT_PARQUET' || ctx.chairman.title === 'DEPUTY_PRESIDENT_SIEGE'
-        ? ctx.chairman.gender === 'MALE'
-          ? `le président suppléant,`
-          : `la présidente suppléante,`
-        : '';
+function displayFooterSignatures(ctx: OfficialReportRenderContext): SafeHtml {
+  const secretary = `${signatoryRoleLabel(ctx.secretary.title ?? 'SECRETARY', ctx.secretary.gender)},`;
+  const president = ctx.chairman.title
+    ? `${signatoryRoleLabel(ctx.chairman.title, ctx.chairman.gender)},`
+    : '';
 
   return html`
     <section class="signatures">
@@ -352,11 +354,8 @@ function displayFooterSignatures(ctx: OfficialReportRenderContext): string {
   `;
 }
 
-function footer(ctx: OfficialReportRenderContext): string {
-  const conclusion = displayConclusion(ctx);
-  const signatures = displayFooterSignatures(ctx);
-
-  return `${conclusion}\n${signatures}`;
+function footer(ctx: OfficialReportRenderContext): SafeHtml {
+  return SafeHtml.join([displayConclusion(ctx), displayFooterSignatures(ctx)], '\n');
 }
 
 function css() {
@@ -445,58 +444,66 @@ function css() {
 }
 
 export const officialReportTemplate: Template<OfficialReportRenderContext> = documentLayout({
-  css,
-  header,
   content,
+  css,
   footer,
+  header,
 } as any) as any;
 
 export function* officialReportBlocks(ctx: OfficialReportRenderContext): Iterable<DocBlock> {
   // every block carries the text the document proposes, so the editor can mark what the reader
   // changes as they type, before anything is saved. An untouched block reads the same both ways.
-  const generatedIntro = displayIntroduction(ctx, { ignoreUserDefinedContent: true });
-  const intro = displayIntroduction(ctx);
+  const generatedIntro = displayIntroduction(ctx, { ignoreUserDefinedContent: true }).toString();
+  const intro = displayIntroduction(ctx).toString();
   yield {
-    kind: 'intro',
-    weight: 0,
-    html: intro,
     edited: isDefined(ctx.userDefinedBlocks.intro) && !readsTheSame(intro, generatedIntro),
-    outdated: Boolean(ctx.userDefinedBlocks.intro?.isOutdated),
     generatedHtml: generatedIntro,
+    html: intro,
+    kind: 'intro',
+    outdated: Boolean(ctx.userDefinedBlocks.intro?.isOutdated),
+    weight: 0,
   };
 
-  for (const { outcome, files } of groupFilesByOutcome(ctx)) {
+  for (const { files, outcome } of groupFilesByOutcome(ctx)) {
     let outcomeWeight = OUTCOME_ORDER.get(outcome);
     if (!isDefined(outcomeWeight)) continue;
 
-    const title = displaySectionTitle({ root: ctx, count: files.length, outcome });
+    const section = { count: files.length, outcome, root: ctx };
+    const title = displaySectionTitle(section);
     const storedTitle = ctx.userDefinedBlocks.outcomes[outcome]?.title?.html;
     yield {
+      edited:
+        isDefined(storedTitle) &&
+        !readsTheSame(title, displaySectionTitle(section, { ignoreUserDefinedContent: true })),
       kind: 'section-title',
       outcome,
       outdated: false,
-      weight: outcomeWeight++,
       text: title,
-      edited: isDefined(storedTitle) && !readsTheSame(title, storedTitle),
+      weight: outcomeWeight++,
     };
 
-    const sectionIntro = displaySectionIntro({ count: files.length, outcome, root: ctx });
+    const sectionIntro = displaySectionIntro(section).toString();
     const storedSectionIntro = ctx.userDefinedBlocks.outcomes[outcome]?.intro?.html;
     yield {
-      outcome,
-      kind: 'section-intro',
-      outdated: Boolean(ctx.userDefinedBlocks.outcomes[outcome]?.intro?.isOutdated),
-      edited: isDefined(storedSectionIntro) && !readsTheSame(sectionIntro, storedSectionIntro),
-      weight: outcomeWeight++,
+      edited:
+        isDefined(storedSectionIntro) &&
+        !readsTheSame(
+          sectionIntro,
+          displaySectionIntro(section, { ignoreUserDefinedContent: true }).toString(),
+        ),
       html: sectionIntro,
+      kind: 'section-intro',
+      outcome,
+      outdated: Boolean(ctx.userDefinedBlocks.outcomes[outcome]?.intro?.isOutdated),
+      weight: outcomeWeight++,
     };
 
     for (const file of files) {
       const userDefinedFile = file.nominationFileId
         ? ctx.userDefinedBlocks.files[file.nominationFileId]
         : undefined;
-      const templateFile = displayFileContent({ file, root: ctx, ignoreUserDefinedContent: true });
-      const fileContent = displayFileContent({ file, root: ctx });
+      const templateFile = displayFileContent({ file, ignoreUserDefinedContent: true, root: ctx }).toString();
+      const fileContent = displayFileContent({ file, root: ctx }).toString();
       const editedFile = Boolean(userDefinedFile?.html) && !readsTheSame(fileContent, templateFile);
 
       const agendaProposal = file.nominationFileId
@@ -504,32 +511,34 @@ export function* officialReportBlocks(ctx: OfficialReportRenderContext): Iterabl
         : undefined;
 
       yield {
-        kind: 'file',
-        outdated: Boolean(userDefinedFile?.isOutdated),
-        weight: outcomeWeight++,
-        nominationFileId: file.nominationFileId,
-        html: fileContent,
+        agendaEditedAt: agendaProposal?.at?.toISOString() ?? null,
+        agendaEditedBy: agendaProposal?.by ?? null,
+        agendaHtml: agendaProposal?.html ?? null,
+        agendaId: file.nominationFileId ? (ctx.fileAgendas.get(file.nominationFileId) ?? null) : null,
         edited: editedFile,
         editedAt: editedFile ? (userDefinedFile?.editedAt?.toISOString() ?? null) : null,
         editedBy: editedFile ? (userDefinedFile?.editedBy ?? null) : null,
         fromAgenda: editedFile && Boolean(userDefinedFile?.fromAgenda),
-        agendaHtml: agendaProposal?.html ?? null,
-        agendaId: file.nominationFileId ? (ctx.fileAgendas.get(file.nominationFileId) ?? null) : null,
-        agendaEditedAt: agendaProposal?.at?.toISOString() ?? null,
-        agendaEditedBy: agendaProposal?.by ?? null,
         generatedHtml: templateFile,
+        html: fileContent,
+        kind: 'file',
+        name: file.name,
+        nominationFileId: file.nominationFileId,
+        note: file.note && { ...file.note, editedAt: file.note.editedAt?.toISOString() ?? null },
+        outdated: Boolean(userDefinedFile?.isOutdated),
+        weight: outcomeWeight++,
       };
     }
   }
 
-  const generatedConclusion = displayConclusion(ctx, { ignoreUserDefinedContent: true });
-  const conclusion = displayConclusion(ctx);
+  const generatedConclusion = displayConclusion(ctx, { ignoreUserDefinedContent: true }).toString();
+  const conclusion = displayConclusion(ctx).toString();
   yield {
-    kind: 'conclusion',
-    weight: 1e6,
-    html: conclusion,
     edited: isDefined(ctx.userDefinedBlocks.conclusion) && !readsTheSame(conclusion, generatedConclusion),
-    outdated: Boolean(ctx.userDefinedBlocks.conclusion?.isOutdated),
     generatedHtml: generatedConclusion,
+    html: conclusion,
+    kind: 'conclusion',
+    outdated: Boolean(ctx.userDefinedBlocks.conclusion?.isOutdated),
+    weight: 1e6,
   };
 }

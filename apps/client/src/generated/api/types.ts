@@ -8,19 +8,6 @@ export type ClientOptions = {
     baseUrl: string;
 };
 
-export type RegisterUserDto = {
-    firstName: string;
-    lastName: string;
-    gender: 'MALE' | 'FEMALE';
-    email: string;
-    password: string;
-    role?: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | 'ADMIN' | null;
-};
-
-export type RegisteredUserDto = {
-    id: string;
-};
-
 export type LoginDto = {
     email: string;
     password: string;
@@ -30,13 +17,27 @@ export type DetailedUserResponseDto = {
     userId: string;
     firstName: string;
     lastName: string;
-    role: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | 'ADMIN';
+    email: string;
+    role: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL';
+    displayedRole: {
+        id: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+        label: string;
+        group: 'PRESIDENCY' | 'MEMBER' | 'SECRETARIAT';
+    };
     formation: 'SIEGE' | 'PARQUET' | null;
     gender: 'MALE' | 'FEMALE';
     isImpersonated: boolean;
+    passwordChange: 'ALLOWED' | 'IMPERSONATED';
+    isAdmin: boolean;
     displayTitle: string | null;
+    canManageTechnicalAccounts: boolean;
     duty: 'PRESIDENT' | 'DEPUTY_PRESIDENT' | 'SECRETARY' | 'OFFICER' | null;
     title: 'PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_PARQUET' | 'FIRST_SECRETARY' | null;
+};
+
+export type ChangePasswordDto = {
+    currentPassword: string;
+    newPassword: string;
 };
 
 export type ListedOpenIdProvidersDto = {
@@ -96,13 +97,13 @@ export type DetailedReportDto = {
     screenshots: Array<{
         usage: 'EMBEDDED_SCREENSHOT';
         name: string;
-        fileId: string;
+        id: string;
         url: string;
     }>;
     attachments: Array<{
         usage: 'ATTACHMENT';
         name: string;
-        fileId: string;
+        id: string;
         size: number | null;
         addedAt: string;
         addedBy: {
@@ -235,14 +236,14 @@ export type UpdateNominationSessionFilesObserversDto = {
 export type AffectReportersDto = {
     items: Array<{
         nominationFileId: string;
-        priorities?: Array<'ETOILE' | 'OUTRE_MER' | 'PROFILE'>;
-        /**
-         * prefer priorities
-         *
-         * @deprecated
-         */
-        priority?: 'ETOILE' | 'OUTRE_MER' | 'PROFILE' | null;
         reporterIds: Array<string>;
+    }>;
+};
+
+export type UpdateNominationFilesPrioritiesDto = {
+    items: Array<{
+        nominationFileId: string;
+        priorities: Array<'ETOILE' | 'OUTRE_MER' | 'PROFILE'>;
     }>;
 };
 
@@ -579,7 +580,7 @@ export type ListedNominationSessionAttachmentDto = {
             id: string;
             name: string;
         } | null;
-        sizeInBytes: number | null;
+        size: number | null;
     }>;
 };
 
@@ -749,6 +750,7 @@ export type DetailedNominationFileDto = {
 export type DetailedNominationSessionDto = {
     id: string;
     name: string;
+    label: string;
     formation: 'SIEGE' | 'PARQUET';
     outcomes: Array<{
         commentRequired: boolean;
@@ -874,6 +876,7 @@ export type DetailedSummaryDto = {
         status: 'FINAL' | 'PENDING';
     } | null;
     summary: {
+        canWrite: boolean;
         content: string;
         author: {
             id: string;
@@ -905,12 +908,15 @@ export type DetailedSummaryDto = {
     };
 };
 
-export type FoundSummaryReadersDto = {
+export type ListedSummaryReadersDto = {
     items: Array<{
-        id: string;
+        displayedRole: {
+            id: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+            label: string;
+        };
         firstName: string;
+        id: string;
         lastName: string;
-        role: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | 'ADMIN';
     }>;
 };
 
@@ -919,11 +925,15 @@ export type PaginatedMemberListItemDto = {
         id: string;
         firstName: string;
         lastName: string;
-        role: 'MEMBRE_COMMUN' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_DU_SIEGE';
+        formation: {
+            id: 'COMMUN' | 'PARQUET' | 'SIEGE';
+            label: string;
+        };
         excludedJurisdictions: Array<{
             id: string;
             label: string | null;
         }>;
+        status: 'ACTIVE' | 'DEACTIVATED';
     }>;
     totalCount: number;
     currentPageIndex: number;
@@ -940,10 +950,12 @@ export type DetailedMemberDto = {
     email: string;
     firstName: string;
     lastName: string;
-    role: 'MEMBRE_COMMUN' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_DU_SIEGE';
+    formation: {
+        id: 'COMMUN' | 'PARQUET' | 'SIEGE';
+        label: string;
+    };
     gender: string;
     displayTitle: string | null;
-    title: 'PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | null;
     excludedJurisdictions: Array<{
         id: string;
         label: string | null;
@@ -961,10 +973,6 @@ export type ExcludeJurisdictionsDto = {
 
 export type UpdateMemberDisplayTitleDto = {
     displayTitle: string | null;
-};
-
-export type UpdateMemberTitleDto = {
-    title: 'PRESIDENT_PARQUET' | 'PRESIDENT_SIEGE' | null;
 };
 
 export type ListedJurisdictions = {
@@ -1038,9 +1046,6 @@ export type PaginatedJobsDto = {
         createdAt: string;
         startedAt: string | null;
         endedAt: string | null;
-        errors: Array<{
-            error: string;
-        }>;
     }>;
     totalCount: number;
     currentPageIndex: number;
@@ -1058,8 +1063,9 @@ export type DetailedJobDto = {
     startedAt: string | null;
     endedAt: string | null;
     status: 'IDLE' | 'RUNNING' | 'FAILED' | 'SUCCEEDED' | 'CANCELED';
-    errors: Array<{
-        error: string;
+    messages: Array<{
+        severity: 'ERROR' | 'WARNING';
+        text: string;
     }>;
     files: Array<{
         id: string;
@@ -1071,10 +1077,11 @@ export type DetailedJobDto = {
         requirements: Array<{
             requiredFileId: string;
         }>;
-        errors: Array<{
+        messages: Array<{
             entityId: string | null;
             entityNumber: number | null;
-            error: string;
+            severity: 'ERROR' | 'WARNING';
+            text: string;
         }>;
     }>;
 };
@@ -1348,6 +1355,8 @@ export type DetailedAgendaMetadata = {
     outdated: boolean;
     outdatedPropositions: number;
     hasValidatedVersion: boolean;
+    canDiscardDraft: boolean;
+    canValidate: boolean;
     draftChangesBy: 'PERSON' | 'PERSON_AND_SYSTEM' | 'SYSTEM' | null;
     draft: {
         openedAt: string;
@@ -1532,6 +1541,7 @@ export type DetailedOfficialReportMetadataDto = {
     id: string;
     hasRenunciation: boolean;
     absentMembers: Array<string>;
+    recordedMembers: Array<string>;
     agendaId: string | null;
     sessionMeetingDate: {
         year: number;
@@ -1553,6 +1563,8 @@ export type DetailedOfficialReportMetadataDto = {
     outdated: boolean;
     outdatedPropositions: number;
     hasValidatedVersion: boolean;
+    canDiscardDraft: boolean;
+    canValidate: boolean;
     draftChangesBy: 'PERSON' | 'PERSON_AND_SYSTEM' | 'SYSTEM' | null;
     draft: {
         openedAt: string;
@@ -1649,6 +1661,15 @@ export type DetailedOfficialReportDocumentDto = {
             name: string;
         } | null;
         fromAgenda: boolean;
+        name: string;
+        note: {
+            editedAt: string | null;
+            editedBy: {
+                id: string;
+                name: string;
+            } | null;
+            html: string;
+        } | null;
     } | {
         weight: number;
         edited: boolean;
@@ -1669,6 +1690,19 @@ export type EditOfficialReportSectionTitleDto = {
 };
 
 export type EditOfficialReportSectionIntroBlockDto = {
+    html: string;
+};
+
+export type EditOfficialReportFileNoteDto = {
+    html: string;
+};
+
+export type EditedOfficialReportFileNoteDto = {
+    editedAt: string | null;
+    editedBy: {
+        id: string;
+        name: string;
+    } | null;
     html: string;
 };
 
@@ -1737,6 +1771,8 @@ export type DetailedPresentationPlanMetadataDto = {
     outdated: boolean;
     status: 'DRAFT' | 'VALIDATED';
     isPresented: boolean;
+    canEdit: boolean;
+    canValidate: boolean;
     draft: {
         openedAt: string;
         openedBy: {
@@ -1785,6 +1821,7 @@ export type DetailedPresentationPlanMetadataDto = {
     justiceDepartmentContactId: string | null;
     hasRenunciation: boolean;
     absentMemberIds: Array<string>;
+    recordedMemberIds: Array<string>;
     removedAgendas: Array<{
         agenda: {
             id: string;
@@ -1870,6 +1907,7 @@ export type ListedNonPresentedPlansDto = {
         outdated: boolean;
         hasRemovedAgendas: boolean;
         status: 'DRAFT' | 'VALIDATED';
+        canPresent: boolean;
         createdAt: string;
         createdBy: {
             id: string;
@@ -1970,6 +2008,7 @@ export type DetailedMagistratDto = {
     } | null;
     careerHistory: string | null;
     externalUrl: string;
+    status: 'ACTIVE' | 'INACTIVE';
 };
 
 export type ListedMagistratPhoneNumbersDto = {
@@ -2220,6 +2259,7 @@ export type ListedMagistratNominationFilesDto = {
                 day: number;
             };
             status: 'ONGOING' | 'REPORTED' | 'ARCHIVED';
+            canOpen: boolean;
         };
         auditionDate: {
             year: number;
@@ -2277,6 +2317,7 @@ export type ListedMagistratObservationsDto = {
                     day: number;
                 };
                 status: 'ONGOING' | 'REPORTED' | 'ARCHIVED';
+                canOpen: boolean;
             };
             auditionDate: {
                 year: number;
@@ -2314,8 +2355,14 @@ export type PaginatedAdminUserListItemDto = {
         firstName: string;
         lastName: string;
         email: string;
-        gender: 'MALE' | 'FEMALE';
-        role: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+        role: {
+            id: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+            label: string;
+            group: 'PRESIDENCY' | 'MEMBER' | 'SECRETARIAT';
+        };
+        isAdmin: boolean;
+        isTechnical: boolean;
+        status: 'ACTIVE' | 'DEACTIVATED';
     }>;
     totalCount: number;
     currentPageIndex: number;
@@ -2327,15 +2374,84 @@ export type PaginatedAdminUserListItemDto = {
     };
 };
 
+export type CreateUserDto = {
+    email: string;
+    firstName: string;
+    gender: 'MALE' | 'FEMALE';
+    isTechnical?: boolean;
+    lastName: string;
+    password: string;
+    role: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+};
+
+export type CreatedUserDto = {
+    id: string;
+};
+
 export type DetailedAdminUserDto = {
     id: string;
     firstName: string;
     lastName: string;
     email: string;
-    role: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+    role: {
+        id: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+        label: string;
+        group: 'PRESIDENCY' | 'MEMBER' | 'SECRETARIAT';
+    };
     gender: 'MALE' | 'FEMALE';
     displayTitle: string | null;
     isAdmin: boolean;
+    isTechnical: boolean;
+    status: 'ACTIVE' | 'DEACTIVATED';
+    canDeactivate: boolean;
+    canHoldAdminRight: boolean;
+    canImpersonate: boolean;
+    canManageTechnicalAccount: boolean;
+    canReactivate: boolean;
+    canResetPassword: boolean;
+    assignableRoles: Array<'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN'>;
+    deactivatedAt: string | null;
+    statusChanges: Array<{
+        changedAt: string;
+        changedBy: {
+            id: string;
+            name: string;
+        } | null;
+        status: 'ACTIVE' | 'DEACTIVATED';
+    }>;
+};
+
+export type ListedAdminUserRolesDto = {
+    items: Array<{
+        id: 'PRESIDENCY' | 'MEMBER' | 'SECRETARIAT';
+        label: string;
+        roles: Array<{
+            id: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+            label: string;
+        }>;
+    }>;
+};
+
+export type ListedTitleHoldersDto = {
+    items: Array<{
+        holder: {
+            id: string;
+            name: string;
+            nextRole: {
+                id: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+                label: string;
+            };
+        };
+        role: {
+            id: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
+            label: string;
+        };
+    }>;
+};
+
+export type UpdateUserNameDto = {
+    firstName?: string;
+    lastName?: string;
 };
 
 export type UpdateUserEmailDto = {
@@ -2352,6 +2468,21 @@ export type UpdateUserRoleDto = {
 
 export type UpdateUserDisplayTitleDto = {
     displayTitle: string | null;
+};
+
+export type RegisterUserDto = {
+    email: string;
+    firstName: string;
+    gender: 'MALE' | 'FEMALE';
+    isAdmin?: boolean;
+    isTechnical?: boolean;
+    lastName: string;
+    password: string;
+    role?: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | null;
+};
+
+export type RegisteredUserDto = {
+    id: string;
 };
 
 export type FoundFeedbackDto = {
@@ -2384,8 +2515,46 @@ export type AnswerFeedbackDto = {
     } | null;
 };
 
+export type HelpPageEnum = 'MEMBRE' | 'SECRETARIAT_GENERAL';
+
+export type DetailedHelpPageDto = {
+    content: string;
+    screenshots: Array<{
+        id: string;
+        name: string;
+        url: string;
+    }>;
+    updatedAt: string;
+    updatedBy: {
+        id: string;
+        name: string;
+    } | null;
+};
+
+export type IncludeFilesInHelpPageContentDto = {
+    files: Array<Blob | File>;
+};
+
+export type IncludedFilesInHelpPageContentDto = {
+    items: Array<{
+        id: string;
+        name: string;
+        url: string;
+    }>;
+};
+
+export type WriteHelpPageContentDto = {
+    content: string;
+};
+
 export type GetFileByFileUrlData = {
     body?: never;
+    headers?: {
+        /**
+         * the range of bytes a video player asks
+         */
+        range?: string;
+    };
     path: {
         fileUrlId: string;
     };
@@ -2424,6 +2593,19 @@ export type IntrospectSessionResponses = {
 };
 
 export type IntrospectSessionResponse = IntrospectSessionResponses[keyof IntrospectSessionResponses];
+
+export type ChangePasswordData = {
+    body: ChangePasswordDto;
+    path?: never;
+    query?: never;
+    url: '/api/auth/v2/password';
+};
+
+export type ChangePasswordResponses = {
+    204: void;
+};
+
+export type ChangePasswordResponse = ChangePasswordResponses[keyof ChangePasswordResponses];
 
 export type LogoutData = {
     body?: never;
@@ -2835,6 +3017,21 @@ export type AffectReportersResponses = {
 };
 
 export type AffectReportersResponse = AffectReportersResponses[keyof AffectReportersResponses];
+
+export type UpdateNominationFilesPrioritiesData = {
+    body: UpdateNominationFilesPrioritiesDto;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/priorities';
+};
+
+export type UpdateNominationFilesPrioritiesResponses = {
+    204: void;
+};
+
+export type UpdateNominationFilesPrioritiesResponse = UpdateNominationFilesPrioritiesResponses[keyof UpdateNominationFilesPrioritiesResponses];
 
 export type ListNominationFilesAsExcelData = {
     body?: never;
@@ -3531,24 +3728,21 @@ export type WriteSummaryResponses = {
 
 export type WriteSummaryResponse = WriteSummaryResponses[keyof WriteSummaryResponses];
 
-export type SearchSummaryReadersData = {
+export type ListSummaryReadersData = {
     body?: never;
     path: {
-        nominationFileId: string;
         sessionId: string;
+        nominationFileId: string;
     };
-    query?: {
-        search?: string;
-        includeIds?: Array<string>;
-    };
+    query?: never;
     url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/summary/readers';
 };
 
-export type SearchSummaryReadersResponses = {
-    200: FoundSummaryReadersDto;
+export type ListSummaryReadersResponses = {
+    200: ListedSummaryReadersDto;
 };
 
-export type SearchSummaryReadersResponse = SearchSummaryReadersResponses[keyof SearchSummaryReadersResponses];
+export type ListSummaryReadersResponse = ListSummaryReadersResponses[keyof ListSummaryReadersResponses];
 
 export type UpdateSummaryReadersListData = {
     body: UpdateSummaryReadersListDto;
@@ -3590,7 +3784,8 @@ export type ListMembersData = {
         sortBy?: 'firstName' | 'lastName';
         sortDirection?: 'asc' | 'desc';
         search?: string;
-        formations?: Array<'SIEGE' | 'PARQUET' | 'COMMUN'>;
+        formations?: Array<'COMMUN' | 'PARQUET' | 'SIEGE'>;
+        statuses?: Array<'ACTIVE' | 'DEACTIVATED'>;
         page?: number;
         limit?: number;
     };
@@ -3647,21 +3842,6 @@ export type UpdateDisplayTitleResponses = {
 };
 
 export type UpdateDisplayTitleResponse = UpdateDisplayTitleResponses[keyof UpdateDisplayTitleResponses];
-
-export type UpdateTitleData = {
-    body: UpdateMemberTitleDto;
-    path: {
-        userId: string;
-    };
-    query?: never;
-    url: '/api/members/v1/{userId}/title';
-};
-
-export type UpdateTitleResponses = {
-    204: void;
-};
-
-export type UpdateTitleResponse = UpdateTitleResponses[keyof UpdateTitleResponses];
 
 export type SearchData = {
     body?: never;
@@ -3795,6 +3975,7 @@ export type FindDocsMembersData = {
     path?: never;
     query: {
         formation: 'SIEGE' | 'PARQUET';
+        includeIds?: Array<string>;
     };
     url: '/api/docs/v1/members';
 };
@@ -3931,9 +4112,7 @@ export type GenerateAgendaHtmlData = {
     path: {
         agendaId: string;
     };
-    query?: {
-        force?: boolean;
-    };
+    query?: never;
     url: '/api/docs/v1/agendas/{agendaId}.html';
 };
 
@@ -3946,9 +4125,7 @@ export type GenerateAgendaPdfData = {
     path: {
         agendaId: string;
     };
-    query?: {
-        force?: boolean;
-    };
+    query?: never;
     url: '/api/docs/v1/agendas/{agendaId}.pdf';
 };
 
@@ -4118,9 +4295,7 @@ export type GenerateOfficialReportHtmlData = {
     path: {
         officialReportId: string;
     };
-    query?: {
-        force?: boolean;
-    };
+    query?: never;
     url: '/api/docs/v1/official-reports/{officialReportId}.html';
 };
 
@@ -4133,9 +4308,7 @@ export type GenerateOfficialReportPdfData = {
     path: {
         officialReportId: string;
     };
-    query?: {
-        force?: boolean;
-    };
+    query?: never;
     url: '/api/docs/v1/official-reports/{officialReportId}.pdf';
 };
 
@@ -4375,6 +4548,38 @@ export type ResetOfficialReportFileResponses = {
 
 export type ResetOfficialReportFileResponse = ResetOfficialReportFileResponses[keyof ResetOfficialReportFileResponses];
 
+export type DeleteOfficialReportFileNoteData = {
+    body?: never;
+    path: {
+        officialReportId: string;
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/official-reports/{officialReportId}/blocks/files/{nominationFileId}/note';
+};
+
+export type DeleteOfficialReportFileNoteResponses = {
+    204: void;
+};
+
+export type DeleteOfficialReportFileNoteResponse = DeleteOfficialReportFileNoteResponses[keyof DeleteOfficialReportFileNoteResponses];
+
+export type EditOfficialReportFileNoteData = {
+    body: EditOfficialReportFileNoteDto;
+    path: {
+        officialReportId: string;
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/official-reports/{officialReportId}/blocks/files/{nominationFileId}/note';
+};
+
+export type EditOfficialReportFileNoteResponses = {
+    200: EditedOfficialReportFileNoteDto;
+};
+
+export type EditOfficialReportFileNoteResponse = EditOfficialReportFileNoteResponses[keyof EditOfficialReportFileNoteResponses];
+
 export type ListPresentationPlanAgendasData = {
     body?: never;
     path?: never;
@@ -4395,9 +4600,7 @@ export type GeneratePresentationPlanHtmlData = {
     path: {
         planId: string;
     };
-    query?: {
-        force?: boolean;
-    };
+    query?: never;
     url: '/api/docs/v1/presentation-plans/{planId}.html';
 };
 
@@ -4714,9 +4917,9 @@ export type CreateObservationResponse = CreateObservationResponses[keyof CreateO
 export type DeleteObservationData = {
     body?: never;
     path: {
-        observationId: string;
-        nominationFileId: string;
         sessionId: string;
+        nominationFileId: string;
+        observationId: string;
     };
     query?: never;
     url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}';
@@ -4748,9 +4951,9 @@ export type GetObservationDetailsResponse = GetObservationDetailsResponses[keyof
 export type UpdateObservationData = {
     body: UpdateObservationDto;
     path: {
-        observationId: string;
-        nominationFileId: string;
         sessionId: string;
+        nominationFileId: string;
+        observationId: string;
     };
     query?: never;
     url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}';
@@ -4765,10 +4968,10 @@ export type UpdateObservationResponse = UpdateObservationResponses[keyof UpdateO
 export type GetObservationFileUrlData = {
     body?: never;
     path: {
+        sessionId: string;
+        nominationFileId: string;
         observationId: string;
         fileId: string;
-        nominationFileId: string;
-        sessionId: string;
     };
     query?: never;
     url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}/files/{fileId}/url';
@@ -4834,9 +5037,9 @@ export type ScheduleObservantAuditionResponse = ScheduleObservantAuditionRespons
 export type FollowUpOnObservationData = {
     body: FollowUpOnObservationDto;
     path: {
-        observationId: string;
-        nominationFileId: string;
         sessionId: string;
+        nominationFileId: string;
+        observationId: string;
     };
     query?: never;
     url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}/follow-up';
@@ -4909,6 +5112,7 @@ export type ListUsersData = {
         sortBy?: 'lastName';
         search?: string;
         roles?: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN' | Array<'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN'>;
+        statuses?: 'ACTIVE' | 'DEACTIVATED' | Array<'ACTIVE' | 'DEACTIVATED'>;
         /**
          * true
          */
@@ -4925,6 +5129,19 @@ export type ListUsersResponses = {
 
 export type ListUsersResponse = ListUsersResponses[keyof ListUsersResponses];
 
+export type CreateUserData = {
+    body: CreateUserDto;
+    path?: never;
+    query?: never;
+    url: '/api/administration/v1/users';
+};
+
+export type CreateUserResponses = {
+    201: CreatedUserDto;
+};
+
+export type CreateUserResponse = CreateUserResponses[keyof CreateUserResponses];
+
 export type DetailsUserData = {
     body?: never;
     path: {
@@ -4939,6 +5156,49 @@ export type DetailsUserResponses = {
 };
 
 export type DetailsUserResponse = DetailsUserResponses[keyof DetailsUserResponses];
+
+export type ListRolesData = {
+    body?: never;
+    path?: never;
+    query?: {
+        gender?: 'MALE' | 'FEMALE';
+    };
+    url: '/api/administration/v1/roles';
+};
+
+export type ListRolesResponses = {
+    200: ListedAdminUserRolesDto;
+};
+
+export type ListRolesResponse = ListRolesResponses[keyof ListRolesResponses];
+
+export type ListTitleHoldersData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/administration/v1/title-holders';
+};
+
+export type ListTitleHoldersResponses = {
+    200: ListedTitleHoldersDto;
+};
+
+export type ListTitleHoldersResponse = ListTitleHoldersResponses[keyof ListTitleHoldersResponses];
+
+export type UpdateNameData = {
+    body: UpdateUserNameDto;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/administration/v1/users/{userId}/name';
+};
+
+export type UpdateNameResponses = {
+    204: void;
+};
+
+export type UpdateNameResponse = UpdateNameResponses[keyof UpdateNameResponses];
 
 export type UpdateEmailData = {
     body: UpdateUserEmailDto;
@@ -5030,6 +5290,66 @@ export type PromoteToAdminResponses = {
 
 export type PromoteToAdminResponse = PromoteToAdminResponses[keyof PromoteToAdminResponses];
 
+export type UnmarkTechnicalAccountData = {
+    body?: never;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/administration/v1/users/{userId}/technical-account';
+};
+
+export type UnmarkTechnicalAccountResponses = {
+    204: void;
+};
+
+export type UnmarkTechnicalAccountResponse = UnmarkTechnicalAccountResponses[keyof UnmarkTechnicalAccountResponses];
+
+export type MarkTechnicalAccountData = {
+    body?: never;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/administration/v1/users/{userId}/technical-account';
+};
+
+export type MarkTechnicalAccountResponses = {
+    204: void;
+};
+
+export type MarkTechnicalAccountResponse = MarkTechnicalAccountResponses[keyof MarkTechnicalAccountResponses];
+
+export type ReactivateData = {
+    body?: never;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/administration/v1/users/{userId}/deactivation';
+};
+
+export type ReactivateResponses = {
+    204: void;
+};
+
+export type ReactivateResponse = ReactivateResponses[keyof ReactivateResponses];
+
+export type DeactivateData = {
+    body?: never;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/administration/v1/users/{userId}/deactivation';
+};
+
+export type DeactivateResponses = {
+    204: void;
+};
+
+export type DeactivateResponse = DeactivateResponses[keyof DeactivateResponses];
+
 export type ListFeedbacksAsExcelData = {
     body?: never;
     path?: never;
@@ -5066,3 +5386,61 @@ export type AnswerFeedbackResponses = {
 };
 
 export type AnswerFeedbackResponse = AnswerFeedbackResponses[keyof AnswerFeedbackResponses];
+
+export type DetailHelpPageData = {
+    body?: never;
+    path: {
+        page: HelpPageEnum;
+    };
+    query?: never;
+    url: '/api/help/v1/pages/{page}';
+};
+
+export type DetailHelpPageResponses = {
+    200: DetailedHelpPageDto;
+};
+
+export type DetailHelpPageResponse = DetailHelpPageResponses[keyof DetailHelpPageResponses];
+
+export type IncludeFilesInHelpPageContentData = {
+    body: IncludeFilesInHelpPageContentDto;
+    path: {
+        page: HelpPageEnum;
+    };
+    query?: never;
+    url: '/api/help/v1/pages/{page}/screenshots';
+};
+
+export type IncludeFilesInHelpPageContentResponses = {
+    200: IncludedFilesInHelpPageContentDto;
+};
+
+export type IncludeFilesInHelpPageContentResponse = IncludeFilesInHelpPageContentResponses[keyof IncludeFilesInHelpPageContentResponses];
+
+export type WriteHelpPageContentData = {
+    body: WriteHelpPageContentDto;
+    path: {
+        page: HelpPageEnum;
+    };
+    query?: never;
+    url: '/api/help/v1/pages/{page}/content';
+};
+
+export type WriteHelpPageContentResponses = {
+    204: void;
+};
+
+export type WriteHelpPageContentResponse = WriteHelpPageContentResponses[keyof WriteHelpPageContentResponses];
+
+export type DetailReaderHelpPageData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/help/v1/page';
+};
+
+export type DetailReaderHelpPageResponses = {
+    200: DetailedHelpPageDto;
+};
+
+export type DetailReaderHelpPageResponse = DetailReaderHelpPageResponses[keyof DetailReaderHelpPageResponses];

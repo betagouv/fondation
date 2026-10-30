@@ -1,41 +1,22 @@
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { createSortableDto } from 'src/modules/framework/sorting';
-import { NominationFileOutcome } from 'src/modules/shared/nomination-file-outcome.enum';
-import { PriorityEnum } from 'src/modules/shared/priority.enum';
-import { scheduleAuditionSchema } from 'src/utils/audition-schedule';
+import { scheduleAuditionSchema } from '../../../../../utils/audition-schedule';
+import { createSortableDto } from '../../../../framework/sorting';
+import { NominationFileOutcome } from '../../../../shared/nomination-file-outcome.enum';
+import { PriorityEnum } from '../../../../shared/priority.enum';
 
 export class AffectReportersDto extends createZodDto(
   z.object({
-    items: z.array(
-      z
-        .object({
-          nominationFileId: z.uuid(),
-          priorities: z.array(z.enum(PriorityEnum)).optional(),
-          priority: z
-            .enum(PriorityEnum)
-            .nullish()
-            .meta({ deprecated: true, description: 'prefer priorities' }),
-          reporterIds: z.array(z.uuid()),
-        })
-        .transform(({ priorities, priority, ...dto }) => {
-          if (!priorities && priority) {
-            return { ...dto, priorities: [priority] };
-          } else if (!priorities && priority === null) {
-            return { ...dto, priorities: [] };
-          }
+    items: z.array(z.object({ nominationFileId: z.uuid(), reporterIds: z.array(z.uuid()) })).nonempty(),
+  }),
+) {}
 
-          return { priorities, ...dto };
-        })
-        .pipe(
-          z.object({
-            nominationFileId: z.uuid(),
-            priorities: z.array(z.enum(PriorityEnum)),
-            reporterIds: z.array(z.uuid()),
-          }),
-        ),
-    ),
+export class UpdateNominationFilesPrioritiesDto extends createZodDto(
+  z.object({
+    items: z
+      .array(z.object({ nominationFileId: z.uuid(), priorities: z.array(z.enum(PriorityEnum)) }))
+      .nonempty(),
   }),
 ) {}
 

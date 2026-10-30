@@ -1,10 +1,12 @@
 import { colors } from '@codegouvfr/react-dsfr/fr/colors';
 import { useCurrentEditor, useEditorState } from '@tiptap/react';
 import React, { useRef } from 'react';
+import { useIntl } from 'react-intl';
 
 import { EditorButton } from './EditorButton';
 
 export const TextColorButton = () => {
+  const { formatMessage } = useIntl();
   const { editor } = useCurrentEditor();
   const inputRef = useRef<HTMLInputElement>(null);
   const textColors = colors.getHex({ isDark: false }).decisions.text;
@@ -43,7 +45,7 @@ export const TextColorButton = () => {
         iconId="ri-font-color"
         onClick={() => inputRef.current?.click()}
         style={{ color: textColor }}
-        title="Couleur du texte"
+        title={formatMessage({ defaultMessage: 'Couleur du texte' })}
       />
       <input
         ref={inputRef}

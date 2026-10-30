@@ -5,6 +5,7 @@ import { ArchivedSessionContext } from '@/shared/context/archived-session';
 import { ConfirmModalProvider } from '@/shared/context/confirm-modal';
 import { FormationEnum } from '@/shared/enums/formation.enum';
 import { sgAuthHandlers } from '@/shared/storybook/msw.handlers';
+import { STORY_SESSION } from '@/shared/storybook/story-session';
 import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
 import { ToastProvider } from '@/shared/ui/toast';
 import type { DetailedNominationSessionDto } from '@api/types';
@@ -21,30 +22,34 @@ const sessionHandlers = [
   http.post('*/api/sessions/v2/:sessionId/validation', noContent),
 ];
 
-const NEW_SESSION: DetailedNominationSessionDto = {
-  date: { year: 2026, month: 2, day: 20 },
-  dueDate: null,
-  formation: 'SIEGE',
-  id: 'session-1',
-  isArchivable: false,
-  isArchived: false,
-  isDeletable: true,
+const SESSION: DetailedNominationSessionDto = {
+  ...STORY_SESSION,
+  dueDate: { day: 13, month: 3, year: 2026 },
   isValidated: false,
-  name: 'Transparence annuelle',
-  observationsClosingDate: { year: 2026, month: 2, day: 27 },
-  outcomes: [],
-  positionStartDate: null,
-  typeDeSaisine: 'TRANSPARENCE_GDS',
+  positionStartDate: { day: 1, month: 9, year: 2026 },
 };
 
-function TableauDeBordResumeStory(props: DetailedNominationSessionDto) {
+// as the API decides them: deletable without any attachment nor affectation, archivable once validated
+// and every file reported
+const STATUSES = {
+  newDraft: { isDeletable: true },
+  assignedDraft: {},
+  validated: { isValidated: true },
+  archivable: { isArchivable: true, isValidated: true },
+  archived: { isArchived: true, isValidated: true },
+} satisfies Record<string, Partial<DetailedNominationSessionDto>>;
+type Status = keyof typeof STATUSES;
+
+function TableauDeBordResumeStory(props: { formation: FormationEnum; status: Status }) {
+  const session = { ...SESSION, ...STATUSES[props.status], formation: props.formation };
+
   return (
     <StoryQueryClient>
       <ToastProvider>
         <ConfirmModalProvider>
-          <ArchivedSessionContext value={{ isArchived: props.isArchived, setIsArchived: () => {} }}>
+          <ArchivedSessionContext value={{ isArchived: session.isArchived, setIsArchived: () => {} }}>
             <div className="fr-container fr-py-4v">
-              <TableauDeBordResume {...props} />
+              <TableauDeBordResume {...session} />
             </div>
           </ArchivedSessionContext>
         </ConfirmModalProvider>
@@ -54,26 +59,19 @@ function TableauDeBordResumeStory(props: DetailedNominationSessionDto) {
 }
 
 const meta = {
-  title: 'Session/Transparence/TableauDeBordResume',
-  component: TableauDeBordResumeStory,
+  args: { formation: 'SIEGE', status: 'newDraft' },
+  argTypes: {
+    formation: { control: 'inline-radio', options: Object.values(FormationEnum) },
+    status: { control: 'inline-radio', options: Object.keys(STATUSES) },
+  },
   beforeEach: ({ msw }) => {
     msw.use(...sgAuthHandlers, ...sessionHandlers);
   },
-  parameters: {
-    controls: {
-      include: ['formation', 'isArchivable', 'isArchived', 'isDeletable', 'isValidated', 'name'],
-    },
-    layout: 'fullscreen',
-  },
-  tags: ['autodocs'],
-  argTypes: {
-    formation: { control: 'radio', options: Object.values(FormationEnum) },
-  },
-  args: NEW_SESSION,
+  component: TableauDeBordResumeStory,
+  parameters: { layout: 'fullscreen' },
+  title: 'Session/Transparence/SessionHeader',
 } satisfies Meta<typeof TableauDeBordResumeStory>;
 
 export default meta;
 
-type Story = StoryObj<typeof meta>;
-
-export const Playground: Story = {};
+export const Playground: StoryObj<typeof meta> = {};

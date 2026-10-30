@@ -16,8 +16,8 @@ import { useDocumentFailure } from '@/shared/hooks/useDocumentFailure';
 import { useUnsavedChangesGuard } from '@/shared/hooks/useUnsavedChangesGuard';
 import { AlertBanner } from '@/shared/ui/alert-banner';
 import { useToasts } from '@/shared/ui/toast';
-import { HttpException } from '@/utils/http-exception';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import { ValidationError, withValidationError } from '@/utils/validation-error';
 import {
   agendaKeys,
   officialReportKeys,
@@ -45,6 +45,7 @@ export function AgendaEditPage() {
 
   const [pendingRevalidations, setPendingRevalidations] = useState({ others: 0, propositions: 0 });
   const [isSaving, setIsSaving] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [editorKey, setEditorKey] = useState(() => crypto.randomUUID());
 
@@ -60,13 +61,16 @@ export function AgendaEditPage() {
   const validateAndReturnToOfficialReport = useCallback(async () => {
     if (!officialReportPath) return;
 
+    setIsValidating(true);
     setSaveError(null);
     try {
       const { data: latest } = await refetchMetadata();
-      if (latest?.status === 'DRAFT') await validateAgenda();
+      if (latest?.canValidate) await validateAgenda();
       await navigate(officialReportPath);
     } catch (error) {
-      setSaveError(describeFailure(error));
+      setSaveError(ValidationError.messageOf(error) ?? describeFailure(error));
+    } finally {
+      setIsValidating(false);
     }
   }, [describeFailure, navigate, officialReportPath, refetchMetadata, validateAgenda]);
 
@@ -76,7 +80,7 @@ export function AgendaEditPage() {
     setIsSaving(true);
     setSaveError(null);
     try {
-      const saved = await editorRef.current?.save();
+      const saved = await withValidationError(async () => editorRef.current?.save());
 
       // the blocks are read again so the edition mention carries the stored date, and
       // the rendered document with them: the server dropped the one it had stored
@@ -121,8 +125,7 @@ export function AgendaEditPage() {
       if (error instanceof AgendaEmptied) throw error;
 
       // the server explains a refused agenda far better than any message written here
-      const refusal = error instanceof HttpException ? await error.response.json().catch(() => null) : null;
-      setSaveError(refusal?.validationError ?? describeFailure(error));
+      setSaveError(ValidationError.messageOf(error) ?? describeFailure(error));
 
       throw error;
     } finally {
@@ -141,7 +144,7 @@ export function AgendaEditPage() {
   ]);
 
   const { isDirty, setDirty } = useUnsavedChangesGuard({ onSave: save });
-  const canValidate = !isSaving && !isDirty && metadata?.status === 'DRAFT';
+  const canValidate = !isSaving && !isValidating && !isDirty && !!metadata?.canValidate;
 
   // nothing was sent, so the stored blocks are still the last save
   const cancel = () => {

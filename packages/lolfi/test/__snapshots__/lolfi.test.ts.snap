@@ -1,0 +1,311 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`lolfi > should create LOLFI files 1`] = `
+{
+  "buffer": "<?xml version="1.0" encoding="ISO-8859-1"?>
+    <lolfi>
+  
+      <grades num="1">
+        <grade>G1</grade>
+<libelle>G1</libelle>
+<tri>32</tri>
+<masse_grade>G1</masse_grade>
+<mg_libelle>G1</mg_libelle>
+<mg_tri>32</mg_tri>
+      </grades>
+    
+      <grades num="2">
+        <grade>G2</grade>
+<libelle>G2</libelle>
+<tri>31</tri>
+<masse_grade>G2</masse_grade>
+<mg_libelle>G2</mg_libelle>
+<mg_tri>31</mg_tri>
+      </grades>
+    
+      <grades num="3">
+        <grade>G3</grade>
+<libelle>G3</libelle>
+<tri>30</tri>
+<masse_grade>G3</masse_grade>
+<mg_libelle>G3</mg_libelle>
+<mg_tri>30</mg_tri>
+      </grades>
+    
+      <grades num="4">
+        <grade>G3sup</grade>
+<libelle>G3sup</libelle>
+<tri>29</tri>
+<masse_grade>G3sup</masse_grade>
+<mg_libelle>G3sup</mg_libelle>
+<mg_tri>29</mg_tri>
+      </grades>
+    </lolfi>",
+  "filename": "GRADES.xml",
+}
+`;
+
+exports[`lolfi > should create LOLFI files 2`] = `
+{
+  "buffer": "<?xml version="1.0" encoding="ISO-8859-1"?>
+    <lolfi>
+  
+      <fonctions num="1">
+        <tri>0</tri>
+<fonction>PR</fonction>
+<libelle>Procureur de la République</libelle>
+<lieufc>2</lieufc>
+<fonction_m>procureur de la République</fonction_m>
+<fonction_mp null="TRUE" />
+<fonction_f null="TRUE" />
+<fonction_fp null="TRUE" />
+<complement null="TRUE" />
+      </fonctions>
+    </lolfi>",
+  "filename": "FONCTIONS.xml",
+}
+`;
+
+exports[`lolfi > should create LOLFI files 3`] = `
+{
+  "buffer": "<?xml version="1.0" encoding="ISO-8859-1"?>
+    <lolfi>
+  
+      <posads num="1">
+        <posad>CPR</posad>
+<libelle>Congé parental</libelle>
+<reel>1</reel>
+      </posads>
+    
+      <posads num="2">
+        <posad>D47-2</posad>
+<libelle>Dispo. conjoint ou PACS</libelle>
+<reel>0</reel>
+      </posads>
+    
+      <posads num="3">
+        <posad>DET</posad>
+<libelle>Détachement</libelle>
+<reel>1</reel>
+      </posads>
+    
+      <posads num="4">
+        <posad>PT</posad>
+<libelle>Plein temps</libelle>
+<reel>1</reel>
+      </posads>
+    </lolfi>",
+  "filename": "POSADS.xml",
+}
+`;
+
+exports[`lolfi > should create LOLFI files 4`] = `
+{
+  "buffer": "<?xml version="1.0" encoding="ISO-8859-1"?>
+    <lolfi>
+  
+      <type_juridiction num="1">
+        <type_jur>CA</type_jur>
+<libelle>CA</libelle>
+<tri>0</tri>
+      </type_juridiction>
+    </lolfi>",
+  "filename": "TYPE_JURIDICTION.xml",
+}
+`;
+
+exports[`lolfi > should create LOLFI files 5`] = `
+{
+  "buffer": "<?xml version="1.0" encoding="ISO-8859-1"?>
+    <lolfi>
+  
+      <juridictions num="1">
+        <codejur>CA  LYON</codejur>
+<type_jur>CA</type_jur>
+<adr1 null="TRUE" />
+<adr2 null="TRUE" />
+<arrondissement null="TRUE" />
+<codepos null="TRUE" />
+<date_suppression>01/01/2999</date_suppression>
+<libelle>CA  LYON</libelle>
+<ressort>CA  LYON</ressort>
+<ville_jur>LYON</ville_jur>
+<ville null="TRUE" />
+      </juridictions>
+    
+      <juridictions num="2">
+        <codejur>CA  GRENOBLE</codejur>
+<type_jur>CA</type_jur>
+<adr1 null="TRUE" />
+<adr2 null="TRUE" />
+<arrondissement null="TRUE" />
+<codepos null="TRUE" />
+<date_suppression>01/01/2999</date_suppression>
+<libelle>CA  GRENOBLE</libelle>
+<ressort>CA  GRENOBLE</ressort>
+<ville_jur>GRENOBLE</ville_jur>
+<ville null="TRUE" />
+      </juridictions>
+    </lolfi>",
+  "filename": "JURIDICTIONS.xml",
+}
+`;
+
+exports[`lolfi > should create LOLFI files 6`] = `
+{
+  "buffer": "<?xml version="1.0" encoding="ISO-8859-1"?>
+    <lolfi>
+  </lolfi>",
+  "filename": "POSTES.xml",
+}
+`;
+
+exports[`lolfi > should create LOLFI files 7`] = `
+{
+  "buffer": "<?xml version="1.0" encoding="ISO-8859-1"?>
+    <lolfi>
+  
+      <postes_2 num="1">
+        <num_emploi_cible>931628</num_emploi_cible>
+<profil null="TRUE" />
+<abrev_profil null="TRUE" />
+<bbis>0</bbis>
+<codejur>CA  LYON</codejur>
+<type_jur>CA</type_jur>
+<masse_grade>G3</masse_grade>
+<fonction>PR</fonction>
+      </postes_2>
+    
+      <postes_2 num="2">
+        <num_emploi_cible>232793</num_emploi_cible>
+<profil>profil assise</profil>
+<abrev_profil null="TRUE" />
+<bbis>0</bbis>
+<codejur>CA  GRENOBLE</codejur>
+<type_jur>CA</type_jur>
+<masse_grade>G3</masse_grade>
+<fonction>PR</fonction>
+      </postes_2>
+    </lolfi>",
+  "filename": "POSTES_2.xml",
+}
+`;
+
+exports[`lolfi > should create LOLFI files 8`] = `
+{
+  "buffer": "<?xml version="1.0" encoding="ISO-8859-1"?>
+    <lolfi>
+  
+      <sessions num="1">
+        <num_session>96071</num_session>
+<libelle>Transparence annuelle (96071)</libelle>
+<date_publication>22/04/2026</date_publication>
+      </sessions>
+    </lolfi>",
+  "filename": "SESSIONS.xml",
+}
+`;
+
+exports[`lolfi > should create LOLFI files 9`] = `
+{
+  "buffer": "<?xml version="1.0" encoding="ISO-8859-1"?>
+    <lolfi>
+  
+      <magistrats num="1">
+        <id>182802</id>
+<civilite>M.</civilite>
+<nom>TREVOUX</nom>
+<prenom>ETIENNE</prenom>
+<nom_marital null="TRUE" />
+<nom_usage null="TRUE" />
+<sit_fam>P</sit_fam>
+<email_pro>etienne_trevoux37@justice.fr</email_pro>
+<date_naiss>28/03/1982</date_naiss>
+<lieu_naiss null="TRUE" />
+<dep_naiss null="TRUE" />
+<grade>G3</grade>
+<date_grade null="TRUE" />
+<num_emploi_cible>931628</num_emploi_cible>
+<date_installation null="TRUE" />
+<date_nomination null="TRUE" />
+<tableau>2024</tableau>
+<historique null="TRUE" />
+<posad>PT</posad>
+<posad_prev null="TRUE" />
+<date_posad_prev null="TRUE" />
+<posad_prev2 null="TRUE" />
+<date_posad_prev2 null="TRUE" />
+<date_modification null="TRUE" />
+<date_posad_prev_fin null="TRUE" />
+      </magistrats>
+    </lolfi>",
+  "filename": "MAGISTRATS.xml",
+}
+`;
+
+exports[`lolfi > should create LOLFI files 10`] = `
+{
+  "buffer": "<?xml version="1.0" encoding="ISO-8859-1"?>
+    <lolfi>
+  
+      <transparences num="1">
+        <num_session>96071</num_session>
+<num_transparence>182802</num_transparence>
+<num_emploi_cible>232793</num_emploi_cible>
+<type_mouvement>E</type_mouvement>
+<ta>2024</ta>
+<resultat>1</resultat>
+<id>182802</id>
+<affectation>931628</affectation>
+<date_grade null="TRUE" />
+<tri_poste>931628</tri_poste>
+<rang_cand>1</rang_cand>
+      </transparences>
+    </lolfi>",
+  "filename": "TRANSPARENCES.xml",
+}
+`;
+
+exports[`lolfi > should create LOLFI files 11`] = `
+{
+  "buffer": "<?xml version="1.0" encoding="ISO-8859-1"?>
+    <lolfi>
+  
+      <candidats num="1">
+        <id>182802</id>
+<num_candidat>182802</num_candidat>
+<demande_conjointe>0</demande_conjointe>
+<nom_ville_conjoint null="TRUE" />
+<observation null="TRUE" />
+<date_modification>22/04/2026</date_modification>
+<adr1 null="TRUE" />
+<adr2 null="TRUE" />
+<codepos null="TRUE" />
+<ville null="TRUE" />
+<tel_perso null="TRUE" />
+<mandat null="TRUE" />
+<mandat_conjoint null="TRUE" />
+<prof_conjoint null="TRUE" />
+<article_l111 null="TRUE" />
+<obs_num_session null="TRUE" />
+      </candidats>
+    </lolfi>",
+  "filename": "CANDIDATS.xml",
+}
+`;
+
+exports[`lolfi > should create LOLFI files 12`] = `
+{
+  "buffer": "<?xml version="1.0" encoding="ISO-8859-1"?>
+    <lolfi>
+  
+      <desiderata num="1">
+        <num_desiderata>772688</num_desiderata>
+<num_candidat>182802</num_candidat>
+<num_emploi_cible>232793</num_emploi_cible>
+<date_enregistrement>22/04/2026</date_enregistrement>
+      </desiderata>
+    </lolfi>",
+  "filename": "DESIDERATA.xml",
+}
+`;

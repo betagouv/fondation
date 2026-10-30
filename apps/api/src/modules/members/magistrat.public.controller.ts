@@ -2,8 +2,8 @@ import { Body, Controller, Header, HttpStatus, Post, UsePipes } from '@nestjs/co
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
+import * as time from '../../utils/time';
 import { HasRole } from '../simple-auth';
-import * as time from 'src/utils/time';
 
 import {
   SearchMagistratAuthorizationDto,

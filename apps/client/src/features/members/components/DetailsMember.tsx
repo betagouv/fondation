@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { defineMessages, FormattedMessage, useIntl } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { DetailsCard, DetailsHeader, DetailsPageLayout } from '@/shared/ui/details';
@@ -10,13 +10,6 @@ import { useExcludedJurisdictionsMutation } from '@queries/members.queries';
 
 import { JurisdictionSelector } from './JurisdictionSelector';
 import { MemberDisplayTitle } from './MemberDisplayTitle';
-import { MemberTitle } from './MemberTitle';
-
-const FORMATION_LABELS = defineMessages({
-  MEMBRE_COMMUN: { defaultMessage: 'Commun' },
-  MEMBRE_DU_PARQUET: { defaultMessage: 'Parquet' },
-  MEMBRE_DU_SIEGE: { defaultMessage: 'Siège' },
-} satisfies Record<DetailedMemberDto['role'], { defaultMessage: string }>);
 
 function MemberInfoItem(props: { children: ReactNode; label: ReactNode }) {
   return (
@@ -85,7 +78,7 @@ export function DetailsMember(props: { member: DetailedMemberDto }) {
               {member.email}
             </MemberInfoItem>
             <MemberInfoItem label={<FormattedMessage defaultMessage="Formation" />}>
-              <FormattedMessage {...FORMATION_LABELS[member.role]} />
+              {member.formation.label}
             </MemberInfoItem>
           </dl>
         </DetailsCard>
@@ -94,10 +87,9 @@ export function DetailsMember(props: { member: DetailedMemberDto }) {
     >
       <DetailsCard>
         <h2 className="fr-h4">
-          <FormattedMessage defaultMessage="Distinction et titre" />
+          <FormattedMessage defaultMessage="Titre" />
         </h2>
         <dl className="m-0 flex flex-col gap-y-4 p-0">
-          <MemberTitle member={member} />
           <MemberDisplayTitle member={member} />
         </dl>
       </DetailsCard>

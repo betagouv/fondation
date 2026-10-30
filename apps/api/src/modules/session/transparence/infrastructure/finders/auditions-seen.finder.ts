@@ -1,16 +1,16 @@
 import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { ObservationService } from 'src/modules/observation/observation.service';
+import { Prisma } from '../../../../../generated/prisma/client';
+import { type AuditionSchedule, toOptionalAuditionSchedule } from '../../../../../utils/audition-schedule';
+import type { DateOnlyJson } from '../../../../../utils/date-only';
+import type { TimeOnly } from '../../../../../utils/time-only';
+import { Db } from '../../../../framework/database';
+import { ObservationService } from '../../../../observation/observation.service';
 import {
   type AuditionRequirement,
   auditionRequirementOf,
-} from 'src/modules/shared/policies/auditioned-position.policy';
-import { isSecretariat, type RoleEnum } from 'src/modules/shared/role.enum';
-import { type AuditionSchedule, toOptionalAuditionSchedule } from 'src/utils/audition-schedule';
-import type { DateOnlyJson } from 'src/utils/date-only';
-import type { TimeOnly } from 'src/utils/time-only';
+} from '../../../../shared/policies/auditioned-position.policy';
+import { isSecretariat, type RoleEnum } from '../../../../shared/role.enum';
 
 import { AuditionPublicationFinder } from './audition-publication.finder';
 
@@ -21,8 +21,7 @@ export type SeenAudition = {
   auditionTime: TimeOnly | null;
 };
 
-// the secretariat works on the current auditions, the members only see the last published ones, apart from
-// the audition a position requires which reaches them right away
+// the members see at once an audition planned or dismissed, its date only once published
 @Injectable()
 export class AuditionsSeenFinder {
   constructor(
@@ -71,18 +70,16 @@ export class AuditionsSeenFinder {
     return new Map(
       files.map((file) => {
         const published = publications?.get(file.sessionId)?.auditions.nominationFiles.get(file.id);
-        const { audition, requested } = publications
-          ? { audition: published?.audition ?? null, requested: published?.requested ?? null }
-          : {
-              audition: toOptionalAuditionSchedule(file.auditionDate, file.auditionTime),
-              requested: file.auditionRequested,
-            };
+        const audition = !publications
+          ? toOptionalAuditionSchedule(file.auditionDate, file.auditionTime)
+          : file.auditionRequested === false
+            ? null
+            : (published?.audition ?? null);
 
-        const position = {
+        const requirement = auditionRequirementOf({
           ...file,
           detectedJurisdictionType: file.detectedJurisdiction?.typeJur ?? null,
-        };
-        const requirement = auditionRequirementOf({ ...position, auditionRequested: requested });
+        });
 
         return [
           file.id,

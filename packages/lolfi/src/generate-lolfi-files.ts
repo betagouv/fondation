@@ -228,7 +228,14 @@ export async function* generateLolfiFiles(
     filename: 'POSADS.xml',
     buffer: toXml(
       'posads',
-      (data.administrativePositions ?? [{ id: 'PT', label: 'Plein temps', rate: 1 }]).map((p) => ({
+      (
+        data.administrativePositions ?? [
+          { id: 'CPR', label: 'Congé parental', rate: 1 },
+          { id: 'D47-2', label: 'Dispo. conjoint ou PACS', rate: 0 },
+          { id: 'DET', label: 'Détachement', rate: 1 },
+          { id: 'PT', label: 'Plein temps', rate: 1 },
+        ]
+      ).map((p) => ({
         posad: p.id,
         libelle: p.label,
         reel: p.rate.toString().replace('.', ','),

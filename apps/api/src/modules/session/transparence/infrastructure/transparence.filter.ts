@@ -9,22 +9,22 @@ import {
 import { catchError, Observable, throwError } from 'rxjs';
 
 import {
+  NominationFileOutcomeRequiresComment,
+  UnknownNominationFileOutcome,
+} from '../../../shared/nomination-file-outcome.enum';
+import {
   CannotScheduleAuditionOnNominationFile,
   CantUpdateNominationFiles,
   MemberMemoNotAllowed,
   NonFormationMemberDefinedAsReporter,
   PositionAuditionCannotBeDismissed,
-  SessionTransparenceAffectationHasUnknownReporter,
+  SessionTransparenceAffectationHasUnassignableReporters,
   SessionTransparenceIsArchived,
   SessionTransparenceIsNotArchivable,
   SessionTransparenceIsNotDeletable,
   UnknownNominationFiles,
   UnrequestedAuditionCannotBeScheduled,
-} from 'src/modules/session/transparence/domain/session-transparence';
-import {
-  NominationFileOutcomeRequiresComment,
-  UnknownNominationFileOutcome,
-} from 'src/modules/shared/nomination-file-outcome.enum';
+} from '../domain/session-transparence';
 
 export class TransparenceExceptionFilter implements NestInterceptor {
   private readonly logger = new Logger(TransparenceExceptionFilter.name);
@@ -36,18 +36,34 @@ export class TransparenceExceptionFilter implements NestInterceptor {
             return new BadRequestException({ message: err.message }, { cause: err });
           }
 
-          if (err instanceof SessionTransparenceAffectationHasUnknownReporter) {
+          if (err instanceof SessionTransparenceAffectationHasUnassignableReporters) {
             const list = new Intl.ListFormat('fr-FR', { type: 'conjunction' });
+            const describe = (
+              fileNumber: number,
+              reporters: readonly string[],
+              singular: string,
+              plural: string,
+            ) =>
+              reporters.length > 1
+                ? [`n°${fileNumber} ${plural}: ${list.format(reporters)}`]
+                : reporters.map((reporter) => `n°${fileNumber} ${singular}: ${reporter}`);
+
             return new BadRequestException(
               {
-                validationErrors: err.errors.map((error) => {
-                  const message =
-                    error.reporters.length > 1
-                      ? `rapporteurs inconnus: ${list.format(error.reporters)}`
-                      : `rapporteur inconnu: ${error.reporters[0]}`;
-
-                  return `n°${error.fileNumber} ${message}`;
-                }),
+                validationErrors: err.errors.flatMap((error) => [
+                  ...describe(
+                    error.fileNumber,
+                    error.unknownReporters,
+                    'rapporteur inconnu',
+                    'rapporteurs inconnus',
+                  ),
+                  ...describe(
+                    error.fileNumber,
+                    error.deactivatedReporters,
+                    'rapporteur désactivé',
+                    'rapporteurs désactivés',
+                  ),
+                ]),
               },
               { cause: err },
             );

@@ -6,7 +6,6 @@
   "trailingComma": "all",
   "sortImports": {
     "sortSideEffects": false,
-    "internalPattern": ["src/"],
     "groups": [
       "value-builtin",
       ["value-external", "type-external", "value-import", "type-import"],

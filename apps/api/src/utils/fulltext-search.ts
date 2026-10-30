@@ -13,7 +13,7 @@ export function toFullTextQuery(input: string): string {
 }
 
 /**
- * this works for the {@link import('src/generated/prisma/client').Magistrat.search} column
+ * this works for the {@link import('../generated/prisma/client').Magistrat.search} column
  * an input without any letter or digit gives an empty query, which matches nothing
  */
 export function toMagistratFullTextQuery(input: string): string {

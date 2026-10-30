@@ -18,21 +18,21 @@ const ATTACHMENTS: SessionAttachment[] = [
     addedBy: { id: 'user-1', name: 'Léa MARTIN' },
     id: 'c',
     name: 'Tableau des effectifs.xlsx',
-    sizeInBytes: 86_000,
+    size: 86_000,
   },
   {
     addedAt: '2028-02-04T08:30:00.000Z',
     addedBy: { id: 'user-1', name: 'Léa MARTIN' },
     id: 'a',
     name: 'Fiche de juridiction.pdf',
-    sizeInBytes: 248_000,
+    size: 248_000,
   },
   {
     addedAt: '2028-02-11T08:30:00.000Z',
     addedBy: null,
     id: 'b',
     name: 'Note DSJ.pdf',
-    sizeInBytes: null,
+    size: null,
   },
 ];
 

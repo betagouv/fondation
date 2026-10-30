@@ -1,6 +1,10 @@
 import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable, NotFoundException } from '@nestjs/common';
 
+import { Prisma } from '../../../../generated/prisma/client';
+import { assertNever } from '../../../../utils/assert-never';
+import { Clock } from '../../../framework/clock';
+import { Db } from '../../../framework/database';
 import {
   MagistratPhoneNumberAdded,
   MagistratPhoneNumberDeleted,
@@ -8,10 +12,6 @@ import {
   MagistratPhoneNumberUpdated,
   PhoneNumberAlreadySaved,
 } from '../../domain/magistrat-phone-numbers';
-import { Prisma } from 'src/generated/prisma/client';
-import { Clock } from 'src/modules/framework/clock';
-import { Db } from 'src/modules/framework/database';
-import { assertNever } from 'src/utils/assert-never';
 
 // the unique index catches the same number saved twice at the same time
 function rejectSavedTwice(err: unknown): never {

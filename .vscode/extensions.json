@@ -1,1 +1,11 @@
-{ "recommendations": ["oxc.oxc-vscode"] }
+{
+  "recommendations": [
+    "oxc.oxc-vscode",
+    "vitest.explorer",
+    "typescriptteam.native-preview",
+    "prisma.prisma",
+    "bradlc.vscode-tailwindcss",
+    "ms-playwright.playwright",
+    "sqlfluff.vscode-sqlfluff"
+  ]
+}

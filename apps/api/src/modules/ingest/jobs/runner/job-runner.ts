@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import type { Prisma } from 'src/generated/prisma/client';
+import type { Prisma } from '../../../../generated/prisma/client';
 
 import { ChildProcessJobRunner } from './child-process-job-runner';
 import { ScalingoJobRunner } from './scalingo-job-runner';

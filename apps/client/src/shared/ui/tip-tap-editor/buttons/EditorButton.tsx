@@ -1,21 +1,20 @@
 import Button, { type ButtonProps } from '@codegouvfr/react-dsfr/Button';
 import { type CSSProperties } from 'react';
 
-import type { HeadingLevel } from '../extensions/constant';
 import { useIsBlurred } from '../hooks/useIsBlurred';
 import { useMarkPriority } from '../hooks/useMarkPriority';
 
 type EditorButtonProps = {
-  mark?: string;
-  attributes?: { level: HeadingLevel };
-  title: string;
-  onClick: () => void;
+  attributes?: Record<string, unknown>;
   disabled: boolean;
+  mark?: string;
+  onClick: () => void;
   style?: CSSProperties;
+  title: string;
 } & Required<Pick<ButtonProps.WithIcon, 'iconId' | 'title'>>;
 
 export function EditorButton(props: EditorButtonProps) {
-  const { onClick, disabled, mark, title, attributes, ...dsfrProps } = props;
+  const { attributes, disabled, mark, onClick, title, ...dsfrProps } = props;
 
   const markPriority = useMarkPriority(mark, attributes);
   const isBlurred = useIsBlurred();

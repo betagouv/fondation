@@ -2,12 +2,13 @@ import { Propagation } from '@nestjs-cls/transactional';
 import { Inject, Logger, Module } from '@nestjs/common';
 import { Command, CommandRunner, Option } from 'nest-commander';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { Clock } from 'src/modules/framework/clock';
-import { API_CONFIG_TOKEN, type ApiConfig } from 'src/modules/framework/config';
-import { Db } from 'src/modules/framework/database';
-import * as time from 'src/utils/time';
+import { Prisma } from '../../../generated/prisma/client';
+import * as time from '../../../utils/time';
+import { Clock } from '../clock';
+import { API_CONFIG_TOKEN, type ApiConfig } from '../config';
+import { Db } from '../database';
 
+import { purgeDetachedBefore } from './embedded-screenshots';
 import { Files } from './files';
 
 @Command({ description: 'deletes the files nothing refers to anymore', name: 'delete-unused-files' })
@@ -33,21 +34,24 @@ export class DeleteUnusedFilesCommand extends CommandRunner {
   }
 
   async run(_inputs: string[], options: { delete?: boolean }): Promise<void> {
+    // a screenshot still embedded, or detached recently enough to come back, keeps its file
+    const embedding = { OR: [{ detachedAt: null }, { detachedAt: { gt: purgeDetachedBefore(this.clock) } }] };
     const unused = await this.db.withTransaction(Propagation.RequiresNew, () =>
       this.db.tx.file.findMany({
         select: { createdAt: true, id: true, path: true } satisfies Prisma.FileSelect,
         where: {
           agendaPdf: { none: {} },
           attachedToNominationFiles: { none: {} },
-          attachedToObservationMemberComments: { none: {} },
+          attachedToObservationMemberComments: { none: embedding },
           attachedToObservations: { none: {} },
-          attachedToReports: { none: {} },
+          attachedToReports: { none: embedding },
           attachedToSessions: { none: {} },
           attachedToSummaries: { none: {} },
           bucket: this.config.s3.bucket,
           // an upload stays unattached for a moment before its attachment is written
           createdAt: { lt: new Date(this.clock.now().getTime() - time.DAYS) },
-          includedInSummariesContent: { none: {} },
+          includedInHelpPagesContent: { none: embedding },
+          includedInSummariesContent: { none: embedding },
           ingestionJobFile: { none: {} },
           justicePresentationPdf: { none: {} },
           officialReportPdf: { none: {} },

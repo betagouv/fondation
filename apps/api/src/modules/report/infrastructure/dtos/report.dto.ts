@@ -1,11 +1,14 @@
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { FILE_MIME_TYPES } from 'src/modules/framework/files';
-import { ReportFileUsageEnum } from 'src/modules/shared/report-file-usage.enum';
-import { ReportStateEnum } from 'src/modules/shared/report-state.enum';
+import { richTextHtml } from '../../../../utils/rich-text-html';
+import { ATTACHMENT_MAX_BYTES, FILE_MIME_TYPES } from '../../../framework/files';
+import { ReportFileUsageEnum } from '../../../shared/report-file-usage.enum';
+import { ReportStateEnum } from '../../../shared/report-state.enum';
 
-export class AttachReportFileDto extends createZodDto(z.object({ files: z.array(z.file()) })) {}
+export class AttachReportFileDto extends createZodDto(
+  z.object({ files: z.array(z.file().max(ATTACHMENT_MAX_BYTES)) }),
+) {}
 
 export class AttachReportFileQueryDto extends createZodDto(
   z.object({ usage: z.enum(ReportFileUsageEnum) }),
@@ -30,7 +33,7 @@ export class GetReportFileUrlsQueryDto extends createZodDto(
 
 export class UpdateReportDto extends createZodDto(
   z.object({
-    comment: z.string().optional(),
+    comment: richTextHtml.optional(),
     status: z.enum(ReportStateEnum).optional(),
   }),
 ) {}

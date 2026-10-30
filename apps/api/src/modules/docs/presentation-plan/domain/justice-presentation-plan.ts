@@ -1,17 +1,19 @@
-import { UserDutyEnum, UserTitleEnum } from 'src/modules/administration/domain/user-enum';
-import { FormationEnum } from 'src/modules/shared/formation.enum';
-import { GenderEnum } from 'src/modules/shared/gender.enum';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import { DateOnly } from 'src/utils/date-only';
-import { Id, makeId } from 'src/utils/id';
-import { assertIsDefined } from 'src/utils/is-defined';
-import { TimeOnly } from 'src/utils/time-only';
+import { DateOnly } from '../../../../utils/date-only';
+import { Id, makeId } from '../../../../utils/id';
+import { assertIsDefined } from '../../../../utils/is-defined';
+import { TimeOnly } from '../../../../utils/time-only';
+import { FormationEnum } from '../../../shared/formation.enum';
+import { GenderEnum } from '../../../shared/gender.enum';
+import type { RoleEnum } from '../../../shared/role.enum';
+import { UserDutyEnum } from '../../../shared/user-duty.enum';
+import { UserTitleEnum } from '../../../shared/user-title.enum';
 
 import { JusticePresentationPlanContent } from './justice-presentation-plan-content';
 import {
   JusticePresentationPlanSettings,
   type PlainJusticePresentationPlanSettings,
 } from './justice-presentation-plan-settings';
+import { canEditPresentationPlan, canPresentPlan } from './presentation-plan.policies';
 
 export class JusticePresentationPlanCreated {
   constructor(
@@ -80,11 +82,19 @@ export class PresentationPlanAgendaAlreadyReported extends Error {}
 export class EmptyPresentationPlanMemberList extends Error {}
 export class JusticePresentationPlanNotValidated extends Error {}
 export class JusticePresentationPlanAlreadyPresented extends Error {}
+export class JusticePresentationPlanNotPresented extends Error {}
 export class JusticePresentationPlanAlreadyValidated extends Error {}
 export class JusticePresentationPlanChangedWhileValidated extends Error {}
 
 export class JusticePresentationPlan {
   readonly #messages: JusticePresentationPlanMessage[] = [];
+  get recordedMemberIds(): string[] {
+    if (!this.settings) return [];
+
+    const { chairmanId, members } = this.settings;
+    return [...(chairmanId ? [chairmanId] : []), ...members.map(({ id }) => id)];
+  }
+
   get messages(): readonly JusticePresentationPlanMessage[] {
     return this.#messages;
   }
@@ -136,12 +146,16 @@ export class JusticePresentationPlan {
     return plan;
   }
 
-  /** the presented notice is the one the DSJ received: rewriting it would drop the pdf that left */
   update(command: UpdateJusticePresentationPlanCommand): void {
-    if (this.isPresented) throw new JusticePresentationPlanAlreadyPresented();
+    if (!canEditPresentationPlan({ isPresented: this.isPresented })) {
+      throw new JusticePresentationPlanAlreadyPresented();
+    }
 
-    const state = this.buildState(command);
     const settings = assertIsDefined(this.settings, 'unknown presentation plan settings');
+    const state = this.buildState({
+      ...command,
+      members: keepingRecorded(command.members, settings.members),
+    });
     // saving is how an outdated notice catches up with its agendas, so it is written again even unchanged
     if (!this.outdated && settings.equals(JusticePresentationPlanSettings.from(this.settingsOf(state)))) {
       return;
@@ -168,8 +182,10 @@ export class JusticePresentationPlan {
   }
 
   present(command: { endTime: TimeOnly; presenterId: string }): void {
-    if (!this.isValidated) throw new JusticePresentationPlanNotValidated();
     if (this.isPresented) throw new JusticePresentationPlanAlreadyPresented();
+    if (!canPresentPlan({ isPresented: this.isPresented, isValidated: this.isValidated })) {
+      throw new JusticePresentationPlanNotValidated();
+    }
 
     this.#messages.push(new JusticePresentationPlanPresented(this.id, command.endTime, command.presenterId));
   }
@@ -190,6 +206,8 @@ export class JusticePresentationPlan {
   }
 
   unPresent(): void {
+    if (!this.isPresented) throw new JusticePresentationPlanNotPresented();
+
     this.#messages.push(new JusticePresentationPlanUnPresented(this.id));
   }
 
@@ -205,20 +223,20 @@ export class JusticePresentationPlan {
   private buildState(
     props: CreateJusticePresentationPlanCommand | UpdateJusticePresentationPlanCommand,
   ): JusticePresentationPlanState {
-    const { chairman, secretary, agendas, members, ...state } = props;
+    const { agendas, chairman, members, secretary, ...state } = props;
     this.assertsChairman(chairman);
     this.assertsSecretary(secretary);
     this.assertsAgendas(agendas);
     const membersList = this.assertsMemberList(members, chairman);
 
     return {
-      chairman,
-      secretary,
-      members: membersList,
       agendas: agendas.map((agenda) => ({
         ...agenda,
         comment: agenda.comment?.trim() || null,
       })),
+      chairman,
+      members: membersList,
+      secretary,
       ...state,
     };
   }
@@ -354,3 +372,12 @@ export type UpdateJusticePresentationPlanCommand = {
   }[];
   members: readonly { id: string; isAbsent: boolean }[];
 };
+
+/** a member recorded for the meeting stays once no longer offered (deactivated since, or moved to another formation) */
+function keepingRecorded(
+  offered: readonly { id: string; isAbsent: boolean }[],
+  recorded: readonly { id: string; isAbsent: boolean }[],
+): { id: string; isAbsent: boolean }[] {
+  const offeredIds = new Set(offered.map(({ id }) => id));
+  return [...offered, ...recorded.filter(({ id }) => !offeredIds.has(id))];
+}

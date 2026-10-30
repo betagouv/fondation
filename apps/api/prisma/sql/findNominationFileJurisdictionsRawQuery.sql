@@ -7,7 +7,7 @@ SELECT
     targeted_j.codejur AS "targetedJurisdictionId",
     targeted_j.libelle AS "targetedJurisdictionLabel"
 FROM nominations_context.dossier_de_nomination AS d
-LEFT JOIN nominations_context.magistrat AS m
+LEFT JOIN data_administration_context.magistrat AS m
     ON m.id = d.detected_magistrat_id
 LEFT JOIN data_administration_context."position" AS pos
     ON pos.id = NULLIF(m.current_position_id, '')::INT

@@ -11,11 +11,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { ApiCookieAuth } from '@nestjs/swagger';
+import { ApiCookieAuth, ApiExtension } from '@nestjs/swagger';
 import { Request as ExpressRequest } from 'express';
 
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import { assertIsDefined, isDefined } from 'src/utils/is-defined';
+import { assertIsDefined, isDefined } from '../../utils/is-defined';
+import type { RoleEnum } from '../shared/role.enum';
 
 export const AuthedUserId = createParamDecorator((_, ctx: ExecutionContext) => {
   const { user } = ctx.switchToHttp().getRequest<ExpressRequest>();
@@ -44,10 +44,9 @@ class HasRoleGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext) {
-    const optionalRoles = this.reflector.getAllAndOverride<readonly (RoleEnum | 'MACHINE')[] | undefined>(
-      META_ROLES,
-      [context.getHandler(), context.getClass()],
-    );
+    const optionalRoles = this.reflector.getAllAndOverride<
+      readonly (RoleEnum | 'ADMIN' | 'MACHINE')[] | undefined
+    >(META_ROLES, [context.getHandler(), context.getClass()]);
 
     const roles = assertIsDefined(
       optionalRoles,
@@ -62,7 +61,7 @@ class HasRoleGuard implements CanActivate {
     }
 
     if (user.type === 'machine') return roles.includes('MACHINE');
-    if (user.role === 'ADMIN') return true;
+    if (user.isAdmin) return true;
 
     const userMissesAnyRequiredRole = roles.length > 0 && !roles.includes(user.role as RoleEnum);
     if (userMissesAnyRequiredRole) {
@@ -73,8 +72,17 @@ class HasRoleGuard implements CanActivate {
   }
 }
 
-export function HasRole(...roles: readonly (RoleEnum | 'MACHINE')[]): MethodDecorator {
-  const decorators = [SetMetadata(META_ROLES, roles), UseGuards(mixin(HasRoleGuard))];
+/**
+ * ADMIN is no role but the admin right: the guard lets its holders through whatever the roles listed
+ *
+ * @remarks `x-roles` lets docs/droits-par-role.md be checked against the API, an empty list meaning any logged-in user
+ */
+export function HasRole(...roles: readonly (RoleEnum | 'ADMIN' | 'MACHINE')[]): MethodDecorator {
+  const decorators = [
+    SetMetadata(META_ROLES, roles),
+    UseGuards(mixin(HasRoleGuard)),
+    ApiExtension('x-roles', roles),
+  ];
 
   if (roles.length === 0 || roles.filter((x) => x !== 'MACHINE').length > 0) {
     decorators.push(ApiCookieAuth('sessionId'));

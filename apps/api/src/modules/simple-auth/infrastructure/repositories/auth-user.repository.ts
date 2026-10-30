@@ -1,18 +1,22 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, NotFoundException } from '@nestjs/common';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
+import { Prisma } from '../../../../generated/prisma/client';
+import { assertNever } from '../../../../utils/assert-never';
+import { Db } from '../../../framework/database';
+import { prismaRoleEnumToRoleEnum } from '../../../shared/mappers/role-enum.mapper';
+import { userStatusOf } from '../../../shared/user-status.enum';
 import {
   AuthImpersonationRevoked,
   AuthImpersonationStarted,
   AuthOpenIdRequestCompleted,
   AuthUser,
   AuthUserAuthenticated,
-  AuthUserRegistered,
+  AuthUserPasswordChanged,
+  AuthUserPasswordRehashed,
+  AuthUserSessionsRevoked,
   AuthUserUnAuthenticated,
-} from 'src/modules/simple-auth/domain/auth-user';
-import { assertNever } from 'src/utils/assert-never';
+} from '../../domain/auth-user';
 
 @Injectable()
 export class AuthUserRepository {
@@ -20,30 +24,35 @@ export class AuthUserRepository {
 
   async findByEmail(email: string): Promise<AuthUser | null> {
     const user = await this.db.tx.user.findFirst({
-      select: { id: true, password: true } satisfies Prisma.UserSelect,
+      select: { deactivatedAt: true, id: true, password: true, role: true } satisfies Prisma.UserSelect,
       where: { email: { equals: email, mode: 'insensitive' } },
     });
 
-    return user && AuthUser.from(user);
+    return (
+      user &&
+      AuthUser.from({ ...user, role: prismaRoleEnumToRoleEnum(user.role), status: userStatusOf(user) })
+    );
   }
 
   async find(id: string): Promise<AuthUser> {
     const user = await this.db.tx.user.findUnique({
+      select: { deactivatedAt: true, id: true, password: true, role: true } satisfies Prisma.UserSelect,
       where: { id },
-      select: { id: true, password: true } satisfies Prisma.UserSelect,
     });
 
     if (!user) throw new NotFoundException();
 
-    return AuthUser.from(user);
+    return AuthUser.from({ ...user, role: prismaRoleEnumToRoleEnum(user.role), status: userStatusOf(user) });
   }
 
   @Transactional()
   async persist(user: AuthUser): Promise<void> {
     for (const event of user.messages) {
-      if (event instanceof AuthUserRegistered) await this.persistUserRegistered(event);
-      else if (event instanceof AuthUserAuthenticated) await this.persistUserAuthenticated(event);
+      if (event instanceof AuthUserAuthenticated) await this.persistUserAuthenticated(event);
       else if (event instanceof AuthUserUnAuthenticated) await this.persistAuthUserUnAuthenticated(event);
+      else if (event instanceof AuthUserSessionsRevoked) await this.persistAuthUserSessionsRevoked(event);
+      else if (event instanceof AuthUserPasswordRehashed || event instanceof AuthUserPasswordChanged)
+        await this.persistPassword(event);
       else if (event instanceof AuthImpersonationStarted) await this.persistImpersonationStarted(event);
       else if (event instanceof AuthImpersonationRevoked) await this.persistImpersonationRevoked(event);
       else if (event instanceof AuthOpenIdRequestCompleted)
@@ -57,36 +66,26 @@ export class AuthUserRepository {
 
     return this.db.tx.authSession.create({
       data: {
+        createdAt: event.session.startedAt,
         expiresAt,
         sessionId: event.session.id,
-        createdAt: event.session.startedAt,
         user: { connect: { id: event.id } },
       },
     });
   }
 
-  private persistUserRegistered(event: AuthUserRegistered) {
-    return this.db.tx.user.create({
-      data: {
-        id: event.id,
-        email: event.email,
-        password: event.password,
-        firstName: event.firstName,
-        lastName: event.lastName,
-        role: event.role,
-        gender: event.gender,
-      },
-    });
+  private persistPassword(event: AuthUserPasswordRehashed | AuthUserPasswordChanged) {
+    return this.db.tx.user.update({ data: { password: event.password }, where: { id: event.id } });
   }
 
   private persistImpersonationStarted({ impersonation }: AuthImpersonationStarted) {
     return this.db.tx.authImpersonation.create({
       data: {
-        id: impersonation.id,
         createdAt: impersonation.startedAt,
         expiresAt: impersonation.expiresAt,
-        sessionId: impersonation.authSessionId,
+        id: impersonation.id,
         impersonatedUserId: impersonation.impersonateId,
+        sessionId: impersonation.authSessionId,
       },
     });
   }
@@ -99,6 +98,10 @@ export class AuthUserRepository {
 
   private persistAuthUserUnAuthenticated({ sessionId }: AuthUserUnAuthenticated) {
     return this.db.tx.authSession.delete({ where: { sessionId } });
+  }
+
+  private persistAuthUserSessionsRevoked({ id, keptSessionId }: AuthUserSessionsRevoked) {
+    return this.db.tx.authSession.deleteMany({ where: { sessionId: { not: keptSessionId }, userId: id } });
   }
 
   private persistAuthOpenIdRequestCompleted(message: AuthOpenIdRequestCompleted) {

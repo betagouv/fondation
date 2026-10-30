@@ -4,52 +4,52 @@
 
 SELECT
   ddn.id,
+  m.magistrat,
   ddn.number,
   ddn.outcome,
   ddn.outcome_comment AS "outcomeComment",
-  m.magistrat,
   reporter.users AS reporters,
 
   JSON_BUILD_OBJECT(
-    'grade', p.grade_id,
-    'jurisdiction', JSON_BUILD_OBJECT('id', j.codejur, 'label', j.libelle),
     'arrondissement', CASE WHEN arr.codejur IS NULL THEN NULL ELSE JSON_BUILD_OBJECT('id', arr.codejur, 'label', arr.libelle) END,
     'function', CASE WHEN f.id IS NOT NULL THEN JSON_BUILD_OBJECT(
+      'addition', f.addition,
       'id', f.id,
       'label', f.label,
-      'labelOneMale', f.label_one_male,
       'labelOneFemale', f.label_one_female,
-      'addition', f.addition
-    ) ELSE NULL END
+      'labelOneMale', f.label_one_male
+    ) ELSE NULL END,
+    'grade', p.grade_id,
+    'jurisdiction', JSON_BUILD_OBJECT('id', j.codejur, 'label', j.libelle)
   ) AS "targetPosition"
 
 FROM nominations_context.dossier_de_nomination ddn
   INNER JOIN LATERAL (
     SELECT
       JSON_BUILD_OBJECT(
-        'id', mm.external_id,
         'civility', mm.civilite,
+        'externalId', mm.external_id::INT,
         'firstName', mm.first_name,
+        'id', mm.external_id,
         'lastName', mm.last_name,
         'marriedName', mm.married_name,
-        'usedName', mm.used_name,
-        'externalId', mm.external_id::INT,
-
         'position', JSON_BUILD_OBJECT(
-          'grade', mm.grade,
-          'jurisdiction', JSON_BUILD_OBJECT('id', j.codejur, 'label', j.libelle),
+          'administrativePositionId', mm.admin_position,
           'arrondissement', CASE WHEN arr.codejur IS NULL THEN NULL ELSE JSON_BUILD_OBJECT('id', arr.codejur, 'label', arr.libelle) END,
           'function', CASE WHEN f.id IS NOT NULL THEN JSON_BUILD_OBJECT(
+            'addition', f.addition,
             'id', f.id,
             'label', f.label,
-            'labelOneMale', f.label_one_male,
             'labelOneFemale', f.label_one_female,
-            'addition', f.addition
-          ) ELSE NULL END
-        )
+            'labelOneMale', f.label_one_male
+          ) ELSE NULL END,
+          'grade', mm.grade,
+          'jurisdiction', JSON_BUILD_OBJECT('id', j.codejur, 'label', j.libelle)
+        ),
+        'usedName', mm.used_name
       ) AS magistrat
 
-    FROM nominations_context.magistrat mm
+    FROM data_administration_context.magistrat mm
       INNER JOIN data_administration_context."position" p ON p.id = mm.current_position_id::INT
       INNER JOIN data_administration_context."jurisdictions" j ON j.codejur = p.jurisdiction_id
       LEFT JOIN data_administration_context."jurisdictions" arr ON arr.codejur = j.arrondissement AND j.arrondissement != j.codejur
@@ -68,10 +68,10 @@ FROM nominations_context.dossier_de_nomination ddn
       nfr.nomination_file_id,
       ARRAY_AGG(
         JSON_BUILD_OBJECT(
-          'id', u.id,
           'firstName', u.first_name,
-          'lastName', u.last_name,
-          'gender', u.gender
+          'gender', u.gender,
+          'id', u.id,
+          'lastName', u.last_name
         )
         ORDER BY u.sort, u.last_name
       ) AS users

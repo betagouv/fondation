@@ -1,6 +1,6 @@
-import { PrismaRoleEnum } from 'src/generated/prisma/enums';
-import type { RoleEnum } from 'src/modules/shared/role.enum';
-import { assertNever } from 'src/utils/assert-never';
+import { PrismaRoleEnum } from '../../../generated/prisma/enums';
+import { assertNever } from '../../../utils/assert-never';
+import type { RoleEnum } from '../role.enum';
 
 export function prismaRoleEnumToRoleEnum(value: PrismaRoleEnum): RoleEnum {
   switch (value) {
@@ -12,8 +12,6 @@ export function prismaRoleEnumToRoleEnum(value: PrismaRoleEnum): RoleEnum {
       return 'MEMBRE_COMMUN';
     case PrismaRoleEnum.ADJOINT_SECRETAIRE_GENERAL:
       return 'ADJOINT_SECRETAIRE_GENERAL';
-    case PrismaRoleEnum.ADMIN:
-      return 'ADMIN';
     default:
       return assertNever(value);
   }
@@ -29,8 +27,6 @@ export function roleEnumToPrismaRoleEnum(value: RoleEnum): PrismaRoleEnum {
       return PrismaRoleEnum.MEMBRE_COMMUN;
     case 'ADJOINT_SECRETAIRE_GENERAL':
       return PrismaRoleEnum.ADJOINT_SECRETAIRE_GENERAL;
-    case 'ADMIN':
-      return PrismaRoleEnum.ADMIN;
     default:
       return assertNever(value);
   }

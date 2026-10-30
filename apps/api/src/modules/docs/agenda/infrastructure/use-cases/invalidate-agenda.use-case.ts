@@ -1,12 +1,11 @@
-import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
+import { Prisma } from '../../../../../generated/prisma/client';
+import { assertNever } from '../../../../../utils/assert-never';
+import { Db } from '../../../../framework/database';
+import { DocInvalidation } from '../../../shared/domain/doc-invalidation';
+import { DocsNominationFilesFinder } from '../../../shared/infrastructure/finders/docs-nomination-files.finder';
 import { AgendaRepository } from '../repositories/agenda.repository';
-import { Prisma } from 'src/generated/prisma/client';
-import { DocInvalidation } from 'src/modules/docs/shared/domain/invalidation/official-report-invalidated.integration-event';
-import { DocsNominationFilesFinder } from 'src/modules/docs/shared/infrastructure/finders/docs-nomination-files.finder';
-import { Db } from 'src/modules/framework/database';
-import { assertNever } from 'src/utils/assert-never';
 
 @Injectable()
 export class InvalidateAgendasUseCase {
@@ -25,7 +24,7 @@ export class InvalidateAgendasUseCase {
       case 'AgendaFileBlockEdited':
       case 'AgendaNominationFilesUpdated':
       case 'AgendaValidated':
-      case 'NominationFileOutcomeUpdated':
+      case 'NominationFilesOutcomeUpdated':
       case 'SessionDateUpdated':
         return;
 
@@ -34,7 +33,6 @@ export class InvalidateAgendasUseCase {
     }
   }
 
-  @Transactional()
   private async updateAgendasReporters(
     invalidation: Extract<DocInvalidation, { type: 'SessionAffectationVersionPublished' }>,
   ): Promise<void> {

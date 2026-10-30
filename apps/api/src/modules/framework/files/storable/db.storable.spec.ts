@@ -2,11 +2,11 @@
 import { Logger } from '@nestjs/common';
 import { mock, type MockProxy } from 'vitest-mock-extended';
 
-import { FileDelegate, FilePublicUrlDelegate } from 'src/generated/prisma/models';
-import { Clock } from 'src/modules/framework/clock';
-import { ApiConfig } from 'src/modules/framework/config';
-import { Db } from 'src/modules/framework/database';
-import { MONTHS } from 'src/utils/time';
+import { FileDelegate, FilePublicUrlDelegate } from '../../../../generated/prisma/models';
+import { MONTHS } from '../../../../utils/time';
+import { Clock } from '../../clock';
+import { ApiConfig } from '../../config';
+import { Db } from '../../database';
 
 import { DbStorage } from './db.storable';
 import { StorageResult } from './result.storable';

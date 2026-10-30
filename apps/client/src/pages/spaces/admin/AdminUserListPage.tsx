@@ -1,12 +1,14 @@
+import Button from '@codegouvfr/react-dsfr/Button';
 import { createColumnHelper, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import clsx from 'clsx';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
-import { generatePath } from 'react-router';
+import { generatePath, useNavigate } from 'react-router';
 
-import { AdminUserRole } from '@/features/administration/components/AdminUserRole';
-import { ROLE_OPTIONS, type AdminUserRoleEnum } from '@/features/administration/labels/admin-user-enum';
+import { AdminUserCreationModal } from '@/features/administration/components/AdminUserCreationModal';
 import { PinnedHeader } from '@/shared/components/pinned-header';
+import { UserStatusBadge } from '@/shared/components/user-status-badge';
+import { UserStatusEnum, UserStatusEnumMessages } from '@/shared/enums/user-status.enum';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import {
   DataTable,
@@ -17,16 +19,25 @@ import {
 } from '@/shared/ui/data-table';
 import { IconLink } from '@/shared/ui/icon-link';
 import { SearchInput } from '@/shared/ui/search-input';
+import { Tooltip } from '@/shared/ui/tooltip';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { capitalize } from '@/utils/string.utils';
+import { ValidationError } from '@/utils/validation-error';
 import type { PaginatedAdminUserListItemDto } from '@api/types';
-import { type AdminUsersSorting, useInfiniteAdminUsersQuery } from '@queries/administration.queries';
+import {
+  type AdminUserRoleEnum,
+  type AdminUsersSorting,
+  useAdminUserRolesQuery,
+  useCreateUserMutation,
+  useInfiniteAdminUsersQuery,
+} from '@queries/administration.queries';
 
 type AdminUserItem = PaginatedAdminUserListItemDto['items'][number];
 const h = createColumnHelper<AdminUserItem>();
 
 function useAdminUserColumns() {
   const { formatMessage } = useIntl();
+  const { data: roleGroups } = useAdminUserRolesQuery(undefined, { enabled: true });
 
   return useMemo(
     () => [
@@ -55,7 +66,29 @@ function useAdminUserColumns() {
       }),
 
       h.accessor('role', {
-        cell: ({ getValue, row }) => <AdminUserRole gender={row.original.gender} value={getValue()} />,
+        cell: ({ getValue, row }) => (
+          <span className="inline-flex items-center gap-1">
+            {getValue().label}
+            {row.original.isTechnical && (
+              <Tooltip focusable label={formatMessage({ defaultMessage: 'Développeur' })}>
+                <span
+                  aria-label={formatMessage({ defaultMessage: 'Développeur' })}
+                  className="fr-icon-macbook-line fr-icon--sm text-(--text-mention-grey)"
+                  role="img"
+                />
+              </Tooltip>
+            )}
+            {row.original.isAdmin && (
+              <Tooltip focusable label={formatMessage({ defaultMessage: 'Administrateur' })}>
+                <span
+                  aria-label={formatMessage({ defaultMessage: 'Administrateur' })}
+                  className="fr-icon-admin-line fr-icon--sm text-(--text-mention-grey)"
+                  role="img"
+                />
+              </Tooltip>
+            )}
+          </span>
+        ),
         enableSorting: false,
         header: formatMessage({ defaultMessage: 'Rôle' }),
         id: 'role',
@@ -64,15 +97,29 @@ function useAdminUserColumns() {
             filterId: 'role',
             label: formatMessage({ defaultMessage: 'Rôle' }),
             type: 'enum',
-            values: ROLE_OPTIONS.flatMap((group) =>
-              group.options.map(({ id, label }) => ({
-                id,
-                label: formatMessage(label, { gender: undefined }),
-              })),
-            ),
+            values: roleGroups?.flatMap((group) => group.roles) ?? [],
           },
         },
         size: 260,
+      }),
+
+      h.accessor('status', {
+        cell: ({ getValue }) => <UserStatusBadge status={getValue()} />,
+        enableSorting: false,
+        header: formatMessage({ defaultMessage: 'Compte' }),
+        id: 'status',
+        meta: {
+          filters: {
+            filterId: 'status',
+            label: formatMessage({ defaultMessage: 'Compte' }),
+            type: 'enum',
+            values: Object.values(UserStatusEnum).map((status) => ({
+              id: status,
+              label: formatMessage(UserStatusEnumMessages[status]),
+            })),
+          },
+        },
+        size: 140,
       }),
 
       h.display({
@@ -81,7 +128,7 @@ function useAdminUserColumns() {
         size: 80,
       }),
     ],
-    [formatMessage],
+    [formatMessage, roleGroups],
   );
 }
 
@@ -102,18 +149,63 @@ function EditButton(props: { user: AdminUserItem }) {
   );
 }
 
+function CreateUserButton() {
+  const navigate = useNavigate();
+  const createUser = useCreateUserMutation();
+  // the modal outlives the closing, for it to fade out with its content
+  const [creation, setCreation] = useState<{ open: boolean } | null>(null);
+
+  const close = () => {
+    setCreation((current) => current && { open: false });
+    createUser.reset();
+  };
+
+  return (
+    <>
+      <Button
+        className="btn-compact"
+        iconId="fr-icon-user-add-line"
+        onClick={() => setCreation({ open: true })}
+        priority="secondary"
+        size="small"
+      >
+        <FormattedMessage defaultMessage="Ajouter un utilisateur" />
+      </Button>
+      {creation ? (
+        <AdminUserCreationModal
+          emailError={ValidationError.messageOf(createUser.error)}
+          hasFailed={ValidationError.isOtherFailure(createUser.error)}
+          isSaving={createUser.isPending}
+          onClose={close}
+          onClosed={() => setCreation(null)}
+          onSave={(user) =>
+            createUser.mutate(user, {
+              onSuccess: ({ id }) => navigate(generatePath(ROUTE_PATHS.ADMIN.USER_DETAIL, { userId: id })),
+            })
+          }
+          open={creation.open}
+        />
+      ) : null}
+    </>
+  );
+}
+
 export function AdminUserListPage() {
   const { formatMessage } = useIntl();
   const { onColumnFiltersChange, onSortingChange, setTableState, tableState } = useDataTableUrlState({
-    columnFilters: [] as { id: 'role'; value: AdminUserRoleEnum[] }[],
+    columnFilters: [] as (
+      | { id: 'role'; value: AdminUserRoleEnum[] }
+      | { id: 'status'; value: AdminUserItem['status'][] }
+    )[],
     globalFilter: '',
     sorting: [] as AdminUsersSorting,
   });
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useInfiniteAdminUsersQuery({
     filters: {
-      roles: tableState.columnFilters.find(({ id }) => id === 'role')?.value,
+      roles: tableState.columnFilters.find((filter) => filter.id === 'role')?.value,
       search: tableState.globalFilter,
+      statuses: tableState.columnFilters.find((filter) => filter.id === 'status')?.value,
     },
     sorting: tableState.sorting,
   });
@@ -152,7 +244,7 @@ export function AdminUserListPage() {
       <Breadcrumb
         ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane pour l'Administration" })}
         breadcrumb={{
-          currentPageLabel: formatMessage({ defaultMessage: 'Utilisateurs' }),
+          currentPageLabel: formatMessage({ defaultMessage: 'Gérer les utilisateurs' }),
           segments: [{ label: formatMessage({ defaultMessage: 'Administration' }), to: {} }],
         }}
         id="administration-breadcrumb"
@@ -161,14 +253,13 @@ export function AdminUserListPage() {
       <PinnedHeader
         bar={(isPinned) => (
           <div className={clsx('flex flex-col gap-y-6', { 'fr-container': isPinned })}>
-            <h1 className="fr-h3 fr-mb-0">
-              <FormattedMessage defaultMessage="Utilisateurs" />
-              {data && (
-                <span className="fr-ml-2v text-sm font-normal text-(--text-mention-grey)">
-                  (<DataTableCount loaded={users.length} total={data.totalCount} />)
-                </span>
-              )}
-            </h1>
+            <div className="flex items-center justify-between gap-4">
+              <h1 className="fr-h3 fr-mb-0">
+                <FormattedMessage defaultMessage="Gérer les utilisateurs" />
+                {data && <DataTableCount loaded={users.length} total={data.totalCount} />}
+              </h1>
+              <CreateUserButton />
+            </div>
             <div className="flex items-center justify-between gap-4">
               <DataTableFilters table={table} />
               <SearchInput

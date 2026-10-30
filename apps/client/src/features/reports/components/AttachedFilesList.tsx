@@ -12,7 +12,7 @@ export function AttachedFilesList(props: {
   attachments: {
     addedAt: string;
     addedBy: { id: string; name: string } | null;
-    fileId: string;
+    id: string;
     name: string;
     size: number | null;
   }[];
@@ -81,7 +81,7 @@ export function AttachedFilesList(props: {
           addedAt={file.addedAt}
           addedBy={file.addedBy}
           disabled={isCreatingUrl || isDownloading}
-          key={file.fileId}
+          key={file.id}
           name={file.name}
           onDelete={props.isReadOnly ? undefined : () => onDelete(file.name)}
           onDownload={() => onDownload(file.name)}

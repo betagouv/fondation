@@ -9,6 +9,14 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
+import { Prisma } from '../../../../generated/prisma/client';
+import { assertNever } from '../../../../utils/assert-never';
+import { makeId } from '../../../../utils/id';
+import { fileIdsReferencedIn } from '../../../../utils/rich-text-html';
+import { Clock } from '../../../framework/clock';
+import { Db } from '../../../framework/database';
+import { Files } from '../../../framework/files/files';
+import { TransparenceService } from '../../../session/transparence/infrastructure/transparence.service';
 import {
   ObservantAuditionDropped,
   Observation,
@@ -22,13 +30,6 @@ import {
   ObservationMemberCommentWritten,
   ObservationUpdated,
 } from '../../domain/observation';
-import { Prisma } from 'src/generated/prisma/client';
-import { Clock } from 'src/modules/framework/clock';
-import { Db } from 'src/modules/framework/database';
-import { Files } from 'src/modules/framework/files/files';
-import { TransparenceService } from 'src/modules/session/transparence/infrastructure/transparence.service';
-import { assertNever } from 'src/utils/assert-never';
-import { makeId } from 'src/utils/id';
 
 @Injectable()
 export class ObservationRepository {
@@ -42,7 +43,11 @@ export class ObservationRepository {
     private readonly sessions: TransparenceService,
   ) {}
 
-  async findById(id: string): Promise<Observation> {
+  async findById(predicate: {
+    nominationFileId: string;
+    observationId: string;
+    sessionId: string;
+  }): Promise<Observation> {
     const result = await this.db.tx.observation.findUnique({
       select: {
         dateReception: true,
@@ -51,7 +56,11 @@ export class ObservationRepository {
         nominationFileId: true,
         sessionId: true,
       } satisfies Prisma.ObservationSelect,
-      where: { id },
+      where: {
+        id: predicate.observationId,
+        nominationFileId: predicate.nominationFileId,
+        sessionId: predicate.sessionId,
+      },
     });
 
     if (!result) throw new NotFoundException();
@@ -175,20 +184,20 @@ export class ObservationRepository {
   }
 
   private async persistObservationFilesDetached(message: ObservationFilesDetached) {
-    const observation = await this.db.tx.observationFile.findMany({
+    const detached = await this.db.tx.observationFile.findMany({
       select: { file: { select: { id: true, path: true } } } satisfies Prisma.ObservationFileSelect,
-      where: { fileId: { in: message.fileIds as string[] } },
+      where: { fileId: { in: [...message.fileIds] }, observationId: message.observationId },
     });
 
     await this.db.tx.observationFile.deleteMany({
-      where: { fileId: { in: observation.map(({ file }) => file.id) } },
+      where: { fileId: { in: detached.map(({ file }) => file.id) }, observationId: message.observationId },
     });
 
-    this.files.delete(observation.map(({ file }) => file));
+    this.files.delete(detached.map(({ file }) => file));
   }
 
   private async persistObservationMemberCommentWritten(message: ObservationMemberCommentWritten) {
-    return this.db.tx.observationMemberComment.upsert({
+    await this.db.tx.observationMemberComment.upsert({
       create: {
         comment: message.comment,
         observationId: message.observationId,
@@ -204,6 +213,21 @@ export class ObservationRepository {
           userId: message.userId,
         },
       },
+    });
+    await this.syncScreenshotsWith(message);
+  }
+
+  private async syncScreenshotsWith(message: { comment: string; observationId: string; userId: string }) {
+    const embedded = [...fileIdsReferencedIn(message.comment)];
+    const comment = { observationId: message.observationId, userId: message.userId };
+
+    await this.db.tx.observationMemberCommentScreenshot.updateMany({
+      data: { detachedAt: this.clock.now() },
+      where: { ...comment, detachedAt: null, fileId: { notIn: embedded } },
+    });
+    await this.db.tx.observationMemberCommentScreenshot.updateMany({
+      data: { detachedAt: null },
+      where: { ...comment, detachedAt: { not: null }, fileId: { in: embedded } },
     });
   }
 

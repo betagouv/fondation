@@ -10,6 +10,7 @@ import { NominationFilesTableProvider } from '@/features/nomination-files-table/
 import { frFormat } from '@/i18n/formats';
 import { FormationEnum } from '@/shared/enums/formation.enum';
 import { PrioriteEnum } from '@/shared/enums/priorite.enum';
+import { ToastProvider } from '@/shared/ui/toast';
 import { makeSessionNominationFile } from '@/test-utils/factories/session-nomination-file.factory';
 import { makeSessionOutcomes } from '@/test-utils/factories/session-outcomes.factory';
 import { getGdsReportPath, ROUTE_PATHS } from '@/utils/route-path.utils';
@@ -44,15 +45,21 @@ function renderHeader(options: {
     pagination: { pageIndex: 0, pageSize: 100 },
   };
   client.setQueryData(authKeys.introspectSession(), CURRENT_USER);
-  client.setQueryData(memberKeys.listMembers(memberListOptions), {
+  const members = {
     items: [
-      { ...CURRENT_USER, excludedJurisdictions: [] },
+      { ...CURRENT_USER, excludedJurisdictions: [], status: 'ACTIVE' },
       {
         ...OTHER_REPORTER,
         excludedJurisdictions: options.excludedJurisdictionsOfOtherReporter ?? [],
+        status: 'ACTIVE',
       },
     ],
-  });
+  };
+  client.setQueryData(memberKeys.listMembers(memberListOptions), members);
+  client.setQueryData(
+    memberKeys.listMembers({ ...memberListOptions, statuses: ['ACTIVE', 'DEACTIVATED'] }),
+    members,
+  );
   client.setQueryData(
     reportKeys.myReport({ nominationFileId: options.nominationFile.id }),
     options.myReportId ?? null,
@@ -66,14 +73,16 @@ function renderHeader(options: {
     >
       <IntlProvider defaultLocale="fr" formats={frFormat} locale="fr">
         <QueryClientProvider client={client}>
-          <NominationFilesTableProvider
-            canManage={options.canManage ?? true}
-            formation={FormationEnum.SIEGE}
-            outcomes={makeSessionOutcomes(FormationEnum.SIEGE)}
-            sessionId={SESSION_ID}
-          >
-            <Header nominationFile={options.nominationFile} sessionId={SESSION_ID} />
-          </NominationFilesTableProvider>
+          <ToastProvider>
+            <NominationFilesTableProvider
+              canManage={options.canManage ?? true}
+              formation={FormationEnum.SIEGE}
+              outcomes={makeSessionOutcomes(FormationEnum.SIEGE)}
+              sessionId={SESSION_ID}
+            >
+              <Header nominationFile={options.nominationFile} sessionId={SESSION_ID} />
+            </NominationFilesTableProvider>
+          </ToastProvider>
         </QueryClientProvider>
       </IntlProvider>
     </MemoryRouter>,
@@ -228,10 +237,11 @@ describe('Header edition', () => {
     expect(screen.queryByRole('button', { name: 'Valider' })).not.toBeInTheDocument();
   });
 
-  it('saves the current affectation when validating, then leaves edit mode', async () => {
-    const affectReporters = vi
-      .spyOn($api.sessions, 'affectReporters')
-      .mockResolvedValue({} as Awaited<ReturnType<typeof $api.sessions.affectReporters>>);
+  it('saves only the priorities when they alone changed, then leaves edit mode', async () => {
+    const affectReporters = vi.spyOn($api.sessions, 'affectReporters');
+    const updatePriorities = vi
+      .spyOn($api.sessions, 'updateNominationFilesPriorities')
+      .mockResolvedValue({} as Awaited<ReturnType<typeof $api.sessions.updateNominationFilesPriorities>>);
     const user = userEvent.setup();
     renderHeader({
       canManage: true,
@@ -243,26 +253,68 @@ describe('Header edition', () => {
     });
 
     await user.click(screen.getByRole('button', { name: 'Modifier' }));
+    await user.click(screen.getByRole('button', { name: 'Retirer Étoilé' }));
     await user.click(screen.getByRole('button', { name: 'Valider' }));
 
-    expect(affectReporters).toHaveBeenCalledTimes(1);
-    expect(affectReporters).toHaveBeenCalledWith(
+    expect(affectReporters).not.toHaveBeenCalled();
+    expect(updatePriorities).toHaveBeenCalledWith(
       expect.objectContaining({
-        body: {
-          items: [
-            {
-              nominationFileId: 'nomination-file',
-              priorities: [PrioriteEnum.ETOILE],
-              reporterIds: [OTHER_REPORTER.id],
-            },
-          ],
-        },
+        body: { items: [{ nominationFileId: 'nomination-file', priorities: [] }] },
         path: { sessionId: SESSION_ID },
       }),
     );
 
     expect(await screen.findByRole('button', { name: 'Modifier' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Valider' })).not.toBeInTheDocument();
+  });
+
+  it('saves only the reporters when they alone changed, then leaves edit mode', async () => {
+    const affectReporters = vi.spyOn($api.sessions, 'affectReporters').mockResolvedValue({} as never);
+    const updatePriorities = vi.spyOn($api.sessions, 'updateNominationFilesPriorities');
+    const user = userEvent.setup();
+    renderHeader({
+      canManage: true,
+      nominationFile: makeSessionNominationFile({
+        content: { lockedReason: null },
+        priorities: [PrioriteEnum.ETOILE],
+        reporters: [OTHER_REPORTER],
+      }),
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Modifier' }));
+    await user.click(screen.getByRole('button', { name: /Affecter un rapporteur/ }));
+    await user.click(await screen.findByRole('option', { name: /Marie LEFEVRE/ }));
+    await user.click(screen.getByRole('button', { name: 'Valider' }));
+
+    expect(updatePriorities).not.toHaveBeenCalled();
+    expect(affectReporters).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: { items: [{ nominationFileId: 'nomination-file', reporterIds: [] }] },
+        path: { sessionId: SESSION_ID },
+      }),
+    );
+
+    expect(await screen.findByRole('button', { name: 'Modifier' })).toBeInTheDocument();
+  });
+
+  it('tells the priorities were not saved and stays in edit mode', async () => {
+    vi.spyOn($api.sessions, 'updateNominationFilesPriorities').mockRejectedValue(new Error('Bad Gateway'));
+    const user = userEvent.setup();
+    renderHeader({
+      canManage: true,
+      nominationFile: makeSessionNominationFile({
+        content: { lockedReason: null },
+        priorities: [PrioriteEnum.ETOILE],
+        reporters: [OTHER_REPORTER],
+      }),
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Modifier' }));
+    await user.click(screen.getByRole('button', { name: 'Retirer Étoilé' }));
+    await user.click(screen.getByRole('button', { name: 'Valider' }));
+
+    expect(await screen.findByText("Les priorités n'ont pas été enregistrées")).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Valider' })).toBeInTheDocument();
   });
 });
 

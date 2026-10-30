@@ -2,21 +2,26 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { Prisma } from 'src/generated/prisma/client';
-import { Db } from 'src/modules/framework/database';
-import { Files } from 'src/modules/framework/files';
+import { Prisma } from '../../../../../generated/prisma/client';
+import { Db } from '../../../../framework/database';
+import { Files } from '../../../../framework/files';
+import type { RoleEnum } from '../../../../shared/role.enum';
+import { NominationSessionFinder } from '../finders/transparence-session.finder';
 
 @Injectable()
 export class DetailNominationSessionAttachmentQuery {
   constructor(
     private readonly db: Db,
     private readonly files: Files,
+    private readonly sessions: NominationSessionFinder,
   ) {}
 
   async handle(query: {
-    sessionId: string;
     fileId: string;
+    role: RoleEnum;
+    sessionId: string;
   }): Promise<DetailedNominationSessionAttachmentDto> {
+    await this.sessions.getVisible(query);
     const session = await this.db.tx.session.findUnique({
       where: { id: query.sessionId, deletedAt: null },
       select: {
