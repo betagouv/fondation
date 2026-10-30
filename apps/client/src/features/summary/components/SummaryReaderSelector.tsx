@@ -1,17 +1,16 @@
 import { Button } from '@codegouvfr/react-dsfr/Button';
 import { Checkbox } from '@codegouvfr/react-dsfr/Checkbox';
-import { SearchBar } from '@codegouvfr/react-dsfr/SearchBar';
 import clsx from 'clsx';
 import { useCallback, useMemo, useState, type ComponentProps } from 'react';
-import { FormattedMessage } from 'react-intl';
-import { useDebounce } from 'use-debounce';
+import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useSummary } from '@/features/summary/context/SummaryContext';
 import { Marked } from '@/shared/ui/Marked';
 import { Modal } from '@/shared/ui/modal';
+import { SearchInput } from '@/shared/ui/search-input';
 import { Tooltip } from '@/shared/ui/tooltip';
-import { capitalize } from '@/utils/string.utils';
-import { useSearchSummaryReadersQuery, useUpdateSummaryReadersMutation } from '@queries/summary.queries';
+import { capitalize, unaccent } from '@/utils/string.utils';
+import { useSummaryReadersQuery, useUpdateSummaryReadersMutation } from '@queries/summary.queries';
 
 export function SummaryReaderSelector(
   props: {
@@ -110,11 +109,6 @@ function SummaryReaderModal(props: { onClose: () => void; onClosed: () => void; 
   const { mutate: updateSummaryReaders, isPending: isUpdatingReaders } = useUpdateSummaryReadersMutation();
 
   const onConfirm = useCallback(() => {
-    if (!state.isDirty) {
-      props.onClose();
-      return;
-    }
-
     updateSummaryReaders(
       { sessionId, nominationFileId, readerIds: state.readers },
       { onSuccess: props.onClose },
@@ -129,12 +123,8 @@ function SummaryReaderModal(props: { onClose: () => void; onClosed: () => void; 
             <FormattedMessage defaultMessage="Annuler" />
           </Button>
 
-          <Button disabled={isUpdatingReaders} onClick={onConfirm}>
-            {state.isDirty ? (
-              <FormattedMessage defaultMessage="Partager" />
-            ) : (
-              <FormattedMessage defaultMessage="Ok" />
-            )}
+          <Button disabled={!state.isDirty || isUpdatingReaders} onClick={onConfirm}>
+            <FormattedMessage defaultMessage="Partager" />
           </Button>
         </>
       }
@@ -143,127 +133,92 @@ function SummaryReaderModal(props: { onClose: () => void; onClosed: () => void; 
       open={props.open}
       title={<FormattedMessage defaultMessage="Partager cette synthèse" />}
     >
-      <SummaryReaderAutocomplete onChange={onChange} readers={originalReaderIds} />
+      <SummaryReaderPicker onChange={onChange} readers={originalReaderIds} />
     </Modal>
   );
 }
 
-function SummaryReaderAutocomplete(props: { readers: string[]; onChange: (readers: string[]) => unknown }) {
-  const { sessionId, nominationFileId } = useSummary();
-
+function SummaryReaderPicker(props: { onChange: (readers: string[]) => void; readers: string[] }) {
+  const intl = useIntl();
+  const { nominationFileId, sessionId } = useSummary();
   const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useDebounce('', 600);
-  const [selectedReaderIds, setReaderIds] = useState(new Set<string>(props.readers));
+  const [selectedIds, setSelectedIds] = useState(() => new Set(props.readers));
+  const { data, isError, isLoading, refetch } = useSummaryReadersQuery({ nominationFileId, sessionId });
 
-  const [includeIds, setIncludeIds] = useState<string[] | undefined>(
-    selectedReaderIds.size ? [...selectedReaderIds] : undefined,
-  );
+  const matching = useMemo(() => {
+    const wanted = unaccent(search.trim()).toLowerCase();
+    return (data?.items ?? []).filter(({ firstName, lastName }) =>
+      unaccent(`${firstName} ${lastName}`).toLowerCase().includes(wanted),
+    );
+  }, [data, search]);
 
-  const toggleReader = useCallback(
-    (id: string) => {
-      let nextReaders: Set<string>;
-      if (selectedReaderIds.has(id)) {
-        selectedReaderIds.delete(id);
-        nextReaders = new Set(selectedReaderIds);
-      } else {
-        nextReaders = new Set(selectedReaderIds.add(id));
-      }
+  const toggle = (id: string) => {
+    const next = new Set(selectedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
 
-      setReaderIds(nextReaders);
-      props.onChange([...nextReaders]);
-    },
-    [selectedReaderIds, setReaderIds, props],
-  );
+    setSelectedIds(next);
+    props.onChange([...next]);
+  };
 
-  const {
-    data: readers,
-    isLoading,
-    isError,
-    refetch,
-  } = useSearchSummaryReadersQuery({
-    sessionId,
-    nominationFileId,
-    includeIds,
-    search: debouncedSearch,
-  });
+  if (isError) {
+    return (
+      <div className="flex flex-col items-start gap-2 text-(--text-default-error)">
+        <FormattedMessage defaultMessage="Impossible de charger la liste des lecteurs." />
+        <Button onClick={() => refetch()} priority="secondary" size="small">
+          <FormattedMessage defaultMessage="Réessayer" />
+        </Button>
+      </div>
+    );
+  }
 
-  const checkboxOptions = useMemo(
-    () =>
-      (readers?.items ?? []).map((x) => {
-        return {
-          value: x.id,
-          checked: selectedReaderIds.has(x.id),
-          label: (
-            <Marked
-              key={x.id}
-              search={search}
-              value={`${capitalize(x.firstName)} ${x.lastName.toUpperCase()}`}
-            />
-          ),
-        };
-      }),
-    [readers, selectedReaderIds, search],
-  );
+  if (isLoading) {
+    return (
+      <p className="text-(--text-mention-grey)">
+        <FormattedMessage defaultMessage="Chargement…" />
+      </p>
+    );
+  }
 
   return (
-    <div className="w-full">
-      <SearchBar
-        renderInput={(inputProps) => (
-          <input
-            {...inputProps}
-            aria-autocomplete="list"
-            aria-controls="summary_reader_list"
-            aria-expanded={true}
-            autoComplete="off"
-            className={`${inputProps.className} w-full`}
-            onChange={(e) => {
-              const value = e.currentTarget.value;
+    <>
+      <p className="fr-mb-6v">
+        <FormattedMessage defaultMessage="Les personnes cochées peuvent lire la synthèse et ses pièces jointes" />
+      </p>
 
-              setSearch(value);
-              setDebouncedSearch(value.trim());
-              setIncludeIds(value.trim() === '' ? [...selectedReaderIds] : undefined);
-            }}
-            role="combobox"
-            value={search}
-          />
-        )}
+      <SearchInput
+        className="fr-mb-4v"
+        onChange={setSearch}
+        onClear={() => setSearch('')}
+        placeholder={intl.formatMessage({ defaultMessage: 'Rechercher une personne' })}
+        value={search}
       />
-      <div className="fr-mt-1v text-sm">
-        {selectedReaderIds.size ? (
-          <FormattedMessage
-            defaultMessage="{count, plural, one {# lecteur sélectionné} other {# lecteurs sélectionnés}}"
-            values={{ count: selectedReaderIds.size }}
-          />
+
+      <p aria-live="polite" className="fr-mb-2v text-sm text-(--text-mention-grey)">
+        <FormattedMessage
+          defaultMessage="{count, plural, =0 {Aucun lecteur sélectionné} one {# lecteur sélectionné} other {# lecteurs sélectionnés}}"
+          values={{ count: selectedIds.size }}
+        />
+      </p>
+
+      <div className="fr-px-4v fr-pt-4v max-h-[45dvh] overflow-y-auto border border-(--border-default-grey)">
+        {matching.length === 0 ? (
+          <p className="fr-mb-0 fr-pb-4v text-sm text-(--text-mention-grey)">
+            <FormattedMessage defaultMessage="Aucune personne ne correspond à cette recherche" />
+          </p>
         ) : (
-          '\u00A0'
+          <Checkbox
+            classes={{ legend: 'fr-sr-only' }}
+            legend={<FormattedMessage defaultMessage="Lecteurs de la synthèse" />}
+            options={matching.map(({ displayedRole, firstName, id, lastName }) => ({
+              hintText: displayedRole.label,
+              label: <Marked search={search} value={`${capitalize(firstName)} ${lastName.toUpperCase()}`} />,
+              nativeInputProps: { checked: selectedIds.has(id), onChange: () => toggle(id), value: id },
+            }))}
+            small
+          />
         )}
       </div>
-
-      {isError ? (
-        <div className="fr-mt-4v flex flex-col items-start gap-2 text-sm text-(--text-default-error)">
-          <FormattedMessage defaultMessage="Impossible de charger la liste des lecteurs." />
-          <Button onClick={() => refetch()} priority="secondary" size="small">
-            <FormattedMessage defaultMessage="Réessayer" />
-          </Button>
-        </div>
-      ) : isLoading ? (
-        <div className="fr-mt-4v text-sm text-(--text-mention-grey)">
-          <FormattedMessage defaultMessage="Chargement…" />
-        </div>
-      ) : checkboxOptions.length === 0 ? (
-        <div className="fr-mt-4v text-sm text-(--text-mention-grey)">
-          <FormattedMessage defaultMessage="Aucun lecteur trouvé." />
-        </div>
-      ) : (
-        <Checkbox
-          className="fr-mt-4v fr-pb-24v max-h-60 overflow-auto"
-          id="summary_reader_list"
-          options={checkboxOptions.map(({ label, value, checked }) => ({
-            label,
-            nativeInputProps: { value, checked, role: 'option', onChange: () => toggleReader(value) },
-          }))}
-        />
-      )}
-    </div>
+    </>
   );
 }

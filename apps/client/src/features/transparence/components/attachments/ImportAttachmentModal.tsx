@@ -72,7 +72,6 @@ export function ImportAttachmentModal(props: { onClose: () => void; open: boolea
         hint={<FormattedMessage defaultMessage="Formats supportés : png, jpeg, pdf, doc et docx" />}
         isPending={isPending}
         key={attempt}
-        label={<FormattedMessage defaultMessage="Importer un fichier" />}
         multiple
         onChange={setFiles}
       />

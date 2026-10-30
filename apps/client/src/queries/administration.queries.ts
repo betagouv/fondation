@@ -211,6 +211,31 @@ function updateAdminRight(queryClient: QueryClient, userId: string, isAdmin: boo
   queryClient.invalidateQueries({ queryKey: docsKeys.members() });
 }
 
+export function useMarkTechnicalAccount(userId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => $api.administration.markTechnicalAccount({ path: { userId } }),
+    onSuccess: () => updateTechnicalAccount(queryClient, userId, true),
+  });
+}
+
+export function useUnmarkTechnicalAccount(userId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => $api.administration.unmarkTechnicalAccount({ path: { userId } }),
+    onSuccess: () => updateTechnicalAccount(queryClient, userId, false),
+  });
+}
+
+function updateTechnicalAccount(queryClient: QueryClient, userId: string, isTechnical: boolean) {
+  updateUser(queryClient, userId, { isTechnical });
+  queryClient.invalidateQueries({ queryKey: adminKeys.user(userId) });
+  queryClient.invalidateQueries({ queryKey: adminKeys.allUsers() });
+  queryClient.invalidateQueries({ queryKey: officialReportKeys.listSecretaries() });
+}
+
 export function useDeactivateUserMutation(userId: string) {
   const queryClient = useQueryClient();
 

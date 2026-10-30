@@ -1,4 +1,5 @@
 import { test } from '../fixtures.ts';
+import { strongPassword } from '../fixtures/auth.fixture.ts';
 import { makeFile } from '../utils/files.ts';
 import { isStored } from '../utils/screenshots.ts';
 import * as seed from '../utils/seed.ts';
@@ -191,6 +192,65 @@ test.describe('Summary E2E', () => {
     expect(unread.response?.status).toBe(404);
     const unreachable = await stranger.summaries.generateAttachmentPublicUrl({ path: { ...path, fileId } });
     expect(unreachable.response?.status).toBe(404);
+  });
+
+  test('should offer as readers the members of the formation and the secretariat but no technical account, the president and the secretary general first', async ({
+    admin,
+    agent,
+    developer,
+    expect,
+    registerUser,
+    sessions,
+  }) => {
+    const session = await sessions.createOne({
+      candidates: [
+        {
+          firstName: 'HONORINE',
+          lastName: 'VALROSE',
+          position: { function: seed.functions.PR, grade: 'G3', jurisdiction: seed.jurisdictions['CA  LYON'] },
+          targetPosition: { function: seed.functions.PR, grade: 'G3', jurisdiction: seed.jurisdictions['CA  REIMS'] },
+        },
+      ],
+      createdAt: '22/04/2026',
+    });
+    const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+    await agent.summaries.createSummary({ path, throwOnError: true });
+
+    const president = await registerUser('MEMBRE_DU_PARQUET');
+    await admin.administration.updateRole({
+      body: { role: 'PRESIDENT_PARQUET' },
+      path: { userId: president.id },
+      throwOnError: true,
+    });
+    const secretary = await registerUser('ADJOINT_SECRETAIRE_GENERAL');
+    await admin.administration.updateRole({
+      body: { role: 'FIRST_SECRETARY' },
+      path: { userId: secretary.id },
+      throwOnError: true,
+    });
+    const officer = await registerUser('ADJOINT_SECRETAIRE_GENERAL');
+    const otherFormation = await registerUser('MEMBRE_DU_SIEGE');
+    const { data: technical } = await developer.administration.createUser({
+      body: {
+        email: `technical+${crypto.randomUUID()}@example.fr`,
+        firstName: 'Camille',
+        gender: 'FEMALE',
+        isTechnical: true,
+        lastName: 'Support',
+        password: strongPassword(),
+        role: 'OFFICER',
+      },
+      throwOnError: true,
+    });
+
+    const { data } = await agent.summaries.listSummaryReaders({ path, throwOnError: true });
+
+    const ids = data.items.map(({ id }) => id);
+    expect(ids.slice(0, 2)).toEqual([president.id, secretary.id]);
+    expect(data.items[0]!.displayedRole.id).toBe('PRESIDENT_PARQUET');
+    expect(ids).toContain(officer.id);
+    expect(ids).not.toContain(otherFormation.id);
+    expect(ids).not.toContain(technical.id);
   });
 
   test('should keep a reader of a summary deactivated since', async ({

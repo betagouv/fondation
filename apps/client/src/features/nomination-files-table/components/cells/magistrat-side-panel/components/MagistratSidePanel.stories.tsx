@@ -24,7 +24,7 @@ import { ROUTE_PATHS, SIDE_PANEL_DOSSIER_PARAM } from '@/utils/route-path.utils'
 import type {
   CreateObservationResponseDto,
   DetailedSummaryDto,
-  FoundSummaryReadersDto,
+  ListedSummaryReadersDto,
   ListedNominationFileAttachmentDto,
   ListedObservationsAttachmentsDto,
   ListObservationsResponseDto,
@@ -295,12 +295,12 @@ const handlers = [
   http.put('*/api/sessions/v2/:sessionId/files/priorities', noContent),
 
   http.get('*/api/sessions/v2/:sessionId/files/:nominationFileId/summary/readers', () =>
-    HttpResponse.json<FoundSummaryReadersDto>({
+    HttpResponse.json<ListedSummaryReadersDto>({
       items: MEMBERS.map(({ firstName, id, lastName }) => ({
+        displayedRole: { id: 'MEMBRE_SIEGE' as const, label: 'Membre du siège' },
         firstName,
         id,
         lastName,
-        role: 'MEMBRE_DU_SIEGE' as const,
       })),
     }),
   ),

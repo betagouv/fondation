@@ -93,6 +93,42 @@ test.describe('Administration', () => {
     expect(changes).toEqual([{ changedBy: admin['@user']!.id, status: 'ACTIVE' }]);
   });
 
+  test('should record each change a developer makes to a technical account', async ({ developer, expect, sql }) => {
+    const email = `technical+${crypto.randomUUID()}@example.fr`;
+
+    const { data: created } = await developer.administration.createUser({
+      body: {
+        email,
+        firstName: 'Camille',
+        gender: 'FEMALE',
+        isTechnical: true,
+        lastName: 'Support',
+        password: strongPassword(),
+        role: 'OFFICER',
+      },
+      throwOnError: true,
+    });
+    const { data: listed } = await developer.administration.listUsers({ query: { search: email }, throwOnError: true });
+    expect(listed.items).toEqual([expect.objectContaining({ id: created.id, isTechnical: true })]);
+
+    const path = { userId: created.id };
+    await developer.administration.unmarkTechnicalAccount({ path, throwOnError: true });
+    await developer.administration.markTechnicalAccount({ path, throwOnError: true });
+
+    const { data: detailed } = await developer.administration.detailsUser({ path, throwOnError: true });
+    expect(detailed).toMatchObject({ canManageTechnicalAccount: true, isTechnical: true });
+    const changes = await sql`
+      select is_technical as "isTechnical", changed_by as "changedBy"
+      from identity_and_access_context.technical_account_changes
+      where user_id = ${created.id} order by changed_at`;
+    const by = developer['@user']!.id;
+    expect(changes).toEqual([
+      { changedBy: by, isTechnical: true },
+      { changedBy: by, isTechnical: false },
+      { changedBy: by, isTechnical: true },
+    ]);
+  });
+
   test('should refuse to give a user the email of another one, however it is typed', async ({
     admin,
     baseUrl,

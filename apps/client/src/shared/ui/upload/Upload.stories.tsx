@@ -11,7 +11,6 @@ const meta = {
   },
   args: {
     hint: 'Formats supportés : png, jpeg et pdf',
-    label: 'Importer un fichier',
     multiple: true,
     onChange: () => {},
   },

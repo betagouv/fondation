@@ -64,4 +64,30 @@ describe('Summary', () => {
       ).toThrow(UnknownReader);
     });
   });
+
+  describe('reading order', () => {
+    const readers = [
+      { firstName: 'Anne', lastName: 'Abel', title: null },
+      { firstName: 'Xavier', lastName: 'Serrier', title: 'FIRST_SECRETARY' },
+      { firstName: 'Rémy', lastName: 'Heitz', title: 'PRESIDENT_PARQUET' },
+      { firstName: 'Christophe', lastName: 'Soulard', title: 'PRESIDENT_SIEGE' },
+      { firstName: 'Éric', lastName: 'Émile', title: null },
+      { firstName: 'Pascal', lastName: 'Chauvin', title: 'DEPUTY_PRESIDENT_SIEGE' },
+    ] as const;
+
+    it('should put the president of the formation first, then the secretary general, then the others by name', () => {
+      expect(Summary.inReadingOrder(readers, 'SIEGE').map(({ lastName }) => lastName)).toEqual([
+        'Soulard',
+        'Serrier',
+        'Abel',
+        'Chauvin',
+        'Émile',
+        'Heitz',
+      ]);
+    });
+
+    it('should put the president of the parquet first on a summary of the parquet', () => {
+      expect(Summary.inReadingOrder(readers, 'PARQUET')[0]?.lastName).toBe('Heitz');
+    });
+  });
 });

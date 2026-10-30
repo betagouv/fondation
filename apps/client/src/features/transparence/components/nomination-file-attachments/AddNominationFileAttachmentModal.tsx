@@ -64,7 +64,6 @@ export function AddNominationFileAttachmentModal(props: {
         accept={SANITIZED_FILE_TYPES}
         hint={<FormattedMessage defaultMessage="Formats supportés : png, jpeg et pdf" />}
         isPending={isPending}
-        label={<FormattedMessage defaultMessage="Importer un fichier" />}
         multiple
         onChange={setFiles}
       />

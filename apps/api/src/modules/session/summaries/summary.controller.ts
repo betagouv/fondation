@@ -18,18 +18,17 @@ import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { FILE_EXTENSIONS, Multipart, UseMultipartBody } from '../../framework/files';
 import type { RoleEnum } from '../../shared/role.enum';
-import { AuthedUser, HasRole, SimpleAuthService } from '../../simple-auth';
+import { AuthedUser, HasRole } from '../../simple-auth';
 
 import { DetailedSummaryDto } from './infrastructure/queries/detail-summary.query';
 import { GeneratedSummaryAttachmentPublicUrlDto } from './infrastructure/queries/get-summary-attachment-url.query';
+import { ListedSummaryReadersDto } from './infrastructure/queries/list-summary-readers.query';
 import {
   AttachSummaryFilesDto,
   CreatedSummaryDto,
   DetachSummaryFilesQueryDto,
-  FoundSummaryReadersDto,
   IncludedFilesInSummaryContentDto,
   IncludeFilesInSummaryContentDto,
-  SearchSummaryReaderDto,
   UpdateSummaryReadersListDto,
   WriteSummaryContentDto,
 } from './infrastructure/summary.dto';
@@ -42,10 +41,7 @@ import { SummaryFilter } from './summary.filter';
 @UseInterceptors(SummaryFilter)
 @Controller('/api/sessions/v2/:sessionId/files/:nominationFileId/summary')
 export class SummaryController {
-  constructor(
-    private readonly summaries: SummaryService,
-    private readonly users: SimpleAuthService,
-  ) {}
+  constructor(private readonly summaries: SummaryService) {}
 
   @Post()
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
@@ -189,17 +185,12 @@ export class SummaryController {
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Get('/readers')
-  @ZodResponse({ status: HttpStatus.OK, type: FoundSummaryReadersDto })
-  @UsePipes(ZodValidationPipe)
-  searchSummaryReaders(
+  @ZodResponse({ status: HttpStatus.OK, type: ListedSummaryReadersDto })
+  listSummaryReaders(
     @AuthedUser() user: { id: string },
-    @Query() query: SearchSummaryReaderDto,
-  ): Promise<FoundSummaryReadersDto> {
-    return this.users.listUsers({
-      excludeIds: [user.id],
-      includeIds: query.includeIds,
-      limit: 20,
-      search: query.search,
-    });
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
+  ): Promise<ListedSummaryReadersDto> {
+    return this.summaries.listReaders({ nominationFileId, sessionId, userId: user.id });
   }
 }

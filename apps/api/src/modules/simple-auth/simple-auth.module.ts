@@ -10,7 +10,6 @@ import { DetailsUserFromSessionIdQuery } from './infrastructure/queries/details-
 import { DetailsUserQuery } from './infrastructure/queries/details-user.query';
 import { FindMachineQuery } from './infrastructure/queries/find-machine.query';
 import { ListOpenIdProvidersQuery } from './infrastructure/queries/list-openid-providers.query';
-import { ListUsersQuery } from './infrastructure/queries/list-users.query';
 import { AuthUserRepository } from './infrastructure/repositories/auth-user.repository';
 import { OpenIdModule, OpenIdProviderOptions } from './openid';
 import { OpenIdAuthService } from './openid-auth.service';
@@ -43,7 +42,6 @@ import { SimpleAuthService } from './simple-auth.service';
     DetailsUserQuery,
     FindMachineQuery,
     ListOpenIdProvidersQuery,
-    ListUsersQuery,
     OpenIdAuthenticationRequestFinder,
     OpenIdAuthService,
     PasswordHasher,

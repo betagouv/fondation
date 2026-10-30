@@ -22,6 +22,7 @@ const USERS = {
     gender: 'FEMALE',
     id: 'user-2',
     isAdmin: false,
+    isTechnical: false,
     lastName: 'Garnier',
     role: { group: 'MEMBER', id: 'MEMBRE_SIEGE', label: 'Membre du siège' },
   },
@@ -32,6 +33,7 @@ const USERS = {
     gender: 'MALE',
     id: 'user-3',
     isAdmin: true,
+    isTechnical: false,
     lastName: 'Dupont',
     role: { group: 'SECRETARIAT', id: 'SECRETARY', label: 'Secrétaire général adjoint' },
   },
@@ -43,6 +45,7 @@ const USERS = {
     | 'canDeactivate'
     | 'canHoldAdminRight'
     | 'canImpersonate'
+    | 'canManageTechnicalAccount'
     | 'canReactivate'
     | 'canResetPassword'
     | 'deactivatedAt'
@@ -131,6 +134,7 @@ const meta = {
           canDeactivate: args.status === 'ACTIVE',
           canHoldAdminRight: user.role.group === 'SECRETARIAT',
           canImpersonate: args.status === 'ACTIVE' && user.role.group !== 'SECRETARIAT',
+          canManageTechnicalAccount: false,
           canReactivate: args.status === 'DEACTIVATED',
           canResetPassword: args.status === 'ACTIVE',
           deactivatedAt: args.status === 'DEACTIVATED' ? '2026-10-21T12:32:00.000Z' : null,

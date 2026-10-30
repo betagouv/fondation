@@ -12,6 +12,7 @@ const RegisterUserKey = {
   firstName: 'firstName',
   gender: 'gender',
   isAdmin: 'isAdmin',
+  isTechnical: 'isTechnical',
   lastName: 'lastName',
   password: 'password',
   role: 'role',
@@ -22,6 +23,7 @@ type RegisterUserOptions = {
   [RegisterUserKey.firstName]: string;
   [RegisterUserKey.gender]: GenderEnum;
   [RegisterUserKey.isAdmin]?: boolean;
+  [RegisterUserKey.isTechnical]?: boolean;
   [RegisterUserKey.lastName]: string;
   [RegisterUserKey.password]: string;
   [RegisterUserKey.role]: RoleEnum;
@@ -95,6 +97,7 @@ export class RegisterUserCliCommand extends CommandRunner {
     await this.administration.registerUser({
       ...answers,
       isAdmin: options.isAdmin ?? false,
+      isTechnical: options.isTechnical ?? false,
       password: PasswordSchema.parse(answers.password),
     });
   }
@@ -105,6 +108,15 @@ export class RegisterUserCliCommand extends CommandRunner {
     name: RegisterUserKey.isAdmin,
   })
   parseIsAdmin(): boolean {
+    return true;
+  }
+
+  @Option({
+    description: 'keeps the account out of the lists of the CSM, to a member of the general secretariat only',
+    flags: '-t, --technical',
+    name: RegisterUserKey.isTechnical,
+  })
+  parseIsTechnical(): boolean {
     return true;
   }
 

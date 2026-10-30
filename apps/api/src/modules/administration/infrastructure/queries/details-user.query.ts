@@ -30,6 +30,7 @@ export class DetailsUserQuery {
         gender: true,
         id: true,
         isAdmin: true,
+        isTechnical: true,
         lastName: true,
         role: true,
         statusChanges: {
@@ -50,13 +51,24 @@ export class DetailsUserQuery {
     const role = AdminUserRole.from({ duty: user.duty, role: identityRole, title: user.title });
     const gender = prismaGenderEnumToGenderEnum(user.gender);
     const status = userStatusOf(user);
-    const admin = User.from({ id: user.id, isAdmin: user.isAdmin, role, status });
+    const admin = User.from({
+      id: user.id,
+      isAdmin: user.isAdmin,
+      isTechnical: user.isTechnical,
+      role,
+      status,
+    });
+    const actor = await this.db.tx.user.findUniqueOrThrow({
+      select: { isTechnical: true } satisfies Prisma.UserSelect,
+      where: { id: query.actorId },
+    });
 
     return {
       assignableRoles: admin.assignableRoles(),
       canDeactivate: admin.canDeactivate(query.actorId),
       canHoldAdminRight: admin.canHoldAdminRight(),
       canImpersonate: AuthUser.canBeImpersonated({ role: identityRole, status }),
+      canManageTechnicalAccount: admin.technicalAccountManageableBy(actor),
       canReactivate: admin.canReactivate(),
       canResetPassword: admin.canResetPassword(),
       deactivatedAt: user.deactivatedAt?.toISOString() ?? null,
@@ -66,6 +78,7 @@ export class DetailsUserQuery {
       gender,
       id: user.id,
       isAdmin: user.isAdmin,
+      isTechnical: user.isTechnical,
       lastName: user.lastName,
       role: servedAdminUserRole(role, gender),
       status,
@@ -88,10 +101,12 @@ export class DetailedAdminUserDto extends createZodDto(
     gender: z.enum(GenderEnum),
     displayTitle: z.string().nullable(),
     isAdmin: z.boolean(),
+    isTechnical: z.boolean(),
     status: z.enum(USER_STATUSES),
     canDeactivate: z.boolean(),
     canHoldAdminRight: z.boolean(),
     canImpersonate: z.boolean(),
+    canManageTechnicalAccount: z.boolean(),
     canReactivate: z.boolean(),
     canResetPassword: z.boolean(),
     assignableRoles: z.array(z.enum(ADMIN_USER_ROLES_ENUM)),

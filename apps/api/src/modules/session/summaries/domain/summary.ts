@@ -1,6 +1,13 @@
 import { Id, makeId } from '../../../../utils/id';
+import type { FormationEnum } from '../../../shared/formation.enum';
 import { canWriteSummary } from '../../../shared/policies/summary.policies';
 import type { RoleEnum } from '../../../shared/role.enum';
+import type { UserTitleEnum } from '../../../shared/user-title.enum';
+
+const PRESIDENT_OF = {
+  PARQUET: 'PRESIDENT_PARQUET',
+  SIEGE: 'PRESIDENT_SIEGE',
+} as const satisfies Record<FormationEnum, UserTitleEnum>;
 
 export class SummaryCreated {
   constructor(
@@ -80,6 +87,20 @@ export class Summary {
     summary.#messages.push(new SummaryCreated(props.sessionId, summary.id));
 
     return summary;
+  }
+
+  /** asked by the CSM on 2026-10-30, not to scroll for the two readers of nearly every summary */
+  static inReadingOrder<T extends { firstName: string; lastName: string; title: UserTitleEnum | null }>(
+    readers: readonly T[],
+    formation: FormationEnum,
+  ): T[] {
+    const rank = ({ title }: T) =>
+      title === PRESIDENT_OF[formation] ? 0 : title === 'FIRST_SECRETARY' ? 1 : 2;
+    const byName = (a: string, b: string) => a.localeCompare(b, 'fr', { sensitivity: 'base' });
+
+    return readers.toSorted(
+      (a, b) => rank(a) - rank(b) || byName(a.lastName, b.lastName) || byName(a.firstName, b.firstName),
+    );
   }
 
   attachFiles(command: { fileIds: readonly string[] }): void {

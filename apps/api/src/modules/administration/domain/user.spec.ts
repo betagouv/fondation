@@ -3,6 +3,8 @@ import { AdminUserTitle } from './admin-user-title';
 import {
   CantDeactivateOwnAccount,
   CantGiveAdminAMemberRole,
+  CantGiveTechnicalAccountThisRole,
+  CantManageTechnicalAccounts,
   CantPromoteMemberToAdmin,
   CantResetPasswordOfDeactivatedAccount,
   EmailAlreadyTaken,
@@ -15,6 +17,7 @@ import {
   UserReactivated,
   UserRegistered,
   UserRoleUpdated,
+  UserTechnicalAccountUpdated,
   UsersUntitled,
 } from './user';
 
@@ -22,6 +25,7 @@ describe('User', () => {
   const baseProps = {
     id: 'user-1',
     isAdmin: false,
+    isTechnical: false,
     role: AdminUserRole.from({
       duty: null,
       role: 'ADJOINT_SECRETAIRE_GENERAL',
@@ -37,10 +41,12 @@ describe('User', () => {
       gender: 'FEMALE',
       hashedPassword: 'hash',
       isAdmin: false,
+      isTechnical: false,
       lastName: 'Secrétariat',
       now: new Date('2026-10-20T09:00:00Z'),
-      registeredBy: 'admin-1',
+      registrar: User.from({ ...baseProps, id: 'admin-1', isAdmin: true }),
     } as const;
+    const developer = User.from({ ...baseProps, id: 'developer-1', isAdmin: true, isTechnical: true });
 
     it('should give a new officer their whole role, duty included', () => {
       const role = AdminUserRole.ofNewAccount('OFFICER');
@@ -54,6 +60,7 @@ describe('User', () => {
           firstName: 'agent',
           lastName: 'secrétariat',
           registeredAt: registration.now,
+          registeredBy: 'admin-1',
           role,
           userId: user.id,
         }),
@@ -91,8 +98,130 @@ describe('User', () => {
       ).toThrow(CantPromoteMemberToAdmin);
     });
 
+    it('should refuse to make a new member a technical account', () => {
+      expect(() =>
+        User.register({
+          ...registration,
+          isTechnical: true,
+          role: AdminUserRole.ofNewAccount('MEMBRE_COMMUN'),
+        }),
+      ).toThrow(CantGiveTechnicalAccountThisRole);
+    });
+
+    it('should let a developer register a technical account', () => {
+      const user = User.register({
+        ...registration,
+        isTechnical: true,
+        registrar: developer,
+        role: AdminUserRole.ofNewAccount('OFFICER'),
+      });
+
+      expect(user.messages).toContainEqual(
+        expect.objectContaining({ isTechnical: true, registeredBy: 'developer-1' }),
+      );
+    });
+
+    it('should let the CLI register the first technical account', () => {
+      const user = User.register({
+        ...registration,
+        isTechnical: true,
+        registrar: null,
+        role: AdminUserRole.ofNewAccount('OFFICER'),
+      });
+
+      expect(user.messages).toContainEqual(
+        expect.objectContaining({ isTechnical: true, registeredBy: null }),
+      );
+    });
+
+    it('should refuse a technical account to an admin who is no developer', () => {
+      expect(() =>
+        User.register({ ...registration, isTechnical: true, role: AdminUserRole.ofNewAccount('OFFICER') }),
+      ).toThrow(CantManageTechnicalAccounts);
+    });
+
+    it('should refuse a title to a new technical account', () => {
+      expect(() =>
+        User.register({
+          ...registration,
+          isTechnical: true,
+          registrar: developer,
+          role: AdminUserRole.ofNewAccount('FIRST_SECRETARY'),
+        }),
+      ).toThrow(CantGiveTechnicalAccountThisRole);
+    });
+
+    it('should keep a technical account in the untitled roles of the general secretariat', () => {
+      const user = User.from({ ...baseProps, isTechnical: true });
+
+      expect(user.assignableRoles()).toEqual(['SECRETARY', 'OFFICER']);
+      expect(() => user.updateRole('MEMBRE_SIEGE')).toThrow(CantGiveTechnicalAccountThisRole);
+      expect(() => user.updateRole('FIRST_SECRETARY')).toThrow(CantGiveTechnicalAccountThisRole);
+    });
+
     it('should refuse an email another account already has', () => {
       expect(() => User.assertEmailFree(true)).toThrow(EmailAlreadyTaken);
+    });
+  });
+
+  describe('technical account', () => {
+    const now = new Date('2026-10-30T09:00:00Z');
+    const developer = User.from({ ...baseProps, id: 'developer-1', isAdmin: true, isTechnical: true });
+
+    it('should let a developer mark an agent as a technical account', () => {
+      const user = User.from(baseProps);
+      user.updateTechnicalAccount({ actor: developer, isTechnical: true, now });
+
+      expect(user.messages).toEqual([new UserTechnicalAccountUpdated(user.id, true, now, 'developer-1')]);
+    });
+
+    it('should let a developer unmark a technical account', () => {
+      const user = User.from({ ...baseProps, isTechnical: true });
+      user.updateTechnicalAccount({ actor: developer, isTechnical: false, now });
+
+      expect(user.messages).toEqual([new UserTechnicalAccountUpdated(user.id, false, now, 'developer-1')]);
+    });
+
+    it('should leave a technical account as is when marked again', () => {
+      const user = User.from({ ...baseProps, isTechnical: true });
+      user.updateTechnicalAccount({ actor: developer, isTechnical: true, now });
+
+      expect(user.messages).toEqual([]);
+    });
+
+    it('should refuse to an admin who is no developer to mark an account', () => {
+      const user = User.from(baseProps);
+      const admin = User.from({ ...baseProps, id: 'admin-1', isAdmin: true });
+
+      expect(() => user.updateTechnicalAccount({ actor: admin, isTechnical: true, now })).toThrow(
+        CantManageTechnicalAccounts,
+      );
+    });
+
+    it('should refuse to mark the holder of a title as a technical account', () => {
+      const user = User.from({
+        ...baseProps,
+        role: AdminUserRole.from({
+          duty: 'SECRETARY',
+          role: 'ADJOINT_SECRETAIRE_GENERAL',
+          title: 'FIRST_SECRETARY',
+        }),
+      });
+
+      expect(() => user.updateTechnicalAccount({ actor: developer, isTechnical: true, now })).toThrow(
+        CantGiveTechnicalAccountThisRole,
+      );
+    });
+
+    it('should refuse to mark a member as a technical account', () => {
+      const user = User.from({
+        ...baseProps,
+        role: AdminUserRole.from({ duty: null, role: 'MEMBRE_COMMUN', title: null }),
+      });
+
+      expect(() => user.updateTechnicalAccount({ actor: developer, isTechnical: true, now })).toThrow(
+        CantGiveTechnicalAccountThisRole,
+      );
     });
   });
 

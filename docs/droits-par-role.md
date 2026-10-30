@@ -371,26 +371,30 @@ Dans les dossiers d'un magistrat, un Membre ne voit que l'affectation et les aud
 
 ### Administration
 
-| Action                            | Endpoint                                               | Membre | Secrétariat général | Administrateur |
-| --------------------------------- | ------------------------------------------------------ | ------ | ------------------- | -------------- |
-| Lister les utilisateurs           | `GET /administration/v1/users`                         | —      | —                   | ✓              |
-| Créer un compte                   | `POST /administration/v1/users`                        | —      | —                   | ✓              |
-| Voir un utilisateur               | `GET /administration/v1/users/:userId`                 | —      | —                   | ✓              |
-| Voir les rôles proposés           | `GET /administration/v1/roles`                         | —      | —                   | ✓              |
-| Voir les titulaires des fonctions | `GET /administration/v1/title-holders`                 | —      | —                   | ✓              |
-| Modifier l'e-mail                 | `PUT /administration/v1/users/:userId/email`           | —      | —                   | ✓              |
-| Modifier le nom ou le prénom      | `PUT /administration/v1/users/:userId/name`            | —      | —                   | ✓              |
-| Modifier le mot de passe          | `PUT /administration/v1/users/:userId/password`        | —      | —                   | ✓              |
-| Modifier le rôle                  | `PUT /administration/v1/users/:userId/role`            | —      | —                   | ✓              |
-| Modifier le titre affiché         | `PUT /administration/v1/users/:userId/display-title`   | —      | —                   | ✓              |
-| Donner le droit d'administrateur  | `PUT /administration/v1/users/:userId/promotion`       | —      | —                   | ✓              |
-| Retirer le droit d'administrateur | `DELETE /administration/v1/users/:userId/promotion`    | —      | —                   | ✓              |
-| Désactiver un compte              | `PUT /administration/v1/users/:userId/deactivation`    | —      | —                   | ✓              |
-| Réactiver un compte               | `DELETE /administration/v1/users/:userId/deactivation` | —      | —                   | ✓              |
-| Lister les traitements            | `GET /jobs/v1`                                         | —      | —                   | ✓              |
-| Voir un traitement                | `GET /jobs/v1/:jobId`                                  | —      | —                   | ✓              |
+| Action                            | Endpoint                                                    | Membre | Secrétariat général | Administrateur |
+| --------------------------------- | ----------------------------------------------------------- | ------ | ------------------- | -------------- |
+| Lister les utilisateurs           | `GET /administration/v1/users`                              | —      | —                   | ✓              |
+| Créer un compte                   | `POST /administration/v1/users`                             | —      | —                   | ✓              |
+| Voir un utilisateur               | `GET /administration/v1/users/:userId`                      | —      | —                   | ✓              |
+| Voir les rôles proposés           | `GET /administration/v1/roles`                              | —      | —                   | ✓              |
+| Voir les titulaires des fonctions | `GET /administration/v1/title-holders`                      | —      | —                   | ✓              |
+| Modifier l'e-mail                 | `PUT /administration/v1/users/:userId/email`                | —      | —                   | ✓              |
+| Modifier le nom ou le prénom      | `PUT /administration/v1/users/:userId/name`                 | —      | —                   | ✓              |
+| Modifier le mot de passe          | `PUT /administration/v1/users/:userId/password`             | —      | —                   | ✓              |
+| Modifier le rôle                  | `PUT /administration/v1/users/:userId/role`                 | —      | —                   | ✓              |
+| Modifier le titre affiché         | `PUT /administration/v1/users/:userId/display-title`        | —      | —                   | ✓              |
+| Donner le droit d'administrateur  | `PUT /administration/v1/users/:userId/promotion`            | —      | —                   | ✓              |
+| Retirer le droit d'administrateur | `DELETE /administration/v1/users/:userId/promotion`         | —      | —                   | ✓              |
+| Marquer un compte technique       | `PUT /administration/v1/users/:userId/technical-account`    | —      | —                   | ✓              |
+| Démarquer un compte technique     | `DELETE /administration/v1/users/:userId/technical-account` | —      | —                   | ✓              |
+| Désactiver un compte              | `PUT /administration/v1/users/:userId/deactivation`         | —      | —                   | ✓              |
+| Réactiver un compte               | `DELETE /administration/v1/users/:userId/deactivation`      | —      | —                   | ✓              |
+| Lister les traitements            | `GET /jobs/v1`                                              | —      | —                   | ✓              |
+| Voir un traitement                | `GET /jobs/v1/:jobId`                                       | —      | —                   | ✓              |
 
 Le droit d'administrateur ne se donne qu'à une personne du Secrétariat général.
+
+Seul un compte technique, celui d'un développeur de Fondation, marque ou démarque un compte technique. Un compte technique a un rôle du Secrétariat général et n'est proposé dans aucune liste du CSM.
 
 ## Accès sans utilisateur
 

@@ -69,6 +69,15 @@ function useAdminUserColumns() {
         cell: ({ getValue, row }) => (
           <span className="inline-flex items-center gap-1">
             {getValue().label}
+            {row.original.isTechnical && (
+              <Tooltip focusable label={formatMessage({ defaultMessage: 'Développeur' })}>
+                <span
+                  aria-label={formatMessage({ defaultMessage: 'Développeur' })}
+                  className="fr-icon-macbook-line fr-icon--sm text-(--text-mention-grey)"
+                  role="img"
+                />
+              </Tooltip>
+            )}
             {row.original.isAdmin && (
               <Tooltip focusable label={formatMessage({ defaultMessage: 'Administrateur' })}>
                 <span

@@ -46,6 +46,7 @@ export class AdministrationService {
     return this.listUsersQuery.handle(query);
   }
 
+  @Transactional()
   detailsUser(query: { actorId: string; userId: string }): Promise<DetailedAdminUserDto> {
     return this.detailsUserQuery.handle(query);
   }
@@ -63,6 +64,7 @@ export class AdministrationService {
     email: string;
     firstName: string;
     gender: GenderEnum;
+    isTechnical: boolean;
     lastName: string;
     password: string;
     role: AdminUserRoleEnum;
@@ -71,7 +73,7 @@ export class AdministrationService {
       ...command,
       hashedPassword: await this.auth.internalHashPassword(command.password),
       isAdmin: false,
-      registeredBy: command.actorId,
+      registrarId: command.actorId,
       role: AdminUserRole.ofNewAccount(command.role),
     });
   }
@@ -82,6 +84,7 @@ export class AdministrationService {
     firstName: string;
     gender: GenderEnum;
     isAdmin: boolean;
+    isTechnical: boolean;
     lastName: string;
     password: string;
     role: RoleEnum;
@@ -89,7 +92,7 @@ export class AdministrationService {
     return this.register({
       ...command,
       hashedPassword: await this.auth.internalHashPassword(command.password),
-      registeredBy: null,
+      registrarId: null,
       role: AdminUserRole.from({ duty: null, role: command.role, title: null }),
     });
   }
@@ -102,13 +105,15 @@ export class AdministrationService {
     gender: GenderEnum;
     hashedPassword: string;
     isAdmin: boolean;
+    isTechnical: boolean;
     lastName: string;
-    registeredBy: string | null;
+    registrarId: string | null;
     role: AdminUserRole;
   }): Promise<{ id: string }> {
     User.assertEmailFree(await this.userRepository.isEmailTaken(command.email));
 
-    const user = User.register({ ...command, now: this.clock.now() });
+    const registrar = command.registrarId ? await this.userRepository.findById(command.registrarId) : null;
+    const user = User.register({ ...command, now: this.clock.now(), registrar });
     await this.userRepository.persist(user);
     return { id: user.id };
   }
@@ -192,6 +197,18 @@ export class AdministrationService {
   async promoteToAdmin(command: { actorId: string; userId: string }): Promise<void> {
     const user = await this.userRepository.findById(command.userId);
     user.promoteAdmin({ actorId: command.actorId, now: this.clock.now() });
+    await this.userRepository.persist(user);
+  }
+
+  @Transactional()
+  async updateTechnicalAccount(command: {
+    actorId: string;
+    isTechnical: boolean;
+    userId: string;
+  }): Promise<void> {
+    const actor = await this.userRepository.findById(command.actorId);
+    const user = await this.userRepository.findById(command.userId);
+    user.updateTechnicalAccount({ actor, isTechnical: command.isTechnical, now: this.clock.now() });
     await this.userRepository.persist(user);
   }
 

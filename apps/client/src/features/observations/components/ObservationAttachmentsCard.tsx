@@ -103,7 +103,6 @@ export function ObservationAttachmentsCard(props: {
             clearOnChange
             hint={<FormattedMessage defaultMessage="Formats supportés : png, jpeg, pdf, doc et docx" />}
             isPending={isPending}
-            label={<FormattedMessage defaultMessage="Ajouter un fichier" />}
             multiple
             onChange={(added) => added.length > 0 && attach(added)}
           />

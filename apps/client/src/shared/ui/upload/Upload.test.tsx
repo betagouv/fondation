@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { IntlProvider } from 'react-intl';
 import { describe, expect, it, vi } from 'vitest';
@@ -18,13 +18,29 @@ function heavyFile(): File {
   return file;
 }
 
-function renderUpload(onChange: (files: File[]) => void, options: { clearOnChange?: boolean } = {}) {
+function renderUpload(
+  onChange: (files: File[]) => void,
+  options: { accept?: string; clearOnChange?: boolean; disabled?: boolean; multiple?: boolean } = {},
+) {
   render(
     <IntlProvider defaultLocale="fr" locale="fr">
-      <Upload clearOnChange={options.clearOnChange} label="Ajouter un fichier" multiple onChange={onChange} />
+      <Upload
+        accept={options.accept}
+        clearOnChange={options.clearOnChange}
+        disabled={options.disabled}
+        label="Ajouter un fichier"
+        multiple={options.multiple ?? true}
+        onChange={onChange}
+      />
     </IntlProvider>,
   );
-  return screen.getByLabelText(/Ajouter un fichier/);
+  return screen.getByLabelText<HTMLInputElement>(/Ajouter un fichier/);
+}
+
+function drop(input: HTMLInputElement, dropped: File[]) {
+  // jsdom only takes a real FileList, which it cannot build
+  Object.defineProperty(input, 'files', { configurable: true, value: null, writable: true });
+  fireEvent.drop(input.closest('div')!, { dataTransfer: { files: dropped } });
 }
 
 describe('Upload', () => {
@@ -76,5 +92,57 @@ describe('Upload', () => {
     await userEvent.upload(input, [heavyFile()]);
 
     expect(onChange).toHaveBeenLastCalledWith([]);
+  });
+
+  it('hands over the files dropped anywhere in the box', () => {
+    const onChange = vi.fn();
+    const input = renderUpload(onChange, { clearOnChange: true });
+
+    drop(input, files(2));
+
+    expect(onChange).toHaveBeenCalledWith(files(2));
+  });
+
+  it('refuses a dropped file the picker would not offer', () => {
+    const onChange = vi.fn();
+    const input = renderUpload(onChange, { accept: 'application/pdf,.docx', clearOnChange: true });
+
+    drop(input, [new File(['x'], 'script.exe', { type: 'application/x-msdownload' })]);
+
+    expect(onChange).not.toHaveBeenCalled();
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      `Le format du fichier "script.exe" n'est pas accepté.`,
+    );
+  });
+
+  it('refuses several dropped files where only one is expected', () => {
+    const onChange = vi.fn();
+    const input = renderUpload(onChange, { clearOnChange: true, multiple: false });
+
+    drop(input, files(2));
+
+    expect(onChange).not.toHaveBeenCalled();
+    expect(screen.getByRole('alert')).toHaveTextContent('Un seul fichier par envoi.');
+  });
+
+  it('tells attachments can be dropped, in the singular or the plural', () => {
+    render(
+      <IntlProvider defaultLocale="fr" locale="fr">
+        <Upload multiple onChange={vi.fn()} />
+        <Upload onChange={vi.fn()} />
+      </IntlProvider>,
+    );
+
+    expect(screen.getByLabelText('Ajouter ou glisser-déposer des fichiers')).toBeInTheDocument();
+    expect(screen.getByLabelText('Ajouter ou glisser-déposer un fichier')).toBeInTheDocument();
+  });
+
+  it('ignores a drop while disabled', () => {
+    const onChange = vi.fn();
+    const input = renderUpload(onChange, { disabled: true });
+
+    drop(input, files(1));
+
+    expect(onChange).not.toHaveBeenCalled();
   });
 });

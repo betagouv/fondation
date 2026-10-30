@@ -169,6 +169,26 @@ export class AdministrationController {
   }
 
   @HasRole('ADMIN')
+  @Put('/users/:userId/technical-account')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  markTechnicalAccount(
+    @AuthedUser() actor: { id: string },
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ): Promise<void> {
+    return this.administration.updateTechnicalAccount({ actorId: actor.id, isTechnical: true, userId });
+  }
+
+  @HasRole('ADMIN')
+  @Delete('/users/:userId/technical-account')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  unmarkTechnicalAccount(
+    @AuthedUser() actor: { id: string },
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ): Promise<void> {
+    return this.administration.updateTechnicalAccount({ actorId: actor.id, isTechnical: false, userId });
+  }
+
+  @HasRole('ADMIN')
   @Put('/users/:userId/deactivation')
   @HttpCode(HttpStatus.NO_CONTENT)
   deactivate(
