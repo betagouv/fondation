@@ -7,6 +7,7 @@ import type { DetailedUserResponseDto } from '@api/types';
 
 export type SessionUser = Pick<
   DetailedUserResponseDto,
+  | 'canManageTechnicalAccounts'
   | 'displayedRole'
   | 'email'
   | 'firstName'
@@ -30,6 +31,7 @@ export const sessionQueryOptions = queryOptions({
       .then(({ data }): SessionUser | null =>
         data
           ? {
+              canManageTechnicalAccounts: data.canManageTechnicalAccounts,
               civility: `${data.gender === 'FEMALE' ? 'Madame' : 'Monsieur'} ${data.lastName.toUpperCase()}`,
               displayedRole: data.displayedRole,
               email: data.email,

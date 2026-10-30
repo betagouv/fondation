@@ -26,8 +26,10 @@ import {
   useAdminUserRolesQuery,
   useDeactivateUserMutation,
   useDemoteUserFromAdmin,
+  useMarkTechnicalAccount,
   usePromoteUserToAdmin,
   useReactivateUserMutation,
+  useUnmarkTechnicalAccount,
   useUpdateUserDisplayTitleMutation,
   useUpdateUserEmailMutation,
   useUpdateUserNameMutation,
@@ -435,6 +437,37 @@ function AdminUserPromotionToggle(props: { user: DetailedAdminUserDto }) {
   );
 }
 
+function TechnicalAccountToggle(props: { user: DetailedAdminUserDto }) {
+  const { formatMessage } = useIntl();
+  const mark = useMarkTechnicalAccount(props.user.id);
+  const unmark = useUnmarkTechnicalAccount(props.user.id);
+  const description = formatMessage({
+    defaultMessage: "Compte d'un développeur de Fondation",
+  });
+
+  if (!props.user.canManageTechnicalAccount && !props.user.isTechnical) return null;
+
+  return (
+    <div className="fr-mt-6v">
+      <p className="fr-mb-3v font-bold">
+        <FormattedMessage defaultMessage="Compte technique" />
+      </p>
+      {props.user.canManageTechnicalAccount ? (
+        <ToggleSwitch
+          checked={props.user.isTechnical}
+          classes={{ label: 'fr-text--sm before:mr-1! text-(--text-default-grey)' }}
+          disabled={mark.isPending || unmark.isPending}
+          label={description}
+          onChange={(checked) => (checked ? mark : unmark).mutate()}
+          showCheckedHint={false}
+        />
+      ) : (
+        <p className="fr-text--sm fr-mb-0">{description}</p>
+      )}
+    </div>
+  );
+}
+
 function RoleField(props: { user: DetailedAdminUserDto }) {
   const intl = useIntl();
   const [isEditing, setEditing] = useState(false);
@@ -720,6 +753,7 @@ function AccessCard(props: { user: DetailedAdminUserDto }) {
         <AccountStatusHistory statusChanges={props.user.statusChanges} />
       </div>
       <AdminUserPromotionToggle user={props.user} />
+      <TechnicalAccountToggle user={props.user} />
     </DetailsCard>
   );
 }

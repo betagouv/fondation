@@ -60,6 +60,7 @@ export class ListSummaryReadersQuery {
         OR: [
           {
             deactivatedAt: null,
+            isTechnical: false,
             role: {
               in: [...formationToMemberRole(formation), 'ADJOINT_SECRETAIRE_GENERAL' as const].map(
                 roleEnumToPrismaRoleEnum,

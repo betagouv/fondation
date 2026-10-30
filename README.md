@@ -158,7 +158,11 @@ Rôles disponibles : `MEMBRE_DU_SIEGE`, `MEMBRE_DU_PARQUET`, `MEMBRE_COMMUN`,
 `ADJOINT_SECRETAIRE_GENERAL` (enum `PrismaRoleEnum` dans
 [apps/api/prisma/schemas/identity.prisma](./apps/api/prisma/schemas/identity.prisma)).
 Le droit administrateur s'ajoute au rôle `ADJOINT_SECRETAIRE_GENERAL` avec l'option `--admin`.
-Il est recommandé de créer un membre commun et un agent du secrétariat général administrateur.
+L'option `--technical` en fait le compte d'un développeur : il n'est proposé dans aucune liste du CSM
+et lui seul crée ou marque d'autres comptes techniques.
+
+Il est recommandé de créer ainsi son propre compte, avec `--role ADJOINT_SECRETAIRE_GENERAL --admin --technical`,
+puis les autres depuis l'écran d'administration de l'application.
 
 8. Accès à l'application : [http://localhost:5173](http://localhost:5173)
 

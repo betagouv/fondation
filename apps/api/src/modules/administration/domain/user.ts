@@ -7,7 +7,7 @@ import { UserTitleEnum } from '../../shared/user-title.enum';
 
 import { AdminUserRole } from './admin-user-role';
 import { AdminUserTitle } from './admin-user-title';
-import { adminUserRoleEnumToIdentityRoles } from './user-enum';
+import { adminUserRoleEnumToIdentityRoles, adminUserRoleEnumToTitle } from './user-enum';
 
 export class UserRegistered {
   readonly email: string;
@@ -15,6 +15,7 @@ export class UserRegistered {
   readonly gender: GenderEnum;
   readonly hashedPassword: string;
   readonly isAdmin: boolean;
+  readonly isTechnical: boolean;
   readonly lastName: string;
   readonly registeredAt: Date;
   readonly registeredBy: string | null;
@@ -27,6 +28,7 @@ export class UserRegistered {
     gender: GenderEnum;
     hashedPassword: string;
     isAdmin: boolean;
+    isTechnical: boolean;
     lastName: string;
     registeredAt: Date;
     registeredBy: string | null;
@@ -38,6 +40,7 @@ export class UserRegistered {
     this.gender = props.gender;
     this.hashedPassword = props.hashedPassword;
     this.isAdmin = props.isAdmin;
+    this.isTechnical = props.isTechnical;
     this.lastName = props.lastName;
     this.registeredAt = props.registeredAt;
     this.registeredBy = props.registeredBy;
@@ -106,6 +109,15 @@ export class UserDemotedFromAdmin {
   ) {}
 }
 
+export class UserTechnicalAccountUpdated {
+  constructor(
+    readonly userId: string,
+    readonly isTechnical: boolean,
+    readonly changedAt: Date,
+    readonly changedBy: string,
+  ) {}
+}
+
 export class UserDeactivated {
   constructor(
     readonly userId: string,
@@ -132,14 +144,24 @@ export type UserEvent =
   | UserDisplayTitleUpdated
   | UserPromotedToAdmin
   | UserDemotedFromAdmin
+  | UserTechnicalAccountUpdated
   | UserDeactivated
   | UserReactivated;
 
 export class CantPromoteMemberToAdmin extends Error {}
 export class CantGiveAdminAMemberRole extends Error {}
+export class CantGiveTechnicalAccountThisRole extends Error {}
+export class CantManageTechnicalAccounts extends Error {}
 export class CantDeactivateOwnAccount extends Error {}
 export class CantResetPasswordOfDeactivatedAccount extends Error {}
 export class EmailAlreadyTaken extends Error {}
+
+/** a title belongs to one person of the CSM, which a technical account would take from them */
+function suitsTechnicalAccount(role: AdminUserRoleEnum): boolean {
+  return (
+    adminUserRoleEnumToIdentityRoles(role).every(isSecretariat) && adminUserRoleEnumToTitle(role) === null
+  );
+}
 
 export class User {
   readonly #messages: UserEvent[] = [];
@@ -151,12 +173,19 @@ export class User {
   private constructor(
     readonly id: string,
     private readonly isAdmin: boolean,
+    private readonly isTechnical: boolean,
     private readonly role: AdminUserRole,
     private readonly status: UserStatus,
   ) {}
 
-  static from(props: { id: string; isAdmin: boolean; role: AdminUserRole; status: UserStatus }): User {
-    return new User(props.id, props.isAdmin, props.role, props.status);
+  static from(props: {
+    id: string;
+    isAdmin: boolean;
+    isTechnical: boolean;
+    role: AdminUserRole;
+    status: UserStatus;
+  }): User {
+    return new User(props.id, props.isAdmin, props.isTechnical, props.role, props.status);
   }
 
   /** a new account takes its whole role at once, the title of its role taken back from its holder */
@@ -166,13 +195,21 @@ export class User {
     gender: GenderEnum;
     hashedPassword: string;
     isAdmin: boolean;
+    isTechnical: boolean;
     lastName: string;
     now: Date;
-    registeredBy: string | null;
+    /** none from the CLI, run on the server by the developers, which registers the first technical account */
+    registrar: User | null;
     role: AdminUserRole;
   }): User {
-    const user = new User(makeId(), props.isAdmin, props.role, 'ACTIVE');
+    const user = new User(makeId(), props.isAdmin, props.isTechnical, props.role, 'ACTIVE');
     if (props.isAdmin && !user.canHoldAdminRight()) throw new CantPromoteMemberToAdmin();
+    if (props.isTechnical && !suitsTechnicalAccount(props.role.toString())) {
+      throw new CantGiveTechnicalAccountThisRole();
+    }
+    if (props.isTechnical && props.registrar && !props.registrar.canManageTechnicalAccounts()) {
+      throw new CantManageTechnicalAccounts();
+    }
 
     const target = AdminUserTitle.from(props.role.toString());
     if (target.title) user.#messages.push(new UsersUntitled(user.id, target.title, target.unTitle()));
@@ -184,6 +221,7 @@ export class User {
         firstName: props.firstName.toLowerCase(),
         lastName: props.lastName.toLowerCase(),
         registeredAt: props.now,
+        registeredBy: props.registrar?.id ?? null,
         userId: user.id,
       }),
       new UserRoleUpdated(user.id, props.role),
@@ -213,7 +251,25 @@ export class User {
     return isSecretariat(this.role.role);
   }
 
+  /** only a developer marks the accounts of the developers, for no agent of the CSM to drop out of its lists by mistake */
+  static canManageTechnicalAccounts(actor: { isTechnical: boolean }): boolean {
+    return actor.isTechnical;
+  }
+
+  canManageTechnicalAccounts(): boolean {
+    return User.canManageTechnicalAccounts({ isTechnical: this.isTechnical });
+  }
+
+  technicalAccountManageableBy(actor: { isTechnical: boolean }): boolean {
+    return (
+      User.canManageTechnicalAccounts(actor) &&
+      (this.isTechnical || suitsTechnicalAccount(this.role.toString()))
+    );
+  }
+
+  /** a technical account, kept out of the lists of the CSM, holds a secretariat role for its rights only */
   assignableRoles(): AdminUserRoleEnum[] {
+    if (this.isTechnical) return ADMIN_USER_ROLES_ENUM.filter(suitsTechnicalAccount);
     if (!this.isAdmin) return [...ADMIN_USER_ROLES_ENUM];
 
     return ADMIN_USER_ROLES_ENUM.filter((role) =>
@@ -238,7 +294,9 @@ export class User {
   }
 
   updateRole(nextRole: AdminUserRoleEnum): void {
-    if (!this.assignableRoles().includes(nextRole)) throw new CantGiveAdminAMemberRole();
+    if (!this.assignableRoles().includes(nextRole)) {
+      throw this.isTechnical ? new CantGiveTechnicalAccountThisRole() : new CantGiveAdminAMemberRole();
+    }
 
     const target = AdminUserTitle.from(nextRole);
 
@@ -269,6 +327,18 @@ export class User {
     if (!this.isAdmin) return;
 
     this.#messages.push(new UserDemotedFromAdmin(this.id, command.now, command.actorId));
+  }
+
+  updateTechnicalAccount(command: { actor: User; isTechnical: boolean; now: Date }): void {
+    if (!command.actor.canManageTechnicalAccounts()) throw new CantManageTechnicalAccounts();
+    if (command.isTechnical === this.isTechnical) return;
+    if (command.isTechnical && !suitsTechnicalAccount(this.role.toString())) {
+      throw new CantGiveTechnicalAccountThisRole();
+    }
+
+    this.#messages.push(
+      new UserTechnicalAccountUpdated(this.id, command.isTechnical, command.now, command.actor.id),
+    );
   }
 
   deactivate(command: { actorId: string; now: Date }): void {

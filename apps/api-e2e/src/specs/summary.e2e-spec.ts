@@ -1,4 +1,5 @@
 import { test } from '../fixtures.ts';
+import { strongPassword } from '../fixtures/auth.fixture.ts';
 import { makeFile } from '../utils/files.ts';
 import { isStored } from '../utils/screenshots.ts';
 import * as seed from '../utils/seed.ts';
@@ -193,9 +194,10 @@ test.describe('Summary E2E', () => {
     expect(unreachable.response?.status).toBe(404);
   });
 
-  test('should offer as readers the members of the formation and the secretariat, the president and the secretary general first', async ({
+  test('should offer as readers the members of the formation and the secretariat but no technical account, the president and the secretary general first', async ({
     admin,
     agent,
+    developer,
     expect,
     registerUser,
     sessions,
@@ -228,6 +230,18 @@ test.describe('Summary E2E', () => {
     });
     const officer = await registerUser('ADJOINT_SECRETAIRE_GENERAL');
     const otherFormation = await registerUser('MEMBRE_DU_SIEGE');
+    const { data: technical } = await developer.administration.createUser({
+      body: {
+        email: `technical+${crypto.randomUUID()}@example.fr`,
+        firstName: 'Camille',
+        gender: 'FEMALE',
+        isTechnical: true,
+        lastName: 'Support',
+        password: strongPassword(),
+        role: 'OFFICER',
+      },
+      throwOnError: true,
+    });
 
     const { data } = await agent.summaries.listSummaryReaders({ path, throwOnError: true });
 
@@ -236,6 +250,7 @@ test.describe('Summary E2E', () => {
     expect(data.items[0]!.displayedRole.id).toBe('PRESIDENT_PARQUET');
     expect(ids).toContain(officer.id);
     expect(ids).not.toContain(otherFormation.id);
+    expect(ids).not.toContain(technical.id);
   });
 
   test('should keep a reader of a summary deactivated since', async ({

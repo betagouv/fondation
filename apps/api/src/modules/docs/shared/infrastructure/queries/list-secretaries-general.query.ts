@@ -25,7 +25,7 @@ export class ListSecretariesGeneralQuery {
         lastName: true,
         title: true,
       } satisfies Prisma.UserSelect,
-      where: { deactivatedAt: null, duty: 'SECRETARY' },
+      where: { deactivatedAt: null, duty: 'SECRETARY', isTechnical: false },
     });
 
     return {

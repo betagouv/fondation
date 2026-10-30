@@ -21,6 +21,7 @@ import {
   UserReactivated,
   UserRegistered,
   UserRoleUpdated,
+  UserTechnicalAccountUpdated,
   UsersUntitled,
 } from '../../domain/user';
 
@@ -39,6 +40,7 @@ export class UserRepository {
         duty: true,
         id: true,
         isAdmin: true,
+        isTechnical: true,
         role: true,
         title: true,
       } satisfies Prisma.UserSelect,
@@ -49,6 +51,7 @@ export class UserRepository {
     return User.from({
       id: user.id,
       isAdmin: user.isAdmin,
+      isTechnical: user.isTechnical,
       role: AdminUserRole.from({
         duty: user.duty,
         role: prismaRoleEnumToRoleEnum(user.role),
@@ -83,6 +86,7 @@ export class UserRepository {
         duty: true,
         id: true,
         isAdmin: true,
+        isTechnical: true,
         lastName: true,
         role: true,
         title: true,
@@ -96,6 +100,7 @@ export class UserRepository {
         User.from({
           id: user.id,
           isAdmin: user.isAdmin,
+          isTechnical: user.isTechnical,
           role: AdminUserRole.from({
             duty: user.duty,
             role: prismaRoleEnumToRoleEnum(user.role),
@@ -128,6 +133,8 @@ export class UserRepository {
       else if (message instanceof UsersUntitled) await this.persistUsersUntitled(message);
       else if (message instanceof UserPromotedToAdmin) await this.persistUserPromotedToAdmin(message);
       else if (message instanceof UserDemotedFromAdmin) await this.persistUserDemotedFromAdmin(message);
+      else if (message instanceof UserTechnicalAccountUpdated)
+        await this.persistTechnicalAccountUpdated(message);
       else if (message instanceof UserDeactivated) await this.persistUserDeactivated(message);
       else if (message instanceof UserReactivated) await this.persistUserReactivated(message);
       else assertNever(message);
@@ -145,6 +152,7 @@ export class UserRepository {
           gender: message.gender,
           id: message.userId,
           isAdmin: message.isAdmin,
+          isTechnical: message.isTechnical,
           lastName: message.lastName,
           password: message.hashedPassword,
           role: roleEnumToPrismaRoleEnum(message.role.role),
@@ -162,6 +170,16 @@ export class UserRepository {
         userId: message.userId,
       },
     });
+    if (message.isTechnical) {
+      await this.db.tx.technicalAccountChange.create({
+        data: {
+          changedAt: message.registeredAt,
+          changedBy: message.registeredBy,
+          isTechnical: true,
+          userId: message.userId,
+        },
+      });
+    }
     if (!message.isAdmin) return;
 
     await this.db.tx.adminRightChange.create({
@@ -239,6 +257,23 @@ export class UserRepository {
         change: 'GRANTED',
         changedAt: message.promotedAt,
         changedBy: message.promotedBy,
+        userId: message.userId,
+      },
+    });
+  }
+
+  private async persistTechnicalAccountUpdated(message: UserTechnicalAccountUpdated) {
+    const { count } = await this.db.tx.user.updateMany({
+      data: { isTechnical: message.isTechnical },
+      where: { id: message.userId, isTechnical: !message.isTechnical },
+    });
+    if (count === 0) return;
+
+    await this.db.tx.technicalAccountChange.create({
+      data: {
+        changedAt: message.changedAt,
+        changedBy: message.changedBy,
+        isTechnical: message.isTechnical,
         userId: message.userId,
       },
     });

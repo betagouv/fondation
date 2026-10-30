@@ -30,6 +30,7 @@ export type DetailedUserResponseDto = {
     passwordChange: 'ALLOWED' | 'IMPERSONATED';
     isAdmin: boolean;
     displayTitle: string | null;
+    canManageTechnicalAccounts: boolean;
     duty: 'PRESIDENT' | 'DEPUTY_PRESIDENT' | 'SECRETARY' | 'OFFICER' | null;
     title: 'PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_PARQUET' | 'FIRST_SECRETARY' | null;
 };
@@ -2360,6 +2361,7 @@ export type PaginatedAdminUserListItemDto = {
             group: 'PRESIDENCY' | 'MEMBER' | 'SECRETARIAT';
         };
         isAdmin: boolean;
+        isTechnical: boolean;
         status: 'ACTIVE' | 'DEACTIVATED';
     }>;
     totalCount: number;
@@ -2376,6 +2378,7 @@ export type CreateUserDto = {
     email: string;
     firstName: string;
     gender: 'MALE' | 'FEMALE';
+    isTechnical?: boolean;
     lastName: string;
     password: string;
     role: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN';
@@ -2398,10 +2401,12 @@ export type DetailedAdminUserDto = {
     gender: 'MALE' | 'FEMALE';
     displayTitle: string | null;
     isAdmin: boolean;
+    isTechnical: boolean;
     status: 'ACTIVE' | 'DEACTIVATED';
     canDeactivate: boolean;
     canHoldAdminRight: boolean;
     canImpersonate: boolean;
+    canManageTechnicalAccount: boolean;
     canReactivate: boolean;
     canResetPassword: boolean;
     assignableRoles: Array<'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN'>;
@@ -2470,6 +2475,7 @@ export type RegisterUserDto = {
     firstName: string;
     gender: 'MALE' | 'FEMALE';
     isAdmin?: boolean;
+    isTechnical?: boolean;
     lastName: string;
     password: string;
     role?: 'MEMBRE_DU_SIEGE' | 'MEMBRE_DU_PARQUET' | 'MEMBRE_COMMUN' | 'ADJOINT_SECRETAIRE_GENERAL' | null;
@@ -5283,6 +5289,36 @@ export type PromoteToAdminResponses = {
 };
 
 export type PromoteToAdminResponse = PromoteToAdminResponses[keyof PromoteToAdminResponses];
+
+export type UnmarkTechnicalAccountData = {
+    body?: never;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/administration/v1/users/{userId}/technical-account';
+};
+
+export type UnmarkTechnicalAccountResponses = {
+    204: void;
+};
+
+export type UnmarkTechnicalAccountResponse = UnmarkTechnicalAccountResponses[keyof UnmarkTechnicalAccountResponses];
+
+export type MarkTechnicalAccountData = {
+    body?: never;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/administration/v1/users/{userId}/technical-account';
+};
+
+export type MarkTechnicalAccountResponses = {
+    204: void;
+};
+
+export type MarkTechnicalAccountResponse = MarkTechnicalAccountResponses[keyof MarkTechnicalAccountResponses];
 
 export type ReactivateData = {
     body?: never;

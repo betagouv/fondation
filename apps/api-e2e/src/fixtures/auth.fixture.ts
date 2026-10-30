@@ -8,8 +8,8 @@ import { RegisteredUserDto, type RegisterUserDto } from '../generated/api/types.
 import { makeStepsFixtures, TestSteps } from '../steps.ts';
 import { registrationToken } from '../utils/e2e-tokens.ts';
 
-/** ADMIN stands for a member of the general secretariat who holds the admin right */
-export type RoleEnum = NonNullable<RegisterUserDto['role']> | 'ADMIN';
+/** ADMIN stands for a member of the general secretariat who holds the admin right, DEVELOPER for its technical account */
+export type RoleEnum = NonNullable<RegisterUserDto['role']> | 'ADMIN' | 'DEVELOPER';
 
 export type AuthUser = {
   id: string;
@@ -31,10 +31,12 @@ export async function registerUser<Role extends RoleEnum>(options: {
   const inputUser = (typeof options.user === 'string' ? { role: options.user } : options.user) as Partial<
     Omit<RegisterUserDto, 'role'>
   > & { role: RoleEnum };
-  const isAdmin = inputUser.role === 'ADMIN';
+  const isTechnical = inputUser.role === 'DEVELOPER';
+  const isAdmin = isTechnical || inputUser.role === 'ADMIN';
   const user = {
     isAdmin,
-    role: isAdmin ? 'ADJOINT_SECRETAIRE_GENERAL' : (inputUser.role as Exclude<RoleEnum, 'ADMIN'>),
+    isTechnical,
+    role: isAdmin ? 'ADJOINT_SECRETAIRE_GENERAL' : (inputUser.role as Exclude<RoleEnum, 'ADMIN' | 'DEVELOPER'>),
     // faker emails collide over a whole run, while the address must be unique
     email: inputUser.email ?? faker.internet.email().replace('@', `+${crypto.randomUUID()}@`),
     firstName: inputUser.firstName ?? faker.person.firstName(),

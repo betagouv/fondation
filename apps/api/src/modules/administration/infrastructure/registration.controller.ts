@@ -24,6 +24,7 @@ export class RegistrationController {
     return this.administration.registerUser({
       ...body,
       isAdmin: body.isAdmin ?? false,
+      isTechnical: body.isTechnical ?? false,
       role: body.role ?? 'MEMBRE_COMMUN',
     });
   }

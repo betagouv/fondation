@@ -79,6 +79,7 @@ export class ListUsersQuery {
         gender: true,
         id: true,
         isAdmin: true,
+        isTechnical: true,
         lastName: true,
         role: true,
         title: true,
@@ -115,6 +116,7 @@ export class PaginatedAdminUserListItemDto extends createPaginatedZodDto(
     email: z.string(),
     role: ServedAdminUserRoleSchema,
     isAdmin: z.boolean(),
+    isTechnical: z.boolean(),
     status: z.enum(USER_STATUSES),
   }),
 ) {}

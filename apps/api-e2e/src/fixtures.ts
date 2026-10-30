@@ -20,6 +20,7 @@ export const test = base
   })
   .extend('logIn', ({ baseUrl }) => makeLoggedInUserFixture(baseUrl))
   .extend('admin', ({ logIn }): Promise<TestStepsAdmin> => logIn('ADMIN'))
+  .extend('developer', ({ logIn }): Promise<TestStepsAdmin> => logIn('DEVELOPER'))
   .extend('member', async ({ logIn }): Promise<TestStepsMember> => logIn('MEMBRE_COMMUN'))
   .extend('agent', async ({ logIn }): Promise<TestStepsAgent> => logIn('ADJOINT_SECRETAIRE_GENERAL'))
 

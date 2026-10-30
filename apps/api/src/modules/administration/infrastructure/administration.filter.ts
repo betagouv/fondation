@@ -11,6 +11,8 @@ import { catchError, Observable, throwError } from 'rxjs';
 import {
   CantDeactivateOwnAccount,
   CantGiveAdminAMemberRole,
+  CantGiveTechnicalAccountThisRole,
+  CantManageTechnicalAccounts,
   CantPromoteMemberToAdmin,
   CantResetPasswordOfDeactivatedAccount,
   EmailAlreadyTaken,
@@ -25,6 +27,18 @@ export class AdministrationErrorMapper implements NestInterceptor {
           if (error instanceof CantPromoteMemberToAdmin) {
             throw new BadRequestException({
               validationError: `Impossible de transformer un membre en administrateur`,
+            });
+          }
+
+          if (error instanceof CantGiveTechnicalAccountThisRole) {
+            return new BadRequestException({
+              validationError: `Un compte technique a un rôle du secrétariat général sans titre`,
+            });
+          }
+
+          if (error instanceof CantManageTechnicalAccounts) {
+            return new BadRequestException({
+              validationError: `Seul un compte technique gère les comptes techniques`,
             });
           }
 

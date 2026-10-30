@@ -1,4 +1,5 @@
 import Button from '@codegouvfr/react-dsfr/Button';
+import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
 import Input from '@codegouvfr/react-dsfr/Input';
 import RadioButtons from '@codegouvfr/react-dsfr/RadioButtons';
 import Select from '@codegouvfr/react-dsfr/Select';
@@ -11,16 +12,17 @@ import { RequiredLabel } from '@/shared/ui/required-label';
 import { generatePassword } from '@/utils/password.utils';
 import type { CreateUserDto } from '@api/types';
 import { type AdminUserRoleEnum, useAdminUserRolesQuery } from '@queries/administration.queries';
+import { useUser } from '@queries/auth.queries';
 
 import { GeneratedPasswordInput } from './GeneratedPasswordInput';
 
 const NON_BLANK = '.*\\S.*';
 
 function toCompleteUser(user: Partial<CreateUserDto> & { password: string }): CreateUserDto | null {
-  const { email, firstName, gender, lastName, password, role } = user;
+  const { email, firstName, gender, isTechnical, lastName, password, role } = user;
   if (!email?.trim() || !firstName?.trim() || !gender || !lastName?.trim() || !role) return null;
 
-  return { email, firstName, gender, lastName, password, role };
+  return { email, firstName, gender, isTechnical, lastName, password, role };
 }
 
 export function AdminUserCreationModal(props: {
@@ -33,6 +35,7 @@ export function AdminUserCreationModal(props: {
   open: boolean;
 }) {
   const { formatMessage } = useIntl();
+  const { user: currentUser } = useUser();
   const [user, setUser] = useState<Partial<CreateUserDto> & { password: string }>(() => ({
     password: generatePassword(),
   }));
@@ -177,6 +180,24 @@ export function AdminUserCreationModal(props: {
           onChange={(password) => setUser((current) => ({ ...current, password }))}
           password={user.password}
         />
+        {currentUser?.canManageTechnicalAccounts && (
+          <Checkbox
+            className="fr-mt-6v"
+            options={[
+              {
+                hintText: formatMessage({
+                  defaultMessage: 'Pour un développeur de Fondation',
+                }),
+                label: formatMessage({ defaultMessage: 'Compte technique' }),
+                nativeInputProps: {
+                  checked: user.isTechnical ?? false,
+                  onChange: (event) =>
+                    setUser((current) => ({ ...current, isTechnical: event.target.checked })),
+                },
+              },
+            ]}
+          />
+        )}
       </form>
     </Modal>
   );

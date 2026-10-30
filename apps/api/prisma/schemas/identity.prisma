@@ -39,6 +39,7 @@ model User {
 
   deactivatedAt DateTime? @map("deactivated_at") @db.Timestamp(6)
   isAdmin       Boolean   @default(false) @map("is_admin")
+  isTechnical   Boolean   @default(false) @map("is_technical")
 
   title        PrismaUserTitleEnum? @unique()
   duty         PrismaUserDutyEnum?
@@ -60,6 +61,7 @@ model User {
   authorOfOfficialReportVersions               OfficialReportVersion[]                @relation("official_report_version_author")
   authorOfSessionCommentVersions               SessionCommentVersion[]                @relation("session_comment_version_author")
   authorOfSummaries                            Summary[]
+  authorOfTechnicalAccountChanges              TechnicalAccountChange[]               @relation("technical_account_change_author")
   authorOfUserStatusChanges                    UserStatusChange[]                     @relation("user_status_change_author")
   chairmanOfAgendaVersions                     AgendaVersion[]
   chairmanOfJusticePresentationPlans           JusticePresentationPlan[]              @relation("justice_presentation_chairman")
@@ -94,6 +96,7 @@ model User {
   secretaryOfOfficialReports                   OfficialReportVersion[]                @relation("official_report_version_secretary")
   sessions                                     AuthSession[]
   statusChanges                                UserStatusChange[]                     @relation("user_status_change_user")
+  technicalAccountChanges                      TechnicalAccountChange[]               @relation("technical_account_change_user")
   validatedSessions                            Session[]
   validatorOfAgendaVersions                    AgendaVersion[]                        @relation("agenda_version_validator")
   validatorOfJusticePresentationPlans          JusticePresentationPlan[]              @relation("justice_presentation_validator")
@@ -192,6 +195,20 @@ model AdminRightChange {
 
   @@id([userId, changedAt], name: "primaryKey")
   @@map("admin_right_changes")
+  @@schema("identity_and_access_context")
+}
+
+model TechnicalAccountChange {
+  userId      String   @map("user_id") @db.Uuid
+  changedAt   DateTime @map("changed_at") @db.Timestamp(6)
+  isTechnical Boolean  @map("is_technical")
+  changedBy   String?  @map("changed_by") @db.Uuid
+
+  user   User  @relation("technical_account_change_user", fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  author User? @relation("technical_account_change_author", fields: [changedBy], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
+  @@id([userId, changedAt], name: "primaryKey")
+  @@map("technical_account_changes")
   @@schema("identity_and_access_context")
 }
 

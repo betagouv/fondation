@@ -6,6 +6,7 @@ import z from 'zod';
 import { Prisma } from '../../../../generated/prisma/client';
 import { isDefined } from '../../../../utils/is-defined';
 import { AdminUserRole } from '../../../administration/domain/admin-user-role';
+import { User } from '../../../administration/domain/user';
 import {
   servedAdminUserRole,
   ServedAdminUserRoleSchema,
@@ -38,6 +39,7 @@ export class DetailsUserQuery {
         gender: true,
         id: true,
         isAdmin: true,
+        isTechnical: true,
         lastName: true,
         role: true,
         title: true,
@@ -47,12 +49,13 @@ export class DetailsUserQuery {
 
     if (!maybeUser) throw new NotFoundException();
 
-    const { id: userId, ...user } = maybeUser;
+    const { id: userId, isTechnical, ...user } = maybeUser;
     const role = prismaRoleEnumToRoleEnum(user.role);
     const gender = prismaGenderEnumToGenderEnum(user.gender);
     const isImpersonated = isDefined(query.impersonationId);
     return {
       ...user,
+      canManageTechnicalAccounts: User.canManageTechnicalAccounts({ isTechnical }),
       displayedRole: servedAdminUserRole(
         AdminUserRole.from({ duty: user.duty, role, title: user.title }),
         gender,
@@ -82,6 +85,7 @@ export class DetailedUserResponseDto extends createZodDto(
     passwordChange: z.enum(PASSWORD_CHANGES),
     isAdmin: z.boolean(),
     displayTitle: z.string().nullable(),
+    canManageTechnicalAccounts: z.boolean(),
     duty: z.enum(USER_DUTIES).nullable(),
     title: z.enum(USER_TITLES).nullable(),
   }),
