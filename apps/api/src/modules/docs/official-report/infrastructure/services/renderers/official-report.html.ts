@@ -2,7 +2,12 @@ import { DateOnly } from '../../../../../../utils/date-only';
 import { Id } from '../../../../../../utils/id';
 import { isDefined } from '../../../../../../utils/is-defined';
 import { fullname } from '../../../../../../utils/user.util';
-import { adminUserRoleLabel, signatoryRoleLabel } from '../../../../../shared/admin-user-role.enum';
+import {
+  adminUserRoleLabel,
+  type ChairmanRole,
+  chairmanRoleLabel,
+  signatoryRoleLabel,
+} from '../../../../../shared/admin-user-role.enum';
 import { FormationEnum } from '../../../../../shared/formation.enum';
 import {
   DocNominationFileOutcomeEnum,
@@ -85,8 +90,8 @@ export type OfficialReportRenderContext = {
 function header(ctx: OfficialReportRenderContext): SafeHtml {
   return html`
     <h1>
-      Procès-verbal de restitution de la séance du ${date(ctx.sessionMeeting.date, 'in words')} tenue à Paris
-      au Conseil supérieur de la magistrature
+      Procès-verbal de restitution de la séance du ${date(ctx.sessionMeeting.date, 'do MMMM yyyy')} tenue à
+      Paris au Conseil supérieur de la magistrature
     </h1>
     <p class="formation">
       ${
@@ -122,19 +127,20 @@ function displayFileContent(ctx: {
   return html`<strong>${ctx.file.name}</strong>${currentPosition}${targetedPosition}${reporters}.`;
 }
 
+function chairmanRole(chairman: OfficialReportChairman): ChairmanRole | null {
+  if (!chairman.title) return null;
+
+  return chairman.title === 'DEPUTY_PRESIDENT_PARQUET' || chairman.title === 'DEPUTY_PRESIDENT_SIEGE'
+    ? 'DEPUTY_PRESIDENT'
+    : 'PRESIDENT';
+}
+
 function displayChairmanTitle(ctx: OfficialReportRenderContext): string | null {
-  if (!ctx.chairman.title) return null;
+  const role = chairmanRole(ctx.chairman);
+  if (!role) return null;
 
   const formation = ctx.agenda.formation === 'PARQUET' ? 'PARQUET' : 'SIEGE';
-  const isDeputy =
-    ctx.chairman.title === 'DEPUTY_PRESIDENT_PARQUET' || ctx.chairman.title === 'DEPUTY_PRESIDENT_SIEGE';
-
-  return lowerFirst(
-    adminUserRoleLabel(
-      isDeputy ? `DEPUTY_PRESIDENT_${formation}` : `PRESIDENT_${formation}`,
-      ctx.chairman.gender,
-    ),
-  );
+  return lowerFirst(adminUserRoleLabel(`${role}_${formation}`, ctx.chairman.gender));
 }
 
 function displayIntroduction(
@@ -146,10 +152,16 @@ function displayIntroduction(
 
   const presidentTitle = displayChairmanTitle(ctx);
 
-  const presence = [`Sous la présidence de ${fullname(ctx.chairman)}`, ctx.chairman.displayTitle]
+  const role = chairmanRole(ctx.chairman);
+  const presence = [
+    `Sous la présidence de ${fullname(ctx.chairman)}`,
+    ctx.chairman.displayTitle,
+    role && chairmanRoleLabel(role, ctx.chairman.gender),
+    'en présence de\u00A0:',
+  ]
     .filter(Boolean)
     .join(', ');
-  const intro = html`<p>${presence}&nbsp;:</p>`;
+  const intro = html`<p>${presence}</p>`;
 
   const membersList = html`<ul>
     ${SafeHtml.join(

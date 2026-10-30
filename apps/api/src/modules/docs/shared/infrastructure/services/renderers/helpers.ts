@@ -57,68 +57,10 @@ const longDate = new Intl.DateTimeFormat('fr', {
   year: 'numeric',
 });
 
-const monthName = new Intl.DateTimeFormat('fr', { month: 'long', timeZone: 'UTC' });
-
-const UNITS = [
-  '',
-  'un',
-  'deux',
-  'trois',
-  'quatre',
-  'cinq',
-  'six',
-  'sept',
-  'huit',
-  'neuf',
-  'dix',
-  'onze',
-  'douze',
-  'treize',
-  'quatorze',
-  'quinze',
-  'seize',
-  'dix-sept',
-  'dix-huit',
-  'dix-neuf',
-];
-const TENS = [
-  '',
-  '',
-  'vingt',
-  'trente',
-  'quarante',
-  'cinquante',
-  'soixante',
-  'soixante',
-  'quatre-vingt',
-  'quatre-vingt',
-];
-
-// from 1 to 99, as the spelling before the 1990 reform writes it: vingt et un, quatre-vingts
-function inWords(n: number): string {
-  if (n < 20) return UNITS[n]!;
-
-  const tens = Math.floor(n / 10);
-  const units = (n % 10) + (tens === 7 || tens === 9 ? 10 : 0);
-  if (units === 0) return tens === 8 ? 'quatre-vingts' : TENS[tens]!;
-  if ((units === 1 || units === 11) && tens < 8) return `${TENS[tens]} et ${UNITS[units]}`;
-
-  return `${TENS[tens]}-${UNITS[units]}`;
-}
-
-type DateFormat = 'dd/MM/yyyy' | 'do MMMM yyyy' | 'in words';
+type DateFormat = 'dd/MM/yyyy' | 'do MMMM yyyy';
 export function date(date: DateOnly | DateOnlyJson, format: DateFormat = 'dd/MM/yyyy'): SafeHtml {
   const dateOnly = date instanceof DateOnly ? date : DateOnly.fromJson(date);
   if (format === 'dd/MM/yyyy') return new SafeHtml(shortDate.format(dateOnly.toDate()));
-
-  if (format === 'in words') {
-    const { day, year } = dateOnly.toJson();
-    const yearInWords = ['deux mille', year % 100 ? inWords(year % 100) : ''].filter(Boolean).join(' ');
-
-    return new SafeHtml(
-      `${day === 1 ? 'premier' : inWords(day)} ${monthName.format(dateOnly.toDate())} ${yearInWords}`,
-    );
-  }
 
   // In French only the first of the month takes an ordinal
   const formatted = longDate.format(dateOnly.toDate());
