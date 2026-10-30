@@ -97,8 +97,7 @@ li {
   padding: 0;
 }
 
-/* doubled class: this file loads before the DSFR stylesheet, so it needs to win on specificity */
-.fr-container.fr-container {
+.fr-container {
   max-width: var(--fondation-container-max-width);
 }
 
@@ -179,6 +178,12 @@ li {
     border: 0;
     border-top: 1px solid var(--border-default-grey);
     margin: 0 0 1.5rem;
+  }
+
+  /* the reset of the lists above comes after the DSFR in the bundle: a written list takes its bullets back */
+  ul {
+    list-style-type: var(--ul-type);
+    padding-inline-start: var(--ul-start);
   }
 
   /* a title reached from the side menu stops under the pinned header rather than behind it */
