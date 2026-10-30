@@ -227,8 +227,9 @@ function chairmanBlock(ctx: {
           <strong>aucune proposition</strong>.
         </p>`;
 
+  const chairman = `${requiresElision(ctx.chairman.firstName) ? `d'` : 'de '}${fullname(ctx.chairman)}`;
   return html`
-    <p>Sous la présidence de ${fullname(ctx.chairman)}&nbsp;:</p>
+    <p>Sous la présidence ${chairman}&nbsp;:</p>
     ${nonValidated} ${suspended} ${validatedParagraph}
   `;
 }
