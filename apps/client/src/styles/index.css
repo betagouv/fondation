@@ -181,6 +181,12 @@ li {
     margin: 0 0 1.5rem;
   }
 
+  /* the reset of the lists above comes after the DSFR in the bundle: a written list takes its bullets back */
+  ul {
+    list-style-type: var(--ul-type);
+    padding-inline-start: var(--ul-start);
+  }
+
   /* a title reached from the side menu stops under the pinned header rather than behind it */
   &.fondation-help-article :is(h2, h3, h4) {
     scroll-margin-top: calc(var(--fondation-table-header-top) + 1rem);
