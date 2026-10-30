@@ -63,6 +63,20 @@ export function adminUserRoleLabel(role: AdminUserRoleEnum, gender: GenderEnum |
   return ADMIN_USER_ROLE_LABELS[role][gender ?? 'neutral'];
 }
 
+/** the introduction of the official report names the chairman without the formation, asked by the CSM on 2026-10-30 */
+const CHAIRMAN_ROLE_LABELS = {
+  DEPUTY_PRESIDENT: {
+    FEMALE: 'présidente suppléante de la formation',
+    MALE: 'président suppléant de la formation',
+  },
+  PRESIDENT: { FEMALE: 'présidente de la formation', MALE: 'président de la formation' },
+} as const satisfies Record<string, Record<GenderEnum, string>>;
+export type ChairmanRole = keyof typeof CHAIRMAN_ROLE_LABELS;
+
+export function chairmanRoleLabel(role: ChairmanRole, gender: GenderEnum): string {
+  return CHAIRMAN_ROLE_LABELS[role][gender];
+}
+
 /** the signatures of the official report keep their article and drop the formation */
 const SIGNATORY_ROLE_LABELS = {
   DEPUTY_PRESIDENT_PARQUET: { FEMALE: 'la présidente suppléante', MALE: 'le président suppléant' },
