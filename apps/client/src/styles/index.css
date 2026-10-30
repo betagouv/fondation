@@ -97,8 +97,7 @@ li {
   padding: 0;
 }
 
-/* doubled class: this file loads before the DSFR stylesheet, so it needs to win on specificity */
-.fr-container.fr-container {
+.fr-container {
   max-width: var(--fondation-container-max-width);
 }
 
