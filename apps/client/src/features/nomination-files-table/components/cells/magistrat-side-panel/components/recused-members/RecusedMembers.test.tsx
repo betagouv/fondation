@@ -10,8 +10,8 @@ import { FormationEnum } from '@/shared/enums/formation.enum';
 import { makeSessionNominationFile } from '@/test-utils/factories/session-nomination-file.factory';
 import { makeSessionOutcomes } from '@/test-utils/factories/session-outcomes.factory';
 import * as $api from '@api/sdk';
+import type { RecusedMembersDto } from '@api/types';
 import { memberKeys } from '@queries/members.queries';
-import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 import { RecusedMembers } from './RecusedMembers';
 
@@ -19,7 +19,7 @@ const SESSION_ID = 'session-1';
 const PRESIDENT = { firstName: 'Zoé', id: 'president', lastName: 'Zola' };
 const MEMBER = { firstName: 'Jean', id: 'member', lastName: 'Albert' };
 
-function renderRecusedMembers(nominationFile: SessionNominationFile) {
+function renderRecusedMembers(recusedMembers: RecusedMembersDto['recusedMembers'], canRecuseMembers = true) {
   const client = new QueryClient({
     defaultOptions: { mutations: { retry: false }, queries: { retry: false } },
   });
@@ -46,7 +46,10 @@ function renderRecusedMembers(nominationFile: SessionNominationFile) {
           outcomes={makeSessionOutcomes(FormationEnum.SIEGE)}
           sessionId={SESSION_ID}
         >
-          <RecusedMembers nominationFile={nominationFile} sessionId={SESSION_ID} />
+          <RecusedMembers
+            nominationFile={makeSessionNominationFile({ canRecuseMembers, recusedMembers })}
+            recusedMembers={recusedMembers}
+          />
         </NominationFilesTableProvider>
       </QueryClientProvider>
     </IntlProvider>,
@@ -57,9 +60,7 @@ describe('RecusedMembers', () => {
   afterEach(() => vi.restoreAllMocks());
 
   it('keeps the recused members in the order the API serves them', async () => {
-    const { container } = renderRecusedMembers(
-      makeSessionNominationFile({ recusedMembers: [PRESIDENT, MEMBER] }),
-    );
+    const { container } = renderRecusedMembers([PRESIDENT, MEMBER]);
 
     const removals = screen.getAllByRole('button', { name: /^Retirer/ });
     expect(removals.map((button) => button.textContent)).toEqual(['Retirer Zoé ZOLA', 'Retirer Jean ALBERT']);
@@ -73,7 +74,7 @@ describe('RecusedMembers', () => {
         ReturnType<typeof $api.sessions.recuseMembers>
       >);
     const user = userEvent.setup();
-    renderRecusedMembers(makeSessionNominationFile({ recusedMembers: [PRESIDENT] }));
+    renderRecusedMembers([PRESIDENT]);
 
     await user.click(screen.getByRole('button', { name: /Ajouter un membre qui se déporte/ }));
     await user.click(within(screen.getByRole('listbox')).getByRole('option', { name: 'Jean ALBERT' }));
@@ -88,13 +89,12 @@ describe('RecusedMembers', () => {
   });
 
   it('withdraws a recused member', async () => {
+    const withdrawn: RecusedMembersDto = { recusedMembers: [] };
     const recuse = vi
       .spyOn($api.sessions, 'recuseMembers')
-      .mockResolvedValue({ data: { recusedMembers: [] as (typeof MEMBER)[] } } as Awaited<
-        ReturnType<typeof $api.sessions.recuseMembers>
-      >);
+      .mockResolvedValue({ data: withdrawn } as Awaited<ReturnType<typeof $api.sessions.recuseMembers>>);
     const user = userEvent.setup();
-    renderRecusedMembers(makeSessionNominationFile({ recusedMembers: [MEMBER] }));
+    renderRecusedMembers([MEMBER]);
 
     await user.click(screen.getByRole('button', { name: 'Retirer Jean ALBERT' }));
 
@@ -103,9 +103,8 @@ describe('RecusedMembers', () => {
     );
   });
 
-  it('no longer changes the recused members of a reported file', () => {
-    const file = makeSessionNominationFile({ recusedMembers: [MEMBER] });
-    renderRecusedMembers({ ...file, content: { ...file.content, lockedReason: 'REPORTED' } });
+  it('no longer changes the recused members once the API locks them', () => {
+    renderRecusedMembers([MEMBER], false);
 
     expect(screen.getByRole('button', { name: 'Retirer Jean ALBERT' })).toBeDisabled();
     expect(screen.getByRole('button', { name: /Ajouter un membre qui se déporte/ })).toBeDisabled();

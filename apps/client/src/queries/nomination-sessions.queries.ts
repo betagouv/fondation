@@ -228,21 +228,21 @@ export function useAffectNominationFilesReportersMutation() {
   });
 }
 
-export function useRecuseMembersMutation() {
+export function useRecuseMembersMutation(nominationFileId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (mutation: { memberIds: string[]; nominationFileId: string; sessionId: string }) => {
+    mutationFn: async (mutation: { memberIds: string[]; sessionId: string }) => {
       const { data } = await $api.sessions.recuseMembers({
         body: { memberIds: mutation.memberIds },
-        path: { nominationFileId: mutation.nominationFileId, sessionId: mutation.sessionId },
+        path: { nominationFileId, sessionId: mutation.sessionId },
         throwOnError: true,
       });
       return data;
     },
-    // each save sends the whole list, so a later one must not overtake an earlier one
-    scope: { id: 'recuse-members' },
-    onSuccess: ({ recusedMembers }, { nominationFileId, sessionId }) => {
+    // each save sends the whole list of the file, so a later one must not overtake an earlier one
+    scope: { id: `recuse-members-${nominationFileId}` },
+    onSuccess: ({ recusedMembers }, { sessionId }) => {
       queryClient.setQueriesData(
         { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
         mapCachedNominationFiles((file) =>

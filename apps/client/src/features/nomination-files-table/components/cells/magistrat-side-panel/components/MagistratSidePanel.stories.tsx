@@ -205,6 +205,7 @@ function makeNominationFile(args: SidePanelArgs): SessionNominationFile {
     // the members are not told who wanted the audition
     auditionRequirement: isSg && isAuditionedPosition ? 'POSITION' : null,
     auditionTime: args.audition === 'scheduled' ? { hours: 14, minutes: 30, seconds: 0 } : null,
+    canRecuseMembers: isSg && lockedReason === null,
     canScheduleAudition:
       lockedReason !== 'ARCHIVED_SESSION' && (outcome === null || PENDING_OUTCOMES.has(outcome)),
     comment: 'Candidature soutenue par la cheffe de cour, à rapprocher du profil attendu.',
@@ -255,8 +256,7 @@ function makeNominationFile(args: SidePanelArgs): SessionNominationFile {
         }))
       : [],
     priorities: ['ETOILE'],
-    // the members learn who recused themselves from the official report only
-    recusedMembers: isSg && args.hasRecusedMembers ? [READER] : [],
+    recusedMembers: isSg ? (args.hasRecusedMembers ? [READER] : []) : null,
     reporters: REPORTERS,
     summary: args.summary === 'readable' ? { canRead: true, canWrite: isSg, id } : null,
   });

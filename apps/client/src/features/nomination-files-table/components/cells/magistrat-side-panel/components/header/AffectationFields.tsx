@@ -2,14 +2,13 @@ import clsx from 'clsx';
 import type { Ref } from 'react';
 import { FormattedMessage } from 'react-intl';
 
+import { MEMBER_TAG } from '../member-tag';
 import { PriorityBadge } from '@/shared/components/priority-badge';
 import { PrioriteEnum } from '@/shared/enums/priorite.enum';
 import { Dropdown, type DropdownHandle } from '@/shared/ui/dropdown';
 import { memberFullName } from '@/utils/user.utils';
 
 const PRIORITY_ITEMS = Object.values(PrioriteEnum);
-
-const REPORTER_TAG = 'fr-tag font-normal! gap-1.5 bg-(--background-default-grey)!';
 
 const NO_EXCLUSION: ReadonlyMap<string, string> = new Map();
 
@@ -60,7 +59,7 @@ export function ReporterSelect(props: {
         label: (
           <span
             className={clsx(
-              REPORTER_TAG,
+              MEMBER_TAG,
               excludedTitle ? 'text-(--text-default-warning)!' : 'text-(--text-action-high-blue-france)!',
             )}
             title={excludedTitle}
@@ -79,7 +78,7 @@ export function ReporterSelect(props: {
           label: (
             <span
               className={clsx(
-                REPORTER_TAG,
+                MEMBER_TAG,
                 'fr-tag--icon-left fr-icon-close-circle-line text-(--text-action-high-blue-france)!',
               )}
             >

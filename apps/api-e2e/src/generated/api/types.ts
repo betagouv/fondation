@@ -381,6 +381,7 @@ export type PaginatedNominationFiles = {
         };
         comment: string | null;
         canScheduleAudition: boolean;
+        canRecuseMembers: boolean;
         auditionDate: {
             year: number;
             month: number;
@@ -402,13 +403,13 @@ export type PaginatedNominationFiles = {
             lastName: string;
         }>;
         /**
-         * in protocol order, always empty for a member
+         * in protocol order, null for a member
          */
         recusedMembers: Array<{
             firstName: string;
             id: string;
             lastName: string;
-        }>;
+        }> | null;
         observations: Array<{
             id: string;
             audition: {
@@ -691,6 +692,7 @@ export type DetailedNominationFileDto = {
     };
     comment: string | null;
     canScheduleAudition: boolean;
+    canRecuseMembers: boolean;
     auditionDate: {
         year: number;
         month: number;
@@ -712,13 +714,13 @@ export type DetailedNominationFileDto = {
         lastName: string;
     }>;
     /**
-     * in protocol order, always empty for a member
+     * in protocol order, null for a member
      */
     recusedMembers: Array<{
         firstName: string;
         id: string;
         lastName: string;
-    }>;
+    }> | null;
     observations: Array<{
         id: string;
         audition: {

@@ -19,9 +19,16 @@ export function canScheduleAudition(
   return !session.archivedAt && NominationFileOutcome.allowsAudition(file.outcome);
 }
 
-/** the members learn who recused themselves from the official report only */
+/** the members will learn who recused themselves from the official report (FON-657), never from the app */
 export function canSeeRecusedMembers(user: { role: RoleEnum }): boolean {
   return isSecretariat(user.role);
+}
+
+export function canRecuseMembers(
+  file: { lockedReason: NominationFileLockEnum | null },
+  user: { role: RoleEnum },
+): boolean {
+  return canSeeRecusedMembers(user) && !file.lockedReason;
 }
 
 export function canKeepMemberMemo(

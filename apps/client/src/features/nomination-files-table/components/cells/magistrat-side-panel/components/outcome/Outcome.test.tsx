@@ -36,10 +36,15 @@ vi.mock('@queries/nomination-sessions.queries', async (orig) => ({
 
 const OUTCOME = { value: 'VALIDATED', comment: 'Avis favorable' } as const;
 
-function renderOutcome(lockedReason: SessionNominationFileLockedReason) {
+function renderOutcome(lockedReason: SessionNominationFileLockedReason, seesRecusals = true) {
   return render(
     <IntlProvider defaultLocale="fr" locale="fr">
-      <Outcome nominationFile={makeSessionNominationFile({ content: { lockedReason, outcome: OUTCOME } })} />
+      <Outcome
+        nominationFile={makeSessionNominationFile({
+          content: { lockedReason, outcome: OUTCOME },
+          recusedMembers: seesRecusals ? [] : null,
+        })}
+      />
     </IntlProvider>,
   );
 }
@@ -62,16 +67,16 @@ describe('Outcome', () => {
     expect(screen.getByText('Avis favorable')).toBeVisible();
   });
 
-  it('gathers the recusal with the outcome for the secretariat general', () => {
+  it('gathers the recusal with the outcome when the API serves it', () => {
     renderOutcome(null);
 
     expect(screen.getByText('Déport et issue')).toBeVisible();
     expect(screen.getByText('Membres déportés')).toBeVisible();
   });
 
-  it('shows a member the outcome alone', () => {
+  it('shows the outcome alone when the API keeps the recusals from the user', () => {
     mocks.isSg.mockReturnValue(false);
-    renderOutcome(null);
+    renderOutcome(null, false);
 
     expect(screen.getByText('Issue')).toBeVisible();
     expect(screen.queryByText('Membres déportés')).not.toBeInTheDocument();

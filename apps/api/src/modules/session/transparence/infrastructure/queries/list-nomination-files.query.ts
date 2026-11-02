@@ -45,11 +45,7 @@ import {
   NOMINATION_SESSION_FILE_STATUSES,
   transparenceFileStatus,
 } from '../../domain/session-transparence-file-status';
-import {
-  ListNominationFilesQueryDto,
-  type RecusedMember,
-  RecusedMemberSchema,
-} from '../dtos/nomination-file.dto';
+import { ListNominationFilesQueryDto, RecusedMemberSchema } from '../dtos/nomination-file.dto';
 import { AffectationVersionFinder, OptionalAffectationVersion } from '../finders/affectation-version.finder';
 import { AuditionsSeenFinder } from '../finders/auditions-seen.finder';
 import { NominationFileJurisdictionsFinder } from '../finders/nomination-file-jurisdictions.finder';
@@ -230,7 +226,7 @@ export class ListNominationFilesQuery {
     });
     const recusedMembers = nominationFilesPolicies.canSeeRecusedMembers(query.user)
       ? await this.recusedMembersFinder.find({ nominationFileIds })
-      : new Map<string, RecusedMember[]>();
+      : null;
 
     const sessionArchivedAt = query.session.archivedAt;
     const isArchived = !!sessionArchivedAt;
@@ -258,6 +254,7 @@ export class ListNominationFilesQuery {
 
       return {
         ...audition,
+        canRecuseMembers: nominationFilesPolicies.canRecuseMembers(x, query.user),
         canScheduleAudition: nominationFilesPolicies.canScheduleAudition(x, {
           archivedAt: sessionArchivedAt,
         }),
@@ -320,7 +317,7 @@ export class ListNominationFilesQuery {
           magistrat: obs.magistrat,
         })),
         priorities: x.priorities.map(prismaPrioriteEnumToPriorityEnum),
-        recusedMembers: recusedMembers.get(x.id) ?? [],
+        recusedMembers: recusedMembers && (recusedMembers.get(x.id) ?? []),
         reporters: x.reporters.map(({ user: { id, firstName, lastName } }) => ({
           firstName,
           id,
@@ -487,6 +484,7 @@ const NominationFileAffectationItemSchema = z.object({
   content: NominationFileContentSchema,
   comment: z.string().nullable(),
   canScheduleAudition: z.boolean(),
+  canRecuseMembers: z.boolean(),
   auditionDate: dateOnlyJsonSchema.nullable(),
   auditionRequired: z.boolean(),
   auditionRequirement: z.enum(AUDITION_REQUIREMENTS).nullable(),
@@ -501,8 +499,8 @@ const NominationFileAffectationItemSchema = z.object({
       lastName: z.string(),
     }),
   ),
-  recusedMembers: RecusedMemberSchema.array().meta({
-    description: 'in protocol order, always empty for a member',
+  recusedMembers: RecusedMemberSchema.array().nullable().meta({
+    description: 'in protocol order, null for a member',
   }),
   observations: z.array(
     z.object({

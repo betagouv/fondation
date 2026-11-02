@@ -123,6 +123,7 @@ test.describe('Session E2E', () => {
         auditionRequired: true,
         auditionRequirement: 'POSITION',
         auditionTime: null,
+        canRecuseMembers: true,
         canScheduleAudition: true,
         comment: null,
         content: {
@@ -178,6 +179,7 @@ test.describe('Session E2E', () => {
         auditionRequired: true,
         auditionRequirement: 'POSITION',
         auditionTime: null,
+        canRecuseMembers: true,
         canScheduleAudition: true,
         comment: null,
         content: {
