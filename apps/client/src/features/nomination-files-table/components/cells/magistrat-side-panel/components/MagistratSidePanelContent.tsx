@@ -14,7 +14,6 @@ import { Header } from './header/Header';
 import { MemberMemo } from './member-memo/MemberMemo';
 import { MissingEvaluation } from './missing-evaluation/MissingEvaluation';
 import { Outcome } from './outcome/Outcome';
-import { RecusedMembers } from './recused-members/RecusedMembers';
 import { SgComment } from './sg-comment/SgComment';
 
 export function MagistratSidePanelContent(props: {
@@ -61,13 +60,6 @@ export function MagistratSidePanelContent(props: {
         key={`${nominationFile.id}-comment`}
         nominationFileId={nominationFile.id}
       />
-      {isSgContext && (
-        <RecusedMembers
-          key={`${nominationFile.id}-recused-members`}
-          nominationFile={nominationFile}
-          sessionId={sessionId}
-        />
-      )}
       <Attachments
         isUpdatable={isUpdatable(nominationFile)}
         nominationFileId={nominationFile.id}

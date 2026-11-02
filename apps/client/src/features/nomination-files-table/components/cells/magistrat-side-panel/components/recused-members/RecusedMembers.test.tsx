@@ -75,7 +75,7 @@ describe('RecusedMembers', () => {
     const user = userEvent.setup();
     renderRecusedMembers(makeSessionNominationFile({ recusedMembers: [PRESIDENT] }));
 
-    await user.click(screen.getByRole('button', { name: /Ajouter un membre déporté/ }));
+    await user.click(screen.getByRole('button', { name: /Ajouter un membre qui se déporte/ }));
     await user.click(within(screen.getByRole('listbox')).getByRole('option', { name: 'Jean ALBERT' }));
 
     await waitFor(() => expect(recuse).toHaveBeenCalledTimes(1));
@@ -108,6 +108,6 @@ describe('RecusedMembers', () => {
     renderRecusedMembers({ ...file, content: { ...file.content, lockedReason: 'REPORTED' } });
 
     expect(screen.getByRole('button', { name: 'Retirer Jean ALBERT' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: /Ajouter un membre déporté/ })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /Ajouter un membre qui se déporte/ })).toBeDisabled();
   });
 });

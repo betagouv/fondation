@@ -44,13 +44,10 @@ export function RecusedMembers(props: { nominationFile: SessionNominationFile; s
   };
 
   return (
-    <div>
-      <h3 className="fr-mb-4v text-xl font-semibold">
-        <FormattedMessage defaultMessage="Membres déportés" />
-      </h3>
+    <div className="fr-mb-2v">
       <Dropdown
         disabled={!isUpdatable(nominationFile)}
-        label={<FormattedMessage defaultMessage="Ajouter un membre déporté" />}
+        label={<FormattedMessage defaultMessage="Ajouter un membre qui se déporte" />}
         multiple
         onSelect={recuse}
         options={options}

@@ -2,6 +2,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { FormattedMessage } from 'react-intl';
 
 import { useOutcomeCommentDialog } from '../../../nomination-file-outcome/OutcomeCommentModalContext';
+import { RecusedMembers } from '../recused-members/RecusedMembers';
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { useNominationFilesTable } from '@/features/nomination-files-table/context/files-table.context';
 import { OutcomeBadge } from '@/shared/components/outcome-badge';
@@ -14,7 +15,7 @@ import {
 import { OutcomeSelect } from './OutcomeSelect';
 
 export function Outcome(props: { nominationFile: SessionNominationFile }) {
-  const { formation } = useNominationFilesTable();
+  const { formation, sessionId } = useNominationFilesTable();
   const isSg = useIsSgNavigation();
   const { outcome } = props.nominationFile.content;
 
@@ -23,8 +24,13 @@ export function Outcome(props: { nominationFile: SessionNominationFile }) {
   return (
     <div className="flex flex-col gap-2">
       <label className="fr-mb-2v block text-xl font-semibold">
-        <FormattedMessage defaultMessage="Issue" />
+        {isSg ? (
+          <FormattedMessage defaultMessage="Déport et issue" />
+        ) : (
+          <FormattedMessage defaultMessage="Issue" />
+        )}
       </label>
+      {isSg && <RecusedMembers nominationFile={props.nominationFile} sessionId={sessionId} />}
       <div className="self-start">
         {editable ? (
           <OutcomeSelect nominationFile={props.nominationFile} />
