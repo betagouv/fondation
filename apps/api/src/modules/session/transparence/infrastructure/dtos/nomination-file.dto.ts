@@ -106,6 +106,7 @@ export class RecuseMembersDto extends createZodDto(
 ) {}
 
 export const RecusedMemberSchema = z.object({ firstName: z.string(), id: z.string(), lastName: z.string() });
+export type RecusedMember = z.infer<typeof RecusedMemberSchema>;
 
 export class RecusedMembersDto extends createZodDto(
   z.object({ recusedMembers: RecusedMemberSchema.array().meta({ description: 'in protocol order' }) }),

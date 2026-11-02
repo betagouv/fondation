@@ -4,10 +4,10 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '../../../../../generated/prisma/client';
 import { assertPgParams } from '../../../../../utils/assert-pg-params';
 import { Db } from '../../../../framework/database';
+import { byProtocolOrder } from '../../../../shared/protocol-order';
+import type { RecusedMember } from '../dtos/nomination-file.dto';
 
-export type RecusedMember = { firstName: string; id: string; lastName: string };
-
-/** the recused members of each file, in protocol order as the official report prints them */
+/** the recused members of each file, in protocol order */
 @Injectable()
 export class RecusedMembersFinder {
   constructor(private readonly db: Db) {}
@@ -18,19 +18,19 @@ export class RecusedMembersFinder {
     assertPgParams(query.nominationFileIds);
 
     const recusals = await this.db.tx.recusedMember.findMany({
-      orderBy: [{ user: { sort: 'asc' } }, { user: { lastName: 'asc' } }],
       select: {
         nominationFileId: true,
-        user: { select: { firstName: true, id: true, lastName: true } },
+        user: { select: { firstName: true, id: true, lastName: true, sort: true } },
       } satisfies Prisma.RecusedMemberSelect,
       where: { nominationFileId: { in: [...query.nominationFileIds] } },
     });
 
     const members = new Map<string, RecusedMember[]>();
-    for (const { nominationFileId, user } of recusals) {
+    for (const { nominationFileId, user } of recusals.sort((a, b) => byProtocolOrder(a.user, b.user))) {
+      const member = { firstName: user.firstName, id: user.id, lastName: user.lastName };
       const fileMembers = members.get(nominationFileId);
-      if (fileMembers) fileMembers.push(user);
-      else members.set(nominationFileId, [user]);
+      if (fileMembers) fileMembers.push(member);
+      else members.set(nominationFileId, [member]);
     }
     return members;
   }

@@ -45,11 +45,15 @@ import {
   NOMINATION_SESSION_FILE_STATUSES,
   transparenceFileStatus,
 } from '../../domain/session-transparence-file-status';
-import { ListNominationFilesQueryDto, RecusedMemberSchema } from '../dtos/nomination-file.dto';
+import {
+  ListNominationFilesQueryDto,
+  type RecusedMember,
+  RecusedMemberSchema,
+} from '../dtos/nomination-file.dto';
 import { AffectationVersionFinder, OptionalAffectationVersion } from '../finders/affectation-version.finder';
 import { AuditionsSeenFinder } from '../finders/auditions-seen.finder';
 import { NominationFileJurisdictionsFinder } from '../finders/nomination-file-jurisdictions.finder';
-import { RecusedMember, RecusedMembersFinder } from '../finders/recused-members.finder';
+import { RecusedMembersFinder } from '../finders/recused-members.finder';
 import { SessionReportedFilesFinder } from '../finders/session-reported-files.finder';
 
 @Injectable()
