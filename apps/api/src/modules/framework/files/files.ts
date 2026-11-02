@@ -7,12 +7,9 @@ import {
   DeleteObjectsCommand,
   GetObjectCommand,
   HeadBucketCommand,
-  HeadObjectCommand,
-  ListObjectsV2Command,
   ListObjectVersionsCommand,
   PutBucketCorsCommand,
   S3Client,
-  S3ServiceException,
 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -44,7 +41,7 @@ import { API_CONFIG_TOKEN, type ApiConfig } from '../config';
 import { afterCommit, Db } from '../database';
 
 import { contentDisposition } from './content-disposition';
-import { type FondationFile, type StoredSize } from './files.types';
+import { type FondationFile } from './files.types';
 import { filenameToMimeType } from './mime-type';
 import { FileMissingFromStorage, isMissingFromStorage } from './missing-from-storage';
 
@@ -537,56 +534,6 @@ export class Files implements OnApplicationBootstrap {
 
     if (!response) return null;
     return assertIsDefined(response.Body as Readable | undefined, `file ${props.fileId} not found`);
-  }
-
-  async storedSize(file: { path: readonly string[] }): Promise<StoredSize> {
-    const key = encodeURI(file.path.join('/'));
-
-    try {
-      const { ContentLength } = await this.client.send(
-        new HeadObjectCommand({ ...this.sseHeaders, Bucket: this.bucketName, Key: key }),
-      );
-
-      return { size: assertIsDefined(ContentLength, `no size for ${key}`), status: 'FOUND' };
-    } catch (error) {
-      if (!(error instanceof S3ServiceException)) throw error;
-
-      // a HEAD answer has no body to name the error: its status is the only clue
-      if (error.$metadata.httpStatusCode === 404) return { status: 'MISSING' };
-      if (error.$metadata.httpStatusCode === 403) return { status: 'REFUSED' };
-      throw error;
-    }
-  }
-
-  async *storedObjects(): AsyncGenerator<{ key: string; size: number; writtenAt: Date }> {
-    let ContinuationToken: string | undefined;
-    do {
-      const page = await this.client.send(
-        new ListObjectsV2Command({ Bucket: this.bucketName, ContinuationToken }),
-      );
-      for (const object of page.Contents ?? []) {
-        yield {
-          key: assertIsDefined(object.Key, 'object without key'),
-          size: object.Size ?? 0,
-          writtenAt: assertIsDefined(object.LastModified, `no date for ${object.Key}`),
-        };
-      }
-      ContinuationToken = page.NextContinuationToken;
-    } while (ContinuationToken);
-  }
-
-  /** by their exact keys: objects written before the paths were normalized keep raw spaces, which encoding again would miss */
-  async deleteStoredObjects(keys: readonly string[]): Promise<void> {
-    // S3 deletes at most 1 000 objects per request
-    for (let start = 0; start < keys.length; start += 1_000) {
-      const { Errors = [] } = await this.client.send(
-        new DeleteObjectsCommand({
-          Bucket: this.bucketName,
-          Delete: { Objects: keys.slice(start, start + 1_000).map((Key) => ({ Key })), Quiet: true },
-        }),
-      );
-      if (Errors.length > 0) throw new Error(`Failed deleting ${Errors.length} objects ${inspect(Errors)}`);
-    }
   }
 
   private reportMissingFromStorage(file: { id: string; path: readonly string[] }): void {

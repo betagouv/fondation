@@ -81,39 +81,6 @@ describe('Files', () => {
     });
   });
 
-  describe('storedSize', () => {
-    function headFailsWith(status: number) {
-      send.mockRejectedValue(
-        new S3ServiceException({ $fault: 'client', $metadata: { httpStatusCode: status }, name: 'Unknown' }),
-      );
-    }
-
-    it('answers the size the storage knows', async () => {
-      send.mockResolvedValue({ ContentLength: 1024 });
-
-      await expect(files.storedSize(linkedCopy)).resolves.toEqual({ size: 1024, status: 'FOUND' });
-      expect(send.mock.calls[0]![0].input.Key).toBe('observations/courrier.pdf');
-    });
-
-    it('tells a missing object', async () => {
-      headFailsWith(404);
-
-      await expect(files.storedSize(linkedCopy)).resolves.toEqual({ status: 'MISSING' });
-    });
-
-    it('tells a refusal apart from a missing object', async () => {
-      headFailsWith(403);
-
-      await expect(files.storedSize(linkedCopy)).resolves.toEqual({ status: 'REFUSED' });
-    });
-
-    it('lets any other storage failure through', async () => {
-      headFailsWith(500);
-
-      await expect(files.storedSize(linkedCopy)).rejects.toBeInstanceOf(S3ServiceException);
-    });
-  });
-
   describe('getFileContent', () => {
     const storedFile = { id: 'file-id', name: 'courrier.pdf', path: ['observations', 'courrier.pdf'] };
 
@@ -223,44 +190,6 @@ describe('Files', () => {
 
       await expect(files.getFile({ fileId: 'file-id' })).rejects.toBe(failure);
       expect(Sentry.captureMessage).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('storedObjects', () => {
-    it('reads every page of the storage', async () => {
-      const writtenAt = new Date('2025-06-01');
-      send
-        .mockResolvedValueOnce({
-          Contents: [{ Key: 'a.pdf', LastModified: writtenAt, Size: 12 }],
-          NextContinuationToken: 'next',
-        })
-        .mockResolvedValueOnce({ Contents: [{ Key: 'b.pdf', LastModified: writtenAt, Size: 34 }] });
-
-      const objects = await Array.fromAsync(files.storedObjects());
-
-      expect(objects).toEqual([
-        { key: 'a.pdf', size: 12, writtenAt },
-        { key: 'b.pdf', size: 34, writtenAt },
-      ]);
-      expect(send.mock.calls[1]![0].input.ContinuationToken).toBe('next');
-    });
-  });
-
-  describe('deleteStoredObjects', () => {
-    it('deletes by batches of a thousand objects', async () => {
-      send.mockResolvedValue({});
-      const keys = Array.from({ length: 1_001 }, (_, index) => `${index}.pdf`);
-
-      await files.deleteStoredObjects(keys);
-
-      expect(send).toHaveBeenCalledTimes(2);
-      expect(send.mock.calls[1]![0].input.Delete.Objects).toEqual([{ Key: '1000.pdf' }]);
-    });
-
-    it('lets the caller know an object could not be deleted', async () => {
-      send.mockResolvedValue({ Errors: [{ Key: 'a.pdf' }] });
-
-      await expect(files.deleteStoredObjects(['a.pdf'])).rejects.toThrow('Failed deleting 1 objects');
     });
   });
 });
