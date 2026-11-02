@@ -5,6 +5,9 @@ CREATE TABLE "nominations_context"."remark" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "impersonated_id" UUID,
     "sent_at" TIMESTAMP(6) NOT NULL,
+    "status" "nominations_context"."remark_status_enum" NOT NULL DEFAULT 'NEW',
+    "status_changed_at" TIMESTAMP(6),
+    "status_comment" TEXT,
     "text" TEXT NOT NULL,
     "url" TEXT NOT NULL,
 
@@ -14,6 +17,7 @@ CREATE TABLE "nominations_context"."remark" (
 CREATE TABLE "nominations_context"."remark_status_change" (
     "changed_at" TIMESTAMP(6) NOT NULL,
     "changed_by" UUID,
+    "comment" TEXT,
     "remark_id" UUID NOT NULL,
     "status" "nominations_context"."remark_status_enum" NOT NULL,
 

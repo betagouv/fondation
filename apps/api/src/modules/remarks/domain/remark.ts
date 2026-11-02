@@ -13,10 +13,12 @@ export class RemarkSent {
   ) {}
 }
 
+export type RemarkStatusWithComment = { comment: string | null; value: RemarkStatus };
+
 export class RemarkStatusChanged {
   constructor(
     readonly remarkId: string,
-    readonly status: RemarkStatus,
+    readonly status: RemarkStatusWithComment,
     readonly changedBy: string,
   ) {}
 }
@@ -28,20 +30,15 @@ export class Remark {
 
   private constructor(
     readonly id: string,
-    private status: RemarkStatus,
+    private status: RemarkStatusWithComment,
   ) {}
 
   get messages(): readonly RemarkEvent[] {
     return this.#messages;
   }
 
-  static from(props: { id: string; status: RemarkStatus }): Remark {
+  static from(props: { id: string; status: RemarkStatusWithComment }): Remark {
     return new Remark(props.id, props.status);
-  }
-
-  /** the changes come most recent first */
-  static statusOf(changes: readonly { status: RemarkStatus }[]): RemarkStatus {
-    return changes[0]?.status ?? 'NEW';
   }
 
   // an admin viewing the application as someone speaks for themself: the account viewed is only the context
@@ -50,7 +47,7 @@ export class Remark {
     text: string;
     url: string;
   }): Remark {
-    const remark = new Remark(makeId(), 'NEW');
+    const remark = new Remark(makeId(), { comment: null, value: 'NEW' });
     const { id, impersonatorId } = command.sender;
     remark.#messages.push(
       impersonatorId
@@ -60,10 +57,12 @@ export class Remark {
     return remark;
   }
 
-  changeStatus(command: { changedBy: string; status: RemarkStatus }): void {
-    if (command.status === this.status) return;
+  changeStatus(command: { changedBy: string; status: RemarkStatusWithComment }): void {
+    // a remark back to new awaits its treatment again: there is nothing to comment yet
+    const status = command.status.value === 'NEW' ? { comment: null, value: 'NEW' as const } : command.status;
+    if (status.value === this.status.value && status.comment === this.status.comment) return;
 
-    this.status = command.status;
-    this.#messages.push(new RemarkStatusChanged(this.id, command.status, command.changedBy));
+    this.status = status;
+    this.#messages.push(new RemarkStatusChanged(this.id, status, command.changedBy));
   }
 }

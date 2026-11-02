@@ -15,23 +15,30 @@ describe('Remark', () => {
     expect(remark.messages).toEqual([new RemarkSent(remark.id, 'admin', 'member', SENT.text, SENT.url)]);
   });
 
-  it('is new until its status changes', () => {
-    expect(Remark.statusOf([])).toBe('NEW');
-    expect(Remark.statusOf([{ status: 'NEW' }, { status: 'PROCESSED' }])).toBe('NEW');
+  it('changes status, with its comment', () => {
+    const remark = Remark.from({ id: 'remark', status: { comment: null, value: 'NEW' } });
+
+    remark.changeStatus({ changedBy: 'admin', status: { comment: 'Déjà prévu', value: 'DISMISSED' } });
+
+    expect(remark.messages).toEqual([
+      new RemarkStatusChanged('remark', { comment: 'Déjà prévu', value: 'DISMISSED' }, 'admin'),
+    ]);
   });
 
-  it('changes status', () => {
-    const remark = Remark.from({ id: 'remark', status: 'NEW' });
+  it('drops the comment once back to new', () => {
+    const remark = Remark.from({ id: 'remark', status: { comment: 'Corrigé', value: 'PROCESSED' } });
 
-    remark.changeStatus({ changedBy: 'admin', status: 'PROCESSED' });
+    remark.changeStatus({ changedBy: 'admin', status: { comment: 'Corrigé', value: 'NEW' } });
 
-    expect(remark.messages).toEqual([new RemarkStatusChanged('remark', 'PROCESSED', 'admin')]);
+    expect(remark.messages).toEqual([
+      new RemarkStatusChanged('remark', { comment: null, value: 'NEW' }, 'admin'),
+    ]);
   });
 
-  it('keeps no trace of a status set again', () => {
-    const remark = Remark.from({ id: 'remark', status: 'DISMISSED' });
+  it('keeps no trace of a status and comment set again', () => {
+    const remark = Remark.from({ id: 'remark', status: { comment: 'Déjà prévu', value: 'DISMISSED' } });
 
-    remark.changeStatus({ changedBy: 'admin', status: 'DISMISSED' });
+    remark.changeStatus({ changedBy: 'admin', status: { comment: 'Déjà prévu', value: 'DISMISSED' } });
 
     expect(remark.messages).toEqual([]);
   });

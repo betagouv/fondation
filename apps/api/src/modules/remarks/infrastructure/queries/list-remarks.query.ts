@@ -6,7 +6,9 @@ import { Prisma } from '../../../../generated/prisma/client';
 import { writerOf, writerSchema } from '../../../../utils/user.util';
 import { Db } from '../../../framework/database';
 import { createPaginatedZodDto, paginate, Pagination } from '../../../framework/pagination';
-import { Remark, REMARK_STATUSES } from '../../domain/remark';
+import { Sortable } from '../../../framework/sorting';
+import { REMARK_STATUSES, type RemarkStatus } from '../../domain/remark';
+import type { ListRemarksQueryDto } from '../remark.dto';
 
 const PERSON = { select: { firstName: true, id: true, lastName: true } satisfies Prisma.UserSelect } as const;
 
@@ -15,25 +17,40 @@ export class ListRemarksQuery {
   constructor(private readonly db: Db) {}
 
   @Transactional()
-  async handle(query: { pagination: Pagination }): Promise<PaginatedRemarkListItemDto> {
+  async handle(query: {
+    pagination: Pagination;
+    sorting: Sortable<ListRemarksQueryDto>;
+    statuses: readonly RemarkStatus[];
+  }): Promise<PaginatedRemarkListItemDto> {
     const { limit, page } = query.pagination;
-    const totalCount = await this.db.tx.remark.count();
+    const { sortBy, sortDesc } = query.sorting;
+    const direction: Prisma.SortOrder = sortDesc ? 'desc' : 'asc';
+    // the most recent first, by default and within a status
+    const orderBy: Prisma.RemarkOrderByWithRelationInput[] = [
+      ...(sortBy === 'status' ? [{ status: direction }] : []),
+      { sentAt: sortBy === 'sentAt' ? direction : 'desc' },
+      { id: 'asc' },
+    ];
+    const where = {
+      status: query.statuses.length > 0 ? { in: [...query.statuses] } : undefined,
+    } satisfies Prisma.RemarkWhereInput;
+    const totalCount = await this.db.tx.remark.count({ where });
     const remarks = await this.db.tx.remark.findMany({
-      orderBy: [{ sentAt: 'desc' }, { id: 'asc' }],
+      orderBy,
       select: {
         author: PERSON,
         id: true,
         impersonated: PERSON,
         sentAt: true,
-        statusChanges: {
-          orderBy: { changedAt: 'desc' },
-          select: { author: PERSON, changedAt: true, status: true },
-        },
+        status: true,
+        statusChangedAt: true,
+        statusComment: true,
         text: true,
         url: true,
       } satisfies Prisma.RemarkSelect,
       skip: (page - 1) * limit,
       take: limit,
+      where,
     });
 
     return paginate({
@@ -42,12 +59,11 @@ export class ListRemarksQuery {
         id: remark.id,
         impersonated: writerOf(remark.impersonated),
         sentAt: remark.sentAt.toISOString(),
-        status: Remark.statusOf(remark.statusChanges),
-        statusChanges: remark.statusChanges.map((change) => ({
-          at: change.changedAt.toISOString(),
-          by: writerOf(change.author),
-          status: change.status,
-        })),
+        status: {
+          changedAt: remark.statusChangedAt?.toISOString() ?? null,
+          comment: remark.statusComment,
+          value: remark.status,
+        },
         text: remark.text,
         url: remark.url,
       })),
@@ -62,10 +78,11 @@ const RemarkListItemDtoSchema = z.object({
   id: z.string(),
   impersonated: writerSchema,
   sentAt: z.iso.datetime(),
-  status: z.enum(REMARK_STATUSES),
-  statusChanges: z.array(
-    z.object({ at: z.iso.datetime(), by: writerSchema, status: z.enum(REMARK_STATUSES) }),
-  ),
+  status: z.object({
+    changedAt: z.iso.datetime().nullable(),
+    comment: z.string().nullable(),
+    value: z.enum(REMARK_STATUSES),
+  }),
   text: z.string(),
   url: z.string(),
 });

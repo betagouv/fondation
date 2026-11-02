@@ -2556,15 +2556,11 @@ export type PaginatedRemarkListItemDto = {
             name: string;
         } | null;
         sentAt: string;
-        status: 'NEW' | 'PROCESSED' | 'DISMISSED';
-        statusChanges: Array<{
-            at: string;
-            by: {
-                id: string;
-                name: string;
-            } | null;
-            status: 'NEW' | 'PROCESSED' | 'DISMISSED';
-        }>;
+        status: {
+            changedAt: string | null;
+            comment: string | null;
+            value: 'NEW' | 'PROCESSED' | 'DISMISSED';
+        };
         text: string;
         url: string;
     }>;
@@ -2584,6 +2580,7 @@ export type SendRemarkDto = {
 };
 
 export type ChangeRemarkStatusDto = {
+    comment: string | null;
     status: 'NEW' | 'PROCESSED' | 'DISMISSED';
 };
 
@@ -5489,6 +5486,12 @@ export type ListRemarksData = {
     body?: never;
     path?: never;
     query?: {
+        sortBy?: 'sentAt' | 'status';
+        statuses?: Array<'NEW' | 'PROCESSED' | 'DISMISSED'>;
+        /**
+         * true
+         */
+        sortDesc?: string | boolean;
         page?: number;
         limit?: number;
     };

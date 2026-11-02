@@ -1,3 +1,4 @@
+/// the remarks sort on their status in this order: a status added later takes its place with ALTER TYPE ... BEFORE
 enum PrismaRemarkStatusEnum {
   NEW
   PROCESSED
@@ -8,13 +9,17 @@ enum PrismaRemarkStatusEnum {
 }
 
 model Remark {
-  authorId       String   @map("author_id") @db.Uuid
-  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  authorId        String                 @map("author_id") @db.Uuid
+  id              String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   /// the account an admin was viewing the application as
-  impersonatedId String?  @map("impersonated_id") @db.Uuid
-  sentAt         DateTime @map("sent_at") @db.Timestamp(6)
-  text           String
-  url            String
+  impersonatedId  String?                @map("impersonated_id") @db.Uuid
+  sentAt          DateTime               @map("sent_at") @db.Timestamp(6)
+  /// the status, comment and time of the last change, or NEW before any: copied here to list and filter the remarks
+  status          PrismaRemarkStatusEnum @default(NEW)
+  statusChangedAt DateTime?              @map("status_changed_at") @db.Timestamp(6)
+  statusComment   String?                @map("status_comment")
+  text            String
+  url             String
 
   author        User                 @relation("remark_author", fields: [authorId], onDelete: Cascade, onUpdate: NoAction, references: [id])
   impersonated  User?                @relation("remark_impersonated", fields: [impersonatedId], onDelete: SetNull, onUpdate: NoAction, references: [id])
@@ -24,10 +29,10 @@ model Remark {
   @@schema("nominations_context")
 }
 
-/// a remark without any change is new
 model RemarkStatusChange {
   changedAt DateTime               @map("changed_at") @db.Timestamp(6)
   changedBy String?                @map("changed_by") @db.Uuid
+  comment   String?
   remarkId  String                 @map("remark_id") @db.Uuid
   status    PrismaRemarkStatusEnum
 

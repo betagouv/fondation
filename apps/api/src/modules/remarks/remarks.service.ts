@@ -2,9 +2,11 @@ import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
 import { Pagination } from '../framework/pagination';
+import { Sortable } from '../framework/sorting';
 
-import { Remark, type RemarkStatus } from './domain/remark';
+import { Remark, type RemarkStatus, type RemarkStatusWithComment } from './domain/remark';
 import { ListRemarksQuery, PaginatedRemarkListItemDto } from './infrastructure/queries/list-remarks.query';
+import type { ListRemarksQueryDto } from './infrastructure/remark.dto';
 import { RemarkRepository } from './infrastructure/remark.repository';
 
 @Injectable()
@@ -14,7 +16,11 @@ export class RemarksService {
     private readonly remarkRepository: RemarkRepository,
   ) {}
 
-  listRemarks(query: { pagination: Pagination }): Promise<PaginatedRemarkListItemDto> {
+  listRemarks(query: {
+    pagination: Pagination;
+    sorting: Sortable<ListRemarksQueryDto>;
+    statuses: readonly RemarkStatus[];
+  }): Promise<PaginatedRemarkListItemDto> {
     return this.listRemarksQuery.handle(query);
   }
 
@@ -31,7 +37,7 @@ export class RemarksService {
   async changeRemarkStatus(command: {
     changedBy: string;
     remarkId: string;
-    status: RemarkStatus;
+    status: RemarkStatusWithComment;
   }): Promise<void> {
     const remark = await this.remarkRepository.find(command);
     remark.changeStatus(command);

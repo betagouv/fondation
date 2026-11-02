@@ -8,6 +8,7 @@ import {
   ParseUUIDPipe,
   Post,
   Put,
+  Query,
   UsePipes,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
@@ -18,7 +19,7 @@ import { AuthedUser, HasRole } from '../../simple-auth';
 import { RemarksService } from '../remarks.service';
 
 import { PaginatedRemarkListItemDto } from './queries/list-remarks.query';
-import { ChangeRemarkStatusDto, SendRemarkDto } from './remark.dto';
+import { ChangeRemarkStatusDto, ListRemarksQueryDto, SendRemarkDto } from './remark.dto';
 
 @ApiTags('Remarks')
 @Controller('/api/remarks/v1')
@@ -28,9 +29,17 @@ export class RemarksController {
   @Get()
   @HasRole('ADMIN')
   @ApiPaginated()
+  @UsePipes(ZodValidationPipe)
   @ZodResponse({ status: HttpStatus.OK, type: PaginatedRemarkListItemDto })
-  listRemarks(@QueryPagination() pagination: Pagination): Promise<PaginatedRemarkListItemDto> {
-    return this.remarks.listRemarks({ pagination });
+  listRemarks(
+    @QueryPagination() pagination: Pagination,
+    @Query() query: ListRemarksQueryDto,
+  ): Promise<PaginatedRemarkListItemDto> {
+    return this.remarks.listRemarks({
+      pagination,
+      sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
+      statuses: query.statuses ?? [],
+    });
   }
 
   @Post()
@@ -56,6 +65,10 @@ export class RemarksController {
     @Param('remarkId', ParseUUIDPipe) remarkId: string,
     @Body() body: ChangeRemarkStatusDto,
   ): Promise<void> {
-    return this.remarks.changeRemarkStatus({ changedBy: user.id, remarkId, status: body.status });
+    return this.remarks.changeRemarkStatus({
+      changedBy: user.id,
+      remarkId,
+      status: { comment: body.comment, value: body.status },
+    });
   }
 }

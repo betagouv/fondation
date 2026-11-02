@@ -1,6 +1,7 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
+import { createSortableDto } from '../../framework/sorting';
 import { REMARK_STATUSES } from '../domain/remark';
 
 export class SendRemarkDto extends createZodDto(
@@ -14,4 +15,24 @@ export class SendRemarkDto extends createZodDto(
   }),
 ) {}
 
-export class ChangeRemarkStatusDto extends createZodDto(z.object({ status: z.enum(REMARK_STATUSES) })) {}
+export class ChangeRemarkStatusDto extends createZodDto(
+  z.object({
+    comment: z
+      .string()
+      .trim()
+      .max(2_000)
+      .transform((comment) => comment || null)
+      .nullable(),
+    status: z.enum(REMARK_STATUSES),
+  }),
+) {}
+
+export class ListRemarksQueryDto extends createSortableDto(
+  z.object({
+    sortBy: z.enum(['sentAt', 'status']).optional(),
+    statuses: z.preprocess(
+      (x) => (x ? ([] as unknown[]).concat(x) : x),
+      z.array(z.enum(REMARK_STATUSES)).optional(),
+    ),
+  }),
+) {}

@@ -16,15 +16,12 @@ export class RemarkRepository {
 
   async find(predicate: { remarkId: string }): Promise<Remark> {
     const remark = await this.db.tx.remark.findUnique({
-      select: {
-        id: true,
-        statusChanges: { orderBy: { changedAt: 'desc' }, select: { status: true }, take: 1 },
-      } satisfies Prisma.RemarkSelect,
+      select: { id: true, status: true, statusComment: true } satisfies Prisma.RemarkSelect,
       where: { id: predicate.remarkId },
     });
     if (!remark) throw new NotFoundException();
 
-    return Remark.from({ id: remark.id, status: Remark.statusOf(remark.statusChanges) });
+    return Remark.from({ id: remark.id, status: { comment: remark.statusComment, value: remark.status } });
   }
 
   @Transactional(Propagation.Mandatory)
@@ -50,13 +47,18 @@ export class RemarkRepository {
   }
 
   private persistRemarkStatusChanged(message: RemarkStatusChanged) {
-    return this.db.tx.remarkStatusChange.create({
+    const { comment, value } = message.status;
+    const changedAt = this.clock.now();
+    return this.db.tx.remark.update({
       data: {
-        changedAt: this.clock.now(),
-        changedBy: message.changedBy,
-        remarkId: message.remarkId,
-        status: message.status,
+        status: value,
+        statusChangedAt: changedAt,
+        statusChanges: {
+          create: { changedAt, changedBy: message.changedBy, comment, status: value },
+        },
+        statusComment: comment,
       },
+      where: { id: message.remarkId },
     });
   }
 }
