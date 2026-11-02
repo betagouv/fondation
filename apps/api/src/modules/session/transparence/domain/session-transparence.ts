@@ -808,29 +808,29 @@ export class SessionTransparence {
   recuseMembers(command: {
     authorId: string;
     formationMemberIds: ReadonlySet<string>;
-    memberIds: readonly string[];
-    nominationFileId: string;
-    recusedMemberIds: ReadonlySet<string>;
+    recusals: readonly { memberIds: readonly string[]; nominationFileId: string }[];
+    recusedMemberIds: ReadonlyMap<string, ReadonlySet<string>>;
   }) {
-    this.assertsCanUpdateFiles(command.nominationFileId);
+    this.assertsCanUpdateFiles(...command.recusals.map(({ nominationFileId }) => nominationFileId));
 
-    const memberIds = [...new Set(command.memberIds)];
-    if (
-      !memberIds.every((id) =>
-        isFormationMemberOrKept(id, command.formationMemberIds, command.recusedMemberIds),
-      )
-    ) {
-      throw new NonFormationMemberRecused();
-    }
-
-    this.#messages.push(
-      new SessionTransparenceFileMembersRecused(
-        this.id,
-        command.nominationFileId,
-        memberIds,
-        command.authorId,
+    const recusals = command.recusals.map(({ memberIds, nominationFileId }) => ({
+      memberIds: [...new Set(memberIds)],
+      nominationFileId,
+    }));
+    const allRecusedAreFormationMembers = recusals.every(({ memberIds, nominationFileId }) =>
+      memberIds.every((id) =>
+        isFormationMemberOrKept(
+          id,
+          command.formationMemberIds,
+          command.recusedMemberIds.get(nominationFileId),
+        ),
       ),
     );
+    if (!allRecusedAreFormationMembers) throw new NonFormationMemberRecused();
+
+    for (const { memberIds, nominationFileId } of recusals) {
+      this.#messages.push(new SessionTransparenceFileMembersRecused(this.id, nominationFileId, memberIds));
+    }
   }
 
   hideAlert(command: { nominationFileId: string }) {

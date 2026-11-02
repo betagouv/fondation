@@ -535,6 +535,13 @@ export type RecusedMembersDto = {
     }>;
 };
 
+export type RecuseNominationFilesMembersDto = {
+    items: Array<{
+        memberIds: Array<string>;
+        nominationFileId: string;
+    }>;
+};
+
 export type DetailedNominationFileAuditionHistoryDto = {
     scheduled: {
         at: string;
@@ -3391,6 +3398,21 @@ export type RecuseMembersResponses = {
 };
 
 export type RecuseMembersResponse = RecuseMembersResponses[keyof RecuseMembersResponses];
+
+export type RecuseNominationFilesMembersData = {
+    body: RecuseNominationFilesMembersDto;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/recused-members';
+};
+
+export type RecuseNominationFilesMembersResponses = {
+    204: void;
+};
+
+export type RecuseNominationFilesMembersResponse = RecuseNominationFilesMembersResponses[keyof RecuseNominationFilesMembersResponses];
 
 export type DetailNominationFileAuditionHistoryData = {
     body?: never;

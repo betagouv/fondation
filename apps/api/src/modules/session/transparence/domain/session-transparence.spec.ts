@@ -1254,13 +1254,18 @@ describe('SessionTransparence', () => {
   });
 
   describe('recuseMembers', () => {
-    const session = (file: { isReported: boolean; outcome: NominationFileOutcomeEnum | null }) =>
+    const FILE_1 = 'nomination-file-id-1';
+    const FILE_2 = 'nomination-file-id-2';
+    const session = (...files: { isReported: boolean; outcome: NominationFileOutcomeEnum | null }[]) =>
       SessionTransparence.from({
         formation: 'SIEGE',
         id: 'session-id',
-        nominationFiles: [
-          { ...file, auditionRequired: false, id: 'nomination-file-id-1', positionRequiresAudition: false },
-        ],
+        nominationFiles: files.map((file, index) => ({
+          ...file,
+          auditionRequired: false,
+          id: `nomination-file-id-${index + 1}`,
+          positionRequiresAudition: false,
+        })),
         version: null,
       });
     const pendingFile = { isReported: false, outcome: null };
@@ -1270,18 +1275,29 @@ describe('SessionTransparence', () => {
       transparence.recuseMembers({
         authorId: 'sg-1',
         formationMemberIds: new Set(['member-1', 'member-2']),
-        memberIds: ['member-1', 'member-2', 'member-1'],
-        nominationFileId: 'nomination-file-id-1',
-        recusedMemberIds: new Set(),
+        recusals: [{ memberIds: ['member-1', 'member-2', 'member-1'], nominationFileId: FILE_1 }],
+        recusedMemberIds: new Map(),
       });
 
       expect(transparence.messages).toEqual([
-        new SessionTransparenceFileMembersRecused(
-          'session-id',
-          'nomination-file-id-1',
-          ['member-1', 'member-2'],
-          'sg-1',
-        ),
+        new SessionTransparenceFileMembersRecused('session-id', FILE_1, ['member-1', 'member-2']),
+      ]);
+    });
+
+    it('records the recusals of several files at once', () => {
+      const transparence = session(pendingFile, pendingFile);
+      transparence.recuseMembers({
+        formationMemberIds: new Set(['member-1', 'member-2']),
+        recusals: [
+          { memberIds: ['member-1'], nominationFileId: FILE_1 },
+          { memberIds: ['member-1', 'member-2'], nominationFileId: FILE_2 },
+        ],
+        recusedMemberIds: new Map(),
+      });
+
+      expect(transparence.messages).toEqual([
+        new SessionTransparenceFileMembersRecused('session-id', FILE_1, ['member-1']),
+        new SessionTransparenceFileMembersRecused('session-id', FILE_2, ['member-1', 'member-2']),
       ]);
     });
 
@@ -1290,13 +1306,12 @@ describe('SessionTransparence', () => {
       transparence.recuseMembers({
         authorId: 'sg-1',
         formationMemberIds: new Set(['member-1']),
-        memberIds: ['member-1'],
-        nominationFileId: 'nomination-file-id-1',
-        recusedMemberIds: new Set(),
+        recusals: [{ memberIds: ['member-1'], nominationFileId: FILE_1 }],
+        recusedMemberIds: new Map(),
       });
 
       expect(transparence.messages).toEqual([
-        new SessionTransparenceFileMembersRecused('session-id', 'nomination-file-id-1', ['member-1'], 'sg-1'),
+        new SessionTransparenceFileMembersRecused('session-id', FILE_1, ['member-1']),
       ]);
     });
 
@@ -1305,19 +1320,26 @@ describe('SessionTransparence', () => {
       transparence.recuseMembers({
         authorId: 'sg-1',
         formationMemberIds: new Set(['member-1']),
-        memberIds: ['member-1', 'deactivated-member'],
-        nominationFileId: 'nomination-file-id-1',
-        recusedMemberIds: new Set(['deactivated-member']),
+        recusals: [{ memberIds: ['member-1', 'deactivated-member'], nominationFileId: FILE_1 }],
+        recusedMemberIds: new Map([[FILE_1, new Set(['deactivated-member'])]]),
       });
 
       expect(transparence.messages).toEqual([
-        new SessionTransparenceFileMembersRecused(
-          'session-id',
-          'nomination-file-id-1',
-          ['member-1', 'deactivated-member'],
-          'sg-1',
-        ),
+        new SessionTransparenceFileMembersRecused('session-id', FILE_1, ['member-1', 'deactivated-member']),
       ]);
+    });
+
+    it('refuses a member deactivated since on a file they were not recused from', () => {
+      expect(() =>
+        session(pendingFile, pendingFile).recuseMembers({
+          formationMemberIds: new Set(),
+          recusals: [
+            { memberIds: ['deactivated-member'], nominationFileId: FILE_1 },
+            { memberIds: ['deactivated-member'], nominationFileId: FILE_2 },
+          ],
+          recusedMemberIds: new Map([[FILE_1, new Set(['deactivated-member'])]]),
+        }),
+      ).toThrow(NonFormationMemberRecused);
     });
 
     it('refuses a member of another formation or deactivated', () => {
@@ -1325,23 +1347,26 @@ describe('SessionTransparence', () => {
         session(pendingFile).recuseMembers({
           authorId: 'sg-1',
           formationMemberIds: new Set(['member-1']),
-          memberIds: ['member-1', 'other-member'],
-          nominationFileId: 'nomination-file-id-1',
-          recusedMemberIds: new Set(),
+          recusals: [{ memberIds: ['member-1', 'other-member'], nominationFileId: FILE_1 }],
+          recusedMemberIds: new Map(),
         }),
       ).toThrow(NonFormationMemberRecused);
     });
 
-    it('refuses a recusal on a reported file', () => {
+    it('refuses the whole batch when one file is reported', () => {
+      const transparence = session(pendingFile, { isReported: true, outcome: 'VALIDATED' });
+
       expect(() =>
-        session({ isReported: true, outcome: 'VALIDATED' }).recuseMembers({
-          authorId: 'sg-1',
+        transparence.recuseMembers({
           formationMemberIds: new Set(['member-1']),
-          memberIds: [],
-          nominationFileId: 'nomination-file-id-1',
-          recusedMemberIds: new Set(),
+          recusals: [
+            { memberIds: ['member-1'], nominationFileId: FILE_1 },
+            { memberIds: ['member-1'], nominationFileId: FILE_2 },
+          ],
+          recusedMemberIds: new Map(),
         }),
       ).toThrow(CantUpdateNominationFiles);
+      expect(transparence.messages).toEqual([]);
     });
   });
 });
