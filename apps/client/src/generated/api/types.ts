@@ -2547,6 +2547,49 @@ export type WriteHelpPageContentDto = {
     content: string;
 };
 
+export type PaginatedRemarkListItemDto = {
+    items: Array<{
+        author: {
+            id: string;
+            name: string;
+        } | null;
+        id: string;
+        impersonated: {
+            id: string;
+            name: string;
+        } | null;
+        sentAt: string;
+        status: 'NEW' | 'PROCESSED' | 'DISMISSED';
+        statusChanges: Array<{
+            at: string;
+            by: {
+                id: string;
+                name: string;
+            } | null;
+            status: 'NEW' | 'PROCESSED' | 'DISMISSED';
+        }>;
+        text: string;
+        url: string;
+    }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
+    links?: {
+        next?: string;
+        previous?: string;
+    };
+};
+
+export type SendRemarkDto = {
+    text: string;
+    url: string;
+};
+
+export type ChangeRemarkStatusDto = {
+    status: 'NEW' | 'PROCESSED' | 'DISMISSED';
+};
+
 export type GetFileByFileUrlData = {
     body?: never;
     headers?: {
@@ -5444,3 +5487,47 @@ export type DetailReaderHelpPageResponses = {
 };
 
 export type DetailReaderHelpPageResponse = DetailReaderHelpPageResponses[keyof DetailReaderHelpPageResponses];
+
+export type ListRemarksData = {
+    body?: never;
+    path?: never;
+    query?: {
+        page?: number;
+        limit?: number;
+    };
+    url: '/api/remarks/v1';
+};
+
+export type ListRemarksResponses = {
+    200: PaginatedRemarkListItemDto;
+};
+
+export type ListRemarksResponse = ListRemarksResponses[keyof ListRemarksResponses];
+
+export type SendRemarkData = {
+    body: SendRemarkDto;
+    path?: never;
+    query?: never;
+    url: '/api/remarks/v1';
+};
+
+export type SendRemarkResponses = {
+    204: void;
+};
+
+export type SendRemarkResponse = SendRemarkResponses[keyof SendRemarkResponses];
+
+export type ChangeRemarkStatusData = {
+    body: ChangeRemarkStatusDto;
+    path: {
+        remarkId: string;
+    };
+    query?: never;
+    url: '/api/remarks/v1/{remarkId}/status';
+};
+
+export type ChangeRemarkStatusResponses = {
+    204: void;
+};
+
+export type ChangeRemarkStatusResponse = ChangeRemarkStatusResponses[keyof ChangeRemarkStatusResponses];

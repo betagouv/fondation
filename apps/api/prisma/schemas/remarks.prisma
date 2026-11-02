@@ -1,0 +1,40 @@
+enum PrismaRemarkStatusEnum {
+  NEW
+  PROCESSED
+  DISMISSED
+
+  @@map("remark_status_enum")
+  @@schema("nominations_context")
+}
+
+model Remark {
+  authorId       String   @map("author_id") @db.Uuid
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  /// the account an admin was viewing the application as
+  impersonatedId String?  @map("impersonated_id") @db.Uuid
+  sentAt         DateTime @map("sent_at") @db.Timestamp(6)
+  text           String
+  url            String
+
+  author        User                 @relation("remark_author", fields: [authorId], onDelete: Cascade, onUpdate: NoAction, references: [id])
+  impersonated  User?                @relation("remark_impersonated", fields: [impersonatedId], onDelete: SetNull, onUpdate: NoAction, references: [id])
+  statusChanges RemarkStatusChange[]
+
+  @@map("remark")
+  @@schema("nominations_context")
+}
+
+/// a remark without any change is new
+model RemarkStatusChange {
+  changedAt DateTime               @map("changed_at") @db.Timestamp(6)
+  changedBy String?                @map("changed_by") @db.Uuid
+  remarkId  String                 @map("remark_id") @db.Uuid
+  status    PrismaRemarkStatusEnum
+
+  author User?  @relation("remark_status_change_author", fields: [changedBy], onDelete: SetNull, onUpdate: NoAction, references: [id])
+  remark Remark @relation(fields: [remarkId], onDelete: Cascade, onUpdate: NoAction, references: [id])
+
+  @@id([remarkId, changedAt], name: "primaryKey")
+  @@map("remark_status_change")
+  @@schema("nominations_context")
+}

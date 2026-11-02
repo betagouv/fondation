@@ -59,6 +59,8 @@ model User {
   authorOfObservantAuditionVersions            ObservantAuditionVersion[]             @relation("observant_audition_version_author")
   authorOfOfficialReports                      OfficialReport[]                       @relation("official_reports_author")
   authorOfOfficialReportVersions               OfficialReportVersion[]                @relation("official_report_version_author")
+  authorOfRemarks                              Remark[]                               @relation("remark_author")
+  authorOfRemarkStatusChanges                  RemarkStatusChange[]                   @relation("remark_status_change_author")
   authorOfSessionCommentVersions               SessionCommentVersion[]                @relation("session_comment_version_author")
   authorOfSummaries                            Summary[]
   authorOfTechnicalAccountChanges              TechnicalAccountChange[]               @relation("technical_account_change_author")
@@ -80,6 +82,7 @@ model User {
   excludedJurisdictionIds                      ExcludedJurisdiction[]
   feedbacks                                    Feedback[]
   followedUpObservations                       Observation[]                          @relation("user_to_observation_follow_up")
+  impersonatedInRemarks                        Remark[]                               @relation("remark_impersonated")
   impersonatorOfAuditionPublications           AuditionPublication[]                  @relation("audition_publication_impersonator")
   impersonatorOfNominationFileAuditionVersions NominationFileAuditionVersion[]        @relation("nomination_file_audition_version_impersonator")
   impersonatorOfObservantAuditionVersions      ObservantAuditionVersion[]             @relation("observant_audition_version_impersonator")

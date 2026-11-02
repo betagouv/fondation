@@ -132,9 +132,12 @@ Le préfixe `/api` est omis.
 | Répondre au questionnaire de satisfaction      | `POST /feedbacks/v1/answer`                  | ✓                        | ✓                        | —                        |
 | Voir sa dernière réponse au questionnaire      | `GET /feedbacks/v1/mine`                     | ✓ si ses propres données | ✓ si ses propres données | ✓ si ses propres données |
 | Exporter les réponses au questionnaire (Excel) | `GET /feedbacks/v1/answers.xlsx`             | —                        | —                        | ✓                        |
+| Envoyer une remarque                           | `POST /remarks/v1`                           | ✓                        | ✓                        | ✓                        |
+| Lister les remarques                           | `GET /remarks/v1`                            | —                        | —                        | ✓                        |
+| Changer le statut d'une remarque               | `PUT /remarks/v1/:remarkId/status`           | —                        | —                        | ✓                        |
 | Télécharger un fichier par son lien temporaire | `GET /files/v1/:fileUrlId`                   | ✓                        | ✓                        | ✓                        |
 
-Le lien de téléchargement temporaire fonctionne comme un jeton : quiconque le détient télécharge le fichier. Une réponse donnée à la place d'un utilisateur n'est pas enregistrée. Un mot de passe ne se change jamais à la place d'un utilisateur.
+Le lien de téléchargement temporaire fonctionne comme un jeton : quiconque le détient télécharge le fichier. Une réponse donnée à la place d'un utilisateur n'est pas enregistrée. Une remarque envoyée à la place d'un utilisateur l'est au nom de l'administrateur. Un mot de passe ne se change jamais à la place d'un utilisateur.
 
 ### Sessions
 
