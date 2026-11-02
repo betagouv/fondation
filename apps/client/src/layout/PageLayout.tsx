@@ -1,9 +1,11 @@
 import type { PropsWithChildren } from 'react';
 
 import { FeedbackInvitation } from '@/features/feedback/components/FeedbackInvitation';
+import { RemarkButton } from '@/features/remarks/components/RemarkButton';
 import { BanneredLayout } from '@/shared/components/banners';
 import { ArchivedSessionProvider } from '@/shared/context/archived-session';
 import { ConfirmModalProvider } from '@/shared/context/confirm-modal';
+import { FloatingActionsProvider, FloatingActionsStack } from '@/shared/context/floating-actions';
 import { ToastProvider } from '@/shared/ui/toast';
 
 import { AppFooter } from './AppFooter';
@@ -16,13 +18,17 @@ export function PageLayout({ children }: PropsWithChildren) {
         <FeedbackInvitation />
         <ArchivedSessionProvider>
           <BanneredLayout>
-            <div className={`flex min-h-screen flex-col`}>
-              <AppHeader />
-              <main className="flex grow flex-col">
-                <div className="flex grow flex-col">{children}</div>
-              </main>
-              <AppFooter />
-            </div>
+            <FloatingActionsProvider>
+              <div className={`flex min-h-screen flex-col`}>
+                <AppHeader />
+                <main className="flex grow flex-col">
+                  <div className="flex grow flex-col">{children}</div>
+                </main>
+                <FloatingActionsStack />
+                <AppFooter />
+              </div>
+              <RemarkButton />
+            </FloatingActionsProvider>
           </BanneredLayout>
         </ArchivedSessionProvider>
       </ConfirmModalProvider>

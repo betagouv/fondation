@@ -124,6 +124,7 @@ export const AppHeader = () => {
         ROUTE_PATHS.ADMIN.USERS,
         ROUTE_PATHS.ADMIN.USER_DETAIL,
         ROUTE_PATHS.ADMIN.FEEDBACKS,
+        ROUTE_PATHS.ADMIN.REMARKS,
         ROUTE_PATHS.ADMIN.HELP,
       ]),
       menuLinks: [
@@ -160,6 +161,15 @@ export const AppHeader = () => {
           text: (
             <span className={clsx('fr-icon-feedback-line', NAV_ICON_CLASS)}>
               {formatMessage({ defaultMessage: 'Consulter les avis' })}
+            </span>
+          ),
+        },
+        {
+          isActive: routeMatches([ROUTE_PATHS.ADMIN.REMARKS]),
+          linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.REMARKS },
+          text: (
+            <span className={clsx('fr-icon-question-answer-line', NAV_ICON_CLASS)}>
+              {formatMessage({ defaultMessage: 'Traiter les remarques' })}
             </span>
           ),
         },
