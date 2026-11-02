@@ -45,10 +45,11 @@ import {
   NOMINATION_SESSION_FILE_STATUSES,
   transparenceFileStatus,
 } from '../../domain/session-transparence-file-status';
-import { ListNominationFilesQueryDto } from '../dtos/nomination-file.dto';
+import { ListNominationFilesQueryDto, RecusedMemberSchema } from '../dtos/nomination-file.dto';
 import { AffectationVersionFinder, OptionalAffectationVersion } from '../finders/affectation-version.finder';
 import { AuditionsSeenFinder } from '../finders/auditions-seen.finder';
 import { NominationFileJurisdictionsFinder } from '../finders/nomination-file-jurisdictions.finder';
+import { RecusedMember, RecusedMembersFinder } from '../finders/recused-members.finder';
 import { SessionReportedFilesFinder } from '../finders/session-reported-files.finder';
 
 @Injectable()
@@ -58,6 +59,7 @@ export class ListNominationFilesQuery {
     private readonly db: Db,
     private readonly versionFinder: AffectationVersionFinder,
     private readonly jurisdictionsFinder: NominationFileJurisdictionsFinder,
+    private readonly recusedMembersFinder: RecusedMembersFinder,
 
     @Inject(forwardRef(() => DocsService))
     private readonly docs: DocsService,
@@ -222,6 +224,9 @@ export class ListNominationFilesQuery {
     const jurisdictions = await this.jurisdictionsFinder.find({
       nominationFileIds: [...nominationFileIds],
     });
+    const recusedMembers = nominationFilesPolicies.canSeeRecusedMembers(query.user)
+      ? await this.recusedMembersFinder.find({ nominationFileIds })
+      : new Map<string, RecusedMember[]>();
 
     const sessionArchivedAt = query.session.archivedAt;
     const isArchived = !!sessionArchivedAt;
@@ -311,6 +316,7 @@ export class ListNominationFilesQuery {
           magistrat: obs.magistrat,
         })),
         priorities: x.priorities.map(prismaPrioriteEnumToPriorityEnum),
+        recusedMembers: recusedMembers.get(x.id) ?? [],
         reporters: x.reporters.map(({ user: { id, firstName, lastName } }) => ({
           firstName,
           id,
@@ -491,6 +497,9 @@ const NominationFileAffectationItemSchema = z.object({
       lastName: z.string(),
     }),
   ),
+  recusedMembers: RecusedMemberSchema.array().meta({
+    description: 'in protocol order, always empty for a member',
+  }),
   observations: z.array(
     z.object({
       id: z.string(),

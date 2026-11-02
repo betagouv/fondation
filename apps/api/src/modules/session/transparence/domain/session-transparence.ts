@@ -204,6 +204,15 @@ export class SessionTransparenceFileMemberMemoWritten {
   ) {}
 }
 
+export class SessionTransparenceFileMembersRecused {
+  constructor(
+    readonly sessionId: string,
+    readonly nominationFileId: string,
+    readonly memberIds: readonly string[],
+    readonly authorId: string,
+  ) {}
+}
+
 export class SessionTransparenceFileAlertHidden {
   constructor(
     readonly sessionId: string,
@@ -257,6 +266,7 @@ type NominationSessionEvent =
   | SessionTransparenceAuditionUnScheduled
   | SessionTransparenceCommentWritten
   | SessionTransparenceFileMemberMemoWritten
+  | SessionTransparenceFileMembersRecused
   | SessionTransparenceFileMissingEvaluationUpdated
   | SessionTransparenceFileMissingEvaluationCommentUpdated
   | SessionTransparenceOutcomeDefined
@@ -285,6 +295,12 @@ type SessionTransparenceAffectationVersion = {
 export class NonFormationMemberDefinedAsReporter extends Error {
   constructor() {
     super(`Impossible d'affecter un membre d'une formation incompatible avec cette session`);
+  }
+}
+
+export class NonFormationMemberRecused extends Error {
+  constructor() {
+    super(`Seul un membre actif de la formation du dossier peut se déporter`);
   }
 }
 
@@ -775,6 +791,31 @@ export class SessionTransparence {
         this.id,
         command.nominationFileId,
         command.comment,
+      ),
+    );
+  }
+
+  recuseMembers(command: {
+    authorId: string;
+    formationMemberIds: ReadonlySet<string>;
+    memberIds: readonly string[];
+    nominationFileId: string;
+    // a member deactivated since stays recused, without being offered for other files
+    recusedMemberIds: ReadonlySet<string>;
+  }) {
+    this.assertsCanUpdateFiles(command.nominationFileId);
+
+    const memberIds = [...new Set(command.memberIds)];
+    if (!memberIds.every((id) => command.formationMemberIds.has(id) || command.recusedMemberIds.has(id))) {
+      throw new NonFormationMemberRecused();
+    }
+
+    this.#messages.push(
+      new SessionTransparenceFileMembersRecused(
+        this.id,
+        command.nominationFileId,
+        memberIds,
+        command.authorId,
       ),
     );
   }

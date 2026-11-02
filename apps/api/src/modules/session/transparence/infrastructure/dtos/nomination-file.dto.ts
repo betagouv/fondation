@@ -96,6 +96,21 @@ export class UpdateMissingEvaluationCommentDto extends createZodDto(
   }),
 ) {}
 
+// article 65 of the Constitution: 7 magistrates of the formation and the 8 members common to both
+const FORMATION_MEMBERS_COUNT = 15;
+
+export class RecuseMembersDto extends createZodDto(
+  z.object({
+    memberIds: z.array(z.uuid()).max(FORMATION_MEMBERS_COUNT),
+  }),
+) {}
+
+export const RecusedMemberSchema = z.object({ firstName: z.string(), id: z.string(), lastName: z.string() });
+
+export class RecusedMembersDto extends createZodDto(
+  z.object({ recusedMembers: RecusedMemberSchema.array().meta({ description: 'in protocol order' }) }),
+) {}
+
 export class UpdateAuditionDateDto extends createZodDto(scheduleAuditionSchema) {}
 
 export class UpdateAuditionRequestDto extends createZodDto(z.object({ requested: z.boolean() })) {}

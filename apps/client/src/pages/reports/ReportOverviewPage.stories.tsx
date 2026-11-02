@@ -75,6 +75,7 @@ const NOMINATION_FILE: DetailedNominationFileDto = {
   missingEvaluationComment: null,
   observations: [],
   priorities: ['ETOILE'],
+  recusedMembers: [],
   reporters: [{ firstName: 'Jean', id: STORY_USERS.member.id, lastName: 'Petit' }],
   summary: null,
 };

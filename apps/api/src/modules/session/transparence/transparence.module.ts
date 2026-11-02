@@ -19,6 +19,7 @@ import { LolfiNominationSessionFinder } from './infrastructure/finders/lolfi-nom
 import { NominationFileJurisdictionsFinder } from './infrastructure/finders/nomination-file-jurisdictions.finder';
 import { NominationFileOutcomesFinder } from './infrastructure/finders/nomination-file-outcomes.finder';
 import { NominationFilesProgressFinder } from './infrastructure/finders/nomination-files-progress.finder';
+import { RecusedMembersFinder } from './infrastructure/finders/recused-members.finder';
 import { ReportedSessionsFinder } from './infrastructure/finders/reported-sessions.finder';
 import { ReportersAffectationFinder } from './infrastructure/finders/reporters-affectation.finder';
 import { SessionAuditionsFinder } from './infrastructure/finders/session-auditions.finder';
@@ -106,6 +107,7 @@ import { SessionController } from './transparence.controller';
     NominationFileOutcomesFinder,
     NominationFilesProgressFinder,
     NominationSessionFinder,
+    RecusedMembersFinder,
     ReportedSessionsFinder,
     SessionReportedFilesFinder,
     ReportersAffectationFinder,

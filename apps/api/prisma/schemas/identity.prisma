@@ -59,6 +59,7 @@ model User {
   authorOfObservantAuditionVersions            ObservantAuditionVersion[]             @relation("observant_audition_version_author")
   authorOfOfficialReports                      OfficialReport[]                       @relation("official_reports_author")
   authorOfOfficialReportVersions               OfficialReportVersion[]                @relation("official_report_version_author")
+  authorOfRecusals                             RecusedMember[]                        @relation("recused_member_author")
   authorOfRemarks                              Remark[]                               @relation("remark_author")
   authorOfRemarkStatusChanges                  RemarkStatusChange[]                   @relation("remark_status_change_author")
   authorOfSessionCommentVersions               SessionCommentVersion[]                @relation("session_comment_version_author")
@@ -93,6 +94,7 @@ model User {
   publishedVersions                            AffectationVersion[]                   @relation("affectation_version_publisher")
   publisherOfAuditionPublications              AuditionPublication[]                  @relation("audition_publication_publisher")
   readerOfSummaries                            SummaryReader[]
+  recusals                                     RecusedMember[]                        @relation("recused_member")
   removerOfJusticePresentationAgendas          JusticePresentationPlanRemovedAgenda[] @relation("justice_presentation_agenda_remover")
   reporterOnNominationFileIds                  NominationFileToReporter[]
   secretaryOfJusticePresentationPlans          JusticePresentationPlan[]              @relation("justice_presentation_secretary")

@@ -30,6 +30,8 @@ import { AutoAffectationDto } from './infrastructure/dtos/auto-affectation.dto';
 import {
   AffectReportersDto,
   ListNominationFilesQueryDto,
+  RecusedMembersDto,
+  RecuseMembersDto,
   UpdateAuditionDateDto,
   UpdateAuditionRequestDto,
   UpdateCommentDto,
@@ -447,6 +449,19 @@ export class SessionController {
       nominationFileId,
       sessionId,
     });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Put('/:sessionId/files/:nominationFileId/recused-members')
+  @UsePipes(ZodValidationPipe)
+  @ZodResponse({ status: HttpStatus.OK, type: RecusedMembersDto })
+  recuseMembers(
+    @AuthedUserId() authorId: string,
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
+    @Body() body: RecuseMembersDto,
+  ): Promise<RecusedMembersDto> {
+    return this.sessions.recuseMembers({ authorId, memberIds: body.memberIds, nominationFileId, sessionId });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
