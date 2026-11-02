@@ -15,9 +15,9 @@ catalog:
   '@typescript/native': npm:typescript@7.0.2
   '@types/node': 26.6.5
   '@hey-api/openapi-ts': 0.99.0
-  'vitest': 4.1.11
+  'vitest': 4.1.12
   'vitest-mock-extended': 5.1.1
-  '@vitest/coverage-v8': 4.1.11
+  '@vitest/coverage-v8': 4.1.12
   # The official documents are laid out by this exact build: the PdfRenderer tests check its digest
   'pagedjs': 0.4.3
 
