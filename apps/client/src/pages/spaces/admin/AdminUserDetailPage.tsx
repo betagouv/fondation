@@ -18,6 +18,7 @@ import { IconButton } from '@/shared/ui/icon-button';
 import { generatePassword } from '@/utils/password.utils';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { capitalize } from '@/utils/string.utils';
+import { tabImpersonation } from '@/utils/tab-impersonation';
 import { memberFullName } from '@/utils/user.utils';
 import type { DetailedAdminUserDto } from '@api/types';
 import {
@@ -846,9 +847,9 @@ function ImpersonateButton(props: { userId: string }) {
   const { isPending, mutate: impersonate } = useImpersonateMutation({ userId: props.userId });
   const onClick = useCallback(() => {
     impersonate(undefined, {
-      onSuccess() {
+      onSuccess(impersonation) {
         const url = new URL(generatePath(ROUTE_PATHS.TRANSPARENCES.DASHBOARD), window.location.href);
-        tab.open(url);
+        tab.open(tabImpersonation.carry(url, impersonation.id));
       },
     });
   }, [impersonate, tab]);

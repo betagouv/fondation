@@ -1,45 +1,68 @@
 import { colors } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
-import React from 'react';
+import { useEffect, useReducer, type ReactNode } from 'react';
 import { FormattedMessage } from 'react-intl';
 
 import { PermanentBanner } from '@/shared/components/banners';
+import { tabImpersonation } from '@/utils/tab-impersonation';
 import { memberFullName } from '@/utils/user.utils';
 import { useLogout, useUser } from '@queries/auth.queries';
 
 const text = colors.options.purpleGlycine.main494.default;
 const bgColor = colors.options.purpleGlycine._950_100.default;
 
+const strong = (chunks: ReactNode) => <strong>{chunks}</strong>;
+
 export function ImpersonationBanner() {
   const { user } = useUser();
-  const { mutate, isPending } = useLogout();
+  const { isPending, mutate } = useLogout();
+  // the tab's storage is no React state: dismissing the banner must render again
+  const [, render] = useReducer((count: number) => count + 1, 0);
+  const impersonatedName = user?.isImpersonated ? memberFullName(user) : null;
+  const endedFor = tabImpersonation.endedFor;
 
-  const onClick = React.useCallback(() => {
-    mutate(undefined, {
-      onSuccess: () => {
-        window.close();
-      },
-    });
-  }, [mutate]);
+  useEffect(() => {
+    if (impersonatedName) tabImpersonation.remember(impersonatedName);
+  }, [impersonatedName]);
 
-  if (!user?.isImpersonated) return null;
+  if (!impersonatedName && !endedFor) return null;
+
+  const banner = impersonatedName
+    ? {
+        action: () => mutate(undefined, { onSuccess: () => window.close() }),
+        label: <FormattedMessage defaultMessage="Déconnecter" />,
+        message: (
+          <FormattedMessage
+            defaultMessage="Connecté en tant que <b>{name}</b>"
+            values={{ b: strong, name: impersonatedName }}
+          />
+        ),
+      }
+    : {
+        action: () => {
+          tabImpersonation.forget();
+          render();
+        },
+        label: <FormattedMessage defaultMessage="Continuer avec mon compte" />,
+        message: (
+          <FormattedMessage
+            defaultMessage="Votre connexion en tant que <b>{name}</b> a pris fin"
+            values={{ b: strong, name: endedFor }}
+          />
+        ),
+      };
 
   return (
-    <PermanentBanner className="flex items-center" style={{ color: text, backgroundColor: bgColor }}>
-      <span>
-        <FormattedMessage
-          defaultMessage="Connecté en tant que <b>{name}</b>"
-          values={{ b: (chunks) => <strong>{chunks}</strong>, name: user ? memberFullName(user) : '' }}
-        />
-      </span>
+    <PermanentBanner className="flex items-center" style={{ backgroundColor: bgColor, color: text }}>
+      <span>{banner.message}</span>
       <Button
-        size="small"
         className="fr-ml-1v"
-        priority="tertiary no outline"
-        onClick={onClick}
         disabled={isPending}
+        onClick={banner.action}
+        priority="tertiary no outline"
+        size="small"
       >
-        <FormattedMessage defaultMessage="Déconnecter" />
+        {banner.label}
       </Button>
     </PermanentBanner>
   );

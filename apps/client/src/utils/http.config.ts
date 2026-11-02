@@ -2,6 +2,7 @@ import type { CreateClientConfig } from '../generated/api/client/types';
 
 import { appVersion } from './app-version';
 import { httpAssert } from './http-exception';
+import { IMPERSONATION_HEADER, tabImpersonation } from './tab-impersonation';
 
 export function getBaseUrl() {
   if (!import.meta.env.PROD) return '';
@@ -63,7 +64,12 @@ export const createClientConfig: CreateClientConfig = (config) => ({
   baseUrl: getBaseUrl(),
   credentials: 'include',
   fetch: async (init) => {
-    const response = await globalThis.fetch(init, { signal: AbortSignal.timeout(timeoutFor(init)) });
+    const request = new Request(init);
+    const impersonationId = tabImpersonation.id;
+    if (impersonationId) request.headers.set(IMPERSONATION_HEADER, impersonationId);
+
+    const response = await globalThis.fetch(request, { signal: AbortSignal.timeout(timeoutFor(request)) });
+    if (impersonationId && response.status === 401) tabImpersonation.end();
     appVersion.observe(response);
     return httpAssert(response);
   },

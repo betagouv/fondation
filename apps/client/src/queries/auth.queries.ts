@@ -1,6 +1,7 @@
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { HttpException } from '../utils/http-exception';
+import { tabImpersonation } from '../utils/tab-impersonation';
 import { withValidationError } from '../utils/validation-error';
 import * as $api from '@api/sdk';
 import type { DetailedUserResponseDto } from '@api/types';
@@ -66,7 +67,10 @@ export function useLogout() {
 
   return useMutation({
     mutationFn: () => $api.auth.logout(),
-    onSuccess: () => queryClient.removeQueries({ queryKey: authKeys.introspectSession() }),
+    onSuccess: () => {
+      tabImpersonation.forget();
+      queryClient.removeQueries({ queryKey: authKeys.introspectSession() });
+    },
   });
 }
 
@@ -93,7 +97,8 @@ export function useChangePasswordMutation() {
 
 export function useImpersonateMutation(props: { userId: string }) {
   return useMutation({
-    mutationFn: () => $api.auth.impersonate({ path: { userId: props.userId } }),
+    mutationFn: () =>
+      $api.auth.impersonate({ path: { userId: props.userId }, throwOnError: true }).then(({ data }) => data),
   });
 }
 

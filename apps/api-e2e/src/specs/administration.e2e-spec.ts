@@ -270,7 +270,7 @@ test.describe('Administration', () => {
   });
 
   test.describe('Given an impersonated member', () => {
-    test('should end the impersonation once the member is deactivated, and let the admin log in again', async ({
+    test('should end the impersonation once the member is deactivated, while the admin session goes on', async ({
       admin,
       baseUrl,
       expect,
@@ -288,17 +288,16 @@ test.describe('Administration', () => {
       });
       const asImpersonated = makeStepsFixtures({
         baseUrl,
-        cookies: [`${adminSession}; ${cookieHeader(started.response)}`],
+        cookies: [adminSession],
+        impersonationId: started.data.id,
       });
 
       await admin.administration.deactivate({ path: { userId: impersonated.id }, throwOnError: true });
 
       const during = await asImpersonated.auth.introspectSession();
       expect(during.response?.status).toBe(401);
-      const { response: again } = await anonymous.auth.login({ body: credentials, throwOnError: true });
-      expect(again.headers.getSetCookie()).toContainEqual(
-        expect.stringMatching(/^impersonationId=.*Expires=Thu, 01 Jan 1970/),
-      );
+      const asImpersonator = await makeStepsFixtures({ baseUrl, cookies: [adminSession] }).auth.introspectSession();
+      expect(asImpersonator.data).toMatchObject({ isImpersonated: false, userId: impersonator.id });
     });
   });
 

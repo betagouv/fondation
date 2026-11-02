@@ -134,7 +134,7 @@ Le préfixe `/api` est omis.
 | Exporter les réponses au questionnaire (Excel) | `GET /feedbacks/v1/answers.xlsx`             | —                        | —                        | ✓                        |
 | Télécharger un fichier par son lien temporaire | `GET /files/v1/:fileUrlId`                   | ✓                        | ✓                        | ✓                        |
 
-Le lien de téléchargement temporaire fonctionne comme un jeton : quiconque le détient télécharge le fichier. Une réponse donnée à la place d'un utilisateur n'est pas enregistrée. Un mot de passe ne se change jamais à la place d'un utilisateur.
+Quiconque détient un lien de téléchargement temporaire télécharge le fichier. Connecté à la place d'un utilisateur, l'administrateur n'enregistre ni réponse au questionnaire ni changement de mot de passe. Cette connexion ne vaut que pour l'onglet ouvert pour elle et ceux ouverts depuis lui.
 
 ### Sessions
 

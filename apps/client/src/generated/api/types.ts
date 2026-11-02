@@ -40,6 +40,10 @@ export type ChangePasswordDto = {
     newPassword: string;
 };
 
+export type CreatedImpersonationDto = {
+    id: string;
+};
+
 export type ListedOpenIdProvidersDto = {
     items: Array<string>;
 };
@@ -2630,7 +2634,7 @@ export type ImpersonateData = {
 };
 
 export type ImpersonateResponses = {
-    204: void;
+    201: CreatedImpersonationDto;
 };
 
 export type ImpersonateResponse = ImpersonateResponses[keyof ImpersonateResponses];
