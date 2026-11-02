@@ -358,8 +358,9 @@ Globalement, configurer son IDE pour utiliser ces configurations est le mieux. L
 peut cependant parfois provoquer des conflits.
 
 Une fois la pull request fusionnée dans `develop`, on déploie avec `bin/deploy.sh`, qui guide pas à
-pas le déploiement de staging, la préparation et la mise en production. Il ne demande que `git` pour
-staging, `gh` et la CLI `scalingo` connectée à la production pour le reste.
+pas le déploiement de staging, la préparation et la mise en production. Staging ne demande que
+`git`, la préparation `gh`, la mise en production `gh` et la CLI `scalingo` connectée à la
+production.
 
 ## Sécurité des dépendances
 

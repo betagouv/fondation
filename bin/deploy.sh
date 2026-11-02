@@ -2,6 +2,8 @@
 # Deploys staging and production step by step, without touching the current checkout.
 # The production runbook: https://app.notion.com/p/1b665210f6b64b34b86d25819dca7715
 set -euo pipefail
+# Without it, bash ignores set -e inside $(...) and keeps going after a failed command.
+shopt -s inherit_errexit
 
 # Must match the tag triggers of .github/workflows/release-staging.yml
 readonly TAG_FORMAT='^IT([0-9]+)S([0-9]+)(-([0-9]+))?$'
@@ -10,12 +12,18 @@ readonly STAGING_WORKFLOW=release-staging.yml
 readonly PRODUCTION_WORKFLOW=release-production.yml
 readonly PRODUCTION_URL=https://fondation-webapp-production.osc-secnum-fr1.scalingo.io
 readonly RUNBOOK_URL=https://app.notion.com/p/1b665210f6b64b34b86d25819dca7715
+readonly HOLIDAYS_URL=https://calendrier.api.gouv.fr/jours-feries/metropole
 readonly MIGRATIONS=apps/api/prisma/migrations
-readonly SDV_SCRIPT=apps/api/scripts/send-to-scalingo.sh
+readonly SDV_RELAY_SCRIPT=apps/api/scripts/send-to-scalingo.sh
 
 die() {
   echo "$*" >&2
   exit 1
+}
+
+nothing_new() {
+  echo "Rien de nouveau depuis $1."
+  exit 0
 }
 
 require() {
@@ -33,7 +41,7 @@ confirm() {
 
 # Prints the 1-based index of the chosen option, the first one by default.
 choose() {
-  local prompt=$1 answer i=1
+  local prompt=$1 answer option i=1
   shift
   for option; do
     echo "  $i) $option" >&2
@@ -58,10 +66,7 @@ latest_tag() {
 show_changes() {
   local changes
   changes=$(git log --first-parent --format='  %h %s' "$1..$2")
-  if [[ -z $changes ]]; then
-    echo "Rien de nouveau depuis $1."
-    exit 0
-  fi
+  [[ -n $changes ]] || nothing_new "$1"
   echo "Ce qui part depuis $1 :"
   echo "$changes"
 }
@@ -86,8 +91,9 @@ watch_run() {
 }
 
 staging() {
-  local last next options tags index
-  last=$(git tag --list 'IT*' | grep -E "$TAG_FORMAT" | sort -V | tail -n1)
+  local remote_tags last next options tags index run
+  remote_tags=$(git ls-remote --tags --refs origin 'IT*')
+  last=$(sed 's|.*refs/tags/||' <<<"$remote_tags" | grep -E "$TAG_FORMAT" | sort -V | tail -n1 || true)
   [[ $last =~ $TAG_FORMAT ]] || die "Aucun tag de staging trouvé."
   local iteration=${BASH_REMATCH[1]} sprint=${BASH_REMATCH[2]} build=${BASH_REMATCH[4]:-0}
 
@@ -112,46 +118,51 @@ staging() {
   }
 
   if command -v gh >/dev/null; then
-    watch_run "$(wait_for_new_run "$STAGING_WORKFLOW" "" --branch "$next")"
+    run=$(wait_for_new_run "$STAGING_WORKFLOW" "" --branch "$next")
+    watch_run "$run"
   else
     echo "Suis le déploiement sur https://github.com/betagouv/fondation/actions/workflows/$STAGING_WORKFLOW"
   fi
 }
 
+# Prints "<number> <branch> <head sha>" of each open alignment PR.
 alignment_pr() {
-  gh pr list --base production --state open --json number,headRefName \
-    --jq ".[] | select(.headRefName | startswith(\"$ALIGNMENT_BRANCH_PREFIX\")) | \"\(.number) \(.headRefName)\""
+  gh pr list --base production --state open --json number,headRefName,headRefOid \
+    --jq ".[] | select(.headRefName | startswith(\"$ALIGNMENT_BRANCH_PREFIX\")) | \"\(.number) \(.headRefName) \(.headRefOid)\""
+}
+
+migrations_with_status() {
+  git diff --no-renames --diff-filter="$1" --name-only origin/production "$2" -- "$MIGRATIONS/*/migration.sql" |
+    sed -E 's|.*/migrations/([^/]+)/.*|  \1|'
 }
 
 report_migrations() {
   local added changed
-  added=$(git diff --no-renames --diff-filter=A --name-only origin/production "$1" -- "$MIGRATIONS/*/migration.sql")
-  changed=$(git diff --no-renames --diff-filter=M --name-only origin/production "$1" -- "$MIGRATIONS/*/migration.sql")
+  added=$(migrations_with_status A "$1")
+  changed=$(migrations_with_status M "$1")
   if [[ -n $added ]]; then
     echo "Migrations ajoutées :"
-    sed -E 's|.*/migrations/([^/]+)/.*|  \1|' <<<"$added"
+    echo "$added"
     echo "Répète sur une copie de la production celles qui déplacent ou suppriment des données : $RUNBOOK_URL"
   fi
   if [[ -n $changed ]]; then
     echo "Attention, migrations déjà en production modifiées :"
-    sed -E 's|.*/migrations/([^/]+)/.*|  \1|' <<<"$changed"
+    echo "$changed"
   fi
 }
 
 prepare() {
   require gh
-  local production_tag tags=() tag index tree commit branch url number old_branch
+  local production_tag staging_runs tags=() tag index merged_tree commit branch open_pr open_number open_branch url
   production_tag=$(latest_tag origin/production)
 
+  staging_runs=$(gh run list --workflow "$STAGING_WORKFLOW" --status success --limit 30 --json headBranch --jq '.[].headBranch')
   while read -r tag; do
-    if [[ $tag =~ $TAG_FORMAT ]] && ! git merge-base --is-ancestor "$tag" origin/production; then
+    if [[ $tag =~ $TAG_FORMAT && " ${tags[*]} " != *" $tag "* ]] && ! git merge-base --is-ancestor "$tag" origin/production; then
       tags+=("$tag")
     fi
-  done < <(gh run list --workflow "$STAGING_WORKFLOW" --status success --limit 30 --json headBranch --jq '.[].headBranch')
-  ((${#tags[@]})) || {
-    echo "Rien de nouveau depuis $production_tag."
-    exit 0
-  }
+  done <<<"$staging_runs"
+  ((${#tags[@]})) || nothing_new "$production_tag"
 
   echo "Tags passés sur staging, absents de production :"
   index=$(choose "Tag à mettre en production :" "${tags[@]}")
@@ -160,34 +171,37 @@ prepare() {
   show_changes "$production_tag" "$tag"
   report_migrations "$tag"
 
-  tree=$(git merge-tree --write-tree --no-messages "$tag" origin/production | head -n1 || true)
-  if [[ $tree != "$(git rev-parse "$tag^{tree}")" ]]; then
+  merged_tree=$(git merge-tree --write-tree --no-messages "$tag" origin/production | head -n1 || true)
+  if [[ $merged_tree != "$(git rev-parse "$tag^{tree}")" ]]; then
     echo "production contient des changements absents de $tag, à faire passer par develop :" >&2
     git log --no-merges --cherry-pick --right-only --format='  %h %s' "$tag...origin/production" >&2
     exit 1
   fi
 
   confirm "Ouvrir la PR d'alignement de production sur $tag ?" || exit 0
-  commit=$(git commit-tree "$tree" -p "$tag^{commit}" -p origin/production -m "chore: aligns production on develop")
-  branch=$ALIGNMENT_BRANCH_PREFIX$(tr '[:upper:]' '[:lower:]' <<<"$tag")
-  read -r number old_branch <<<"$(alignment_pr)"
+  commit=$(git commit-tree "$merged_tree" -p "$tag^{commit}" -p origin/production -m "chore: aligns production on develop")
+  branch=$ALIGNMENT_BRANCH_PREFIX${tag,,}
+  open_pr=$(alignment_pr)
+  read -r open_number open_branch _ <<<"$open_pr"
   git push --quiet --force origin "$commit:refs/heads/$branch"
 
-  if [[ $old_branch == "$branch" ]]; then
-    url=$(gh pr view "$number" --json url --jq .url)
+  if [[ $open_branch == "$branch" ]]; then
+    url=$(gh pr view "$open_number" --json url --jq .url)
   else
     url=$(gh pr create --base production --head "$branch" \
       --title "chore(FON-000): aligns production on develop" \
       --body "Release of $tag: production gets develop as tested on staging")
-    if [[ -n $number ]]; then
-      gh pr close "$number" --delete-branch --comment "Replaced by $url"
+    if [[ -n $open_number ]]; then
+      gh pr close "$open_number" --delete-branch --comment "Replaced by $url"
     fi
   fi
   echo "PR d'alignement : $url"
 }
 
 warn_outside_slot() {
-  if (($(date +%u) > 5)) || [[ $(date +%H) != 07 ]]; then
+  local holidays
+  holidays=$(curl -fsS --max-time 5 "$HOLIDAYS_URL/$(date +%Y).json" || true)
+  if (($(date +%u) > 5)) || [[ $(date +%H) != 07 || $holidays == *"\"$(date +%F)\""* ]]; then
     echo "Attention : on n'est pas un jour ouvré entre 7 h et 8 h, des utilisateurs peuvent être connectés."
   fi
 }
@@ -197,6 +211,7 @@ scalingo_postgresql() {
 }
 
 # Prints "id<TAB>created at<TAB>status" of the given backup, or of the most recent one.
+# The CLI ignores --format json for backups: only its table can be read.
 backup_row() {
   scalingo_postgresql backups |
     sed $'s/\x1b\\[[0-9;]*m//g' |
@@ -204,8 +219,9 @@ backup_row() {
 }
 
 start_backup() {
-  local id created status
-  IFS=$'\t' read -r id created status <<<"$(backup_row)"
+  local row id created status
+  row=$(backup_row)
+  IFS=$'\t' read -r id created status <<<"$row"
   case $status in
     done)
       # Scalingo backup ids are MongoDB ObjectIds: their first 4 bytes are the creation time.
@@ -252,8 +268,8 @@ follow_production() {
   echo "Déploiement terminé, à vérifier :"
   echo "  - la version $tag dans le footer de $PRODUCTION_URL ;"
   echo "  - une session, un ODJ, un PV, une notice et une fiche magistrat existants ;"
-  if ! git diff --quiet "$deployed_sha" "$tag" -- "$SDV_SCRIPT"; then
-    echo "  - $SDV_SCRIPT a changé : recopie-le sur le relais SDV, empreinte attendue $(git show "$tag:$SDV_SCRIPT" | sha256sum | cut -c1-12) ;"
+  if ! git diff --quiet "$deployed_sha" "$tag" -- "$SDV_RELAY_SCRIPT"; then
+    echo "  - $SDV_RELAY_SCRIPT a changé : recopie-le sur le relais SDV, empreinte attendue $(git show "$tag:$SDV_RELAY_SCRIPT" | sha256sum | cut -c1-12) ;"
   fi
   echo "  - demain, l'ingestion dans $PRODUCTION_URL/admin/jobs."
 }
@@ -261,44 +277,41 @@ follow_production() {
 release() {
   require gh scalingo
   warn_outside_slot
-  local production_sha deployed_sha deployed_tag number branch tag run_id run_sha run_status backup answer
+  local production_sha deployed_sha deployed_tag open_pr number head_sha tag last_run run_id run_sha run_status backup answer
   production_sha=$(git rev-parse origin/production)
   deployed_sha=$(gh run list --workflow "$PRODUCTION_WORKFLOW" --status success --limit 1 --json headSha --jq '.[0].headSha')
   deployed_tag=$(latest_tag "$deployed_sha")
-  read -r number branch <<<"$(alignment_pr)"
-  if [[ -n $number ]]; then
-    tag=$(tr '[:lower:]' '[:upper:]' <<<"${branch#"$ALIGNMENT_BRANCH_PREFIX"}")
-  else
-    tag=$(latest_tag origin/production)
-  fi
+  open_pr=$(alignment_pr)
+  read -r number _ head_sha <<<"$open_pr"
+  tag=$(latest_tag "${head_sha:-origin/production}")
 
-  read -r run_id run_sha run_status <<<"$(gh run list --workflow "$PRODUCTION_WORKFLOW" --limit 1 \
-    --json databaseId,headSha,status --jq '.[0] | "\(.databaseId) \(.headSha) \(.status)"')"
+  last_run=$(gh run list --workflow "$PRODUCTION_WORKFLOW" --limit 1 \
+    --json databaseId,headSha,status --jq '.[0] | "\(.databaseId) \(.headSha) \(.status)"')
+  read -r run_id run_sha run_status <<<"$last_run"
   if [[ $run_status != completed && $run_sha == "$production_sha" ]]; then
     echo "Le déploiement de $tag est déjà en cours."
-    follow_production "$run_id" "$tag" "$deployed_sha" "$(backup_row | cut -f1)"
-    return
-  fi
-  if [[ -z $number && $deployed_sha == "$production_sha" ]]; then
-    echo "Rien de nouveau depuis $deployed_tag."
-    exit 0
-  fi
+    backup=$(backup_row | cut -f1)
+  else
+    if [[ -z $number && $deployed_sha == "$production_sha" ]]; then
+      nothing_new "$deployed_tag"
+    fi
+    show_changes "$deployed_tag" "$tag"
+    echo "Vérifie que l'ingestion du jour est terminée : $PRODUCTION_URL/admin/jobs"
+    confirm "Ingestion du jour terminée ?" || exit 0
 
-  show_changes "$deployed_tag" "$tag"
-  echo "Vérifie que l'ingestion du jour est terminée : $PRODUCTION_URL/admin/jobs"
-  confirm "Ingestion du jour terminée ?" || exit 0
+    backup=$(start_backup)
+    if [[ -n $number ]]; then
+      gh pr merge "$number" --merge
+      git fetch --quiet origin production
+    fi
+    wait_for_backup "$backup"
 
-  backup=$(start_backup)
-  if [[ -n $number ]]; then
-    gh pr merge "$number" --merge
-    git fetch --quiet origin production
+    read -rp "Sauvegarde $backup terminée. Retape $tag pour lancer le déploiement de production : " answer
+    [[ $answer == "$tag" ]] || die "Déploiement abandonné."
+    gh workflow run "$PRODUCTION_WORKFLOW" --ref production
+    run_id=$(wait_for_new_run "$PRODUCTION_WORKFLOW" "$run_id")
   fi
-  wait_for_backup "$backup"
-
-  read -rp "Sauvegarde $backup terminée. Retape $tag pour lancer le déploiement de production : " answer
-  [[ $answer == "$tag" ]] || die "Déploiement abandonné."
-  gh workflow run "$PRODUCTION_WORKFLOW" --ref production
-  follow_production "$(wait_for_new_run "$PRODUCTION_WORKFLOW" "$run_id")" "$tag" "$deployed_sha" "$backup"
+  follow_production "$run_id" "$tag" "$deployed_sha" "$backup"
 }
 
 git fetch --quiet --tags origin
