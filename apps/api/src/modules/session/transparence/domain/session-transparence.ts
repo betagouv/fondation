@@ -304,6 +304,15 @@ export class NonFormationMemberRecused extends Error {
   }
 }
 
+/** a member deactivated since keeps their place on a file, without being offered for other ones */
+function isFormationMemberOrKept(
+  memberId: string,
+  formationMemberIds: ReadonlySet<string>,
+  fileMemberIds: ReadonlySet<string> | undefined,
+): boolean {
+  return formationMemberIds.has(memberId) || !!fileMemberIds?.has(memberId);
+}
+
 export class SessionTransparenceAffectationHasUnassignableReporters extends Error {
   constructor(
     readonly errors: readonly {
@@ -542,7 +551,6 @@ export class SessionTransparence {
   affectNominationFileReporters(command: {
     authorId: string | null;
     formationMemberIds: Set<string>;
-    // a reporter deactivated since stays on the files they already have, without being offered for new ones
     assignedReporterIds?: ReadonlyMap<string, ReadonlySet<string>>;
     affectations: readonly {
       nominationFileId: string;
@@ -565,10 +573,12 @@ export class SessionTransparence {
     }
 
     const allReportersAreFormationMembers = command.affectations.every(({ nominationFileId, reporterIds }) =>
-      reporterIds.every(
-        (reporterId) =>
-          command.formationMemberIds.has(reporterId) ||
-          !!command.assignedReporterIds?.get(nominationFileId)?.has(reporterId),
+      reporterIds.every((reporterId) =>
+        isFormationMemberOrKept(
+          reporterId,
+          command.formationMemberIds,
+          command.assignedReporterIds?.get(nominationFileId),
+        ),
       ),
     );
 
@@ -800,13 +810,16 @@ export class SessionTransparence {
     formationMemberIds: ReadonlySet<string>;
     memberIds: readonly string[];
     nominationFileId: string;
-    // a member deactivated since stays recused, without being offered for other files
     recusedMemberIds: ReadonlySet<string>;
   }) {
     this.assertsCanUpdateFiles(command.nominationFileId);
 
     const memberIds = [...new Set(command.memberIds)];
-    if (!memberIds.every((id) => command.formationMemberIds.has(id) || command.recusedMemberIds.has(id))) {
+    if (
+      !memberIds.every((id) =>
+        isFormationMemberOrKept(id, command.formationMemberIds, command.recusedMemberIds),
+      )
+    ) {
       throw new NonFormationMemberRecused();
     }
 

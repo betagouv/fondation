@@ -723,7 +723,7 @@ export class SessionTransparenceRepository {
   private async persistSessionTransparenceFileMembersRecused(message: SessionTransparenceFileMembersRecused) {
     const { authorId, memberIds, nominationFileId } = message;
     await this.db.tx.recusedMember.deleteMany({
-      where: { nominationFileId, userId: { notIn: memberIds as string[] } },
+      where: { nominationFileId, userId: { notIn: [...memberIds] } },
     });
     await this.db.tx.recusedMember.createMany({
       data: memberIds.map((userId) => ({ createdBy: authorId, nominationFileId, userId })),

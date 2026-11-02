@@ -161,7 +161,7 @@ export class TransparenceService {
     private readonly listArchivedNominationSessionsQuery: ListArchivedNominationSessionsQuery,
     private readonly nominationSessionFileFinder: TransparenceFilesFinder,
     private readonly nominationSessionRepository: SessionTransparenceRepository,
-    private readonly recusedMembers: RecusedMembersFinder,
+    private readonly recusedMembersFinder: RecusedMembersFinder,
     private readonly listCurrentlyAffectedReportersQuery: ListCurrentlyAffectedReportersQuery,
     private readonly countUnaffectedFilesQuery: CountUnaffectedFilesQuery,
     private readonly countNominationFilesByStatusQuery: CountNominationFilesByStatusQuery,
@@ -421,7 +421,7 @@ export class TransparenceService {
     const nominationFileIds = new Set([command.nominationFileId]);
     const session = await this.nominationSessionRepository.find(command.sessionId, { nominationFileIds });
 
-    const recused = await this.recusedMembers.find({ nominationFileIds });
+    const formerRecusals = await this.recusedMembersFinder.find({ nominationFileIds });
     const formationMemberIds = await this.members
       .findMembers({ formation: session.formation, ids: command.memberIds })
       .then((ids) => new Set(ids));
@@ -429,12 +429,12 @@ export class TransparenceService {
     session.recuseMembers({
       ...command,
       formationMemberIds,
-      recusedMemberIds: new Set(recused.get(command.nominationFileId)?.map(({ id }) => id)),
+      recusedMemberIds: new Set(formerRecusals.get(command.nominationFileId)?.map(({ id }) => id)),
     });
     await this.nominationSessionRepository.persist(session);
 
-    const recusedMembers = await this.recusedMembers.find({ nominationFileIds });
-    return { recusedMembers: recusedMembers.get(command.nominationFileId) ?? [] };
+    const recusals = await this.recusedMembersFinder.find({ nominationFileIds });
+    return { recusedMembers: recusals.get(command.nominationFileId) ?? [] };
   }
 
   @Transactional()
