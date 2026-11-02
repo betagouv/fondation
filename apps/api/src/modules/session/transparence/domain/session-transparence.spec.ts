@@ -1280,7 +1280,9 @@ describe('SessionTransparence', () => {
       });
 
       expect(transparence.messages).toEqual([
-        new SessionTransparenceFileMembersRecused('session-id', FILE_1, ['member-1', 'member-2']),
+        new SessionTransparenceFileMembersRecused('session-id', [
+          { memberIds: ['member-1', 'member-2'], nominationFileId: FILE_1 },
+        ]),
       ]);
     });
 
@@ -1296,8 +1298,10 @@ describe('SessionTransparence', () => {
       });
 
       expect(transparence.messages).toEqual([
-        new SessionTransparenceFileMembersRecused('session-id', FILE_1, ['member-1']),
-        new SessionTransparenceFileMembersRecused('session-id', FILE_2, ['member-1', 'member-2']),
+        new SessionTransparenceFileMembersRecused('session-id', [
+          { memberIds: ['member-1'], nominationFileId: FILE_1 },
+          { memberIds: ['member-1', 'member-2'], nominationFileId: FILE_2 },
+        ]),
       ]);
     });
 
@@ -1311,7 +1315,9 @@ describe('SessionTransparence', () => {
       });
 
       expect(transparence.messages).toEqual([
-        new SessionTransparenceFileMembersRecused('session-id', FILE_1, ['member-1']),
+        new SessionTransparenceFileMembersRecused('session-id', [
+          { memberIds: ['member-1'], nominationFileId: FILE_1 },
+        ]),
       ]);
     });
 
@@ -1325,7 +1331,9 @@ describe('SessionTransparence', () => {
       });
 
       expect(transparence.messages).toEqual([
-        new SessionTransparenceFileMembersRecused('session-id', FILE_1, ['member-1', 'deactivated-member']),
+        new SessionTransparenceFileMembersRecused('session-id', [
+          { memberIds: ['member-1', 'deactivated-member'], nominationFileId: FILE_1 },
+        ]),
       ]);
     });
 

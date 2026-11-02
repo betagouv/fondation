@@ -207,9 +207,7 @@ export class SessionTransparenceFileMemberMemoWritten {
 export class SessionTransparenceFileMembersRecused {
   constructor(
     readonly sessionId: string,
-    readonly nominationFileId: string,
-    readonly memberIds: readonly string[],
-    readonly authorId: string,
+    readonly recusals: readonly { memberIds: readonly string[]; nominationFileId: string }[],
   ) {}
 }
 
@@ -828,9 +826,7 @@ export class SessionTransparence {
     );
     if (!allRecusedAreFormationMembers) throw new NonFormationMemberRecused();
 
-    for (const { memberIds, nominationFileId } of recusals) {
-      this.#messages.push(new SessionTransparenceFileMembersRecused(this.id, nominationFileId, memberIds));
-    }
+    this.#messages.push(new SessionTransparenceFileMembersRecused(this.id, recusals));
   }
 
   hideAlert(command: { nominationFileId: string }) {
