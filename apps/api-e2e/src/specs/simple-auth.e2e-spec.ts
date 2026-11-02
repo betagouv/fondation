@@ -46,6 +46,28 @@ test.describe('Simple Auth E2E', () => {
     });
   });
 
+  test('should suspend the password logins of an address beyond ten failures, not those of another address', async ({
+    baseUrl,
+    expect,
+    registerUser,
+  }) => {
+    const attacked = await registerUser('MEMBRE_COMMUN');
+    const other = await registerUser('MEMBRE_COMMUN');
+    const anonymous = makeStepsFixtures({ baseUrl });
+    const login = (user: { email: string; password: string }) =>
+      anonymous.auth.login({
+        body: { email: user.email, password: user.password },
+        headers: { 'x-forwarded-for': '198.51.100.7' },
+      });
+
+    for (let failure = 0; failure < 10; failure++) {
+      await login({ email: attacked.email.toUpperCase(), password: 'wrong password' });
+    }
+
+    expect((await login(attacked)).response?.status).toBe(401);
+    expect((await login(other)).response?.status).toBe(204);
+  });
+
   test.describe('Given a logged-in user', () => {
     test('should have an introspectable session', async ({ expect, member }) => {
       const introspectRes = await member.auth.introspectSession();
