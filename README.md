@@ -357,7 +357,9 @@ chaque push (installation avec `npx husky`).
 Globalement, configurer son IDE pour utiliser ces configurations est le mieux. Le workspace PNPM
 peut cependant parfois provoquer des conflits.
 
-Une fois la pull request fusionnée dans `develop`, on déploie staging avec `bin/deploy-staging.sh`.
+Une fois la pull request fusionnée dans `develop`, on déploie avec `bin/deploy.sh`, qui guide pas à
+pas le déploiement de staging, la préparation et la mise en production. Il ne demande que `git` pour
+staging, `gh` et la CLI `scalingo` connectée à la production pour le reste.
 
 ## Sécurité des dépendances
 
