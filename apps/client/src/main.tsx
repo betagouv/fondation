@@ -1,3 +1,4 @@
+import './zod.config.ts';
 import './styles/index.css';
 import './instrument.ts';
 import { startReactDsfr } from '@codegouvfr/react-dsfr/spa';
