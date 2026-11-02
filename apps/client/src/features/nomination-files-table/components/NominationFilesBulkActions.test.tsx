@@ -50,7 +50,7 @@ function file(props: {
   nomMagistrat: string;
   outcome?: 'VALIDATED' | 'NON_VALIDATED';
   priorities?: readonly string[];
-  recusedMembers?: readonly (typeof CAMILLE)[];
+  recusedMembers?: SessionNominationFile['recusedMembers'];
   reporters?: readonly { id: string }[];
 }): SessionNominationFile {
   return {

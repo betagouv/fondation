@@ -208,6 +208,7 @@ export class SessionTransparenceFileMembersRecused {
   constructor(
     readonly sessionId: string,
     readonly recusals: readonly { memberIds: readonly string[]; nominationFileId: string }[],
+    readonly authorId: string,
   ) {}
 }
 
@@ -807,7 +808,7 @@ export class SessionTransparence {
     authorId: string;
     formationMemberIds: ReadonlySet<string>;
     recusals: readonly { memberIds: readonly string[]; nominationFileId: string }[];
-    recusedMemberIds: ReadonlyMap<string, ReadonlySet<string>>;
+    recusedMemberIdsByFile: ReadonlyMap<string, ReadonlySet<string>>;
   }) {
     this.assertsCanUpdateFiles(...command.recusals.map(({ nominationFileId }) => nominationFileId));
 
@@ -820,13 +821,13 @@ export class SessionTransparence {
         isFormationMemberOrKept(
           id,
           command.formationMemberIds,
-          command.recusedMemberIds.get(nominationFileId),
+          command.recusedMemberIdsByFile.get(nominationFileId),
         ),
       ),
     );
     if (!allRecusedAreFormationMembers) throw new NonFormationMemberRecused();
 
-    this.#messages.push(new SessionTransparenceFileMembersRecused(this.id, recusals));
+    this.#messages.push(new SessionTransparenceFileMembersRecused(this.id, recusals, command.authorId));
   }
 
   hideAlert(command: { nominationFileId: string }) {

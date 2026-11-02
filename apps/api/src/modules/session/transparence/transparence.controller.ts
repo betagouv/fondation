@@ -462,7 +462,7 @@ export class SessionController {
     @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
     @Body() body: RecuseMembersDto,
   ): Promise<RecusedMembersDto> {
-    return this.sessions.recuseFileMembers({ memberIds: body.memberIds, nominationFileId, sessionId });
+    return this.sessions.recuseMembers({ authorId, memberIds: body.memberIds, nominationFileId, sessionId });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
@@ -470,10 +470,11 @@ export class SessionController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
   async recuseNominationFilesMembers(
+    @AuthedUserId() authorId: string,
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
     @Body() body: RecuseNominationFilesMembersDto,
   ): Promise<void> {
-    await this.sessions.recuseMembers({ recusals: body.items, sessionId });
+    await this.sessions.recuseNominationFilesMembers({ authorId, recusals: body.items, sessionId });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')

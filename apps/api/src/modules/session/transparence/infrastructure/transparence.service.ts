@@ -412,7 +412,8 @@ export class TransparenceService {
   }
 
   @Transactional()
-  async recuseMembers(command: {
+  async recuseNominationFilesMembers(command: {
+    authorId: string;
     recusals: readonly { memberIds: readonly string[]; nominationFileId: string }[];
     sessionId: string;
   }): Promise<void> {
@@ -428,9 +429,10 @@ export class TransparenceService {
       .then((ids) => new Set(ids));
 
     session.recuseMembers({
+      authorId: command.authorId,
       formationMemberIds,
       recusals: command.recusals,
-      recusedMemberIds: new Map(
+      recusedMemberIdsByFile: new Map(
         formerRecusals
           .entries()
           .map(([nominationFileId, members]) => [nominationFileId, new Set(members.map(({ id }) => id))]),
@@ -440,13 +442,18 @@ export class TransparenceService {
   }
 
   @Transactional()
-  async recuseFileMembers(command: {
+  async recuseMembers(command: {
+    authorId: string;
     memberIds: readonly string[];
     nominationFileId: string;
     sessionId: string;
   }): Promise<RecusedMembersDto> {
-    const { memberIds, nominationFileId, sessionId } = command;
-    await this.recuseMembers({ recusals: [{ memberIds, nominationFileId }], sessionId });
+    const { authorId, memberIds, nominationFileId, sessionId } = command;
+    await this.recuseNominationFilesMembers({
+      authorId,
+      recusals: [{ memberIds, nominationFileId }],
+      sessionId,
+    });
 
     const recusals = await this.recusedMembersFinder.find({ nominationFileIds: new Set([nominationFileId]) });
     return { recusedMembers: recusals.get(nominationFileId) ?? [] };
