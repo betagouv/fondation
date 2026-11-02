@@ -37,7 +37,7 @@ function renderRecusedMembers(recusedMembers: RecusedMembersDto['recusedMembers'
     },
   );
 
-  return render(
+  const panel = (members: RecusedMembersDto['recusedMembers']) => (
     <IntlProvider defaultLocale="fr" locale="fr">
       <QueryClientProvider client={client}>
         <NominationFilesTableProvider
@@ -47,13 +47,19 @@ function renderRecusedMembers(recusedMembers: RecusedMembersDto['recusedMembers'
           sessionId={SESSION_ID}
         >
           <RecusedMembers
-            nominationFile={makeSessionNominationFile({ canRecuseMembers, recusedMembers })}
-            recusedMembers={recusedMembers}
+            nominationFile={makeSessionNominationFile({ canRecuseMembers, recusedMembers: members })}
+            recusedMembers={members}
           />
         </NominationFilesTableProvider>
       </QueryClientProvider>
-    </IntlProvider>,
+    </IntlProvider>
   );
+  const result = render(panel(recusedMembers));
+
+  return {
+    ...result,
+    rerender: (members: RecusedMembersDto['recusedMembers']) => result.rerender(panel(members)),
+  };
 }
 
 describe('RecusedMembers', () => {
@@ -85,6 +91,26 @@ describe('RecusedMembers', () => {
         body: { memberIds: [PRESIDENT.id, MEMBER.id] },
         path: { nominationFileId: 'nomination-file', sessionId: SESSION_ID },
       }),
+    );
+  });
+
+  it('keeps the recused members another action saved while the panel was open', async () => {
+    const recuse = vi
+      .spyOn($api.sessions, 'recuseMembers')
+      .mockResolvedValue({ data: { recusedMembers: [PRESIDENT, MEMBER] } } as Awaited<
+        ReturnType<typeof $api.sessions.recuseMembers>
+      >);
+    const user = userEvent.setup();
+    const { rerender } = renderRecusedMembers([]);
+    rerender([PRESIDENT]);
+
+    await user.click(screen.getByRole('button', { name: /Ajouter un membre qui se déporte/ }));
+    await user.click(within(screen.getByRole('listbox')).getByRole('option', { name: 'Jean ALBERT' }));
+
+    await waitFor(() =>
+      expect(recuse).toHaveBeenCalledWith(
+        expect.objectContaining({ body: { memberIds: [PRESIDENT.id, MEMBER.id] } }),
+      ),
     );
   });
 

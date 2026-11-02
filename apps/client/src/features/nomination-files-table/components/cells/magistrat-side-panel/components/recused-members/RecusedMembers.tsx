@@ -1,32 +1,26 @@
-import { useState } from 'react';
 import { FormattedMessage } from 'react-intl';
 
 import { useNominationFilesTable } from '@/features/nomination-files-table/context/files-table.context';
-import {
-  isUpdatable,
-  useRecuseMembersMutation,
-  type SessionNominationFile,
-} from '@queries/nomination-sessions.queries';
+import type { RecusedMembersDto } from '@api/types';
+import { useRecuseMembersMutation, type SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 import { RecusedMemberSelect } from './RecusedMemberSelect';
 
-export function RecusedMembers(props: { nominationFile: SessionNominationFile }) {
-  const { nominationFile } = props;
-  const { recusedMembers } = nominationFile;
+export function RecusedMembers(props: {
+  nominationFile: SessionNominationFile;
+  recusedMembers: RecusedMembersDto['recusedMembers'];
+}) {
+  const { nominationFile, recusedMembers } = props;
   const { sessionId } = useNominationFilesTable();
-  const { isError: saveFailed, mutate } = useRecuseMembersMutation(nominationFile.id);
-  const recusedIds = recusedMembers.map(({ id }) => id);
-  const [selected, setSelected] = useState(recusedIds);
+  const { isError: saveFailed, isPending, mutate, variables } = useRecuseMembersMutation(nominationFile.id);
+  const selected = isPending ? variables.memberIds : recusedMembers.map(({ id }) => id);
 
-  const recuse = (memberIds: string[]) => {
-    setSelected(memberIds);
-    mutate({ memberIds, sessionId }, { onError: () => setSelected(recusedIds) });
-  };
+  const recuse = (memberIds: string[]) => mutate({ memberIds, sessionId });
 
   return (
     <div className="fr-mb-2v">
       <RecusedMemberSelect
-        disabled={!isUpdatable(nominationFile)}
+        disabled={!nominationFile.canRecuseMembers}
         label={<FormattedMessage defaultMessage="Ajouter un membre qui se déporte" />}
         onChange={recuse}
         recusedMembers={recusedMembers}
