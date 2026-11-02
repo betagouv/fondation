@@ -26,7 +26,7 @@ minimumReleaseAge: 10080 # 7 days
 overrides:
   # Security updates: these parents pin the vulnerable version exactly
   '@hey-api/json-schema-ref-parser>js-yaml': 4.3.2
-  '@nestjs/swagger>js-yaml': 5.4.2
+  '@nestjs/swagger>js-yaml': 5.5.0
   fast-uri: 3.1.9
   multer: 2.5.0
   node-xlsx>xlsx: '-'
