@@ -21,6 +21,7 @@ import type {
   ListNominationFilesData,
   ListSessionsOfTypeGardeDesSceauxData,
   PaginatedNominationFiles,
+  RecuseNominationFilesMembersDto,
   UpdateNominationFilesPrioritiesDto,
   UploadNominationFileAttachmentsDto,
 } from '@api/types';
@@ -254,6 +255,31 @@ export function useRecuseMembersMutation(nominationFileId: string) {
         (old: SessionNominationFile | null | undefined) => (old ? { ...old, recusedMembers } : old),
       );
     },
+  });
+}
+
+export function useRecuseNominationFilesMembersMutation(input: { sessionId: string }) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (mutation: {
+      items: readonly RecuseNominationFilesMembersDto['items'][number][];
+    }): Promise<void> => {
+      await $api.sessions.recuseNominationFilesMembers({
+        body: { items: [...mutation.items] },
+        path: { sessionId: input.sessionId },
+        throwOnError: true,
+      });
+    },
+    onSuccess: (_, { items }) =>
+      queryClient.invalidateQueries({
+        predicate: doesQueryKey.matchesAny(
+          sessionKeys.listSessionNominationFiles({ sessionId: input.sessionId }),
+          ...items.map(({ nominationFileId }) =>
+            sessionKeys.detailSessionNominationFile({ nominationFileId, sessionId: input.sessionId }),
+          ),
+        ),
+      }),
   });
 }
 

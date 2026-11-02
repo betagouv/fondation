@@ -12,10 +12,12 @@ import type { NominationFileOutcomeEnum } from '@/shared/enums/nomination-file-o
 import type { PrioriteEnum } from '@/shared/enums/priorite.enum';
 import { Dropdown } from '@/shared/ui/dropdown';
 import { useToasts } from '@/shared/ui/toast';
+import type { RecusedMembersDto } from '@api/types';
 import { useMemberListQuery } from '@queries/members.queries';
 import {
   useAffectNominationFilesReportersMutation,
   useDefineNominationFilesOutcomeMutation,
+  useRecuseNominationFilesMembersMutation,
   useUpdateNominationFilesPrioritiesMutation,
   type SessionNominationFile,
 } from '@queries/nomination-sessions.queries';
@@ -24,6 +26,7 @@ import {
   PrioritySelect,
   ReporterSelect,
 } from './cells/magistrat-side-panel/components/header/AffectationFields';
+import { RecusedMemberSelect } from './cells/magistrat-side-panel/components/recused-members/RecusedMemberSelect';
 import { outcomeRequiresComment } from './cells/nomination-file-outcome/nomination-file-outcome.utils';
 import { RequiredOutcomeCommentsModal, type OutcomeComment } from './RequiredOutcomeCommentsModal';
 
@@ -58,6 +61,16 @@ function sharedList<T extends string>(
   return isShared ? first : [];
 }
 
+function recusedIdsOf(file: SessionNominationFile): string[] {
+  return (file.recusedMembers ?? []).map(({ id }) => id);
+}
+
+function sharedRecusedMembers(files: readonly SessionNominationFile[]): RecusedMembersDto['recusedMembers'] {
+  const isShared = sharedList(files, recusedIdsOf).length > 0;
+
+  return isShared ? (files[0]!.recusedMembers ?? []) : [];
+}
+
 function sharedOutcome(files: readonly SessionNominationFile[]): NominationFileOutcomeEnum | null {
   const outcomes = files.map((file) => file.content.outcome?.value ?? null);
   const [first] = outcomes;
@@ -76,6 +89,7 @@ export function NominationFilesBulkActions(props: {
 
   const affectReporters = useAffectNominationFilesReportersMutation();
   const defineOutcome = useDefineNominationFilesOutcomeMutation({ sessionId });
+  const recuseMembers = useRecuseNominationFilesMembersMutation({ sessionId });
   const updatePriorities = useUpdateNominationFilesPrioritiesMutation();
 
   const { data: members } = useMemberListQuery({
@@ -117,6 +131,7 @@ export function NominationFilesBulkActions(props: {
     () => ({
       outcome: sharedOutcome(props.selectedFiles),
       priorities: sharedList(props.selectedFiles, (file) => file.priorities),
+      recusedMembers: sharedRecusedMembers(props.selectedFiles),
       reporterIds: sharedList(props.selectedFiles, (file) => file.reporters.map(({ id }) => id)),
     }),
     [props.selectedFiles],
@@ -124,15 +139,22 @@ export function NominationFilesBulkActions(props: {
 
   const [reporterIds, setReporterIds] = useState(shared.reporterIds);
   const [priorities, setPriorities] = useState(shared.priorities);
+  const [recusedMemberIds, setRecusedMemberIds] = useState(shared.recusedMembers.map(({ id }) => id));
   const [outcome, setOutcome] = useState(shared.outcome);
   const [commentedOutcome, setCommentedOutcome] = useState<NominationFileOutcomeEnum | null>(null);
 
   const hasSelection = props.selectedFiles.length > 0;
-  const isApplying = affectReporters.isPending || defineOutcome.isPending || updatePriorities.isPending;
+  const canRecuseMembers = hasSelection && props.selectedFiles.every((file) => file.canRecuseMembers);
+  const isApplying =
+    affectReporters.isPending ||
+    defineOutcome.isPending ||
+    recuseMembers.isPending ||
+    updatePriorities.isPending;
 
   useEffect(() => {
     setReporterIds(shared.reporterIds);
     setPriorities(shared.priorities);
+    setRecusedMemberIds(shared.recusedMembers.map(({ id }) => id));
     setOutcome(shared.outcome);
   }, [shared]);
 
@@ -195,6 +217,26 @@ export function NominationFilesBulkActions(props: {
     [hasSelection, onFailure, priorities, props.selectedFiles, sessionId, updatePriorities],
   );
 
+  const changeRecusedMembers = useCallback(
+    (next: string[]) => {
+      if (!hasSelection) return;
+
+      const change = diff(recusedMemberIds, next);
+      setRecusedMemberIds(next);
+
+      recuseMembers.mutate(
+        {
+          items: props.selectedFiles.map((file) => ({
+            memberIds: applyChange(recusedIdsOf(file), change),
+            nominationFileId: file.id,
+          })),
+        },
+        { onError: onFailure },
+      );
+    },
+    [hasSelection, onFailure, props.selectedFiles, recuseMembers, recusedMemberIds],
+  );
+
   const chooseOutcome = useCallback(
     (value: string | null) => {
       if (!hasSelection) return;
@@ -238,6 +280,15 @@ export function NominationFilesBulkActions(props: {
           onClear={clearReporters}
           value={reporterIds}
         />
+        {canRecuseMembers && (
+          <RecusedMemberSelect
+            disabled={isApplying}
+            label={<FormattedMessage defaultMessage="Membres déportés" />}
+            onChange={changeRecusedMembers}
+            recusedMembers={shared.recusedMembers}
+            value={recusedMemberIds}
+          />
+        )}
         <Dropdown
           disabled={isApplying}
           label={<FormattedMessage defaultMessage="Choisir une issue" />}
