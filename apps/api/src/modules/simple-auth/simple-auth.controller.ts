@@ -76,7 +76,7 @@ export class SimpleAuthController {
       throw new BadRequestException();
     }
 
-    const session = await this.auth.login(body);
+    const session = await this.auth.login({ ...body, ip: req.ip ?? 'unknown' });
     // an impersonation left over, ended or of an account deactivated since, would refuse every request of the new session
     this.unDecorateResponse(this.decorateResponse(res, session), 'impersonationId').end();
   }

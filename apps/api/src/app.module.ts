@@ -18,6 +18,8 @@ export class AppModule {
     const config = app.get<ApiConfig>(API_CONFIG_TOKEN);
 
     app.disable('x-powered-by');
+    // Scalingo's router appends the browser IP to X-Forwarded-For: req.ip takes that last entry, which no client can forge
+    app.set('trust proxy', 1);
     app.enableCors({
       exposedHeaders: ['Content-Disposition', APP_VERSION_HEADER],
       origin: config.frontendOriginUrl,
