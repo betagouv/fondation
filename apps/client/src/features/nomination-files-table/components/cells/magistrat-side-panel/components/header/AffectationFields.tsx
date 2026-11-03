@@ -3,6 +3,7 @@ import type { Ref } from 'react';
 import { FormattedMessage } from 'react-intl';
 
 import { MEMBER_TAG } from '../member-tag';
+import { useRecusalLabel } from '../recused-members/RecusalIcon';
 import { PriorityBadge } from '@/shared/components/priority-badge';
 import { PrioriteEnum } from '@/shared/enums/priorite.enum';
 import { Dropdown, type DropdownHandle } from '@/shared/ui/dropdown';
@@ -43,29 +44,49 @@ export function ReporterSelect(props: {
   available: readonly Reporter[];
   disabled?: boolean;
   excludedTitleByRapporteurId?: ReadonlyMap<string, string>;
+  isRecused?: (memberId: string) => boolean;
   onChange: (ids: string[]) => void;
   onClear?: () => void;
   ref?: Ref<DropdownHandle>;
   value: readonly string[];
 }) {
-  const { available, excludedTitleByRapporteurId = NO_EXCLUSION, onChange, onClear, ref, value } = props;
+  const {
+    available,
+    excludedTitleByRapporteurId = NO_EXCLUSION,
+    isRecused,
+    onChange,
+    onClear,
+    ref,
+    value,
+  } = props;
+
+  const recusalLabel = useRecusalLabel();
 
   const reporterOptions = [...available]
     .sort((a, b) => a.lastName.localeCompare(b.lastName))
     .map((reporter) => {
-      const excludedTitle = excludedTitleByRapporteurId.get(reporter.userId);
+      const warnings = [
+        excludedTitleByRapporteurId.get(reporter.userId),
+        isRecused?.(reporter.userId) ? recusalLabel : undefined,
+      ].filter((warning) => warning !== undefined);
+      const title = warnings.length > 0 ? warnings.join('\n') : undefined;
 
       return {
         label: (
           <span
             className={clsx(
               MEMBER_TAG,
-              excludedTitle ? 'text-(--text-default-warning)!' : 'text-(--text-action-high-blue-france)!',
+              title ? 'text-(--text-default-warning)!' : 'text-(--text-action-high-blue-france)!',
             )}
-            title={excludedTitle}
+            title={title}
           >
             {memberFullName(reporter)}
-            {excludedTitle && <span className="fr-sr-only">{excludedTitle}</span>}
+            {warnings.length > 0 && (
+              <>
+                {/* keeps the warnings apart from the member name in the accessible name of an option */}{' '}
+                <span className="fr-sr-only">{warnings.join('. ')}</span>
+              </>
+            )}
           </span>
         ),
         value: reporter.userId,
