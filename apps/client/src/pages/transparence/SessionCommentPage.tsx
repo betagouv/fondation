@@ -38,13 +38,13 @@ export function SessionCommentPage() {
         !session.isArchived && (
           <>
             <Button disabled={!draft.isDirty || draft.isPending} onClick={draft.cancel} priority="secondary">
-              <FormattedMessage defaultMessage="Annuler les changements" />
+              <FormattedMessage defaultMessage="Annuler" />
             </Button>
             <Button
               disabled={!draft.isDirty || draft.isPending}
               onClick={() => void draft.save().catch(() => {})}
             >
-              <FormattedMessage defaultMessage="Valider le commentaire" />
+              <FormattedMessage defaultMessage="Enregistrer" />
             </Button>
           </>
         )
@@ -58,7 +58,7 @@ export function SessionCommentPage() {
         <Breadcrumb
           ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane du commentaire d'une session" })}
           breadcrumb={{
-            currentPageLabel: formatMessage({ defaultMessage: 'Commentaire' }),
+            currentPageLabel: formatMessage({ defaultMessage: 'Commentaire de la notice' }),
             segments: [
               {
                 label: formatMessage({ defaultMessage: 'Secrétariat général' }),
@@ -74,7 +74,7 @@ export function SessionCommentPage() {
           id="session-comment-breadcrumb"
         />
       }
-      title={<FormattedMessage defaultMessage="Commentaire" />}
+      title={<FormattedMessage defaultMessage="Commentaire de la notice" />}
     >
       <div className="w-full">
         <SessionCommentField draft={draft} isArchived={session.isArchived} rows={20} />

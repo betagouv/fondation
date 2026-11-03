@@ -95,7 +95,7 @@ function useRemarkColumns() {
       h.display({
         cell: textCell,
         enableSorting: false,
-        header: formatMessage({ defaultMessage: 'Remarque' }),
+        header: formatMessage({ defaultMessage: 'Retour' }),
         id: 'text',
         size: 420,
       }),
@@ -165,7 +165,7 @@ export function AdminRemarksPage() {
       <Breadcrumb
         ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane pour l'Administration" })}
         breadcrumb={{
-          currentPageLabel: formatMessage({ defaultMessage: 'Traiter les remarques' }),
+          currentPageLabel: formatMessage({ defaultMessage: 'Traiter les retours utilisateurs' }),
           segments: [{ label: formatMessage({ defaultMessage: 'Administration' }), to: {} }],
         }}
         id="administration-breadcrumb"
@@ -176,7 +176,7 @@ export function AdminRemarksPage() {
           <div className={clsx('flex flex-col gap-y-6', { 'fr-container': isPinned })}>
             <div className="flex items-center justify-between gap-4">
               <h1 className="fr-h3 fr-mb-0">
-                <FormattedMessage defaultMessage="Traiter les remarques" />
+                <FormattedMessage defaultMessage="Traiter les retours utilisateurs" />
                 {data && <DataTableCount loaded={remarks.length} total={data.totalCount} />}
               </h1>
             </div>
@@ -188,11 +188,11 @@ export function AdminRemarksPage() {
       >
         <RemarkStatusCommentModalProvider>
           <DataTable
-            ariaLabel={formatMessage({ defaultMessage: 'Liste des remarques' })}
+            ariaLabel={formatMessage({ defaultMessage: 'Liste des retours' })}
             emptyLabel={
               isFiltered
-                ? formatMessage({ defaultMessage: 'Aucune remarque ne correspond aux filtres fournis' })
-                : formatMessage({ defaultMessage: 'Aucune remarque' })
+                ? formatMessage({ defaultMessage: 'Aucun retour ne correspond aux filtres fournis' })
+                : formatMessage({ defaultMessage: 'Aucun retour' })
             }
             fluid
             isLoading={isLoading}

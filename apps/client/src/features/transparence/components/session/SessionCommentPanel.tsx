@@ -75,7 +75,7 @@ export function SessionCommentPanel(props: { isArchived: boolean; sessionId: str
           <div className="mb-2.5 flex items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <h2 className="fr-h5 fr-mb-0" id={titleId}>
-                <FormattedMessage defaultMessage="Commentaire" />
+                <FormattedMessage defaultMessage="Commentaire de la notice" />
               </h2>
               <IconLink
                 iconId="fr-icon-external-link-line"
@@ -106,7 +106,7 @@ export function SessionCommentPanel(props: { isArchived: boolean; sessionId: str
                 priority="secondary"
                 size="small"
               >
-                <FormattedMessage defaultMessage="Annuler les changements" />
+                <FormattedMessage defaultMessage="Annuler" />
               </Button>
               <Button
                 className="btn-compact"
@@ -114,7 +114,7 @@ export function SessionCommentPanel(props: { isArchived: boolean; sessionId: str
                 onClick={() => void draft.save().then(close, () => {})}
                 size="small"
               >
-                <FormattedMessage defaultMessage="Valider le commentaire" />
+                <FormattedMessage defaultMessage="Enregistrer" />
               </Button>
             </div>
           )}
@@ -125,13 +125,13 @@ export function SessionCommentPanel(props: { isArchived: boolean; sessionId: str
             aria-controls={panelId}
             aria-expanded={isOpen}
             className={clsx({ 'bg-(--background-action-low-blue-france)': isOpen })}
-            iconId="fr-icon-chat-3-line"
+            iconId="fr-icon-edit-box-line"
             onClick={() => (isOpen ? tryClose() : setOpen(true))}
             priority="tertiary no outline"
             ref={toggleRef}
             size="small"
           >
-            <FormattedMessage defaultMessage="Commentaire" />
+            <FormattedMessage defaultMessage="Commentaire notice" />
           </Button>
         </div>
       </div>

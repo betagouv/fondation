@@ -67,7 +67,7 @@ export function RemarkStatusCell(props: { remark: ListedRemarksDto['items'][numb
           nativeButtonProps={{
             'aria-label': [
               formatMessage(
-                { defaultMessage: 'Statut de la remarque : {status}' },
+                { defaultMessage: 'Statut du retour : {status}' },
                 { status: formatMessage(RemarkStatusEnumMessages[status.value]) },
               ),
               details,

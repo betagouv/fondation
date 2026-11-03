@@ -39,7 +39,7 @@ function SessionTab(props: {
     <>
       <i aria-hidden className={clsx(props.icon, 'fr-icon--sm')} />
       {props.label}
-      {!!props.count && (
+      {Number.isFinite(props.count) && (
         <>
           {' '}
           <span
@@ -97,8 +97,8 @@ export function MemberSessionTabsBar(props: { sessionId: string }) {
   const { data: auditionCounts } = useSessionAuditionsCountsQuery({ sessionId: props.sessionId });
 
   const params = { sessionId: props.sessionId };
-  const attachmentsCount = attachments?.items.length ?? 0;
-  const auditionsCount = (auditionCounts?.scheduled ?? 0) + (auditionCounts?.toSchedule ?? 0);
+  const attachmentsCount = attachments?.items.length;
+  const auditionsCount = auditionCounts && auditionCounts.scheduled + auditionCounts.toSchedule;
   const isSidePanelOpen = openedDossier !== null;
 
   return (
@@ -120,10 +120,7 @@ export function MemberSessionTabsBar(props: { sessionId: string }) {
         count={attachmentsCount}
         disabled={isSidePanelOpen}
         icon="ri-image-line"
-        label={formatMessage(
-          { defaultMessage: '{count, plural, one {Pièce jointe} other {Pièces jointes}}' },
-          { count: attachmentsCount },
-        )}
+        label={formatMessage({ defaultMessage: 'Pièces jointes' })}
         to={generatePath(ROUTE_PATHS.TRANSPARENCES.DETAIL_SESSION_GDS_ATTACHMENTS, params)}
       />
     </SessionTabsWrapper>
@@ -148,11 +145,11 @@ export function SessionTabsBar(props: { transparence: DetailedNominationSessionD
 
   const params = { sessionId: transparence.id };
 
-  const propositionsCount = fileCounts?.total ?? 0;
-  const missingEvaluationsCount = fileCounts?.missingEvaluation ?? 0;
-  const auditionsCount = (auditionCounts?.scheduled ?? 0) + (auditionCounts?.toSchedule ?? 0);
-  const docsCount = docs?.items.length ?? 0;
-  const attachmentsCount = attachments?.items.length ?? 0;
+  const propositionsCount = fileCounts?.total;
+  const missingEvaluationsCount = fileCounts?.missingEvaluation;
+  const auditionsCount = auditionCounts && auditionCounts.scheduled + auditionCounts.toSchedule;
+  const docsCount = docs?.items.length;
+  const attachmentsCount = attachments?.items.length;
   const isSidePanelOpen = openedDossier !== null;
 
   return (
@@ -165,12 +162,7 @@ export function SessionTabsBar(props: { transparence: DetailedNominationSessionD
         count={propositionsCount}
         end
         icon="fr-icon-list-unordered"
-        label={formatMessage(
-          {
-            defaultMessage: '{count, plural, one {Proposition} other {Propositions}}',
-          },
-          { count: propositionsCount },
-        )}
+        label={formatMessage({ defaultMessage: 'Propositions' })}
         to={generatePath(ROUTE_PATHS.SG.SESSION_ID, params)}
       />
       <SessionTab
@@ -184,12 +176,7 @@ export function SessionTabsBar(props: { transparence: DetailedNominationSessionD
         count={missingEvaluationsCount}
         disabled={isSidePanelOpen}
         icon="fr-icon-draft-line"
-        label={formatMessage(
-          {
-            defaultMessage: '{count, plural, one {Évaluation manquante} other {Évaluations manquantes}}',
-          },
-          { count: missingEvaluationsCount },
-        )}
+        label={formatMessage({ defaultMessage: 'Évaluations manquantes' })}
         to={generatePath(ROUTE_PATHS.SG.SESSION_ID_MISSING_EVALUATIONS, params)}
       />
       <SessionTab
@@ -203,12 +190,7 @@ export function SessionTabsBar(props: { transparence: DetailedNominationSessionD
         count={attachmentsCount}
         disabled={isSidePanelOpen}
         icon="ri-image-line"
-        label={formatMessage(
-          {
-            defaultMessage: '{count, plural, one {Pièce jointe} other {Pièces jointes}}',
-          },
-          { count: attachmentsCount },
-        )}
+        label={formatMessage({ defaultMessage: 'Pièces jointes' })}
         to={generatePath(ROUTE_PATHS.SG.SESSION_ID_ATTACHMENTS, params)}
       />
     </SessionTabsWrapper>

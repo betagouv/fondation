@@ -10,6 +10,7 @@ import { TitleNameIcons } from '@/shared/components/title-name-icons';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { DetailsHeader } from '@/shared/ui/details';
 import { openedDossierSearch, ROUTE_PATHS } from '@/utils/route-path.utils';
+import { requiresElision } from '@/utils/string.utils';
 import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
 
 import { SummaryReaderSelector } from './SummaryReaderSelector';
@@ -58,8 +59,8 @@ export function SummaryDetailsHeader() {
       breadcrumb={
         <Breadcrumb
           ariaLabel={formatMessage(
-            { defaultMessage: "Fil d'Ariane de la synthèse de {name}" },
-            { name: summary.name },
+            { defaultMessage: "Fil d'Ariane de la synthèse {elided, select, true {d’} other {de }}{name}" },
+            { elided: requiresElision(summary.name ?? ''), name: summary.name },
           )}
           breadcrumb={{ currentPageLabel: formatMessage({ defaultMessage: 'Synthèse' }), segments }}
           className="fr-mt-0"
