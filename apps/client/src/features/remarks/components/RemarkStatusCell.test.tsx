@@ -20,6 +20,7 @@ function renderCell(status: ListedRemarksDto['items'][number]['status']) {
     author: null,
     id: 'remark-1',
     impersonated: null,
+    openAs: null,
     sentAt: '2026-11-02T16:01:00.000Z',
     status,
     text: 'Ce libellé est trompeur',

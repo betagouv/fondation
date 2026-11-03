@@ -2562,6 +2562,10 @@ export type ListedRemarksDto = {
             id: string;
             name: string;
         } | null;
+        openAs: {
+            id: string;
+            name: string;
+        } | null;
         sentAt: string;
         status: {
             changedAt: string | null;

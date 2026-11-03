@@ -4,7 +4,7 @@ import { useCallback, useMemo } from 'react';
 import { FormattedDate, FormattedMessage, useIntl } from 'react-intl';
 import { Link } from 'react-router';
 
-import { RemarkImpersonatedLink } from '@/features/remarks/components/RemarkImpersonatedLink';
+import { RemarkOpenAsLink } from '@/features/remarks/components/RemarkOpenAsLink';
 import { RemarkStatusCell } from '@/features/remarks/components/RemarkStatusCell';
 import { RemarkStatusCommentModalProvider } from '@/features/remarks/components/RemarkStatusCommentModalProvider';
 import { PinnedHeader } from '@/shared/components/pinned-header';
@@ -53,8 +53,8 @@ const textCell = rowCell<ListedRemark>((remark) => (
 // a flex item would turn the link into a block, underlined under its last line only
 const urlCell = rowCell<ListedRemark>((remark) => (
   <div className="break-all">
-    {remark.impersonated ? (
-      <RemarkImpersonatedLink impersonated={remark.impersonated} url={remark.url} />
+    {remark.openAs ? (
+      <RemarkOpenAsLink account={remark.openAs} url={remark.url} />
     ) : (
       <Link
         className="box-decoration-clone after:hidden!"

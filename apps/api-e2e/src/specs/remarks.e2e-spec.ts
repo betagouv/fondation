@@ -12,7 +12,11 @@ async function findRemark(admin: TestStepsAdmin, text: string, statuses?: Remark
 }
 
 test.describe('Remarks E2E', () => {
-  test('a member sends a remark, which the admin finds with its page', async ({ admin, member, expect }) => {
+  test('a member sends a remark, which the admin finds with its page to reopen as the member', async ({
+    admin,
+    member,
+    expect,
+  }) => {
     const text = `Ce libellé est trompeur ${randomUUID()}`;
 
     const sent = await member.remarks.sendRemark({ body: { text, url: '/sessions?page=2' } });
@@ -21,6 +25,7 @@ test.describe('Remarks E2E', () => {
     expect(await findRemark(admin, text)).toMatchObject({
       author: { id: member['@user']?.id },
       impersonated: null,
+      openAs: { id: member['@user']?.id },
       status: { changedAt: null, changedBy: null, comment: null, value: 'NEW' },
       url: '/sessions?page=2',
     });
