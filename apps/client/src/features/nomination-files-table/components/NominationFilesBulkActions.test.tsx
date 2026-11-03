@@ -363,6 +363,70 @@ describe('NominationFilesBulkActions', () => {
     );
   });
 
+  it('should name the recused members and their files before affecting them', async () => {
+    renderActions([
+      file({ id: 'file-1', nomMagistrat: 'BOURDIEU Pierre', recusedMembers: [CAMILLE] }),
+      file({ id: 'file-2', nomMagistrat: 'HARENDT Anna' }),
+    ]);
+
+    await openDropdown(/Affecter un rapporteur/);
+    await chooseOption('Camille COMMUN');
+
+    const dialog = screen.getByRole('dialog', { name: 'Affecter un membre déporté' });
+    expect(dialog).toHaveTextContent(
+      "Ce membre s'est déporté d'un dossier sélectionné. Avec cette affectation, son rapport sur ce dossier passe à « Sans objet » et en lecture seule.",
+    );
+    expect(within(dialog).getByRole('listitem')).toHaveTextContent(
+      'Camille COMMUN : BOURDIEU Pierre (Substitut du procureur près le TJ de Lyon)',
+    );
+    expect(affectReporters).not.toHaveBeenCalled();
+
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Affecter' }));
+
+    expect(affectReporters).toHaveBeenCalledWith(
+      {
+        affectations: [
+          { nominationFileId: 'file-1', reporterIds: ['member-1'] },
+          { nominationFileId: 'file-2', reporterIds: ['member-1'] },
+        ],
+        sessionId: 'session-1',
+      },
+      expect.anything(),
+    );
+  });
+
+  it('should affect nobody when the secretariat cancels', async () => {
+    renderActions([
+      file({ id: 'file-1', nomMagistrat: 'BOURDIEU Pierre', recusedMembers: [CAMILLE] }),
+      file({ id: 'file-2', nomMagistrat: 'HARENDT Anna' }),
+    ]);
+
+    await openDropdown(/Affecter un rapporteur/);
+    await chooseOption('Camille COMMUN');
+    await userEvent.click(screen.getByRole('button', { name: 'Annuler' }));
+
+    expect(affectReporters).not.toHaveBeenCalled();
+    expect(screen.queryByRole('button', { name: 'Retirer Camille COMMUN' })).toBeNull();
+  });
+
+  it('should not ask again for a member already reporter of the file they recused from', async () => {
+    renderActions([
+      file({
+        id: 'file-1',
+        nomMagistrat: 'BOURDIEU Pierre',
+        recusedMembers: [CAMILLE],
+        reporters: [CAMILLE],
+      }),
+      file({ id: 'file-2', nomMagistrat: 'HARENDT Anna' }),
+    ]);
+
+    await openDropdown(/Affecter un rapporteur/);
+    await chooseOption('Camille COMMUN');
+
+    expect(screen.queryByRole('dialog', { name: /Affecter/ })).toBeNull();
+    expect(affectReporters).toHaveBeenCalled();
+  });
+
   it('should empty the reporters of every selected file', async () => {
     renderActions([
       file({

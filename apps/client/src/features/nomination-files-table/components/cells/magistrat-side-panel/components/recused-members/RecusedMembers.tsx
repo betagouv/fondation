@@ -30,7 +30,7 @@ export function RecusedMembers(props: {
           <p>
             <FormattedMessage
               defaultMessage={`{name} est rapporteur de ce dossier. Avec ce déport, son rapport passe à « Sans objet » et en lecture seule.`}
-              values={{ name: memberFullName(recused.reporter) }}
+              values={{ name: memberFullName(recused.member) }}
             />
           </p>
         ),

@@ -27,7 +27,11 @@ import {
   PrioritySelect,
   ReporterSelect,
 } from './cells/magistrat-side-panel/components/header/AffectationFields';
-import { recusedReporters } from './cells/magistrat-side-panel/components/recused-members/recused-reporters';
+import { AffectedRecusedMembersNotice } from './cells/magistrat-side-panel/components/recused-members/AffectedRecusedMembersNotice';
+import {
+  affectedRecusedMembers,
+  recusedReporters,
+} from './cells/magistrat-side-panel/components/recused-members/recused-reporters';
 import { RecusedMemberSelect } from './cells/magistrat-side-panel/components/recused-members/RecusedMemberSelect';
 import { RecusedReportersNotice } from './cells/magistrat-side-panel/components/recused-members/RecusedReportersNotice';
 import { outcomeRequiresComment } from './cells/nomination-file-outcome/nomination-file-outcome.utils';
@@ -163,10 +167,26 @@ export function NominationFilesBulkActions(props: {
   }, [shared]);
 
   const changeReporters = useCallback(
-    (next: string[]) => {
+    async (next: string[]) => {
       if (!hasSelection) return;
 
       const change = diff(reporterIds, next);
+      const recusedMembers = affectedRecusedMembers(props.selectedFiles, change.added);
+      if (recusedMembers.length > 0) {
+        const { isConfirmed } = await waitForConfirmation({
+          content: <AffectedRecusedMembersNotice members={recusedMembers} />,
+          i18n: {
+            cancel: formatMessage({ defaultMessage: 'Annuler' }),
+            confirm: formatMessage({ defaultMessage: 'Affecter' }),
+          },
+          title:
+            recusedMembers.length > 1
+              ? formatMessage({ defaultMessage: 'Affecter des membres déportés' })
+              : formatMessage({ defaultMessage: 'Affecter un membre déporté' }),
+        });
+        if (!isConfirmed) return;
+      }
+
       setReporterIds(next);
 
       affectReporters.mutate(
@@ -183,7 +203,16 @@ export function NominationFilesBulkActions(props: {
         { onError: onFailure },
       );
     },
-    [affectReporters, hasSelection, onFailure, props.selectedFiles, reporterIds, sessionId],
+    [
+      affectReporters,
+      formatMessage,
+      hasSelection,
+      onFailure,
+      props.selectedFiles,
+      reporterIds,
+      sessionId,
+      waitForConfirmation,
+    ],
   );
 
   const clearReporters = useCallback(() => {
