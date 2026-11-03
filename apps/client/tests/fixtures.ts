@@ -38,6 +38,7 @@ export const test = base.extend<Fixtures>({
   app: async ({ page, baseURL }, use) => {
     if (!baseURL || !page.url().startsWith(baseURL)) {
       await page.goto('/');
+      await page.getByRole('link', { name: 'Pouvoir de proposition GDS' }).click();
     }
 
     use(new TestApp(page));

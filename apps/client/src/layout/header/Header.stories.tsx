@@ -71,7 +71,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'En-tête de l\'application. Un membre a une navigation avec "Accueil" (la liste de ses sessions), "Archives" (les sessions archivées de sa formation) et "Rechercher un magistrat". Le secrétariat général a la sienne, avec une pastille sur "Gérer une session" quand de nouvelles sessions sont arrivées et "Rechercher un magistrat" après "Archives". Une page d\'une session archivée met "Archives" en avant, quel que soit son chemin. Un administrateur a en plus le menu "Administration". En haut à droite, LOLFI, le centre d\'aide, l\'avis et le compte apparaissent pour tout le monde.',
+          'En-tête de l\'application. Un membre a une navigation avec "Accueil" (la liste de ses sessions), "Archives" (les sessions archivées de sa formation) et "Rechercher un magistrat". Le secrétariat général a la sienne, sans "Accueil" puisque le logo y mène et absente de sa page d\'accueil, avec une pastille sur "Gérer une session" quand de nouvelles sessions sont arrivées. "Rechercher un magistrat" est toujours seul à droite de la navigation. Une page d\'une session archivée met "Archives" en avant, quel que soit son chemin. Un administrateur a en plus le menu "Administration". En haut à droite, LOLFI, le centre d\'aide, l\'avis et le compte apparaissent pour tout le monde.',
       },
     },
     layout: 'fullscreen',

@@ -69,12 +69,11 @@ Un Membre ne voit les auditions d'une session qu'une fois publiées.
 
 ### Espace Secrétariat général
 
-Le menu propose Accueil, Créer une session, Gérer les sessions, Restitutions, Gérer les membres, Archives et Magistrats. L'Administrateur y voit en plus un sous-menu Administration.
+L'accueil propose les deux pouvoirs de proposition, sans menu. Ailleurs, le menu propose Gérer une session, Restitutions, Gérer les membres, Archives et Rechercher un magistrat. Le logo ramène à l'accueil. L'Administrateur y voit en plus un sous-menu Administration.
 
 | URL                                                                                              | Vue                                                             | Membre | Secrétariat général | Administrateur |
 | ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------- | ------ | ------------------- | -------------- |
-| `/secretariat-general`                                                                           | Tableau de bord                                                 | —      | ✓                   | ✓              |
-| `/secretariat-general/nouvelle-transparence`                                                     | Créer une session à partir d'un fichier Lodam                   | —      | ✓                   | ✓              |
+| `/secretariat-general`                                                                           | Accueil : choix du pouvoir de proposition                       | —      | ✓                   | ✓              |
 | `/secretariat-general/sessions`                                                                  | Gérer les sessions                                              | —      | ✓                   | ✓              |
 | `/secretariat-general/archives/sessions`                                                         | Sessions archivées                                              | —      | ✓                   | ✓              |
 | `/secretariat-general/session/:sessionId`                                                        | Session, onglet Propositions : dossiers, affectation, décisions | —      | ✓                   | ✓              |
@@ -110,6 +109,7 @@ Le menu propose Accueil, Créer une session, Gérer les sessions, Restitutions, 
 | URL                           | Vue                                                                                                                                  | Membre | Secrétariat général | Administrateur |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ------ | ------------------- | -------------- |
 | `/admin/lolfi`                | Import d'une archive Lolfi                                                                                                           | —      | —                   | ✓              |
+| `/admin/lodam`                | Création d'une session à partir d'un fichier Lodam                                                                                   | —      | —                   | ✓              |
 | `/admin/ingestions`           | Liste des traitements en arrière-plan                                                                                                | —      | —                   | ✓              |
 | `/admin/ingestions/:jobId`    | Détail d'un traitement                                                                                                               | —      | —                   | ✓              |
 | `/admin/avis`                 | Export des réponses au questionnaire                                                                                                 | —      | —                   | ✓              |
@@ -149,7 +149,7 @@ Quiconque détient un lien de téléchargement temporaire télécharge le fichie
 | Lister les sessions (gestion)                 | `GET /sessions/v2/garde-des-sceaux`                              | —                                                                                 | ✓                        | ✓                        |
 | Compter les nouvelles sessions                | `GET /sessions/v2/new/count`                                     | —                                                                                 | ✓                        | ✓                        |
 | Voir le détail d'une session                  | `GET /sessions/v2/:sessionId`                                    | ✓ si sa formation                                                                 | ✓                        | ✓                        |
-| Créer une session à partir d'un fichier Lodam | `POST /sessions/v2/lodam`                                        | —                                                                                 | ✓                        | ✓                        |
+| Créer une session à partir d'un fichier Lodam | `POST /sessions/v2/lodam`                                        | —                                                                                 | —                        | ✓                        |
 | Modifier les observateurs d'une session       | `POST /sessions/v2/lodam/:sessionId/observers`                   | —                                                                                 | ✓                        | ✓                        |
 | Modifier une session                          | `PUT /sessions/v2/:sessionId`                                    | —                                                                                 | ✓                        | ✓                        |
 | Valider une session                           | `POST /sessions/v2/:sessionId/validation`                        | —                                                                                 | ✓                        | ✓                        |
@@ -192,15 +192,14 @@ Un Membre ne voit pas le commentaire de décision d'un dossier. Un rapporteur du
 
 ### Affectation
 
-| Action                                    | Endpoint                                                                     | Membre                                 | Secrétariat général | Administrateur |
-| ----------------------------------------- | ---------------------------------------------------------------------------- | -------------------------------------- | ------------------- | -------------- |
-| Lister les rapporteurs affectés           | `GET /sessions/v2/:sessionId/files/reporters/versions/last/members`          | ✓ si sa formation, affectation publiée | ✓                   | ✓              |
-| Affecter des rapporteurs                  | `POST /sessions/v2/:sessionId/files/reporters`                               | —                                      | ✓                   | ✓              |
-| Affecter automatiquement                  | `POST /sessions/v2/:sessionId/auto-affectation`                              | —                                      | ✓                   | ✓              |
-| Publier l'affectation                     | `POST /sessions/v2/:sessionId/files/reporters/versions`                      | —                                      | ✓                   | ✓              |
-| Voir la dernière version de l'affectation | `GET /sessions/v2/:sessionId/files/reporters/versions/last`                  | —                                      | ✓                   | ✓              |
-| Voir l'historique de l'affectation        | `GET /sessions/v2/:sessionId/files/reporters/versions/history`               | —                                      | ✓                   | ✓              |
-| Compter les dossiers non affectés         | `GET /sessions/v2/:sessionId/files/reporters/versions/last/unaffected-count` | —                                      | ✓                   | ✓              |
+| Action                             | Endpoint                                                                     | Membre                                 | Secrétariat général | Administrateur |
+| ---------------------------------- | ---------------------------------------------------------------------------- | -------------------------------------- | ------------------- | -------------- |
+| Lister les rapporteurs affectés    | `GET /sessions/v2/:sessionId/files/reporters/versions/last/members`          | ✓ si sa formation, affectation publiée | ✓                   | ✓              |
+| Affecter des rapporteurs           | `POST /sessions/v2/:sessionId/files/reporters`                               | —                                      | ✓                   | ✓              |
+| Affecter automatiquement           | `POST /sessions/v2/:sessionId/auto-affectation`                              | —                                      | ✓                   | ✓              |
+| Publier l'affectation              | `POST /sessions/v2/:sessionId/files/reporters/versions`                      | —                                      | ✓                   | ✓              |
+| Voir l'historique de l'affectation | `GET /sessions/v2/:sessionId/files/reporters/versions/history`               | —                                      | ✓                   | ✓              |
+| Compter les dossiers non affectés  | `GET /sessions/v2/:sessionId/files/reporters/versions/last/unaffected-count` | —                                      | ✓                   | ✓              |
 
 ### Rapports
 

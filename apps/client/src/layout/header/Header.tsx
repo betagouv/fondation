@@ -46,13 +46,18 @@ export const AppHeader = () => {
   const isUserAdmin = useIsAdmin();
   const { isArchived } = useArchivedSession();
 
-  const shouldShowNavBar = !!user && pathname !== ROUTE_PATHS.LOGIN;
+  const shouldShowNavBar = !!user && pathname !== ROUTE_PATHS.LOGIN && pathname !== ROUTE_PATHS.SG.DASHBOARD;
 
-  const magistratSearchText = (
-    <span className="fr-icon-search-line inline-flex items-center gap-2 before:size-4!">
-      {formatMessage({ defaultMessage: 'Rechercher un magistrat' })}
-    </span>
-  );
+  const magistratSearchItem = (path: FondationPath): MainNavigationProps.Item => ({
+    className: 'lg:ml-auto',
+    isActive: routeMatches([path], { end: true }),
+    linkProps: { to: path },
+    text: (
+      <span className="fr-icon-search-line inline-flex items-center gap-2 before:size-4!">
+        {formatMessage({ defaultMessage: 'Rechercher un magistrat' })}
+      </span>
+    ),
+  });
 
   const isMemberArchives = isArchived || routeMatches([ROUTE_PATHS.TRANSPARENCES.ARCHIVED_SESSIONS]);
   const memberNavigation: MainNavigationProps.Item[] = [
@@ -66,24 +71,10 @@ export const AppHeader = () => {
       linkProps: { to: ROUTE_PATHS.TRANSPARENCES.ARCHIVED_SESSIONS },
       text: formatMessage({ defaultMessage: 'Archives' }),
     },
-    {
-      isActive: routeMatches([ROUTE_PATHS.MEMBER.MAGISTRAT_SEARCH], { end: true }),
-      linkProps: { to: ROUTE_PATHS.MEMBER.MAGISTRAT_SEARCH },
-      text: magistratSearchText,
-    },
+    magistratSearchItem(ROUTE_PATHS.MEMBER.MAGISTRAT_SEARCH),
   ];
 
   const sgNavigation: MainNavigationProps.Item[] = [
-    {
-      isActive: routeMatches([ROUTE_PATHS.SG.DASHBOARD], { end: true }),
-      linkProps: { href: '/' },
-      text: formatMessage({ defaultMessage: 'Accueil' }),
-    },
-    {
-      isActive: routeMatches([ROUTE_PATHS.SG.NEW_TRANSPARENCE]),
-      linkProps: { to: ROUTE_PATHS.SG.NEW_TRANSPARENCE },
-      text: formatMessage({ defaultMessage: 'Créer une session' }),
-    },
     {
       isActive: routeMatches([ROUTE_PATHS.SG.MANAGE_SESSION, ROUTE_PATHS.SG.SESSION_ID]) && !isArchived,
       linkProps: { to: ROUTE_PATHS.SG.MANAGE_SESSION },
@@ -108,11 +99,6 @@ export const AppHeader = () => {
       linkProps: { to: ROUTE_PATHS.SG.ARCHIVED_SESSIONS },
       text: formatMessage({ defaultMessage: 'Archives' }),
     },
-    {
-      isActive: routeMatches([ROUTE_PATHS.SG.MAGISTRAT_SEARCH], { end: true }),
-      linkProps: { to: ROUTE_PATHS.SG.MAGISTRAT_SEARCH },
-      text: magistratSearchText,
-    },
   ];
 
   if (isUserAdmin) {
@@ -120,6 +106,7 @@ export const AppHeader = () => {
       isActive: routeMatches([
         ROUTE_PATHS.ADMIN.LIST_JOBS,
         ROUTE_PATHS.ADMIN.DETAILS_JOB,
+        ROUTE_PATHS.ADMIN.INGEST_LODAM,
         ROUTE_PATHS.ADMIN.INGEST_LOLFI,
         ROUTE_PATHS.ADMIN.USERS,
         ROUTE_PATHS.ADMIN.USER_DETAIL,
@@ -132,7 +119,7 @@ export const AppHeader = () => {
           isActive: routeMatches([ROUTE_PATHS.ADMIN.INGEST_LOLFI]),
           linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.INGEST_LOLFI },
           text: (
-            <span className={clsx('fr-icon-file-add-line', NAV_ICON_CLASS)}>
+            <span className={clsx('fr-icon-upload-2-line', NAV_ICON_CLASS)}>
               {formatMessage({ defaultMessage: 'Importer une archive LOLFI' })}
             </span>
           ),
@@ -141,8 +128,17 @@ export const AppHeader = () => {
           isActive: routeMatches([ROUTE_PATHS.ADMIN.LIST_JOBS, ROUTE_PATHS.ADMIN.DETAILS_JOB]),
           linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.LIST_JOBS },
           text: (
-            <span className={clsx('ri-play-circle-line', NAV_ICON_CLASS)}>
+            <span className={clsx('ri-history-line', NAV_ICON_CLASS)}>
               {formatMessage({ defaultMessage: 'Suivre les ingestions' })}
+            </span>
+          ),
+        },
+        {
+          isActive: routeMatches([ROUTE_PATHS.ADMIN.INGEST_LODAM]),
+          linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.INGEST_LODAM },
+          text: (
+            <span className={clsx('fr-icon-add-circle-line', NAV_ICON_CLASS)}>
+              {formatMessage({ defaultMessage: 'Créer une session' })}
             </span>
           ),
         },
@@ -169,7 +165,7 @@ export const AppHeader = () => {
           linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.REMARKS },
           text: (
             <span className={clsx('fr-icon-question-answer-line', NAV_ICON_CLASS)}>
-              {formatMessage({ defaultMessage: 'Traiter les remarques' })}
+              {formatMessage({ defaultMessage: 'Traiter les retours utilisateurs' })}
             </span>
           ),
         },
@@ -190,10 +186,12 @@ export const AppHeader = () => {
       ),
     });
   }
+  sgNavigation.push(magistratSearchItem(ROUTE_PATHS.SG.MAGISTRAT_SEARCH));
 
   return (
     <Header
       brandTop="CSM"
+      classes={{ menu: 'lg:[&_.fr-nav>ul]:gap-2' }}
       homeLinkProps={{ title: formatMessage({ defaultMessage: 'Accueil' }), to: '/' }}
       navigation={shouldShowNavBar ? (isUserSg ? sgNavigation : memberNavigation) : []}
       operatorLogo={{
