@@ -33,6 +33,7 @@ export type TestStepsMember = Pick<TestSteps, 'archivedSessions' | 'reports' | '
     | 'listObservations'
     | 'writeMemberComment'
   >;
+  remarks: Pick<TestSteps['remarks'], 'sendRemark'>;
   summaries: Pick<TestSteps['summaries'], 'detailSummary' | 'generateAttachmentPublicUrl'>;
 };
 
@@ -46,7 +47,7 @@ export type TestStepsAdmin = Omit<TestSteps, 'members'> & {
 // an intersection merges the keys of a namespace: one narrowed below must first leave the complement
 export type TestStepsAgent = Omit<
   Complement<TestSteps, TestStepsMember>,
-  'administration' | 'auth' | 'feedback' | 'help' | 'ingest' | 'jobs' | 'magistrats'
+  'administration' | 'auth' | 'feedback' | 'help' | 'ingest' | 'jobs' | 'magistrats' | 'remarks'
 > & {
   archivedSessions: TestSteps['archivedSessions'];
   auth: Omit<
@@ -60,6 +61,7 @@ export type TestStepsAgent = Omit<
   magistrats: Omit<TestSteps['magistrats'], 'searchMagistratAuthorization'>;
   // the secretariat also reads the observations it receives
   observations: TestSteps['observations'];
+  remarks: TestStepsMember['remarks'];
   // the secretariat also reads the summaries it writes
   summaries: Pick<TestSteps['summaries'], 'detailSummary'>;
   ['@user']: TestSteps['@user'];

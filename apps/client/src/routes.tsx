@@ -448,6 +448,13 @@ export const routes: RouteObject[] = [
             path: ROUTE_PATHS.ADMIN.FEEDBACKS,
           },
           {
+            lazy: () =>
+              import('@/pages/spaces/admin/AdminRemarksPage').then(({ AdminRemarksPage }) => ({
+                Component: AdminRemarksPage,
+              })),
+            path: ROUTE_PATHS.ADMIN.REMARKS,
+          },
+          {
             loader: () => redirect(ROUTE_PATHS.ADMIN.LIST_JOBS),
             path: '/admin/jobs',
           },

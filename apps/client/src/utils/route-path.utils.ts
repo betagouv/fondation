@@ -11,6 +11,7 @@ export const ROUTE_PATHS = {
     HELP: '/admin/aide',
     INGEST_LOLFI: '/admin/lolfi',
     LIST_JOBS: '/admin/ingestions',
+    REMARKS: '/admin/remarques',
     ROOT: '/admin',
     USERS: '/admin/utilisateurs',
     USER_DETAIL: '/admin/utilisateurs/:userId',
