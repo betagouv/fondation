@@ -66,6 +66,22 @@ describe('PublishableAuditions.equals', () => {
   });
 });
 
+describe('PublishableAuditions.isEmpty', () => {
+  it('is not empty once a proposed magistrat or an observant is scheduled', () => {
+    expect(auditions({ observants: new Map() }).isEmpty()).toBe(false);
+    expect(auditions({ nominationFiles: new Map() }).isEmpty()).toBe(false);
+  });
+
+  it('is empty while the auditions are only requested', () => {
+    const requested = auditions({
+      nominationFiles: new Map([['file-1', { audition: null, requested: true }]]),
+      observants: new Map(),
+    });
+
+    expect(requested.isEmpty()).toBe(true);
+  });
+});
+
 describe('SessionTransparence.publishAuditions', () => {
   it('publishes the auditions a first time', () => {
     const transparence = session();

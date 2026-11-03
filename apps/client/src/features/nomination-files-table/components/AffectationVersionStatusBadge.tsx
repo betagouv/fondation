@@ -4,17 +4,14 @@ import { FormattedMessage } from 'react-intl';
 import { useDateAndTime } from '@/shared/hooks/useDateAndTime';
 import { Tooltip } from '@/shared/ui/tooltip';
 import { useUser } from '@queries/auth.queries';
-import {
-  useDetailAffectationHistoryQuery,
-  useDetailedNominationSessionAffectationsVersionQuery,
-} from '@queries/nomination-sessions.queries';
+import { useDetailAffectationHistoryQuery } from '@queries/nomination-sessions.queries';
 
 export function AffectationVersionStatusBadge(props: { sessionId: string }) {
-  const { data: affectationsVersion } = useDetailedNominationSessionAffectationsVersionQuery(props.sessionId);
+  const { data: history } = useDetailAffectationHistoryQuery(props.sessionId);
 
-  const version = affectationsVersion?.version ?? 0;
-  const isPublished =
-    !!affectationsVersion && 'status' in affectationsVersion && affectationsVersion.status === 'PUBLIEE';
+  if (!history || history.status === 'NOTHING_TO_PUBLISH') return null;
+  const isPublished = history.status === 'PUBLISHED';
+  const version = (history.pending ?? history.lastPublished)?.version ?? 0;
 
   return (
     <Tooltip focusable label={<AffectationHistory sessionId={props.sessionId} />}>

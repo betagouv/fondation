@@ -8,7 +8,10 @@ import z from 'zod';
 import { Prisma } from '../../../../../generated/prisma/client';
 import { Db } from '../../../../framework/database';
 import { prismaStatutAffectationEnumToStatutAffectationEnum } from '../../../../shared/mappers/statut-affectation.mapper';
+import type { PublicationStatus } from '../../../../shared/publication-status.enum';
 import { StatutAffectationEnum } from '../../../../shared/statut-affectation.enum';
+import { PublishableAffectations } from '../../domain/affectations-publication';
+import { publicationStatusOf } from '../../domain/publication';
 
 @Injectable()
 export class AffectationVersionFinder {
@@ -40,6 +43,33 @@ export class AffectationVersionFinder {
       version: _max.version,
       sessionId: query.sessionId,
     });
+  }
+
+  /** the callers already read both versions: only their reporters are left to load */
+  @Transactional(Propagation.Mandatory)
+  async publicationStatus(query: {
+    draftVersionId: string | null;
+    publishedVersionId: string | null;
+  }): Promise<PublicationStatus> {
+    const published = query.publishedVersionId
+      ? await this.affectations({ versionId: query.publishedVersionId })
+      : null;
+    const current = query.draftVersionId
+      ? await this.affectations({ versionId: query.draftVersionId })
+      : (published ?? PublishableAffectations.from([]));
+
+    return publicationStatusOf({ current, published });
+  }
+
+  private async affectations(query: { versionId: string }): Promise<PublishableAffectations> {
+    const affectations = await this.db.tx.nominationFileToReporter.findMany({
+      select: { nominationFileId: true, userId: true } satisfies Prisma.NominationFileToReporterSelect,
+      where: { versionId: query.versionId },
+    });
+
+    return PublishableAffectations.from(
+      affectations.map(({ nominationFileId, userId }) => ({ nominationFileId, reporterId: userId })),
+    );
   }
 
   private async version(props: {

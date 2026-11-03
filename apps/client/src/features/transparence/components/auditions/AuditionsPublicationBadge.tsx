@@ -11,7 +11,7 @@ export function AuditionsPublicationBadge(props: { sessionId: string }) {
   const { user } = useUser();
   const { data: publication } = useLastAuditionsPublicationQuery({ sessionId: props.sessionId });
 
-  if (!publication) return null;
+  if (!publication || publication.status === 'NOTHING_TO_PUBLISH') return null;
   const { lastPublished, status } = publication;
 
   const badge = (

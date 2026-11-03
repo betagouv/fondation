@@ -11,7 +11,7 @@ export function AuditionsPublishButton(props: { sessionId: string }) {
   const { data: publication } = useLastAuditionsPublicationQuery({ sessionId: props.sessionId });
   const { isPending: isPublishing, mutate: publish } = usePublishAuditionsMutation();
 
-  if (!publication || publication.status === 'PUBLISHED') return null;
+  if (publication?.status !== 'NEVER_PUBLISHED' && publication?.status !== 'UNPUBLISHED_CHANGES') return null;
 
   return (
     <Button

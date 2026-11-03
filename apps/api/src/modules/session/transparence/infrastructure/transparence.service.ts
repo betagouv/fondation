@@ -21,6 +21,7 @@ import {
 import * as policies from '../../../shared/policies/nomination-file.policies';
 import { canReadSession } from '../../../shared/policies/session.policies';
 import { PriorityEnum } from '../../../shared/priority.enum';
+import type { PublicationStatus } from '../../../shared/publication-status.enum';
 import { roleToFormation, type RoleEnum } from '../../../shared/role.enum';
 import { TypeDeSaisineEnum } from '../../../shared/type-de-saisine.enum';
 import { SessionTransparence } from '../domain/session-transparence';
@@ -32,11 +33,7 @@ import {
   ListArchivedSessionsQueryDto,
   ListGdsNominationSessionsQueryDto,
 } from './dtos/transparence-session.dto';
-import {
-  AffectationVersionFinder,
-  FoundAffectationVersion,
-  OptionalAffectationVersion,
-} from './finders/affectation-version.finder';
+import { AffectationVersionFinder, OptionalAffectationVersion } from './finders/affectation-version.finder';
 import { AuditionPublicationFinder } from './finders/audition-publication.finder';
 import { AuditionsSeenFinder, type SeenAudition } from './finders/auditions-seen.finder';
 import { AutoAffectationsFinder } from './finders/auto-affectations.finder';
@@ -86,7 +83,6 @@ import {
   DetailedNominationFileAuditionHistoryDto,
   DetailNominationFileAuditionHistoryQuery,
 } from './queries/detail-nomination-file-audition-history.query';
-import { DetailNominationSessionAffectationVersionQuery } from './queries/detail-nomination-session-affectation-version.query';
 import {
   type DetailedNominationSessionAttachmentDto,
   DetailNominationSessionAttachmentQuery,
@@ -149,7 +145,6 @@ export class TransparenceService {
     private readonly detailNominationFileAuditionHistoryQuery: DetailNominationFileAuditionHistoryQuery,
     private readonly detailNominationFileAttachmentQuery: DetailNominationFileAttachmentQuery,
     private readonly detailAffectationHistoryQuery: DetailAffectationHistoryQuery,
-    private readonly detailNominationSessionAffectationVersionQuery: DetailNominationSessionAffectationVersionQuery,
     private readonly detailNominationSessionAttachmentQuery: DetailNominationSessionAttachmentQuery,
     private readonly detailNominationSessionQuery: DetailNominationSessionQuery,
     private readonly detailSessionCommentQuery: DetailSessionCommentQuery,
@@ -323,10 +318,6 @@ export class TransparenceService {
 
   detailAffectationHistory(query: { sessionId: string }): Promise<DetailedAffectationHistoryDto> {
     return this.detailAffectationHistoryQuery.handle(query);
-  }
-
-  detailNominationSessionAffectationsVersion(query: { sessionId: string }): Promise<FoundAffectationVersion> {
-    return this.detailNominationSessionAffectationVersionQuery.handle(query);
   }
 
   @Transactional()
@@ -914,6 +905,14 @@ export class TransparenceService {
   /** @internal */
   internalFindLastAffectationVersion(query: { sessionId: string }): Promise<OptionalAffectationVersion> {
     return this.versions.last(query);
+  }
+
+  /** @internal */
+  internalFindAffectationsPublicationStatus(query: {
+    draftVersionId: string | null;
+    publishedVersionId: string | null;
+  }): Promise<PublicationStatus> {
+    return this.versions.publicationStatus(query);
   }
 
   /** @internal */

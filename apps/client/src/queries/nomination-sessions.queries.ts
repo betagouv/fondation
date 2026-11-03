@@ -105,15 +105,6 @@ const doesQueryKey = {
       ),
 } as const;
 
-export const useDetailedNominationSessionAffectationsVersionQuery = (sessionId: string) =>
-  useQuery({
-    queryFn: () =>
-      $api.sessions
-        .detailNominationSessionAffectationsVersion({ path: { sessionId } })
-        .then(({ data = null }) => data),
-    queryKey: sessionKeys.detailSessionAffectationVersion({ sessionId }),
-  });
-
 export const useDetailAffectationHistoryQuery = (sessionId: string) =>
   useQuery({
     queryFn: () =>
