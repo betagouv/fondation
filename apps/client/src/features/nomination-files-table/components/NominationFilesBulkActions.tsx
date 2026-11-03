@@ -8,10 +8,12 @@ import {
 } from '../context/excluded-jurisdictions.context';
 import { useNominationFilesTable } from '../context/files-table.context';
 import { OutcomeBadge } from '@/shared/components/outcome-badge';
+import { useConfirmModal } from '@/shared/context/confirm-modal';
 import type { NominationFileOutcomeEnum } from '@/shared/enums/nomination-file-outcome.enum';
 import type { PrioriteEnum } from '@/shared/enums/priorite.enum';
 import { Dropdown } from '@/shared/ui/dropdown';
 import { useToasts } from '@/shared/ui/toast';
+import { memberFullName } from '@/utils/user.utils';
 import type { RecusedMembersDto } from '@api/types';
 import { useMemberListQuery } from '@queries/members.queries';
 import {
@@ -71,6 +73,56 @@ function sharedRecusedMembers(files: readonly SessionNominationFile[]): RecusedM
   return isShared ? (files[0]!.recusedMembers ?? []) : [];
 }
 
+type RecusedReporter = {
+  files: readonly SessionNominationFile[];
+  reporter: SessionNominationFile['reporters'][number];
+};
+
+function recusedReporters(
+  files: readonly SessionNominationFile[],
+  addedMemberIds: readonly string[],
+): RecusedReporter[] {
+  return addedMemberIds.flatMap((memberId) => {
+    const reported = files.filter(
+      (file) => file.reporters.some(({ id }) => id === memberId) && !recusedIdsOf(file).includes(memberId),
+    );
+    const reporter = reported[0]?.reporters.find(({ id }) => id === memberId);
+
+    return reporter ? [{ files: reported, reporter }] : [];
+  });
+}
+
+function RecusedReportersNotice(props: { reporters: readonly RecusedReporter[] }) {
+  const reportCount = props.reporters.reduce((count, { files }) => count + files.length, 0);
+
+  return (
+    <>
+      <p>
+        {props.reporters.length > 1 ? (
+          <FormattedMessage
+            defaultMessage={`Ces membres sont rapporteurs de dossiers sélectionnés. Avec ce déport, leurs rapports sur ces dossiers passent à « Sans objet » et en lecture seule.`}
+          />
+        ) : reportCount > 1 ? (
+          <FormattedMessage
+            defaultMessage={`Ce membre est rapporteur de dossiers sélectionnés. Avec ce déport, ses rapports sur ces dossiers passent à « Sans objet » et en lecture seule.`}
+          />
+        ) : (
+          <FormattedMessage
+            defaultMessage={`Ce membre est rapporteur d'un dossier sélectionné. Avec ce déport, son rapport sur ce dossier passe à « Sans objet » et en lecture seule.`}
+          />
+        )}
+      </p>
+      <ul>
+        {props.reporters.map(({ files, reporter }) => (
+          <li key={reporter.id}>
+            {`${memberFullName(reporter)} : ${files.map((file) => file.content.nomMagistrat).join(', ')}`}
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+}
+
 function sharedOutcome(files: readonly SessionNominationFile[]): NominationFileOutcomeEnum | null {
   const outcomes = files.map((file) => file.content.outcome?.value ?? null);
   const [first] = outcomes;
@@ -86,6 +138,7 @@ export function NominationFilesBulkActions(props: {
   const { formatMessage } = useIntl();
   const { formation, outcomes, sessionId } = useNominationFilesTable();
   const toasts = useToasts();
+  const { waitForConfirmation } = useConfirmModal();
 
   const affectReporters = useAffectNominationFilesReportersMutation();
   const defineOutcome = useDefineNominationFilesOutcomeMutation({ sessionId });
@@ -218,10 +271,26 @@ export function NominationFilesBulkActions(props: {
   );
 
   const changeRecusedMembers = useCallback(
-    (next: string[]) => {
+    async (next: string[]) => {
       if (!hasSelection) return;
 
       const change = diff(recusedMemberIds, next);
+      const reporters = recusedReporters(props.selectedFiles, change.added);
+      if (reporters.length > 0) {
+        const { isConfirmed } = await waitForConfirmation({
+          content: <RecusedReportersNotice reporters={reporters} />,
+          i18n: {
+            cancel: formatMessage({ defaultMessage: 'Annuler' }),
+            confirm: formatMessage({ defaultMessage: 'Déporter' }),
+          },
+          title:
+            reporters.length > 1
+              ? formatMessage({ defaultMessage: 'Déporter des rapporteurs' })
+              : formatMessage({ defaultMessage: 'Déporter un rapporteur' }),
+        });
+        if (!isConfirmed) return;
+      }
+
       setRecusedMemberIds(next);
 
       recuseMembers.mutate(
@@ -234,7 +303,15 @@ export function NominationFilesBulkActions(props: {
         { onError: onFailure },
       );
     },
-    [hasSelection, onFailure, props.selectedFiles, recuseMembers, recusedMemberIds],
+    [
+      formatMessage,
+      hasSelection,
+      onFailure,
+      props.selectedFiles,
+      recuseMembers,
+      recusedMemberIds,
+      waitForConfirmation,
+    ],
   );
 
   const chooseOutcome = useCallback(

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { IntlProvider } from 'react-intl';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ExcludedJurisdictionsContext } from '../context/excluded-jurisdictions.context';
 import { NominationFilesTableContext } from '../context/files-table.context';
 import { MemberExcludedJurisdictions } from '../context/member-excluded-jurisdictions';
+import { ConfirmModalProvider } from '@/shared/context/confirm-modal';
 import { ToastProvider } from '@/shared/ui/toast';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
@@ -68,20 +69,26 @@ function file(props: {
   } as unknown as SessionNominationFile;
 }
 
-function renderActions(selectedFiles: readonly SessionNominationFile[]) {
-  return render(
+function actions(selectedFiles: readonly SessionNominationFile[]) {
+  return (
     <IntlProvider defaultLocale="fr" locale="fr">
       <ToastProvider>
-        <NominationFilesTableContext
-          value={{ canManage: true, formation: 'PARQUET', outcomes: OUTCOMES, sessionId: 'session-1' }}
-        >
-          <ExcludedJurisdictionsContext value={MemberExcludedJurisdictions.fromMembers([])}>
-            <NominationFilesBulkActions onClose={vi.fn()} selectedFiles={selectedFiles} />
-          </ExcludedJurisdictionsContext>
-        </NominationFilesTableContext>
+        <ConfirmModalProvider>
+          <NominationFilesTableContext
+            value={{ canManage: true, formation: 'PARQUET', outcomes: OUTCOMES, sessionId: 'session-1' }}
+          >
+            <ExcludedJurisdictionsContext value={MemberExcludedJurisdictions.fromMembers([])}>
+              <NominationFilesBulkActions onClose={vi.fn()} selectedFiles={selectedFiles} />
+            </ExcludedJurisdictionsContext>
+          </NominationFilesTableContext>
+        </ConfirmModalProvider>
       </ToastProvider>
-    </IntlProvider>,
+    </IntlProvider>
   );
+}
+
+function renderActions(selectedFiles: readonly SessionNominationFile[]) {
+  return render(actions(selectedFiles));
 }
 
 const openDropdown = (name: RegExp) => userEvent.click(screen.getByRole('button', { name }));
@@ -139,6 +146,89 @@ describe('NominationFilesBulkActions', () => {
         items: [
           { memberIds: [], nominationFileId: 'file-1' },
           { memberIds: ['member-2'], nominationFileId: 'file-2' },
+        ],
+      },
+      expect.anything(),
+    );
+  });
+
+  it('should name the reporters and their files before recusing them', async () => {
+    renderActions([
+      file({ id: 'file-1', nomMagistrat: 'BOURDIEU Pierre', reporters: [CAMILLE] }),
+      file({ id: 'file-2', nomMagistrat: 'HARENDT Anna' }),
+    ]);
+
+    await openDropdown(/Membres déportés/);
+    await chooseOption('Camille COMMUN');
+
+    const dialog = screen.getByRole('dialog', { name: 'Déporter un rapporteur' });
+    expect(within(dialog).getByRole('listitem')).toHaveTextContent('Camille COMMUN : BOURDIEU Pierre');
+    expect(recuseMembers).not.toHaveBeenCalled();
+
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Déporter' }));
+
+    expect(recuseMembers).toHaveBeenCalledWith(
+      {
+        items: [
+          { memberIds: ['member-1'], nominationFileId: 'file-1' },
+          { memberIds: ['member-1'], nominationFileId: 'file-2' },
+        ],
+      },
+      expect.anything(),
+    );
+  });
+
+  it('should recuse nobody when the secretariat cancels', async () => {
+    renderActions([
+      file({ id: 'file-1', nomMagistrat: 'BOURDIEU Pierre', reporters: [CAMILLE] }),
+      file({ id: 'file-2', nomMagistrat: 'HARENDT Anna' }),
+    ]);
+
+    await openDropdown(/Membres déportés/);
+    await chooseOption('Camille COMMUN');
+    await userEvent.click(screen.getByRole('button', { name: 'Annuler' }));
+
+    expect(recuseMembers).not.toHaveBeenCalled();
+    expect(screen.queryByRole('button', { name: 'Retirer Camille COMMUN' })).toBeNull();
+  });
+
+  it('should not ask again for a reporter already recused from their file', async () => {
+    renderActions([
+      file({
+        id: 'file-1',
+        nomMagistrat: 'BOURDIEU Pierre',
+        recusedMembers: [CAMILLE],
+        reporters: [CAMILLE],
+      }),
+      file({ id: 'file-2', nomMagistrat: 'HARENDT Anna' }),
+    ]);
+
+    await openDropdown(/Membres déportés/);
+    await chooseOption('Camille COMMUN');
+
+    expect(screen.queryByRole('dialog', { name: /Déporter/ })).toBeNull();
+    expect(recuseMembers).toHaveBeenCalled();
+  });
+
+  it('should withdraw the recusal of a reporter without asking', async () => {
+    renderActions([
+      file({
+        id: 'file-1',
+        nomMagistrat: 'BOURDIEU Pierre',
+        recusedMembers: [CAMILLE],
+        reporters: [CAMILLE],
+      }),
+      file({ id: 'file-2', nomMagistrat: 'HARENDT Anna', recusedMembers: [CAMILLE] }),
+    ]);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Retirer Camille COMMUN' }));
+
+    expect(screen.queryByRole('dialog', { name: /Déporter/ })).toBeNull();
+    expect(recuseMembers).toHaveBeenCalledWith(
+      {
+        items: [
+          { memberIds: [], nominationFileId: 'file-1' },
+          { memberIds: [], nominationFileId: 'file-2' },
         ],
       },
       expect.anything(),
@@ -382,19 +472,7 @@ describe('NominationFilesBulkActions', () => {
     await chooseOption('Camille COMMUN');
     expect(screen.getByRole('button', { name: 'Retirer Camille COMMUN' })).toBeVisible();
 
-    rerender(
-      <IntlProvider defaultLocale="fr" locale="fr">
-        <ToastProvider>
-          <NominationFilesTableContext
-            value={{ canManage: true, formation: 'PARQUET', outcomes: OUTCOMES, sessionId: 'session-1' }}
-          >
-            <ExcludedJurisdictionsContext value={MemberExcludedJurisdictions.fromMembers([])}>
-              <NominationFilesBulkActions onClose={vi.fn()} selectedFiles={[]} />
-            </ExcludedJurisdictionsContext>
-          </NominationFilesTableContext>
-        </ToastProvider>
-      </IntlProvider>,
-    );
+    rerender(actions([]));
 
     expect(screen.queryByRole('button', { name: 'Retirer Camille COMMUN' })).toBeNull();
   });
