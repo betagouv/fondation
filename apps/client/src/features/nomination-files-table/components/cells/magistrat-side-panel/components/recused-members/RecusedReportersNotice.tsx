@@ -1,28 +1,8 @@
 import { FormattedMessage } from 'react-intl';
 
 import { memberFullName } from '@/utils/user.utils';
-import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
-type RecusedReporter = {
-  files: readonly SessionNominationFile[];
-  reporter: SessionNominationFile['reporters'][number];
-};
-
-export function recusedReporters(
-  files: readonly SessionNominationFile[],
-  addedMemberIds: readonly string[],
-): RecusedReporter[] {
-  return addedMemberIds.flatMap((memberId) => {
-    const reported = files.filter(
-      (file) =>
-        file.reporters.some(({ id }) => id === memberId) &&
-        !file.recusedMembers.some(({ id }) => id === memberId),
-    );
-    const reporter = reported[0]?.reporters.find(({ id }) => id === memberId);
-
-    return reporter ? [{ files: reported, reporter }] : [];
-  });
-}
+import type { RecusedReporter } from './recused-reporters';
 
 export function RecusedReportersNotice(props: { reporters: readonly RecusedReporter[] }) {
   const reportCount = props.reporters.reduce((count, { files }) => count + files.length, 0);

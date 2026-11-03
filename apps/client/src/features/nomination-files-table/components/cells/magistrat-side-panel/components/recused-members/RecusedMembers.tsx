@@ -6,6 +6,7 @@ import { memberFullName } from '@/utils/user.utils';
 import type { RecusedMembersDto } from '@api/types';
 import { useRecuseMembersMutation, type SessionNominationFile } from '@queries/nomination-sessions.queries';
 
+import { recusedReporters } from './recused-reporters';
 import { RecusedMemberSelect } from './RecusedMemberSelect';
 
 export function RecusedMembers(props: {
@@ -20,17 +21,16 @@ export function RecusedMembers(props: {
   const selected = isPending ? variables.memberIds : recusedMembers.map(({ id }) => id);
 
   const recuse = async (memberIds: string[]) => {
-    const reporter = nominationFile.reporters.find(
-      ({ id }) => memberIds.includes(id) && !selected.includes(id),
-    );
+    const added = memberIds.filter((id) => !selected.includes(id));
+    const [recused] = recusedReporters([nominationFile], added);
 
-    if (reporter) {
+    if (recused) {
       const { isConfirmed } = await waitForConfirmation({
         content: (
           <p>
             <FormattedMessage
               defaultMessage={`{name} est rapporteur de ce dossier. Avec ce déport, son rapport passe à « Sans objet » et en lecture seule.`}
-              values={{ name: memberFullName(reporter) }}
+              values={{ name: memberFullName(recused.reporter) }}
             />
           </p>
         ),

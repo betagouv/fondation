@@ -27,11 +27,9 @@ import {
   PrioritySelect,
   ReporterSelect,
 } from './cells/magistrat-side-panel/components/header/AffectationFields';
+import { recusedReporters } from './cells/magistrat-side-panel/components/recused-members/recused-reporters';
 import { RecusedMemberSelect } from './cells/magistrat-side-panel/components/recused-members/RecusedMemberSelect';
-import {
-  recusedReporters,
-  RecusedReportersNotice,
-} from './cells/magistrat-side-panel/components/recused-members/RecusedReportersNotice';
+import { RecusedReportersNotice } from './cells/magistrat-side-panel/components/recused-members/RecusedReportersNotice';
 import { outcomeRequiresComment } from './cells/nomination-file-outcome/nomination-file-outcome.utils';
 import { RequiredOutcomeCommentsModal, type OutcomeComment } from './RequiredOutcomeCommentsModal';
 
