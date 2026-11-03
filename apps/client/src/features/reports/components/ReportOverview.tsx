@@ -5,7 +5,6 @@ import { Navigate } from 'react-router';
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { AuditionAnnouncedBanner, AuditionScheduledBanner } from '@/shared/components/audition-banner';
 import { ArchiveBannerPortal } from '@/shared/components/banners';
-import { RecusedReporterBanner } from '@/shared/components/recused-reporter-banner';
 import type { ReportStatusEnum } from '@/shared/enums/report-status.enum';
 import { useAttachmentFailureToast } from '@/shared/hooks/useAttachmentFailureToast';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
@@ -15,7 +14,6 @@ import { isAuditionMissing } from '@/utils/audition-expectation.util';
 import { HttpException } from '@/utils/http-exception';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { TransparencesCurrentPage, useTransparencesBreadCrumb } from '@/utils/transparences-breadcrumb.utils';
-import { useUser } from '@queries/auth.queries';
 import {
   useDetailedNominationSessionQuery,
   useSessionNominationFileQuery,
@@ -23,13 +21,13 @@ import {
 import {
   useAttachReportFilesMutation,
   useDetachReportFilesMutation,
-  useMyReportQuery,
   useReportQuery,
   useUpdateReportMutation,
 } from '@queries/reports.queries';
 
 import { AttachedFilesList } from './AttachedFilesList';
 import { AutoSaveNotice } from './AutoSaveNotice';
+import { RecusedReportBanner } from './RecusedReportBanner';
 import { ReportAttachmentsCard } from './ReportAttachmentsCard';
 import { ReportDetailsHeader } from './ReportDetailsHeader';
 import { ReportEditor } from './ReportEditor';
@@ -41,14 +39,7 @@ export function ReportOverview({ id }: { id: string }) {
   const breadCrumbOf = useTransparencesBreadCrumb();
   const isSg = useIsSg();
 
-  const { user } = useUser();
   const { data: retrievedReport, error, isPending } = useReportQuery(id);
-  const { data: myReport } = useMyReportQuery({
-    enabled: !!retrievedReport && !isSg,
-    nominationFileId: retrievedReport?.nominationFileId ?? '',
-    sessionId: retrievedReport?.sessionId ?? '',
-    userId: user?.id,
-  });
   const nominationFileQuery = useSessionNominationFileQuery({
     enabled: !!retrievedReport,
     nominationFileId: retrievedReport?.nominationFileId,
@@ -118,7 +109,7 @@ export function ReportOverview({ id }: { id: string }) {
       <DetailsPageLayout
         alerts={
           <>
-            {myReport?.state === 'NOT_APPLICABLE' && <RecusedReporterBanner fullWidth />}
+            {!isSg && <RecusedReportBanner report={retrievedReport} />}
             {!isSg && isAuditionMissing(nominationFile) && <AuditionAnnouncedBanner fullWidth />}
             <AuditionScheduledBanner
               date={nominationFile.auditionDate}
