@@ -227,12 +227,12 @@ function UnsavedWarning() {
   );
 }
 
-type Reporter = { firstName: string; id: string; lastName: string };
+type Member = { firstName: string; id: string; lastName: string };
 
 function ReporterStatus(props: {
   conflicts: readonly ExcludedJurisdictionConflict[];
   currentUserId: string | undefined;
-  reporters: readonly Reporter[];
+  reporters: readonly Member[];
 }) {
   const { conflicts, currentUserId, reporters } = props;
   const excludedTitleByMemberId = useExcludedJurisdictionTitles(conflicts);
@@ -283,7 +283,7 @@ function ReporterStatus(props: {
   );
 }
 
-function MemberTag(props: { excludedTitle?: string; member: Reporter }) {
+function MemberTag(props: { excludedTitle?: string; member: Member }) {
   return (
     <Tag
       className={clsx(
