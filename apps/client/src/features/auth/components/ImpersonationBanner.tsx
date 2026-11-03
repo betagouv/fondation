@@ -43,10 +43,10 @@ export function ImpersonationBanner() {
           tabImpersonation.forget();
           render();
         },
-        label: <FormattedMessage defaultMessage="Continuer avec mon compte" />,
+        label: <FormattedMessage defaultMessage="Fermer" />,
         message: (
           <FormattedMessage
-            defaultMessage="Votre connexion en tant que <b>{name}</b> a pris fin"
+            defaultMessage="Votre connexion en tant que <b>{name}</b> a pris fin. Cet onglet utilise désormais votre compte."
             values={{ b: strong, name: endedFor }}
           />
         ),
@@ -54,7 +54,7 @@ export function ImpersonationBanner() {
 
   return (
     <PermanentBanner className="flex items-center" style={{ backgroundColor: bgColor, color: text }}>
-      <span>{banner.message}</span>
+      <span role="status">{banner.message}</span>
       <Button
         className="fr-ml-1v"
         disabled={isPending}

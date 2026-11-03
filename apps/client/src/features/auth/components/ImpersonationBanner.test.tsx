@@ -25,13 +25,12 @@ describe('ImpersonationBanner', () => {
       </IntlProvider>,
     );
 
-    expect(screen.getByText(/a pris fin/)).toHaveTextContent(
-      'Votre connexion en tant que Sophie SIÈGE a pris fin',
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Votre connexion en tant que Sophie SIÈGE a pris fin. Cet onglet utilise désormais votre compte.',
     );
-    expect(screen.getByRole('button', { name: 'Continuer avec mon compte' })).toBeInTheDocument();
   });
 
-  it('goes away once the admin goes on in the tab as themself', async () => {
+  it('goes away once the admin closes it', async () => {
     tabImpersonation.remember('Sophie SIÈGE');
     tabImpersonation.end();
     render(
@@ -40,7 +39,7 @@ describe('ImpersonationBanner', () => {
       </IntlProvider>,
     );
 
-    await userEvent.click(screen.getByRole('button', { name: 'Continuer avec mon compte' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Fermer' }));
 
     expect(screen.queryByText(/a pris fin/)).not.toBeInTheDocument();
   });
