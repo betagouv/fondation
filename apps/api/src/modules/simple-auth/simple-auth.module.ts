@@ -3,6 +3,7 @@ import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { API_CONFIG_TOKEN, ApiConfig } from '../framework/config';
 
 import { OpenIdAuthenticationRequestFinder } from './infrastructure/finders/openid-authentication-request.finder';
+import { LoginAttemptPurge } from './infrastructure/login-attempt-purge';
 import { OpenIdAuthController } from './infrastructure/openid-auth.controller';
 import { PasswordHasher } from './infrastructure/password-hasher';
 import { DetailsUserFromImpersonationQuery } from './infrastructure/queries/details-user-from-impesronation-id.query';
@@ -11,6 +12,7 @@ import { DetailsUserQuery } from './infrastructure/queries/details-user.query';
 import { FindMachineQuery } from './infrastructure/queries/find-machine.query';
 import { ListOpenIdProvidersQuery } from './infrastructure/queries/list-openid-providers.query';
 import { AuthUserRepository } from './infrastructure/repositories/auth-user.repository';
+import { LoginAttemptRepository } from './infrastructure/repositories/login-attempt.repository';
 import { OpenIdModule, OpenIdProviderOptions } from './openid';
 import { OpenIdAuthService } from './openid-auth.service';
 import { SimpleAuthController } from './simple-auth.controller';
@@ -42,6 +44,8 @@ import { SimpleAuthService } from './simple-auth.service';
     DetailsUserQuery,
     FindMachineQuery,
     ListOpenIdProvidersQuery,
+    LoginAttemptPurge,
+    LoginAttemptRepository,
     OpenIdAuthenticationRequestFinder,
     OpenIdAuthService,
     PasswordHasher,

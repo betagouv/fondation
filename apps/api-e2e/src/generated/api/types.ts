@@ -37,6 +37,10 @@ export type ChangePasswordDto = {
     newPassword: string;
 };
 
+export type CreatedImpersonationDto = {
+    id: string;
+};
+
 export type ListedOpenIdProvidersDto = {
     items: Array<string>;
 };
@@ -2544,6 +2548,54 @@ export type WriteHelpPageContentDto = {
     content: string;
 };
 
+export type ListedRemarksDto = {
+    items: Array<{
+        author: {
+            id: string;
+            name: string;
+        } | null;
+        id: string;
+        impersonated: {
+            id: string;
+            name: string;
+        } | null;
+        openAs: {
+            id: string;
+            name: string;
+        } | null;
+        sentAt: string;
+        status: {
+            changedAt: string | null;
+            changedBy: {
+                id: string;
+                name: string;
+            } | null;
+            comment: string | null;
+            value: 'NEW' | 'PROCESSED' | 'DISMISSED';
+        };
+        text: string;
+        url: string;
+    }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
+    links?: {
+        next?: string;
+        previous?: string;
+    };
+};
+
+export type SendRemarkDto = {
+    text: string;
+    url: string;
+};
+
+export type ChangeRemarkStatusDto = {
+    comment: string | null;
+    status: 'NEW' | 'PROCESSED' | 'DISMISSED';
+};
+
 export type GetFileByFileUrlData = {
     body?: never;
     headers?: {
@@ -2627,7 +2679,7 @@ export type ImpersonateData = {
 };
 
 export type ImpersonateResponses = {
-    204: void;
+    201: CreatedImpersonationDto;
 };
 
 export type ImpersonateResponse = ImpersonateResponses[keyof ImpersonateResponses];
@@ -5441,3 +5493,53 @@ export type DetailReaderHelpPageResponses = {
 };
 
 export type DetailReaderHelpPageResponse = DetailReaderHelpPageResponses[keyof DetailReaderHelpPageResponses];
+
+export type ListRemarksData = {
+    body?: never;
+    path?: never;
+    query?: {
+        sortBy?: 'sentAt' | 'status';
+        statuses?: Array<'NEW' | 'PROCESSED' | 'DISMISSED'>;
+        /**
+         * true
+         */
+        sortDesc?: string | boolean;
+        page?: number;
+        limit?: number;
+    };
+    url: '/api/remarks/v1';
+};
+
+export type ListRemarksResponses = {
+    200: ListedRemarksDto;
+};
+
+export type ListRemarksResponse = ListRemarksResponses[keyof ListRemarksResponses];
+
+export type SendRemarkData = {
+    body: SendRemarkDto;
+    path?: never;
+    query?: never;
+    url: '/api/remarks/v1';
+};
+
+export type SendRemarkResponses = {
+    204: void;
+};
+
+export type SendRemarkResponse = SendRemarkResponses[keyof SendRemarkResponses];
+
+export type ChangeRemarkStatusData = {
+    body: ChangeRemarkStatusDto;
+    path: {
+        remarkId: string;
+    };
+    query?: never;
+    url: '/api/remarks/v1/{remarkId}/status';
+};
+
+export type ChangeRemarkStatusResponses = {
+    204: void;
+};
+
+export type ChangeRemarkStatusResponse = ChangeRemarkStatusResponses[keyof ChangeRemarkStatusResponses];

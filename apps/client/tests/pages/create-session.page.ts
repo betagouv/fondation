@@ -82,7 +82,7 @@ export class CreateSessionPage {
   }
 
   private get formSubmitButton(): Locator {
-    return this.app.page.locator('[type="submit"]');
+    return this.app.page.getByRole('button', { name: 'Enregistrer' });
   }
 
   private successfullyCreatedSessionAlert(name: string): Locator {

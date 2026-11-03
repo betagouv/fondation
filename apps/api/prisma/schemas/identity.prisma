@@ -59,6 +59,8 @@ model User {
   authorOfObservantAuditionVersions            ObservantAuditionVersion[]             @relation("observant_audition_version_author")
   authorOfOfficialReports                      OfficialReport[]                       @relation("official_reports_author")
   authorOfOfficialReportVersions               OfficialReportVersion[]                @relation("official_report_version_author")
+  authorOfRemarks                              Remark[]                               @relation("remark_author")
+  authorOfRemarkStatusChanges                  RemarkStatusChange[]                   @relation("remark_status_change_author")
   authorOfSessionCommentVersions               SessionCommentVersion[]                @relation("session_comment_version_author")
   authorOfSummaries                            Summary[]
   authorOfTechnicalAccountChanges              TechnicalAccountChange[]               @relation("technical_account_change_author")
@@ -80,6 +82,7 @@ model User {
   excludedJurisdictionIds                      ExcludedJurisdiction[]
   feedbacks                                    Feedback[]
   followedUpObservations                       Observation[]                          @relation("user_to_observation_follow_up")
+  impersonatedInRemarks                        Remark[]                               @relation("remark_impersonated")
   impersonatorOfAuditionPublications           AuditionPublication[]                  @relation("audition_publication_impersonator")
   impersonatorOfNominationFileAuditionVersions NominationFileAuditionVersion[]        @relation("nomination_file_audition_version_impersonator")
   impersonatorOfObservantAuditionVersions      ObservantAuditionVersion[]             @relation("observant_audition_version_impersonator")
@@ -95,6 +98,7 @@ model User {
   secretaryOfJusticePresentationPlans          JusticePresentationPlan[]              @relation("justice_presentation_secretary")
   secretaryOfOfficialReports                   OfficialReportVersion[]                @relation("official_report_version_secretary")
   sessions                                     AuthSession[]
+  statusChangerOfRemarks                       Remark[]                               @relation("remark_status_changer")
   statusChanges                                UserStatusChange[]                     @relation("user_status_change_user")
   technicalAccountChanges                      TechnicalAccountChange[]               @relation("technical_account_change_user")
   validatedSessions                            Session[]
@@ -209,6 +213,17 @@ model TechnicalAccountChange {
 
   @@id([userId, changedAt], name: "primaryKey")
   @@map("technical_account_changes")
+  @@schema("identity_and_access_context")
+}
+
+/// No index: a row lives 16 minutes at most, and bcrypt caps how many logins the API checks per second
+model LoginAttempt {
+  id          String   @id @db.Uuid
+  email       String   @db.VarChar
+  ip          String   @db.VarChar
+  attemptedAt DateTime @map("attempted_at") @db.Timestamp(6)
+
+  @@map("login_attempts")
   @@schema("identity_and_access_context")
 }
 
