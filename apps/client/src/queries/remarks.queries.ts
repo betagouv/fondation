@@ -2,12 +2,7 @@ import { useInfiniteQuery, useMutation, useQueryClient, type InfiniteData } from
 
 import type { RemarkStatusEnum } from '@/shared/enums/remark-status.enum';
 import * as $api from '@api/sdk';
-import type {
-  ChangeRemarkStatusDto,
-  ListRemarksData,
-  PaginatedRemarkListItemDto,
-  SendRemarkDto,
-} from '@api/types';
+import type { ChangeRemarkStatusDto, ListRemarksData, ListedRemarksDto, SendRemarkDto } from '@api/types';
 
 export type RemarksFilters = { statuses?: RemarkStatusEnum[] };
 export type RemarksSorting =
@@ -23,7 +18,7 @@ const remarkKeys = {
 const REMARKS_PAGE_SIZE = 50;
 
 /** @warning must stay stable, tanstack only reuses the selection when the function identity does not change */
-function selectRemarks(data: InfiniteData<PaginatedRemarkListItemDto | null>) {
+function selectRemarks(data: InfiniteData<ListedRemarksDto | null>) {
   return {
     items: data.pages.flatMap((page) => page?.items ?? []),
     totalCount: data.pages.at(-1)?.totalCount ?? 0,
@@ -32,7 +27,7 @@ function selectRemarks(data: InfiniteData<PaginatedRemarkListItemDto | null>) {
 
 export const useInfiniteRemarksQuery = (options: { filters: RemarksFilters; sorting: RemarksSorting }) =>
   useInfiniteQuery({
-    getNextPageParam: (lastPage: PaginatedRemarkListItemDto | null) => lastPage?.nextPageIndex,
+    getNextPageParam: (lastPage: ListedRemarksDto | null) => lastPage?.nextPageIndex,
     initialPageParam: 1,
     placeholderData: (previous) => previous,
     queryFn: ({ pageParam }) =>

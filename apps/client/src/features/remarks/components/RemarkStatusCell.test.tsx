@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { IntlProvider } from 'react-intl';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { PaginatedRemarkListItemDto } from '@api/types';
+import type { ListedRemarksDto } from '@api/types';
 
 import { RemarkStatusCell } from './RemarkStatusCell';
 import { RemarkStatusCommentModalProvider } from './RemarkStatusCommentModalProvider';
@@ -15,7 +15,7 @@ vi.mock('@queries/remarks.queries', () => ({
 }));
 vi.mock('@/shared/ui/toast', () => ({ useToasts: () => ({ error: vi.fn() }) }));
 
-function renderCell(status: PaginatedRemarkListItemDto['items'][number]['status']) {
+function renderCell(status: ListedRemarksDto['items'][number]['status']) {
   const remark = {
     author: null,
     id: 'remark-1',
@@ -39,7 +39,7 @@ describe('RemarkStatusCell', () => {
   beforeEach(() => mutate.mockReset());
 
   it('asks for an optional comment when dismissing a remark', async () => {
-    const user = renderCell({ changedAt: null, comment: null, value: 'NEW' });
+    const user = renderCell({ changedAt: null, changedBy: null, comment: null, value: 'NEW' });
 
     await user.click(screen.getByRole('button', { name: /Statut de la remarque/ }));
     await user.click(await screen.findByRole('menuitem', { name: 'Écartée' }));
@@ -55,6 +55,7 @@ describe('RemarkStatusCell', () => {
   it('sets a remark back to new without asking anything', async () => {
     const user = renderCell({
       changedAt: '2026-11-02T16:01:00.000Z',
+      changedBy: { id: 'admin', name: 'Marie DUPONT' },
       comment: 'Corrigé',
       value: 'PROCESSED',
     });
@@ -72,11 +73,14 @@ describe('RemarkStatusCell', () => {
   it('edits the comment of the current status', async () => {
     const user = renderCell({
       changedAt: '2026-11-02T16:01:00.000Z',
+      changedBy: { id: 'admin', name: 'Marie DUPONT' },
       comment: 'Déjà prévu',
       value: 'DISMISSED',
     });
 
-    await user.click(screen.getByRole('button', { name: /Statut de la remarque/ }));
+    const badge = screen.getByRole('button', { name: /Statut de la remarque/ });
+    expect(badge).toHaveAccessibleName(/par Marie DUPONT : Déjà prévu$/);
+    await user.click(badge);
     await user.click(await screen.findByRole('menuitem', { name: 'Modifier le commentaire' }));
     const field = await screen.findByLabelText(/Commentaire/);
     expect(field).toHaveValue('Déjà prévu');

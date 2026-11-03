@@ -53,6 +53,7 @@ export class RemarkRepository {
       data: {
         status: value,
         statusChangedAt: changedAt,
+        statusChangedById: message.changedBy,
         statusChanges: {
           create: { changedAt, changedBy: message.changedBy, comment, status: value },
         },

@@ -17,7 +17,6 @@ export function SessionCommentPanel(props: { isArchived: boolean; sessionId: str
   const titleId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
-  const toolbarRef = useRef<HTMLDivElement>(null);
   const [isOpen, setOpen] = useState(false);
   const draft = useSessionCommentDraft({ sessionId: props.sessionId });
 
@@ -32,25 +31,6 @@ export function SessionCommentPanel(props: { isArchived: boolean; sessionId: str
 
   const tryCloseRef = useRef(tryClose);
   tryCloseRef.current = tryClose;
-
-  useEffect(() => {
-    const toolbar = toolbarRef.current;
-    if (!toolbar) return;
-
-    const root = document.documentElement;
-    const observer = new ResizeObserver(() =>
-      root.style.setProperty(
-        '--fondation-toast-offset',
-        `${window.innerHeight - toolbar.getBoundingClientRect().top}px`,
-      ),
-    );
-    observer.observe(toolbar);
-
-    return () => {
-      observer.disconnect();
-      root.style.removeProperty('--fondation-toast-offset');
-    };
-  }, []);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -79,11 +59,11 @@ export function SessionCommentPanel(props: { isArchived: boolean; sessionId: str
 
   return (
     <FloatingAction>
-      <div className="flex flex-col items-end gap-2" ref={rootRef}>
+      <div className="relative" ref={rootRef}>
         <section
           aria-labelledby={titleId}
           className={clsx(
-            'fr-p-3w w-[min(40rem,calc(100vw-var(--fondation-side-panel-width)-3rem))] rounded-lg border border-solid border-(--border-default-grey) bg-(--background-default-grey) shadow-[0_4px_12px_rgba(0,0,0,0.08)]',
+            'fr-p-3w absolute right-0 bottom-full mb-2 w-[min(40rem,calc(100vw-var(--fondation-side-panel-width)-3rem))] rounded-lg border border-solid border-(--border-default-grey) bg-(--background-default-grey) shadow-[0_4px_12px_rgba(0,0,0,0.08)]',
             'transition-[opacity,translate,visibility] duration-200 ease-out motion-reduce:transition-none',
             isOpen
               ? 'pointer-events-auto visible translate-y-0 opacity-100'
@@ -126,7 +106,7 @@ export function SessionCommentPanel(props: { isArchived: boolean; sessionId: str
                 priority="secondary"
                 size="small"
               >
-                <FormattedMessage defaultMessage="Annuler" />
+                <FormattedMessage defaultMessage="Annuler les changements" />
               </Button>
               <Button
                 className="btn-compact"
@@ -134,16 +114,13 @@ export function SessionCommentPanel(props: { isArchived: boolean; sessionId: str
                 onClick={() => void draft.save().then(close, () => {})}
                 size="small"
               >
-                <FormattedMessage defaultMessage="Enregistrer" />
+                <FormattedMessage defaultMessage="Valider le commentaire" />
               </Button>
             </div>
           )}
         </section>
 
-        <div
-          className="fr-p-1v pointer-events-auto border border-solid border-(--border-default-grey) bg-(--background-default-grey) shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
-          ref={toolbarRef}
-        >
+        <div className="fr-p-1v pointer-events-auto border border-solid border-(--border-default-grey) bg-(--background-default-grey) shadow-[0_4px_12px_rgba(0,0,0,0.08)]">
           <Button
             aria-controls={panelId}
             aria-expanded={isOpen}

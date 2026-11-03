@@ -98,6 +98,7 @@ model User {
   secretaryOfJusticePresentationPlans          JusticePresentationPlan[]              @relation("justice_presentation_secretary")
   secretaryOfOfficialReports                   OfficialReportVersion[]                @relation("official_report_version_secretary")
   sessions                                     AuthSession[]
+  statusChangerOfRemarks                       Remark[]                               @relation("remark_status_changer")
   statusChanges                                UserStatusChange[]                     @relation("user_status_change_user")
   technicalAccountChanges                      TechnicalAccountChange[]               @relation("technical_account_change_user")
   validatedSessions                            Session[]

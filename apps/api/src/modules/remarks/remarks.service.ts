@@ -5,7 +5,7 @@ import { Pagination } from '../framework/pagination';
 import { Sortable } from '../framework/sorting';
 
 import { Remark, type RemarkStatus, type RemarkStatusWithComment } from './domain/remark';
-import { ListRemarksQuery, PaginatedRemarkListItemDto } from './infrastructure/queries/list-remarks.query';
+import { ListRemarksQuery, ListedRemarksDto } from './infrastructure/queries/list-remarks.query';
 import type { ListRemarksQueryDto } from './infrastructure/remark.dto';
 import { RemarkRepository } from './infrastructure/remark.repository';
 
@@ -20,7 +20,7 @@ export class RemarksService {
     pagination: Pagination;
     sorting: Sortable<ListRemarksQueryDto>;
     statuses: readonly RemarkStatus[];
-  }): Promise<PaginatedRemarkListItemDto> {
+  }): Promise<ListedRemarksDto> {
     return this.listRemarksQuery.handle(query);
   }
 

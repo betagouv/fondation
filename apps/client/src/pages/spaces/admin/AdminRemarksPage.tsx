@@ -21,10 +21,10 @@ import {
   rowCell,
   useDataTableUrlState,
 } from '@/shared/ui/data-table';
-import type { PaginatedRemarkListItemDto } from '@api/types';
+import type { ListedRemarksDto } from '@api/types';
 import { type RemarksSorting, useInfiniteRemarksQuery } from '@queries/remarks.queries';
 
-type ListedRemark = PaginatedRemarkListItemDto['items'][number];
+type ListedRemark = ListedRemarksDto['items'][number];
 
 const h = createColumnHelper<ListedRemark>();
 

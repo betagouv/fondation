@@ -8,13 +8,13 @@ import {
 import { MenuContent, MenuItem, MenuRoot, MenuTrigger } from '@/shared/ui/menu';
 import { useToasts } from '@/shared/ui/toast';
 import { Tooltip } from '@/shared/ui/tooltip';
-import type { PaginatedRemarkListItemDto } from '@api/types';
+import type { ListedRemarksDto } from '@api/types';
 import { useChangeRemarkStatusMutation } from '@queries/remarks.queries';
 
 import { RemarkStatusBadge } from './RemarkStatusBadge';
 import { useRemarkStatusCommentModal } from './RemarkStatusCommentModalContext';
 
-export function RemarkStatusCell(props: { remark: PaginatedRemarkListItemDto['items'][number] }) {
+export function RemarkStatusCell(props: { remark: ListedRemarksDto['items'][number] }) {
   const { formatDate, formatMessage } = useIntl();
   const toasts = useToasts();
   const changeStatus = useChangeRemarkStatusMutation();
@@ -24,14 +24,18 @@ export function RemarkStatusCell(props: { remark: PaginatedRemarkListItemDto['it
     status.value !== 'NEW' && status.changedAt
       ? formatDate(status.changedAt, { format: 'zonedDateShort' })
       : null;
-  const details =
+  const changed =
     changedOn &&
-    (status.comment
+    (status.changedBy
       ? formatMessage(
-          { defaultMessage: 'Le {date} : {comment}' },
-          { comment: status.comment, date: changedOn },
+          { defaultMessage: 'Le {date} par {name}' },
+          { date: changedOn, name: status.changedBy.name },
         )
       : formatMessage({ defaultMessage: 'Le {date}' }, { date: changedOn }));
+  const details =
+    changed && status.comment
+      ? formatMessage({ defaultMessage: '{changed} : {comment}' }, { changed, comment: status.comment })
+      : changed;
 
   const change = async (next: RemarkStatusEnum) => {
     if (next === 'NEW' && status.value === 'NEW') return;

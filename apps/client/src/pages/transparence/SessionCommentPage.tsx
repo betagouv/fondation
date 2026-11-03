@@ -38,13 +38,13 @@ export function SessionCommentPage() {
         !session.isArchived && (
           <>
             <Button disabled={!draft.isDirty || draft.isPending} onClick={draft.cancel} priority="secondary">
-              <FormattedMessage defaultMessage="Annuler" />
+              <FormattedMessage defaultMessage="Annuler les changements" />
             </Button>
             <Button
               disabled={!draft.isDirty || draft.isPending}
               onClick={() => void draft.save().catch(() => {})}
             >
-              <FormattedMessage defaultMessage="Enregistrer" />
+              <FormattedMessage defaultMessage="Valider le commentaire" />
             </Button>
           </>
         )

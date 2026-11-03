@@ -21,7 +21,7 @@ export class ListRemarksQuery {
     pagination: Pagination;
     sorting: Sortable<ListRemarksQueryDto>;
     statuses: readonly RemarkStatus[];
-  }): Promise<PaginatedRemarkListItemDto> {
+  }): Promise<ListedRemarksDto> {
     const { limit, page } = query.pagination;
     const { sortBy, sortDesc } = query.sorting;
     const direction: Prisma.SortOrder = sortDesc ? 'desc' : 'asc';
@@ -44,6 +44,7 @@ export class ListRemarksQuery {
         sentAt: true,
         status: true,
         statusChangedAt: true,
+        statusChangedBy: PERSON,
         statusComment: true,
         text: true,
         url: true,
@@ -61,6 +62,7 @@ export class ListRemarksQuery {
         sentAt: remark.sentAt.toISOString(),
         status: {
           changedAt: remark.statusChangedAt?.toISOString() ?? null,
+          changedBy: writerOf(remark.statusChangedBy),
           comment: remark.statusComment,
           value: remark.status,
         },
@@ -73,13 +75,14 @@ export class ListRemarksQuery {
   }
 }
 
-const RemarkListItemDtoSchema = z.object({
+const ListedRemarkSchema = z.object({
   author: writerSchema,
   id: z.string(),
   impersonated: writerSchema,
   sentAt: z.iso.datetime(),
   status: z.object({
     changedAt: z.iso.datetime().nullable(),
+    changedBy: writerSchema,
     comment: z.string().nullable(),
     value: z.enum(REMARK_STATUSES),
   }),
@@ -87,4 +90,4 @@ const RemarkListItemDtoSchema = z.object({
   url: z.string(),
 });
 
-export class PaginatedRemarkListItemDto extends createPaginatedZodDto(RemarkListItemDtoSchema) {}
+export class ListedRemarksDto extends createPaginatedZodDto(ListedRemarkSchema) {}

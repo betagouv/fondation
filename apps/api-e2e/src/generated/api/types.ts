@@ -2544,7 +2544,7 @@ export type WriteHelpPageContentDto = {
     content: string;
 };
 
-export type PaginatedRemarkListItemDto = {
+export type ListedRemarksDto = {
     items: Array<{
         author: {
             id: string;
@@ -2558,6 +2558,10 @@ export type PaginatedRemarkListItemDto = {
         sentAt: string;
         status: {
             changedAt: string | null;
+            changedBy: {
+                id: string;
+                name: string;
+            } | null;
             comment: string | null;
             value: 'NEW' | 'PROCESSED' | 'DISMISSED';
         };
@@ -5499,7 +5503,7 @@ export type ListRemarksData = {
 };
 
 export type ListRemarksResponses = {
-    200: PaginatedRemarkListItemDto;
+    200: ListedRemarksDto;
 };
 
 export type ListRemarksResponse = ListRemarksResponses[keyof ListRemarksResponses];

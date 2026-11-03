@@ -34,7 +34,8 @@ export function SessionCommentField(props: {
                   "L'enregistrement a échoué, réessayez et prévenez le support si cela persiste.",
               })
             : formatMessage({
-                defaultMessage: 'Modifications non enregistrées. Cliquez sur Enregistrer pour les garder.',
+                defaultMessage:
+                  'Modifications non enregistrées. Cliquez sur Valider le commentaire pour les enregistrer.',
               })
         }
         textArea

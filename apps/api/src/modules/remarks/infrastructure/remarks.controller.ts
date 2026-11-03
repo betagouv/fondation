@@ -18,7 +18,7 @@ import { ApiPaginated, Pagination, QueryPagination } from '../../framework/pagin
 import { AuthedUser, HasRole } from '../../simple-auth';
 import { RemarksService } from '../remarks.service';
 
-import { PaginatedRemarkListItemDto } from './queries/list-remarks.query';
+import { ListedRemarksDto } from './queries/list-remarks.query';
 import { ChangeRemarkStatusDto, ListRemarksQueryDto, SendRemarkDto } from './remark.dto';
 
 @ApiTags('Remarks')
@@ -30,11 +30,11 @@ export class RemarksController {
   @HasRole('ADMIN')
   @ApiPaginated()
   @UsePipes(ZodValidationPipe)
-  @ZodResponse({ status: HttpStatus.OK, type: PaginatedRemarkListItemDto })
+  @ZodResponse({ status: HttpStatus.OK, type: ListedRemarksDto })
   listRemarks(
     @QueryPagination() pagination: Pagination,
     @Query() query: ListRemarksQueryDto,
-  ): Promise<PaginatedRemarkListItemDto> {
+  ): Promise<ListedRemarksDto> {
     return this.remarks.listRemarks({
       pagination,
       sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },

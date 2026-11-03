@@ -9,21 +9,23 @@ enum PrismaRemarkStatusEnum {
 }
 
 model Remark {
-  authorId        String                 @map("author_id") @db.Uuid
-  id              String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  authorId          String                 @map("author_id") @db.Uuid
+  id                String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   /// the account an admin was viewing the application as
-  impersonatedId  String?                @map("impersonated_id") @db.Uuid
-  sentAt          DateTime               @map("sent_at") @db.Timestamp(6)
-  /// the status, comment and time of the last change, or NEW before any: copied here to list and filter the remarks
-  status          PrismaRemarkStatusEnum @default(NEW)
-  statusChangedAt DateTime?              @map("status_changed_at") @db.Timestamp(6)
-  statusComment   String?                @map("status_comment")
-  text            String
-  url             String
+  impersonatedId    String?                @map("impersonated_id") @db.Uuid
+  sentAt            DateTime               @map("sent_at") @db.Timestamp(6)
+  /// the status, comment, time and author of the last change, or NEW before any: copied here to list and filter the remarks
+  status            PrismaRemarkStatusEnum @default(NEW)
+  statusChangedAt   DateTime?              @map("status_changed_at") @db.Timestamp(6)
+  statusChangedById String?                @map("status_changed_by") @db.Uuid
+  statusComment     String?                @map("status_comment")
+  text              String
+  url               String
 
-  author        User                 @relation("remark_author", fields: [authorId], onDelete: Cascade, onUpdate: NoAction, references: [id])
-  impersonated  User?                @relation("remark_impersonated", fields: [impersonatedId], onDelete: SetNull, onUpdate: NoAction, references: [id])
-  statusChanges RemarkStatusChange[]
+  author          User                 @relation("remark_author", fields: [authorId], onDelete: Cascade, onUpdate: NoAction, references: [id])
+  impersonated    User?                @relation("remark_impersonated", fields: [impersonatedId], onDelete: SetNull, onUpdate: NoAction, references: [id])
+  statusChangedBy User?                @relation("remark_status_changer", fields: [statusChangedById], onDelete: SetNull, onUpdate: NoAction, references: [id])
+  statusChanges   RemarkStatusChange[]
 
   @@map("remark")
   @@schema("nominations_context")

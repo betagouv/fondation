@@ -21,7 +21,7 @@ test.describe('Remarks E2E', () => {
     expect(await findRemark(admin, text)).toMatchObject({
       author: { id: member['@user']?.id },
       impersonated: null,
-      status: { changedAt: null, comment: null, value: 'NEW' },
+      status: { changedAt: null, changedBy: null, comment: null, value: 'NEW' },
       url: '/sessions?page=2',
     });
   });
@@ -44,7 +44,12 @@ test.describe('Remarks E2E', () => {
 
     expect(await findRemark(admin, text, ['NEW'])).toBeUndefined();
     expect(await findRemark(admin, text, ['PROCESSED'])).toMatchObject({
-      status: { changedAt: expect.any(String), comment: 'Corrigé en production le 15/11', value: 'PROCESSED' },
+      status: {
+        changedAt: expect.any(String),
+        changedBy: { id: admin['@user']?.id },
+        comment: 'Corrigé en production le 15/11',
+        value: 'PROCESSED',
+      },
     });
     // the history is kept for the record only: the application never shows it
     const history = await sql`
