@@ -75,6 +75,8 @@ export default definePreview({
               'SessionHeader',
               'SgSessionFilesTable',
               'MemberSessionFilesTable',
+              'SessionAuditionsTable',
+              'MissingEvaluationsTable',
               'SessionDocumentsTable',
               'AgendaFilesSelectionTable',
               'SessionAttachmentsTable',
