@@ -158,6 +158,8 @@ test.describe('Report E2E', () => {
     expect(recused.data.items.map(({ report }) => report)).toEqual([{ id: reportId, state: 'NOT_APPLICABLE' }]);
     const found = await member.members.searchNominationFileMembersReport({ path: memberPath, throwOnError: true });
     expect(found.data.report).toEqual({ id: reportId, state: 'NOT_APPLICABLE' });
+    const detailed = await member.reports.detailReport({ path: { reportId }, throwOnError: true });
+    expect(detailed.data.state).toBe('NOT_APPLICABLE');
 
     await agent.sessions.recuseMembers({
       body: { memberIds: [] },
@@ -166,6 +168,19 @@ test.describe('Report E2E', () => {
     });
     const withdrawn = await member.members.searchNominationFileMembersReport({ path: memberPath, throwOnError: true });
     expect(withdrawn.data.report).toEqual({ id: reportId, state: 'NEW' });
+  });
+
+  test('should lock the report of a recused reporter', async ({ agent, member, expect }) => {
+    await agent.sessions.recuseMembers({
+      body: { memberIds: [member['@user']!.id] },
+      path: { nominationFileId, sessionId },
+      throwOnError: true,
+    });
+
+    const { data } = await member.reports.detailReport({ path: { reportId }, throwOnError: true });
+    expect(data.lockedReason).toBe('RECUSED');
+    const updated = await member.reports.updateReport({ body: { comment: '<p>Avis</p>' }, path: { reportId } });
+    expect(updated.response?.status).toBe(403);
   });
 
   test('should not list session reports of an unknown session', async ({ member, expect }) => {

@@ -5,6 +5,7 @@ import { Navigate } from 'react-router';
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { AuditionAnnouncedBanner, AuditionScheduledBanner } from '@/shared/components/audition-banner';
 import { ArchiveBannerPortal } from '@/shared/components/banners';
+import { RecusedReporterBanner } from '@/shared/components/recused-reporter-banner';
 import type { ReportStatusEnum } from '@/shared/enums/report-status.enum';
 import { useAttachmentFailureToast } from '@/shared/hooks/useAttachmentFailureToast';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
@@ -27,7 +28,6 @@ import {
 
 import { AttachedFilesList } from './AttachedFilesList';
 import { AutoSaveNotice } from './AutoSaveNotice';
-import { RecusedReportBanner } from './RecusedReportBanner';
 import { ReportAttachmentsCard } from './ReportAttachmentsCard';
 import { ReportDetailsHeader } from './ReportDetailsHeader';
 import { ReportEditor } from './ReportEditor';
@@ -85,7 +85,7 @@ export function ReportOverview({ id }: { id: string }) {
     nominationFileName: nominationFile.content.nomMagistrat,
     session,
   });
-  const isArchived = nominationFile.isArchived;
+  const isReadOnly = !!retrievedReport.lockedReason;
 
   const onUpdateContent = (comment: string) => updateReport({ data: { comment }, reportId: id });
   const onUpdateState = (status: ReportStatusEnum) => updateReport({ data: { status }, reportId: id });
@@ -105,11 +105,11 @@ export function ReportOverview({ id }: { id: string }) {
   };
 
   return (
-    <ArchiveBannerPortal isArchived={isArchived}>
+    <ArchiveBannerPortal isArchived={nominationFile.isArchived}>
       <DetailsPageLayout
         alerts={
           <>
-            {!isSg && <RecusedReportBanner report={retrievedReport} />}
+            {!isSg && retrievedReport.lockedReason === 'RECUSED' && <RecusedReporterBanner fullWidth />}
             {!isSg && isAuditionMissing(nominationFile) && <AuditionAnnouncedBanner fullWidth />}
             <AuditionScheduledBanner
               date={nominationFile.auditionDate}
@@ -130,7 +130,7 @@ export function ReportOverview({ id }: { id: string }) {
               />
             }
             detectedMagistratId={nominationFile.content.detectedMagistratId}
-            isReadOnly={isArchived}
+            isReadOnly={isReadOnly}
             name={nominationFile.content.nomMagistrat}
             nominationFileId={retrievedReport.nominationFileId}
             onUpdateState={onUpdateState}
@@ -158,12 +158,17 @@ export function ReportOverview({ id }: { id: string }) {
         wideIdentity
       >
         <AutoSaveNotice />
-        <ReportEditor comment={retrievedReport.comment} onUpdate={onUpdateContent} reportId={id} />
-        <ReportAttachmentsCard isReadOnly={isArchived} onFilesAttached={onFilesAttached}>
+        <ReportEditor
+          comment={retrievedReport.comment}
+          isReadOnly={isReadOnly}
+          onUpdate={onUpdateContent}
+          reportId={id}
+        />
+        <ReportAttachmentsCard isReadOnly={isReadOnly} onFilesAttached={onFilesAttached}>
           {retrievedReport.attachments.length > 0 && (
             <AttachedFilesList
               attachments={retrievedReport.attachments}
-              isReadOnly={isArchived}
+              isReadOnly={isReadOnly}
               onDelete={onAttachedFileDeleted}
               reportId={id}
             />

@@ -1,9 +1,9 @@
 import { defineMessages } from 'react-intl';
 
-import type { DetailedReportDto, ListedMemberSessionReportsDto } from '@api/types';
+import type { DetailedReportDto, UpdateReportDto } from '@api/types';
 
-export type ReportStatusEnum = NonNullable<DetailedReportDto['state']>;
-export type MemberReportStatusEnum = ListedMemberSessionReportsDto['items'][number]['report']['state'];
+export type ReportStatusEnum = NonNullable<UpdateReportDto['status']>;
+export type MemberReportStatusEnum = DetailedReportDto['state'];
 
 export const REPORT_STATUSES = [
   'NEW',

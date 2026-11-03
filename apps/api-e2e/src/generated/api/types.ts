@@ -97,7 +97,8 @@ export type DetailedReportDto = {
     sessionId: string;
     nominationFileId: string;
     comment: string | null;
-    state: 'NEW' | 'IN_PROGRESS' | 'READY_TO_SUPPORT' | 'SUPPORTED';
+    state: 'NEW' | 'IN_PROGRESS' | 'READY_TO_SUPPORT' | 'SUPPORTED' | 'NOT_APPLICABLE';
+    lockedReason: 'CLOSED_SESSION' | 'RECUSED' | null;
     screenshots: Array<{
         usage: 'EMBEDDED_SCREENSHOT';
         name: string;
