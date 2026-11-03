@@ -256,7 +256,7 @@ function makeNominationFile(args: SidePanelArgs): SessionNominationFile {
         }))
       : [],
     priorities: ['ETOILE'],
-    recusedMembers: isSg ? (args.hasRecusedMembers ? [READER] : []) : null,
+    recusedMembers: args.hasRecusedMembers ? [READER] : [],
     reporters: REPORTERS,
     summary: args.summary === 'readable' ? { canRead: true, canWrite: isSg, id } : null,
   });
@@ -537,7 +537,10 @@ const meta = {
     hasAnnouncedObservers: { control: 'boolean' },
     hasAttachments: { control: 'boolean' },
     hasObservations: { control: 'boolean' },
-    hasRecusedMembers: { control: 'boolean', description: 'seen by the SG only' },
+    hasRecusedMembers: {
+      control: 'boolean',
+      description: 'edited by the SG beside the outcome, listed to a member under the reporters',
+    },
     lockedReason: {
       control: 'inline-radio',
       description:

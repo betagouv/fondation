@@ -59,13 +59,16 @@ export type ListedMemberSessionReportsDto = {
         number: number | null;
         report: {
             id: string;
-            state: 'NEW' | 'IN_PROGRESS' | 'READY_TO_SUPPORT' | 'SUPPORTED';
+            state: 'NEW' | 'IN_PROGRESS' | 'READY_TO_SUPPORT' | 'SUPPORTED' | 'NOT_APPLICABLE';
         };
     }>;
 };
 
 export type FoundNominationFileMembersReportDto = {
-    reportId: string | null;
+    report: {
+        id: string;
+        state: 'NEW' | 'IN_PROGRESS' | 'READY_TO_SUPPORT' | 'SUPPORTED' | 'NOT_APPLICABLE';
+    } | null;
 };
 
 export type AttachReportFileDto = {
@@ -406,13 +409,13 @@ export type PaginatedNominationFiles = {
             lastName: string;
         }>;
         /**
-         * in protocol order, null for a member
+         * in protocol order
          */
         recusedMembers: Array<{
             firstName: string;
             id: string;
             lastName: string;
-        }> | null;
+        }>;
         observations: Array<{
             id: string;
             audition: {
@@ -717,13 +720,13 @@ export type DetailedNominationFileDto = {
         lastName: string;
     }>;
     /**
-     * in protocol order, null for a member
+     * in protocol order
      */
     recusedMembers: Array<{
         firstName: string;
         id: string;
         lastName: string;
-    }> | null;
+    }>;
     observations: Array<{
         id: string;
         audition: {

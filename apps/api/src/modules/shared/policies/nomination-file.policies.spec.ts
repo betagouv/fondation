@@ -4,7 +4,6 @@ import {
   canKeepMemberMemo,
   canRecuseMembers,
   canScheduleAudition,
-  canSeeRecusedMembers,
   nominationFileLock,
 } from './nomination-file.policies';
 
@@ -79,19 +78,6 @@ describe('canKeepMemberMemo', () => {
   it.each(['ADJOINT_SECRETAIRE_GENERAL'] as const)('keeps the secretariat (%s) from taking notes', (role) => {
     expect(canKeepMemberMemo({ reporterIds: [] }, { id: 'sg-1', role })).toBe(false);
   });
-});
-
-describe('canSeeRecusedMembers', () => {
-  it('shows the recusals to the secretariat', () => {
-    expect(canSeeRecusedMembers({ role: 'ADJOINT_SECRETAIRE_GENERAL' })).toBe(true);
-  });
-
-  it.each(['MEMBRE_COMMUN', 'MEMBRE_DU_PARQUET', 'MEMBRE_DU_SIEGE'] as const)(
-    'leaves a member (%s) to learn them from the official report',
-    (role) => {
-      expect(canSeeRecusedMembers({ role })).toBe(false);
-    },
-  );
 });
 
 describe('canRecuseMembers', () => {

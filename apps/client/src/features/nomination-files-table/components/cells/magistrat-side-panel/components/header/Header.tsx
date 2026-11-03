@@ -19,6 +19,7 @@ import { type ExcludedJurisdictionConflict } from '@/features/nomination-files-t
 import { DetailsLink } from '@/shared/components/details-link';
 import { LolfiLink } from '@/shared/components/lolfi-link';
 import { PriorityBadgeList } from '@/shared/components/priority-badge';
+import { RecusedReporterBanner } from '@/shared/components/recused-reporter-banner';
 import { TitleNameIcons } from '@/shared/components/title-name-icons';
 import type { DropdownHandle } from '@/shared/ui/dropdown';
 import { type FromFilesListState, getGdsReportPath } from '@/utils/route-path.utils';
@@ -87,7 +88,7 @@ export function Header(props: { nominationFile: SessionNominationFile; sessionId
   const selectedConflicts = conflicts.filter(({ memberId }) => displayedReporterIds.includes(memberId));
 
   const isReporter = !!user && nominationFile.reporters.some((reporter) => reporter.id === user.id);
-  const { data: myReportId } = useMyReportQuery({
+  const { data: myReport } = useMyReportQuery({
     enabled: isReporter,
     nominationFileId: nominationFile.id,
     sessionId,
@@ -175,13 +176,13 @@ export function Header(props: { nominationFile: SessionNominationFile; sessionId
             currentUserId={user?.id}
             reporters={nominationFile.reporters}
           />
-          {myReportId && (
+          {myReport && (
             <Button
               className="btn-compact"
               linkProps={{
                 // nuqs writes the filters to the URL without telling React Router: its location lags behind
                 state: { filesListSearch: window.location.search } satisfies FromFilesListState,
-                to: getGdsReportPath(myReportId),
+                to: getGdsReportPath(myReport.id),
               }}
               priority="secondary"
               size="small"
@@ -191,9 +192,29 @@ export function Header(props: { nominationFile: SessionNominationFile; sessionId
           )}
         </div>
       )}
+      {!isSgContext && <RecusedMembersStatus recusedMembers={nominationFile.recusedMembers} />}
       {isSgContext && reportersMissing && (
         <MissingSecondReporterBanner editable={canEdit && !isEditing} onAffect={affectReporters} />
       )}
+      {myReport?.state === 'NOT_APPLICABLE' && (
+        <RecusedReporterBanner className="fr-mb-n8v -mx-8 px-8 py-4" />
+      )}
+    </div>
+  );
+}
+
+function RecusedMembersStatus(props: { recusedMembers: SessionNominationFile['recusedMembers'] }) {
+  if (props.recusedMembers.length === 0) return null;
+
+  return (
+    <div className="-mt-4 flex flex-wrap items-center gap-1.5 text-base/6 text-(--text-default-grey)">
+      <FormattedMessage
+        defaultMessage="{count, plural, one {Membre déporté} other {Membres déportés}} :"
+        values={{ count: props.recusedMembers.length }}
+      />
+      {props.recusedMembers.map((member) => (
+        <MemberTag key={member.id} member={member} />
+      ))}
     </div>
   );
 }
@@ -233,10 +254,10 @@ function ReporterStatus(props: {
           values={{ count: reporters.length }}
         />
         {reporters.map((reporter) => (
-          <ReporterTag
+          <MemberTag
             excludedTitle={excludedTitleByMemberId.get(reporter.id)}
             key={reporter.id}
-            reporter={reporter}
+            member={reporter}
           />
         ))}
       </div>
@@ -252,17 +273,17 @@ function ReporterStatus(props: {
       </span>
       {coReporters.length > 0 && <FormattedMessage defaultMessage="avec" />}
       {coReporters.map((reporter) => (
-        <ReporterTag
+        <MemberTag
           excludedTitle={excludedTitleByMemberId.get(reporter.id)}
           key={reporter.id}
-          reporter={reporter}
+          member={reporter}
         />
       ))}
     </div>
   );
 }
 
-function ReporterTag(props: { excludedTitle?: string; reporter: Reporter }) {
+function MemberTag(props: { excludedTitle?: string; member: Reporter }) {
   return (
     <Tag
       className={clsx(
@@ -271,7 +292,7 @@ function ReporterTag(props: { excludedTitle?: string; reporter: Reporter }) {
       )}
     >
       {props.excludedTitle && <ExcludedJurisdictionIcon title={props.excludedTitle} />}
-      {memberFullName(props.reporter)}
+      {memberFullName(props.member)}
     </Tag>
   );
 }
