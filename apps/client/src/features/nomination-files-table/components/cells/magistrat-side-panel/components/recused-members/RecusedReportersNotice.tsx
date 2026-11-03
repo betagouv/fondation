@@ -2,7 +2,7 @@ import { FormattedMessage } from 'react-intl';
 
 import { memberFullName } from '@/utils/user.utils';
 
-import type { RecusedReporter } from './recused-reporters';
+import { propositionLabel, type RecusedReporter } from './recused-reporters';
 
 export function RecusedReportersNotice(props: { reporters: readonly RecusedReporter[] }) {
   const reportCount = props.reporters.reduce((count, { files }) => count + files.length, 0);
@@ -27,7 +27,7 @@ export function RecusedReportersNotice(props: { reporters: readonly RecusedRepor
       <ul>
         {props.reporters.map(({ files, reporter }) => (
           <li key={reporter.id}>
-            {`${memberFullName(reporter)} : ${files.map((file) => file.content.nomMagistrat).join(', ')}`}
+            {`${memberFullName(reporter)} : ${files.map(propositionLabel).join(', ')}`}
           </li>
         ))}
       </ul>

@@ -5,6 +5,10 @@ export type RecusedReporter = {
   reporter: SessionNominationFile['reporters'][number];
 };
 
+export function propositionLabel({ content }: SessionNominationFile): string {
+  return content.posteCible ? `${content.nomMagistrat} (${content.posteCible})` : content.nomMagistrat;
+}
+
 export function isRecusedOn(file: SessionNominationFile, memberId: string): boolean {
   return file.recusedMembers.some(({ id }) => id === memberId);
 }

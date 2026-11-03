@@ -61,6 +61,7 @@ function file(props: {
       nomMagistrat: props.nomMagistrat,
       numeroDeDossier: 1,
       outcome: props.outcome ? { comment: null, value: props.outcome } : null,
+      posteCible: 'Substitut du procureur près le TJ de Lyon',
     },
     id: props.id,
     priorities: props.priorities ?? [],
@@ -162,7 +163,9 @@ describe('NominationFilesBulkActions', () => {
     await chooseOption('Camille COMMUN');
 
     const dialog = screen.getByRole('dialog', { name: 'Déporter un rapporteur' });
-    expect(within(dialog).getByRole('listitem')).toHaveTextContent('Camille COMMUN : BOURDIEU Pierre');
+    expect(within(dialog).getByRole('listitem')).toHaveTextContent(
+      'Camille COMMUN : BOURDIEU Pierre (Substitut du procureur près le TJ de Lyon)',
+    );
     expect(recuseMembers).not.toHaveBeenCalled();
 
     await userEvent.click(within(dialog).getByRole('button', { name: 'Déporter' }));
