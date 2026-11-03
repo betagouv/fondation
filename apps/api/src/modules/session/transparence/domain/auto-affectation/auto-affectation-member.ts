@@ -107,6 +107,7 @@ export class AffectableMember {
 
     return (
       candidate.formation === this.formation &&
+      !candidate.recusedMemberIds.has(this.id) &&
       !this.excludedJurisdictions?.has(candidate.targetedJurisdiction!) &&
       !this.excludedJurisdictions?.has(candidate.currentJurisdiction!)
     );

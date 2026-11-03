@@ -82,6 +82,32 @@ test.describe('Session Affectations E2E', () => {
     expect(files.data!.items[0]!.reporters).toEqual([]);
   });
 
+  test('never auto-affects a member a file they recused from', async ({ agent, expect, registerUser }) => {
+    const recused = await registerUser('MEMBRE_COMMUN');
+    await agent.sessions.recuseMembers({
+      body: { memberIds: [recused.id] },
+      path: { nominationFileId, sessionId },
+      throwOnError: true,
+    });
+
+    // every other member of the test database stays out, for the recused one to be the only candidate
+    const otherMemberIds: string[] = [];
+    for (let page = 1; ; page++) {
+      const members = await agent.members.listMembers({ query: { formations: [], limit: 200, page } });
+      otherMemberIds.push(...members.data!.items.map(({ id }) => id).filter((id) => id !== recused.id));
+      if (members.data!.items.length < 200) break;
+    }
+
+    const affected = await agent.sessions.autoAffectation({
+      body: { excludedMemberIds: otherMemberIds, nominationFileIds: [nominationFileId] },
+      path: { sessionId },
+    });
+    expect(affected.response?.status).toBe(204);
+
+    const files = await agent.sessions.listNominationFiles({ path: { sessionId } });
+    expect(files.data!.items[0]!.reporters).toEqual([]);
+  });
+
   test('counts a nomination file once whatever its number of reporters', async ({ agent, expect, logIn }) => {
     const secondMember = await logIn('MEMBRE_COMMUN');
 
