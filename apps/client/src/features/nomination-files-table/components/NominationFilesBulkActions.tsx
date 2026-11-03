@@ -13,7 +13,6 @@ import type { NominationFileOutcomeEnum } from '@/shared/enums/nomination-file-o
 import type { PrioriteEnum } from '@/shared/enums/priorite.enum';
 import { Dropdown } from '@/shared/ui/dropdown';
 import { useToasts } from '@/shared/ui/toast';
-import { memberFullName } from '@/utils/user.utils';
 import type { RecusedMembersDto } from '@api/types';
 import { useMemberListQuery } from '@queries/members.queries';
 import {
@@ -29,6 +28,10 @@ import {
   ReporterSelect,
 } from './cells/magistrat-side-panel/components/header/AffectationFields';
 import { RecusedMemberSelect } from './cells/magistrat-side-panel/components/recused-members/RecusedMemberSelect';
+import {
+  recusedReporters,
+  RecusedReportersNotice,
+} from './cells/magistrat-side-panel/components/recused-members/RecusedReportersNotice';
 import { outcomeRequiresComment } from './cells/nomination-file-outcome/nomination-file-outcome.utils';
 import { RequiredOutcomeCommentsModal, type OutcomeComment } from './RequiredOutcomeCommentsModal';
 
@@ -71,56 +74,6 @@ function sharedRecusedMembers(files: readonly SessionNominationFile[]): RecusedM
   const isShared = sharedList(files, recusedIdsOf).length > 0;
 
   return isShared ? (files[0]!.recusedMembers ?? []) : [];
-}
-
-type RecusedReporter = {
-  files: readonly SessionNominationFile[];
-  reporter: SessionNominationFile['reporters'][number];
-};
-
-function recusedReporters(
-  files: readonly SessionNominationFile[],
-  addedMemberIds: readonly string[],
-): RecusedReporter[] {
-  return addedMemberIds.flatMap((memberId) => {
-    const reported = files.filter(
-      (file) => file.reporters.some(({ id }) => id === memberId) && !recusedIdsOf(file).includes(memberId),
-    );
-    const reporter = reported[0]?.reporters.find(({ id }) => id === memberId);
-
-    return reporter ? [{ files: reported, reporter }] : [];
-  });
-}
-
-function RecusedReportersNotice(props: { reporters: readonly RecusedReporter[] }) {
-  const reportCount = props.reporters.reduce((count, { files }) => count + files.length, 0);
-
-  return (
-    <>
-      <p>
-        {props.reporters.length > 1 ? (
-          <FormattedMessage
-            defaultMessage={`Ces membres sont rapporteurs de dossiers sélectionnés. Avec ce déport, leurs rapports sur ces dossiers passent à « Sans objet » et en lecture seule.`}
-          />
-        ) : reportCount > 1 ? (
-          <FormattedMessage
-            defaultMessage={`Ce membre est rapporteur de dossiers sélectionnés. Avec ce déport, ses rapports sur ces dossiers passent à « Sans objet » et en lecture seule.`}
-          />
-        ) : (
-          <FormattedMessage
-            defaultMessage={`Ce membre est rapporteur d'un dossier sélectionné. Avec ce déport, son rapport sur ce dossier passe à « Sans objet » et en lecture seule.`}
-          />
-        )}
-      </p>
-      <ul>
-        {props.reporters.map(({ files, reporter }) => (
-          <li key={reporter.id}>
-            {`${memberFullName(reporter)} : ${files.map((file) => file.content.nomMagistrat).join(', ')}`}
-          </li>
-        ))}
-      </ul>
-    </>
-  );
 }
 
 function sharedOutcome(files: readonly SessionNominationFile[]): NominationFileOutcomeEnum | null {
