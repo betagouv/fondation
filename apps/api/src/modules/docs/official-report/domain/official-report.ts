@@ -8,10 +8,12 @@ import { type DraftChangesBy } from '../../shared/domain/draft-changes-by';
 
 import {
   InvalidateOfficialReportCommand,
+  type OfficialReportNoteStatus,
   OfficialReportSnapshotDiff,
   UpdateOfficialReportCommand,
 } from './official-report-types';
 import { OfficialReportSnapshot, PlainOfficialReportSnapshot } from './snapshot/official-report-snapshot';
+import { type OfficialReportSnapshotFile } from './snapshot/official-report-snapshot-file';
 import { OfficialReportSnapshotMeta } from './snapshot/official-report-snapshot-meta';
 
 export class OfficialReportCreated {
@@ -76,6 +78,15 @@ export class OfficialReportFileNoteEdited {
 }
 
 export class OfficialReportFileNoteDeleted {
+  constructor(
+    readonly officialReportId: Id<'OfficialReportId'>,
+    readonly nominationFileId: string,
+    readonly status: Exclude<OfficialReportNoteStatus, 'EDITED'>,
+  ) {}
+}
+
+/** the slot goes back to the sentence the recusal gives */
+export class OfficialReportFileNoteReset {
   constructor(
     readonly officialReportId: Id<'OfficialReportId'>,
     readonly nominationFileId: string,
@@ -170,6 +181,7 @@ export type OfficialReportEvent =
   | OfficialReportFileReset
   | OfficialReportFileNoteEdited
   | OfficialReportFileNoteDeleted
+  | OfficialReportFileNoteReset
   | OfficialReportSectionTitleEdited
   | OfficialReportSectionTitleReset
   | OfficialReportSectionIntroEdited
@@ -186,6 +198,7 @@ const INVALIDATION_CAUSES = {
   AgendaDateUpdated: 'AGENDA_DATE',
   AgendaNominationFilesUpdated: 'AGENDA_PROPOSITIONS',
   NominationFilesOutcomeUpdated: 'OUTCOME',
+  NominationFilesRecusalsUpdated: 'RECUSAL',
   NominationFilesReportersUpdated: 'REPORTERS',
   SessionDateUpdated: 'SESSION_DATE',
 } as const satisfies Record<
@@ -369,9 +382,9 @@ export class OfficialReport {
     this.#messages.push(new OfficialReportFileReset(this.id, command.nominationFileId));
   }
 
+  /** writing the text the slot already reads keeps it, and settles a recusal changed since */
   editFileNote(command: { authorId: string; html: string; nominationFileId: string }): void {
-    if (!this.snapshot.holdsFile(command.nominationFileId)) throw new OfficialReportFileNotHeld();
-    if (this.snapshot.noteOf(command.nominationFileId) === command.html) return;
+    if (this.heldFile(command).readsNote(command.html)) return;
 
     this.openDraft();
     this.#messages.push(
@@ -379,12 +392,27 @@ export class OfficialReport {
     );
   }
 
+  /** the mention leaves the report only: the members stay recused on the file */
   deleteFileNote(command: { nominationFileId: string }): void {
-    if (!this.snapshot.holdsFile(command.nominationFileId)) throw new OfficialReportFileNotHeld();
-    if (this.snapshot.noteOf(command.nominationFileId) === null) return;
+    const status = this.heldFile(command).noteStatusOnRemoval();
+    if (!status) return;
 
     this.openDraft();
-    this.#messages.push(new OfficialReportFileNoteDeleted(this.id, command.nominationFileId));
+    this.#messages.push(new OfficialReportFileNoteDeleted(this.id, command.nominationFileId, status));
+  }
+
+  resetFileNote(command: { nominationFileId: string }): void {
+    if (this.heldFile(command).isNoteGenerated()) return;
+
+    this.openDraft();
+    this.#messages.push(new OfficialReportFileNoteReset(this.id, command.nominationFileId));
+  }
+
+  private heldFile(command: { nominationFileId: string }): OfficialReportSnapshotFile {
+    const file = this.snapshot.fileOf(command.nominationFileId);
+    if (!file) throw new OfficialReportFileNotHeld();
+
+    return file;
   }
 
   editSectionTitle(command: { outcome: DocNominationFileOutcomeEnum; text: string }): void {

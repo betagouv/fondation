@@ -504,7 +504,9 @@ test.describe('Official report', () => {
     expect(edited.data).toEqual({
       editedAt: expect.any(String),
       editedBy: expect.any(Object),
+      generatedHtml: null,
       html: '<p>Information du PV</p>',
+      outdated: false,
     });
 
     const metadata = await agent.docs.detailsOfficialReport({ path: { officialReportId } });
@@ -513,7 +515,76 @@ test.describe('Official report', () => {
 
     await agent.docs.deleteOfficialReportFileNote({ path });
 
-    expect(await fileOf()).toMatchObject({ note: null });
+    expect(await fileOf()).toMatchObject({ note: { editedAt: null, html: null } });
+  });
+
+  test('should mention the members recused from a proposition, until the mention is removed from the report only', async ({
+    agent,
+    docs,
+    expect,
+    member,
+  }) => {
+    const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
+    const { id: officialReportId } = await docs.officialReport(await docs.agenda(session));
+    const nominationFileId = session.files[0]!.id;
+    const filePath = { nominationFileId, sessionId: session.id };
+    const noteOf = async () => {
+      const document = await agent.docs.detailsOfficialReportDocument({ path: { officialReportId } });
+      const block = document.data!.blocks.find((b) => b.kind === 'file' && b.nominationFileId === nominationFileId);
+      return block?.kind === 'file' ? block.note : undefined;
+    };
+
+    const { data } = await agent.sessions.recuseMembers({ body: { memberIds: [member['@user']!.id] }, path: filePath });
+    const [recused] = data!.recusedMembers;
+
+    const mentioned = await noteOf();
+    expect(mentioned).toMatchObject({ editedAt: null, outdated: false });
+    // Faker may draw a name like O'Hara, whose apostrophe the mention escapes
+    const lastName = recused!.lastName.toUpperCase().replaceAll("'", '&#39;');
+    expect(mentioned?.html).toContain(`${lastName} n'a pas délibéré`);
+    expect(mentioned?.html).toBe(mentioned?.generatedHtml);
+
+    await agent.docs.deleteOfficialReportFileNote({ path: { nominationFileId, officialReportId } });
+
+    expect(await noteOf()).toMatchObject({ generatedHtml: mentioned?.generatedHtml, html: null, outdated: false });
+    const file = await agent.sessions.detailNominationFile({ path: filePath });
+    expect(file.data?.recusedMembers).toEqual(data!.recusedMembers);
+  });
+
+  test('should flag a text written under a proposition once its recusal changes, until the mention is given back', async ({
+    agent,
+    docs,
+    expect,
+    member,
+  }) => {
+    const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
+    const { id: officialReportId } = await docs.officialReport(await docs.agenda(session));
+    const nominationFileId = session.files[0]!.id;
+    const path = { nominationFileId, officialReportId };
+    const noteOf = async () => {
+      const document = await agent.docs.detailsOfficialReportDocument({ path: { officialReportId } });
+      const block = document.data!.blocks.find((b) => b.kind === 'file' && b.nominationFileId === nominationFileId);
+      return block?.kind === 'file' ? block.note : undefined;
+    };
+    const isOutdated = async () =>
+      (await agent.docs.detailsOfficialReport({ path: { officialReportId } })).data?.outdated;
+
+    await agent.docs.editOfficialReportFileNote({ body: { html: '<p>Information du PV</p>' }, path });
+    await agent.sessions.recuseMembers({
+      body: { memberIds: [member['@user']!.id] },
+      path: { nominationFileId, sessionId: session.id },
+    });
+
+    expect(await noteOf()).toMatchObject({ html: '<p>Information du PV</p>', outdated: true });
+    expect(await isOutdated()).toBe(true);
+
+    const reset = await agent.docs.resetOfficialReportFileNote({ path });
+    expect(reset.response?.status).toBe(204);
+
+    const given = await noteOf();
+    expect(given).toMatchObject({ editedAt: null, outdated: false });
+    expect(given?.html).toBe(given?.generatedHtml);
+    expect(await isOutdated()).toBe(false);
   });
 
   test('should refuse a second official report of an agenda', async ({ agent, docs, expect, member }) => {

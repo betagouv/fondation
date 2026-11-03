@@ -112,7 +112,8 @@ export function makeSnapshot(props: Partial<PlainOfficialReportSnapshot> = {}): 
         OfficialReportSnapshotFile.from({
           nominationFileId: 'file-1',
           hasManuallyEditedHtml: false,
-          note: null,
+          note: { html: null, outdated: false, status: 'GENERATED' },
+          recusedMembers: [],
           reporters: ['M. John DOE'],
           outcome: { value: 'VALIDATED', comment: null },
         }),

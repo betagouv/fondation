@@ -2,10 +2,10 @@ import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { Prisma } from '../../../../../generated/prisma/client';
-import { writerOf } from '../../../../../utils/user.util';
 import { Db } from '../../../../framework/database';
 import { OfficialReportVersionFinder } from '../finders/official-report-version.finder';
 import { EditedOfficialReportFileNoteDto } from '../official-reports.dto';
+import { officialReportFileNote } from '../services/renderers/official-report-note.html';
 
 @Injectable()
 export class DetailsOfficialReportFileNoteQuery {
@@ -24,6 +24,9 @@ export class DetailsOfficialReportFileNoteQuery {
         note: true,
         noteEditedAt: true,
         noteEditor: { select: { firstName: true, id: true, lastName: true } },
+        noteOutdated: true,
+        noteStatus: true,
+        recusedMembers: true,
       } satisfies Prisma.OfficialReportNominationFileSelect,
       where: {
         nominationFileId: query.nominationFileId,
@@ -31,12 +34,8 @@ export class DetailsOfficialReportFileNoteQuery {
       },
     });
 
-    if (!file?.note) throw new NotFoundException();
+    if (!file) throw new NotFoundException();
 
-    return {
-      editedAt: file.noteEditedAt?.toISOString() ?? null,
-      editedBy: writerOf(file.noteEditor),
-      html: file.note,
-    };
+    return officialReportFileNote(file);
   }
 }

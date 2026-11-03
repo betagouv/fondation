@@ -138,7 +138,13 @@ describe('OfficialReportBlocksModel', () => {
 
     it('is saved with the rest of the report', async () => {
       const editNote = vi.spyOn($api.docs, 'editOfficialReportFileNote').mockResolvedValueOnce({
-        data: { editedAt: null, editedBy: null, html: '<p>Information</p>' },
+        data: {
+          editedAt: null,
+          editedBy: null,
+          generatedHtml: null,
+          html: '<p>Information</p>',
+          outdated: false,
+        },
         error: undefined,
       });
       const { model } = modelWith();

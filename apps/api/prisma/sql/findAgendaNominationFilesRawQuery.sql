@@ -9,6 +9,7 @@ SELECT
   ddn.outcome,
   ddn.outcome_comment AS "outcomeComment",
   reporter.users AS reporters,
+  recused.users AS "recusedMembers",
 
   JSON_BUILD_OBJECT(
     'arrondissement', CASE WHEN arr.codejur IS NULL THEN NULL ELSE JSON_BUILD_OBJECT('id', arr.codejur, 'label', arr.libelle) END,
@@ -81,6 +82,23 @@ FROM nominations_context.dossier_de_nomination ddn
     WHERE (nfr.version_id = $2::UUID AND nfr.nomination_file_id = ddn.id)
     GROUP BY nfr.nomination_file_id
   ) AS reporter ON TRUE
+
+  LEFT JOIN LATERAL (
+    SELECT
+      ARRAY_AGG(
+        JSON_BUILD_OBJECT(
+          'firstName', u.first_name,
+          'gender', u.gender,
+          'id', u.id,
+          'lastName', u.last_name,
+          'sort', u.sort
+        )
+      ) AS users
+
+    FROM nominations_context.recused_member AS rm
+      INNER JOIN identity_and_access_context.users AS u ON u.id = rm.user_id
+    WHERE rm.nomination_file_id = ddn.id
+  ) AS recused ON TRUE
 
 WHERE (
   ddn.session_id = $1::UUID

@@ -28,7 +28,7 @@ import {
 import { html, SafeHtml } from '../../../../shared/infrastructure/services/renderers/safe-html';
 import { Template } from '../../../../shared/infrastructure/services/renderers/templates.types';
 import { OfficialReportChairman } from '../../../domain/official-report-chairman';
-import type { DocBlock } from '../../../domain/official-report-doc-block';
+import type { DocBlock, OfficialReportFileNote } from '../../../domain/official-report-doc-block';
 import { OfficialReportMembersList } from '../../../domain/official-report-member-list';
 import { OfficialReportSecretary } from '../../../domain/official-report-secretary';
 import { OfficialReportSessionMeeting } from '../../../domain/official-report-session-meeting';
@@ -41,7 +41,7 @@ type OfficialReportRenderContextNominationFile = {
   id: bigint;
   name: string;
   nominationFileId: NominationFileId | null;
-  note: { editedAt: Date | null; editedBy: { id: string; name: string } | null; html: string } | null;
+  note: OfficialReportFileNote;
   number: number;
   outcome: DocNominationFileOutcomeEnum;
   reporters: readonly string[];
@@ -303,7 +303,7 @@ function content(ctx: OfficialReportRenderContext): SafeHtml {
         <ol>
           ${SafeHtml.join(
             files.map((file) => {
-              const note = file.note ? new SafeHtml(file.note.html) : '';
+              const note = file.note.html ? new SafeHtml(file.note.html) : '';
               return html`<li>${displayFileContent({ file, root: ctx })}${note}</li>`;
             }),
             '\n',
@@ -524,7 +524,7 @@ export function* officialReportBlocks(ctx: OfficialReportRenderContext): Iterabl
         kind: 'file',
         name: file.name,
         nominationFileId: file.nominationFileId,
-        note: file.note && { ...file.note, editedAt: file.note.editedAt?.toISOString() ?? null },
+        note: file.note,
         outdated: Boolean(userDefinedFile?.isOutdated),
         weight: outcomeWeight++,
       };

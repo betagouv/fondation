@@ -3,6 +3,7 @@ export const DOC_SYSTEM_UPDATE_CAUSES = [
   'AGENDA_PROPOSITIONS',
   'AGENDA_TEXT',
   'OUTCOME',
+  'RECUSAL',
   'REPORTERS',
   'SESSION_DATE',
 ] as const;

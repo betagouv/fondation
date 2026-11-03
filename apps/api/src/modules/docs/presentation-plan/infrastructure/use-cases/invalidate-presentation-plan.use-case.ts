@@ -32,6 +32,7 @@ export class InvalidatePresentationPlanUseCase {
 
       case 'AgendaDateUpdated':
       case 'AgendaFileBlockEdited':
+      case 'NominationFilesRecusalsUpdated':
       case 'SessionAffectationVersionPublished':
       case 'SessionDateUpdated':
         return;

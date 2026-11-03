@@ -411,6 +411,24 @@ export function useDeleteOfficialReportFileNoteMutation(mutation: {
   });
 }
 
+export function useResetOfficialReportFileNoteMutation(mutation: {
+  officialReportId: string;
+  sessionId: string;
+}) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (command: { nominationFileId: string }) =>
+      $api.docs.resetOfficialReportFileNote({
+        path: { nominationFileId: command.nominationFileId, officialReportId: mutation.officialReportId },
+      }),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: agendaKeys.findSessionDocs(mutation.sessionId) });
+      queryClient.invalidateQueries({ queryKey: officialReportKeys.all(mutation.officialReportId) });
+    },
+  });
+}
+
 export function useValidateOfficialReportMutation(mutation: {
   sessionId: string;
   officialReportId: string;

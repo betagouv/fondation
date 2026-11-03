@@ -36,7 +36,9 @@ export class DetailsOfficialReportQuery {
     const version = await this.db.tx.officialReportVersion.findUnique({
       select: {
         ...DRAFT_TRACE_SELECT,
-        _count: { select: { nominationFiles: { where: { htmlOutdated: true } } } },
+        _count: {
+          select: { nominationFiles: { where: { OR: [{ htmlOutdated: true }, { noteOutdated: true }] } } },
+        },
         chairmanId: true,
         createdBy: true,
         hasRenunciation: true,

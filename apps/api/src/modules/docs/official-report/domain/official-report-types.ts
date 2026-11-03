@@ -7,6 +7,9 @@ import { OfficialReportMembersList } from './official-report-member-list';
 import { OfficialReportSecretary } from './official-report-secretary';
 import { OfficialReportSessionMeeting } from './official-report-session-meeting';
 
+export const OFFICIAL_REPORT_NOTE_STATUSES = ['GENERATED', 'EDITED', 'REMOVED'] as const;
+export type OfficialReportNoteStatus = (typeof OFFICIAL_REPORT_NOTE_STATUSES)[number];
+
 export type UpdateOfficialReportCommand = {
   authorId: string;
   officialReport: {
@@ -19,6 +22,7 @@ export type UpdateOfficialReportCommand = {
     members: OfficialReportMembersList;
     files: readonly {
       nominationFileId: string;
+      recusedMembers: readonly string[];
       reporters: readonly string[];
       outcome: { value: DocNominationFileOutcomeEnum; comment: string | null };
     }[];
@@ -41,6 +45,7 @@ export type InvalidateOfficialReportCommand = { id: string } & (
       payload: {
         files: readonly {
           nominationFileId: string;
+          recusedMembers: readonly string[];
           reporters: readonly string[];
           outcome: { value: DocNominationFileOutcomeEnum; comment: string | null };
         }[];
@@ -49,6 +54,10 @@ export type InvalidateOfficialReportCommand = { id: string } & (
   | {
       type: 'NominationFilesReportersUpdated';
       payload: { files: readonly { nominationFileId: string; reporters: readonly string[] }[] };
+    }
+  | {
+      type: 'NominationFilesRecusalsUpdated';
+      payload: { files: readonly { nominationFileId: string; recusedMembers: readonly string[] }[] };
     }
   | {
       type: 'AgendaFileBlockEdited';
@@ -69,6 +78,14 @@ export type OfficialReportSnapshotDiff = {
         reporters: readonly string[] | undefined;
         outcome: DocNominationFileOutcomeEnum | undefined;
         outcomeComment: string | null | undefined;
+      }
+    | {
+        /** `follow`: the sentence reads the new recusal, `outdate`: the hand-written slot is flagged,
+         * `generate`: a removal with nothing left to hide gives the slot back to the sentence */
+        action: 'recuse';
+        nominationFileId: string;
+        note: 'follow' | 'generate' | 'outdate';
+        recusedMembers: readonly string[];
       }
     | {
         action: 'create';

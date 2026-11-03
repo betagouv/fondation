@@ -1,17 +1,26 @@
+import { isDefined } from '../../../../../utils/is-defined';
 import {
   type DocNominationFileOutcomeEnum,
   isFinalDocNominationFileOutcome,
 } from '../../../shared/domain/doc-nomination-file-outcome';
-import type { OfficialReportSnapshotDiff } from '../official-report-types';
+import type { OfficialReportNoteStatus, OfficialReportSnapshotDiff } from '../official-report-types';
+
+/** the slot under the proposition: the recusal sentence while nobody wrote there, the reader's text after */
+export type OfficialReportSnapshotNote = {
+  html: string | null;
+  outdated: boolean;
+  status: OfficialReportNoteStatus;
+};
 
 export type PlainOfficialReportSnapshotFile = {
   hasManuallyEditedHtml: boolean;
   nominationFileId: string | null;
-  note: string | null;
+  note: OfficialReportSnapshotNote;
   outcome: {
     comment: string | null;
     value: DocNominationFileOutcomeEnum;
   };
+  recusedMembers: readonly string[];
   reporters: readonly string[];
 };
 
@@ -21,7 +30,8 @@ export class OfficialReportSnapshotFile {
     readonly reporters: readonly string[],
     readonly outcome: { comment: string | null; value: DocNominationFileOutcomeEnum },
     readonly hasManuallyEditedHtml: boolean,
-    readonly note: string | null,
+    readonly note: OfficialReportSnapshotNote,
+    readonly recusedMembers: readonly string[],
   ) {}
 
   static from(plain: PlainOfficialReportSnapshotFile): OfficialReportSnapshotFile {
@@ -31,10 +41,37 @@ export class OfficialReportSnapshotFile {
       plain.outcome,
       plain.hasManuallyEditedHtml,
       plain.note,
+      plain.recusedMembers,
     );
   }
 
   diff(next: {
+    nominationFileId: string;
+    outcome?: { comment: string | null; value: DocNominationFileOutcomeEnum };
+    recusedMembers?: readonly string[];
+    reporters?: readonly string[];
+  }): OfficialReportSnapshotDiff['files'] {
+    return [this.blockDiff(next), this.recusalDiff(next)].filter(({ action }) => action !== 'noop');
+  }
+
+  /** the slot already reads this text, so writing it again changes nothing */
+  readsNote(html: string): boolean {
+    return this.note.status === 'EDITED' && this.note.html === html && !this.note.outdated;
+  }
+
+  /** emptying the slot is only remembered while a recusal would otherwise print its sentence there */
+  noteStatusOnRemoval(): Exclude<OfficialReportNoteStatus, 'EDITED'> | null {
+    const status = this.recusedMembers.length > 0 ? 'REMOVED' : 'GENERATED';
+    const isEmpty = this.note.html === null && !this.note.outdated;
+
+    return isEmpty && this.note.status === status ? null : status;
+  }
+
+  isNoteGenerated(): boolean {
+    return this.note.status === 'GENERATED' && !this.note.outdated;
+  }
+
+  private blockDiff(next: {
     nominationFileId: string;
     outcome?: { comment: string | null; value: DocNominationFileOutcomeEnum };
     reporters?: readonly string[];
@@ -53,13 +90,33 @@ export class OfficialReportSnapshotFile {
     };
   }
 
-  private reportersChanged(next: { reporters?: readonly string[] }): boolean {
-    if (!next.reporters) return false;
+  /**
+   * the generated sentence follows the recusal, while a text written or removed by hand is kept and
+   * flagged. A removal outlives the recusal it hid only as long as there is something left to hide.
+   */
+  private recusalDiff(next: {
+    nominationFileId: string;
+    recusedMembers?: readonly string[];
+  }): OfficialReportSnapshotDiff['files'][number] {
+    if (!next.recusedMembers || sameList(this.recusedMembers, next.recusedMembers)) return { action: 'noop' };
 
-    return (
-      this.reporters.length !== next.reporters.length ||
-      this.reporters.some((reporter, i) => next.reporters?.[i] !== reporter)
-    );
+    const note =
+      this.note.status === 'GENERATED'
+        ? 'follow'
+        : this.note.status === 'REMOVED' && next.recusedMembers.length === 0
+          ? 'generate'
+          : 'outdate';
+
+    return {
+      action: 'recuse',
+      nominationFileId: next.nominationFileId,
+      note,
+      recusedMembers: next.recusedMembers,
+    };
+  }
+
+  private reportersChanged(next: { reporters?: readonly string[] }): boolean {
+    return isDefined(next.reporters) && !sameList(this.reporters, next.reporters);
   }
 
   outcomeDiffers(next: { comment: string | null; value: DocNominationFileOutcomeEnum }): boolean {
@@ -80,4 +137,8 @@ export class OfficialReportSnapshotFile {
 
     return this.outcomeDiffers(next.outcome);
   }
+}
+
+function sameList(current: readonly string[], next: readonly string[]): boolean {
+  return current.length === next.length && current.every((item, i) => next[i] === item);
 }

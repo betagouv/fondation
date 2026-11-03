@@ -438,7 +438,7 @@ export class TransparenceService {
           .map(([nominationFileId, members]) => [nominationFileId, new Set(members.map(({ id }) => id))]),
       ),
     });
-    await this.nominationSessionRepository.persist(session);
+    await this.docs.internalInvalidateDocs(await this.nominationSessionRepository.persist(session));
   }
 
   @Transactional()

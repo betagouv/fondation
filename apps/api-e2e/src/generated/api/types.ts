@@ -1220,7 +1220,7 @@ export type FoundSessionDocsDto = {
                 id: string;
                 name: string;
             } | null;
-            causes: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'OUTCOME' | 'REPORTERS' | 'SESSION_DATE'>;
+            causes: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'OUTCOME' | 'RECUSAL' | 'REPORTERS' | 'SESSION_DATE'>;
             origin: 'PERSON' | 'SYSTEM';
         } | null;
         createdAt: string;
@@ -1251,7 +1251,7 @@ export type FoundSessionDocsDto = {
                 id: string;
                 name: string;
             } | null;
-            causes: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'OUTCOME' | 'REPORTERS' | 'SESSION_DATE'>;
+            causes: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'OUTCOME' | 'RECUSAL' | 'REPORTERS' | 'SESSION_DATE'>;
             origin: 'PERSON' | 'SYSTEM';
         } | null;
         createdAt: string;
@@ -1300,6 +1300,10 @@ export type FoundAgendaNominationFiles = {
             gender: 'MALE' | 'FEMALE';
             firstName: string;
             lastName: string;
+            fullTitledName: string;
+        }>;
+        recusedMembers: Array<{
+            id: string;
             fullTitledName: string;
         }>;
         outcome: {
@@ -1388,7 +1392,7 @@ export type DetailedAgendaMetadata = {
             id: string;
             name: string;
         } | null;
-        systemCauses: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'OUTCOME' | 'REPORTERS' | 'SESSION_DATE'>;
+        systemCauses: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'OUTCOME' | 'RECUSAL' | 'REPORTERS' | 'SESSION_DATE'>;
         systemUpdatedAt: string | null;
         updatedAt: string | null;
         updatedBy: {
@@ -1596,7 +1600,7 @@ export type DetailedOfficialReportMetadataDto = {
             id: string;
             name: string;
         } | null;
-        systemCauses: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'OUTCOME' | 'REPORTERS' | 'SESSION_DATE'>;
+        systemCauses: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'OUTCOME' | 'RECUSAL' | 'REPORTERS' | 'SESSION_DATE'>;
         systemUpdatedAt: string | null;
         updatedAt: string | null;
         updatedBy: {
@@ -1604,7 +1608,7 @@ export type DetailedOfficialReportMetadataDto = {
             name: string;
         } | null;
     } | null;
-    changedSinceValidation: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'OUTCOME' | 'REPORTERS' | 'SESSION_DATE'>;
+    changedSinceValidation: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'OUTCOME' | 'RECUSAL' | 'REPORTERS' | 'SESSION_DATE'>;
     validation: {
         at: string;
         by: {
@@ -1692,8 +1696,10 @@ export type DetailedOfficialReportDocumentDto = {
                 id: string;
                 name: string;
             } | null;
-            html: string;
-        } | null;
+            generatedHtml: string | null;
+            html: string | null;
+            outdated: boolean;
+        };
     } | {
         weight: number;
         edited: boolean;
@@ -1727,7 +1733,9 @@ export type EditedOfficialReportFileNoteDto = {
         id: string;
         name: string;
     } | null;
-    html: string;
+    generatedHtml: string | null;
+    html: string | null;
+    outdated: boolean;
 };
 
 export type ListedPresentedPlansDto = {
@@ -1803,7 +1811,7 @@ export type DetailedPresentationPlanMetadataDto = {
             id: string;
             name: string;
         } | null;
-        systemCauses: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'OUTCOME' | 'REPORTERS' | 'SESSION_DATE'>;
+        systemCauses: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'OUTCOME' | 'RECUSAL' | 'REPORTERS' | 'SESSION_DATE'>;
         systemUpdatedAt: string | null;
         updatedAt: string | null;
         updatedBy: {
@@ -4663,6 +4671,22 @@ export type EditOfficialReportFileNoteResponses = {
 };
 
 export type EditOfficialReportFileNoteResponse = EditOfficialReportFileNoteResponses[keyof EditOfficialReportFileNoteResponses];
+
+export type ResetOfficialReportFileNoteData = {
+    body?: never;
+    path: {
+        officialReportId: string;
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/docs/v1/official-reports/{officialReportId}/blocks/files/{nominationFileId}/note/edition';
+};
+
+export type ResetOfficialReportFileNoteResponses = {
+    204: void;
+};
+
+export type ResetOfficialReportFileNoteResponse = ResetOfficialReportFileNoteResponses[keyof ResetOfficialReportFileNoteResponses];
 
 export type ListPresentationPlanAgendasData = {
     body?: never;

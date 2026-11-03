@@ -34,11 +34,21 @@ export type DocInvalidation =
       };
     }
   | {
+      type: 'NominationFilesRecusalsUpdated';
+      payload: { nominationFileIds: readonly string[]; sessionId: string };
+    }
+  | {
       type: 'SessionAffectationVersionPublished';
       payload: { sessionId: string; versionId: string };
     };
 
 export type SessionDocInvalidation = Extract<
   DocInvalidation,
-  { type: 'NominationFilesOutcomeUpdated' | 'SessionAffectationVersionPublished' | 'SessionDateUpdated' }
+  {
+    type:
+      | 'NominationFilesOutcomeUpdated'
+      | 'NominationFilesRecusalsUpdated'
+      | 'SessionAffectationVersionPublished'
+      | 'SessionDateUpdated';
+  }
 >;

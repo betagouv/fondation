@@ -42,6 +42,9 @@ export class InvalidateOfficialReportUseCase {
       case 'NominationFilesOutcomeUpdated':
         return this.invalidate(await this.mapNominationFilesOutcomeUpdated({ invalidation }));
 
+      case 'NominationFilesRecusalsUpdated':
+        return this.invalidate(await this.mapNominationFilesRecusalsUpdated({ invalidation }));
+
       // the report already answered when the draft was opened, and its own draft carries the answer
       case 'AgendaValidated':
         return;
@@ -98,6 +101,45 @@ export class InvalidateOfficialReportUseCase {
       type: 'NominationFilesOutcomeUpdated',
       id: officialReportId,
       payload: { files: files.filter(({ nominationFileId }) => nominationFileIds.has(nominationFileId)) },
+    }));
+  }
+
+  private async mapNominationFilesRecusalsUpdated(query: {
+    invalidation: Extract<DocInvalidation, { type: 'NominationFilesRecusalsUpdated' }>;
+  }): Promise<InvalidateOfficialReportCommand[]> {
+    const reportFiles = await this.db.tx.officialReportNominationFile.findMany({
+      where: { nominationFileId: { in: [...query.invalidation.payload.nominationFileIds] } },
+      select: {
+        nominationFileId: true,
+        version: { select: { officialReportId: true } },
+      } satisfies Prisma.OfficialReportNominationFileSelect,
+    });
+    if (reportFiles.length === 0) return [];
+
+    const { items } = await this.docsNominationFilesFinder.find({
+      ids: [...new Set(reportFiles.flatMap(({ nominationFileId }) => nominationFileId ?? []))],
+      sessionId: query.invalidation.payload.sessionId,
+    });
+
+    // a report holding a draft carries a file twice, and it is invalidated once
+    const nominationFileIdsPerReport = Map.groupBy(reportFiles, ({ version }) => version.officialReportId)
+      .entries()
+      .map(
+        ([officialReportId, files]) =>
+          [officialReportId, new Set(files.map((f) => f.nominationFileId))] as const,
+      );
+
+    return [...nominationFileIdsPerReport].map(([officialReportId, nominationFileIds]) => ({
+      type: 'NominationFilesRecusalsUpdated',
+      id: officialReportId,
+      payload: {
+        files: items
+          .filter(({ id }) => nominationFileIds.has(id))
+          .map((file) => ({
+            nominationFileId: file.id,
+            recusedMembers: file.recusedMembers.map(({ fullTitledName }) => fullTitledName),
+          })),
+      },
     }));
   }
 
@@ -186,6 +228,7 @@ export class InvalidateOfficialReportUseCase {
             .map((file) => ({
               outcome: file.outcome,
               nominationFileId: file.id,
+              recusedMembers: file.recusedMembers.map(({ fullTitledName }) => fullTitledName),
               reporters: file.reporters.map(({ fullTitledName }) => fullTitledName),
             })),
         },
