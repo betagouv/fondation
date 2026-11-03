@@ -22,10 +22,9 @@ import {
 } from 'express';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
-import { AuthImpersonation } from './domain/auth-impersonation';
 import { AuthSession } from './domain/auth-session';
 import { AuthExceptionFilter } from './infrastructure/auth.filter';
-import { ChangePasswordDto, LoginDto } from './infrastructure/dto/auth.dto';
+import { ChangePasswordDto, CreatedImpersonationDto, LoginDto } from './infrastructure/dto/auth.dto';
 import { DetailedUserResponseDto } from './infrastructure/queries/details-user.query';
 import { AuthedUser, HasRole } from './simple-auth.decorator';
 import { SimpleAuthService } from './simple-auth.service';
@@ -76,9 +75,8 @@ export class SimpleAuthController {
       throw new BadRequestException();
     }
 
-    const session = await this.auth.login(body);
-    // an impersonation left over, ended or of an account deactivated since, would refuse every request of the new session
-    this.unDecorateResponse(this.decorateResponse(res, session), 'impersonationId').end();
+    const session = await this.auth.login({ ...body, ip: req.ip ?? 'unknown' });
+    this.decorateResponse(res, session).end();
   }
 
   @Get('introspect')
@@ -133,41 +131,38 @@ export class SimpleAuthController {
         impersonationId,
         userId,
       });
-      this.unDecorateResponse(response, 'impersonationId').end();
+      response.end();
       return;
     }
 
     await this.auth.unAuthenticate({ sessionId, userId });
-    this.unDecorateResponse(response, 'sessionId').end();
+    this.unDecorateResponse(response).end();
   }
 
   @Post('users/:userId/impersonations')
-  @HttpCode(HttpStatus.NO_CONTENT)
   @HasRole('ADMIN')
+  @ZodResponse({ status: HttpStatus.CREATED, type: CreatedImpersonationDto })
   async impersonate(
     @Param('userId') targetUserId: string,
-    @Res() res: ExpressResponse,
     @AuthedUser() user: { id: string; sessionId: string },
-  ): Promise<void> {
+  ): Promise<CreatedImpersonationDto> {
     const impersonation = await this.auth.impersonate({
       authSessionId: user.sessionId,
       targetUserId,
       userId: user.id,
     });
 
-    this.decorateResponse(res, impersonation).end();
+    return { id: impersonation.id };
   }
 
-  private decorateResponse(res: ExpressResponse, data: AuthSession | AuthImpersonation): ExpressResponse {
-    const key = data instanceof AuthImpersonation ? 'impersonationId' : 'sessionId';
-
-    return res.cookie(key, data.id, {
+  private decorateResponse(res: ExpressResponse, session: AuthSession): ExpressResponse {
+    return res.cookie('sessionId', session.id, {
       ...SimpleAuthController.COOKIE_OPTIONS,
-      expires: data.expiresAt,
+      expires: session.expiresAt,
     });
   }
 
-  private unDecorateResponse(res: ExpressResponse, key: 'sessionId' | 'impersonationId'): ExpressResponse {
-    return res.clearCookie(key, SimpleAuthController.COOKIE_OPTIONS);
+  private unDecorateResponse(res: ExpressResponse): ExpressResponse {
+    return res.clearCookie('sessionId', SimpleAuthController.COOKIE_OPTIONS);
   }
 }

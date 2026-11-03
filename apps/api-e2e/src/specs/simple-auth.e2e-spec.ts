@@ -46,6 +46,28 @@ test.describe('Simple Auth E2E', () => {
     });
   });
 
+  test('should suspend the password logins of an address beyond ten failures, not those of another address', async ({
+    baseUrl,
+    expect,
+    registerUser,
+  }) => {
+    const attacked = await registerUser('MEMBRE_COMMUN');
+    const other = await registerUser('MEMBRE_COMMUN');
+    const anonymous = makeStepsFixtures({ baseUrl });
+    const login = (user: { email: string; password: string }) =>
+      anonymous.auth.login({
+        body: { email: user.email, password: user.password },
+        headers: { 'x-forwarded-for': '198.51.100.7' },
+      });
+
+    for (let failure = 0; failure < 10; failure++) {
+      await login({ email: attacked.email.toUpperCase(), password: 'wrong password' });
+    }
+
+    expect((await login(attacked)).response?.status).toBe(401);
+    expect((await login(other)).response?.status).toBe(204);
+  });
+
   test.describe('Given a logged-in user', () => {
     test('should have an introspectable session', async ({ expect, member }) => {
       const introspectRes = await member.auth.introspectSession();
@@ -106,8 +128,11 @@ test.describe('Simple Auth E2E', () => {
     const asAdmin = makeStepsFixtures({ baseUrl, cookies: [adminSession] });
 
     const started = await asAdmin.auth.impersonate({ path: { userId: impersonated.id }, throwOnError: true });
-    const impersonation = `${adminSession}; ${cookieHeader(started.response)}`;
-    const asImpersonated = makeStepsFixtures({ baseUrl, cookies: [impersonation] });
+    const asImpersonated = makeStepsFixtures({
+      baseUrl,
+      cookies: [adminSession],
+      impersonationId: started.data.id,
+    });
 
     const during = await asImpersonated.auth.introspectSession();
     expect(during.data).toMatchObject({ isImpersonated: true, role: 'MEMBRE_COMMUN', userId: impersonated.id });
@@ -125,6 +150,37 @@ test.describe('Simple Auth E2E', () => {
     });
     const revoked = await asImpersonated.auth.introspectSession();
     expect(revoked.response?.status).toBe(401);
+  });
+
+  test('should refuse an impersonation to any session but the one that started it', async ({
+    baseUrl,
+    expect,
+    registerUser,
+  }) => {
+    const admin = await registerUser('ADMIN');
+    const impersonated = await registerUser('MEMBRE_COMMUN');
+    const anonymous = makeStepsFixtures({ baseUrl });
+    const logIn = async () => {
+      const { response } = await anonymous.auth.login({
+        body: { email: admin.email, password: admin.password },
+        throwOnError: true,
+      });
+      return cookieHeader(response);
+    };
+    const startingSession = await logIn();
+    const otherSession = await logIn();
+    const started = await makeStepsFixtures({ baseUrl, cookies: [startingSession] }).auth.impersonate({
+      path: { userId: impersonated.id },
+      throwOnError: true,
+    });
+
+    const elsewhere = await makeStepsFixtures({
+      baseUrl,
+      cookies: [otherSession],
+      impersonationId: started.data.id,
+    }).auth.introspectSession();
+
+    expect(elsewhere.response?.status).toBe(401);
   });
 
   test('should describe the logged-in user by the role an admin gave them', async ({ admin, baseUrl, expect }) => {

@@ -1,7 +1,10 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { type Request as ExpressRequest, type Response as ExpressResponse, type NextFunction } from 'express';
+import z from 'zod';
 
 import { SimpleAuthService } from './simple-auth.service';
+
+export const IMPERSONATION_HEADER = 'X-Impersonation-Id';
 
 @Injectable()
 export class SimpleAuthMiddleware implements NestMiddleware {
@@ -18,7 +21,9 @@ export class SimpleAuthMiddleware implements NestMiddleware {
     const sessionId: string | undefined = req.signedCookies?.['sessionId'];
     if (!sessionId) return next();
 
-    const impersonationId: string | undefined = req.signedCookies?.['impersonationId'];
+    const impersonationId = req.get(IMPERSONATION_HEADER);
+    // whatever the client sends: a malformed one leaves the request anonymous, never the admin's
+    if (impersonationId !== undefined && !z.uuid().safeParse(impersonationId).success) return next();
 
     const user: { id: string; isAdmin: boolean; role: string; impersonatorId?: string } | null =
       impersonationId

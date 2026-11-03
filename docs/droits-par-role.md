@@ -138,7 +138,7 @@ Le préfixe `/api` est omis.
 | Changer le statut d'une remarque               | `PUT /remarks/v1/:remarkId/status`           | —                        | —                        | ✓                        |
 | Télécharger un fichier par son lien temporaire | `GET /files/v1/:fileUrlId`                   | ✓                        | ✓                        | ✓                        |
 
-Le lien de téléchargement temporaire fonctionne comme un jeton : quiconque le détient télécharge le fichier. Une réponse donnée à la place d'un utilisateur n'est pas enregistrée. Une remarque envoyée à la place d'un utilisateur l'est au nom de l'administrateur. Un mot de passe ne se change jamais à la place d'un utilisateur.
+Quiconque détient un lien de téléchargement temporaire télécharge le fichier. Connecté à la place d'un utilisateur, l'administrateur n'enregistre ni réponse au questionnaire ni changement de mot de passe et envoie ses remarques à son propre nom. Cette connexion ne vaut que pour l'onglet ouvert pour elle et ceux ouverts depuis lui.
 
 ### Sessions
 

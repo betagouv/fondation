@@ -1,10 +1,21 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
-import type { FC } from 'react';
+import { FormattedMessage, useIntl } from 'react-intl';
 
-export const AuthenticationFailedAlert: FC = () => (
-  <Alert
-    severity="error"
-    title="Échec de la connexion"
-    description="Veuillez vous reconnecter avec un autre couple identifiant/mot de passe, ou vous adresser au secrétariat général si le problème persiste."
-  />
-);
+export function AuthenticationFailedAlert() {
+  const { formatMessage } = useIntl();
+
+  return (
+    <>
+      <Alert
+        description={
+          <FormattedMessage defaultMessage="Veuillez vous reconnecter avec un autre couple identifiant/mot de passe, ou vous adresser au secrétariat général si le problème persiste." />
+        }
+        severity="error"
+        title={formatMessage({ defaultMessage: 'Échec de la connexion' })}
+      />
+      <p className="fr-mt-2v fr-text--sm">
+        <FormattedMessage defaultMessage="Après plusieurs essais infructueux, la connexion est suspendue pendant 15 minutes." />
+      </p>
+    </>
+  );
+}

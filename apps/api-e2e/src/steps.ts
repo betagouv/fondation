@@ -89,12 +89,10 @@ function createSdk(client: Client, user?: { id: string }): TestSteps {
 }
 
 export function makeStepsFixtures(
-  options: Partial<{ baseUrl: string; cookies: string[]; user: { id: string } }> = {},
+  options: Partial<{ baseUrl: string; cookies: string[]; impersonationId: string; user: { id: string } }> = {},
 ): TestSteps {
-  return createSdk(
-    createClient(createConfig({ baseUrl: options.baseUrl, headers: { cookie: options.cookies } })),
-    options.user,
-  );
+  const headers = { cookie: options.cookies, 'X-Impersonation-Id': options.impersonationId };
+  return createSdk(createClient(createConfig({ baseUrl: options.baseUrl, headers })), options.user);
 }
 
 export function makeHttpClient(baseUrl: string): Client {

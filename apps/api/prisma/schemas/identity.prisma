@@ -216,6 +216,17 @@ model TechnicalAccountChange {
   @@schema("identity_and_access_context")
 }
 
+/// No index: a row lives 16 minutes at most, and bcrypt caps how many logins the API checks per second
+model LoginAttempt {
+  id          String   @id @db.Uuid
+  email       String   @db.VarChar
+  ip          String   @db.VarChar
+  attemptedAt DateTime @map("attempted_at") @db.Timestamp(6)
+
+  @@map("login_attempts")
+  @@schema("identity_and_access_context")
+}
+
 enum PrismaAdminRightChangeEnum {
   GRANTED
   REVOKED
