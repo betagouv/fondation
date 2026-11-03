@@ -10,6 +10,8 @@ export const LoginDtoSchema = z.object({
 
 export class LoginDto extends createZodDto(LoginDtoSchema) {}
 
+export class CreatedImpersonationDto extends createZodDto(z.object({ id: z.uuid() })) {}
+
 export class ChangePasswordDto extends createZodDto(
   z.object({
     currentPassword: LoginDtoSchema.shape.password,

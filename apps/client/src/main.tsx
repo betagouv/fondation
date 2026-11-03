@@ -16,7 +16,10 @@ import { frFormat } from './i18n/formats.ts';
 import { router } from './router.tsx';
 import { appVersion } from './utils/app-version.ts';
 import { matomo } from './utils/matomo.ts';
+import { tabImpersonation } from './utils/tab-impersonation.ts';
 
+tabImpersonation.adoptFromAddress();
+tabImpersonation.carryIntoNewTabs();
 startReactDsfr({ defaultColorScheme: 'light', Link });
 matomo?.start();
 appVersion.watch(router);

@@ -1,6 +1,7 @@
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { HttpException } from '../utils/http-exception';
+import { tabImpersonation } from '../utils/tab-impersonation';
 import { withValidationError } from '../utils/validation-error';
 import * as $api from '@api/sdk';
 import type { DetailedUserResponseDto } from '@api/types';
@@ -24,32 +25,37 @@ export const authKeys = {
   openIdProviders: () => ['auth', 'openidProviders'],
 };
 
+function introspectSession(): Promise<SessionUser | null> {
+  const wasImpersonated = !!tabImpersonation.id;
+  return $api.auth
+    .introspectSession()
+    .then(({ data }): SessionUser | null =>
+      data
+        ? {
+            canManageTechnicalAccounts: data.canManageTechnicalAccounts,
+            civility: `${data.gender === 'FEMALE' ? 'Madame' : 'Monsieur'} ${data.lastName.toUpperCase()}`,
+            displayedRole: data.displayedRole,
+            email: data.email,
+            firstName: data.firstName,
+            formation: data.formation,
+            id: data.userId,
+            isAdmin: data.isAdmin,
+            isImpersonated: data.isImpersonated,
+            lastName: data.lastName,
+            passwordChange: data.passwordChange,
+            role: data.role,
+          }
+        : null,
+    )
+    .catch((err) => {
+      if (!(err instanceof HttpException && err.statusCode === 401)) throw err;
+      // the impersonation of the tab just ended: the admin's own session may still hold
+      return wasImpersonated ? introspectSession() : null;
+    });
+}
+
 export const sessionQueryOptions = queryOptions({
-  queryFn: () =>
-    $api.auth
-      .introspectSession()
-      .then(({ data }): SessionUser | null =>
-        data
-          ? {
-              canManageTechnicalAccounts: data.canManageTechnicalAccounts,
-              civility: `${data.gender === 'FEMALE' ? 'Madame' : 'Monsieur'} ${data.lastName.toUpperCase()}`,
-              displayedRole: data.displayedRole,
-              email: data.email,
-              firstName: data.firstName,
-              formation: data.formation,
-              id: data.userId,
-              isAdmin: data.isAdmin,
-              isImpersonated: data.isImpersonated,
-              lastName: data.lastName,
-              passwordChange: data.passwordChange,
-              role: data.role,
-            }
-          : null,
-      )
-      .catch((err) => {
-        if (err instanceof HttpException && err.statusCode === 401) return null;
-        throw err;
-      }),
+  queryFn: introspectSession,
   queryKey: authKeys.introspectSession(),
   refetchOnWindowFocus: false,
   staleTime: 10 * 60 * 1_000,
@@ -66,7 +72,10 @@ export function useLogout() {
 
   return useMutation({
     mutationFn: () => $api.auth.logout(),
-    onSuccess: () => queryClient.removeQueries({ queryKey: authKeys.introspectSession() }),
+    onSuccess: () => {
+      tabImpersonation.forget();
+      queryClient.removeQueries({ queryKey: authKeys.introspectSession() });
+    },
   });
 }
 
@@ -93,7 +102,8 @@ export function useChangePasswordMutation() {
 
 export function useImpersonateMutation(props: { userId: string }) {
   return useMutation({
-    mutationFn: () => $api.auth.impersonate({ path: { userId: props.userId } }),
+    mutationFn: () =>
+      $api.auth.impersonate({ path: { userId: props.userId }, throwOnError: true }).then(({ data }) => data),
   });
 }
 
