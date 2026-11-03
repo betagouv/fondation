@@ -105,7 +105,13 @@ export class RecuseMembersDto extends createZodDto(z.object({ memberIds: recused
 
 export class RecuseNominationFilesMembersDto extends createZodDto(
   z.object({
-    items: z.array(z.object({ memberIds: recusedMemberIdsSchema, nominationFileId: z.uuid() })).nonempty(),
+    items: z
+      .array(z.object({ memberIds: recusedMemberIdsSchema, nominationFileId: z.uuid() }))
+      .nonempty()
+      .refine(
+        (items) => new Set(items.map(({ nominationFileId }) => nominationFileId)).size === items.length,
+        'Chaque dossier ne peut figurer qu’une fois',
+      ),
   }),
 ) {}
 
