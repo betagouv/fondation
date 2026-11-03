@@ -75,7 +75,7 @@ export class SimpleAuthController {
       throw new BadRequestException();
     }
 
-    const session = await this.auth.login(body);
+    const session = await this.auth.login({ ...body, ip: req.ip ?? 'unknown' });
     this.decorateResponse(res, session).end();
   }
 
