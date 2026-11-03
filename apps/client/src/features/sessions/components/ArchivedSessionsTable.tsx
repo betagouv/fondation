@@ -27,8 +27,6 @@ import {
 type ArchivedSession = ListedArchivedNominationSessionsDto['items'][number];
 export const SPACES = {
   SG: {
-    home: ROUTE_PATHS.SG.DASHBOARD,
-    label: defineMessage({ defaultMessage: 'Secrétariat général' }),
     session: ROUTE_PATHS.SG.SESSION_ID,
   },
   TRANSPARENCES: {

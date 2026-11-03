@@ -11,6 +11,7 @@ import { GeneratedPasswordInput } from '@/features/administration/components/Gen
 import { useTitleTakenBackWarning } from '@/features/administration/hooks/useTitleTakenBackWarning';
 import { UserStatusBadge } from '@/shared/components/user-status-badge';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
+import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { useTab } from '@/shared/hooks/useTab';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { DetailsCard, DetailsHeader, DetailsPageLayout } from '@/shared/ui/details';
@@ -813,6 +814,7 @@ function AccountStatusHistory(props: { statusChanges: DetailedAdminUserDto['stat
 
 function AdminUserDetailHeader(props: { action?: ReactNode; name: string }) {
   const { formatMessage } = useIntl();
+  const breadcrumbRoot = useBreadcrumbRoot();
 
   return (
     <DetailsHeader
@@ -825,7 +827,7 @@ function AdminUserDetailHeader(props: { action?: ReactNode; name: string }) {
           breadcrumb={{
             currentPageLabel: props.name,
             segments: [
-              { label: formatMessage({ defaultMessage: 'Administration' }), to: {} },
+              ...breadcrumbRoot,
               {
                 label: formatMessage({ defaultMessage: 'Gérer les utilisateurs' }),
                 to: ROUTE_PATHS.ADMIN.USERS,

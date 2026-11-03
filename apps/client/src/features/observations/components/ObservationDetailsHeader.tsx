@@ -3,6 +3,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { DetailsLink } from '@/shared/components/details-link';
 import { LolfiLink } from '@/shared/components/lolfi-link';
 import { TitleNameIcons } from '@/shared/components/title-name-icons';
+import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { DetailsHeader } from '@/shared/ui/details';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
@@ -19,11 +20,12 @@ export function ObservationDetailsHeader(props: {
   sessionId: string;
 }) {
   const { formatMessage } = useIntl();
+  const breadcrumbRoot = useBreadcrumbRoot();
   const { observant } = props.observation;
 
   const segments =
     props.context === 'sg'
-      ? [{ label: formatMessage({ defaultMessage: 'Secrétariat général' }), to: ROUTE_PATHS.SG.DASHBOARD }]
+      ? breadcrumbRoot
       : [
           {
             label: formatMessage({ defaultMessage: 'Transparences' }),

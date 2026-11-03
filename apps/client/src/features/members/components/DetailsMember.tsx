@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
+import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { DetailsCard, DetailsHeader, DetailsPageLayout } from '@/shared/ui/details';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
@@ -22,6 +23,7 @@ function MemberInfoItem(props: { children: ReactNode; label: ReactNode }) {
 
 function DetailsMemberHeader(props: { name: string }) {
   const { formatMessage } = useIntl();
+  const breadcrumbRoot = useBreadcrumbRoot();
 
   return (
     <DetailsHeader
@@ -33,10 +35,7 @@ function DetailsMemberHeader(props: { name: string }) {
           breadcrumb={{
             currentPageLabel: props.name,
             segments: [
-              {
-                label: formatMessage({ defaultMessage: 'Secrétariat général' }),
-                to: ROUTE_PATHS.SG.DASHBOARD,
-              },
+              ...breadcrumbRoot,
               {
                 label: formatMessage({ defaultMessage: 'Gérer les membres' }),
                 to: ROUTE_PATHS.SG.MANAGE_MEMBERS,

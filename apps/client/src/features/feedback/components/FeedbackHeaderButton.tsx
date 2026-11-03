@@ -13,7 +13,7 @@ export function FeedbackHeaderButton() {
     <Button
       className="fr-mb-0 self-center"
       iconId="fr-icon-feedback-line"
-      linkProps={{ to: ROUTE_PATHS.FEEDBACK }}
+      linkProps={{ to: ROUTE_PATHS.FEEDBACK, viewTransition: true }}
     >
       <FormattedMessage defaultMessage="Donner mon avis" />
     </Button>

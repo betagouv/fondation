@@ -9,6 +9,7 @@ import { AdminUserCreationModal } from '@/features/administration/components/Adm
 import { PinnedHeader } from '@/shared/components/pinned-header';
 import { UserStatusBadge } from '@/shared/components/user-status-badge';
 import { UserStatusEnum, UserStatusEnumMessages } from '@/shared/enums/user-status.enum';
+import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import {
   DataTable,
@@ -192,6 +193,7 @@ function CreateUserButton() {
 
 export function AdminUserListPage() {
   const { formatMessage } = useIntl();
+  const breadcrumbRoot = useBreadcrumbRoot();
   const { onColumnFiltersChange, onSortingChange, setTableState, tableState } = useDataTableUrlState({
     columnFilters: [] as (
       | { id: 'role'; value: AdminUserRoleEnum[] }
@@ -245,7 +247,7 @@ export function AdminUserListPage() {
         ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane pour l'Administration" })}
         breadcrumb={{
           currentPageLabel: formatMessage({ defaultMessage: 'Gérer les utilisateurs' }),
-          segments: [{ label: formatMessage({ defaultMessage: 'Administration' }), to: {} }],
+          segments: breadcrumbRoot,
         }}
         id="administration-breadcrumb"
       />

@@ -69,7 +69,7 @@ Un Membre ne voit les auditions d'une session qu'une fois publiées.
 
 ### Espace Secrétariat général
 
-L'accueil propose les deux pouvoirs de proposition, sans menu. Ailleurs, le menu propose Gérer une session, Restitutions, Gérer les membres, Archives et Rechercher un magistrat. Le logo ramène à l'accueil. L'Administrateur y voit en plus un sous-menu Administration.
+L'accueil propose les deux pouvoirs de proposition. Le menu garde partout Rechercher un magistrat. Depuis le GDS, il y ajoute Gérer une session, Restitutions, Gérer les membres et Archives. Le logo ramène à l'accueil. L'Administrateur y voit en plus un sous-menu Administration, dont l'entrée Créer une session n'apparaît que depuis le GDS.
 
 | URL                                                                                              | Vue                                                             | Membre | Secrétariat général | Administrateur |
 | ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------- | ------ | ------------------- | -------------- |

@@ -13,6 +13,7 @@ import {
   type RemarkStatusEnum,
   RemarkStatusEnumMessages,
 } from '@/shared/enums/remark-status.enum';
+import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import {
   DataTable,
@@ -131,6 +132,7 @@ function useRemarkColumns() {
 
 export function AdminRemarksPage() {
   const { formatMessage } = useIntl();
+  const breadcrumbRoot = useBreadcrumbRoot();
   const { onColumnFiltersChange, onSortingChange, tableState } = useDataTableUrlState({
     columnFilters: [] as { id: 'status'; value: RemarkStatusEnum[] }[],
     sorting: [] as RemarksSorting,
@@ -166,7 +168,7 @@ export function AdminRemarksPage() {
         ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane pour l'Administration" })}
         breadcrumb={{
           currentPageLabel: formatMessage({ defaultMessage: 'Traiter les retours utilisateurs' }),
-          segments: [{ label: formatMessage({ defaultMessage: 'Administration' }), to: {} }],
+          segments: breadcrumbRoot,
         }}
         id="administration-breadcrumb"
       />

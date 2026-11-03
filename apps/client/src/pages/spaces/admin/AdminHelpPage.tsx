@@ -8,6 +8,7 @@ import { HelpPageEditor } from '@/features/help/components/HelpPageEditor';
 import { HelpPageUpdate } from '@/features/help/components/HelpPageUpdate';
 import { PinnedHeader } from '@/shared/components/pinned-header';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
+import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { useUnsavedChangesGuard } from '@/shared/hooks/useUnsavedChangesGuard';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { useToasts } from '@/shared/ui/toast';
@@ -22,6 +23,7 @@ const HELP_TABS: readonly { label: { defaultMessage: string }; page: HelpPageEnu
 
 export function AdminHelpPage() {
   const { formatMessage } = useIntl();
+  const breadcrumbRoot = useBreadcrumbRoot();
   const toasts = useToasts();
   const { waitForConfirmation } = useConfirmModal();
   const [page, setPage] = useState<HelpPageEnum>('SECRETARIAT_GENERAL');
@@ -93,7 +95,7 @@ export function AdminHelpPage() {
         ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane pour l'Administration" })}
         breadcrumb={{
           currentPageLabel: formatMessage({ defaultMessage: "Rédiger le centre d'aide" }),
-          segments: [{ label: formatMessage({ defaultMessage: 'Administration' }), to: {} }],
+          segments: breadcrumbRoot,
         }}
         id="administration-breadcrumb"
       />

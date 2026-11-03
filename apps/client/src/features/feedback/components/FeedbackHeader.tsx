@@ -1,20 +1,23 @@
 import { FormattedMessage, useIntl } from 'react-intl';
 
+import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { DetailsHeader } from '@/shared/ui/details';
 
 export function FeedbackHeader() {
   const { formatMessage } = useIntl();
+  const breadcrumbRoot = useBreadcrumbRoot();
 
   return (
     <DetailsHeader
+      backThroughHistory
       backTo="/"
       breadcrumb={
         <Breadcrumb
           ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane de l'avis sur Fondation" })}
           breadcrumb={{
             currentPageLabel: formatMessage({ defaultMessage: 'Mon avis' }),
-            segments: [{ label: formatMessage({ defaultMessage: 'Accueil' }), to: '/' }],
+            segments: breadcrumbRoot,
           }}
           className="fr-mt-0"
           id="feedback-breadcrumb"

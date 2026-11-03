@@ -7,6 +7,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { useDebounce } from 'use-debounce';
 
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
+import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { SearchInput } from '@/shared/ui/search-input';
 import { useToasts } from '@/shared/ui/toast';
@@ -19,6 +20,7 @@ const SEARCH_FAILED_TOAST = 'magistrat-search-failed';
 
 export function MagistratSearch() {
   const { formatMessage } = useIntl();
+  const breadcrumbRoot = useBreadcrumbRoot();
   const toasts = useToasts();
   const isSgNavigation = useIsSgNavigation();
   const [search, setSearch] = useQueryState('recherche', parseAsString.withDefault(''));
@@ -75,17 +77,14 @@ export function MagistratSearch() {
         ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane de la recherche d'un magistrat" })}
         breadcrumb={{
           currentPageLabel: formatMessage({ defaultMessage: 'Rechercher un magistrat' }),
-          segments: [
-            isSgNavigation
-              ? {
-                  label: formatMessage({ defaultMessage: 'Secrétariat général' }),
-                  to: ROUTE_PATHS.SG.DASHBOARD,
-                }
-              : {
+          segments: isSgNavigation
+            ? breadcrumbRoot
+            : [
+                {
                   label: formatMessage({ defaultMessage: 'Transparences' }),
                   to: ROUTE_PATHS.TRANSPARENCES.DASHBOARD,
                 },
-          ],
+              ],
         }}
         className="fr-mt-0"
         id="magistrat-search-breadcrumb"

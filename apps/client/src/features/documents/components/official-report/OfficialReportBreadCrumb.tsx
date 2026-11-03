@@ -2,12 +2,14 @@ import { useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { generatePath, matchPath, useLocation, useParams } from 'react-router';
 
+import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
 
 export function OfficialReportBreadCrumb() {
   const { formatMessage } = useIntl();
+  const breadcrumbRoot = useBreadcrumbRoot();
   const { sessionId = '' } = useParams<{ sessionId: string }>();
   const { pathname } = useLocation();
   const { data: session } = useDetailedNominationSessionQuery({ sessionId });
@@ -35,14 +37,7 @@ export function OfficialReportBreadCrumb() {
       breadcrumb={{
         currentPageLabel: label,
         segments: [
-          {
-            to: generatePath(ROUTE_PATHS.SG.DASHBOARD),
-            label: formatMessage({ defaultMessage: 'Secrétariat général' }),
-          },
-          {
-            to: generatePath(ROUTE_PATHS.SG.MANAGE_SESSION),
-            label: formatMessage({ defaultMessage: 'Gérer une session' }),
-          },
+          ...breadcrumbRoot,
           {
             to: generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId }),
             label: session?.name ?? formatMessage({ defaultMessage: 'Session' }),

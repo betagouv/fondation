@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router';
 import { z } from 'zod';
 
 import { FormationEnum, FormationEnumMessages } from '@/shared/enums/formation.enum';
+import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { AlertBanner } from '@/shared/ui/alert-banner';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { RequiredLabel } from '@/shared/ui/required-label';
@@ -59,6 +60,7 @@ function useNewTransparenceSchema() {
 
 export function NewTransparence() {
   const { formatMessage } = useIntl();
+  const breadcrumbRoot = useBreadcrumbRoot();
   const navigate = useNavigate();
   const schema = useNewTransparenceSchema();
   /** the shared upload keeps no value: a new key is the only way to empty the picker */
@@ -99,7 +101,7 @@ export function NewTransparence() {
         ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane pour l'Administration" })}
         breadcrumb={{
           currentPageLabel: formatMessage({ defaultMessage: 'Créer une session' }),
-          segments: [{ label: formatMessage({ defaultMessage: 'Administration' }), to: {} }],
+          segments: breadcrumbRoot,
         }}
         id="administration-breadcrumb"
       />

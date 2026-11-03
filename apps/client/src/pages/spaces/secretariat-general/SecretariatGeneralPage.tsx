@@ -11,8 +11,8 @@ function CardPictogram(props: {
   pictogram: ComponentType<{ 'aria-hidden': boolean; className: string; height: string; width: string }>;
 }) {
   return (
-    <div className="flex h-44 items-center justify-center bg-(--background-alt-blue-france)">
-      <props.pictogram aria-hidden className="fr-artwork" height="96" width="96" />
+    <div className="flex h-32 items-center justify-center bg-(--background-alt-blue-france)">
+      <props.pictogram aria-hidden className="fr-artwork" height="72" width="72" />
     </div>
   );
 }
@@ -31,13 +31,13 @@ export const SecretariatGeneralPage = () => {
             {formatMessage({ defaultMessage: 'Sur quel pouvoir souhaitez-vous travailler ?' })}
           </p>
         </div>
-        <ul className="grid w-full max-w-4xl list-none gap-8 p-0 md:grid-cols-2">
+        <ul className="grid w-full max-w-3xl list-none gap-6 p-0 md:grid-cols-2">
           <li>
             <Card
               className="h-full"
               enlargeLink
               imageComponent={<CardPictogram pictogram={JusticeScales} />}
-              linkProps={{ to: ROUTE_PATHS.SG.MANAGE_SESSION }}
+              linkProps={{ to: ROUTE_PATHS.SG.MANAGE_SESSION, viewTransition: true }}
               title={formatMessage({ defaultMessage: 'Pouvoir de proposition GDS' })}
               titleAs="h2"
             />
