@@ -23,6 +23,8 @@ export class DetailSessionCommentQuery {
       where: { deletedAt: null, id: query.sessionId },
     });
     if (!session) throw new NotFoundException();
+    // an erased comment no longer exists: there is no change left to date
+    if (!session.comment) return { comment: null, writtenAt: null, writtenBy: null };
 
     const [lastVersion] = session.commentVersions;
     return {
