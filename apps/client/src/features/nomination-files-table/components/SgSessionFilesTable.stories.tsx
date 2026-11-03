@@ -48,6 +48,7 @@ function SgSessionFilesTableStory(props: {
   sessionId: string;
 }) {
   const [filtersSlot, setFiltersSlot] = useState<HTMLDivElement | null>(null);
+  const [headerSlot, setHeaderSlot] = useState<HTMLDivElement | null>(null);
   const [toolbarSlot, setToolbarSlot] = useState<HTMLDivElement | null>(null);
 
   return (
@@ -55,6 +56,7 @@ function SgSessionFilesTableStory(props: {
       <ToastProvider>
         <ConfirmModalProvider>
           <div className="fr-container fr-py-4v">
+            <div className="fr-mb-4v" ref={setHeaderSlot} />
             <div className="fr-mb-4v min-h-10" ref={setFiltersSlot} />
             <div className="fr-mb-4v min-h-10" ref={setToolbarSlot} />
 
@@ -62,6 +64,7 @@ function SgSessionFilesTableStory(props: {
               canManage={props.canManage}
               filtersSlot={filtersSlot}
               formation={props.formation}
+              headerSlot={headerSlot}
               outcomes={makeSessionOutcomes(props.formation)}
               sessionId={props.sessionId}
               toolbarSlot={toolbarSlot}

@@ -229,6 +229,7 @@ export function NominationFilesBulkActions(props: {
   return (
     <div className="flex w-full flex-wrap items-center justify-between gap-4">
       <div className="flex flex-wrap items-center gap-6">
+        <PrioritySelect disabled={isApplying} onChange={changePriorities} value={priorities} />
         <ReporterSelect
           available={availableReporters}
           disabled={isApplying}
@@ -237,7 +238,6 @@ export function NominationFilesBulkActions(props: {
           onClear={clearReporters}
           value={reporterIds}
         />
-        <PrioritySelect disabled={isApplying} onChange={changePriorities} value={priorities} />
         <Dropdown
           disabled={isApplying}
           label={<FormattedMessage defaultMessage="Choisir une issue" />}
