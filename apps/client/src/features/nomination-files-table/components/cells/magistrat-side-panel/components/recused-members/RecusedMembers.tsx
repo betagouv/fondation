@@ -1,6 +1,8 @@
-import { FormattedMessage } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useNominationFilesTable } from '@/features/nomination-files-table/context/files-table.context';
+import { useConfirmModal } from '@/shared/context/confirm-modal';
+import { memberFullName } from '@/utils/user.utils';
 import type { RecusedMembersDto } from '@api/types';
 import { useRecuseMembersMutation, type SessionNominationFile } from '@queries/nomination-sessions.queries';
 
@@ -13,9 +15,36 @@ export function RecusedMembers(props: {
   const { nominationFile, recusedMembers } = props;
   const { sessionId } = useNominationFilesTable();
   const { isError: saveFailed, isPending, mutate, variables } = useRecuseMembersMutation(nominationFile.id);
+  const { waitForConfirmation } = useConfirmModal();
+  const { formatMessage } = useIntl();
   const selected = isPending ? variables.memberIds : recusedMembers.map(({ id }) => id);
 
-  const recuse = (memberIds: string[]) => mutate({ memberIds, sessionId });
+  const recuse = async (memberIds: string[]) => {
+    const reporter = nominationFile.reporters.find(
+      ({ id }) => memberIds.includes(id) && !selected.includes(id),
+    );
+
+    if (reporter) {
+      const { isConfirmed } = await waitForConfirmation({
+        content: (
+          <p>
+            <FormattedMessage
+              defaultMessage={`{name} est rapporteur de ce dossier. Avec ce déport, son rapport passe à « Sans objet » et en lecture seule.`}
+              values={{ name: memberFullName(reporter) }}
+            />
+          </p>
+        ),
+        i18n: {
+          cancel: formatMessage({ defaultMessage: 'Annuler' }),
+          confirm: formatMessage({ defaultMessage: 'Déporter' }),
+        },
+        title: formatMessage({ defaultMessage: 'Déporter un rapporteur' }),
+      });
+      if (!isConfirmed) return;
+    }
+
+    mutate({ memberIds, sessionId });
+  };
 
   return (
     <div className="fr-mb-2v">

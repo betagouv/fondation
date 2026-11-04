@@ -6,12 +6,14 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { axe } from 'vitest-axe';
 
 import { NominationFilesTableProvider } from '@/features/nomination-files-table/context/NominationFilesTableProvider';
+import { ConfirmModalProvider } from '@/shared/context/confirm-modal';
 import { FormationEnum } from '@/shared/enums/formation.enum';
 import { makeSessionNominationFile } from '@/test-utils/factories/session-nomination-file.factory';
 import { makeSessionOutcomes } from '@/test-utils/factories/session-outcomes.factory';
 import * as $api from '@api/sdk';
 import type { RecusedMembersDto } from '@api/types';
 import { memberKeys } from '@queries/members.queries';
+import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 import { RecusedMembers } from './RecusedMembers';
 
@@ -19,7 +21,11 @@ const SESSION_ID = 'session-1';
 const PRESIDENT = { firstName: 'Zoé', id: 'president', lastName: 'Zola' };
 const MEMBER = { firstName: 'Jean', id: 'member', lastName: 'Albert' };
 
-function renderRecusedMembers(recusedMembers: RecusedMembersDto['recusedMembers'], canRecuseMembers = true) {
+function renderRecusedMembers(
+  recusedMembers: RecusedMembersDto['recusedMembers'],
+  canRecuseMembers = true,
+  reporters: SessionNominationFile['reporters'] = [],
+) {
   const client = new QueryClient({
     defaultOptions: { mutations: { retry: false }, queries: { retry: false } },
   });
@@ -40,17 +46,23 @@ function renderRecusedMembers(recusedMembers: RecusedMembersDto['recusedMembers'
   const panel = (members: RecusedMembersDto['recusedMembers']) => (
     <IntlProvider defaultLocale="fr" locale="fr">
       <QueryClientProvider client={client}>
-        <NominationFilesTableProvider
-          canManage
-          formation={FormationEnum.SIEGE}
-          outcomes={makeSessionOutcomes(FormationEnum.SIEGE)}
-          sessionId={SESSION_ID}
-        >
-          <RecusedMembers
-            nominationFile={makeSessionNominationFile({ canRecuseMembers, recusedMembers: members })}
-            recusedMembers={members}
-          />
-        </NominationFilesTableProvider>
+        <ConfirmModalProvider>
+          <NominationFilesTableProvider
+            canManage
+            formation={FormationEnum.SIEGE}
+            outcomes={makeSessionOutcomes(FormationEnum.SIEGE)}
+            sessionId={SESSION_ID}
+          >
+            <RecusedMembers
+              nominationFile={makeSessionNominationFile({
+                canRecuseMembers,
+                recusedMembers: members,
+                reporters,
+              })}
+              recusedMembers={members}
+            />
+          </NominationFilesTableProvider>
+        </ConfirmModalProvider>
       </QueryClientProvider>
     </IntlProvider>
   );
@@ -92,6 +104,44 @@ describe('RecusedMembers', () => {
         path: { nominationFileId: 'nomination-file', sessionId: SESSION_ID },
       }),
     );
+  });
+
+  it('recuses a reporter once the secretariat confirms it', async () => {
+    const recuse = vi
+      .spyOn($api.sessions, 'recuseMembers')
+      .mockResolvedValue({ data: { recusedMembers: [MEMBER] } } as Awaited<
+        ReturnType<typeof $api.sessions.recuseMembers>
+      >);
+    const user = userEvent.setup();
+    renderRecusedMembers([], true, [MEMBER]);
+
+    await user.click(screen.getByRole('button', { name: /Ajouter un membre qui se déporte/ }));
+    await user.click(within(screen.getByRole('listbox')).getByRole('option', { name: 'Jean ALBERT' }));
+
+    const dialog = screen.getByRole('dialog', { name: 'Déporter un rapporteur' });
+    expect(dialog).toHaveTextContent(
+      'Jean ALBERT est rapporteur de ce dossier. Avec ce déport, son rapport passe à « Sans objet » et en lecture seule.',
+    );
+    expect(recuse).not.toHaveBeenCalled();
+
+    await user.click(within(dialog).getByRole('button', { name: 'Déporter' }));
+
+    await waitFor(() =>
+      expect(recuse).toHaveBeenCalledWith(expect.objectContaining({ body: { memberIds: [MEMBER.id] } })),
+    );
+  });
+
+  it('leaves a reporter out of the recused members when the secretariat cancels', async () => {
+    const recuse = vi.spyOn($api.sessions, 'recuseMembers');
+    const user = userEvent.setup();
+    renderRecusedMembers([], true, [MEMBER]);
+
+    await user.click(screen.getByRole('button', { name: /Ajouter un membre qui se déporte/ }));
+    await user.click(within(screen.getByRole('listbox')).getByRole('option', { name: 'Jean ALBERT' }));
+    await user.click(screen.getByRole('button', { name: 'Annuler' }));
+
+    expect(recuse).not.toHaveBeenCalled();
+    expect(screen.queryByRole('button', { name: 'Retirer Jean ALBERT' })).toBeNull();
   });
 
   it('keeps the recused members another action saved while the panel was open', async () => {

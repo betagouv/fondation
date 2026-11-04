@@ -8,6 +8,7 @@ import {
 } from '../context/excluded-jurisdictions.context';
 import { useNominationFilesTable } from '../context/files-table.context';
 import { OutcomeBadge } from '@/shared/components/outcome-badge';
+import { useConfirmModal } from '@/shared/context/confirm-modal';
 import type { NominationFileOutcomeEnum } from '@/shared/enums/nomination-file-outcome.enum';
 import type { PrioriteEnum } from '@/shared/enums/priorite.enum';
 import { Dropdown } from '@/shared/ui/dropdown';
@@ -27,6 +28,10 @@ import {
   ReporterSelect,
 } from './cells/magistrat-side-panel/components/header/AffectationFields';
 import { RecusedMemberSelect } from './cells/magistrat-side-panel/components/recused-members/RecusedMemberSelect';
+import {
+  recusedReporters,
+  RecusedReportersNotice,
+} from './cells/magistrat-side-panel/components/recused-members/RecusedReportersNotice';
 import { outcomeRequiresComment } from './cells/nomination-file-outcome/nomination-file-outcome.utils';
 import { RequiredOutcomeCommentsModal, type OutcomeComment } from './RequiredOutcomeCommentsModal';
 
@@ -62,13 +67,13 @@ function sharedList<T extends string>(
 }
 
 function recusedIdsOf(file: SessionNominationFile): string[] {
-  return (file.recusedMembers ?? []).map(({ id }) => id);
+  return file.recusedMembers.map(({ id }) => id);
 }
 
 function sharedRecusedMembers(files: readonly SessionNominationFile[]): RecusedMembersDto['recusedMembers'] {
   const isShared = sharedList(files, recusedIdsOf).length > 0;
 
-  return isShared ? (files[0]!.recusedMembers ?? []) : [];
+  return isShared ? files[0]!.recusedMembers : [];
 }
 
 function sharedOutcome(files: readonly SessionNominationFile[]): NominationFileOutcomeEnum | null {
@@ -86,6 +91,7 @@ export function NominationFilesBulkActions(props: {
   const { formatMessage } = useIntl();
   const { formation, outcomes, sessionId } = useNominationFilesTable();
   const toasts = useToasts();
+  const { waitForConfirmation } = useConfirmModal();
 
   const affectReporters = useAffectNominationFilesReportersMutation();
   const defineOutcome = useDefineNominationFilesOutcomeMutation({ sessionId });
@@ -218,10 +224,26 @@ export function NominationFilesBulkActions(props: {
   );
 
   const changeRecusedMembers = useCallback(
-    (next: string[]) => {
+    async (next: string[]) => {
       if (!hasSelection) return;
 
       const change = diff(recusedMemberIds, next);
+      const reporters = recusedReporters(props.selectedFiles, change.added);
+      if (reporters.length > 0) {
+        const { isConfirmed } = await waitForConfirmation({
+          content: <RecusedReportersNotice reporters={reporters} />,
+          i18n: {
+            cancel: formatMessage({ defaultMessage: 'Annuler' }),
+            confirm: formatMessage({ defaultMessage: 'Déporter' }),
+          },
+          title:
+            reporters.length > 1
+              ? formatMessage({ defaultMessage: 'Déporter des rapporteurs' })
+              : formatMessage({ defaultMessage: 'Déporter un rapporteur' }),
+        });
+        if (!isConfirmed) return;
+      }
+
       setRecusedMemberIds(next);
 
       recuseMembers.mutate(
@@ -234,7 +256,15 @@ export function NominationFilesBulkActions(props: {
         { onError: onFailure },
       );
     },
-    [hasSelection, onFailure, props.selectedFiles, recuseMembers, recusedMemberIds],
+    [
+      formatMessage,
+      hasSelection,
+      onFailure,
+      props.selectedFiles,
+      recuseMembers,
+      recusedMemberIds,
+      waitForConfirmation,
+    ],
   );
 
   const chooseOutcome = useCallback(
