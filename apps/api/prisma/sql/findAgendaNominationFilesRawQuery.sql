@@ -91,6 +91,7 @@ FROM nominations_context.dossier_de_nomination ddn
           'gender', u.gender,
           'id', u.id,
           'lastName', u.last_name,
+          'recusalTitle', u.recusal_title,
           'sort', u.sort
         )
       ) AS users

@@ -30,6 +30,7 @@ import {
   UpdateUserEmailDto,
   UpdateUserNameDto,
   UpdateUserPasswordDto,
+  UpdateUserRecusalTitleDto,
   UpdateUserRoleDto,
 } from './dto/administration.dto';
 import { DetailedAdminUserDto } from './queries/details-user.query';
@@ -146,6 +147,17 @@ export class AdministrationController {
     @Body() { displayTitle }: UpdateUserDisplayTitleDto,
   ): Promise<void> {
     return this.administration.updateDisplayTitle({ displayTitle, userId });
+  }
+
+  @HasRole('ADMIN')
+  @Put('/users/:userId/recusal-title')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UsePipes(ZodValidationPipe)
+  updateRecusalTitle(
+    @Param('userId', ParseUUIDPipe) userId: string,
+    @Body() { recusalTitle }: UpdateUserRecusalTitleDto,
+  ): Promise<void> {
+    return this.administration.updateRecusalTitle({ recusalTitle, userId });
   }
 
   @HasRole('ADMIN')

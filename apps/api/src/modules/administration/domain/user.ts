@@ -85,6 +85,13 @@ export class UserDisplayTitleUpdated {
   ) {}
 }
 
+export class UserRecusalTitleUpdated {
+  constructor(
+    readonly userId: string,
+    readonly recusalTitle: string | null,
+  ) {}
+}
+
 export class UsersUntitled {
   constructor(
     readonly userId: string,
@@ -142,6 +149,7 @@ export type UserEvent =
   | UserRoleUpdated
   | UsersUntitled
   | UserDisplayTitleUpdated
+  | UserRecusalTitleUpdated
   | UserPromotedToAdmin
   | UserDemotedFromAdmin
   | UserTechnicalAccountUpdated
@@ -314,6 +322,10 @@ export class User {
 
   updateDisplayTitle(displayTitle: string | null): void {
     this.#messages.push(new UserDisplayTitleUpdated(this.id, displayTitle));
+  }
+
+  updateRecusalTitle(recusalTitle: string | null): void {
+    this.#messages.push(new UserRecusalTitleUpdated(this.id, recusalTitle));
   }
 
   promoteAdmin(command: { actorId: string; now: Date }): void {

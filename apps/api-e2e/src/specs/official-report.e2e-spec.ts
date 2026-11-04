@@ -551,6 +551,37 @@ test.describe('Official report', () => {
     expect(file.data?.recusedMembers).toEqual(data!.recusedMembers);
   });
 
+  test('should mention a recused member under the recusal title an admin gave them', async ({
+    admin,
+    agent,
+    docs,
+    expect,
+    member,
+  }) => {
+    const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
+    const { id: officialReportId } = await docs.officialReport(await docs.agenda(session));
+    const nominationFileId = session.files[0]!.id;
+    const userId = member['@user']!.id;
+
+    await admin.administration.updateRecusalTitle({
+      body: { recusalTitle: 'le Bâtonnier' },
+      path: { userId },
+      throwOnError: true,
+    });
+    const { data } = await agent.sessions.recuseMembers({
+      body: { memberIds: [userId] },
+      path: { nominationFileId, sessionId: session.id },
+      throwOnError: true,
+    });
+    const [recused] = data.recusedMembers;
+
+    const document = await agent.docs.detailsOfficialReportDocument({ path: { officialReportId } });
+    const block = document.data!.blocks.find((b) => b.kind === 'file' && b.nominationFileId === nominationFileId);
+    expect(block?.kind === 'file' && block.note.html).toContain(
+      `le Bâtonnier ${recused!.lastName.toUpperCase().replaceAll("'", '&#39;')} n'a pas délibéré`,
+    );
+  });
+
   test('should flag a text written under a proposition once its recusal changes, until the mention is given back', async ({
     agent,
     docs,

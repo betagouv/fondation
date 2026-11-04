@@ -13,7 +13,7 @@ import { GradeEnum } from '../../../../shared/grade.enum';
 import { NominationFileOutcome } from '../../../../shared/nomination-file-outcome.enum';
 import { byProtocolOrder } from '../../../../shared/protocol-order';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
-import { buildMemberName, buildPosition } from '../helpers/magistrat.helper';
+import { buildMemberName, buildPosition, buildRecusedMemberName } from '../helpers/magistrat.helper';
 
 @Injectable()
 export class InternalFindDocsNominationFilesQuery {
@@ -113,6 +113,7 @@ const SqlNominationFilesSchema = z
           gender: z.enum(GenderEnum),
           id: z.uuid(),
           lastName: z.string().trim().nonempty(),
+          recusalTitle: z.string().nullable(),
           sort: z.number().int(),
         }),
       ),
@@ -157,7 +158,7 @@ const SqlNominationFilesSchema = z
 
     const recusedMembers = item.recusedMembers
       .sort(byProtocolOrder)
-      .map((u) => ({ fullTitledName: buildMemberName(u), id: u.id }));
+      .map((u) => ({ fullTitledName: buildRecusedMemberName(u), id: u.id }));
 
     return {
       id: item.id,

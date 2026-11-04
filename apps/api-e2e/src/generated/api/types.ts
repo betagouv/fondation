@@ -2436,6 +2436,7 @@ export type DetailedAdminUserDto = {
     };
     gender: 'MALE' | 'FEMALE';
     displayTitle: string | null;
+    recusalTitle: string | null;
     isAdmin: boolean;
     isTechnical: boolean;
     status: 'ACTIVE' | 'DEACTIVATED';
@@ -2504,6 +2505,13 @@ export type UpdateUserRoleDto = {
 
 export type UpdateUserDisplayTitleDto = {
     displayTitle: string | null;
+};
+
+export type UpdateUserRecusalTitleDto = {
+    /**
+     * with its article, e.g. "le Bâtonnier"
+     */
+    recusalTitle: string | null;
 };
 
 export type RegisterUserDto = {
@@ -5371,6 +5379,21 @@ export type UpdateDisplayTitle2Responses = {
 };
 
 export type UpdateDisplayTitle2Response = UpdateDisplayTitle2Responses[keyof UpdateDisplayTitle2Responses];
+
+export type UpdateRecusalTitleData = {
+    body: UpdateUserRecusalTitleDto;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/administration/v1/users/{userId}/recusal-title';
+};
+
+export type UpdateRecusalTitleResponses = {
+    204: void;
+};
+
+export type UpdateRecusalTitleResponse = UpdateRecusalTitleResponses[keyof UpdateRecusalTitleResponses];
 
 export type DemoteFromAdminData = {
     body?: never;
