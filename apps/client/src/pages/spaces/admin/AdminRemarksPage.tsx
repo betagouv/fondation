@@ -39,7 +39,7 @@ const authorCell = rowCell<ListedRemark>((remark) => (
     {remark.impersonated && (
       <span className="text-xs text-(--text-mention-grey)">
         <FormattedMessage
-          defaultMessage="Envoyée en tant que {name}"
+          defaultMessage="Envoyé en tant que {name}"
           values={{ name: remark.impersonated.name }}
         />
       </span>
@@ -82,7 +82,7 @@ function useRemarkColumns() {
       h.accessor('sentAt', {
         cell: sentAtCell,
         enableSorting: true,
-        header: formatMessage({ defaultMessage: 'Envoyée le' }),
+        header: formatMessage({ defaultMessage: 'Envoyé le' }),
         id: 'sentAt',
         size: 110,
       }),

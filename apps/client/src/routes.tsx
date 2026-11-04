@@ -165,6 +165,10 @@ export const routes: RouteObject[] = [
               ),
           },
           {
+            loader: () => redirect(ROUTE_PATHS.ADMIN.INGEST_LODAM),
+            path: '/secretariat-general/nouvelle-transparence',
+          },
+          {
             children: [
               {
                 index: true,

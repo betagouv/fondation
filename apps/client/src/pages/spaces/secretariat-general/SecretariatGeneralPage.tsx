@@ -6,19 +6,23 @@ import type { ComponentType } from 'react';
 import { useIntl } from 'react-intl';
 
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import { useCountUsersNewSessionsQuery } from '@queries/nomination-sessions.queries';
 
 function CardPictogram(props: {
   pictogram: ComponentType<{ 'aria-hidden': boolean; className: string; height: string; width: string }>;
+  size: string;
 }) {
   return (
-    <div className="flex h-32 items-center justify-center bg-(--background-alt-blue-france)">
-      <props.pictogram aria-hidden className="fr-artwork" height="72" width="72" />
+    <div className="flex h-40 items-center justify-center bg-(--background-alt-blue-france) pt-8">
+      <props.pictogram aria-hidden className="fr-artwork" height={props.size} width={props.size} />
     </div>
   );
 }
 
 export const SecretariatGeneralPage = () => {
   const { formatMessage } = useIntl();
+  const { data } = useCountUsersNewSessionsQuery();
+  const newSessionsCount = data?.count ?? 0;
 
   return (
     <div className="grow bg-linear-to-br from-(--blue-france-925-125) to-(--blue-france-925-125-hover)">
@@ -34,9 +38,23 @@ export const SecretariatGeneralPage = () => {
         <ul className="grid w-full max-w-3xl list-none gap-6 p-0 md:grid-cols-2">
           <li>
             <Card
+              badge={
+                newSessionsCount > 0 ? (
+                  <Badge severity="new" small>
+                    {formatMessage(
+                      {
+                        defaultMessage:
+                          '{count, plural, one {# nouvelle session} other {# nouvelles sessions}}',
+                      },
+                      { count: newSessionsCount },
+                    )}
+                  </Badge>
+                ) : undefined
+              }
               className="h-full"
+              classes={{ content: 'pt-6! pb-22!' }}
               enlargeLink
-              imageComponent={<CardPictogram pictogram={JusticeScales} />}
+              imageComponent={<CardPictogram pictogram={JusticeScales} size="80" />}
               linkProps={{ to: ROUTE_PATHS.SG.MANAGE_SESSION, viewTransition: true }}
               title={formatMessage({ defaultMessage: 'Pouvoir de proposition GDS' })}
               titleAs="h2"
@@ -44,14 +62,14 @@ export const SecretariatGeneralPage = () => {
           </li>
           <li>
             <Card
-              className="h-full"
-              classes={{ footer: 'flex justify-end' }}
-              footer={
+              badge={
                 <Badge noIcon severity="info" small>
                   {formatMessage({ defaultMessage: 'En cours de développement' })}
                 </Badge>
               }
-              imageComponent={<CardPictogram pictogram={DocumentSearch} />}
+              className="h-full"
+              classes={{ content: 'pt-6!' }}
+              imageComponent={<CardPictogram pictogram={DocumentSearch} size="72" />}
               title={formatMessage({ defaultMessage: 'Pouvoir de proposition CSM' })}
               titleAs="h2"
             />
