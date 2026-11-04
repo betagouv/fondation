@@ -7,6 +7,8 @@ import { FormattedMessage } from 'react-intl';
 import { useAffectation } from '../../hooks/use-affectation/use-affectation.hook';
 import { useAuditionExpectation } from '../../hooks/use-audition-expectation/use-audition-expectation.hook';
 import { useUnsavedGuard } from '../../hooks/use-unsaved-guard/use-unsaved-guard.hook';
+import { RecusalIcon } from '../recused-members/RecusalIcon';
+import { isRecusedOn } from '../recused-members/recused-reporters';
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { ExcludedJurisdictionIcon } from '@/features/nomination-files-table/components/ExcludedJurisdictionIcon';
 import { ExcludedJurisdictionNotice } from '@/features/nomination-files-table/components/ExcludedJurisdictionNotice';
@@ -162,6 +164,7 @@ export function Header(props: { nominationFile: SessionNominationFile; sessionId
           <ReporterSelect
             available={affectation.availableRapporteurs}
             excludedTitleByRapporteurId={excludedTitleByRapporteurId}
+            isRecused={(memberId) => isRecusedOn(nominationFile, memberId)}
             onChange={affectation.setReporterIds}
             ref={reporterSelectRef}
             value={affectation.reporterIds}
@@ -174,7 +177,7 @@ export function Header(props: { nominationFile: SessionNominationFile; sessionId
           <ReporterStatus
             conflicts={selectedConflicts}
             currentUserId={user?.id}
-            reporters={nominationFile.reporters}
+            nominationFile={nominationFile}
           />
           {myReport && (
             <Button
@@ -232,9 +235,10 @@ type Member = { firstName: string; id: string; lastName: string };
 function ReporterStatus(props: {
   conflicts: readonly ExcludedJurisdictionConflict[];
   currentUserId: string | undefined;
-  reporters: readonly Member[];
+  nominationFile: SessionNominationFile;
 }) {
-  const { conflicts, currentUserId, reporters } = props;
+  const { conflicts, currentUserId, nominationFile } = props;
+  const { reporters } = nominationFile;
   const excludedTitleByMemberId = useExcludedJurisdictionTitles(conflicts);
 
   if (reporters.length === 0)
@@ -258,6 +262,7 @@ function ReporterStatus(props: {
             excludedTitle={excludedTitleByMemberId.get(reporter.id)}
             key={reporter.id}
             member={reporter}
+            recused={isRecusedOn(nominationFile, reporter.id)}
           />
         ))}
       </div>
@@ -277,21 +282,26 @@ function ReporterStatus(props: {
           excludedTitle={excludedTitleByMemberId.get(reporter.id)}
           key={reporter.id}
           member={reporter}
+          recused={isRecusedOn(nominationFile, reporter.id)}
         />
       ))}
     </div>
   );
 }
 
-function MemberTag(props: { excludedTitle?: string; member: Member }) {
+function MemberTag(props: { excludedTitle?: string; member: Member; recused?: boolean }) {
   return (
     <Tag
+      as="span"
       className={clsx(
         'gap-1.5 bg-(--background-default-grey)!',
-        props.excludedTitle ? 'text-(--text-default-warning)!' : 'text-(--text-action-high-blue-france)!',
+        props.excludedTitle || props.recused
+          ? 'text-(--text-default-warning)!'
+          : 'text-(--text-action-high-blue-france)!',
       )}
     >
       {props.excludedTitle && <ExcludedJurisdictionIcon title={props.excludedTitle} />}
+      {props.recused && <RecusalIcon />}
       {memberFullName(props.member)}
     </Tag>
   );

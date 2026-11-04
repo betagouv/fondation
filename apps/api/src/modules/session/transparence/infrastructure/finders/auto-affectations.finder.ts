@@ -18,6 +18,7 @@ import {
 } from '../../domain/auto-affectation';
 
 import { NominationFileJurisdictionsFinder } from './nomination-file-jurisdictions.finder';
+import { RecusedMembersFinder } from './recused-members.finder';
 import { UnaffectedFilesFinder } from './unaffected-files.finder';
 
 @Injectable()
@@ -29,6 +30,7 @@ export class AutoAffectationsFinder {
     private readonly membersService: MembersService,
     private readonly unaffectedFilesFinder: UnaffectedFilesFinder,
     private readonly jurisdictionsFinder: NominationFileJurisdictionsFinder,
+    private readonly recusedMembersFinder: RecusedMembersFinder,
   ) {}
 
   @Transactional()
@@ -61,8 +63,10 @@ export class AutoAffectationsFinder {
       excludedMemberIds: predicate.excludedMemberIds,
     });
 
-    const jurisdictions = await this.jurisdictionsFinder.find({
-      nominationFileIds: nominationFiles.items.map(({ id }) => id),
+    const nominationFileIds = nominationFiles.items.map(({ id }) => id);
+    const jurisdictions = await this.jurisdictionsFinder.find({ nominationFileIds });
+    const recusedMembers = await this.recusedMembersFinder.find({
+      nominationFileIds: new Set(nominationFileIds),
     });
 
     const files = this.toAutoAffectationNominationFiles(
@@ -71,6 +75,7 @@ export class AutoAffectationsFinder {
         return {
           ...file,
           currentJurisdiction: current?.id ?? null,
+          recusedMemberIds: new Set(recusedMembers.get(file.id)?.map(({ id }) => id)),
           targetedJurisdiction: targeted?.id ?? null,
         };
       }),
@@ -88,13 +93,14 @@ export class AutoAffectationsFinder {
       id: string;
       targetedGrade: string | null;
       currentJurisdiction: string | null;
+      recusedMemberIds: ReadonlySet<string>;
       targetedJurisdiction: string | null;
       number: number | null;
     }[],
     session: { formation: FormationEnum; date: DateOnly },
   ): AutoAffectationNominationFile[] {
     return nominationFiles
-      .map(({ id, number, targetedGrade, targetedJurisdiction, currentJurisdiction }) => {
+      .map(({ id, number, recusedMemberIds, targetedGrade, targetedJurisdiction, currentJurisdiction }) => {
         if (
           !isDefined(number) ||
           !isGrade(targetedGrade) ||
@@ -109,6 +115,7 @@ export class AutoAffectationsFinder {
           targetedGrade,
           number,
           currentJurisdiction,
+          recusedMemberIds,
           targetedJurisdiction,
         });
       })

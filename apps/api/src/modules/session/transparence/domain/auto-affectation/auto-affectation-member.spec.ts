@@ -59,6 +59,24 @@ describe('auto affectation member', () => {
       ).toBe(false);
     });
 
+    it('should not allow an affectation to a member recused from the file', () => {
+      const member = new AffectableMember(3, 'member-1', 'SIEGE', new Set());
+
+      expect(
+        member.canReportOn(
+          AutoAffectationNominationFile.from({
+            session,
+            number: 1,
+            id: 'file-1',
+            recusedMemberIds: new Set(['member-1']),
+            targetedGrade: 'G2',
+            targetedJurisdiction: 'CA  STRASBOURG',
+            currentJurisdiction: 'CA  LYON',
+          }),
+        ),
+      ).toBe(false);
+    });
+
     it('should check affectation on a list of files', () => {
       const member = new AffectableMember(3, 'member-1', 'SIEGE', new Set(['CA  NANTES']));
 

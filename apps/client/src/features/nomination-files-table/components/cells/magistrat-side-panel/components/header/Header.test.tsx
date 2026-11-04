@@ -222,6 +222,17 @@ describe('Header reporter status', () => {
 
     expect(screen.queryByText(/Juridiction exclue pour/)).not.toBeInTheDocument();
   });
+
+  it('warns that a reporter recused themselves from the file', () => {
+    renderHeader({
+      nominationFile: makeSessionNominationFile({
+        recusedMembers: [OTHER_REPORTER],
+        reporters: [OTHER_REPORTER],
+      }),
+    });
+
+    expect(screen.getByRole('img', { name: 'Déport sur ce dossier' })).toBeInTheDocument();
+  });
 });
 
 describe('Header edition', () => {
@@ -335,6 +346,24 @@ describe('Header edition', () => {
     );
 
     expect(await screen.findByRole('button', { name: 'Modifier' })).toBeInTheDocument();
+  });
+
+  it('warns, among the reporters to affect, of the members recused from the file', async () => {
+    const user = userEvent.setup();
+    renderHeader({
+      canManage: true,
+      nominationFile: makeSessionNominationFile({
+        content: { lockedReason: null },
+        recusedMembers: [OTHER_REPORTER],
+        reporters: [],
+      }),
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Modifier' }));
+    await user.click(screen.getByRole('button', { name: /Affecter un rapporteur/ }));
+
+    expect(await screen.findByRole('option', { name: 'Marie LEFEVRE Déport sur ce dossier' })).toBeVisible();
+    expect(screen.getByRole('option', { name: 'Jean PETIT' })).toBeVisible();
   });
 
   it('tells the priorities were not saved and stays in edit mode', async () => {
