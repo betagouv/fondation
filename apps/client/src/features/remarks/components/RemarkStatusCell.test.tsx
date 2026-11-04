@@ -42,8 +42,8 @@ describe('RemarkStatusCell', () => {
   it('asks for an optional comment when dismissing a remark', async () => {
     const user = renderCell({ changedAt: null, changedBy: null, comment: null, value: 'NEW' });
 
-    await user.click(screen.getByRole('button', { name: /Statut de la remarque/ }));
-    await user.click(await screen.findByRole('menuitem', { name: 'Écartée' }));
+    await user.click(screen.getByRole('button', { name: /Statut du retour/ }));
+    await user.click(await screen.findByRole('menuitem', { name: 'Écarté' }));
     await user.type(await screen.findByLabelText(/Commentaire/), 'Déjà prévu');
     await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
 
@@ -61,8 +61,8 @@ describe('RemarkStatusCell', () => {
       value: 'PROCESSED',
     });
 
-    await user.click(screen.getByRole('button', { name: /Statut de la remarque/ }));
-    await user.click(await screen.findByRole('menuitem', { name: 'Nouvelle' }));
+    await user.click(screen.getByRole('button', { name: /Statut du retour/ }));
+    await user.click(await screen.findByRole('menuitem', { name: 'Nouveau' }));
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(mutate).toHaveBeenCalledWith(
@@ -79,7 +79,7 @@ describe('RemarkStatusCell', () => {
       value: 'DISMISSED',
     });
 
-    const badge = screen.getByRole('button', { name: /Statut de la remarque/ });
+    const badge = screen.getByRole('button', { name: /Statut du retour/ });
     expect(badge).toHaveAccessibleName(/par Marie DUPONT : Déjà prévu$/);
     await user.click(badge);
     await user.click(await screen.findByRole('menuitem', { name: 'Modifier le commentaire' }));

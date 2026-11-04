@@ -99,8 +99,8 @@ test.describe('Session E2E', () => {
       });
     });
 
-    test('should import a session tree from a LODAM file', async ({ agent, expect }) => {
-      const response = await agent.sessions.createSessionFromLodam({
+    test('should import a session tree from a LODAM file', async ({ admin, agent, expect }) => {
+      const response = await admin.sessions.createSessionFromLodam({
         body: {
           file: await lodamFile(),
           form: lodamForm(),
@@ -115,14 +115,6 @@ test.describe('Session E2E', () => {
 
       const sessionId = response.data!.id;
       expect(sessionId).toBeDefined();
-
-      const lastAffectationVersionMeta = await agent.sessions.detailNominationSessionAffectationsVersion({
-        path: { sessionId },
-      });
-      expect(lastAffectationVersionMeta.data).toMatchObject({
-        status: 'BROUILLON',
-        version: 1,
-      });
 
       const nominationFiles = await agent.sessions.listNominationFiles({ path: { sessionId } });
 
@@ -241,11 +233,12 @@ test.describe('Session E2E', () => {
     });
 
     test('should update the observers from a LODAM file, keeping no copy of the imported files', async ({
+      admin,
       agent,
       expect,
       sql,
     }) => {
-      const importResponse = await agent.sessions.createSessionFromLodam({
+      const importResponse = await admin.sessions.createSessionFromLodam({
         body: { file: await lodamFile(), form: lodamForm() },
       });
       const sessionId = importResponse.data!.id;
@@ -262,8 +255,8 @@ test.describe('Session E2E', () => {
       expect(copies?.count).toBe(0);
     });
 
-    test('should attach a file to a nomination file and list it', async ({ agent, expect }) => {
-      const importResponse = await agent.sessions.createSessionFromLodam({
+    test('should attach a file to a nomination file and list it', async ({ admin, agent, expect }) => {
+      const importResponse = await admin.sessions.createSessionFromLodam({
         body: { file: await lodamFile(), form: lodamForm() },
       });
       const sessionId = importResponse.data!.id;
@@ -300,8 +293,8 @@ test.describe('Session E2E', () => {
       expect(updatedFile?.hasJurisdictionSheet).toBe(true);
     });
 
-    test('should show a readable page for an attachment the storage lost', async ({ agent, expect, sql }) => {
-      const importResponse = await agent.sessions.createSessionFromLodam({
+    test('should show a readable page for an attachment the storage lost', async ({ admin, agent, expect, sql }) => {
+      const importResponse = await admin.sessions.createSessionFromLodam({
         body: { file: await lodamFile(), form: lodamForm() },
       });
       const sessionId = importResponse.data!.id;
@@ -333,8 +326,8 @@ test.describe('Session E2E', () => {
       expect(error).toContain('Cette pièce jointe est introuvable. Prévenez le support.');
     });
 
-    test('should only flag a jurisdiction sheet for that very type', async ({ agent, expect }) => {
-      const importResponse = await agent.sessions.createSessionFromLodam({
+    test('should only flag a jurisdiction sheet for that very type', async ({ admin, agent, expect }) => {
+      const importResponse = await admin.sessions.createSessionFromLodam({
         body: { file: await lodamFile(), form: lodamForm() },
       });
       const sessionId = importResponse.data!.id;
@@ -673,6 +666,17 @@ test.describe('Session E2E', () => {
         writtenAt: expect.any(String),
         writtenBy: { id: me!.userId, name: expect.any(String) },
       });
+    });
+
+    test('should give no date nor author for an erased session comment', async ({ agent, sessions, expect }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+      const path = { sessionId: session.id };
+      await agent.sessions.writeSessionComment({ body: { comment: 'Une note pour la notice' }, path });
+
+      await agent.sessions.writeSessionComment({ body: { comment: '' }, path });
+
+      const { data } = await agent.sessions.detailSessionComment({ path });
+      expect(data).toEqual({ comment: null, writtenAt: null, writtenBy: null });
     });
 
     test('should flag then clear a missing evaluation on a nomination file', async ({ agent, sessions, expect }) => {

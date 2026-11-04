@@ -162,12 +162,14 @@ function MissingEvaluationsTableInner(props: {
             </TotalBadge>
           </div>
 
-          <NominationFilesExportButton
-            disabled={exportAsExcel.isPending || !counts?.missingEvaluation}
-            onExport={() =>
-              exportAsExcel.mutate({ sessionId: props.sessionId }, { onError: onExportFailure })
-            }
-          />
+          {counts?.missingEvaluation !== 0 && (
+            <NominationFilesExportButton
+              disabled={exportAsExcel.isPending}
+              onExport={() =>
+                exportAsExcel.mutate({ sessionId: props.sessionId }, { onError: onExportFailure })
+              }
+            />
+          )}
         </div>
       }
       toolbarSlot={props.toolbarSlot}

@@ -238,10 +238,12 @@ function SgSessionFilesTableInner(
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <NominationFilesExportButton
-              disabled={exportAsExcel.isPending || !counts?.total}
-              onExport={() => exportAsExcel.mutate({ sessionId }, { onError: onExportFailure })}
-            />
+            {counts?.total !== 0 && (
+              <NominationFilesExportButton
+                disabled={exportAsExcel.isPending}
+                onExport={() => exportAsExcel.mutate({ sessionId }, { onError: onExportFailure })}
+              />
+            )}
             <NominationFilesAutoAffectationButton />
             <NominationFilesPublishButton />
           </div>

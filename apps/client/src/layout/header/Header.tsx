@@ -9,6 +9,7 @@ import { useIsAdmin, useIsSg } from '@/features/auth/hooks/roles.hook';
 import { FeedbackHeaderButton } from '@/features/feedback/components/FeedbackHeaderButton';
 import { HelpPageButton } from '@/pages/help/HelpPageButton';
 import { useArchivedSession } from '@/shared/context/archived-session';
+import { usePouvoirDeProposition } from '@/shared/hooks/usePouvoirDeProposition';
 import { ROUTE_PATHS, type FondationPath } from '@/utils/route-path.utils';
 import { useUser } from '@queries/auth.queries';
 
@@ -46,47 +47,40 @@ export const AppHeader = () => {
   const isUserAdmin = useIsAdmin();
   const { isArchived } = useArchivedSession();
 
+  // a page common to both pouvoirs, such as the administration, keeps the GDS entries when opened from the GDS
+  const isInGdsSpace = usePouvoirDeProposition() === 'GDS';
   const shouldShowNavBar = !!user && pathname !== ROUTE_PATHS.LOGIN;
 
-  const magistratSearchText = (
-    <span className="fr-icon-search-line inline-flex items-center gap-2 before:size-4!">
-      {formatMessage({ defaultMessage: 'Rechercher un magistrat' })}
-    </span>
-  );
+  const magistratSearchItem = (path: FondationPath): MainNavigationProps.Item => ({
+    className: 'lg:ml-auto',
+    isActive: routeMatches([path], { end: true }),
+    linkProps: { to: path, viewTransition: true },
+    text: (
+      <span className="fr-icon-search-line inline-flex items-center gap-2 before:size-4!">
+        {formatMessage({ defaultMessage: 'Rechercher un magistrat' })}
+      </span>
+    ),
+  });
 
   const isMemberArchives = isArchived || routeMatches([ROUTE_PATHS.TRANSPARENCES.ARCHIVED_SESSIONS]);
   const memberNavigation: MainNavigationProps.Item[] = [
     {
       isActive: routeMatches([ROUTE_PATHS.TRANSPARENCES.DASHBOARD]) && !isMemberArchives,
-      linkProps: { to: ROUTE_PATHS.TRANSPARENCES.DASHBOARD },
+      linkProps: { to: ROUTE_PATHS.TRANSPARENCES.DASHBOARD, viewTransition: true },
       text: formatMessage({ defaultMessage: 'Accueil' }),
     },
     {
       isActive: isMemberArchives,
-      linkProps: { to: ROUTE_PATHS.TRANSPARENCES.ARCHIVED_SESSIONS },
+      linkProps: { to: ROUTE_PATHS.TRANSPARENCES.ARCHIVED_SESSIONS, viewTransition: true },
       text: formatMessage({ defaultMessage: 'Archives' }),
     },
-    {
-      isActive: routeMatches([ROUTE_PATHS.MEMBER.MAGISTRAT_SEARCH], { end: true }),
-      linkProps: { to: ROUTE_PATHS.MEMBER.MAGISTRAT_SEARCH },
-      text: magistratSearchText,
-    },
+    magistratSearchItem(ROUTE_PATHS.MEMBER.MAGISTRAT_SEARCH),
   ];
 
   const sgNavigation: MainNavigationProps.Item[] = [
     {
-      isActive: routeMatches([ROUTE_PATHS.SG.DASHBOARD], { end: true }),
-      linkProps: { href: '/' },
-      text: formatMessage({ defaultMessage: 'Accueil' }),
-    },
-    {
-      isActive: routeMatches([ROUTE_PATHS.SG.NEW_TRANSPARENCE]),
-      linkProps: { to: ROUTE_PATHS.SG.NEW_TRANSPARENCE },
-      text: formatMessage({ defaultMessage: 'Créer une session' }),
-    },
-    {
       isActive: routeMatches([ROUTE_PATHS.SG.MANAGE_SESSION, ROUTE_PATHS.SG.SESSION_ID]) && !isArchived,
-      linkProps: { to: ROUTE_PATHS.SG.MANAGE_SESSION },
+      linkProps: { to: ROUTE_PATHS.SG.MANAGE_SESSION, viewTransition: true },
       text: <ManageSessionsLink />,
     },
     {
@@ -95,31 +89,28 @@ export const AppHeader = () => {
         ROUTE_PATHS.SG.PRESENTATIONS_PAST,
         ROUTE_PATHS.SG.PRESENTATIONS_READY,
       ]),
-      linkProps: { to: ROUTE_PATHS.SG.PRESENTATIONS_AGENDAS },
+      linkProps: { to: ROUTE_PATHS.SG.PRESENTATIONS_AGENDAS, viewTransition: true },
       text: formatMessage({ defaultMessage: `Restitutions` }),
     },
     {
       isActive: routeMatches([ROUTE_PATHS.SG.MANAGE_MEMBERS, ROUTE_PATHS.SG.MANAGE_SINGLE_MEMBER]),
-      linkProps: { to: ROUTE_PATHS.SG.MANAGE_MEMBERS },
+      linkProps: { to: ROUTE_PATHS.SG.MANAGE_MEMBERS, viewTransition: true },
       text: formatMessage({ defaultMessage: 'Gérer les membres' }),
     },
     {
       isActive: isArchived || routeMatches([ROUTE_PATHS.SG.ARCHIVED_SESSIONS]),
-      linkProps: { to: ROUTE_PATHS.SG.ARCHIVED_SESSIONS },
+      linkProps: { to: ROUTE_PATHS.SG.ARCHIVED_SESSIONS, viewTransition: true },
       text: formatMessage({ defaultMessage: 'Archives' }),
-    },
-    {
-      isActive: routeMatches([ROUTE_PATHS.SG.MAGISTRAT_SEARCH], { end: true }),
-      linkProps: { to: ROUTE_PATHS.SG.MAGISTRAT_SEARCH },
-      text: magistratSearchText,
     },
   ];
 
+  const sgCommonNavigation: MainNavigationProps.Item[] = [];
   if (isUserAdmin) {
-    sgNavigation.push({
+    sgCommonNavigation.push({
       isActive: routeMatches([
         ROUTE_PATHS.ADMIN.LIST_JOBS,
         ROUTE_PATHS.ADMIN.DETAILS_JOB,
+        ROUTE_PATHS.ADMIN.INGEST_LODAM,
         ROUTE_PATHS.ADMIN.INGEST_LOLFI,
         ROUTE_PATHS.ADMIN.USERS,
         ROUTE_PATHS.ADMIN.USER_DETAIL,
@@ -130,25 +121,39 @@ export const AppHeader = () => {
       menuLinks: [
         {
           isActive: routeMatches([ROUTE_PATHS.ADMIN.INGEST_LOLFI]),
-          linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.INGEST_LOLFI },
+          linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.INGEST_LOLFI, viewTransition: true },
           text: (
-            <span className={clsx('fr-icon-file-add-line', NAV_ICON_CLASS)}>
+            <span className={clsx('fr-icon-upload-2-line', NAV_ICON_CLASS)}>
               {formatMessage({ defaultMessage: 'Importer une archive LOLFI' })}
             </span>
           ),
         },
         {
           isActive: routeMatches([ROUTE_PATHS.ADMIN.LIST_JOBS, ROUTE_PATHS.ADMIN.DETAILS_JOB]),
-          linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.LIST_JOBS },
+          linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.LIST_JOBS, viewTransition: true },
           text: (
-            <span className={clsx('ri-play-circle-line', NAV_ICON_CLASS)}>
+            <span className={clsx('ri-history-line', NAV_ICON_CLASS)}>
               {formatMessage({ defaultMessage: 'Suivre les ingestions' })}
             </span>
           ),
         },
+        // a LODAM session belongs to the GDS, unlike the LOLFI archive that also brings the magistrats and the positions
+        ...(isInGdsSpace || routeMatches([ROUTE_PATHS.ADMIN.INGEST_LODAM])
+          ? [
+              {
+                isActive: routeMatches([ROUTE_PATHS.ADMIN.INGEST_LODAM]),
+                linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.INGEST_LODAM, viewTransition: true },
+                text: (
+                  <span className={clsx('fr-icon-add-circle-line', NAV_ICON_CLASS)}>
+                    {formatMessage({ defaultMessage: 'Créer une session' })}
+                  </span>
+                ),
+              },
+            ]
+          : []),
         {
           isActive: routeMatches([ROUTE_PATHS.ADMIN.USERS, ROUTE_PATHS.ADMIN.USER_DETAIL]),
-          linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.USERS },
+          linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.USERS, viewTransition: true },
           text: (
             <span className={clsx('ri-user-settings-line', NAV_ICON_CLASS)}>
               {formatMessage({ defaultMessage: 'Gérer les utilisateurs' })}
@@ -157,7 +162,7 @@ export const AppHeader = () => {
         },
         {
           isActive: routeMatches([ROUTE_PATHS.ADMIN.FEEDBACKS]),
-          linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.FEEDBACKS },
+          linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.FEEDBACKS, viewTransition: true },
           text: (
             <span className={clsx('fr-icon-feedback-line', NAV_ICON_CLASS)}>
               {formatMessage({ defaultMessage: 'Consulter les avis' })}
@@ -166,16 +171,16 @@ export const AppHeader = () => {
         },
         {
           isActive: routeMatches([ROUTE_PATHS.ADMIN.REMARKS]),
-          linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.REMARKS },
+          linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.REMARKS, viewTransition: true },
           text: (
             <span className={clsx('fr-icon-question-answer-line', NAV_ICON_CLASS)}>
-              {formatMessage({ defaultMessage: 'Traiter les remarques' })}
+              {formatMessage({ defaultMessage: 'Traiter les retours utilisateurs' })}
             </span>
           ),
         },
         {
           isActive: routeMatches([ROUTE_PATHS.ADMIN.HELP]),
-          linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.HELP },
+          linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.HELP, viewTransition: true },
           text: (
             <span className={clsx('fr-icon-questionnaire-line', NAV_ICON_CLASS)}>
               {formatMessage({ defaultMessage: "Rédiger le centre d'aide" })}
@@ -190,12 +195,22 @@ export const AppHeader = () => {
       ),
     });
   }
+  sgCommonNavigation.push(magistratSearchItem(ROUTE_PATHS.SG.MAGISTRAT_SEARCH));
+  const navigation = !shouldShowNavBar
+    ? []
+    : !isUserSg
+      ? memberNavigation
+      : isInGdsSpace
+        ? [...sgNavigation, ...sgCommonNavigation]
+        : sgCommonNavigation;
 
   return (
     <Header
       brandTop="CSM"
-      homeLinkProps={{ title: formatMessage({ defaultMessage: 'Accueil' }), to: '/' }}
-      navigation={shouldShowNavBar ? (isUserSg ? sgNavigation : memberNavigation) : []}
+      className="[view-transition-name:app-header]"
+      classes={{ menu: 'lg:[&_.fr-nav>ul]:gap-2' }}
+      homeLinkProps={{ title: formatMessage({ defaultMessage: 'Accueil' }), to: '/', viewTransition: true }}
+      navigation={navigation}
       operatorLogo={{
         alt: formatMessage({ defaultMessage: 'Conseil Supérieur de la Magistrature' }),
         imgUrl: '/logo.png',

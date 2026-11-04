@@ -6,6 +6,7 @@ import { generatePath, Link, useParams } from 'react-router';
 import { DocumentScreen } from '@/features/documents/components/DocumentScreen';
 import { SessionCommentField } from '@/features/transparence/components/session/SessionCommentField';
 import { useSessionCommentDraft } from '@/features/transparence/hooks/useSessionCommentDraft';
+import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { useUnsavedChangesGuard } from '@/shared/hooks/useUnsavedChangesGuard';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
@@ -13,6 +14,7 @@ import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.
 
 export function SessionCommentPage() {
   const { formatMessage } = useIntl();
+  const breadcrumbRoot = useBreadcrumbRoot();
   const { sessionId = '' } = useParams();
   const { data: session, isPending } = useDetailedNominationSessionQuery({ sessionId });
   const draft = useSessionCommentDraft({ sessionId });
@@ -38,13 +40,13 @@ export function SessionCommentPage() {
         !session.isArchived && (
           <>
             <Button disabled={!draft.isDirty || draft.isPending} onClick={draft.cancel} priority="secondary">
-              <FormattedMessage defaultMessage="Annuler les changements" />
+              <FormattedMessage defaultMessage="Annuler" />
             </Button>
             <Button
               disabled={!draft.isDirty || draft.isPending}
               onClick={() => void draft.save().catch(() => {})}
             >
-              <FormattedMessage defaultMessage="Valider le commentaire" />
+              <FormattedMessage defaultMessage="Enregistrer" />
             </Button>
           </>
         )
@@ -58,23 +60,13 @@ export function SessionCommentPage() {
         <Breadcrumb
           ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane du commentaire d'une session" })}
           breadcrumb={{
-            currentPageLabel: formatMessage({ defaultMessage: 'Commentaire' }),
-            segments: [
-              {
-                label: formatMessage({ defaultMessage: 'Secrétariat général' }),
-                to: ROUTE_PATHS.SG.DASHBOARD,
-              },
-              {
-                label: formatMessage({ defaultMessage: 'Gérer une session' }),
-                to: ROUTE_PATHS.SG.MANAGE_SESSION,
-              },
-              { label: session.name, to: sessionPath },
-            ],
+            currentPageLabel: formatMessage({ defaultMessage: 'Commentaire de la notice' }),
+            segments: [...breadcrumbRoot, { label: session.name, to: sessionPath }],
           }}
           id="session-comment-breadcrumb"
         />
       }
-      title={<FormattedMessage defaultMessage="Commentaire" />}
+      title={<FormattedMessage defaultMessage="Commentaire de la notice" />}
     >
       <div className="w-full">
         <SessionCommentField draft={draft} isArchived={session.isArchived} rows={20} />

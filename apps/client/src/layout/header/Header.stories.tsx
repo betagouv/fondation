@@ -4,6 +4,7 @@ import { generatePath, Route, Routes } from 'react-router';
 
 import { ArchivedSessionContext } from '@/shared/context/archived-session';
 import type { RoleEnum } from '@/shared/enums/role.enum';
+import { POUVOIR_DE_PROPOSITION_STORAGE_KEY } from '@/shared/hooks/usePouvoirDeProposition';
 import { STORY_SESSION_ID } from '@/shared/storybook/story-session';
 import { STORY_USERS } from '@/shared/storybook/story-users';
 import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
@@ -38,7 +39,12 @@ const MEMBER_LOCATIONS = {
   magistratSearch: ROUTE_PATHS.MEMBER.MAGISTRAT_SEARCH,
 } satisfies Record<Page, string>;
 
-function AppHeaderStory(props: { page: Page; role: Role }) {
+const OPENED_FROM = ['home', 'GDS'] as const;
+
+function AppHeaderStory(props: { openedFrom: (typeof OPENED_FROM)[number]; page: Page; role: Role }) {
+  // a common page follows the pouvoir it was opened from: the control sets it rather than the previous page shown
+  if (props.openedFrom === 'GDS') sessionStorage.setItem(POUVOIR_DE_PROPOSITION_STORAGE_KEY, 'GDS');
+  else sessionStorage.removeItem(POUVOIR_DE_PROPOSITION_STORAGE_KEY);
   const locations = props.role === 'MEMBRE_DU_SIEGE' ? MEMBER_LOCATIONS : SG_LOCATIONS;
 
   return (
@@ -58,8 +64,9 @@ function AppHeaderStory(props: { page: Page; role: Role }) {
 }
 
 const meta = {
-  args: { page: 'home', role: 'MEMBRE_DU_SIEGE' },
+  args: { openedFrom: 'home', page: 'home', role: 'MEMBRE_DU_SIEGE' },
   argTypes: {
+    openedFrom: { control: 'inline-radio', options: OPENED_FROM },
     page: { control: 'inline-radio', options: PAGES },
     role: { control: 'inline-radio', options: Object.keys(USERS) },
   },
@@ -71,7 +78,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'En-tête de l\'application. Un membre a une navigation avec "Accueil" (la liste de ses sessions), "Archives" (les sessions archivées de sa formation) et "Rechercher un magistrat". Le secrétariat général a la sienne, avec une pastille sur "Gérer une session" quand de nouvelles sessions sont arrivées et "Rechercher un magistrat" après "Archives". Une page d\'une session archivée met "Archives" en avant, quel que soit son chemin. Un administrateur a en plus le menu "Administration". En haut à droite, LOLFI, le centre d\'aide, l\'avis et le compte apparaissent pour tout le monde.',
+          'En-tête de l\'application. Un membre a une navigation avec "Accueil" (la liste de ses sessions), "Archives" (les sessions archivées de sa formation) et "Rechercher un magistrat". Le secrétariat général a la sienne, sans "Accueil" puisque le logo y mène. Hors du GDS, elle se réduit à "Rechercher un magistrat" et au menu "Administration". Depuis le GDS, elle ajoute ses rubriques, avec une pastille sur "Gérer une session" quand de nouvelles sessions sont arrivées. "Rechercher un magistrat" est toujours seul à droite de la navigation. Une page d\'une session archivée met "Archives" en avant, quel que soit son chemin. Un administrateur a en plus le menu "Administration", où "Créer une session" n\'apparaît que depuis le GDS. En haut à droite, LOLFI, le centre d\'aide, l\'avis et le compte apparaissent pour tout le monde.',
       },
     },
     layout: 'fullscreen',

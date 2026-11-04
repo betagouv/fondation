@@ -9,6 +9,7 @@ import { isDefined } from '../../../../../utils/is-defined';
 import { initials } from '../../../../../utils/user.util';
 import { Db } from '../../../../framework/database';
 import { TransparenceService } from '../../../../session/transparence/infrastructure/transparence.service';
+import type { PublicationStatus } from '../../../../shared/publication-status.enum';
 import { agendaProgressOf } from '../../domain/agenda-progress';
 import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../agenda-content';
 import { ActedNominationFilesFinder } from '../finders/acted-nomination-files.finder';
@@ -104,10 +105,12 @@ export class IsSessionReadyForDocGenerationQuery {
       agendaBlocker,
       canCreateAgenda: agendaBlocker === null,
       canCreateOfficialReport,
-      agendaWarning: agendaWarningOf({
-        hasUnpublishedChanges: lastVersion.map((version) => version.status === 'BROUILLON') ?? false,
-        wasEverPublished: !publishedVersion.isNone(),
-      }),
+      agendaWarning: agendaWarningOf(
+        await this.transparences.internalFindAffectationsPublicationStatus({
+          draftVersionId: lastVersion.map((version) => (version.status === 'BROUILLON' ? version.id : null)),
+          publishedVersionId: publishedVersion.optionalId ?? null,
+        }),
+      ),
       isReady: agendaBlocker === null || canCreateOfficialReport,
       officialReportBlocker: canCreateOfficialReport
         ? null
@@ -212,13 +215,8 @@ function agendaBlockerOf(session: {
   return null;
 }
 
-function agendaWarningOf(affectations: {
-  hasUnpublishedChanges: boolean;
-  wasEverPublished: boolean;
-}): (typeof AGENDA_WARNINGS)[number] | null {
-  if (!affectations.hasUnpublishedChanges) return null;
-
-  return affectations.wasEverPublished ? 'UNPUBLISHED_CHANGES' : 'NEVER_PUBLISHED';
+function agendaWarningOf(status: PublicationStatus): (typeof AGENDA_WARNINGS)[number] | null {
+  return status === 'NEVER_PUBLISHED' || status === 'UNPUBLISHED_CHANGES' ? status : null;
 }
 
 export class DocGenerationSessionReadinessDto extends createZodDto(

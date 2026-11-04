@@ -133,10 +133,8 @@ export function ManageSession() {
       <Breadcrumb
         ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane de la gestion des sessions" })}
         breadcrumb={{
-          currentPageLabel: formatMessage({ defaultMessage: 'Gérer une session' }),
-          segments: [
-            { label: formatMessage({ defaultMessage: 'Secrétariat général' }), to: ROUTE_PATHS.SG.DASHBOARD },
-          ],
+          currentPageLabel: formatMessage({ defaultMessage: 'GDS' }),
+          segments: [{ label: formatMessage({ defaultMessage: 'Accueil' }), to: ROUTE_PATHS.SG.DASHBOARD }],
         }}
         id="manage-sessions-breadcrumb"
       />

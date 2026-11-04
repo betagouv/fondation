@@ -6,7 +6,8 @@ export class CreateSessionPage {
   constructor(private readonly app: TestApp) {}
 
   async goto(): Promise<void> {
-    await this.createSessionNavLink.click();
+    await this.app.nav.getByText('Administration').click();
+    await this.app.page.getByRole('link', { name: 'Créer une session' }).click();
     await this.formName.waitFor();
   }
 
@@ -30,10 +31,6 @@ export class CreateSessionPage {
     await this.formSubmitButton.click();
 
     await this.successfullyCreatedSessionAlert(options.name).getByRole('button').click();
-  }
-
-  private get createSessionNavLink(): Locator {
-    return this.app.nav.getByText('Créer une session');
   }
 
   private get formName(): Locator {
@@ -63,14 +60,11 @@ export class CreateSessionPage {
   }
 
   private async fillFile(file: File): Promise<void> {
-    return this.app.page
-      .getByRole('tabpanel')
-      .getByLabel('Extraction LODAM')
-      .setInputFiles({
-        name: file.name,
-        mimeType: file.type,
-        buffer: Buffer.from(await file.arrayBuffer()),
-      });
+    return this.app.page.getByLabel('Extraction LODAM').setInputFiles({
+      name: file.name,
+      mimeType: file.type,
+      buffer: Buffer.from(await file.arrayBuffer()),
+    });
   }
 
   private fillName(name: string): Promise<void> {

@@ -7,15 +7,18 @@ import { DetailsLink } from '@/shared/components/details-link';
 import { LolfiLink } from '@/shared/components/lolfi-link';
 import { PriorityBadge } from '@/shared/components/priority-badge';
 import { TitleNameIcons } from '@/shared/components/title-name-icons';
+import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { DetailsHeader } from '@/shared/ui/details';
 import { openedDossierSearch, ROUTE_PATHS } from '@/utils/route-path.utils';
+import { requiresElision } from '@/utils/string.utils';
 import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
 
 import { SummaryReaderSelector } from './SummaryReaderSelector';
 
 export function SummaryDetailsHeader() {
   const { formatMessage } = useIntl();
+  const breadcrumbRoot = useBreadcrumbRoot();
   const isSg = useIsSg();
   const { nominationFileId, sessionId, summary } = useSummary();
   const { data: session } = useDetailedNominationSessionQuery({ sessionId });
@@ -28,10 +31,7 @@ export function SummaryDetailsHeader() {
   };
 
   const segments: { label: string; to: To }[] = isSg
-    ? [
-        { label: formatMessage({ defaultMessage: 'Secrétariat général' }), to: ROUTE_PATHS.SG.DASHBOARD },
-        { label: formatMessage({ defaultMessage: 'Gérer une session' }), to: ROUTE_PATHS.SG.MANAGE_SESSION },
-      ]
+    ? breadcrumbRoot
     : [
         {
           label: formatMessage({ defaultMessage: 'Transparences' }),
@@ -58,8 +58,8 @@ export function SummaryDetailsHeader() {
       breadcrumb={
         <Breadcrumb
           ariaLabel={formatMessage(
-            { defaultMessage: "Fil d'Ariane de la synthèse de {name}" },
-            { name: summary.name },
+            { defaultMessage: "Fil d'Ariane de la synthèse {elided, select, true {d’} other {de }}{name}" },
+            { elided: requiresElision(summary.name ?? ''), name: summary.name },
           )}
           breadcrumb={{ currentPageLabel: formatMessage({ defaultMessage: 'Synthèse' }), segments }}
           className="fr-mt-0"

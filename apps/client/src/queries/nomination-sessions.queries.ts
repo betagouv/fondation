@@ -61,13 +61,10 @@ export const sessionKeys = {
   countUnaffectedFiles: (props?: { sessionId: string }) =>
     key('sessions', 'countUnaffectedFiles', props?.sessionId),
   countUsersNewSessions: () => key('sessions', 'countUsersNewSessions'),
-  // under the version it tells the story of, so whatever refreshes the version refreshes it too
   detailAffectationHistory: (props: { sessionId: string }) =>
-    key('sessions', 'detailSessionAffectationVersion', props.sessionId, 'history'),
+    key('sessions', 'detailAffectationHistory', props.sessionId),
   detailSession: (props?: { sessionId: string | undefined }) =>
     key('sessions', 'detailSession', props?.sessionId),
-  detailSessionAffectationVersion: (props?: { sessionId: string }) =>
-    key('sessions', 'detailSessionAffectationVersion', props?.sessionId),
   detailSessionComment: (props: { sessionId: string }) =>
     key('sessions', 'detailSessionComment', props.sessionId),
   detailSessionNominationFile: (props: {
@@ -104,15 +101,6 @@ const doesQueryKey = {
         ),
       ),
 } as const;
-
-export const useDetailedNominationSessionAffectationsVersionQuery = (sessionId: string) =>
-  useQuery({
-    queryFn: () =>
-      $api.sessions
-        .detailNominationSessionAffectationsVersion({ path: { sessionId } })
-        .then(({ data = null }) => data),
-    queryKey: sessionKeys.detailSessionAffectationVersion({ sessionId }),
-  });
 
 export const useDetailAffectationHistoryQuery = (sessionId: string) =>
   useQuery({
@@ -231,7 +219,7 @@ export function useAffectNominationFilesReportersMutation() {
       queryClient.invalidateQueries({
         predicate: doesQueryKey.matchesAny(
           sessionKeys.listSessionNominationFiles({ sessionId }),
-          sessionKeys.detailSessionAffectationVersion({ sessionId }),
+          sessionKeys.detailAffectationHistory({ sessionId }),
           sessionKeys.countUnaffectedFiles({ sessionId }),
           sessionKeys.nominationFilesStatusCounts({ sessionId }),
           sessionKeys.listCurrentlyAffectedReporters({ sessionId }),
@@ -272,7 +260,7 @@ export function usePublishVersionMutation() {
       queryClient.invalidateQueries({
         predicate: doesQueryKey.matchesAny(
           sessionKeys.listSessionNominationFiles({ sessionId }),
-          sessionKeys.detailSessionAffectationVersion({ sessionId }),
+          sessionKeys.detailAffectationHistory({ sessionId }),
           agendaKeys.findAgendaNominationFiles({ sessionId }),
           officialReportKeys.all(),
         ),
@@ -294,7 +282,7 @@ export function useAutoAffectationMutation() {
       queryClient.invalidateQueries({
         predicate: doesQueryKey.matchesAny(
           sessionKeys.listSessionNominationFiles({ sessionId }),
-          sessionKeys.detailSessionAffectationVersion({ sessionId }),
+          sessionKeys.detailAffectationHistory({ sessionId }),
           sessionKeys.countUnaffectedFiles({ sessionId }),
           sessionKeys.nominationFilesStatusCounts({ sessionId }),
           sessionKeys.listCurrentlyAffectedReporters({ sessionId }),
@@ -808,8 +796,8 @@ export function useDeleteNominationSessionMutation(input: { sessionId: string })
           queryClient.removeQueries({
             predicate: doesQueryKey.matchesAny(
               sessionKeys.countUnaffectedFiles({ sessionId: input.sessionId }),
+              sessionKeys.detailAffectationHistory({ sessionId: input.sessionId }),
               sessionKeys.detailSession({ sessionId: input.sessionId }),
-              sessionKeys.detailSessionAffectationVersion({ sessionId: input.sessionId }),
               sessionKeys.listCurrentlyAffectedReporters({ sessionId: input.sessionId }),
               sessionKeys.listSessionAttachments({ sessionId: input.sessionId }),
               sessionKeys.listSessionNominationFiles({ sessionId: input.sessionId }),

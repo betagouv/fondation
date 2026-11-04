@@ -6,13 +6,18 @@ import z from 'zod';
 import { Prisma } from '../../../../../generated/prisma/client';
 import { writerOf, writerSchema } from '../../../../../utils/user.util';
 import { Db } from '../../../../framework/database';
+import { PUBLICATION_STATUSES } from '../../../../shared/publication-status.enum';
+import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 
 const PERSON_SELECT = { firstName: true, id: true, lastName: true } satisfies Prisma.UserSelect;
 
 /** the version the members read, and the one the secretariat works on until it publishes it */
 @Injectable()
 export class DetailAffectationHistoryQuery {
-  constructor(private readonly db: Db) {}
+  constructor(
+    private readonly db: Db,
+    private readonly versions: AffectationVersionFinder,
+  ) {}
 
   @Transactional()
   async handle(query: { sessionId: string }): Promise<DetailedAffectationHistoryDto> {
@@ -21,6 +26,7 @@ export class DetailAffectationHistoryQuery {
       orderBy: { version: 'desc' },
       select: {
         datePublication: true,
+        id: true,
         user: { select: PERSON_SELECT },
         version: true,
       } satisfies Prisma.AffectationVersionSelect,
@@ -32,9 +38,17 @@ export class DetailAffectationHistoryQuery {
       select: {
         author: { select: PERSON_SELECT },
         createdAt: true,
+        id: true,
         version: true,
       } satisfies Prisma.AffectationVersionSelect,
     });
+
+    const status = await this.versions.publicationStatus({
+      draftVersionId: pending?.id ?? null,
+      publishedVersionId: published?.id ?? null,
+    });
+    // a draft back to the published reporters is no change: the members already read it
+    const isPending = status === 'NEVER_PUBLISHED' || status === 'UNPUBLISHED_CHANGES';
 
     return {
       lastPublished: published?.datePublication
@@ -44,13 +58,15 @@ export class DetailAffectationHistoryQuery {
             version: published.version,
           }
         : null,
-      pending: pending
-        ? {
-            openedAt: pending.createdAt.toISOString(),
-            openedBy: writerOf(pending.author),
-            version: pending.version,
-          }
-        : null,
+      pending:
+        pending && isPending
+          ? {
+              openedAt: pending.createdAt.toISOString(),
+              openedBy: writerOf(pending.author),
+              version: pending.version,
+            }
+          : null,
+      status,
     };
   }
 }
@@ -61,5 +77,6 @@ export class DetailedAffectationHistoryDto extends createZodDto(
     pending: z
       .object({ openedAt: z.iso.datetime(), openedBy: writerSchema, version: z.number().int() })
       .nullable(),
+    status: z.enum(PUBLICATION_STATUSES),
   }),
 ) {}

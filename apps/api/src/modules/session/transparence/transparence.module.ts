@@ -35,7 +35,6 @@ import { DetailAffectationHistoryQuery } from './infrastructure/queries/detail-a
 import { DetailAuditionsPublicationQuery } from './infrastructure/queries/detail-auditions-publication.query';
 import { DetailNominationFileAttachmentQuery } from './infrastructure/queries/detail-nomination-file-attachment.query';
 import { DetailNominationFileAuditionHistoryQuery } from './infrastructure/queries/detail-nomination-file-audition-history.query';
-import { DetailNominationSessionAffectationVersionQuery } from './infrastructure/queries/detail-nomination-session-affectation-version.query';
 import { DetailNominationSessionAttachmentQuery } from './infrastructure/queries/detail-nomination-session-attachment.query';
 import { DetailNominationSessionQuery } from './infrastructure/queries/detail-nomination-session.query';
 import { DetailSessionCommentQuery } from './infrastructure/queries/detail-session-comment.query';
@@ -83,7 +82,6 @@ import { SessionController } from './transparence.controller';
     DetailAffectationHistoryQuery,
     DetailAuditionsPublicationQuery,
     DetailNominationFileAuditionHistoryQuery,
-    DetailNominationSessionAffectationVersionQuery,
     DetailNominationSessionAttachmentQuery,
     DetailNominationSessionQuery,
     DetailSessionCommentQuery,

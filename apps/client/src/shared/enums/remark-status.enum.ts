@@ -12,7 +12,7 @@ export const REMARK_STATUSES = [
 ] as const satisfies readonly RemarkStatusEnum[];
 
 export const RemarkStatusEnumMessages = defineMessages({
-  DISMISSED: { defaultMessage: 'Écartée' },
-  NEW: { defaultMessage: 'Nouvelle' },
-  PROCESSED: { defaultMessage: 'Traitée' },
+  DISMISSED: { defaultMessage: 'Écarté' },
+  NEW: { defaultMessage: 'Nouveau' },
+  PROCESSED: { defaultMessage: 'Traité' },
 } satisfies Record<RemarkStatusEnum, { defaultMessage: string }>);

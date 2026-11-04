@@ -33,6 +33,7 @@ function renderStatus(publication: DetailedAuditionsPublicationDto) {
       </QueryClientProvider>
     </IntlProvider>,
   );
+  return client;
 }
 
 afterEach(() => {
@@ -76,6 +77,14 @@ describe('Auditions publication', () => {
     });
 
     expect(await screen.findByText('Publié aux membres')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Publier aux membres' })).not.toBeInTheDocument();
+  });
+
+  it('shows nothing while no audition date waits for the members', async () => {
+    const client = renderStatus({ lastPublished: null, status: 'NOTHING_TO_PUBLISH' });
+
+    await waitFor(() => expect(client.getQueryCache().getAll()[0]?.state.status).toBe('success'));
+    expect(screen.queryByText('Non publié aux membres')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Publier aux membres' })).not.toBeInTheDocument();
   });
 });

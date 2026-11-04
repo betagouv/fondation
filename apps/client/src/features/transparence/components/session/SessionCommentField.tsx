@@ -16,12 +16,16 @@ export function SessionCommentField(props: {
   return (
     <>
       <Input
+        classes={{ nativeInputOrTextArea: 'fr-mt-3v' }}
         className="fr-mb-0"
         disabled={props.isArchived}
-        hintText={formatMessage({ defaultMessage: 'Cette note sera visible dans la notice de restitution' })}
-        label={<span className="fr-sr-only">{formatMessage({ defaultMessage: 'Commentaire' })}</span>}
+        hintText={formatMessage({
+          defaultMessage: 'Ce commentaire apparaîtra dans la notice de restitution',
+        })}
+        label={
+          <span className="fr-sr-only">{formatMessage({ defaultMessage: 'Commentaire de la notice' })}</span>
+        }
         nativeTextAreaProps={{
-          className: 'fr-mt-3v',
           onChange: (e) => props.draft.onChange(e.target.value),
           rows: props.rows,
           value: props.draft.value,
@@ -34,8 +38,7 @@ export function SessionCommentField(props: {
                   "L'enregistrement a échoué, réessayez et prévenez le support si cela persiste.",
               })
             : formatMessage({
-                defaultMessage:
-                  'Modifications non enregistrées. Cliquez sur Valider le commentaire pour les enregistrer.',
+                defaultMessage: 'Modifications non enregistrées. Cliquez sur Enregistrer pour les garder.',
               })
         }
         textArea

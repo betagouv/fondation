@@ -36,7 +36,7 @@ export function FeedbackPage() {
 
   return (
     <div className="flex grow flex-col">
-      <div className="fr-container fr-py-6v">
+      <div className="fr-container fr-pt-8v fr-pb-6v">
         <FeedbackHeader />
       </div>
       <div className="grow bg-(--background-alt-grey)">

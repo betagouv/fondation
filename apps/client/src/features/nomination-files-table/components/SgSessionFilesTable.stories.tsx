@@ -22,13 +22,14 @@ const sessions: Record<string, SessionDataset> = {
     members: sessionMembers,
   },
   published: {
-    affectationsVersion: {
-      '@type': 'fr.csm.fondation.affectations.version.some',
-      author: { firstName: 'Claire', id: 'user-sg', lastName: 'Mercier' },
-      id: 'affectations-version-2',
-      publicationDate: '2026-06-02T09:00:00.000Z',
-      status: 'PUBLIEE',
-      version: 2,
+    affectationHistory: {
+      lastPublished: {
+        at: '2026-06-02T09:00:00.000Z',
+        by: { id: 'user-sg', name: 'Claire Mercier' },
+        version: 2,
+      },
+      pending: null,
+      status: 'PUBLISHED',
     },
     files: sessionFiles,
     members: sessionMembers,

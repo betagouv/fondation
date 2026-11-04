@@ -13,7 +13,7 @@ export function HelpPageButton() {
     <Button
       className="fr-mb-0 self-center"
       iconId="fr-icon-questionnaire-line"
-      linkProps={{ to: ROUTE_PATHS.HELP }}
+      linkProps={{ to: ROUTE_PATHS.HELP, viewTransition: true }}
     >
       <FormattedMessage defaultMessage="Centre d'aide" />
     </Button>

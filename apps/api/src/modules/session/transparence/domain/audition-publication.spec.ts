@@ -66,6 +66,22 @@ describe('PublishableAuditions.equals', () => {
   });
 });
 
+describe('PublishableAuditions.waitsForAFirstPublication', () => {
+  it('waits once a proposed magistrat or an observant is scheduled', () => {
+    expect(auditions({ observants: new Map() }).waitsForAFirstPublication()).toBe(true);
+    expect(auditions({ nominationFiles: new Map() }).waitsForAFirstPublication()).toBe(true);
+  });
+
+  it('does not wait while the auditions are only requested', () => {
+    const requested = auditions({
+      nominationFiles: new Map([['file-1', { audition: null, requested: true }]]),
+      observants: new Map(),
+    });
+
+    expect(requested.waitsForAFirstPublication()).toBe(false);
+  });
+});
+
 describe('SessionTransparence.publishAuditions', () => {
   it('publishes the auditions a first time', () => {
     const transparence = session();

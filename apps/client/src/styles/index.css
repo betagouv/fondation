@@ -295,3 +295,35 @@ li {
     border-radius: 0.125rem;
   }
 }
+
+/* a link with `viewTransition` fades the page in rather than swapping it at once: the header keeps its place */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root) {
+    animation: 120ms ease-in both page-fade-out;
+  }
+
+  ::view-transition-new(root) {
+    animation: 240ms ease-out both page-fade-in;
+  }
+}
+
+@keyframes page-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none;
+  }
+}

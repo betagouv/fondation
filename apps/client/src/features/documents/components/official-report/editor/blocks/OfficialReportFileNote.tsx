@@ -12,6 +12,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { DocBlockEditedLine } from '@/features/documents/components/blocks/DocBlockEditedBadge';
 import { Modal } from '@/shared/ui/modal';
 import { BoldButton, ItalicButton } from '@/shared/ui/tip-tap-editor';
+import { requiresElision } from '@/utils/string.utils';
 import {
   useDeleteOfficialReportFileNoteMutation,
   useEditOfficialReportFileNoteMutation,
@@ -246,8 +247,8 @@ function OfficialReportFileNoteDeleteModal(props: {
     >
       <p className="fr-mb-0">
         <FormattedMessage
-          defaultMessage="L'information ajoutée sous la proposition de {name} sera retirée du PV. Vous pourrez en ajouter une nouvelle."
-          values={{ name: props.name }}
+          defaultMessage="L'information ajoutée sous la proposition {elided, select, true {d’} other {de }}{name} sera retirée du PV. Vous pourrez en ajouter une nouvelle."
+          values={{ elided: requiresElision(props.name), name: props.name }}
         />
       </p>
     </Modal>

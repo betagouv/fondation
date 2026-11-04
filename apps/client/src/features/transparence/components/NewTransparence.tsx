@@ -1,7 +1,6 @@
-import { ButtonsGroup } from '@codegouvfr/react-dsfr/ButtonsGroup';
+import Button from '@codegouvfr/react-dsfr/Button';
 import Input from '@codegouvfr/react-dsfr/Input';
 import Select from '@codegouvfr/react-dsfr/Select';
-import Tabs from '@codegouvfr/react-dsfr/Tabs';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useCallback, useMemo, useState } from 'react';
 import { Controller, useForm, type SubmitHandler } from 'react-hook-form';
@@ -10,6 +9,7 @@ import { useNavigate } from 'react-router';
 import { z } from 'zod';
 
 import { FormationEnum, FormationEnumMessages } from '@/shared/enums/formation.enum';
+import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { AlertBanner } from '@/shared/ui/alert-banner';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { RequiredLabel } from '@/shared/ui/required-label';
@@ -60,6 +60,7 @@ function useNewTransparenceSchema() {
 
 export function NewTransparence() {
   const { formatMessage } = useIntl();
+  const breadcrumbRoot = useBreadcrumbRoot();
   const navigate = useNavigate();
   const schema = useNewTransparenceSchema();
   /** the shared upload keeps no value: a new key is the only way to empty the picker */
@@ -73,9 +74,8 @@ export function NewTransparence() {
 
   const {
     control,
-    formState: { errors, isDirty, isValid },
+    formState: { errors, isValid },
     handleSubmit,
-    reset,
   } = useForm<FormSchema>({
     resolver: zodResolver(schema),
   });
@@ -95,248 +95,206 @@ export function NewTransparence() {
     [resetTransparencyMutation, addTransparency, navigate],
   );
 
-  const onReset = useCallback(() => {
-    reset();
-    resetTransparencyMutation();
-    setUploadKey((key) => key + 1);
-  }, [reset, resetTransparencyMutation]);
-
   return (
-    <div className="fr-pt-8v fr-pb-16v grow bg-(--background-alt-grey)">
-      <div className="fr-container">
-        <Breadcrumb
-          ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane du secrétariat général" })}
-          breadcrumb={{
-            currentPageLabel: formatMessage({ defaultMessage: 'Créer une session' }),
-            segments: [
-              {
-                label: formatMessage({ defaultMessage: 'Secrétariat général' }),
-                to: ROUTE_PATHS.SG.DASHBOARD,
-              },
-            ],
-          }}
-          id="sg-new-transparence-breadcrumb"
+    <div className="fr-container fr-pt-8v fr-pb-16v">
+      <Breadcrumb
+        ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane pour l'Administration" })}
+        breadcrumb={{
+          currentPageLabel: formatMessage({ defaultMessage: 'Créer une session' }),
+          segments: breadcrumbRoot,
+        }}
+        id="administration-breadcrumb"
+      />
+
+      <h1 className="fr-h3">
+        <FormattedMessage defaultMessage="Créer une session depuis une extraction LODAM" />
+      </h1>
+
+      <AlertBanner
+        className="fr-mb-6v max-w-2xl px-4 py-3"
+        icon="fr-icon-warning-fill"
+        message={
+          <FormattedMessage
+            defaultMessage="L'application est connectée à LOLFI. L'import depuis une extraction LODAM après le 1<sup>er</sup> avril 2026 risque de créer des doublons."
+            values={{ sup: (chunks) => <sup>{chunks}</sup> }}
+          />
+        }
+        tone="warning"
+      />
+
+      {transparenceUploadError ? (
+        <UploadExcelFailedAlert
+          // oxlint-disable-next-line @typescript-eslint/no-explicit-any
+          validationErrors={(transparenceUploadError as any).validationErrors}
         />
+      ) : null}
 
-        <h1 className="fr-h3 fr-mb-8v">
-          <FormattedMessage defaultMessage="Créer une session" />
-        </h1>
-
-        <Tabs
-          classes={{ panel: 'ring-(--border-default-grey) ring-1' }}
-          className="shadow-none! before:shadow-none!"
-          tabs={[
-            {
-              content: (
-                <form className="fr-py-4v mx-auto max-w-2xl" onSubmit={handleSubmit(onSubmit)}>
-                  <AlertBanner
-                    className="fr-mb-6v px-4 py-3"
-                    icon="fr-icon-warning-fill"
-                    message={
-                      <FormattedMessage
-                        defaultMessage="L'application est connectée à LOLFI. L'import depuis une extraction LODAM après le 1<sup>er</sup> avril 2026 risque de créer des doublons."
-                        values={{ sup: (chunks) => <sup>{chunks}</sup> }}
-                      />
-                    }
-                    tone="warning"
-                  />
-
-                  {transparenceUploadError ? (
-                    <UploadExcelFailedAlert
-                      // oxlint-disable-next-line @typescript-eslint/no-explicit-any
-                      validationErrors={(transparenceUploadError as any).validationErrors}
-                    />
-                  ) : null}
-
-                  <Controller<FormSchema, 'name'>
-                    control={control}
-                    name="name"
-                    render={({ field: { value, onChange, ...field } }) => (
-                      <Input
-                        id="nom-transparence"
-                        label={
-                          <RequiredLabel>
-                            <FormattedMessage defaultMessage="Nom de la transparence" />
-                          </RequiredLabel>
-                        }
-                        nativeInputProps={{
-                          ...field,
-                          onChange,
-                          placeholder: formatMessage({ defaultMessage: 'Nom de la transparence' }),
-                          value,
-                        }}
-                        state={errors.name ? 'error' : 'default'}
-                        stateRelatedMessage={errors.name?.message}
-                      />
-                    )}
-                  />
-                  <Controller<FormSchema, 'formation'>
-                    control={control}
-                    name="formation"
-                    render={({ field: { value, onChange } }) => (
-                      <Select
-                        label={
-                          <RequiredLabel>
-                            <FormattedMessage defaultMessage="Formation" />
-                          </RequiredLabel>
-                        }
-                        nativeSelectProps={{
-                          defaultValue: '',
-                          onChange,
-                          value,
-                        }}
-                        state={errors.formation ? 'error' : 'default'}
-                        stateRelatedMessage={errors.formation?.message}
-                      >
-                        <option disabled></option>
-                        <option value={FormationEnum.SIEGE}>
-                          {capitalize(formatMessage(FormationEnumMessages.SIEGE))}
-                        </option>
-                        <option value={FormationEnum.PARQUET}>
-                          {capitalize(formatMessage(FormationEnumMessages.PARQUET))}
-                        </option>
-                      </Select>
-                    )}
-                  />
-                  <div className="grid gap-x-8 md:grid-cols-2">
-                    <Controller<FormSchema, 'date'>
-                      control={control}
-                      name="date"
-                      render={({ field: { value, onChange, ...field } }) => (
-                        <Input
-                          id="date-transparence"
-                          label={
-                            <RequiredLabel>
-                              <FormattedMessage defaultMessage="Date de la transparence" />
-                            </RequiredLabel>
-                          }
-                          nativeInputProps={{
-                            ...field,
-                            onChange,
-                            type: 'date',
-                            value,
-                          }}
-                          state={errors.date ? 'error' : 'default'}
-                          stateRelatedMessage={errors.date?.message}
-                        />
-                      )}
-                    />
-                    <Controller<FormSchema, 'observationClosingDate'>
-                      control={control}
-                      name="observationClosingDate"
-                      render={({ field: { value, onChange, ...field } }) => (
-                        <Input
-                          id="date-cloture-delai-observation"
-                          label={
-                            <RequiredLabel>
-                              <FormattedMessage defaultMessage="Clôture du délai d'observation" />
-                            </RequiredLabel>
-                          }
-                          nativeInputProps={{
-                            ...field,
-                            onChange,
-                            type: 'date',
-                            value,
-                          }}
-                          state={errors.observationClosingDate ? 'error' : 'default'}
-                          stateRelatedMessage={errors.observationClosingDate?.message}
-                        />
-                      )}
-                    />
-                    <Controller<FormSchema, 'dueDate'>
-                      control={control}
-                      name="dueDate"
-                      render={({ field: { value, onChange, ...field } }) => (
-                        <Input
-                          id="date-echeance"
-                          label={formatMessage({ defaultMessage: "Date d'échéance" })}
-                          nativeInputProps={{
-                            ...field,
-                            onChange,
-                            type: 'date',
-                            value,
-                          }}
-                          state={errors.dueDate ? 'error' : 'default'}
-                          stateRelatedMessage={errors.dueDate?.message}
-                        />
-                      )}
-                    />
-                    <Controller<FormSchema, 'positionStartDate'>
-                      control={control}
-                      name="positionStartDate"
-                      render={({ field: { value, onChange, ...field } }) => (
-                        <Input
-                          id="date-prise-de-poste"
-                          label={formatMessage({ defaultMessage: 'Date de prise de poste' })}
-                          nativeInputProps={{
-                            ...field,
-                            onChange,
-                            type: 'date',
-                            value,
-                          }}
-                          state={errors.positionStartDate ? 'error' : 'default'}
-                          stateRelatedMessage={errors.positionStartDate?.message}
-                        />
-                      )}
-                    />
-                  </div>
-
-                  <Controller<FormSchema, 'file'>
-                    control={control}
-                    name="file"
-                    render={({ field: { onChange } }) => (
-                      <div className="fr-mt-4v">
-                        <Upload
-                          accept={XLSX_FILE_TYPES}
-                          hasError={!!errors.file}
-                          hint={<FormattedMessage defaultMessage="Format supporté : xlsx" />}
-                          key={uploadKey}
-                          label={
-                            <RequiredLabel>
-                              <FormattedMessage defaultMessage="Extraction LODAM" />
-                            </RequiredLabel>
-                          }
-                          onChange={([file]) => {
-                            resetTransparencyMutation();
-                            onChange(file);
-                          }}
-                        />
-                        {errors.file && (
-                          <p className="fr-error-text" role="alert">
-                            {errors.file.message}
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  />
-                  <ButtonsGroup
-                    alignment="right"
-                    className="fr-mt-8v"
-                    buttons={[
-                      {
-                        children: formatMessage({ defaultMessage: 'Réinitialiser' }),
-                        disabled: !isDirty,
-                        id: 'reinitialiser',
-                        onClick: onReset,
-                        priority: 'tertiary',
-                        type: 'reset',
-                      },
-                      {
-                        children: formatMessage({ defaultMessage: 'Enregistrer' }),
-                        disabled: isPending || !isValid,
-                        id: 'enregistrer',
-                        type: 'submit',
-                      },
-                    ]}
-                    inlineLayoutWhen="always"
-                  />
-                </form>
-              ),
-              label: formatMessage({ defaultMessage: 'Depuis une extraction LODAM' }),
-            },
-          ]}
+      <form className="max-w-2xl" onSubmit={handleSubmit(onSubmit)}>
+        <Controller<FormSchema, 'name'>
+          control={control}
+          name="name"
+          render={({ field: { value, onChange, ...field } }) => (
+            <Input
+              id="nom-transparence"
+              label={
+                <RequiredLabel>
+                  <FormattedMessage defaultMessage="Nom de la transparence" />
+                </RequiredLabel>
+              }
+              nativeInputProps={{
+                ...field,
+                onChange,
+                placeholder: formatMessage({ defaultMessage: 'Nom de la transparence' }),
+                value,
+              }}
+              state={errors.name ? 'error' : 'default'}
+              stateRelatedMessage={errors.name?.message}
+            />
+          )}
         />
-      </div>
+        <Controller<FormSchema, 'formation'>
+          control={control}
+          name="formation"
+          render={({ field: { value, onChange } }) => (
+            <Select
+              label={
+                <RequiredLabel>
+                  <FormattedMessage defaultMessage="Formation" />
+                </RequiredLabel>
+              }
+              nativeSelectProps={{
+                defaultValue: '',
+                onChange,
+                value,
+              }}
+              state={errors.formation ? 'error' : 'default'}
+              stateRelatedMessage={errors.formation?.message}
+            >
+              <option disabled></option>
+              <option value={FormationEnum.SIEGE}>
+                {capitalize(formatMessage(FormationEnumMessages.SIEGE))}
+              </option>
+              <option value={FormationEnum.PARQUET}>
+                {capitalize(formatMessage(FormationEnumMessages.PARQUET))}
+              </option>
+            </Select>
+          )}
+        />
+        <div className="grid gap-x-8 md:grid-cols-2">
+          <Controller<FormSchema, 'date'>
+            control={control}
+            name="date"
+            render={({ field: { value, onChange, ...field } }) => (
+              <Input
+                id="date-transparence"
+                label={
+                  <RequiredLabel>
+                    <FormattedMessage defaultMessage="Date de la transparence" />
+                  </RequiredLabel>
+                }
+                nativeInputProps={{
+                  ...field,
+                  onChange,
+                  type: 'date',
+                  value,
+                }}
+                state={errors.date ? 'error' : 'default'}
+                stateRelatedMessage={errors.date?.message}
+              />
+            )}
+          />
+          <Controller<FormSchema, 'observationClosingDate'>
+            control={control}
+            name="observationClosingDate"
+            render={({ field: { value, onChange, ...field } }) => (
+              <Input
+                id="date-cloture-delai-observation"
+                label={
+                  <RequiredLabel>
+                    <FormattedMessage defaultMessage="Clôture du délai d'observation" />
+                  </RequiredLabel>
+                }
+                nativeInputProps={{
+                  ...field,
+                  onChange,
+                  type: 'date',
+                  value,
+                }}
+                state={errors.observationClosingDate ? 'error' : 'default'}
+                stateRelatedMessage={errors.observationClosingDate?.message}
+              />
+            )}
+          />
+          <Controller<FormSchema, 'dueDate'>
+            control={control}
+            name="dueDate"
+            render={({ field: { value, onChange, ...field } }) => (
+              <Input
+                id="date-echeance"
+                label={formatMessage({ defaultMessage: "Date d'échéance" })}
+                nativeInputProps={{
+                  ...field,
+                  onChange,
+                  type: 'date',
+                  value,
+                }}
+                state={errors.dueDate ? 'error' : 'default'}
+                stateRelatedMessage={errors.dueDate?.message}
+              />
+            )}
+          />
+          <Controller<FormSchema, 'positionStartDate'>
+            control={control}
+            name="positionStartDate"
+            render={({ field: { value, onChange, ...field } }) => (
+              <Input
+                id="date-prise-de-poste"
+                label={formatMessage({ defaultMessage: 'Date de prise de poste' })}
+                nativeInputProps={{
+                  ...field,
+                  onChange,
+                  type: 'date',
+                  value,
+                }}
+                state={errors.positionStartDate ? 'error' : 'default'}
+                stateRelatedMessage={errors.positionStartDate?.message}
+              />
+            )}
+          />
+        </div>
+
+        <Controller<FormSchema, 'file'>
+          control={control}
+          name="file"
+          render={({ field: { onChange } }) => (
+            <div className="fr-mt-4v">
+              <Upload
+                accept={XLSX_FILE_TYPES}
+                hasError={!!errors.file}
+                hint={<FormattedMessage defaultMessage="Format supporté : xlsx" />}
+                key={uploadKey}
+                label={
+                  <RequiredLabel>
+                    <FormattedMessage defaultMessage="Extraction LODAM" />
+                  </RequiredLabel>
+                }
+                onChange={([file]) => {
+                  resetTransparencyMutation();
+                  onChange(file);
+                }}
+              />
+              {errors.file && (
+                <p className="fr-error-text" role="alert">
+                  {errors.file.message}
+                </p>
+              )}
+            </div>
+          )}
+        />
+        <Button className="fr-mt-8v" disabled={isPending || !isValid} priority="primary" type="submit">
+          <FormattedMessage defaultMessage="Enregistrer" />
+        </Button>
+      </form>
     </div>
   );
 }

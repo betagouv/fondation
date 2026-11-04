@@ -28,9 +28,9 @@ describe('RemarkButton', () => {
     );
     const user = userEvent.setup();
 
-    await user.click(screen.getByRole('button', { name: 'Une remarque ?' }));
+    await user.click(screen.getByRole('button', { name: 'Un retour ?' }));
     expect(screen.getByRole('button', { name: 'Envoyer' })).toBeDisabled();
-    await user.type(screen.getByLabelText(/Votre remarque/), 'Ce libellé est trompeur');
+    await user.type(screen.getByLabelText(/Votre retour/), 'Ce libellé est trompeur');
     await user.click(screen.getByRole('button', { name: 'Envoyer' }));
 
     expect(mutate).toHaveBeenCalledWith(

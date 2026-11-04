@@ -9,6 +9,7 @@ export const ROUTE_PATHS = {
     DETAILS_JOB: '/admin/ingestions/:jobId',
     FEEDBACKS: '/admin/avis',
     HELP: '/admin/aide',
+    INGEST_LODAM: '/admin/lodam',
     INGEST_LOLFI: '/admin/lolfi',
     LIST_JOBS: '/admin/ingestions',
     REMARKS: '/admin/remarques',
@@ -38,7 +39,6 @@ export const ROUTE_PATHS = {
     MANAGE_MEMBERS: '/secretariat-general/membres',
     MANAGE_SESSION: '/secretariat-general/sessions',
     MANAGE_SINGLE_MEMBER: '/secretariat-general/membres/:userId',
-    NEW_TRANSPARENCE: '/secretariat-general/nouvelle-transparence',
     OBSERVATION_DETAILS:
       '/secretariat-general/session/:sessionId/dossiers/:nominationFileId/observations/:observationId',
     OFFICIAL_REPORT_EDIT:

@@ -84,15 +84,15 @@ test.describe('Gérer une liste de sessions', () => {
       // Et que je trie par "Date de publication"
       await app.pages.manageSessions.dateHeader.click();
       await expect(app.pages.manageSessions.dateHeader).toHaveAttribute('aria-sort', 'ascending');
-      await app.page.waitForLoadState('networkidle');
-
-      const texts = await app.page.getByRole('row').allInnerTexts();
-
-      const transparence1Index = texts.findIndex((txt) => txt.includes(transparence1));
-      const transparence2Index = texts.findIndex((txt) => txt.includes(transparence2));
 
       // Alors la session "Transparence 2" est avant la session "Transparence 1"
-      expect(transparence2Index).toBeLessThan(transparence1Index);
+      await expect(async () => {
+        const texts = await app.page.getByRole('row').allInnerTexts();
+        const transparence1Index = texts.findIndex((txt) => txt.includes(transparence1));
+        const transparence2Index = texts.findIndex((txt) => txt.includes(transparence2));
+
+        expect(transparence2Index).toBeLessThan(transparence1Index);
+      }).toPass();
     });
   });
 });

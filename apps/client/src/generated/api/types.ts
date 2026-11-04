@@ -259,7 +259,7 @@ export type DetailedAuditionsPublicationDto = {
             name: string;
         } | null;
     } | null;
-    status: 'NEVER_PUBLISHED' | 'PUBLISHED' | 'UNPUBLISHED_CHANGES';
+    status: 'NEVER_PUBLISHED' | 'NOTHING_TO_PUBLISH' | 'PUBLISHED' | 'UNPUBLISHED_CHANGES';
 };
 
 export type CountedSessionAuditionsDto = {
@@ -456,24 +456,6 @@ export type PaginatedNominationFiles = {
     };
 };
 
-export type SomeAffectationVersion = {
-    '@type': 'fr.csm.fondation.affectations.version.some';
-    id: string;
-    status: 'BROUILLON' | 'PUBLIEE';
-    version: number;
-    publicationDate: string | null;
-    author: {
-        id: string;
-        firstName: string;
-        lastName: string;
-    } | null;
-};
-
-export type NoneAffectationVersion = {
-    '@type': 'fr.csm.fondation.affectations.version.none';
-    version: 0;
-};
-
 export type DetailedAffectationHistoryDto = {
     lastPublished: {
         at: string;
@@ -491,6 +473,7 @@ export type DetailedAffectationHistoryDto = {
         } | null;
         version: number;
     } | null;
+    status: 'NEVER_PUBLISHED' | 'NOTHING_TO_PUBLISH' | 'PUBLISHED' | 'UNPUBLISHED_CHANGES';
 };
 
 export type CountedUnaffectedFilesDto = {
@@ -3222,25 +3205,6 @@ export type ListNominationFilesResponses = {
 };
 
 export type ListNominationFilesResponse = ListNominationFilesResponses[keyof ListNominationFilesResponses];
-
-export type DetailNominationSessionAffectationsVersionData = {
-    body?: never;
-    path: {
-        sessionId: string;
-    };
-    query?: never;
-    url: '/api/sessions/v2/{sessionId}/files/reporters/versions/last';
-};
-
-export type DetailNominationSessionAffectationsVersionResponses = {
-    200: ({
-        '@type': 'fr.csm.fondation.affectations.version.some';
-    } & SomeAffectationVersion) | ({
-        '@type': 'fr.csm.fondation.affectations.version.none';
-    } & NoneAffectationVersion);
-};
-
-export type DetailNominationSessionAffectationsVersionResponse = DetailNominationSessionAffectationsVersionResponses[keyof DetailNominationSessionAffectationsVersionResponses];
 
 export type DetailAffectationHistoryData = {
     body?: never;

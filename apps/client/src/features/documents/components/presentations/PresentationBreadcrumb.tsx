@@ -2,11 +2,13 @@ import { useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { generatePath, matchPath, useLocation } from 'react-router';
 
+import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 
 export function PresentationBreadcrumb() {
   const { formatMessage } = useIntl();
+  const breadcrumbRoot = useBreadcrumbRoot();
   const { pathname } = useLocation();
 
   const label = useMemo(() => {
@@ -31,10 +33,7 @@ export function PresentationBreadcrumb() {
       breadcrumb={{
         currentPageLabel: label,
         segments: [
-          {
-            label: formatMessage({ defaultMessage: 'Secrétariat général' }),
-            to: generatePath(ROUTE_PATHS.SG.DASHBOARD),
-          },
+          ...breadcrumbRoot,
           {
             label: formatMessage({ defaultMessage: 'Restitutions' }),
             to: generatePath(ROUTE_PATHS.SG.PRESENTATIONS_READY),

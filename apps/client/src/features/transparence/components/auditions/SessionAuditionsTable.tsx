@@ -197,10 +197,10 @@ function SessionAuditionsContent(props: {
         </TotalBadge>
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        {canManage && (
+        {canManage && (!counts || counts.scheduled + counts.toSchedule > 0) && (
           <Button
             className="min-h-9! py-1.5!"
-            disabled={exportAsExcel.isPending || !(counts?.scheduled || counts?.toSchedule)}
+            disabled={exportAsExcel.isPending}
             iconId="fr-icon-download-line"
             onClick={() => exportAsExcel.mutate({ sessionId: props.sessionId }, { onError: onExportFailure })}
             priority="tertiary"
@@ -221,9 +221,11 @@ function SessionAuditionsContent(props: {
       <DataTable
         ariaLabel={intl.formatMessage({ defaultMessage: 'Auditions de la session' })}
         emptyLabel={
-          props.context === 'membre' && !tableState.globalFilter && tableState.columnFilters.length === 0
-            ? intl.formatMessage({ defaultMessage: "Aucune audition à venir n'a été publiée" })
-            : intl.formatMessage({ defaultMessage: 'Aucune audition ne correspond aux valeurs filtrées' })
+          tableState.globalFilter || tableState.columnFilters.length > 0
+            ? intl.formatMessage({ defaultMessage: 'Aucune audition ne correspond aux valeurs filtrées' })
+            : props.context === 'membre'
+              ? intl.formatMessage({ defaultMessage: "Aucune audition à venir n'a été publiée" })
+              : intl.formatMessage({ defaultMessage: 'Aucune audition programmée ou à programmer' })
         }
         fluid
         isLoading={isLoading}
@@ -239,12 +241,15 @@ const magistratCell = (context: AuditionsContext) =>
   rowCell<SessionAudition>(({ magistrat }) => (
     <div className="flex flex-col items-start gap-1 leading-6">
       {magistrat.id ? (
-        <Link
-          className="fr-link fr-link--sm fr-icon-account-circle-fill fr-link--icon-left"
-          to={getMagistratDetailsPath({ context, magistratId: magistrat.id })}
-        >
-          {magistrat.name}
-        </Link>
+        // a flex item turns into a block, which draws the DSFR underline under its last line only
+        <span>
+          <Link
+            className="fr-link fr-link--sm fr-icon-account-circle-fill fr-link--icon-left box-decoration-clone"
+            to={getMagistratDetailsPath({ context, magistratId: magistrat.id })}
+          >
+            {magistrat.name}
+          </Link>
+        </span>
       ) : (
         <span className="font-medium text-(--text-default-grey)">{magistrat.name}</span>
       )}

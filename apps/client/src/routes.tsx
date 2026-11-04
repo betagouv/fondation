@@ -165,11 +165,8 @@ export const routes: RouteObject[] = [
               ),
           },
           {
-            lazy: () =>
-              import('@/pages/transparence/NewTransparencePage').then(({ NewTransparencePage }) => ({
-                Component: NewTransparencePage,
-              })),
-            path: ROUTE_PATHS.SG.NEW_TRANSPARENCE,
+            loader: () => redirect(ROUTE_PATHS.ADMIN.INGEST_LODAM),
+            path: '/secretariat-general/nouvelle-transparence',
           },
           {
             children: [
@@ -423,6 +420,13 @@ export const routes: RouteObject[] = [
                 Component: IngestLolfiArchivePage,
               })),
             path: ROUTE_PATHS.ADMIN.INGEST_LOLFI,
+          },
+          {
+            lazy: () =>
+              import('@/pages/transparence/NewTransparencePage').then(({ NewTransparencePage }) => ({
+                Component: NewTransparencePage,
+              })),
+            path: ROUTE_PATHS.ADMIN.INGEST_LODAM,
           },
           {
             children: [

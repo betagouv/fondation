@@ -4,6 +4,7 @@ import { memo, useCallback, type ReactNode } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, Outlet, useMatch, useNavigate } from 'react-router';
 
+import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
@@ -20,18 +21,14 @@ const TAB_PATHS = {
 
 const PresentationsBreadcrumb = memo(function PresentationsBreadcrumb() {
   const { formatMessage } = useIntl();
+  const breadcrumbRoot = useBreadcrumbRoot();
 
   return (
     <Breadcrumb
       ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane des restitutions DSJ" })}
       breadcrumb={{
         currentPageLabel: formatMessage({ defaultMessage: `Restitutions` }),
-        segments: [
-          {
-            label: formatMessage({ defaultMessage: 'Secrétariat général' }),
-            to: generatePath(ROUTE_PATHS.SG.DASHBOARD),
-          },
-        ],
+        segments: breadcrumbRoot,
       }}
       id="presentations-breadcrumb"
     />

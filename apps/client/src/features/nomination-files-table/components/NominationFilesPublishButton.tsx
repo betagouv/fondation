@@ -5,7 +5,7 @@ import { useIntl } from 'react-intl';
 import { useNominationFilesTable } from '../context/files-table.context';
 import { useToasts } from '@/shared/ui/toast';
 import {
-  useDetailedNominationSessionAffectationsVersionQuery,
+  useDetailAffectationHistoryQuery,
   usePublishVersionMutation,
 } from '@queries/nomination-sessions.queries';
 
@@ -13,7 +13,7 @@ export function NominationFilesPublishButton() {
   const toasts = useToasts();
   const { formatMessage } = useIntl();
   const { canManage, sessionId } = useNominationFilesTable();
-  const { data: affectationsVersion } = useDetailedNominationSessionAffectationsVersionQuery(sessionId);
+  const { data: history } = useDetailAffectationHistoryQuery(sessionId);
   const { mutate: publishAffectations, isPending: isPublishing } = usePublishVersionMutation();
 
   const onPublishAffectations = useCallback(() => {
@@ -35,11 +35,9 @@ export function NominationFilesPublishButton() {
     );
   }, [formatMessage, publishAffectations, sessionId, toasts]);
 
-  const hasNoVersionYet = affectationsVersion?.version === 0;
-  const isDraft =
-    !!affectationsVersion && 'status' in affectationsVersion && affectationsVersion.status === 'BROUILLON';
-
-  if (!canManage || (!isDraft && !hasNoVersionYet)) return null;
+  if (!canManage || (history?.status !== 'NEVER_PUBLISHED' && history?.status !== 'UNPUBLISHED_CHANGES')) {
+    return null;
+  }
 
   return (
     <Button

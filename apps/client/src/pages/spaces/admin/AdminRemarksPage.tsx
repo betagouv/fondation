@@ -13,6 +13,7 @@ import {
   type RemarkStatusEnum,
   RemarkStatusEnumMessages,
 } from '@/shared/enums/remark-status.enum';
+import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import {
   DataTable,
@@ -38,7 +39,7 @@ const authorCell = rowCell<ListedRemark>((remark) => (
     {remark.impersonated && (
       <span className="text-xs text-(--text-mention-grey)">
         <FormattedMessage
-          defaultMessage="Envoyée en tant que {name}"
+          defaultMessage="Envoyé en tant que {name}"
           values={{ name: remark.impersonated.name }}
         />
       </span>
@@ -81,7 +82,7 @@ function useRemarkColumns() {
       h.accessor('sentAt', {
         cell: sentAtCell,
         enableSorting: true,
-        header: formatMessage({ defaultMessage: 'Envoyée le' }),
+        header: formatMessage({ defaultMessage: 'Envoyé le' }),
         id: 'sentAt',
         size: 110,
       }),
@@ -95,7 +96,7 @@ function useRemarkColumns() {
       h.display({
         cell: textCell,
         enableSorting: false,
-        header: formatMessage({ defaultMessage: 'Remarque' }),
+        header: formatMessage({ defaultMessage: 'Retour' }),
         id: 'text',
         size: 420,
       }),
@@ -131,6 +132,7 @@ function useRemarkColumns() {
 
 export function AdminRemarksPage() {
   const { formatMessage } = useIntl();
+  const breadcrumbRoot = useBreadcrumbRoot();
   const { onColumnFiltersChange, onSortingChange, tableState } = useDataTableUrlState({
     columnFilters: [] as { id: 'status'; value: RemarkStatusEnum[] }[],
     sorting: [] as RemarksSorting,
@@ -165,8 +167,8 @@ export function AdminRemarksPage() {
       <Breadcrumb
         ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane pour l'Administration" })}
         breadcrumb={{
-          currentPageLabel: formatMessage({ defaultMessage: 'Traiter les remarques' }),
-          segments: [{ label: formatMessage({ defaultMessage: 'Administration' }), to: {} }],
+          currentPageLabel: formatMessage({ defaultMessage: 'Traiter les retours utilisateurs' }),
+          segments: breadcrumbRoot,
         }}
         id="administration-breadcrumb"
       />
@@ -176,7 +178,7 @@ export function AdminRemarksPage() {
           <div className={clsx('flex flex-col gap-y-6', { 'fr-container': isPinned })}>
             <div className="flex items-center justify-between gap-4">
               <h1 className="fr-h3 fr-mb-0">
-                <FormattedMessage defaultMessage="Traiter les remarques" />
+                <FormattedMessage defaultMessage="Traiter les retours utilisateurs" />
                 {data && <DataTableCount loaded={remarks.length} total={data.totalCount} />}
               </h1>
             </div>
@@ -188,11 +190,11 @@ export function AdminRemarksPage() {
       >
         <RemarkStatusCommentModalProvider>
           <DataTable
-            ariaLabel={formatMessage({ defaultMessage: 'Liste des remarques' })}
+            ariaLabel={formatMessage({ defaultMessage: 'Liste des retours' })}
             emptyLabel={
               isFiltered
-                ? formatMessage({ defaultMessage: 'Aucune remarque ne correspond aux filtres fournis' })
-                : formatMessage({ defaultMessage: 'Aucune remarque' })
+                ? formatMessage({ defaultMessage: 'Aucun retour ne correspond aux filtres fournis' })
+                : formatMessage({ defaultMessage: 'Aucun retour' })
             }
             fluid
             isLoading={isLoading}

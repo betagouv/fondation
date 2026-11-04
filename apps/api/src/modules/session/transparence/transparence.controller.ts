@@ -21,7 +21,6 @@ import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { DateOnly } from '../../../utils/date-only';
 import { FILE_EXTENSIONS, FILE_MIME_TYPES, Multipart, UseMultipartBody } from '../../framework/files';
-import { ApiOkDiscriminatedByType } from '../../framework/openapi';
 import { ApiPaginated, Pagination, QueryPagination } from '../../framework/pagination';
 import type { RoleEnum } from '../../shared/role.enum';
 import { AuthedUser, AuthedUserId, HasRole } from '../../simple-auth';
@@ -56,11 +55,6 @@ import {
   UploadSessionAttachmentsDto,
   WriteSessionCommentDto,
 } from './infrastructure/dtos/transparence-session.dto';
-import {
-  FoundAffectationVersion,
-  NoneAffectationVersion,
-  SomeAffectationVersion,
-} from './infrastructure/finders/affectation-version.finder';
 import { LodamXlsxPipe } from './infrastructure/lodam-xlsx.pipe';
 import { NominationFilesStatusCountDto } from './infrastructure/queries/count-nomination-files-by-status.query';
 import { CountedUnaffectedFilesDto } from './infrastructure/queries/count-unaffected-files.query';
@@ -161,7 +155,7 @@ export class SessionController {
     });
   }
 
-  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @HasRole('ADMIN')
   @Post('/lodam')
   @UseMultipartBody({ schema: ImportNominationSessionFromLodamXlsxDto })
   @ZodResponse({
@@ -331,17 +325,6 @@ export class SessionController {
       sessionId,
       sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
       user,
-    });
-  }
-
-  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
-  @Get('/:sessionId/files/reporters/versions/last')
-  @ApiOkDiscriminatedByType(SomeAffectationVersion, NoneAffectationVersion)
-  detailNominationSessionAffectationsVersion(
-    @Param('sessionId') sessionId: string,
-  ): Promise<FoundAffectationVersion> {
-    return this.sessions.detailNominationSessionAffectationsVersion({
-      sessionId,
     });
   }
 

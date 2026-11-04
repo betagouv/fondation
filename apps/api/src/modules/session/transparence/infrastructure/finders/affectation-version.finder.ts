@@ -2,13 +2,14 @@ import assert from 'node:assert';
 
 import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
-import { createZodDto } from 'nestjs-zod';
-import z from 'zod';
 
 import { Prisma } from '../../../../../generated/prisma/client';
 import { Db } from '../../../../framework/database';
 import { prismaStatutAffectationEnumToStatutAffectationEnum } from '../../../../shared/mappers/statut-affectation.mapper';
-import { StatutAffectationEnum } from '../../../../shared/statut-affectation.enum';
+import type { PublicationStatus } from '../../../../shared/publication-status.enum';
+import type { StatutAffectationEnum } from '../../../../shared/statut-affectation.enum';
+import { PublishableAffectations } from '../../domain/affectations-publication';
+import { publicationStatusOf } from '../../domain/publication';
 
 @Injectable()
 export class AffectationVersionFinder {
@@ -40,6 +41,33 @@ export class AffectationVersionFinder {
       version: _max.version,
       sessionId: query.sessionId,
     });
+  }
+
+  /** the callers already read both versions: only their reporters are left to load */
+  @Transactional(Propagation.Mandatory)
+  async publicationStatus(query: {
+    draftVersionId: string | null;
+    publishedVersionId: string | null;
+  }): Promise<PublicationStatus> {
+    const published = query.publishedVersionId
+      ? await this.affectations({ versionId: query.publishedVersionId })
+      : null;
+    const current = query.draftVersionId
+      ? await this.affectations({ versionId: query.draftVersionId })
+      : (published ?? PublishableAffectations.from([]));
+
+    return publicationStatusOf({ current, published });
+  }
+
+  private async affectations(query: { versionId: string }): Promise<PublishableAffectations> {
+    const affectations = await this.db.tx.nominationFileToReporter.findMany({
+      select: { nominationFileId: true, userId: true } satisfies Prisma.NominationFileToReporterSelect,
+      where: { versionId: query.versionId },
+    });
+
+    return PublishableAffectations.from(
+      affectations.map(({ nominationFileId, userId }) => ({ nominationFileId, reporterId: userId })),
+    );
   }
 
   private async version(props: {
@@ -112,23 +140,19 @@ export class AffectationVersionFinder {
   }
 }
 
-export class NoneAffectationVersion extends createZodDto(
-  z.object({
-    '@type': z.literal('fr.csm.fondation.affectations.version.none'),
-    version: z.literal(0),
-  }),
-) {}
+export type NoneAffectationVersion = {
+  '@type': 'fr.csm.fondation.affectations.version.none';
+  version: 0;
+};
 
-export class SomeAffectationVersion extends createZodDto(
-  z.object({
-    '@type': z.literal('fr.csm.fondation.affectations.version.some'),
-    id: z.uuid(),
-    status: z.enum(StatutAffectationEnum),
-    version: z.number().int().gte(1),
-    publicationDate: z.iso.datetime().nullable(),
-    author: z.object({ id: z.string(), firstName: z.string(), lastName: z.string() }).nullable(),
-  }),
-) {}
+export type SomeAffectationVersion = {
+  '@type': 'fr.csm.fondation.affectations.version.some';
+  author: { firstName: string; id: string; lastName: string } | null;
+  id: string;
+  publicationDate: string | null;
+  status: StatutAffectationEnum;
+  version: number;
+};
 
 export type FoundAffectationVersion = SomeAffectationVersion | NoneAffectationVersion;
 
@@ -148,14 +172,6 @@ export class OptionalAffectationVersion<V extends FoundAffectationVersion = Foun
 
   isNone(): this is this & OptionalAffectationVersion<NoneAffectationVersion> {
     return this.value['@type'] === 'fr.csm.fondation.affectations.version.none';
-  }
-
-  get(): FoundAffectationVersion {
-    return this.value;
-  }
-
-  getNullable(): SomeAffectationVersion | null {
-    return this.map((v) => v);
   }
 
   get optionalId(): SomeAffectationVersion['id'] | undefined {

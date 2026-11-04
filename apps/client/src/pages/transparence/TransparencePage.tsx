@@ -10,15 +10,16 @@ import { SessionValidationBanner } from '@/features/transparence/components/sess
 import { TableauDeBordResume } from '@/features/transparence/components/session/TableauDeBordResume';
 import { ArchiveBannerPortal } from '@/shared/components/banners';
 import { PinnedHeader } from '@/shared/components/pinned-header';
+import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { Breadcrumb, type BreadcrumbVM } from '@/shared/ui/Breadcrumb';
 import { Collapse } from '@/shared/ui/collapse';
-import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
 
 import type { TransparenceOutletContext } from './transparence-outlet-context.type';
 
 export function TransparencePage() {
   const { formatMessage } = useIntl();
+  const breadcrumbRoot = useBreadcrumbRoot();
   const { sessionId } = useParams();
   const [filtersSlot, setFiltersSlot] = useState<HTMLDivElement | null>(null);
   const [headerSlot, setHeaderSlot] = useState<HTMLDivElement | null>(null);
@@ -41,16 +42,7 @@ export function TransparencePage() {
 
   const breadcrumb: BreadcrumbVM = {
     currentPageLabel: transparence.name,
-    segments: [
-      {
-        label: formatMessage({ defaultMessage: 'Secrétariat général' }),
-        to: ROUTE_PATHS.SG.DASHBOARD,
-      },
-      {
-        label: formatMessage({ defaultMessage: 'Gérer une session' }),
-        to: ROUTE_PATHS.SG.MANAGE_SESSION,
-      },
-    ],
+    segments: breadcrumbRoot,
   };
 
   return (

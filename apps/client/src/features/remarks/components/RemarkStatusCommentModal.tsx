@@ -33,7 +33,7 @@ export function RemarkStatusCommentModal(props: {
       onClose={props.onDrop}
       onClosed={props.onClosed}
       open={props.open}
-      title={<FormattedMessage defaultMessage="Statut de la remarque" />}
+      title={<FormattedMessage defaultMessage="Statut du retour" />}
     >
       <p className="fr-mb-4v flex items-center gap-2">
         <FormattedMessage defaultMessage="Statut :" />

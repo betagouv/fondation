@@ -60,13 +60,13 @@ function RemarkForm() {
       {
         onError: () =>
           toasts.error({
-            title: formatMessage({ defaultMessage: "Votre remarque n'a pas pu être envoyée" }),
+            title: formatMessage({ defaultMessage: "Votre retour n'a pas pu être envoyé" }),
           }),
         onSuccess: () => {
           setText('');
           close();
           toasts.success({
-            title: formatMessage({ defaultMessage: 'Merci, votre remarque a bien été envoyée' }),
+            title: formatMessage({ defaultMessage: 'Merci, votre retour a bien été envoyé' }),
           });
         },
       },
@@ -92,7 +92,7 @@ function RemarkForm() {
         >
           <div className="mb-2.5 flex items-center justify-between gap-4">
             <h2 className="fr-h5 fr-mb-0" id={titleId}>
-              <FormattedMessage defaultMessage="Faire une remarque" />
+              <FormattedMessage defaultMessage="Faire un retour" />
             </h2>
             <Button
               iconId="fr-icon-close-line"
@@ -106,17 +106,17 @@ function RemarkForm() {
           </div>
           <form onSubmit={submit}>
             <Input
+              classes={{ nativeInputOrTextArea: 'fr-mt-3v' }}
               className="fr-mb-0"
               hintText={
-                <FormattedMessage defaultMessage="Une suggestion, une idée d'évolution ou un problème rencontré ? Votre remarque sera étudiée par l'équipe produit et technique." />
+                <FormattedMessage defaultMessage="Une suggestion, une idée d'évolution ou un problème rencontré ? Votre retour sera étudié par l'équipe produit et technique." />
               }
               label={
                 <span className="fr-sr-only">
-                  <FormattedMessage defaultMessage="Votre remarque" />
+                  <FormattedMessage defaultMessage="Votre retour" />
                 </span>
               }
               nativeTextAreaProps={{
-                className: 'fr-mt-3v',
                 maxLength: 2_000,
                 onChange: (event) => setText(event.target.value),
                 required: true,
@@ -149,7 +149,7 @@ function RemarkForm() {
             ref={toggleRef}
             size="small"
           >
-            <FormattedMessage defaultMessage="Une remarque ?" />
+            <FormattedMessage defaultMessage="Un retour ?" />
           </Button>
         </div>
       </div>

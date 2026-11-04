@@ -1,8 +1,10 @@
 import { type AuditionSchedule, auditionScheduleKey } from '../../../../utils/audition-schedule';
 
+import type { Publishable } from './publication';
+
 type NominationFileAudition = { audition: AuditionSchedule | null; requested: boolean | null };
 
-export class PublishableAuditions {
+export class PublishableAuditions implements Publishable<PublishableAuditions> {
   private constructor(
     readonly nominationFiles: ReadonlyMap<string, NominationFileAudition>,
     readonly observants: ReadonlyMap<string, AuditionSchedule>,
@@ -21,6 +23,10 @@ export class PublishableAuditions {
       sameEntries(scheduled(this.nominationFiles), scheduled(other.nominationFiles), auditionScheduleKey) &&
       sameEntries(this.observants, other.observants, auditionScheduleKey)
     );
+  }
+
+  waitsForAFirstPublication(): boolean {
+    return scheduled(this.nominationFiles).size > 0 || this.observants.size > 0;
   }
 }
 

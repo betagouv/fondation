@@ -239,6 +239,29 @@ test.describe('Session Affectations E2E', () => {
     expect(restoredReport.data!.state).toBe('IN_PROGRESS');
   });
 
+  test('waits for a first publication even without a reporter', async ({ agent, expect }) => {
+    const history = await agent.sessions.detailAffectationHistory({ path: { sessionId } });
+
+    expect(history.data!.status).toBe('NEVER_PUBLISHED');
+  });
+
+  test('stays published once the draft comes back to the published reporters', async ({ agent, expect }) => {
+    const affect = (reporterIds: string[]) =>
+      agent.sessions.affectReporters({
+        body: { items: [{ nominationFileId, reporterIds }] },
+        path: { sessionId },
+        throwOnError: true,
+      });
+    await affect([memberId]);
+    await agent.sessions.publishNominationSessionAffectationsVersion({ path: { sessionId }, throwOnError: true });
+
+    await affect([]);
+    await affect([memberId]);
+
+    const history = await agent.sessions.detailAffectationHistory({ path: { sessionId } });
+    expect(history.data).toMatchObject({ lastPublished: { version: 1 }, pending: null, status: 'PUBLISHED' });
+  });
+
   test('updating the priorities after a publication leaves the affectations published', async ({ agent, expect }) => {
     await agent.sessions.affectReporters({
       body: { items: [{ nominationFileId, reporterIds: [memberId] }] },

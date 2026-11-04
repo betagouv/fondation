@@ -2,7 +2,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import { Modal } from '@/shared/ui/modal';
-import { formatPhoneNumber } from '@/utils/string.utils';
+import { formatPhoneNumber, requiresElision } from '@/utils/string.utils';
 
 export function MagistratPhoneNumberDeleteModal(props: {
   hasFailed: boolean;
@@ -40,8 +40,9 @@ export function MagistratPhoneNumberDeleteModal(props: {
     >
       <p className="fr-mb-0">
         <FormattedMessage
-          defaultMessage="Le numéro {number}{label, select, none {} other { ({label})}} de {name} sera définitivement supprimé."
+          defaultMessage="Le numéro {number}{label, select, none {} other { ({label})}} {elided, select, true {d’} other {de }}{name} sera définitivement supprimé."
           values={{
+            elided: requiresElision(props.magistratName),
             label: props.phoneNumber.label ?? 'none',
             name: props.magistratName,
             number: formatPhoneNumber(props.phoneNumber.number),
