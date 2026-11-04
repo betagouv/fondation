@@ -292,6 +292,7 @@ function ReporterStatus(props: {
 function MemberTag(props: { excludedTitle?: string; member: Member; recused?: boolean }) {
   return (
     <Tag
+      as="span"
       className={clsx(
         'gap-1.5 bg-(--background-default-grey)!',
         props.excludedTitle || props.recused
