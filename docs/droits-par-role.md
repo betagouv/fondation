@@ -389,6 +389,7 @@ Dans les dossiers d'un magistrat, un Membre ne voit que l'affectation et les aud
 | Modifier le mot de passe          | `PUT /administration/v1/users/:userId/password`             | —      | —                   | ✓              |
 | Modifier le rôle                  | `PUT /administration/v1/users/:userId/role`                 | —      | —                   | ✓              |
 | Modifier le titre affiché         | `PUT /administration/v1/users/:userId/display-title`        | —      | —                   | ✓              |
+| Modifier le titre déport          | `PUT /administration/v1/users/:userId/recusal-title`        | —      | —                   | ✓              |
 | Donner le droit d'administrateur  | `PUT /administration/v1/users/:userId/promotion`            | —      | —                   | ✓              |
 | Retirer le droit d'administrateur | `DELETE /administration/v1/users/:userId/promotion`         | —      | —                   | ✓              |
 | Marquer un compte technique       | `PUT /administration/v1/users/:userId/technical-account`    | —      | —                   | ✓              |

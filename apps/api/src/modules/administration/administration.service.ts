@@ -168,6 +168,12 @@ export class AdministrationService {
     await this.userRepository.persist(user);
   }
 
+  async updateRecusalTitle(command: { recusalTitle: string | null; userId: string }): Promise<void> {
+    const user = await this.userRepository.findById(command.userId);
+    user.updateRecusalTitle(command.recusalTitle);
+    await this.userRepository.persist(user);
+  }
+
   async batchUpdateDisplayTitles(
     entries: readonly { lastName: string; displayTitle: string | null }[],
   ): Promise<{ notFound: string[]; updatedCount: number }> {

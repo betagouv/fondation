@@ -179,9 +179,18 @@ export function useUpdateUserRoleMutation(userId: string) {
 export function useUpdateUserDisplayTitleMutation(userId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (body: { displayTitle: string | null }) =>
-      $api.administration.updateDisplayTitle({ body, path: { userId } }),
-    onSuccess: (_, { displayTitle }) => updateUser(queryClient, userId, { displayTitle }),
+    mutationFn: (displayTitle: string | null) =>
+      $api.administration.updateDisplayTitle({ body: { displayTitle }, path: { userId } }),
+    onSuccess: (_, displayTitle) => updateUser(queryClient, userId, { displayTitle }),
+  });
+}
+
+export function useUpdateUserRecusalTitleMutation(userId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (recusalTitle: string | null) =>
+      $api.administration.updateRecusalTitle({ body: { recusalTitle }, path: { userId } }),
+    onSuccess: (_, recusalTitle) => updateUser(queryClient, userId, { recusalTitle }),
   });
 }
 

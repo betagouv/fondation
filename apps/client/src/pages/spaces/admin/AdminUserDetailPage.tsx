@@ -36,6 +36,7 @@ import {
   useUpdateUserEmailMutation,
   useUpdateUserNameMutation,
   useUpdateUserPasswordMutation,
+  useUpdateUserRecusalTitleMutation,
   useUpdateUserRoleMutation,
 } from '@queries/administration.queries';
 import { authKeys, useImpersonateMutation, useUser } from '@queries/auth.queries';
@@ -576,39 +577,61 @@ function RoleField(props: { user: DetailedAdminUserDto }) {
   );
 }
 
-function DisplayTitleField(props: { user: DetailedAdminUserDto }) {
+const TITLES = {
+  displayTitle: {
+    edit: defineMessage({ defaultMessage: 'Éditer le titre affiché' }),
+    error: defineMessage({ defaultMessage: 'Erreur à la mise à jour du titre affiché' }),
+    hint: defineMessage({ defaultMessage: 'ex: M. le Président, Mme la ministre' }),
+    label: defineMessage({ defaultMessage: 'Titre affiché' }),
+    useUpdate: useUpdateUserDisplayTitleMutation,
+  },
+  recusalTitle: {
+    edit: defineMessage({ defaultMessage: 'Éditer le titre déport' }),
+    error: defineMessage({ defaultMessage: 'Erreur à la mise à jour du titre déport' }),
+    hint: defineMessage({
+      defaultMessage:
+        'Avec son article, ex : le Bâtonnier, la Première présidente. Le PV mentionne alors le déport de « M. le Bâtonnier FORGET ».',
+    }),
+    label: defineMessage({ defaultMessage: 'Titre Déport' }),
+    useUpdate: useUpdateUserRecusalTitleMutation,
+  },
+};
+
+function TitleField(props: { kind: keyof typeof TITLES; user: DetailedAdminUserDto }) {
   const { formatMessage } = useIntl();
+  const field = TITLES[props.kind];
+  const saved = props.user[props.kind];
   const [isEditing, setEditing] = useState(false);
-  const [displayTitle, setDisplayTitle] = useState(props.user.displayTitle ?? '');
-  const { error, isPending, mutate } = useUpdateUserDisplayTitleMutation(props.user.id);
+  const [title, setTitle] = useState(saved ?? '');
+  const { error, isPending, mutate } = field.useUpdate(props.user.id);
 
   const handleEdit = () => {
-    setDisplayTitle(props.user.displayTitle ?? '');
+    setTitle(saved ?? '');
     setEditing(true);
   };
 
-  const isUnchanged = (displayTitle.trim() || null) === props.user.displayTitle;
+  const isUnchanged = (title.trim() || null) === saved;
 
   const handleSave = useCallback(
     (e: SyntheticEvent) => {
       e.preventDefault();
 
-      const newTitle = displayTitle.trim() || null;
-      if (newTitle === props.user.displayTitle) {
+      const newTitle = title.trim() || null;
+      if (newTitle === saved) {
         setEditing(false);
         return;
       }
 
-      mutate({ displayTitle: newTitle }, { onSuccess: () => setEditing(false) });
+      mutate(newTitle, { onSuccess: () => setEditing(false) });
     },
-    [displayTitle, mutate, props, setEditing],
+    [mutate, saved, setEditing, title],
   );
 
   return (
     <div>
       <div className="fr-mb-2v flex justify-between">
         <dt className="font-bold">
-          <FormattedMessage defaultMessage="Titre" />
+          <FormattedMessage {...field.label} />
         </dt>
         {isEditing ? (
           <div className="flex gap-1">
@@ -636,7 +659,7 @@ function DisplayTitleField(props: { user: DetailedAdminUserDto }) {
           <IconButton
             disabled={isPending}
             iconId="fr-icon-edit-fill"
-            label={formatMessage({ defaultMessage: 'Éditer le titre affiché' })}
+            label={formatMessage(field.edit)}
             onClick={handleEdit}
             small
           />
@@ -645,27 +668,22 @@ function DisplayTitleField(props: { user: DetailedAdminUserDto }) {
       {isEditing ? (
         <form onSubmit={handleSave}>
           <Input
-            hideLabel
-            hintText={formatMessage({ defaultMessage: 'ex: M. le Président, Mme la ministre' })}
-            label={formatMessage({ defaultMessage: 'Titre affiché' })}
+            hintText={formatMessage(field.hint)}
+            label={<span className="fr-sr-only">{formatMessage(field.label)}</span>}
             nativeInputProps={{
               autoComplete: 'off',
               autoFocus: true,
-              onChange: (e) => setDisplayTitle(e.target.value),
+              onChange: (e) => setTitle(e.target.value),
               placeholder: formatMessage({ defaultMessage: 'Saisissez un titre...' }),
-              value: displayTitle,
+              value: title,
             }}
             state={error ? 'error' : undefined}
-            stateRelatedMessage={
-              error
-                ? formatMessage({ defaultMessage: 'Erreur à la mise à jour du titre affiché' })
-                : undefined
-            }
+            stateRelatedMessage={error ? formatMessage(field.error) : undefined}
           />
         </form>
       ) : (
         <div className="fr-mt-2v fr-p-4v rounded-sm border border-(--border-default-grey) bg-(--background-alt-grey)">
-          {props.user.displayTitle || (
+          {saved || (
             <span className="text-(--text-disabled-grey)">
               <FormattedMessage defaultMessage="Aucun titre" />
             </span>
@@ -885,10 +903,11 @@ function AdminLoadedUserDetail(props: { user: DetailedAdminUserDto }) {
         <>
           <DetailsCard>
             <h2 className="fr-h4">
-              <FormattedMessage defaultMessage="Titre affiché" />
+              <FormattedMessage defaultMessage="Titres" />
             </h2>
-            <dl className="m-0 p-0">
-              <DisplayTitleField user={user} />
+            <dl className="m-0 flex flex-col gap-6 p-0">
+              <TitleField kind="displayTitle" user={user} />
+              <TitleField kind="recusalTitle" user={user} />
             </dl>
           </DetailsCard>
 

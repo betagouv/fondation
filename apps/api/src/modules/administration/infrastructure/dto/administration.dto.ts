@@ -117,6 +117,12 @@ export class UpdateUserDisplayTitleDto extends createZodDto(
   z.object({ displayTitle: z.string().nullable() }),
 ) {}
 
+export class UpdateUserRecusalTitleDto extends createZodDto(
+  z.object({
+    recusalTitle: z.string().nullable().meta({ description: 'with its article, e.g. "le Bâtonnier"' }),
+  }),
+) {}
+
 export class RegisterUserDto extends createZodDto(
   z.object({
     email: z.email().toLowerCase(),

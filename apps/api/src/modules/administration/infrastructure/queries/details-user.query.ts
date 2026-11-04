@@ -32,6 +32,7 @@ export class DetailsUserQuery {
         isAdmin: true,
         isTechnical: true,
         lastName: true,
+        recusalTitle: true,
         role: true,
         statusChanges: {
           orderBy: { changedAt: 'desc' },
@@ -80,6 +81,7 @@ export class DetailsUserQuery {
       isAdmin: user.isAdmin,
       isTechnical: user.isTechnical,
       lastName: user.lastName,
+      recusalTitle: user.recusalTitle,
       role: servedAdminUserRole(role, gender),
       status,
       statusChanges: user.statusChanges.map(({ author, changedAt, status }) => ({
@@ -100,6 +102,7 @@ export class DetailedAdminUserDto extends createZodDto(
     role: ServedAdminUserRoleSchema,
     gender: z.enum(GenderEnum),
     displayTitle: z.string().nullable(),
+    recusalTitle: z.string().nullable(),
     isAdmin: z.boolean(),
     isTechnical: z.boolean(),
     status: z.enum(USER_STATUSES),

@@ -44,6 +44,7 @@ model User {
   title        PrismaUserTitleEnum? @unique()
   duty         PrismaUserDutyEnum?
   displayTitle String?              @map("display_title")
+  recusalTitle String?              @map("recusal_title")
 
   adminRightChanges                            AdminRightChange[]                     @relation("admin_right_change_user")
   agendasAuthor                                Agenda[]                               @relation("agenda_author")

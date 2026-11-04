@@ -24,6 +24,7 @@ const USERS = {
     isAdmin: false,
     isTechnical: false,
     lastName: 'Garnier',
+    recusalTitle: 'la Première présidente',
     role: { group: 'MEMBER', id: 'MEMBRE_SIEGE', label: 'Membre du siège' },
   },
   secretariat: {
@@ -35,6 +36,7 @@ const USERS = {
     isAdmin: true,
     isTechnical: false,
     lastName: 'Dupont',
+    recusalTitle: null,
     role: { group: 'SECRETARIAT', id: 'SECRETARY', label: 'Secrétaire général adjoint' },
   },
 } satisfies Record<
