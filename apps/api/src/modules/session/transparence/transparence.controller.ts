@@ -32,6 +32,7 @@ import {
   ListNominationFilesQueryDto,
   RecusedMembersDto,
   RecuseMembersDto,
+  RecuseNominationFilesMembersDto,
   UpdateAuditionDateDto,
   UpdateAuditionRequestDto,
   UpdateCommentDto,
@@ -462,6 +463,18 @@ export class SessionController {
     @Body() body: RecuseMembersDto,
   ): Promise<RecusedMembersDto> {
     return this.sessions.recuseMembers({ authorId, memberIds: body.memberIds, nominationFileId, sessionId });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Put('/:sessionId/files/recused-members')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UsePipes(ZodValidationPipe)
+  async recuseNominationFilesMembers(
+    @AuthedUserId() authorId: string,
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Body() body: RecuseNominationFilesMembersDto,
+  ): Promise<void> {
+    await this.sessions.recuseNominationFilesMembers({ authorId, recusals: body.items, sessionId });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')

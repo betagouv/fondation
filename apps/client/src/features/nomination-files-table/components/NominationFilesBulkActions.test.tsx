@@ -13,6 +13,7 @@ import { NominationFilesBulkActions } from './NominationFilesBulkActions';
 
 const affectReporters = vi.fn();
 const defineOutcome = vi.fn();
+const recuseMembers = vi.fn();
 const updatePriorities = vi.fn();
 
 vi.mock('@queries/members.queries', async (importOriginal) => ({
@@ -31,6 +32,7 @@ vi.mock('@queries/nomination-sessions.queries', async (importOriginal) => ({
   ...(await importOriginal<object>()),
   useAffectNominationFilesReportersMutation: () => ({ isPending: false, mutate: affectReporters }),
   useDefineNominationFilesOutcomeMutation: () => ({ isPending: false, mutate: defineOutcome }),
+  useRecuseNominationFilesMembersMutation: () => ({ isPending: false, mutate: recuseMembers }),
   useUpdateNominationFilesPrioritiesMutation: () => ({ isPending: false, mutate: updatePriorities }),
 }));
 
@@ -39,14 +41,20 @@ const OUTCOMES = [
   { commentRequired: true, label: 'Avis défavorable', value: 'NON_VALIDATED' as const },
 ];
 
+const CAMILLE = { firstName: 'Camille', id: 'member-1', lastName: 'COMMUN' };
+const SOPHIE = { firstName: 'Sophie', id: 'member-2', lastName: 'PARQUET' };
+
 function file(props: {
+  canRecuseMembers?: boolean;
   id: string;
   nomMagistrat: string;
   outcome?: 'VALIDATED' | 'NON_VALIDATED';
   priorities?: readonly string[];
+  recusedMembers?: SessionNominationFile['recusedMembers'];
   reporters?: readonly { id: string }[];
 }): SessionNominationFile {
   return {
+    canRecuseMembers: props.canRecuseMembers ?? true,
     content: {
       jurisdictions: { current: null, targeted: null },
       nomMagistrat: props.nomMagistrat,
@@ -55,6 +63,7 @@ function file(props: {
     },
     id: props.id,
     priorities: props.priorities ?? [],
+    recusedMembers: props.recusedMembers ?? [],
     reporters: props.reporters ?? [],
   } as unknown as SessionNominationFile;
 }
@@ -82,7 +91,67 @@ describe('NominationFilesBulkActions', () => {
   beforeEach(() => {
     affectReporters.mockReset();
     defineOutcome.mockReset();
+    recuseMembers.mockReset();
     updatePriorities.mockReset();
+  });
+
+  it('should show the recused members shared by every selected file', () => {
+    renderActions([
+      file({ id: 'file-1', nomMagistrat: 'BOURDIEU Pierre', recusedMembers: [SOPHIE] }),
+      file({ id: 'file-2', nomMagistrat: 'HARENDT Anna', recusedMembers: [SOPHIE] }),
+    ]);
+
+    expect(screen.getByRole('button', { name: 'Retirer Sophie PARQUET' })).toBeVisible();
+  });
+
+  it('should complete the recused members of each file instead of replacing them', async () => {
+    renderActions([
+      file({ id: 'file-1', nomMagistrat: 'BOURDIEU Pierre', recusedMembers: [SOPHIE] }),
+      file({ id: 'file-2', nomMagistrat: 'HARENDT Anna' }),
+    ]);
+
+    await openDropdown(/Membres déportés/);
+    await chooseOption('Camille COMMUN');
+
+    expect(recuseMembers).toHaveBeenCalledWith(
+      {
+        items: [
+          { memberIds: ['member-2', 'member-1'], nominationFileId: 'file-1' },
+          { memberIds: ['member-1'], nominationFileId: 'file-2' },
+        ],
+      },
+      expect.anything(),
+    );
+  });
+
+  it('should withdraw a recused member only from the files that carried them', async () => {
+    renderActions([
+      file({ id: 'file-1', nomMagistrat: 'BOURDIEU Pierre', recusedMembers: [CAMILLE] }),
+      file({ id: 'file-2', nomMagistrat: 'HARENDT Anna', recusedMembers: [SOPHIE] }),
+    ]);
+
+    await openDropdown(/Membres déportés/);
+    await chooseOption('Camille COMMUN');
+    await chooseOption('Camille COMMUN');
+
+    expect(recuseMembers).toHaveBeenLastCalledWith(
+      {
+        items: [
+          { memberIds: [], nominationFileId: 'file-1' },
+          { memberIds: ['member-2'], nominationFileId: 'file-2' },
+        ],
+      },
+      expect.anything(),
+    );
+  });
+
+  it('should leave out the recusal when the API keeps it from one of the selected files', () => {
+    renderActions([
+      file({ id: 'file-1', nomMagistrat: 'BOURDIEU Pierre' }),
+      file({ canRecuseMembers: false, id: 'file-2', nomMagistrat: 'HARENDT Anna' }),
+    ]);
+
+    expect(screen.queryByRole('button', { name: /Membres déportés/ })).toBeNull();
   });
 
   it('should show the reporters, the priorities and the outcome shared by every selected file', () => {

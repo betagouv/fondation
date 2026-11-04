@@ -412,29 +412,51 @@ export class TransparenceService {
   }
 
   @Transactional()
+  async recuseNominationFilesMembers(command: {
+    authorId: string;
+    recusals: readonly { memberIds: readonly string[]; nominationFileId: string }[];
+    sessionId: string;
+  }): Promise<void> {
+    const nominationFileIds = new Set(command.recusals.map(({ nominationFileId }) => nominationFileId));
+    const session = await this.nominationSessionRepository.find(command.sessionId, { nominationFileIds });
+
+    const formerRecusals = await this.recusedMembersFinder.find({ nominationFileIds });
+    const formationMemberIds = await this.members
+      .findMembers({
+        formation: session.formation,
+        ids: [...new Set(command.recusals.flatMap(({ memberIds }) => memberIds))],
+      })
+      .then((ids) => new Set(ids));
+
+    session.recuseMembers({
+      authorId: command.authorId,
+      formationMemberIds,
+      recusals: command.recusals,
+      recusedMemberIdsByFile: new Map(
+        formerRecusals
+          .entries()
+          .map(([nominationFileId, members]) => [nominationFileId, new Set(members.map(({ id }) => id))]),
+      ),
+    });
+    await this.nominationSessionRepository.persist(session);
+  }
+
+  @Transactional()
   async recuseMembers(command: {
     authorId: string;
     memberIds: readonly string[];
     nominationFileId: string;
     sessionId: string;
   }): Promise<RecusedMembersDto> {
-    const nominationFileIds = new Set([command.nominationFileId]);
-    const session = await this.nominationSessionRepository.find(command.sessionId, { nominationFileIds });
-
-    const formerRecusals = await this.recusedMembersFinder.find({ nominationFileIds });
-    const formationMemberIds = await this.members
-      .findMembers({ formation: session.formation, ids: command.memberIds })
-      .then((ids) => new Set(ids));
-
-    session.recuseMembers({
-      ...command,
-      formationMemberIds,
-      recusedMemberIds: new Set(formerRecusals.get(command.nominationFileId)?.map(({ id }) => id)),
+    const { authorId, memberIds, nominationFileId, sessionId } = command;
+    await this.recuseNominationFilesMembers({
+      authorId,
+      recusals: [{ memberIds, nominationFileId }],
+      sessionId,
     });
-    await this.nominationSessionRepository.persist(session);
 
-    const recusals = await this.recusedMembersFinder.find({ nominationFileIds });
-    return { recusedMembers: recusals.get(command.nominationFileId) ?? [] };
+    const recusals = await this.recusedMembersFinder.find({ nominationFileIds: new Set([nominationFileId]) });
+    return { recusedMembers: recusals.get(nominationFileId) ?? [] };
   }
 
   @Transactional()

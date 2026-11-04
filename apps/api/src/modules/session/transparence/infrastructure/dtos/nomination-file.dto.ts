@@ -99,9 +99,19 @@ export class UpdateMissingEvaluationCommentDto extends createZodDto(
 // article 65 of the Constitution: 7 magistrates of the formation and the 8 members common to both
 const FORMATION_MEMBERS_COUNT = 15;
 
-export class RecuseMembersDto extends createZodDto(
+const recusedMemberIdsSchema = z.array(z.uuid()).max(FORMATION_MEMBERS_COUNT);
+
+export class RecuseMembersDto extends createZodDto(z.object({ memberIds: recusedMemberIdsSchema })) {}
+
+export class RecuseNominationFilesMembersDto extends createZodDto(
   z.object({
-    memberIds: z.array(z.uuid()).max(FORMATION_MEMBERS_COUNT),
+    items: z
+      .array(z.object({ memberIds: recusedMemberIdsSchema, nominationFileId: z.uuid() }))
+      .nonempty()
+      .refine(
+        (items) => new Set(items.map(({ nominationFileId }) => nominationFileId)).size === items.length,
+        'Chaque dossier ne peut figurer qu’une fois',
+      ),
   }),
 ) {}
 

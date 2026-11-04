@@ -728,6 +728,50 @@ test.describe('Session E2E', () => {
       expect(withdrawn.data?.recusedMembers).toEqual([]);
     });
 
+    test('should record the recusals of several nomination files at once', async ({
+      agent,
+      member,
+      sessions,
+      expect,
+    }) => {
+      const [trevoux] = TREVOUX_SESSION.candidates;
+      const session = await sessions.createOne({
+        ...TREVOUX_SESSION,
+        candidates: [trevoux!, { ...trevoux!, firstName: 'CAMILLE', lastName: 'BERNARD' }],
+      });
+      const [keptFileId, withdrawnFileId] = session.files.map(({ id }) => id);
+      const memberId = member['@user']!.id;
+      const recuse = (items: { memberIds: string[]; nominationFileId: string }[]) =>
+        agent.sessions.recuseNominationFilesMembers({ body: { items }, path: { sessionId: session.id } });
+      const recusedIdsByFile = async () => {
+        const { data } = await agent.sessions.listNominationFiles({ path: { sessionId: session.id } });
+        return new Map(data!.items.map((file) => [file.id, file.recusedMembers!.map(({ id }) => id)]));
+      };
+
+      const recused = await recuse([
+        { memberIds: [memberId], nominationFileId: keptFileId! },
+        { memberIds: [memberId], nominationFileId: withdrawnFileId! },
+      ]);
+      expect(recused.response?.status).toBe(204);
+      expect(await recusedIdsByFile()).toEqual(
+        new Map([
+          [keptFileId, [memberId]],
+          [withdrawnFileId, [memberId]],
+        ]),
+      );
+
+      await recuse([
+        { memberIds: [memberId], nominationFileId: keptFileId! },
+        { memberIds: [], nominationFileId: withdrawnFileId! },
+      ]);
+      expect(await recusedIdsByFile()).toEqual(
+        new Map([
+          [keptFileId, [memberId]],
+          [withdrawnFileId, []],
+        ]),
+      );
+    });
+
     test('should only list the nomination files with a missing evaluation', async ({ agent, sessions, expect }) => {
       const session = await sessions.createOne(TREVOUX_SESSION);
 
