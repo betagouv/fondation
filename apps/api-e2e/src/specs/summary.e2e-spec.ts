@@ -80,7 +80,7 @@ test.describe('Summary E2E', () => {
           lastName: 'VALROSE',
           position: { function: seed.functions.PR, grade: 'G3', jurisdiction: seed.jurisdictions['CA  LYON'] },
           targetPosition: {
-            function: seed.functions.PR,
+            function: seed.functions.PG,
             grade: 'G3',
             jurisdiction: seed.jurisdictions['CA  GRENOBLE'],
           },
