@@ -668,9 +668,8 @@ function TitleField(props: { kind: keyof typeof TITLES; user: DetailedAdminUserD
       {isEditing ? (
         <form onSubmit={handleSave}>
           <Input
-            hideLabel
             hintText={formatMessage(field.hint)}
-            label={formatMessage(field.label)}
+            label={<span className="fr-sr-only">{formatMessage(field.label)}</span>}
             nativeInputProps={{
               autoComplete: 'off',
               autoFocus: true,
