@@ -67,13 +67,13 @@ function sharedList<T extends string>(
 }
 
 function recusedIdsOf(file: SessionNominationFile): string[] {
-  return (file.recusedMembers ?? []).map(({ id }) => id);
+  return file.recusedMembers.map(({ id }) => id);
 }
 
 function sharedRecusedMembers(files: readonly SessionNominationFile[]): RecusedMembersDto['recusedMembers'] {
   const isShared = sharedList(files, recusedIdsOf).length > 0;
 
-  return isShared ? (files[0]!.recusedMembers ?? []) : [];
+  return isShared ? files[0]!.recusedMembers : [];
 }
 
 function sharedOutcome(files: readonly SessionNominationFile[]): NominationFileOutcomeEnum | null {

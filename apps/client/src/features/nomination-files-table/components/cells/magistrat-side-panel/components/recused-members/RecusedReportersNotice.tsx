@@ -16,7 +16,7 @@ export function recusedReporters(
     const reported = files.filter(
       (file) =>
         file.reporters.some(({ id }) => id === memberId) &&
-        !file.recusedMembers?.some(({ id }) => id === memberId),
+        !file.recusedMembers.some(({ id }) => id === memberId),
     );
     const reporter = reported[0]?.reporters.find(({ id }) => id === memberId);
 
