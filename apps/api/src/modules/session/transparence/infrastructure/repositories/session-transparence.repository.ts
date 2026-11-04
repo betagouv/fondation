@@ -725,22 +725,42 @@ export class SessionTransparenceRepository {
   ): Promise<SessionDocInvalidation> {
     await this.db.tx.recusedMember.deleteMany({
       where: {
-        OR: message.recusals.map(({ memberIds, nominationFileId }) => ({
+        OR: message.changes.map(({ nominationFileId, removedMemberIds }) => ({
           nominationFileId,
-          userId: { notIn: [...memberIds] },
+          userId: { in: [...removedMemberIds] },
         })),
       },
     });
     await this.db.tx.recusedMember.createMany({
-      data: message.recusals.flatMap(({ memberIds, nominationFileId }) =>
-        memberIds.map((userId) => ({ createdBy: message.authorId, nominationFileId, userId })),
+      data: message.changes.flatMap(({ addedMemberIds, nominationFileId }) =>
+        addedMemberIds.map((userId) => ({ nominationFileId, userId })),
       ),
       skipDuplicates: true,
     });
 
+    const changedAt = this.clock.now();
+    await this.db.tx.recusedMemberChange.createMany({
+      data: message.changes.flatMap(({ addedMemberIds, nominationFileId, removedMemberIds }) => [
+        ...addedMemberIds.map((userId) => ({
+          action: 'ADDED' as const,
+          changedAt,
+          changedBy: message.authorId,
+          nominationFileId,
+          userId,
+        })),
+        ...removedMemberIds.map((userId) => ({
+          action: 'REMOVED' as const,
+          changedAt,
+          changedBy: message.authorId,
+          nominationFileId,
+          userId,
+        })),
+      ]),
+    });
+
     return {
       payload: {
-        nominationFileIds: message.recusals.map(({ nominationFileId }) => nominationFileId),
+        nominationFileIds: message.changes.map(({ nominationFileId }) => nominationFileId),
         sessionId: message.sessionId,
       },
       type: 'NominationFilesRecusalsUpdated',

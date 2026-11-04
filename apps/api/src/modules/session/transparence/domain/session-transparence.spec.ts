@@ -1282,7 +1282,7 @@ describe('SessionTransparence', () => {
       expect(transparence.messages).toEqual([
         new SessionTransparenceFileMembersRecused(
           'session-id',
-          [{ memberIds: ['member-1', 'member-2'], nominationFileId: FILE_1 }],
+          [{ addedMemberIds: ['member-1', 'member-2'], nominationFileId: FILE_1, removedMemberIds: [] }],
           'sg-1',
         ),
       ]);
@@ -1304,8 +1304,8 @@ describe('SessionTransparence', () => {
         new SessionTransparenceFileMembersRecused(
           'session-id',
           [
-            { memberIds: ['member-1'], nominationFileId: FILE_1 },
-            { memberIds: ['member-1', 'member-2'], nominationFileId: FILE_2 },
+            { addedMemberIds: ['member-1'], nominationFileId: FILE_1, removedMemberIds: [] },
+            { addedMemberIds: ['member-1', 'member-2'], nominationFileId: FILE_2, removedMemberIds: [] },
           ],
           'sg-1',
         ),
@@ -1324,7 +1324,7 @@ describe('SessionTransparence', () => {
       expect(transparence.messages).toEqual([
         new SessionTransparenceFileMembersRecused(
           'session-id',
-          [{ memberIds: ['member-1'], nominationFileId: FILE_1 }],
+          [{ addedMemberIds: ['member-1'], nominationFileId: FILE_1, removedMemberIds: [] }],
           'sg-1',
         ),
       ]);
@@ -1342,10 +1342,64 @@ describe('SessionTransparence', () => {
       expect(transparence.messages).toEqual([
         new SessionTransparenceFileMembersRecused(
           'session-id',
-          [{ memberIds: ['member-1', 'deactivated-member'], nominationFileId: FILE_1 }],
+          [{ addedMemberIds: ['member-1'], nominationFileId: FILE_1, removedMemberIds: [] }],
           'sg-1',
         ),
       ]);
+    });
+
+    it('records the members no longer recused', () => {
+      const transparence = session(pendingFile);
+      transparence.recuseMembers({
+        authorId: 'sg-1',
+        formationMemberIds: new Set(['member-1', 'member-3']),
+        recusals: [{ memberIds: ['member-1', 'member-3'], nominationFileId: FILE_1 }],
+        recusedMemberIdsByFile: new Map([[FILE_1, new Set(['member-1', 'member-2'])]]),
+      });
+
+      expect(transparence.messages).toEqual([
+        new SessionTransparenceFileMembersRecused(
+          'session-id',
+          [{ addedMemberIds: ['member-3'], nominationFileId: FILE_1, removedMemberIds: ['member-2'] }],
+          'sg-1',
+        ),
+      ]);
+    });
+
+    it('records only the files whose recused members change', () => {
+      const transparence = session(pendingFile, pendingFile);
+      transparence.recuseMembers({
+        authorId: 'sg-1',
+        formationMemberIds: new Set(['member-1']),
+        recusals: [
+          { memberIds: ['member-1'], nominationFileId: FILE_1 },
+          { memberIds: [], nominationFileId: FILE_2 },
+        ],
+        recusedMemberIdsByFile: new Map([
+          [FILE_1, new Set(['member-1'])],
+          [FILE_2, new Set(['member-1'])],
+        ]),
+      });
+
+      expect(transparence.messages).toEqual([
+        new SessionTransparenceFileMembersRecused(
+          'session-id',
+          [{ addedMemberIds: [], nominationFileId: FILE_2, removedMemberIds: ['member-1'] }],
+          'sg-1',
+        ),
+      ]);
+    });
+
+    it('records nothing when the recused members stay the same', () => {
+      const transparence = session(pendingFile);
+      transparence.recuseMembers({
+        authorId: 'sg-1',
+        formationMemberIds: new Set(['member-1']),
+        recusals: [{ memberIds: ['member-1'], nominationFileId: FILE_1 }],
+        recusedMemberIdsByFile: new Map([[FILE_1, new Set(['member-1'])]]),
+      });
+
+      expect(transparence.messages).toEqual([]);
     });
 
     it('refuses a member deactivated since on a file they were not recused from', () => {
