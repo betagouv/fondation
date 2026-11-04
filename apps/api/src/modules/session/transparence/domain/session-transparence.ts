@@ -207,7 +207,11 @@ export class SessionTransparenceFileMemberMemoWritten {
 export class SessionTransparenceFileMembersRecused {
   constructor(
     readonly sessionId: string,
-    readonly recusals: readonly { memberIds: readonly string[]; nominationFileId: string }[],
+    readonly changes: readonly {
+      addedMemberIds: readonly string[];
+      nominationFileId: string;
+      removedMemberIds: readonly string[];
+    }[],
     readonly authorId: string,
   ) {}
 }
@@ -827,7 +831,21 @@ export class SessionTransparence {
     );
     if (!allRecusedAreFormationMembers) throw new NonFormationMemberRecused();
 
-    this.#messages.push(new SessionTransparenceFileMembersRecused(this.id, recusals, command.authorId));
+    const changes = recusals
+      .map(({ memberIds, nominationFileId }) => {
+        const formerMemberIds = command.recusedMemberIdsByFile.get(nominationFileId) ?? new Set<string>();
+        return {
+          addedMemberIds: memberIds.filter((id) => !formerMemberIds.has(id)),
+          nominationFileId,
+          removedMemberIds: [...formerMemberIds.difference(new Set(memberIds))],
+        };
+      })
+      .filter(
+        ({ addedMemberIds, removedMemberIds }) => addedMemberIds.length > 0 || removedMemberIds.length > 0,
+      );
+    if (changes.length === 0) return;
+
+    this.#messages.push(new SessionTransparenceFileMembersRecused(this.id, changes, command.authorId));
   }
 
   hideAlert(command: { nominationFileId: string }) {
