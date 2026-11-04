@@ -30,11 +30,19 @@ const BlockSectionIntroSchema = z.object({
   kind: z.literal('section-intro'),
 });
 
+/** the slot under the proposition, shared by the recusal sentence and the text written in the report */
 export const OfficialReportFileNoteSchema = z.object({
   editedAt: z.iso.datetime().nullable(),
   editedBy: writerSchema,
-  html: z.string(),
+  /** the sentence the file's recusal gives today, null without recusal */
+  generatedHtml: z.string().nullable(),
+  /** what the report prints under the proposition, null when nothing */
+  html: z.string().nullable(),
+  /** the recusal changed since the slot was written or emptied by hand */
+  outdated: z.boolean(),
 });
+
+export type OfficialReportFileNote = z.infer<typeof OfficialReportFileNoteSchema>;
 
 const BlockFileSchema = z.object({
   ...AbstractHtmlBlock.shape,
@@ -51,7 +59,7 @@ const BlockFileSchema = z.object({
   /** the text comes from the agenda, so the report is not the one to credit for it */
   fromAgenda: z.boolean(),
   name: z.string(),
-  note: OfficialReportFileNoteSchema.nullable(),
+  note: OfficialReportFileNoteSchema,
 });
 
 const BlockConclusionSchema = z.object({

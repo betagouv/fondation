@@ -321,30 +321,31 @@ Dans les dossiers d'un magistrat, un Membre ne voit que l'affectation et les aud
 
 ### Procès-verbaux
 
-| Action                                                      | Endpoint                                                                                 | Membre | Secrétariat général | Administrateur |
-| ----------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------ | ------------------- | -------------- |
-| Lister les ordres du jour utilisables pour un procès-verbal | `GET /docs/v1/sessions/:sessionId/new-official-reports/agendas`                          | —      | ✓                   | ✓              |
-| Créer un procès-verbal                                      | `POST /docs/v1/sessions/:sessionId/official-reports`                                     | —      | ✓                   | ✓              |
-| Voir le procès-verbal d'une session                         | `GET /docs/v1/sessions/:sessionId/official-reports/:officialReportId`                    | —      | ✓                   | ✓              |
-| Voir un procès-verbal                                       | `GET /docs/v1/official-reports/:officialReportId`                                        | —      | ✓                   | ✓              |
-| Modifier un procès-verbal                                   | `PUT /docs/v1/official-reports/:officialReportId`                                        | —      | ✓                   | ✓              |
-| Voir les blocs du document                                  | `GET /docs/v1/official-reports/:officialReportId/blocks`                                 | —      | ✓                   | ✓              |
-| Retoucher l'introduction                                    | `PATCH /docs/v1/official-reports/:officialReportId/blocks/intro`                         | —      | ✓                   | ✓              |
-| Rétablir l'introduction                                     | `DELETE /docs/v1/official-reports/:officialReportId/blocks/intro`                        | —      | ✓                   | ✓              |
-| Retoucher la conclusion                                     | `PATCH /docs/v1/official-reports/:officialReportId/blocks/conclusion`                    | —      | ✓                   | ✓              |
-| Rétablir la conclusion                                      | `DELETE /docs/v1/official-reports/:officialReportId/blocks/conclusion`                   | —      | ✓                   | ✓              |
-| Retoucher le titre d'une section                            | `PATCH /docs/v1/official-reports/:officialReportId/blocks/:outcome/title`                | —      | ✓                   | ✓              |
-| Rétablir le titre d'une section                             | `DELETE /docs/v1/official-reports/:officialReportId/blocks/:outcome/title`               | —      | ✓                   | ✓              |
-| Retoucher l'introduction d'une section                      | `PATCH /docs/v1/official-reports/:officialReportId/blocks/:outcome/intro`                | —      | ✓                   | ✓              |
-| Rétablir l'introduction d'une section                       | `DELETE /docs/v1/official-reports/:officialReportId/blocks/:outcome/intro`               | —      | ✓                   | ✓              |
-| Rétablir le bloc d'un dossier                               | `DELETE /docs/v1/official-reports/:officialReportId/blocks/files/:nominationFileId`      | —      | ✓                   | ✓              |
-| Écrire la note sous une proposition                         | `PATCH /docs/v1/official-reports/:officialReportId/blocks/files/:nominationFileId/note`  | —      | ✓                   | ✓              |
-| Retirer la note sous une proposition                        | `DELETE /docs/v1/official-reports/:officialReportId/blocks/files/:nominationFileId/note` | —      | ✓                   | ✓              |
-| Abandonner le brouillon                                     | `DELETE /docs/v1/official-reports/:officialReportId/draft`                               | —      | ✓                   | ✓              |
-| Valider                                                     | `POST /docs/v1/official-reports/:officialReportId/validation`                            | —      | ✓                   | ✓              |
-| Générer le HTML                                             | `GET /docs/v1/official-reports/:officialReportId.html`                                   | —      | ✓                   | ✓              |
-| Générer le PDF                                              | `GET /docs/v1/official-reports/:officialReportId.pdf`                                    | —      | ✓                   | ✓              |
-| Supprimer                                                   | `DELETE /docs/v1/official-reports/:officialReportId`                                     | —      | ✓                   | ✓              |
+| Action                                                      | Endpoint                                                                                         | Membre | Secrétariat général | Administrateur |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ------ | ------------------- | -------------- |
+| Lister les ordres du jour utilisables pour un procès-verbal | `GET /docs/v1/sessions/:sessionId/new-official-reports/agendas`                                  | —      | ✓                   | ✓              |
+| Créer un procès-verbal                                      | `POST /docs/v1/sessions/:sessionId/official-reports`                                             | —      | ✓                   | ✓              |
+| Voir le procès-verbal d'une session                         | `GET /docs/v1/sessions/:sessionId/official-reports/:officialReportId`                            | —      | ✓                   | ✓              |
+| Voir un procès-verbal                                       | `GET /docs/v1/official-reports/:officialReportId`                                                | —      | ✓                   | ✓              |
+| Modifier un procès-verbal                                   | `PUT /docs/v1/official-reports/:officialReportId`                                                | —      | ✓                   | ✓              |
+| Voir les blocs du document                                  | `GET /docs/v1/official-reports/:officialReportId/blocks`                                         | —      | ✓                   | ✓              |
+| Retoucher l'introduction                                    | `PATCH /docs/v1/official-reports/:officialReportId/blocks/intro`                                 | —      | ✓                   | ✓              |
+| Rétablir l'introduction                                     | `DELETE /docs/v1/official-reports/:officialReportId/blocks/intro`                                | —      | ✓                   | ✓              |
+| Retoucher la conclusion                                     | `PATCH /docs/v1/official-reports/:officialReportId/blocks/conclusion`                            | —      | ✓                   | ✓              |
+| Rétablir la conclusion                                      | `DELETE /docs/v1/official-reports/:officialReportId/blocks/conclusion`                           | —      | ✓                   | ✓              |
+| Retoucher le titre d'une section                            | `PATCH /docs/v1/official-reports/:officialReportId/blocks/:outcome/title`                        | —      | ✓                   | ✓              |
+| Rétablir le titre d'une section                             | `DELETE /docs/v1/official-reports/:officialReportId/blocks/:outcome/title`                       | —      | ✓                   | ✓              |
+| Retoucher l'introduction d'une section                      | `PATCH /docs/v1/official-reports/:officialReportId/blocks/:outcome/intro`                        | —      | ✓                   | ✓              |
+| Rétablir l'introduction d'une section                       | `DELETE /docs/v1/official-reports/:officialReportId/blocks/:outcome/intro`                       | —      | ✓                   | ✓              |
+| Rétablir le bloc d'un dossier                               | `DELETE /docs/v1/official-reports/:officialReportId/blocks/files/:nominationFileId`              | —      | ✓                   | ✓              |
+| Écrire la note sous une proposition                         | `PATCH /docs/v1/official-reports/:officialReportId/blocks/files/:nominationFileId/note`          | —      | ✓                   | ✓              |
+| Retirer la note sous une proposition                        | `DELETE /docs/v1/official-reports/:officialReportId/blocks/files/:nominationFileId/note`         | —      | ✓                   | ✓              |
+| Rétablir la mention du déport sous une proposition          | `DELETE /docs/v1/official-reports/:officialReportId/blocks/files/:nominationFileId/note/edition` | —      | ✓                   | ✓              |
+| Abandonner le brouillon                                     | `DELETE /docs/v1/official-reports/:officialReportId/draft`                                       | —      | ✓                   | ✓              |
+| Valider                                                     | `POST /docs/v1/official-reports/:officialReportId/validation`                                    | —      | ✓                   | ✓              |
+| Générer le HTML                                             | `GET /docs/v1/official-reports/:officialReportId.html`                                           | —      | ✓                   | ✓              |
+| Générer le PDF                                              | `GET /docs/v1/official-reports/:officialReportId.pdf`                                            | —      | ✓                   | ✓              |
+| Supprimer                                                   | `DELETE /docs/v1/official-reports/:officialReportId`                                             | —      | ✓                   | ✓              |
 
 ### Notices de restitution
 

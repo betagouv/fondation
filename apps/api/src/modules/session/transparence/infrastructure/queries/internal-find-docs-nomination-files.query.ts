@@ -11,6 +11,7 @@ import { CIVILITIES, magistratTitledFullName } from '../../../../magistrat/domai
 import { GenderEnum } from '../../../../shared/gender.enum';
 import { GradeEnum } from '../../../../shared/grade.enum';
 import { NominationFileOutcome } from '../../../../shared/nomination-file-outcome.enum';
+import { byProtocolOrder } from '../../../../shared/protocol-order';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
 import { buildMemberName, buildPosition } from '../helpers/magistrat.helper';
 
@@ -104,6 +105,18 @@ const SqlNominationFilesSchema = z
         }),
       ),
     ),
+    recusedMembers: z.preprocess(
+      (x) => x ?? [],
+      z.array(
+        z.object({
+          firstName: z.string().trim().nonempty(),
+          gender: z.enum(GenderEnum),
+          id: z.uuid(),
+          lastName: z.string().trim().nonempty(),
+          sort: z.number().int(),
+        }),
+      ),
+    ),
     targetPosition: z.object({
       arrondissement: SqlJurisdictionSchema.nullable(),
       function: SqlFunctionSchema,
@@ -142,6 +155,10 @@ const SqlNominationFilesSchema = z
       lastName: u.lastName,
     }));
 
+    const recusedMembers = item.recusedMembers
+      .sort(byProtocolOrder)
+      .map((u) => ({ fullTitledName: buildMemberName(u), id: u.id }));
+
     return {
       id: item.id,
       magistrat: {
@@ -162,6 +179,7 @@ const SqlNominationFilesSchema = z
             value: nominationFileOutcome.outcome,
           }
         : null,
+      recusedMembers,
       reporters,
       targetPosition: {
         functionId: item.targetPosition.function?.id ?? null,
@@ -207,6 +225,7 @@ export class InternalFoundAgendaNominationFiles extends createZodDto(
             fullTitledName: z.string().trim().nonempty(),
           }),
         ),
+        recusedMembers: z.array(z.object({ id: z.string(), fullTitledName: z.string().trim().nonempty() })),
         outcome: z
           .object({
             value: z.enum(NominationFileOutcome.enum),

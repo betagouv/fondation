@@ -43,8 +43,8 @@ export class OfficialReportSnapshot {
     return this.filesSnapshot.files.has(nominationFileId);
   }
 
-  noteOf(nominationFileId: string): string | null {
-    return this.filesSnapshot.files.get(nominationFileId)?.note ?? null;
+  fileOf(nominationFileId: string): OfficialReportSnapshotFile | undefined {
+    return this.filesSnapshot.files.get(nominationFileId);
   }
 
   /** a suspension decided since then leaves the files as they are, yet it did happen */
@@ -73,8 +73,16 @@ export class OfficialReportSnapshot {
           !this.meta.agenda.date.equals(DateOnly.fromJson(command.payload.previousDate)),
         );
 
+      // a recusal never brings a proposition into the report, the agenda does
+      case 'NominationFilesRecusalsUpdated':
+        return this.invalidateFiles(
+          command.payload.files.flatMap((file) => this.fileOf(file.nominationFileId)?.diff(file) ?? []),
+        );
+
       case 'NominationFilesOutcomeUpdated':
-        return this.invalidateFiles(command.payload.files.map((file) => this.filesSnapshot.diffFile(file)));
+        return this.invalidateFiles(
+          command.payload.files.flatMap((file) => this.filesSnapshot.diffFile(file)),
+        );
 
       case 'NominationFilesReportersUpdated':
       case 'AgendaNominationFilesUpdated':
@@ -129,15 +137,11 @@ class OfficialReportSnapshotFilesCollection {
   diffFile(next: {
     nominationFileId: string;
     outcome?: { comment: string | null; value: DocNominationFileOutcomeEnum };
+    recusedMembers?: readonly string[];
     reporters?: readonly string[];
-  }): OfficialReportSnapshotDiff['files'][number] {
+  }): OfficialReportSnapshotDiff['files'] {
     const file = this.files.get(next.nominationFileId);
-    if (!file) {
-      return {
-        action: 'create',
-        nominationFileId: next.nominationFileId,
-      };
-    }
+    if (!file) return [{ action: 'create', nominationFileId: next.nominationFileId }];
 
     return file.diff(next);
   }
@@ -155,6 +159,7 @@ class OfficialReportSnapshotFilesCollection {
     files: readonly {
       nominationFileId: string;
       outcome?: { comment: string | null; value: DocNominationFileOutcomeEnum };
+      recusedMembers?: readonly string[];
       reporters?: readonly string[];
     }[];
   }): OfficialReportSnapshotDiff['files'] {

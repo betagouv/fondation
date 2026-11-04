@@ -13,14 +13,14 @@ import { authKeys } from '@queries/auth.queries';
 import { OfficialReportDocumentEditor } from './OfficialReportDocumentEditor';
 
 // the editor reads its blocks once: the key starts it again when a control changes them
-function OfficialReportDocumentEditorStory(props: BlocksState & { note: boolean }) {
+function OfficialReportDocumentEditorStory(props: BlocksState & { note: boolean; recusal: boolean }) {
   return (
     <StoryQueryClient seed={(client) => client.setQueryData(authKeys.introspectSession(), STORY_USERS.sg)}>
       <ToastProvider>
         <div className="fr-py-6v mx-auto w-full max-w-7xl">
           <OfficialReportDocumentEditor
             blocks={officialReportBlocks(props)}
-            key={`${props.note}-${props.outdated}-${props.rewritten}`}
+            key={`${props.note}-${props.outdated}-${props.recusal}-${props.rewritten}`}
             officialReportId="official-report-1"
             sessionId="session-1"
           />
@@ -31,7 +31,7 @@ function OfficialReportDocumentEditorStory(props: BlocksState & { note: boolean 
 }
 
 const meta = {
-  args: { note: true, outdated: false, rewritten: true },
+  args: { note: true, outdated: false, recusal: true, rewritten: true },
   component: OfficialReportDocumentEditorStory,
   parameters: {
     layout: 'fullscreen',

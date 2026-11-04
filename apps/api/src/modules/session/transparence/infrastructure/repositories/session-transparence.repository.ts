@@ -200,7 +200,7 @@ export class SessionTransparenceRepository {
       } else if (message instanceof SessionTransparenceFileMemberMemoWritten) {
         await this.persistSessionTransparenceFileMemberMemoWritten(message);
       } else if (message instanceof SessionTransparenceFileMembersRecused) {
-        await this.persistSessionTransparenceFileMembersRecused(message);
+        invalidations.push(await this.persistSessionTransparenceFileMembersRecused(message));
       } else if (message instanceof SessionTransparenceFileMissingEvaluationUpdated) {
         await this.persistSessionTransparenceFileMissingEvaluationUpdated(message);
       } else if (message instanceof SessionTransparenceFileMissingEvaluationCommentUpdated) {
@@ -720,7 +720,9 @@ export class SessionTransparenceRepository {
     });
   }
 
-  private async persistSessionTransparenceFileMembersRecused(message: SessionTransparenceFileMembersRecused) {
+  private async persistSessionTransparenceFileMembersRecused(
+    message: SessionTransparenceFileMembersRecused,
+  ): Promise<SessionDocInvalidation> {
     await this.db.tx.recusedMember.deleteMany({
       where: {
         OR: message.recusals.map(({ memberIds, nominationFileId }) => ({
@@ -735,6 +737,14 @@ export class SessionTransparenceRepository {
       ),
       skipDuplicates: true,
     });
+
+    return {
+      payload: {
+        nominationFileIds: message.recusals.map(({ nominationFileId }) => nominationFileId),
+        sessionId: message.sessionId,
+      },
+      type: 'NominationFilesRecusalsUpdated',
+    };
   }
 
   private async persistSessionTransparenceFileMissingEvaluationUpdated(

@@ -223,6 +223,7 @@ export class OfficialReportsService {
                 {
                   nominationFileId: file.id,
                   outcome: file.outcome,
+                  recusedMembers: file.recusedMembers.map(({ fullTitledName }) => fullTitledName),
                   reporters: file.reporters.map(({ fullTitledName }) => fullTitledName),
                 },
               ]
@@ -348,6 +349,16 @@ export class OfficialReportsService {
   }): Promise<void> {
     return this.withOfficialReport({ actorId: command.authorId, id: command.id }, (report) =>
       report.deleteFileNote({ nominationFileId: command.nominationFileId }),
+    );
+  }
+
+  resetOfficialReportFileNote(command: {
+    authorId: string;
+    id: string;
+    nominationFileId: string;
+  }): Promise<void> {
+    return this.withOfficialReport({ actorId: command.authorId, id: command.id }, (report) =>
+      report.resetFileNote({ nominationFileId: command.nominationFileId }),
     );
   }
 

@@ -84,7 +84,29 @@ const AGENDA_SOURCE = {
   fromAgenda: false,
 } as const;
 
-export function officialReportBlocks(state: BlocksState & { note?: boolean }): OfficialReportBlock[] {
+const NO_NOTE = { ...NO_EDITION, generatedHtml: null, html: null, outdated: false };
+const RECUSAL_OF_ONE =
+  "<p><em>Étant précisé que M.&nbsp;Paul&nbsp;FORGET n'a pas délibéré ni procédé aux actes préparatoires relatifs à cette proposition de nomination.</em></p>";
+const RECUSAL_OF_TWO =
+  "<p><em>Étant précisé que M.&nbsp;Paul&nbsp;FORGET et Mme&nbsp;Anne&nbsp;DUPONT n'ont pas délibéré ni procédé aux actes préparatoires relatifs à cette proposition de nomination.</em></p>";
+
+/** with `outdated`, the mention was rewritten by hand before a second member recused */
+function recusalNote(state: BlocksState & { recusal?: boolean }) {
+  if (!state.recusal) return NO_NOTE;
+
+  return state.outdated
+    ? {
+        ...EDITION,
+        generatedHtml: RECUSAL_OF_TWO,
+        html: RECUSAL_OF_ONE.replace('Paul', 'Paul (bâtonnier)'),
+        outdated: true,
+      }
+    : { ...NO_EDITION, generatedHtml: RECUSAL_OF_TWO, html: RECUSAL_OF_TWO, outdated: false };
+}
+
+export function officialReportBlocks(
+  state: BlocksState & { note?: boolean; recusal?: boolean },
+): OfficialReportBlock[] {
   return [
     {
       edited: false,
@@ -120,8 +142,8 @@ export function officialReportBlocks(state: BlocksState & { note?: boolean }): O
       name: 'MME Marie CURIE',
       nominationFileId: 'file-1',
       note: state.note
-        ? { ...EDITION, html: '<p>MME Marie CURIE a renoncé au délai de convocation.</p>' }
-        : null,
+        ? { ...NO_NOTE, ...EDITION, html: '<p>MME Marie CURIE a renoncé au délai de convocation.</p>' }
+        : NO_NOTE,
       outdated: false,
       weight: 3,
     },
@@ -139,7 +161,7 @@ export function officialReportBlocks(state: BlocksState & { note?: boolean }): O
       kind: 'file',
       name: 'MME Sophie GERMAIN',
       nominationFileId: 'file-2',
-      note: null,
+      note: recusalNote(state),
       outdated: false,
       weight: 4,
     },
@@ -152,7 +174,7 @@ export function officialReportBlocks(state: BlocksState & { note?: boolean }): O
       kind: 'file',
       name: 'MME Marguerite PEREY',
       nominationFileId: 'file-3',
-      note: null,
+      note: NO_NOTE,
       outdated: state.rewritten && state.outdated,
       weight: 5,
     },

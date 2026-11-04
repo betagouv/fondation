@@ -141,6 +141,8 @@ export class FoundDocsNominationFiles extends createZodDto(
             fullTitledName: z.string(),
           }),
         ),
+        /** in protocol order */
+        recusedMembers: z.array(z.object({ id: z.string(), fullTitledName: z.string() })),
 
         outcome: z
           .object({

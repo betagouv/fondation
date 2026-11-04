@@ -17,6 +17,9 @@ const CHANGES_SINCE_VALIDATION = defineMessages<SystemUpdateCause>({
     defaultMessage:
       "L'issue d'une proposition a changé. Le PV garde celle décidée en séance : la nouvelle sera restituée par la séance qui l'a décidée.",
   },
+  RECUSAL: {
+    defaultMessage: "Les membres déportés d'une proposition ont changé. Le PV garde ceux de la séance.",
+  },
   REPORTERS: {
     defaultMessage: "Les rapporteurs d'une proposition ont changé. Le PV garde ceux de la séance.",
   },

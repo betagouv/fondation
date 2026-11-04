@@ -36,10 +36,21 @@ enum PrismaDocSystemUpdateCauseEnum {
   AGENDA_PROPOSITIONS
   AGENDA_TEXT
   OUTCOME
+  RECUSAL
   REPORTERS
   SESSION_DATE
 
   @@map("doc_system_update_cause_enum")
+  @@schema("docs")
+}
+
+/// what the slot under a proposition prints: the recusal sentence, a text written in the PV, or nothing
+enum PrismaOfficialReportNoteStatusEnum {
+  GENERATED
+  EDITED
+  REMOVED
+
+  @@map("official_report_note_status_enum")
   @@schema("docs")
 }
 
@@ -272,9 +283,14 @@ model OfficialReportNominationFile {
   htmlFromAgenda Boolean   @default(false) @map("html_from_agenda")
   htmlEditedBy   String?   @map("html_edited_by") @db.Uuid
 
-  note         String?
-  noteEditedAt DateTime? @map("note_edited_at")
-  noteEditedBy String?   @map("note_edited_by") @db.Uuid
+  // the members as the recusal named them when it was last read, printed in protocol order
+  recusedMembers String[]                           @default([]) @map("recused_members")
+  note           String?
+  noteStatus     PrismaOfficialReportNoteStatusEnum @default(GENERATED) @map("note_status")
+  // the recusal changed since the slot was written or emptied by hand
+  noteOutdated   Boolean                            @default(false) @map("note_outdated")
+  noteEditedAt   DateTime?                          @map("note_edited_at")
+  noteEditedBy   String?                            @map("note_edited_by") @db.Uuid
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

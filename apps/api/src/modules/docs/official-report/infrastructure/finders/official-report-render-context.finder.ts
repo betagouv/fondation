@@ -19,6 +19,7 @@ import { OfficialReportMember } from '../../domain/official-report-member';
 import { OfficialReportMembersList } from '../../domain/official-report-member-list';
 import { OfficialReportSecretary } from '../../domain/official-report-secretary';
 import { OfficialReportSessionMeeting } from '../../domain/official-report-session-meeting';
+import { officialReportFileNote } from '../services/renderers/official-report-note.html';
 import type { OfficialReportRenderContext } from '../services/renderers/official-report.renderer';
 
 import { OfficialReportVersionFinder } from './official-report-version.finder';
@@ -82,9 +83,12 @@ export class OfficialReportRenderContextFinder {
             note: true,
             noteEditedAt: true,
             noteEditor: { select: { firstName: true, id: true, lastName: true } },
+            noteOutdated: true,
+            noteStatus: true,
             number: true,
             outcome: true,
             position: true,
+            recusedMembers: true,
             reporters: true,
             targetedGrade: true,
             targetedPosition: true,
@@ -288,7 +292,7 @@ export class OfficialReportRenderContextFinder {
         nominationFileId: isDefined(f.nominationFileId)
           ? makeId('NominationFileId', f.nominationFileId)
           : null,
-        note: f.note ? { editedAt: f.noteEditedAt, editedBy: writerOf(f.noteEditor), html: f.note } : null,
+        note: officialReportFileNote(f),
         number: f.number,
         outcome: f.outcome,
         reporters: f.reporters,

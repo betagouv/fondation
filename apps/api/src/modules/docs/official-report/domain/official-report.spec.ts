@@ -11,6 +11,7 @@ import {
   OfficialReportDraftUpdatedBySystem,
   OfficialReportFileNoteDeleted,
   OfficialReportFileNoteEdited,
+  OfficialReportFileNoteReset,
   OfficialReportFileNotHeld,
   OfficialReportFileReset,
   OfficialReportIntroEdited,
@@ -25,7 +26,10 @@ import {
   OfficialReportSnapshot,
   type PlainOfficialReportSnapshot,
 } from './snapshot/official-report-snapshot';
-import { OfficialReportSnapshotFile } from './snapshot/official-report-snapshot-file';
+import {
+  OfficialReportSnapshotFile,
+  type PlainOfficialReportSnapshotFile,
+} from './snapshot/official-report-snapshot-file';
 
 const AUTHOR = 'author-1';
 const VALIDATED_AT = new Date('2026-06-08T09:00:00.000Z');
@@ -58,6 +62,7 @@ function sameMetadataOf(report: OfficialReport): UpdateOfficialReportCommand['of
       {
         nominationFileId: 'file-1',
         outcome: { comment: null, value: 'VALIDATED' },
+        recusedMembers: [],
         reporters: ['M. John DOE'],
       },
     ],
@@ -169,7 +174,10 @@ describe('OfficialReport', () => {
   });
 
   describe('a note under a proposition', () => {
-    const withNote = (state: { isValidated?: boolean } = {}) =>
+    const withFile = (
+      state: { actorId?: string | null; isValidated?: boolean },
+      file: Pick<PlainOfficialReportSnapshotFile, 'note' | 'recusedMembers'>,
+    ) =>
       makeReport({
         ...state,
         snapshot: {
@@ -177,15 +185,25 @@ describe('OfficialReport', () => {
             [
               'file-1',
               OfficialReportSnapshotFile.from({
+                ...file,
                 hasManuallyEditedHtml: false,
                 nominationFileId: 'file-1',
-                note: '<p>note</p>',
                 outcome: { comment: null, value: 'VALIDATED' },
                 reporters: ['M. John DOE'],
               }),
             ],
           ]),
         },
+      });
+    const withNote = (state: { isValidated?: boolean } = {}) =>
+      withFile(state, {
+        note: { html: '<p>note</p>', outdated: false, status: 'EDITED' },
+        recusedMembers: [],
+      });
+    const withRecusal = (state: { actorId?: string | null; isValidated?: boolean } = {}) =>
+      withFile(state, {
+        note: { html: null, outdated: false, status: 'GENERATED' },
+        recusedMembers: ['M. Paul FORGET'],
       });
 
     it('should be written by the person who edits the report', () => {
@@ -214,8 +232,50 @@ describe('OfficialReport', () => {
 
       expect(report.messages).toEqual([
         new OfficialReportDraftEdited(report.id, AUTHOR),
-        new OfficialReportFileNoteDeleted(report.id, 'file-1'),
+        new OfficialReportFileNoteDeleted(report.id, 'file-1', 'GENERATED'),
       ]);
+    });
+
+    it('should remove the recusal mention from the report only', () => {
+      const report = withRecusal();
+
+      report.deleteFileNote({ nominationFileId: 'file-1' });
+
+      expect(report.messages).toEqual([
+        new OfficialReportDraftEdited(report.id, AUTHOR),
+        new OfficialReportFileNoteDeleted(report.id, 'file-1', 'REMOVED'),
+      ]);
+    });
+
+    it('should give the slot back to the recusal sentence', () => {
+      const report = withNote();
+
+      report.resetFileNote({ nominationFileId: 'file-1' });
+
+      expect(report.messages).toEqual([
+        new OfficialReportDraftEdited(report.id, AUTHOR),
+        new OfficialReportFileNoteReset(report.id, 'file-1'),
+      ]);
+    });
+
+    it('should leave a slot that already follows the recusal as it is', () => {
+      const report = withRecusal({ isValidated: true });
+
+      report.resetFileNote({ nominationFileId: 'file-1' });
+
+      expect(report.messages).toEqual([]);
+    });
+
+    it('should keep the recusal it reports once validated and only say it changed', () => {
+      const report = withRecusal({ actorId: null, isValidated: true });
+
+      report.invalidate({
+        id: report.id,
+        payload: { files: [{ nominationFileId: 'file-1', recusedMembers: [] }] },
+        type: 'NominationFilesRecusalsUpdated',
+      });
+
+      expect(report.messages).toEqual([new OfficialReportUpdateSkipped(report.id, 'RECUSAL')]);
     });
 
     it('should leave a validated report as it is when there is no note to delete', () => {
@@ -290,8 +350,9 @@ describe('OfficialReport', () => {
               OfficialReportSnapshotFile.from({
                 hasManuallyEditedHtml: false,
                 nominationFileId: 'file-1',
-                note: null,
+                note: { html: null, outdated: false, status: 'GENERATED' },
                 outcome: { comment: null, value: 'SUSPENDED' },
+                recusedMembers: [],
                 reporters: ['M. John DOE'],
               }),
             ],

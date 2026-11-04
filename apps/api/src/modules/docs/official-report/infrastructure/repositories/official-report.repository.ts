@@ -8,7 +8,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { Prisma, PrismaDocsFileOutcomeEnum } from '../../../../../generated/prisma/client';
+import {
+  Prisma,
+  PrismaDocsFileOutcomeEnum,
+  PrismaOfficialReportNoteStatusEnum,
+} from '../../../../../generated/prisma/client';
 import { assertNever } from '../../../../../utils/assert-never';
 import { DateOnly } from '../../../../../utils/date-only';
 import { makeId } from '../../../../../utils/id';
@@ -31,6 +35,7 @@ import {
   OfficialReportDeleted,
   OfficialReportFileNoteDeleted,
   OfficialReportFileNoteEdited,
+  OfficialReportFileNoteReset,
   OfficialReportFileReset,
   OfficialReportIntroEdited,
   OfficialReportIntroReset,
@@ -232,8 +237,11 @@ export class OfficialReportRepository {
         id: bigint;
         nominationFileId: string | null;
         note: string | null;
+        noteOutdated: boolean;
+        noteStatus: PrismaOfficialReportNoteStatusEnum;
         outcome: PrismaDocsFileOutcomeEnum;
         outcomeComment: string | null;
+        recusedMembers: string[];
         reporters: string[];
       }[] = await this.db.tx.officialReportNominationFile.findMany({
         cursor: isDefined(cursor) ? { id: cursor } : undefined,
@@ -244,8 +252,11 @@ export class OfficialReportRepository {
           id: true,
           nominationFileId: true,
           note: true,
+          noteOutdated: true,
+          noteStatus: true,
           outcome: true,
           outcomeComment: true,
+          recusedMembers: true,
           reporters: true,
         } satisfies Prisma.OfficialReportNominationFileSelect,
         skip: isDefined(cursor) ? 1 : 0,
@@ -264,8 +275,9 @@ export class OfficialReportRepository {
             // a sentence taken from the agenda is the agenda's to keep up to date, not the report's
             hasManuallyEditedHtml: !file.htmlFromAgenda && (file.htmlEdited ?? '').trim().length > 0,
             nominationFileId: file.nominationFileId,
-            note: file.note,
+            note: { html: file.note, outdated: file.noteOutdated, status: file.noteStatus },
             outcome: { comment: file.outcomeComment, value: file.outcome },
+            recusedMembers: file.recusedMembers,
             reporters: file.reporters,
           }),
         );
@@ -298,6 +310,8 @@ export class OfficialReportRepository {
         await this.persistOfficialReportFileNoteEdited(message);
       } else if (message instanceof OfficialReportFileNoteDeleted) {
         await this.persistOfficialReportFileNoteDeleted(message);
+      } else if (message instanceof OfficialReportFileNoteReset) {
+        await this.persistOfficialReportFileNoteReset(message);
       } else if (message instanceof OfficialReportSectionTitleEdited) {
         await this.persistOfficialReportSectionTitleEdited(message);
       } else if (message instanceof OfficialReportSectionTitleReset) {
@@ -442,6 +456,19 @@ export class OfficialReportRepository {
       });
     }
 
+    for (const file of message.diff.files) {
+      if (file.action !== 'recuse') continue;
+
+      await this.db.tx.officialReportNominationFile.updateMany({
+        data: {
+          noteOutdated: { follow: undefined, generate: false, outdate: true }[file.note],
+          noteStatus: file.note === 'generate' ? 'GENERATED' : undefined,
+          recusedMembers: [...file.recusedMembers],
+        },
+        where: { nominationFileId: file.nominationFileId, versionId: editedVersionId },
+      });
+    }
+
     const filesToDelete = message.diff.files
       .filter((file) => file.action === 'delete')
       .map((file) => file.nominationFileId);
@@ -565,6 +592,7 @@ export class OfficialReportRepository {
           outcome: f.outcome.value,
           outcomeComment: f.outcome.comment,
           position: f.magistrat.position.label,
+          recusedMembers: f.recusedMembers.map((m) => m.fullTitledName),
           reporters: f.reporters.map((r) => r.fullTitledName),
           targetedGrade: f.targetPosition.grade,
           targetedPosition: f.targetPosition.label,
@@ -682,7 +710,13 @@ export class OfficialReportRepository {
   private async persistOfficialReportFileNoteEdited(message: OfficialReportFileNoteEdited) {
     const versionId = await this.officialReportVersionFinder.latest(message);
     await this.db.tx.officialReportNominationFile.updateMany({
-      data: { note: message.html, noteEditedAt: this.clock.now(), noteEditedBy: message.authorId },
+      data: {
+        note: message.html,
+        noteEditedAt: this.clock.now(),
+        noteEditedBy: message.authorId,
+        noteOutdated: false,
+        noteStatus: 'EDITED',
+      },
       where: { nominationFileId: message.nominationFileId, versionId },
     });
 
@@ -690,9 +724,28 @@ export class OfficialReportRepository {
   }
 
   private async persistOfficialReportFileNoteDeleted(message: OfficialReportFileNoteDeleted) {
+    await this.emptyFileNote(message);
+  }
+
+  private async persistOfficialReportFileNoteReset(message: OfficialReportFileNoteReset) {
+    const { nominationFileId, officialReportId } = message;
+    await this.emptyFileNote({ nominationFileId, officialReportId, status: 'GENERATED' });
+  }
+
+  private async emptyFileNote(message: {
+    nominationFileId: string;
+    officialReportId: string;
+    status: PrismaOfficialReportNoteStatusEnum;
+  }) {
     const versionId = await this.officialReportVersionFinder.latest(message);
     await this.db.tx.officialReportNominationFile.updateMany({
-      data: { note: null, noteEditedAt: null, noteEditedBy: null },
+      data: {
+        note: null,
+        noteEditedAt: null,
+        noteEditedBy: null,
+        noteOutdated: false,
+        noteStatus: message.status,
+      },
       where: { nominationFileId: message.nominationFileId, versionId },
     });
 
@@ -855,7 +908,13 @@ export class OfficialReportRepository {
         id: makeId('OfficialReportVersionId'),
         members: { createMany: { data: members } },
         nominationFiles: {
-          createMany: { data: nominationFiles.map((file) => ({ ...file, reporters: [...file.reporters] })) },
+          createMany: {
+            data: nominationFiles.map((file) => ({
+              ...file,
+              recusedMembers: [...file.recusedMembers],
+              reporters: [...file.reporters],
+            })),
+          },
         },
         pdfId: null,
         sectionIntros: { createMany: { data: sectionIntros } },
@@ -926,7 +985,7 @@ export class OfficialReportRepository {
           { introHtml: { not: null } },
           { conclusionHtml: { not: null } },
           { nominationFiles: { some: { htmlEdited: { not: null } } } },
-          { nominationFiles: { some: { note: { not: null } } } },
+          { nominationFiles: { some: { noteStatus: { not: 'GENERATED' } } } },
           { sectionIntros: { some: {} } },
           { sectionTitles: { some: { title: { not: null } } } },
         ],
@@ -948,6 +1007,7 @@ export class OfficialReportRepository {
           { introOutdated: true },
           { conclusionOutdated: true },
           { nominationFiles: { some: { htmlOutdated: true } } },
+          { nominationFiles: { some: { noteOutdated: true } } },
         ],
       },
     });

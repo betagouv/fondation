@@ -361,6 +361,21 @@ export class OfficialReportsController {
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Delete('/official-reports/:officialReportId/blocks/files/:nominationFileId/note/edition')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  resetOfficialReportFileNote(
+    @AuthedUser() authUser: { id: string },
+    @Param('officialReportId') officialReportId: string,
+    @Param('nominationFileId') nominationFileId: string,
+  ): Promise<void> {
+    return this.officialReports.resetOfficialReportFileNote({
+      authorId: authUser.id,
+      id: officialReportId,
+      nominationFileId,
+    });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @Delete('/official-reports/:officialReportId')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteOfficialReport(@Param('officialReportId') officialReportId: string): Promise<void> {
