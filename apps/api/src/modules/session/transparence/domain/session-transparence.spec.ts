@@ -13,6 +13,7 @@ import {
   LodamSessionTransparenceFilesCreated,
   MemberMemoNotAllowed,
   NonFormationMemberDefinedAsReporter,
+  NonFormationMemberRecused,
   PositionAuditionCannotBeDismissed,
   SessionTransparence,
   SessionTransparenceAffectationHasUnassignableReporters,
@@ -26,6 +27,7 @@ import {
   SessionTransparenceFileAttachmentAdded,
   SessionTransparenceFileAttachmentRemoved,
   SessionTransparenceFileMemberMemoWritten,
+  SessionTransparenceFileMembersRecused,
   SessionTransparenceFileMissingEvaluationCommentUpdated,
   SessionTransparenceFileMissingEvaluationUpdated,
   SessionTransparenceFilePrioritiesUpdated,
@@ -1248,6 +1250,98 @@ describe('SessionTransparence', () => {
           user: member,
         }),
       ).toThrow(MemberMemoNotAllowed);
+    });
+  });
+
+  describe('recuseMembers', () => {
+    const session = (file: { isReported: boolean; outcome: NominationFileOutcomeEnum | null }) =>
+      SessionTransparence.from({
+        formation: 'SIEGE',
+        id: 'session-id',
+        nominationFiles: [
+          { ...file, auditionRequired: false, id: 'nomination-file-id-1', positionRequiresAudition: false },
+        ],
+        version: null,
+      });
+    const pendingFile = { isReported: false, outcome: null };
+
+    it('records each member who recuses themselves once', () => {
+      const transparence = session(pendingFile);
+      transparence.recuseMembers({
+        authorId: 'sg-1',
+        formationMemberIds: new Set(['member-1', 'member-2']),
+        memberIds: ['member-1', 'member-2', 'member-1'],
+        nominationFileId: 'nomination-file-id-1',
+        recusedMemberIds: new Set(),
+      });
+
+      expect(transparence.messages).toEqual([
+        new SessionTransparenceFileMembersRecused(
+          'session-id',
+          'nomination-file-id-1',
+          ['member-1', 'member-2'],
+          'sg-1',
+        ),
+      ]);
+    });
+
+    it('records a recusal on a file whose decision is final', () => {
+      const transparence = session({ isReported: false, outcome: 'VALIDATED' });
+      transparence.recuseMembers({
+        authorId: 'sg-1',
+        formationMemberIds: new Set(['member-1']),
+        memberIds: ['member-1'],
+        nominationFileId: 'nomination-file-id-1',
+        recusedMemberIds: new Set(),
+      });
+
+      expect(transparence.messages).toEqual([
+        new SessionTransparenceFileMembersRecused('session-id', 'nomination-file-id-1', ['member-1'], 'sg-1'),
+      ]);
+    });
+
+    it('keeps a member deactivated since among the recused members', () => {
+      const transparence = session(pendingFile);
+      transparence.recuseMembers({
+        authorId: 'sg-1',
+        formationMemberIds: new Set(['member-1']),
+        memberIds: ['member-1', 'deactivated-member'],
+        nominationFileId: 'nomination-file-id-1',
+        recusedMemberIds: new Set(['deactivated-member']),
+      });
+
+      expect(transparence.messages).toEqual([
+        new SessionTransparenceFileMembersRecused(
+          'session-id',
+          'nomination-file-id-1',
+          ['member-1', 'deactivated-member'],
+          'sg-1',
+        ),
+      ]);
+    });
+
+    it('refuses a member of another formation or deactivated', () => {
+      expect(() =>
+        session(pendingFile).recuseMembers({
+          authorId: 'sg-1',
+          formationMemberIds: new Set(['member-1']),
+          memberIds: ['member-1', 'other-member'],
+          nominationFileId: 'nomination-file-id-1',
+          recusedMemberIds: new Set(),
+        }),
+      ).toThrow(NonFormationMemberRecused);
+    });
+
+    it('refuses a recusal on a reported file', () => {
+      expect(() =>
+        session({ isReported: true, outcome: 'VALIDATED' }).recuseMembers({
+          authorId: 'sg-1',
+          formationMemberIds: new Set(['member-1']),
+          memberIds: [],
+          nominationFileId: 'nomination-file-id-1',
+          recusedMemberIds: new Set(),
+        }),
+      ).toThrow(CantUpdateNominationFiles);
     });
   });
 });

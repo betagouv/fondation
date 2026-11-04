@@ -1,4 +1,4 @@
-import { unaccent } from '../../../../utils/unaccent';
+import { byProtocolOrder } from '../../../shared/protocol-order';
 
 import { OfficialReportMember } from './official-report-member';
 
@@ -6,10 +6,7 @@ export class OfficialReportMembersList {
   private constructor(readonly members: Map<string, OfficialReportMember>) {}
 
   toSortedArray(): readonly OfficialReportMember[] {
-    return this.members
-      .values()
-      .toArray()
-      .sort((a, b) => a.sort - b.sort || unaccent(a.lastName).localeCompare(unaccent(b.lastName)));
+    return this.members.values().toArray().sort(byProtocolOrder);
   }
 
   map<U>(mapper: (value: OfficialReportMember) => U): U[] {

@@ -29,6 +29,8 @@ import type {
   ListedObservationsAttachmentsDto,
   ListObservationsResponseDto,
   PaginatedMemberListItemDto,
+  RecusedMembersDto,
+  RecuseMembersDto,
   SearchMagistratsResponseDto,
   UpdateObservationDto,
 } from '@api/types';
@@ -57,6 +59,7 @@ type SidePanelArgs = {
   hasAnnouncedObservers: boolean;
   hasAttachments: boolean;
   hasObservations: boolean;
+  hasRecusedMembers: boolean;
   lockedReason: (typeof LOCKED_REASONS)[number];
   missingEvaluation: boolean;
   outcome: (typeof OUTCOMES)[number];
@@ -202,6 +205,7 @@ function makeNominationFile(args: SidePanelArgs): SessionNominationFile {
     // the members are not told who wanted the audition
     auditionRequirement: isSg && isAuditionedPosition ? 'POSITION' : null,
     auditionTime: args.audition === 'scheduled' ? { hours: 14, minutes: 30, seconds: 0 } : null,
+    canRecuseMembers: isSg && lockedReason === null,
     canScheduleAudition:
       lockedReason !== 'ARCHIVED_SESSION' && (outcome === null || PENDING_OUTCOMES.has(outcome)),
     comment: 'Candidature soutenue par la cheffe de cour, à rapprocher du profil attendu.',
@@ -252,6 +256,7 @@ function makeNominationFile(args: SidePanelArgs): SessionNominationFile {
         }))
       : [],
     priorities: ['ETOILE'],
+    recusedMembers: isSg ? (args.hasRecusedMembers ? [READER] : []) : null,
     reporters: REPORTERS,
     summary: args.summary === 'readable' ? { canRead: true, canWrite: isSg, id } : null,
   });
@@ -292,6 +297,19 @@ const handlers = [
     }),
   ),
   http.post('*/api/sessions/v2/:sessionId/files/reporters', noContent),
+  http.put('*/api/sessions/v2/:sessionId/files/:nominationFileId/recused-members', async ({ request }) => {
+    const { memberIds } = (await request.json()) as RecuseMembersDto;
+
+    return HttpResponse.json<RecusedMembersDto>({
+      recusedMembers: MEMBERS.filter(({ id }) => memberIds.includes(id)).map(
+        ({ firstName, id, lastName }) => ({
+          firstName,
+          id,
+          lastName,
+        }),
+      ),
+    });
+  }),
   http.put('*/api/sessions/v2/:sessionId/files/priorities', noContent),
 
   http.get('*/api/sessions/v2/:sessionId/files/:nominationFileId/summary/readers', () =>
@@ -503,6 +521,7 @@ const meta = {
     hasAnnouncedObservers: false,
     hasAttachments: true,
     hasObservations: true,
+    hasRecusedMembers: true,
     lockedReason: NONE,
     missingEvaluation: false,
     outcome: NONE,
@@ -518,6 +537,7 @@ const meta = {
     hasAnnouncedObservers: { control: 'boolean' },
     hasAttachments: { control: 'boolean' },
     hasObservations: { control: 'boolean' },
+    hasRecusedMembers: { control: 'boolean', description: 'seen by the SG only' },
     lockedReason: {
       control: 'inline-radio',
       description:

@@ -1,6 +1,12 @@
 import { NominationFileOutcome } from '../nomination-file-outcome.enum';
 
-import { canKeepMemberMemo, canScheduleAudition, nominationFileLock } from './nomination-file.policies';
+import {
+  canKeepMemberMemo,
+  canRecuseMembers,
+  canScheduleAudition,
+  canSeeRecusedMembers,
+  nominationFileLock,
+} from './nomination-file.policies';
 
 describe('nominationFileLock', () => {
   describe('given a non-archived session', () => {
@@ -72,5 +78,37 @@ describe('canKeepMemberMemo', () => {
 
   it.each(['ADJOINT_SECRETAIRE_GENERAL'] as const)('keeps the secretariat (%s) from taking notes', (role) => {
     expect(canKeepMemberMemo({ reporterIds: [] }, { id: 'sg-1', role })).toBe(false);
+  });
+});
+
+describe('canSeeRecusedMembers', () => {
+  it('shows the recusals to the secretariat', () => {
+    expect(canSeeRecusedMembers({ role: 'ADJOINT_SECRETAIRE_GENERAL' })).toBe(true);
+  });
+
+  it.each(['MEMBRE_COMMUN', 'MEMBRE_DU_PARQUET', 'MEMBRE_DU_SIEGE'] as const)(
+    'leaves a member (%s) to learn them from the official report',
+    (role) => {
+      expect(canSeeRecusedMembers({ role })).toBe(false);
+    },
+  );
+});
+
+describe('canRecuseMembers', () => {
+  const secretariat = { role: 'ADJOINT_SECRETAIRE_GENERAL' } as const;
+
+  it('lets the secretariat record the recusals of an open file', () => {
+    expect(canRecuseMembers({ lockedReason: null }, secretariat)).toBe(true);
+  });
+
+  it.each(['ARCHIVED_SESSION', 'REPORTED'] as const)(
+    'freezes the recusals of a locked file (%s)',
+    (lockedReason) => {
+      expect(canRecuseMembers({ lockedReason }, secretariat)).toBe(false);
+    },
+  );
+
+  it('never lets a member record them', () => {
+    expect(canRecuseMembers({ lockedReason: null }, { role: 'MEMBRE_DU_SIEGE' })).toBe(false);
   });
 });

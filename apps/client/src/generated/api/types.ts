@@ -384,6 +384,7 @@ export type PaginatedNominationFiles = {
         };
         comment: string | null;
         canScheduleAudition: boolean;
+        canRecuseMembers: boolean;
         auditionDate: {
             year: number;
             month: number;
@@ -404,6 +405,14 @@ export type PaginatedNominationFiles = {
             firstName: string;
             lastName: string;
         }>;
+        /**
+         * in protocol order, null for a member
+         */
+        recusedMembers: Array<{
+            firstName: string;
+            id: string;
+            lastName: string;
+        }> | null;
         observations: Array<{
             id: string;
             audition: {
@@ -512,6 +521,21 @@ export type UpdateMissingEvaluationDto = {
 
 export type UpdateMissingEvaluationCommentDto = {
     comment: string | null;
+};
+
+export type RecuseMembersDto = {
+    memberIds: Array<string>;
+};
+
+export type RecusedMembersDto = {
+    /**
+     * in protocol order
+     */
+    recusedMembers: Array<{
+        firstName: string;
+        id: string;
+        lastName: string;
+    }>;
 };
 
 export type DetailedNominationFileAuditionHistoryDto = {
@@ -671,6 +695,7 @@ export type DetailedNominationFileDto = {
     };
     comment: string | null;
     canScheduleAudition: boolean;
+    canRecuseMembers: boolean;
     auditionDate: {
         year: number;
         month: number;
@@ -691,6 +716,14 @@ export type DetailedNominationFileDto = {
         firstName: string;
         lastName: string;
     }>;
+    /**
+     * in protocol order, null for a member
+     */
+    recusedMembers: Array<{
+        firstName: string;
+        id: string;
+        lastName: string;
+    }> | null;
     observations: Array<{
         id: string;
         audition: {
@@ -3345,6 +3378,22 @@ export type UpdateNominationFileMissingEvaluationCommentResponses = {
 };
 
 export type UpdateNominationFileMissingEvaluationCommentResponse = UpdateNominationFileMissingEvaluationCommentResponses[keyof UpdateNominationFileMissingEvaluationCommentResponses];
+
+export type RecuseMembersData = {
+    body: RecuseMembersDto;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/recused-members';
+};
+
+export type RecuseMembersResponses = {
+    200: RecusedMembersDto;
+};
+
+export type RecuseMembersResponse = RecuseMembersResponses[keyof RecuseMembersResponses];
 
 export type DetailNominationFileAuditionHistoryData = {
     body?: never;

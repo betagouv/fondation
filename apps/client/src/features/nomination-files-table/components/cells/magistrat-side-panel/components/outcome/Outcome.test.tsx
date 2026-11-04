@@ -27,6 +27,8 @@ vi.mock('../../../nomination-file-outcome/OutcomeCommentModalContext', () => ({
   useOutcomeCommentDialog: () => ({ waitForOutcomeComment: vi.fn() }),
 }));
 
+vi.mock('../recused-members/RecusedMembers', () => ({ RecusedMembers: () => <p>Membres déportés</p> }));
+
 vi.mock('@queries/nomination-sessions.queries', async (orig) => ({
   ...(await orig<object>()),
   useDefineNominationFileOutcomeMutation: () => ({ mutate: vi.fn(), reset: vi.fn() }),
@@ -34,10 +36,15 @@ vi.mock('@queries/nomination-sessions.queries', async (orig) => ({
 
 const OUTCOME = { value: 'VALIDATED', comment: 'Avis favorable' } as const;
 
-function renderOutcome(lockedReason: SessionNominationFileLockedReason) {
+function renderOutcome(lockedReason: SessionNominationFileLockedReason, seesRecusals = true) {
   return render(
     <IntlProvider defaultLocale="fr" locale="fr">
-      <Outcome nominationFile={makeSessionNominationFile({ content: { lockedReason, outcome: OUTCOME } })} />
+      <Outcome
+        nominationFile={makeSessionNominationFile({
+          content: { lockedReason, outcome: OUTCOME },
+          recusedMembers: seesRecusals ? [] : null,
+        })}
+      />
     </IntlProvider>,
   );
 }
@@ -58,6 +65,21 @@ describe('Outcome', () => {
 
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
     expect(screen.getByText('Avis favorable')).toBeVisible();
+  });
+
+  it('gathers the recusal with the outcome when the API serves it', () => {
+    renderOutcome(null);
+
+    expect(screen.getByText('Déport et issue')).toBeVisible();
+    expect(screen.getByText('Membres déportés')).toBeVisible();
+  });
+
+  it('shows the outcome alone when the API keeps the recusals from the user', () => {
+    mocks.isSg.mockReturnValue(false);
+    renderOutcome(null, false);
+
+    expect(screen.getByText('Issue')).toBeVisible();
+    expect(screen.queryByText('Membres déportés')).not.toBeInTheDocument();
   });
 
   it('shows the comment to a member without letting them change it', () => {

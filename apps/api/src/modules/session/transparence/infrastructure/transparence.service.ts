@@ -27,7 +27,7 @@ import { TypeDeSaisineEnum } from '../../../shared/type-de-saisine.enum';
 import { SessionTransparence } from '../domain/session-transparence';
 import { LodamTransparenceFile } from '../domain/transparence-file';
 
-import { ListNominationFilesQueryDto } from './dtos/nomination-file.dto';
+import { ListNominationFilesQueryDto, type RecusedMembersDto } from './dtos/nomination-file.dto';
 import { CountedSessionAuditionsDto, ListedSessionAuditionsDto } from './dtos/session-audition.dto';
 import {
   ListArchivedSessionsQueryDto,
@@ -48,6 +48,7 @@ import {
   type NominationFileProgress,
   NominationFilesProgressFinder,
 } from './finders/nomination-files-progress.finder';
+import { RecusedMembersFinder } from './finders/recused-members.finder';
 import { ReportedSessionsFinder } from './finders/reported-sessions.finder';
 import { ReportersAffectationFinder } from './finders/reporters-affectation.finder';
 import { SynchronisedLolfiSessionsFinder } from './finders/synchronised-lolfi-sessions.finder';
@@ -160,6 +161,7 @@ export class TransparenceService {
     private readonly listArchivedNominationSessionsQuery: ListArchivedNominationSessionsQuery,
     private readonly nominationSessionFileFinder: TransparenceFilesFinder,
     private readonly nominationSessionRepository: SessionTransparenceRepository,
+    private readonly recusedMembersFinder: RecusedMembersFinder,
     private readonly listCurrentlyAffectedReportersQuery: ListCurrentlyAffectedReportersQuery,
     private readonly countUnaffectedFilesQuery: CountUnaffectedFilesQuery,
     private readonly countNominationFilesByStatusQuery: CountNominationFilesByStatusQuery,
@@ -407,6 +409,32 @@ export class TransparenceService {
     });
 
     await this.nominationSessionRepository.persist(session);
+  }
+
+  @Transactional()
+  async recuseMembers(command: {
+    authorId: string;
+    memberIds: readonly string[];
+    nominationFileId: string;
+    sessionId: string;
+  }): Promise<RecusedMembersDto> {
+    const nominationFileIds = new Set([command.nominationFileId]);
+    const session = await this.nominationSessionRepository.find(command.sessionId, { nominationFileIds });
+
+    const formerRecusals = await this.recusedMembersFinder.find({ nominationFileIds });
+    const formationMemberIds = await this.members
+      .findMembers({ formation: session.formation, ids: command.memberIds })
+      .then((ids) => new Set(ids));
+
+    session.recuseMembers({
+      ...command,
+      formationMemberIds,
+      recusedMemberIds: new Set(formerRecusals.get(command.nominationFileId)?.map(({ id }) => id)),
+    });
+    await this.nominationSessionRepository.persist(session);
+
+    const recusals = await this.recusedMembersFinder.find({ nominationFileIds });
+    return { recusedMembers: recusals.get(command.nominationFileId) ?? [] };
   }
 
   @Transactional()

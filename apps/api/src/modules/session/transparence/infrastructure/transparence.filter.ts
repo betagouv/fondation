@@ -17,6 +17,7 @@ import {
   CantUpdateNominationFiles,
   MemberMemoNotAllowed,
   NonFormationMemberDefinedAsReporter,
+  NonFormationMemberRecused,
   PositionAuditionCannotBeDismissed,
   SessionTransparenceAffectationHasUnassignableReporters,
   SessionTransparenceIsArchived,
@@ -32,7 +33,10 @@ export class TransparenceExceptionFilter implements NestInterceptor {
     return next.handle().pipe(
       catchError((err) => {
         return throwError(() => {
-          if (err instanceof NonFormationMemberDefinedAsReporter) {
+          if (
+            err instanceof NonFormationMemberDefinedAsReporter ||
+            err instanceof NonFormationMemberRecused
+          ) {
             return new BadRequestException({ message: err.message }, { cause: err });
           }
 

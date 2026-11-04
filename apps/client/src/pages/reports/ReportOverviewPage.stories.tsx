@@ -39,6 +39,7 @@ const NOMINATION_FILE: DetailedNominationFileDto = {
   auditionRequired: true,
   auditionRequirement: 'POSITION',
   auditionTime: { hours: 14, minutes: 30, seconds: 0 },
+  canRecuseMembers: false,
   canScheduleAudition: true,
   comment: null,
   content: {
@@ -75,6 +76,7 @@ const NOMINATION_FILE: DetailedNominationFileDto = {
   missingEvaluationComment: null,
   observations: [],
   priorities: ['ETOILE'],
+  recusedMembers: null,
   reporters: [{ firstName: 'Jean', id: STORY_USERS.member.id, lastName: 'Petit' }],
   summary: null,
 };

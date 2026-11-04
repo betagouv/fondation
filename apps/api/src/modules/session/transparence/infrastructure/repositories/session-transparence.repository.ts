@@ -43,6 +43,7 @@ import {
   SessionTransparenceFileAttachmentAdded,
   SessionTransparenceFileAttachmentRemoved,
   SessionTransparenceFileMemberMemoWritten,
+  SessionTransparenceFileMembersRecused,
   SessionTransparenceFileMissingEvaluationCommentUpdated,
   SessionTransparenceFileMissingEvaluationUpdated,
   SessionTransparenceFilePrioritiesUpdated,
@@ -198,6 +199,8 @@ export class SessionTransparenceRepository {
         await this.persistSessionTransparenceAuditionUnScheduled(message);
       } else if (message instanceof SessionTransparenceFileMemberMemoWritten) {
         await this.persistSessionTransparenceFileMemberMemoWritten(message);
+      } else if (message instanceof SessionTransparenceFileMembersRecused) {
+        await this.persistSessionTransparenceFileMembersRecused(message);
       } else if (message instanceof SessionTransparenceFileMissingEvaluationUpdated) {
         await this.persistSessionTransparenceFileMissingEvaluationUpdated(message);
       } else if (message instanceof SessionTransparenceFileMissingEvaluationCommentUpdated) {
@@ -714,6 +717,17 @@ export class SessionTransparenceRepository {
       create: { memo, nominationFileId, userId },
       update: { memo },
       where: { primaryKey: { nominationFileId, userId } },
+    });
+  }
+
+  private async persistSessionTransparenceFileMembersRecused(message: SessionTransparenceFileMembersRecused) {
+    const { authorId, memberIds, nominationFileId } = message;
+    await this.db.tx.recusedMember.deleteMany({
+      where: { nominationFileId, userId: { notIn: [...memberIds] } },
+    });
+    await this.db.tx.recusedMember.createMany({
+      data: memberIds.map((userId) => ({ createdBy: authorId, nominationFileId, userId })),
+      skipDuplicates: true,
     });
   }
 

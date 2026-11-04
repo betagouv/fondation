@@ -204,6 +204,15 @@ export class SessionTransparenceFileMemberMemoWritten {
   ) {}
 }
 
+export class SessionTransparenceFileMembersRecused {
+  constructor(
+    readonly sessionId: string,
+    readonly nominationFileId: string,
+    readonly memberIds: readonly string[],
+    readonly authorId: string,
+  ) {}
+}
+
 export class SessionTransparenceFileAlertHidden {
   constructor(
     readonly sessionId: string,
@@ -257,6 +266,7 @@ type NominationSessionEvent =
   | SessionTransparenceAuditionUnScheduled
   | SessionTransparenceCommentWritten
   | SessionTransparenceFileMemberMemoWritten
+  | SessionTransparenceFileMembersRecused
   | SessionTransparenceFileMissingEvaluationUpdated
   | SessionTransparenceFileMissingEvaluationCommentUpdated
   | SessionTransparenceOutcomeDefined
@@ -286,6 +296,21 @@ export class NonFormationMemberDefinedAsReporter extends Error {
   constructor() {
     super(`Impossible d'affecter un membre d'une formation incompatible avec cette session`);
   }
+}
+
+export class NonFormationMemberRecused extends Error {
+  constructor() {
+    super(`Seul un membre actif de la formation du dossier peut se déporter`);
+  }
+}
+
+/** a member deactivated since keeps their place on a file, without being offered for other ones */
+function isFormationMemberOrKept(
+  memberId: string,
+  formationMemberIds: ReadonlySet<string>,
+  fileMemberIds: ReadonlySet<string> | undefined,
+): boolean {
+  return formationMemberIds.has(memberId) || !!fileMemberIds?.has(memberId);
 }
 
 export class SessionTransparenceAffectationHasUnassignableReporters extends Error {
@@ -526,7 +551,6 @@ export class SessionTransparence {
   affectNominationFileReporters(command: {
     authorId: string | null;
     formationMemberIds: Set<string>;
-    // a reporter deactivated since stays on the files they already have, without being offered for new ones
     assignedReporterIds?: ReadonlyMap<string, ReadonlySet<string>>;
     affectations: readonly {
       nominationFileId: string;
@@ -549,10 +573,12 @@ export class SessionTransparence {
     }
 
     const allReportersAreFormationMembers = command.affectations.every(({ nominationFileId, reporterIds }) =>
-      reporterIds.every(
-        (reporterId) =>
-          command.formationMemberIds.has(reporterId) ||
-          !!command.assignedReporterIds?.get(nominationFileId)?.has(reporterId),
+      reporterIds.every((reporterId) =>
+        isFormationMemberOrKept(
+          reporterId,
+          command.formationMemberIds,
+          command.assignedReporterIds?.get(nominationFileId),
+        ),
       ),
     );
 
@@ -775,6 +801,34 @@ export class SessionTransparence {
         this.id,
         command.nominationFileId,
         command.comment,
+      ),
+    );
+  }
+
+  recuseMembers(command: {
+    authorId: string;
+    formationMemberIds: ReadonlySet<string>;
+    memberIds: readonly string[];
+    nominationFileId: string;
+    recusedMemberIds: ReadonlySet<string>;
+  }) {
+    this.assertsCanUpdateFiles(command.nominationFileId);
+
+    const memberIds = [...new Set(command.memberIds)];
+    if (
+      !memberIds.every((id) =>
+        isFormationMemberOrKept(id, command.formationMemberIds, command.recusedMemberIds),
+      )
+    ) {
+      throw new NonFormationMemberRecused();
+    }
+
+    this.#messages.push(
+      new SessionTransparenceFileMembersRecused(
+        this.id,
+        command.nominationFileId,
+        memberIds,
+        command.authorId,
       ),
     );
   }

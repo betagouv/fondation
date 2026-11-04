@@ -123,6 +123,7 @@ test.describe('Session E2E', () => {
         auditionRequired: true,
         auditionRequirement: 'POSITION',
         auditionTime: null,
+        canRecuseMembers: true,
         canScheduleAudition: true,
         comment: null,
         content: {
@@ -162,6 +163,7 @@ test.describe('Session E2E', () => {
         missingEvaluationComment: null,
         observations: [],
         priorities: [],
+        recusedMembers: [],
         reporters: [
           expect.objectContaining({
             firstName: 'côme',
@@ -177,6 +179,7 @@ test.describe('Session E2E', () => {
         auditionRequired: true,
         auditionRequirement: 'POSITION',
         auditionTime: null,
+        canRecuseMembers: true,
         canScheduleAudition: true,
         comment: null,
         content: {
@@ -216,6 +219,7 @@ test.describe('Session E2E', () => {
         missingEvaluationComment: null,
         observations: [],
         priorities: [],
+        recusedMembers: [],
         reporters: expect.arrayContaining([
           expect.objectContaining({
             firstName: 'charles',
@@ -703,6 +707,25 @@ test.describe('Session E2E', () => {
       });
       expect(clearRes.response?.status).toBe(204);
       expect(await missingEvaluationOf(nominationFileId)).toBe(false);
+    });
+
+    test('should recuse a member from a nomination file until the secretariat withdraws them', async ({
+      agent,
+      member,
+      sessions,
+      expect,
+    }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+      const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+      const memberId = member['@user']!.id;
+
+      const recused = await agent.sessions.recuseMembers({ body: { memberIds: [memberId] }, path });
+      expect(recused.data?.recusedMembers.map(({ id }) => id)).toEqual([memberId]);
+      const file = await agent.sessions.detailNominationFile({ path });
+      expect(file.data?.recusedMembers).toEqual(recused.data?.recusedMembers);
+
+      const withdrawn = await agent.sessions.recuseMembers({ body: { memberIds: [] }, path });
+      expect(withdrawn.data?.recusedMembers).toEqual([]);
     });
 
     test('should only list the nomination files with a missing evaluation', async ({ agent, sessions, expect }) => {
