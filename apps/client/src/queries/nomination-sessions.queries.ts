@@ -216,7 +216,7 @@ export function useAffectNominationFilesReportersMutation() {
         path: { sessionId: mutation.sessionId },
       });
     },
-    onSuccess: (_, { sessionId }) =>
+    onSettled: (_data, _error, { sessionId }) =>
       queryClient.invalidateQueries({
         predicate: doesQueryKey.matchesAny(
           sessionKeys.listSessionNominationFiles({ sessionId }),
@@ -271,7 +271,7 @@ export function useRecuseNominationFilesMembersMutation(input: { sessionId: stri
         throwOnError: true,
       });
     },
-    onSuccess: (_, { items }) =>
+    onSettled: (_data, _error, { items }) =>
       queryClient.invalidateQueries({
         predicate: doesQueryKey.matchesAny(
           sessionKeys.listSessionNominationFiles({ sessionId: input.sessionId }),
@@ -296,7 +296,7 @@ export function useUpdateNominationFilesPrioritiesMutation() {
         path: { sessionId: mutation.sessionId },
       });
     },
-    onSuccess: (_, { sessionId }) =>
+    onSettled: (_data, _error, { sessionId }) =>
       queryClient.invalidateQueries({ queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) }),
   });
 }
@@ -691,7 +691,7 @@ export function useDefineNominationFilesOutcomeMutation(input: { sessionId: stri
       });
     },
 
-    onSuccess: (_, { items }) =>
+    onSettled: (_data, _error, { items }) =>
       queryClient.invalidateQueries({
         predicate: doesQueryKey.matchesAny(
           sessionKeys.listSessionNominationFiles({ sessionId: input.sessionId }),
