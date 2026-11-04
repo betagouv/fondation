@@ -39,6 +39,7 @@ export const test = base.extend<Fixtures>({
     if (!baseURL || !page.url().startsWith(baseURL)) {
       await page.goto('/');
       await page.getByRole('link', { name: 'Pouvoir de proposition GDS' }).click();
+      await page.getByRole('heading', { level: 1, name: /Gérer une session/ }).waitFor();
     }
 
     use(new TestApp(page));

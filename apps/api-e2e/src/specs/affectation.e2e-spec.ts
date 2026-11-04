@@ -239,10 +239,10 @@ test.describe('Session Affectations E2E', () => {
     expect(restoredReport.data!.state).toBe('IN_PROGRESS');
   });
 
-  test('has nothing to publish while no reporter is affected', async ({ agent, expect }) => {
+  test('waits for a first publication even without a reporter', async ({ agent, expect }) => {
     const history = await agent.sessions.detailAffectationHistory({ path: { sessionId } });
 
-    expect(history.data!.status).toBe('NOTHING_TO_PUBLISH');
+    expect(history.data!.status).toBe('NEVER_PUBLISHED');
   });
 
   test('stays published once the draft comes back to the published reporters', async ({ agent, expect }) => {

@@ -8,8 +8,8 @@ const affectations = (...items: { nominationFileId: string; reporterId: string }
   PublishableAffectations.from(items);
 
 describe('publicationStatusOf the affectations', () => {
-  it('has nothing to publish while no reporter is affected', () => {
-    expect(publicationStatusOf({ current: affectations(), published: null })).toBe('NOTHING_TO_PUBLISH');
+  it('waits for a first publication even without a reporter, as it opens the session to the members', () => {
+    expect(publicationStatusOf({ current: affectations(), published: null })).toBe('NEVER_PUBLISHED');
   });
 
   it('waits for a first publication once a reporter is affected', () => {

@@ -9,7 +9,7 @@ import { useDetailAffectationHistoryQuery } from '@queries/nomination-sessions.q
 export function AffectationVersionStatusBadge(props: { sessionId: string }) {
   const { data: history } = useDetailAffectationHistoryQuery(props.sessionId);
 
-  if (!history || history.status === 'NOTHING_TO_PUBLISH') return null;
+  if (!history) return null;
   const isPublished = history.status === 'PUBLISHED';
   const version = (history.pending ?? history.lastPublished)?.version ?? 0;
 

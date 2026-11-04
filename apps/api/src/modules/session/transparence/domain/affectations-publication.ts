@@ -16,7 +16,8 @@ export class PublishableAffectations implements Publishable<PublishableAffectati
     return this.keys.size === other.keys.size && [...this.keys].every((key) => other.keys.has(key));
   }
 
-  isEmpty(): boolean {
-    return this.keys.size === 0;
+  // the first publication opens the session to the members, whether it has reporters or not
+  waitsForAFirstPublication(): boolean {
+    return true;
   }
 }

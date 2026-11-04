@@ -149,14 +149,13 @@ export function makeSessionHandlers(sessions: Record<string, SessionDataset>) {
     }),
 
     http.get('*/api/sessions/v2/:sessionId/files/reporters/versions/history', ({ params }) => {
-      const { affectationHistory, files } = datasetOf(params.sessionId);
-      const hasReporters = files.some(({ reporters }) => reporters.length > 0);
+      const { affectationHistory } = datasetOf(params.sessionId);
 
       return HttpResponse.json<DetailedAffectationHistoryDto>(
         affectationHistory ?? {
           lastPublished: null,
-          pending: hasReporters ? { openedAt: '2026-09-24T08:00:00.000Z', openedBy: null, version: 1 } : null,
-          status: hasReporters ? 'NEVER_PUBLISHED' : 'NOTHING_TO_PUBLISH',
+          pending: { openedAt: '2026-09-24T08:00:00.000Z', openedBy: null, version: 1 },
+          status: 'NEVER_PUBLISHED',
         },
       );
     }),

@@ -25,8 +25,8 @@ export class PublishableAuditions implements Publishable<PublishableAuditions> {
     );
   }
 
-  isEmpty(): boolean {
-    return scheduled(this.nominationFiles).size === 0 && this.observants.size === 0;
+  waitsForAFirstPublication(): boolean {
+    return scheduled(this.nominationFiles).size > 0 || this.observants.size > 0;
   }
 }
 
