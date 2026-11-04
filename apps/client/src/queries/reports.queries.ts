@@ -30,7 +30,7 @@ export const useMyReportQuery = (props: {
           userId: props.userId ?? '',
         },
       });
-      return data?.reportId ?? null;
+      return data?.report ?? null;
     },
     queryKey: reportKeys.myReport({ nominationFileId: props.nominationFileId }),
   });

@@ -22,6 +22,7 @@ import {
   ReportRuleValidationUpdated,
   ReportUpdated,
 } from '../domain/report';
+import { reportLock } from '../domain/report-lock';
 
 @Injectable()
 export class ReportRepository {
@@ -37,14 +38,24 @@ export class ReportRepository {
 
   async find(props: { id: string; reporterId: string }): Promise<Report> {
     const report = await this.db.tx.report.findUnique({
-      select: { id: true, sessionId: true } satisfies Prisma.ReportSelect,
+      select: { id: true, nominationFileId: true, sessionId: true } satisfies Prisma.ReportSelect,
       where: { id: props.id, isDeleted: false, reporterId: props.reporterId },
     });
     if (!report) throw new NotFoundException();
 
     const state = await this.sessions.internalFindSessionState({ sessionId: report.sessionId });
-    if (state !== 'OPEN') {
-      this.logger.warn(`session ${report.sessionId} is ${state.toLowerCase()}`);
+    const recusedFileIds = await this.sessions.internalFindFilesRecusedBy({
+      memberId: props.reporterId,
+      nominationFileIds: [report.nominationFileId],
+    });
+    const lock = reportLock(
+      { isOpen: state === 'OPEN' },
+      { isRecused: recusedFileIds.has(report.nominationFileId) },
+    );
+    if (lock) {
+      this.logger.warn(
+        `report ${report.id} is locked: ${lock.toLowerCase()}, session ${state.toLowerCase()}`,
+      );
       throw new ForbiddenException();
     }
 

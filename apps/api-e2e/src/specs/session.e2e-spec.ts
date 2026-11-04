@@ -709,19 +709,20 @@ test.describe('Session E2E', () => {
       expect(await missingEvaluationOf(nominationFileId)).toBe(false);
     });
 
-    test('should recuse a member from a nomination file until the secretariat withdraws them', async ({
+    test('should list a recused member to the members until the secretariat withdraws them', async ({
       agent,
-      member,
+      logIn,
       sessions,
       expect,
     }) => {
       const session = await sessions.createOne(TREVOUX_SESSION);
       const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+      const member = await logIn('MEMBRE_COMMUN');
       const memberId = member['@user']!.id;
 
       const recused = await agent.sessions.recuseMembers({ body: { memberIds: [memberId] }, path });
       expect(recused.data?.recusedMembers.map(({ id }) => id)).toEqual([memberId]);
-      const file = await agent.sessions.detailNominationFile({ path });
+      const file = await member.sessions.detailNominationFile({ path });
       expect(file.data?.recusedMembers).toEqual(recused.data?.recusedMembers);
 
       const withdrawn = await agent.sessions.recuseMembers({ body: { memberIds: [] }, path });

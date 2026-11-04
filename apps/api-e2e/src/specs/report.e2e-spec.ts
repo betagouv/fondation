@@ -49,14 +49,14 @@ test.describe('Report E2E', () => {
       path: { nominationFileId, sessionId, userId: member['@user']!.id },
     });
     expect(memberRes.response?.status).toBe(200);
-    expect(memberRes.data?.reportId).toBe(reportId);
+    expect(memberRes.data?.report).toEqual({ id: reportId, state: 'NEW' });
 
     const memberWithoutReport = await logIn('MEMBRE_COMMUN');
     const withoutReportRes = await memberWithoutReport.members.searchNominationFileMembersReport({
       path: { nominationFileId, sessionId, userId: memberWithoutReport['@user']!.id },
     });
     expect(withoutReportRes.response?.status).toBe(200);
-    expect(withoutReportRes.data?.reportId).toBeNull();
+    expect(withoutReportRes.data?.report).toBeNull();
 
     const otherMemberRes = await member.members.searchNominationFileMembersReport({
       path: { nominationFileId, sessionId, userId: memberWithoutReport['@user']!.id },
@@ -140,6 +140,47 @@ test.describe('Report E2E', () => {
     expect(reportsRes.data!.items.map(({ name, number }) => ({ name, number }))).toEqual(
       filesByNumber.map(({ content }) => ({ name: content.nomMagistrat, number: content.numeroDeDossier })),
     );
+  });
+
+  test('should show a recused reporter their report as not applicable until the recusal is withdrawn', async ({
+    agent,
+    member,
+    expect,
+  }) => {
+    const memberPath = { nominationFileId, sessionId, userId: member['@user']!.id };
+    await agent.sessions.recuseMembers({
+      body: { memberIds: [member['@user']!.id] },
+      path: { nominationFileId, sessionId },
+      throwOnError: true,
+    });
+
+    const recused = await member.members.listMemberSessionReports({ path: memberPath, throwOnError: true });
+    expect(recused.data.items.map(({ report }) => report)).toEqual([{ id: reportId, state: 'NOT_APPLICABLE' }]);
+    const found = await member.members.searchNominationFileMembersReport({ path: memberPath, throwOnError: true });
+    expect(found.data.report).toEqual({ id: reportId, state: 'NOT_APPLICABLE' });
+    const detailed = await member.reports.detailReport({ path: { reportId }, throwOnError: true });
+    expect(detailed.data.state).toBe('NOT_APPLICABLE');
+
+    await agent.sessions.recuseMembers({
+      body: { memberIds: [] },
+      path: { nominationFileId, sessionId },
+      throwOnError: true,
+    });
+    const withdrawn = await member.members.searchNominationFileMembersReport({ path: memberPath, throwOnError: true });
+    expect(withdrawn.data.report).toEqual({ id: reportId, state: 'NEW' });
+  });
+
+  test('should lock the report of a recused reporter', async ({ agent, member, expect }) => {
+    await agent.sessions.recuseMembers({
+      body: { memberIds: [member['@user']!.id] },
+      path: { nominationFileId, sessionId },
+      throwOnError: true,
+    });
+
+    const { data } = await member.reports.detailReport({ path: { reportId }, throwOnError: true });
+    expect(data.lockedReason).toBe('RECUSED');
+    const updated = await member.reports.updateReport({ body: { comment: '<p>Avis</p>' }, path: { reportId } });
+    expect(updated.response?.status).toBe(403);
   });
 
   test('should not list session reports of an unknown session', async ({ member, expect }) => {

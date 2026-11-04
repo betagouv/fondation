@@ -28,6 +28,7 @@ const REPORT: DetailedReportDto = {
   comment:
     '<p>Magistrate au parcours confirmé, appréciée de ses chefs de juridiction.</p><h2>Points d’attention</h2><p>Mobilité géographique à confirmer.</p>',
   id: 'report-2',
+  lockedReason: null,
   nominationFileId: 'nomination-file-2',
   screenshots: [],
   sessionId: STORY_SESSION.id,
@@ -76,7 +77,7 @@ const NOMINATION_FILE: DetailedNominationFileDto = {
   missingEvaluationComment: null,
   observations: [],
   priorities: ['ETOILE'],
-  recusedMembers: null,
+  recusedMembers: [],
   reporters: [{ firstName: 'Jean', id: STORY_USERS.member.id, lastName: 'Petit' }],
   summary: null,
 };
@@ -104,7 +105,7 @@ const MEMBER_REPORTS: ListedMemberSessionReportsDto = {
   ],
 };
 
-function ReportOverviewPageStory(props: { view: StoryView }) {
+function ReportOverviewPageStory(props: { isRecused: boolean; view: StoryView }) {
   return (
     <PageStory
       location={getGdsReportPath(REPORT.id)}
@@ -117,11 +118,18 @@ function ReportOverviewPageStory(props: { view: StoryView }) {
 }
 
 const meta = {
-  args: { view: 'member' },
-  argTypes: { view: { control: 'inline-radio', options: STORY_VIEWS } },
-  beforeEach: ({ msw }) => {
+  args: { isRecused: false, view: 'member' },
+  argTypes: {
+    isRecused: { control: 'boolean', description: 'the member recused themselves from the file' },
+    view: { control: 'inline-radio', options: STORY_VIEWS },
+  },
+  beforeEach: ({ args, msw }) => {
     msw.use(
-      http.get('*/api/reports/v2/:reportId', () => HttpResponse.json<DetailedReportDto>(REPORT)),
+      http.get('*/api/reports/v2/:reportId', () =>
+        HttpResponse.json<DetailedReportDto>(
+          args.isRecused ? { ...REPORT, lockedReason: 'RECUSED', state: 'NOT_APPLICABLE' } : REPORT,
+        ),
+      ),
       http.get('*/api/sessions/v2/:sessionId', () =>
         HttpResponse.json<DetailedNominationSessionDto>(STORY_SESSION),
       ),

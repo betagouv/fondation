@@ -224,9 +224,7 @@ export class ListNominationFilesQuery {
     const jurisdictions = await this.jurisdictionsFinder.find({
       nominationFileIds: [...nominationFileIds],
     });
-    const recusedMembers = nominationFilesPolicies.canSeeRecusedMembers(query.user)
-      ? await this.recusedMembersFinder.find({ nominationFileIds })
-      : null;
+    const recusedMembers = await this.recusedMembersFinder.find({ nominationFileIds });
 
     const sessionArchivedAt = query.session.archivedAt;
     const isArchived = !!sessionArchivedAt;
@@ -317,7 +315,7 @@ export class ListNominationFilesQuery {
           magistrat: obs.magistrat,
         })),
         priorities: x.priorities.map(prismaPrioriteEnumToPriorityEnum),
-        recusedMembers: recusedMembers && (recusedMembers.get(x.id) ?? []),
+        recusedMembers: recusedMembers.get(x.id) ?? [],
         reporters: x.reporters.map(({ user: { id, firstName, lastName } }) => ({
           firstName,
           id,
@@ -499,9 +497,7 @@ const NominationFileAffectationItemSchema = z.object({
       lastName: z.string(),
     }),
   ),
-  recusedMembers: RecusedMemberSchema.array().nullable().meta({
-    description: 'in protocol order, null for a member',
-  }),
+  recusedMembers: RecusedMemberSchema.array().meta({ description: 'in protocol order' }),
   observations: z.array(
     z.object({
       id: z.string(),

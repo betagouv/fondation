@@ -1,6 +1,5 @@
 import { useCallback } from 'react';
 
-import { useArchivedSession } from '@/shared/context/archived-session';
 import type { FilesUploader } from '@/shared/ui/tip-tap-editor';
 import { useAttachScreenshotMutation } from '@queries/reports.queries';
 
@@ -8,11 +7,11 @@ import { ReportCommentCard } from './ReportCommentCard';
 
 export function ReportEditor(props: {
   comment: string | null;
+  isReadOnly: boolean;
   onUpdate: (comment: string) => void;
   reportId: string;
 }) {
   const { reportId } = props;
-  const { isArchived } = useArchivedSession();
   const { mutateAsync } = useAttachScreenshotMutation();
 
   const uploadFiles = useCallback<FilesUploader>(
@@ -26,7 +25,7 @@ export function ReportEditor(props: {
   return (
     <ReportCommentCard
       comment={props.comment}
-      isReadOnly={isArchived}
+      isReadOnly={props.isReadOnly}
       onUpdate={props.onUpdate}
       uploadFiles={uploadFiles}
     />

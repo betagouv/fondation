@@ -980,6 +980,14 @@ export class TransparenceService {
   }
 
   /** @internal */
+  internalFindFilesRecusedBy(query: {
+    memberId: string;
+    nominationFileIds: readonly string[];
+  }): Promise<Set<string>> {
+    return this.recusedMembersFinder.findFilesRecusedBy(query);
+  }
+
+  /** @internal */
   internalFindNominationFilesByIds(query: {
     nominationFileIds: readonly string[];
   }): Promise<Map<string, FoundNominationFile>> {
