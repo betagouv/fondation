@@ -47,7 +47,7 @@ function unschedulableAuditionMessage(reason: UnschedulableReason): string {
     case 'FINAL_OUTCOME':
       return `impossible de programmer l'audition : tous les dossiers observés ont une issue considérée comme étant définitive`;
     case 'LOCKED':
-      return `impossible de programmer l'audition : les dossiers observés ont déjà été associés à de la documentation`;
+      return `impossible de programmer l'audition : les dossiers observés ne sont plus modifiables`;
     case 'NOT_IN_PROGRESS':
       return `impossible de programmer l'audition : aucun dossier observé n'est encore en traitement`;
     default:
