@@ -295,8 +295,8 @@ cycles de CI inutiles, on peut lancer les mêmes vérifications en local depuis 
 pnpm run prepush
 ```
 
-Le hook [husky](https://typicode.github.io/husky) `prepush` peut automatiser ce lancement avant
-chaque push (installation avec `npx husky`).
+Le hook [husky](https://typicode.github.io/husky) `pre-push` lance cette commande avant chaque
+push. Il s'installe avec `pnpm install` ; `git push --no-verify` le saute au besoin.
 
 Globalement, configurer son IDE pour utiliser ces configurations est le mieux. Le workspace PNPM
 peut cependant parfois provoquer des conflits.
