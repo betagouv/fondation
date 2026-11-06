@@ -2,8 +2,9 @@
 import { DeleteObjectsCommand, ListObjectVersionsCommand, S3Client } from '@aws-sdk/client-s3';
 import pg from 'pg';
 
-// Empties the local or staging database and bucket, except the login accounts, so that the fictitious LOLFI
-// archive can be ingested again. Without --confirm <database>, it only tells what it would erase.
+// Empties the sessions of the local or staging database and bucket, with what comes from them, so that the
+// fictitious LOLFI archive can be ingested again. It keeps the login accounts, the help center, the remarks
+// and the feedbacks. Without --confirm <database>, it only tells what it would erase.
 // Run it while no ingestion is going on: it would empty the jobs under a running one.
 
 // Production is refused by omission: only the local database and the staging one may be emptied
@@ -11,6 +12,24 @@ const LOCAL_AND_STAGING_DATABASES = ['fondation', 'fondation_a_3234'];
 const LOCAL_AND_STAGING_BUCKET_PREFIXES = ['sandbox-', 'staging-'];
 // public and drizzle hold the migrations history, of Prisma and of the ORM used before it on staging
 const SCHEMAS_KEPT = ['drizzle', 'identity_and_access_context', 'information_schema', 'public'];
+// Stored beside the accounts, but it references the jurisdictions: TRUNCATE refuses to empty them without it
+const EXCLUDED_JURISDICTIONS = 'identity_and_access_context.excluded_jurisdictions';
+// files_context.files is only kept for the files a kept table references, see FILES_NOT_KEPT
+const TABLES_KEPT = [
+  'docs.justice_department_contact',
+  'files_context.file_public_url',
+  'files_context.files',
+  'nominations_context.feedback',
+  'nominations_context.help_page_screenshots',
+  'nominations_context.help_pages',
+  'nominations_context.member_feedback',
+  'nominations_context.remark',
+  'nominations_context.remark_status_change',
+  'nominations_context.secretariat_feedback',
+];
+const OBJECTS_KEPT_PREFIX = 'help/';
+const FILES_NOT_KEPT = `FROM files_context.files
+  WHERE id NOT IN (SELECT file_id FROM nominations_context.help_page_screenshots)`;
 
 async function main() {
   const db = new pg.Client({ connectionString: process.env.DATABASE_URL });
@@ -29,17 +48,31 @@ async function main() {
     }
 
     const tables = await tablesToEmpty(db);
-    if (tables.some(({ name }) => name.startsWith('identity_and_access_context.'))) {
+    const otherAccountTables = tables.filter(({ name }) => name !== EXCLUDED_JURISDICTIONS);
+    if (otherAccountTables.some(({ name }) => name.startsWith('identity_and_access_context.'))) {
       throw new Error('Refusing to empty a table of the login accounts');
     }
     const accountsCount = await countLoginAccounts(db);
     const s3 = s3Client();
-    const objectsCount = (await listAllObjectVersions(s3, bucket)).length;
+    const objects = await listObjectVersionsToDelete(s3, bucket);
+    const {
+      rows: [{ filesCount }],
+    } = await db.query(`SELECT count(*)::int AS "filesCount" ${FILES_NOT_KEPT}`);
 
     console.log(`Database "${database}": ${accountsCount} login accounts kept`);
+    for (const name of TABLES_KEPT) {
+      const {
+        rows: [{ count }],
+      } = await db.query(`SELECT count(*)::int AS count FROM ${name}`);
+      console.log(
+        `  kept ${name}: ${count} rows${name === 'files_context.files' ? ` (${filesCount} to delete)` : ''}`,
+      );
+    }
     console.log(`Database "${database}": ${tables.length} tables to empty`);
     for (const { name, rowsCount } of tables) if (rowsCount > 0) console.log(`  ${name}: ${rowsCount} rows`);
-    console.log(`Bucket "${bucket}": ${objectsCount} objects and versions to delete`);
+    console.log(
+      `Bucket "${bucket}": ${objects.length} objects and versions to delete, "${OBJECTS_KEPT_PREFIX}" kept`,
+    );
 
     const confirmFlag = process.argv.indexOf('--confirm');
     const confirmedDatabase = confirmFlag === -1 ? undefined : process.argv[confirmFlag + 1];
@@ -51,6 +84,7 @@ async function main() {
     // Without CASCADE, a kept table referencing an emptied one makes it fail instead of erasing silently
     await db.query('BEGIN');
     await db.query(`TRUNCATE ${tables.map(({ name }) => name).join(', ')} RESTART IDENTITY`);
+    await db.query(`DELETE ${FILES_NOT_KEPT}`);
     const accountsLeft = await countLoginAccounts(db);
     if (accountsLeft !== accountsCount) {
       throw new Error(`The login accounts went from ${accountsCount} to ${accountsLeft}: nothing erased`);
@@ -86,7 +120,8 @@ async function tablesToEmpty(db) {
   );
 
   const tables = [];
-  for (const { name } of rows) {
+  const names = rows.map((row) => row.name).filter((name) => !TABLES_KEPT.includes(name));
+  for (const name of [...names, EXCLUDED_JURISDICTIONS]) {
     const {
       rows: [{ count }],
     } = await db.query(`SELECT count(*)::int AS count FROM ${name}`);
@@ -123,8 +158,13 @@ async function listAllObjectVersions(s3, bucket) {
   return versions;
 }
 
-async function emptyBucket(s3, bucket) {
+async function listObjectVersionsToDelete(s3, bucket) {
   const versions = await listAllObjectVersions(s3, bucket);
+  return versions.filter(({ Key }) => !Key.startsWith(OBJECTS_KEPT_PREFIX));
+}
+
+async function emptyBucket(s3, bucket) {
+  const versions = await listObjectVersionsToDelete(s3, bucket);
   for (let i = 0; i < versions.length; i += 1000) {
     const { Errors } = await s3.send(
       new DeleteObjectsCommand({
