@@ -514,11 +514,11 @@ describe('fictitious archive', () => {
     assert.doesNotMatch(files.get('SESSIONS.xml')!, /\(\d+\)<\/libelle>/);
     assert.match(
       files.get('POSADS.xml')!,
-      /<posad>DET<\/posad>\n<libelle>Détachement<\/libelle>\n<reel>0<\/reel>/,
+      /<libelle>Détachement<\/libelle>\n<posad>DET<\/posad>\n<reel>0<\/reel>/,
     );
     assert.match(
       files.get('POSADS.xml')!,
-      /<posad>P80<\/posad>\n<libelle>[^<]+<\/libelle>\n<reel>0,8<\/reel>/,
+      /<libelle>[^<]+<\/libelle>\n<posad>P80<\/posad>\n<reel>0,8<\/reel>/,
     );
 
     const ressorts = new Set([...jurisdictions.matchAll(/<ressort>([^<]+)<\/ressort>/g)].map((m) => m[1]));

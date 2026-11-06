@@ -136,7 +136,7 @@ describe('lolfi', () => {
     );
     assert.match(
       jurisdictions!,
-      /<codejur>TPR CANNES<\/codejur>[\s\S]*?<arrondissement>TJ {2}GRASSE<\/arrondissement>\n<codepos>06400<\/codepos>[\s\S]*?<ressort>CA {2}AIX EN PROVENCE<\/ressort>/,
+      /<arrondissement>TJ {2}GRASSE<\/arrondissement>\n<codejur>TPR CANNES<\/codejur>\n<codepos>06400<\/codepos>[\s\S]*?<ressort>CA {2}AIX EN PROVENCE<\/ressort>/,
     );
     assert.doesNotMatch(jurisdictions!, /CA {2}(CANNES|AJACCIO)/);
   });

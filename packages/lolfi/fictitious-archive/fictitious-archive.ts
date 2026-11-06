@@ -133,8 +133,8 @@ export class FictitiousArchive {
     return {
       administrativePositions: referential.administrativePositions,
       functions: referential.functions,
-      jurisdictions: referential.jurisdictions,
       jurisdictionTypes: referential.jurisdictionTypes,
+      jurisdictions: referential.jurisdictions,
       magistrats: this.#drawOtherMagistrats(),
       sessions,
     };

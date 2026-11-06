@@ -94,7 +94,7 @@ export async function* generateLolfiFiles(
   const positionIds = new Set<number>();
 
   function newPositionId(): number {
-    const id = faker.number.int({ min: 100, max: 1e6 });
+    const id = faker.number.int({ max: 1e6, min: 100 });
     if (positionIds.has(id)) return newPositionId();
     positionIds.add(id);
     return id;
@@ -190,15 +190,15 @@ export async function* generateLolfiFiles(
 
   const fullSessions = data.sessions.map((session) => ({
     ...session,
-    id: session.id ?? faker.number.int({ min: 100, max: 1e6 }),
     candidates: session.candidates.map((candidate) => {
       return {
         ...candidate,
-        id: candidate.id ?? faker.number.int({ min: 100, max: 1e6 }),
+        id: candidate.id ?? faker.number.int({ max: 1e6, min: 100 }),
         position: getOrCreatePosition(candidate.position),
         targetPosition: getOrCreatePosition(candidate.targetPosition),
       };
     }),
+    id: session.id ?? faker.number.int({ max: 1e6, min: 100 }),
   }));
 
   const absentMagistratIds = new Set(data.absentMagistratIds);
@@ -219,7 +219,6 @@ export async function* generateLolfiFiles(
   );
 
   yield {
-    filename: 'GRADES.xml',
     buffer: toXml(
       'grades',
       [
@@ -228,34 +227,34 @@ export async function* generateLolfiFiles(
       ].map(({ grade, tri }) => ({
         grade,
         libelle: grade,
-        tri,
         masse_grade: grade,
         mg_libelle: grade,
         mg_tri: tri,
+        tri,
       })),
     ),
+    filename: 'GRADES.xml',
   };
 
   yield {
-    filename: 'FONCTIONS.xml',
     buffer: toXml(
       'fonctions',
       [...functions.values()].map((fn, tri) => ({
-        tri,
+        complement: fn.addition ?? null,
         fonction: fn.id,
-        libelle: fn.label,
-        lieufc: fn.formation === 'SIEGE' ? '1' : '2',
-        fonction_m: fn.labelOneMale ?? null,
-        fonction_mp: null,
         fonction_f: fn.labelOneFemale ?? null,
         fonction_fp: null,
-        complement: fn.addition ?? null,
+        fonction_m: fn.labelOneMale ?? null,
+        fonction_mp: null,
+        libelle: fn.label,
+        lieufc: fn.formation === 'SIEGE' ? '1' : '2',
+        tri,
       })),
     ),
+    filename: 'FONCTIONS.xml',
   };
 
   yield {
-    filename: 'POSADS.xml',
     buffer: toXml(
       'posads',
       (
@@ -266,74 +265,74 @@ export async function* generateLolfiFiles(
           { id: 'PT', label: 'Plein temps', rate: 1 },
         ]
       ).map((p) => ({
-        posad: p.id,
         libelle: p.label,
+        posad: p.id,
         reel: p.rate.toString().replace('.', ','),
       })),
     ),
+    filename: 'POSADS.xml',
   };
 
   yield {
-    filename: 'TYPE_JURIDICTION.xml',
     buffer: toXml(
       'type_juridiction',
-      jurisdictionTypes.values().map((jt, tri) => ({ type_jur: jt.id, libelle: jt.label, tri })),
+      jurisdictionTypes.values().map((jt, tri) => ({ libelle: jt.label, tri, type_jur: jt.id })),
     ),
+    filename: 'TYPE_JURIDICTION.xml',
   };
 
   yield {
-    filename: 'JURIDICTIONS.xml',
     buffer: toXml(
       'juridictions',
       jurisdictions.values().map((j) => ({
-        codejur: j.id,
-        type_jur: j.jurisdictionType,
         adr1: null,
         adr2: null,
         arrondissement: j.arrondissement ?? null,
+        codejur: j.id,
         codepos: j.postalCode ?? null,
         date_suppression: '01/01/2999',
         libelle: j.label ?? j.id,
         ressort: j.ressort,
-        ville_jur: cityOf(j.id) ?? null,
+        type_jur: j.jurisdictionType,
         ville: j.city ?? null,
+        ville_jur: cityOf(j.id) ?? null,
       })),
     ),
+    filename: 'JURIDICTIONS.xml',
   };
 
-  yield { filename: 'POSTES.xml', buffer: toXml('postes', []) };
+  yield { buffer: toXml('postes', []), filename: 'POSTES.xml' };
 
   yield {
-    filename: 'POSTES_2.xml',
     buffer: toXml(
       'postes_2',
       positions.values().map((pos) => ({
-        num_emploi_cible: pos.id,
-        profil: pos.profile,
         abrev_profil: pos.profileId,
         bbis: '0',
         codejur: pos.jurisdictionId,
-        type_jur: jurisdictions.get(pos.jurisdictionId)!.jurisdictionType,
-        masse_grade: pos.grade,
         fonction: pos.functionId,
+        masse_grade: pos.grade,
+        num_emploi_cible: pos.id,
+        profil: pos.profile,
+        type_jur: jurisdictions.get(pos.jurisdictionId)!.jurisdictionType,
       })),
     ),
+    filename: 'POSTES_2.xml',
   };
 
   yield {
-    filename: 'SESSIONS.xml',
     buffer: toXml(
       'sessions',
       fullSessions.map((session) => ({
-        num_session: session.id,
-        libelle: session.label ?? `${session.name ?? 'Transparence'} (${session.id})`,
         date_publication: session.createdAt,
+        libelle: session.label ?? `${session.name ?? 'Transparence'} (${session.id})`,
+        num_session: session.id,
       })),
     ),
+    filename: 'SESSIONS.xml',
   };
 
   yield {
-    filename: 'MAGISTRATS.xml',
     buffer: toXml(
       'magistrats',
       [
@@ -342,24 +341,10 @@ export async function* generateLolfiFiles(
       ]
         .filter(({ candidate }) => !absentMagistratIds.has(candidate.id))
         .map(({ candidate, session }) => ({
-          id: candidate.id,
           civilite: candidate.civilite ?? 'M.',
-          nom: candidate.lastName,
-          prenom: candidate.firstName,
-          nom_marital: candidate.marriedName ?? null,
-          nom_usage: candidate.usedName ?? null,
-          sit_fam:
-            candidate.maritalStatus === undefined
-              ? faker.helpers.arrayElement(['C', 'M', 'P'])
-              : candidate.maritalStatus,
-          email_pro:
-            candidate.email !== undefined
-              ? candidate.email
-              : faker.internet.email({
-                  lastName: candidate.lastName.toLowerCase(),
-                  firstName: candidate.firstName.toLowerCase(),
-                  provider: 'justice.fr',
-                }),
+          date_grade: candidate.gradeDate ?? null,
+          date_installation: candidate.installationDate ?? null,
+          date_modification: null,
           date_naiss:
             candidate.birthDate ??
             format(
@@ -369,87 +354,102 @@ export async function* generateLolfiFiles(
               }),
               'dd/MM/yyyy',
             ),
-          lieu_naiss: null,
-          dep_naiss: null,
-          grade: candidate.legacyGrade ?? candidate.position.grade,
-          date_grade: candidate.gradeDate ?? null,
-          num_emploi_cible: candidate.position.id,
-          date_installation: candidate.installationDate ?? null,
           date_nomination: candidate.nominationDate ?? null,
-          tableau: 2024,
+          date_posad_prev: null,
+          date_posad_prev2: null,
+          date_posad_prev_fin: null,
+          dep_naiss: null,
+          email_pro:
+            candidate.email !== undefined
+              ? candidate.email
+              : faker.internet.email({
+                  firstName: candidate.firstName.toLowerCase(),
+                  lastName: candidate.lastName.toLowerCase(),
+                  provider: 'justice.fr',
+                }),
+          grade: candidate.legacyGrade ?? candidate.position.grade,
           historique: candidate.careerHistory ?? null,
+          id: candidate.id,
+          lieu_naiss: null,
+          nom: candidate.lastName,
+          nom_marital: candidate.marriedName ?? null,
+          nom_usage: candidate.usedName ?? null,
+          num_emploi_cible: candidate.position.id,
           posad: candidate.administrativePosition ?? 'PT',
           posad_prev: null,
-          date_posad_prev: null,
           posad_prev2: null,
-          date_posad_prev2: null,
-          date_modification: null,
-          date_posad_prev_fin: null,
+          prenom: candidate.firstName,
+          sit_fam:
+            candidate.maritalStatus === undefined
+              ? faker.helpers.arrayElement(['C', 'M', 'P'])
+              : candidate.maritalStatus,
+          tableau: 2024,
         })),
     ),
+    filename: 'MAGISTRATS.xml',
   };
 
   yield {
-    filename: 'TRANSPARENCES.xml',
     buffer: toXml(
       'transparences',
       fullSessions.flatMap((session) =>
         session.candidates.map((candidate) => ({
-          num_session: session.id,
-          num_transparence: candidate.nominationId ?? candidate.id,
-          num_emploi_cible: candidate.targetPosition.id,
-          type_mouvement:
-            candidate.targetPosition.grade == (candidate.legacyGrade ?? candidate.position.grade) ? 'E' : 'A',
-          ta: 2024,
-          resultat: candidate.designated === false ? 0 : 1,
-          id: candidate.id,
           affectation: candidate.position.id,
           date_grade: null,
-          tri_poste: candidate.positionSort ?? candidate.position.id,
+          id: candidate.id,
+          num_emploi_cible: candidate.targetPosition.id,
+          num_session: session.id,
+          num_transparence: candidate.nominationId ?? candidate.id,
           rang_cand: candidate.rank ?? 1,
+          resultat: candidate.designated === false ? 0 : 1,
+          ta: 2024,
+          tri_poste: candidate.positionSort ?? candidate.position.id,
+          type_mouvement:
+            candidate.targetPosition.grade == (candidate.legacyGrade ?? candidate.position.grade) ? 'E' : 'A',
         })),
       ),
     ),
+    filename: 'TRANSPARENCES.xml',
   };
 
   yield {
-    filename: 'CANDIDATS.xml',
     buffer: toXml(
       'candidats',
       magistrats.values().map(({ candidate, session }) => ({
-        id: candidate.id,
-        num_candidat: candidate.id,
-        demande_conjointe: '0',
-        nom_ville_conjoint: null,
-        observation: null,
-        date_modification: session.createdAt,
         adr1: null,
         adr2: null,
+        article_l111: null,
         codepos: null,
-        ville: null,
-        tel_perso: candidate.phone ?? null,
+        date_modification: session.createdAt,
+        demande_conjointe: '0',
+        id: candidate.id,
         mandat: null,
         mandat_conjoint: null,
-        prof_conjoint: null,
-        article_l111: null,
+        nom_ville_conjoint: null,
+        num_candidat: candidate.id,
         obs_num_session: null,
+        observation: null,
+        prof_conjoint: null,
+        tel_perso: candidate.phone ?? null,
+        ville: null,
       })),
     ),
+    filename: 'CANDIDATS.xml',
   };
 
-  let desiderataIdCounter = faker.number.int({ min: 100, max: 1e6 });
+  let desiderataIdCounter = faker.number.int({ max: 1e6, min: 100 });
   yield {
-    filename: 'DESIDERATA.xml',
     buffer: toXml(
       'desiderata',
       fullSessions.flatMap((session) =>
         session.candidates.flatMap((candidate) => ({
-          num_desiderata: desiderataIdCounter++,
-          num_candidat: candidate.id,
-          num_emploi_cible: candidate.targetPosition.id,
           date_enregistrement: session.createdAt,
+          num_candidat: candidate.id,
+          num_desiderata: desiderataIdCounter++,
+          num_emploi_cible: candidate.targetPosition.id,
         })),
       ),
     ),
+    filename: 'DESIDERATA.xml',
   };
 }

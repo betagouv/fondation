@@ -16,20 +16,20 @@ export type FictitiousTransparence = {
   label: string;
   magistrats: number;
   positions: number;
-  positionsWithoutProposition: number;
   positionsWithSeveralPropositions: number;
+  positionsWithoutProposition: number;
   propositionFunctions: Readonly<Record<string, number>>;
   propositionGrades: Partial<Record<LolfiGradeEnum, { equivalent: number; promotion: number }>>;
   propositionsInPlace: number;
   propositionsOverseas: number;
   propositionsPerFormation: Readonly<Record<LolfiFormationEnum, number>>;
   propositionsWithLegacyGrade?: number;
+  propositionsWithProfile: number;
   /* As their dossiers froze them: a magistrat gets a position, a biography and dates once installed */
   propositionsWithoutAssignment: number;
   propositionsWithoutBiography: number;
   propositionsWithoutCareerDates: number;
   propositionsWithoutEmail: number;
-  propositionsWithProfile: number;
 };
 
 /* Staging runs as production, which only synchronises the transparences published from 2026-06-01:
@@ -45,18 +45,18 @@ export const FICTITIOUS_TRANSPARENCES: readonly FictitiousTransparence[] = [
     label: 'Session des auditeurs',
     magistrats: 488,
     positions: 251,
-    positionsWithoutProposition: 0,
     positionsWithSeveralPropositions: 93,
+    positionsWithoutProposition: 0,
     propositionFunctions: { J: 56, JAP: 22, JCP: 34, JE: 49, JI: 22, JP: 69, S: 134, SP: 51 },
     propositionGrades: { G1: { equivalent: 395, promotion: 42 } },
     propositionsInPlace: 0,
     propositionsOverseas: 37,
     propositionsPerFormation: { PARQUET: 185, SIEGE: 252 },
+    propositionsWithProfile: 0,
     propositionsWithoutAssignment: 437,
     propositionsWithoutBiography: 376,
     propositionsWithoutCareerDates: 437,
     propositionsWithoutEmail: 14,
-    propositionsWithProfile: 0,
   },
   {
     candidatures: 1130,
@@ -83,8 +83,8 @@ export const FICTITIOUS_TRANSPARENCES: readonly FictitiousTransparence[] = [
     label: "Transparence d'été",
     magistrats: 629,
     positions: 231,
-    positionsWithoutProposition: 17,
     positionsWithSeveralPropositions: 28,
+    positionsWithoutProposition: 17,
     propositionFunctions: {
       '1SMACJ': 12,
       AG: 10,
@@ -108,11 +108,11 @@ export const FICTITIOUS_TRANSPARENCES: readonly FictitiousTransparence[] = [
     propositionsInPlace: 22,
     propositionsOverseas: 22,
     propositionsPerFormation: { PARQUET: 66, SIEGE: 196 },
+    propositionsWithProfile: 40,
     propositionsWithoutAssignment: 1,
     propositionsWithoutBiography: 0,
     propositionsWithoutCareerDates: 42,
     propositionsWithoutEmail: 13,
-    propositionsWithProfile: 40,
   },
   {
     candidatures: 153,
@@ -120,18 +120,18 @@ export const FICTITIOUS_TRANSPARENCES: readonly FictitiousTransparence[] = [
     label: 'Transparence de mobilité',
     magistrats: 140,
     positions: 13,
-    positionsWithoutProposition: 0,
     positionsWithSeveralPropositions: 3,
+    positionsWithoutProposition: 0,
     propositionFunctions: { '1VPA': 1, C: 11, SG: 1, VP: 2, VPAP: 1, VPI: 1 },
     propositionGrades: { G2: { equivalent: 17, promotion: 0 } },
     propositionsInPlace: 17,
     propositionsOverseas: 0,
     propositionsPerFormation: { PARQUET: 1, SIEGE: 16 },
+    propositionsWithProfile: 0,
     propositionsWithoutAssignment: 0,
     propositionsWithoutBiography: 0,
     propositionsWithoutCareerDates: 0,
     propositionsWithoutEmail: 0,
-    propositionsWithProfile: 0,
   },
   {
     candidatures: 107,
@@ -139,18 +139,18 @@ export const FICTITIOUS_TRANSPARENCES: readonly FictitiousTransparence[] = [
     label: 'Transparence PG-PR de printemps',
     magistrats: 42,
     positions: 8,
-    positionsWithoutProposition: 0,
     positionsWithSeveralPropositions: 0,
+    positionsWithoutProposition: 0,
     propositionFunctions: { PG: 1, PR: 7 },
     propositionGrades: { G3: { equivalent: 0, promotion: 7 }, G3sup: { equivalent: 0, promotion: 1 } },
     propositionsInPlace: 0,
     propositionsOverseas: 0,
     propositionsPerFormation: { PARQUET: 8, SIEGE: 0 },
+    propositionsWithProfile: 0,
     propositionsWithoutAssignment: 0,
     propositionsWithoutBiography: 0,
     propositionsWithoutCareerDates: 2,
     propositionsWithoutEmail: 1,
-    propositionsWithProfile: 0,
   },
   {
     candidatures: 157,
@@ -158,8 +158,8 @@ export const FICTITIOUS_TRANSPARENCES: readonly FictitiousTransparence[] = [
     label: 'Session des décharges',
     magistrats: 143,
     positions: 45,
-    positionsWithoutProposition: 0,
     positionsWithSeveralPropositions: 5,
+    positionsWithoutProposition: 0,
     propositionFunctions: { '1VP': 3, C: 2, J: 17, SG: 1, VP: 28 },
     propositionGrades: {
       G1: { equivalent: 17, promotion: 0 },
@@ -169,11 +169,11 @@ export const FICTITIOUS_TRANSPARENCES: readonly FictitiousTransparence[] = [
     propositionsInPlace: 46,
     propositionsOverseas: 1,
     propositionsPerFormation: { PARQUET: 1, SIEGE: 50 },
+    propositionsWithProfile: 0,
     propositionsWithoutAssignment: 0,
     propositionsWithoutBiography: 0,
     propositionsWithoutCareerDates: 18,
     propositionsWithoutEmail: 0,
-    propositionsWithProfile: 0,
   },
   {
     candidatures: 114,
@@ -181,8 +181,8 @@ export const FICTITIOUS_TRANSPARENCES: readonly FictitiousTransparence[] = [
     label: 'Transparence PR et autres mouvements',
     magistrats: 104,
     positions: 23,
-    positionsWithoutProposition: 3,
     positionsWithSeveralPropositions: 0,
+    positionsWithoutProposition: 3,
     propositionFunctions: {
       '1VPI': 1,
       AG: 1,
@@ -205,11 +205,11 @@ export const FICTITIOUS_TRANSPARENCES: readonly FictitiousTransparence[] = [
     propositionsInPlace: 2,
     propositionsOverseas: 2,
     propositionsPerFormation: { PARQUET: 12, SIEGE: 8 },
+    propositionsWithProfile: 4,
     propositionsWithoutAssignment: 0,
     propositionsWithoutBiography: 0,
     propositionsWithoutCareerDates: 5,
     propositionsWithoutEmail: 1,
-    propositionsWithProfile: 4,
   },
   {
     candidatures: 32,
@@ -217,18 +217,18 @@ export const FICTITIOUS_TRANSPARENCES: readonly FictitiousTransparence[] = [
     label: 'Transparence rentrée septembre 2026',
     magistrats: 17,
     positions: 2,
-    positionsWithoutProposition: 0,
     positionsWithSeveralPropositions: 0,
+    positionsWithoutProposition: 0,
     propositionFunctions: { '1SMACJ': 2 },
     propositionGrades: { G2: { equivalent: 1, promotion: 0 }, G3: { equivalent: 1, promotion: 0 } },
     propositionsInPlace: 0,
     propositionsOverseas: 0,
     propositionsPerFormation: { PARQUET: 2, SIEGE: 0 },
+    propositionsWithProfile: 0,
     propositionsWithoutAssignment: 1,
     propositionsWithoutBiography: 0,
     propositionsWithoutCareerDates: 2,
     propositionsWithoutEmail: 1,
-    propositionsWithProfile: 0,
   },
   {
     candidatures: 15,
@@ -236,18 +236,18 @@ export const FICTITIOUS_TRANSPARENCES: readonly FictitiousTransparence[] = [
     label: 'Transparence mutation intérêt du service',
     magistrats: 8,
     positions: 1,
-    positionsWithoutProposition: 0,
     positionsWithSeveralPropositions: 0,
+    positionsWithoutProposition: 0,
     propositionFunctions: { SG: 1 },
     propositionGrades: { G2: { equivalent: 1, promotion: 0 } },
     propositionsInPlace: 0,
     propositionsOverseas: 0,
     propositionsPerFormation: { PARQUET: 1, SIEGE: 0 },
+    propositionsWithProfile: 0,
     propositionsWithoutAssignment: 0,
     propositionsWithoutBiography: 0,
     propositionsWithoutCareerDates: 0,
     propositionsWithoutEmail: 0,
-    propositionsWithProfile: 0,
   },
   {
     candidatures: 162,
@@ -255,19 +255,19 @@ export const FICTITIOUS_TRANSPARENCES: readonly FictitiousTransparence[] = [
     label: 'Transparence des recrutements',
     magistrats: 110,
     positions: 66,
-    positionsWithoutProposition: 0,
     positionsWithSeveralPropositions: 10,
+    positionsWithoutProposition: 0,
     propositionFunctions: { J: 30, S: 38, SP: 3, VP: 2, VPR: 3 },
     propositionGrades: { G1: { equivalent: 55, promotion: 16 }, G2: { equivalent: 5, promotion: 0 } },
     propositionsInPlace: 0,
     propositionsOverseas: 3,
     propositionsPerFormation: { PARQUET: 44, SIEGE: 32 },
     propositionsWithLegacyGrade: 16,
+    propositionsWithProfile: 0,
     propositionsWithoutAssignment: 76,
     propositionsWithoutBiography: 66,
     propositionsWithoutCareerDates: 76,
     propositionsWithoutEmail: 55,
-    propositionsWithProfile: 0,
   },
   {
     candidatures: 941,
@@ -298,8 +298,8 @@ export const FICTITIOUS_TRANSPARENCES: readonly FictitiousTransparence[] = [
     label: "Transparence d'automne",
     magistrats: 616,
     positions: 224,
-    positionsWithoutProposition: 7,
     positionsWithSeveralPropositions: 33,
+    positionsWithoutProposition: 7,
     propositionFunctions: {
       '1SMACJ': 13,
       '1VP': 8,
@@ -323,11 +323,11 @@ export const FICTITIOUS_TRANSPARENCES: readonly FictitiousTransparence[] = [
     propositionsInPlace: 43,
     propositionsOverseas: 29,
     propositionsPerFormation: { PARQUET: 109, SIEGE: 162 },
+    propositionsWithProfile: 24,
     propositionsWithoutAssignment: 16,
     propositionsWithoutBiography: 1,
     propositionsWithoutCareerDates: 61,
     propositionsWithoutEmail: 1,
-    propositionsWithProfile: 24,
   },
   {
     candidatures: 81,
@@ -335,8 +335,8 @@ export const FICTITIOUS_TRANSPARENCES: readonly FictitiousTransparence[] = [
     label: 'Transparence PG-PR de novembre',
     magistrats: 68,
     positions: 9,
-    positionsWithoutProposition: 0,
     positionsWithSeveralPropositions: 0,
+    positionsWithoutProposition: 0,
     propositionFunctions: { '1AG': 1, '1SMACJ': 1, AG: 1, PG: 2, PR: 4 },
     propositionGrades: {
       G2: { equivalent: 1, promotion: 0 },
@@ -346,10 +346,10 @@ export const FICTITIOUS_TRANSPARENCES: readonly FictitiousTransparence[] = [
     propositionsInPlace: 1,
     propositionsOverseas: 1,
     propositionsPerFormation: { PARQUET: 9, SIEGE: 0 },
+    propositionsWithProfile: 0,
     propositionsWithoutAssignment: 0,
     propositionsWithoutBiography: 0,
     propositionsWithoutCareerDates: 1,
     propositionsWithoutEmail: 0,
-    propositionsWithProfile: 0,
   },
 ];
