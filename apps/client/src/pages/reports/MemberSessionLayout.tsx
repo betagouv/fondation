@@ -26,8 +26,10 @@ export function MemberSessionLayout() {
   const { data: session, error, isPending } = useDetailedNominationSessionQuery({ sessionId });
 
   if (isPending) return null;
-  if (error && !(error instanceof HttpException && error.statusCode === 404)) throw error;
-  if (!session) return <SessionNotFound />;
+  const isNotFound = error instanceof HttpException && error.statusCode === 404;
+  // a failed reload keeps the data loaded before: the page stays rather than the error page
+  if (error && !isNotFound && !session) throw error;
+  if (isNotFound || !session) return <SessionNotFound />;
 
   return (
     <ArchiveBannerPortal isArchived={session.isArchived}>
