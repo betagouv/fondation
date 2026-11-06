@@ -20,6 +20,7 @@ export type MagistratCareer = {
   nominationDate: string | undefined;
 };
 
+export const FULL_TIME = 'PT';
 export const REFERENCE_DATE = new Date(2026, 9, 1);
 
 /* Measured on the magistrats held by staging on 2026-10-07, in years */
@@ -78,6 +79,7 @@ export function drawMagistratCareer(
   magistrat: {
     administrativePosition: LolfiAdministrativePosition;
     civilite: Civilite;
+    dated?: boolean;
     grade: LolfiGradeEnum;
     position: LolfiPosition;
   },
@@ -152,13 +154,14 @@ export function drawMagistratCareer(
       `- ${detached} auprès ${random.pick(DETACHMENTS)} pour une durée de ${duration} ans ${toLolfiDate(installation)}.`,
     );
   } else if (position.jurisdiction.id === referential.noAssignment.id) {
-    steps.push(`- ${magistrat.administrativePosition.label} ${toLolfiDate(installation)}.`);
+    if (magistrat.administrativePosition.id !== FULL_TIME)
+      steps.push(`- ${magistrat.administrativePosition.label} ${toLolfiDate(installation)}.`);
   } else {
     const title = `${position.function!.id} ${cityOf(position.jurisdiction.id) ?? position.jurisdiction.id}`;
     steps.push(biographyStep(title, gradeMention(installation), nomination, installation));
   }
 
-  const dated = random.chance(GRADE_AND_INSTALLATION_DATED_SHARE);
+  const dated = magistrat.dated ?? random.chance(GRADE_AND_INSTALLATION_DATED_SHARE);
   return {
     birthDate: toLolfiDate(birth),
     careerHistory: steps.join(' '),

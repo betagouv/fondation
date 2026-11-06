@@ -5,6 +5,7 @@ import { format, parse, sub } from 'date-fns';
 
 import { gradeToNumber } from './grade-to-number';
 import {
+  LOLFI_LEGACY_GRADES,
   type LolfiArchiveContent,
   LolfiFormationEnum,
   type LolfiFunction,
@@ -90,6 +91,14 @@ export async function* generateLolfiFiles(
   const declaredJurisdictions = new Map((data.jurisdictions ?? []).map((j) => [j.id, j]));
   const functions = new Map<string, MagistratFunction>();
   const positions = new Map<string, MagistratPosition>();
+  const positionIds = new Set<number>();
+
+  function newPositionId(): number {
+    const id = faker.number.int({ min: 100, max: 1e6 });
+    if (positionIds.has(id)) return newPositionId();
+    positionIds.add(id);
+    return id;
+  }
 
   function getOrCreateJurisdictionType(jurisdiction: LolfiJurisdiction) {
     const jt = jurisdiction.jurisdictionType ?? jurisdiction.id.match(/^\S+/)?.[0];
@@ -157,14 +166,15 @@ export async function* generateLolfiFiles(
     const f = position.function && getOrCreateFunction(position.function);
     const j = getOrCreateJurisdiction(position.jurisdiction);
 
-    const positionId = `${f?.id}+${j.id}`;
+    const grade = position.grade ?? 'G3';
+    const positionId = [f?.id, j.id, grade, position.profile, position.seat].join('+');
     const existing = positions.get(positionId);
     if (existing) return existing;
 
     const fullPosition = {
       functionId: f?.id ?? null,
-      grade: position.grade ?? 'G3',
-      id: faker.number.int({ min: 100, max: 1e6 }),
+      grade,
+      id: newPositionId(),
       jurisdictionId: j.id,
       profile: position.profile ?? null,
       profileId:
@@ -191,17 +201,37 @@ export async function* generateLolfiFiles(
     }),
   }));
 
+  const absentMagistratIds = new Set(data.absentMagistratIds);
+  const otherMagistrats = (data.magistrats ?? []).map((magistrat) => ({
+    ...magistrat,
+    position: getOrCreatePosition(magistrat.position),
+  }));
+  const legacyGrades = LOLFI_LEGACY_GRADES.filter(
+    (grade) =>
+      otherMagistrats.some((m) => m.legacyGrade === grade) ||
+      fullSessions.some((s) => s.candidates.some((c) => c.legacyGrade === grade)),
+  );
+
+  const magistrats = new Map(
+    fullSessions.flatMap((session) =>
+      session.candidates.map((candidate) => [candidate.id, { candidate, session }] as const),
+    ),
+  );
+
   yield {
     filename: 'GRADES.xml',
     buffer: toXml(
       'grades',
-      Object.values(LolfiGradeEnum).map((grade) => ({
+      [
+        ...Object.values(LolfiGradeEnum).map((grade) => ({ grade, tri: gradeToNumber(grade) })),
+        ...legacyGrades.map((grade, index) => ({ grade, tri: gradeToNumber('G1') + 1 + index })),
+      ].map(({ grade, tri }) => ({
         grade,
         libelle: grade,
-        tri: gradeToNumber(grade),
+        tri,
         masse_grade: grade,
         mg_libelle: grade,
-        mg_tri: gradeToNumber(grade),
+        mg_tri: tri,
       })),
     ),
   };
@@ -306,8 +336,12 @@ export async function* generateLolfiFiles(
     filename: 'MAGISTRATS.xml',
     buffer: toXml(
       'magistrats',
-      fullSessions.flatMap((session) =>
-        session.candidates.map((candidate) => ({
+      [
+        ...magistrats.values(),
+        ...otherMagistrats.map((candidate) => ({ candidate, session: { createdAt: '01/01/2026' } })),
+      ]
+        .filter(({ candidate }) => !absentMagistratIds.has(candidate.id))
+        .map(({ candidate, session }) => ({
           id: candidate.id,
           civilite: candidate.civilite ?? 'M.',
           nom: candidate.lastName,
@@ -319,12 +353,13 @@ export async function* generateLolfiFiles(
               ? faker.helpers.arrayElement(['C', 'M', 'P'])
               : candidate.maritalStatus,
           email_pro:
-            candidate.email ??
-            faker.internet.email({
-              lastName: candidate.lastName.toLowerCase(),
-              firstName: candidate.firstName.toLowerCase(),
-              provider: 'justice.fr',
-            }),
+            candidate.email !== undefined
+              ? candidate.email
+              : faker.internet.email({
+                  lastName: candidate.lastName.toLowerCase(),
+                  firstName: candidate.firstName.toLowerCase(),
+                  provider: 'justice.fr',
+                }),
           date_naiss:
             candidate.birthDate ??
             format(
@@ -336,7 +371,7 @@ export async function* generateLolfiFiles(
             ),
           lieu_naiss: null,
           dep_naiss: null,
-          grade: candidate.position.grade,
+          grade: candidate.legacyGrade ?? candidate.position.grade,
           date_grade: candidate.gradeDate ?? null,
           num_emploi_cible: candidate.position.id,
           date_installation: candidate.installationDate ?? null,
@@ -351,7 +386,6 @@ export async function* generateLolfiFiles(
           date_modification: null,
           date_posad_prev_fin: null,
         })),
-      ),
     ),
   };
 
@@ -362,15 +396,16 @@ export async function* generateLolfiFiles(
       fullSessions.flatMap((session) =>
         session.candidates.map((candidate) => ({
           num_session: session.id,
-          num_transparence: candidate.id,
+          num_transparence: candidate.nominationId ?? candidate.id,
           num_emploi_cible: candidate.targetPosition.id,
-          type_mouvement: candidate.targetPosition.grade == candidate.position.grade ? 'E' : 'A',
+          type_mouvement:
+            candidate.targetPosition.grade == (candidate.legacyGrade ?? candidate.position.grade) ? 'E' : 'A',
           ta: 2024,
           resultat: candidate.designated === false ? 0 : 1,
           id: candidate.id,
           affectation: candidate.position.id,
           date_grade: null,
-          tri_poste: candidate.position.id,
+          tri_poste: candidate.positionSort ?? candidate.position.id,
           rang_cand: candidate.rank ?? 1,
         })),
       ),
@@ -381,26 +416,24 @@ export async function* generateLolfiFiles(
     filename: 'CANDIDATS.xml',
     buffer: toXml(
       'candidats',
-      fullSessions.flatMap((session) =>
-        session.candidates.map((candidate) => ({
-          id: candidate.id,
-          num_candidat: candidate.id,
-          demande_conjointe: '0',
-          nom_ville_conjoint: null,
-          observation: null,
-          date_modification: session.createdAt,
-          adr1: null,
-          adr2: null,
-          codepos: null,
-          ville: null,
-          tel_perso: candidate.phone ?? null,
-          mandat: null,
-          mandat_conjoint: null,
-          prof_conjoint: null,
-          article_l111: null,
-          obs_num_session: null,
-        })),
-      ),
+      magistrats.values().map(({ candidate, session }) => ({
+        id: candidate.id,
+        num_candidat: candidate.id,
+        demande_conjointe: '0',
+        nom_ville_conjoint: null,
+        observation: null,
+        date_modification: session.createdAt,
+        adr1: null,
+        adr2: null,
+        codepos: null,
+        ville: null,
+        tel_perso: candidate.phone ?? null,
+        mandat: null,
+        mandat_conjoint: null,
+        prof_conjoint: null,
+        article_l111: null,
+        obs_num_session: null,
+      })),
     ),
   };
 
