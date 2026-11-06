@@ -53,11 +53,13 @@ export class ChildProcessJobRunner implements OnApplicationShutdown {
       let exited = false;
 
       const child = spawn(process.execPath, commandParts, {
-        detached: true,
-        env: { ...process.env },
-        stdio: ['ignore', 'ignore', 'ignore', 'ipc'],
-        signal: this.controller.signal,
         cwd: ChildProcessJobRunner.CWD,
+        detached: true,
+        // set by node --watch: the child would report each loaded module on the channel closed once it started,
+        // and die of an EPIPE at the first module Prisma loads on demand, leaving the job idle
+        env: { ...process.env, WATCH_REPORT_DEPENDENCIES: undefined },
+        signal: this.controller.signal,
+        stdio: ['ignore', 'ignore', 'ignore', 'ipc'],
       });
 
       child.on('message', (msg) => {

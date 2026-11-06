@@ -6,6 +6,7 @@ import {
   type LolfiJurisdiction,
   type LolfiJurisdictionType,
 } from '../src';
+import { cityOf } from '../src/generate-lolfi-files';
 
 import administrativePositions from './referential/administrative-positions.json';
 import functions from './referential/functions.json';
@@ -24,6 +25,9 @@ export type PositionKind = {
 };
 
 const NOT_A_COURT = ['DET', 'SAB', '_NR'];
+/* Keep them equal to the OUTRE_MER priority in apps/api/prisma/sql/detailLolfiSessionRawQuery.sql */
+const OVERSEAS_POSTAL_CODE = /^9[78]\d{3}/;
+const OVERSEAS_CITIES = ['CAYENNE', 'MAMOUDZOU', 'SAINT MARTIN', 'SAINT LAURENT DU MARONI'];
 
 export class LolfiReferential {
   readonly administrativePositions = administrativePositions as readonly LolfiAdministrativePosition[];
@@ -35,6 +39,7 @@ export class LolfiReferential {
   readonly noAssignment = this.jurisdiction('SANS AFFECTATION');
 
   readonly #functions = new Map(this.functions.map((f) => [f.id, f]));
+  readonly #jurisdictionsBySide = new Map<string, readonly LolfiJurisdiction[]>();
   readonly #jurisdictionsByType = Map.groupBy(this.jurisdictions, (j) => j.jurisdictionType);
   readonly #positionKinds = (positionKinds as readonly PositionKind[]).filter(
     (k) => !NOT_A_COURT.includes(k.jurisdictionType),
@@ -60,6 +65,33 @@ export class LolfiReferential {
 
   jurisdictionsOf(type: string): readonly LolfiJurisdiction[] {
     return this.#jurisdictionsByType.get(type) ?? [];
+  }
+
+  isOverseas(jurisdiction: LolfiJurisdiction): boolean {
+    return (
+      OVERSEAS_POSTAL_CODE.test(jurisdiction.postalCode ?? '') ||
+      OVERSEAS_CITIES.includes(cityOf(jurisdiction.id) ?? '')
+    );
+  }
+
+  jurisdictionsOfSide(type: string, overseas: boolean): readonly LolfiJurisdiction[] {
+    const key = `${type}+${overseas}`;
+    const known = this.#jurisdictionsBySide.get(key);
+    if (known) return known;
+
+    const side = this.jurisdictionsOf(type).filter((j) => this.isOverseas(j) === overseas);
+    this.#jurisdictionsBySide.set(key, side);
+    return side;
+  }
+
+  positionKindsOf(functionId: string): readonly PositionKind[] {
+    return this.#positionKinds.filter(
+      (kind) => kind.functionId === functionId && this.jurisdictionsOf(kind.jurisdictionType).length > 0,
+    );
+  }
+
+  positionKindsOfJurisdictionType(jurisdictionType: string): readonly PositionKind[] {
+    return this.#positionKinds.filter((kind) => kind.jurisdictionType === jurisdictionType);
   }
 
   positionKindsWeightedByCount(filter: {
