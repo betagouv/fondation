@@ -39,4 +39,4 @@ La synchronisation entre le client et le serveur utilise TanStack Query et le SD
 - Chaque hook déclaré ici est responsable de sa propre API, avec ces règles :
   - Chaque query utilise une clé tirée d'un registre de clés déclaré en haut du fichier
   - Chaque clé doit pouvoir être identifiée pour invalider son contenu
-  - Si une mutation rend une query périmée, elle l'invalide
+  - Si une mutation rend une query périmée, elle l'invalide dans `onSettled` : un refus de l'API (409, 422) signale souvent que les données affichées ont changé entre-temps
