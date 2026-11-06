@@ -105,8 +105,8 @@ export class TransparenceExceptionFilter implements NestInterceptor {
               {
                 validationErrors: [
                   err.fileIds.size === 1
-                    ? `Le dossier a déjà été associé à de la documentation`
-                    : `${err.fileIds.size} dossiers ont déjà été associés à de la documentation`,
+                    ? `Un dossier n'est plus modifiable`
+                    : `${err.fileIds.size} dossiers ne sont plus modifiables`,
                 ],
               },
               { cause: err },

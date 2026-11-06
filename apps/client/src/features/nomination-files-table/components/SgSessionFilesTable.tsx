@@ -188,6 +188,20 @@ function SgSessionFilesTableInner(
     sessionId,
   });
 
+  useEffect(() => {
+    setRowSelection((selection) => {
+      const frozenFiles = filesTable.nominationFiles.filter(
+        (file) => selection[file.id] && !isUpdatable(file),
+      );
+      if (!frozenFiles.length) return selection;
+
+      const next = { ...selection };
+      for (const { id } of frozenFiles) delete next[id];
+
+      return next;
+    });
+  }, [filesTable.nominationFiles]);
+
   const selectedFiles = useMemo(
     () => filesTable.nominationFiles.filter(({ id }) => rowSelection[id]),
     [filesTable.nominationFiles, rowSelection],
