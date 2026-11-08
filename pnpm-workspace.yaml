@@ -39,7 +39,7 @@ overrides:
   # Security update: prisma pins the vulnerable version exactly
   prisma>mysql2: 3.24.6
   prosemirror-model: 1.25.12
-  prosemirror-view: 1.42.6
+  prosemirror-view: 1.42.8
   qs: 6.16.1
 
 # jest-dom augments `vitest` without depending on it, so pnpm resolves its
