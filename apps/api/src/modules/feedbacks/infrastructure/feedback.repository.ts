@@ -2,6 +2,7 @@ import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { Prisma } from '../../../generated/prisma/client';
+import { lockFeedbackRawQuery } from '../../../generated/prisma/sql';
 import { assertNever } from '../../../utils/assert-never';
 import { Clock } from '../../framework/clock';
 import { Db } from '../../framework/database';
@@ -14,7 +15,10 @@ export class FeedbackRepository {
     private readonly db: Db,
   ) {}
 
+  @Transactional(Propagation.Mandatory)
   async find(predicate: { feedbackId: string }): Promise<Feedback> {
+    // a change sent twice waits for the first one, then starts from its result: its history row would collide otherwise
+    await this.db.tx.$queryRawTyped(lockFeedbackRawQuery(predicate.feedbackId));
     const feedback = await this.db.tx.feedback.findUnique({
       select: { id: true, status: true, statusComment: true } satisfies Prisma.FeedbackSelect,
       where: { id: predicate.feedbackId },

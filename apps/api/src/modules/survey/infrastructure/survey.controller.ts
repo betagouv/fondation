@@ -22,14 +22,14 @@ import { FoundSurveyDto } from './queries/find-survey.query';
 import { AnswerSurveyDto } from './survey.dto';
 import { SurveyFilter } from './survey.filter';
 
-type AuthedRespondent = {
+export type AuthedRespondent = {
   id: string;
   impersonation?: { impersonatorId: string };
   isAdmin: boolean;
   role: RoleEnum;
 };
 
-function toRespondent(user: AuthedRespondent) {
+export function toRespondent(user: AuthedRespondent) {
   return { id: user.id, isAdmin: user.isAdmin, isImpersonated: !!user.impersonation, role: user.role };
 }
 

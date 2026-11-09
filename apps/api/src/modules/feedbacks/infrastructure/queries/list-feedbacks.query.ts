@@ -117,3 +117,5 @@ const ListedFeedbackSchema = z.object({
 });
 
 export class ListedFeedbacksDto extends createPaginatedZodDto(ListedFeedbackSchema) {}
+
+export type ListedFeedback = z.infer<typeof ListedFeedbackSchema>;

@@ -28,6 +28,21 @@ test.describe('Survey E2E', () => {
     });
   });
 
+  test('a tab opened before the renaming still answers the survey at its former routes', async ({ member, expect }) => {
+    const client = member['@client'];
+
+    const found = await client.get({ url: '/api/feedbacks/v1/mine' });
+    expect(found.data).toEqual({ feedback: { last: null, questionnaire: 'MEMBER', status: 'NOT_ANSWERED' } });
+
+    const answered = await client.post({
+      body: MEMBER_ANSWERS,
+      headers: { 'Content-Type': 'application/json' },
+      url: '/api/feedbacks/v1/answer',
+    });
+    expect(answered.response?.status).toBe(204);
+    expect((await member.survey.findSurvey()).data?.survey?.status).toBe('ANSWERED');
+  });
+
   test('the secretariat answers its survey', async ({ agent, expect }) => {
     const found = await agent.survey.findSurvey();
     expect(found.data?.survey?.questionnaire).toBe('SECRETARIAT');
