@@ -3,11 +3,12 @@
   "version": "1.0.0",
   "license": "Apache-2.0",
   "scripts": {
-    "lint:check": "oxlint",
+    "lint:check": "oxlint --deny-warnings",
     "format:check": "oxfmt --check",
     "types:check": "pnpm run -r types:check",
     "openapi:generate": "pnpm run -r openapi:generate",
     "build": "pnpm run -r build",
+    "prepare": "husky",
     "prepush": "pnpm --filter './packages/*' build && pnpm lint:check && pnpm --filter client lint:colors && pnpm format:check && pnpm types:check && pnpm --filter client types:check:test",
     "scalingo-postbuild": "echo 'App already built. Disable build phase with envvar NPM_NO_BUILD=true'",
     "heroku-postbuild": "echo 'App already built'",
