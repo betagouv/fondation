@@ -5,19 +5,23 @@
 const SANITIZED_MIME_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
 
 /**
- * No sanitizer handles Office documents yet, so they reach the storage untouched. Accept one only
- * where refusing it would turn away people who have no other tool: Word documents, Outlook messages
- * and Excel workbooks. Extensions are listed alongside the mime types because file pickers map the
- * Office ones unreliably, and give none to an Outlook message outside Windows
+ * No sanitizer handles office documents yet, so they reach the storage untouched. Accept one only
+ * where refusing it would turn away people who have no other tool: Word and LibreOffice documents,
+ * emails and Excel workbooks. Extensions are listed alongside the mime types because file pickers map
+ * the office ones unreliably, and give none to an Outlook message outside Windows
  */
 const OFFICE_MIME_TYPES = [
   '.doc',
   '.docx',
+  '.odt',
   '.msg',
+  '.eml',
   '.xlsx',
   'application/msword',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.oasis.opendocument.text',
   'application/vnd.ms-outlook',
+  'message/rfc822',
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
 ];
 

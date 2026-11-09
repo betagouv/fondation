@@ -28,6 +28,7 @@ describe('filenameToMimeType', () => {
     ['note.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
     ['agenda.pdf-2026', 'application/pdf'],
     ['courriel.MSG', 'application/vnd.ms-outlook'],
+    ['courriel.eml', 'message/rfc822'],
   ])('reads %s as %s', (filename, expected) => {
     expect(filenameToMimeType(filename)).toBe(expected);
   });

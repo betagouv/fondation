@@ -4,6 +4,7 @@ export const FILE_MIME_TYPES = {
   bin: 'application/octet-stream',
   doc: 'application/msword',
   docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  eml: 'message/rfc822',
   gif: 'image/gif',
   heic: 'image/heic',
   jpg: 'image/jpeg',
