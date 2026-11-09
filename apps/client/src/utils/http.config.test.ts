@@ -1,8 +1,30 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import sdk from '../generated/api/sdk.ts?raw';
 
-import { LONG_RUNNING_ROUTES, routeToPattern, timeoutFor, UPLOAD_ROUTES } from './http.config';
+import {
+  createClientConfig,
+  LONG_RUNNING_ROUTES,
+  routeToPattern,
+  timeoutFor,
+  UPLOAD_ROUTES,
+} from './http.config';
+
+describe('createClientConfig', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it.each([
+    ['a dropped connection as a network error', new TypeError('Failed to fetch'), 'NetworkError'],
+    ['a timeout as is', new DOMException('signal timed out', 'TimeoutError'), 'TimeoutError'],
+  ])('rejects %s', async (_, failure, name) => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(failure));
+    const { fetch } = createClientConfig();
+
+    await expect(fetch!('https://api.dev/api/sessions/v2')).rejects.toMatchObject({ name });
+  });
+});
 
 describe('timeoutFor', () => {
   it('gives a reading ten seconds, a writing a minute and an upload five minutes', () => {
