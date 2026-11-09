@@ -150,7 +150,7 @@ export class InvalidateOfficialReportUseCase {
     }));
   }
 
-  /** a row written before the ids were kept names the member by text only, and waits for its next refresh */
+  /** a row whose name the migration could not tie to a member keeps a null id: a rename does not reach it */
   private async mapMemberRenamed(query: {
     invalidation: Extract<DocInvalidation, { type: 'MemberRenamed' }>;
   }): Promise<InvalidateOfficialReportCommand[]> {

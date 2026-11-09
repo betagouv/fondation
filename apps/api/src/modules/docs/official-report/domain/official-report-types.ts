@@ -14,7 +14,7 @@ export const OFFICIAL_REPORT_NOTE_OUTDATED_BY = ['RECUSAL', 'DESIGNATION'] as co
 /** what changed since the slot was written or emptied by hand: who is recused, or only how one is named */
 export type OfficialReportNoteOutdatedBy = (typeof OFFICIAL_REPORT_NOTE_OUTDATED_BY)[number];
 
-/** a member as the report names them: `id` is null on a row written before the ids were kept */
+/** a member as the report names them: `id` is null when a name written before the ids were kept matched no single member */
 export type OfficialReportNamedMember = { id: string | null; name: string };
 
 export type UpdateOfficialReportCommand = {
