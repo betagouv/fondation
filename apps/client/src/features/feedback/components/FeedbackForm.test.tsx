@@ -47,18 +47,18 @@ describe('FeedbackForm', () => {
     await next(user);
     await user.click(screen.getByLabelText('10 à 25 %'));
     await next(user);
-    await user.click(screen.getByLabelText('Au moins une fois'));
+    await user.click(screen.getByLabelText('Entre 1 et 5 fois'));
     await next(user);
     await user.click(screen.getByLabelText('Partiellement'));
     await next(user);
-    await user.type(screen.getByLabelText(/ralenti ou gêné/), '  La recherche des dossiers ');
+    await user.type(screen.getByLabelText(/le plus aidé/), '  La recherche des dossiers ');
     await next(user);
 
     expect(onSubmit).toHaveBeenCalledWith({
       easeRating: 4,
       hindrance: 'La recherche des dossiers',
       member: {
-        debateContribution: 'AT_LEAST_ONCE',
+        debateContribution: 'FROM_1_TO_5',
         manualWorkShare: 'FROM_10_TO_25',
         reviewThoroughness: 'PARTIALLY',
       },
@@ -76,9 +76,9 @@ describe('FeedbackForm', () => {
     await next(user);
     await user.click(screen.getByLabelText('Moins de 10 %'));
     await next(user);
-    expect(screen.queryByLabelText(/pour quoi faire/)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/Pour quelles tâches/)).not.toBeInTheDocument();
     await user.click(screen.getByLabelText('Oui, ponctuellement'));
-    await user.type(screen.getByLabelText(/pour quoi faire/), 'Le tableur des auditions');
+    await user.type(screen.getByLabelText(/Pour quelles tâches/), 'Le tableur des auditions');
     await next(user);
     await next(user);
 

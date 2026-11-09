@@ -25,7 +25,7 @@ const COMMON_ANSWERS = {
 const MEMBER_ANSWERS: FeedbackAnswers = {
   ...COMMON_ANSWERS,
   member: {
-    debateContribution: 'AT_LEAST_ONCE',
+    debateContribution: 'FROM_1_TO_5',
     manualWorkShare: 'FROM_10_TO_25',
     reviewThoroughness: 'YES',
   },
