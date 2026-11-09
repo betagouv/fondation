@@ -60,7 +60,7 @@ function SummaryContent(props: SummaryTarget) {
 
 function ReadableSummary(props: SummaryTarget) {
   const { nominationFileId, sessionId } = props;
-  const { data, isLoading } = useSummaryQuery({ nominationFileId, sessionId });
+  const { data, isFetching, isLoading, refetch } = useSummaryQuery({ nominationFileId, sessionId });
 
   if (isLoading) {
     return (
@@ -75,9 +75,15 @@ function ReadableSummary(props: SummaryTarget) {
   if (!data) {
     return (
       <SummarySectionLayout headingLevel={props.headingLevel}>
-        <p className="fr-mb-0 text-(--text-mention-grey)">
-          <FormattedMessage defaultMessage="La synthèse n'a pas pu être chargée." />
-        </p>
+        <div className="flex flex-col items-start gap-2">
+          <p className="fr-mb-0 text-(--text-mention-grey)">
+            <FormattedMessage defaultMessage="La synthèse n'a pas pu être chargée." />
+          </p>
+          {/* after a failure, isLoading stays false while retrying: only isFetching shows the attempt */}
+          <Button disabled={isFetching} onClick={() => refetch()} priority="secondary" size="small">
+            <FormattedMessage defaultMessage="Réessayer" />
+          </Button>
+        </div>
       </SummarySectionLayout>
     );
   }

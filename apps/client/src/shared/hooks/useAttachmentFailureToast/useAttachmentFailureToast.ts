@@ -14,7 +14,6 @@ const REASONS = defineMessages({
   forbidden: { defaultMessage: `Vous n'avez pas les droits nécessaires pour y accéder.` },
   missing: { defaultMessage: 'La pièce jointe est introuvable.' },
   timeout: { defaultMessage: 'Le serveur a mis trop de temps à répondre.' },
-  unavailable: { defaultMessage: 'Le service est momentanément indisponible.' },
 });
 
 export function useAttachmentFailureToast() {

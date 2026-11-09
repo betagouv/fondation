@@ -38,6 +38,7 @@ const MAGISTRAT: DetailedMagistratDto = {
   usedName: 'Roussel',
 };
 
+const RESPONSES = [200, 404] as const;
 const STATUSES = ['ACTIVE', 'INACTIVE'] as const satisfies readonly DetailedMagistratDto['status'][];
 
 type MagistratNominationFile = ListedMagistratNominationFilesDto['items'][number];
@@ -132,9 +133,15 @@ const PATHS = {
   sg: ROUTE_PATHS.SG.MAGISTRAT_DETAILS,
 } satisfies Record<StoryView, string>;
 
-function MagistratDetailsPageStory(props: { status: DetailedMagistratDto['status']; view: StoryView }) {
+function MagistratDetailsPageStory(props: {
+  response: (typeof RESPONSES)[number];
+  status: DetailedMagistratDto['status'];
+  view: StoryView;
+}) {
   return (
     <PageStory
+      // a new response needs a new fetch: the query cache lives in PageStory
+      key={props.response}
       location={getMagistratDetailsPath({
         context: props.view === 'sg' ? 'sg' : 'membre',
         magistratId: MAGISTRAT.id,
@@ -148,15 +155,18 @@ function MagistratDetailsPageStory(props: { status: DetailedMagistratDto['status
 }
 
 const meta = {
-  args: { status: 'ACTIVE', view: 'sg' },
+  args: { response: 200, status: 'ACTIVE', view: 'sg' },
   argTypes: {
+    response: { control: 'inline-radio', options: RESPONSES },
     status: { control: 'inline-radio', options: STATUSES },
     view: { control: 'inline-radio', options: STORY_VIEWS },
   },
   beforeEach: ({ args, msw }) => {
     msw.use(
       http.get('*/api/magistrats/v1/:magistratId', () =>
-        HttpResponse.json<DetailedMagistratDto>({ ...MAGISTRAT, status: args.status }),
+        args.response === 404
+          ? new HttpResponse(null, { status: 404 })
+          : HttpResponse.json<DetailedMagistratDto>({ ...MAGISTRAT, status: args.status }),
       ),
       ...magistratHandlers,
     );
