@@ -78,7 +78,7 @@ function OtherTools(props: { answers: Answers }) {
       <Choices
         answers={props.answers}
         legend={
-          <FormattedMessage defaultMessage="Lors des dernières sessions, avez-vous dû utiliser un autre outil que Fondation (tableur, messagerie, document Word, application interne…) pour faire une partie de votre travail ?" />
+          <FormattedMessage defaultMessage="Lors des dernières sessions, avez-vous utilisé un autre outil que Fondation (tableur, messagerie, document Word, application interne…) pour faire une partie de votre travail ?" />
         }
         name="otherToolUsage"
         onChange={setUsage}
@@ -94,7 +94,7 @@ function OtherTools(props: { answers: Answers }) {
       {usage && usage !== 'NONE' && (
         <FreeText
           answers={props.answers}
-          label={<FormattedMessage defaultMessage="Si oui, pour quoi faire ?" />}
+          label={<FormattedMessage defaultMessage="Pour quelles tâches ?" />}
           name="otherToolPurpose"
         />
       )}
@@ -108,8 +108,8 @@ function textOf(answers: Answers, name: string): string | null {
 
 function answersOf(answers: Answers, questionnaire: Feedback['questionnaire']): AnswerFeedbackDto {
   return {
+    comment: textOf(answers, 'comment'),
     easeRating: Number(answers.easeRating),
-    hindrance: textOf(answers, 'hindrance'),
     member:
       questionnaire === 'MEMBER'
         ? {
@@ -148,7 +148,7 @@ function useSteps(questionnaire: Feedback['questionnaire'], answers: Answers): S
         <Rating
           answers={answers}
           legend={
-            <FormattedMessage defaultMessage="Sur une note de 1 à 5, le produit Fondation est-il facile à utiliser ?" />
+            <FormattedMessage defaultMessage="Sur une échelle de 1 à 5, Fondation est-il facile à utiliser ?" />
           }
           max={5}
           name="easeRating"
@@ -162,7 +162,7 @@ function useSteps(questionnaire: Feedback['questionnaire'], answers: Answers): S
         <Rating
           answers={answers}
           legend={
-            <FormattedMessage defaultMessage="Sur une note de 1 à 10, quelle est votre satisfaction globale sur Fondation ?" />
+            <FormattedMessage defaultMessage="Sur une échelle de 1 à 10, quelle est votre satisfaction globale avec Fondation ?" />
           }
           max={10}
           name="satisfactionRating"
@@ -172,18 +172,18 @@ function useSteps(questionnaire: Feedback['questionnaire'], answers: Answers): S
     },
   ];
 
-  const hindrance: Step = {
-    name: 'hindrance',
+  const comment: Step = {
+    name: 'comment',
     question: (
       <FreeText
         answers={answers}
         label={
-          <FormattedMessage defaultMessage="Qu'est-ce qui vous a le plus ralenti ou gêné lors des dernières sessions ?" />
+          <FormattedMessage defaultMessage="Lors des dernières sessions, qu'est-ce qui vous a le plus aidé et que faudrait-il améliorer ?" />
         }
-        name="hindrance"
+        name="comment"
       />
     ),
-    title: <FormattedMessage defaultMessage="Ce qui vous a gêné" />,
+    title: <FormattedMessage defaultMessage="Votre commentaire" />,
   };
 
   if (questionnaire === 'MEMBER') {
@@ -195,7 +195,7 @@ function useSteps(questionnaire: Feedback['questionnaire'], answers: Answers): S
           <Choices
             answers={answers}
             legend={
-              <FormattedMessage defaultMessage="Lors des dernières sessions, quelle part de votre temps avez-vous passée sur des tâches de manipulation (rechercher une information, la recopier, mettre en forme un document) plutôt que sur l'analyse des dossiers ?" />
+              <FormattedMessage defaultMessage="Lors des dernières sessions, quelle part de votre temps a servi à rechercher, recopier ou mettre en forme des informations plutôt qu'à analyser les dossiers ?" />
             }
             name="manualWorkShare"
             options={manualWorkShares}
@@ -209,12 +209,13 @@ function useSteps(questionnaire: Feedback['questionnaire'], answers: Answers): S
           <Choices
             answers={answers}
             legend={
-              <FormattedMessage defaultMessage="Lors des dernières sessions, avez-vous pu contribuer au débat sur des dossiers dont vous n'étiez pas rapporteur ?" />
+              <FormattedMessage defaultMessage="Lors des dernières sessions, combien de fois avez-vous pris part au débat sur un dossier dont vous n'étiez pas rapporteur ?" />
             }
             name="debateContribution"
             options={[
               { label: formatMessage({ defaultMessage: 'Jamais' }), value: 'NEVER' },
-              { label: formatMessage({ defaultMessage: 'Au moins une fois' }), value: 'AT_LEAST_ONCE' },
+              { label: formatMessage({ defaultMessage: 'Entre 1 et 5 fois' }), value: 'FROM_1_TO_5' },
+              { label: formatMessage({ defaultMessage: 'Plus de 5 fois' }), value: 'MORE_THAN_5' },
             ]}
           />
         ),
@@ -226,23 +227,26 @@ function useSteps(questionnaire: Feedback['questionnaire'], answers: Answers): S
           <Choices
             answers={answers}
             legend={
-              <FormattedMessage defaultMessage="Avez-vous pu instruire l'ensemble des dossiers des dernières sessions avec le même niveau d'exigence ?" />
+              <FormattedMessage defaultMessage="Avez-vous pu préparer l'ensemble de vos derniers rapports avec le niveau d'exigence que vous souhaitiez ?" />
             }
             name="reviewThoroughness"
             options={[
               { label: formatMessage({ defaultMessage: 'Oui' }), value: 'YES' },
               { label: formatMessage({ defaultMessage: 'Partiellement' }), value: 'PARTIALLY' },
-              { label: formatMessage({ defaultMessage: 'Non, faute de temps' }), value: 'NO_LACK_OF_TIME' },
               {
-                label: formatMessage({ defaultMessage: "Non, faute d'accès à l'information" }),
+                label: formatMessage({ defaultMessage: "Non, le temps m'a manqué" }),
+                value: 'NO_LACK_OF_TIME',
+              },
+              {
+                label: formatMessage({ defaultMessage: "Non, des informations m'ont manqué" }),
                 value: 'NO_LACK_OF_INFORMATION',
               },
             ]}
           />
         ),
-        title: <FormattedMessage defaultMessage="Instruction des dossiers" />,
+        title: <FormattedMessage defaultMessage="Préparation des rapports" />,
       },
-      hindrance,
+      comment,
     ];
   }
 
@@ -267,7 +271,7 @@ function useSteps(questionnaire: Feedback['questionnaire'], answers: Answers): S
       question: <OtherTools answers={answers} />,
       title: <FormattedMessage defaultMessage="Autres outils" />,
     },
-    hindrance,
+    comment,
   ];
 }
 

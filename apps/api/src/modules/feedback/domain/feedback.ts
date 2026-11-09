@@ -10,7 +10,7 @@ export const MANUAL_WORK_SHARES = [
 ] as const;
 export type ManualWorkShare = (typeof MANUAL_WORK_SHARES)[number];
 
-export const DEBATE_CONTRIBUTIONS = ['NEVER', 'AT_LEAST_ONCE'] as const;
+export const DEBATE_CONTRIBUTIONS = ['NEVER', 'FROM_1_TO_5', 'MORE_THAN_5'] as const;
 export type DebateContribution = (typeof DEBATE_CONTRIBUTIONS)[number];
 
 export const REVIEW_THOROUGHNESSES = [
@@ -28,8 +28,8 @@ export const QUESTIONNAIRES = ['MEMBER', 'SECRETARIAT'] as const;
 export type Questionnaire = (typeof QUESTIONNAIRES)[number];
 
 export type FeedbackAnswers = {
+  comment: string | null;
   easeRating: number;
-  hindrance: string | null;
   member: {
     debateContribution: DebateContribution;
     manualWorkShare: ManualWorkShare;
