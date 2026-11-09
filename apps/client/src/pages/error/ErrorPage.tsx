@@ -6,7 +6,7 @@ import { defineMessage, FormattedMessage, useIntl, type MessageDescriptor } from
 import { isRouteErrorResponse, useLocation, useNavigate, useRouteError } from 'react-router';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
-import { PageLayout } from '@/layout/PageLayout';
+import { BareLayout } from '@/layout/BareLayout';
 import { failureOf, type FailureReason } from '@/shared/hooks/useRequestFailure';
 import { ErrorPageLayout } from '@/shared/ui/error-page';
 import { appVersion } from '@/utils/app-version';
@@ -99,7 +99,7 @@ export function ErrorPage() {
   });
 
   return (
-    <PageLayout>
+    <BareLayout>
       <ErrorPageLayout>
         {transientFailure ? (
           <>
@@ -136,6 +136,6 @@ export function ErrorPage() {
 
         <ButtonsGroup inlineLayoutWhen="md and up" buttons={buttons as [ButtonProps, ...ButtonProps[]]} />
       </ErrorPageLayout>
-    </PageLayout>
+    </BareLayout>
   );
 }
