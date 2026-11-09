@@ -21,7 +21,5 @@ const OFFICE_MIME_TYPES = [
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
 ];
 
-export const SANITIZED_FILE_TYPES = SANITIZED_MIME_TYPES.join(',');
-
-/** What every upload of attachments accepts but one: what the API sanitizes, plus the Office documents it does not */
+/** What every upload of attachments accepts: what the API sanitizes, plus the Office documents it does not */
 export const ATTACHMENT_FILE_TYPES = [...SANITIZED_MIME_TYPES, ...OFFICE_MIME_TYPES].join(',');

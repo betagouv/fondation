@@ -7,8 +7,8 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { useRequestFailure } from '@/shared/hooks/useRequestFailure';
 import { Modal } from '@/shared/ui/modal';
 import { RequiredLabel } from '@/shared/ui/required-label';
-import { Upload } from '@/shared/ui/upload';
-import { SANITIZED_FILE_TYPES } from '@/shared/ui/upload/file-types';
+import { AttachmentFormatsHint, Upload } from '@/shared/ui/upload';
+import { ATTACHMENT_FILE_TYPES } from '@/shared/ui/upload/file-types';
 import { useAddNominationFileAttachmentsMutation } from '@queries/nomination-sessions.queries';
 
 import type { AttachmentTarget } from './context/AddNominationFileAttachmentModalContext';
@@ -61,8 +61,8 @@ export function AddNominationFileAttachmentModal(props: {
       title={<FormattedMessage defaultMessage="Ajouter une pièce jointe" />}
     >
       <Upload
-        accept={SANITIZED_FILE_TYPES}
-        hint={<FormattedMessage defaultMessage="Formats supportés : png, jpeg et pdf" />}
+        accept={ATTACHMENT_FILE_TYPES}
+        hint={<AttachmentFormatsHint />}
         isPending={isPending}
         multiple
         onChange={setFiles}
