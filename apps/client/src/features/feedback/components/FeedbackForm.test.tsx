@@ -55,8 +55,8 @@ describe('FeedbackForm', () => {
     await next(user);
 
     expect(onSubmit).toHaveBeenCalledWith({
+      comment: 'La recherche des dossiers',
       easeRating: 4,
-      hindrance: 'La recherche des dossiers',
       member: {
         debateContribution: 'FROM_1_TO_5',
         manualWorkShare: 'FROM_10_TO_25',
@@ -83,8 +83,8 @@ describe('FeedbackForm', () => {
     await next(user);
 
     expect(onSubmit).toHaveBeenCalledWith({
+      comment: null,
       easeRating: 3,
-      hindrance: null,
       member: null,
       satisfactionRating: 6,
       secretariat: {

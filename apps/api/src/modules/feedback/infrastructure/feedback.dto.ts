@@ -17,8 +17,8 @@ const freeText = z
 
 export class AnswerFeedbackDto extends createZodDto(
   z.object({
+    comment: freeText,
     easeRating: z.int().min(1).max(5),
-    hindrance: freeText,
     member: z
       .object({
         debateContribution: z.enum(DEBATE_CONTRIBUTIONS),

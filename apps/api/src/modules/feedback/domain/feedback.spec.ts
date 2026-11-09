@@ -18,8 +18,8 @@ const PRODUCTION = { isTest: false };
 const TEST = { isTest: true };
 
 const COMMON_ANSWERS = {
+  comment: null,
   easeRating: 4,
-  hindrance: null,
   satisfactionRating: 8,
 };
 const MEMBER_ANSWERS: FeedbackAnswers = {

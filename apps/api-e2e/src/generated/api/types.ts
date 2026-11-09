@@ -2501,8 +2501,8 @@ export type FoundFeedbackDto = {
 };
 
 export type AnswerFeedbackDto = {
+    comment: string | null;
     easeRating: number;
-    hindrance: string | null;
     member: {
         debateContribution: 'NEVER' | 'FROM_1_TO_5' | 'MORE_THAN_5';
         manualWorkShare: 'LESS_THAN_10' | 'FROM_10_TO_25' | 'FROM_25_TO_40' | 'FROM_40_TO_60' | 'MORE_THAN_60';

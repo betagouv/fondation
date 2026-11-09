@@ -28,8 +28,8 @@ export const QUESTIONNAIRES = ['MEMBER', 'SECRETARIAT'] as const;
 export type Questionnaire = (typeof QUESTIONNAIRES)[number];
 
 export type FeedbackAnswers = {
+  comment: string | null;
   easeRating: number;
-  hindrance: string | null;
   member: {
     debateContribution: DebateContribution;
     manualWorkShare: ManualWorkShare;

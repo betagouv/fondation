@@ -67,9 +67,9 @@ const RATING_QUESTIONS: Question<FeedbackAnswers>[] = [
   },
 ];
 
-const HINDRANCE_QUESTION: Question<FeedbackAnswers> = {
+const COMMENT_QUESTION: Question<FeedbackAnswers> = {
   label: 'Ce qui a aidé ou est à améliorer',
-  valueOf: (answers) => answers.hindrance ?? '',
+  valueOf: (answers) => answers.comment ?? '',
   width: 60,
 };
 
@@ -90,7 +90,7 @@ const MEMBER_QUESTIONS: Question<MemberAnswers>[] = [
     valueOf: (answers) => REVIEW_THOROUGHNESS_LABELS[answers.member.reviewThoroughness],
     width: 32,
   },
-  HINDRANCE_QUESTION,
+  COMMENT_QUESTION,
 ];
 
 const SECRETARIAT_QUESTIONS: Question<SecretariatAnswers>[] = [
@@ -110,7 +110,7 @@ const SECRETARIAT_QUESTIONS: Question<SecretariatAnswers>[] = [
     valueOf: (answers) => answers.secretariat.otherToolPurpose ?? '',
     width: 60,
   },
-  HINDRANCE_QUESTION,
+  COMMENT_QUESTION,
 ];
 
 function signed(gap: number): string {
@@ -177,8 +177,8 @@ export class ListFeedbacksAsExcelQuery {
       orderBy: { answeredAt: 'asc' },
       select: {
         answeredAt: true,
+        comment: true,
         easeRating: true,
-        hindrance: true,
         member: { select: { debateContribution: true, manualWorkShare: true, reviewThoroughness: true } },
         satisfactionRating: true,
         secretariat: { select: { manualWorkShare: true, otherToolPurpose: true, otherToolUsage: true } },

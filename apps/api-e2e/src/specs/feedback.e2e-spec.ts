@@ -2,8 +2,8 @@ import { test } from '../fixtures.ts';
 import type { AnswerFeedbackDto } from '../generated/api/types.ts';
 
 const MEMBER_ANSWERS = {
+  comment: 'La recherche des dossiers',
   easeRating: 4,
-  hindrance: 'La recherche des dossiers',
   member: { debateContribution: 'FROM_1_TO_5', manualWorkShare: 'FROM_10_TO_25', reviewThoroughness: 'YES' },
   satisfactionRating: 8,
   secretariat: null,
@@ -34,8 +34,8 @@ test.describe('Feedback E2E', () => {
 
     const answered = await agent.feedback.answerFeedback({
       body: {
+        comment: null,
         easeRating: 3,
-        hindrance: null,
         member: null,
         satisfactionRating: 6,
         secretariat: {
