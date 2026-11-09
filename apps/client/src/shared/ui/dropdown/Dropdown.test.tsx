@@ -42,6 +42,12 @@ describe('Dropdown', () => {
   });
 
   describe('single selection', () => {
+    it('names the trigger by its label then the chosen value', () => {
+      renderDropdown(<Dropdown label="Couleur" onSelect={vi.fn()} options={OPTIONS} selected="blue" />);
+
+      expect(screen.getByRole('button', { name: 'Couleur Bleu' })).toBeInTheDocument();
+    });
+
     it('reports the chosen value and collapses', async () => {
       const onSelect = vi.fn();
       const user = userEvent.setup();
