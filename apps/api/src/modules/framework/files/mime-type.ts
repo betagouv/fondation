@@ -50,6 +50,16 @@ export function filenameToMimeType(filename: string): FileMimeType | undefined {
 }
 
 /**
+ * A browser declares no type, or the generic one, for a format its system does not know (an Outlook .msg
+ * on Linux or macOS): the extension then decides
+ */
+export function resolveMimeType(file: { mimetype: string; originalname: string }): FileMimeType {
+  if (isMimeType(file.mimetype) && file.mimetype !== FILE_MIME_TYPES.bin) return file.mimetype;
+
+  return filenameToMimeType(file.originalname) ?? FILE_MIME_TYPES.bin;
+}
+
+/**
  * @example
  * ```
  * declare const files: Express.Multer.File[];

@@ -1,4 +1,23 @@
-import { FILE_EXTENSIONS, filenameToMimeType } from './mime-type';
+import { FILE_EXTENSIONS, filenameToMimeType, resolveMimeType } from './mime-type';
+
+describe('resolveMimeType', () => {
+  it('keeps the type the browser declares', () => {
+    expect(resolveMimeType({ mimetype: 'image/png', originalname: 'scan.pdf' })).toBe('image/png');
+  });
+
+  it.each(['', 'application/octet-stream', 'application/x-unknown'])(
+    'reads the extension when the browser declares %j',
+    (mimetype) => {
+      expect(resolveMimeType({ mimetype, originalname: 'note.docx' })).toBe(
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      );
+    },
+  );
+
+  it('falls back to the generic type when neither the browser nor the extension tells', () => {
+    expect(resolveMimeType({ mimetype: '', originalname: 'archive.rar' })).toBe('application/octet-stream');
+  });
+});
 
 describe('filenameToMimeType', () => {
   it.each([

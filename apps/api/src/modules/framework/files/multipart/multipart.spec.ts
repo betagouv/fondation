@@ -4,6 +4,7 @@ import { Request as ExpressRequest } from 'express';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { attachmentFiles } from '../attachment-files';
 import { FILE_MIME_TYPES, type FileMimeType } from '../mime-type';
 
 import { MultipartFile } from './multipart.file';
@@ -40,6 +41,28 @@ describe('parseMultipartBody', () => {
     expect(multipart.deleteOnFail).toBe(false);
     expect(multipart.overrideFiles).toBe(false);
     expect(multipart.path).toBeNull();
+  });
+
+  it('reads from its extension the format of an attachment sent without a type', async () => {
+    const body = await parseMultipartBody(
+      request(),
+      [file({ fieldName: 'files', type: '', originalName: 'note.docx' })],
+      z.object({ files: attachmentFiles() }),
+      { deleteOnFail: false, destination: () => null, overrideFiles: false },
+    );
+
+    expect(body.files[0].mimeType).toBe(FILE_MIME_TYPES.docx);
+  });
+
+  it('refuses an attachment in a format attachments do not accept', async () => {
+    const parsing = parseMultipartBody(
+      request(),
+      [file({ fieldName: 'files', type: FILE_MIME_TYPES.zip, originalName: 'archive.zip' })],
+      z.object({ files: attachmentFiles() }),
+      { deleteOnFail: false, destination: () => null, overrideFiles: false },
+    );
+
+    await expect(parsing).rejects.toThrow(z.ZodError);
   });
 
   it('should parse a body with optional files', async () => {
@@ -126,7 +149,7 @@ function file(options: {
   buffer?: string;
   originalName?: string;
   fieldName: string;
-  type: FileMimeType;
+  type: FileMimeType | '';
 }): Express.Multer.File {
   return {
     destination: '',
