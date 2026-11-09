@@ -52,13 +52,15 @@ export function filenameToMimeType(filename: string): FileMimeType | undefined {
 }
 
 /**
- * A browser declares no type, or the generic one, for a format its system does not know (an Outlook .msg
- * on Linux or macOS): the extension then decides
+ * The extension decides, as it does in the client's file picker: a browser takes the type from its system,
+ * which gives none, the generic one or an outdated one to some formats (an Outlook .msg outside Windows,
+ * an .xlsx read as an old Excel workbook). The declared type only names a file without a known extension
  */
 export function resolveMimeType(file: { mimetype: string; originalname: string }): FileMimeType {
-  if (isMimeType(file.mimetype) && file.mimetype !== FILE_MIME_TYPES.bin) return file.mimetype;
+  const fromExtension = filenameToMimeType(file.originalname);
+  if (isDefined(fromExtension) && fromExtension !== FILE_MIME_TYPES.bin) return fromExtension;
 
-  return filenameToMimeType(file.originalname) ?? FILE_MIME_TYPES.bin;
+  return isMimeType(file.mimetype) ? file.mimetype : FILE_MIME_TYPES.bin;
 }
 
 /**
