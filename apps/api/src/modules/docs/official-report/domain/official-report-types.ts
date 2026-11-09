@@ -30,7 +30,7 @@ export type UpdateOfficialReportCommand = {
     files: readonly {
       nominationFileId: string;
       recusedMembers: readonly OfficialReportNamedMember[];
-      reporters: readonly string[];
+      reporters: readonly OfficialReportNamedMember[];
       outcome: { value: DocNominationFileOutcomeEnum; comment: string | null };
     }[];
   };
@@ -53,14 +53,16 @@ export type InvalidateOfficialReportCommand = { id: string } & (
         files: readonly {
           nominationFileId: string;
           recusedMembers: readonly OfficialReportNamedMember[];
-          reporters: readonly string[];
+          reporters: readonly OfficialReportNamedMember[];
           outcome: { value: DocNominationFileOutcomeEnum; comment: string | null };
         }[];
       };
     }
   | {
       type: 'NominationFilesReportersUpdated';
-      payload: { files: readonly { nominationFileId: string; reporters: readonly string[] }[] };
+      payload: {
+        files: readonly { nominationFileId: string; reporters: readonly OfficialReportNamedMember[] }[];
+      };
     }
   | {
       type: 'NominationFilesRecusalsUpdated';
@@ -82,9 +84,11 @@ export type OfficialReportSnapshotDiff = {
   files: readonly (
     | { action: 'noop' }
     | {
-        action: 'outdate' | 'update';
+        /** `outdate` flags a block written by hand, `update` settles a generated one, `rename` lets the names a
+         * block written by hand will print once given back to the template follow, leaving its flag as it is */
+        action: 'outdate' | 'rename' | 'update';
         nominationFileId: string;
-        reporters: readonly string[] | undefined;
+        reporters: readonly OfficialReportNamedMember[] | undefined;
         outcome: DocNominationFileOutcomeEnum | undefined;
         outcomeComment: string | null | undefined;
       }

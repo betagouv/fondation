@@ -297,7 +297,7 @@ describe('OfficialReportSnapshot', () => {
               note: { html: null, outdatedBy: null, status: 'GENERATED' },
               recusedMembers: [],
               outcome: { value: 'VALIDATED', comment: null },
-              reporters: ['M. John DOE'],
+              reporters: [helpers.JOHN_DOE],
             }),
           ],
         ]),
@@ -312,13 +312,13 @@ describe('OfficialReportSnapshot', () => {
               nominationFileId: `file-1`,
               outcome: { value: 'VALIDATED', comment: null },
               recusedMembers: [],
-              reporters: ['M. John DOE'],
+              reporters: [helpers.JOHN_DOE],
             },
             {
               nominationFileId: `file-2`,
               outcome: { value: 'VALIDATED', comment: null },
               recusedMembers: [],
-              reporters: ['M. John DOE'],
+              reporters: [helpers.JOHN_DOE],
             },
           ],
         },
@@ -360,7 +360,7 @@ describe('OfficialReportSnapshot', () => {
       });
 
       const fileToUpdate = diff.files.find(
-        (f): f is Extract<typeof f, { action: 'outdate' | 'update' }> => f.action === 'update',
+        (f): f is Extract<typeof f, { outcome: unknown }> => f.action === 'update',
       );
       expect(fileToUpdate?.outcome).toBe('WITHDRAWN');
       expect(fileToUpdate?.outcomeComment).toBeNull();
@@ -379,7 +379,7 @@ describe('OfficialReportSnapshot', () => {
               note: { html: null, outdatedBy: null, status: 'GENERATED' },
               recusedMembers: [],
               outcome: { value: 'VALIDATED', comment: null },
-              reporters: ['M. John DOE'],
+              reporters: [helpers.JOHN_DOE],
             }),
           ]),
         ),
@@ -404,7 +404,7 @@ describe('OfficialReportSnapshot', () => {
               hasManuallyEditedHtml: true,
               note: { html: null, outdatedBy: null, status: 'GENERATED' },
               recusedMembers: [],
-              reporters: ['M. John DOE'],
+              reporters: [helpers.JOHN_DOE],
               outcome: { value: 'VALIDATED', comment: null },
             }),
           ],
@@ -420,7 +420,7 @@ describe('OfficialReportSnapshot', () => {
       });
 
       const fileToOutdate = diff.files.find(
-        (file): file is Extract<typeof file, { action: 'outdate' | 'update' }> => file.action === 'outdate',
+        (file): file is Extract<typeof file, { outcome: unknown }> => file.action === 'outdate',
       );
       expect(fileToOutdate?.outcome).toBe('WITHDRAWN');
       expect(fileToOutdate?.outcomeComment).toBeNull();
@@ -477,7 +477,7 @@ function makeSnapshot(props: Partial<PlainOfficialReportSnapshot> = {}) {
     note: { html: null, outdatedBy: null, status: 'GENERATED' },
     outcome: { value: 'VALIDATED', comment: null },
     recusedMembers: [],
-    reporters: ['M. John DOE'],
+    reporters: [helpers.JOHN_DOE],
   } as const satisfies PlainOfficialReportSnapshotFile;
 
   const snapshot = OfficialReportSnapshot.from(

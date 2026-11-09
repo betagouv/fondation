@@ -244,7 +244,7 @@ export class OfficialReportRepository {
         outcome: PrismaDocsFileOutcomeEnum;
         outcomeComment: string | null;
         recusedMembers: Prisma.JsonValue;
-        reporters: string[];
+        reporters: Prisma.JsonValue;
       }[] = await this.db.tx.officialReportNominationFile.findMany({
         cursor: isDefined(cursor) ? { id: cursor } : undefined,
         orderBy: { id: 'asc' },
@@ -280,7 +280,7 @@ export class OfficialReportRepository {
             note: { html: file.note, outdatedBy: file.noteOutdatedBy, status: file.noteStatus },
             outcome: { comment: file.outcomeComment, value: file.outcome },
             recusedMembers: parseNamedMembers(file.recusedMembers),
-            reporters: file.reporters,
+            reporters: parseNamedMembers(file.reporters),
           }),
         );
       }
@@ -441,18 +441,18 @@ export class OfficialReportRepository {
     const editedVersionId = await this.officialReportVersionFinder.latest(message);
 
     const filesToUpdate = message.diff.files.filter(
-      (file): file is typeof file & { action: 'outdate' | 'update' } =>
-        file.action === 'outdate' || file.action === 'update',
+      (file): file is typeof file & { action: 'outdate' | 'rename' | 'update' } =>
+        file.action === 'outdate' || file.action === 'rename' || file.action === 'update',
     );
     // the snapshot was read before the draft was opened, so its row ids name the version being
     // replaced: the proposition is what the write follows from one version to the next
     for (const file of filesToUpdate) {
       await this.db.tx.officialReportNominationFile.updateMany({
         data: {
-          htmlOutdated: file.action === 'outdate',
+          htmlOutdated: file.action === 'rename' ? undefined : file.action === 'outdate',
           outcome: file.outcome,
           outcomeComment: file.outcomeComment,
-          reporters: file.reporters as string[] | undefined,
+          reporters: file.reporters && [...file.reporters],
         },
         where: { nominationFileId: file.nominationFileId, versionId: editedVersionId },
       });
@@ -596,7 +596,7 @@ export class OfficialReportRepository {
           outcomeComment: f.outcome.comment,
           position: f.magistrat.position.label,
           recusedMembers: namedMembersOf(f.recusedMembers),
-          reporters: f.reporters.map((r) => r.fullTitledName),
+          reporters: namedMembersOf(f.reporters),
           targetedGrade: f.targetPosition.grade,
           targetedPosition: f.targetPosition.label,
         };
@@ -915,7 +915,7 @@ export class OfficialReportRepository {
             data: nominationFiles.map((file) => ({
               ...file,
               recusedMembers: parseNamedMembers(file.recusedMembers),
-              reporters: [...file.reporters],
+              reporters: parseNamedMembers(file.reporters),
             })),
           },
         },

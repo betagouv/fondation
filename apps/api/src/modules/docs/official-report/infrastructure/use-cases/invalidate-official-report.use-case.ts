@@ -230,7 +230,7 @@ export class InvalidateOfficialReportUseCase {
               outcome: file.outcome,
               nominationFileId: file.id,
               recusedMembers: namedMembersOf(file.recusedMembers),
-              reporters: file.reporters.map(({ fullTitledName }) => fullTitledName),
+              reporters: namedMembersOf(file.reporters),
             })),
         },
       },
@@ -325,7 +325,7 @@ export class InvalidateOfficialReportUseCase {
         payload: {
           files: items.map((file) => ({
             nominationFileId: file.id,
-            reporters: file.reporters.map(({ fullTitledName }) => fullTitledName),
+            reporters: namedMembersOf(file.reporters),
           })),
         },
       });

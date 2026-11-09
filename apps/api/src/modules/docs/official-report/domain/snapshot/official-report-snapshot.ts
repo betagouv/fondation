@@ -139,7 +139,7 @@ class OfficialReportSnapshotFilesCollection {
     nominationFileId: string;
     outcome?: { comment: string | null; value: DocNominationFileOutcomeEnum };
     recusedMembers?: readonly OfficialReportNamedMember[];
-    reporters?: readonly string[];
+    reporters?: readonly OfficialReportNamedMember[];
   }): OfficialReportSnapshotDiff['files'] {
     const file = this.files.get(next.nominationFileId);
     if (!file) return [{ action: 'create', nominationFileId: next.nominationFileId }];
@@ -161,7 +161,7 @@ class OfficialReportSnapshotFilesCollection {
       nominationFileId: string;
       outcome?: { comment: string | null; value: DocNominationFileOutcomeEnum };
       recusedMembers?: readonly OfficialReportNamedMember[];
-      reporters?: readonly string[];
+      reporters?: readonly OfficialReportNamedMember[];
     }[];
   }): OfficialReportSnapshotDiff['files'] {
     return this.deletedFiles(next.files).concat(next.files.flatMap((file) => this.diffFile(file)));

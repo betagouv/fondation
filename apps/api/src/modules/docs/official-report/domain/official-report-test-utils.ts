@@ -17,6 +17,8 @@ import { OfficialReportSessionMeeting } from './official-report-session-meeting'
 import type { PlainOfficialReportSnapshot } from './snapshot/official-report-snapshot';
 import { OfficialReportSnapshotFile } from './snapshot/official-report-snapshot-file';
 
+export const JOHN_DOE = { id: 'member-doe', name: 'M. John DOE' };
+
 export function makeSecretary(
   props: Partial<Parameters<(typeof OfficialReportSecretary)['from']>[0]> = {},
 ): Parameters<(typeof OfficialReportSecretary)['from']>[0] {
@@ -114,7 +116,7 @@ export function makeSnapshot(props: Partial<PlainOfficialReportSnapshot> = {}): 
           hasManuallyEditedHtml: false,
           note: { html: null, outdatedBy: null, status: 'GENERATED' },
           recusedMembers: [],
-          reporters: ['M. John DOE'],
+          reporters: [JOHN_DOE],
           outcome: { value: 'VALIDATED', comment: null },
         }),
       ],

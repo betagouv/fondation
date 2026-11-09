@@ -225,7 +225,7 @@ export class OfficialReportsService {
                   nominationFileId: file.id,
                   outcome: file.outcome,
                   recusedMembers: namedMembersOf(file.recusedMembers),
-                  reporters: file.reporters.map(({ fullTitledName }) => fullTitledName),
+                  reporters: namedMembersOf(file.reporters),
                 },
               ]
             : [],

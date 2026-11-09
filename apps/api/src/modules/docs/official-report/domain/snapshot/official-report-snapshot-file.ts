@@ -26,13 +26,13 @@ export type PlainOfficialReportSnapshotFile = {
     value: DocNominationFileOutcomeEnum;
   };
   recusedMembers: readonly OfficialReportNamedMember[];
-  reporters: readonly string[];
+  reporters: readonly OfficialReportNamedMember[];
 };
 
 export class OfficialReportSnapshotFile {
   private constructor(
     readonly nominationFileId: string | null,
-    readonly reporters: readonly string[],
+    readonly reporters: readonly OfficialReportNamedMember[],
     readonly outcome: { comment: string | null; value: DocNominationFileOutcomeEnum },
     readonly hasManuallyEditedHtml: boolean,
     readonly note: OfficialReportSnapshotNote,
@@ -54,7 +54,7 @@ export class OfficialReportSnapshotFile {
     nominationFileId: string;
     outcome?: { comment: string | null; value: DocNominationFileOutcomeEnum };
     recusedMembers?: readonly OfficialReportNamedMember[];
-    reporters?: readonly string[];
+    reporters?: readonly OfficialReportNamedMember[];
   }): OfficialReportSnapshotDiff['files'] {
     return [this.blockDiff(next), this.recusalDiff(next)].filter(({ action }) => action !== 'noop');
   }
@@ -79,19 +79,23 @@ export class OfficialReportSnapshotFile {
   private blockDiff(next: {
     nominationFileId: string;
     outcome?: { comment: string | null; value: DocNominationFileOutcomeEnum };
-    reporters?: readonly string[];
+    reporters?: readonly OfficialReportNamedMember[];
   }): OfficialReportSnapshotDiff['files'][number] {
-    const reportersChanged = this.reportersChanged(next);
+    const reportersChanged = isDefined(next.reporters) && !sameMembers(this.reporters, next.reporters);
+    const reportersRenamed =
+      isDefined(next.reporters) && !sameList(namesOf(this.reporters), namesOf(next.reporters));
     const outcomeChanged = this.outcomeChanged(next);
 
-    if (!reportersChanged && !outcomeChanged) return { action: 'noop' };
+    if (!reportersRenamed && !reportersChanged && !outcomeChanged) return { action: 'noop' };
 
+    // a block written by hand keeps the names it gives: only who reports, or the outcome, flags it
+    const outdatesBlock = this.hasManuallyEditedHtml && (reportersChanged || outcomeChanged);
     return {
-      action: this.hasManuallyEditedHtml ? 'outdate' : 'update',
+      action: outdatesBlock ? 'outdate' : this.hasManuallyEditedHtml ? 'rename' : 'update',
       nominationFileId: next.nominationFileId,
       outcome: outcomeChanged ? next.outcome?.value : undefined,
       outcomeComment: outcomeChanged ? next.outcome?.comment : undefined,
-      reporters: reportersChanged ? next.reporters : undefined,
+      reporters: reportersChanged || reportersRenamed ? next.reporters : undefined,
     };
   }
 
@@ -127,10 +131,6 @@ export class OfficialReportSnapshotFile {
     // a change of who is recused outranks a renaming, even one flagged before
     const outdatedBy = whoChanged || this.note.outdatedBy === 'RECUSAL' ? 'RECUSAL' : 'DESIGNATION';
     return { ...recuse, note: 'outdate', outdatedBy };
-  }
-
-  private reportersChanged(next: { reporters?: readonly string[] }): boolean {
-    return isDefined(next.reporters) && !sameList(this.reporters, next.reporters);
   }
 
   outcomeDiffers(next: { comment: string | null; value: DocNominationFileOutcomeEnum }): boolean {

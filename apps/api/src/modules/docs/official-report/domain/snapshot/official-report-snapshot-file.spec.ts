@@ -6,6 +6,8 @@ import {
 const NOMINATION_FILE_ID = 'nomination-file-id';
 const FORGET = { id: 'member-forget', name: 'M. Paul FORGET' };
 const DUPONT = { id: 'member-dupont', name: 'Mme Anne DUPONT' };
+const DURAND = { id: 'member-durand', name: 'Madame Camille DURAND' };
+const DURAND_RENAMED = { ...DURAND, name: 'Madame Camille DURAND-MARTIN' };
 
 function makeFile(overrides: Partial<PlainOfficialReportSnapshotFile> = {}): OfficialReportSnapshotFile {
   return OfficialReportSnapshotFile.from({
@@ -14,7 +16,7 @@ function makeFile(overrides: Partial<PlainOfficialReportSnapshotFile> = {}): Off
     note: { html: null, outdatedBy: null, status: 'GENERATED' },
     outcome: { comment: null, value: 'SUSPENDED' },
     recusedMembers: [],
-    reporters: ['Madame Camille DURAND'],
+    reporters: [DURAND],
     ...overrides,
   });
 }
@@ -77,10 +79,46 @@ describe('OfficialReportSnapshotFile', () => {
       nominationFileId: NOMINATION_FILE_ID,
       outcome: { comment: null, value: 'VALIDATED' },
       recusedMembers: [FORGET],
-      reporters: ['Madame Camille DURAND'],
+      reporters: [DURAND],
     });
 
     expect(diff).toEqual([]);
+  });
+
+  describe('reporters', () => {
+    it('lets a generated block follow a renamed reporter', () => {
+      const file = makeFile();
+
+      const diff = file.diff({ nominationFileId: NOMINATION_FILE_ID, reporters: [DURAND_RENAMED] });
+
+      expect(diff).toMatchObject([{ action: 'update', reporters: [DURAND_RENAMED] }]);
+    });
+
+    it('keeps the name a block written by hand gives without flagging it', () => {
+      const file = makeFile({ hasManuallyEditedHtml: true });
+
+      const diff = file.diff({ nominationFileId: NOMINATION_FILE_ID, reporters: [DURAND_RENAMED] });
+
+      // the stored name still follows, for the block to print it once given back to the template
+      expect(diff).toMatchObject([{ action: 'rename', reporters: [DURAND_RENAMED] }]);
+    });
+
+    it('flags a block written by hand once another member reports', () => {
+      const file = makeFile({ hasManuallyEditedHtml: true });
+
+      const diff = file.diff({ nominationFileId: NOMINATION_FILE_ID, reporters: [DUPONT] });
+
+      expect(diff).toMatchObject([{ action: 'outdate', reporters: [DUPONT] }]);
+    });
+
+    it('knows a reporter stored before the ids were kept by name only', () => {
+      const file = makeFile({ hasManuallyEditedHtml: true, reporters: [{ id: null, name: DURAND.name }] });
+
+      expect(file.diff({ nominationFileId: NOMINATION_FILE_ID, reporters: [DURAND] })).toEqual([]);
+      expect(file.diff({ nominationFileId: NOMINATION_FILE_ID, reporters: [DURAND_RENAMED] })).toMatchObject([
+        { action: 'outdate' },
+      ]);
+    });
   });
 
   describe('recusal', () => {
