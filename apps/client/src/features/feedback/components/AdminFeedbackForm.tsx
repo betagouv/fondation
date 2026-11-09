@@ -47,9 +47,9 @@ export function AdminFeedbackForm(props: {
         description={
           props.onSubmit
             ? formatMessage({
-                defaultMessage: "Recette : vos réponses sont enregistrées, pour tester l'envoi et l'export.",
+                defaultMessage: "Vos réponses sont enregistrées pour tester l'envoi et l'export.",
               })
-            : formatMessage({ defaultMessage: 'Aperçu : vos réponses ne sont pas enregistrées.' })
+            : formatMessage({ defaultMessage: 'Vos réponses ne sont pas enregistrées.' })
         }
         severity="info"
         small
