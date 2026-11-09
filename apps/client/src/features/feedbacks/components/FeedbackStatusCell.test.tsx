@@ -72,7 +72,7 @@ describe('FeedbackStatusCell', () => {
     );
   });
 
-  it('sets a feedback back to new without asking anything', async () => {
+  it('keeps the comment when setting a feedback back to new', async () => {
     const user = renderCell({
       changedAt: '2026-11-02T16:01:00.000Z',
       changedBy: { id: 'admin', name: 'Marie DUPONT' },
@@ -82,10 +82,11 @@ describe('FeedbackStatusCell', () => {
 
     await user.click(screen.getByRole('button', { name: /Statut du retour/ }));
     await user.click(await screen.findByRole('menuitem', { name: 'Nouveau' }));
+    expect(await screen.findByLabelText(/Commentaire/)).toHaveValue('Corrigé');
+    await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
 
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(mutate).toHaveBeenCalledWith(
-      { comment: null, feedbackId: 'feedback-1', status: 'NEW' },
+      { comment: 'Corrigé', feedbackId: 'feedback-1', status: 'NEW' },
       expect.anything(),
     );
   });

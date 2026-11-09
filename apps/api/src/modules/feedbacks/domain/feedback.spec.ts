@@ -27,13 +27,13 @@ describe('Feedback', () => {
     ]);
   });
 
-  it('drops the comment once back to new', () => {
+  it('keeps its comment once back to new', () => {
     const feedback = Feedback.from({ id: 'feedback', status: { comment: 'Corrigé', value: 'PROCESSED' } });
 
     feedback.changeStatus({ changedBy: 'admin', status: { comment: 'Corrigé', value: 'NEW' } });
 
     expect(feedback.messages).toEqual([
-      new FeedbackStatusChanged('feedback', { comment: null, value: 'NEW' }, 'admin'),
+      new FeedbackStatusChanged('feedback', { comment: 'Corrigé', value: 'NEW' }, 'admin'),
     ]);
   });
 

@@ -20,10 +20,7 @@ export function FeedbackStatusCell(props: { feedback: ListedFeedbacksDto['items'
   const changeStatus = useChangeFeedbackStatusMutation();
   const { waitForStatusComment } = useFeedbackStatusCommentModal();
   const { id, status } = props.feedback;
-  const changedOn =
-    status.value !== 'NEW' && status.changedAt
-      ? formatDate(status.changedAt, { format: 'zonedDateShort' })
-      : null;
+  const changedOn = status.changedAt ? formatDate(status.changedAt, { format: 'zonedDateShort' }) : null;
   const changed =
     changedOn &&
     (status.changedBy
@@ -38,15 +35,11 @@ export function FeedbackStatusCell(props: { feedback: ListedFeedbacksDto['items'
       : changed;
 
   const change = async (next: FeedbackStatusEnum) => {
-    let comment: string | null = null;
-    if (next !== 'NEW') {
-      const event = await waitForStatusComment(next, status.comment);
-      if (event.type === 'drop') return;
-      comment = event.value;
-    }
+    const event = await waitForStatusComment(next, status.comment);
+    if (event.type === 'drop') return;
 
     changeStatus.mutate(
-      { comment, feedbackId: id, status: next },
+      { comment: event.value, feedbackId: id, status: next },
       {
         onError: () =>
           toasts.error({ title: formatMessage({ defaultMessage: "Le statut n'a pas pu être changé" }) }),
@@ -87,21 +80,13 @@ export function FeedbackStatusCell(props: { feedback: ListedFeedbacksDto['items'
       </Tooltip>
       <MenuContent>
         {FEEDBACK_STATUSES.map((value) => (
-          <MenuItem
-            disabled={value === 'NEW' && status.value === 'NEW'}
-            key={value}
-            onClick={() => void change(value)}
-          >
+          <MenuItem key={value} onClick={() => void change(value)}>
             <FeedbackStatusBadge status={value} />
             {value === status.value && (
               <>
                 <span aria-hidden className="fr-icon-check-line fr-icon--sm fr-ml-2v" />
                 <span className="fr-sr-only">
-                  {value === 'NEW' ? (
-                    <FormattedMessage defaultMessage="statut actuel" />
-                  ) : (
-                    <FormattedMessage defaultMessage="statut actuel, modifier le commentaire" />
-                  )}
+                  <FormattedMessage defaultMessage="statut actuel, modifier le commentaire" />
                 </span>
               </>
             )}

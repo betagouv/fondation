@@ -58,8 +58,7 @@ export class Feedback {
   }
 
   changeStatus(command: { changedBy: string; status: FeedbackStatusWithComment }): void {
-    // a feedback back to new awaits its treatment again: there is nothing to comment yet
-    const status = command.status.value === 'NEW' ? { comment: null, value: 'NEW' as const } : command.status;
+    const { status } = command;
     if (status.value === this.status.value && status.comment === this.status.comment) return;
 
     this.status = status;
