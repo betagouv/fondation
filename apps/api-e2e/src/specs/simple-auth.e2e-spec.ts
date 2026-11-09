@@ -79,6 +79,11 @@ test.describe('Simple Auth E2E', () => {
       expect(introspectRes.response?.headers.get('X-App-Version')).toBe('e2e');
     });
 
+    test('should forbid any cache to keep the session', async ({ expect, member }) => {
+      const introspectRes = await member.auth.introspectSession();
+      expect(introspectRes.response?.headers.get('Cache-Control')).toBe('no-store');
+    });
+
     test('should logout', async ({ expect, member }) => {
       const logoutRes = await member.auth.logout();
       expect(logoutRes.response?.status).toBe(204);
