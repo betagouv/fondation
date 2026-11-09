@@ -1007,13 +1007,6 @@ export type UpdateMemberDisplayTitleDto = {
     displayTitle: string | null;
 };
 
-export type UpdateMemberRecusalTitleDto = {
-    /**
-     * with its article, e.g. "le Bâtonnier"
-     */
-    recusalTitle: string | null;
-};
-
 export type ListedJurisdictions = {
     items: Array<{
         id: string;
@@ -1235,7 +1228,7 @@ export type FoundSessionDocsDto = {
                 id: string;
                 name: string;
             } | null;
-            causes: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'OUTCOME' | 'RECUSAL' | 'REPORTERS' | 'SESSION_DATE'>;
+            causes: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'DESIGNATION' | 'OUTCOME' | 'RECUSAL' | 'REPORTERS' | 'SESSION_DATE'>;
             origin: 'PERSON' | 'SYSTEM';
         } | null;
         createdAt: string;
@@ -1266,7 +1259,7 @@ export type FoundSessionDocsDto = {
                 id: string;
                 name: string;
             } | null;
-            causes: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'OUTCOME' | 'RECUSAL' | 'REPORTERS' | 'SESSION_DATE'>;
+            causes: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'DESIGNATION' | 'OUTCOME' | 'RECUSAL' | 'REPORTERS' | 'SESSION_DATE'>;
             origin: 'PERSON' | 'SYSTEM';
         } | null;
         createdAt: string;
@@ -1407,7 +1400,7 @@ export type DetailedAgendaMetadata = {
             id: string;
             name: string;
         } | null;
-        systemCauses: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'OUTCOME' | 'RECUSAL' | 'REPORTERS' | 'SESSION_DATE'>;
+        systemCauses: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'DESIGNATION' | 'OUTCOME' | 'RECUSAL' | 'REPORTERS' | 'SESSION_DATE'>;
         systemUpdatedAt: string | null;
         updatedAt: string | null;
         updatedBy: {
@@ -1615,7 +1608,7 @@ export type DetailedOfficialReportMetadataDto = {
             id: string;
             name: string;
         } | null;
-        systemCauses: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'OUTCOME' | 'RECUSAL' | 'REPORTERS' | 'SESSION_DATE'>;
+        systemCauses: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'DESIGNATION' | 'OUTCOME' | 'RECUSAL' | 'REPORTERS' | 'SESSION_DATE'>;
         systemUpdatedAt: string | null;
         updatedAt: string | null;
         updatedBy: {
@@ -1623,7 +1616,7 @@ export type DetailedOfficialReportMetadataDto = {
             name: string;
         } | null;
     } | null;
-    changedSinceValidation: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'OUTCOME' | 'RECUSAL' | 'REPORTERS' | 'SESSION_DATE'>;
+    changedSinceValidation: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'DESIGNATION' | 'OUTCOME' | 'RECUSAL' | 'REPORTERS' | 'SESSION_DATE'>;
     validation: {
         at: string;
         by: {
@@ -1826,7 +1819,7 @@ export type DetailedPresentationPlanMetadataDto = {
             id: string;
             name: string;
         } | null;
-        systemCauses: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'OUTCOME' | 'RECUSAL' | 'REPORTERS' | 'SESSION_DATE'>;
+        systemCauses: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'DESIGNATION' | 'OUTCOME' | 'RECUSAL' | 'REPORTERS' | 'SESSION_DATE'>;
         systemUpdatedAt: string | null;
         updatedAt: string | null;
         updatedBy: {
@@ -3958,21 +3951,6 @@ export type UpdateDisplayTitleResponses = {
 
 export type UpdateDisplayTitleResponse = UpdateDisplayTitleResponses[keyof UpdateDisplayTitleResponses];
 
-export type UpdateRecusalTitleData = {
-    body: UpdateMemberRecusalTitleDto;
-    path: {
-        userId: string;
-    };
-    query?: never;
-    url: '/api/members/v1/{userId}/recusal-title';
-};
-
-export type UpdateRecusalTitleResponses = {
-    204: void;
-};
-
-export type UpdateRecusalTitleResponse = UpdateRecusalTitleResponses[keyof UpdateRecusalTitleResponses];
-
 export type SearchData = {
     body?: never;
     path?: never;
@@ -5406,7 +5384,7 @@ export type UpdateDisplayTitle2Responses = {
 
 export type UpdateDisplayTitle2Response = UpdateDisplayTitle2Responses[keyof UpdateDisplayTitle2Responses];
 
-export type UpdateRecusalTitle2Data = {
+export type UpdateRecusalTitleData = {
     body: UpdateUserRecusalTitleDto;
     path: {
         userId: string;
@@ -5415,11 +5393,11 @@ export type UpdateRecusalTitle2Data = {
     url: '/api/administration/v1/users/{userId}/recusal-title';
 };
 
-export type UpdateRecusalTitle2Responses = {
+export type UpdateRecusalTitleResponses = {
     204: void;
 };
 
-export type UpdateRecusalTitle2Response = UpdateRecusalTitle2Responses[keyof UpdateRecusalTitle2Responses];
+export type UpdateRecusalTitleResponse = UpdateRecusalTitleResponses[keyof UpdateRecusalTitleResponses];
 
 export type DemoteFromAdminData = {
     body?: never;
@@ -5510,6 +5488,21 @@ export type DeactivateResponses = {
 };
 
 export type DeactivateResponse = DeactivateResponses[keyof DeactivateResponses];
+
+export type UpdateRecusalTitle2Data = {
+    body: UpdateUserRecusalTitleDto;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/members/v1/{userId}/recusal-title';
+};
+
+export type UpdateRecusalTitle2Responses = {
+    204: void;
+};
+
+export type UpdateRecusalTitle2Response = UpdateRecusalTitle2Responses[keyof UpdateRecusalTitle2Responses];
 
 export type ListSurveysAsExcelData = {
     body?: never;

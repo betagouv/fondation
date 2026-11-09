@@ -278,6 +278,46 @@ describe('OfficialReport', () => {
       expect(report.messages).toEqual([new OfficialReportUpdateSkipped(report.id, 'RECUSAL')]);
     });
 
+    describe('when a member is renamed', () => {
+      const renamed = (report: OfficialReport) =>
+        report.invalidate({
+          id: report.id,
+          payload: {
+            files: [
+              {
+                nominationFileId: 'file-1',
+                recusedMembers: [{ id: 'member-forget', name: 'M. le Bâtonnier FORGET' }],
+                reporters: [helpers.JOHN_DOE],
+              },
+            ],
+          },
+          type: 'MemberRenamed',
+        });
+
+      it('should follow the new designation in a draft, saying why', () => {
+        const report = withRecusal({ actorId: null });
+
+        renamed(report);
+
+        expect(report.messages).toEqual([
+          new OfficialReportDraftUpdatedBySystem(report.id, 'DESIGNATION'),
+          expect.objectContaining({
+            diff: expect.objectContaining({
+              files: [expect.objectContaining({ action: 'recuse', note: 'follow' })],
+            }),
+          }),
+        ]);
+      });
+
+      it('should leave a validated report as the meeting was held, without saying the designation changed', () => {
+        const report = withRecusal({ actorId: null, isValidated: true });
+
+        renamed(report);
+
+        expect(report.messages).toEqual([]);
+      });
+    });
+
     it('should leave a validated report as it is when there is no note to delete', () => {
       const report = makeReport({ isValidated: true });
 

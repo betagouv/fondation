@@ -7,7 +7,10 @@ import { Db } from '../../../../framework/database';
 import { DocInvalidation } from '../../../shared/domain/doc-invalidation';
 import { nominationFileOutcomeToDocNominationFileOutcome } from '../../../shared/domain/doc-nomination-file-outcome';
 import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../../../shared/infrastructure/agenda-content';
-import { DocsNominationFilesFinder } from '../../../shared/infrastructure/finders/docs-nomination-files.finder';
+import {
+  DocsNominationFilesFinder,
+  type FoundDocsNominationFiles,
+} from '../../../shared/infrastructure/finders/docs-nomination-files.finder';
 import { readsTheSame } from '../../../shared/infrastructure/services/renderers/helpers';
 import { InvalidateOfficialReportCommand } from '../../domain/official-report-types';
 import { OfficialReportVersionFinder } from '../finders/official-report-version.finder';
@@ -45,6 +48,9 @@ export class InvalidateOfficialReportUseCase {
 
       case 'NominationFilesRecusalsUpdated':
         return this.invalidate(await this.mapNominationFilesRecusalsUpdated({ invalidation }));
+
+      case 'MemberRenamed':
+        return this.invalidate(await this.mapMemberRenamed({ invalidation }));
 
       // the report already answered when the draft was opened, and its own draft carries the answer
       case 'AgendaValidated':
@@ -140,6 +146,65 @@ export class InvalidateOfficialReportUseCase {
             nominationFileId: file.id,
             recusedMembers: namedMembersOf(file.recusedMembers),
           })),
+      },
+    }));
+  }
+
+  /** a row written before the ids were kept names the member by text only, and waits for its next refresh */
+  private async mapMemberRenamed(query: {
+    invalidation: Extract<DocInvalidation, { type: 'MemberRenamed' }>;
+  }): Promise<InvalidateOfficialReportCommand[]> {
+    const member = [{ id: query.invalidation.payload.userId }];
+    const reportFiles = await this.db.tx.officialReportNominationFile.findMany({
+      where: {
+        OR: [{ recusedMembers: { array_contains: member } }, { reporters: { array_contains: member } }],
+      },
+      select: {
+        nominationFileId: true,
+        version: {
+          select: { officialReport: { select: { agenda: { select: { sessionId: true } }, id: true } } },
+        },
+      } satisfies Prisma.OfficialReportNominationFileSelect,
+    });
+
+    // a report holding a draft carries a file twice, and it is invalidated once
+    const reports = new Map<string, { nominationFileIds: Set<string>; sessionId: string }>();
+    for (const { nominationFileId, version } of reportFiles) {
+      const sessionId = version.officialReport.agenda?.sessionId;
+      if (!nominationFileId || !sessionId) continue;
+
+      const report = reports.get(version.officialReport.id) ?? { nominationFileIds: new Set(), sessionId };
+      reports.set(version.officialReport.id, {
+        ...report,
+        nominationFileIds: report.nominationFileIds.add(nominationFileId),
+      });
+    }
+
+    const files = new Map<string, FoundDocsNominationFiles['items'][number]>();
+    for (const [sessionId, sessionReports] of Map.groupBy(reports.values(), ({ sessionId }) => sessionId)) {
+      const { items } = await this.docsNominationFilesFinder.find({
+        ids: [...new Set(sessionReports.flatMap(({ nominationFileIds }) => [...nominationFileIds]))],
+        sessionId,
+      });
+      for (const item of items) files.set(item.id, item);
+    }
+
+    return [...reports].map(([officialReportId, { nominationFileIds }]) => ({
+      type: 'MemberRenamed',
+      id: officialReportId,
+      payload: {
+        files: [...nominationFileIds].flatMap((nominationFileId) => {
+          const file = files.get(nominationFileId);
+          if (!file) return [];
+
+          return [
+            {
+              nominationFileId,
+              recusedMembers: namedMembersOf(file.recusedMembers),
+              reporters: namedMembersOf(file.reporters),
+            },
+          ];
+        }),
       },
     }));
   }

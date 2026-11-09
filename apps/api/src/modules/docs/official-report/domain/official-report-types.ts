@@ -65,6 +65,17 @@ export type InvalidateOfficialReportCommand = { id: string } & (
       };
     }
   | {
+      /** how a member is printed changed: their name, or the title they get once recused */
+      type: 'MemberRenamed';
+      payload: {
+        files: readonly {
+          nominationFileId: string;
+          recusedMembers: readonly OfficialReportNamedMember[];
+          reporters: readonly OfficialReportNamedMember[];
+        }[];
+      };
+    }
+  | {
       type: 'NominationFilesRecusalsUpdated';
       payload: {
         files: readonly { nominationFileId: string; recusedMembers: readonly OfficialReportNamedMember[] }[];

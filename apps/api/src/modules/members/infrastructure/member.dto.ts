@@ -8,7 +8,3 @@ export class ExcludeJurisdictionsDto extends createZodDto(
 ) {}
 
 export class UpdateMemberDisplayTitleDto extends createZodDto(z.object({ displayTitle: TitleSchema })) {}
-
-export class UpdateMemberRecusalTitleDto extends createZodDto(
-  z.object({ recusalTitle: TitleSchema.meta({ description: 'with its article, e.g. "le Bâtonnier"' }) }),
-) {}

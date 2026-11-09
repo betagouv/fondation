@@ -74,7 +74,8 @@ export class OfficialReportSnapshot {
           !this.meta.agenda.date.equals(DateOnly.fromJson(command.payload.previousDate)),
         );
 
-      // a recusal never brings a proposition into the report, the agenda does
+      // a recusal or a renaming never brings a proposition into the report, the agenda does
+      case 'MemberRenamed':
       case 'NominationFilesRecusalsUpdated':
         return this.invalidateFiles(
           command.payload.files.flatMap((file) => this.fileOf(file.nominationFileId)?.diff(file) ?? []),

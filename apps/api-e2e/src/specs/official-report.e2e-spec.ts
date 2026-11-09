@@ -608,6 +608,60 @@ test.describe('Official report', () => {
     const document = await agent.docs.detailsOfficialReportDocument({ path: { officialReportId } });
     const block = document.data!.blocks.find((b) => b.kind === 'file' && b.nominationFileId === nominationFileId);
     expect(block?.kind === 'file' && block.note.html).toContain(
+      `le Bâtonnier ${recused!.lastName.toUpperCase().replaceAll("'", '&#39;')} n'a pas délibéré`,
+    );
+  });
+
+  test('should follow in a draft the new name an admin gives a reporter', async ({
+    admin,
+    agent,
+    docs,
+    expect,
+    member,
+  }) => {
+    const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
+    const { id: officialReportId } = await docs.officialReport(await docs.agenda(session));
+    const nominationFileId = session.files[0]!.id;
+
+    await admin.administration.updateName({
+      body: { lastName: 'Renommé' },
+      path: { userId: member['@user']!.id },
+      throwOnError: true,
+    });
+
+    const document = await agent.docs.detailsOfficialReportDocument({ path: { officialReportId } });
+    const block = document.data!.blocks.find((b) => b.kind === 'file' && b.nominationFileId === nominationFileId);
+    expect(block?.kind === 'file' && block.html).toContain('RENOMMÉ');
+  });
+
+  test('should follow in a draft the recusal title the secretariat gives a member already recused', async ({
+    agent,
+    docs,
+    expect,
+    member,
+  }) => {
+    const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
+    const { id: officialReportId } = await docs.officialReport(await docs.agenda(session));
+    const nominationFileId = session.files[0]!.id;
+    const userId = member['@user']!.id;
+
+    const { data } = await agent.sessions.recuseMembers({
+      body: { memberIds: [userId] },
+      path: { nominationFileId, sessionId: session.id },
+      throwOnError: true,
+    });
+    const [recused] = data.recusedMembers;
+    await agent.members.updateRecusalTitle({
+      body: { recusalTitle: 'le Bâtonnier' },
+      path: { userId },
+      throwOnError: true,
+    });
+
+    const document = await agent.docs.detailsOfficialReportDocument({ path: { officialReportId } });
+    const block = document.data!.blocks.find((b) => b.kind === 'file' && b.nominationFileId === nominationFileId);
+    const note = block?.kind === 'file' ? block.note : undefined;
+    expect(note?.outdatedBy).toBeNull();
+    expect(note?.html).toContain(
       `le Bâtonnier\u00A0${recused!.lastName.toUpperCase().replaceAll("'", '&#39;')} n'a pas délibéré`,
     );
   });
