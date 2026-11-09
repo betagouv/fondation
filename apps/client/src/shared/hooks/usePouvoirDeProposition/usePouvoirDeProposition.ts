@@ -3,7 +3,7 @@ import { matchPath, useLocation } from 'react-router';
 
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 
-const POUVOIRS_DE_PROPOSITION = ['GDS'] as const;
+const POUVOIRS_DE_PROPOSITION = ['CSM', 'GDS'] as const;
 export type PouvoirDeProposition = (typeof POUVOIRS_DE_PROPOSITION)[number];
 
 export const POUVOIR_DE_PROPOSITION_STORAGE_KEY = 'fondation:pouvoir-de-proposition';
@@ -14,6 +14,7 @@ function pouvoirDePropositionOfPage(pathname: string): PouvoirDeProposition | nu
   // a tab opened to act as a member inherits the storage of the secretariat's tab, then lands in the members' space
   if (matchPath({ end: false, path: ROUTE_PATHS.TRANSPARENCES.DASHBOARD }, pathname)) return null;
   if (matchPath({ end: false, path: ROUTE_PATHS.SG.MAGISTRAT_SEARCH }, pathname)) return undefined;
+  if (matchPath({ end: false, path: ROUTE_PATHS.SG.CSM.ROOT }, pathname)) return 'CSM';
   if (pathname.startsWith(`${ROUTE_PATHS.SG.DASHBOARD}/`)) return 'GDS';
 
   return undefined;

@@ -172,6 +172,47 @@ export const routes: RouteObject[] = [
             children: [
               {
                 index: true,
+                loader: () => redirect(ROUTE_PATHS.SG.CSM.VEILLE_DES_POSTES_COURTS_OF_APPEAL),
+              },
+              { path: ROUTE_PATHS.SG.CSM.VEILLE_DES_POSTES_COURTS_OF_APPEAL },
+              { path: ROUTE_PATHS.SG.CSM.VEILLE_DES_POSTES_JUDICIAL_COURTS },
+              { path: ROUTE_PATHS.SG.CSM.VEILLE_DES_POSTES_COURT_OF_CASSATION },
+            ],
+            lazy: () =>
+              import('@/pages/veille-des-postes/VeilleDesPostesPage').then(({ VeilleDesPostesPage }) => ({
+                Component: VeilleDesPostesPage,
+              })),
+            path: ROUTE_PATHS.SG.CSM.VEILLE_DES_POSTES,
+          },
+          {
+            loader: () => redirect(ROUTE_PATHS.SG.CSM.VEILLE_DES_POSTES),
+            path: ROUTE_PATHS.SG.CSM.ROOT,
+          },
+          {
+            lazy: () =>
+              import('@/pages/csm/CsmUpcomingPages').then(({ CallsForApplicationsPage }) => ({
+                Component: CallsForApplicationsPage,
+              })),
+            path: ROUTE_PATHS.SG.CSM.CALLS_FOR_APPLICATIONS,
+          },
+          {
+            lazy: () =>
+              import('@/pages/csm/CsmUpcomingPages').then(({ SelectionProcessPage }) => ({
+                Component: SelectionProcessPage,
+              })),
+            path: ROUTE_PATHS.SG.CSM.SELECTION_PROCESS,
+          },
+          {
+            lazy: () =>
+              import('@/pages/csm/CsmUpcomingPages').then(({ CsmMembersPage }) => ({
+                Component: CsmMembersPage,
+              })),
+            path: ROUTE_PATHS.SG.CSM.MEMBERS,
+          },
+          {
+            children: [
+              {
+                index: true,
                 lazy: () =>
                   import('@/pages/transparence/TransparencePropositionsTab').then(
                     ({ TransparencePropositionsTab }) => ({ Component: TransparencePropositionsTab }),

@@ -30,7 +30,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'Accueil du secrétariat général. Il choisit le pouvoir de proposition sur lequel travailler : le GDS ouvre la gestion des sessions et signale les nouvelles sessions, le CSM est en cours de développement et ne mène encore nulle part.',
+          'Accueil du secrétariat général. Il choisit le pouvoir de proposition sur lequel travailler : le GDS ouvre la gestion des sessions et signale les nouvelles sessions, le CSM ouvre la veille des postes.',
       },
     },
     layout: 'fullscreen',

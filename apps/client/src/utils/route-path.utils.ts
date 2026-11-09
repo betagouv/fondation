@@ -33,6 +33,16 @@ export const ROUTE_PATHS = {
     AGENDA_UPDATE_METADATA:
       '/secretariat-general/session/:sessionId/docs/ordre-du-jour/:agendaId/metadonnees',
     ARCHIVED_SESSIONS: '/secretariat-general/archives/sessions',
+    CSM: {
+      CALLS_FOR_APPLICATIONS: '/secretariat-general/csm/appels-a-candidature',
+      MEMBERS: '/secretariat-general/csm/membres',
+      ROOT: '/secretariat-general/csm',
+      SELECTION_PROCESS: '/secretariat-general/csm/processus-de-selection',
+      VEILLE_DES_POSTES: '/secretariat-general/csm/veille-des-postes',
+      VEILLE_DES_POSTES_COURTS_OF_APPEAL: '/secretariat-general/csm/veille-des-postes/cours-d-appel',
+      VEILLE_DES_POSTES_COURT_OF_CASSATION: '/secretariat-general/csm/veille-des-postes/cour-de-cassation',
+      VEILLE_DES_POSTES_JUDICIAL_COURTS: '/secretariat-general/csm/veille-des-postes/tribunaux-judiciaires',
+    },
     DASHBOARD: '/secretariat-general',
     MAGISTRAT_DETAILS: '/secretariat-general/magistrats/:magistratId',
     MAGISTRAT_SEARCH: '/secretariat-general/magistrats',

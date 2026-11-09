@@ -62,14 +62,11 @@ export const SecretariatGeneralPage = () => {
           </li>
           <li>
             <Card
-              badge={
-                <Badge noIcon severity="info" small>
-                  {formatMessage({ defaultMessage: 'En cours de développement' })}
-                </Badge>
-              }
               className="h-full"
-              classes={{ content: 'pt-6!' }}
+              classes={{ content: 'pt-6! pb-22!' }}
+              enlargeLink
               imageComponent={<CardPictogram pictogram={DocumentSearch} size="72" />}
+              linkProps={{ to: ROUTE_PATHS.SG.CSM.VEILLE_DES_POSTES, viewTransition: true }}
               title={formatMessage({ defaultMessage: 'Pouvoir de proposition CSM' })}
               titleAs="h2"
             />

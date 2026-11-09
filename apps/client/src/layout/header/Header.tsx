@@ -47,8 +47,7 @@ export const AppHeader = () => {
   const isUserAdmin = useIsAdmin();
   const { isArchived } = useArchivedSession();
 
-  // a page common to both pouvoirs, such as the administration, keeps the GDS entries when opened from the GDS
-  const isInGdsSpace = usePouvoirDeProposition() === 'GDS';
+  const pouvoir = usePouvoirDeProposition();
   const shouldShowNavBar = !!user && pathname !== ROUTE_PATHS.LOGIN;
 
   const magistratSearchItem = (path: FondationPath): MainNavigationProps.Item => ({
@@ -104,6 +103,29 @@ export const AppHeader = () => {
     },
   ];
 
+  const csmNavigation: MainNavigationProps.Item[] = [
+    {
+      isActive: routeMatches([ROUTE_PATHS.SG.CSM.VEILLE_DES_POSTES]),
+      linkProps: { to: ROUTE_PATHS.SG.CSM.VEILLE_DES_POSTES, viewTransition: true },
+      text: formatMessage({ defaultMessage: 'Veille des postes' }),
+    },
+    {
+      isActive: routeMatches([ROUTE_PATHS.SG.CSM.CALLS_FOR_APPLICATIONS]),
+      linkProps: { to: ROUTE_PATHS.SG.CSM.CALLS_FOR_APPLICATIONS, viewTransition: true },
+      text: formatMessage({ defaultMessage: 'Appels à candidature' }),
+    },
+    {
+      isActive: routeMatches([ROUTE_PATHS.SG.CSM.SELECTION_PROCESS]),
+      linkProps: { to: ROUTE_PATHS.SG.CSM.SELECTION_PROCESS, viewTransition: true },
+      text: formatMessage({ defaultMessage: 'Processus de sélection' }),
+    },
+    {
+      isActive: routeMatches([ROUTE_PATHS.SG.CSM.MEMBERS]),
+      linkProps: { to: ROUTE_PATHS.SG.CSM.MEMBERS, viewTransition: true },
+      text: formatMessage({ defaultMessage: 'Membres' }),
+    },
+  ];
+
   const sgCommonNavigation: MainNavigationProps.Item[] = [];
   if (isUserAdmin) {
     sgCommonNavigation.push({
@@ -138,7 +160,7 @@ export const AppHeader = () => {
           ),
         },
         // a LODAM session belongs to the GDS, unlike the LOLFI archive that also brings the magistrats and the positions
-        ...(isInGdsSpace || routeMatches([ROUTE_PATHS.ADMIN.INGEST_LODAM])
+        ...(pouvoir === 'GDS' || routeMatches([ROUTE_PATHS.ADMIN.INGEST_LODAM])
           ? [
               {
                 isActive: routeMatches([ROUTE_PATHS.ADMIN.INGEST_LODAM]),
@@ -200,9 +222,11 @@ export const AppHeader = () => {
     ? []
     : !isUserSg
       ? memberNavigation
-      : isInGdsSpace
+      : pouvoir === 'GDS'
         ? [...sgNavigation, ...sgCommonNavigation]
-        : sgCommonNavigation;
+        : pouvoir === 'CSM'
+          ? [...csmNavigation, ...sgCommonNavigation]
+          : sgCommonNavigation;
 
   return (
     <Header
