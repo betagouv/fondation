@@ -84,28 +84,40 @@ const AGENDA_SOURCE = {
   fromAgenda: false,
 } as const;
 
-const NO_NOTE = { ...NO_EDITION, generatedHtml: null, html: null, outdated: false };
+type OfficialReportNoteOutdatedBy = NonNullable<
+  Extract<OfficialReportBlock, { kind: 'file' }>['note']['outdatedBy']
+>;
+
+const NO_NOTE = { ...NO_EDITION, generatedHtml: null, html: null, outdatedBy: null };
 const RECUSAL_OF_ONE =
   "<p><em>Étant précisé que M.&nbsp;Paul&nbsp;FORGET n'a pas délibéré ni procédé aux actes préparatoires relatifs à cette proposition de nomination.</em></p>";
 const RECUSAL_OF_TWO =
   "<p><em>Étant précisé que M.&nbsp;Paul&nbsp;FORGET et Mme&nbsp;Anne&nbsp;DUPONT n'ont pas délibéré ni procédé aux actes préparatoires relatifs à cette proposition de nomination.</em></p>";
+const RECUSAL_OF_ONE_RENAMED = RECUSAL_OF_ONE.replace('M.&nbsp;Paul', 'M.&nbsp;le&nbsp;Bâtonnier');
 
-/** with `outdated`, the mention was rewritten by hand before a second member recused */
-function recusalNote(state: BlocksState & { recusal?: boolean }) {
+/**
+ * with `outdated`, the mention was rewritten by hand before a second member recused (`RECUSAL`) or
+ * before the recused member was renamed (`DESIGNATION`)
+ */
+function recusalNote(
+  state: BlocksState & { noteOutdatedBy?: OfficialReportNoteOutdatedBy; recusal?: boolean },
+) {
   if (!state.recusal) return NO_NOTE;
+  if (!state.outdated) {
+    return { ...NO_EDITION, generatedHtml: RECUSAL_OF_TWO, html: RECUSAL_OF_TWO, outdatedBy: null };
+  }
 
-  return state.outdated
-    ? {
-        ...EDITION,
-        generatedHtml: RECUSAL_OF_TWO,
-        html: RECUSAL_OF_ONE.replace('Paul', 'Paul (bâtonnier)'),
-        outdated: true,
-      }
-    : { ...NO_EDITION, generatedHtml: RECUSAL_OF_TWO, html: RECUSAL_OF_TWO, outdated: false };
+  const outdatedBy = state.noteOutdatedBy ?? 'RECUSAL';
+  return {
+    ...EDITION,
+    generatedHtml: outdatedBy === 'RECUSAL' ? RECUSAL_OF_TWO : RECUSAL_OF_ONE_RENAMED,
+    html: RECUSAL_OF_ONE.replace('Paul', 'Paul (bâtonnier)'),
+    outdatedBy,
+  };
 }
 
 export function officialReportBlocks(
-  state: BlocksState & { note?: boolean; recusal?: boolean },
+  state: BlocksState & { note?: boolean; noteOutdatedBy?: OfficialReportNoteOutdatedBy; recusal?: boolean },
 ): OfficialReportBlock[] {
   return [
     {

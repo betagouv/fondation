@@ -294,7 +294,7 @@ describe('OfficialReportSnapshot', () => {
             OfficialReportSnapshotFile.from({
               hasManuallyEditedHtml: true,
               nominationFileId: 'file-1',
-              note: { html: null, outdated: false, status: 'GENERATED' },
+              note: { html: null, outdatedBy: null, status: 'GENERATED' },
               recusedMembers: [],
               outcome: { value: 'VALIDATED', comment: null },
               reporters: ['M. John DOE'],
@@ -376,7 +376,7 @@ describe('OfficialReportSnapshot', () => {
             OfficialReportSnapshotFile.from({
               nominationFileId,
               hasManuallyEditedHtml: false,
-              note: { html: null, outdated: false, status: 'GENERATED' },
+              note: { html: null, outdatedBy: null, status: 'GENERATED' },
               recusedMembers: [],
               outcome: { value: 'VALIDATED', comment: null },
               reporters: ['M. John DOE'],
@@ -402,7 +402,7 @@ describe('OfficialReportSnapshot', () => {
             OfficialReportSnapshotFile.from({
               nominationFileId: 'file-1',
               hasManuallyEditedHtml: true,
-              note: { html: null, outdated: false, status: 'GENERATED' },
+              note: { html: null, outdatedBy: null, status: 'GENERATED' },
               recusedMembers: [],
               reporters: ['M. John DOE'],
               outcome: { value: 'VALIDATED', comment: null },
@@ -474,7 +474,7 @@ function makeSnapshot(props: Partial<PlainOfficialReportSnapshot> = {}) {
   const file = {
     nominationFileId: 'file-1',
     hasManuallyEditedHtml: false,
-    note: { html: null, outdated: false, status: 'GENERATED' },
+    note: { html: null, outdatedBy: null, status: 'GENERATED' },
     outcome: { value: 'VALIDATED', comment: null },
     recusedMembers: [],
     reporters: ['M. John DOE'],

@@ -11,6 +11,7 @@ import {
 import {
   Prisma,
   PrismaDocsFileOutcomeEnum,
+  PrismaOfficialReportNoteOutdatedByEnum,
   PrismaOfficialReportNoteStatusEnum,
 } from '../../../../../generated/prisma/client';
 import { assertNever } from '../../../../../utils/assert-never';
@@ -238,7 +239,7 @@ export class OfficialReportRepository {
         id: bigint;
         nominationFileId: string | null;
         note: string | null;
-        noteOutdated: boolean;
+        noteOutdatedBy: PrismaOfficialReportNoteOutdatedByEnum | null;
         noteStatus: PrismaOfficialReportNoteStatusEnum;
         outcome: PrismaDocsFileOutcomeEnum;
         outcomeComment: string | null;
@@ -253,7 +254,7 @@ export class OfficialReportRepository {
           id: true,
           nominationFileId: true,
           note: true,
-          noteOutdated: true,
+          noteOutdatedBy: true,
           noteStatus: true,
           outcome: true,
           outcomeComment: true,
@@ -276,7 +277,7 @@ export class OfficialReportRepository {
             // a sentence taken from the agenda is the agenda's to keep up to date, not the report's
             hasManuallyEditedHtml: !file.htmlFromAgenda && (file.htmlEdited ?? '').trim().length > 0,
             nominationFileId: file.nominationFileId,
-            note: { html: file.note, outdated: file.noteOutdated, status: file.noteStatus },
+            note: { html: file.note, outdatedBy: file.noteOutdatedBy, status: file.noteStatus },
             outcome: { comment: file.outcomeComment, value: file.outcome },
             recusedMembers: parseNamedMembers(file.recusedMembers),
             reporters: file.reporters,
@@ -462,7 +463,8 @@ export class OfficialReportRepository {
 
       await this.db.tx.officialReportNominationFile.updateMany({
         data: {
-          noteOutdated: { follow: undefined, generate: false, outdate: true }[file.note],
+          noteOutdatedBy:
+            file.note === 'outdate' ? file.outdatedBy : file.note === 'generate' ? null : undefined,
           noteStatus: file.note === 'generate' ? 'GENERATED' : undefined,
           recusedMembers: [...file.recusedMembers],
         },
@@ -715,7 +717,7 @@ export class OfficialReportRepository {
         note: message.html,
         noteEditedAt: this.clock.now(),
         noteEditedBy: message.authorId,
-        noteOutdated: false,
+        noteOutdatedBy: null,
         noteStatus: 'EDITED',
       },
       where: { nominationFileId: message.nominationFileId, versionId },
@@ -744,7 +746,7 @@ export class OfficialReportRepository {
         note: null,
         noteEditedAt: null,
         noteEditedBy: null,
-        noteOutdated: false,
+        noteOutdatedBy: null,
         noteStatus: message.status,
       },
       where: { nominationFileId: message.nominationFileId, versionId },
@@ -1008,7 +1010,7 @@ export class OfficialReportRepository {
           { introOutdated: true },
           { conclusionOutdated: true },
           { nominationFiles: { some: { htmlOutdated: true } } },
-          { nominationFiles: { some: { noteOutdated: true } } },
+          { nominationFiles: { some: { noteOutdatedBy: { not: null } } } },
         ],
       },
     });

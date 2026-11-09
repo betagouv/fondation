@@ -5,6 +5,7 @@ import { escapeHtml } from '../../../../shared/infrastructure/services/renderers
 import type { OfficialReportFileNote } from '../../../domain/official-report-doc-block';
 import type {
   OfficialReportNamedMember,
+  OfficialReportNoteOutdatedBy,
   OfficialReportNoteStatus,
 } from '../../../domain/official-report-types';
 import { parseNamedMembers } from '../../official-report-named-members';
@@ -13,7 +14,7 @@ export type OfficialReportStoredNote = {
   note: string | null;
   noteEditedAt: Date | null;
   noteEditor: { firstName: string; id: string; lastName: string } | null;
-  noteOutdated: boolean;
+  noteOutdatedBy: OfficialReportNoteOutdatedBy | null;
   noteStatus: OfficialReportNoteStatus;
   /** `{ id, name }[]` in protocol order */
   recusedMembers: Prisma.JsonValue;
@@ -36,6 +37,6 @@ export function officialReportFileNote(stored: OfficialReportStoredNote): Offici
     editedBy: isEdited ? writerOf(stored.noteEditor) : null,
     generatedHtml,
     html: { EDITED: stored.note, GENERATED: generatedHtml, REMOVED: null }[stored.noteStatus],
-    outdated: stored.noteOutdated,
+    outdatedBy: stored.noteOutdatedBy,
   };
 }

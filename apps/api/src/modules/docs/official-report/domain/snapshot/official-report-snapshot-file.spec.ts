@@ -11,7 +11,7 @@ function makeFile(overrides: Partial<PlainOfficialReportSnapshotFile> = {}): Off
   return OfficialReportSnapshotFile.from({
     hasManuallyEditedHtml: false,
     nominationFileId: NOMINATION_FILE_ID,
-    note: { html: null, outdated: false, status: 'GENERATED' },
+    note: { html: null, outdatedBy: null, status: 'GENERATED' },
     outcome: { comment: null, value: 'SUSPENDED' },
     recusedMembers: [],
     reporters: ['Madame Camille DURAND'],
@@ -100,16 +100,86 @@ describe('OfficialReportSnapshotFile', () => {
     });
 
     it('flags a text written in the report rather than overwriting it', () => {
-      const file = makeFile({ note: { html: '<p>Texte</p>', outdated: false, status: 'EDITED' } });
+      const file = makeFile({ note: { html: '<p>Texte</p>', outdatedBy: null, status: 'EDITED' } });
 
       const diff = file.diff({ nominationFileId: NOMINATION_FILE_ID, recusedMembers: [FORGET] });
 
-      expect(diff).toMatchObject([{ action: 'recuse', note: 'outdate' }]);
+      expect(diff).toMatchObject([{ action: 'recuse', note: 'outdate', outdatedBy: 'RECUSAL' }]);
+    });
+
+    it('flags a text written in the report with the designation when only a name changes', () => {
+      const file = makeFile({
+        note: { html: '<p>Texte</p>', outdatedBy: null, status: 'EDITED' },
+        recusedMembers: [FORGET],
+      });
+      const renamed = { ...FORGET, name: 'M. le Bâtonnier FORGET' };
+
+      const diff = file.diff({ nominationFileId: NOMINATION_FILE_ID, recusedMembers: [renamed] });
+
+      expect(diff).toEqual([
+        {
+          action: 'recuse',
+          nominationFileId: NOMINATION_FILE_ID,
+          note: 'outdate',
+          outdatedBy: 'DESIGNATION',
+          recusedMembers: [renamed],
+        },
+      ]);
+    });
+
+    it('lets the generated sentence follow a renamed member without flagging it', () => {
+      const file = makeFile({ recusedMembers: [FORGET] });
+      const renamed = { ...FORGET, name: 'M. le Bâtonnier FORGET' };
+
+      const diff = file.diff({ nominationFileId: NOMINATION_FILE_ID, recusedMembers: [renamed] });
+
+      expect(diff).toMatchObject([{ action: 'recuse', note: 'follow', recusedMembers: [renamed] }]);
+    });
+
+    it('turns a flagged designation into a recusal change once a member is added', () => {
+      const file = makeFile({
+        note: { html: '<p>Texte</p>', outdatedBy: 'DESIGNATION', status: 'EDITED' },
+        recusedMembers: [FORGET],
+      });
+
+      const diff = file.diff({ nominationFileId: NOMINATION_FILE_ID, recusedMembers: [FORGET, DUPONT] });
+
+      expect(diff).toMatchObject([{ action: 'recuse', note: 'outdate', outdatedBy: 'RECUSAL' }]);
+    });
+
+    it('keeps a flagged recusal change when a member is then renamed', () => {
+      const file = makeFile({
+        note: { html: '<p>Texte</p>', outdatedBy: 'RECUSAL', status: 'EDITED' },
+        recusedMembers: [FORGET],
+      });
+
+      const diff = file.diff({
+        nominationFileId: NOMINATION_FILE_ID,
+        recusedMembers: [{ ...FORGET, name: 'M. le Bâtonnier FORGET' }],
+      });
+
+      expect(diff).toMatchObject([{ action: 'recuse', note: 'outdate', outdatedBy: 'RECUSAL' }]);
+    });
+
+    it('knows a member stored before the ids were kept by name only', () => {
+      const stored = { id: null, name: FORGET.name };
+      const file = makeFile({
+        note: { html: '<p>Texte</p>', outdatedBy: null, status: 'EDITED' },
+        recusedMembers: [stored],
+      });
+
+      expect(file.diff({ nominationFileId: NOMINATION_FILE_ID, recusedMembers: [FORGET] })).toEqual([]);
+      expect(
+        file.diff({
+          nominationFileId: NOMINATION_FILE_ID,
+          recusedMembers: [{ ...FORGET, name: 'M. le Bâtonnier FORGET' }],
+        }),
+      ).toMatchObject([{ action: 'recuse', note: 'outdate', outdatedBy: 'RECUSAL' }]);
     });
 
     it('flags a removed mention while members remain recused', () => {
       const file = makeFile({
-        note: { html: null, outdated: false, status: 'REMOVED' },
+        note: { html: null, outdatedBy: null, status: 'REMOVED' },
         recusedMembers: [FORGET],
       });
 
@@ -121,9 +191,23 @@ describe('OfficialReportSnapshotFile', () => {
       expect(diff).toMatchObject([{ action: 'recuse', note: 'outdate' }]);
     });
 
+    it('keeps a removed mention without flagging it when a recused member is only renamed', () => {
+      const file = makeFile({
+        note: { html: null, outdatedBy: null, status: 'REMOVED' },
+        recusedMembers: [FORGET],
+      });
+      const renamed = { ...FORGET, name: 'M. le Bâtonnier FORGET' };
+
+      const diff = file.diff({ nominationFileId: NOMINATION_FILE_ID, recusedMembers: [renamed] });
+
+      expect(diff).toEqual([
+        { action: 'recuse', nominationFileId: NOMINATION_FILE_ID, note: 'follow', recusedMembers: [renamed] },
+      ]);
+    });
+
     it('gives a removed mention back to the sentence once nobody is recused', () => {
       const file = makeFile({
-        note: { html: null, outdated: false, status: 'REMOVED' },
+        note: { html: null, outdatedBy: null, status: 'REMOVED' },
         recusedMembers: [FORGET],
       });
 
@@ -147,13 +231,13 @@ describe('OfficialReportSnapshotFile', () => {
 
   describe('note', () => {
     it('reads the text it was given', () => {
-      const file = makeFile({ note: { html: '<p>Texte</p>', outdated: false, status: 'EDITED' } });
+      const file = makeFile({ note: { html: '<p>Texte</p>', outdatedBy: null, status: 'EDITED' } });
 
       expect(file.readsNote('<p>Texte</p>')).toBe(true);
     });
 
     it('takes the same text again to settle a recusal changed since', () => {
-      const file = makeFile({ note: { html: '<p>Texte</p>', outdated: true, status: 'EDITED' } });
+      const file = makeFile({ note: { html: '<p>Texte</p>', outdatedBy: 'RECUSAL', status: 'EDITED' } });
 
       expect(file.readsNote('<p>Texte</p>')).toBe(false);
     });
@@ -165,7 +249,7 @@ describe('OfficialReportSnapshotFile', () => {
     });
 
     it('goes back to the sentence when a text is removed from a file without recusal', () => {
-      const file = makeFile({ note: { html: '<p>Texte</p>', outdated: false, status: 'EDITED' } });
+      const file = makeFile({ note: { html: '<p>Texte</p>', outdatedBy: null, status: 'EDITED' } });
 
       expect(file.noteStatusOnRemoval()).toBe('GENERATED');
     });
@@ -174,7 +258,7 @@ describe('OfficialReportSnapshotFile', () => {
       expect(makeFile().noteStatusOnRemoval()).toBeNull();
       expect(
         makeFile({
-          note: { html: null, outdated: false, status: 'REMOVED' },
+          note: { html: null, outdatedBy: null, status: 'REMOVED' },
           recusedMembers: [FORGET],
         }).noteStatusOnRemoval(),
       ).toBeNull();
@@ -182,7 +266,7 @@ describe('OfficialReportSnapshotFile', () => {
 
     it('removes again a removed mention to settle a recusal changed since', () => {
       const file = makeFile({
-        note: { html: null, outdated: true, status: 'REMOVED' },
+        note: { html: null, outdatedBy: 'RECUSAL', status: 'REMOVED' },
         recusedMembers: [FORGET],
       });
 

@@ -1713,7 +1713,7 @@ export type DetailedOfficialReportDocumentDto = {
             } | null;
             generatedHtml: string | null;
             html: string | null;
-            outdated: boolean;
+            outdatedBy: 'RECUSAL' | 'DESIGNATION' | null;
         };
     } | {
         weight: number;
@@ -1750,7 +1750,7 @@ export type EditedOfficialReportFileNoteDto = {
     } | null;
     generatedHtml: string | null;
     html: string | null;
-    outdated: boolean;
+    outdatedBy: 'RECUSAL' | 'DESIGNATION' | null;
 };
 
 export type ListedPresentedPlansDto = {

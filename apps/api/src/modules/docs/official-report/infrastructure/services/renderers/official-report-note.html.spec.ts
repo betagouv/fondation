@@ -4,7 +4,7 @@ const STORED = {
   note: null,
   noteEditedAt: null,
   noteEditor: null,
-  noteOutdated: false,
+  noteOutdatedBy: null,
   noteStatus: 'GENERATED',
   recusedMembers: [],
 } as const;
@@ -69,11 +69,11 @@ describe('officialReportFileNote', () => {
   it('prints nothing once the mention is removed, and still offers it', () => {
     const note = officialReportFileNote({
       ...STORED,
-      noteOutdated: true,
+      noteOutdatedBy: 'RECUSAL',
       noteStatus: 'REMOVED',
       recusedMembers: [named('M. Paul FORGET')],
     });
 
-    expect(note).toMatchObject({ generatedHtml: expect.any(String), html: null, outdated: true });
+    expect(note).toMatchObject({ generatedHtml: expect.any(String), html: null, outdatedBy: 'RECUSAL' });
   });
 });

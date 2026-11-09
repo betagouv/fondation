@@ -197,12 +197,12 @@ describe('OfficialReport', () => {
       });
     const withNote = (state: { isValidated?: boolean } = {}) =>
       withFile(state, {
-        note: { html: '<p>note</p>', outdated: false, status: 'EDITED' },
+        note: { html: '<p>note</p>', outdatedBy: null, status: 'EDITED' },
         recusedMembers: [],
       });
     const withRecusal = (state: { actorId?: string | null; isValidated?: boolean } = {}) =>
       withFile(state, {
-        note: { html: null, outdated: false, status: 'GENERATED' },
+        note: { html: null, outdatedBy: null, status: 'GENERATED' },
         recusedMembers: [{ id: 'member-forget', name: 'M. Paul FORGET' }],
       });
 
@@ -350,7 +350,7 @@ describe('OfficialReport', () => {
               OfficialReportSnapshotFile.from({
                 hasManuallyEditedHtml: false,
                 nominationFileId: 'file-1',
-                note: { html: null, outdated: false, status: 'GENERATED' },
+                note: { html: null, outdatedBy: null, status: 'GENERATED' },
                 outcome: { comment: null, value: 'SUSPENDED' },
                 recusedMembers: [],
                 reporters: ['M. John DOE'],

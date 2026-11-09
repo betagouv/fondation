@@ -10,6 +10,10 @@ import { OfficialReportSessionMeeting } from './official-report-session-meeting'
 export const OFFICIAL_REPORT_NOTE_STATUSES = ['GENERATED', 'EDITED', 'REMOVED'] as const;
 export type OfficialReportNoteStatus = (typeof OFFICIAL_REPORT_NOTE_STATUSES)[number];
 
+export const OFFICIAL_REPORT_NOTE_OUTDATED_BY = ['RECUSAL', 'DESIGNATION'] as const;
+/** what changed since the slot was written or emptied by hand: who is recused, or only how one is named */
+export type OfficialReportNoteOutdatedBy = (typeof OFFICIAL_REPORT_NOTE_OUTDATED_BY)[number];
+
 /** a member as the report names them: `id` is null on a row written before the ids were kept */
 export type OfficialReportNamedMember = { id: string | null; name: string };
 
@@ -84,14 +88,13 @@ export type OfficialReportSnapshotDiff = {
         outcome: DocNominationFileOutcomeEnum | undefined;
         outcomeComment: string | null | undefined;
       }
-    | {
+    | ({
         /** `follow`: the sentence reads the new recusal, `outdate`: the hand-written slot is flagged,
          * `generate`: a removal with nothing left to hide gives the slot back to the sentence */
         action: 'recuse';
         nominationFileId: string;
-        note: 'follow' | 'generate' | 'outdate';
         recusedMembers: readonly OfficialReportNamedMember[];
-      }
+      } & ({ note: 'follow' | 'generate' } | { note: 'outdate'; outdatedBy: OfficialReportNoteOutdatedBy }))
     | {
         action: 'create';
         nominationFileId: string;

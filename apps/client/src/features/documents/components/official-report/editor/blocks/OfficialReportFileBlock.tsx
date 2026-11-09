@@ -82,7 +82,7 @@ function FileBlockView(props: ReactNodeViewProps) {
   return (
     <NodeViewWrapper
       className={clsx('doc-block doc-block--file', {
-        'doc-block--warning': (outdated || note?.outdated) && nominationFileId,
+        'doc-block--warning': (outdated || note?.outdatedBy) && nominationFileId,
       })}
       data-block-type="file"
     >

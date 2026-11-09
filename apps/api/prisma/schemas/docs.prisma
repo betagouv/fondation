@@ -54,6 +54,16 @@ enum PrismaOfficialReportNoteStatusEnum {
   @@schema("docs")
 }
 
+/// what changed since the slot under a proposition was written or emptied by hand: who is recused, or
+/// only how a recused member is named
+enum PrismaOfficialReportNoteOutdatedByEnum {
+  RECUSAL
+  DESIGNATION
+
+  @@map("official_report_note_outdated_by_enum")
+  @@schema("docs")
+}
+
 // #region Agenda
 model Agenda {
   id               String              @id @db.Uuid
@@ -285,13 +295,13 @@ model OfficialReportNominationFile {
 
   // `{ id, name }[]`: the members as the recusal named them when it was last read, printed in
   // protocol order. A row written before the ids were kept has `id: null` until the next refresh
-  recusedMembers Json                               @default("[]") @map("recused_members") @db.JsonB
+  recusedMembers Json                                    @default("[]") @map("recused_members") @db.JsonB
   note           String?
-  noteStatus     PrismaOfficialReportNoteStatusEnum @default(GENERATED) @map("note_status")
-  // the recusal changed since the slot was written or emptied by hand
-  noteOutdated   Boolean                            @default(false) @map("note_outdated")
-  noteEditedAt   DateTime?                          @map("note_edited_at")
-  noteEditedBy   String?                            @map("note_edited_by") @db.Uuid
+  noteStatus     PrismaOfficialReportNoteStatusEnum      @default(GENERATED) @map("note_status")
+  // what changed since the slot was written or emptied by hand, null when nothing did
+  noteOutdatedBy PrismaOfficialReportNoteOutdatedByEnum? @map("note_outdated_by")
+  noteEditedAt   DateTime?                               @map("note_edited_at")
+  noteEditedBy   String?                                 @map("note_edited_by") @db.Uuid
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
