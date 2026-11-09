@@ -15,8 +15,8 @@ const MEMBER = {
 function memberFeedback(props: { answeredAt: string; satisfactionRating: number; userId: string }) {
   return {
     answeredAt: new Date(props.answeredAt),
+    comment: null,
     easeRating: 3,
-    hindrance: null,
     member: MEMBER,
     satisfactionRating: props.satisfactionRating,
     secretariat: null,

@@ -108,8 +108,8 @@ function textOf(answers: Answers, name: string): string | null {
 
 function answersOf(answers: Answers, questionnaire: Feedback['questionnaire']): AnswerFeedbackDto {
   return {
+    comment: textOf(answers, 'comment'),
     easeRating: Number(answers.easeRating),
-    hindrance: textOf(answers, 'hindrance'),
     member:
       questionnaire === 'MEMBER'
         ? {
@@ -172,18 +172,18 @@ function useSteps(questionnaire: Feedback['questionnaire'], answers: Answers): S
     },
   ];
 
-  const hindrance: Step = {
-    name: 'hindrance',
+  const comment: Step = {
+    name: 'comment',
     question: (
       <FreeText
         answers={answers}
         label={
           <FormattedMessage defaultMessage="Lors des dernières sessions, qu'est-ce qui vous a le plus aidé et que faudrait-il améliorer ?" />
         }
-        name="hindrance"
+        name="comment"
       />
     ),
-    title: <FormattedMessage defaultMessage="Vos remarques" />,
+    title: <FormattedMessage defaultMessage="Votre commentaire" />,
   };
 
   if (questionnaire === 'MEMBER') {
@@ -246,7 +246,7 @@ function useSteps(questionnaire: Feedback['questionnaire'], answers: Answers): S
         ),
         title: <FormattedMessage defaultMessage="Préparation des rapports" />,
       },
-      hindrance,
+      comment,
     ];
   }
 
@@ -271,7 +271,7 @@ function useSteps(questionnaire: Feedback['questionnaire'], answers: Answers): S
       question: <OtherTools answers={answers} />,
       title: <FormattedMessage defaultMessage="Autres outils" />,
     },
-    hindrance,
+    comment,
   ];
 }
 
