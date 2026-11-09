@@ -79,21 +79,6 @@ function FileBlockView(props: ReactNodeViewProps) {
   const { sessionId } = useParams<{ sessionId: string }>();
   const { pathname } = useLocation();
 
-  const agendaAction = agendaId && sessionId && (
-    <Button
-      iconId="fr-icon-edit-line"
-      iconPosition="right"
-      linkProps={{
-        state: { officialReportPath: pathname },
-        to: generatePath(ROUTE_PATHS.SG.AGENDA_EDIT, { agendaId, sessionId }),
-      }}
-      priority="tertiary no outline"
-      size="small"
-    >
-      <FormattedMessage defaultMessage="Corriger le bloc dans l'ODJ" />
-    </Button>
-  );
-
   return (
     <NodeViewWrapper
       className={clsx('doc-block doc-block--file', {
@@ -116,9 +101,26 @@ function FileBlockView(props: ReactNodeViewProps) {
         <NodeViewContent contentEditable={false} />
       </div>
 
-      {nominationFileId && officialReportId && sessionId ? (
+      {/* the correction belongs to the proposition, not to the note under it */}
+      {agendaId && sessionId && (
+        <div className="flex justify-end" contentEditable={false}>
+          <Button
+            iconId="fr-icon-edit-line"
+            iconPosition="right"
+            linkProps={{
+              state: { officialReportPath: pathname },
+              to: generatePath(ROUTE_PATHS.SG.AGENDA_EDIT, { agendaId, sessionId }),
+            }}
+            priority="tertiary no outline"
+            size="small"
+          >
+            <FormattedMessage defaultMessage="Corriger le bloc dans l'ODJ" />
+          </Button>
+        </div>
+      )}
+
+      {nominationFileId && officialReportId && sessionId && (
         <OfficialReportFileNote
-          agendaAction={agendaAction}
           name={name}
           nominationFileId={nominationFileId}
           note={note}
@@ -135,12 +137,6 @@ function FileBlockView(props: ReactNodeViewProps) {
           }}
           sessionId={sessionId}
         />
-      ) : (
-        agendaAction && (
-          <div className="flex justify-end" contentEditable={false}>
-            {agendaAction}
-          </div>
-        )
       )}
 
       <DocBlockDriftBanner {...props} acknowledgeable={false} />

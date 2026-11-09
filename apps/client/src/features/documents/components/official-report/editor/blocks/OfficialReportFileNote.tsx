@@ -7,7 +7,7 @@ import { Paragraph } from '@tiptap/extension-paragraph';
 import Text from '@tiptap/extension-text';
 import { UndoRedo } from '@tiptap/extensions';
 import { EditorContent, EditorContext, useEditor, useEditorState } from '@tiptap/react';
-import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import { DocBlockEditedLine } from '@/features/documents/components/blocks/DocBlockEditedBadge';
@@ -26,7 +26,6 @@ import type { OfficialReportBlock } from './official-report-blocks.type';
 type OfficialReportFileNoteState = Extract<OfficialReportBlock, { kind: 'file' }>['note'];
 
 export function OfficialReportFileNote(props: {
-  agendaAction: ReactNode;
   name: string;
   nominationFileId: string;
   note: OfficialReportFileNoteState;
@@ -135,7 +134,6 @@ export function OfficialReportFileNote(props: {
             <FormattedMessage defaultMessage="Le rétablissement a échoué" />
           </p>
         )}
-        {props.agendaAction}
         {!isEditing && canRestoreMention && (
           <Button
             disabled={reset.isPending}
