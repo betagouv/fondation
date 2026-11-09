@@ -463,6 +463,10 @@ export const routes: RouteObject[] = [
             path: '/admin/jobs',
           },
           {
+            loader: () => redirect(ROUTE_PATHS.ADMIN.FEEDBACKS),
+            path: '/admin/remarques',
+          },
+          {
             loader: ({ params }) =>
               redirect(generatePath(ROUTE_PATHS.ADMIN.DETAILS_JOB, { jobId: params.jobId! })),
             path: '/admin/jobs/:jobId',

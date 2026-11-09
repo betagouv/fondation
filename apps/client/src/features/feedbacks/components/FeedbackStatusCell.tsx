@@ -38,11 +38,9 @@ export function FeedbackStatusCell(props: { feedback: ListedFeedbacksDto['items'
       : changed;
 
   const change = async (next: FeedbackStatusEnum) => {
-    if (next === 'NEW' && status.value === 'NEW') return;
-
     let comment: string | null = null;
     if (next !== 'NEW') {
-      const event = await waitForStatusComment(next, next === status.value ? status.comment : null);
+      const event = await waitForStatusComment(next, status.comment);
       if (event.type === 'drop') return;
       comment = event.value;
     }
@@ -79,17 +77,33 @@ export function FeedbackStatusCell(props: { feedback: ListedFeedbacksDto['items'
           size="small"
         >
           <FeedbackStatusBadge status={status.value} />
+          {status.comment && (
+            <span
+              aria-hidden
+              className="fr-icon-chat-3-line fr-icon--sm fr-ml-1v [&::before]:[--icon-size:0.875rem]"
+            />
+          )}
         </MenuTrigger>
       </Tooltip>
       <MenuContent>
         {FEEDBACK_STATUSES.map((value) => (
-          <MenuItem key={value} onClick={() => void change(value)}>
-            {value === status.value && value !== 'NEW' ? (
-              <span className="text-[0.8125rem]">
-                <FormattedMessage defaultMessage="Modifier le commentaire" />
-              </span>
-            ) : (
-              <FeedbackStatusBadge status={value} />
+          <MenuItem
+            disabled={value === 'NEW' && status.value === 'NEW'}
+            key={value}
+            onClick={() => void change(value)}
+          >
+            <FeedbackStatusBadge status={value} />
+            {value === status.value && (
+              <>
+                <span aria-hidden className="fr-icon-check-line fr-icon--sm fr-ml-2v" />
+                <span className="fr-sr-only">
+                  {value === 'NEW' ? (
+                    <FormattedMessage defaultMessage="statut actuel" />
+                  ) : (
+                    <FormattedMessage defaultMessage="statut actuel, modifier le commentaire" />
+                  )}
+                </span>
+              </>
             )}
           </MenuItem>
         ))}

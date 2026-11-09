@@ -53,6 +53,25 @@ describe('FeedbackStatusCell', () => {
     );
   });
 
+  it('keeps the comment of the previous status when changing status', async () => {
+    const user = renderCell({
+      changedAt: '2026-11-02T16:01:00.000Z',
+      changedBy: { id: 'admin', name: 'Marie DUPONT' },
+      comment: 'FON-771',
+      value: 'ACKNOWLEDGED',
+    });
+
+    await user.click(screen.getByRole('button', { name: /Statut du retour/ }));
+    await user.click(await screen.findByRole('menuitem', { name: 'Traité' }));
+    expect(await screen.findByLabelText(/Commentaire/)).toHaveValue('FON-771');
+    await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
+
+    expect(mutate).toHaveBeenCalledWith(
+      { comment: 'FON-771', feedbackId: 'feedback-1', status: 'PROCESSED' },
+      expect.anything(),
+    );
+  });
+
   it('sets a feedback back to new without asking anything', async () => {
     const user = renderCell({
       changedAt: '2026-11-02T16:01:00.000Z',
@@ -82,7 +101,7 @@ describe('FeedbackStatusCell', () => {
     const badge = screen.getByRole('button', { name: /Statut du retour/ });
     expect(badge).toHaveAccessibleName(/par Marie DUPONT : Déjà prévu$/);
     await user.click(badge);
-    await user.click(await screen.findByRole('menuitem', { name: 'Modifier le commentaire' }));
+    await user.click(await screen.findByRole('menuitem', { name: /Écarté.*modifier le commentaire/ }));
     const field = await screen.findByLabelText(/Commentaire/);
     expect(field).toHaveValue('Déjà prévu');
     await user.type(field, ' dans FON-650');
