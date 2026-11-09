@@ -20,6 +20,7 @@ const MEMBER: DetailedMemberDto = {
   gender: 'FEMALE',
   id: 'member-2',
   lastName: 'Garnier',
+  recusalTitle: 'la Première présidente',
   stats: [
     { count: 4, targetedGrade: 'I', year: 2026 },
     { count: 7, targetedGrade: 'HH', year: 2026 },
