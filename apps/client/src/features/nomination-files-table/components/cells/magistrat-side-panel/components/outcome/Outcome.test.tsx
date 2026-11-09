@@ -51,7 +51,7 @@ describe('Outcome', () => {
   it('lets the secretariat general change the outcome and its comment', () => {
     renderOutcome(null);
 
-    expect(screen.getByRole('button', { name: 'CONFORME' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: "Ajouter l'issue CONFORME" })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Modifier' })).toBeInTheDocument();
   });
 
