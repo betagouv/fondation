@@ -4,7 +4,7 @@ import Document from '@tiptap/extension-document';
 import { Paragraph } from '@tiptap/extension-paragraph';
 import Text from '@tiptap/extension-text';
 import { DOMParser, DOMSerializer } from '@tiptap/pm/model';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import { Callout, wrapNotionCallouts } from './callout-extension';
 
@@ -58,7 +58,16 @@ describe('wrapNotionCallouts', () => {
 
 describe('Callout', () => {
   const extensions = [Document, Paragraph, Text, Bold, Callout];
-  const editorWith = (content: string) => new Editor({ content, extensions });
+  const editors: Editor[] = [];
+  const editorWith = (content: string) => {
+    const editor = new Editor({ content, extensions });
+    editors.push(editor);
+    return editor;
+  };
+
+  afterEach(() => {
+    for (const editor of editors.splice(0)) editor.destroy();
+  });
 
   it('opens a callout of its kind on the paragraph, under its title in bold', () => {
     const editor = editorWith('<p>Un rapporteur par dossier</p>');
