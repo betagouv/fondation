@@ -52,7 +52,7 @@ const NONE = 'none';
 const LOCKED_REASONS = [NONE, ...Object.values(NominationFileLockEnum)] as const;
 const AUDITIONS = [NONE, 'missing', 'scheduled'] as const;
 const OUTCOMES = [NONE, ...Object.values(NominationFileOutcomeEnum)] as const;
-const SUMMARIES = [NONE, 'readable'] as const;
+const SUMMARIES = [NONE, 'readable', 'unavailable'] as const;
 
 type SidePanelArgs = {
   audition: (typeof AUDITIONS)[number];
@@ -258,7 +258,7 @@ function makeNominationFile(args: SidePanelArgs): SessionNominationFile {
     priorities: ['ETOILE'],
     recusedMembers: args.hasRecusedMembers ? [READER] : [],
     reporters: REPORTERS,
-    summary: args.summary === 'readable' ? { canRead: true, canWrite: isSg, id } : null,
+    summary: args.summary === NONE ? null : { canRead: true, canWrite: isSg, id },
   });
 }
 
@@ -555,7 +555,7 @@ const meta = {
     },
     summary: {
       control: 'inline-radio',
-      description: 'written by the SG and shared with the member',
+      description: 'written by the SG and shared with the member, unavailable when its loading fails',
       options: SUMMARIES,
     },
     view: { control: 'inline-radio', options: STORY_VIEWS },
@@ -564,14 +564,16 @@ const meta = {
     msw.use(
       ...handlers,
       http.get('*/api/sessions/v2/:sessionId/files/:nominationFileId/summary', () =>
-        HttpResponse.json<DetailedSummaryDto>(
-          makeSummary({
-            name: 'DURAND Camille',
-            position: 'Vice-présidente au tribunal judiciaire de LYON',
-            summary: { canWrite: args.view === 'sg', readers: [READER] },
-            targetedPosition: 'Conseillère à la cour d’appel de PARIS',
-          }),
-        ),
+        args.summary === 'unavailable'
+          ? new HttpResponse(null, { status: 503 })
+          : HttpResponse.json<DetailedSummaryDto>(
+              makeSummary({
+                name: 'DURAND Camille',
+                position: 'Vice-présidente au tribunal judiciaire de LYON',
+                summary: { canWrite: args.view === 'sg', readers: [READER] },
+                targetedPosition: 'Conseillère à la cour d’appel de PARIS',
+              }),
+            ),
       ),
     );
   },

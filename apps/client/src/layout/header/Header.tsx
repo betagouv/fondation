@@ -16,6 +16,7 @@ import { useUser } from '@queries/auth.queries';
 import { Avatar } from './Avatar';
 import { LolfiCsm } from './LolfiCsm';
 import { ManageSessionsLink } from './ManageSessionsLink';
+import { useHeaderBrand } from './useHeaderBrand';
 
 const NAV_ICON_CLASS = "before:mr-2 before:size-5! before:align-middle before:content-['']";
 
@@ -40,6 +41,7 @@ function foldMenus() {
 
 export const AppHeader = () => {
   const { formatMessage } = useIntl();
+  const brand = useHeaderBrand();
   const { pathname } = useLocation();
   const routeMatches = useRouteMatcher();
   const { user } = useUser();
@@ -206,23 +208,16 @@ export const AppHeader = () => {
 
   return (
     <Header
-      brandTop="CSM"
+      {...brand}
       className="[view-transition-name:app-header]"
       classes={{ menu: 'lg:[&_.fr-nav>ul]:gap-2' }}
-      homeLinkProps={{ title: formatMessage({ defaultMessage: 'Accueil' }), to: '/', viewTransition: true }}
       navigation={navigation}
-      operatorLogo={{
-        alt: formatMessage({ defaultMessage: 'Conseil Supérieur de la Magistrature' }),
-        imgUrl: '/logo.png',
-        orientation: 'horizontal',
-      }}
       quickAccessItems={[
         <LolfiCsm key="header lolfi link" />,
         <HelpPageButton key="header help link" />,
         <SurveyHeaderButton key="header survey link" />,
         <Avatar key="header avatar" />,
       ]}
-      serviceTitle="Fondation"
     />
   );
 };

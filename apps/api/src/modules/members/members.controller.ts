@@ -16,7 +16,11 @@ import { ApiPaginated, Pagination, QueryPagination } from '../framework/paginati
 import { HasRole } from '../simple-auth';
 
 import { ListMembersQueryDto } from './infrastructure/dtos/members.dto';
-import { ExcludeJurisdictionsDto, UpdateMemberDisplayTitleDto } from './infrastructure/member.dto';
+import {
+  ExcludeJurisdictionsDto,
+  UpdateMemberDisplayTitleDto,
+  UpdateMemberRecusalTitleDto,
+} from './infrastructure/member.dto';
 import { MembersService } from './infrastructure/members.service';
 import { DetailedMemberDto } from './infrastructure/queries/details-member.query';
 import { PaginatedMemberListItemDto } from './infrastructure/queries/list-members.query';
@@ -72,5 +76,16 @@ export class MembersController {
     @Body() { displayTitle }: UpdateMemberDisplayTitleDto,
   ): Promise<void> {
     return this.members.updateDisplayTitle({ userId, displayTitle });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Put('/:userId/recusal-title')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UsePipes(ZodValidationPipe)
+  updateRecusalTitle(
+    @Param('userId', ParseUUIDPipe) userId: string,
+    @Body() { recusalTitle }: UpdateMemberRecusalTitleDto,
+  ): Promise<void> {
+    return this.members.updateRecusalTitle({ userId, recusalTitle });
   }
 }

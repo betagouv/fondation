@@ -146,7 +146,25 @@ export const useUpdateDisplayTitleMutation = (options: { userId: string }) => {
         path: { userId: options.userId },
       }),
 
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: docsKeys.members() }),
+    onSettled: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: memberKeys.detailsMember({ userId: options.userId }) }),
+        queryClient.invalidateQueries({ queryKey: docsKeys.members() }),
+      ]),
+  });
+};
+
+export const useUpdateRecusalTitleMutation = (options: { userId: string }) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (recusalTitle: string | null) =>
+      $api.members.updateRecusalTitle({
+        body: { recusalTitle },
+        path: { userId: options.userId },
+      }),
+
+    onSettled: () =>
+      queryClient.invalidateQueries({ queryKey: memberKeys.detailsMember({ userId: options.userId }) }),
   });
 };
 

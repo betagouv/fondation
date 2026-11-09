@@ -267,7 +267,7 @@ describe('NominationFilesBulkActions', () => {
 
     expect(screen.getByRole('button', { name: 'Retirer Camille COMMUN' })).toBeVisible();
     expect(screen.getByRole('button', { name: 'Retirer Étoilé' })).toBeVisible();
-    expect(screen.getByRole('button', { name: 'Choisir une issue' })).toHaveTextContent('FAVORABLE');
+    expect(screen.getByRole('button', { name: 'Choisir une issue FAVORABLE' })).toBeVisible();
   });
 
   it('should show nothing when the selected files carry different values', () => {
@@ -289,7 +289,7 @@ describe('NominationFilesBulkActions', () => {
 
     expect(screen.queryByRole('button', { name: 'Retirer Camille COMMUN' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Retirer Étoilé' })).toBeNull();
-    expect(screen.getByRole('button', { name: 'Choisir une issue' })).toHaveTextContent('Sélectionner');
+    expect(screen.getByRole('button', { name: 'Choisir une issue Sélectionner' })).toBeVisible();
   });
 
   it('should withdraw a shared priority from every selected file', async () => {

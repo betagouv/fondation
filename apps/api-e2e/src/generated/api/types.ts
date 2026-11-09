@@ -984,6 +984,7 @@ export type DetailedMemberDto = {
     };
     gender: string;
     displayTitle: string | null;
+    recusalTitle: string | null;
     excludedJurisdictions: Array<{
         id: string;
         label: string | null;
@@ -1001,6 +1002,13 @@ export type ExcludeJurisdictionsDto = {
 
 export type UpdateMemberDisplayTitleDto = {
     displayTitle: string | null;
+};
+
+export type UpdateMemberRecusalTitleDto = {
+    /**
+     * with its article, e.g. "le Bâtonnier"
+     */
+    recusalTitle: string | null;
 };
 
 export type ListedJurisdictions = {
@@ -3947,6 +3955,21 @@ export type UpdateDisplayTitleResponses = {
 
 export type UpdateDisplayTitleResponse = UpdateDisplayTitleResponses[keyof UpdateDisplayTitleResponses];
 
+export type UpdateRecusalTitleData = {
+    body: UpdateMemberRecusalTitleDto;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/members/v1/{userId}/recusal-title';
+};
+
+export type UpdateRecusalTitleResponses = {
+    204: void;
+};
+
+export type UpdateRecusalTitleResponse = UpdateRecusalTitleResponses[keyof UpdateRecusalTitleResponses];
+
 export type SearchData = {
     body?: never;
     path?: never;
@@ -5380,7 +5403,7 @@ export type UpdateDisplayTitle2Responses = {
 
 export type UpdateDisplayTitle2Response = UpdateDisplayTitle2Responses[keyof UpdateDisplayTitle2Responses];
 
-export type UpdateRecusalTitleData = {
+export type UpdateRecusalTitle2Data = {
     body: UpdateUserRecusalTitleDto;
     path: {
         userId: string;
@@ -5389,11 +5412,11 @@ export type UpdateRecusalTitleData = {
     url: '/api/administration/v1/users/{userId}/recusal-title';
 };
 
-export type UpdateRecusalTitleResponses = {
+export type UpdateRecusalTitle2Responses = {
     204: void;
 };
 
-export type UpdateRecusalTitleResponse = UpdateRecusalTitleResponses[keyof UpdateRecusalTitleResponses];
+export type UpdateRecusalTitle2Response = UpdateRecusalTitle2Responses[keyof UpdateRecusalTitle2Responses];
 
 export type DemoteFromAdminData = {
     body?: never;

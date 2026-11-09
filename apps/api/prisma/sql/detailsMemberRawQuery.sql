@@ -20,6 +20,7 @@ SELECT
   u.last_name AS "lastName",
   u.gender,
   u.display_title AS "displayTitle",
+  u.recusal_title AS "recusalTitle",
 
   COALESCE(excluded.jurisdictions, ARRAY[]::JSONB[])::JSONB[] AS "excludedJurisdictions",
 

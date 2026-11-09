@@ -2,15 +2,42 @@ import type { ButtonProps } from '@codegouvfr/react-dsfr/Button';
 import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import { useQueryClient } from '@tanstack/react-query';
-import { FormattedMessage, useIntl } from 'react-intl';
+import { defineMessage, FormattedMessage, useIntl, type MessageDescriptor } from 'react-intl';
 import { isRouteErrorResponse, useLocation, useNavigate, useRouteError } from 'react-router';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
-import { PageLayout } from '@/layout/PageLayout';
+import { BareLayout } from '@/layout/BareLayout';
+import { failureOf, type FailureReason } from '@/shared/hooks/useRequestFailure';
 import { ErrorPageLayout } from '@/shared/ui/error-page';
 import { appVersion } from '@/utils/app-version';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { useUser } from '@queries/auth.queries';
+
+// a slowdown or a dropped connection passes, a bug stays: only the first are worth retrying
+const TRANSIENT_FAILURES: Readonly<
+  Partial<Record<FailureReason, { lead: MessageDescriptor; title: MessageDescriptor }>>
+> = {
+  offline: {
+    lead: defineMessage({
+      defaultMessage:
+        "Votre connexion au service a été coupée, sans doute à cause d'un problème passager de réseau.",
+    }),
+    title: defineMessage({ defaultMessage: 'La connexion a été interrompue' }),
+  },
+  timeout: {
+    lead: defineMessage({
+      defaultMessage:
+        "Le service n'a pas répondu à temps, sans doute à cause d'un ralentissement passager du service ou de votre connexion.",
+    }),
+    title: defineMessage({ defaultMessage: 'Le chargement a pris trop de temps' }),
+  },
+  unavailable: {
+    lead: defineMessage({
+      defaultMessage: "Le service n'a pas pu répondre, sans doute à cause d'un ralentissement passager.",
+    }),
+    title: defineMessage({ defaultMessage: 'Le service est momentanément indisponible' }),
+  },
+};
 
 export function ErrorPage() {
   const { formatMessage } = useIntl();
@@ -24,11 +51,12 @@ export function ErrorPage() {
   // a missing file resolves to nothing once its reload is decided: the page would flash before unloading
   if (appVersion.isReloading) return null;
 
-  const isTimedOut = error instanceof DOMException && error.name === 'TimeoutError';
-  const homePriority = isTimedOut ? 'secondary' : 'primary';
+  const transientFailure = TRANSIENT_FAILURES[failureOf(error).reason];
+  const isTransient = !!transientFailure;
+  const homePriority = isTransient ? 'secondary' : 'primary';
   const buttons: ButtonProps[] = [];
 
-  if (isTimedOut) {
+  if (isTransient) {
     buttons.push({
       children: formatMessage({ defaultMessage: 'Réessayer' }),
       // the router clears a rendering error on a new location only: a revalidation without loaders keeps it
@@ -71,16 +99,12 @@ export function ErrorPage() {
   });
 
   return (
-    <PageLayout>
+    <BareLayout>
       <ErrorPageLayout>
-        {isTimedOut ? (
+        {transientFailure ? (
           <>
-            <h1>
-              <FormattedMessage defaultMessage="Le chargement a pris trop de temps" />
-            </h1>
-            <p className={cx('fr-text--lead', 'fr-mb-6v')}>
-              <FormattedMessage defaultMessage="Le service n'a pas répondu à temps, sans doute à cause d'un ralentissement passager du service ou de votre connexion." />
-            </p>
+            <h1>{formatMessage(transientFailure.title)}</h1>
+            <p className={cx('fr-text--lead', 'fr-mb-6v')}>{formatMessage(transientFailure.lead)}</p>
             <p className="fr-text--sm fr-mb-6v">
               <FormattedMessage defaultMessage="Réessayez dans quelques instants. Si le problème persiste, merci de nous contacter." />
             </p>
@@ -112,6 +136,6 @@ export function ErrorPage() {
 
         <ButtonsGroup inlineLayoutWhen="md and up" buttons={buttons as [ButtonProps, ...ButtonProps[]]} />
       </ErrorPageLayout>
-    </PageLayout>
+    </BareLayout>
   );
 }
