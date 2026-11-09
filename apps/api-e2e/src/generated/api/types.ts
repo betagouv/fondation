@@ -2614,7 +2614,7 @@ export type ListedRemarksDto = {
                 name: string;
             } | null;
             comment: string | null;
-            value: 'NEW' | 'PROCESSED' | 'DISMISSED';
+            value: 'NEW' | 'ACKNOWLEDGED' | 'PROCESSED' | 'DISMISSED';
         };
         text: string;
         url: string;
@@ -2636,7 +2636,7 @@ export type SendRemarkDto = {
 
 export type ChangeRemarkStatusDto = {
     comment: string | null;
-    status: 'NEW' | 'PROCESSED' | 'DISMISSED';
+    status: 'NEW' | 'ACKNOWLEDGED' | 'PROCESSED' | 'DISMISSED';
 };
 
 export type GetFileByFileUrlData = {
@@ -5585,7 +5585,7 @@ export type ListRemarksData = {
     path?: never;
     query?: {
         sortBy?: 'sentAt' | 'status';
-        statuses?: Array<'NEW' | 'PROCESSED' | 'DISMISSED'>;
+        statuses?: Array<'NEW' | 'ACKNOWLEDGED' | 'PROCESSED' | 'DISMISSED'>;
         /**
          * true
          */

@@ -66,18 +66,28 @@ test.describe('Remarks E2E', () => {
   });
 
   test('the admin sorts the remarks by status, in the order of the list', async ({ admin, member, expect }) => {
-    const dismissed = `Écartée ${randomUUID()}`;
-    const fresh = `Nouvelle ${randomUUID()}`;
-    await member.remarks.sendRemark({ body: { text: dismissed, url: '/transparences' } });
-    await member.remarks.sendRemark({ body: { text: fresh, url: '/transparences' } });
-    await admin.remarks.changeRemarkStatus({
-      body: { comment: null, status: 'DISMISSED' },
-      path: { remarkId: (await findRemark(admin, dismissed))!.id },
-    });
+    const acknowledged = `Pris en compte ${randomUUID()}`;
+    const dismissed = `Écarté ${randomUUID()}`;
+    const fresh = `Nouveau ${randomUUID()}`;
+    const processed = `Traité ${randomUUID()}`;
+    for (const text of [acknowledged, dismissed, fresh, processed]) {
+      await member.remarks.sendRemark({ body: { text, url: '/transparences' } });
+    }
+    for (const [text, status] of [
+      [acknowledged, 'ACKNOWLEDGED'],
+      [dismissed, 'DISMISSED'],
+      [processed, 'PROCESSED'],
+    ] as const) {
+      await admin.remarks.changeRemarkStatus({
+        body: { comment: null, status },
+        path: { remarkId: (await findRemark(admin, text))!.id },
+      });
+    }
 
     const listed = await admin.remarks.listRemarks({ query: { limit: 200, sortBy: 'status', sortDesc: false } });
 
     const texts = listed.data!.items.map(({ text }) => text);
-    expect(texts.indexOf(fresh)).toBeLessThan(texts.indexOf(dismissed));
+    const positions = [fresh, acknowledged, processed, dismissed].map((text) => texts.indexOf(text));
+    expect(positions).toEqual(positions.toSorted((a, b) => a - b));
   });
 });

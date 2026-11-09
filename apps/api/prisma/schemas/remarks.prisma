@@ -1,6 +1,7 @@
 /// the remarks sort on their status in this order: a status added later takes its place with ALTER TYPE ... BEFORE
 enum PrismaRemarkStatusEnum {
   NEW
+  ACKNOWLEDGED
   PROCESSED
   DISMISSED
 

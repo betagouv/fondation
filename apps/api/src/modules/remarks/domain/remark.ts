@@ -1,6 +1,6 @@
 import { makeId } from '../../../utils/id';
 
-export const REMARK_STATUSES = ['NEW', 'PROCESSED', 'DISMISSED'] as const;
+export const REMARK_STATUSES = ['NEW', 'ACKNOWLEDGED', 'PROCESSED', 'DISMISSED'] as const;
 export type RemarkStatus = (typeof REMARK_STATUSES)[number];
 
 export class RemarkSent {

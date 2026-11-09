@@ -7,11 +7,13 @@ export type RemarkStatusEnum = ChangeRemarkStatusDto['status'];
 // in the order of the status list
 export const REMARK_STATUSES = [
   'NEW',
+  'ACKNOWLEDGED',
   'PROCESSED',
   'DISMISSED',
 ] as const satisfies readonly RemarkStatusEnum[];
 
 export const RemarkStatusEnumMessages = defineMessages({
+  ACKNOWLEDGED: { defaultMessage: 'Pris en compte' },
   DISMISSED: { defaultMessage: 'Écarté' },
   NEW: { defaultMessage: 'Nouveau' },
   PROCESSED: { defaultMessage: 'Traité' },
