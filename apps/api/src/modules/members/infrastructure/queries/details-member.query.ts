@@ -24,6 +24,7 @@ export class DetailsMemberQuery {
       lastName: user.lastName,
       gender: user.gender,
       displayTitle: user.displayTitle ?? null,
+      recusalTitle: user.recusalTitle ?? null,
       excludedJurisdictions: ((user.excludedJurisdictions as any[]) ?? []).map(
         (j: { id: string; label: string }) => ({
           id: j.id,
@@ -50,6 +51,7 @@ export class DetailedMemberDto extends createZodDto(
     formation: MemberFormationSchema,
     gender: z.string(),
     displayTitle: z.string().nullable(),
+    recusalTitle: z.string().nullable(),
 
     excludedJurisdictions: z.array(z.object({ id: z.string(), label: z.string().nullable() })),
 

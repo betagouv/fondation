@@ -324,6 +324,7 @@ export class User {
     this.#messages.push(new UserDisplayTitleUpdated(this.id, displayTitle));
   }
 
+  // TODO: see Member.updateRecusalTitle
   updateRecusalTitle(recusalTitle: string | null): void {
     this.#messages.push(new UserRecusalTitleUpdated(this.id, recusalTitle));
   }

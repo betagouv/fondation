@@ -39,13 +39,18 @@ export class Member {
     this.#messages.push(new MemberDisplayTitleUpdated(this.id, displayTitle));
   }
 
+  // TODO: see User.updateRecusalTitle
+  updateRecusalTitle(recusalTitle: string | null): void {
+    this.#messages.push(new MemberRecusalTitleUpdated(this.id, recusalTitle));
+  }
+
   readonly #messages: MemberEvent[] = [];
   get messages(): readonly MemberEvent[] {
     return this.#messages;
   }
 }
 
-export type MemberEvent = ExcludedMemberJurisdictions | MemberDisplayTitleUpdated;
+export type MemberEvent = ExcludedMemberJurisdictions | MemberDisplayTitleUpdated | MemberRecusalTitleUpdated;
 
 export class ExcludedMemberJurisdictions {
   readonly userId: string;
@@ -61,5 +66,12 @@ export class MemberDisplayTitleUpdated {
   constructor(
     readonly userId: string,
     readonly displayTitle: string | null,
+  ) {}
+}
+
+export class MemberRecusalTitleUpdated {
+  constructor(
+    readonly userId: string,
+    readonly recusalTitle: string | null,
   ) {}
 }

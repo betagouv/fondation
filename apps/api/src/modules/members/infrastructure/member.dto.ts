@@ -14,3 +14,14 @@ export class UpdateMemberDisplayTitleDto extends createZodDto(
       .nullable(),
   }),
 ) {}
+
+export class UpdateMemberRecusalTitleDto extends createZodDto(
+  z.object({
+    recusalTitle: z
+      .string()
+      .trim()
+      .transform((s) => s.replace(/[\n\r]/g, ' ') || null)
+      .nullable()
+      .meta({ description: 'with its article, e.g. "le Bâtonnier"' }),
+  }),
+) {}

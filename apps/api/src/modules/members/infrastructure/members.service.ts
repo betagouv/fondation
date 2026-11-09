@@ -60,6 +60,13 @@ export class MembersService {
     await this.memberRepository.persist(member);
   }
 
+  @Transactional()
+  async updateRecusalTitle(command: { userId: string; recusalTitle: string | null }): Promise<void> {
+    const member = await this.memberRepository.find(command.userId);
+    member.updateRecusalTitle(command.recusalTitle);
+    await this.memberRepository.persist(member);
+  }
+
   /** @internal */
   findMembers(query: {
     ids: readonly string[] | undefined;
