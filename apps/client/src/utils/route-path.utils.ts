@@ -7,17 +7,16 @@ export const ROUTE_PATHS = {
   ACCOUNT: '/mon-compte',
   ADMIN: {
     DETAILS_JOB: '/admin/ingestions/:jobId',
-    FEEDBACKS: '/admin/avis',
+    FEEDBACKS: '/admin/retours',
     HELP: '/admin/aide',
     INGEST_LODAM: '/admin/lodam',
     INGEST_LOLFI: '/admin/lolfi',
     LIST_JOBS: '/admin/ingestions',
-    REMARKS: '/admin/remarques',
     ROOT: '/admin',
+    SURVEYS: '/admin/avis',
     USERS: '/admin/utilisateurs',
     USER_DETAIL: '/admin/utilisateurs/:userId',
   },
-  FEEDBACK: '/avis',
   HELP: '/aide',
   LOGIN: '/login',
   MEMBER: {
@@ -61,6 +60,7 @@ export const ROUTE_PATHS = {
     SESSION_ID_MISSING_EVALUATIONS: '/secretariat-general/session/:sessionId/evaluations-manquantes',
   },
   SUMMARY: '/session/:sessionId/dossier/:fileId/synthese',
+  SURVEY: '/avis',
   TRANSPARENCES: {
     ARCHIVED_SESSIONS: '/transparences/archives/sessions',
     DASHBOARD: '/transparences',

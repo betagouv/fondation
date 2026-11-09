@@ -26,7 +26,7 @@ archive avant le succès de la première peut les faire passer dans le désordre
 Le script [empty-local-or-staging-except-accounts.mjs](../apps/api/scripts/empty-local-or-staging-except-accounts.mjs)
 vide les sessions et ce qui en découle. Cela comprend les copies LOLFI, les magistrats, les dossiers,
 les rapports, les documents, les observations, les auditions, les ingestions et leurs fichiers. Il garde
-les comptes de connexion, le centre d'aide et ses fichiers, les remarques, les avis et les contacts du
+les comptes de connexion, le centre d'aide et ses fichiers, les retours, les avis et les contacts du
 ministère. Les juridictions exclues des membres sont effacées avec les juridictions qu'elles référencent.
 Il refuse toute autre base que celle du local ou de staging. Il n'efface rien sans `--confirm` suivi du
 nom de la base. Il ne se lance jamais pendant une ingestion.

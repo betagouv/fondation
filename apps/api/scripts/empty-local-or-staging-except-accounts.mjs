@@ -3,8 +3,8 @@ import { DeleteObjectsCommand, ListObjectVersionsCommand, S3Client } from '@aws-
 import pg from 'pg';
 
 // Empties the sessions of the local or staging database and bucket, with what comes from them, so that the
-// fictitious LOLFI archive can be ingested again. It keeps the login accounts, the help center, the remarks
-// and the feedbacks. Without --confirm <database>, it only tells what it would erase.
+// fictitious LOLFI archive can be ingested again. It keeps the login accounts, the help center, the feedbacks
+// and the surveys. Without --confirm <database>, it only tells what it would erase.
 // Run it while no ingestion is going on: it would empty the jobs under a running one.
 
 // Production is refused by omission: only the local database and the staging one may be emptied
@@ -20,12 +20,12 @@ const TABLES_KEPT = [
   'files_context.file_public_url',
   'files_context.files',
   'nominations_context.feedback',
+  'nominations_context.feedback_status_change',
   'nominations_context.help_page_screenshots',
   'nominations_context.help_pages',
-  'nominations_context.member_feedback',
-  'nominations_context.remark',
-  'nominations_context.remark_status_change',
-  'nominations_context.secretariat_feedback',
+  'nominations_context.member_survey',
+  'nominations_context.secretariat_survey',
+  'nominations_context.survey',
 ];
 const OBJECTS_KEPT_PREFIX = 'help/';
 const FILES_NOT_KEPT = `FROM files_context.files

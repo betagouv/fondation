@@ -1,0 +1,226 @@
+import { Inject, Injectable, StreamableFile } from '@nestjs/common';
+import { build } from 'node-xlsx';
+
+import { Prisma } from '../../../../generated/prisma/client';
+import { Clock } from '../../../framework/clock';
+import { API_CONFIG_TOKEN, ApiConfig } from '../../../framework/config';
+import { Db } from '../../../framework/database';
+import { contentDisposition, FILE_MIME_TYPES } from '../../../framework/files';
+import type {
+  DebateContribution,
+  SurveyAnswers,
+  ManualWorkShare,
+  OtherToolUsage,
+  ReviewThoroughness,
+} from '../../domain/survey';
+
+type MemberAnswers = SurveyAnswers & {
+  member: NonNullable<SurveyAnswers['member']>;
+};
+type SecretariatAnswers = SurveyAnswers & {
+  secretariat: NonNullable<SurveyAnswers['secretariat']>;
+};
+type SurveyRow<T> = { answeredAt: Date; answers: T; respondent: number };
+type Question<T> = {
+  label: string;
+  valueOf: (answers: T) => number | string;
+  width: number;
+};
+
+const MANUAL_WORK_SHARE_LABELS: Record<ManualWorkShare, string> = {
+  FROM_10_TO_25: '10 à 25 %',
+  FROM_25_TO_40: '25 à 40 %',
+  FROM_40_TO_60: '40 à 60 %',
+  LESS_THAN_10: 'Moins de 10 %',
+  MORE_THAN_60: 'Plus de 60 %',
+};
+
+const DEBATE_CONTRIBUTION_LABELS: Record<DebateContribution, string> = {
+  FROM_1_TO_5: 'Entre 1 et 5 fois',
+  MORE_THAN_5: 'Plus de 5 fois',
+  NEVER: 'Jamais',
+};
+
+const REVIEW_THOROUGHNESS_LABELS: Record<ReviewThoroughness, string> = {
+  NO_LACK_OF_INFORMATION: "Non, des informations m'ont manqué",
+  NO_LACK_OF_TIME: "Non, le temps m'a manqué",
+  PARTIALLY: 'Partiellement',
+  YES: 'Oui',
+};
+
+const OTHER_TOOL_USAGE_LABELS: Record<OtherToolUsage, string> = {
+  NONE: "Non, tout s'est fait dans Fondation",
+  OCCASIONALLY: 'Oui, ponctuellement',
+  SIGNIFICANTLY: 'Oui, pour une partie importante du travail',
+};
+
+const RATING_QUESTIONS: Question<SurveyAnswers>[] = [
+  {
+    label: 'Facilité (1 à 5)',
+    valueOf: (answers) => answers.easeRating,
+    width: 16,
+  },
+  {
+    label: 'Satisfaction (1 à 10)',
+    valueOf: (answers) => answers.satisfactionRating,
+    width: 20,
+  },
+];
+
+const COMMENT_QUESTION: Question<SurveyAnswers> = {
+  label: 'Ce qui a aidé ou est à améliorer',
+  valueOf: (answers) => answers.comment ?? '',
+  width: 60,
+};
+
+const MEMBER_QUESTIONS: Question<MemberAnswers>[] = [
+  ...RATING_QUESTIONS,
+  {
+    label: 'Temps de manipulation',
+    valueOf: (answers) => MANUAL_WORK_SHARE_LABELS[answers.member.manualWorkShare],
+    width: 22,
+  },
+  {
+    label: 'Contribution au débat',
+    valueOf: (answers) => DEBATE_CONTRIBUTION_LABELS[answers.member.debateContribution],
+    width: 22,
+  },
+  {
+    label: 'Préparation des rapports',
+    valueOf: (answers) => REVIEW_THOROUGHNESS_LABELS[answers.member.reviewThoroughness],
+    width: 32,
+  },
+  COMMENT_QUESTION,
+];
+
+const SECRETARIAT_QUESTIONS: Question<SecretariatAnswers>[] = [
+  ...RATING_QUESTIONS,
+  {
+    label: 'Temps de ressaisie',
+    valueOf: (answers) => MANUAL_WORK_SHARE_LABELS[answers.secretariat.manualWorkShare],
+    width: 22,
+  },
+  {
+    label: 'Autre outil que Fondation',
+    valueOf: (answers) => OTHER_TOOL_USAGE_LABELS[answers.secretariat.otherToolUsage],
+    width: 30,
+  },
+  {
+    label: 'Usage de cet autre outil',
+    valueOf: (answers) => answers.secretariat.otherToolPurpose ?? '',
+    width: 60,
+  },
+  COMMENT_QUESTION,
+];
+
+function signed(gap: number): string {
+  return gap > 0 ? `+${gap}` : String(gap);
+}
+
+// rows grouped by respondent, then from the oldest to the newest: each one is compared to the one before
+function sheetOf<T>(props: {
+  name: string;
+  questions: readonly Question<T>[];
+  rows: readonly SurveyRow<T>[];
+}) {
+  const columns = [
+    { label: 'Répondant', width: 14 },
+    { label: 'Envoi n°', width: 10 },
+    { label: 'Rempli le', width: 14 },
+    ...props.questions,
+    { label: 'Réponses modifiées', width: 80 },
+  ];
+
+  let sendNumber = 0;
+  const data = props.rows.map((row, index) => {
+    const previous = props.rows[index - 1]?.respondent === row.respondent ? props.rows[index - 1] : undefined;
+    sendNumber = previous ? sendNumber + 1 : 1;
+
+    const changes = previous
+      ? props.questions.flatMap((question) => {
+          const before = question.valueOf(previous.answers);
+          const after = question.valueOf(row.answers);
+          if (before === after) return [];
+          const gap =
+            typeof after === 'number' && typeof before === 'number' ? ` (${signed(after - before)})` : '';
+          return [`${question.label} : ${before || 'vide'} → ${after || 'vide'}${gap}`];
+        })
+      : [];
+
+    return [
+      `Répondant ${row.respondent}`,
+      sendNumber,
+      row.answeredAt.toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris' }),
+      ...props.questions.map((question) => question.valueOf(row.answers)),
+      changes.join(' ; '),
+    ];
+  });
+
+  return {
+    // an empty tab would look like answers went missing, when they are in the other one
+    data: [columns.map(({ label }) => label), ...(data.length ? data : [["Aucune réponse pour l'instant"]])],
+    name: props.name,
+    options: { '!cols': columns.map(({ width }) => ({ wch: width })) },
+  };
+}
+
+@Injectable()
+export class ListSurveysAsExcelQuery {
+  constructor(
+    private readonly clock: Clock,
+    @Inject(API_CONFIG_TOKEN) private readonly config: ApiConfig,
+    private readonly db: Db,
+  ) {}
+
+  async handle(): Promise<StreamableFile> {
+    const surveys = await this.db.tx.survey.findMany({
+      orderBy: { answeredAt: 'asc' },
+      select: {
+        answeredAt: true,
+        comment: true,
+        easeRating: true,
+        member: { select: { debateContribution: true, manualWorkShare: true, reviewThoroughness: true } },
+        satisfactionRating: true,
+        secretariat: { select: { manualWorkShare: true, otherToolPurpose: true, otherToolUsage: true } },
+        userId: true,
+      } satisfies Prisma.SurveySelect,
+    });
+
+    // pseudonymous: numbered in the order of their first answer, stable as long as no user is deleted (the app never does)
+    const respondents = new Map<string, number>();
+    for (const { userId } of surveys)
+      if (!respondents.has(userId)) respondents.set(userId, respondents.size + 1);
+    const rows = surveys
+      .map(({ answeredAt, userId, ...answers }) => ({
+        answeredAt,
+        answers,
+        respondent: respondents.get(userId)!,
+      }))
+      .toSorted((a, b) => a.respondent - b.respondent);
+
+    const xlsx = build([
+      sheetOf({
+        name: 'Membres',
+        questions: MEMBER_QUESTIONS,
+        rows: rows.filter((row): row is SurveyRow<MemberAnswers> => !!row.answers.member),
+      }),
+      sheetOf({
+        name: 'Secrétariat général',
+        questions: SECRETARIAT_QUESTIONS,
+        rows: rows.filter((row): row is SurveyRow<SecretariatAnswers> => !!row.answers.secretariat),
+      }),
+    ]);
+
+    const day = this.clock
+      .now()
+      .toLocaleDateString('fr-FR', { timeZone: 'Europe/Paris' })
+      .replaceAll('/', '-');
+    return new StreamableFile(Buffer.from(xlsx), {
+      disposition: contentDisposition({
+        download: true,
+        name: `fondation-avis-utilisateurs-${this.config.isTestEnvironment ? 'TEST-' : ''}au-${day}.xlsx`,
+      }),
+      type: FILE_MIME_TYPES.xlsx,
+    });
+  }
+}

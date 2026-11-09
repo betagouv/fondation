@@ -1,0 +1,32 @@
+import { FormattedMessage, useIntl } from 'react-intl';
+
+import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
+import { Breadcrumb } from '@/shared/ui/Breadcrumb';
+import { DetailsHeader } from '@/shared/ui/details';
+
+export function SurveyHeader() {
+  const { formatMessage } = useIntl();
+  const breadcrumbRoot = useBreadcrumbRoot();
+
+  return (
+    <DetailsHeader
+      backThroughHistory
+      backTo="/"
+      breadcrumb={
+        <Breadcrumb
+          ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane de l'avis sur Fondation" })}
+          breadcrumb={{
+            currentPageLabel: formatMessage({ defaultMessage: 'Mon avis' }),
+            segments: breadcrumbRoot,
+          }}
+          className="fr-mt-0"
+          id="survey-breadcrumb"
+        />
+      }
+      description={
+        <FormattedMessage defaultMessage="Quelques questions sur votre travail avec Fondation. Dans les résultats, vos réponses apparaissent sous un numéro et jamais sous votre nom." />
+      }
+      title={<FormattedMessage defaultMessage="Votre avis sur Fondation" />}
+    />
+  );
+}

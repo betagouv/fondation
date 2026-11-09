@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 
 import { AdministrationModule } from './administration/administration.module';
 import { DocsModule } from './docs/docs.module';
-import { FeedbackModule } from './feedback/feedback.module';
+import { FeedbacksModule } from './feedbacks/feedbacks.module';
 import { FrameworkModule } from './framework/framework.module';
 import { HelpModule } from './help/help.module';
 import { IngestModule } from './ingest/ingest.module';
@@ -11,10 +11,10 @@ import { MagistratModule } from './magistrat/magistrat.module';
 import { MaintenanceModule } from './maintenance/maintenance.module';
 import { MembersModule } from './members';
 import { ObservationModule } from './observation/observation.module';
-import { RemarksModule } from './remarks/remarks.module';
 import { ReportModule } from './report/report.module';
 import { TransparenceModule } from './session/transparence/transparence.module';
 import { SimpleAuthModule } from './simple-auth';
+import { SurveyModule } from './survey/survey.module';
 
 @Module({
   imports: [
@@ -29,9 +29,9 @@ import { SimpleAuthModule } from './simple-auth';
     ObservationModule,
     AdministrationModule,
     DocsModule,
-    FeedbackModule,
+    SurveyModule,
     HelpModule,
-    RemarksModule,
+    FeedbacksModule,
   ],
 })
 class FondationModule {}

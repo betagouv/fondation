@@ -1,0 +1,79 @@
+// pseudonymous: the export numbers the respondents and only shows the day
+model Survey {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId             String   @map("user_id") @db.Uuid
+  easeRating         Int      @map("ease_rating") @db.SmallInt
+  satisfactionRating Int      @map("satisfaction_rating") @db.SmallInt
+  comment            String?  @db.Text
+  answeredAt         DateTime @map("answered_at") @db.Timestamp(6)
+
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  member      MemberSurvey?
+  secretariat SecretariatSurvey?
+
+  @@map("survey")
+  @@schema("nominations_context")
+}
+
+model MemberSurvey {
+  surveyId           String                       @id @map("survey_id") @db.Uuid
+  manualWorkShare    PrismaManualWorkShareEnum    @map("manual_work_share")
+  debateContribution PrismaDebateContributionEnum @map("debate_contribution")
+  reviewThoroughness PrismaReviewThoroughnessEnum @map("review_thoroughness")
+
+  survey Survey @relation(fields: [surveyId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@map("member_survey")
+  @@schema("nominations_context")
+}
+
+model SecretariatSurvey {
+  surveyId         String                    @id @map("survey_id") @db.Uuid
+  manualWorkShare  PrismaManualWorkShareEnum @map("manual_work_share")
+  otherToolUsage   PrismaOtherToolUsageEnum  @map("other_tool_usage")
+  otherToolPurpose String?                   @map("other_tool_purpose") @db.Text
+
+  survey Survey @relation(fields: [surveyId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@map("secretariat_survey")
+  @@schema("nominations_context")
+}
+
+enum PrismaManualWorkShareEnum {
+  LESS_THAN_10
+  FROM_10_TO_25
+  FROM_25_TO_40
+  FROM_40_TO_60
+  MORE_THAN_60
+
+  @@map("manual_work_share_enum")
+  @@schema("nominations_context")
+}
+
+enum PrismaDebateContributionEnum {
+  NEVER
+  FROM_1_TO_5
+  MORE_THAN_5
+
+  @@map("debate_contribution_enum")
+  @@schema("nominations_context")
+}
+
+enum PrismaReviewThoroughnessEnum {
+  YES
+  PARTIALLY
+  NO_LACK_OF_TIME
+  NO_LACK_OF_INFORMATION
+
+  @@map("review_thoroughness_enum")
+  @@schema("nominations_context")
+}
+
+enum PrismaOtherToolUsageEnum {
+  NONE
+  OCCASIONALLY
+  SIGNIFICANTLY
+
+  @@map("other_tool_usage_enum")
+  @@schema("nominations_context")
+}

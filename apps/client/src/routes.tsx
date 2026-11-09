@@ -35,10 +35,10 @@ export const routes: RouteObject[] = [
           },
           {
             lazy: () =>
-              import('@/pages/feedback/FeedbackPage').then(({ FeedbackPage }) => ({
-                Component: FeedbackPage,
+              import('@/pages/survey/SurveyPage').then(({ SurveyPage }) => ({
+                Component: SurveyPage,
               })),
-            path: ROUTE_PATHS.FEEDBACK,
+            path: ROUTE_PATHS.SURVEY,
           },
           {
             lazy: () =>
@@ -446,21 +446,25 @@ export const routes: RouteObject[] = [
           },
           {
             lazy: () =>
+              import('@/pages/spaces/admin/AdminSurveysPage').then(({ AdminSurveysPage }) => ({
+                Component: AdminSurveysPage,
+              })),
+            path: ROUTE_PATHS.ADMIN.SURVEYS,
+          },
+          {
+            lazy: () =>
               import('@/pages/spaces/admin/AdminFeedbacksPage').then(({ AdminFeedbacksPage }) => ({
                 Component: AdminFeedbacksPage,
               })),
             path: ROUTE_PATHS.ADMIN.FEEDBACKS,
           },
           {
-            lazy: () =>
-              import('@/pages/spaces/admin/AdminRemarksPage').then(({ AdminRemarksPage }) => ({
-                Component: AdminRemarksPage,
-              })),
-            path: ROUTE_PATHS.ADMIN.REMARKS,
-          },
-          {
             loader: () => redirect(ROUTE_PATHS.ADMIN.LIST_JOBS),
             path: '/admin/jobs',
+          },
+          {
+            loader: () => redirect(ROUTE_PATHS.ADMIN.FEEDBACKS),
+            path: '/admin/remarques',
           },
           {
             loader: ({ params }) =>
