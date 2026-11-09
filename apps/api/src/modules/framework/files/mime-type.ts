@@ -22,6 +22,7 @@ export const FILE_MIME_TYPES = {
   txt: 'text/plain',
   webm: 'video/webm',
   webp: 'image/webp',
+  wpd: 'application/vnd.wordperfect',
   xls: 'application/vnd.ms-excel',
   xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   xml: 'text/xml',

@@ -29,6 +29,7 @@ describe('filenameToMimeType', () => {
     ['agenda.pdf-2026', 'application/pdf'],
     ['courriel.MSG', 'application/vnd.ms-outlook'],
     ['courriel.eml', 'message/rfc822'],
+    ['lettre.wpd', 'application/vnd.wordperfect'],
   ])('reads %s as %s', (filename, expected) => {
     expect(filenameToMimeType(filename)).toBe(expected);
   });
