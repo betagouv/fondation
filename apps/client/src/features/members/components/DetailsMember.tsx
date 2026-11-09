@@ -1,16 +1,20 @@
 import type { ReactNode } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
+import { UserTitleField } from '@/shared/components/user-title-field';
 import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { DetailsCard, DetailsHeader, DetailsPageLayout } from '@/shared/ui/details';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { capitalize } from '@/utils/string.utils';
 import type { DetailedMemberDto } from '@api/types';
-import { useExcludedJurisdictionsMutation } from '@queries/members.queries';
+import {
+  useExcludedJurisdictionsMutation,
+  useUpdateDisplayTitleMutation,
+  useUpdateRecusalTitleMutation,
+} from '@queries/members.queries';
 
 import { JurisdictionSelector } from './JurisdictionSelector';
-import { MemberDisplayTitle } from './MemberDisplayTitle';
 
 function MemberInfoItem(props: { children: ReactNode; label: ReactNode }) {
   return (
@@ -55,6 +59,8 @@ function DetailsMemberHeader(props: { name: string }) {
 export function DetailsMember(props: { member: DetailedMemberDto }) {
   const { member } = props;
   const { mutateAsync: excludeMemberJurisdictions } = useExcludedJurisdictionsMutation({ userId: member.id });
+  const updateDisplayTitle = useUpdateDisplayTitleMutation({ userId: member.id });
+  const updateRecusalTitle = useUpdateRecusalTitleMutation({ userId: member.id });
   const name = `${capitalize(member.firstName)} ${member.lastName.toUpperCase()}`;
 
   return (
@@ -86,10 +92,11 @@ export function DetailsMember(props: { member: DetailedMemberDto }) {
     >
       <DetailsCard>
         <h2 className="fr-h4">
-          <FormattedMessage defaultMessage="Titre" />
+          <FormattedMessage defaultMessage="Titres" />
         </h2>
-        <dl className="m-0 flex flex-col gap-y-4 p-0">
-          <MemberDisplayTitle member={member} />
+        <dl className="m-0 flex flex-col gap-6 p-0">
+          <UserTitleField kind="displayTitle" saved={member.displayTitle} update={updateDisplayTitle} />
+          <UserTitleField kind="recusalTitle" saved={member.recusalTitle} update={updateRecusalTitle} />
         </dl>
       </DetailsCard>
 
