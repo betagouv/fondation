@@ -4,6 +4,8 @@ import {
 } from './official-report-snapshot-file';
 
 const NOMINATION_FILE_ID = 'nomination-file-id';
+const FORGET = { id: 'member-forget', name: 'M. Paul FORGET' };
+const DUPONT = { id: 'member-dupont', name: 'Mme Anne DUPONT' };
 
 function makeFile(overrides: Partial<PlainOfficialReportSnapshotFile> = {}): OfficialReportSnapshotFile {
   return OfficialReportSnapshotFile.from({
@@ -68,13 +70,13 @@ describe('OfficialReportSnapshotFile', () => {
   it('ignores an unchanged file', () => {
     const file = makeFile({
       outcome: { comment: null, value: 'VALIDATED' },
-      recusedMembers: ['M. Paul FORGET'],
+      recusedMembers: [FORGET],
     });
 
     const diff = file.diff({
       nominationFileId: NOMINATION_FILE_ID,
       outcome: { comment: null, value: 'VALIDATED' },
-      recusedMembers: ['M. Paul FORGET'],
+      recusedMembers: [FORGET],
       reporters: ['Madame Camille DURAND'],
     });
 
@@ -85,14 +87,14 @@ describe('OfficialReportSnapshotFile', () => {
     it('lets the generated sentence follow the recusal', () => {
       const file = makeFile();
 
-      const diff = file.diff({ nominationFileId: NOMINATION_FILE_ID, recusedMembers: ['M. Paul FORGET'] });
+      const diff = file.diff({ nominationFileId: NOMINATION_FILE_ID, recusedMembers: [FORGET] });
 
       expect(diff).toEqual([
         {
           action: 'recuse',
           nominationFileId: NOMINATION_FILE_ID,
           note: 'follow',
-          recusedMembers: ['M. Paul FORGET'],
+          recusedMembers: [FORGET],
         },
       ]);
     });
@@ -100,7 +102,7 @@ describe('OfficialReportSnapshotFile', () => {
     it('flags a text written in the report rather than overwriting it', () => {
       const file = makeFile({ note: { html: '<p>Texte</p>', outdated: false, status: 'EDITED' } });
 
-      const diff = file.diff({ nominationFileId: NOMINATION_FILE_ID, recusedMembers: ['M. Paul FORGET'] });
+      const diff = file.diff({ nominationFileId: NOMINATION_FILE_ID, recusedMembers: [FORGET] });
 
       expect(diff).toMatchObject([{ action: 'recuse', note: 'outdate' }]);
     });
@@ -108,12 +110,12 @@ describe('OfficialReportSnapshotFile', () => {
     it('flags a removed mention while members remain recused', () => {
       const file = makeFile({
         note: { html: null, outdated: false, status: 'REMOVED' },
-        recusedMembers: ['M. Paul FORGET'],
+        recusedMembers: [FORGET],
       });
 
       const diff = file.diff({
         nominationFileId: NOMINATION_FILE_ID,
-        recusedMembers: ['M. Paul FORGET', 'Mme Anne DUPONT'],
+        recusedMembers: [FORGET, DUPONT],
       });
 
       expect(diff).toMatchObject([{ action: 'recuse', note: 'outdate' }]);
@@ -122,7 +124,7 @@ describe('OfficialReportSnapshotFile', () => {
     it('gives a removed mention back to the sentence once nobody is recused', () => {
       const file = makeFile({
         note: { html: null, outdated: false, status: 'REMOVED' },
-        recusedMembers: ['M. Paul FORGET'],
+        recusedMembers: [FORGET],
       });
 
       const diff = file.diff({ nominationFileId: NOMINATION_FILE_ID, recusedMembers: [] });
@@ -136,7 +138,7 @@ describe('OfficialReportSnapshotFile', () => {
       const diff = file.diff({
         nominationFileId: NOMINATION_FILE_ID,
         outcome: { comment: null, value: 'WITHDRAWN' },
-        recusedMembers: ['M. Paul FORGET'],
+        recusedMembers: [FORGET],
       });
 
       expect(diff.map(({ action }) => action)).toEqual(['update', 'recuse']);
@@ -157,7 +159,7 @@ describe('OfficialReportSnapshotFile', () => {
     });
 
     it('remembers a removal while a recusal would print its sentence', () => {
-      const file = makeFile({ recusedMembers: ['M. Paul FORGET'] });
+      const file = makeFile({ recusedMembers: [FORGET] });
 
       expect(file.noteStatusOnRemoval()).toBe('REMOVED');
     });
@@ -173,7 +175,7 @@ describe('OfficialReportSnapshotFile', () => {
       expect(
         makeFile({
           note: { html: null, outdated: false, status: 'REMOVED' },
-          recusedMembers: ['M. Paul FORGET'],
+          recusedMembers: [FORGET],
         }).noteStatusOnRemoval(),
       ).toBeNull();
     });
@@ -181,7 +183,7 @@ describe('OfficialReportSnapshotFile', () => {
     it('removes again a removed mention to settle a recusal changed since', () => {
       const file = makeFile({
         note: { html: null, outdated: true, status: 'REMOVED' },
-        recusedMembers: ['M. Paul FORGET'],
+        recusedMembers: [FORGET],
       });
 
       expect(file.noteStatusOnRemoval()).toBe('REMOVED');

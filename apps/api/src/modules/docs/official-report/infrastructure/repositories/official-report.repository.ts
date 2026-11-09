@@ -62,6 +62,7 @@ import { OfficialReportSnapshot } from '../../domain/snapshot/official-report-sn
 import { OfficialReportSnapshotFile } from '../../domain/snapshot/official-report-snapshot-file';
 import { OfficialReportSnapshotMeta } from '../../domain/snapshot/official-report-snapshot-meta';
 import { OfficialReportVersionFinder } from '../finders/official-report-version.finder';
+import { namedMembersOf, parseNamedMembers } from '../official-report-named-members';
 
 @Injectable()
 export class OfficialReportRepository {
@@ -241,7 +242,7 @@ export class OfficialReportRepository {
         noteStatus: PrismaOfficialReportNoteStatusEnum;
         outcome: PrismaDocsFileOutcomeEnum;
         outcomeComment: string | null;
-        recusedMembers: string[];
+        recusedMembers: Prisma.JsonValue;
         reporters: string[];
       }[] = await this.db.tx.officialReportNominationFile.findMany({
         cursor: isDefined(cursor) ? { id: cursor } : undefined,
@@ -277,7 +278,7 @@ export class OfficialReportRepository {
             nominationFileId: file.nominationFileId,
             note: { html: file.note, outdated: file.noteOutdated, status: file.noteStatus },
             outcome: { comment: file.outcomeComment, value: file.outcome },
-            recusedMembers: file.recusedMembers,
+            recusedMembers: parseNamedMembers(file.recusedMembers),
             reporters: file.reporters,
           }),
         );
@@ -592,7 +593,7 @@ export class OfficialReportRepository {
           outcome: f.outcome.value,
           outcomeComment: f.outcome.comment,
           position: f.magistrat.position.label,
-          recusedMembers: f.recusedMembers.map((m) => m.fullTitledName),
+          recusedMembers: namedMembersOf(f.recusedMembers),
           reporters: f.reporters.map((r) => r.fullTitledName),
           targetedGrade: f.targetPosition.grade,
           targetedPosition: f.targetPosition.label,
@@ -911,7 +912,7 @@ export class OfficialReportRepository {
           createMany: {
             data: nominationFiles.map((file) => ({
               ...file,
-              recusedMembers: [...file.recusedMembers],
+              recusedMembers: parseNamedMembers(file.recusedMembers),
               reporters: [...file.reporters],
             })),
           },

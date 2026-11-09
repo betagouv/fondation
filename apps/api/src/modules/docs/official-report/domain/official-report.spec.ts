@@ -203,7 +203,7 @@ describe('OfficialReport', () => {
     const withRecusal = (state: { actorId?: string | null; isValidated?: boolean } = {}) =>
       withFile(state, {
         note: { html: null, outdated: false, status: 'GENERATED' },
-        recusedMembers: ['M. Paul FORGET'],
+        recusedMembers: [{ id: 'member-forget', name: 'M. Paul FORGET' }],
       });
 
     it('should be written by the person who edits the report', () => {

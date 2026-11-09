@@ -10,6 +10,9 @@ import { OfficialReportSessionMeeting } from './official-report-session-meeting'
 export const OFFICIAL_REPORT_NOTE_STATUSES = ['GENERATED', 'EDITED', 'REMOVED'] as const;
 export type OfficialReportNoteStatus = (typeof OFFICIAL_REPORT_NOTE_STATUSES)[number];
 
+/** a member as the report names them: `id` is null on a row written before the ids were kept */
+export type OfficialReportNamedMember = { id: string | null; name: string };
+
 export type UpdateOfficialReportCommand = {
   authorId: string;
   officialReport: {
@@ -22,7 +25,7 @@ export type UpdateOfficialReportCommand = {
     members: OfficialReportMembersList;
     files: readonly {
       nominationFileId: string;
-      recusedMembers: readonly string[];
+      recusedMembers: readonly OfficialReportNamedMember[];
       reporters: readonly string[];
       outcome: { value: DocNominationFileOutcomeEnum; comment: string | null };
     }[];
@@ -45,7 +48,7 @@ export type InvalidateOfficialReportCommand = { id: string } & (
       payload: {
         files: readonly {
           nominationFileId: string;
-          recusedMembers: readonly string[];
+          recusedMembers: readonly OfficialReportNamedMember[];
           reporters: readonly string[];
           outcome: { value: DocNominationFileOutcomeEnum; comment: string | null };
         }[];
@@ -57,7 +60,9 @@ export type InvalidateOfficialReportCommand = { id: string } & (
     }
   | {
       type: 'NominationFilesRecusalsUpdated';
-      payload: { files: readonly { nominationFileId: string; recusedMembers: readonly string[] }[] };
+      payload: {
+        files: readonly { nominationFileId: string; recusedMembers: readonly OfficialReportNamedMember[] }[];
+      };
     }
   | {
       type: 'AgendaFileBlockEdited';
@@ -85,7 +90,7 @@ export type OfficialReportSnapshotDiff = {
         action: 'recuse';
         nominationFileId: string;
         note: 'follow' | 'generate' | 'outdate';
-        recusedMembers: readonly string[];
+        recusedMembers: readonly OfficialReportNamedMember[];
       }
     | {
         action: 'create';

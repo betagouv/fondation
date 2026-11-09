@@ -3,7 +3,11 @@ import {
   type DocNominationFileOutcomeEnum,
   isFinalDocNominationFileOutcome,
 } from '../../../shared/domain/doc-nomination-file-outcome';
-import type { OfficialReportNoteStatus, OfficialReportSnapshotDiff } from '../official-report-types';
+import type {
+  OfficialReportNamedMember,
+  OfficialReportNoteStatus,
+  OfficialReportSnapshotDiff,
+} from '../official-report-types';
 
 /** the slot under the proposition: the recusal sentence while nobody wrote there, the reader's text after */
 export type OfficialReportSnapshotNote = {
@@ -20,7 +24,7 @@ export type PlainOfficialReportSnapshotFile = {
     comment: string | null;
     value: DocNominationFileOutcomeEnum;
   };
-  recusedMembers: readonly string[];
+  recusedMembers: readonly OfficialReportNamedMember[];
   reporters: readonly string[];
 };
 
@@ -31,7 +35,7 @@ export class OfficialReportSnapshotFile {
     readonly outcome: { comment: string | null; value: DocNominationFileOutcomeEnum },
     readonly hasManuallyEditedHtml: boolean,
     readonly note: OfficialReportSnapshotNote,
-    readonly recusedMembers: readonly string[],
+    readonly recusedMembers: readonly OfficialReportNamedMember[],
   ) {}
 
   static from(plain: PlainOfficialReportSnapshotFile): OfficialReportSnapshotFile {
@@ -48,7 +52,7 @@ export class OfficialReportSnapshotFile {
   diff(next: {
     nominationFileId: string;
     outcome?: { comment: string | null; value: DocNominationFileOutcomeEnum };
-    recusedMembers?: readonly string[];
+    recusedMembers?: readonly OfficialReportNamedMember[];
     reporters?: readonly string[];
   }): OfficialReportSnapshotDiff['files'] {
     return [this.blockDiff(next), this.recusalDiff(next)].filter(({ action }) => action !== 'noop');
@@ -96,9 +100,11 @@ export class OfficialReportSnapshotFile {
    */
   private recusalDiff(next: {
     nominationFileId: string;
-    recusedMembers?: readonly string[];
+    recusedMembers?: readonly OfficialReportNamedMember[];
   }): OfficialReportSnapshotDiff['files'][number] {
-    if (!next.recusedMembers || sameList(this.recusedMembers, next.recusedMembers)) return { action: 'noop' };
+    if (!next.recusedMembers || sameList(namesOf(this.recusedMembers), namesOf(next.recusedMembers))) {
+      return { action: 'noop' };
+    }
 
     const note =
       this.note.status === 'GENERATED'
@@ -137,6 +143,10 @@ export class OfficialReportSnapshotFile {
 
     return this.outcomeDiffers(next.outcome);
   }
+}
+
+function namesOf(members: readonly OfficialReportNamedMember[]): string[] {
+  return members.map(({ name }) => name);
 }
 
 function sameList(current: readonly string[], next: readonly string[]): boolean {

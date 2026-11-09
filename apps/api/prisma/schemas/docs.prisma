@@ -283,8 +283,9 @@ model OfficialReportNominationFile {
   htmlFromAgenda Boolean   @default(false) @map("html_from_agenda")
   htmlEditedBy   String?   @map("html_edited_by") @db.Uuid
 
-  // the members as the recusal named them when it was last read, printed in protocol order
-  recusedMembers String[]                           @default([]) @map("recused_members")
+  // `{ id, name }[]`: the members as the recusal named them when it was last read, printed in
+  // protocol order. A row written before the ids were kept has `id: null` until the next refresh
+  recusedMembers Json                               @default("[]") @map("recused_members") @db.JsonB
   note           String?
   noteStatus     PrismaOfficialReportNoteStatusEnum @default(GENERATED) @map("note_status")
   // the recusal changed since the slot was written or emptied by hand

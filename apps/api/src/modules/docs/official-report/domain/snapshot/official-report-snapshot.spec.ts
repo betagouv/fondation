@@ -449,6 +449,7 @@ describe('OfficialReportSnapshot', () => {
     });
 
     it('follows the recusal of the files it holds only', () => {
+      const FORGET = { id: 'member-forget', name: 'M. Paul FORGET' };
       const { snapshot } = makeSnapshot();
 
       const diff = snapshot.invalidate({
@@ -456,14 +457,14 @@ describe('OfficialReportSnapshot', () => {
         type: 'NominationFilesRecusalsUpdated',
         payload: {
           files: [
-            { nominationFileId: 'file-1', recusedMembers: ['M. Paul FORGET'] },
-            { nominationFileId: 'file-2', recusedMembers: ['M. Paul FORGET'] },
+            { nominationFileId: 'file-1', recusedMembers: [FORGET] },
+            { nominationFileId: 'file-2', recusedMembers: [FORGET] },
           ],
         },
       });
 
       expect(diff.files).toEqual([
-        { action: 'recuse', nominationFileId: 'file-1', note: 'follow', recusedMembers: ['M. Paul FORGET'] },
+        { action: 'recuse', nominationFileId: 'file-1', note: 'follow', recusedMembers: [FORGET] },
       ]);
     });
   });

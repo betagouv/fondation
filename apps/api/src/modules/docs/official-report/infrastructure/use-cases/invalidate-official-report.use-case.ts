@@ -11,6 +11,7 @@ import { DocsNominationFilesFinder } from '../../../shared/infrastructure/finder
 import { readsTheSame } from '../../../shared/infrastructure/services/renderers/helpers';
 import { InvalidateOfficialReportCommand } from '../../domain/official-report-types';
 import { OfficialReportVersionFinder } from '../finders/official-report-version.finder';
+import { namedMembersOf } from '../official-report-named-members';
 import { OfficialReportRepository } from '../repositories/official-report.repository';
 
 @Injectable()
@@ -137,7 +138,7 @@ export class InvalidateOfficialReportUseCase {
           .filter(({ id }) => nominationFileIds.has(id))
           .map((file) => ({
             nominationFileId: file.id,
-            recusedMembers: file.recusedMembers.map(({ fullTitledName }) => fullTitledName),
+            recusedMembers: namedMembersOf(file.recusedMembers),
           })),
       },
     }));
@@ -228,7 +229,7 @@ export class InvalidateOfficialReportUseCase {
             .map((file) => ({
               outcome: file.outcome,
               nominationFileId: file.id,
-              recusedMembers: file.recusedMembers.map(({ fullTitledName }) => fullTitledName),
+              recusedMembers: namedMembersOf(file.recusedMembers),
               reporters: file.reporters.map(({ fullTitledName }) => fullTitledName),
             })),
         },

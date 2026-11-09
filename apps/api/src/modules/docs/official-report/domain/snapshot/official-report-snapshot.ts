@@ -8,6 +8,7 @@ import { OfficialReportSecretary } from '../official-report-secretary';
 import { OfficialReportSessionMeeting } from '../official-report-session-meeting';
 import {
   InvalidateOfficialReportCommand,
+  OfficialReportNamedMember,
   OfficialReportSnapshotDiff,
   UpdateOfficialReportCommand,
 } from '../official-report-types';
@@ -137,7 +138,7 @@ class OfficialReportSnapshotFilesCollection {
   diffFile(next: {
     nominationFileId: string;
     outcome?: { comment: string | null; value: DocNominationFileOutcomeEnum };
-    recusedMembers?: readonly string[];
+    recusedMembers?: readonly OfficialReportNamedMember[];
     reporters?: readonly string[];
   }): OfficialReportSnapshotDiff['files'] {
     const file = this.files.get(next.nominationFileId);
@@ -159,7 +160,7 @@ class OfficialReportSnapshotFilesCollection {
     files: readonly {
       nominationFileId: string;
       outcome?: { comment: string | null; value: DocNominationFileOutcomeEnum };
-      recusedMembers?: readonly string[];
+      recusedMembers?: readonly OfficialReportNamedMember[];
       reporters?: readonly string[];
     }[];
   }): OfficialReportSnapshotDiff['files'] {
