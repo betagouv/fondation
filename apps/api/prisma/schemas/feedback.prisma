@@ -52,7 +52,8 @@ enum PrismaManualWorkShareEnum {
 
 enum PrismaDebateContributionEnum {
   NEVER
-  AT_LEAST_ONCE
+  FROM_1_TO_5
+  MORE_THAN_5
 
   @@map("debate_contribution_enum")
   @@schema("nominations_context")

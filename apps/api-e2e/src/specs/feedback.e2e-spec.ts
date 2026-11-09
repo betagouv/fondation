@@ -4,7 +4,7 @@ import type { AnswerFeedbackDto } from '../generated/api/types.ts';
 const MEMBER_ANSWERS = {
   easeRating: 4,
   hindrance: 'La recherche des dossiers',
-  member: { debateContribution: 'AT_LEAST_ONCE', manualWorkShare: 'FROM_10_TO_25', reviewThoroughness: 'YES' },
+  member: { debateContribution: 'FROM_1_TO_5', manualWorkShare: 'FROM_10_TO_25', reviewThoroughness: 'YES' },
   satisfactionRating: 8,
   secretariat: null,
 } satisfies AnswerFeedbackDto;

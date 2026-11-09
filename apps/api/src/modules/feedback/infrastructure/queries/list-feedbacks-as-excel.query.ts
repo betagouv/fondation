@@ -36,13 +36,14 @@ const MANUAL_WORK_SHARE_LABELS: Record<ManualWorkShare, string> = {
 };
 
 const DEBATE_CONTRIBUTION_LABELS: Record<DebateContribution, string> = {
-  AT_LEAST_ONCE: 'Au moins une fois',
+  FROM_1_TO_5: 'Entre 1 et 5 fois',
+  MORE_THAN_5: 'Plus de 5 fois',
   NEVER: 'Jamais',
 };
 
 const REVIEW_THOROUGHNESS_LABELS: Record<ReviewThoroughness, string> = {
-  NO_LACK_OF_INFORMATION: "Non, faute d'accès à l'information",
-  NO_LACK_OF_TIME: 'Non, faute de temps',
+  NO_LACK_OF_INFORMATION: "Non, des informations m'ont manqué",
+  NO_LACK_OF_TIME: "Non, le temps m'a manqué",
   PARTIALLY: 'Partiellement',
   YES: 'Oui',
 };
@@ -67,7 +68,7 @@ const RATING_QUESTIONS: Question<FeedbackAnswers>[] = [
 ];
 
 const HINDRANCE_QUESTION: Question<FeedbackAnswers> = {
-  label: 'Ce qui a ralenti ou gêné',
+  label: 'Ce qui a aidé ou est à améliorer',
   valueOf: (answers) => answers.hindrance ?? '',
   width: 60,
 };
@@ -85,7 +86,7 @@ const MEMBER_QUESTIONS: Question<MemberAnswers>[] = [
     width: 22,
   },
   {
-    label: 'Instruction des dossiers',
+    label: 'Préparation des rapports',
     valueOf: (answers) => REVIEW_THOROUGHNESS_LABELS[answers.member.reviewThoroughness],
     width: 32,
   },
