@@ -34,12 +34,13 @@ export class FormerFeedbacksController {
     @QueryPagination() pagination: Pagination,
     @Query() query: ListFeedbacksQueryDto,
   ): Promise<ListedFeedbacksDto> {
+    // the previous page has no label for ACKNOWLEDGED and would crash on it: it shows and filters the feedback as still new
+    const statuses = query.statuses ?? [];
     const listed = await this.feedbacks.listFeedbacks({
       pagination,
       sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
-      statuses: query.statuses ?? [],
+      statuses: statuses.includes('NEW') ? [...statuses, 'ACKNOWLEDGED'] : statuses,
     });
-    // the previous page has no label for ACKNOWLEDGED and would crash on it: it shows the feedback as still new
     // createPaginatedZodDto loses the type of its items
     const items = listed.items as ListedFeedback[];
     return {

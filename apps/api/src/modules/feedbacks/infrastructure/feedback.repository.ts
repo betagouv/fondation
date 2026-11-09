@@ -17,7 +17,7 @@ export class FeedbackRepository {
 
   @Transactional(Propagation.Mandatory)
   async find(predicate: { feedbackId: string }): Promise<Feedback> {
-    // a change sent twice waits for the first one, then starts from its result: its history row would collide otherwise
+    // a change sent twice waits for the first one and becomes a no-op
     await this.db.tx.$queryRawTyped(lockFeedbackRawQuery(predicate.feedbackId));
     const feedback = await this.db.tx.feedback.findUnique({
       select: { id: true, status: true, statusComment: true } satisfies Prisma.FeedbackSelect,

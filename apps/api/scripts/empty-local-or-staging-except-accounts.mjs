@@ -19,13 +19,13 @@ const TABLES_KEPT = [
   'docs.justice_department_contact',
   'files_context.file_public_url',
   'files_context.files',
-  'nominations_context.survey',
+  'nominations_context.feedback',
+  'nominations_context.feedback_status_change',
   'nominations_context.help_page_screenshots',
   'nominations_context.help_pages',
   'nominations_context.member_survey',
-  'nominations_context.feedback',
-  'nominations_context.feedback_status_change',
   'nominations_context.secretariat_survey',
+  'nominations_context.survey',
 ];
 const OBJECTS_KEPT_PREFIX = 'help/';
 const FILES_NOT_KEPT = `FROM files_context.files

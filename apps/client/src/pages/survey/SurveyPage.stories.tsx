@@ -36,11 +36,11 @@ function SurveyPageStory(props: { questionnaire: Survey['questionnaire']; status
 }
 
 const meta = {
-  args: { questionnaire: 'MEMBER', status: 'NOT_ANSWERED' },
   argTypes: {
     questionnaire: { control: 'inline-radio', options: ['MEMBER', 'SECRETARIAT'] },
     status: { control: 'inline-radio', options: STATUSES },
   },
+  args: { questionnaire: 'MEMBER', status: 'NOT_ANSWERED' },
   beforeEach: ({ msw }) => {
     msw.use(http.post('*/api/surveys/v1/answer', () => new HttpResponse(null, { status: 204 })));
   },

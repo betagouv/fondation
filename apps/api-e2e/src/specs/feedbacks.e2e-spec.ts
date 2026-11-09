@@ -82,7 +82,11 @@ test.describe('Feedbacks E2E', () => {
     ]);
   });
 
-  test('a tab opened before the renaming lists an acknowledged feedback as new', async ({ admin, member, expect }) => {
+  test('a tab opened before the renaming lists and filters an acknowledged feedback as new', async ({
+    admin,
+    member,
+    expect,
+  }) => {
     const text = `Pris en compte, vu d'un ancien onglet ${randomUUID()}`;
     await member.feedbacks.sendFeedback({ body: { text, url: '/transparences' } });
     await admin.feedbacks.changeFeedbackStatus({
@@ -91,7 +95,7 @@ test.describe('Feedbacks E2E', () => {
     });
 
     const listed = await admin['@client'].get<{ 200: ListedFeedbacksDto }>({
-      query: { limit: 200 },
+      query: { limit: 200, statuses: ['NEW'] },
       url: '/api/remarks/v1',
     });
 
