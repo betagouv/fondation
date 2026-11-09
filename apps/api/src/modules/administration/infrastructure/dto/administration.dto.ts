@@ -10,6 +10,7 @@ import {
 import { GenderEnum } from '../../../shared/gender.enum';
 import { PasswordSchema } from '../../../shared/password.schema';
 import { RoleEnum } from '../../../shared/role.enum';
+import { TitleSchema } from '../../../shared/title.schema';
 import { USER_STATUSES, UserStatus } from '../../../shared/user-status.enum';
 import { AdminUserRole } from '../../domain/admin-user-role';
 import {
@@ -113,14 +114,10 @@ export class UpdateUserPasswordDto extends createZodDto(z.object({ password: Pas
 
 export class UpdateUserRoleDto extends createZodDto(z.object({ role: z.enum(ADMIN_USER_ROLES_ENUM) })) {}
 
-export class UpdateUserDisplayTitleDto extends createZodDto(
-  z.object({ displayTitle: z.string().nullable() }),
-) {}
+export class UpdateUserDisplayTitleDto extends createZodDto(z.object({ displayTitle: TitleSchema })) {}
 
 export class UpdateUserRecusalTitleDto extends createZodDto(
-  z.object({
-    recusalTitle: z.string().nullable().meta({ description: 'with its article, e.g. "le Bâtonnier"' }),
-  }),
+  z.object({ recusalTitle: TitleSchema.meta({ description: 'with its article, e.g. "le Bâtonnier"' }) }),
 ) {}
 
 export class RegisterUserDto extends createZodDto(
