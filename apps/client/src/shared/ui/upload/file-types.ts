@@ -5,10 +5,9 @@
 const SANITIZED_MIME_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
 
 /**
- * No sanitizer handles office documents yet, so they reach the storage untouched. Accept one only
- * where refusing it would turn away people who have no other tool: Word and LibreOffice documents,
- * emails and Excel workbooks. Extensions are listed alongside the mime types because file pickers map
- * the office ones unreliably, and give none to an Outlook message outside Windows
+ * The office documents, emails and workbooks the API accepts unsanitized (see ATTACHMENT_MIME_TYPES in
+ * apps/api/src/modules/framework/files). Extensions are listed alongside the mime types because file
+ * pickers map the office ones unreliably, and give none to an Outlook message outside Windows
  */
 const OFFICE_MIME_TYPES = [
   '.doc',
