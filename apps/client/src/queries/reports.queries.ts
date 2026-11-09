@@ -1,8 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import type { ReportStatusEnum } from '@/shared/enums/report-status.enum';
-import { SANITIZED_MIME_TYPES } from '@/shared/ui/upload/file-types';
-import { InvalidMimeTypeError } from '@/utils/InvalidMimeType.error';
 import { withScreenshotUrls } from '@/utils/with-screenshot-urls';
 import * as $api from '@api/sdk';
 import type { AttachFilesData } from '@api/types';
@@ -110,11 +108,6 @@ export function useAttachReportFilesMutation() {
       usage: AttachFilesData['query']['usage'];
     }) => {
       const { files, reportId, usage } = mutation;
-      for (const file of files) {
-        if (!SANITIZED_MIME_TYPES.includes(file.type))
-          throw new InvalidMimeTypeError({ fileName: file.name });
-      }
-
       await $api.reports.attachFiles({
         path: { reportId },
         body: { files: files as File[] },
