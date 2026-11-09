@@ -8,8 +8,8 @@ import { z } from 'zod';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { useRequestFailure } from '@/shared/hooks/useRequestFailure';
 import { RequiredLabel } from '@/shared/ui/required-label';
-import { Upload } from '@/shared/ui/upload';
-import { DOCUMENT_FILE_TYPES } from '@/shared/ui/upload/file-types';
+import { AttachmentFormatsHint, Upload } from '@/shared/ui/upload';
+import { ATTACHMENT_FILE_TYPES } from '@/shared/ui/upload/file-types';
 import {
   useCreateObservationMutation,
   useListObservationsAttachments,
@@ -303,8 +303,8 @@ export function ObservationForm({
               )}
             </p>
             <Upload
-              accept={DOCUMENT_FILE_TYPES}
-              hint={<FormattedMessage defaultMessage="Formats supportés : png, jpeg, pdf, doc et docx" />}
+              accept={ATTACHMENT_FILE_TYPES}
+              hint={<AttachmentFormatsHint />}
               key={uploadKey}
               multiple
               onChange={field.onChange}

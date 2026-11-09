@@ -13,6 +13,8 @@ const ATTACHMENT_MIME_TYPES = [
   FILE_MIME_TYPES.jpg,
   FILE_MIME_TYPES.doc,
   FILE_MIME_TYPES.docx,
+  FILE_MIME_TYPES.msg,
+  FILE_MIME_TYPES.xlsx,
 ];
 
 /** The files a user attaches to a session, a dossier, a report or an observation */

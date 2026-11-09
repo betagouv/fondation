@@ -9,6 +9,7 @@ export const FILE_MIME_TYPES = {
   jpg: 'image/jpeg',
   json: 'application/json',
   mp4: 'video/mp4',
+  msg: 'application/vnd.ms-outlook',
   odp: 'application/vnd.oasis.opendocument.presentation',
   ods: 'application/vnd.oasis.opendocument.spreadsheet',
   odt: 'application/vnd.oasis.opendocument.text',

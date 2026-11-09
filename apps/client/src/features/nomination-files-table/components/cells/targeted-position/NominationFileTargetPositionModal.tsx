@@ -7,8 +7,8 @@ import { useSidePanel } from '../magistrat-side-panel/context/side-panel.context
 import { revealAttachments } from '@/features/transparence/components/nomination-file-attachments/attachments-section';
 import { Modal } from '@/shared/ui/modal';
 import { useToasts } from '@/shared/ui/toast';
-import { Upload } from '@/shared/ui/upload';
-import { DOCUMENT_FILE_TYPES } from '@/shared/ui/upload/file-types';
+import { AttachmentFormatsHint, Upload } from '@/shared/ui/upload';
+import { ATTACHMENT_FILE_TYPES } from '@/shared/ui/upload/file-types';
 import {
   useAddNominationFileAttachmentsMutation,
   useNominationFilesAlertMutation,
@@ -129,9 +129,9 @@ export function NominationFileTargetPositionModal(props: {
       )}
 
       <Upload
-        accept={DOCUMENT_FILE_TYPES}
+        accept={ATTACHMENT_FILE_TYPES}
         hasError={hasFailed}
-        hint={<FormattedMessage defaultMessage="Formats supportés : png, jpeg, pdf, doc et docx" />}
+        hint={<AttachmentFormatsHint />}
         isPending={isPending}
         key={attempt}
         onChange={setFiles}
