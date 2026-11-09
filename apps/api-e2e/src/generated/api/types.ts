@@ -2529,8 +2529,8 @@ export type RegisteredUserDto = {
     id: string;
 };
 
-export type FoundFeedbackDto = {
-    feedback: {
+export type FoundSurveyDto = {
+    survey: {
         last: {
             answeredOn: {
                 year: number;
@@ -2543,7 +2543,7 @@ export type FoundFeedbackDto = {
     } | null;
 };
 
-export type AnswerFeedbackDto = {
+export type AnswerSurveyDto = {
     comment: string | null;
     easeRating: number;
     member: {
@@ -5485,42 +5485,42 @@ export type DeactivateResponses = {
 
 export type DeactivateResponse = DeactivateResponses[keyof DeactivateResponses];
 
-export type ListFeedbacksAsExcelData = {
+export type ListSurveysAsExcelData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/feedbacks/v1/answers.xlsx';
+    url: '/api/surveys/v1/answers.xlsx';
 };
 
-export type ListFeedbacksAsExcelResponses = {
+export type ListSurveysAsExcelResponses = {
     200: unknown;
 };
 
-export type FindFeedbackData = {
+export type FindSurveyData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/feedbacks/v1/mine';
+    url: '/api/surveys/v1/mine';
 };
 
-export type FindFeedbackResponses = {
-    200: FoundFeedbackDto;
+export type FindSurveyResponses = {
+    200: FoundSurveyDto;
 };
 
-export type FindFeedbackResponse = FindFeedbackResponses[keyof FindFeedbackResponses];
+export type FindSurveyResponse = FindSurveyResponses[keyof FindSurveyResponses];
 
-export type AnswerFeedbackData = {
-    body: AnswerFeedbackDto;
+export type AnswerSurveyData = {
+    body: AnswerSurveyDto;
     path?: never;
     query?: never;
-    url: '/api/feedbacks/v1/answer';
+    url: '/api/surveys/v1/answer';
 };
 
-export type AnswerFeedbackResponses = {
+export type AnswerSurveyResponses = {
     204: void;
 };
 
-export type AnswerFeedbackResponse = AnswerFeedbackResponses[keyof AnswerFeedbackResponses];
+export type AnswerSurveyResponse = AnswerSurveyResponses[keyof AnswerSurveyResponses];
 
 export type DetailHelpPageData = {
     body?: never;

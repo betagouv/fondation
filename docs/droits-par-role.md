@@ -130,9 +130,9 @@ Le préfixe `/api` est omis.
 | Se déconnecter                                 | `POST /auth/v2/logout`                       | ✓                        | ✓                        | ✓                        |
 | Changer son mot de passe                       | `PUT /auth/v2/password`                      | ✓                        | ✓                        | ✓                        |
 | Se connecter à la place d'un utilisateur       | `POST /auth/v2/users/:userId/impersonations` | —                        | —                        | ✓                        |
-| Répondre au questionnaire de satisfaction      | `POST /feedbacks/v1/answer`                  | ✓                        | ✓                        | —                        |
-| Voir sa dernière réponse au questionnaire      | `GET /feedbacks/v1/mine`                     | ✓ si ses propres données | ✓ si ses propres données | ✓ si ses propres données |
-| Exporter les réponses au questionnaire (Excel) | `GET /feedbacks/v1/answers.xlsx`             | —                        | —                        | ✓                        |
+| Répondre au questionnaire de satisfaction      | `POST /surveys/v1/answer`                    | ✓                        | ✓                        | —                        |
+| Voir sa dernière réponse au questionnaire      | `GET /surveys/v1/mine`                       | ✓ si ses propres données | ✓ si ses propres données | ✓ si ses propres données |
+| Exporter les réponses au questionnaire (Excel) | `GET /surveys/v1/answers.xlsx`               | —                        | —                        | ✓                        |
 | Envoyer une remarque                           | `POST /remarks/v1`                           | ✓                        | ✓                        | ✓                        |
 | Lister les remarques                           | `GET /remarks/v1`                            | —                        | —                        | ✓                        |
 | Changer le statut d'une remarque               | `PUT /remarks/v1/:remarkId/status`           | —                        | —                        | ✓                        |

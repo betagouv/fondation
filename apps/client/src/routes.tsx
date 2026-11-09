@@ -35,10 +35,10 @@ export const routes: RouteObject[] = [
           },
           {
             lazy: () =>
-              import('@/pages/feedback/FeedbackPage').then(({ FeedbackPage }) => ({
-                Component: FeedbackPage,
+              import('@/pages/survey/SurveyPage').then(({ SurveyPage }) => ({
+                Component: SurveyPage,
               })),
-            path: ROUTE_PATHS.FEEDBACK,
+            path: ROUTE_PATHS.SURVEY,
           },
           {
             lazy: () =>
@@ -446,10 +446,10 @@ export const routes: RouteObject[] = [
           },
           {
             lazy: () =>
-              import('@/pages/spaces/admin/AdminFeedbacksPage').then(({ AdminFeedbacksPage }) => ({
-                Component: AdminFeedbacksPage,
+              import('@/pages/spaces/admin/AdminSurveysPage').then(({ AdminSurveysPage }) => ({
+                Component: AdminSurveysPage,
               })),
-            path: ROUTE_PATHS.ADMIN.FEEDBACKS,
+            path: ROUTE_PATHS.ADMIN.SURVEYS,
           },
           {
             lazy: () =>

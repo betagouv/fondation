@@ -16,7 +16,6 @@ type Complement<T, U> = RemoveEmpty<
 export type TestSteps = typeof api & { ['@client']: Client; ['@user']: { id: string } | undefined };
 export type TestStepsMember = Pick<TestSteps, 'archivedSessions' | 'reports' | 'files' | '@client' | '@user'> & {
   auth: Pick<(typeof api)['auth'], 'introspectSession' | 'logout'>;
-  feedback: Pick<TestSteps['feedback'], 'answerFeedback' | 'findFeedback'>;
   help: Pick<TestSteps['help'], 'detailHelpPage' | 'detailReaderHelpPage'>;
   members: Pick<
     TestSteps['members'],
@@ -35,6 +34,7 @@ export type TestStepsMember = Pick<TestSteps, 'archivedSessions' | 'reports' | '
   >;
   remarks: Pick<TestSteps['remarks'], 'sendRemark'>;
   summaries: Pick<TestSteps['summaries'], 'detailSummary' | 'generateAttachmentPublicUrl'>;
+  survey: Pick<TestSteps['survey'], 'answerSurvey' | 'findSurvey'>;
 };
 
 export type TestStepsAdmin = Omit<TestSteps, 'members'> & {
@@ -47,14 +47,13 @@ export type TestStepsAdmin = Omit<TestSteps, 'members'> & {
 // an intersection merges the keys of a namespace: one narrowed below must first leave the complement
 export type TestStepsAgent = Omit<
   Complement<TestSteps, TestStepsMember>,
-  'administration' | 'auth' | 'feedback' | 'help' | 'ingest' | 'jobs' | 'magistrats' | 'remarks'
+  'administration' | 'auth' | 'help' | 'ingest' | 'jobs' | 'magistrats' | 'remarks' | 'survey'
 > & {
   archivedSessions: TestSteps['archivedSessions'];
   auth: Omit<
     (typeof api)['auth'],
     'callback' | 'impersonate' | 'listOpenIdProviders' | 'login' | 'prepareOpenIdRequest'
   >;
-  feedback: Omit<TestSteps['feedback'], 'listFeedbacksAsExcel'>;
   // the secretariat also opens the attachments it serves
   files: TestSteps['files'];
   help: TestStepsMember['help'];
@@ -64,6 +63,7 @@ export type TestStepsAgent = Omit<
   remarks: TestStepsMember['remarks'];
   // the secretariat also reads the summaries it writes
   summaries: Pick<TestSteps['summaries'], 'detailSummary'>;
+  survey: Omit<TestSteps['survey'], 'listSurveysAsExcel'>;
   ['@user']: TestSteps['@user'];
 };
 

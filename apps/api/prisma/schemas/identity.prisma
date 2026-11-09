@@ -82,7 +82,6 @@ model User {
   editorOfOfficialReportNotes                  OfficialReportNominationFile[]         @relation("official_report_note_editor")
   editorOfOfficialReportVersions               OfficialReportVersion[]                @relation("official_report_version_editor")
   excludedJurisdictionIds                      ExcludedJurisdiction[]
-  feedbacks                                    Feedback[]
   followedUpObservations                       Observation[]                          @relation("user_to_observation_follow_up")
   impersonatedInRemarks                        Remark[]                               @relation("remark_impersonated")
   impersonatorOfAuditionPublications           AuditionPublication[]                  @relation("audition_publication_impersonator")
@@ -104,6 +103,7 @@ model User {
   sessions                                     AuthSession[]
   statusChangerOfRemarks                       Remark[]                               @relation("remark_status_changer")
   statusChanges                                UserStatusChange[]                     @relation("user_status_change_user")
+  surveys                                      Survey[]
   technicalAccountChanges                      TechnicalAccountChange[]               @relation("technical_account_change_user")
   validatedSessions                            Session[]
   validatorOfAgendaVersions                    AgendaVersion[]                        @relation("agenda_version_validator")

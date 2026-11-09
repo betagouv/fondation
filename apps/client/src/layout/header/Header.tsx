@@ -6,7 +6,7 @@ import { useIntl } from 'react-intl';
 import { matchPath, useLocation } from 'react-router';
 
 import { useIsAdmin, useIsSg } from '@/features/auth/hooks/roles.hook';
-import { FeedbackHeaderButton } from '@/features/feedback/components/FeedbackHeaderButton';
+import { SurveyHeaderButton } from '@/features/survey/components/SurveyHeaderButton';
 import { HelpPageButton } from '@/pages/help/HelpPageButton';
 import { useArchivedSession } from '@/shared/context/archived-session';
 import { usePouvoirDeProposition } from '@/shared/hooks/usePouvoirDeProposition';
@@ -114,7 +114,7 @@ export const AppHeader = () => {
         ROUTE_PATHS.ADMIN.INGEST_LOLFI,
         ROUTE_PATHS.ADMIN.USERS,
         ROUTE_PATHS.ADMIN.USER_DETAIL,
-        ROUTE_PATHS.ADMIN.FEEDBACKS,
+        ROUTE_PATHS.ADMIN.SURVEYS,
         ROUTE_PATHS.ADMIN.REMARKS,
         ROUTE_PATHS.ADMIN.HELP,
       ]),
@@ -161,8 +161,8 @@ export const AppHeader = () => {
           ),
         },
         {
-          isActive: routeMatches([ROUTE_PATHS.ADMIN.FEEDBACKS]),
-          linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.FEEDBACKS, viewTransition: true },
+          isActive: routeMatches([ROUTE_PATHS.ADMIN.SURVEYS]),
+          linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.SURVEYS, viewTransition: true },
           text: (
             <span className={clsx('fr-icon-feedback-line', NAV_ICON_CLASS)}>
               {formatMessage({ defaultMessage: 'Consulter les avis' })}
@@ -219,7 +219,7 @@ export const AppHeader = () => {
       quickAccessItems={[
         <LolfiCsm key="header lolfi link" />,
         <HelpPageButton key="header help link" />,
-        <FeedbackHeaderButton key="header feedback link" />,
+        <SurveyHeaderButton key="header survey link" />,
         <Avatar key="header avatar" />,
       ]}
       serviceTitle="Fondation"
