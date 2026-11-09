@@ -10,6 +10,7 @@ import { generatePath, useNavigate, useParams } from 'react-router';
 import { GeneratedPasswordInput } from '@/features/administration/components/GeneratedPasswordInput';
 import { useTitleTakenBackWarning } from '@/features/administration/hooks/useTitleTakenBackWarning';
 import { UserStatusBadge } from '@/shared/components/user-status-badge';
+import { UserTitleField } from '@/shared/components/user-title-field';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { useTab } from '@/shared/hooks/useTab';
@@ -577,123 +578,6 @@ function RoleField(props: { user: DetailedAdminUserDto }) {
   );
 }
 
-const TITLES = {
-  displayTitle: {
-    edit: defineMessage({ defaultMessage: 'Éditer le titre affiché' }),
-    error: defineMessage({ defaultMessage: 'Erreur à la mise à jour du titre affiché' }),
-    hint: defineMessage({ defaultMessage: 'ex: M. le Président, Mme la ministre' }),
-    label: defineMessage({ defaultMessage: 'Titre affiché' }),
-    useUpdate: useUpdateUserDisplayTitleMutation,
-  },
-  recusalTitle: {
-    edit: defineMessage({ defaultMessage: 'Éditer le titre déport' }),
-    error: defineMessage({ defaultMessage: 'Erreur à la mise à jour du titre déport' }),
-    hint: defineMessage({
-      defaultMessage:
-        'Avec son article, ex : le Bâtonnier, la Première présidente. Le PV mentionne alors le déport de « M. le Bâtonnier FORGET ».',
-    }),
-    label: defineMessage({ defaultMessage: 'Titre Déport' }),
-    useUpdate: useUpdateUserRecusalTitleMutation,
-  },
-};
-
-function TitleField(props: { kind: keyof typeof TITLES; user: DetailedAdminUserDto }) {
-  const { formatMessage } = useIntl();
-  const field = TITLES[props.kind];
-  const saved = props.user[props.kind];
-  const [isEditing, setEditing] = useState(false);
-  const [title, setTitle] = useState(saved ?? '');
-  const { error, isPending, mutate } = field.useUpdate(props.user.id);
-
-  const handleEdit = () => {
-    setTitle(saved ?? '');
-    setEditing(true);
-  };
-
-  const isUnchanged = (title.trim() || null) === saved;
-
-  const handleSave = useCallback(
-    (e: SyntheticEvent) => {
-      e.preventDefault();
-
-      const newTitle = title.trim() || null;
-      if (newTitle === saved) {
-        setEditing(false);
-        return;
-      }
-
-      mutate(newTitle, { onSuccess: () => setEditing(false) });
-    },
-    [mutate, saved, setEditing, title],
-  );
-
-  return (
-    <div>
-      <div className="fr-mb-2v flex justify-between">
-        <dt className="font-bold">
-          <FormattedMessage {...field.label} />
-        </dt>
-        {isEditing ? (
-          <div className="flex gap-1">
-            <Button
-              disabled={isPending}
-              iconId="fr-icon-close-line"
-              onClick={() => setEditing(false)}
-              priority="tertiary no outline"
-              size="small"
-              type="button"
-            >
-              <FormattedMessage defaultMessage="Fermer" />
-            </Button>
-            <Button
-              disabled={isPending || isUnchanged}
-              onClick={handleSave}
-              priority="primary"
-              size="small"
-              type="button"
-            >
-              <FormattedMessage defaultMessage="Ok" />
-            </Button>
-          </div>
-        ) : (
-          <IconButton
-            disabled={isPending}
-            iconId="fr-icon-edit-fill"
-            label={formatMessage(field.edit)}
-            onClick={handleEdit}
-            small
-          />
-        )}
-      </div>
-      {isEditing ? (
-        <form onSubmit={handleSave}>
-          <Input
-            hintText={formatMessage(field.hint)}
-            label={<span className="fr-sr-only">{formatMessage(field.label)}</span>}
-            nativeInputProps={{
-              autoComplete: 'off',
-              autoFocus: true,
-              onChange: (e) => setTitle(e.target.value),
-              placeholder: formatMessage({ defaultMessage: 'Saisissez un titre...' }),
-              value: title,
-            }}
-            state={error ? 'error' : undefined}
-            stateRelatedMessage={error ? formatMessage(field.error) : undefined}
-          />
-        </form>
-      ) : (
-        <div className="fr-mt-2v fr-p-4v rounded-sm border border-(--border-default-grey) bg-(--background-alt-grey)">
-          {saved || (
-            <span className="text-(--text-disabled-grey)">
-              <FormattedMessage defaultMessage="Aucun titre" />
-            </span>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
 function AccessCard(props: { user: DetailedAdminUserDto }) {
   const { formatDate, formatMessage, formatTime } = useIntl();
   const confirmation = useConfirmModal();
@@ -890,6 +774,8 @@ function ImpersonateButton(props: { userId: string }) {
 
 function AdminLoadedUserDetail(props: { user: DetailedAdminUserDto }) {
   const { user } = props;
+  const updateDisplayTitle = useUpdateUserDisplayTitleMutation(user.id);
+  const updateRecusalTitle = useUpdateUserRecusalTitleMutation(user.id);
   return (
     <DetailsPageLayout
       background={user.role.group === 'SECRETARIAT' ? 'cafeCreme' : 'blueFrance'}
@@ -906,8 +792,8 @@ function AdminLoadedUserDetail(props: { user: DetailedAdminUserDto }) {
               <FormattedMessage defaultMessage="Titres" />
             </h2>
             <dl className="m-0 flex flex-col gap-6 p-0">
-              <TitleField kind="displayTitle" user={user} />
-              <TitleField kind="recusalTitle" user={user} />
+              <UserTitleField kind="displayTitle" saved={user.displayTitle} update={updateDisplayTitle} />
+              <UserTitleField kind="recusalTitle" saved={user.recusalTitle} update={updateRecusalTitle} />
             </dl>
           </DetailsCard>
 
