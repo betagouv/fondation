@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { IntlProvider } from 'react-intl';
 import { describe, expect, it, vi } from 'vitest';
 
-import { RemarkOpenAsLink } from './RemarkOpenAsLink';
+import { FeedbackOpenAsLink } from './FeedbackOpenAsLink';
 
 const open = vi.fn();
 
@@ -17,11 +17,11 @@ vi.mock('@queries/auth.queries', () => ({
   }),
 }));
 
-describe('RemarkOpenAsLink', () => {
-  it('opens the page of the remark in a tab impersonating its account', async () => {
+describe('FeedbackOpenAsLink', () => {
+  it('opens the page of the feedback in a tab impersonating its account', async () => {
     render(
       <IntlProvider defaultLocale="fr" locale="fr">
-        <RemarkOpenAsLink account={{ id: 'member', name: 'Jean MARTIN' }} url="/rapports/1?dossier=42" />
+        <FeedbackOpenAsLink account={{ id: 'member', name: 'Jean MARTIN' }} url="/rapports/1?dossier=42" />
       </IntlProvider>,
     );
 

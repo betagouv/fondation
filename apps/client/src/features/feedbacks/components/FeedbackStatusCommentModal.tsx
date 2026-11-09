@@ -3,18 +3,18 @@ import Input from '@codegouvfr/react-dsfr/Input';
 import { useState } from 'react';
 import { FormattedMessage } from 'react-intl';
 
-import type { RemarkStatusEnum } from '@/shared/enums/remark-status.enum';
+import type { FeedbackStatusEnum } from '@/shared/enums/feedback-status.enum';
 import { Modal } from '@/shared/ui/modal';
 
-import { RemarkStatusBadge } from './RemarkStatusBadge';
+import { FeedbackStatusBadge } from './FeedbackStatusBadge';
 
-export function RemarkStatusCommentModal(props: {
+export function FeedbackStatusCommentModal(props: {
   comment: string | null;
   onClosed: () => void;
   onComment: (comment: string | null) => void;
   onDrop: () => void;
   open: boolean;
-  status: RemarkStatusEnum;
+  status: FeedbackStatusEnum;
 }) {
   const [comment, setComment] = useState(props.comment ?? '');
 
@@ -37,7 +37,7 @@ export function RemarkStatusCommentModal(props: {
     >
       <p className="fr-mb-4v flex items-center gap-2">
         <FormattedMessage defaultMessage="Statut :" />
-        <RemarkStatusBadge status={props.status} />
+        <FeedbackStatusBadge status={props.status} />
       </p>
       <Input
         hintText={

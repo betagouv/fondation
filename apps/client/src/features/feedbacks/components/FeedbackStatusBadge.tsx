@@ -1,16 +1,16 @@
 import Badge, { type BadgeProps } from '@codegouvfr/react-dsfr/Badge';
 import { useIntl } from 'react-intl';
 
-import { type RemarkStatusEnum, RemarkStatusEnumMessages } from '@/shared/enums/remark-status.enum';
+import { type FeedbackStatusEnum, FeedbackStatusEnumMessages } from '@/shared/enums/feedback-status.enum';
 
-const SEVERITIES: Record<RemarkStatusEnum, BadgeProps['severity']> = {
+const SEVERITIES: Record<FeedbackStatusEnum, BadgeProps['severity']> = {
   ACKNOWLEDGED: 'warning',
   DISMISSED: undefined,
   NEW: 'info',
   PROCESSED: 'success',
 };
 
-export function RemarkStatusBadge(props: { status: RemarkStatusEnum }) {
+export function FeedbackStatusBadge(props: { status: FeedbackStatusEnum }) {
   const { formatMessage } = useIntl();
 
   return (
@@ -21,7 +21,7 @@ export function RemarkStatusBadge(props: { status: RemarkStatusEnum }) {
       severity={SEVERITIES[props.status]}
       small
     >
-      {formatMessage(RemarkStatusEnumMessages[props.status])}
+      {formatMessage(FeedbackStatusEnumMessages[props.status])}
     </Badge>
   );
 }

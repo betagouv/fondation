@@ -5,23 +5,25 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { FloatingActionsProvider, FloatingActionsStack } from '@/shared/context/floating-actions';
 
-import { RemarkButton } from './RemarkButton';
+import { FeedbackButton } from './FeedbackButton';
 
-const mutate = vi.fn((_remark: unknown, options: { onSuccess: () => void }) => options.onSuccess());
+const mutate = vi.fn((_feedback: unknown, options: { onSuccess: () => void }) => options.onSuccess());
 const success = vi.fn();
 
 vi.mock('@queries/auth.queries', () => ({ useUser: () => ({ user: { id: 'user-1' } }) }));
-vi.mock('@queries/remarks.queries', () => ({ useSendRemarkMutation: () => ({ isPending: false, mutate }) }));
+vi.mock('@queries/feedbacks.queries', () => ({
+  useSendFeedbackMutation: () => ({ isPending: false, mutate }),
+}));
 vi.mock('@/shared/ui/toast', () => ({ useToasts: () => ({ error: vi.fn(), success }) }));
 
-describe('RemarkButton', () => {
-  it('sends the remark with the page it was made on, its opened side panel included', async () => {
+describe('FeedbackButton', () => {
+  it('sends the feedback with the page it was made on, its opened side panel included', async () => {
     // the way nuqs opens a side panel: in the address only
     window.history.replaceState(null, '', '/secretariat-general/session/1?dossier=42');
     render(
       <IntlProvider defaultLocale="fr" locale="fr">
         <FloatingActionsProvider>
-          <RemarkButton />
+          <FeedbackButton />
           <FloatingActionsStack />
         </FloatingActionsProvider>
       </IntlProvider>,

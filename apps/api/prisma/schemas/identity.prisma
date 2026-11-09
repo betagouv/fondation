@@ -53,6 +53,8 @@ model User {
   authorOfAdminRightChanges                    AdminRightChange[]                     @relation("admin_right_change_author")
   authorOfAffectationVersions                  AffectationVersion[]                   @relation("affectation_version_author")
   authorOfAgendaVersions                       AgendaVersion[]                        @relation("agenda_version_author")
+  authorOfFeedbacks                            Feedback[]                             @relation("feedback_author")
+  authorOfFeedbackStatusChanges                FeedbackStatusChange[]                 @relation("feedback_status_change_author")
   authorOfJusticeDepartmentContacts            JusticeDepartmentContact[]
   authorOfJusticePresentationPlans             JusticePresentationPlan[]              @relation("justice_presentation_author")
   authorOfMagistratPhoneNumbers                MagistratPhoneNumber[]
@@ -61,8 +63,6 @@ model User {
   authorOfOfficialReports                      OfficialReport[]                       @relation("official_reports_author")
   authorOfOfficialReportVersions               OfficialReportVersion[]                @relation("official_report_version_author")
   authorOfRecusalChanges                       RecusedMemberChange[]                  @relation("recused_member_change_author")
-  authorOfRemarks                              Remark[]                               @relation("remark_author")
-  authorOfRemarkStatusChanges                  RemarkStatusChange[]                   @relation("remark_status_change_author")
   authorOfSessionCommentVersions               SessionCommentVersion[]                @relation("session_comment_version_author")
   authorOfSummaries                            Summary[]
   authorOfTechnicalAccountChanges              TechnicalAccountChange[]               @relation("technical_account_change_author")
@@ -83,7 +83,7 @@ model User {
   editorOfOfficialReportVersions               OfficialReportVersion[]                @relation("official_report_version_editor")
   excludedJurisdictionIds                      ExcludedJurisdiction[]
   followedUpObservations                       Observation[]                          @relation("user_to_observation_follow_up")
-  impersonatedInRemarks                        Remark[]                               @relation("remark_impersonated")
+  impersonatedInFeedbacks                      Feedback[]                             @relation("feedback_impersonated")
   impersonatorOfAuditionPublications           AuditionPublication[]                  @relation("audition_publication_impersonator")
   impersonatorOfNominationFileAuditionVersions NominationFileAuditionVersion[]        @relation("nomination_file_audition_version_impersonator")
   impersonatorOfObservantAuditionVersions      ObservantAuditionVersion[]             @relation("observant_audition_version_impersonator")
@@ -101,7 +101,7 @@ model User {
   secretaryOfJusticePresentationPlans          JusticePresentationPlan[]              @relation("justice_presentation_secretary")
   secretaryOfOfficialReports                   OfficialReportVersion[]                @relation("official_report_version_secretary")
   sessions                                     AuthSession[]
-  statusChangerOfRemarks                       Remark[]                               @relation("remark_status_changer")
+  statusChangerOfFeedbacks                     Feedback[]                             @relation("feedback_status_changer")
   statusChanges                                UserStatusChange[]                     @relation("user_status_change_user")
   surveys                                      Survey[]
   technicalAccountChanges                      TechnicalAccountChange[]               @relation("technical_account_change_user")

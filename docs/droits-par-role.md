@@ -113,7 +113,7 @@ L'accueil propose les deux pouvoirs de proposition. Le menu garde partout Recher
 | `/admin/ingestions`           | Liste des traitements en arrière-plan                                                                                                | —      | —                   | ✓              |
 | `/admin/ingestions/:jobId`    | Détail d'un traitement                                                                                                               | —      | —                   | ✓              |
 | `/admin/avis`                 | Export des réponses au questionnaire                                                                                                 | —      | —                   | ✓              |
-| `/admin/remarques`            | Liste des remarques et suivi de leur statut                                                                                          | —      | —                   | ✓              |
+| `/admin/retours`              | Liste des retours et suivi de leur statut                                                                                            | —      | —                   | ✓              |
 | `/admin/aide`                 | Édition des pages d'aide                                                                                                             | —      | —                   | ✓              |
 | `/admin/utilisateurs`         | Liste des utilisateurs                                                                                                               | —      | —                   | ✓              |
 | `/admin/utilisateurs/:userId` | Fiche d'un utilisateur : nom, prénom, e-mail, mot de passe, rôle, titre, droit d'administrateur, désactivation, connexion à sa place | —      | —                   | ✓              |
@@ -133,12 +133,12 @@ Le préfixe `/api` est omis.
 | Répondre au questionnaire de satisfaction      | `POST /surveys/v1/answer`                    | ✓                        | ✓                        | —                        |
 | Voir sa dernière réponse au questionnaire      | `GET /surveys/v1/mine`                       | ✓ si ses propres données | ✓ si ses propres données | ✓ si ses propres données |
 | Exporter les réponses au questionnaire (Excel) | `GET /surveys/v1/answers.xlsx`               | —                        | —                        | ✓                        |
-| Envoyer une remarque                           | `POST /remarks/v1`                           | ✓                        | ✓                        | ✓                        |
-| Lister les remarques                           | `GET /remarks/v1`                            | —                        | —                        | ✓                        |
-| Changer le statut d'une remarque               | `PUT /remarks/v1/:remarkId/status`           | —                        | —                        | ✓                        |
+| Envoyer un retour                              | `POST /feedbacks/v1`                         | ✓                        | ✓                        | ✓                        |
+| Lister les retours                             | `GET /feedbacks/v1`                          | —                        | —                        | ✓                        |
+| Changer le statut d'un retour                  | `PUT /feedbacks/v1/:feedbackId/status`       | —                        | —                        | ✓                        |
 | Télécharger un fichier par son lien temporaire | `GET /files/v1/:fileUrlId`                   | ✓                        | ✓                        | ✓                        |
 
-Quiconque détient un lien de téléchargement temporaire télécharge le fichier. Connecté à la place d'un utilisateur, l'administrateur n'enregistre ni réponse au questionnaire ni changement de mot de passe et envoie ses remarques à son propre nom. Cette connexion ne vaut que pour l'onglet ouvert pour elle et ceux ouverts depuis lui.
+Quiconque détient un lien de téléchargement temporaire télécharge le fichier. Connecté à la place d'un utilisateur, l'administrateur n'enregistre ni réponse au questionnaire ni changement de mot de passe et envoie ses retours à son propre nom. Cette connexion ne vaut que pour l'onglet ouvert pour elle et ceux ouverts depuis lui.
 
 ### Sessions
 

@@ -1,25 +1,25 @@
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import {
-  REMARK_STATUSES,
-  type RemarkStatusEnum,
-  RemarkStatusEnumMessages,
-} from '@/shared/enums/remark-status.enum';
+  FEEDBACK_STATUSES,
+  type FeedbackStatusEnum,
+  FeedbackStatusEnumMessages,
+} from '@/shared/enums/feedback-status.enum';
 import { MenuContent, MenuItem, MenuRoot, MenuTrigger } from '@/shared/ui/menu';
 import { useToasts } from '@/shared/ui/toast';
 import { Tooltip } from '@/shared/ui/tooltip';
-import type { ListedRemarksDto } from '@api/types';
-import { useChangeRemarkStatusMutation } from '@queries/remarks.queries';
+import type { ListedFeedbacksDto } from '@api/types';
+import { useChangeFeedbackStatusMutation } from '@queries/feedbacks.queries';
 
-import { RemarkStatusBadge } from './RemarkStatusBadge';
-import { useRemarkStatusCommentModal } from './RemarkStatusCommentModalContext';
+import { FeedbackStatusBadge } from './FeedbackStatusBadge';
+import { useFeedbackStatusCommentModal } from './FeedbackStatusCommentModalContext';
 
-export function RemarkStatusCell(props: { remark: ListedRemarksDto['items'][number] }) {
+export function FeedbackStatusCell(props: { feedback: ListedFeedbacksDto['items'][number] }) {
   const { formatDate, formatMessage } = useIntl();
   const toasts = useToasts();
-  const changeStatus = useChangeRemarkStatusMutation();
-  const { waitForStatusComment } = useRemarkStatusCommentModal();
-  const { id, status } = props.remark;
+  const changeStatus = useChangeFeedbackStatusMutation();
+  const { waitForStatusComment } = useFeedbackStatusCommentModal();
+  const { id, status } = props.feedback;
   const changedOn =
     status.value !== 'NEW' && status.changedAt
       ? formatDate(status.changedAt, { format: 'zonedDateShort' })
@@ -37,7 +37,7 @@ export function RemarkStatusCell(props: { remark: ListedRemarksDto['items'][numb
       ? formatMessage({ defaultMessage: '{changed} : {comment}' }, { changed, comment: status.comment })
       : changed;
 
-  const change = async (next: RemarkStatusEnum) => {
+  const change = async (next: FeedbackStatusEnum) => {
     if (next === 'NEW' && status.value === 'NEW') return;
 
     let comment: string | null = null;
@@ -48,7 +48,7 @@ export function RemarkStatusCell(props: { remark: ListedRemarksDto['items'][numb
     }
 
     changeStatus.mutate(
-      { comment, remarkId: id, status: next },
+      { comment, feedbackId: id, status: next },
       {
         onError: () =>
           toasts.error({ title: formatMessage({ defaultMessage: "Le statut n'a pas pu être changé" }) }),
@@ -68,7 +68,7 @@ export function RemarkStatusCell(props: { remark: ListedRemarksDto['items'][numb
             'aria-label': [
               formatMessage(
                 { defaultMessage: 'Statut du retour : {status}' },
-                { status: formatMessage(RemarkStatusEnumMessages[status.value]) },
+                { status: formatMessage(FeedbackStatusEnumMessages[status.value]) },
               ),
               details,
             ]
@@ -78,18 +78,18 @@ export function RemarkStatusCell(props: { remark: ListedRemarksDto['items'][numb
           priority="tertiary no outline"
           size="small"
         >
-          <RemarkStatusBadge status={status.value} />
+          <FeedbackStatusBadge status={status.value} />
         </MenuTrigger>
       </Tooltip>
       <MenuContent>
-        {REMARK_STATUSES.map((value) => (
+        {FEEDBACK_STATUSES.map((value) => (
           <MenuItem key={value} onClick={() => void change(value)}>
             {value === status.value && value !== 'NEW' ? (
               <span className="text-[0.8125rem]">
                 <FormattedMessage defaultMessage="Modifier le commentaire" />
               </span>
             ) : (
-              <RemarkStatusBadge status={value} />
+              <FeedbackStatusBadge status={value} />
             )}
           </MenuItem>
         ))}

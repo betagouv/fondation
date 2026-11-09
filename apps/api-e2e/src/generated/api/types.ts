@@ -2591,7 +2591,7 @@ export type WriteHelpPageContentDto = {
     content: string;
 };
 
-export type ListedRemarksDto = {
+export type ListedFeedbacksDto = {
     items: Array<{
         author: {
             id: string;
@@ -2629,12 +2629,12 @@ export type ListedRemarksDto = {
     };
 };
 
-export type SendRemarkDto = {
+export type SendFeedbackDto = {
     text: string;
     url: string;
 };
 
-export type ChangeRemarkStatusDto = {
+export type ChangeFeedbackStatusDto = {
     comment: string | null;
     status: 'NEW' | 'ACKNOWLEDGED' | 'PROCESSED' | 'DISMISSED';
 };
@@ -5580,7 +5580,7 @@ export type DetailReaderHelpPageResponses = {
 
 export type DetailReaderHelpPageResponse = DetailReaderHelpPageResponses[keyof DetailReaderHelpPageResponses];
 
-export type ListRemarksData = {
+export type ListFeedbacksData = {
     body?: never;
     path?: never;
     query?: {
@@ -5593,39 +5593,39 @@ export type ListRemarksData = {
         page?: number;
         limit?: number;
     };
-    url: '/api/remarks/v1';
+    url: '/api/feedbacks/v1';
 };
 
-export type ListRemarksResponses = {
-    200: ListedRemarksDto;
+export type ListFeedbacksResponses = {
+    200: ListedFeedbacksDto;
 };
 
-export type ListRemarksResponse = ListRemarksResponses[keyof ListRemarksResponses];
+export type ListFeedbacksResponse = ListFeedbacksResponses[keyof ListFeedbacksResponses];
 
-export type SendRemarkData = {
-    body: SendRemarkDto;
+export type SendFeedbackData = {
+    body: SendFeedbackDto;
     path?: never;
     query?: never;
-    url: '/api/remarks/v1';
+    url: '/api/feedbacks/v1';
 };
 
-export type SendRemarkResponses = {
+export type SendFeedbackResponses = {
     204: void;
 };
 
-export type SendRemarkResponse = SendRemarkResponses[keyof SendRemarkResponses];
+export type SendFeedbackResponse = SendFeedbackResponses[keyof SendFeedbackResponses];
 
-export type ChangeRemarkStatusData = {
-    body: ChangeRemarkStatusDto;
+export type ChangeFeedbackStatusData = {
+    body: ChangeFeedbackStatusDto;
     path: {
-        remarkId: string;
+        feedbackId: string;
     };
     query?: never;
-    url: '/api/remarks/v1/{remarkId}/status';
+    url: '/api/feedbacks/v1/{feedbackId}/status';
 };
 
-export type ChangeRemarkStatusResponses = {
+export type ChangeFeedbackStatusResponses = {
     204: void;
 };
 
-export type ChangeRemarkStatusResponse = ChangeRemarkStatusResponses[keyof ChangeRemarkStatusResponses];
+export type ChangeFeedbackStatusResponse = ChangeFeedbackStatusResponses[keyof ChangeFeedbackStatusResponses];

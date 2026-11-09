@@ -16,26 +16,26 @@ import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { ApiPaginated, Pagination, QueryPagination } from '../../framework/pagination';
 import { AuthedUser, HasRole } from '../../simple-auth';
-import { RemarksService } from '../remarks.service';
+import { FeedbacksService } from '../feedbacks.service';
 
-import { ListedRemarksDto } from './queries/list-remarks.query';
-import { ChangeRemarkStatusDto, ListRemarksQueryDto, SendRemarkDto } from './remark.dto';
+import { ChangeFeedbackStatusDto, ListFeedbacksQueryDto, SendFeedbackDto } from './feedback.dto';
+import { ListedFeedbacksDto } from './queries/list-feedbacks.query';
 
-@ApiTags('Remarks')
-@Controller('/api/remarks/v1')
-export class RemarksController {
-  constructor(private readonly remarks: RemarksService) {}
+@ApiTags('Feedbacks')
+@Controller('/api/feedbacks/v1')
+export class FeedbacksController {
+  constructor(private readonly feedbacks: FeedbacksService) {}
 
   @Get()
   @HasRole('ADMIN')
   @ApiPaginated()
   @UsePipes(ZodValidationPipe)
-  @ZodResponse({ status: HttpStatus.OK, type: ListedRemarksDto })
-  listRemarks(
+  @ZodResponse({ status: HttpStatus.OK, type: ListedFeedbacksDto })
+  listFeedbacks(
     @QueryPagination() pagination: Pagination,
-    @Query() query: ListRemarksQueryDto,
-  ): Promise<ListedRemarksDto> {
-    return this.remarks.listRemarks({
+    @Query() query: ListFeedbacksQueryDto,
+  ): Promise<ListedFeedbacksDto> {
+    return this.feedbacks.listFeedbacks({
       pagination,
       sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
       statuses: query.statuses ?? [],
@@ -46,28 +46,28 @@ export class RemarksController {
   @HasRole()
   @UsePipes(ZodValidationPipe)
   @HttpCode(HttpStatus.NO_CONTENT)
-  sendRemark(
+  sendFeedback(
     @AuthedUser() user: { id: string; impersonation?: { impersonatorId: string } },
-    @Body() remark: SendRemarkDto,
+    @Body() feedback: SendFeedbackDto,
   ): Promise<void> {
-    return this.remarks.sendRemark({
-      ...remark,
+    return this.feedbacks.sendFeedback({
+      ...feedback,
       sender: { id: user.id, impersonatorId: user.impersonation?.impersonatorId ?? null },
     });
   }
 
-  @Put('/:remarkId/status')
+  @Put('/:feedbackId/status')
   @HasRole('ADMIN')
   @UsePipes(ZodValidationPipe)
   @HttpCode(HttpStatus.NO_CONTENT)
-  changeRemarkStatus(
+  changeFeedbackStatus(
     @AuthedUser() user: { id: string },
-    @Param('remarkId', ParseUUIDPipe) remarkId: string,
-    @Body() body: ChangeRemarkStatusDto,
+    @Param('feedbackId', ParseUUIDPipe) feedbackId: string,
+    @Body() body: ChangeFeedbackStatusDto,
   ): Promise<void> {
-    return this.remarks.changeRemarkStatus({
+    return this.feedbacks.changeFeedbackStatus({
       changedBy: user.id,
-      remarkId,
+      feedbackId,
       status: { comment: body.comment, value: body.status },
     });
   }

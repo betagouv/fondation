@@ -453,10 +453,10 @@ export const routes: RouteObject[] = [
           },
           {
             lazy: () =>
-              import('@/pages/spaces/admin/AdminRemarksPage').then(({ AdminRemarksPage }) => ({
-                Component: AdminRemarksPage,
+              import('@/pages/spaces/admin/AdminFeedbacksPage').then(({ AdminFeedbacksPage }) => ({
+                Component: AdminFeedbacksPage,
               })),
-            path: ROUTE_PATHS.ADMIN.REMARKS,
+            path: ROUTE_PATHS.ADMIN.FEEDBACKS,
           },
           {
             loader: () => redirect(ROUTE_PATHS.ADMIN.LIST_JOBS),

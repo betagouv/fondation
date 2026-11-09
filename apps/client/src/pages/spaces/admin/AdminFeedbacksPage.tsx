@@ -4,15 +4,15 @@ import { useCallback, useMemo } from 'react';
 import { FormattedDate, FormattedMessage, useIntl } from 'react-intl';
 import { Link } from 'react-router';
 
-import { RemarkOpenAsLink } from '@/features/remarks/components/RemarkOpenAsLink';
-import { RemarkStatusCell } from '@/features/remarks/components/RemarkStatusCell';
-import { RemarkStatusCommentModalProvider } from '@/features/remarks/components/RemarkStatusCommentModalProvider';
+import { FeedbackOpenAsLink } from '@/features/feedbacks/components/FeedbackOpenAsLink';
+import { FeedbackStatusCell } from '@/features/feedbacks/components/FeedbackStatusCell';
+import { FeedbackStatusCommentModalProvider } from '@/features/feedbacks/components/FeedbackStatusCommentModalProvider';
 import { PinnedHeader } from '@/shared/components/pinned-header';
 import {
-  REMARK_STATUSES,
-  type RemarkStatusEnum,
-  RemarkStatusEnumMessages,
-} from '@/shared/enums/remark-status.enum';
+  FEEDBACK_STATUSES,
+  type FeedbackStatusEnum,
+  FeedbackStatusEnumMessages,
+} from '@/shared/enums/feedback-status.enum';
 import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import {
@@ -22,48 +22,48 @@ import {
   rowCell,
   useDataTableUrlState,
 } from '@/shared/ui/data-table';
-import type { ListedRemarksDto } from '@api/types';
-import { type RemarksSorting, useInfiniteRemarksQuery } from '@queries/remarks.queries';
+import type { ListedFeedbacksDto } from '@api/types';
+import { type FeedbacksSorting, useInfiniteFeedbacksQuery } from '@queries/feedbacks.queries';
 
-type ListedRemark = ListedRemarksDto['items'][number];
+type ListedFeedback = ListedFeedbacksDto['items'][number];
 
-const h = createColumnHelper<ListedRemark>();
+const h = createColumnHelper<ListedFeedback>();
 
-const sentAtCell = rowCell<ListedRemark>((remark) => (
-  <FormattedDate format="zonedDateShort" value={remark.sentAt} />
+const sentAtCell = rowCell<ListedFeedback>((feedback) => (
+  <FormattedDate format="zonedDateShort" value={feedback.sentAt} />
 ));
 
-const authorCell = rowCell<ListedRemark>((remark) => (
+const authorCell = rowCell<ListedFeedback>((feedback) => (
   <div className="flex flex-col">
-    {remark.author?.name}
-    {remark.impersonated && (
+    {feedback.author?.name}
+    {feedback.impersonated && (
       <span className="text-xs text-(--text-mention-grey)">
         <FormattedMessage
           defaultMessage="Envoyé en tant que {name}"
-          values={{ name: remark.impersonated.name }}
+          values={{ name: feedback.impersonated.name }}
         />
       </span>
     )}
   </div>
 ));
 
-const textCell = rowCell<ListedRemark>((remark) => (
-  <div className="wrap-break-word whitespace-pre-line">{remark.text}</div>
+const textCell = rowCell<ListedFeedback>((feedback) => (
+  <div className="wrap-break-word whitespace-pre-line">{feedback.text}</div>
 ));
 
 // a flex item would turn the link into a block, underlined under its last line only
-const urlCell = rowCell<ListedRemark>((remark) => (
+const urlCell = rowCell<ListedFeedback>((feedback) => (
   <div className="break-all">
-    {remark.openAs ? (
-      <RemarkOpenAsLink account={remark.openAs} url={remark.url} />
+    {feedback.openAs ? (
+      <FeedbackOpenAsLink account={feedback.openAs} url={feedback.url} />
     ) : (
       <Link
         className="box-decoration-clone after:hidden!"
         rel="noopener noreferrer"
         target="_blank"
-        to={remark.url}
+        to={feedback.url}
       >
-        {remark.url}
+        {feedback.url}
         <span className="fr-sr-only">
           <FormattedMessage defaultMessage="(nouvel onglet)" />
         </span>
@@ -72,9 +72,9 @@ const urlCell = rowCell<ListedRemark>((remark) => (
   </div>
 ));
 
-const statusCell = rowCell<ListedRemark>((remark) => <RemarkStatusCell remark={remark} />);
+const statusCell = rowCell<ListedFeedback>((feedback) => <FeedbackStatusCell feedback={feedback} />);
 
-function useRemarkColumns() {
+function useFeedbackColumns() {
   const { formatMessage } = useIntl();
 
   return useMemo(
@@ -117,9 +117,9 @@ function useRemarkColumns() {
             filterId: 'status',
             label: formatMessage({ defaultMessage: 'Statut' }),
             type: 'enum',
-            values: REMARK_STATUSES.map((id) => ({
+            values: FEEDBACK_STATUSES.map((id) => ({
               id,
-              label: formatMessage(RemarkStatusEnumMessages[id]),
+              label: formatMessage(FeedbackStatusEnumMessages[id]),
             })),
           },
         },
@@ -130,14 +130,14 @@ function useRemarkColumns() {
   );
 }
 
-export function AdminRemarksPage() {
+export function AdminFeedbacksPage() {
   const { formatMessage } = useIntl();
   const breadcrumbRoot = useBreadcrumbRoot();
   const { onColumnFiltersChange, onSortingChange, tableState } = useDataTableUrlState({
-    columnFilters: [] as { id: 'status'; value: RemarkStatusEnum[] }[],
-    sorting: [] as RemarksSorting,
+    columnFilters: [] as { id: 'status'; value: FeedbackStatusEnum[] }[],
+    sorting: [] as FeedbacksSorting,
   });
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useInfiniteRemarksQuery({
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useInfiniteFeedbacksQuery({
     filters: { statuses: tableState.columnFilters.find(({ id }) => id === 'status')?.value },
     sorting: tableState.sorting,
   });
@@ -146,13 +146,13 @@ export function AdminRemarksPage() {
     if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
-  const columns = useRemarkColumns();
+  const columns = useFeedbackColumns();
   const isFiltered = tableState.columnFilters.some(({ value }) => value.length > 0);
 
-  const remarks = useMemo(() => data?.items ?? [], [data]);
+  const feedbacks = useMemo(() => data?.items ?? [], [data]);
   const table = useReactTable({
     columns,
-    data: remarks,
+    data: feedbacks,
     getCoreRowModel: getCoreRowModel(),
     getRowId: (row) => row.id,
     manualFiltering: true,
@@ -179,7 +179,7 @@ export function AdminRemarksPage() {
             <div className="flex items-center justify-between gap-4">
               <h1 className="fr-h3 fr-mb-0">
                 <FormattedMessage defaultMessage="Traiter les retours utilisateurs" />
-                {data && <DataTableCount loaded={remarks.length} total={data.totalCount} />}
+                {data && <DataTableCount loaded={feedbacks.length} total={data.totalCount} />}
               </h1>
             </div>
             <DataTableFilters table={table} />
@@ -188,7 +188,7 @@ export function AdminRemarksPage() {
         contentClassName="flex flex-col gap-y-6"
         pinnedBarClassName="fr-pt-6v"
       >
-        <RemarkStatusCommentModalProvider>
+        <FeedbackStatusCommentModalProvider>
           <DataTable
             ariaLabel={formatMessage({ defaultMessage: 'Liste des retours' })}
             emptyLabel={
@@ -202,7 +202,7 @@ export function AdminRemarksPage() {
             scrollsWithPage
             table={table}
           />
-        </RemarkStatusCommentModalProvider>
+        </FeedbackStatusCommentModalProvider>
       </PinnedHeader>
     </div>
   );

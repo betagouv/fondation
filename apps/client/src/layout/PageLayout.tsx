@@ -1,6 +1,6 @@
 import type { PropsWithChildren } from 'react';
 
-import { RemarkButton } from '@/features/remarks/components/RemarkButton';
+import { FeedbackButton } from '@/features/feedbacks/components/FeedbackButton';
 import { SurveyInvitation } from '@/features/survey/components/SurveyInvitation';
 import { BanneredLayout } from '@/shared/components/banners';
 import { ArchivedSessionProvider } from '@/shared/context/archived-session';
@@ -27,7 +27,7 @@ export function PageLayout({ children }: PropsWithChildren) {
                 <FloatingActionsStack />
                 <AppFooter />
               </div>
-              <RemarkButton />
+              <FeedbackButton />
             </FloatingActionsProvider>
           </BanneredLayout>
         </ArchivedSessionProvider>

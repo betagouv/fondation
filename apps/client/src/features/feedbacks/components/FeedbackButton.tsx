@@ -7,12 +7,12 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { FloatingAction } from '@/shared/context/floating-actions';
 import { useToasts } from '@/shared/ui/toast';
 import { useUser } from '@queries/auth.queries';
-import { useSendRemarkMutation } from '@queries/remarks.queries';
+import { useSendFeedbackMutation } from '@queries/feedbacks.queries';
 
-function RemarkForm() {
+function FeedbackForm() {
   const { formatMessage } = useIntl();
   const toasts = useToasts();
-  const send = useSendRemarkMutation();
+  const send = useSendFeedbackMutation();
   const panelId = useId();
   const titleId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
@@ -157,10 +157,10 @@ function RemarkForm() {
   );
 }
 
-export function RemarkButton() {
+export function FeedbackButton() {
   const { user } = useUser();
 
   if (!user) return null;
 
-  return <RemarkForm />;
+  return <FeedbackForm />;
 }

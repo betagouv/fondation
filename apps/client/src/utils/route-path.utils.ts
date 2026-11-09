@@ -7,11 +7,11 @@ export const ROUTE_PATHS = {
   ACCOUNT: '/mon-compte',
   ADMIN: {
     DETAILS_JOB: '/admin/ingestions/:jobId',
+    FEEDBACKS: '/admin/retours',
     HELP: '/admin/aide',
     INGEST_LODAM: '/admin/lodam',
     INGEST_LOLFI: '/admin/lolfi',
     LIST_JOBS: '/admin/ingestions',
-    REMARKS: '/admin/remarques',
     ROOT: '/admin',
     SURVEYS: '/admin/avis',
     USERS: '/admin/utilisateurs',

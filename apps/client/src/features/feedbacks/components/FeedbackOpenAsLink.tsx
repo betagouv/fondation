@@ -5,8 +5,8 @@ import { useToasts } from '@/shared/ui/toast';
 import { tabImpersonation } from '@/utils/tab-impersonation';
 import { useImpersonateMutation } from '@queries/auth.queries';
 
-/** reopens the page of a remark as the account it was seen from, the impersonation banner included */
-export function RemarkOpenAsLink(props: { account: { id: string; name: string }; url: string }) {
+/** reopens the page of a feedback as the account it was seen from, the impersonation banner included */
+export function FeedbackOpenAsLink(props: { account: { id: string; name: string }; url: string }) {
   const { formatMessage } = useIntl();
   const tab = useTab();
   const toasts = useToasts();

@@ -3,22 +3,22 @@ import userEvent from '@testing-library/user-event';
 import { IntlProvider } from 'react-intl';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ListedRemarksDto } from '@api/types';
+import type { ListedFeedbacksDto } from '@api/types';
 
-import { RemarkStatusCell } from './RemarkStatusCell';
-import { RemarkStatusCommentModalProvider } from './RemarkStatusCommentModalProvider';
+import { FeedbackStatusCell } from './FeedbackStatusCell';
+import { FeedbackStatusCommentModalProvider } from './FeedbackStatusCommentModalProvider';
 
 const mutate = vi.fn();
 
-vi.mock('@queries/remarks.queries', () => ({
-  useChangeRemarkStatusMutation: () => ({ isPending: false, mutate }),
+vi.mock('@queries/feedbacks.queries', () => ({
+  useChangeFeedbackStatusMutation: () => ({ isPending: false, mutate }),
 }));
 vi.mock('@/shared/ui/toast', () => ({ useToasts: () => ({ error: vi.fn() }) }));
 
-function renderCell(status: ListedRemarksDto['items'][number]['status']) {
-  const remark = {
+function renderCell(status: ListedFeedbacksDto['items'][number]['status']) {
+  const feedback = {
     author: null,
-    id: 'remark-1',
+    id: 'feedback-1',
     impersonated: null,
     openAs: null,
     sentAt: '2026-11-02T16:01:00.000Z',
@@ -28,18 +28,18 @@ function renderCell(status: ListedRemarksDto['items'][number]['status']) {
   };
   render(
     <IntlProvider defaultLocale="fr" locale="fr">
-      <RemarkStatusCommentModalProvider>
-        <RemarkStatusCell remark={remark} />
-      </RemarkStatusCommentModalProvider>
+      <FeedbackStatusCommentModalProvider>
+        <FeedbackStatusCell feedback={feedback} />
+      </FeedbackStatusCommentModalProvider>
     </IntlProvider>,
   );
   return userEvent.setup();
 }
 
-describe('RemarkStatusCell', () => {
+describe('FeedbackStatusCell', () => {
   beforeEach(() => mutate.mockReset());
 
-  it('asks for an optional comment when dismissing a remark', async () => {
+  it('asks for an optional comment when dismissing a feedback', async () => {
     const user = renderCell({ changedAt: null, changedBy: null, comment: null, value: 'NEW' });
 
     await user.click(screen.getByRole('button', { name: /Statut du retour/ }));
@@ -48,12 +48,12 @@ describe('RemarkStatusCell', () => {
     await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
 
     expect(mutate).toHaveBeenCalledWith(
-      { comment: 'Déjà prévu', remarkId: 'remark-1', status: 'DISMISSED' },
+      { comment: 'Déjà prévu', feedbackId: 'feedback-1', status: 'DISMISSED' },
       expect.anything(),
     );
   });
 
-  it('sets a remark back to new without asking anything', async () => {
+  it('sets a feedback back to new without asking anything', async () => {
     const user = renderCell({
       changedAt: '2026-11-02T16:01:00.000Z',
       changedBy: { id: 'admin', name: 'Marie DUPONT' },
@@ -66,7 +66,7 @@ describe('RemarkStatusCell', () => {
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(mutate).toHaveBeenCalledWith(
-      { comment: null, remarkId: 'remark-1', status: 'NEW' },
+      { comment: null, feedbackId: 'feedback-1', status: 'NEW' },
       expect.anything(),
     );
   });
@@ -89,7 +89,7 @@ describe('RemarkStatusCell', () => {
     await user.click(screen.getByRole('button', { name: 'Enregistrer' }));
 
     expect(mutate).toHaveBeenCalledWith(
-      { comment: 'Déjà prévu dans FON-650', remarkId: 'remark-1', status: 'DISMISSED' },
+      { comment: 'Déjà prévu dans FON-650', feedbackId: 'feedback-1', status: 'DISMISSED' },
       expect.anything(),
     );
   });

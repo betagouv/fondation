@@ -10,8 +10,8 @@ import { Sortable } from '../../../framework/sorting';
 import { prismaRoleEnumToRoleEnum } from '../../../shared/mappers/role-enum.mapper';
 import { userStatusOf } from '../../../shared/user-status.enum';
 import { AuthUser } from '../../../simple-auth/domain/auth-user';
-import { REMARK_STATUSES, type RemarkStatus } from '../../domain/remark';
-import type { ListRemarksQueryDto } from '../remark.dto';
+import { FEEDBACK_STATUSES, type FeedbackStatus } from '../../domain/feedback';
+import type { ListFeedbacksQueryDto } from '../feedback.dto';
 
 const PERSON = { select: { firstName: true, id: true, lastName: true } satisfies Prisma.UserSelect } as const;
 const ACCOUNT = {
@@ -25,29 +25,29 @@ const ACCOUNT = {
 } as const;
 
 @Injectable()
-export class ListRemarksQuery {
+export class ListFeedbacksQuery {
   constructor(private readonly db: Db) {}
 
   @Transactional()
   async handle(query: {
     pagination: Pagination;
-    sorting: Sortable<ListRemarksQueryDto>;
-    statuses: readonly RemarkStatus[];
-  }): Promise<ListedRemarksDto> {
+    sorting: Sortable<ListFeedbacksQueryDto>;
+    statuses: readonly FeedbackStatus[];
+  }): Promise<ListedFeedbacksDto> {
     const { limit, page } = query.pagination;
     const { sortBy, sortDesc } = query.sorting;
     const direction: Prisma.SortOrder = sortDesc ? 'desc' : 'asc';
     // the most recent first, by default and within a status
-    const orderBy: Prisma.RemarkOrderByWithRelationInput[] = [
+    const orderBy: Prisma.FeedbackOrderByWithRelationInput[] = [
       ...(sortBy === 'status' ? [{ status: direction }] : []),
       { sentAt: sortBy === 'sentAt' ? direction : 'desc' },
       { id: 'asc' },
     ];
     const where = {
       status: query.statuses.length > 0 ? { in: [...query.statuses] } : undefined,
-    } satisfies Prisma.RemarkWhereInput;
-    const totalCount = await this.db.tx.remark.count({ where });
-    const remarks = await this.db.tx.remark.findMany({
+    } satisfies Prisma.FeedbackWhereInput;
+    const totalCount = await this.db.tx.feedback.count({ where });
+    const feedbacks = await this.db.tx.feedback.findMany({
       orderBy,
       select: {
         author: ACCOUNT,
@@ -60,27 +60,27 @@ export class ListRemarksQuery {
         statusComment: true,
         text: true,
         url: true,
-      } satisfies Prisma.RemarkSelect,
+      } satisfies Prisma.FeedbackSelect,
       skip: (page - 1) * limit,
       take: limit,
       where,
     });
 
     return paginate({
-      items: remarks.map((remark) => ({
-        author: writerOf(remark.author),
-        id: remark.id,
-        impersonated: writerOf(remark.impersonated),
-        openAs: openableAs(remark.impersonated ?? remark.author),
-        sentAt: remark.sentAt.toISOString(),
+      items: feedbacks.map((feedback) => ({
+        author: writerOf(feedback.author),
+        id: feedback.id,
+        impersonated: writerOf(feedback.impersonated),
+        openAs: openableAs(feedback.impersonated ?? feedback.author),
+        sentAt: feedback.sentAt.toISOString(),
         status: {
-          changedAt: remark.statusChangedAt?.toISOString() ?? null,
-          changedBy: writerOf(remark.statusChangedBy),
-          comment: remark.statusComment,
-          value: remark.status,
+          changedAt: feedback.statusChangedAt?.toISOString() ?? null,
+          changedBy: writerOf(feedback.statusChangedBy),
+          comment: feedback.statusComment,
+          value: feedback.status,
         },
-        text: remark.text,
-        url: remark.url,
+        text: feedback.text,
+        url: feedback.url,
       })),
       pagination: query.pagination,
       totalCount,
@@ -100,7 +100,7 @@ function openableAs(account: {
   return AuthUser.canBeImpersonated({ role, status: userStatusOf(account) }) ? writerOf(account) : null;
 }
 
-const ListedRemarkSchema = z.object({
+const ListedFeedbackSchema = z.object({
   author: writerSchema,
   id: z.string(),
   impersonated: writerSchema,
@@ -110,10 +110,10 @@ const ListedRemarkSchema = z.object({
     changedAt: z.iso.datetime().nullable(),
     changedBy: writerSchema,
     comment: z.string().nullable(),
-    value: z.enum(REMARK_STATUSES),
+    value: z.enum(FEEDBACK_STATUSES),
   }),
   text: z.string(),
   url: z.string(),
 });
 
-export class ListedRemarksDto extends createPaginatedZodDto(ListedRemarkSchema) {}
+export class ListedFeedbacksDto extends createPaginatedZodDto(ListedFeedbackSchema) {}

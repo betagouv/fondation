@@ -115,7 +115,7 @@ export const AppHeader = () => {
         ROUTE_PATHS.ADMIN.USERS,
         ROUTE_PATHS.ADMIN.USER_DETAIL,
         ROUTE_PATHS.ADMIN.SURVEYS,
-        ROUTE_PATHS.ADMIN.REMARKS,
+        ROUTE_PATHS.ADMIN.FEEDBACKS,
         ROUTE_PATHS.ADMIN.HELP,
       ]),
       menuLinks: [
@@ -170,8 +170,8 @@ export const AppHeader = () => {
           ),
         },
         {
-          isActive: routeMatches([ROUTE_PATHS.ADMIN.REMARKS]),
-          linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.REMARKS, viewTransition: true },
+          isActive: routeMatches([ROUTE_PATHS.ADMIN.FEEDBACKS]),
+          linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.FEEDBACKS, viewTransition: true },
           text: (
             <span className={clsx('fr-icon-question-answer-line', NAV_ICON_CLASS)}>
               {formatMessage({ defaultMessage: 'Traiter les retours utilisateurs' })}

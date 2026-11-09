@@ -1,33 +1,33 @@
 import { useCallback, useMemo, type ReactNode } from 'react';
 
-import type { RemarkStatusEnum } from '@/shared/enums/remark-status.enum';
+import type { FeedbackStatusEnum } from '@/shared/enums/feedback-status.enum';
 import { useAwaitableModal } from '@/shared/hooks/useAwaitableModal';
 
-import { RemarkStatusCommentModal } from './RemarkStatusCommentModal';
+import { FeedbackStatusCommentModal } from './FeedbackStatusCommentModal';
 import {
-  RemarkStatusCommentModalContext,
-  type RemarkStatusCommentEvent,
-} from './RemarkStatusCommentModalContext';
+  FeedbackStatusCommentModalContext,
+  type FeedbackStatusCommentEvent,
+} from './FeedbackStatusCommentModalContext';
 
-type RemarkStatusCommentQuestion = { comment: string | null; status: RemarkStatusEnum };
+type FeedbackStatusCommentQuestion = { comment: string | null; status: FeedbackStatusEnum };
 
-export function RemarkStatusCommentModalProvider(props: { children: ReactNode }) {
+export function FeedbackStatusCommentModalProvider(props: { children: ReactNode }) {
   const { answer, ask, forget, state } = useAwaitableModal<
-    RemarkStatusCommentQuestion,
-    RemarkStatusCommentEvent
+    FeedbackStatusCommentQuestion,
+    FeedbackStatusCommentEvent
   >({ type: 'drop' });
 
   const waitForStatusComment = useCallback(
-    (status: RemarkStatusEnum, comment: string | null) => ask({ comment, status }),
+    (status: FeedbackStatusEnum, comment: string | null) => ask({ comment, status }),
     [ask],
   );
 
   const value = useMemo(() => ({ waitForStatusComment }), [waitForStatusComment]);
 
   return (
-    <RemarkStatusCommentModalContext value={value}>
+    <FeedbackStatusCommentModalContext value={value}>
       {state.status !== 'idle' && (
-        <RemarkStatusCommentModal
+        <FeedbackStatusCommentModal
           comment={state.question.comment}
           key={state.id}
           onClosed={forget}
@@ -39,6 +39,6 @@ export function RemarkStatusCommentModalProvider(props: { children: ReactNode })
       )}
 
       {props.children}
-    </RemarkStatusCommentModalContext>
+    </FeedbackStatusCommentModalContext>
   );
 }
