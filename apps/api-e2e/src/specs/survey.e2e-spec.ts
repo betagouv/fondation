@@ -11,16 +11,16 @@ const MEMBER_ANSWERS = {
 
 test.describe('Survey E2E', () => {
   test('a member answers the survey, then answers it again', async ({ member, expect }) => {
-    const found = await member.survey.findSurvey();
+    const found = await member.surveys.findSurvey();
     expect(found.data?.survey).toEqual({ last: null, questionnaire: 'MEMBER', status: 'NOT_ANSWERED' });
 
-    const answered = await member.survey.answerSurvey({ body: MEMBER_ANSWERS });
+    const answered = await member.surveys.answerSurvey({ body: MEMBER_ANSWERS });
     expect(answered.response?.status).toBe(204);
 
-    const answeredAgain = await member.survey.answerSurvey({ body: MEMBER_ANSWERS });
+    const answeredAgain = await member.surveys.answerSurvey({ body: MEMBER_ANSWERS });
     expect(answeredAgain.response?.status).toBe(204);
 
-    const foundAgain = await member.survey.findSurvey();
+    const foundAgain = await member.surveys.findSurvey();
     expect(foundAgain.data?.survey).toEqual({
       last: { answeredOn: expect.any(Object) },
       questionnaire: 'MEMBER',
@@ -40,14 +40,14 @@ test.describe('Survey E2E', () => {
       url: '/api/feedbacks/v1/answer',
     });
     expect(answered.response?.status).toBe(204);
-    expect((await member.survey.findSurvey()).data?.survey?.status).toBe('ANSWERED');
+    expect((await member.surveys.findSurvey()).data?.survey?.status).toBe('ANSWERED');
   });
 
   test('the secretariat answers its survey', async ({ agent, expect }) => {
-    const found = await agent.survey.findSurvey();
+    const found = await agent.surveys.findSurvey();
     expect(found.data?.survey?.questionnaire).toBe('SECRETARIAT');
 
-    const answered = await agent.survey.answerSurvey({
+    const answered = await agent.surveys.answerSurvey({
       body: {
         comment: null,
         easeRating: 3,
@@ -64,10 +64,10 @@ test.describe('Survey E2E', () => {
   });
 
   test('an admin answers outside production, to test the answers and their export', async ({ admin, expect }) => {
-    const found = await admin.survey.findSurvey();
+    const found = await admin.surveys.findSurvey();
     expect(found.data?.survey).toEqual({ last: null, questionnaire: 'SECRETARIAT', status: 'TEST' });
 
-    const answered = await admin.survey.answerSurvey({ body: MEMBER_ANSWERS });
+    const answered = await admin.surveys.answerSurvey({ body: MEMBER_ANSWERS });
     expect(answered.response?.status).toBe(204);
   });
 });

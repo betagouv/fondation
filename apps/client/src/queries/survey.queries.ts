@@ -13,7 +13,7 @@ export const surveyKeys = {
 export const useSurveyQuery = () =>
   useQuery({
     queryFn: async () => {
-      const { data } = await $api.survey.findSurvey({ throwOnError: true });
+      const { data } = await $api.surveys.findSurvey({ throwOnError: true });
       return data.survey;
     },
     queryKey: surveyKeys.mine,
@@ -22,7 +22,8 @@ export const useSurveyQuery = () =>
 export function useAnswerSurveyMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (answers: AnswerSurveyDto) => $api.survey.answerSurvey({ body: answers, throwOnError: true }),
+    mutationFn: (answers: AnswerSurveyDto) =>
+      $api.surveys.answerSurvey({ body: answers, throwOnError: true }),
     onSettled: () => queryClient.invalidateQueries({ queryKey: surveyKeys.mine }),
   });
 }
@@ -30,7 +31,7 @@ export function useAnswerSurveyMutation() {
 export const useListSurveysAsExcelMutation = () =>
   useMutation({
     mutationFn: async (): Promise<void> => {
-      const { data, response } = await $api.survey.listSurveysAsExcel({ parseAs: 'blob' });
+      const { data, response } = await $api.surveys.listSurveysAsExcel({ parseAs: 'blob' });
       saveBlob(data as Blob, fileNameFromResponse(response, 'fondation-avis-utilisateurs.xlsx'));
     },
   });

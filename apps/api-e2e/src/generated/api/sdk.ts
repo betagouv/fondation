@@ -1245,7 +1245,7 @@ export class administration {
     }
 }
 
-export class survey {
+export class surveys {
     public static listSurveysAsExcel<ThrowOnError extends boolean = false>(options?: Options<ListSurveysAsExcelData, ThrowOnError>): RequestResult<ListSurveysAsExcelResponses, unknown, ThrowOnError> {
         return (options?.client ?? client).get<ListSurveysAsExcelResponses, unknown, ThrowOnError>({ url: '/api/surveys/v1/answers.xlsx', ...options });
     }

@@ -33,7 +33,7 @@ export function toRespondent(user: AuthedRespondent) {
   return { id: user.id, isAdmin: user.isAdmin, isImpersonated: !!user.impersonation, role: user.role };
 }
 
-@ApiTags('Survey')
+@ApiTags('Surveys')
 @UseInterceptors(SurveyFilter)
 @Controller('/api/surveys/v1')
 export class SurveyController {
