@@ -19,7 +19,7 @@ const TITLES = {
       defaultMessage:
         'Avec son article, ex : le Bâtonnier, la Première présidente. Le PV mentionne alors le déport de « M. le Bâtonnier FORGET ».',
     }),
-    label: defineMessage({ defaultMessage: 'Titre Déport' }),
+    label: defineMessage({ defaultMessage: 'Titre déport' }),
   },
 };
 
