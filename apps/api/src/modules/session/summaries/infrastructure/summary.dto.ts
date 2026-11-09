@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 import { isDefined } from '../../../../utils/is-defined';
 import { richTextHtml } from '../../../../utils/rich-text-html';
-import { ATTACHMENT_MAX_BYTES, FILE_MIME_TYPES } from '../../../framework/files';
+import { attachmentFiles, FILE_MIME_TYPES } from '../../../framework/files';
 
 export class CreatedSummaryDto extends createZodDto(
   z.object({
@@ -13,7 +13,7 @@ export class CreatedSummaryDto extends createZodDto(
 
 export class AttachSummaryFilesDto extends createZodDto(
   z.object({
-    files: z.array(z.file().max(ATTACHMENT_MAX_BYTES)).nonempty(),
+    files: attachmentFiles().refine((files) => files.length > 0),
   }),
 ) {}
 
