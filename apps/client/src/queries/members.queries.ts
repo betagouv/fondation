@@ -423,5 +423,9 @@ export function useWriteNominationFileMemberMemoMutation() {
           item.id === nominationFileId ? { ...item, memo: { value: memo.trim() || null } } : item,
         ),
       ),
+    // a member who became a reporter of the file is refused: the reload removes the memo from the panel,
+    // while a success, already patched above, does not refetch every loaded page
+    onError: (_error, { sessionId }) =>
+      queryClient.invalidateQueries({ queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) }),
   });
 }
