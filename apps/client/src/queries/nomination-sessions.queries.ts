@@ -376,7 +376,13 @@ export function useCreateNominationSessionFromLodamMutation() {
         throw err;
       }
     },
-    onSettled: () => queryClient.invalidateQueries({ queryKey: sessionKeys.listGdsSessions() }),
+    onSettled: () =>
+      queryClient.invalidateQueries({
+        predicate: doesQueryKey.matchesAny(
+          sessionKeys.listGdsSessions(),
+          sessionKeys.countUsersNewSessions(),
+        ),
+      }),
   });
 }
 
