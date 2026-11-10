@@ -1,11 +1,12 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import { FormattedMessage, useIntl } from 'react-intl';
 
+function scrollIntoView(element: HTMLDivElement | null) {
+  element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
 export function UploadExcelFailedAlert(props: { validationErrors?: string[] }) {
   const { formatMessage } = useIntl();
-  const setRef = (el: HTMLDivElement | null) => {
-    el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  };
 
   return (
     <Alert
@@ -22,7 +23,7 @@ export function UploadExcelFailedAlert(props: { validationErrors?: string[] }) {
           <FormattedMessage defaultMessage="Veuillez vérifier le formatage des cellules Excel ou contacter un administrateur." />
         )
       }
-      ref={setRef}
+      ref={scrollIntoView}
       severity="error"
       title={formatMessage({ defaultMessage: "Échec de l'import" })}
     />
