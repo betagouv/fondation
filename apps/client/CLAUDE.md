@@ -40,3 +40,4 @@ La synchronisation entre le client et le serveur utilise TanStack Query et le SD
   - Chaque query utilise une clé tirée d'un registre de clés déclaré en haut du fichier
   - Chaque clé doit pouvoir être identifiée pour invalider son contenu
   - Si une mutation rend une query périmée, elle l'invalide dans `onSettled` : un refus de l'API (409, 422) signale souvent que les données affichées ont changé entre-temps
+- Une page de détail affiche un message « introuvable » sur une 404 et relance toute autre erreur vers `ErrorPage` tant qu'elle n'a pas de données à montrer (voir `MemberSessionLayout` et `SessionNotFound`)

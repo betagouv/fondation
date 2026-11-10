@@ -36,7 +36,7 @@ export function useAttachSummaryFilesMutation() {
         path: { nominationFileId, sessionId },
       });
     },
-    onSuccess: (_, { nominationFileId, sessionId }) =>
+    onSettled: (_data, _error, { nominationFileId, sessionId }) =>
       queryClient.invalidateQueries({
         queryKey: summaryKeys.detailsSummary({ nominationFileId, sessionId }),
       }),
@@ -178,7 +178,7 @@ export function useUpdateSummaryReadersMutation() {
       });
     },
 
-    onSuccess: (_, { nominationFileId, sessionId }) =>
+    onSettled: (_data, _error, { nominationFileId, sessionId }) =>
       Promise.all([
         queryClient.invalidateQueries({
           queryKey: summaryKeys.detailsSummary({ nominationFileId, sessionId }),

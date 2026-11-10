@@ -6,7 +6,7 @@ import { useIntl } from 'react-intl';
 import { matchPath, useLocation } from 'react-router';
 
 import { useIsAdmin, useIsSg } from '@/features/auth/hooks/roles.hook';
-import { FeedbackHeaderButton } from '@/features/feedback/components/FeedbackHeaderButton';
+import { SurveyHeaderButton } from '@/features/survey/components/SurveyHeaderButton';
 import { HelpPageButton } from '@/pages/help/HelpPageButton';
 import { useArchivedSession } from '@/shared/context/archived-session';
 import { usePouvoirDeProposition } from '@/shared/hooks/usePouvoirDeProposition';
@@ -16,6 +16,7 @@ import { useUser } from '@queries/auth.queries';
 import { Avatar } from './Avatar';
 import { LolfiCsm } from './LolfiCsm';
 import { ManageSessionsLink } from './ManageSessionsLink';
+import { useHeaderBrand } from './useHeaderBrand';
 
 const NAV_ICON_CLASS = "before:mr-2 before:size-5! before:align-middle before:content-['']";
 
@@ -40,6 +41,7 @@ function foldMenus() {
 
 export const AppHeader = () => {
   const { formatMessage } = useIntl();
+  const brand = useHeaderBrand();
   const { pathname } = useLocation();
   const routeMatches = useRouteMatcher();
   const { user } = useUser();
@@ -132,12 +134,11 @@ export const AppHeader = () => {
       isActive: routeMatches([
         ROUTE_PATHS.ADMIN.LIST_JOBS,
         ROUTE_PATHS.ADMIN.DETAILS_JOB,
-        ROUTE_PATHS.ADMIN.INGEST_LODAM,
         ROUTE_PATHS.ADMIN.INGEST_LOLFI,
         ROUTE_PATHS.ADMIN.USERS,
         ROUTE_PATHS.ADMIN.USER_DETAIL,
+        ROUTE_PATHS.ADMIN.SURVEYS,
         ROUTE_PATHS.ADMIN.FEEDBACKS,
-        ROUTE_PATHS.ADMIN.REMARKS,
         ROUTE_PATHS.ADMIN.HELP,
       ]),
       menuLinks: [
@@ -159,20 +160,6 @@ export const AppHeader = () => {
             </span>
           ),
         },
-        // a LODAM session belongs to the GDS, unlike the LOLFI archive that also brings the magistrats and the positions
-        ...(pouvoir === 'GDS' || routeMatches([ROUTE_PATHS.ADMIN.INGEST_LODAM])
-          ? [
-              {
-                isActive: routeMatches([ROUTE_PATHS.ADMIN.INGEST_LODAM]),
-                linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.INGEST_LODAM, viewTransition: true },
-                text: (
-                  <span className={clsx('fr-icon-add-circle-line', NAV_ICON_CLASS)}>
-                    {formatMessage({ defaultMessage: 'Créer une session' })}
-                  </span>
-                ),
-              },
-            ]
-          : []),
         {
           isActive: routeMatches([ROUTE_PATHS.ADMIN.USERS, ROUTE_PATHS.ADMIN.USER_DETAIL]),
           linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.USERS, viewTransition: true },
@@ -183,8 +170,8 @@ export const AppHeader = () => {
           ),
         },
         {
-          isActive: routeMatches([ROUTE_PATHS.ADMIN.FEEDBACKS]),
-          linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.FEEDBACKS, viewTransition: true },
+          isActive: routeMatches([ROUTE_PATHS.ADMIN.SURVEYS]),
+          linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.SURVEYS, viewTransition: true },
           text: (
             <span className={clsx('fr-icon-feedback-line', NAV_ICON_CLASS)}>
               {formatMessage({ defaultMessage: 'Consulter les avis' })}
@@ -192,8 +179,8 @@ export const AppHeader = () => {
           ),
         },
         {
-          isActive: routeMatches([ROUTE_PATHS.ADMIN.REMARKS]),
-          linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.REMARKS, viewTransition: true },
+          isActive: routeMatches([ROUTE_PATHS.ADMIN.FEEDBACKS]),
+          linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.FEEDBACKS, viewTransition: true },
           text: (
             <span className={clsx('fr-icon-question-answer-line', NAV_ICON_CLASS)}>
               {formatMessage({ defaultMessage: 'Traiter les retours utilisateurs' })}
@@ -230,23 +217,16 @@ export const AppHeader = () => {
 
   return (
     <Header
-      brandTop="CSM"
+      {...brand}
       className="[view-transition-name:app-header]"
       classes={{ menu: 'lg:[&_.fr-nav>ul]:gap-2' }}
-      homeLinkProps={{ title: formatMessage({ defaultMessage: 'Accueil' }), to: '/', viewTransition: true }}
       navigation={navigation}
-      operatorLogo={{
-        alt: formatMessage({ defaultMessage: 'Conseil Supérieur de la Magistrature' }),
-        imgUrl: '/logo.png',
-        orientation: 'horizontal',
-      }}
       quickAccessItems={[
         <LolfiCsm key="header lolfi link" />,
         <HelpPageButton key="header help link" />,
-        <FeedbackHeaderButton key="header feedback link" />,
+        <SurveyHeaderButton key="header survey link" />,
         <Avatar key="header avatar" />,
       ]}
-      serviceTitle="Fondation"
     />
   );
 };

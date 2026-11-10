@@ -1,10 +1,12 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
+import Button from '@codegouvfr/react-dsfr/Button';
 import { createColumnHelper, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import clsx from 'clsx';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
-import { generatePath, Link, useLocation } from 'react-router';
+import { generatePath, Link } from 'react-router';
 
+import { useIsAdmin } from '@/features/auth/hooks/roles.hook';
 import { FormationBadge } from '@/shared/components/formation-badge';
 import { PinnedHeader } from '@/shared/components/pinned-header';
 import { FormationEnum, FormationEnumMessages } from '@/shared/enums/formation.enum';
@@ -16,9 +18,11 @@ import { capitalize } from '@/utils/string.utils';
 import type { ListedNominationSessionsDto } from '@api/types';
 import {
   type GdsSessionsSorting,
+  useCreateNominationSessionFromLodamMutation,
   useInfiniteGdsNominationSessionsQuery,
 } from '@queries/nomination-sessions.queries';
 
+import { SessionCreationModal } from './SessionCreationModal';
 import { SessionStatusBadge } from './SessionStatusBadge';
 
 type ManagedSession = ListedNominationSessionsDto['items'][number];
@@ -92,10 +96,59 @@ function useManagedSessionColumns() {
   );
 }
 
+function scrollIntoView(element: HTMLDivElement | null) {
+  element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function CreateSessionButton(props: { onCreated: (session: { id: string; name: string }) => void }) {
+  const createSession = useCreateNominationSessionFromLodamMutation();
+  const [creation, setCreation] = useState<{ open: boolean } | null>(null);
+
+  const close = () => {
+    setCreation((current) => current && { open: false });
+    createSession.reset();
+  };
+
+  return (
+    <>
+      <Button
+        className="btn-compact"
+        iconId="fr-icon-add-line"
+        onClick={() => setCreation({ open: true })}
+        priority="secondary"
+        size="small"
+      >
+        <FormattedMessage defaultMessage="Créer une session" />
+      </Button>
+      {creation ? (
+        <SessionCreationModal
+          error={createSession.error}
+          isSaving={createSession.isPending}
+          onClose={() => {
+            // a reset mutation drops its onSuccess: the session would be created without any message
+            if (!createSession.isPending) close();
+          }}
+          onClosed={() => setCreation(null)}
+          onFileChange={createSession.reset}
+          onSave={(session) =>
+            createSession.mutate(session, {
+              onSuccess: (created) => {
+                close();
+                if (created) props.onCreated({ id: created.id, name: session.name });
+              },
+            })
+          }
+          open={creation.open}
+        />
+      ) : null}
+    </>
+  );
+}
+
 export function ManageSession() {
   const { formatMessage } = useIntl();
-  const location = useLocation();
-  const successSessionImportTitle = location.state?.success ?? undefined;
+  const isUserAdmin = useIsAdmin();
+  const [createdSession, setCreatedSession] = useState<{ id: string; name: string } | null>(null);
 
   const { onColumnFiltersChange, onSortingChange, tableState } = useDataTableUrlState({
     columnFilters: [] as { id: 'formation'; value: FormationEnum[] }[],
@@ -139,22 +192,32 @@ export function ManageSession() {
         id="manage-sessions-breadcrumb"
       />
 
-      {successSessionImportTitle && (
+      {createdSession && (
         <Alert
           className="fr-mt-6v"
           closable
+          description={
+            <Link to={generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId: createdSession.id })}>
+              <FormattedMessage defaultMessage="Ouvrir la session" />
+            </Link>
+          }
+          key={createdSession.id}
+          ref={scrollIntoView}
           severity="success"
-          title={`Session «\u00A0${successSessionImportTitle}\u00A0» créée`}
+          title={`Session «\u00A0${createdSession.name}\u00A0» créée`}
         />
       )}
 
       <PinnedHeader
         bar={(isPinned) => (
           <div className={clsx('flex flex-col gap-y-6', { 'fr-container': isPinned })}>
-            <h1 className="fr-h3 fr-mb-0">
-              <FormattedMessage defaultMessage="Gérer une session" />
-              {data && <DataTableCount loaded={sessions.length} total={data.totalCount} />}
-            </h1>
+            <div className="flex items-center justify-between gap-4">
+              <h1 className="fr-h3 fr-mb-0">
+                <FormattedMessage defaultMessage="Gérer une session" />
+                {data && <DataTableCount loaded={sessions.length} total={data.totalCount} />}
+              </h1>
+              {isUserAdmin && <CreateSessionButton onCreated={setCreatedSession} />}
+            </div>
             <DataTableFilters table={table} />
           </div>
         )}

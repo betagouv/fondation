@@ -24,7 +24,7 @@ export class DetailsOfficialReportFileNoteQuery {
         note: true,
         noteEditedAt: true,
         noteEditor: { select: { firstName: true, id: true, lastName: true } },
-        noteOutdated: true,
+        noteOutdatedBy: true,
         noteStatus: true,
         recusedMembers: true,
       } satisfies Prisma.OfficialReportNominationFileSelect,

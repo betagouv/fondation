@@ -984,6 +984,7 @@ export type DetailedMemberDto = {
     };
     gender: string;
     displayTitle: string | null;
+    recusalTitle: string | null;
     excludedJurisdictions: Array<{
         id: string;
         label: string | null;
@@ -1224,7 +1225,7 @@ export type FoundSessionDocsDto = {
                 id: string;
                 name: string;
             } | null;
-            causes: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'OUTCOME' | 'RECUSAL' | 'REPORTERS' | 'SESSION_DATE'>;
+            causes: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'DESIGNATION' | 'OUTCOME' | 'RECUSAL' | 'REPORTERS' | 'SESSION_DATE'>;
             origin: 'PERSON' | 'SYSTEM';
         } | null;
         createdAt: string;
@@ -1255,7 +1256,7 @@ export type FoundSessionDocsDto = {
                 id: string;
                 name: string;
             } | null;
-            causes: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'OUTCOME' | 'RECUSAL' | 'REPORTERS' | 'SESSION_DATE'>;
+            causes: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'DESIGNATION' | 'OUTCOME' | 'RECUSAL' | 'REPORTERS' | 'SESSION_DATE'>;
             origin: 'PERSON' | 'SYSTEM';
         } | null;
         createdAt: string;
@@ -1396,7 +1397,7 @@ export type DetailedAgendaMetadata = {
             id: string;
             name: string;
         } | null;
-        systemCauses: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'OUTCOME' | 'RECUSAL' | 'REPORTERS' | 'SESSION_DATE'>;
+        systemCauses: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'DESIGNATION' | 'OUTCOME' | 'RECUSAL' | 'REPORTERS' | 'SESSION_DATE'>;
         systemUpdatedAt: string | null;
         updatedAt: string | null;
         updatedBy: {
@@ -1604,7 +1605,7 @@ export type DetailedOfficialReportMetadataDto = {
             id: string;
             name: string;
         } | null;
-        systemCauses: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'OUTCOME' | 'RECUSAL' | 'REPORTERS' | 'SESSION_DATE'>;
+        systemCauses: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'DESIGNATION' | 'OUTCOME' | 'RECUSAL' | 'REPORTERS' | 'SESSION_DATE'>;
         systemUpdatedAt: string | null;
         updatedAt: string | null;
         updatedBy: {
@@ -1612,7 +1613,7 @@ export type DetailedOfficialReportMetadataDto = {
             name: string;
         } | null;
     } | null;
-    changedSinceValidation: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'OUTCOME' | 'RECUSAL' | 'REPORTERS' | 'SESSION_DATE'>;
+    changedSinceValidation: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'DESIGNATION' | 'OUTCOME' | 'RECUSAL' | 'REPORTERS' | 'SESSION_DATE'>;
     validation: {
         at: string;
         by: {
@@ -1702,7 +1703,7 @@ export type DetailedOfficialReportDocumentDto = {
             } | null;
             generatedHtml: string | null;
             html: string | null;
-            outdated: boolean;
+            outdatedBy: 'RECUSAL' | 'DESIGNATION' | null;
         };
     } | {
         weight: number;
@@ -1739,7 +1740,7 @@ export type EditedOfficialReportFileNoteDto = {
     } | null;
     generatedHtml: string | null;
     html: string | null;
-    outdated: boolean;
+    outdatedBy: 'RECUSAL' | 'DESIGNATION' | null;
 };
 
 export type ListedPresentedPlansDto = {
@@ -1815,7 +1816,7 @@ export type DetailedPresentationPlanMetadataDto = {
             id: string;
             name: string;
         } | null;
-        systemCauses: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'OUTCOME' | 'RECUSAL' | 'REPORTERS' | 'SESSION_DATE'>;
+        systemCauses: Array<'AGENDA_DATE' | 'AGENDA_PROPOSITIONS' | 'AGENDA_TEXT' | 'DESIGNATION' | 'OUTCOME' | 'RECUSAL' | 'REPORTERS' | 'SESSION_DATE'>;
         systemUpdatedAt: string | null;
         updatedAt: string | null;
         updatedBy: {
@@ -2529,8 +2530,8 @@ export type RegisteredUserDto = {
     id: string;
 };
 
-export type FoundFeedbackDto = {
-    feedback: {
+export type FoundSurveyDto = {
+    survey: {
         last: {
             answeredOn: {
                 year: number;
@@ -2543,7 +2544,7 @@ export type FoundFeedbackDto = {
     } | null;
 };
 
-export type AnswerFeedbackDto = {
+export type AnswerSurveyDto = {
     comment: string | null;
     easeRating: number;
     member: {
@@ -2591,7 +2592,7 @@ export type WriteHelpPageContentDto = {
     content: string;
 };
 
-export type ListedRemarksDto = {
+export type ListedFeedbacksDto = {
     items: Array<{
         author: {
             id: string;
@@ -2614,7 +2615,7 @@ export type ListedRemarksDto = {
                 name: string;
             } | null;
             comment: string | null;
-            value: 'NEW' | 'PROCESSED' | 'DISMISSED';
+            value: 'NEW' | 'ACKNOWLEDGED' | 'PROCESSED' | 'DISMISSED';
         };
         text: string;
         url: string;
@@ -2629,14 +2630,14 @@ export type ListedRemarksDto = {
     };
 };
 
-export type SendRemarkDto = {
+export type SendFeedbackDto = {
     text: string;
     url: string;
 };
 
-export type ChangeRemarkStatusDto = {
+export type ChangeFeedbackStatusDto = {
     comment: string | null;
-    status: 'NEW' | 'PROCESSED' | 'DISMISSED';
+    status: 'NEW' | 'ACKNOWLEDGED' | 'PROCESSED' | 'DISMISSED';
 };
 
 export type GetFileByFileUrlData = {
@@ -5485,42 +5486,57 @@ export type DeactivateResponses = {
 
 export type DeactivateResponse = DeactivateResponses[keyof DeactivateResponses];
 
-export type ListFeedbacksAsExcelData = {
-    body?: never;
-    path?: never;
+export type UpdateRecusalTitle2Data = {
+    body: UpdateUserRecusalTitleDto;
+    path: {
+        userId: string;
+    };
     query?: never;
-    url: '/api/feedbacks/v1/answers.xlsx';
+    url: '/api/members/v1/{userId}/recusal-title';
 };
 
-export type ListFeedbacksAsExcelResponses = {
-    200: unknown;
-};
-
-export type FindFeedbackData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/feedbacks/v1/mine';
-};
-
-export type FindFeedbackResponses = {
-    200: FoundFeedbackDto;
-};
-
-export type FindFeedbackResponse = FindFeedbackResponses[keyof FindFeedbackResponses];
-
-export type AnswerFeedbackData = {
-    body: AnswerFeedbackDto;
-    path?: never;
-    query?: never;
-    url: '/api/feedbacks/v1/answer';
-};
-
-export type AnswerFeedbackResponses = {
+export type UpdateRecusalTitle2Responses = {
     204: void;
 };
 
-export type AnswerFeedbackResponse = AnswerFeedbackResponses[keyof AnswerFeedbackResponses];
+export type UpdateRecusalTitle2Response = UpdateRecusalTitle2Responses[keyof UpdateRecusalTitle2Responses];
+
+export type ListSurveysAsExcelData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/surveys/v1/answers.xlsx';
+};
+
+export type ListSurveysAsExcelResponses = {
+    200: unknown;
+};
+
+export type FindSurveyData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/surveys/v1/mine';
+};
+
+export type FindSurveyResponses = {
+    200: FoundSurveyDto;
+};
+
+export type FindSurveyResponse = FindSurveyResponses[keyof FindSurveyResponses];
+
+export type AnswerSurveyData = {
+    body: AnswerSurveyDto;
+    path?: never;
+    query?: never;
+    url: '/api/surveys/v1/answer';
+};
+
+export type AnswerSurveyResponses = {
+    204: void;
+};
+
+export type AnswerSurveyResponse = AnswerSurveyResponses[keyof AnswerSurveyResponses];
 
 export type DetailHelpPageData = {
     body?: never;
@@ -5580,12 +5596,12 @@ export type DetailReaderHelpPageResponses = {
 
 export type DetailReaderHelpPageResponse = DetailReaderHelpPageResponses[keyof DetailReaderHelpPageResponses];
 
-export type ListRemarksData = {
+export type ListFeedbacksData = {
     body?: never;
     path?: never;
     query?: {
         sortBy?: 'sentAt' | 'status';
-        statuses?: Array<'NEW' | 'PROCESSED' | 'DISMISSED'>;
+        statuses?: Array<'NEW' | 'ACKNOWLEDGED' | 'PROCESSED' | 'DISMISSED'>;
         /**
          * true
          */
@@ -5593,39 +5609,39 @@ export type ListRemarksData = {
         page?: number;
         limit?: number;
     };
-    url: '/api/remarks/v1';
+    url: '/api/feedbacks/v1';
 };
 
-export type ListRemarksResponses = {
-    200: ListedRemarksDto;
+export type ListFeedbacksResponses = {
+    200: ListedFeedbacksDto;
 };
 
-export type ListRemarksResponse = ListRemarksResponses[keyof ListRemarksResponses];
+export type ListFeedbacksResponse = ListFeedbacksResponses[keyof ListFeedbacksResponses];
 
-export type SendRemarkData = {
-    body: SendRemarkDto;
+export type SendFeedbackData = {
+    body: SendFeedbackDto;
     path?: never;
     query?: never;
-    url: '/api/remarks/v1';
+    url: '/api/feedbacks/v1';
 };
 
-export type SendRemarkResponses = {
+export type SendFeedbackResponses = {
     204: void;
 };
 
-export type SendRemarkResponse = SendRemarkResponses[keyof SendRemarkResponses];
+export type SendFeedbackResponse = SendFeedbackResponses[keyof SendFeedbackResponses];
 
-export type ChangeRemarkStatusData = {
-    body: ChangeRemarkStatusDto;
+export type ChangeFeedbackStatusData = {
+    body: ChangeFeedbackStatusDto;
     path: {
-        remarkId: string;
+        feedbackId: string;
     };
     query?: never;
-    url: '/api/remarks/v1/{remarkId}/status';
+    url: '/api/feedbacks/v1/{feedbackId}/status';
 };
 
-export type ChangeRemarkStatusResponses = {
+export type ChangeFeedbackStatusResponses = {
     204: void;
 };
 
-export type ChangeRemarkStatusResponse = ChangeRemarkStatusResponses[keyof ChangeRemarkStatusResponses];
+export type ChangeFeedbackStatusResponse = ChangeFeedbackStatusResponses[keyof ChangeFeedbackStatusResponses];

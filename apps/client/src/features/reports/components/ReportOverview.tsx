@@ -3,6 +3,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { Navigate } from 'react-router';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
+import { ObservationsCard } from '@/features/observations/components/ObservationsCard';
 import { AuditionAnnouncedBanner, AuditionScheduledBanner } from '@/shared/components/audition-banner';
 import { ArchiveBannerPortal } from '@/shared/components/banners';
 import { RecusedReporterBanner } from '@/shared/components/recused-reporter-banner';
@@ -140,19 +141,27 @@ export function ReportOverview({ id }: { id: string }) {
           />
         }
         identity={
-          <ReportMagistratCard
-            report={{
-              biography: nominationFile.content.historique,
-              birthDate: nominationFile.content.dateDeNaissance,
-              currentPosition: nominationFile.content.posteActuel,
-              grade: nominationFile.content.grade,
-              missingEvaluation: nominationFile.missingEvaluation,
-              positionStartDate: nominationFile.content.datePriseDeFonctionPosteActuel,
-              rank: nominationFile.content.rang,
-              targetedGrade: nominationFile.content.gradeCible,
-              targetedPosition: nominationFile.content.posteCible,
-            }}
-          />
+          <>
+            <ReportMagistratCard
+              report={{
+                biography: nominationFile.content.historique,
+                birthDate: nominationFile.content.dateDeNaissance,
+                currentPosition: nominationFile.content.posteActuel,
+                grade: nominationFile.content.grade,
+                missingEvaluation: nominationFile.missingEvaluation,
+                positionStartDate: nominationFile.content.datePriseDeFonctionPosteActuel,
+                rank: nominationFile.content.rang,
+                targetedGrade: nominationFile.content.gradeCible,
+                targetedPosition: nominationFile.content.posteCible,
+              }}
+            />
+            <ObservationsCard
+              magistratName={nominationFile.content.nomMagistrat}
+              nominationFileId={retrievedReport.nominationFileId}
+              observers={nominationFile.content.observants}
+              sessionId={retrievedReport.sessionId}
+            />
+          </>
         }
         navigation={<ReportNavigation reportId={id} sessionId={retrievedReport.sessionId} />}
         wideIdentity

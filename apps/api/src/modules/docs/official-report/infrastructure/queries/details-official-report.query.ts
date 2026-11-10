@@ -37,7 +37,9 @@ export class DetailsOfficialReportQuery {
       select: {
         ...DRAFT_TRACE_SELECT,
         _count: {
-          select: { nominationFiles: { where: { OR: [{ htmlOutdated: true }, { noteOutdated: true }] } } },
+          select: {
+            nominationFiles: { where: { OR: [{ htmlOutdated: true }, { noteOutdatedBy: { not: null } }] } },
+          },
         },
         chairmanId: true,
         createdBy: true,

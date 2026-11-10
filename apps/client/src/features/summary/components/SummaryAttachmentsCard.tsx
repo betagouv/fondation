@@ -7,7 +7,8 @@ import { FileList, FileListItem } from '@/shared/components/file-list';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { useAttachmentFailureToast } from '@/shared/hooks/useAttachmentFailureToast';
 import { DetailsCard } from '@/shared/ui/details';
-import { Upload } from '@/shared/ui/upload';
+import { AttachmentFormatsHint, Upload } from '@/shared/ui/upload';
+import { ATTACHMENT_FILE_TYPES } from '@/shared/ui/upload/file-types';
 import type { DetailedSummaryDto } from '@api/types';
 import { useDownloadFileMutation } from '@queries/files.queries';
 import {
@@ -65,9 +66,10 @@ function SummaryAttachmentInput() {
   return (
     <div className="fr-mt-6v">
       <Upload
+        accept={ATTACHMENT_FILE_TYPES}
         clearOnChange
         disabled={summary.isArchived}
-        hint={<FormattedMessage defaultMessage="Tout type de fichier supporté" />}
+        hint={<AttachmentFormatsHint />}
         isPending={isPending}
         multiple
         onChange={(files) => files.length > 0 && attach(files)}

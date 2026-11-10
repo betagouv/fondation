@@ -69,7 +69,7 @@ Un Membre ne voit les auditions d'une session qu'une fois publiées.
 
 ### Espace Secrétariat général
 
-L'accueil propose les deux pouvoirs de proposition. Le menu garde partout Rechercher un magistrat. Depuis le GDS, il y ajoute Gérer une session, Restitutions, Gérer les membres et Archives. Depuis le CSM, il y ajoute Veille des postes, Appels à candidature, Processus de sélection et Membres. Le logo ramène à l'accueil. L'Administrateur y voit en plus un sous-menu Administration, dont l'entrée Créer une session n'apparaît que depuis le GDS.
+L'accueil propose les deux pouvoirs de proposition. Le menu garde partout Rechercher un magistrat. Depuis le GDS, il y ajoute Gérer une session, Restitutions, Gérer les membres et Archives. Depuis le CSM, il y ajoute Veille des postes, Appels à candidature, Processus de sélection et Membres. Le logo ramène à l'accueil. L'Administrateur y voit en plus un sous-menu Administration. Sur Gérer une session, il peut aussi créer une session depuis une extraction Lodam.
 
 | URL                                                                                              | Vue                                                             | Membre | Secrétariat général | Administrateur |
 | ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------- | ------ | ------------------- | -------------- |
@@ -113,11 +113,10 @@ L'accueil propose les deux pouvoirs de proposition. Le menu garde partout Recher
 | URL                           | Vue                                                                                                                                  | Membre | Secrétariat général | Administrateur |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ------ | ------------------- | -------------- |
 | `/admin/lolfi`                | Import d'une archive Lolfi                                                                                                           | —      | —                   | ✓              |
-| `/admin/lodam`                | Création d'une session à partir d'un fichier Lodam                                                                                   | —      | —                   | ✓              |
 | `/admin/ingestions`           | Liste des traitements en arrière-plan                                                                                                | —      | —                   | ✓              |
 | `/admin/ingestions/:jobId`    | Détail d'un traitement                                                                                                               | —      | —                   | ✓              |
 | `/admin/avis`                 | Export des réponses au questionnaire                                                                                                 | —      | —                   | ✓              |
-| `/admin/remarques`            | Liste des remarques et suivi de leur statut                                                                                          | —      | —                   | ✓              |
+| `/admin/retours`              | Liste des retours et suivi de leur statut                                                                                            | —      | —                   | ✓              |
 | `/admin/aide`                 | Édition des pages d'aide                                                                                                             | —      | —                   | ✓              |
 | `/admin/utilisateurs`         | Liste des utilisateurs                                                                                                               | —      | —                   | ✓              |
 | `/admin/utilisateurs/:userId` | Fiche d'un utilisateur : nom, prénom, e-mail, mot de passe, rôle, titre, droit d'administrateur, désactivation, connexion à sa place | —      | —                   | ✓              |
@@ -134,15 +133,15 @@ Le préfixe `/api` est omis.
 | Se déconnecter                                 | `POST /auth/v2/logout`                       | ✓                        | ✓                        | ✓                        |
 | Changer son mot de passe                       | `PUT /auth/v2/password`                      | ✓                        | ✓                        | ✓                        |
 | Se connecter à la place d'un utilisateur       | `POST /auth/v2/users/:userId/impersonations` | —                        | —                        | ✓                        |
-| Répondre au questionnaire de satisfaction      | `POST /feedbacks/v1/answer`                  | ✓                        | ✓                        | —                        |
-| Voir sa dernière réponse au questionnaire      | `GET /feedbacks/v1/mine`                     | ✓ si ses propres données | ✓ si ses propres données | ✓ si ses propres données |
-| Exporter les réponses au questionnaire (Excel) | `GET /feedbacks/v1/answers.xlsx`             | —                        | —                        | ✓                        |
-| Envoyer une remarque                           | `POST /remarks/v1`                           | ✓                        | ✓                        | ✓                        |
-| Lister les remarques                           | `GET /remarks/v1`                            | —                        | —                        | ✓                        |
-| Changer le statut d'une remarque               | `PUT /remarks/v1/:remarkId/status`           | —                        | —                        | ✓                        |
+| Répondre au questionnaire de satisfaction      | `POST /surveys/v1/answer`                    | ✓                        | ✓                        | —                        |
+| Voir sa dernière réponse au questionnaire      | `GET /surveys/v1/mine`                       | ✓ si ses propres données | ✓ si ses propres données | ✓ si ses propres données |
+| Exporter les réponses au questionnaire (Excel) | `GET /surveys/v1/answers.xlsx`               | —                        | —                        | ✓                        |
+| Envoyer un retour                              | `POST /feedbacks/v1`                         | ✓                        | ✓                        | ✓                        |
+| Lister les retours                             | `GET /feedbacks/v1`                          | —                        | —                        | ✓                        |
+| Changer le statut d'un retour                  | `PUT /feedbacks/v1/:feedbackId/status`       | —                        | —                        | ✓                        |
 | Télécharger un fichier par son lien temporaire | `GET /files/v1/:fileUrlId`                   | ✓                        | ✓                        | ✓                        |
 
-Quiconque détient un lien de téléchargement temporaire télécharge le fichier. Connecté à la place d'un utilisateur, l'administrateur n'enregistre ni réponse au questionnaire ni changement de mot de passe et envoie ses remarques à son propre nom. Cette connexion ne vaut que pour l'onglet ouvert pour elle et ceux ouverts depuis lui.
+Quiconque détient un lien de téléchargement temporaire télécharge le fichier. Connecté à la place d'un utilisateur, l'administrateur n'enregistre ni réponse au questionnaire ni changement de mot de passe et envoie ses retours à son propre nom. Cette connexion ne vaut que pour l'onglet ouvert pour elle et ceux ouverts depuis lui.
 
 ### Sessions
 
@@ -290,6 +289,7 @@ Dans les dossiers d'un magistrat, un Membre ne voit que l'affectation et les aud
 | Lister les membres                                    | `GET /members/v1`                                | —      | ✓                   | ✓              |
 | Voir un membre                                        | `GET /members/v1/:userId`                        | —      | ✓                   | ✓              |
 | Modifier le titre affiché d'un membre                 | `PUT /members/v1/:userId/display-title`          | —      | ✓                   | ✓              |
+| Modifier le titre déport d'un membre                  | `PUT /members/v1/:userId/recusal-title`          | —      | ✓                   | ✓              |
 | Exclure des juridictions de l'affectation d'un membre | `PUT /members/v1/:userId/excluded-jurisdictions` | —      | ✓                   | ✓              |
 
 ### Documents de séance : préparation

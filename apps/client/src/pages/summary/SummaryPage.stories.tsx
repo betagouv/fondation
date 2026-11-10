@@ -18,7 +18,7 @@ import { SummaryPage } from './SummaryPage';
 const SUMMARY = makeSummary({
   auditionDate: { day: 15, month: 10, year: 2026 },
   auditionTime: { hours: 14, minutes: 30, seconds: 0 },
-  observers: ['Syndicat de la magistrature'],
+  observers: ['BERNARD Paul', 'MARTIN Léa'],
   priorities: ['ETOILE'],
   summary: {
     attachments: SUMMARY_ATTACHMENTS,

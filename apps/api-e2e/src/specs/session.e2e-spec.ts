@@ -388,6 +388,23 @@ test.describe('Session E2E', () => {
       expect(attachments.data!.items).toHaveLength(20);
     });
 
+    test('should take an Outlook message the browser declares no type for', async ({ agent, expect, sessions }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+      const listed = await agent.sessions.listNominationFiles({ path: { sessionId: session.id } });
+      const path = { nominationFileId: listed.data!.items[0]!.id, sessionId: session.id };
+      // a browser outside Windows has no type for a .msg
+      const message = new File([new Uint8Array(8)], 'courriel.msg');
+
+      const { response } = await agent.sessions.uploadNominationFileAttachments({
+        body: { files: [message], form: attachmentForm({ type: 'AUTRE' }) },
+        path,
+      });
+
+      expect(response?.status).toBe(204);
+      const attachments = await agent.sessions.listNominationFileAttachments({ path });
+      expect(attachments.data!.items.map(({ name }) => name)).toEqual(['courriel.msg']);
+    });
+
     test('should refuse more than twenty attachments in one upload', async ({ agent, expect, sessions }) => {
       const session = await sessions.createOne(TREVOUX_SESSION);
       const listed = await agent.sessions.listNominationFiles({ path: { sessionId: session.id } });

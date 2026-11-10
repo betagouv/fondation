@@ -1,3 +1,4 @@
+export { attachmentFiles } from './attachment-files';
 export { ATTACHMENT_MAX_BYTES } from './attachment-max-bytes';
 export { contentDisposition } from './content-disposition';
 export { Files } from './files';

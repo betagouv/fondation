@@ -3,8 +3,8 @@ import { FormattedMessage } from 'react-intl';
 
 import { reportHtmlIds } from '@/features/reports/constants/html-ids.constants';
 import { DetailsCard } from '@/shared/ui/details';
-import { Upload } from '@/shared/ui/upload';
-import { DOCUMENT_FILE_TYPES } from '@/shared/ui/upload/file-types';
+import { AttachmentFormatsHint, Upload } from '@/shared/ui/upload';
+import { ATTACHMENT_FILE_TYPES } from '@/shared/ui/upload/file-types';
 
 export function ReportAttachmentsCard(props: {
   children?: React.ReactNode;
@@ -20,10 +20,10 @@ export function ReportAttachmentsCard(props: {
       <div className="flex flex-col gap-6">
         {props.children}
         <Upload
-          accept={DOCUMENT_FILE_TYPES}
+          accept={ATTACHMENT_FILE_TYPES}
           clearOnChange
           disabled={props.isReadOnly}
-          hint={<FormattedMessage defaultMessage="Formats supportés : png, jpeg, pdf, doc et docx." />}
+          hint={<AttachmentFormatsHint />}
           isPending={props.isPending}
           multiple
           onChange={props.onFilesAttached}

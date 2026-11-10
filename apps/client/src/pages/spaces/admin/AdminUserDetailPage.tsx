@@ -2,7 +2,6 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import Input from '@codegouvfr/react-dsfr/Input';
 import Select from '@codegouvfr/react-dsfr/Select';
 import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
-import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo, useState, type ReactNode, type SyntheticEvent } from 'react';
 import { defineMessage, FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
@@ -10,6 +9,7 @@ import { generatePath, useNavigate, useParams } from 'react-router';
 import { GeneratedPasswordInput } from '@/features/administration/components/GeneratedPasswordInput';
 import { useTitleTakenBackWarning } from '@/features/administration/hooks/useTitleTakenBackWarning';
 import { UserStatusBadge } from '@/shared/components/user-status-badge';
+import { UserTitleField } from '@/shared/components/user-title-field';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { useTab } from '@/shared/hooks/useTab';
@@ -39,7 +39,7 @@ import {
   useUpdateUserRecusalTitleMutation,
   useUpdateUserRoleMutation,
 } from '@queries/administration.queries';
-import { authKeys, useImpersonateMutation, useUser } from '@queries/auth.queries';
+import { useImpersonateMutation, useUser } from '@queries/auth.queries';
 
 function EmailField(props: { user: DetailedAdminUserDto }) {
   const { formatMessage } = useIntl();
@@ -379,7 +379,6 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
 function AdminUserPromotionToggle(props: { user: DetailedAdminUserDto }) {
   const { formatMessage } = useIntl();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const confirmation = useConfirmModal();
   const { user: currentUser } = useUser();
   const promote = usePromoteUserToAdmin(props.user.id);
@@ -410,15 +409,12 @@ function AdminUserPromotionToggle(props: { user: DetailedAdminUserDto }) {
 
         demote.mutate(undefined, {
           onSuccess() {
-            if (props.user.id === currentUser?.id) {
-              queryClient.invalidateQueries({ queryKey: authKeys.introspectSession() });
-              return navigate(generatePath(ROUTE_PATHS.SG.DASHBOARD));
-            }
+            if (props.user.id === currentUser?.id) return navigate(generatePath(ROUTE_PATHS.SG.DASHBOARD));
           },
         });
       }
     },
-    [confirmation, currentUser, demote, formatMessage, navigate, promote, props.user, queryClient],
+    [confirmation, currentUser, demote, formatMessage, navigate, promote, props.user],
   );
 
   if (!props.user.canHoldAdminRight) return null;
@@ -572,123 +568,6 @@ function RoleField(props: { user: DetailedAdminUserDto }) {
         <dd className="fr-mt-2v fr-px-4v fr-py-2v rounded-sm border border-(--border-default-grey) bg-(--background-alt-grey)">
           {props.user.role.label}
         </dd>
-      )}
-    </div>
-  );
-}
-
-const TITLES = {
-  displayTitle: {
-    edit: defineMessage({ defaultMessage: 'Éditer le titre affiché' }),
-    error: defineMessage({ defaultMessage: 'Erreur à la mise à jour du titre affiché' }),
-    hint: defineMessage({ defaultMessage: 'ex: M. le Président, Mme la ministre' }),
-    label: defineMessage({ defaultMessage: 'Titre affiché' }),
-    useUpdate: useUpdateUserDisplayTitleMutation,
-  },
-  recusalTitle: {
-    edit: defineMessage({ defaultMessage: 'Éditer le titre déport' }),
-    error: defineMessage({ defaultMessage: 'Erreur à la mise à jour du titre déport' }),
-    hint: defineMessage({
-      defaultMessage:
-        'Avec son article, ex : le Bâtonnier, la Première présidente. Le PV mentionne alors le déport de « M. le Bâtonnier FORGET ».',
-    }),
-    label: defineMessage({ defaultMessage: 'Titre Déport' }),
-    useUpdate: useUpdateUserRecusalTitleMutation,
-  },
-};
-
-function TitleField(props: { kind: keyof typeof TITLES; user: DetailedAdminUserDto }) {
-  const { formatMessage } = useIntl();
-  const field = TITLES[props.kind];
-  const saved = props.user[props.kind];
-  const [isEditing, setEditing] = useState(false);
-  const [title, setTitle] = useState(saved ?? '');
-  const { error, isPending, mutate } = field.useUpdate(props.user.id);
-
-  const handleEdit = () => {
-    setTitle(saved ?? '');
-    setEditing(true);
-  };
-
-  const isUnchanged = (title.trim() || null) === saved;
-
-  const handleSave = useCallback(
-    (e: SyntheticEvent) => {
-      e.preventDefault();
-
-      const newTitle = title.trim() || null;
-      if (newTitle === saved) {
-        setEditing(false);
-        return;
-      }
-
-      mutate(newTitle, { onSuccess: () => setEditing(false) });
-    },
-    [mutate, saved, setEditing, title],
-  );
-
-  return (
-    <div>
-      <div className="fr-mb-2v flex justify-between">
-        <dt className="font-bold">
-          <FormattedMessage {...field.label} />
-        </dt>
-        {isEditing ? (
-          <div className="flex gap-1">
-            <Button
-              disabled={isPending}
-              iconId="fr-icon-close-line"
-              onClick={() => setEditing(false)}
-              priority="tertiary no outline"
-              size="small"
-              type="button"
-            >
-              <FormattedMessage defaultMessage="Fermer" />
-            </Button>
-            <Button
-              disabled={isPending || isUnchanged}
-              onClick={handleSave}
-              priority="primary"
-              size="small"
-              type="button"
-            >
-              <FormattedMessage defaultMessage="Ok" />
-            </Button>
-          </div>
-        ) : (
-          <IconButton
-            disabled={isPending}
-            iconId="fr-icon-edit-fill"
-            label={formatMessage(field.edit)}
-            onClick={handleEdit}
-            small
-          />
-        )}
-      </div>
-      {isEditing ? (
-        <form onSubmit={handleSave}>
-          <Input
-            hintText={formatMessage(field.hint)}
-            label={<span className="fr-sr-only">{formatMessage(field.label)}</span>}
-            nativeInputProps={{
-              autoComplete: 'off',
-              autoFocus: true,
-              onChange: (e) => setTitle(e.target.value),
-              placeholder: formatMessage({ defaultMessage: 'Saisissez un titre...' }),
-              value: title,
-            }}
-            state={error ? 'error' : undefined}
-            stateRelatedMessage={error ? formatMessage(field.error) : undefined}
-          />
-        </form>
-      ) : (
-        <div className="fr-mt-2v fr-p-4v rounded-sm border border-(--border-default-grey) bg-(--background-alt-grey)">
-          {saved || (
-            <span className="text-(--text-disabled-grey)">
-              <FormattedMessage defaultMessage="Aucun titre" />
-            </span>
-          )}
-        </div>
       )}
     </div>
   );
@@ -890,6 +769,8 @@ function ImpersonateButton(props: { userId: string }) {
 
 function AdminLoadedUserDetail(props: { user: DetailedAdminUserDto }) {
   const { user } = props;
+  const updateDisplayTitle = useUpdateUserDisplayTitleMutation(user.id);
+  const updateRecusalTitle = useUpdateUserRecusalTitleMutation(user.id);
   return (
     <DetailsPageLayout
       background={user.role.group === 'SECRETARIAT' ? 'cafeCreme' : 'blueFrance'}
@@ -906,8 +787,8 @@ function AdminLoadedUserDetail(props: { user: DetailedAdminUserDto }) {
               <FormattedMessage defaultMessage="Titres" />
             </h2>
             <dl className="m-0 flex flex-col gap-6 p-0">
-              <TitleField kind="displayTitle" user={user} />
-              <TitleField kind="recusalTitle" user={user} />
+              <UserTitleField kind="displayTitle" saved={user.displayTitle} update={updateDisplayTitle} />
+              <UserTitleField kind="recusalTitle" saved={user.recusalTitle} update={updateRecusalTitle} />
             </dl>
           </DetailsCard>
 

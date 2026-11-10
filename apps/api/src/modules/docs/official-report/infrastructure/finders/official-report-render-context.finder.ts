@@ -19,6 +19,7 @@ import { OfficialReportMember } from '../../domain/official-report-member';
 import { OfficialReportMembersList } from '../../domain/official-report-member-list';
 import { OfficialReportSecretary } from '../../domain/official-report-secretary';
 import { OfficialReportSessionMeeting } from '../../domain/official-report-session-meeting';
+import { parseNamedMembers } from '../official-report-named-members';
 import { officialReportFileNote } from '../services/renderers/official-report-note.html';
 import type { OfficialReportRenderContext } from '../services/renderers/official-report.renderer';
 
@@ -83,7 +84,7 @@ export class OfficialReportRenderContextFinder {
             note: true,
             noteEditedAt: true,
             noteEditor: { select: { firstName: true, id: true, lastName: true } },
-            noteOutdated: true,
+            noteOutdatedBy: true,
             noteStatus: true,
             number: true,
             outcome: true,
@@ -295,7 +296,7 @@ export class OfficialReportRenderContextFinder {
         note: officialReportFileNote(f),
         number: f.number,
         outcome: f.outcome,
-        reporters: f.reporters,
+        reporters: parseNamedMembers(f.reporters).map(({ name }) => name),
         targetedGrade: f.targetedGrade,
         targetedPosition: f.targetedPosition ?? '',
       })),

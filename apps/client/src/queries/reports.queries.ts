@@ -1,8 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import type { ReportStatusEnum } from '@/shared/enums/report-status.enum';
-import { SANITIZED_MIME_TYPES } from '@/shared/ui/upload/file-types';
-import { InvalidMimeTypeError } from '@/utils/InvalidMimeType.error';
 import { withScreenshotUrls } from '@/utils/with-screenshot-urls';
 import * as $api from '@api/sdk';
 import type { AttachFilesData } from '@api/types';
@@ -80,7 +78,7 @@ export function useUpdateReportMutation() {
       await $api.reports.updateReport({ path: { reportId }, body });
     },
 
-    onSuccess: (_, { reportId }) =>
+    onSettled: (_data, _error, { reportId }) =>
       Promise.all([
         queryClient.invalidateQueries({ queryKey: reportKeys.reportById({ reportId }) }),
         queryClient.invalidateQueries({ queryKey: memberKeys.allListMemberSessionReports() }),
@@ -96,7 +94,7 @@ export function useDetachReportFilesMutation() {
         path: { reportId: props.reportId },
         query: { fileNames: props.fileNames as string[] },
       }),
-    onSuccess: (_, { reportId }) =>
+    onSettled: (_data, _error, { reportId }) =>
       queryClient.invalidateQueries({ queryKey: reportKeys.reportById({ reportId }) }),
   });
 }
@@ -110,18 +108,13 @@ export function useAttachReportFilesMutation() {
       usage: AttachFilesData['query']['usage'];
     }) => {
       const { files, reportId, usage } = mutation;
-      for (const file of files) {
-        if (!SANITIZED_MIME_TYPES.includes(file.type))
-          throw new InvalidMimeTypeError({ fileName: file.name });
-      }
-
       await $api.reports.attachFiles({
         path: { reportId },
         body: { files: files as File[] },
         query: { usage },
       });
     },
-    onSuccess: (_, { reportId }) =>
+    onSettled: (_data, _error, { reportId }) =>
       queryClient.invalidateQueries({ queryKey: reportKeys.reportById({ reportId }) }),
   });
 }
@@ -137,7 +130,7 @@ export function useAttachScreenshotMutation() {
 
       return data ?? null;
     },
-    onSuccess: (_, { reportId }) =>
+    onSettled: (_data, _error, { reportId }) =>
       queryClient.invalidateQueries({ queryKey: reportKeys.reportById({ reportId }) }),
   });
 }

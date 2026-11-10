@@ -20,6 +20,7 @@ import { OfficialReportMembersList } from './domain/official-report-member-list'
 import { OfficialReportSecretary } from './domain/official-report-secretary';
 import { OfficialReportSessionMeeting } from './domain/official-report-session-meeting';
 import { OfficialReportVersionFinder } from './infrastructure/finders/official-report-version.finder';
+import { namedMembersOf } from './infrastructure/official-report-named-members';
 import {
   CreatedOfficialReportDto,
   DetailedOfficialReportDocumentDto,
@@ -223,8 +224,8 @@ export class OfficialReportsService {
                 {
                   nominationFileId: file.id,
                   outcome: file.outcome,
-                  recusedMembers: file.recusedMembers.map(({ fullTitledName }) => fullTitledName),
-                  reporters: file.reporters.map(({ fullTitledName }) => fullTitledName),
+                  recusedMembers: namedMembersOf(file.recusedMembers),
+                  reporters: namedMembersOf(file.reporters),
                 },
               ]
             : [],

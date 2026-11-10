@@ -16,7 +16,7 @@ type Complement<T, U> = RemoveEmpty<
 export type TestSteps = typeof api & { ['@client']: Client; ['@user']: { id: string } | undefined };
 export type TestStepsMember = Pick<TestSteps, 'archivedSessions' | 'reports' | 'files' | '@client' | '@user'> & {
   auth: Pick<(typeof api)['auth'], 'introspectSession' | 'logout'>;
-  feedback: Pick<TestSteps['feedback'], 'answerFeedback' | 'findFeedback'>;
+  feedbacks: Pick<TestSteps['feedbacks'], 'sendFeedback'>;
   help: Pick<TestSteps['help'], 'detailHelpPage' | 'detailReaderHelpPage'>;
   members: Pick<
     TestSteps['members'],
@@ -33,8 +33,8 @@ export type TestStepsMember = Pick<TestSteps, 'archivedSessions' | 'reports' | '
     | 'listObservations'
     | 'writeMemberComment'
   >;
-  remarks: Pick<TestSteps['remarks'], 'sendRemark'>;
   summaries: Pick<TestSteps['summaries'], 'detailSummary' | 'generateAttachmentPublicUrl'>;
+  surveys: Pick<TestSteps['surveys'], 'answerSurvey' | 'findSurvey'>;
 };
 
 export type TestStepsAdmin = Omit<TestSteps, 'members'> & {
@@ -47,23 +47,23 @@ export type TestStepsAdmin = Omit<TestSteps, 'members'> & {
 // an intersection merges the keys of a namespace: one narrowed below must first leave the complement
 export type TestStepsAgent = Omit<
   Complement<TestSteps, TestStepsMember>,
-  'administration' | 'auth' | 'feedback' | 'help' | 'ingest' | 'jobs' | 'magistrats' | 'remarks'
+  'administration' | 'auth' | 'feedbacks' | 'help' | 'ingest' | 'jobs' | 'magistrats' | 'surveys'
 > & {
   archivedSessions: TestSteps['archivedSessions'];
   auth: Omit<
     (typeof api)['auth'],
     'callback' | 'impersonate' | 'listOpenIdProviders' | 'login' | 'prepareOpenIdRequest'
   >;
-  feedback: Omit<TestSteps['feedback'], 'listFeedbacksAsExcel'>;
+  feedbacks: TestStepsMember['feedbacks'];
   // the secretariat also opens the attachments it serves
   files: TestSteps['files'];
   help: TestStepsMember['help'];
   magistrats: Omit<TestSteps['magistrats'], 'searchMagistratAuthorization'>;
   // the secretariat also reads the observations it receives
   observations: TestSteps['observations'];
-  remarks: TestStepsMember['remarks'];
   // the secretariat also reads the summaries it writes
   summaries: Pick<TestSteps['summaries'], 'detailSummary'>;
+  surveys: Omit<TestSteps['surveys'], 'listSurveysAsExcel'>;
   ['@user']: TestSteps['@user'];
 };
 
@@ -91,7 +91,7 @@ function createSdk(client: Client, user?: { id: string }): TestSteps {
 export function makeStepsFixtures(
   options: Partial<{ baseUrl: string; cookies: string[]; impersonationId: string; user: { id: string } }> = {},
 ): TestSteps {
-  const headers = { cookie: options.cookies, 'X-Impersonation-Id': options.impersonationId };
+  const headers = { 'X-Impersonation-Id': options.impersonationId, cookie: options.cookies };
   return createSdk(createClient(createConfig({ baseUrl: options.baseUrl, headers })), options.user);
 }
 

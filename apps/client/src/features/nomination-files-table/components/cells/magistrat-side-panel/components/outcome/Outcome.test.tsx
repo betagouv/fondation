@@ -51,7 +51,7 @@ describe('Outcome', () => {
   it('lets the secretariat general change the outcome and its comment', () => {
     renderOutcome(null);
 
-    expect(screen.getByRole('button', { name: 'CONFORME' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: "Ajouter l'issue CONFORME" })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Modifier' })).toBeInTheDocument();
   });
 
@@ -65,7 +65,7 @@ describe('Outcome', () => {
   it('gathers the recusal with the outcome for the secretariat general', () => {
     renderOutcome(null);
 
-    expect(screen.getByText('Déport et issue')).toBeVisible();
+    expect(screen.getByRole('heading', { name: 'Déport et issue' })).toBeVisible();
     expect(screen.getByText('Membres déportés')).toBeVisible();
   });
 
@@ -73,7 +73,7 @@ describe('Outcome', () => {
     mocks.isSg.mockReturnValue(false);
     renderOutcome(null);
 
-    expect(screen.getByText('Issue')).toBeVisible();
+    expect(screen.getByRole('heading', { name: 'Issue' })).toBeVisible();
     expect(screen.queryByText('Membres déportés')).not.toBeInTheDocument();
   });
 

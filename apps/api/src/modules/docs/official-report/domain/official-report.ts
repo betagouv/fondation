@@ -197,6 +197,7 @@ export type OfficialReportEvent =
 const INVALIDATION_CAUSES = {
   AgendaDateUpdated: 'AGENDA_DATE',
   AgendaNominationFilesUpdated: 'AGENDA_PROPOSITIONS',
+  MemberRenamed: 'DESIGNATION',
   NominationFilesOutcomeUpdated: 'OUTCOME',
   NominationFilesRecusalsUpdated: 'RECUSAL',
   NominationFilesReportersUpdated: 'REPORTERS',
@@ -329,6 +330,9 @@ export class OfficialReport {
 
   /** a validated report tells its meeting as it was held: the application only says what changed since */
   private skipUpdate(command: InvalidateOfficialReportCommand): void {
+    // a member renamed after the meeting does not make what it reports wrong
+    if (command.type === 'MemberRenamed') return;
+
     if (command.type === 'AgendaFileBlockEdited') {
       if (this.snapshot.holdsFile(command.payload.nominationFileId)) {
         this.#messages.push(new OfficialReportUpdateSkipped(this.id, 'AGENDA_TEXT'));

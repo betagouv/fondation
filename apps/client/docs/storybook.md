@@ -126,7 +126,7 @@ const meta = {
   args: { questionnaire: 'MEMBER', status: 'NOT_ANSWERED' },
   argTypes: { status: { control: 'inline-radio', options: STATUSES } },
   // ...
-} satisfies Meta<typeof FeedbackPageStory>;
+} satisfies Meta<typeof SurveyPageStory>;
 
 export const Playground: StoryObj<typeof meta> = {};
 ```
@@ -174,33 +174,33 @@ Quand le composant a besoin de contexte (providers, données, route), on écrit 
 wrapper qui devient le `component` du meta. Pour une page, le wrapper passe par
 [`PageStory`](../src/shared/storybook/PageStory.tsx) : les providers de `PageLayout`,
 l'utilisateur connecté (SG ou membre) et la vraie route. Voir
-[`FeedbackPage.stories.tsx`](../src/pages/feedback/FeedbackPage.stories.tsx) :
+[`SurveyPage.stories.tsx`](../src/pages/survey/SurveyPage.stories.tsx) :
 
 ```tsx
-function FeedbackPageStory(props: { questionnaire: Feedback['questionnaire']; status: Status }) {
-  const feedback = /* construit d'après les controls */;
+function SurveyPageStory(props: { questionnaire: Survey['questionnaire']; status: Status }) {
+  const survey = /* construit d'après les controls */;
 
   return (
     <PageStory
       key={`${props.status}-${props.questionnaire}`}
-      location={ROUTE_PATHS.FEEDBACK}
-      path={ROUTE_PATHS.FEEDBACK}
-      seed={(client) => client.setQueryData(feedbackKeys.mine, feedback)}
+      location={ROUTE_PATHS.SURVEY}
+      path={ROUTE_PATHS.SURVEY}
+      seed={(client) => client.setQueryData(surveyKeys.mine, survey)}
       view={props.questionnaire === 'SECRETARIAT' ? 'sg' : 'member'}
     >
-      <FeedbackPage />
+      <SurveyPage />
     </PageStory>
   );
 }
 
 const meta = {
   beforeEach: ({ msw }) => {
-    msw.use(http.post('*/api/feedbacks/v1/answer', () => new HttpResponse(null, { status: 204 })));
+    msw.use(http.post('*/api/surveys/v1/answer', () => new HttpResponse(null, { status: 204 })));
   },
-  component: FeedbackPageStory, // le wrapper, pas la page nue
-  title: 'Pages/Feedback',
+  component: SurveyPageStory, // le wrapper, pas la page nue
+  title: 'Pages/Survey',
   // ...
-} satisfies Meta<typeof FeedbackPageStory>;
+} satisfies Meta<typeof SurveyPageStory>;
 ```
 
 Les props du wrapper deviennent les args : on choisit ainsi des controls **métier** simples

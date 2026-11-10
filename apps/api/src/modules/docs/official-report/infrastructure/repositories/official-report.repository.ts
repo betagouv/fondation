@@ -11,6 +11,7 @@ import {
 import {
   Prisma,
   PrismaDocsFileOutcomeEnum,
+  PrismaOfficialReportNoteOutdatedByEnum,
   PrismaOfficialReportNoteStatusEnum,
 } from '../../../../../generated/prisma/client';
 import { assertNever } from '../../../../../utils/assert-never';
@@ -62,6 +63,7 @@ import { OfficialReportSnapshot } from '../../domain/snapshot/official-report-sn
 import { OfficialReportSnapshotFile } from '../../domain/snapshot/official-report-snapshot-file';
 import { OfficialReportSnapshotMeta } from '../../domain/snapshot/official-report-snapshot-meta';
 import { OfficialReportVersionFinder } from '../finders/official-report-version.finder';
+import { namedMembersOf, parseNamedMembers } from '../official-report-named-members';
 
 @Injectable()
 export class OfficialReportRepository {
@@ -237,12 +239,12 @@ export class OfficialReportRepository {
         id: bigint;
         nominationFileId: string | null;
         note: string | null;
-        noteOutdated: boolean;
+        noteOutdatedBy: PrismaOfficialReportNoteOutdatedByEnum | null;
         noteStatus: PrismaOfficialReportNoteStatusEnum;
         outcome: PrismaDocsFileOutcomeEnum;
         outcomeComment: string | null;
-        recusedMembers: string[];
-        reporters: string[];
+        recusedMembers: Prisma.JsonValue;
+        reporters: Prisma.JsonValue;
       }[] = await this.db.tx.officialReportNominationFile.findMany({
         cursor: isDefined(cursor) ? { id: cursor } : undefined,
         orderBy: { id: 'asc' },
@@ -252,7 +254,7 @@ export class OfficialReportRepository {
           id: true,
           nominationFileId: true,
           note: true,
-          noteOutdated: true,
+          noteOutdatedBy: true,
           noteStatus: true,
           outcome: true,
           outcomeComment: true,
@@ -275,10 +277,10 @@ export class OfficialReportRepository {
             // a sentence taken from the agenda is the agenda's to keep up to date, not the report's
             hasManuallyEditedHtml: !file.htmlFromAgenda && (file.htmlEdited ?? '').trim().length > 0,
             nominationFileId: file.nominationFileId,
-            note: { html: file.note, outdated: file.noteOutdated, status: file.noteStatus },
+            note: { html: file.note, outdatedBy: file.noteOutdatedBy, status: file.noteStatus },
             outcome: { comment: file.outcomeComment, value: file.outcome },
-            recusedMembers: file.recusedMembers,
-            reporters: file.reporters,
+            recusedMembers: parseNamedMembers(file.recusedMembers),
+            reporters: parseNamedMembers(file.reporters),
           }),
         );
       }
@@ -439,18 +441,18 @@ export class OfficialReportRepository {
     const editedVersionId = await this.officialReportVersionFinder.latest(message);
 
     const filesToUpdate = message.diff.files.filter(
-      (file): file is typeof file & { action: 'outdate' | 'update' } =>
-        file.action === 'outdate' || file.action === 'update',
+      (file): file is typeof file & { action: 'outdate' | 'rename' | 'update' } =>
+        file.action === 'outdate' || file.action === 'rename' || file.action === 'update',
     );
     // the snapshot was read before the draft was opened, so its row ids name the version being
     // replaced: the proposition is what the write follows from one version to the next
     for (const file of filesToUpdate) {
       await this.db.tx.officialReportNominationFile.updateMany({
         data: {
-          htmlOutdated: file.action === 'outdate',
+          htmlOutdated: file.action === 'rename' ? undefined : file.action === 'outdate',
           outcome: file.outcome,
           outcomeComment: file.outcomeComment,
-          reporters: file.reporters as string[] | undefined,
+          reporters: file.reporters && [...file.reporters],
         },
         where: { nominationFileId: file.nominationFileId, versionId: editedVersionId },
       });
@@ -461,7 +463,8 @@ export class OfficialReportRepository {
 
       await this.db.tx.officialReportNominationFile.updateMany({
         data: {
-          noteOutdated: { follow: undefined, generate: false, outdate: true }[file.note],
+          noteOutdatedBy:
+            file.note === 'outdate' ? file.outdatedBy : file.note === 'generate' ? null : undefined,
           noteStatus: file.note === 'generate' ? 'GENERATED' : undefined,
           recusedMembers: [...file.recusedMembers],
         },
@@ -592,8 +595,8 @@ export class OfficialReportRepository {
           outcome: f.outcome.value,
           outcomeComment: f.outcome.comment,
           position: f.magistrat.position.label,
-          recusedMembers: f.recusedMembers.map((m) => m.fullTitledName),
-          reporters: f.reporters.map((r) => r.fullTitledName),
+          recusedMembers: namedMembersOf(f.recusedMembers),
+          reporters: namedMembersOf(f.reporters),
           targetedGrade: f.targetPosition.grade,
           targetedPosition: f.targetPosition.label,
         };
@@ -714,7 +717,7 @@ export class OfficialReportRepository {
         note: message.html,
         noteEditedAt: this.clock.now(),
         noteEditedBy: message.authorId,
-        noteOutdated: false,
+        noteOutdatedBy: null,
         noteStatus: 'EDITED',
       },
       where: { nominationFileId: message.nominationFileId, versionId },
@@ -743,7 +746,7 @@ export class OfficialReportRepository {
         note: null,
         noteEditedAt: null,
         noteEditedBy: null,
-        noteOutdated: false,
+        noteOutdatedBy: null,
         noteStatus: message.status,
       },
       where: { nominationFileId: message.nominationFileId, versionId },
@@ -911,8 +914,8 @@ export class OfficialReportRepository {
           createMany: {
             data: nominationFiles.map((file) => ({
               ...file,
-              recusedMembers: [...file.recusedMembers],
-              reporters: [...file.reporters],
+              recusedMembers: parseNamedMembers(file.recusedMembers),
+              reporters: parseNamedMembers(file.reporters),
             })),
           },
         },
@@ -1007,7 +1010,7 @@ export class OfficialReportRepository {
           { introOutdated: true },
           { conclusionOutdated: true },
           { nominationFiles: { some: { htmlOutdated: true } } },
-          { nominationFiles: { some: { noteOutdated: true } } },
+          { nominationFiles: { some: { noteOutdatedBy: { not: null } } } },
         ],
       },
     });

@@ -70,6 +70,6 @@ export function useWriteHelpPageContentMutation() {
         throwOnError: true,
       });
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: helpKeys.all() }),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: helpKeys.all() }),
   });
 }

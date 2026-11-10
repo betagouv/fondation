@@ -96,12 +96,18 @@ export function Dropdown(props: DropdownProps) {
       <span className="text-(--text-mention-grey)">{props.placeholder}</span>
     );
 
+  // the label alone would hide the chosen value: a single selection appends the trigger's own content
+  const labelledBy = clsx(
+    props.label != null && labelId,
+    props.multiple ? selectionId : props.label != null && triggerId,
+  );
+
   const trigger = (
     <button
       aria-controls={open ? listboxId : undefined}
       aria-expanded={open}
       aria-haspopup="listbox"
-      aria-labelledby={clsx(props.label != null && labelId, props.multiple && selectionId) || undefined}
+      aria-labelledby={labelledBy || undefined}
       className={clsx(
         'text-left font-[inherit]',
         props.disabled ? 'cursor-not-allowed' : 'cursor-pointer',

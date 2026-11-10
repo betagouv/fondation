@@ -6,8 +6,8 @@ export class CreateSessionPage {
   constructor(private readonly app: TestApp) {}
 
   async goto(): Promise<void> {
-    await this.app.nav.getByText('Administration').click();
-    await this.app.page.getByRole('link', { name: 'Créer une session' }).click();
+    await this.app.nav.getByText('Gérer une session').click();
+    await this.app.page.getByRole('button', { name: 'Créer une session' }).click();
     await this.formName.waitFor();
   }
 
@@ -33,34 +33,38 @@ export class CreateSessionPage {
     await this.successfullyCreatedSessionAlert(options.name).getByRole('button').click();
   }
 
+  private get dialog(): Locator {
+    return this.app.page.getByRole('dialog', { name: 'Créer une session depuis une extraction LODAM' });
+  }
+
   private get formName(): Locator {
-    return this.app.page.getByLabel('Nom de la transparence');
+    return this.dialog.getByLabel('Nom de la transparence');
   }
 
   private fillDate(date: Date): Promise<void> {
-    return this.fillDateInput(this.app.page.getByLabel('Date de la transparence'), date);
+    return this.fillDateInput(this.dialog.getByLabel('Date de la transparence'), date);
   }
 
   private fillObservationClosingDate(date: Date): Promise<void> {
-    return this.fillDateInput(this.app.page.getByLabel("Clôture du délai d'observation"), date);
+    return this.fillDateInput(this.dialog.getByLabel("Clôture du délai d'observation"), date);
   }
 
   private fillDueDate(date: Date): Promise<void> {
-    return this.fillDateInput(this.app.page.getByLabel("Date d'échéance"), date);
+    return this.fillDateInput(this.dialog.getByLabel("Date d'échéance"), date);
   }
 
   private fillPositionStartDate(date: Date): Promise<void> {
-    return this.fillDateInput(this.app.page.getByLabel('Date de prise de poste'), date);
+    return this.fillDateInput(this.dialog.getByLabel('Date de prise de poste'), date);
   }
 
   private async fillFormation(formation: 'SIEGE' | 'PARQUET'): Promise<void> {
-    await this.app.page
+    await this.dialog
       .getByLabel('Formation')
       .selectOption({ label: formation === 'PARQUET' ? 'Parquet' : 'Siège' });
   }
 
   private async fillFile(file: File): Promise<void> {
-    return this.app.page.getByLabel('Extraction LODAM').setInputFiles({
+    return this.dialog.getByLabel('Extraction LODAM').setInputFiles({
       name: file.name,
       mimeType: file.type,
       buffer: Buffer.from(await file.arrayBuffer()),
@@ -76,7 +80,7 @@ export class CreateSessionPage {
   }
 
   private get formSubmitButton(): Locator {
-    return this.app.page.getByRole('button', { name: 'Enregistrer' });
+    return this.dialog.getByRole('button', { name: 'Enregistrer' });
   }
 
   private successfullyCreatedSessionAlert(name: string): Locator {

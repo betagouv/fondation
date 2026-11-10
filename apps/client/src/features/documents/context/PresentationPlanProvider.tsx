@@ -1,4 +1,3 @@
-import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useState, type PropsWithChildren } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
@@ -6,7 +5,6 @@ import { generatePath, useNavigate, useParams } from 'react-router';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
-  presentationPlanKeys,
   useCreateJusticePresentationPlanMutation,
   useJusticePresentationPlanMetadataQuery,
   useUpdateJusticePresentationPlanMutation,
@@ -38,7 +36,6 @@ export function PresentationPlanProvider(props: PropsWithChildren) {
   } = useUpdateJusticePresentationPlanMutation();
 
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const { formatMessage } = useIntl();
   const { waitForConfirmation } = useConfirmModal();
   const [state, setState] = useState<PresentationPlanContextType['state']>({
@@ -241,7 +238,6 @@ export function PresentationPlanProvider(props: PropsWithChildren) {
       };
 
       function onSuccess(id: string) {
-        queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planHtml({ id }) });
         resetCreation();
         resetUpdate();
         navigate(generatePath(ROUTE_PATHS.SG.PRESENTATIONS_PREVIEW, { planId: id }));
@@ -265,7 +261,6 @@ export function PresentationPlanProvider(props: PropsWithChildren) {
       create,
       missingMetadata,
       navigate,
-      queryClient,
       waitForConfirmation,
       formatMessage,
       hasSomethingToLose,

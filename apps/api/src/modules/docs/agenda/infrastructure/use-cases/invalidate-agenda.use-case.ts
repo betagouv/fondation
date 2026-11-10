@@ -24,6 +24,8 @@ export class InvalidateAgendasUseCase {
       case 'AgendaFileBlockEdited':
       case 'AgendaNominationFilesUpdated':
       case 'AgendaValidated':
+      // the agenda keeps the reporters by name: following a renaming is FON-768
+      case 'MemberRenamed':
       case 'NominationFilesOutcomeUpdated':
       case 'NominationFilesRecusalsUpdated':
       case 'SessionDateUpdated':

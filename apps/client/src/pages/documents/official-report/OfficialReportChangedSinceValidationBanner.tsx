@@ -13,6 +13,10 @@ const CHANGES_SINCE_VALIDATION = defineMessages<SystemUpdateCause>({
   AGENDA_TEXT: {
     defaultMessage: "Le texte d'une proposition a été modifié dans l'ordre du jour.",
   },
+  DESIGNATION: {
+    defaultMessage:
+      "La désignation d'un membre déporté ou d'un rapporteur a changé. Si celle du PV est erronée, éditez-le.",
+  },
   OUTCOME: {
     defaultMessage:
       "L'issue d'une proposition a changé. Le PV garde celle décidée en séance : la nouvelle sera restituée par la séance qui l'a décidée.",

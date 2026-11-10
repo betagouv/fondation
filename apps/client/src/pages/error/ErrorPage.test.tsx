@@ -1,16 +1,22 @@
 import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { PropsWithChildren } from 'react';
+import type { ReactNode } from 'react';
 import { IntlProvider } from 'react-intl';
 import { createMemoryRouter, RouterProvider } from 'react-router';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { Avatar } from '@/layout/header/Avatar';
+import { httpAssert } from '@/utils/http-exception';
 
 import { ErrorPage } from './ErrorPage';
 
 vi.mock('@/features/auth/hooks/roles.hook', () => ({ useIsSg: () => false }));
-vi.mock('@/layout/PageLayout', () => ({ PageLayout: ({ children }: PropsWithChildren) => children }));
-vi.mock('@queries/auth.queries', () => ({ useUser: () => ({ user: { role: 'MEMBRE_DU_SIEGE' } }) }));
+// no displayedRole, as in the response that made the header fail in production
+vi.mock('@queries/auth.queries', () => ({
+  useLogout: () => ({ mutateAsync: vi.fn() }),
+  useUser: () => ({ user: { isAdmin: false, role: 'MEMBRE_DU_SIEGE' } }),
+}));
 
 const loadSession = vi.fn<() => Promise<string>>();
 
@@ -21,21 +27,36 @@ function SessionPage() {
   return <h1>{data}</h1>;
 }
 
+function renderRoute(element: ReactNode) {
+  const router = createMemoryRouter([{ element, errorElement: <ErrorPage />, path: '/' }]);
+
+  render(
+    <IntlProvider defaultLocale="fr" locale="fr">
+      <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>
+    </IntlProvider>,
+  );
+}
+
+function failureWith(status: number): unknown {
+  try {
+    httpAssert(new Response(null, { status }));
+  } catch (exception) {
+    return exception;
+  }
+}
+
 describe('ErrorPage', () => {
-  it('lets the member load again a page whose loading timed out', async () => {
+  beforeEach(() => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  it('lets the member load again a page whose loading timed out', async () => {
     loadSession
       .mockRejectedValueOnce(new DOMException('signal timed out', 'TimeoutError'))
       .mockResolvedValue('Transparence du 4 novembre');
-    const router = createMemoryRouter([{ element: <SessionPage />, errorElement: <ErrorPage />, path: '/' }]);
-
-    render(
-      <IntlProvider defaultLocale="fr" locale="fr">
-        <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-          <RouterProvider router={router} />
-        </QueryClientProvider>
-      </IntlProvider>,
-    );
+    renderRoute(<SessionPage />);
 
     expect(
       await screen.findByRole('heading', { name: 'Le chargement a pris trop de temps' }),
@@ -44,5 +65,39 @@ describe('ErrorPage', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Réessayer' }));
 
     expect(await screen.findByRole('heading', { name: 'Transparence du 4 novembre' })).toBeInTheDocument();
+  });
+
+  it.each([
+    ['the proxy finds no server', failureWith(502), 'Le service est momentanément indisponible'],
+    ['the server is unavailable', failureWith(503), 'Le service est momentanément indisponible'],
+    [
+      'the connection drops',
+      new DOMException('Failed to fetch', 'NetworkError'),
+      'La connexion a été interrompue',
+    ],
+  ])('lets the member load again a page when %s', async (_, failure, title) => {
+    loadSession.mockRejectedValueOnce(failure).mockResolvedValue('Transparence du 4 novembre');
+    renderRoute(<SessionPage />);
+
+    expect(await screen.findByRole('heading', { name: title })).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Réessayer' }));
+
+    expect(await screen.findByRole('heading', { name: 'Transparence du 4 novembre' })).toBeInTheDocument();
+  });
+
+  it('offers no retry on a server bug, which a new attempt would not fix', async () => {
+    loadSession.mockRejectedValueOnce(failureWith(500));
+    renderRoute(<SessionPage />);
+
+    expect(await screen.findByRole('heading', { name: 'Erreur inattendue' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Réessayer' })).not.toBeInTheDocument();
+  });
+
+  it('shows the error page when the header fails', async () => {
+    renderRoute(<Avatar />);
+
+    expect(await screen.findByRole('heading', { name: 'Erreur inattendue' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Contactez-nous' })).toBeInTheDocument();
   });
 });

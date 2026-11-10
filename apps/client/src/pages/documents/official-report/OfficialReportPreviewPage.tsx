@@ -35,7 +35,6 @@ export function OfficialReportPreviewPage() {
 
   const validate = useValidateOfficialReportMutation({
     officialReportId: officialReportId!,
-    onSuccess: () => navigate(generatePath(ROUTE_PATHS.SG.SESSION_ID_DOCUMENTS, { sessionId: sessionId! })),
     sessionId: sessionId!,
   });
 
@@ -103,7 +102,15 @@ export function OfficialReportPreviewPage() {
             </Button>
           )}
           {metadata?.canValidate && (
-            <Button disabled={isBusy} onClick={() => validate.mutate()}>
+            <Button
+              disabled={isBusy}
+              onClick={() =>
+                validate.mutate(undefined, {
+                  onSuccess: () =>
+                    navigate(generatePath(ROUTE_PATHS.SG.SESSION_ID_DOCUMENTS, { sessionId: sessionId! })),
+                })
+              }
+            >
               {validate.isPending ? (
                 <FormattedMessage defaultMessage="Validation en cours..." />
               ) : (

@@ -6,8 +6,8 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { useRequestFailure } from '@/shared/hooks/useRequestFailure';
 import { Modal } from '@/shared/ui/modal';
 import { useToasts } from '@/shared/ui/toast';
-import { Upload } from '@/shared/ui/upload';
-import { DOCUMENT_FILE_TYPES } from '@/shared/ui/upload/file-types';
+import { AttachmentFormatsHint, Upload } from '@/shared/ui/upload';
+import { ATTACHMENT_FILE_TYPES } from '@/shared/ui/upload/file-types';
 import { useAddNominationSessionAttachmentMutation } from '@queries/nomination-sessions.queries';
 
 export function ImportAttachmentModal(props: { onClose: () => void; open: boolean; sessionId: string }) {
@@ -68,8 +68,8 @@ export function ImportAttachmentModal(props: { onClose: () => void; open: boolea
       )}
 
       <Upload
-        accept={DOCUMENT_FILE_TYPES}
-        hint={<FormattedMessage defaultMessage="Formats supportés : png, jpeg, pdf, doc et docx" />}
+        accept={ATTACHMENT_FILE_TYPES}
+        hint={<AttachmentFormatsHint />}
         isPending={isPending}
         key={attempt}
         multiple

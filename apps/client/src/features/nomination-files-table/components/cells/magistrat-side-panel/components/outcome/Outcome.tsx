@@ -24,13 +24,13 @@ export function Outcome(props: { nominationFile: SessionNominationFile }) {
 
   return (
     <div className="flex flex-col gap-2">
-      <label className="fr-mb-2v block text-xl font-semibold">
+      <h3 className="fr-mb-2v text-xl font-semibold">
         {isSg ? (
           <FormattedMessage defaultMessage="Déport et issue" />
         ) : (
           <FormattedMessage defaultMessage="Issue" />
         )}
-      </label>
+      </h3>
       {isSg && <RecusedMembers nominationFile={props.nominationFile} recusedMembers={recusedMembers} />}
       <div className="self-start">
         {editable ? (

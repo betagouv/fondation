@@ -91,7 +91,7 @@ export function usePasswordLogin() {
       const authorization = btoa(String.fromCharCode(...credentials));
       return $api.auth.login({ headers: { authorization: `Basic ${authorization}` } });
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: authKeys.introspectSession() }),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: authKeys.introspectSession() }),
   });
 }
 

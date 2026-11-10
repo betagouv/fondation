@@ -207,15 +207,15 @@ model Session {
   affectationVersions  AffectationVersion[]
   attachments          SessionAttachment[]
   auditionPublications AuditionPublication[]
-  commentVersions     SessionCommentVersion[]
-  validator           User?                   @relation(fields: [validatedBy], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  deletionAuthor      User?                   @relation(fields: [deletedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "session_deletion_author")
-  archiver            User?                   @relation(fields: [archivedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "session_archive_author")
+  commentVersions      SessionCommentVersion[]
+  validator            User?                   @relation(fields: [validatedBy], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  deletionAuthor       User?                   @relation(fields: [deletedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "session_deletion_author")
+  archiver             User?                   @relation(fields: [archivedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "session_archive_author")
 
   transparenceGds SessionTransparenceGds?
 
-  dossierDeNominations DossierDeNomination[]
-  observantAuditions   ObservantAudition[]
+  dossierDeNominations      DossierDeNomination[]
+  observantAuditions        ObservantAudition[]
   observantAuditionVersions ObservantAuditionVersion[]
 
   @@index([deletedAt])

@@ -5,8 +5,8 @@ import { FileList, FileListItem } from '@/shared/components/file-list';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { useAttachmentFailureToast } from '@/shared/hooks/useAttachmentFailureToast';
 import { DetailsCard } from '@/shared/ui/details';
-import { Upload } from '@/shared/ui/upload';
-import { DOCUMENT_FILE_TYPES } from '@/shared/ui/upload/file-types';
+import { AttachmentFormatsHint, Upload } from '@/shared/ui/upload';
+import { ATTACHMENT_FILE_TYPES } from '@/shared/ui/upload/file-types';
 import { dateOnlyToIso } from '@/utils/date-only.util';
 import type { GetObservationDetailsResponseDto } from '@api/types';
 import { useUpdateObservationMutation } from '@queries/observations.queries';
@@ -99,9 +99,9 @@ export function ObservationAttachmentsCard(props: {
       {canEdit && (
         <div className={files.length > 0 ? 'fr-mt-6v' : undefined}>
           <Upload
-            accept={DOCUMENT_FILE_TYPES}
+            accept={ATTACHMENT_FILE_TYPES}
             clearOnChange
-            hint={<FormattedMessage defaultMessage="Formats supportés : png, jpeg, pdf, doc et docx" />}
+            hint={<AttachmentFormatsHint />}
             isPending={isPending}
             multiple
             onChange={(added) => added.length > 0 && attach(added)}

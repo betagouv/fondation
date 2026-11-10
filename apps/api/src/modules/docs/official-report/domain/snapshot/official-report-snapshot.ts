@@ -8,6 +8,7 @@ import { OfficialReportSecretary } from '../official-report-secretary';
 import { OfficialReportSessionMeeting } from '../official-report-session-meeting';
 import {
   InvalidateOfficialReportCommand,
+  OfficialReportNamedMember,
   OfficialReportSnapshotDiff,
   UpdateOfficialReportCommand,
 } from '../official-report-types';
@@ -73,7 +74,8 @@ export class OfficialReportSnapshot {
           !this.meta.agenda.date.equals(DateOnly.fromJson(command.payload.previousDate)),
         );
 
-      // a recusal never brings a proposition into the report, the agenda does
+      // a recusal or a renaming never brings a proposition into the report, the agenda does
+      case 'MemberRenamed':
       case 'NominationFilesRecusalsUpdated':
         return this.invalidateFiles(
           command.payload.files.flatMap((file) => this.fileOf(file.nominationFileId)?.diff(file) ?? []),
@@ -137,8 +139,8 @@ class OfficialReportSnapshotFilesCollection {
   diffFile(next: {
     nominationFileId: string;
     outcome?: { comment: string | null; value: DocNominationFileOutcomeEnum };
-    recusedMembers?: readonly string[];
-    reporters?: readonly string[];
+    recusedMembers?: readonly OfficialReportNamedMember[];
+    reporters?: readonly OfficialReportNamedMember[];
   }): OfficialReportSnapshotDiff['files'] {
     const file = this.files.get(next.nominationFileId);
     if (!file) return [{ action: 'create', nominationFileId: next.nominationFileId }];
@@ -159,8 +161,8 @@ class OfficialReportSnapshotFilesCollection {
     files: readonly {
       nominationFileId: string;
       outcome?: { comment: string | null; value: DocNominationFileOutcomeEnum };
-      recusedMembers?: readonly string[];
-      reporters?: readonly string[];
+      recusedMembers?: readonly OfficialReportNamedMember[];
+      reporters?: readonly OfficialReportNamedMember[];
     }[];
   }): OfficialReportSnapshotDiff['files'] {
     return this.deletedFiles(next.files).concat(next.files.flatMap((file) => this.diffFile(file)));

@@ -3,6 +3,8 @@ import z from 'zod';
 import { writerSchema } from '../../../../utils/user.util';
 import { DOC_NOMINATION_FILE_OUTCOMES } from '../../shared/domain/doc-nomination-file-outcome';
 
+import { OFFICIAL_REPORT_NOTE_OUTDATED_BY } from './official-report-types';
+
 const AbstractDocBlock = z.object({
   weight: z.number().int().gte(0),
   edited: z.boolean(),
@@ -38,8 +40,8 @@ export const OfficialReportFileNoteSchema = z.object({
   generatedHtml: z.string().nullable(),
   /** what the report prints under the proposition, null when nothing */
   html: z.string().nullable(),
-  /** the recusal changed since the slot was written or emptied by hand */
-  outdated: z.boolean(),
+  /** what changed since the slot was written or emptied by hand, null when nothing did */
+  outdatedBy: z.enum(OFFICIAL_REPORT_NOTE_OUTDATED_BY).nullable(),
 });
 
 export type OfficialReportFileNote = z.infer<typeof OfficialReportFileNoteSchema>;

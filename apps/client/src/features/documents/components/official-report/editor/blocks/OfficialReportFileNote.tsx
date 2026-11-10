@@ -7,7 +7,7 @@ import { Paragraph } from '@tiptap/extension-paragraph';
 import Text from '@tiptap/extension-text';
 import { UndoRedo } from '@tiptap/extensions';
 import { EditorContent, EditorContext, useEditor, useEditorState } from '@tiptap/react';
-import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import { DocBlockEditedLine } from '@/features/documents/components/blocks/DocBlockEditedBadge';
@@ -26,7 +26,6 @@ import type { OfficialReportBlock } from './official-report-blocks.type';
 type OfficialReportFileNoteState = Extract<OfficialReportBlock, { kind: 'file' }>['note'];
 
 export function OfficialReportFileNote(props: {
-  agendaAction: ReactNode;
   name: string;
   nominationFileId: string;
   note: OfficialReportFileNoteState;
@@ -42,7 +41,7 @@ export function OfficialReportFileNote(props: {
   const edition = useEditOfficialReportFileNoteMutation(mutation);
   const deletion = useDeleteOfficialReportFileNoteMutation(mutation);
   const reset = useResetOfficialReportFileNoteMutation(mutation);
-  const emptied = { ...props.note, editedAt: null, editedBy: null, html: null, outdated: false };
+  const emptied = { ...props.note, editedAt: null, editedBy: null, html: null, outdatedBy: null };
 
   // the button that started the action is gone once it ends, so the focus would fall back on the page
   const actionRef = useRef<HTMLButtonElement>(null);
@@ -85,7 +84,9 @@ export function OfficialReportFileNote(props: {
     focusAction();
   };
   const canRestoreMention =
-    props.note.generatedHtml !== null && props.note.html !== props.note.generatedHtml && !props.note.outdated;
+    props.note.generatedHtml !== null &&
+    props.note.html !== props.note.generatedHtml &&
+    props.note.outdatedBy === null;
 
   return (
     <div contentEditable={false}>
@@ -105,13 +106,14 @@ export function OfficialReportFileNote(props: {
         </div>
       )}
 
-      {props.note.outdated && !isEditing && (
+      {props.note.outdatedBy && !isEditing && (
         <OfficialReportFileNoteDriftBanner
           generatedHtml={props.note.generatedHtml}
           hasFailed={edition.isError || deletion.isError || reset.isError}
           isPending={edition.isPending || deletion.isPending || reset.isPending}
           onAccept={() => void restoreMention().catch(() => {})}
           onIgnore={() => void ignore().catch(() => {})}
+          outdatedBy={props.note.outdatedBy}
         />
       )}
 
@@ -135,7 +137,6 @@ export function OfficialReportFileNote(props: {
             <FormattedMessage defaultMessage="Le rétablissement a échoué" />
           </p>
         )}
-        {props.agendaAction}
         {!isEditing && canRestoreMention && (
           <Button
             disabled={reset.isPending}
@@ -263,15 +264,36 @@ function OfficialReportFileNoteEditor(props: {
   );
 }
 
-/** the recusal changed since the slot was written or emptied: the reader keeps it or takes the mention */
+/**
+ * the recusal, or only how a recused member is named, changed since the slot was written or emptied:
+ * the reader keeps it or takes the mention
+ */
 function OfficialReportFileNoteDriftBanner(props: {
   generatedHtml: string | null;
   hasFailed: boolean;
   isPending: boolean;
   onAccept: () => void;
   onIgnore: () => void;
+  outdatedBy: NonNullable<OfficialReportFileNoteState['outdatedBy']>;
 }) {
   const { formatMessage } = useIntl();
+  // a new cause breaks the build here rather than borrowing the words of another one
+  const { badge, tooltip } = {
+    DESIGNATION: {
+      badge: formatMessage({ defaultMessage: 'la désignation a changé' }),
+      tooltip: formatMessage({
+        defaultMessage:
+          "La désignation d'un membre déporté a changé depuis que l'information a été modifiée. Acceptez la mention proposée pour remplacer l'information, ignorez-la pour la conserver.",
+      }),
+    },
+    RECUSAL: {
+      badge: formatMessage({ defaultMessage: 'le déport a changé' }),
+      tooltip: formatMessage({
+        defaultMessage:
+          "Le déport de ce dossier a changé depuis que l'information a été modifiée ou supprimée. Acceptez la mention proposée pour remplacer l'information, ignorez-la pour la conserver.",
+      }),
+    },
+  }[props.outdatedBy];
 
   return (
     <div className="doc-block__banner doc-block__banner--info fr-mt-2v">
@@ -282,14 +304,9 @@ function OfficialReportFileNoteDriftBanner(props: {
           noIcon
           small
         >
-          <FormattedMessage defaultMessage="le déport a changé" />
+          {badge}
         </Badge>
-        <Tooltip
-          label={formatMessage({
-            defaultMessage:
-              "Le déport de ce dossier a changé depuis que l'information a été modifiée ou supprimée. Acceptez la mention proposée pour remplacer l'information, ignorez-la pour la conserver.",
-          })}
-        >
+        <Tooltip label={tooltip}>
           <i
             aria-hidden
             className="fr-icon-question-line fr-icon--sm text-(--text-action-high-blue-france)"
