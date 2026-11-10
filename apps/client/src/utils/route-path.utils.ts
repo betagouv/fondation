@@ -9,7 +9,6 @@ export const ROUTE_PATHS = {
     DETAILS_JOB: '/admin/ingestions/:jobId',
     FEEDBACKS: '/admin/retours',
     HELP: '/admin/aide',
-    INGEST_LODAM: '/admin/lodam',
     INGEST_LOLFI: '/admin/lolfi',
     LIST_JOBS: '/admin/ingestions',
     ROOT: '/admin',

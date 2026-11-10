@@ -165,7 +165,7 @@ export const routes: RouteObject[] = [
               ),
           },
           {
-            loader: () => redirect(ROUTE_PATHS.ADMIN.INGEST_LODAM),
+            loader: () => redirect(ROUTE_PATHS.SG.MANAGE_SESSION),
             path: '/secretariat-general/nouvelle-transparence',
           },
           {
@@ -422,11 +422,8 @@ export const routes: RouteObject[] = [
             path: ROUTE_PATHS.ADMIN.INGEST_LOLFI,
           },
           {
-            lazy: () =>
-              import('@/pages/transparence/NewTransparencePage').then(({ NewTransparencePage }) => ({
-                Component: NewTransparencePage,
-              })),
-            path: ROUTE_PATHS.ADMIN.INGEST_LODAM,
+            loader: () => redirect(ROUTE_PATHS.SG.MANAGE_SESSION),
+            path: '/admin/lodam',
           },
           {
             children: [

@@ -112,7 +112,6 @@ export const AppHeader = () => {
       isActive: routeMatches([
         ROUTE_PATHS.ADMIN.LIST_JOBS,
         ROUTE_PATHS.ADMIN.DETAILS_JOB,
-        ROUTE_PATHS.ADMIN.INGEST_LODAM,
         ROUTE_PATHS.ADMIN.INGEST_LOLFI,
         ROUTE_PATHS.ADMIN.USERS,
         ROUTE_PATHS.ADMIN.USER_DETAIL,
@@ -139,20 +138,6 @@ export const AppHeader = () => {
             </span>
           ),
         },
-        // a LODAM session belongs to the GDS, unlike the LOLFI archive that also brings the magistrats and the positions
-        ...(isInGdsSpace || routeMatches([ROUTE_PATHS.ADMIN.INGEST_LODAM])
-          ? [
-              {
-                isActive: routeMatches([ROUTE_PATHS.ADMIN.INGEST_LODAM]),
-                linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.INGEST_LODAM, viewTransition: true },
-                text: (
-                  <span className={clsx('fr-icon-add-circle-line', NAV_ICON_CLASS)}>
-                    {formatMessage({ defaultMessage: 'Créer une session' })}
-                  </span>
-                ),
-              },
-            ]
-          : []),
         {
           isActive: routeMatches([ROUTE_PATHS.ADMIN.USERS, ROUTE_PATHS.ADMIN.USER_DETAIL]),
           linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.USERS, viewTransition: true },

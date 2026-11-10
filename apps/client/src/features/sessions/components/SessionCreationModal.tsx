@@ -2,28 +2,24 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import Input from '@codegouvfr/react-dsfr/Input';
 import Select from '@codegouvfr/react-dsfr/Select';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useCallback, useMemo, useState } from 'react';
-import { Controller, useForm, type SubmitHandler } from 'react-hook-form';
+import { useId, useMemo } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { FormattedMessage, useIntl } from 'react-intl';
-import { useNavigate } from 'react-router';
 import { z } from 'zod';
 
 import { FormationEnum, FormationEnumMessages } from '@/shared/enums/formation.enum';
-import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { AlertBanner } from '@/shared/ui/alert-banner';
-import { Breadcrumb } from '@/shared/ui/Breadcrumb';
+import { Modal } from '@/shared/ui/modal';
 import { RequiredLabel } from '@/shared/ui/required-label';
 import { Upload } from '@/shared/ui/upload';
-import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { capitalize } from '@/utils/string.utils';
-import { useCreateNominationSessionFromLodamMutation } from '@queries/nomination-sessions.queries';
 
 import { UploadExcelFailedAlert } from './UploadExcelFailedAlert';
 
 const XLSX_MIME_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 const XLSX_FILE_TYPES = `${XLSX_MIME_TYPE},.xlsx`;
 
-type FormSchema = {
+export type SessionCreationForm = {
   date: string;
   dueDate?: string;
   file: File;
@@ -33,7 +29,7 @@ type FormSchema = {
   positionStartDate?: string;
 };
 
-function useNewTransparenceSchema() {
+function useSessionCreationSchema() {
   const { formatMessage } = useIntl();
 
   return useMemo(() => {
@@ -54,64 +50,49 @@ function useNewTransparenceSchema() {
       name: z.string({ message: mandatoryField }).trim().min(1, mandatoryField),
       observationClosingDate: z.iso.date(invalidDateFormat),
       positionStartDate: optionalDate,
-    }) satisfies z.ZodType<FormSchema>;
+    }) satisfies z.ZodType<SessionCreationForm>;
   }, [formatMessage]);
 }
 
-export function NewTransparence() {
+export function SessionCreationModal(props: {
+  error: Error | null;
+  isSaving: boolean;
+  onClose: () => void;
+  onClosed: () => void;
+  onFileChange: () => void;
+  onSave: (session: SessionCreationForm) => void;
+  open: boolean;
+}) {
   const { formatMessage } = useIntl();
-  const breadcrumbRoot = useBreadcrumbRoot();
-  const navigate = useNavigate();
-  const schema = useNewTransparenceSchema();
-  /** the shared upload keeps no value: a new key is the only way to empty the picker */
-  const [uploadKey, setUploadKey] = useState(0);
-  const {
-    error: transparenceUploadError,
-    isPending,
-    mutate: addTransparency,
-    reset: resetTransparencyMutation,
-  } = useCreateNominationSessionFromLodamMutation();
-
+  const formId = useId();
+  const schema = useSessionCreationSchema();
   const {
     control,
     formState: { errors, isValid },
     handleSubmit,
-  } = useForm<FormSchema>({
-    resolver: zodResolver(schema),
-  });
-
-  const onSubmit: SubmitHandler<FormSchema> = useCallback(
-    (dto) => {
-      resetTransparencyMutation();
-      addTransparency(dto, {
-        onSuccess: (_, { name }) => {
-          resetTransparencyMutation();
-          setUploadKey((key) => key + 1);
-
-          return navigate(ROUTE_PATHS.SG.MANAGE_SESSION, { state: { success: name } });
-        },
-      });
-    },
-    [resetTransparencyMutation, addTransparency, navigate],
-  );
+  } = useForm<SessionCreationForm>({ resolver: zodResolver(schema) });
 
   return (
-    <div className="fr-container fr-pt-8v fr-pb-16v">
-      <Breadcrumb
-        ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane pour l'Administration" })}
-        breadcrumb={{
-          currentPageLabel: formatMessage({ defaultMessage: 'Créer une session' }),
-          segments: breadcrumbRoot,
-        }}
-        id="administration-breadcrumb"
-      />
-
-      <h1 className="fr-h3">
-        <FormattedMessage defaultMessage="Créer une session depuis une extraction LODAM" />
-      </h1>
-
+    <Modal
+      actions={
+        <>
+          <Button disabled={props.isSaving} onClick={props.onClose} priority="secondary" type="button">
+            <FormattedMessage defaultMessage="Annuler" />
+          </Button>
+          <Button disabled={props.isSaving || !isValid} nativeButtonProps={{ form: formId }} type="submit">
+            <FormattedMessage defaultMessage="Enregistrer" />
+          </Button>
+        </>
+      }
+      closeOnBackdrop={false}
+      onClose={props.onClose}
+      onClosed={props.onClosed}
+      open={props.open}
+      size="large"
+      title={formatMessage({ defaultMessage: 'Créer une session depuis une extraction LODAM' })}
+    >
       <AlertBanner
-        className="fr-mb-6v max-w-2xl px-4 py-3"
+        className="fr-my-6v px-4 py-3"
         icon="fr-icon-warning-fill"
         message={
           <FormattedMessage
@@ -122,18 +103,18 @@ export function NewTransparence() {
         tone="warning"
       />
 
-      {transparenceUploadError ? (
+      {props.error ? (
         <UploadExcelFailedAlert
           // oxlint-disable-next-line @typescript-eslint/no-explicit-any
-          validationErrors={(transparenceUploadError as any).validationErrors}
+          validationErrors={(props.error as any).validationErrors}
         />
       ) : null}
 
-      <form className="max-w-2xl" onSubmit={handleSubmit(onSubmit)}>
-        <Controller<FormSchema, 'name'>
+      <form id={formId} onSubmit={handleSubmit(props.onSave)}>
+        <Controller<SessionCreationForm, 'name'>
           control={control}
           name="name"
-          render={({ field: { value, onChange, ...field } }) => (
+          render={({ field: { onChange, value, ...field } }) => (
             <Input
               id="nom-transparence"
               label={
@@ -152,10 +133,10 @@ export function NewTransparence() {
             />
           )}
         />
-        <Controller<FormSchema, 'formation'>
+        <Controller<SessionCreationForm, 'formation'>
           control={control}
           name="formation"
-          render={({ field: { value, onChange } }) => (
+          render={({ field: { onChange, value } }) => (
             <Select
               label={
                 <RequiredLabel>
@@ -181,10 +162,10 @@ export function NewTransparence() {
           )}
         />
         <div className="grid gap-x-8 md:grid-cols-2">
-          <Controller<FormSchema, 'date'>
+          <Controller<SessionCreationForm, 'date'>
             control={control}
             name="date"
-            render={({ field: { value, onChange, ...field } }) => (
+            render={({ field: { onChange, value, ...field } }) => (
               <Input
                 id="date-transparence"
                 label={
@@ -203,10 +184,10 @@ export function NewTransparence() {
               />
             )}
           />
-          <Controller<FormSchema, 'observationClosingDate'>
+          <Controller<SessionCreationForm, 'observationClosingDate'>
             control={control}
             name="observationClosingDate"
-            render={({ field: { value, onChange, ...field } }) => (
+            render={({ field: { onChange, value, ...field } }) => (
               <Input
                 id="date-cloture-delai-observation"
                 label={
@@ -225,10 +206,10 @@ export function NewTransparence() {
               />
             )}
           />
-          <Controller<FormSchema, 'dueDate'>
+          <Controller<SessionCreationForm, 'dueDate'>
             control={control}
             name="dueDate"
-            render={({ field: { value, onChange, ...field } }) => (
+            render={({ field: { onChange, value, ...field } }) => (
               <Input
                 id="date-echeance"
                 label={formatMessage({ defaultMessage: "Date d'échéance" })}
@@ -243,10 +224,10 @@ export function NewTransparence() {
               />
             )}
           />
-          <Controller<FormSchema, 'positionStartDate'>
+          <Controller<SessionCreationForm, 'positionStartDate'>
             control={control}
             name="positionStartDate"
-            render={({ field: { value, onChange, ...field } }) => (
+            render={({ field: { onChange, value, ...field } }) => (
               <Input
                 id="date-prise-de-poste"
                 label={formatMessage({ defaultMessage: 'Date de prise de poste' })}
@@ -263,7 +244,7 @@ export function NewTransparence() {
           />
         </div>
 
-        <Controller<FormSchema, 'file'>
+        <Controller<SessionCreationForm, 'file'>
           control={control}
           name="file"
           render={({ field: { onChange } }) => (
@@ -272,14 +253,13 @@ export function NewTransparence() {
                 accept={XLSX_FILE_TYPES}
                 hasError={!!errors.file}
                 hint={<FormattedMessage defaultMessage="Format supporté : xlsx" />}
-                key={uploadKey}
                 label={
                   <RequiredLabel>
                     <FormattedMessage defaultMessage="Extraction LODAM" />
                   </RequiredLabel>
                 }
                 onChange={([file]) => {
-                  resetTransparencyMutation();
+                  props.onFileChange();
                   onChange(file);
                 }}
               />
@@ -291,10 +271,7 @@ export function NewTransparence() {
             </div>
           )}
         />
-        <Button className="fr-mt-8v" disabled={isPending || !isValid} priority="primary" type="submit">
-          <FormattedMessage defaultMessage="Enregistrer" />
-        </Button>
       </form>
-    </div>
+    </Modal>
   );
 }

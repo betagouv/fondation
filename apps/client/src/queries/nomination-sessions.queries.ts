@@ -346,8 +346,9 @@ export function useAutoAffectationMutation() {
   });
 }
 
-export const useCreateNominationSessionFromLodamMutation = () =>
-  useMutation({
+export function useCreateNominationSessionFromLodamMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
     mutationFn: async (input: {
       date: string;
       dueDate?: string | null | undefined;
@@ -375,7 +376,15 @@ export const useCreateNominationSessionFromLodamMutation = () =>
         throw err;
       }
     },
+    onSettled: () =>
+      queryClient.invalidateQueries({
+        predicate: doesQueryKey.matchesAny(
+          sessionKeys.listGdsSessions(),
+          sessionKeys.countUsersNewSessions(),
+        ),
+      }),
   });
+}
 
 export function useAddNominationSessionAttachmentMutation() {
   const queryClient = useQueryClient();
