@@ -27,6 +27,12 @@ describe('usePouvoirDeProposition', () => {
     expect(pouvoirOn(ROUTE_PATHS.ADMIN.USERS)).toBe('GDS');
   });
 
+  it('keeps the CSM on a common page opened from the CSM', () => {
+    expect(pouvoirOn(ROUTE_PATHS.SG.CSM.VEILLE_DES_POSTES_COURT_OF_CASSATION)).toBe('CSM');
+
+    expect(pouvoirOn(ROUTE_PATHS.SG.MAGISTRAT_SEARCH)).toBe('CSM');
+  });
+
   it('shows a common page opened from the home outside any pouvoir', () => {
     pouvoirOn(ROUTE_PATHS.SG.MANAGE_SESSION);
     pouvoirOn(ROUTE_PATHS.SG.DASHBOARD);
