@@ -1,4 +1,3 @@
-import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo, useState, type PropsWithChildren } from 'react';
 import { useIntl } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
@@ -6,7 +5,7 @@ import { generatePath, useNavigate, useParams } from 'react-router';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { HttpException } from '@/utils/http-exception';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import { agendaKeys, useCreateAgendaMutation } from '@queries/agenda.queries';
+import { useCreateAgendaMutation } from '@queries/agenda.queries';
 import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
 
 import { AgendaContext } from './AgendaContext';
@@ -17,7 +16,6 @@ export function AgendaProvider(props: PropsWithChildren) {
   const { sessionId = '' } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
   const { waitForConfirmation } = useConfirmModal();
-  const queryClient = useQueryClient();
 
   const createAgenda = useCreateAgendaMutation();
 
@@ -82,15 +80,9 @@ export function AgendaProvider(props: PropsWithChildren) {
           sessionMeetingDate: metadata.sessionMeetingDate,
         },
         {
-          onSuccess: async (result) => {
-            await queryClient.invalidateQueries({
-              queryKey: agendaKeys.findAgendaNominationFiles({ sessionId }),
-            });
+          onSuccess: (result) => {
             if (result?.id) {
-              await queryClient.invalidateQueries({ queryKey: agendaKeys.agendaHtml(result.id) });
-              return navigate(
-                generatePath(ROUTE_PATHS.SG.AGENDA_PREVIEW, { sessionId, agendaId: result.id }),
-              );
+              navigate(generatePath(ROUTE_PATHS.SG.AGENDA_PREVIEW, { sessionId, agendaId: result.id }));
             }
           },
           onError: async (error) => {
@@ -105,16 +97,7 @@ export function AgendaProvider(props: PropsWithChildren) {
         },
       );
     },
-    [
-      state.metadata,
-      goToMetadata,
-      queryClient,
-      createAgenda,
-      sessionId,
-      formatMessage,
-      navigate,
-      waitForConfirmation,
-    ],
+    [state.metadata, goToMetadata, createAgenda, sessionId, formatMessage, navigate, waitForConfirmation],
   );
 
   return (

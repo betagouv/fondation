@@ -94,7 +94,8 @@ export const usePublishAuditionsMutation = () => {
     mutationFn: async (props: { sessionId: string }) => {
       await $api.sessions.publishSessionAuditions({ path: props, throwOnError: true });
     },
-    onSuccess: (_, props) => queryClient.invalidateQueries({ queryKey: auditionKeys.lastPublication(props) }),
+    onSettled: (_data, _error, props) =>
+      queryClient.invalidateQueries({ queryKey: auditionKeys.lastPublication(props) }),
   });
 };
 

@@ -2,7 +2,6 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import Input from '@codegouvfr/react-dsfr/Input';
 import Select from '@codegouvfr/react-dsfr/Select';
 import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
-import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo, useState, type ReactNode, type SyntheticEvent } from 'react';
 import { defineMessage, FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
@@ -40,7 +39,7 @@ import {
   useUpdateUserRecusalTitleMutation,
   useUpdateUserRoleMutation,
 } from '@queries/administration.queries';
-import { authKeys, useImpersonateMutation, useUser } from '@queries/auth.queries';
+import { useImpersonateMutation, useUser } from '@queries/auth.queries';
 
 function EmailField(props: { user: DetailedAdminUserDto }) {
   const { formatMessage } = useIntl();
@@ -380,7 +379,6 @@ function PasswordField(props: { user: DetailedAdminUserDto }) {
 function AdminUserPromotionToggle(props: { user: DetailedAdminUserDto }) {
   const { formatMessage } = useIntl();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const confirmation = useConfirmModal();
   const { user: currentUser } = useUser();
   const promote = usePromoteUserToAdmin(props.user.id);
@@ -411,15 +409,12 @@ function AdminUserPromotionToggle(props: { user: DetailedAdminUserDto }) {
 
         demote.mutate(undefined, {
           onSuccess() {
-            if (props.user.id === currentUser?.id) {
-              queryClient.invalidateQueries({ queryKey: authKeys.introspectSession() });
-              return navigate(generatePath(ROUTE_PATHS.SG.DASHBOARD));
-            }
+            if (props.user.id === currentUser?.id) return navigate(generatePath(ROUTE_PATHS.SG.DASHBOARD));
           },
         });
       }
     },
-    [confirmation, currentUser, demote, formatMessage, navigate, promote, props.user, queryClient],
+    [confirmation, currentUser, demote, formatMessage, navigate, promote, props.user],
   );
 
   if (!props.user.canHoldAdminRight) return null;

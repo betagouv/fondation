@@ -177,7 +177,7 @@ export function useExcludedJurisdictionsMutation(options: { userId: string }) {
         path: { userId: options.userId },
       });
     },
-    onSuccess: async () => {
+    onSettled: async () => {
       await queryClient.invalidateQueries({
         queryKey: memberKeys.detailsMember({ userId: options.userId }),
       });
@@ -283,14 +283,14 @@ export function useUpdateNominationFileAuditionDateMutation() {
         summaryKeys.detailsSummary({ nominationFileId, sessionId }),
         (old: DetailedSummaryDto | undefined) => (old ? { ...old, auditionDate, auditionTime } : old),
       );
-
-      return Promise.all([
+    },
+    onSettled: (_data, _error, { nominationFileId, sessionId }) =>
+      Promise.all([
         queryClient.invalidateQueries({ queryKey: auditionKeys.all() }),
         queryClient.invalidateQueries({
           queryKey: sessionKeys.detailSessionNominationFile({ nominationFileId, sessionId }),
         }),
-      ]);
-    },
+      ]),
   });
 }
 
@@ -306,7 +306,7 @@ export function useUpdateNominationFileAuditionRequestMutation() {
         path: { nominationFileId: mutation.nominationFileId, sessionId: mutation.sessionId },
       });
     },
-    onSuccess: (_, { nominationFileId, requested, sessionId }) => {
+    onSuccess: (_, { nominationFileId, requested, sessionId }) =>
       queryClient.setQueriesData(
         { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
         mapCachedNominationFiles((file) =>
@@ -321,9 +321,9 @@ export function useUpdateNominationFileAuditionRequestMutation() {
               }
             : file,
         ),
-      );
-
-      return Promise.all([
+      ),
+    onSettled: (_data, _error, { nominationFileId, sessionId }) =>
+      Promise.all([
         queryClient.invalidateQueries({ queryKey: auditionKeys.all() }),
         queryClient.invalidateQueries({
           queryKey: sessionKeys.detailSessionNominationFile({ nominationFileId, sessionId }),
@@ -331,8 +331,7 @@ export function useUpdateNominationFileAuditionRequestMutation() {
         queryClient.invalidateQueries({
           queryKey: summaryKeys.detailsSummary({ nominationFileId, sessionId }),
         }),
-      ]);
-    },
+      ]),
   });
 }
 
@@ -348,7 +347,7 @@ export function useUpdateNominationFileMissingEvaluationMutation() {
         path: { nominationFileId: mutation.nominationFileId, sessionId: mutation.sessionId },
       });
     },
-    onSuccess: async (_, { sessionId, nominationFileId, missingEvaluation }) => {
+    onSuccess: (_, { sessionId, nominationFileId, missingEvaluation }) => {
       queryClient.setQueriesData(
         { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
         mapCachedNominationFiles((file) =>
@@ -366,16 +365,16 @@ export function useUpdateNominationFileMissingEvaluationMutation() {
         summaryKeys.detailsSummary({ nominationFileId, sessionId }),
         (old: DetailedSummaryDto | undefined) => (old ? { ...old, missingEvaluation } : old),
       );
-
-      await Promise.all([
+    },
+    onSettled: (_data, _error, { sessionId }) =>
+      Promise.all([
         queryClient.invalidateQueries({
           queryKey: sessionKeys.listSessionNominationFiles({ sessionId }),
         }),
         queryClient.invalidateQueries({
           queryKey: sessionKeys.nominationFilesStatusCounts({ sessionId }),
         }),
-      ]);
-    },
+      ]),
   });
 }
 
@@ -391,18 +390,17 @@ export function useUpdateNominationFileMissingEvaluationCommentMutation() {
         path: { nominationFileId: mutation.nominationFileId, sessionId: mutation.sessionId },
       });
     },
-    onSuccess: (_, { sessionId, nominationFileId, comment }) => {
+    onSuccess: (_, { sessionId, nominationFileId, comment }) =>
       queryClient.setQueriesData(
         { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
         mapCachedNominationFiles((file) =>
           file.id === nominationFileId ? { ...file, missingEvaluationComment: comment } : file,
         ),
-      );
-
-      return queryClient.invalidateQueries({
+      ),
+    onSettled: (_data, _error, { sessionId }) =>
+      queryClient.invalidateQueries({
         queryKey: sessionKeys.nominationFilesStatusCounts({ sessionId }),
-      });
-    },
+      }),
   });
 }
 
@@ -425,5 +423,9 @@ export function useWriteNominationFileMemberMemoMutation() {
           item.id === nominationFileId ? { ...item, memo: { value: memo.trim() || null } } : item,
         ),
       ),
+    // a member who became a reporter of the file is refused: the reload removes the memo from the panel,
+    // while a success, already patched above, does not refetch every loaded page
+    onError: (_error, { sessionId }) =>
+      queryClient.invalidateQueries({ queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) }),
   });
 }
