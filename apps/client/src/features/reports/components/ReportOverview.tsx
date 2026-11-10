@@ -33,6 +33,7 @@ import { ReportDetailsHeader } from './ReportDetailsHeader';
 import { ReportEditor } from './ReportEditor';
 import { ReportMagistratCard } from './ReportMagistratCard';
 import { ReportNavigation } from './ReportNavigation';
+import { ReportObservationsCard } from './ReportObservationsCard';
 
 export function ReportOverview({ id }: { id: string }) {
   const { formatMessage } = useIntl();
@@ -140,19 +141,27 @@ export function ReportOverview({ id }: { id: string }) {
           />
         }
         identity={
-          <ReportMagistratCard
-            report={{
-              biography: nominationFile.content.historique,
-              birthDate: nominationFile.content.dateDeNaissance,
-              currentPosition: nominationFile.content.posteActuel,
-              grade: nominationFile.content.grade,
-              missingEvaluation: nominationFile.missingEvaluation,
-              positionStartDate: nominationFile.content.datePriseDeFonctionPosteActuel,
-              rank: nominationFile.content.rang,
-              targetedGrade: nominationFile.content.gradeCible,
-              targetedPosition: nominationFile.content.posteCible,
-            }}
-          />
+          <>
+            <ReportMagistratCard
+              report={{
+                biography: nominationFile.content.historique,
+                birthDate: nominationFile.content.dateDeNaissance,
+                currentPosition: nominationFile.content.posteActuel,
+                grade: nominationFile.content.grade,
+                missingEvaluation: nominationFile.missingEvaluation,
+                positionStartDate: nominationFile.content.datePriseDeFonctionPosteActuel,
+                rank: nominationFile.content.rang,
+                targetedGrade: nominationFile.content.gradeCible,
+                targetedPosition: nominationFile.content.posteCible,
+              }}
+            />
+            <ReportObservationsCard
+              magistratName={nominationFile.content.nomMagistrat}
+              nominationFileId={retrievedReport.nominationFileId}
+              observers={nominationFile.content.observants}
+              sessionId={retrievedReport.sessionId}
+            />
+          </>
         }
         navigation={<ReportNavigation reportId={id} sessionId={retrievedReport.sessionId} />}
         wideIdentity
