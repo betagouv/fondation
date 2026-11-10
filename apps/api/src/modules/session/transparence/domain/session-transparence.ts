@@ -574,7 +574,7 @@ export class SessionTransparence {
     assignedReporterIds?: ReadonlyMap<string, ReadonlySet<string>>;
     authorId: string | null;
     formationMemberIds: Set<string>;
-    /** absent when no member can be recused yet (new session) or when the caller already excludes them */
+    /** absent when no member can be recused yet (new session) */
     recusedMemberIdsByFile?: ReadonlyMap<string, ReadonlySet<string>>;
   }) {
     this.assertsCanUpdateFiles(...command.affectations.map(({ nominationFileId }) => nominationFileId));
@@ -630,6 +630,7 @@ export class SessionTransparence {
       affectations,
       authorId: command.authorId,
       formationMemberIds: command.formationMemberIds,
+      recusedMemberIdsByFile: command.autoAffectations.recusedMemberIdsByFile,
     });
   }
 

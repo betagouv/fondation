@@ -273,17 +273,13 @@ export class TransparenceService {
       nominationFileIds: [...nominationFileIds],
       sessionId: command.sessionId,
     });
-    const recusals = await this.recusedMembersFinder.find({ nominationFileIds });
+    const recusedMemberIdsByFile = await this.recusedMembersFinder.findIds({ nominationFileIds });
 
     session.affectNominationFileReporters({
       ...command,
       assignedReporterIds,
       formationMemberIds,
-      recusedMemberIdsByFile: new Map(
-        recusals
-          .entries()
-          .map(([nominationFileId, members]) => [nominationFileId, new Set(members.map(({ id }) => id))]),
-      ),
+      recusedMemberIdsByFile,
     });
 
     await this.nominationSessionRepository.persist(session);
@@ -435,7 +431,7 @@ export class TransparenceService {
     const nominationFileIds = new Set(command.recusals.map(({ nominationFileId }) => nominationFileId));
     const session = await this.nominationSessionRepository.find(command.sessionId, { nominationFileIds });
 
-    const formerRecusals = await this.recusedMembersFinder.find({ nominationFileIds });
+    const recusedMemberIdsByFile = await this.recusedMembersFinder.findIds({ nominationFileIds });
     const formationMemberIds = await this.members
       .findMembers({
         formation: session.formation,
@@ -447,11 +443,7 @@ export class TransparenceService {
       authorId: command.authorId,
       formationMemberIds,
       recusals: command.recusals,
-      recusedMemberIdsByFile: new Map(
-        formerRecusals
-          .entries()
-          .map(([nominationFileId, members]) => [nominationFileId, new Set(members.map(({ id }) => id))]),
-      ),
+      recusedMemberIdsByFile,
       reportersByFile: await this.versions.findPublishedAndLatestReporters({
         nominationFileIds: [...nominationFileIds],
       }),

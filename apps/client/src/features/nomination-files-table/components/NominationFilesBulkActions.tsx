@@ -29,8 +29,7 @@ import {
 } from './cells/magistrat-side-panel/components/header/AffectationFields';
 import { AffectedRecusedMembersNotice } from './cells/magistrat-side-panel/components/recused-members/AffectedRecusedMembersNotice';
 import {
-  blockedAffectations,
-  blockedRecusals,
+  blockedMembers,
   isNonAffectableOn,
   isNonRecusableOn,
 } from './cells/magistrat-side-panel/components/recused-members/recused-reporters';
@@ -178,22 +177,27 @@ export function NominationFilesBulkActions(props: {
       if (!hasSelection) return;
 
       const change = diff(reporterIds, next);
-      const items = props.selectedFiles
+      const changedAffectations = props.selectedFiles
         .map((file) => {
-          const before = file.reporters.map(({ id }) => id);
+          const formerReporterIds = file.reporters.map(({ id }) => id);
           return {
-            before,
+            formerReporterIds,
             nominationFileId: file.id,
-            reporterIds: applyChange(before, {
+            reporterIds: applyChange(formerReporterIds, {
               added: change.added.filter((id) => !isNonAffectableOn(file, id)),
               removed: change.removed,
             }),
           };
         })
-        .filter(({ before, reporterIds }) => isChanged(before, reporterIds));
-      const recusedMembers = blockedAffectations(props.selectedFiles, change.added, members?.items ?? []);
+        .filter(({ formerReporterIds, reporterIds }) => isChanged(formerReporterIds, reporterIds));
+      const recusedMembers = blockedMembers(
+        props.selectedFiles,
+        change.added,
+        members?.items ?? [],
+        isNonAffectableOn,
+      );
       if (recusedMembers.length > 0) {
-        const hasOtherPropositions = items.length > 0;
+        const hasOtherPropositions = changedAffectations.length > 0;
         const { isConfirmed } = await waitForConfirmation({
           content: (
             <AffectedRecusedMembersNotice
@@ -217,11 +221,14 @@ export function NominationFilesBulkActions(props: {
 
       setReporterIds(next);
       // the API refuses an empty affectation
-      if (items.length === 0) return;
+      if (changedAffectations.length === 0) return;
 
       affectReporters.mutate(
         {
-          affectations: items.map(({ nominationFileId, reporterIds }) => ({ nominationFileId, reporterIds })),
+          affectations: changedAffectations.map(({ nominationFileId, reporterIds }) => ({
+            nominationFileId,
+            reporterIds,
+          })),
           sessionId,
         },
         { onError: onFailure },
@@ -288,7 +295,12 @@ export function NominationFilesBulkActions(props: {
         }),
         nominationFileId: file.id,
       }));
-      const reporters = blockedRecusals(props.selectedFiles, change.added, members?.items ?? []);
+      const reporters = blockedMembers(
+        props.selectedFiles,
+        change.added,
+        members?.items ?? [],
+        isNonRecusableOn,
+      );
       if (reporters.length > 0) {
         const hasOtherPropositions = items.some(({ before, memberIds }) => isChanged(before, memberIds));
         const { isConfirmed } = await waitForConfirmation({

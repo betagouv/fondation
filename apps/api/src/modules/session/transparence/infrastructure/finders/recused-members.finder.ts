@@ -34,4 +34,16 @@ export class RecusedMembersFinder {
     }
     return members;
   }
+
+  /** the recused member ids of each file, for the rules that only compare them */
+  async findIds(query: {
+    nominationFileIds: ReadonlySet<string>;
+  }): Promise<Map<string, ReadonlySet<string>>> {
+    const members = await this.find(query);
+    return new Map(
+      members
+        .entries()
+        .map(([nominationFileId, list]) => [nominationFileId, new Set(list.map(({ id }) => id))]),
+    );
+  }
 }

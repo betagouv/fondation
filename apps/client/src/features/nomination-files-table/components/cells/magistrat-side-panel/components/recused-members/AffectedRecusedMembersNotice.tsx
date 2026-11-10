@@ -12,6 +12,12 @@ export function AffectedRecusedMembersNotice(props: {
 }) {
   const [first] = props.members;
   const [file] = first?.files ?? [];
+  const savedElsewhere = props.hasOtherPropositions && (
+    <>
+      {' '}
+      <FormattedMessage defaultMessage="L'affectation sera bien enregistrée sur les autres propositions sélectionnées." />
+    </>
+  );
 
   if (props.members.length === 1 && first?.files.length === 1 && file)
     return (
@@ -20,12 +26,7 @@ export function AffectedRecusedMembersNotice(props: {
           defaultMessage="Vous souhaitez affecter {member} à la proposition de nomination de {proposition}, dont ce membre s'est déporté. Pour pouvoir l'affecter, vous devez au préalable retirer son déport."
           values={{ member: memberFullName(first.member), proposition: propositionLabel(file) }}
         />
-        {props.hasOtherPropositions && (
-          <>
-            {' '}
-            <FormattedMessage defaultMessage="L'affectation sera bien enregistrée sur les autres propositions sélectionnées." />
-          </>
-        )}
+        {savedElsewhere}
       </p>
     );
 
@@ -37,12 +38,7 @@ export function AffectedRecusedMembersNotice(props: {
       <MemberPropositionsList members={props.members} />
       <p>
         <FormattedMessage defaultMessage="Pour pouvoir les affecter, vous devez au préalable retirer leur déport." />
-        {props.hasOtherPropositions && (
-          <>
-            {' '}
-            <FormattedMessage defaultMessage="L'affectation sera bien enregistrée sur les autres propositions sélectionnées." />
-          </>
-        )}
+        {savedElsewhere}
       </p>
     </>
   );

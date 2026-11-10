@@ -260,6 +260,7 @@ export class ListNominationFilesQuery {
       };
 
       const audition = auditions.get(x.id);
+      const recusedIds = new Set(recusedMembers.get(x.id)?.map(({ id }) => id));
       assert.ok(audition, `no audition seen for the nomination file ${x.id}`);
 
       return {
@@ -319,7 +320,7 @@ export class ListNominationFilesQuery {
         nonAffectableMembers: nominationFilesPolicies.canAffectReporters(x, query.user)
           ? nonAffectableMembers({
               assignedReporterIds: new Set(x.reporters.map(({ user }) => user.id)),
-              recusedIds: new Set(recusedMembers.get(x.id)?.map(({ id }) => id)),
+              recusedIds,
             })
           : [],
         nonRecusableMembers: nominationFilesPolicies.canRecuseMembers(x, query.user)
