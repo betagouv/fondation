@@ -143,7 +143,7 @@ describe('OfficialReportBlocksModel', () => {
           editedBy: null,
           generatedHtml: null,
           html: '<p>Information</p>',
-          outdated: false,
+          outdatedBy: null,
         },
         error: undefined,
       });

@@ -1,29 +1,35 @@
+import type { Prisma } from '../../../../../../generated/prisma/client';
 import { writerOf } from '../../../../../../utils/user.util';
 import { conjunctionList } from '../../../../shared/infrastructure/services/renderers/helpers';
 import { escapeHtml } from '../../../../shared/infrastructure/services/renderers/safe-html';
 import type { OfficialReportFileNote } from '../../../domain/official-report-doc-block';
-import type { OfficialReportNoteStatus } from '../../../domain/official-report-types';
+import type {
+  OfficialReportNamedMember,
+  OfficialReportNoteOutdatedBy,
+  OfficialReportNoteStatus,
+} from '../../../domain/official-report-types';
+import { parseNamedMembers } from '../../official-report-named-members';
 
 export type OfficialReportStoredNote = {
   note: string | null;
   noteEditedAt: Date | null;
   noteEditor: { firstName: string; id: string; lastName: string } | null;
-  noteOutdated: boolean;
+  noteOutdatedBy: OfficialReportNoteOutdatedBy | null;
   noteStatus: OfficialReportNoteStatus;
-  /** in protocol order */
-  recusedMembers: readonly string[];
+  /** `{ id, name }[]` in protocol order */
+  recusedMembers: Prisma.JsonValue;
 };
 
-export function recusalMention(recusedMembers: readonly string[]): string | null {
+export function recusalMention(recusedMembers: readonly OfficialReportNamedMember[]): string | null {
   if (recusedMembers.length === 0) return null;
 
-  const members = escapeHtml(conjunctionList(recusedMembers));
+  const members = escapeHtml(conjunctionList(recusedMembers.map(({ name }) => name)));
   const verb = recusedMembers.length > 1 ? "n'ont" : "n'a";
   return `<p><em>Étant précisé que ${members} ${verb} pas délibéré ni procédé aux actes préparatoires relatifs à cette proposition de nomination.</em></p>`;
 }
 
 export function officialReportFileNote(stored: OfficialReportStoredNote): OfficialReportFileNote {
-  const generatedHtml = recusalMention(stored.recusedMembers);
+  const generatedHtml = recusalMention(parseNamedMembers(stored.recusedMembers));
   const isEdited = stored.noteStatus === 'EDITED';
 
   return {
@@ -31,6 +37,6 @@ export function officialReportFileNote(stored: OfficialReportStoredNote): Offici
     editedBy: isEdited ? writerOf(stored.noteEditor) : null,
     generatedHtml,
     html: { EDITED: stored.note, GENERATED: generatedHtml, REMOVED: null }[stored.noteStatus],
-    outdated: stored.noteOutdated,
+    outdatedBy: stored.noteOutdatedBy,
   };
 }

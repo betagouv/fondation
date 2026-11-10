@@ -10,6 +10,13 @@ import { OfficialReportSessionMeeting } from './official-report-session-meeting'
 export const OFFICIAL_REPORT_NOTE_STATUSES = ['GENERATED', 'EDITED', 'REMOVED'] as const;
 export type OfficialReportNoteStatus = (typeof OFFICIAL_REPORT_NOTE_STATUSES)[number];
 
+export const OFFICIAL_REPORT_NOTE_OUTDATED_BY = ['RECUSAL', 'DESIGNATION'] as const;
+/** what changed since the slot was written or emptied by hand: who is recused, or only how one is named */
+export type OfficialReportNoteOutdatedBy = (typeof OFFICIAL_REPORT_NOTE_OUTDATED_BY)[number];
+
+/** a member as the report names them: `id` is null when a name written before the ids were kept matched no single member */
+export type OfficialReportNamedMember = { id: string | null; name: string };
+
 export type UpdateOfficialReportCommand = {
   authorId: string;
   officialReport: {
@@ -22,8 +29,8 @@ export type UpdateOfficialReportCommand = {
     members: OfficialReportMembersList;
     files: readonly {
       nominationFileId: string;
-      recusedMembers: readonly string[];
-      reporters: readonly string[];
+      recusedMembers: readonly OfficialReportNamedMember[];
+      reporters: readonly OfficialReportNamedMember[];
       outcome: { value: DocNominationFileOutcomeEnum; comment: string | null };
     }[];
   };
@@ -45,19 +52,34 @@ export type InvalidateOfficialReportCommand = { id: string } & (
       payload: {
         files: readonly {
           nominationFileId: string;
-          recusedMembers: readonly string[];
-          reporters: readonly string[];
+          recusedMembers: readonly OfficialReportNamedMember[];
+          reporters: readonly OfficialReportNamedMember[];
           outcome: { value: DocNominationFileOutcomeEnum; comment: string | null };
         }[];
       };
     }
   | {
       type: 'NominationFilesReportersUpdated';
-      payload: { files: readonly { nominationFileId: string; reporters: readonly string[] }[] };
+      payload: {
+        files: readonly { nominationFileId: string; reporters: readonly OfficialReportNamedMember[] }[];
+      };
+    }
+  | {
+      /** how a member is printed changed: their name, or the title they get once recused */
+      type: 'MemberRenamed';
+      payload: {
+        files: readonly {
+          nominationFileId: string;
+          recusedMembers: readonly OfficialReportNamedMember[];
+          reporters: readonly OfficialReportNamedMember[];
+        }[];
+      };
     }
   | {
       type: 'NominationFilesRecusalsUpdated';
-      payload: { files: readonly { nominationFileId: string; recusedMembers: readonly string[] }[] };
+      payload: {
+        files: readonly { nominationFileId: string; recusedMembers: readonly OfficialReportNamedMember[] }[];
+      };
     }
   | {
       type: 'AgendaFileBlockEdited';
@@ -73,20 +95,21 @@ export type OfficialReportSnapshotDiff = {
   files: readonly (
     | { action: 'noop' }
     | {
-        action: 'outdate' | 'update';
+        /** `outdate` flags a block written by hand, `update` settles a generated one, `rename` lets the names a
+         * block written by hand will print once given back to the template follow, leaving its flag as it is */
+        action: 'outdate' | 'rename' | 'update';
         nominationFileId: string;
-        reporters: readonly string[] | undefined;
+        reporters: readonly OfficialReportNamedMember[] | undefined;
         outcome: DocNominationFileOutcomeEnum | undefined;
         outcomeComment: string | null | undefined;
       }
-    | {
+    | ({
         /** `follow`: the sentence reads the new recusal, `outdate`: the hand-written slot is flagged,
          * `generate`: a removal with nothing left to hide gives the slot back to the sentence */
         action: 'recuse';
         nominationFileId: string;
-        note: 'follow' | 'generate' | 'outdate';
-        recusedMembers: readonly string[];
-      }
+        recusedMembers: readonly OfficialReportNamedMember[];
+      } & ({ note: 'follow' | 'generate' } | { note: 'outdate'; outdatedBy: OfficialReportNoteOutdatedBy }))
     | {
         action: 'create';
         nominationFileId: string;

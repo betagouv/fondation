@@ -7,12 +7,7 @@ import { makeId } from '../../../utils/id';
 import { Db } from '../../framework/database';
 import { prismaRoleEnumToRoleEnum } from '../../shared/mappers/role-enum.mapper';
 import { MEMBER_ROLES } from '../../shared/role.enum';
-import {
-  ExcludedMemberJurisdictions,
-  Member,
-  MemberDisplayTitleUpdated,
-  MemberRecusalTitleUpdated,
-} from '../domain/member';
+import { ExcludedMemberJurisdictions, Member, MemberDisplayTitleUpdated } from '../domain/member';
 
 @Injectable()
 export class MemberRepository {
@@ -62,8 +57,6 @@ export class MemberRepository {
         await this.persistExcludedMemberJurisdictions(message);
       else if (message instanceof MemberDisplayTitleUpdated)
         await this.persistMemberDisplayTitleUpdated(message);
-      else if (message instanceof MemberRecusalTitleUpdated)
-        await this.persistMemberRecusalTitleUpdated(message);
       else assertNever(message);
     }
   }
@@ -90,13 +83,6 @@ export class MemberRepository {
     return this.db.tx.user.update({
       where: { id: message.userId },
       data: { displayTitle: message.displayTitle },
-    });
-  }
-
-  private persistMemberRecusalTitleUpdated(message: MemberRecusalTitleUpdated) {
-    return this.db.tx.user.update({
-      where: { id: message.userId },
-      data: { recusalTitle: message.recusalTitle },
     });
   }
 }

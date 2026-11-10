@@ -63,7 +63,7 @@ function sameMetadataOf(report: OfficialReport): UpdateOfficialReportCommand['of
         nominationFileId: 'file-1',
         outcome: { comment: null, value: 'VALIDATED' },
         recusedMembers: [],
-        reporters: ['M. John DOE'],
+        reporters: [helpers.JOHN_DOE],
       },
     ],
     hasRenunciation: meta.hasRenunciation,
@@ -189,7 +189,7 @@ describe('OfficialReport', () => {
                 hasManuallyEditedHtml: false,
                 nominationFileId: 'file-1',
                 outcome: { comment: null, value: 'VALIDATED' },
-                reporters: ['M. John DOE'],
+                reporters: [helpers.JOHN_DOE],
               }),
             ],
           ]),
@@ -197,13 +197,13 @@ describe('OfficialReport', () => {
       });
     const withNote = (state: { isValidated?: boolean } = {}) =>
       withFile(state, {
-        note: { html: '<p>note</p>', outdated: false, status: 'EDITED' },
+        note: { html: '<p>note</p>', outdatedBy: null, status: 'EDITED' },
         recusedMembers: [],
       });
     const withRecusal = (state: { actorId?: string | null; isValidated?: boolean } = {}) =>
       withFile(state, {
-        note: { html: null, outdated: false, status: 'GENERATED' },
-        recusedMembers: ['M. Paul FORGET'],
+        note: { html: null, outdatedBy: null, status: 'GENERATED' },
+        recusedMembers: [{ id: 'member-forget', name: 'M. Paul FORGET' }],
       });
 
     it('should be written by the person who edits the report', () => {
@@ -278,6 +278,46 @@ describe('OfficialReport', () => {
       expect(report.messages).toEqual([new OfficialReportUpdateSkipped(report.id, 'RECUSAL')]);
     });
 
+    describe('when a member is renamed', () => {
+      const renamed = (report: OfficialReport) =>
+        report.invalidate({
+          id: report.id,
+          payload: {
+            files: [
+              {
+                nominationFileId: 'file-1',
+                recusedMembers: [{ id: 'member-forget', name: 'M. le Bâtonnier FORGET' }],
+                reporters: [helpers.JOHN_DOE],
+              },
+            ],
+          },
+          type: 'MemberRenamed',
+        });
+
+      it('should follow the new designation in a draft, saying why', () => {
+        const report = withRecusal({ actorId: null });
+
+        renamed(report);
+
+        expect(report.messages).toEqual([
+          new OfficialReportDraftUpdatedBySystem(report.id, 'DESIGNATION'),
+          expect.objectContaining({
+            diff: expect.objectContaining({
+              files: [expect.objectContaining({ action: 'recuse', note: 'follow' })],
+            }),
+          }),
+        ]);
+      });
+
+      it('should leave a validated report as the meeting was held, without saying the designation changed', () => {
+        const report = withRecusal({ actorId: null, isValidated: true });
+
+        renamed(report);
+
+        expect(report.messages).toEqual([]);
+      });
+    });
+
     it('should leave a validated report as it is when there is no note to delete', () => {
       const report = makeReport({ isValidated: true });
 
@@ -350,10 +390,10 @@ describe('OfficialReport', () => {
               OfficialReportSnapshotFile.from({
                 hasManuallyEditedHtml: false,
                 nominationFileId: 'file-1',
-                note: { html: null, outdated: false, status: 'GENERATED' },
+                note: { html: null, outdatedBy: null, status: 'GENERATED' },
                 outcome: { comment: null, value: 'SUSPENDED' },
                 recusedMembers: [],
-                reporters: ['M. John DOE'],
+                reporters: [helpers.JOHN_DOE],
               }),
             ],
           ]),

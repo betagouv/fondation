@@ -1,6 +1,7 @@
 import { Transactional } from '@nestjs-cls/transactional';
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
+import { DocsService } from '../docs/docs.service';
 import { Clock } from '../framework/clock';
 import { Pagination } from '../framework/pagination';
 import { Sortable } from '../framework/sorting';
@@ -34,6 +35,7 @@ export class AdministrationService {
     private readonly listUsersQuery: ListUsersQuery,
     private readonly detailsUserQuery: DetailsUserQuery,
     private readonly listTitleHoldersQuery: ListTitleHoldersQuery,
+    private readonly docs: DocsService,
   ) {}
 
   listUsers(query: {
@@ -123,6 +125,7 @@ export class AdministrationService {
     const user = await this.userRepository.findById(command.userId);
     user.updateName(command);
     await this.userRepository.persist(user);
+    await this.docs.internalFollowRenamedMember(command);
   }
 
   @Transactional()
@@ -168,10 +171,21 @@ export class AdministrationService {
     await this.userRepository.persist(user);
   }
 
+  @Transactional()
   async updateRecusalTitle(command: { recusalTitle: string | null; userId: string }): Promise<void> {
     const user = await this.userRepository.findById(command.userId);
     user.updateRecusalTitle(command.recusalTitle);
     await this.userRepository.persist(user);
+    await this.docs.internalFollowRenamedMember(command);
+  }
+
+  /** the members' page reaches the members only */
+  @Transactional()
+  async updateMemberRecusalTitle(command: { recusalTitle: string | null; userId: string }): Promise<void> {
+    const user = await this.userRepository.findById(command.userId);
+    if (!user.isMember()) throw new NotFoundException();
+
+    await this.updateRecusalTitle(command);
   }
 
   async batchUpdateDisplayTitles(

@@ -131,8 +131,8 @@ export class members {
         });
     }
     
-    public static updateRecusalTitle<ThrowOnError extends boolean = false>(options: Options<UpdateRecusalTitleData, ThrowOnError>): RequestResult<UpdateRecusalTitleResponses, unknown, ThrowOnError> {
-        return (options.client ?? client).put<UpdateRecusalTitleResponses, unknown, ThrowOnError>({
+    public static updateRecusalTitle<ThrowOnError extends boolean = false>(options: Options<UpdateRecusalTitle2Data, ThrowOnError>): RequestResult<UpdateRecusalTitle2Responses, unknown, ThrowOnError> {
+        return (options.client ?? client).put<UpdateRecusalTitle2Responses, unknown, ThrowOnError>({
             url: '/api/members/v1/{userId}/recusal-title',
             ...options,
             headers: {
@@ -1212,8 +1212,8 @@ export class administration {
         });
     }
     
-    public static updateRecusalTitle<ThrowOnError extends boolean = false>(options: Options<UpdateRecusalTitle2Data, ThrowOnError>): RequestResult<UpdateRecusalTitle2Responses, unknown, ThrowOnError> {
-        return (options.client ?? client).put<UpdateRecusalTitle2Responses, unknown, ThrowOnError>({
+    public static updateRecusalTitle<ThrowOnError extends boolean = false>(options: Options<UpdateRecusalTitleData, ThrowOnError>): RequestResult<UpdateRecusalTitleResponses, unknown, ThrowOnError> {
+        return (options.client ?? client).put<UpdateRecusalTitleResponses, unknown, ThrowOnError>({
             url: '/api/administration/v1/users/{userId}/recusal-title',
             ...options,
             headers: {

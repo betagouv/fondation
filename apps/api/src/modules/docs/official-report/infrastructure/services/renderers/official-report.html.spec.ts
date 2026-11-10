@@ -14,7 +14,7 @@ import {
   officialReportTemplate,
 } from './official-report.html';
 
-const EMPTY_NOTE = { editedAt: null, editedBy: null, generatedHtml: null, html: null, outdated: false };
+const EMPTY_NOTE = { editedAt: null, editedBy: null, generatedHtml: null, html: null, outdatedBy: null };
 
 describe('officialReportTemplate', () => {
   const baseContext = {
