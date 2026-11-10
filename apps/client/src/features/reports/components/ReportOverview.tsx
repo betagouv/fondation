@@ -3,6 +3,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { Navigate } from 'react-router';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
+import { ObservationsCard } from '@/features/observations/components/ObservationsCard';
 import { AuditionAnnouncedBanner, AuditionScheduledBanner } from '@/shared/components/audition-banner';
 import { ArchiveBannerPortal } from '@/shared/components/banners';
 import { RecusedReporterBanner } from '@/shared/components/recused-reporter-banner';
@@ -33,7 +34,6 @@ import { ReportDetailsHeader } from './ReportDetailsHeader';
 import { ReportEditor } from './ReportEditor';
 import { ReportMagistratCard } from './ReportMagistratCard';
 import { ReportNavigation } from './ReportNavigation';
-import { ReportObservationsCard } from './ReportObservationsCard';
 
 export function ReportOverview({ id }: { id: string }) {
   const { formatMessage } = useIntl();
@@ -155,7 +155,7 @@ export function ReportOverview({ id }: { id: string }) {
                 targetedPosition: nominationFile.content.posteCible,
               }}
             />
-            <ReportObservationsCard
+            <ObservationsCard
               magistratName={nominationFile.content.nomMagistrat}
               nominationFileId={retrievedReport.nominationFileId}
               observers={nominationFile.content.observants}

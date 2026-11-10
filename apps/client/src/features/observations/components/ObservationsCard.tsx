@@ -1,10 +1,11 @@
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
-import { Observations } from '@/features/observations/components/observations-section/Observations';
 import { ObservationsModalProvider } from '@/features/observations/context/ObservationsModalProvider';
 import { DetailsCard } from '@/shared/ui/details';
 import { useObservationsQuery } from '@queries/observations.queries';
 
-export function ReportObservationsCard({
+import { Observations } from './observations-section/Observations';
+
+export function ObservationsCard({
   magistratName,
   nominationFileId,
   observers,
