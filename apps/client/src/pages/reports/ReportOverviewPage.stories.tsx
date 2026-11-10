@@ -4,6 +4,7 @@ import { http, HttpResponse } from 'msw';
 import { PageStory } from '@/shared/storybook/PageStory';
 import { STORY_SESSION } from '@/shared/storybook/story-session';
 import { STORY_AUTHORS, STORY_USERS, STORY_VIEWS, type StoryView } from '@/shared/storybook/story-users';
+import { summaryObservationsHandlers } from '@/shared/storybook/summary.fixtures';
 import { getGdsReportPath, ROUTE_PATHS } from '@/utils/route-path.utils';
 import type {
   DetailedNominationFileDto,
@@ -59,7 +60,7 @@ const NOMINATION_FILE: DetailedNominationFileDto = {
     lockedReason: null,
     nomMagistrat: 'DURAND Camille',
     numeroDeDossier: 12,
-    observants: null,
+    observants: ['BERNARD Paul', 'MARTIN Léa'],
     outcome: null,
     posteActuel: 'Conseillère à la cour d’appel de Lyon',
     posteCible: 'Présidente de chambre à la cour d’appel de Paris',
@@ -125,6 +126,7 @@ const meta = {
   },
   beforeEach: ({ args, msw }) => {
     msw.use(
+      ...summaryObservationsHandlers,
       http.get('*/api/reports/v2/:reportId', () =>
         HttpResponse.json<DetailedReportDto>(
           args.isRecused ? { ...REPORT, lockedReason: 'RECUSED', state: 'NOT_APPLICABLE' } : REPORT,
