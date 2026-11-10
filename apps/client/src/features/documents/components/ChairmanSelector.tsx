@@ -69,11 +69,14 @@ export function ChairmanSelector(
         disabled={isMembersFetching || field.disabled}
         nativeSelectProps={{
           onChange,
-          value: field.value,
+          value: field.value ?? '',
         }}
         state={fieldState.error ? 'error' : 'default'}
         stateRelatedMessage={fieldState.error?.message}
       >
+        <option value="" disabled>
+          <FormattedMessage defaultMessage="Sélectionner un président" />
+        </option>
         {chairmen.length > 0 && (
           <optgroup label={formatMessage({ defaultMessage: 'Président ou suppléant' })}>
             {chairmen.map((c) => (
