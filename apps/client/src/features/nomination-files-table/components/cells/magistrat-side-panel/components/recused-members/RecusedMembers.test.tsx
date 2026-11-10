@@ -133,10 +133,10 @@ describe('RecusedMembers', () => {
     );
   });
 
-  it('withdraws a recused member, even a reporter', async () => {
+  it('withdraws a recused member', async () => {
     const recuse = mockRecusal([]);
     const user = userEvent.setup();
-    renderRecusedMembers([MEMBER], { nonRecusableMembers: [{ id: MEMBER.id, reason: 'REPORTER' }] });
+    renderRecusedMembers([MEMBER]);
 
     await user.click(screen.getByRole('button', { name: 'Retirer le déport de Jean ALBERT' }));
 

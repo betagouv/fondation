@@ -235,31 +235,13 @@ describe('NominationFilesBulkActions', () => {
     expect(screen.queryByRole('button', { name: 'Retirer Camille COMMUN' })).toBeNull();
   });
 
-  it('should not ask again for a reporter already recused from their file', async () => {
-    renderActions([
-      file({
-        id: 'file-1',
-        nomMagistrat: 'BOURDIEU Pierre',
-        nonRecusableMemberIds: [CAMILLE.id],
-        recusedMembers: [CAMILLE],
-      }),
-      file({ id: 'file-2', nomMagistrat: 'HARENDT Anna' }),
-    ]);
-
-    await openDropdown(/Membres déportés/);
-    await chooseOption('Camille COMMUN');
-
-    expect(screen.queryByRole('dialog', { name: /Déporter/ })).toBeNull();
-    expect(recuseMembers).toHaveBeenCalled();
-  });
-
   it('should withdraw the recusal of a reporter without asking', async () => {
     renderActions([
       file({
         id: 'file-1',
         nomMagistrat: 'BOURDIEU Pierre',
-        nonRecusableMemberIds: [CAMILLE.id],
         recusedMembers: [CAMILLE],
+        reporters: [CAMILLE],
       }),
       file({ id: 'file-2', nomMagistrat: 'HARENDT Anna', recusedMembers: [CAMILLE] }),
     ]);

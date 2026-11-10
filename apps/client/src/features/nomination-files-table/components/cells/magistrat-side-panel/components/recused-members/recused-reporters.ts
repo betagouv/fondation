@@ -28,7 +28,7 @@ export function blockedRecusals(
   members: readonly MemberPropositions['member'][],
 ): MemberPropositions[] {
   return addedMemberIds.flatMap((memberId) => {
-    const blocked = files.filter((file) => isNonRecusableOn(file, memberId) && !isRecusedOn(file, memberId));
+    const blocked = files.filter((file) => isNonRecusableOn(file, memberId));
     const member = members.find(({ id }) => id === memberId);
 
     return member && blocked.length > 0 ? [{ files: blocked, member }] : [];

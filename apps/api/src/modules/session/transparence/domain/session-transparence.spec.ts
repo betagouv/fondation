@@ -1485,7 +1485,7 @@ describe('SessionTransparence', () => {
       expect(transparence.messages).toEqual([]);
     });
 
-    it('keeps a reporter recused before the rule while another member recuses themselves', () => {
+    it('only checks the members added to the recusals', () => {
       const transparence = session(pendingFile);
       transparence.recuseMembers({
         authorId: 'sg-1',
