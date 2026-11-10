@@ -13,12 +13,24 @@ import { makeSessionOutcomes } from '@/test-utils/factories/session-outcomes.fac
 
 import { SgSessionFilesTable } from './SgSessionFilesTable';
 
+// as the API serves them to the Secrétariat général: recusals editable until the file is locked, never on a reporter
+const sgSessionFiles = sessionFiles.map((file) => {
+  const canRecuseMembers = file.content.lockedReason === null;
+  return {
+    ...file,
+    canRecuseMembers,
+    nonRecusableMembers: canRecuseMembers
+      ? file.reporters.map(({ id }) => ({ id, reason: 'REPORTER' as const }))
+      : [],
+  };
+});
+
 const sessions: Record<string, SessionDataset> = {
   draft: {
     agendaEligibleFileIds: sessionFiles
       .filter(({ content }) => content.status.value !== 'DSJ_REPORTED')
       .map(({ id }) => id),
-    files: sessionFiles,
+    files: sgSessionFiles,
     members: sessionMembers,
   },
   published: {
@@ -31,7 +43,7 @@ const sessions: Record<string, SessionDataset> = {
       pending: null,
       status: 'PUBLISHED',
     },
-    files: sessionFiles,
+    files: sgSessionFiles,
     members: sessionMembers,
   },
   empty: { files: [] },
@@ -41,6 +53,10 @@ const bulkActionHandlers = [
   http.post('*/api/sessions/v2/:sessionId/files/reporters', () => new HttpResponse(null, { status: 204 })),
   http.put('*/api/sessions/v2/:sessionId/files/outcome', () => new HttpResponse(null, { status: 204 })),
   http.put('*/api/sessions/v2/:sessionId/files/priorities', () => new HttpResponse(null, { status: 204 })),
+  http.put(
+    '*/api/sessions/v2/:sessionId/files/recused-members',
+    () => new HttpResponse(null, { status: 204 }),
+  ),
 ];
 
 function SgSessionFilesTableStory(props: {
