@@ -4,11 +4,13 @@ export const FILE_MIME_TYPES = {
   bin: 'application/octet-stream',
   doc: 'application/msword',
   docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  eml: 'message/rfc822',
   gif: 'image/gif',
   heic: 'image/heic',
   jpg: 'image/jpeg',
   json: 'application/json',
   mp4: 'video/mp4',
+  msg: 'application/vnd.ms-outlook',
   odp: 'application/vnd.oasis.opendocument.presentation',
   ods: 'application/vnd.oasis.opendocument.spreadsheet',
   odt: 'application/vnd.oasis.opendocument.text',
@@ -20,6 +22,7 @@ export const FILE_MIME_TYPES = {
   txt: 'text/plain',
   webm: 'video/webm',
   webp: 'image/webp',
+  wpd: 'application/vnd.wordperfect',
   xls: 'application/vnd.ms-excel',
   xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   xml: 'text/xml',
@@ -47,6 +50,18 @@ export function filenameToMimeType(filename: string): FileMimeType | undefined {
   if (!isDefined(extension)) return undefined;
 
   return (FILE_MIME_TYPES as Record<string, FileMimeType>)[extension] ?? EXTENSION_ALIASES[extension];
+}
+
+/**
+ * The extension decides, as it does in the client's file picker: a browser takes the type from its system,
+ * which gives none, the generic one or an outdated one to some formats (an Outlook .msg outside Windows,
+ * an .xlsx read as an old Excel workbook). The declared type only names a file without a known extension
+ */
+export function resolveMimeType(file: { mimetype: string; originalname: string }): FileMimeType {
+  const fromExtension = filenameToMimeType(file.originalname);
+  if (isDefined(fromExtension) && fromExtension !== FILE_MIME_TYPES.bin) return fromExtension;
+
+  return isMimeType(file.mimetype) ? file.mimetype : FILE_MIME_TYPES.bin;
 }
 
 /**

@@ -6,7 +6,7 @@ import type { $ZodType } from 'zod/v4/core';
 
 import { makeId } from '../../../../utils/id';
 import { isDefined } from '../../../../utils/is-defined';
-import { FILE_EXTENSIONS, FILE_MIME_TYPES, isMimeType } from '../mime-type';
+import { FILE_EXTENSIONS, FILE_MIME_TYPES, resolveMimeType } from '../mime-type';
 
 import { MultipartFile } from './multipart.file';
 import { MulterFile, MulterFileSchema, MultipartDestinationFactory } from './multipart.types';
@@ -187,7 +187,7 @@ async function toMultipartFile(props: {
   if (Array.isArray(props.file)) throw new BadRequestException();
 
   const id = makeId('FileId');
-  const mimeType = isMimeType(props.file.mimetype) ? props.file.mimetype : FILE_MIME_TYPES.bin;
+  const mimeType = resolveMimeType(props.file);
   const ext = FILE_EXTENSIONS[mimeType];
 
   const path = props.destination({
