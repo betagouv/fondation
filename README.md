@@ -10,6 +10,7 @@ Le projet est un workspace [pnpm](https://pnpm.io) composé de :
 - [apps/client](./apps/client) : le front-end React + Vite
 - [apps/api-e2e](./apps/api-e2e) : les tests bout-en-bout de l'api
 - [packages/lolfi](./packages/lolfi) : générateur d'archives LOLFI, utilisé par les tests bout-en-bout de l'api et par ceux de Playwright
+- [packages/documents-assets](./packages/documents-assets) : logo et polices des documents officiels partagés par l'api et le front-end ainsi que les [modèles Word et PDF vierges](./packages/documents-assets/blank-templates) remis au métier
 
 ## Architecture
 
