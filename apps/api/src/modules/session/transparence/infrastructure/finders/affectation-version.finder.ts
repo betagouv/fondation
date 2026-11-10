@@ -9,6 +9,7 @@ import { prismaStatutAffectationEnumToStatutAffectationEnum } from '../../../../
 import type { PublicationStatus } from '../../../../shared/publication-status.enum';
 import type { StatutAffectationEnum } from '../../../../shared/statut-affectation.enum';
 import { PublishableAffectations } from '../../domain/affectations-publication';
+import type { FileReporters } from '../../domain/member-recusal';
 import { publicationStatusOf } from '../../domain/publication';
 
 @Injectable()
@@ -134,6 +135,60 @@ export class AffectationVersionFinder {
       const list = byNominationFileId.get(nominationFileId) ?? [];
       list.push(user);
       byNominationFileId.set(nominationFileId, list);
+    }
+
+    return byNominationFileId;
+  }
+
+  /** the reporters of each file in the last published version and in the latest version of its session */
+  @Transactional()
+  async findPublishedAndLatestReporters(query: {
+    nominationFileIds: readonly string[];
+  }): Promise<Map<string, FileReporters>> {
+    const versions = await this.db.tx.affectationVersion.findMany({
+      select: {
+        id: true,
+        sessionId: true,
+        statut: true,
+        version: true,
+      } satisfies Prisma.AffectationVersionSelect,
+      where: { session: { dossierDeNominations: { some: { id: { in: [...query.nominationFileIds] } } } } },
+    });
+    const latestBySessionId = new Map<string, { id: string; version: number }>();
+    const publishedBySessionId = new Map<string, { id: string; version: number }>();
+    for (const version of versions) {
+      const latest = latestBySessionId.get(version.sessionId);
+      if (!latest || latest.version < version.version) latestBySessionId.set(version.sessionId, version);
+      if (version.statut !== 'PUBLIEE') continue;
+      const published = publishedBySessionId.get(version.sessionId);
+      if (!published || published.version < version.version)
+        publishedBySessionId.set(version.sessionId, version);
+    }
+    const latestVersionIds = new Set(latestBySessionId.values().map(({ id }) => id));
+    const publishedVersionIds = new Set(publishedBySessionId.values().map(({ id }) => id));
+    if (latestVersionIds.size === 0) return new Map();
+
+    const affectations = await this.db.tx.nominationFileToReporter.findMany({
+      select: {
+        nominationFileId: true,
+        userId: true,
+        versionId: true,
+      } satisfies Prisma.NominationFileToReporterSelect,
+      where: {
+        nominationFileId: { in: [...query.nominationFileIds] },
+        versionId: { in: [...latestVersionIds.union(publishedVersionIds)] },
+      },
+    });
+
+    const byNominationFileId = new Map<string, { latestIds: Set<string>; publishedIds: Set<string> }>();
+    for (const { nominationFileId, userId, versionId } of affectations) {
+      const reporters = byNominationFileId.get(nominationFileId) ?? {
+        latestIds: new Set(),
+        publishedIds: new Set(),
+      };
+      if (latestVersionIds.has(versionId)) reporters.latestIds.add(userId);
+      if (publishedVersionIds.has(versionId)) reporters.publishedIds.add(userId);
+      byNominationFileId.set(nominationFileId, reporters);
     }
 
     return byNominationFileId;

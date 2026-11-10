@@ -1,29 +1,49 @@
 import { FormattedMessage } from 'react-intl';
 
-import { MemberPropositionsList } from './MemberPropositionsList';
-import type { MemberPropositions } from './recused-reporters';
+import { memberFullName } from '@/utils/user.utils';
 
-export function RecusedReportersNotice(props: { reporters: readonly MemberPropositions[] }) {
-  const reportCount = props.reporters.reduce((count, { files }) => count + files.length, 0);
+import { MemberPropositionsList } from './MemberPropositionsList';
+import { propositionLabel, type MemberPropositions } from './recused-reporters';
+
+export function RecusedReportersNotice(props: {
+  /** whether the recusal is still saved on other selected propositions */
+  hasOtherPropositions: boolean;
+  reporters: readonly MemberPropositions[];
+}) {
+  const [first] = props.reporters;
+  const [file] = first?.files ?? [];
+
+  if (props.reporters.length === 1 && first?.files.length === 1 && file)
+    return (
+      <p>
+        <FormattedMessage
+          defaultMessage="Vous souhaitez enregistrer le déport de {member} sur la proposition de nomination de {proposition}, dont ce membre est rapporteur. Pour pouvoir enregistrer ce déport, vous devez au préalable modifier le rapporteur, puis publier la nouvelle affectation si ce membre est rapporteur dans la version publiée."
+          values={{ member: memberFullName(first.member), proposition: propositionLabel(file) }}
+        />
+        {props.hasOtherPropositions && (
+          <>
+            {' '}
+            <FormattedMessage defaultMessage="Le déport sera bien enregistré sur les autres propositions sélectionnées." />
+          </>
+        )}
+      </p>
+    );
 
   return (
     <>
       <p>
-        {props.reporters.length > 1 ? (
-          <FormattedMessage
-            defaultMessage={`Ces membres sont rapporteurs de dossiers sélectionnés. Avec ce déport, leurs rapports sur ces dossiers passent à « Sans objet » et en lecture seule.`}
-          />
-        ) : reportCount > 1 ? (
-          <FormattedMessage
-            defaultMessage={`Ce membre est rapporteur de dossiers sélectionnés. Avec ce déport, ses rapports sur ces dossiers passent à « Sans objet » et en lecture seule.`}
-          />
-        ) : (
-          <FormattedMessage
-            defaultMessage={`Ce membre est rapporteur d'un dossier sélectionné. Avec ce déport, son rapport sur ce dossier passe à « Sans objet » et en lecture seule.`}
-          />
-        )}
+        <FormattedMessage defaultMessage="Vous souhaitez enregistrer le déport de membres sur des propositions de nomination dont ils sont rapporteurs :" />
       </p>
       <MemberPropositionsList members={props.reporters} />
+      <p>
+        <FormattedMessage defaultMessage="Pour pouvoir enregistrer ces déports, vous devez au préalable modifier les rapporteurs, puis publier la nouvelle affectation pour ceux qui sont rapporteurs dans la version publiée." />
+        {props.hasOtherPropositions && (
+          <>
+            {' '}
+            <FormattedMessage defaultMessage="Les déports seront bien enregistrés sur les autres propositions sélectionnées." />
+          </>
+        )}
+      </p>
     </>
   );
 }

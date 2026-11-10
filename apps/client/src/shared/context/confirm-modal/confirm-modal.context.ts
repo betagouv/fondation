@@ -2,7 +2,8 @@ import { createContext, useCallback, useContext, type ReactNode } from 'react';
 
 export type ConfirmModalOptions = {
   content?: ReactNode;
-  i18n?: { cancel?: string; confirm?: string };
+  /** a null confirm leaves the cancel button alone, when there is nothing left to confirm */
+  i18n?: { cancel?: string; confirm?: string | null };
   title: string;
 };
 

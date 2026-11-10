@@ -41,6 +41,7 @@ import { canReadSession } from '../../../../shared/policies/session.policies';
 import { canReadSummary, canWriteSummary } from '../../../../shared/policies/summary.policies';
 import { PriorityEnum } from '../../../../shared/priority.enum';
 import { isSecretariat, type RoleEnum } from '../../../../shared/role.enum';
+import { type FileReporters, NON_RECUSABLE_REASONS, nonRecusableMembers } from '../../domain/member-recusal';
 import {
   NOMINATION_SESSION_FILE_STATUSES,
   transparenceFileStatus,
@@ -225,6 +226,11 @@ export class ListNominationFilesQuery {
       nominationFileIds: [...nominationFileIds],
     });
     const recusedMembers = await this.recusedMembersFinder.find({ nominationFileIds });
+    const reporters = isSecretariat(query.user.role)
+      ? await this.versionFinder.findPublishedAndLatestReporters({
+          nominationFileIds: [...nominationFileIds],
+        })
+      : new Map<string, FileReporters>();
 
     const sessionArchivedAt = query.session.archivedAt;
     const isArchived = !!sessionArchivedAt;
@@ -304,6 +310,9 @@ export class ListNominationFilesQuery {
           : null,
         missingEvaluation: x.missingEvaluation,
         missingEvaluationComment: x.missingEvaluationComment,
+        nonRecusableMembers: nominationFilesPolicies.canRecuseMembers(x, query.user)
+          ? nonRecusableMembers(reporters.get(x.id) ?? { latestIds: new Set(), publishedIds: new Set() })
+          : [],
         observations: (observations.get(x.id) ?? []).map((obs) => ({
           audition: observantAuditions.get(obs.magistrat.id) ?? null,
           date: DateOnly.fromUtcDate(obs.dateReception).toJson(),
@@ -490,6 +499,9 @@ const NominationFileAffectationItemSchema = z.object({
   expectedReportersCount: z.number().nullable(),
   missingEvaluation: z.boolean(),
   missingEvaluationComment: z.string().nullable(),
+  nonRecusableMembers: z
+    .array(z.object({ id: z.string(), reason: z.enum(NON_RECUSABLE_REASONS) }))
+    .meta({ description: 'empty when the user cannot recuse members on this file' }),
   reporters: z.array(
     z.object({
       id: z.string(),

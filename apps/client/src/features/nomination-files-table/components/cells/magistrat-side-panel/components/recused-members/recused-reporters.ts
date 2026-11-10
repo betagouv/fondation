@@ -17,15 +17,21 @@ function isReporterOf(file: SessionNominationFile, memberId: string): boolean {
   return file.reporters.some(({ id }) => id === memberId);
 }
 
-export function recusedReporters(
+export function isNonRecusableOn(file: SessionNominationFile, memberId: string): boolean {
+  return file.nonRecusableMembers.some(({ id }) => id === memberId);
+}
+
+/** the added members the API refuses to recuse, with the files concerned; a reporter may be a published one, missing from the file reporters */
+export function blockedRecusals(
   files: readonly SessionNominationFile[],
   addedMemberIds: readonly string[],
+  members: readonly MemberPropositions['member'][],
 ): MemberPropositions[] {
   return addedMemberIds.flatMap((memberId) => {
-    const reported = files.filter((file) => isReporterOf(file, memberId) && !isRecusedOn(file, memberId));
-    const member = reported[0]?.reporters.find(({ id }) => id === memberId);
+    const blocked = files.filter((file) => isNonRecusableOn(file, memberId) && !isRecusedOn(file, memberId));
+    const member = members.find(({ id }) => id === memberId);
 
-    return member ? [{ files: reported, member }] : [];
+    return member && blocked.length > 0 ? [{ files: blocked, member }] : [];
   });
 }
 
