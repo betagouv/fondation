@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import type { Ref } from 'react';
+import { useId, type Ref } from 'react';
 import { FormattedMessage } from 'react-intl';
 
 import { MEMBER_TAG } from '../member-tag';
@@ -59,6 +59,7 @@ export function ReporterSelect(props: {
     ref,
     value,
   } = props;
+  const hintId = useId();
 
   const reporterOptions = [...available]
     .sort((a, b) => a.lastName.localeCompare(b.lastName))
@@ -118,10 +119,12 @@ export function ReporterSelect(props: {
         ...reporterOptions,
       ]
     : reporterOptions;
+  const hasNonAffectable = reporterOptions.some(({ disabled }) => disabled);
 
   return (
     <>
       <Dropdown
+        aria-describedby={hasNonAffectable ? hintId : undefined}
         disabled={props.disabled}
         label={<FormattedMessage defaultMessage="Affecter un rapporteur" />}
         multiple
@@ -134,8 +137,8 @@ export function ReporterSelect(props: {
         ref={ref}
         selected={value}
       />
-      {reporterOptions.some(({ disabled }) => disabled) && (
-        <p className="fr-hint-text fr-mb-0">
+      {hasNonAffectable && (
+        <p className="fr-hint-text fr-mb-0" id={hintId}>
           <FormattedMessage defaultMessage="Un membre déporté de ce dossier ne peut pas être affecté : retirez d'abord son déport." />
         </p>
       )}

@@ -11,6 +11,7 @@ export type DropdownHandle = { focusTrigger: () => void };
 const FORCED_FOCUS_RING = '[&[data-forced-focus]:focus]:[outline-style:solid]';
 
 type DropdownProps = {
+  'aria-describedby'?: string;
   className?: string;
   disabled?: boolean;
   label?: ReactNode;
@@ -105,6 +106,7 @@ export function Dropdown(props: DropdownProps) {
   const trigger = (
     <button
       aria-controls={open ? listboxId : undefined}
+      aria-describedby={props['aria-describedby']}
       aria-expanded={open}
       aria-haspopup="listbox"
       aria-labelledby={labelledBy || undefined}

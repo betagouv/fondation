@@ -79,14 +79,13 @@ describe('ReporterSelect', () => {
       />,
     );
 
-    await user.click(screen.getByRole('button', { name: 'Affecter un rapporteur' }));
+    const trigger = screen.getByRole('button', { name: 'Affecter un rapporteur' });
+    await user.click(trigger);
 
     expect(await screen.findByRole('option', { name: 'Jean ALBERT (déport)' })).toBeDisabled();
     expect(screen.getByRole('option', { name: 'Marie ZOLA' })).toBeEnabled();
-    expect(
-      screen.getByText(
-        "Un membre déporté de ce dossier ne peut pas être affecté : retirez d'abord son déport.",
-      ),
-    ).toBeVisible();
+    expect(trigger).toHaveAccessibleDescription(
+      "Un membre déporté de ce dossier ne peut pas être affecté : retirez d'abord son déport.",
+    );
   });
 });
