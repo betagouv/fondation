@@ -548,6 +548,8 @@ export class SessionTransparence {
         affectations,
         authorId: null,
         formationMemberIds: new Set(command.formationMembers.map(({ id }) => id)),
+        // nobody can be recused from a session that does not exist yet
+        recusedMemberIdsByFile: new Map(),
       });
     }
 
@@ -574,8 +576,7 @@ export class SessionTransparence {
     assignedReporterIds?: ReadonlyMap<string, ReadonlySet<string>>;
     authorId: string | null;
     formationMemberIds: Set<string>;
-    /** absent when no member can be recused yet (new session) */
-    recusedMemberIdsByFile?: ReadonlyMap<string, ReadonlySet<string>>;
+    recusedMemberIdsByFile: ReadonlyMap<string, ReadonlySet<string>>;
   }) {
     this.assertsCanUpdateFiles(...command.affectations.map(({ nominationFileId }) => nominationFileId));
     this.assertsNoRecusedMemberAffected(command);
@@ -936,10 +937,10 @@ export class SessionTransparence {
   private assertsNoRecusedMemberAffected(command: {
     affectations: readonly { nominationFileId: string; reporterIds: readonly string[] }[];
     assignedReporterIds?: ReadonlyMap<string, ReadonlySet<string>>;
-    recusedMemberIdsByFile?: ReadonlyMap<string, ReadonlySet<string>>;
+    recusedMemberIdsByFile: ReadonlyMap<string, ReadonlySet<string>>;
   }): void {
     const affectsARecusedMember = command.affectations.some(({ nominationFileId, reporterIds }) => {
-      const recusedIds = command.recusedMemberIdsByFile?.get(nominationFileId);
+      const recusedIds = command.recusedMemberIdsByFile.get(nominationFileId);
       if (!recusedIds) return false;
       const nonAffectableIds = new Set(
         nonAffectableMembers({

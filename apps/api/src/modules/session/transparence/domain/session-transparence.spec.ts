@@ -7,6 +7,8 @@ import {
   NominationFileOutcomeEnum,
 } from '../../../shared/nomination-file-outcome.enum';
 
+import { AutoAffectationNominationFile } from './auto-affectation/auto-affectation-nomination-file';
+import { AutoAffectations } from './auto-affectation/auto-affectations';
 import {
   CannotScheduleAuditionOnNominationFile,
   CantUpdateNominationFiles,
@@ -68,6 +70,7 @@ describe('SessionTransparence', () => {
       ],
       authorId: 'author-id',
       formationMemberIds: new Set(['reporter-1', 'reporter-2']),
+      recusedMemberIdsByFile: new Map(),
     });
 
     const { messages } = session;
@@ -107,6 +110,7 @@ describe('SessionTransparence', () => {
         ],
         authorId: 'author-id',
         formationMemberIds: new Set(['reporter-1', 'reporter-2']),
+        recusedMemberIdsByFile: new Map(),
       }),
     ).toThrow(CantUpdateNominationFiles);
   });
@@ -136,6 +140,7 @@ describe('SessionTransparence', () => {
       ],
       authorId: 'author-id',
       formationMemberIds: new Set(['reporter-1', 'reporter-2']),
+      recusedMemberIdsByFile: new Map(),
     });
 
     const { messages } = session;
@@ -180,6 +185,7 @@ describe('SessionTransparence', () => {
         ],
         authorId: 'author-id',
         formationMemberIds: new Set(['reporter-1']),
+        recusedMemberIdsByFile: new Map(),
       }),
     ).toThrow(NonFormationMemberDefinedAsReporter);
   });
@@ -201,6 +207,7 @@ describe('SessionTransparence', () => {
       assignedReporterIds: new Map([['nomination-file-id-1', new Set(['deactivated-reporter'])]]),
       authorId: 'author-id',
       formationMemberIds: new Set(['reporter-1']),
+      recusedMemberIdsByFile: new Map(),
     };
 
     session.affectNominationFileReporters({
@@ -267,6 +274,29 @@ describe('SessionTransparence', () => {
           { nominationFileId: 'nomination-file-id-2', reporterIds: ['recused-member', 'reporter-1'] },
         ]),
       ]);
+    });
+
+    it('refuses an auto-affectation that would affect a member recused from the file', () => {
+      const transparence = session();
+      const autoAffectations = AutoAffectations.from({
+        files: [
+          // oxfmt-ignore
+          AutoAffectationNominationFile.from({ id: 'nomination-file-id-2', recusedMemberIds: new Set(['recused-member']), targetedGrade: 'G3', targetedJurisdiction: 'CA  LYON', currentJurisdiction: 'CA  RENNES', number: 2, session: { date: new DateOnly(2025, 12, 10), formation: 'SIEGE' } }),
+        ],
+        members: [],
+      });
+      // the distribution already skips recused members: this simulates a regression in it
+      vi.spyOn(autoAffectations, 'distribute').mockReturnValue([
+        { nominationFileId: 'nomination-file-id-2', reporterIds: ['recused-member'] },
+      ]);
+
+      expect(() =>
+        transparence.autoAffectNominationFileReporters({
+          authorId: 'author-id',
+          autoAffectations,
+          formationMemberIds: command.formationMemberIds,
+        }),
+      ).toThrow(RecusedMemberAffected);
     });
   });
 
