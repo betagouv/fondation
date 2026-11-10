@@ -11,9 +11,8 @@ import { Files } from '../../../framework/files';
 import { TransparenceService } from '../../../session/transparence/infrastructure/transparence.service';
 import { prismaReportStateEnumToReportState } from '../../../shared/mappers/rapport-statut.mapper';
 import { prismaReportFileUsageEnumToReportFileUsage } from '../../../shared/mappers/report-file-usage.mapper';
-import { MemberReportStateEnum } from '../../../shared/report-state.enum';
+import { ReportStateEnum } from '../../../shared/report-state.enum';
 import { isSecretariat, type RoleEnum } from '../../../shared/role.enum';
-import { memberReportState } from '../../domain/member-report-state';
 import { ReportLockEnum, reportLock } from '../../domain/report-lock';
 
 @Injectable()
@@ -53,7 +52,6 @@ export class DetailReportQuery {
         },
         id: true,
         nominationFileId: true,
-        reporterId: true,
         sessionId: true,
         state: true,
       } satisfies Prisma.ReportSelect,
@@ -63,11 +61,6 @@ export class DetailReportQuery {
     if (!report) throw new NotFoundException();
 
     const sessionState = await this.sessions.internalFindSessionState({ sessionId: report.sessionId });
-    const recusedFileIds = await this.sessions.internalFindFilesRecusedBy({
-      memberId: report.reporterId,
-      nominationFileIds: [report.nominationFileId],
-    });
-    const reporter = { isRecused: recusedFileIds.has(report.nominationFileId) };
 
     const reportFiles = report.files.map(({ file, usage }) => ({
       addedAt: file.createdAt.toISOString(),
@@ -100,7 +93,7 @@ export class DetailReportQuery {
       })),
       comment: report.comment,
       id: report.id,
-      lockedReason: reportLock({ isOpen: sessionState === 'OPEN' }, reporter),
+      lockedReason: reportLock({ isOpen: sessionState === 'OPEN' }),
       nominationFileId: report.nominationFileId,
       screenshots: screenshots.map((f) => ({
         id: f.id,
@@ -109,7 +102,7 @@ export class DetailReportQuery {
         usage: f.usage,
       })),
       sessionId: report.sessionId,
-      state: memberReportState({ state: prismaReportStateEnumToReportState(report.state) }, reporter),
+      state: prismaReportStateEnumToReportState(report.state),
     };
   }
 
@@ -136,7 +129,7 @@ export class DetailedReportDto extends createZodDto(
     sessionId: z.string(),
     nominationFileId: z.string(),
     comment: z.string().nullable(),
-    state: z.enum(MemberReportStateEnum),
+    state: z.enum(ReportStateEnum),
     lockedReason: z.enum(ReportLockEnum).nullable(),
 
     screenshots: z.array(

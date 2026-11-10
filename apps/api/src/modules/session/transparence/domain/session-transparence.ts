@@ -17,7 +17,7 @@ import { UserStatus } from '../../../shared/user-status.enum';
 
 import type { PublishableAuditions } from './audition-publication';
 import { AutoAffectations } from './auto-affectation';
-import { type FileReporters, nonRecusableMembers } from './member-recusal';
+import { type FileReporters, nonAffectableMembers, nonRecusableMembers } from './member-recusal';
 import { NominationFileSnapshot } from './nomination-file-snapshot';
 import {
   LodamTransparenceFile,
@@ -316,6 +316,12 @@ export class ReporterRecused extends Error {
   }
 }
 
+export class RecusedMemberAffected extends Error {
+  constructor() {
+    super(`Un membre déporté d'un dossier ne peut pas y être affecté : retirez d'abord son déport`);
+  }
+}
+
 /** a member deactivated since keeps their place on a file, without being offered for other ones */
 function isFormationMemberOrKept(
   memberId: string,
@@ -561,15 +567,18 @@ export class SessionTransparence {
   }
 
   affectNominationFileReporters(command: {
-    authorId: string | null;
-    formationMemberIds: Set<string>;
-    assignedReporterIds?: ReadonlyMap<string, ReadonlySet<string>>;
     affectations: readonly {
       nominationFileId: string;
       reporterIds: readonly string[];
     }[];
+    assignedReporterIds?: ReadonlyMap<string, ReadonlySet<string>>;
+    authorId: string | null;
+    formationMemberIds: Set<string>;
+    /** absent when no member can be recused yet (new session) or when the caller already excludes them */
+    recusedMemberIdsByFile?: ReadonlyMap<string, ReadonlySet<string>>;
   }) {
     this.assertsCanUpdateFiles(...command.affectations.map(({ nominationFileId }) => nominationFileId));
+    this.assertsNoRecusedMemberAffected(command);
 
     let versionId = this.version?.id;
 
@@ -921,6 +930,25 @@ export class SessionTransparence {
     if (!this.files.get(nominationFileId)?.canScheduleAudition) {
       throw new CannotScheduleAuditionOnNominationFile(nominationFileId);
     }
+  }
+
+  private assertsNoRecusedMemberAffected(command: {
+    affectations: readonly { nominationFileId: string; reporterIds: readonly string[] }[];
+    assignedReporterIds?: ReadonlyMap<string, ReadonlySet<string>>;
+    recusedMemberIdsByFile?: ReadonlyMap<string, ReadonlySet<string>>;
+  }): void {
+    const affectsARecusedMember = command.affectations.some(({ nominationFileId, reporterIds }) => {
+      const recusedIds = command.recusedMemberIdsByFile?.get(nominationFileId);
+      if (!recusedIds) return false;
+      const nonAffectableIds = new Set(
+        nonAffectableMembers({
+          assignedReporterIds: command.assignedReporterIds?.get(nominationFileId) ?? new Set(),
+          recusedIds,
+        }).map(({ id }) => id),
+      );
+      return reporterIds.some((id) => nonAffectableIds.has(id));
+    });
+    if (affectsARecusedMember) throw new RecusedMemberAffected();
   }
 
   private assertsCanUpdateFiles(...nominationFileIds: readonly string[]): void {

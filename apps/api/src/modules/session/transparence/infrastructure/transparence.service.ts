@@ -268,12 +268,23 @@ export class TransparenceService {
       .findMembers({ formation: session.formation, ids: memberIds })
       .then((ids) => new Set(ids));
 
+    const nominationFileIds = new Set(command.affectations.map(({ nominationFileId }) => nominationFileId));
     const assignedReporterIds = await this.reportersAffectation.findAssigned({
-      nominationFileIds: command.affectations.map(({ nominationFileId }) => nominationFileId),
+      nominationFileIds: [...nominationFileIds],
       sessionId: command.sessionId,
     });
+    const recusals = await this.recusedMembersFinder.find({ nominationFileIds });
 
-    session.affectNominationFileReporters({ ...command, assignedReporterIds, formationMemberIds });
+    session.affectNominationFileReporters({
+      ...command,
+      assignedReporterIds,
+      formationMemberIds,
+      recusedMemberIdsByFile: new Map(
+        recusals
+          .entries()
+          .map(([nominationFileId, members]) => [nominationFileId, new Set(members.map(({ id }) => id))]),
+      ),
+    });
 
     await this.nominationSessionRepository.persist(session);
   }
@@ -984,14 +995,6 @@ export class TransparenceService {
     nominationFileIds: readonly string[];
   }): Promise<Map<string, { firstName: string; id: string; lastName: string }[]>> {
     return this.versions.findPublishedReporters(query);
-  }
-
-  /** @internal */
-  internalFindFilesRecusedBy(query: {
-    memberId: string;
-    nominationFileIds: readonly string[];
-  }): Promise<Set<string>> {
-    return this.recusedMembersFinder.findFilesRecusedBy(query);
   }
 
   /** @internal */

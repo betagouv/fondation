@@ -15,6 +15,7 @@ import {
   NonFormationMemberDefinedAsReporter,
   NonFormationMemberRecused,
   PositionAuditionCannotBeDismissed,
+  RecusedMemberAffected,
   ReporterRecused,
   SessionTransparence,
   SessionTransparenceAffectationHasUnassignableReporters,
@@ -214,6 +215,59 @@ describe('SessionTransparence', () => {
         affectations: [{ nominationFileId: 'nomination-file-id-2', reporterIds: ['deactivated-reporter'] }],
       }),
     ).toThrow(NonFormationMemberDefinedAsReporter);
+  });
+
+  describe('affecting a recused member', () => {
+    const session = () =>
+      SessionTransparence.from({
+        formation: 'SIEGE',
+        id: 'session-id',
+        nominationFiles: ['nomination-file-id-1', 'nomination-file-id-2'].map((id) => ({
+          auditionRequired: false,
+          id,
+          isReported: false,
+          outcome: null,
+          positionRequiresAudition: false,
+        })),
+        version: { id: 'version-id', isDraft: true, version: 3 },
+      });
+    const command = {
+      authorId: 'author-id',
+      formationMemberIds: new Set(['reporter-1', 'recused-member']),
+      recusedMemberIdsByFile: new Map([['nomination-file-id-2', new Set(['recused-member'])]]),
+    };
+
+    it('refuses the whole request when one file gets a member recused from it', () => {
+      const transparence = session();
+
+      expect(() =>
+        transparence.affectNominationFileReporters({
+          ...command,
+          affectations: [
+            { nominationFileId: 'nomination-file-id-1', reporterIds: ['recused-member'] },
+            { nominationFileId: 'nomination-file-id-2', reporterIds: ['reporter-1', 'recused-member'] },
+          ],
+        }),
+      ).toThrow(RecusedMemberAffected);
+      expect(transparence.messages).toEqual([]);
+    });
+
+    it('keeps a reporter recused before the rule while another reporter is affected', () => {
+      const transparence = session();
+      transparence.affectNominationFileReporters({
+        ...command,
+        affectations: [
+          { nominationFileId: 'nomination-file-id-2', reporterIds: ['recused-member', 'reporter-1'] },
+        ],
+        assignedReporterIds: new Map([['nomination-file-id-2', new Set(['recused-member'])]]),
+      });
+
+      expect(transparence.messages).toEqual([
+        new SessionTransparenceFileReportersAffected('session-id', 'version-id', [
+          { nominationFileId: 'nomination-file-id-2', reporterIds: ['recused-member', 'reporter-1'] },
+        ]),
+      ]);
+    });
   });
 
   it('should define a nomination file priority', () => {

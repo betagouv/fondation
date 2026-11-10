@@ -1,6 +1,7 @@
 import { NominationFileOutcome } from '../nomination-file-outcome.enum';
 
 import {
+  canAffectReporters,
   canKeepMemberMemo,
   canRecuseMembers,
   canScheduleAudition,
@@ -96,5 +97,24 @@ describe('canRecuseMembers', () => {
 
   it('never lets a member record them', () => {
     expect(canRecuseMembers({ lockedReason: null }, { role: 'MEMBRE_DU_SIEGE' })).toBe(false);
+  });
+});
+
+describe('canAffectReporters', () => {
+  const secretariat = { role: 'ADJOINT_SECRETAIRE_GENERAL' } as const;
+
+  it('lets the secretariat affect the reporters of an open file', () => {
+    expect(canAffectReporters({ lockedReason: null }, secretariat)).toBe(true);
+  });
+
+  it.each(['ARCHIVED_SESSION', 'REPORTED'] as const)(
+    'freezes the reporters of a locked file (%s)',
+    (lockedReason) => {
+      expect(canAffectReporters({ lockedReason }, secretariat)).toBe(false);
+    },
+  );
+
+  it('never lets a member affect them', () => {
+    expect(canAffectReporters({ lockedReason: null }, { role: 'MEMBRE_COMMUN' })).toBe(false);
   });
 });

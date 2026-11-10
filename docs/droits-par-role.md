@@ -193,7 +193,7 @@ Le Secrétariat général n'a pas de sessions en cours à lui : la liste lui rev
 | Exporter les évaluations manquantes (Excel)       | `GET /sessions/v2/:sessionId/files/missing-evaluations.xlsx`                                             | —                                                            | ✓                   | ✓              |
 | Écrire son mémo personnel sur un dossier          | `PUT /members/v1/:userId/sessions/transparence/garde-des-sceaux/:sessionId/files/:nominationFileId/memo` | ✓ si ses propres données, sa formation, session non archivée | —                   | —              |
 
-Un Membre ne voit pas le commentaire de décision d'un dossier. Un rapporteur du dossier n'a pas de mémo : il rédige le rapport. Un membre déporté garde l'accès à tout le dossier ; s'il en est rapporteur, son rapport passe « Sans objet ».
+Un Membre ne voit pas le commentaire de décision d'un dossier. Un rapporteur du dossier n'a pas de mémo : il rédige le rapport. Un membre déporté garde l'accès à tout le dossier, sans pouvoir en être rapporteur.
 
 ### Affectation
 

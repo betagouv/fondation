@@ -161,6 +161,7 @@ test.describe('Session E2E', () => {
         memo: null,
         missingEvaluation: false,
         missingEvaluationComment: null,
+        nonAffectableMembers: [],
         nonRecusableMembers: [{ id: expect.any(String), reason: 'REPORTER' }],
         observations: [],
         priorities: [],
@@ -218,6 +219,7 @@ test.describe('Session E2E', () => {
         memo: null,
         missingEvaluation: false,
         missingEvaluationComment: null,
+        nonAffectableMembers: [],
         nonRecusableMembers: [
           { id: expect.any(String), reason: 'REPORTER' },
           { id: expect.any(String), reason: 'REPORTER' },
@@ -889,6 +891,37 @@ test.describe('Session E2E', () => {
 
       const recused = await agent.sessions.recuseMembers({ body: { memberIds: [memberId] }, path });
       expect(recused.data?.recusedMembers.map(({ id }) => id)).toEqual([memberId]);
+    });
+
+    test('should serve a recused member as a member who cannot be affected', async ({
+      agent,
+      member,
+      sessions,
+      expect,
+    }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+      const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+      const memberId = member['@user']!.id;
+      await agent.sessions.recuseMembers({ body: { memberIds: [memberId] }, path, throwOnError: true });
+
+      const file = await agent.sessions.detailNominationFile({ path, throwOnError: true });
+      expect(file.data.nonAffectableMembers).toEqual([{ id: memberId, reason: 'RECUSED' }]);
+    });
+
+    test('should refuse to affect a recused member', async ({ agent, member, sessions, expect }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+      const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+      const memberId = member['@user']!.id;
+      await agent.sessions.recuseMembers({ body: { memberIds: [memberId] }, path, throwOnError: true });
+
+      const refused = await agent.sessions.affectReporters({
+        body: { items: [{ nominationFileId: path.nominationFileId, reporterIds: [memberId] }] },
+        path: { sessionId: session.id },
+      });
+      expect(refused.response?.status).toBe(400);
+      expect(refused.error).toMatchObject({
+        validationErrors: ["Un membre déporté d'un dossier ne peut pas y être affecté : retirez d'abord son déport"],
+      });
     });
 
     test('should only list the nomination files with a missing evaluation', async ({ agent, sessions, expect }) => {

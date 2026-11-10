@@ -26,6 +26,13 @@ export function canRecuseMembers(
   return isSecretariat(user.role) && !file.lockedReason;
 }
 
+export function canAffectReporters(
+  file: { lockedReason: NominationFileLockEnum | null },
+  user: { role: RoleEnum },
+): boolean {
+  return isSecretariat(user.role) && !file.lockedReason;
+}
+
 export function canKeepMemberMemo(
   file: { reporterIds: readonly string[] },
   user: { id: string; role: RoleEnum },

@@ -8,7 +8,6 @@ import { Db } from '../../../framework/database';
 import { TransparenceService } from '../../../session/transparence/infrastructure/transparence.service';
 import { prismaReportStateEnumToReportState } from '../../../shared/mappers/rapport-statut.mapper';
 import type { RoleEnum } from '../../../shared/role.enum';
-import { memberReportState } from '../../domain/member-report-state';
 import { MemberReportSchema } from '../dtos/report.dto';
 
 @Injectable()
@@ -36,25 +35,17 @@ export class ListMemberSessionReportsQuery {
     });
     const nominationFileIds = reports.map(({ nominationFileId }) => nominationFileId);
     const files = await this.sessions.internalFindNominationFilesByIds({ nominationFileIds });
-    const recusedFileIds = await this.sessions.internalFindFilesRecusedBy({
-      memberId: query.user.id,
-      nominationFileIds,
-    });
 
     const items = reports.flatMap((report) => {
       const file = files.get(report.nominationFileId);
       if (!file) return [];
 
-      const state = memberReportState(
-        { state: prismaReportStateEnumToReportState(report.state) },
-        { isRecused: recusedFileIds.has(report.nominationFileId) },
-      );
       return [
         {
           name: file.name,
           nominationFileId: report.nominationFileId,
           number: file.number,
-          report: { id: report.id, state },
+          report: { id: report.id, state: prismaReportStateEnumToReportState(report.state) },
         },
       ];
     });

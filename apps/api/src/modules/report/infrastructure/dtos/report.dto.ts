@@ -4,10 +4,10 @@ import z from 'zod';
 import { richTextHtml } from '../../../../utils/rich-text-html';
 import { attachmentFiles, FILE_MIME_TYPES } from '../../../framework/files';
 import { ReportFileUsageEnum } from '../../../shared/report-file-usage.enum';
-import { MemberReportStateEnum, ReportStateEnum } from '../../../shared/report-state.enum';
+import { ReportStateEnum } from '../../../shared/report-state.enum';
 
 /** a report as its reporter sees it */
-export const MemberReportSchema = z.object({ id: z.uuid(), state: z.enum(MemberReportStateEnum) });
+export const MemberReportSchema = z.object({ id: z.uuid(), state: z.enum(ReportStateEnum) });
 
 export class AttachReportFileDto extends createZodDto(z.object({ files: attachmentFiles() })) {}
 
