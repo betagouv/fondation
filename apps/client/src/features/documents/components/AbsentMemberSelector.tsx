@@ -101,19 +101,20 @@ export function AbsentMemberSelector(
             return member ? [member] : [];
           })
           .map((member) => (
-            <Tag
-              dismissible
-              title={formatMessage(
-                { defaultMessage: 'Retirer {member} des absents' },
-                { member: memberFullName(member) },
-              )}
-              key={member.id}
-              as="button"
-              onClick={unSelect}
-              nativeButtonProps={{ 'data-id': member.id }}
-            >
-              {memberFullName(member)}
-            </Tag>
+            <li key={member.id}>
+              <Tag
+                dismissible
+                title={formatMessage(
+                  { defaultMessage: 'Retirer {member} des absents' },
+                  { member: memberFullName(member) },
+                )}
+                as="button"
+                onClick={unSelect}
+                nativeButtonProps={{ 'data-id': member.id }}
+              >
+                {memberFullName(member)}
+              </Tag>
+            </li>
           ))}
       </ul>
     </div>
