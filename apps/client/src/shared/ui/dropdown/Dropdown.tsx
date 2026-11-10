@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import { useEffect, useId, useImperativeHandle, useRef, useState, type ReactNode, type Ref } from 'react';
 import { FormattedMessage } from 'react-intl';
 
-export type DropdownOption = { label: ReactNode; value: string };
+export type DropdownOption = { disabled?: boolean; label: ReactNode; value: string };
 
 export type DropdownHandle = { focusTrigger: () => void };
 
@@ -199,8 +199,8 @@ export function Dropdown(props: DropdownProps) {
             <li key={option.value} role="presentation">
               <button
                 aria-selected={isSelected(option.value)}
-                className="fr-px-2v fr-py-2v flex w-full items-center justify-between gap-2 text-left hover:bg-(--background-default-grey-hover)"
-                disabled={props.disabled}
+                className="fr-px-2v fr-py-2v flex w-full items-center justify-between gap-2 text-left hover:bg-(--background-default-grey-hover) disabled:cursor-not-allowed"
+                disabled={props.disabled || option.disabled}
                 onClick={() => select(option.value)}
                 role="option"
                 type="button"

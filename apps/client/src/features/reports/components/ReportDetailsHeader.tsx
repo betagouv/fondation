@@ -9,7 +9,6 @@ import { PriorityBadge } from '@/shared/components/priority-badge';
 import { TitleNameIcons } from '@/shared/components/title-name-icons';
 import type { PrioriteEnum } from '@/shared/enums/priorite.enum';
 import {
-  type MemberReportStatusEnum,
   REPORT_STATUSES,
   type ReportStatusEnum,
   ReportStatusEnumMessages,
@@ -26,15 +25,13 @@ export function ReportDetailsHeader(props: {
   onUpdateState: (state: ReportStatusEnum) => void;
   priorities: readonly PrioriteEnum[];
   sessionId: string;
-  state: MemberReportStatusEnum;
+  state: ReportStatusEnum;
 }) {
   const { formatMessage } = useIntl();
 
   const location = useLocation();
   const onChange = (event: ChangeEvent<HTMLSelectElement>) =>
     props.onUpdateState(event.target.value as ReportStatusEnum);
-  const statuses: readonly MemberReportStatusEnum[] =
-    props.state === 'NOT_APPLICABLE' ? [...REPORT_STATUSES, props.state] : REPORT_STATUSES;
 
   return (
     <DetailsHeader
@@ -45,7 +42,7 @@ export function ReportDetailsHeader(props: {
           label={formatMessage({ defaultMessage: 'Statut du rapport' })}
           nativeSelectProps={{ onChange, value: props.state }}
         >
-          {statuses.map((status) => (
+          {REPORT_STATUSES.map((status) => (
             <option key={status} value={status}>
               {formatMessage(ReportStatusEnumMessages[status])}
             </option>

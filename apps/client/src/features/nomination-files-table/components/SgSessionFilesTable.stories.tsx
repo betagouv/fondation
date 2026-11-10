@@ -13,12 +13,16 @@ import { makeSessionOutcomes } from '@/test-utils/factories/session-outcomes.fac
 
 import { SgSessionFilesTable } from './SgSessionFilesTable';
 
-// as the API serves them to the Secrétariat général: recusals editable until the file is locked, never on a reporter
+// as the API serves them to the Secrétariat général: recusals and reporters editable until the file is locked,
+// never a reporter recused nor a recused member affected
 const sgSessionFiles = sessionFiles.map((file) => {
   const canRecuseMembers = file.content.lockedReason === null;
   return {
     ...file,
     canRecuseMembers,
+    nonAffectableMembers: canRecuseMembers
+      ? file.recusedMembers.map(({ id }) => ({ id, reason: 'RECUSED' as const }))
+      : [],
     nonRecusableMembers: canRecuseMembers
       ? file.reporters.map(({ id }) => ({ id, reason: 'REPORTER' as const }))
       : [],

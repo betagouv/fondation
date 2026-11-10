@@ -7,8 +7,7 @@ import { FormattedMessage } from 'react-intl';
 import { useAffectation } from '../../hooks/use-affectation/use-affectation.hook';
 import { useAuditionExpectation } from '../../hooks/use-audition-expectation/use-audition-expectation.hook';
 import { useUnsavedGuard } from '../../hooks/use-unsaved-guard/use-unsaved-guard.hook';
-import { RecusalIcon } from '../recused-members/RecusalIcon';
-import { isRecusedOn } from '../recused-members/recused-reporters';
+import { isNonAffectableOn } from '../recused-members/recused-reporters';
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { ExcludedJurisdictionIcon } from '@/features/nomination-files-table/components/ExcludedJurisdictionIcon';
 import { ExcludedJurisdictionNotice } from '@/features/nomination-files-table/components/ExcludedJurisdictionNotice';
@@ -21,7 +20,6 @@ import { type ExcludedJurisdictionConflict } from '@/features/nomination-files-t
 import { DetailsLink } from '@/shared/components/details-link';
 import { LolfiLink } from '@/shared/components/lolfi-link';
 import { PriorityBadgeList } from '@/shared/components/priority-badge';
-import { RecusedReporterBanner } from '@/shared/components/recused-reporter-banner';
 import { TitleNameIcons } from '@/shared/components/title-name-icons';
 import type { DropdownHandle } from '@/shared/ui/dropdown';
 import { type FromFilesListState, getGdsReportPath } from '@/utils/route-path.utils';
@@ -164,7 +162,7 @@ export function Header(props: { nominationFile: SessionNominationFile; sessionId
           <ReporterSelect
             available={affectation.availableRapporteurs}
             excludedTitleByRapporteurId={excludedTitleByRapporteurId}
-            isRecused={(memberId) => isRecusedOn(nominationFile, memberId)}
+            isNonAffectable={(memberId) => isNonAffectableOn(nominationFile, memberId)}
             onChange={affectation.setReporterIds}
             ref={reporterSelectRef}
             value={affectation.reporterIds}
@@ -198,9 +196,6 @@ export function Header(props: { nominationFile: SessionNominationFile; sessionId
       {!isSgContext && <RecusedMembersStatus recusedMembers={nominationFile.recusedMembers} />}
       {isSgContext && reportersMissing && (
         <MissingSecondReporterBanner editable={canEdit && !isEditing} onAffect={affectReporters} />
-      )}
-      {myReport?.state === 'NOT_APPLICABLE' && (
-        <RecusedReporterBanner className="fr-mb-n8v -mx-8 px-8 py-4" />
       )}
     </div>
   );
@@ -262,7 +257,6 @@ function ReporterStatus(props: {
             excludedTitle={excludedTitleByMemberId.get(reporter.id)}
             key={reporter.id}
             member={reporter}
-            recused={isRecusedOn(nominationFile, reporter.id)}
           />
         ))}
       </div>
@@ -282,26 +276,22 @@ function ReporterStatus(props: {
           excludedTitle={excludedTitleByMemberId.get(reporter.id)}
           key={reporter.id}
           member={reporter}
-          recused={isRecusedOn(nominationFile, reporter.id)}
         />
       ))}
     </div>
   );
 }
 
-function MemberTag(props: { excludedTitle?: string; member: Member; recused?: boolean }) {
+function MemberTag(props: { excludedTitle?: string; member: Member }) {
   return (
     <Tag
       as="span"
       className={clsx(
         'gap-1.5 bg-(--background-default-grey)!',
-        props.excludedTitle || props.recused
-          ? 'text-(--text-default-warning)!'
-          : 'text-(--text-action-high-blue-france)!',
+        props.excludedTitle ? 'text-(--text-default-warning)!' : 'text-(--text-action-high-blue-france)!',
       )}
     >
       {props.excludedTitle && <ExcludedJurisdictionIcon title={props.excludedTitle} />}
-      {props.recused && <RecusalIcon />}
       {memberFullName(props.member)}
     </Tag>
   );

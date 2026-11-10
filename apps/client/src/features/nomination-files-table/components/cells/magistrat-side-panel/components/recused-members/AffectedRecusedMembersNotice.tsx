@@ -1,29 +1,49 @@
 import { FormattedMessage } from 'react-intl';
 
-import { MemberPropositionsList } from './MemberPropositionsList';
-import type { MemberPropositions } from './recused-reporters';
+import { memberFullName } from '@/utils/user.utils';
 
-export function AffectedRecusedMembersNotice(props: { members: readonly MemberPropositions[] }) {
-  const recusalCount = props.members.reduce((count, { files }) => count + files.length, 0);
+import { MemberPropositionsList } from './MemberPropositionsList';
+import { propositionLabel, type MemberPropositions } from './recused-reporters';
+
+export function AffectedRecusedMembersNotice(props: {
+  /** whether the affectation is still saved on other selected propositions */
+  hasOtherPropositions: boolean;
+  members: readonly MemberPropositions[];
+}) {
+  const [first] = props.members;
+  const [file] = first?.files ?? [];
+
+  if (props.members.length === 1 && first?.files.length === 1 && file)
+    return (
+      <p>
+        <FormattedMessage
+          defaultMessage="Vous souhaitez affecter {member} à la proposition de nomination de {proposition}, dont ce membre s'est déporté. Pour pouvoir l'affecter, vous devez au préalable retirer son déport."
+          values={{ member: memberFullName(first.member), proposition: propositionLabel(file) }}
+        />
+        {props.hasOtherPropositions && (
+          <>
+            {' '}
+            <FormattedMessage defaultMessage="L'affectation sera bien enregistrée sur les autres propositions sélectionnées." />
+          </>
+        )}
+      </p>
+    );
 
   return (
     <>
       <p>
-        {props.members.length > 1 ? (
-          <FormattedMessage
-            defaultMessage={`Ces membres se sont déportés de dossiers sélectionnés. Avec cette affectation, leurs rapports sur ces dossiers passent à « Sans objet » et en lecture seule.`}
-          />
-        ) : recusalCount > 1 ? (
-          <FormattedMessage
-            defaultMessage={`Ce membre s'est déporté de dossiers sélectionnés. Avec cette affectation, ses rapports sur ces dossiers passent à « Sans objet » et en lecture seule.`}
-          />
-        ) : (
-          <FormattedMessage
-            defaultMessage={`Ce membre s'est déporté d'un dossier sélectionné. Avec cette affectation, son rapport sur ce dossier passe à « Sans objet » et en lecture seule.`}
-          />
-        )}
+        <FormattedMessage defaultMessage="Vous souhaitez affecter des membres à des propositions de nomination dont ils se sont déportés :" />
       </p>
       <MemberPropositionsList members={props.members} />
+      <p>
+        <FormattedMessage defaultMessage="Pour pouvoir les affecter, vous devez au préalable retirer leur déport." />
+        {props.hasOtherPropositions && (
+          <>
+            {' '}
+            <FormattedMessage defaultMessage="L'affectation sera bien enregistrée sur les autres propositions sélectionnées." />
+          </>
+        )}
+      </p>
     </>
   );
 }

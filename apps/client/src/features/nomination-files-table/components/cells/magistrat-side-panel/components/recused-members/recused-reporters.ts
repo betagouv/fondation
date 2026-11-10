@@ -9,14 +9,6 @@ export function propositionLabel({ content }: SessionNominationFile): string {
   return content.posteCible ? `${content.nomMagistrat} (${content.posteCible})` : content.nomMagistrat;
 }
 
-export function isRecusedOn(file: SessionNominationFile, memberId: string): boolean {
-  return file.recusedMembers.some(({ id }) => id === memberId);
-}
-
-function isReporterOf(file: SessionNominationFile, memberId: string): boolean {
-  return file.reporters.some(({ id }) => id === memberId);
-}
-
 export function isNonRecusableOn(file: SessionNominationFile, memberId: string): boolean {
   return file.nonRecusableMembers.some(({ id }) => id === memberId);
 }
@@ -35,14 +27,20 @@ export function blockedRecusals(
   });
 }
 
-export function affectedRecusedMembers(
+export function isNonAffectableOn(file: SessionNominationFile, memberId: string): boolean {
+  return file.nonAffectableMembers.some(({ id }) => id === memberId);
+}
+
+/** the added reporters the API refuses to affect, with the files concerned */
+export function blockedAffectations(
   files: readonly SessionNominationFile[],
   addedReporterIds: readonly string[],
+  members: readonly MemberPropositions['member'][],
 ): MemberPropositions[] {
   return addedReporterIds.flatMap((memberId) => {
-    const recusedOn = files.filter((file) => isRecusedOn(file, memberId) && !isReporterOf(file, memberId));
-    const member = recusedOn[0]?.recusedMembers?.find(({ id }) => id === memberId);
+    const blocked = files.filter((file) => isNonAffectableOn(file, memberId));
+    const member = members.find(({ id }) => id === memberId);
 
-    return member ? [{ files: recusedOn, member }] : [];
+    return member && blocked.length > 0 ? [{ files: blocked, member }] : [];
   });
 }

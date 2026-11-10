@@ -134,21 +134,6 @@ describe('Header reporter status', () => {
       'href',
       getGdsReportPath('report-1'),
     );
-    expect(screen.queryByText('Vous vous êtes déportée sur ce dossier')).not.toBeInTheDocument();
-  });
-
-  it('tells a recused reporter they have nothing left to report on', () => {
-    renderHeader({
-      isSg: false,
-      myReport: { id: 'report-1', state: 'NOT_APPLICABLE' },
-      nominationFile: makeSessionNominationFile({
-        recusedMembers: [CURRENT_USER],
-        reporters: [CURRENT_USER],
-      }),
-    });
-
-    expect(screen.getByText('Vous vous êtes déportée sur ce dossier')).toBeVisible();
-    expect(screen.getByRole('link', { name: 'Voir mon rapport' })).toBeVisible();
   });
 
   it('lists the recused members to a member, under the reporters', () => {
@@ -221,17 +206,6 @@ describe('Header reporter status', () => {
     });
 
     expect(screen.queryByText(/Juridiction exclue pour/)).not.toBeInTheDocument();
-  });
-
-  it('warns that a reporter recused themselves from the file', () => {
-    renderHeader({
-      nominationFile: makeSessionNominationFile({
-        recusedMembers: [OTHER_REPORTER],
-        reporters: [OTHER_REPORTER],
-      }),
-    });
-
-    expect(screen.getByRole('img', { name: 'Déport sur ce dossier' })).toBeInTheDocument();
   });
 });
 
@@ -348,13 +322,13 @@ describe('Header edition', () => {
     expect(await screen.findByRole('button', { name: 'Modifier' })).toBeInTheDocument();
   });
 
-  it('warns, among the reporters to affect, of the members recused from the file', async () => {
+  it('keeps the members the API refuses to affect out of the reporters', async () => {
     const user = userEvent.setup();
     renderHeader({
       canManage: true,
       nominationFile: makeSessionNominationFile({
         content: { lockedReason: null },
-        recusedMembers: [OTHER_REPORTER],
+        nonAffectableMembers: [{ id: OTHER_REPORTER.id, reason: 'RECUSED' }],
         reporters: [],
       }),
     });
@@ -362,8 +336,8 @@ describe('Header edition', () => {
     await user.click(screen.getByRole('button', { name: 'Modifier' }));
     await user.click(screen.getByRole('button', { name: /Affecter un rapporteur/ }));
 
-    expect(await screen.findByRole('option', { name: 'Marie LEFEVRE Déport sur ce dossier' })).toBeVisible();
-    expect(screen.getByRole('option', { name: 'Jean PETIT' })).toBeVisible();
+    expect(await screen.findByRole('option', { name: 'Marie LEFEVRE (déport)' })).toBeDisabled();
+    expect(screen.getByRole('option', { name: 'Jean PETIT' })).toBeEnabled();
   });
 
   it('tells the priorities were not saved and stays in edit mode', async () => {
@@ -441,10 +415,10 @@ describe('Header missing second reporter', () => {
 describe('Header accessibility', () => {
   it('passes basic accessibility checks', async () => {
     const { container } = renderHeader({
-      myReport: { id: 'report-1', state: 'NOT_APPLICABLE' },
+      myReport: { id: 'report-1', state: 'IN_PROGRESS' },
       nominationFile: makeSessionNominationFile({
-        recusedMembers: [CURRENT_USER],
-        reporters: [CURRENT_USER, OTHER_REPORTER],
+        recusedMembers: [OTHER_REPORTER],
+        reporters: [CURRENT_USER],
       }),
     });
 
