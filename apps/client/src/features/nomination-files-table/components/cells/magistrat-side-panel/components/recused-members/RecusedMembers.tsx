@@ -35,7 +35,9 @@ export function RecusedMembers(props: {
       <MemberTagSelect
         disabled={!nominationFile.canRecuseMembers}
         hint={
-          <FormattedMessage defaultMessage="Un rapporteur ne peut pas se déporter : retirez-le d'abord de l'affectation, puis publiez-la s'il est rapporteur dans la version publiée." />
+          nominationFile.canRecuseMembers && (
+            <FormattedMessage defaultMessage="Un rapporteur ne peut pas se déporter : retirez-le d'abord de l'affectation, puis publiez-la s'il est rapporteur dans la version publiée." />
+          )
         }
         label={<FormattedMessage defaultMessage="Ajouter un membre qui se déporte" />}
         onAdd={(id) => recuse([...selectedIds, id])}
@@ -56,7 +58,7 @@ export function RecusedMembers(props: {
         removeTitle={(member) =>
           formatMessage({ defaultMessage: 'Retirer le déport de {member}' }, { member })
         }
-        // in protocol order, the one the official report prints
+        // in protocol order, the one the official report prints, once saved: a member being added shows last until then
         selected={selectedIds.flatMap((id) => {
           const member = members.get(id);
           return member ? [{ id, label: memberFullName(member) }] : [];

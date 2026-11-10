@@ -1,8 +1,8 @@
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
-import Select from '@codegouvfr/react-dsfr/Select';
+import Select, { type SelectProps } from '@codegouvfr/react-dsfr/Select';
 import { Tag } from '@codegouvfr/react-dsfr/Tag';
 import clsx from 'clsx';
-import type { ComponentProps, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 type MemberOption = { disabled?: boolean; id: string; label: string };
 
@@ -12,7 +12,7 @@ export function MemberTagSelect(props: {
   error?: string;
   hint?: ReactNode;
   label: ReactNode;
-  nativeSelectProps?: ComponentProps<typeof Select>['nativeSelectProps'];
+  nativeSelectProps?: SelectProps['nativeSelectProps'];
   onAdd: (memberId: string) => void;
   onRemove: (memberId: string) => void;
   /** the members not selected yet, in display order */

@@ -4,6 +4,7 @@ import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
 import { Prisma } from '../../../../../generated/prisma/client';
+import { findPublishedAndLatestReportersRawQuery } from '../../../../../generated/prisma/sql';
 import { Db } from '../../../../framework/database';
 import { prismaStatutAffectationEnumToStatutAffectationEnum } from '../../../../shared/mappers/statut-affectation.mapper';
 import type { PublicationStatus } from '../../../../shared/publication-status.enum';
@@ -145,49 +146,20 @@ export class AffectationVersionFinder {
   async findPublishedAndLatestReporters(query: {
     nominationFileIds: readonly string[];
   }): Promise<Map<string, FileReporters>> {
-    const versions = await this.db.tx.affectationVersion.findMany({
-      select: {
-        id: true,
-        sessionId: true,
-        statut: true,
-        version: true,
-      } satisfies Prisma.AffectationVersionSelect,
-      where: { session: { dossierDeNominations: { some: { id: { in: [...query.nominationFileIds] } } } } },
-    });
-    const latestBySessionId = new Map<string, { id: string; version: number }>();
-    const publishedBySessionId = new Map<string, { id: string; version: number }>();
-    for (const version of versions) {
-      const latest = latestBySessionId.get(version.sessionId);
-      if (!latest || latest.version < version.version) latestBySessionId.set(version.sessionId, version);
-      if (version.statut !== 'PUBLIEE') continue;
-      const published = publishedBySessionId.get(version.sessionId);
-      if (!published || published.version < version.version)
-        publishedBySessionId.set(version.sessionId, version);
-    }
-    const latestVersionIds = new Set(latestBySessionId.values().map(({ id }) => id));
-    const publishedVersionIds = new Set(publishedBySessionId.values().map(({ id }) => id));
-    if (latestVersionIds.size === 0) return new Map();
+    if (query.nominationFileIds.length === 0) return new Map();
 
-    const affectations = await this.db.tx.nominationFileToReporter.findMany({
-      select: {
-        nominationFileId: true,
-        userId: true,
-        versionId: true,
-      } satisfies Prisma.NominationFileToReporterSelect,
-      where: {
-        nominationFileId: { in: [...query.nominationFileIds] },
-        versionId: { in: [...latestVersionIds.union(publishedVersionIds)] },
-      },
-    });
+    const rows = await this.db.tx.$queryRawTyped(
+      findPublishedAndLatestReportersRawQuery(query.nominationFileIds as string[]),
+    );
 
     const byNominationFileId = new Map<string, { latestIds: Set<string>; publishedIds: Set<string> }>();
-    for (const { nominationFileId, userId, versionId } of affectations) {
+    for (const { isLatest, isPublished, nominationFileId, userId } of rows) {
       const reporters = byNominationFileId.get(nominationFileId) ?? {
         latestIds: new Set(),
         publishedIds: new Set(),
       };
-      if (latestVersionIds.has(versionId)) reporters.latestIds.add(userId);
-      if (publishedVersionIds.has(versionId)) reporters.publishedIds.add(userId);
+      if (isLatest) reporters.latestIds.add(userId);
+      if (isPublished) reporters.publishedIds.add(userId);
       byNominationFileId.set(nominationFileId, reporters);
     }
 
