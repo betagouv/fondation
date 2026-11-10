@@ -6,8 +6,8 @@ export class CreateSessionPage {
   constructor(private readonly app: TestApp) {}
 
   async goto(): Promise<void> {
-    await this.app.nav.getByText('Administration').click();
-    await this.app.page.getByRole('link', { name: 'Créer une session' }).click();
+    await this.app.nav.getByText('Gérer une session').click();
+    await this.app.page.getByRole('button', { name: 'Créer une session' }).click();
     await this.formName.waitFor();
   }
 

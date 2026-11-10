@@ -69,7 +69,7 @@ Un Membre ne voit les auditions d'une session qu'une fois publiées.
 
 ### Espace Secrétariat général
 
-L'accueil propose les deux pouvoirs de proposition. Le menu garde partout Rechercher un magistrat. Depuis le GDS, il y ajoute Gérer une session, Restitutions, Gérer les membres et Archives. Le logo ramène à l'accueil. L'Administrateur y voit en plus un sous-menu Administration, dont l'entrée Créer une session n'apparaît que depuis le GDS.
+L'accueil propose les deux pouvoirs de proposition. Le menu garde partout Rechercher un magistrat. Depuis le GDS, il y ajoute Gérer une session, Restitutions, Gérer les membres et Archives. Le logo ramène à l'accueil. L'Administrateur y voit en plus un sous-menu Administration. Sur Gérer une session, il peut aussi créer une session depuis une extraction Lodam.
 
 | URL                                                                                              | Vue                                                             | Membre | Secrétariat général | Administrateur |
 | ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------- | ------ | ------------------- | -------------- |
@@ -109,7 +109,6 @@ L'accueil propose les deux pouvoirs de proposition. Le menu garde partout Recher
 | URL                           | Vue                                                                                                                                  | Membre | Secrétariat général | Administrateur |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ------ | ------------------- | -------------- |
 | `/admin/lolfi`                | Import d'une archive Lolfi                                                                                                           | —      | —                   | ✓              |
-| `/admin/lodam`                | Création d'une session à partir d'un fichier Lodam                                                                                   | —      | —                   | ✓              |
 | `/admin/ingestions`           | Liste des traitements en arrière-plan                                                                                                | —      | —                   | ✓              |
 | `/admin/ingestions/:jobId`    | Détail d'un traitement                                                                                                               | —      | —                   | ✓              |
 | `/admin/avis`                 | Export des réponses au questionnaire                                                                                                 | —      | —                   | ✓              |
