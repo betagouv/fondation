@@ -80,7 +80,7 @@ export function useUpdateReportMutation() {
       await $api.reports.updateReport({ path: { reportId }, body });
     },
 
-    onSuccess: (_, { reportId }) =>
+    onSettled: (_data, _error, { reportId }) =>
       Promise.all([
         queryClient.invalidateQueries({ queryKey: reportKeys.reportById({ reportId }) }),
         queryClient.invalidateQueries({ queryKey: memberKeys.allListMemberSessionReports() }),
@@ -96,7 +96,7 @@ export function useDetachReportFilesMutation() {
         path: { reportId: props.reportId },
         query: { fileNames: props.fileNames as string[] },
       }),
-    onSuccess: (_, { reportId }) =>
+    onSettled: (_data, _error, { reportId }) =>
       queryClient.invalidateQueries({ queryKey: reportKeys.reportById({ reportId }) }),
   });
 }
@@ -121,7 +121,7 @@ export function useAttachReportFilesMutation() {
         query: { usage },
       });
     },
-    onSuccess: (_, { reportId }) =>
+    onSettled: (_data, _error, { reportId }) =>
       queryClient.invalidateQueries({ queryKey: reportKeys.reportById({ reportId }) }),
   });
 }
@@ -137,7 +137,7 @@ export function useAttachScreenshotMutation() {
 
       return data ?? null;
     },
-    onSuccess: (_, { reportId }) =>
+    onSettled: (_data, _error, { reportId }) =>
       queryClient.invalidateQueries({ queryKey: reportKeys.reportById({ reportId }) }),
   });
 }

@@ -7,7 +7,7 @@ import { sessionKeys } from './nomination-sessions.queries';
 
 export const queryClient = new QueryClient({
   queryCache: new QueryCache({ onError: clearQueryClient }),
-  mutationCache: new MutationCache({ onError: clearQueryClient, onSuccess: refreshOpenNominationFile }),
+  mutationCache: new MutationCache({ onError: clearQueryClient, onSettled: refreshOpenNominationFile }),
   defaultOptions: {
     mutations: { retry: false },
     queries: { retry: false },

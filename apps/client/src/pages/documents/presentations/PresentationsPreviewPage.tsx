@@ -33,10 +33,7 @@ export function PresentationPreviewPage() {
 
   const { data: html, isPending } = useJusticePresentationPlanHtmlQuery({ presentationPlanId: planId });
   const { data: metadata } = useJusticePresentationPlanMetadataQuery({ presentationPlanId: planId });
-  const validate = useValidatePresentationPlanMutation({
-    onSuccess: () => navigate(generatePath(ROUTE_PATHS.SG.PRESENTATIONS_READY)),
-    planId: planId!,
-  });
+  const validate = useValidatePresentationPlanMutation({ planId: planId! });
   const isValidating = validate.isPending;
   const title = formatMessage({ defaultMessage: 'Notice de restitution' });
 
@@ -65,7 +62,14 @@ export function PresentationPreviewPage() {
               </>
             )}
             {metadata?.canValidate && (
-              <Button disabled={isValidating} onClick={() => validate.mutate()}>
+              <Button
+                disabled={isValidating}
+                onClick={() =>
+                  validate.mutate(undefined, {
+                    onSuccess: () => navigate(generatePath(ROUTE_PATHS.SG.PRESENTATIONS_READY)),
+                  })
+                }
+              >
                 <FormattedMessage defaultMessage="Valider le document" />
               </Button>
             )}

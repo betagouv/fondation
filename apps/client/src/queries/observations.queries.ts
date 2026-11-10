@@ -123,7 +123,7 @@ export function useCreateObservationMutation() {
         });
       return data ?? null;
     },
-    onSuccess: (_, { sessionId, nominationFileId }) =>
+    onSettled: (_data, _error, { sessionId, nominationFileId }) =>
       Promise.allSettled([
         queryClient.invalidateQueries({
           queryKey: observationKeys.observations({ sessionId, nominationFileId }),
@@ -152,7 +152,7 @@ export function useDeleteObservationMutation() {
         },
       });
     },
-    onSuccess: (_, { sessionId, nominationFileId }) =>
+    onSettled: (_data, _error, { sessionId, nominationFileId }) =>
       Promise.allSettled([
         queryClient.invalidateQueries({ queryKey: auditionKeys.all() }),
         queryClient.invalidateQueries({
@@ -219,7 +219,7 @@ export function useUpdateObservationMutation() {
           throw err;
         });
     },
-    onSuccess: (_, { sessionId, nominationFileId, observationId }) =>
+    onSettled: (_data, _error, { sessionId, nominationFileId, observationId }) =>
       Promise.allSettled([
         queryClient.invalidateQueries({ queryKey: auditionKeys.all() }),
         queryClient.invalidateQueries({
@@ -301,7 +301,7 @@ export function useFollowUpOnObservationMutation() {
         path: { sessionId, nominationFileId, observationId },
       });
     },
-    onSuccess: (_data, { sessionId, nominationFileId, observationId, followUp, comment }) => {
+    onSuccess: (_data, { sessionId, nominationFileId, observationId, followUp, comment }) =>
       queryClient.setQueriesData(
         { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
         mapCachedNominationFiles((item) =>
@@ -316,16 +316,15 @@ export function useFollowUpOnObservationMutation() {
               }
             : item,
         ),
-      );
-
-      return queryClient.invalidateQueries({
+      ),
+    onSettled: (_data, _error, { sessionId, nominationFileId, observationId }) =>
+      queryClient.invalidateQueries({
         queryKey: observationKeys.observationDetails({
           sessionId,
           nominationFileId,
           observationId,
         }),
-      });
-    },
+      }),
   });
 }
 
@@ -370,7 +369,7 @@ export function useScheduleObservantAuditionMutation() {
         path: { nominationFileId, observationId, sessionId },
       });
     },
-    onSuccess: (_, { sessionId }) =>
+    onSettled: (_data, _error, { sessionId }) =>
       Promise.allSettled([
         queryClient.invalidateQueries({ queryKey: auditionKeys.all() }),
         queryClient.invalidateQueries({ queryKey: observationKeys.allObservationDetails() }),

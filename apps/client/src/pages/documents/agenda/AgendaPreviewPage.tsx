@@ -39,7 +39,6 @@ export function AgendaPreviewPage() {
 
   const validate = useValidateAgendaMutation({
     agendaId: agendaId!,
-    onSuccess: () => navigate(returnPath),
     sessionId: sessionId!,
   });
 
@@ -118,7 +117,10 @@ export function AgendaPreviewPage() {
             </Button>
           )}
           {metadata?.canValidate && (
-            <Button disabled={isBusy} onClick={() => validate.mutate()}>
+            <Button
+              disabled={isBusy}
+              onClick={() => validate.mutate(undefined, { onSuccess: () => navigate(returnPath) })}
+            >
               {validate.isPending ? (
                 <FormattedMessage defaultMessage="Validation en cours..." />
               ) : (
