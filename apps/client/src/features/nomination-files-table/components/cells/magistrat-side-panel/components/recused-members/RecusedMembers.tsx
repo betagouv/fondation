@@ -1,59 +1,68 @@
-import { FormattedMessage, useIntl } from 'react-intl';
+import { defineMessage, FormattedMessage, useIntl, type MessageDescriptor } from 'react-intl';
 
 import { useNominationFilesTable } from '@/features/nomination-files-table/context/files-table.context';
-import { useConfirmModal } from '@/shared/context/confirm-modal';
+import { MemberTagSelect } from '@/shared/components/member-tag-select';
 import { memberFullName } from '@/utils/user.utils';
 import type { RecusedMembersDto } from '@api/types';
+import { useMemberListQuery } from '@queries/members.queries';
 import { useRecuseMembersMutation, type SessionNominationFile } from '@queries/nomination-sessions.queries';
 
-import { recusedReporters } from './recused-reporters';
-import { RecusedMemberSelect } from './RecusedMemberSelect';
+const NON_RECUSABLE_LABELS = {
+  REPORTER: defineMessage({ defaultMessage: '{name} (rapporteur)' }),
+} satisfies Record<SessionNominationFile['nonRecusableMembers'][number]['reason'], MessageDescriptor>;
 
 export function RecusedMembers(props: {
   nominationFile: SessionNominationFile;
   recusedMembers: RecusedMembersDto['recusedMembers'];
 }) {
   const { nominationFile, recusedMembers } = props;
-  const { sessionId } = useNominationFilesTable();
+  const { formation, sessionId } = useNominationFilesTable();
   const { isError: saveFailed, isPending, mutate, variables } = useRecuseMembersMutation(nominationFile.id);
-  const { waitForConfirmation } = useConfirmModal();
   const { formatMessage } = useIntl();
-  const selected = isPending ? variables.memberIds : recusedMembers.map(({ id }) => id);
+  const { data } = useMemberListQuery({
+    formations: ['COMMUN', formation],
+    pagination: { pageIndex: 0, pageSize: 100 },
+  });
 
-  const recuse = async (memberIds: string[]) => {
-    const added = memberIds.filter((id) => !selected.includes(id));
-    const [recused] = recusedReporters([nominationFile], added);
-
-    if (recused) {
-      const { isConfirmed } = await waitForConfirmation({
-        content: (
-          <p>
-            <FormattedMessage
-              defaultMessage={`{name} est rapporteur de ce dossier. Avec ce déport, son rapport passe à « Sans objet » et en lecture seule.`}
-              values={{ name: memberFullName(recused.member) }}
-            />
-          </p>
-        ),
-        i18n: {
-          cancel: formatMessage({ defaultMessage: 'Annuler' }),
-          confirm: formatMessage({ defaultMessage: 'Déporter' }),
-        },
-        title: formatMessage({ defaultMessage: 'Déporter un rapporteur' }),
-      });
-      if (!isConfirmed) return;
-    }
-
-    mutate({ memberIds, sessionId });
-  };
+  const selectedIds = isPending ? variables.memberIds : recusedMembers.map(({ id }) => id);
+  // a member deactivated since stays among the recused members, absent from the member list
+  const members = new Map([...recusedMembers, ...(data?.items ?? [])].map((member) => [member.id, member]));
+  const reasons = new Map(nominationFile.nonRecusableMembers.map(({ id, reason }) => [id, reason]));
+  const recuse = (memberIds: string[]) => mutate({ memberIds, sessionId });
 
   return (
     <div className="fr-mb-2v">
-      <RecusedMemberSelect
+      <MemberTagSelect
         disabled={!nominationFile.canRecuseMembers}
+        hint={
+          nominationFile.canRecuseMembers && (
+            <FormattedMessage defaultMessage="Un rapporteur ne peut pas se déporter : retirez-le d'abord de l'affectation, puis publiez-la s'il est rapporteur dans la version publiée." />
+          )
+        }
         label={<FormattedMessage defaultMessage="Ajouter un membre qui se déporte" />}
-        onChange={recuse}
-        recusedMembers={recusedMembers}
-        value={selected}
+        onAdd={(id) => recuse([...selectedIds, id])}
+        onRemove={(id) => recuse(selectedIds.filter((selectedId) => selectedId !== id))}
+        options={(data?.items ?? [])
+          .filter(({ id }) => !selectedIds.includes(id))
+          .sort((a, b) => a.lastName.localeCompare(b.lastName))
+          .map((member) => {
+            const reason = reasons.get(member.id);
+            const name = memberFullName(member);
+            return {
+              disabled: !!reason,
+              id: member.id,
+              label: reason ? formatMessage(NON_RECUSABLE_LABELS[reason], { name }) : name,
+            };
+          })}
+        placeholder={<FormattedMessage defaultMessage="Sélectionner" />}
+        removeTitle={(member) =>
+          formatMessage({ defaultMessage: 'Retirer le déport de {member}' }, { member })
+        }
+        // in protocol order, the one the official report prints, once saved: a member being added shows last until then
+        selected={selectedIds.flatMap((id) => {
+          const member = members.get(id);
+          return member ? [{ id, label: memberFullName(member) }] : [];
+        })}
       />
       {saveFailed && (
         <p className="fr-error-text fr-mb-0" role="alert">

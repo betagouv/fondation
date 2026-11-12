@@ -17,6 +17,7 @@ import { UserStatus } from '../../../shared/user-status.enum';
 
 import type { PublishableAuditions } from './audition-publication';
 import { AutoAffectations } from './auto-affectation';
+import { type FileReporters, nonRecusableMembers } from './member-recusal';
 import { NominationFileSnapshot } from './nomination-file-snapshot';
 import {
   LodamTransparenceFile,
@@ -304,6 +305,14 @@ export class NonFormationMemberDefinedAsReporter extends Error {
 export class NonFormationMemberRecused extends Error {
   constructor() {
     super(`Seul un membre actif de la formation du dossier peut se déporter`);
+  }
+}
+
+export class ReporterRecused extends Error {
+  constructor() {
+    super(
+      `Un rapporteur ne peut pas se déporter : retirez-le d'abord de l'affectation, puis publiez-la s'il est rapporteur dans la version publiée`,
+    );
   }
 }
 
@@ -813,6 +822,7 @@ export class SessionTransparence {
     formationMemberIds: ReadonlySet<string>;
     recusals: readonly { memberIds: readonly string[]; nominationFileId: string }[];
     recusedMemberIdsByFile: ReadonlyMap<string, ReadonlySet<string>>;
+    reportersByFile: ReadonlyMap<string, FileReporters>;
   }) {
     this.assertsCanUpdateFiles(...command.recusals.map(({ nominationFileId }) => nominationFileId));
 
@@ -843,6 +853,13 @@ export class SessionTransparence {
       .filter(
         ({ addedMemberIds, removedMemberIds }) => addedMemberIds.length > 0 || removedMemberIds.length > 0,
       );
+    const addsAReporter = changes.some(({ addedMemberIds, nominationFileId }) => {
+      const reporters = command.reportersByFile.get(nominationFileId);
+      if (!reporters) return false;
+      const nonRecusableIds = new Set(nonRecusableMembers(reporters).map(({ id }) => id));
+      return addedMemberIds.some((id) => nonRecusableIds.has(id));
+    });
+    if (addsAReporter) throw new ReporterRecused();
     if (changes.length === 0) return;
 
     this.#messages.push(new SessionTransparenceFileMembersRecused(this.id, changes, command.authorId));

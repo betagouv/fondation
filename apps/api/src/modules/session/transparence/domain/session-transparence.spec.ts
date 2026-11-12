@@ -15,6 +15,7 @@ import {
   NonFormationMemberDefinedAsReporter,
   NonFormationMemberRecused,
   PositionAuditionCannotBeDismissed,
+  ReporterRecused,
   SessionTransparence,
   SessionTransparenceAffectationHasUnassignableReporters,
   SessionTransparenceAffectationVersionCreated,
@@ -1277,6 +1278,7 @@ describe('SessionTransparence', () => {
         formationMemberIds: new Set(['member-1', 'member-2']),
         recusals: [{ memberIds: ['member-1', 'member-2', 'member-1'], nominationFileId: FILE_1 }],
         recusedMemberIdsByFile: new Map(),
+        reportersByFile: new Map(),
       });
 
       expect(transparence.messages).toEqual([
@@ -1298,6 +1300,7 @@ describe('SessionTransparence', () => {
           { memberIds: ['member-1', 'member-2'], nominationFileId: FILE_2 },
         ],
         recusedMemberIdsByFile: new Map(),
+        reportersByFile: new Map(),
       });
 
       expect(transparence.messages).toEqual([
@@ -1319,6 +1322,7 @@ describe('SessionTransparence', () => {
         formationMemberIds: new Set(['member-1']),
         recusals: [{ memberIds: ['member-1'], nominationFileId: FILE_1 }],
         recusedMemberIdsByFile: new Map(),
+        reportersByFile: new Map(),
       });
 
       expect(transparence.messages).toEqual([
@@ -1337,6 +1341,7 @@ describe('SessionTransparence', () => {
         formationMemberIds: new Set(['member-1']),
         recusals: [{ memberIds: ['member-1', 'deactivated-member'], nominationFileId: FILE_1 }],
         recusedMemberIdsByFile: new Map([[FILE_1, new Set(['deactivated-member'])]]),
+        reportersByFile: new Map(),
       });
 
       expect(transparence.messages).toEqual([
@@ -1355,6 +1360,7 @@ describe('SessionTransparence', () => {
         formationMemberIds: new Set(['member-1', 'member-3']),
         recusals: [{ memberIds: ['member-1', 'member-3'], nominationFileId: FILE_1 }],
         recusedMemberIdsByFile: new Map([[FILE_1, new Set(['member-1', 'member-2'])]]),
+        reportersByFile: new Map(),
       });
 
       expect(transparence.messages).toEqual([
@@ -1379,6 +1385,7 @@ describe('SessionTransparence', () => {
           [FILE_1, new Set(['member-1'])],
           [FILE_2, new Set(['member-1'])],
         ]),
+        reportersByFile: new Map(),
       });
 
       expect(transparence.messages).toEqual([
@@ -1397,6 +1404,7 @@ describe('SessionTransparence', () => {
         formationMemberIds: new Set(['member-1']),
         recusals: [{ memberIds: ['member-1'], nominationFileId: FILE_1 }],
         recusedMemberIdsByFile: new Map([[FILE_1, new Set(['member-1'])]]),
+        reportersByFile: new Map(),
       });
 
       expect(transparence.messages).toEqual([]);
@@ -1412,6 +1420,7 @@ describe('SessionTransparence', () => {
             { memberIds: ['deactivated-member'], nominationFileId: FILE_2 },
           ],
           recusedMemberIdsByFile: new Map([[FILE_1, new Set(['deactivated-member'])]]),
+          reportersByFile: new Map(),
         }),
       ).toThrow(NonFormationMemberRecused);
     });
@@ -1423,6 +1432,7 @@ describe('SessionTransparence', () => {
           formationMemberIds: new Set(['member-1']),
           recusals: [{ memberIds: ['member-1', 'other-member'], nominationFileId: FILE_1 }],
           recusedMemberIdsByFile: new Map(),
+          reportersByFile: new Map(),
         }),
       ).toThrow(NonFormationMemberRecused);
     });
@@ -1439,9 +1449,59 @@ describe('SessionTransparence', () => {
             { memberIds: ['member-1'], nominationFileId: FILE_2 },
           ],
           recusedMemberIdsByFile: new Map(),
+          reportersByFile: new Map(),
         }),
       ).toThrow(CantUpdateNominationFiles);
       expect(transparence.messages).toEqual([]);
+    });
+
+    it('refuses a reporter of the latest version, even unpublished', () => {
+      expect(() =>
+        session(pendingFile).recuseMembers({
+          authorId: 'sg-1',
+          formationMemberIds: new Set(['member-1']),
+          recusals: [{ memberIds: ['member-1'], nominationFileId: FILE_1 }],
+          recusedMemberIdsByFile: new Map(),
+          reportersByFile: new Map([[FILE_1, { latestIds: new Set(['member-1']), publishedIds: new Set() }]]),
+        }),
+      ).toThrow(ReporterRecused);
+    });
+
+    it('refuses the whole batch when the member reports one of the files', () => {
+      const transparence = session(pendingFile, pendingFile);
+
+      expect(() =>
+        transparence.recuseMembers({
+          authorId: 'sg-1',
+          formationMemberIds: new Set(['member-1']),
+          recusals: [
+            { memberIds: ['member-1'], nominationFileId: FILE_1 },
+            { memberIds: ['member-1'], nominationFileId: FILE_2 },
+          ],
+          recusedMemberIdsByFile: new Map(),
+          reportersByFile: new Map([[FILE_2, { latestIds: new Set(), publishedIds: new Set(['member-1']) }]]),
+        }),
+      ).toThrow(ReporterRecused);
+      expect(transparence.messages).toEqual([]);
+    });
+
+    it('only checks the members added to the recusals', () => {
+      const transparence = session(pendingFile);
+      transparence.recuseMembers({
+        authorId: 'sg-1',
+        formationMemberIds: new Set(['member-1', 'member-2']),
+        recusals: [{ memberIds: ['member-1', 'member-2'], nominationFileId: FILE_1 }],
+        recusedMemberIdsByFile: new Map([[FILE_1, new Set(['member-1'])]]),
+        reportersByFile: new Map([[FILE_1, { latestIds: new Set(['member-1']), publishedIds: new Set() }]]),
+      });
+
+      expect(transparence.messages).toEqual([
+        new SessionTransparenceFileMembersRecused(
+          'session-id',
+          [{ addedMemberIds: ['member-2'], nominationFileId: FILE_1, removedMemberIds: [] }],
+          'sg-1',
+        ),
+      ]);
     });
   });
 });

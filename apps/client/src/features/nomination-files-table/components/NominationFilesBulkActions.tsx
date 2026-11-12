@@ -30,7 +30,8 @@ import {
 import { AffectedRecusedMembersNotice } from './cells/magistrat-side-panel/components/recused-members/AffectedRecusedMembersNotice';
 import {
   affectedRecusedMembers,
-  recusedReporters,
+  blockedRecusals,
+  isNonRecusableOn,
 } from './cells/magistrat-side-panel/components/recused-members/recused-reporters';
 import { RecusedMemberSelect } from './cells/magistrat-side-panel/components/recused-members/RecusedMemberSelect';
 import { RecusedReportersNotice } from './cells/magistrat-side-panel/components/recused-members/RecusedReportersNotice';
@@ -52,6 +53,11 @@ function diff(previous: readonly string[], next: readonly string[]) {
     added: next.filter((value) => !previous.includes(value)),
     removed: previous.filter((value) => !next.includes(value)),
   };
+}
+
+function isChanged(previous: readonly string[], next: readonly string[]): boolean {
+  const { added, removed } = diff(previous, next);
+  return added.length > 0 || removed.length > 0;
 }
 
 function sharedList<T extends string>(
@@ -255,14 +261,27 @@ export function NominationFilesBulkActions(props: {
       if (!hasSelection) return;
 
       const change = diff(recusedMemberIds, next);
-      const reporters = recusedReporters(props.selectedFiles, change.added);
+      const items = props.selectedFiles.map((file) => ({
+        before: recusedIdsOf(file),
+        memberIds: applyChange(recusedIdsOf(file), {
+          added: change.added.filter((id) => !isNonRecusableOn(file, id)),
+          removed: change.removed,
+        }),
+        nominationFileId: file.id,
+      }));
+      const reporters = blockedRecusals(props.selectedFiles, change.added, members?.items ?? []);
       if (reporters.length > 0) {
+        const hasOtherPropositions = items.some(({ before, memberIds }) => isChanged(before, memberIds));
         const { isConfirmed } = await waitForConfirmation({
-          content: <RecusedReportersNotice reporters={reporters} />,
-          i18n: {
-            cancel: formatMessage({ defaultMessage: 'Annuler' }),
-            confirm: formatMessage({ defaultMessage: 'Déporter' }),
-          },
+          content: (
+            <RecusedReportersNotice hasOtherPropositions={hasOtherPropositions} reporters={reporters} />
+          ),
+          i18n: hasOtherPropositions
+            ? {
+                cancel: formatMessage({ defaultMessage: 'Annuler' }),
+                confirm: formatMessage({ defaultMessage: 'Déporter' }),
+              }
+            : { cancel: formatMessage({ defaultMessage: 'Fermer' }), confirm: null },
           title:
             reporters.length > 1
               ? formatMessage({ defaultMessage: 'Déporter des rapporteurs' })
@@ -274,18 +293,14 @@ export function NominationFilesBulkActions(props: {
       setRecusedMemberIds(next);
 
       recuseMembers.mutate(
-        {
-          items: props.selectedFiles.map((file) => ({
-            memberIds: applyChange(recusedIdsOf(file), change),
-            nominationFileId: file.id,
-          })),
-        },
+        { items: items.map(({ memberIds, nominationFileId }) => ({ memberIds, nominationFileId })) },
         { onError: onFailure },
       );
     },
     [
       formatMessage,
       hasSelection,
+      members,
       onFailure,
       props.selectedFiles,
       recuseMembers,

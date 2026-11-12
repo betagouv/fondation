@@ -2,6 +2,21 @@ import { test } from '../fixtures.ts';
 import { makeFile } from '../utils/files.ts';
 import * as seed from '../utils/seed.ts';
 
+const CANDIDATE = {
+  firstName: 'ETIENNE',
+  lastName: 'TREVOUX',
+  position: {
+    function: seed.functions.PR,
+    grade: 'G3' as const,
+    jurisdiction: seed.jurisdictions['CA  LYON'],
+  },
+  targetPosition: {
+    function: seed.functions.PR,
+    grade: 'G3' as const,
+    jurisdiction: seed.jurisdictions['CA  GRENOBLE'],
+  },
+};
+
 test.describe('Report E2E', () => {
   let nominationFileId: string;
   let reportId: string;
@@ -10,26 +25,7 @@ test.describe('Report E2E', () => {
   test.beforeEach(async ({ sessions, member }) => {
     // the member is affected so that a report is created for them
     const session = await sessions.createOne(
-      {
-        candidates: [
-          {
-            firstName: 'ETIENNE',
-            lastName: 'TREVOUX',
-            position: {
-              function: seed.functions.PR,
-              grade: 'G3',
-              jurisdiction: seed.jurisdictions['CA  LYON'],
-            },
-            targetPosition: {
-              function: seed.functions.PR,
-              grade: 'G3',
-              jurisdiction: seed.jurisdictions['CA  GRENOBLE'],
-            },
-          },
-        ],
-        createdAt: '22/04/2026',
-        name: 'Transparence rapport',
-      },
+      { candidates: [CANDIDATE], createdAt: '22/04/2026', name: 'Transparence rapport' },
       { reporters: [member['@user']!] },
     );
 
@@ -142,45 +138,69 @@ test.describe('Report E2E', () => {
     );
   });
 
-  test('should show a recused reporter their report as not applicable until the recusal is withdrawn', async ({
-    agent,
-    member,
-    expect,
-  }) => {
-    const memberPath = { nominationFileId, sessionId, userId: member['@user']!.id };
-    await agent.sessions.recuseMembers({
-      body: { memberIds: [member['@user']!.id] },
-      path: { nominationFileId, sessionId },
-      throwOnError: true,
+  // a reporter can no longer be recused: only a member recused before their affectation becomes a recused reporter
+  test.describe('Given a member recused, then affected', () => {
+    test.beforeEach(async ({ agent, member, sessions }) => {
+      const session = await sessions.createOne({
+        candidates: [CANDIDATE],
+        createdAt: '22/04/2026',
+        name: 'Transparence rapporteur déporté',
+      });
+      nominationFileId = session.files[0]!.id;
+      sessionId = session.id;
+      const userId = member['@user']!.id;
+
+      await agent.sessions.recuseMembers({
+        body: { memberIds: [userId] },
+        path: { nominationFileId, sessionId },
+        throwOnError: true,
+      });
+      await agent.sessions.affectReporters({
+        body: { items: [{ nominationFileId, reporterIds: [userId] }] },
+        path: { sessionId },
+        throwOnError: true,
+      });
+      await agent.sessions.publishNominationSessionAffectationsVersion({ path: { sessionId }, throwOnError: true });
+
+      const reportsRes = await member.members.listMemberSessionReports({
+        path: { sessionId, userId },
+        throwOnError: true,
+      });
+      reportId = reportsRes.data.items[0]!.report.id;
     });
 
-    const recused = await member.members.listMemberSessionReports({ path: memberPath, throwOnError: true });
-    expect(recused.data.items.map(({ report }) => report)).toEqual([{ id: reportId, state: 'NOT_APPLICABLE' }]);
-    const found = await member.members.searchNominationFileMembersReport({ path: memberPath, throwOnError: true });
-    expect(found.data.report).toEqual({ id: reportId, state: 'NOT_APPLICABLE' });
-    const detailed = await member.reports.detailReport({ path: { reportId }, throwOnError: true });
-    expect(detailed.data.state).toBe('NOT_APPLICABLE');
+    test('should show a recused reporter their report as not applicable until the recusal is withdrawn', async ({
+      agent,
+      member,
+      expect,
+    }) => {
+      const memberPath = { nominationFileId, sessionId, userId: member['@user']!.id };
 
-    await agent.sessions.recuseMembers({
-      body: { memberIds: [] },
-      path: { nominationFileId, sessionId },
-      throwOnError: true,
+      const recused = await member.members.listMemberSessionReports({ path: memberPath, throwOnError: true });
+      expect(recused.data.items.map(({ report }) => report)).toEqual([{ id: reportId, state: 'NOT_APPLICABLE' }]);
+      const found = await member.members.searchNominationFileMembersReport({ path: memberPath, throwOnError: true });
+      expect(found.data.report).toEqual({ id: reportId, state: 'NOT_APPLICABLE' });
+      const detailed = await member.reports.detailReport({ path: { reportId }, throwOnError: true });
+      expect(detailed.data.state).toBe('NOT_APPLICABLE');
+
+      await agent.sessions.recuseMembers({
+        body: { memberIds: [] },
+        path: { nominationFileId, sessionId },
+        throwOnError: true,
+      });
+      const withdrawn = await member.members.searchNominationFileMembersReport({
+        path: memberPath,
+        throwOnError: true,
+      });
+      expect(withdrawn.data.report).toEqual({ id: reportId, state: 'NEW' });
     });
-    const withdrawn = await member.members.searchNominationFileMembersReport({ path: memberPath, throwOnError: true });
-    expect(withdrawn.data.report).toEqual({ id: reportId, state: 'NEW' });
-  });
 
-  test('should lock the report of a recused reporter', async ({ agent, member, expect }) => {
-    await agent.sessions.recuseMembers({
-      body: { memberIds: [member['@user']!.id] },
-      path: { nominationFileId, sessionId },
-      throwOnError: true,
+    test('should lock the report of a recused reporter', async ({ member, expect }) => {
+      const { data } = await member.reports.detailReport({ path: { reportId }, throwOnError: true });
+      expect(data.lockedReason).toBe('RECUSED');
+      const updated = await member.reports.updateReport({ body: { comment: '<p>Avis</p>' }, path: { reportId } });
+      expect(updated.response?.status).toBe(403);
     });
-
-    const { data } = await member.reports.detailReport({ path: { reportId }, throwOnError: true });
-    expect(data.lockedReason).toBe('RECUSED');
-    const updated = await member.reports.updateReport({ body: { comment: '<p>Avis</p>' }, path: { reportId } });
-    expect(updated.response?.status).toBe(403);
   });
 
   test('should not list session reports of an unknown session', async ({ member, expect }) => {

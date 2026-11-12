@@ -1,12 +1,11 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { IntlProvider } from 'react-intl';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { axe } from 'vitest-axe';
 
 import { NominationFilesTableProvider } from '@/features/nomination-files-table/context/NominationFilesTableProvider';
-import { ConfirmModalProvider } from '@/shared/context/confirm-modal';
 import { FormationEnum } from '@/shared/enums/formation.enum';
 import { makeSessionNominationFile } from '@/test-utils/factories/session-nomination-file.factory';
 import { makeSessionOutcomes } from '@/test-utils/factories/session-outcomes.factory';
@@ -23,8 +22,7 @@ const MEMBER = { firstName: 'Jean', id: 'member', lastName: 'Albert' };
 
 function renderRecusedMembers(
   recusedMembers: RecusedMembersDto['recusedMembers'],
-  canRecuseMembers = true,
-  reporters: SessionNominationFile['reporters'] = [],
+  file: Partial<Pick<SessionNominationFile, 'canRecuseMembers' | 'nonRecusableMembers'>> = {},
 ) {
   const client = new QueryClient({
     defaultOptions: { mutations: { retry: false }, queries: { retry: false } },
@@ -46,23 +44,22 @@ function renderRecusedMembers(
   const panel = (members: RecusedMembersDto['recusedMembers']) => (
     <IntlProvider defaultLocale="fr" locale="fr">
       <QueryClientProvider client={client}>
-        <ConfirmModalProvider>
-          <NominationFilesTableProvider
-            canManage
-            formation={FormationEnum.SIEGE}
-            outcomes={makeSessionOutcomes(FormationEnum.SIEGE)}
-            sessionId={SESSION_ID}
-          >
-            <RecusedMembers
-              nominationFile={makeSessionNominationFile({
-                canRecuseMembers,
-                recusedMembers: members,
-                reporters,
-              })}
-              recusedMembers={members}
-            />
-          </NominationFilesTableProvider>
-        </ConfirmModalProvider>
+        <NominationFilesTableProvider
+          canManage
+          formation={FormationEnum.SIEGE}
+          outcomes={makeSessionOutcomes(FormationEnum.SIEGE)}
+          sessionId={SESSION_ID}
+        >
+          <RecusedMembers
+            nominationFile={makeSessionNominationFile({
+              canRecuseMembers: true,
+              nonRecusableMembers: [],
+              ...file,
+              recusedMembers: members,
+            })}
+            recusedMembers={members}
+          />
+        </NominationFilesTableProvider>
       </QueryClientProvider>
     </IntlProvider>
   );
@@ -74,28 +71,33 @@ function renderRecusedMembers(
   };
 }
 
+function mockRecusal(recusedMembers: RecusedMembersDto['recusedMembers']) {
+  return vi
+    .spyOn($api.sessions, 'recuseMembers')
+    .mockResolvedValue({ data: { recusedMembers } } as Awaited<
+      ReturnType<typeof $api.sessions.recuseMembers>
+    >);
+}
+
+const field = () => screen.getByRole('combobox', { name: /Ajouter un membre qui se déporte/ });
+
 describe('RecusedMembers', () => {
   afterEach(() => vi.restoreAllMocks());
 
   it('keeps the recused members in the order the API serves them', async () => {
     const { container } = renderRecusedMembers([PRESIDENT, MEMBER]);
 
-    const removals = screen.getAllByRole('button', { name: /^Retirer/ });
-    expect(removals.map((button) => button.textContent)).toEqual(['Retirer Zoé ZOLA', 'Retirer Jean ALBERT']);
+    const removals = screen.getAllByRole('button', { name: /^Retirer le déport/ });
+    expect(removals.map((button) => button.textContent)).toEqual(['Zoé ZOLA', 'Jean ALBERT']);
     expect(await axe(container)).toHaveNoViolations();
   });
 
   it('saves every recused member when one more is added', async () => {
-    const recuse = vi
-      .spyOn($api.sessions, 'recuseMembers')
-      .mockResolvedValue({ data: { recusedMembers: [PRESIDENT, MEMBER] } } as Awaited<
-        ReturnType<typeof $api.sessions.recuseMembers>
-      >);
+    const recuse = mockRecusal([PRESIDENT, MEMBER]);
     const user = userEvent.setup();
     renderRecusedMembers([PRESIDENT]);
 
-    await user.click(screen.getByRole('button', { name: /Ajouter un membre qui se déporte/ }));
-    await user.click(within(screen.getByRole('listbox')).getByRole('option', { name: 'Jean ALBERT' }));
+    await user.selectOptions(field(), 'Jean ALBERT');
 
     await waitFor(() => expect(recuse).toHaveBeenCalledTimes(1));
     expect(recuse).toHaveBeenCalledWith(
@@ -106,56 +108,23 @@ describe('RecusedMembers', () => {
     );
   });
 
-  it('recuses a reporter once the secretariat confirms it', async () => {
-    const recuse = vi
-      .spyOn($api.sessions, 'recuseMembers')
-      .mockResolvedValue({ data: { recusedMembers: [MEMBER] } } as Awaited<
-        ReturnType<typeof $api.sessions.recuseMembers>
-      >);
-    const user = userEvent.setup();
-    renderRecusedMembers([], true, [MEMBER]);
+  it('greys out a reporter of the file and tells why', () => {
+    renderRecusedMembers([], { nonRecusableMembers: [{ id: MEMBER.id, reason: 'REPORTER' }] });
 
-    await user.click(screen.getByRole('button', { name: /Ajouter un membre qui se déporte/ }));
-    await user.click(within(screen.getByRole('listbox')).getByRole('option', { name: 'Jean ALBERT' }));
-
-    const dialog = screen.getByRole('dialog', { name: 'Déporter un rapporteur' });
-    expect(dialog).toHaveTextContent(
-      'Jean ALBERT est rapporteur de ce dossier. Avec ce déport, son rapport passe à « Sans objet » et en lecture seule.',
+    expect(screen.getByRole('option', { name: 'Jean ALBERT (rapporteur)' })).toBeDisabled();
+    expect(screen.getByRole('option', { name: 'Zoé ZOLA' })).toBeEnabled();
+    expect(field()).toHaveAccessibleName(
+      /Un rapporteur ne peut pas se déporter : retirez-le d'abord de l'affectation, puis publiez-la s'il est rapporteur dans la version publiée\.$/,
     );
-    expect(recuse).not.toHaveBeenCalled();
-
-    await user.click(within(dialog).getByRole('button', { name: 'Déporter' }));
-
-    await waitFor(() =>
-      expect(recuse).toHaveBeenCalledWith(expect.objectContaining({ body: { memberIds: [MEMBER.id] } })),
-    );
-  });
-
-  it('leaves a reporter out of the recused members when the secretariat cancels', async () => {
-    const recuse = vi.spyOn($api.sessions, 'recuseMembers');
-    const user = userEvent.setup();
-    renderRecusedMembers([], true, [MEMBER]);
-
-    await user.click(screen.getByRole('button', { name: /Ajouter un membre qui se déporte/ }));
-    await user.click(within(screen.getByRole('listbox')).getByRole('option', { name: 'Jean ALBERT' }));
-    await user.click(screen.getByRole('button', { name: 'Annuler' }));
-
-    expect(recuse).not.toHaveBeenCalled();
-    expect(screen.queryByRole('button', { name: 'Retirer Jean ALBERT' })).toBeNull();
   });
 
   it('keeps the recused members another action saved while the panel was open', async () => {
-    const recuse = vi
-      .spyOn($api.sessions, 'recuseMembers')
-      .mockResolvedValue({ data: { recusedMembers: [PRESIDENT, MEMBER] } } as Awaited<
-        ReturnType<typeof $api.sessions.recuseMembers>
-      >);
+    const recuse = mockRecusal([PRESIDENT, MEMBER]);
     const user = userEvent.setup();
     const { rerender } = renderRecusedMembers([]);
     rerender([PRESIDENT]);
 
-    await user.click(screen.getByRole('button', { name: /Ajouter un membre qui se déporte/ }));
-    await user.click(within(screen.getByRole('listbox')).getByRole('option', { name: 'Jean ALBERT' }));
+    await user.selectOptions(field(), 'Jean ALBERT');
 
     await waitFor(() =>
       expect(recuse).toHaveBeenCalledWith(
@@ -165,14 +134,11 @@ describe('RecusedMembers', () => {
   });
 
   it('withdraws a recused member', async () => {
-    const withdrawn: RecusedMembersDto = { recusedMembers: [] };
-    const recuse = vi
-      .spyOn($api.sessions, 'recuseMembers')
-      .mockResolvedValue({ data: withdrawn } as Awaited<ReturnType<typeof $api.sessions.recuseMembers>>);
+    const recuse = mockRecusal([]);
     const user = userEvent.setup();
     renderRecusedMembers([MEMBER]);
 
-    await user.click(screen.getByRole('button', { name: 'Retirer Jean ALBERT' }));
+    await user.click(screen.getByRole('button', { name: 'Retirer le déport de Jean ALBERT' }));
 
     await waitFor(() =>
       expect(recuse).toHaveBeenCalledWith(expect.objectContaining({ body: { memberIds: [] } })),
@@ -180,9 +146,9 @@ describe('RecusedMembers', () => {
   });
 
   it('no longer changes the recused members once the API locks them', () => {
-    renderRecusedMembers([MEMBER], false);
+    renderRecusedMembers([MEMBER], { canRecuseMembers: false });
 
-    expect(screen.getByRole('button', { name: 'Retirer Jean ALBERT' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: /Ajouter un membre qui se déporte/ })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Retirer le déport de Jean ALBERT' })).toBeDisabled();
+    expect(field()).toBeDisabled();
   });
 });
