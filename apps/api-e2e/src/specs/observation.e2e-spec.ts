@@ -3,6 +3,8 @@ import { randomInt } from 'node:crypto';
 import type { LolfiArchiveContent } from 'lolfi';
 
 import { test } from '../fixtures.ts';
+import type { makeCreateSessionFixture } from '../fixtures/session.fixture.ts';
+import type { TestStepsAgent } from '../steps.ts';
 import { makeFile } from '../utils/files.ts';
 import { observationForm } from '../utils/observation.ts';
 import * as seed from '../utils/seed.ts';
@@ -456,14 +458,50 @@ test.describe('Observation', () => {
     expect(await list({ sessionStatuses: 'ARCHIVED' })).toEqual([]);
   });
 
-  test('should track a bloc of observations and list the later propositions of its observant', async ({
-    agent,
-    expect,
-    sessions,
-  }) => {
+  test('should track a bloc of observations', async ({ agent, expect, sessions }) => {
+    const { observant, session } = await sessionWithOwnObservant(sessions);
+    const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+    const observation = await observeWithSuite(agent, path, {
+      dateReception: '2026-05-01',
+      magistratId: observant.id,
+    });
+
+    await agent.observations.updateObservationBlockTracking({
+      body: { comment: 'Signalement transmis', status: 'DONE' },
+      path: { magistratId: observant.id, sessionId: session.id },
+      throwOnError: true,
+    });
+
+    expect(await listOf(agent, observant)).toMatchObject([
+      { observation: { id: observation }, tracking: { comment: 'Signalement transmis', status: 'DONE' } },
+    ]);
+    expect(await listOf(agent, observant, { trackingStatuses: 'IN_PROGRESS' })).toEqual([]);
+  });
+
+  test('should reopen a tracked bloc that a new observation joins', async ({ agent, expect, sessions }) => {
+    const { observant, session } = await sessionWithOwnObservant(sessions);
+    const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+    await observeWithSuite(agent, path, { dateReception: '2026-05-01', magistratId: observant.id });
+    await agent.observations.updateObservationBlockTracking({
+      body: { comment: 'Signalement transmis', status: 'DONE' },
+      path: { magistratId: observant.id, sessionId: session.id },
+      throwOnError: true,
+    });
+
+    await observeWithSuite(
+      agent,
+      { nominationFileId: session.files[2]!.id, sessionId: session.id },
+      { dateReception: '2026-05-20', magistratId: observant.id },
+    );
+
+    const [listed] = await listOf(agent, observant);
+    expect(listed?.tracking).toEqual({ comment: 'Signalement transmis', status: 'IN_PROGRESS' });
+  });
+
+  test('should list the later propositions of an observant', async ({ agent, expect, sessions }) => {
     // the same LOLFI id makes Daubenton one magistrat in both sessions, ingested one after the other since
     // an archive keeps one candidacy per magistrat: he observes in March, then is proposed again in June
-    const daubenton = { ...SESSION.candidates[1]!, id: randomInt(1_000_000, 1_000_000_000) };
+    const daubenton = { ...ownCandidate(), id: randomInt(1_000_000, 1_000_000_000) };
     const candidates = [SESSION.candidates[0]!, daubenton];
     const march = await sessions.createOne({
       ...SESSION,
@@ -477,78 +515,81 @@ test.describe('Observation', () => {
       createdAt: '01/06/2026',
       name: 'Transparence de juin',
     });
-    const observant = march!.files[1]!.magistratId;
-    const path = { nominationFileId: march!.files[0]!.id, sessionId: march!.id };
-    const { data: observation } = await agent.observations.createObservation({
-      body: { form: observationForm({ dateReception: '2026-03-10', magistratId: observant }) },
-      path,
-      throwOnError: true,
-    });
-    await agent.observations.followUpOnObservation({
-      body: { comment: null, followUp: 'ALERT' },
-      path: { ...path, observationId: observation.id },
-      throwOnError: true,
-    });
+    const observant = { id: march!.files[1]!.magistratId, lastName: daubenton.lastName };
 
-    await agent.observations.updateObservationBlockTracking({
-      body: { comment: 'Proposé en juin', status: 'DONE' },
-      path: { magistratId: observant, sessionId: march!.id },
-      throwOnError: true,
-    });
+    await observeWithSuite(
+      agent,
+      { nominationFileId: march!.files[0]!.id, sessionId: march!.id },
+      { dateReception: '2026-03-10', magistratId: observant.id },
+    );
 
-    const list = async (query?: { trackingStatuses?: string }) => {
-      const { data } = await agent.observations.listFollowedUpObservations({
-        query: { limit: 200, ...query },
-        throwOnError: true,
-      });
-      return data.items.filter(({ session }) => session.id === march!.id);
-    };
-    expect(await list()).toMatchObject([
+    expect(await listOf(agent, observant)).toMatchObject([
       {
         laterPropositions: [
           { id: june!.files[1]!.id, session: { date: { day: 1, month: 6, year: 2026 }, id: june!.id } },
         ],
-        observation: { id: observation.id },
-        tracking: { comment: 'Proposé en juin', status: 'DONE' },
       },
     ]);
-    expect(await list({ trackingStatuses: 'IN_PROGRESS' })).toEqual([]);
   });
 
   test('should drop the tracking of a bloc with its last observation', async ({ agent, expect, sessions }) => {
-    const session = await sessions.createOne(SESSION);
-    const observant = session.files[1]!.magistratId;
+    const { observant, session } = await sessionWithOwnObservant(sessions);
     const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
-    const observe = async () => {
-      const { data } = await agent.observations.createObservation({
-        body: { form: observationForm({ dateReception: '2026-05-01', magistratId: observant }) },
-        path,
-        throwOnError: true,
-      });
-      await agent.observations.followUpOnObservation({
-        body: { comment: null, followUp: 'ALERT' },
-        path: { ...path, observationId: data.id },
-        throwOnError: true,
-      });
-      return data.id;
-    };
-    const deleted = await observe();
+    const deleted = await observeWithSuite(agent, path, { dateReception: '2026-05-01', magistratId: observant.id });
     await agent.observations.updateObservationBlockTracking({
-      body: { comment: null, status: 'DONE' },
-      path: { magistratId: observant, sessionId: session.id },
+      body: { comment: 'Signalement transmis', status: 'DONE' },
+      path: { magistratId: observant.id, sessionId: session.id },
       throwOnError: true,
     });
 
     await agent.observations.deleteObservation({ path: { ...path, observationId: deleted }, throwOnError: true });
-    await observe();
+    // a reopened bloc would keep its comment: only a dropped tracking loses it
+    await observeWithSuite(agent, path, { dateReception: '2026-05-20', magistratId: observant.id });
 
-    const { data } = await agent.observations.listFollowedUpObservations({
-      query: { limit: 200 },
-      throwOnError: true,
-    });
-    expect(data.items.find((item) => item.session.id === session.id)?.tracking).toEqual({
-      comment: null,
-      status: 'IN_PROGRESS',
-    });
+    const [listed] = await listOf(agent, observant);
+    expect(listed?.tracking).toEqual({ comment: null, status: 'IN_PROGRESS' });
   });
 });
+
+// a name of its own lets the search find this observant among the observations of the other scenarios
+function ownCandidate() {
+  return { ...SESSION.candidates[1]!, lastName: `DAUBENTON${randomInt(1_000_000, 1_000_000_000)}` };
+}
+
+// the observant is the second candidate: the first and the third files are open to their observations
+async function sessionWithOwnObservant(sessions: ReturnType<typeof makeCreateSessionFixture>) {
+  const candidate = ownCandidate();
+  const third = { ...SESSION.candidates[0]!, firstName: 'ANTOINE', lastName: 'FOURCROY' };
+  const session = await sessions.createOne({ ...SESSION, candidates: [SESSION.candidates[0]!, candidate, third] });
+  return { observant: { id: session.files[1]!.magistratId, lastName: candidate.lastName }, session };
+}
+
+async function observeWithSuite(
+  agent: TestStepsAgent,
+  path: { nominationFileId: string; sessionId: string },
+  observation: { dateReception: string; magistratId: string },
+) {
+  const { data } = await agent.observations.createObservation({
+    body: { form: observationForm(observation) },
+    path,
+    throwOnError: true,
+  });
+  await agent.observations.followUpOnObservation({
+    body: { comment: null, followUp: 'ALERT' },
+    path: { ...path, observationId: data.id },
+    throwOnError: true,
+  });
+  return data.id;
+}
+
+async function listOf(
+  agent: TestStepsAgent,
+  observant: { id: string; lastName: string },
+  query?: { trackingStatuses?: string },
+) {
+  const { data } = await agent.observations.listFollowedUpObservations({
+    query: { search: observant.lastName, ...query },
+    throwOnError: true,
+  });
+  return data.items.filter((item) => item.observation.observant.id === observant.id);
+}
