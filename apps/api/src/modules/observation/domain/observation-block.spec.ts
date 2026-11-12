@@ -1,14 +1,23 @@
-import { sortByObservationBlock } from './observation-block';
+import { sortByObservationBlock, sortBySessionThenObservationBlock } from './observation-block';
 
 const observation = (
   id: string,
-  props: { date: string; fileRank: number; observantId: string; observantName?: string },
+  props: {
+    date: string;
+    fileRank: number;
+    observantId: string;
+    observantName?: string;
+    sessionDate?: string;
+    sessionId?: string;
+  },
 ) => ({
   dateReception: new Date(props.date),
   fileRank: props.fileRank,
   id,
   observantId: props.observantId,
   observantName: props.observantName ?? props.observantId,
+  sessionDate: new Date(props.sessionDate ?? '2026-04-01'),
+  sessionId: props.sessionId ?? 'session',
 });
 
 const ids = (observations: readonly { id: string }[]) => observations.map(({ id }) => id);
@@ -83,5 +92,71 @@ describe('sortByObservationBlock', () => {
     );
 
     expect(ids(sorted)).toEqual(['first-a', 'second-a', 'b']);
+  });
+
+  it('splits the observations of one observant into a bloc per session', () => {
+    const sorted = sortByObservationBlock(
+      [
+        observation('june-late', {
+          date: '2026-03-10',
+          fileRank: 0,
+          observantId: 'Martin',
+          sessionId: 'june',
+        }),
+        observation('march', { date: '2026-03-05', fileRank: 1, observantId: 'Martin', sessionId: 'march' }),
+        observation('june-early', {
+          date: '2026-03-01',
+          fileRank: 2,
+          observantId: 'Martin',
+          sessionId: 'june',
+        }),
+      ],
+      'desc',
+    );
+
+    expect(ids(sorted)).toEqual(['june-late', 'june-early', 'march']);
+  });
+});
+
+describe('sortBySessionThenObservationBlock', () => {
+  // the march session holds the most recent observation: the session date still decides
+  const observations = [
+    observation('march', {
+      date: '2026-03-20',
+      fileRank: 0,
+      observantId: 'Martin',
+      sessionDate: '2026-03-01',
+      sessionId: 'march',
+    }),
+    observation('june-durand', {
+      date: '2026-03-05',
+      fileRank: 1,
+      observantId: 'Durand',
+      sessionDate: '2026-06-01',
+      sessionId: 'june',
+    }),
+    observation('june-martin', {
+      date: '2026-03-10',
+      fileRank: 2,
+      observantId: 'Martin',
+      sessionDate: '2026-06-01',
+      sessionId: 'june',
+    }),
+  ];
+
+  it('places the most recent session first, then its most recent blocs, when descending', () => {
+    expect(ids(sortBySessionThenObservationBlock(observations, 'desc'))).toEqual([
+      'june-martin',
+      'june-durand',
+      'march',
+    ]);
+  });
+
+  it('places the oldest session first but keeps its most recent blocs first, when ascending', () => {
+    expect(ids(sortBySessionThenObservationBlock(observations, 'asc'))).toEqual([
+      'march',
+      'june-martin',
+      'june-durand',
+    ]);
   });
 });

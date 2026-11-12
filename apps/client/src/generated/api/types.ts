@@ -2109,6 +2109,57 @@ export type UpdateMagistratPhoneNumberDto = {
     number: string;
 };
 
+export type ListedFollowedUpObservationsDto = {
+    items: Array<{
+        observation: {
+            id: string;
+            dateReception: {
+                year: number;
+                month: number;
+                day: number;
+            };
+            followUp: 'ALERT' | 'INTERESTING' | 'REFERENCE' | null;
+            observant: {
+                id: string;
+                name: string;
+                currentPosition: string | null;
+            };
+            nominationFile: {
+                id: string;
+                number: number | null;
+                magistrat: {
+                    id: string | null;
+                    name: string;
+                    grade: string | null;
+                    currentPosition: string | null;
+                };
+                targeted: {
+                    grade: string | null;
+                    position: string | null;
+                };
+            };
+        };
+        session: {
+            id: string;
+            name: string;
+            status: 'ONGOING' | 'REPORTED' | 'ARCHIVED';
+            date: {
+                year: number;
+                month: number;
+                day: number;
+            };
+        };
+    }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
+    links?: {
+        next?: string;
+        previous?: string;
+    };
+};
+
 export type CreateObservationDto = {
     files?: Array<Blob | File>;
     form: {
@@ -5150,6 +5201,30 @@ export type UpdateMagistratPhoneNumberResponses = {
 };
 
 export type UpdateMagistratPhoneNumberResponse = UpdateMagistratPhoneNumberResponses[keyof UpdateMagistratPhoneNumberResponses];
+
+export type ListFollowedUpObservationsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        followUps?: string;
+        search?: string;
+        sessionStatuses?: string;
+        sortBy?: 'dateReception' | 'session';
+        /**
+         * true
+         */
+        sortDesc?: string | boolean;
+        page?: number;
+        limit?: number;
+    };
+    url: '/api/observations/v1';
+};
+
+export type ListFollowedUpObservationsResponses = {
+    200: ListedFollowedUpObservationsDto;
+};
+
+export type ListFollowedUpObservationsResponse = ListFollowedUpObservationsResponses[keyof ListFollowedUpObservationsResponses];
 
 export type ListObservationsData = {
     body?: never;

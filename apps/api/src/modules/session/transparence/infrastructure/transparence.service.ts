@@ -52,6 +52,7 @@ import {
 import { RecusedMembersFinder } from './finders/recused-members.finder';
 import { ReportedSessionsFinder } from './finders/reported-sessions.finder';
 import { ReportersAffectationFinder } from './finders/reporters-affectation.finder';
+import { type SessionStatus, SessionStatusesFinder } from './finders/session-statuses.finder';
 import { SynchronisedLolfiSessionsFinder } from './finders/synchronised-lolfi-sessions.finder';
 import { TransparenceFilesFinder } from './finders/transparence-files.finder';
 import {
@@ -181,6 +182,7 @@ export class TransparenceService {
     private readonly synchronisedLolfiSessionsFinder: SynchronisedLolfiSessionsFinder,
     private readonly reportedSessionsFinder: ReportedSessionsFinder,
     private readonly reportersAffectation: ReportersAffectationFinder,
+    private readonly sessionStatuses: SessionStatusesFinder,
 
     @Inject(forwardRef(() => DocsService))
     private readonly docs: DocsService,
@@ -932,6 +934,11 @@ export class TransparenceService {
     sessionIds: readonly string[];
   }): Promise<Map<string, FoundNominationSession>> {
     return this.sessionsFinder.find(query);
+  }
+
+  /** @internal */
+  internalFindSessionStatuses(query: { sessionIds: readonly string[] }): Promise<Map<string, SessionStatus>> {
+    return this.sessionStatuses.find(query);
   }
 
   /** @internal */

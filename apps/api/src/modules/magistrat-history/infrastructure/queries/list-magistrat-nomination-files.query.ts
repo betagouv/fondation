@@ -6,7 +6,7 @@ import { dateOnlyJsonSchema } from '../../../../utils/date-only';
 import { timeOnlySchema } from '../../../../utils/time-only';
 import { Db } from '../../../framework/database';
 import { createPaginatedZodDto, Pagination } from '../../../framework/pagination';
-import { SESSION_STATUSES } from '../../../session/transparence/infrastructure/finders/hydrated-nomination-files.finder';
+import { SESSION_STATUSES } from '../../../session/transparence/infrastructure/finders/session-statuses.finder';
 import { TransparenceService } from '../../../session/transparence/infrastructure/transparence.service';
 import { FormationEnum } from '../../../shared/formation.enum';
 import { NominationFileOutcome } from '../../../shared/nomination-file-outcome.enum';
