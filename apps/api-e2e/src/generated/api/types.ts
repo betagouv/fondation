@@ -2674,7 +2674,7 @@ export type ListedCourtOfCassationHoldersDto = {
             name: string;
         };
         position: {
-            id: 'FIRST_PRESIDENT' | 'CHAMBER_PRESIDENT' | 'COUNSELLOR' | 'REFERENDARY_COUNSELLOR' | 'AUDITOR_FIRST_GRADE' | 'AUDITOR_SECOND_GRADE';
+            id: 'FIRST_PRESIDENT' | 'CHAMBER_PRESIDENT' | 'COUNSELLOR' | 'REFERENDARY_COUNSELLOR' | 'AUDITOR_SECOND_GRADE' | 'AUDITOR_FIRST_GRADE';
             label: string;
         };
         service: {
@@ -2696,7 +2696,7 @@ export type ListedCourtOfCassationHoldersDto = {
     };
     positions: Array<{
         holders: number;
-        id: 'FIRST_PRESIDENT' | 'CHAMBER_PRESIDENT' | 'COUNSELLOR' | 'REFERENDARY_COUNSELLOR' | 'AUDITOR_FIRST_GRADE' | 'AUDITOR_SECOND_GRADE';
+        id: 'FIRST_PRESIDENT' | 'CHAMBER_PRESIDENT' | 'COUNSELLOR' | 'REFERENDARY_COUNSELLOR' | 'AUDITOR_SECOND_GRADE' | 'AUDITOR_FIRST_GRADE';
         label: string;
     }>;
     statuses: Array<{
@@ -5716,7 +5716,7 @@ export type ListCourtOfCassationHoldersData = {
     body?: never;
     path?: never;
     query?: {
-        positions?: Array<'FIRST_PRESIDENT' | 'CHAMBER_PRESIDENT' | 'COUNSELLOR' | 'REFERENDARY_COUNSELLOR' | 'AUDITOR_FIRST_GRADE' | 'AUDITOR_SECOND_GRADE'>;
+        positions?: Array<'FIRST_PRESIDENT' | 'CHAMBER_PRESIDENT' | 'COUNSELLOR' | 'REFERENDARY_COUNSELLOR' | 'AUDITOR_SECOND_GRADE' | 'AUDITOR_FIRST_GRADE'>;
         search?: string;
         sortBy?: 'installationDate' | 'name';
         statuses?: Array<'OCCUPIED' | 'MAY_BECOME_VACANT' | 'VACANT'>;
