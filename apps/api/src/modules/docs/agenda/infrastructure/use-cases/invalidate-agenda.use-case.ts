@@ -53,18 +53,13 @@ export class InvalidateAgendasUseCase {
       } satisfies Prisma.AgendaVersionSelect,
     });
 
-    await this.updateReporters({
-      agendas: agendas.map(({ agendaId, nominationFiles }) => ({
-        agendaId,
-        nominationFileIds: nominationFiles.flatMap(({ nominationFileId }) =>
-          nominationFileId ? [nominationFileId] : [],
-        ),
-      })),
-      sessionId,
-    });
+    await this.updateReporters({ agendas, sessionId });
   }
 
-  /** a validated agenda keeps the name it was sent with: only the drafts naming the member follow */
+  /**
+   * a validated agenda keeps the name it was sent with: only the drafts naming the member follow.
+   * TODO: see InvalidateOfficialReportUseCase.mapMemberRenamed, which finds the reports naming the member
+   */
   private async followRenamedMember(
     invalidation: Extract<DocInvalidation, { type: 'MemberRenamed' }>,
   ): Promise<void> {
@@ -75,7 +70,7 @@ export class InvalidateAgendasUseCase {
       },
       select: {
         nominationFileId: true,
-        version: { select: { agendaId: true, agenda: { select: { sessionId: true } } } },
+        version: { select: { agenda: { select: { sessionId: true } }, agendaId: true } },
       } satisfies Prisma.AgendaNominationFileSelect,
     });
 
@@ -84,29 +79,29 @@ export class InvalidateAgendasUseCase {
       const filesPerAgenda = Map.groupBy(sessionFiles, ({ version }) => version.agendaId);
 
       await this.updateReporters({
-        agendas: [...filesPerAgenda].map(([agendaId, agendaFiles]) => ({
-          agendaId,
-          nominationFileIds: agendaFiles.flatMap(({ nominationFileId }) =>
-            nominationFileId ? [nominationFileId] : [],
-          ),
-        })),
+        agendas: [...filesPerAgenda].map(([agendaId, nominationFiles]) => ({ agendaId, nominationFiles })),
         sessionId,
       });
     }
   }
 
   private async updateReporters(command: {
-    agendas: readonly { agendaId: string; nominationFileIds: readonly string[] }[];
+    agendas: readonly { agendaId: string; nominationFiles: readonly { nominationFileId: string | null }[] }[];
     sessionId: string;
   }): Promise<void> {
+    const nominationFileIdsOf = (files: readonly { nominationFileId: string | null }[]) =>
+      files.flatMap(({ nominationFileId }) => nominationFileId ?? []);
+
     const { items } = await this.docsNominationFilesFinder.find({
-      ids: [...new Set(command.agendas.flatMap(({ nominationFileIds }) => nominationFileIds))],
+      ids: [
+        ...new Set(command.agendas.flatMap(({ nominationFiles }) => nominationFileIdsOf(nominationFiles))),
+      ],
       sessionId: command.sessionId,
     });
     const nominationFilesPerId = new Map(items.map((file) => [file.id, file]));
 
-    for (const { agendaId, nominationFileIds } of command.agendas) {
-      const nominationFiles = nominationFileIds.flatMap((id) => {
+    for (const { agendaId, nominationFiles: agendaFiles } of command.agendas) {
+      const nominationFiles = nominationFileIdsOf(agendaFiles).flatMap((id) => {
         const file = nominationFilesPerId.get(id);
         return file ? [{ id, reporters: namedMembersOf(file.reporters) }] : [];
       });

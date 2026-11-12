@@ -9,7 +9,7 @@ import {
   sameNames,
 } from '../../shared/domain/named-member';
 
-type AgendaSnapshotFile = {
+export type AgendaSnapshotFile = {
   id: bigint;
   nominationFileId: string;
   reporters: readonly NamedMember[];
@@ -107,7 +107,7 @@ export class AgendaSnapshot {
     });
   }
 
-  /** who reports on a file, and how they are named, are told apart: only the first outdates a block written by hand */
+  /** the files whose reporters changed, telling a member who joined or left apart from one only named anew */
   diffReporters(next: {
     nominationFiles: readonly { id: string; reporters: readonly NamedMember[] }[];
   }): AgendaFilesReportersDiff {

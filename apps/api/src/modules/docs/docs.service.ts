@@ -112,8 +112,8 @@ export class DocsService {
   }
 
   /**
-   * a draft official report prints the member's new name or recusal title at once, a validated one keeps the
-   * one of its meeting. The agenda (FON-768) and the presentation plan still keep the name they were given.
+   * a draft official report or agenda prints the member's new name, or recusal title, at once; a validated one
+   * keeps the one it was sent with. The presentation plan still keeps the name it was given.
    */
   @Transactional(Propagation.Mandatory)
   internalFollowRenamedMember(command: { userId: string }): Promise<void> {
