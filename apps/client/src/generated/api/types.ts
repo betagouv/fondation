@@ -2643,6 +2643,50 @@ export type ChangeFeedbackStatusDto = {
     status: 'NEW' | 'ACKNOWLEDGED' | 'PROCESSED' | 'DISMISSED';
 };
 
+export type ListedCourtOfCassationHoldersDto = {
+    items: Array<{
+        installationDate: {
+            year: number;
+            month: number;
+            day: number;
+        } | null;
+        magistrat: {
+            id: string;
+            name: string;
+        };
+        position: {
+            id: 'FIRST_PRESIDENT' | 'CHAMBER_PRESIDENT' | 'COUNSELLOR' | 'REFERENDARY_COUNSELLOR' | 'AUDITOR_FIRST_GRADE' | 'AUDITOR_SECOND_GRADE';
+            label: string;
+        };
+        service: {
+            id: 'EXTRAORDINARY' | 'ORDINARY';
+            label: string;
+        };
+        status: {
+            id: 'OCCUPIED' | 'MAY_BECOME_VACANT' | 'VACANT';
+            label: string;
+        };
+    }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
+    links?: {
+        next?: string;
+        previous?: string;
+    };
+    positions: Array<{
+        holders: number;
+        id: 'FIRST_PRESIDENT' | 'CHAMBER_PRESIDENT' | 'COUNSELLOR' | 'REFERENDARY_COUNSELLOR' | 'AUDITOR_FIRST_GRADE' | 'AUDITOR_SECOND_GRADE';
+        label: string;
+    }>;
+    statuses: Array<{
+        holders: number;
+        id: 'OCCUPIED' | 'MAY_BECOME_VACANT' | 'VACANT';
+        label: string;
+    }>;
+};
+
 export type GetFileByFileUrlData = {
     body?: never;
     headers?: {
@@ -5648,3 +5692,27 @@ export type ChangeFeedbackStatusResponses = {
 };
 
 export type ChangeFeedbackStatusResponse = ChangeFeedbackStatusResponses[keyof ChangeFeedbackStatusResponses];
+
+export type ListCourtOfCassationHoldersData = {
+    body?: never;
+    path?: never;
+    query?: {
+        positions?: Array<'FIRST_PRESIDENT' | 'CHAMBER_PRESIDENT' | 'COUNSELLOR' | 'REFERENDARY_COUNSELLOR' | 'AUDITOR_FIRST_GRADE' | 'AUDITOR_SECOND_GRADE'>;
+        search?: string;
+        sortBy?: 'installationDate' | 'name';
+        statuses?: Array<'OCCUPIED' | 'MAY_BECOME_VACANT' | 'VACANT'>;
+        /**
+         * true
+         */
+        sortDesc?: string | boolean;
+        page?: number;
+        limit?: number;
+    };
+    url: '/api/veille-des-postes/v1/cour-de-cassation';
+};
+
+export type ListCourtOfCassationHoldersResponses = {
+    200: ListedCourtOfCassationHoldersDto;
+};
+
+export type ListCourtOfCassationHoldersResponse = ListCourtOfCassationHoldersResponses[keyof ListCourtOfCassationHoldersResponses];
