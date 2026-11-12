@@ -3,7 +3,6 @@ import clsx from 'clsx';
 import { useCallback, useMemo, useState, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { useIntl } from 'react-intl';
-import { generatePath, Link } from 'react-router';
 
 import { KNOWN_STATUSES, knownValues } from '../utils/known-values.utils';
 import { useRowRevealedOnReturn } from '@/shared/hooks/useRowRevealedOnReturn';
@@ -16,7 +15,6 @@ import {
 } from '@/shared/ui/data-table';
 import { SearchInput } from '@/shared/ui/search-input';
 import { formatDateOnly } from '@/utils/date-only.util';
-import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
   type CourtOfCassationHolder,
   type CourtOfCassationHoldersSorting,
@@ -29,6 +27,7 @@ import {
   useCourtOfCassationHoldersQuery,
 } from '@queries/veille-des-postes.queries';
 
+import { MagistratLink } from './MagistratLink';
 import { PositionStatusBadge } from './PositionStatusBadge';
 
 const SORTABLE_COLUMNS = new Set<string>([
@@ -99,16 +98,7 @@ function useCourtOfCassationHoldersColumns(props: {
       h.accessor('magistrat', {
         cell: ({ getValue, row }) => (
           <div className="flex flex-col items-start gap-1 leading-6">
-            {/* a flex item turns into a block, which draws the DSFR underline under its last line only */}
-            <span>
-              <Link
-                className="fr-link fr-link--sm box-decoration-clone"
-                onClick={(event) => onMagistratOpened(event, getValue().id)}
-                to={generatePath(ROUTE_PATHS.SG.MAGISTRAT_DETAILS, { magistratId: getValue().id })}
-              >
-                {getValue().name}
-              </Link>
-            </span>
+            <MagistratLink magistrat={getValue()} onClick={onMagistratOpened} />
             {row.original.service.id === 'EXTRAORDINARY' && (
               <span className="text-xs leading-6">{row.original.service.label}</span>
             )}
