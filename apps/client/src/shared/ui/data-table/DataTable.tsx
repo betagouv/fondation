@@ -2,6 +2,7 @@ import { flexRender, type Header, type Row, type RowData, type Table } from '@ta
 import clsx from 'clsx';
 import { type ReactNode, type RefObject, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
+import { useRowsReplacements } from './hooks/useRowsReplacements';
 import { ESTIMATED_ROW_HEIGHT, useTableVirtualizer } from './hooks/useTableVirtualizer';
 
 function useScrollMargin(element: HTMLDivElement | null, scrollsWithPage?: boolean) {
@@ -102,6 +103,7 @@ export function DataTable<Data extends RowData>(props: {
 
   const rows = table.getRowModel().rows;
   const totalRows = rows.length;
+  const rowsReplacements = useRowsReplacements(rows.map((row) => row.id));
   const scrollMargin = useScrollMargin(scrollBox, scrollsWithPage);
   const virtualizer = useTableVirtualizer({ rowCount: totalRows, scrollBox, scrollMargin, scrollsWithPage });
   const virtualRows = virtualizer.getVirtualItems();
@@ -222,8 +224,10 @@ export function DataTable<Data extends RowData>(props: {
           ))}
         </div>
 
+        {/* remounted to fade the new rows in, once the first ones are shown */}
         <div
-          className="grid"
+          className={clsx('grid', rowsReplacements > 0 && 'motion-safe:animate-fade-in')}
+          key={rowsReplacements}
           role="rowgroup"
           style={
             props.unvirtualized
