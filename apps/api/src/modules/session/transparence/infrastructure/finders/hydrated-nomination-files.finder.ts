@@ -21,10 +21,7 @@ import type { RoleEnum } from '../../../../shared/role.enum';
 
 import { AffectationVersionFinder } from './affectation-version.finder';
 import { AuditionsSeenFinder } from './auditions-seen.finder';
-import { ReportedSessionsFinder } from './reported-sessions.finder';
-
-export const SESSION_STATUSES = ['ONGOING', 'REPORTED', 'ARCHIVED'] as const;
-export type SessionStatus = (typeof SESSION_STATUSES)[number];
+import { type SessionStatus, SessionStatusesFinder } from './session-statuses.finder';
 
 export type HydratedNominationFile = {
   id: string;
@@ -64,7 +61,7 @@ export class HydratedNominationFilesFinder {
   constructor(
     private readonly auditionsSeen: AuditionsSeenFinder,
     private readonly db: Db,
-    private readonly reportedSessionsFinder: ReportedSessionsFinder,
+    private readonly sessionStatuses: SessionStatusesFinder,
     private readonly versions: AffectationVersionFinder,
   ) {}
 
@@ -131,7 +128,6 @@ export class HydratedNominationFilesFinder {
             formation: true,
             id: true,
             name: true,
-            validatedAt: true,
           },
         },
         targetedGrade: true,
@@ -149,12 +145,14 @@ export class HydratedNominationFilesFinder {
     });
 
     const sessionIds = Array.from(new Set(files.map(({ session }) => session.id)));
-    const reportedSessionIds = await this.reportedSessionsFinder.reportedSessionIds({ sessionIds });
+    const statuses = await this.sessionStatuses.find({ sessionIds });
     const auditions = await this.auditionsSeen.findNominationFiles(query);
 
     return files.map((file) => {
       const audition = auditions.get(file.id);
       assert.ok(audition, `no audition seen for the nomination file ${file.id}`);
+      const status = statuses.get(file.session.id);
+      assert.ok(status, `no status for the session ${file.session.id}`);
 
       return {
         ...audition,
@@ -178,20 +176,11 @@ export class HydratedNominationFilesFinder {
           formation: prismaFormationEnumToFormationEnum(file.session.formation),
           id: file.session.id,
           name: file.session.name,
-          status: this.sessionStatus(file.session, reportedSessionIds),
+          status,
         },
         targetedGrade: file.targetedGrade,
         targetedPosition: file.targetedPosition,
       };
     });
-  }
-
-  private sessionStatus(
-    session: { id: string; archivedAt: Date | null; validatedAt: Date | null },
-    reportedSessionIds: ReadonlySet<string>,
-  ): SessionStatus {
-    if (session.archivedAt) return 'ARCHIVED';
-    if (session.validatedAt && reportedSessionIds.has(session.id)) return 'REPORTED';
-    return 'ONGOING';
   }
 }

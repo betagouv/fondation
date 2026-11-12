@@ -1,6 +1,7 @@
 import assert from 'node:assert';
 
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import type z from 'zod';
 
 import { Prisma } from '../../../../generated/prisma/client';
 import { DateOnly } from '../../../../utils/date-only';
@@ -8,11 +9,17 @@ import { unaccent } from '../../../../utils/unaccent';
 import { Db } from '../../../framework/database';
 import { paginate, type Pagination } from '../../../framework/pagination';
 import { MagistratService } from '../../../magistrat/magistrat.service';
+import type { FoundNominationFile } from '../../../session/transparence/infrastructure/finders/hydrated-nomination-files.finder';
 import { TransparenceService } from '../../../session/transparence/infrastructure/transparence.service';
 import type { RoleEnum } from '../../../shared/role.enum';
 import { sortByObservationBlock } from '../../domain/observation-block';
 import type { ObservationFollowUpEnum } from '../../domain/observation-follow-up';
-import type { ListedSessionObservationsDto } from '../dtos/session-observation.dto';
+import type {
+  ListedSessionObservationSchema,
+  ListedSessionObservationsDto,
+} from '../dtos/session-observation.dto';
+
+type ListedSessionObservation = z.infer<typeof ListedSessionObservationSchema>;
 
 @Injectable()
 export class ListSessionObservationsQuery {
@@ -75,6 +82,7 @@ export class ListSessionObservationsQuery {
           fileRank: fileRanks.get(observation.nominationFileId) ?? sortedFileIds.length,
           observantId: observation.magistratId,
           observantName: observation.observant.name,
+          sessionId: query.sessionId,
         })),
         // most recent first unless the reception date is explicitly sorted ascending
         query.sortBy === 'dateReception' && !query.sortDesc ? 'asc' : 'desc',
@@ -87,35 +95,47 @@ export class ListSessionObservationsQuery {
       });
 
       return paginate({
-        items: pageItems.map((observation) => {
-          const file = files.get(observation.nominationFileId);
-          assert.ok(file, `no nomination file ${observation.nominationFileId}`);
-
-          return {
-            dateReception: DateOnly.fromUtcDate(observation.dateReception).toJson(),
-            followUp: observation.followUp,
-            id: observation.id,
-            nominationFile: {
-              id: observation.nominationFileId,
-              magistrat: {
-                currentPosition: file.currentPosition,
-                grade: file.grade,
-                id: file.detectedMagistratId,
-                name: file.name,
-              },
-              number: file.number,
-              targeted: { grade: file.targetedGrade, position: file.targetedPosition },
-            },
-            observant: {
-              currentPosition: observation.observant.currentPosition,
-              id: observation.magistratId,
-              name: observation.observant.name,
-            },
-          };
-        }),
+        items: pageItems.map((observation) => toListedSessionObservation(observation, files)),
         pagination: query.pagination,
         totalCount: sorted.length,
       });
     });
   }
+}
+
+export function toListedSessionObservation(
+  observation: {
+    dateReception: Date;
+    followUp: ObservationFollowUpEnum | null;
+    id: string;
+    magistratId: string;
+    nominationFileId: string;
+    observant: { currentPosition: string | null; name: string };
+  },
+  files: ReadonlyMap<string, FoundNominationFile>,
+): ListedSessionObservation {
+  const file = files.get(observation.nominationFileId);
+  assert.ok(file, `no nomination file ${observation.nominationFileId}`);
+
+  return {
+    dateReception: DateOnly.fromUtcDate(observation.dateReception).toJson(),
+    followUp: observation.followUp,
+    id: observation.id,
+    nominationFile: {
+      id: observation.nominationFileId,
+      magistrat: {
+        currentPosition: file.currentPosition,
+        grade: file.grade,
+        id: file.detectedMagistratId,
+        name: file.name,
+      },
+      number: file.number,
+      targeted: { grade: file.targetedGrade, position: file.targetedPosition },
+    },
+    observant: {
+      currentPosition: observation.observant.currentPosition,
+      id: observation.magistratId,
+      name: observation.observant.name,
+    },
+  };
 }

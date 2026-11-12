@@ -19,6 +19,7 @@ import { Db } from '../framework/database';
 import { Files } from '../framework/files';
 import type { StoredFile } from '../framework/files/multipart/multipart.types';
 import type { Pagination } from '../framework/pagination';
+import type { SessionStatus } from '../session/transparence/infrastructure/finders/session-statuses.finder';
 import { TransparenceService } from '../session/transparence/infrastructure/transparence.service';
 import type { RoleEnum } from '../shared/role.enum';
 
@@ -28,6 +29,7 @@ import {
   UserNotAllowedToWriteCommentError,
 } from './domain/observation';
 import type { ObservationFollowUpEnum } from './domain/observation-follow-up';
+import type { ListedFollowedUpObservationsDto } from './infrastructure/dtos/followed-up-observation.dto';
 import { AttachedMemberCommentScreenshotsDto } from './infrastructure/dtos/observation-member-comment.dto';
 import type {
   CountedSessionObservationsDto,
@@ -51,6 +53,7 @@ import {
   GetObservationFileUrlQuery,
   GetObservationFileUrlResponseDto,
 } from './infrastructure/queries/get-observation-file-url.query';
+import { ListFollowedUpObservationsQuery } from './infrastructure/queries/list-followed-up-observations.query';
 import {
   ListedObservationsAttachmentsDto,
   ListObservationsAttachmentsQuery,
@@ -81,6 +84,7 @@ export class ObservationService {
     private readonly observantAuditions: ObservantAuditionsFinder,
     private readonly listSessionObservationsQuery: ListSessionObservationsQuery,
     private readonly countSessionObservationsQuery: CountSessionObservationsQuery,
+    private readonly listFollowedUpObservationsQuery: ListFollowedUpObservationsQuery,
 
     @Inject(forwardRef(() => TransparenceService))
     private readonly transparences: TransparenceService,
@@ -405,6 +409,19 @@ export class ObservationService {
     sortDesc: boolean;
   }): Promise<ListedSessionObservationsDto> {
     return this.listSessionObservationsQuery.handle(query);
+  }
+
+  listFollowedUpObservations(query: {
+    filters: {
+      followUps: readonly (ObservationFollowUpEnum | null)[];
+      search: string | null;
+      sessionStatuses: readonly SessionStatus[];
+    };
+    pagination: Pagination;
+    sortBy: 'dateReception' | 'session' | null;
+    sortDesc: boolean;
+  }): Promise<ListedFollowedUpObservationsDto> {
+    return this.listFollowedUpObservationsQuery.handle(query);
   }
 
   countSessionObservations(query: {

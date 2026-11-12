@@ -391,4 +391,66 @@ test.describe('Observation', () => {
     });
     expect(count.total).toBe(3);
   });
+
+  test('should list the observations with a suite of every session, by session then bloc of observant', async ({
+    agent,
+    expect,
+    sessions,
+  }) => {
+    const [march, june] = await sessions.createMany([
+      { ...SESSION, createdAt: '02/03/2026', name: 'Transparence de mars' },
+      { ...SESSION, createdAt: '01/06/2026', name: 'Transparence de juin' },
+    ]);
+    const [marchObservant] = march!.files.map(({ magistratId }) => magistratId);
+    const [juneObservant] = june!.files.map(({ magistratId }) => magistratId);
+    const observe = async (
+      session: { id: string },
+      file: { id: string },
+      magistratId: string,
+      dateReception: string,
+      followUp: 'ALERT' | 'REFERENCE' | null,
+    ) => {
+      const path = { nominationFileId: file.id, sessionId: session.id };
+      const { data } = await agent.observations.createObservation({
+        body: { form: observationForm({ dateReception, magistratId }) },
+        path,
+        throwOnError: true,
+      });
+      if (followUp) {
+        await agent.observations.followUpOnObservation({
+          body: { comment: null, followUp },
+          path: { ...path, observationId: data.id },
+          throwOnError: true,
+        });
+      }
+      return data.id;
+    };
+    // the same observant writes in both sessions: two blocs
+    const inMarch = await observe(march!, march!.files[1]!, marchObservant!, '2026-03-10', 'ALERT');
+    const inJune = await observe(june!, june!.files[0]!, marchObservant!, '2026-06-05', 'ALERT');
+    const latest = await observe(june!, june!.files[1]!, juneObservant!, '2026-06-10', 'REFERENCE');
+    await observe(june!, june!.files[0]!, juneObservant!, '2026-06-01', null);
+
+    // other scenarios add their own observations to the same database
+    const ours = new Set([march!.id, june!.id]);
+    const list = async (query?: { sessionStatuses?: string; sortBy?: 'dateReception'; sortDesc?: string }) => {
+      const { data } = await agent.observations.listFollowedUpObservations({
+        query: { limit: 200, ...query },
+        throwOnError: true,
+      });
+      return data.items.filter(({ session }) => ours.has(session.id));
+    };
+    const ids = (items: { observation: { id: string } }[]) => items.map(({ observation }) => observation.id);
+
+    const bySession = await list();
+    expect(ids(bySession)).toEqual([latest, inJune, inMarch]);
+    expect(bySession[2]).toMatchObject({
+      observation: { followUp: 'ALERT', observant: { id: marchObservant } },
+      // a session created from LOLFI is new until its data is validated
+      session: { date: { day: 2, month: 3, year: 2026 }, id: march!.id, status: 'TO_VALIDATE' },
+    });
+    expect(ids(await list({ sortBy: 'dateReception', sortDesc: 'false' }))).toEqual([inMarch, inJune, latest]);
+    expect(ids(await list({ sessionStatuses: 'TO_VALIDATE' }))).toEqual([latest, inJune, inMarch]);
+    expect(await list({ sessionStatuses: 'ARCHIVED' })).toEqual([]);
+  });
 });

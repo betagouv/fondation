@@ -3,6 +3,7 @@ type BlockedObservation = {
   fileRank: number;
   observantId: string;
   observantName: string;
+  sessionId: string;
 };
 
 // a bloc gathers the observations of one observant in one session. It is placed by the reception
@@ -13,22 +14,40 @@ export function sortByObservationBlock<T extends BlockedObservation>(
   order: 'asc' | 'desc',
 ): T[] {
   const direction = order === 'asc' ? 1 : -1;
+  const blockKey = ({ observantId, sessionId }: T) => `${sessionId}:${observantId}`;
   const blockTimes = new Map(
-    Map.groupBy(observations, ({ observantId }) => observantId)
+    Map.groupBy(observations, blockKey)
       .entries()
-      .map(([observantId, rows]) => {
+      .map(([key, rows]) => {
         const times = rows.map(({ dateReception }) => dateReception.getTime());
-        return [observantId, order === 'asc' ? Math.min(...times) : Math.max(...times)];
+        return [key, order === 'asc' ? Math.min(...times) : Math.max(...times)];
       }),
   );
-  const blockTime = ({ observantId }: T) => blockTimes.get(observantId) ?? 0;
+  const blockTime = (observation: T) => blockTimes.get(blockKey(observation)) ?? 0;
 
   return observations.toSorted(
     (a, b) =>
       direction * (blockTime(a) - blockTime(b)) ||
       a.observantName.localeCompare(b.observantName, 'fr', { sensitivity: 'base' }) ||
-      // two homonymous observants stay in separate blocs, in the same order on every page
+      // two homonymous observants, or one observant in two sessions, stay in separate blocs,
+      // in the same order on every page
       a.observantId.localeCompare(b.observantId) ||
+      a.sessionId.localeCompare(b.sessionId) ||
       a.fileRank - b.fileRank,
+  );
+}
+
+// sessions follow their date in the requested order; inside a session, the most recent blocs come first
+export function sortBySessionThenObservationBlock<T extends BlockedObservation & { sessionDate: Date }>(
+  observations: readonly T[],
+  order: 'asc' | 'desc',
+): T[] {
+  const direction = order === 'asc' ? 1 : -1;
+
+  // a stable sort keeps the bloc order inside each session
+  return sortByObservationBlock(observations, 'desc').toSorted(
+    (a, b) =>
+      direction * (a.sessionDate.getTime() - b.sessionDate.getTime()) ||
+      a.sessionId.localeCompare(b.sessionId),
   );
 }

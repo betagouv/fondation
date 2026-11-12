@@ -2,9 +2,7 @@ import { createColumnHelper, getCoreRowModel, useReactTable } from '@tanstack/re
 import { useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { FormattedMessage, useIntl } from 'react-intl';
-import { Link } from 'react-router';
 
-import { GradeAndPosition } from '@/shared/components/GradeAndPosition';
 import {
   ObservationFollowUpEnum,
   ObservationFollowUpEnumMessages,
@@ -20,10 +18,9 @@ import {
 import { SearchInput } from '@/shared/ui/search-input';
 import { TotalBadge } from '@/shared/ui/total-badge';
 import { formatDateOnly } from '@/utils/date-only.util';
-import { getMagistratDetailsPath, getObservationDetailsPath } from '@/utils/route-path.utils';
 import { type SessionObservation, useInfiniteSessionObservationsQuery } from '@queries/observations.queries';
 
-import { ObservationFollowUpTag } from './ObservationFollowUpTag';
+import { FollowUpCell, ObservantCell, ObservedCell, TargetedCell } from './ObservationCells';
 
 const h = createColumnHelper<SessionObservation>();
 
@@ -174,65 +171,17 @@ export function SessionObservationsTable(props: {
   );
 }
 
-// the observant is repeated on each row of their bloc: each row opens its own observation
 const observantCell = (sessionId: string) =>
-  rowCell<SessionObservation>(({ id, nominationFile, observant }) => (
-    <div className="flex flex-col items-start gap-1 leading-6">
-      {/* a flex item turns into a block, which draws the DSFR underline under its last line only */}
-      <span>
-        <Link
-          className="fr-link fr-link--sm box-decoration-clone"
-          to={getObservationDetailsPath({
-            context: 'sg',
-            nominationFileId: nominationFile.id,
-            observationId: id,
-            sessionId,
-          })}
-        >
-          {observant.name}
-        </Link>
-      </span>
-      {observant.currentPosition && <span className="text-xs leading-6">{observant.currentPosition}</span>}
-    </div>
+  rowCell<SessionObservation>((observation) => (
+    <ObservantCell observation={observation} sessionId={sessionId} />
   ));
 
 const dateReceptionCell = rowCell<SessionObservation>(({ dateReception }) => formatDateOnly(dateReception));
 
 const fileNumberCell = rowCell<SessionObservation>(({ nominationFile }) => nominationFile.number ?? '-');
 
-// as in the auditions tab: the profile icon marks a link to the magistrat page
-const observedCell = rowCell<SessionObservation>(({ nominationFile: { magistrat } }) => (
-  <div className="flex flex-col items-start gap-1 leading-6">
-    {magistrat.id ? (
-      <span>
-        <Link
-          className="fr-link fr-link--sm fr-icon-account-circle-fill fr-link--icon-left box-decoration-clone"
-          to={getMagistratDetailsPath({ context: 'sg', magistratId: magistrat.id })}
-        >
-          {magistrat.name}
-        </Link>
-      </span>
-    ) : (
-      <span className="font-medium text-(--text-default-grey)">{magistrat.name}</span>
-    )}
-    <span className="text-xs leading-6">
-      <GradeAndPosition boldGrade={false} grade={magistrat.grade} position={magistrat.currentPosition} />
-    </span>
-  </div>
-));
+const observedCell = rowCell<SessionObservation>((observation) => <ObservedCell observation={observation} />);
 
-const targetedCell = rowCell<SessionObservation>(({ nominationFile: { targeted } }) => (
-  <span className="leading-6">
-    <GradeAndPosition boldGrade={false} grade={targeted.grade} position={targeted.position} />
-  </span>
-));
+const targetedCell = rowCell<SessionObservation>((observation) => <TargetedCell observation={observation} />);
 
-const followUpCell = rowCell<SessionObservation>(({ followUp }) =>
-  followUp ? (
-    <ObservationFollowUpTag followUp={followUp} />
-  ) : (
-    <span className="text-(--text-mention-grey)">
-      <FormattedMessage defaultMessage="Aucune" />
-    </span>
-  ),
-);
+const followUpCell = rowCell<SessionObservation>((observation) => <FollowUpCell observation={observation} />);

@@ -6,30 +6,34 @@ import { createPaginatedZodDto } from '../../../framework/pagination';
 import { createSortableDto } from '../../../framework/sorting';
 import { ObservationFollowUp } from '../../domain/observation-follow-up';
 
+export const followUpsFilterSchema = z
+  .string()
+  .optional()
+  .meta({ example: 'null,ALERT' })
+  .transform((value) =>
+    (value ?? '').split(',').flatMap((followUp) => {
+      const trimmed = followUp.trim();
+      if (trimmed === 'null') return [null];
+      return trimmed ? [trimmed] : [];
+    }),
+  )
+  .pipe(z.array(z.enum(ObservationFollowUp.enum).nullable()));
+
+export const observantSearchSchema = z
+  .string()
+  .trim()
+  .optional()
+  .transform((value) => value || undefined);
+
 export class ListSessionObservationsQueryDto extends createSortableDto(
   z.object({
-    followUps: z
-      .string()
-      .optional()
-      .meta({ example: 'null,ALERT' })
-      .transform((value) =>
-        (value ?? '').split(',').flatMap((followUp) => {
-          const trimmed = followUp.trim();
-          if (trimmed === 'null') return [null];
-          return trimmed ? [trimmed] : [];
-        }),
-      )
-      .pipe(z.array(z.enum(ObservationFollowUp.enum).nullable())),
-    search: z
-      .string()
-      .trim()
-      .optional()
-      .transform((value) => value || undefined),
+    followUps: followUpsFilterSchema,
+    search: observantSearchSchema,
     sortBy: z.enum(['dateReception']).optional(),
   }),
 ) {}
 
-const ListedSessionObservationSchema = z.object({
+export const ListedSessionObservationSchema = z.object({
   id: z.string(),
   dateReception: dateOnlyJsonSchema,
   followUp: z.enum(ObservationFollowUp.enum).nullable(),
