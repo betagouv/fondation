@@ -53,8 +53,9 @@ export class ObservationDeleted {
   constructor(readonly id: string) {}
 }
 
-// an observant is heard once per session for all their observations: without any left, the audition has no subject
-export class ObservantAuditionDropped {
+// the bloc d'observations of an observant in a session has no observation left: their audition and the
+// tracking of the bloc, which exist once per bloc, have no subject anymore
+export class ObservationBlockEmptied {
   constructor(
     readonly sessionId: string,
     readonly magistratId: string,
@@ -115,7 +116,7 @@ type ObservationEvent =
   | ObservationMemberCommentScreenshotsAttached
   | ObservationFollowedUp
   | ObservationFileLinked
-  | ObservantAuditionDropped;
+  | ObservationBlockEmptied;
 
 export class Observation {
   private constructor(
@@ -200,12 +201,12 @@ export class Observation {
 
   delete(command: { impersonatorId: string | null; isLastOfObservant: boolean; userId: string }): void {
     this.#messages.push(new ObservationDeleted(this.id));
-    if (command.isLastOfObservant) this.dropObservantAudition(command);
+    if (command.isLastOfObservant) this.emptyBlock(command);
   }
 
-  private dropObservantAudition(command: { impersonatorId: string | null; userId: string }): void {
+  private emptyBlock(command: { impersonatorId: string | null; userId: string }): void {
     this.#messages.push(
-      new ObservantAuditionDropped(this.sessionId, this.magistratId, command.userId, command.impersonatorId),
+      new ObservationBlockEmptied(this.sessionId, this.magistratId, command.userId, command.impersonatorId),
     );
   }
 
@@ -225,8 +226,7 @@ export class Observation {
         magistratId: command.magistratId,
       }),
     );
-    if (command.magistratId !== this.magistratId && command.isLastOfObservant)
-      this.dropObservantAudition(command);
+    if (command.magistratId !== this.magistratId && command.isLastOfObservant) this.emptyBlock(command);
   }
 
   detachFiles(command: { fileIds: readonly string[] }): void {

@@ -2149,6 +2149,27 @@ export type ListedFollowedUpObservationsDto = {
                 day: number;
             };
         };
+        tracking: {
+            status: 'IN_PROGRESS' | 'DONE';
+            comment: string | null;
+        };
+        laterPropositions: Array<{
+            id: string;
+            number: number | null;
+            session: {
+                id: string;
+                name: string;
+                date: {
+                    year: number;
+                    month: number;
+                    day: number;
+                };
+            };
+            targeted: {
+                grade: string | null;
+                position: string | null;
+            };
+        }>;
     }>;
     totalCount: number;
     currentPageIndex: number;
@@ -2158,6 +2179,11 @@ export type ListedFollowedUpObservationsDto = {
         next?: string;
         previous?: string;
     };
+};
+
+export type UpdateObservationBlockTrackingDto = {
+    status: 'IN_PROGRESS' | 'DONE';
+    comment: string | null;
 };
 
 export type CreateObservationDto = {
@@ -5210,6 +5236,7 @@ export type ListFollowedUpObservationsData = {
         search?: string;
         sessionStatuses?: string;
         sortBy?: 'dateReception' | 'session';
+        trackingStatuses?: string;
         /**
          * true
          */
@@ -5225,6 +5252,22 @@ export type ListFollowedUpObservationsResponses = {
 };
 
 export type ListFollowedUpObservationsResponse = ListFollowedUpObservationsResponses[keyof ListFollowedUpObservationsResponses];
+
+export type UpdateObservationBlockTrackingData = {
+    body: UpdateObservationBlockTrackingDto;
+    path: {
+        sessionId: string;
+        magistratId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/observation-blocks/{magistratId}/tracking';
+};
+
+export type UpdateObservationBlockTrackingResponses = {
+    204: void;
+};
+
+export type UpdateObservationBlockTrackingResponse = UpdateObservationBlockTrackingResponses[keyof UpdateObservationBlockTrackingResponses];
 
 export type ListObservationsData = {
     body?: never;

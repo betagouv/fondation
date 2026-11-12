@@ -18,7 +18,7 @@ import { Db } from '../../../framework/database';
 import { Files } from '../../../framework/files/files';
 import { TransparenceService } from '../../../session/transparence/infrastructure/transparence.service';
 import {
-  ObservantAuditionDropped,
+  ObservationBlockEmptied,
   Observation,
   ObservationCreated,
   ObservationDeleted,
@@ -112,8 +112,8 @@ export class ObservationRepository {
         await this.persistObservationFollowedUp(message);
       } else if (message instanceof ObservationFileLinked) {
         await this.persistObservationFileLinked(message);
-      } else if (message instanceof ObservantAuditionDropped) {
-        await this.persistObservantAuditionDropped(message);
+      } else if (message instanceof ObservationBlockEmptied) {
+        await this.persistObservationBlockEmptied(message);
       } else {
         assertNever(message);
       }
@@ -153,7 +153,11 @@ export class ObservationRepository {
     this.files.delete(files.map(({ file }) => file));
   }
 
-  private async persistObservantAuditionDropped(message: ObservantAuditionDropped) {
+  private async persistObservationBlockEmptied(message: ObservationBlockEmptied) {
+    await this.db.tx.observationBlockTracking.deleteMany({
+      where: { magistratId: message.magistratId, sessionId: message.sessionId },
+    });
+
     const { count } = await this.db.tx.observantAudition.deleteMany({
       where: { magistratId: message.magistratId, sessionId: message.sessionId },
     });

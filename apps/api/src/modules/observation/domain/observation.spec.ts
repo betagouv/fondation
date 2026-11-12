@@ -1,5 +1,5 @@
 import {
-  ObservantAuditionDropped,
+  ObservationBlockEmptied,
   Observation,
   ObservationDeleted,
   ObservationFollowedUp,
@@ -76,7 +76,7 @@ describe('Observation', () => {
 
       expect(deleted.messages).toEqual([
         new ObservationDeleted('obs-1'),
-        new ObservantAuditionDropped('session-1', 'magistrat-1', 'user-1', null),
+        new ObservationBlockEmptied('session-1', 'magistrat-1', 'user-1', null),
       ]);
     });
 
@@ -100,7 +100,7 @@ describe('Observation', () => {
       });
 
       expect(updated.messages).toContainEqual(
-        new ObservantAuditionDropped('session-1', 'magistrat-1', 'user-1', null),
+        new ObservationBlockEmptied('session-1', 'magistrat-1', 'user-1', null),
       );
     });
 

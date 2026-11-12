@@ -1,4 +1,10 @@
-import { sortByObservationBlock, sortBySessionThenObservationBlock } from './observation-block';
+import { DateOnly } from '../../../utils/date-only';
+
+import {
+  laterPropositions,
+  sortByObservationBlock,
+  sortBySessionThenObservationBlock,
+} from './observation-block';
 
 const observation = (
   id: string,
@@ -158,5 +164,29 @@ describe('sortBySessionThenObservationBlock', () => {
       'june-martin',
       'june-durand',
     ]);
+  });
+});
+
+describe('laterPropositions', () => {
+  const proposition = (id: string, session: { date: string; id?: string }) => ({
+    id,
+    session: { date: DateOnly.fromUtcDate(new Date(session.date)), id: session.id ?? id },
+  });
+  const block = { receptionDates: [new Date('2026-03-05'), new Date('2026-03-10')], sessionId: 'observed' };
+
+  it('keeps the propositions of sessions published after the most recent reception of the bloc', () => {
+    const propositions = [
+      proposition('between', { date: '2026-03-07' }),
+      proposition('same-day', { date: '2026-03-10' }),
+      proposition('after', { date: '2026-03-11' }),
+    ];
+
+    expect(ids(laterPropositions(block, propositions))).toEqual(['after']);
+  });
+
+  it('leaves out a proposition in the session of the bloc itself', () => {
+    const propositions = [proposition('own', { date: '2026-04-01', id: 'observed' })];
+
+    expect(laterPropositions(block, propositions)).toEqual([]);
   });
 });

@@ -1,3 +1,5 @@
+import { randomInt } from 'node:crypto';
+
 import type { LolfiArchiveContent } from 'lolfi';
 
 import { test } from '../fixtures.ts';
@@ -452,5 +454,101 @@ test.describe('Observation', () => {
     expect(ids(await list({ sortBy: 'dateReception', sortDesc: 'false' }))).toEqual([inMarch, inJune, latest]);
     expect(ids(await list({ sessionStatuses: 'TO_VALIDATE' }))).toEqual([latest, inJune, inMarch]);
     expect(await list({ sessionStatuses: 'ARCHIVED' })).toEqual([]);
+  });
+
+  test('should track a bloc of observations and list the later propositions of its observant', async ({
+    agent,
+    expect,
+    sessions,
+  }) => {
+    // the same LOLFI id makes Daubenton one magistrat in both sessions, ingested one after the other since
+    // an archive keeps one candidacy per magistrat: he observes in March, then is proposed again in June
+    const daubenton = { ...SESSION.candidates[1]!, id: randomInt(1_000_000, 1_000_000_000) };
+    const candidates = [SESSION.candidates[0]!, daubenton];
+    const march = await sessions.createOne({
+      ...SESSION,
+      candidates,
+      createdAt: '02/03/2026',
+      name: 'Transparence de mars',
+    });
+    const june = await sessions.createOne({
+      ...SESSION,
+      candidates,
+      createdAt: '01/06/2026',
+      name: 'Transparence de juin',
+    });
+    const observant = march!.files[1]!.magistratId;
+    const path = { nominationFileId: march!.files[0]!.id, sessionId: march!.id };
+    const { data: observation } = await agent.observations.createObservation({
+      body: { form: observationForm({ dateReception: '2026-03-10', magistratId: observant }) },
+      path,
+      throwOnError: true,
+    });
+    await agent.observations.followUpOnObservation({
+      body: { comment: null, followUp: 'ALERT' },
+      path: { ...path, observationId: observation.id },
+      throwOnError: true,
+    });
+
+    await agent.observations.updateObservationBlockTracking({
+      body: { comment: 'Proposé en juin', status: 'DONE' },
+      path: { magistratId: observant, sessionId: march!.id },
+      throwOnError: true,
+    });
+
+    const list = async (query?: { trackingStatuses?: string }) => {
+      const { data } = await agent.observations.listFollowedUpObservations({
+        query: { limit: 200, ...query },
+        throwOnError: true,
+      });
+      return data.items.filter(({ session }) => session.id === march!.id);
+    };
+    expect(await list()).toMatchObject([
+      {
+        laterPropositions: [
+          { id: june!.files[1]!.id, session: { date: { day: 1, month: 6, year: 2026 }, id: june!.id } },
+        ],
+        observation: { id: observation.id },
+        tracking: { comment: 'Proposé en juin', status: 'DONE' },
+      },
+    ]);
+    expect(await list({ trackingStatuses: 'IN_PROGRESS' })).toEqual([]);
+  });
+
+  test('should drop the tracking of a bloc with its last observation', async ({ agent, expect, sessions }) => {
+    const session = await sessions.createOne(SESSION);
+    const observant = session.files[1]!.magistratId;
+    const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+    const observe = async () => {
+      const { data } = await agent.observations.createObservation({
+        body: { form: observationForm({ dateReception: '2026-05-01', magistratId: observant }) },
+        path,
+        throwOnError: true,
+      });
+      await agent.observations.followUpOnObservation({
+        body: { comment: null, followUp: 'ALERT' },
+        path: { ...path, observationId: data.id },
+        throwOnError: true,
+      });
+      return data.id;
+    };
+    const deleted = await observe();
+    await agent.observations.updateObservationBlockTracking({
+      body: { comment: null, status: 'DONE' },
+      path: { magistratId: observant, sessionId: session.id },
+      throwOnError: true,
+    });
+
+    await agent.observations.deleteObservation({ path: { ...path, observationId: deleted }, throwOnError: true });
+    await observe();
+
+    const { data } = await agent.observations.listFollowedUpObservations({
+      query: { limit: 200 },
+      throwOnError: true,
+    });
+    expect(data.items.find((item) => item.session.id === session.id)?.tracking).toEqual({
+      comment: null,
+      status: 'IN_PROGRESS',
+    });
   });
 });

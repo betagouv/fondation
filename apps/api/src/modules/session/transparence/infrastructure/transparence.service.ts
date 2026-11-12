@@ -42,6 +42,7 @@ import {
   type HydratedNominationFile,
   type FoundNominationFile,
   HydratedNominationFilesFinder,
+  type MagistratProposition,
 } from './finders/hydrated-nomination-files.finder';
 import { LolfiNominationSessionFinder } from './finders/lolfi-nomination-session.finder';
 import { NominationFileOutcomesFinder } from './finders/nomination-file-outcomes.finder';
@@ -1001,6 +1002,13 @@ export class TransparenceService {
     nominationFileIds: readonly string[];
   }): Promise<Map<string, FoundNominationFile>> {
     return this.hydratedNominationFiles.byIds(query);
+  }
+
+  /** @internal oldest session first, then by file number */
+  internalFindMagistratsPropositions(query: {
+    magistratIds: readonly string[];
+  }): Promise<Map<string, MagistratProposition[]>> {
+    return this.hydratedNominationFiles.byProposedMagistrats(query);
   }
 
   /** @internal */

@@ -1,3 +1,5 @@
+import type { DateOnly } from '../../../utils/date-only';
+
 type BlockedObservation = {
   dateReception: Date;
   fileRank: number;
@@ -34,6 +36,18 @@ export function sortByObservationBlock<T extends BlockedObservation>(
       a.observantId.localeCompare(b.observantId) ||
       a.sessionId.localeCompare(b.sessionId) ||
       a.fileRank - b.fileRank,
+  );
+}
+
+// the observant is proposed again after their observations: in another session published after the most
+// recent reception date of the bloc
+export function laterPropositions<T extends { session: { date: DateOnly; id: string } }>(
+  block: { receptionDates: readonly Date[]; sessionId: string },
+  propositions: readonly T[],
+): T[] {
+  const lastReception = Math.max(...block.receptionDates.map((date) => date.getTime()));
+  return propositions.filter(
+    ({ session }) => session.id !== block.sessionId && session.date.toDate().getTime() > lastReception,
   );
 }
 
