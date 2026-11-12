@@ -9,6 +9,8 @@ import type { GetObservationDetailsResponseDto } from '@api/types';
 import { ObservationDetailsPage } from './ObservationDetailsPage';
 
 const OBSERVATION: GetObservationDetailsResponseDto = {
+  canComment: false,
+  canEdit: true,
   description:
     'Le magistrat observant souligne avoir exercé les mêmes fonctions pendant six ans et demande que son ancienneté soit prise en compte.',
   files: [
@@ -24,7 +26,6 @@ const OBSERVATION: GetObservationDetailsResponseDto = {
   followUpComment: 'À rapprocher du dossier n°14.',
   id: 'observation-1',
   isArchived: false,
-  isMemberReporter: true,
   memberComment: { comment: '<p>Argument recevable, à vérifier avec la DSJ.</p>', screenshots: [] },
   observant: {
     audition: null,
@@ -78,10 +79,14 @@ function ObservationDetailsPageStory(props: { view: StoryView }) {
 const meta = {
   args: { view: 'sg' },
   argTypes: { view: { control: 'inline-radio', options: STORY_VIEWS } },
-  beforeEach: ({ msw }) => {
+  beforeEach: ({ args, msw }) => {
     msw.use(
       http.get('*/api/sessions/v2/:sessionId/files/:nominationFileId/observations/:observationId', () =>
-        HttpResponse.json<GetObservationDetailsResponseDto>(OBSERVATION),
+        HttpResponse.json<GetObservationDetailsResponseDto>({
+          ...OBSERVATION,
+          canComment: args.view !== 'sg',
+          canEdit: args.view === 'sg',
+        }),
       ),
     );
   },

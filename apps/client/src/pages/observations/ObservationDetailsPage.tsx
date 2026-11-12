@@ -143,7 +143,6 @@ export function ObservationDetailsPage() {
         <ObservationDetailsContent
           backTo={backTo}
           context={context}
-          isArchived={observation.isArchived}
           nominationFileId={nominationFileId}
           observation={observation}
           observationId={observationId}

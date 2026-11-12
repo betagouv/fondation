@@ -238,6 +238,13 @@ export const routes: RouteObject[] = [
               },
               {
                 lazy: () =>
+                  import('@/pages/transparence/TransparenceObservationsTab').then(
+                    ({ TransparenceObservationsTab }) => ({ Component: TransparenceObservationsTab }),
+                  ),
+                path: ROUTE_PATHS.SG.SESSION_ID_OBSERVATIONS,
+              },
+              {
+                lazy: () =>
                   import('@/pages/transparence/TransparenceAuditionsTab').then(
                     ({ TransparenceAuditionsTab }) => ({
                       Component: TransparenceAuditionsTab,

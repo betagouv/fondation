@@ -2170,6 +2170,8 @@ export type ListObservationsResponseDto = {
 
 export type GetObservationDetailsResponseDto = {
     id: string;
+    canEdit: boolean;
+    canComment: boolean;
     isArchived: boolean;
     receptionDate: {
         year: number;
@@ -2225,7 +2227,6 @@ export type GetObservationDetailsResponseDto = {
             day: number;
         };
     }>;
-    isMemberReporter: boolean;
     memberComment: {
         comment: string;
         screenshots: Array<{
@@ -2288,6 +2289,49 @@ export type ScheduleObservantAuditionDto = {
 export type FollowUpOnObservationDto = {
     followUp: 'ALERT' | 'INTERESTING' | 'REFERENCE' | null;
     comment: string | null;
+};
+
+export type ListedSessionObservationsDto = {
+    items: Array<{
+        id: string;
+        dateReception: {
+            year: number;
+            month: number;
+            day: number;
+        };
+        followUp: 'ALERT' | 'INTERESTING' | 'REFERENCE' | null;
+        observant: {
+            id: string;
+            name: string;
+            currentPosition: string | null;
+        };
+        nominationFile: {
+            id: string;
+            number: number | null;
+            magistrat: {
+                id: string | null;
+                name: string;
+                grade: string | null;
+                currentPosition: string | null;
+            };
+            targeted: {
+                grade: string | null;
+                position: string | null;
+            };
+        };
+    }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
+    links?: {
+        next?: string;
+        previous?: string;
+    };
+};
+
+export type CountedSessionObservationsDto = {
+    total: number;
 };
 
 export type ListedObservationsAttachmentsDto = {
@@ -5316,6 +5360,46 @@ export type FollowUpOnObservationResponses = {
 };
 
 export type FollowUpOnObservationResponse = FollowUpOnObservationResponses[keyof FollowUpOnObservationResponses];
+
+export type ListSessionObservationsData = {
+    body?: never;
+    path: {
+        sessionId: string;
+    };
+    query?: {
+        followUps?: string;
+        search?: string;
+        sortBy?: 'dateReception';
+        /**
+         * true
+         */
+        sortDesc?: string | boolean;
+        page?: number;
+        limit?: number;
+    };
+    url: '/api/sessions/v2/{sessionId}/observations';
+};
+
+export type ListSessionObservationsResponses = {
+    200: ListedSessionObservationsDto;
+};
+
+export type ListSessionObservationsResponse = ListSessionObservationsResponses[keyof ListSessionObservationsResponses];
+
+export type CountSessionObservationsData = {
+    body?: never;
+    path: {
+        sessionId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/observations/count';
+};
+
+export type CountSessionObservationsResponses = {
+    200: CountedSessionObservationsDto;
+};
+
+export type CountSessionObservationsResponse = CountSessionObservationsResponses[keyof CountSessionObservationsResponses];
 
 export type ListObservationsAttachmentsData = {
     body?: never;

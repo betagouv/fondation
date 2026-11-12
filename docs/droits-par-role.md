@@ -84,6 +84,7 @@ L'accueil propose les deux pouvoirs de proposition. Le menu garde partout Recher
 | `/secretariat-general/sessions`                                                                  | Gérer les sessions                                              | —      | ✓                   | ✓              |
 | `/secretariat-general/archives/sessions`                                                         | Sessions archivées                                              | —      | ✓                   | ✓              |
 | `/secretariat-general/session/:sessionId`                                                        | Session, onglet Propositions : dossiers, affectation, décisions | —      | ✓                   | ✓              |
+| `/secretariat-general/session/:sessionId/observations`                                           | Session, onglet Observations                                    | —      | ✓                   | ✓              |
 | `/secretariat-general/session/:sessionId/auditions`                                              | Session, onglet Auditions                                       | —      | ✓                   | ✓              |
 | `/secretariat-general/session/:sessionId/evaluations-manquantes`                                 | Session, onglet Évaluations manquantes                          | —      | ✓                   | ✓              |
 | `/secretariat-general/session/:sessionId/documents`                                              | Session, onglet Documents : ordres du jour, procès-verbaux      | —      | ✓                   | ✓              |
@@ -168,6 +169,8 @@ Quiconque détient un lien de téléchargement temporaire télécharge le fichie
 | Ajouter des pièces jointes à la session       | `PUT /sessions/v2/:sessionId/multiattachments`                   | —                                                                                 | ✓                        | ✓                        |
 | Retirer une pièce jointe de la session        | `DELETE /sessions/v2/:sessionId/attachments/:fileId`             | —                                                                                 | ✓                        | ✓                        |
 | Lister les pièces jointes des observations    | `GET /sessions/v2/:sessionId/observations/attachments`           | —                                                                                 | ✓                        | ✓                        |
+| Lister les observations de la session         | `GET /sessions/v2/:sessionId/observations`                       | —                                                                                 | ✓                        | ✓                        |
+| Compter les observations de la session        | `GET /sessions/v2/:sessionId/observations/count`                 | —                                                                                 | ✓                        | ✓                        |
 
 Le Secrétariat général n'a pas de sessions en cours à lui : la liste lui revient vide.
 

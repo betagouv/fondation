@@ -12,8 +12,9 @@ import { Db } from '../../../framework/database';
 import { Files } from '../../../framework/files';
 import { magistratFullName } from '../../../magistrat/domain/magistrat-name';
 import { TransparenceService } from '../../../session/transparence/infrastructure/transparence.service';
-import type { RoleEnum } from '../../../shared/role.enum';
+import { isSecretariat, type RoleEnum } from '../../../shared/role.enum';
 import { ObservantAudition, UNSCHEDULABLE_REASONS } from '../../domain/observant-audition';
+import { Observation } from '../../domain/observation';
 import { ObservationFollowUp } from '../../domain/observation-follow-up';
 
 @Injectable()
@@ -116,9 +117,7 @@ export class GetObservationDetailsQuery {
       const reporters = await this.transparences.internalFindPublishedReporters({
         nominationFileIds: [query.nominationFileId],
       });
-      const isUserReporter = (reporters.get(query.nominationFileId) ?? []).some(
-        ({ id }) => id === query.userId,
-      );
+      const reporterIds = (reporters.get(query.nominationFileId) ?? []).map(({ id }) => id);
 
       const observedNominationFiles = await this.transparences.internalFindAuditionStates({
         nominationFileIds: [query.nominationFileId, ...relatedFileIds],
@@ -131,6 +130,9 @@ export class GetObservationDetailsQuery {
       });
 
       return {
+        // mutations refuse a session that is not open: ObservationRepository.findById, ObservationFinder
+        canComment: !session.isArchived && Observation.canComment({ reporterIds, userId: query.userId }),
+        canEdit: !session.isArchived && isSecretariat(query.role),
         description: observation.description,
         files: observation.files.map(({ file }) => ({
           addedAt: file.createdAt.toISOString(),
@@ -143,7 +145,6 @@ export class GetObservationDetailsQuery {
         followUpComment: observation.followUpComment,
         id: observation.id,
         isArchived: session.isArchived,
-        isMemberReporter: isUserReporter,
         memberComment: observation.memberComments[0]
           ? {
               comment: observation.memberComments[0].comment,
@@ -226,6 +227,8 @@ const RelatedPropositionSchema = z.object({
 export class GetObservationDetailsResponseDto extends createZodDto(
   z.object({
     id: z.string(),
+    canEdit: z.boolean(),
+    canComment: z.boolean(),
     isArchived: z.boolean(),
     receptionDate: dateOnlyJsonSchema,
     observant: z.object({
@@ -246,7 +249,6 @@ export class GetObservationDetailsResponseDto extends createZodDto(
     followUpComment: z.string().nullable(),
     files: z.array(ObservationAttachmentSchema),
     relatedPropositions: z.array(RelatedPropositionSchema),
-    isMemberReporter: z.boolean(),
     memberComment: z
       .object({
         comment: z.string(),

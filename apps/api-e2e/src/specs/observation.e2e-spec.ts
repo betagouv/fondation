@@ -174,6 +174,37 @@ test.describe('Observation', () => {
     expect(readByOther.data!.memberComment).toBeNull();
   });
 
+  test('should let the secretariat edit an observation and a reporter only comment it', async ({
+    agent,
+    expect,
+    logIn,
+    member,
+    sessions,
+  }) => {
+    const notReporter = await logIn('MEMBRE_COMMUN');
+    const session = await sessions.createOne(SESSION, { reporters: [member['@user']!] });
+    const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+    const { data } = await agent.observations.createObservation({
+      body: { form: observationForm({ dateReception: '2026-05-02', magistratId: session.files[1]!.magistratId }) },
+      path,
+      throwOnError: true,
+    });
+    const observationPath = { ...path, observationId: data.id };
+
+    const capabilities = await Promise.all(
+      [agent, member, notReporter].map(async (user) => {
+        const read = await user.observations.getObservationDetails({ path: observationPath, throwOnError: true });
+        return { canComment: read.data.canComment, canEdit: read.data.canEdit };
+      }),
+    );
+
+    expect(capabilities).toEqual([
+      { canComment: false, canEdit: true },
+      { canComment: true, canEdit: false },
+      { canComment: false, canEdit: false },
+    ]);
+  });
+
   test('should set aside the screenshots an observation comment no longer embeds', async ({
     agent,
     expect,
@@ -296,5 +327,68 @@ test.describe('Observation', () => {
       }),
     ]);
     expect(hidden.map(({ response }) => response?.status)).toEqual([404, 404, 404]);
+  });
+
+  test('should list the observations of a session by bloc of observant, filtered by follow-up', async ({
+    agent,
+    expect,
+    sessions,
+  }) => {
+    const session = await sessions.createOne(SESSION);
+    const [first, second] = session.files;
+    const observe = async (file: { id: string }, magistratId: string, dateReception: string) => {
+      const { data } = await agent.observations.createObservation({
+        body: { form: observationForm({ dateReception, magistratId }) },
+        path: { nominationFileId: file.id, sessionId: session.id },
+        throwOnError: true,
+      });
+      return data.id;
+    };
+    // LOLFI numbers the files in no fixed order: read the numbers rather than assume the candidates' order
+    const { data: files } = await agent.sessions.listNominationFiles({
+      path: { sessionId: session.id },
+      throwOnError: true,
+    });
+    const numberOf = (file: { id: string }) =>
+      files.items.find(({ id }) => id === file.id)?.content.numeroDeDossier ?? Infinity;
+    const [lowFile, highFile] = [first!, second!].toSorted((a, b) => numberOf(a) - numberOf(b));
+    // the first observant wrote the two earliest observations, the second one the latest; inside the bloc,
+    // the file with the lowest number comes first whatever the reception dates
+    const onHighFile = await observe(highFile!, first!.magistratId, '2026-05-01');
+    const onLowFile = await observe(lowFile!, first!.magistratId, '2026-05-03');
+    const latest = await observe(first!, second!.magistratId, '2026-05-05');
+    await agent.observations.followUpOnObservation({
+      body: { comment: null, followUp: 'ALERT' },
+      path: { nominationFileId: first!.id, observationId: latest, sessionId: session.id },
+      throwOnError: true,
+    });
+
+    const list = async (query?: { followUps?: string; sortBy?: 'dateReception'; sortDesc?: string }) => {
+      const { data } = await agent.observations.listSessionObservations({
+        path: { sessionId: session.id },
+        query,
+        throwOnError: true,
+      });
+      return data;
+    };
+
+    const byDefault = await list();
+    expect(byDefault.items.map(({ id }) => id)).toEqual([latest, onLowFile, onHighFile]);
+    expect(byDefault.items[0]).toMatchObject({
+      dateReception: { day: 5, month: 5, year: 2026 },
+      followUp: 'ALERT',
+      nominationFile: { id: first!.id, magistrat: { id: first!.magistratId, name: 'CORVISART Blanche' } },
+      observant: { id: second!.magistratId, name: 'DAUBENTON Lucien' },
+    });
+    const ascending = await list({ sortBy: 'dateReception', sortDesc: 'false' });
+    expect(ascending.items.map(({ id }) => id)).toEqual([onLowFile, onHighFile, latest]);
+    const withoutFollowUp = await list({ followUps: 'null' });
+    expect(withoutFollowUp.items.map(({ id }) => id)).toEqual([onLowFile, onHighFile]);
+
+    const { data: count } = await agent.observations.countSessionObservations({
+      path: { sessionId: session.id },
+      throwOnError: true,
+    });
+    expect(count.total).toBe(3);
   });
 });

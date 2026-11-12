@@ -5,6 +5,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { Link } from 'react-router';
 
 import { ObservantAuditionIcon } from '../ObservantAuditionIcon';
+import { ObservationFollowUpTag } from '../ObservationFollowUpTag';
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import {
   useObservationsModal,
@@ -12,10 +13,6 @@ import {
 } from '@/features/observations/context/ObservationsModalContext';
 import { splitLodamObservers } from '@/features/observations/utils/split-lodam-observers';
 import { FileList, FileListItem } from '@/shared/components/file-list';
-import {
-  ObservationFollowUpEnumMessages,
-  type ObservationFollowUpEnum,
-} from '@/shared/enums/observation-follow-up.enum';
 import { useAttachmentFailureToast } from '@/shared/hooks/useAttachmentFailureToast';
 import { useTab } from '@/shared/hooks/useTab';
 import { dateOnlyFromIso, formatDateOnly } from '@/utils/date-only.util';
@@ -26,12 +23,6 @@ import {
   useObservationsQuery,
   type Observation,
 } from '@queries/observations.queries';
-
-const FOLLOW_UP_TAG_CLASS: Record<ObservationFollowUpEnum, string> = {
-  ALERT: 'bg-(--background-contrast-error)! text-(--text-default-error)!',
-  INTERESTING: 'bg-(--background-contrast-info)! text-(--text-default-info)!',
-  REFERENCE: 'bg-(--background-contrast-success)! text-(--text-default-success)!',
-};
 
 const VISIBLE_OBSERVATIONS = 3;
 
@@ -149,14 +140,7 @@ function ObservationCard({
                 {magistratName}
               </Link>
               <ObservantAuditionIcon audition={observation.audition} />
-              {observation.followUp && (
-                <Tag
-                  className={`min-h-5! rounded-sm! px-1.5! py-0.5! text-[0.625rem]! leading-none! font-semibold! uppercase ${FOLLOW_UP_TAG_CLASS[observation.followUp]}`}
-                  small
-                >
-                  {intl.formatMessage(ObservationFollowUpEnumMessages[observation.followUp])}
-                </Tag>
-              )}
+              {observation.followUp && <ObservationFollowUpTag followUp={observation.followUp} />}
             </div>
             {observation.magistrat?.currentPosition && (
               <div className="fr-mt-1v text-xs text-(--text-mention-grey)">

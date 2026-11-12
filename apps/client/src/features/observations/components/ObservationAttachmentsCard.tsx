@@ -1,6 +1,5 @@
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { FileList, FileListItem } from '@/shared/components/file-list';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { useAttachmentFailureToast } from '@/shared/hooks/useAttachmentFailureToast';
@@ -12,7 +11,6 @@ import type { GetObservationDetailsResponseDto } from '@api/types';
 import { useUpdateObservationMutation } from '@queries/observations.queries';
 
 export function ObservationAttachmentsCard(props: {
-  isArchived: boolean;
   nominationFileId: string;
   observation: GetObservationDetailsResponseDto;
   onDownloadFile: (file: { id: string; name: string }) => void;
@@ -20,13 +18,11 @@ export function ObservationAttachmentsCard(props: {
   sessionId: string;
 }) {
   const { formatMessage } = useIntl();
-  const isSg = useIsSg();
   const { waitForConfirmation } = useConfirmModal();
   const { isPending, mutate } = useUpdateObservationMutation();
   const notifyFailure = useAttachmentFailureToast();
 
-  const { files } = props.observation;
-  const canEdit = isSg && !props.isArchived;
+  const { canEdit, files } = props.observation;
 
   // the update endpoint rewrites the whole form: omitting the description would erase it
   const update = (
