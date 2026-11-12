@@ -7,6 +7,7 @@ import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { LinkTab, LinkTabs } from '@/shared/ui/link-tabs';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import { useCourtOfCassationHoldersCountQuery } from '@queries/veille-des-postes.queries';
 
 import type { VeilleDesPostesOutletContext } from './veille-des-postes-outlet-context.type';
 
@@ -16,6 +17,7 @@ export function VeilleDesPostesPage() {
   const [titleSlot, setTitleSlot] = useState<HTMLSpanElement | null>(null);
   const breadcrumbRoot = useBreadcrumbRoot();
   const { pathname } = useLocation();
+  const courtOfCassationHolders = useCourtOfCassationHoldersCountQuery();
 
   const tabs = [
     {
@@ -27,6 +29,7 @@ export function VeilleDesPostesPage() {
       to: ROUTE_PATHS.SG.CSM.VEILLE_DES_POSTES_JUDICIAL_COURTS,
     },
     {
+      count: courtOfCassationHolders,
       label: formatMessage({ defaultMessage: 'Magistrats du siège de la Cour de cassation' }),
       to: ROUTE_PATHS.SG.CSM.VEILLE_DES_POSTES_COURT_OF_CASSATION,
     },
@@ -56,7 +59,7 @@ export function VeilleDesPostesPage() {
             <div className="min-h-10" ref={setFiltersSlot} />
             <LinkTabs ariaLabel={formatMessage({ defaultMessage: 'Types de postes en veille' })}>
               {tabs.map((tab) => (
-                <LinkTab key={tab.to} label={tab.label} to={tab.to} />
+                <LinkTab count={tab.count} key={tab.to} label={tab.label} to={tab.to} />
               ))}
             </LinkTabs>
           </div>

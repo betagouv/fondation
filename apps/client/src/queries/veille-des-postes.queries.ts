@@ -20,6 +20,9 @@ type CourtOfCassationHoldersList = {
   statuses: PositionStatus[];
 };
 
+export const COURT_OF_CASSATION_HOLDERS_DEFAULT_SORTING: CourtOfCassationHoldersSorting = [
+  { desc: false, id: 'name' },
+];
 export const COURT_OF_CASSATION_HOLDERS_PAGE_SIZE = 20;
 
 const veilleDesPostesKeys = {
@@ -35,6 +38,17 @@ function selectCourtOfCassationHolders(data: InfiniteData<ListedCourtOfCassation
     statuses: data.pages.at(-1)?.statuses ?? [],
     totalCount: data.pages.at(-1)?.totalCount ?? 0,
   };
+}
+
+/** the same as the unfiltered table, so that both share one request */
+export function useCourtOfCassationHoldersCountQuery() {
+  const { data } = useCourtOfCassationHoldersQuery({
+    positions: [],
+    search: '',
+    sorting: COURT_OF_CASSATION_HOLDERS_DEFAULT_SORTING,
+    statuses: [],
+  });
+  return data?.totalCount;
 }
 
 export function useCourtOfCassationHoldersQuery(props: CourtOfCassationHoldersList) {

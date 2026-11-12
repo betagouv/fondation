@@ -24,11 +24,11 @@ import {
   type CourtOfCassationPositionCount,
   type PositionStatus,
   type PositionStatusCount,
+  COURT_OF_CASSATION_HOLDERS_DEFAULT_SORTING,
   COURT_OF_CASSATION_HOLDERS_PAGE_SIZE,
   useCourtOfCassationHoldersQuery,
 } from '@queries/veille-des-postes.queries';
 
-const DEFAULT_SORTING: CourtOfCassationHoldersSorting = [{ desc: false, id: 'name' }];
 const SORTABLE_COLUMNS = new Set<string>([
   'installationDate',
   'name',
@@ -185,12 +185,13 @@ export function CourtOfCassationHoldersTable(props: {
       | { id: 'status'; value: PositionStatus[] }
     )[],
     globalFilter: '',
-    sorting: DEFAULT_SORTING,
+    sorting: COURT_OF_CASSATION_HOLDERS_DEFAULT_SORTING,
   });
 
   // a saved link can carry a sort the API no longer accepts
   const [sort] = tableState.sorting;
-  const sorting = sort && SORTABLE_COLUMNS.has(sort.id) ? tableState.sorting : DEFAULT_SORTING;
+  const sorting =
+    sort && SORTABLE_COLUMNS.has(sort.id) ? tableState.sorting : COURT_OF_CASSATION_HOLDERS_DEFAULT_SORTING;
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useCourtOfCassationHoldersQuery(
     {
