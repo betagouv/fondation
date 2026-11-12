@@ -287,7 +287,7 @@ model OfficialReportNominationFile {
   // `{ id, name }[]`, like `recusedMembers`
   reporters        Json                      @db.JsonB
 
-  htmlEdited    String?   @map("html_edited")
+  htmlEdited     String?   @map("html_edited")
   htmlOutdated   Boolean   @default(false) @map("html_outdated")
   // when the block was last rewritten by hand, untouched by the upstream data changes
   htmlEditedAt   DateTime? @map("html_edited_at")
