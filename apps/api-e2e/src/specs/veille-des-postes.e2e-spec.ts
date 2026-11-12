@@ -106,8 +106,8 @@ test.describe('Veille des postes E2E', () => {
       ['CHAMBER_PRESIDENT', 1],
       ['COUNSELLOR', 1],
       ['REFERENDARY_COUNSELLOR', 0],
-      ['AUDITOR_FIRST_GRADE', 0],
       ['AUDITOR_SECOND_GRADE', 0],
+      ['AUDITOR_FIRST_GRADE', 0],
     ]);
   });
 });

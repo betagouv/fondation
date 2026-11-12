@@ -15,8 +15,8 @@ const POSITIONS = [
   { id: 'CHAMBER_PRESIDENT', label: 'Président de chambre' },
   { id: 'COUNSELLOR', label: 'Conseiller' },
   { id: 'REFERENDARY_COUNSELLOR', label: 'Conseiller référendaire' },
-  { id: 'AUDITOR_FIRST_GRADE', label: 'Auditeur 1er grade' },
   { id: 'AUDITOR_SECOND_GRADE', label: 'Auditeur 2e grade' },
+  { id: 'AUDITOR_FIRST_GRADE', label: 'Auditeur 1er grade' },
 ] as const satisfies readonly Holder['position'][];
 
 const STATUSES = [
