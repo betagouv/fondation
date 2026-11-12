@@ -91,7 +91,7 @@ const meta = {
     layout: 'fullscreen',
     router: { initialEntries: ['/secretariat-general/session/draft'] },
   },
-  title: 'Session/Transparence/SgSessionFilesTable',
+  title: 'Session/GDS/SgSessionFilesTable',
 } satisfies Meta<typeof SgSessionFilesTableStory>;
 
 export default meta;

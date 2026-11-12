@@ -125,7 +125,7 @@ const meta = {
   },
   component: SessionAuditionsTableStory,
   parameters: { layout: 'padded' },
-  title: 'Session/Transparence/SessionAuditionsTable',
+  title: 'Session/GDS/SessionAuditionsTable',
 } satisfies Meta<typeof SessionAuditionsTableStory>;
 
 export default meta;

@@ -64,10 +64,8 @@ Points clés :
 - `satisfies Meta<typeof Card>` + `StoryObj<typeof meta>` : les `args` sont **typés d'après
   les vraies props** du composant. Si une prop change, la story ne compile plus.
 - Le nom de l'export devient le nom affiché (`Default`, `EditableEmpty` => "Editable Empty").
-- `title` : il suit le dossier du composant. `Pages/...` pour un écran entier de `src/pages`,
-  `Features/...` pour une brique de `src/features`, `Shared/...` pour un composant générique,
-  `Layout/...` pour la coquille de l'application. L'en-tête et les tableaux des écrans de session
-  sont rangés à part sous `Session/<type de session>/...`
+- `title` : il suit le dossier du composant, `Pages/...`, `Features/...`, `Shared/...` ou `Layout/...`.
+  L'en-tête et les tableaux d'un pouvoir de proposition vont sous `Session/GDS/...` ou `Session/CSM/...`
 - `tags: ['autodocs']` : génère une page "Docs". Utile pour un composant partagé, inutile pour
   une page.
 
