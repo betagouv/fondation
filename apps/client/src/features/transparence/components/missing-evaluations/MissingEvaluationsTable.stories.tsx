@@ -62,7 +62,7 @@ const meta = {
   },
   component: MissingEvaluationsTableStory,
   parameters: { layout: 'padded' },
-  title: 'Session/Transparence/MissingEvaluationsTable',
+  title: 'Session/GDS/MissingEvaluationsTable',
 } satisfies Meta<typeof MissingEvaluationsTableStory>;
 
 export default meta;

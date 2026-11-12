@@ -174,9 +174,27 @@ export const routes: RouteObject[] = [
                 index: true,
                 loader: () => redirect(ROUTE_PATHS.SG.CSM.VEILLE_DES_POSTES_COURTS_OF_APPEAL),
               },
-              { path: ROUTE_PATHS.SG.CSM.VEILLE_DES_POSTES_COURTS_OF_APPEAL },
-              { path: ROUTE_PATHS.SG.CSM.VEILLE_DES_POSTES_JUDICIAL_COURTS },
-              { path: ROUTE_PATHS.SG.CSM.VEILLE_DES_POSTES_COURT_OF_CASSATION },
+              {
+                lazy: () =>
+                  import('@/pages/veille-des-postes/UpcomingTab').then(({ UpcomingTab }) => ({
+                    Component: UpcomingTab,
+                  })),
+                path: ROUTE_PATHS.SG.CSM.VEILLE_DES_POSTES_COURTS_OF_APPEAL,
+              },
+              {
+                lazy: () =>
+                  import('@/pages/veille-des-postes/UpcomingTab').then(({ UpcomingTab }) => ({
+                    Component: UpcomingTab,
+                  })),
+                path: ROUTE_PATHS.SG.CSM.VEILLE_DES_POSTES_JUDICIAL_COURTS,
+              },
+              {
+                lazy: () =>
+                  import('@/pages/veille-des-postes/CourtOfCassationTab').then(({ CourtOfCassationTab }) => ({
+                    Component: CourtOfCassationTab,
+                  })),
+                path: ROUTE_PATHS.SG.CSM.VEILLE_DES_POSTES_COURT_OF_CASSATION,
+              },
             ],
             lazy: () =>
               import('@/pages/veille-des-postes/VeilleDesPostesPage').then(({ VeilleDesPostesPage }) => ({

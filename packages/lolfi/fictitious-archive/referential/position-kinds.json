@@ -3,978 +3,1141 @@
     "functionId": "VPR",
     "jurisdictionType": "TJ",
     "grade": "G2",
-    "count": 168
+    "count": 168,
+    "holders": 421
   },
   {
     "functionId": "VPLD",
     "jurisdictionType": "TJ",
     "grade": "G2",
-    "count": 166
+    "count": 166,
+    "holders": 249
   },
   {
     "functionId": "VP",
     "jurisdictionType": "TJ",
     "grade": "G2",
-    "count": 165
+    "count": 165,
+    "holders": 1082
   },
   {
     "functionId": "S",
     "jurisdictionType": "TJ",
     "grade": "G1",
-    "count": 165
+    "count": 165,
+    "holders": 928
   },
   {
     "functionId": "J",
     "jurisdictionType": "TJ",
     "grade": "G1",
-    "count": 164
+    "count": 164,
+    "holders": 717
   },
   {
     "functionId": "JAP",
     "jurisdictionType": "TJ",
     "grade": "G1",
-    "count": 163
+    "count": 163,
+    "holders": 254
   },
   {
     "functionId": "VPCP",
     "jurisdictionType": "TJ",
     "grade": "G2",
-    "count": 160
+    "count": 160,
+    "holders": 294
   },
   {
     "functionId": "JI",
     "jurisdictionType": "TJ",
     "grade": "G1",
-    "count": 159
+    "count": 159,
+    "holders": 270
   },
   {
     "functionId": "JCP",
     "jurisdictionType": "TJ",
     "grade": "G1",
-    "count": 156
+    "count": 156,
+    "holders": 205
   },
   {
     "functionId": "VPAP",
     "jurisdictionType": "TJ",
     "grade": "G2",
-    "count": 155
+    "count": 155,
+    "holders": 205
   },
   {
     "functionId": "P",
     "jurisdictionType": "TJ",
     "grade": "G3",
-    "count": 155
+    "count": 155,
+    "holders": 64
   },
   {
     "functionId": "PR",
     "jurisdictionType": "TJ",
     "grade": "G3",
-    "count": 153
+    "count": 153,
+    "holders": 63
   },
   {
     "functionId": "JE",
     "jurisdictionType": "TJ",
     "grade": "G1",
-    "count": 151
+    "count": 151,
+    "holders": 340
   },
   {
     "functionId": "VPE",
     "jurisdictionType": "TJ",
     "grade": "G2",
-    "count": 146
+    "count": 146,
+    "holders": 202
   },
   {
     "functionId": "VPI",
     "jurisdictionType": "TJ",
     "grade": "G2",
-    "count": 133
+    "count": 133,
+    "holders": 300
   },
   {
     "functionId": "VPCP",
     "jurisdictionType": "TPR",
     "grade": "G2",
-    "count": 110
+    "count": 110,
+    "holders": 124
   },
   {
     "functionId": "P",
     "jurisdictionType": "TJ",
     "grade": "G2",
-    "count": 108
+    "count": 108,
+    "holders": 84
   },
   {
     "functionId": "JCP",
     "jurisdictionType": "TPR",
     "grade": "G1",
-    "count": 108
+    "count": 108,
+    "holders": 91
   },
   {
     "functionId": "PR",
     "jurisdictionType": "TJ",
     "grade": "G2",
-    "count": 106
+    "count": 106,
+    "holders": 81
   },
   {
     "functionId": "PRA",
     "jurisdictionType": "TJ",
     "grade": "G2",
-    "count": 67
+    "count": 67,
+    "holders": 110
   },
   {
     "functionId": "1VP",
     "jurisdictionType": "TJ",
     "grade": "G2",
-    "count": 65
+    "count": 65,
+    "holders": 123
   },
   {
     "functionId": "PC",
     "jurisdictionType": "CA",
     "grade": "G3",
-    "count": 53
+    "count": 53,
+    "holders": 415
   },
   {
     "functionId": "C",
     "jurisdictionType": "CA",
     "grade": "G2",
-    "count": 48
+    "count": 48,
+    "holders": 885
   },
   {
     "functionId": "AG",
     "jurisdictionType": "CA",
     "grade": "G3",
-    "count": 41
+    "count": 41,
+    "holders": 161
   },
   {
     "functionId": "PCINS",
     "jurisdictionType": "CA",
     "grade": "G3",
-    "count": 39
+    "count": 39,
+    "holders": 60
   },
   {
     "functionId": "SG",
     "jurisdictionType": "CA",
     "grade": "G2",
-    "count": 37
+    "count": 37,
+    "holders": 142
   },
   {
     "functionId": "SGSG",
     "jurisdictionType": "CA",
     "grade": "G2",
-    "count": 36
+    "count": 36,
+    "holders": 34
   },
   {
     "functionId": "VPP",
     "jurisdictionType": "CA",
     "grade": "G2",
-    "count": 36
+    "count": 36,
+    "holders": 111
   },
   {
     "functionId": "PG",
     "jurisdictionType": "CA",
     "grade": "G3sup",
-    "count": 36
+    "count": 36,
+    "holders": 36
   },
   {
     "functionId": "PP",
     "jurisdictionType": "CA",
     "grade": "G3sup",
-    "count": 36
+    "count": 36,
+    "holders": 35
   },
   {
     "functionId": "VPRP",
     "jurisdictionType": "CA",
     "grade": "G2",
-    "count": 36
+    "count": 36,
+    "holders": 24
   },
   {
     "functionId": "C",
     "jurisdictionType": "CA",
     "grade": "G1",
-    "count": 36
+    "count": 36,
+    "holders": 10
   },
   {
     "functionId": "SP",
     "jurisdictionType": "CA",
     "grade": "G1",
-    "count": 36
+    "count": 36,
+    "holders": 149
   },
   {
     "functionId": "CSG",
     "jurisdictionType": "CA",
     "grade": "G2",
-    "count": 36
+    "count": 36,
+    "holders": 34
   },
   {
     "functionId": "JP",
     "jurisdictionType": "CA",
     "grade": "G1",
-    "count": 35
+    "count": 35,
+    "holders": 191
   },
   {
     "functionId": "SG",
     "jurisdictionType": "CA",
     "grade": "G1",
-    "count": 32
+    "count": 32,
+    "holders": 9
   },
   {
     "functionId": "1VPCP",
     "jurisdictionType": "TJ",
     "grade": "G2",
-    "count": 18
+    "count": 18,
+    "holders": 15
   },
   {
     "functionId": "1SMACJ",
     "jurisdictionType": "AC",
     "grade": "G2",
-    "count": 18
+    "count": 18,
+    "holders": 152
   },
   {
     "functionId": "1VP",
     "jurisdictionType": "TJ",
     "grade": "G3",
-    "count": 17
+    "count": 17,
+    "holders": 53
   },
   {
     "functionId": "1VPAP",
     "jurisdictionType": "TJ",
     "grade": "G2",
-    "count": 16
+    "count": 16,
+    "holders": 14
   },
   {
     "functionId": "1VPE",
     "jurisdictionType": "TJ",
     "grade": "G3",
-    "count": 14
+    "count": 14,
+    "holders": 8
   },
   {
     "functionId": "MACJ",
     "jurisdictionType": "AC",
     "grade": "G1",
-    "count": 14
+    "count": 14,
+    "holders": 97
   },
   {
     "functionId": "1VPAP",
     "jurisdictionType": "TJ",
     "grade": "G3",
-    "count": 14
+    "count": 14,
+    "holders": 6
   },
   {
     "functionId": "PRA",
     "jurisdictionType": "TJ",
     "grade": "G3",
-    "count": 14
+    "count": 14,
+    "holders": 48
   },
   {
     "functionId": "1VPI",
     "jurisdictionType": "TJ",
     "grade": "G3",
-    "count": 13
+    "count": 13,
+    "holders": 14
   },
   {
     "functionId": "1VPI",
     "jurisdictionType": "TJ",
     "grade": "G2",
-    "count": 13
+    "count": 13,
+    "holders": 12
   },
   {
     "functionId": "1VPR",
     "jurisdictionType": "TJ",
     "grade": "G2",
-    "count": 12
+    "count": 12,
+    "holders": 34
   },
   {
     "functionId": "1PC",
     "jurisdictionType": "CA",
     "grade": "G3sup",
-    "count": 12
+    "count": 12,
+    "holders": 20
   },
   {
     "functionId": "VPRSG",
     "jurisdictionType": "TJ",
     "grade": "G2",
-    "count": 12
+    "count": 12,
+    "holders": 11
   },
   {
     "functionId": "1VPA",
     "jurisdictionType": "TJ",
     "grade": "G2",
-    "count": 12
+    "count": 12,
+    "holders": 58
   },
   {
     "functionId": "PR",
     "jurisdictionType": "TJ",
     "grade": "G3sup",
-    "count": 12
+    "count": 12,
+    "holders": 11
   },
   {
     "functionId": "P",
     "jurisdictionType": "TJ",
     "grade": "G3sup",
-    "count": 12
+    "count": 12,
+    "holders": 12
   },
   {
     "functionId": "1VPE",
     "jurisdictionType": "TJ",
     "grade": "G2",
-    "count": 12
+    "count": 12,
+    "holders": 11
   },
   {
     "functionId": "VPSG",
     "jurisdictionType": "TJ",
     "grade": "G2",
-    "count": 12
+    "count": 12,
+    "holders": 11
   },
   {
     "functionId": "1VPCP",
     "jurisdictionType": "TJ",
     "grade": "G3",
-    "count": 10
+    "count": 10,
+    "holders": 7
   },
   {
     "functionId": "CSG",
     "jurisdictionType": "CA",
     "grade": "G1",
-    "count": 10
+    "count": 10,
+    "holders": 1
   },
   {
     "functionId": "1VPLD",
     "jurisdictionType": "TJ",
     "grade": "G3",
-    "count": 7
+    "count": 7,
+    "holders": 4
   },
   {
     "functionId": "JLF",
     "jurisdictionType": "TJ",
     "grade": "G1",
-    "count": 7
+    "count": 7,
+    "holders": 30
   },
   {
     "functionId": "C",
     "jurisdictionType": "CA",
     "grade": "G3",
-    "count": 6
+    "count": 6,
+    "holders": 13
   },
   {
     "functionId": "J",
     "jurisdictionType": "TPR",
     "grade": "G1",
-    "count": 6
+    "count": 6,
+    "holders": 2
   },
   {
     "functionId": "PG",
     "jurisdictionType": "CA",
     "grade": "G1",
-    "count": 6
+    "count": 6,
+    "holders": 0
   },
   {
     "functionId": "VP",
     "jurisdictionType": "TPR",
     "grade": "G2",
-    "count": 6
+    "count": 6,
+    "holders": 7
   },
   {
     "functionId": "SGSG",
     "jurisdictionType": "CA",
     "grade": "G1",
-    "count": 5
+    "count": 5,
+    "holders": 0
   },
   {
     "functionId": "VPSEC",
     "jurisdictionType": "SEC",
     "grade": "G2",
-    "count": 5
+    "count": 5,
+    "holders": 5
   },
   {
     "functionId": "JLF",
     "jurisdictionType": "TPR",
     "grade": "G1",
-    "count": 4
+    "count": 4,
+    "holders": 9
   },
   {
     "functionId": "P",
     "jurisdictionType": "TJ",
     "grade": "G1",
-    "count": 4
+    "count": 4,
+    "holders": 0
   },
   {
     "functionId": "1AG",
     "jurisdictionType": "CA",
     "grade": "G3sup",
-    "count": 4
+    "count": 4,
+    "holders": 8
   },
   {
     "functionId": "P",
     "jurisdictionType": "TPI",
     "grade": "G3",
-    "count": 4
+    "count": 4,
+    "holders": 2
   },
   {
     "functionId": "PR",
     "jurisdictionType": "TPI",
     "grade": "G3",
-    "count": 3
+    "count": 3,
+    "holders": 0
   },
   {
     "functionId": "JI",
     "jurisdictionType": "TPI",
     "grade": "G1",
-    "count": 3
+    "count": 3,
+    "holders": 4
   },
   {
     "functionId": "PR",
     "jurisdictionType": "TPI",
     "grade": "G2",
-    "count": 3
+    "count": 3,
+    "holders": 2
   },
   {
     "functionId": "SG",
     "jurisdictionType": "CA",
     "grade": "G3",
-    "count": 3
+    "count": 3,
+    "holders": 3
   },
   {
     "functionId": "P",
     "jurisdictionType": "TPI",
     "grade": "G2",
-    "count": 3
+    "count": 3,
+    "holders": 2
   },
   {
     "functionId": "1VPCP",
     "jurisdictionType": "TPR",
     "grade": "G3",
-    "count": 3
+    "count": 3,
+    "holders": 3
   },
   {
     "functionId": "VPI",
     "jurisdictionType": "TPI",
     "grade": "G2",
-    "count": 3
+    "count": 3,
+    "holders": 3
   },
   {
     "functionId": "SAT",
     "jurisdictionType": "PNA",
     "grade": "G1",
-    "count": 3
+    "count": 3,
+    "holders": 5
   },
   {
     "functionId": "PR",
     "jurisdictionType": "TJ",
     "grade": "G1",
-    "count": 3
+    "count": 3,
+    "holders": 0
   },
   {
     "functionId": "JAP",
     "jurisdictionType": "TPR",
     "grade": "G1",
-    "count": 2
+    "count": 2,
+    "holders": 1
   },
   {
     "functionId": "VPR",
     "jurisdictionType": "TPR",
     "grade": "G2",
-    "count": 2
+    "count": 2,
+    "holders": 0
   },
   {
     "functionId": "JAP",
     "jurisdictionType": "TPI",
     "grade": "G1",
-    "count": 2
+    "count": 2,
+    "holders": 1
   },
   {
     "functionId": "PG",
     "jurisdictionType": "CA",
     "grade": "G2",
-    "count": 2
+    "count": 2,
+    "holders": 0
   },
   {
     "functionId": "CSG",
     "jurisdictionType": "CA",
     "grade": "G3",
-    "count": 2
+    "count": 2,
+    "holders": 0
   },
   {
     "functionId": "1VP",
     "jurisdictionType": "TPI",
     "grade": "G2",
-    "count": 2
+    "count": 2,
+    "holders": 1
   },
   {
     "functionId": "S",
     "jurisdictionType": "TPI",
     "grade": "G1",
-    "count": 2
+    "count": 2,
+    "holders": 5
   },
   {
     "functionId": "VPE",
     "jurisdictionType": "TPI",
     "grade": "G2",
-    "count": 2
+    "count": 2,
+    "holders": 3
   },
   {
     "functionId": "VPR",
     "jurisdictionType": "TPI",
     "grade": "G2",
-    "count": 2
+    "count": 2,
+    "holders": 10
   },
   {
     "functionId": "PRA F",
     "jurisdictionType": "PNF",
     "grade": "G3",
-    "count": 2
+    "count": 2,
+    "holders": 2
   },
   {
     "functionId": "VPRACO",
     "jurisdictionType": "PNAC",
     "grade": "G2",
-    "count": 2
+    "count": 2,
+    "holders": 10
   },
   {
     "functionId": "J",
     "jurisdictionType": "TJ",
     "grade": "G2",
-    "count": 2
+    "count": 2,
+    "holders": 2
   },
   {
     "functionId": "P",
     "jurisdictionType": "CA",
     "grade": "G1",
-    "count": 2
+    "count": 2,
+    "holders": 0
   },
   {
     "functionId": "P",
     "jurisdictionType": "CA",
     "grade": "G3",
-    "count": 2
+    "count": 2,
+    "holders": 0
   },
   {
     "functionId": "PRACOADJ",
     "jurisdictionType": "PNAC",
     "grade": "G3",
-    "count": 2
+    "count": 2,
+    "holders": 2
   },
   {
     "functionId": "PRA",
     "jurisdictionType": "TPI",
     "grade": "G2",
-    "count": 2
+    "count": 2,
+    "holders": 2
   },
   {
     "functionId": "VPR F",
     "jurisdictionType": "PNF",
     "grade": "G2",
-    "count": 2
+    "count": 2,
+    "holders": 10
   },
   {
     "functionId": "JE",
     "jurisdictionType": "TPI",
     "grade": "G1",
-    "count": 2
+    "count": 2,
+    "holders": 3
   },
   {
     "functionId": "VPAP",
     "jurisdictionType": "TPI",
     "grade": "G2",
-    "count": 2
+    "count": 2,
+    "holders": 6
   },
   {
     "functionId": "VP",
     "jurisdictionType": "TPI",
     "grade": "G2",
-    "count": 2
+    "count": 2,
+    "holders": 21
   },
   {
     "functionId": "S",
     "jurisdictionType": "TPR",
     "grade": "G1",
-    "count": 2
+    "count": 2,
+    "holders": 2
   },
   {
     "functionId": "1VPRACO",
     "jurisdictionType": "PNAC",
     "grade": "G2",
-    "count": 2
+    "count": 2,
+    "holders": 5
   },
   {
     "functionId": "VPLD",
     "jurisdictionType": "TPI",
     "grade": "G2",
-    "count": 2
+    "count": 2,
+    "holders": 2
   },
   {
     "functionId": "PR",
     "jurisdictionType": "CA",
     "grade": "G3",
-    "count": 2
+    "count": 2,
+    "holders": 0
   },
   {
     "functionId": "JSEC",
     "jurisdictionType": "SEC",
     "grade": "G1",
-    "count": 2
+    "count": 2,
+    "holders": 0
   },
   {
     "functionId": "J",
     "jurisdictionType": "TPI",
     "grade": "G1",
-    "count": 2
+    "count": 2,
+    "holders": 5
   },
   {
     "functionId": "JCP",
     "jurisdictionType": "CA",
     "grade": "G1",
-    "count": 1
+    "count": 1,
+    "holders": 0
   },
   {
     "functionId": "SGSG",
     "jurisdictionType": "CA",
     "grade": "G3",
-    "count": 1
+    "count": 1,
+    "holders": 0
   },
   {
     "functionId": "1VPRAT",
     "jurisdictionType": "PNA",
     "grade": "G2",
-    "count": 1
+    "count": 1,
+    "holders": 4
   },
   {
     "functionId": "VPRAT",
     "jurisdictionType": "PNA",
     "grade": "G2",
-    "count": 1
+    "count": 1,
+    "holders": 17
   },
   {
     "functionId": "IJ",
     "jurisdictionType": "IGSJ",
     "grade": "G2",
-    "count": 1
+    "count": 1,
+    "holders": 10
   },
   {
     "functionId": "VPAP",
     "jurisdictionType": "TJ",
     "grade": "G3",
-    "count": 1
+    "count": 1,
+    "holders": 0
   },
   {
     "functionId": "AGR",
     "jurisdictionType": "CC",
     "grade": "G2",
-    "count": 1
+    "count": 1,
+    "holders": 17
   },
   {
     "functionId": "SGPR",
     "jurisdictionType": "TJ",
     "grade": "G1",
-    "count": 1
+    "count": 1,
+    "holders": 1
   },
   {
     "functionId": "IG-CIGJ",
     "jurisdictionType": "IGSJ",
     "grade": "G3sup",
-    "count": 1
+    "count": 1,
+    "holders": 1
   },
   {
     "functionId": "PRAT",
     "jurisdictionType": "PNA",
     "grade": "G3sup",
-    "count": 1
+    "count": 1,
+    "holders": 1
   },
   {
     "functionId": "1SMACJ",
     "jurisdictionType": "AC",
     "grade": "G3",
-    "count": 1
+    "count": 1,
+    "holders": 2
   },
   {
     "functionId": "ACC",
     "jurisdictionType": "CC",
     "grade": "G2",
-    "count": 1
+    "count": 1,
+    "holders": 8
   },
   {
     "functionId": "IGJ",
     "jurisdictionType": "IGSJ",
     "grade": "G3sup",
-    "count": 1
+    "count": 1,
+    "holders": 46
   },
   {
     "functionId": "VPAP",
     "jurisdictionType": "TPR",
     "grade": "G2",
-    "count": 1
+    "count": 1,
+    "holders": 0
   },
   {
     "functionId": "VPI",
     "jurisdictionType": "TJ",
     "grade": "G3",
-    "count": 1
+    "count": 1,
+    "holders": 1
   },
   {
     "functionId": "PR",
     "jurisdictionType": "TSA",
     "grade": "G2",
-    "count": 1
+    "count": 1,
+    "holders": 1
   },
   {
     "functionId": "PR",
     "jurisdictionType": "TSA",
     "grade": "G3",
-    "count": 1
+    "count": 1,
+    "holders": 0
   },
   {
     "functionId": "PR",
     "jurisdictionType": "CA",
     "grade": "G2",
-    "count": 1
+    "count": 1,
+    "holders": 0
   },
   {
     "functionId": "1VPR F",
     "jurisdictionType": "PNF",
     "grade": "G2",
-    "count": 1
+    "count": 1,
+    "holders": 5
   },
   {
     "functionId": "ACC",
     "jurisdictionType": "TJ",
     "grade": "G2",
-    "count": 1
+    "count": 1,
+    "holders": 0
   },
   {
     "functionId": "MSGPP",
     "jurisdictionType": "CC",
     "grade": "G2",
-    "count": 1
+    "count": 1,
+    "holders": 1
   },
   {
     "functionId": "P",
     "jurisdictionType": "TSA",
     "grade": "G3",
-    "count": 1
+    "count": 1,
+    "holders": 0
   },
   {
     "functionId": "VPRSG F",
     "jurisdictionType": "PNF",
     "grade": "G2",
-    "count": 1
+    "count": 1,
+    "holders": 1
   },
   {
     "functionId": "SACO",
     "jurisdictionType": "PNAC",
     "grade": "G1",
-    "count": 1
+    "count": 1,
+    "holders": 7
   },
   {
     "functionId": "1AG",
     "jurisdictionType": "CC",
     "grade": "G3sup",
-    "count": 1
+    "count": 1,
+    "holders": 8
   },
   {
     "functionId": "ACC",
     "jurisdictionType": "CC",
     "grade": "G1",
-    "count": 1
+    "count": 1,
+    "holders": 4
   },
   {
     "functionId": "VPI",
     "jurisdictionType": "TPR",
     "grade": "G2",
-    "count": 1
+    "count": 1,
+    "holders": 0
   },
   {
     "functionId": "VPRSG AT",
     "jurisdictionType": "PNA",
     "grade": "G2",
-    "count": 1
+    "count": 1,
+    "holders": 1
   },
   {
     "functionId": "JI",
     "jurisdictionType": "TPR",
     "grade": "G1",
-    "count": 1
+    "count": 1,
+    "holders": 1
   },
   {
     "functionId": "MACJ",
     "jurisdictionType": "AC",
     "grade": "G2",
-    "count": 1
+    "count": 1,
+    "holders": 0
   },
   {
     "functionId": "PC",
     "jurisdictionType": "CC",
     "grade": "G3sup",
-    "count": 1
+    "count": 1,
+    "holders": 7
   },
   {
     "functionId": "PRATA",
     "jurisdictionType": "PNA",
     "grade": "G3",
-    "count": 1
+    "count": 1,
+    "holders": 2
   },
   {
     "functionId": "C",
     "jurisdictionType": "CHA",
     "grade": "G2",
-    "count": 1
+    "count": 1,
+    "holders": 1
   },
   {
     "functionId": "C",
     "jurisdictionType": "CC",
     "grade": "G3sup",
-    "count": 1
+    "count": 1,
+    "holders": 119
   },
   {
     "functionId": "PRACO",
     "jurisdictionType": "PNAC",
     "grade": "G3sup",
-    "count": 1
+    "count": 1,
+    "holders": 1
   },
   {
     "functionId": "S F",
     "jurisdictionType": "PNF",
     "grade": "G1",
-    "count": 1
+    "count": 1,
+    "holders": 1
   },
   {
     "functionId": "PR",
     "jurisdictionType": "CA",
     "grade": "G1",
-    "count": 1
+    "count": 1,
+    "holders": 0
   },
   {
     "functionId": "AG",
     "jurisdictionType": "CC",
     "grade": "G3sup",
-    "count": 1
+    "count": 1,
+    "holders": 34
   },
   {
     "functionId": "1VPCP",
     "jurisdictionType": "TPR",
     "grade": "G2",
-    "count": 1
+    "count": 1,
+    "holders": 1
   },
   {
     "functionId": "P",
     "jurisdictionType": "TSA",
     "grade": "G2",
-    "count": 1
+    "count": 1,
+    "holders": 1
   },
   {
     "functionId": "PP",
     "jurisdictionType": "CC",
     "grade": "G3sup",
-    "count": 1
+    "count": 1,
+    "holders": 1
   },
   {
     "functionId": "SGPG",
     "jurisdictionType": "CA",
     "grade": "G1",
-    "count": 1
+    "count": 1,
+    "holders": 0
   },
   {
     "functionId": "AG",
     "jurisdictionType": "CHA",
     "grade": "G3",
-    "count": 1
+    "count": 1,
+    "holders": 1
   },
   {
     "functionId": "J",
     "jurisdictionType": "SEC",
     "grade": "G1",
-    "count": 1
+    "count": 1,
+    "holders": 0
   },
   {
     "functionId": "AG SE",
     "jurisdictionType": "CC",
     "grade": "G3sup",
-    "count": 1
+    "count": 1,
+    "holders": 3
   },
   {
     "functionId": "JE",
     "jurisdictionType": "TPR",
     "grade": "G1",
-    "count": 1
+    "count": 1,
+    "holders": 1
   },
   {
     "functionId": "1VP",
     "jurisdictionType": "TPR",
     "grade": "G2",
-    "count": 1
+    "count": 1,
+    "holders": 0
   },
   {
     "functionId": "VP",
     "jurisdictionType": "TJ",
     "grade": "G3",
-    "count": 1
+    "count": 1,
+    "holders": 1
   },
   {
     "functionId": "CR",
     "jurisdictionType": "CC",
     "grade": "G2",
-    "count": 1
+    "count": 1,
+    "holders": 84
   },
   {
     "functionId": "VPE",
     "jurisdictionType": "TPR",
     "grade": "G2",
-    "count": 1
+    "count": 1,
+    "holders": 0
   },
   {
     "functionId": "MHFJS",
     "jurisdictionType": "TJ",
     "grade": "G1",
-    "count": 1
+    "count": 1,
+    "holders": 1
   },
   {
     "functionId": "MSGPG",
     "jurisdictionType": "CC",
     "grade": "G2",
-    "count": 1
+    "count": 1,
+    "holders": 1
   },
   {
     "functionId": "VPR",
     "jurisdictionType": "SEC",
     "grade": "G2",
-    "count": 1
+    "count": 1,
+    "holders": 0
   },
   {
     "functionId": "PG",
     "jurisdictionType": "CC",
     "grade": "G3sup",
-    "count": 1
+    "count": 1,
+    "holders": 1
   },
   {
     "functionId": "C SE",
     "jurisdictionType": "CC",
     "grade": "G3sup",
-    "count": 1
+    "count": 1,
+    "holders": 8
   },
   {
     "functionId": "VPRSGACO",
     "jurisdictionType": "PNAC",
     "grade": "G2",
-    "count": 1
+    "count": 1,
+    "holders": 1
   },
   {
     "functionId": "PR F",
     "jurisdictionType": "PNF",
     "grade": "G3sup",
-    "count": 1
+    "count": 1,
+    "holders": 1
   },
   {
     "functionId": "1VPA",
     "jurisdictionType": "TJ",
     "grade": "G3",
-    "count": 1
+    "count": 1,
+    "holders": 1
   },
   {
     "functionId": "1VPLD",
     "jurisdictionType": "TJ",
     "grade": "G2",
-    "count": 1
+    "count": 1,
+    "holders": 1
   },
   {
     "functionId": "PC",
     "jurisdictionType": "CHA",
     "grade": "G3",
-    "count": 1
+    "count": 1,
+    "holders": 3
   }
 ]

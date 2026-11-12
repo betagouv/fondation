@@ -11,15 +11,24 @@ import {
   type LolfiPosition,
 } from '../src';
 
+import { LolfiReferential, type PositionKind } from './lolfi-referential';
+import { AGE, drawMagistratCareer, FULL_TIME } from './magistrat-career';
+import { drawMagistratIdentity } from './magistrat-identity';
+import { Random } from './random';
 import {
   FICTITIOUS_TRANSPARENCES,
   type FictitiousTransparence,
   type GuaranteedPosition,
-} from './fictitious-transparences';
-import { LolfiReferential, type PositionKind } from './lolfi-referential';
-import { drawMagistratCareer, FULL_TIME } from './magistrat-career';
-import { drawMagistratIdentity } from './magistrat-identity';
-import { Random } from './random';
+} from './transparences-shape';
+import {
+  AGES_BEYOND_RETIREMENT,
+  OLDEST_DRAWN_AGE,
+  WATCHED_ADMINISTRATIVE_POSITIONS,
+  WATCHED_DATED_SHARE,
+  WATCHED_IN_SESSIONS,
+  watchedPositionOf,
+  YEARS_CLOSE_TO_SEVEN,
+} from './veille-des-postes-shape';
 
 type FictitiousCandidate = LolfiCandidate;
 type FictitiousMagistrat = LolfiMagistrat;
@@ -114,6 +123,8 @@ export class FictitiousArchive {
   readonly #random: Random;
   readonly #referential = new LolfiReferential();
   readonly #magistrats: FictitiousMagistrat[] = [];
+  readonly #watched = new Set<FictitiousMagistrat>();
+  readonly #watchedInSessions = new Set<FictitiousMagistrat>();
   #nextMagistratId = FIRST_MAGISTRAT_ID;
   #nextNominationId = FIRST_NOMINATION_ID;
 
@@ -123,6 +134,8 @@ export class FictitiousArchive {
 
   content(): LolfiArchiveContent {
     const referential = this.#referential;
+    /* First, so that the transparences may pick some holders and the other magistrats complete the corps */
+    this.#drawWatchedHolders();
     const sessions = FICTITIOUS_TRANSPARENCES.map((transparence, index) => ({
       candidates: this.#drawCandidates(transparence, this.#drawPostings(transparence)),
       createdAt: transparence.createdAt,
@@ -135,9 +148,78 @@ export class FictitiousArchive {
       functions: referential.functions,
       jurisdictionTypes: referential.jurisdictionTypes,
       jurisdictions: referential.jurisdictions,
-      magistrats: this.#drawOtherMagistrats(),
+      magistrats: [
+        ...[...this.#watched].filter((holder) => !this.#watchedInSessions.has(holder)),
+        ...this.#drawOtherMagistrats(),
+      ],
       sessions,
     };
+  }
+
+  #reusable(magistrat: FictitiousMagistrat): boolean {
+    return (
+      !this.#watched.has(magistrat) ||
+      this.#watchedInSessions.has(magistrat) ||
+      this.#watchedInSessions.size < WATCHED_IN_SESSIONS
+    );
+  }
+
+  #reuse(magistrat: FictitiousMagistrat): FictitiousMagistrat {
+    if (this.#watched.has(magistrat)) this.#watchedInSessions.add(magistrat);
+    return magistrat;
+  }
+
+  #drawWatchedHolders(): void {
+    const kinds = this.#referential.positionKindsWhere((kind) => !!watchedPositionOf(kind));
+
+    for (const [watched, sameFunction] of Map.groupBy(kinds, (kind) => watchedPositionOf(kind)!)) {
+      const { functionId, jurisdictionType } = watched;
+      const grades = this.#random.shuffle(
+        sameFunction.flatMap((kind) => Array<LolfiGradeEnum>(kind.holders).fill(kind.grade)),
+      );
+      const seats = this.#seatsOf(jurisdictionType, grades.length, watched.sharedSeats ?? 0);
+
+      const beyondRetirement = watched.holdersBeyondRetirement ?? 0;
+      const closeToSeven = watched.holdersCloseToSevenYears ?? 0;
+
+      grades.forEach((grade, index) => {
+        /* each case has holders of its own: the first ones beyond 67, the next ones close to seven years */
+        const isBeyondRetirement = index < beyondRetirement;
+        const isCloseToSeven = !isBeyondRetirement && index < beyondRetirement + closeToSeven;
+
+        this.#watched.add(
+          this.#newMagistrat({
+            administrativePositionId: this.#random.pickWeighted(WATCHED_ADMINISTRATIVE_POSITIONS),
+            age: isBeyondRetirement
+              ? this.#random.int(AGES_BEYOND_RETIREMENT.min, AGES_BEYOND_RETIREMENT.max)
+              : Math.min(
+                  OLDEST_DRAWN_AGE,
+                  Math.round(this.#random.followingDeciles(watched.ages ?? AGE[grade])),
+                ),
+            dated: isCloseToSeven || this.#random.chance(WATCHED_DATED_SHARE),
+            formation: this.#referential.function(functionId).formation,
+            grade,
+            inPlace: false,
+            position: this.#heldPosition(functionId, grade, seats[index]!),
+            yearsOnPosition: isCloseToSeven
+              ? this.#random.int(YEARS_CLOSE_TO_SEVEN.min * 100, YEARS_CLOSE_TO_SEVEN.max * 100) / 100
+              : watched.yearsOnPosition && this.#random.followingDeciles(watched.yearsOnPosition),
+          }),
+        );
+      });
+    }
+  }
+
+  /* A court per holder while courts remain, the shared seats going to a second holder of the last courts, away
+     from the first holders that the alert cases take */
+  #seatsOf(jurisdictionType: string, holders: number, sharedSeats: number): LolfiJurisdiction[] {
+    const courts = this.#random.shuffle(this.#referential.jurisdictionsOf(jurisdictionType));
+    const alone = holders - sharedSeats;
+
+    return Array.from(
+      { length: holders },
+      (_, index) => courts[(index < alone ? index : alone - 1 - (index - alone)) % courts.length]!,
+    );
   }
 
   afterDepartures(content: LolfiArchiveContent): LolfiArchiveContent {
@@ -538,12 +620,13 @@ export class FictitiousArchive {
               m.position.grade === grade &&
               m.position.jurisdiction.id !== this.#referential.noAssignment.id &&
               !inSession.has(m) &&
-              !this.#holds(m, targetPosition),
+              !this.#holds(m, targetPosition) &&
+              this.#reusable(m),
           )
         : [];
 
     return earlier.length
-      ? this.#random.pick(earlier)
+      ? this.#reuse(this.#random.pick(earlier))
       : this.#newMagistrat({
           administrativePositionId:
             administrativePositionId ?? this.#random.pickWeighted(ASSIGNED_ADMINISTRATIVE_POSITIONS),
@@ -571,7 +654,7 @@ export class FictitiousArchive {
       : targetGrade;
     const among = anotherMagistrat
       ? this.#random.chance(CANDIDATE_OF_AN_EARLIER_TRANSPARENCE_SHARE)
-        ? this.#magistrats.filter((m) => !inSession.has(m))
+        ? this.#magistrats.filter((m) => !inSession.has(m) && this.#reusable(m))
         : []
       : [...inSession];
     const fitting = among.filter(
@@ -579,7 +662,7 @@ export class FictitiousArchive {
     );
 
     return fitting.length
-      ? this.#random.pick(fitting)
+      ? this.#reuse(this.#random.pick(fitting))
       : this.#newMagistrat({
           formation: targetPosition.function!.formation,
           grade,
@@ -597,33 +680,41 @@ export class FictitiousArchive {
 
   #newMagistrat(magistrat: {
     administrativePositionId?: string;
+    age?: number;
     dated?: boolean;
     formation: LolfiFormationEnum;
     grade: LolfiGradeEnum;
     inPlace: boolean;
     legacyGrade?: LolfiLegacyGrade;
+    position?: LolfiPosition;
     targetPosition?: LolfiPosition;
     traits?: PropositionTraits;
+    yearsOnPosition?: number;
   }): FictitiousMagistrat {
-    const { dated, formation, grade, inPlace, legacyGrade, targetPosition, traits } = magistrat;
+    const { age, dated, formation, grade, inPlace, legacyGrade, targetPosition, traits, yearsOnPosition } =
+      magistrat;
     const administrativePosition = this.#referential.administrativePosition(
       magistrat.administrativePositionId ?? this.#random.pickWeighted(ADMINISTRATIVE_POSITIONS),
     );
-    const position = this.#drawCurrentPosition({
-      administrativePositionId: administrativePosition.id,
-      formation,
-      grade,
-      inPlace,
-      targetPosition,
-      withoutAssignment: !!traits?.withoutAssignment,
-    });
+    const position =
+      magistrat.position ??
+      this.#drawCurrentPosition({
+        administrativePositionId: administrativePosition.id,
+        formation,
+        grade,
+        inPlace,
+        targetPosition,
+        withoutAssignment: !!traits?.withoutAssignment,
+      });
     const identity = drawMagistratIdentity(this.#random);
     const career = drawMagistratCareer(this.#random, this.#referential, {
       administrativePosition,
+      age,
       civilite: identity.civilite,
       dated,
       grade,
       position,
+      yearsOnPosition,
     });
     const drawn: FictitiousMagistrat = {
       ...identity,
@@ -647,6 +738,7 @@ export class FictitiousArchive {
       .positionKindsOfJurisdictionType(jurisdiction.jurisdictionType!)
       .filter(
         (kind) =>
+          !watchedPositionOf(kind) &&
           kind.functionId !== targetFunction?.id &&
           this.#referential.function(kind.functionId).formation === targetFunction?.formation,
       );
@@ -684,12 +776,16 @@ export class FictitiousArchive {
           ([kind]) => this.#referential.jurisdictionsOfSide(kind.jurisdictionType, false).length > 0,
         ),
       );
-    const sameGradeKinds = metropolitan(this.#referential.positionKindsWeightedByCount({ formation, grade }));
-    const kind = this.#random.pickWeighted(
-      sameGradeKinds.size
-        ? sameGradeKinds
-        : metropolitan(this.#referential.positionKindsWeightedByCount({ formation })),
-    );
+    const heldKinds = (filter: { formation: LolfiFormationEnum; grade?: LolfiGradeEnum }) =>
+      metropolitan(
+        new Map(
+          [...this.#referential.positionKindsWeightedByHolders(filter)].filter(
+            ([kind]) => !watchedPositionOf(kind),
+          ),
+        ),
+      );
+    const sameGradeKinds = heldKinds({ formation, grade });
+    const kind = this.#random.pickWeighted(sameGradeKinds.size ? sameGradeKinds : heldKinds({ formation }));
 
     const jurisdiction = this.#drawJurisdiction(kind.jurisdictionType, false);
     const holdsTheTarget =

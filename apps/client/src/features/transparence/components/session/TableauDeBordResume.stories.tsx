@@ -69,7 +69,7 @@ const meta = {
   },
   component: TableauDeBordResumeStory,
   parameters: { layout: 'fullscreen' },
-  title: 'Session/Transparence/SessionHeader',
+  title: 'Session/GDS/SessionHeader',
 } satisfies Meta<typeof TableauDeBordResumeStory>;
 
 export default meta;

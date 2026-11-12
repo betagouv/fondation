@@ -40,7 +40,8 @@ export function DataTableAsyncListFilter<Data extends RowData>(props: {
       options={options}
       tagName={props.filter.label}
       onSelectionChange={onSelectionChange}
-      selectedValues={(currentFilter?.value ?? []) as string[]}
+      // the URL holds anything once edited by hand
+      selectedValues={Array.isArray(currentFilter?.value) ? (currentFilter.value as string[]) : []}
     />
   );
 }

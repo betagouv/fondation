@@ -44,8 +44,8 @@ const COLUMNS = [
   }),
 ];
 
-function FilteredTable() {
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+function FilteredTable(props: { initialFilters?: ColumnFiltersState }) {
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(props.initialFilters ?? []);
   const table = useReactTable({
     columns: COLUMNS,
     data: [],
@@ -81,5 +81,17 @@ describe('DataTableFilters', () => {
       { id: 'status', value: ['OPEN'] },
       { id: 'formation', value: ['PARQUET'] },
     ]);
+  });
+
+  it('should show nothing selected for a filter that the URL does not give as a list', async () => {
+    render(
+      <IntlProvider defaultLocale="fr" locale="fr">
+        <FilteredTable initialFilters={[{ id: 'status', value: 5 }]} />
+      </IntlProvider>,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: /Statut/ }));
+
+    expect(screen.getByLabelText('Ouvert')).not.toBeChecked();
   });
 });

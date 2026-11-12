@@ -15,6 +15,7 @@ import { ReportModule } from './report/report.module';
 import { TransparenceModule } from './session/transparence/transparence.module';
 import { SimpleAuthModule } from './simple-auth';
 import { SurveyModule } from './survey/survey.module';
+import { VeilleDesPostesModule } from './veille-des-postes/veille-des-postes.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { SurveyModule } from './survey/survey.module';
     SurveyModule,
     HelpModule,
     FeedbacksModule,
+    VeilleDesPostesModule,
   ],
 })
 class FondationModule {}

@@ -8,8 +8,8 @@ import { RegisteredUserDto, type RegisterUserDto } from '../generated/api/types.
 import { makeStepsFixtures, TestSteps } from '../steps.ts';
 import { registrationToken } from '../utils/e2e-tokens.ts';
 
-/** ADMIN stands for a member of the general secretariat who holds the admin right, DEVELOPER for its technical account */
-export type RoleEnum = NonNullable<RegisterUserDto['role']> | 'ADMIN' | 'DEVELOPER';
+/** ADMIN stands for a member of the general secretariat who holds the admin right, TEAM_MEMBER for a technical account of the Fondation team */
+export type RoleEnum = NonNullable<RegisterUserDto['role']> | 'ADMIN' | 'TEAM_MEMBER';
 
 export type AuthUser = {
   id: string;
@@ -31,29 +31,29 @@ export async function registerUser<Role extends RoleEnum>(options: {
   const inputUser = (typeof options.user === 'string' ? { role: options.user } : options.user) as Partial<
     Omit<RegisterUserDto, 'role'>
   > & { role: RoleEnum };
-  const isTechnical = inputUser.role === 'DEVELOPER';
+  const isTechnical = inputUser.role === 'TEAM_MEMBER';
   const isAdmin = isTechnical || inputUser.role === 'ADMIN';
   const user = {
-    isAdmin,
-    isTechnical,
-    role: isAdmin ? 'ADJOINT_SECRETAIRE_GENERAL' : (inputUser.role as Exclude<RoleEnum, 'ADMIN' | 'DEVELOPER'>),
     // faker emails collide over a whole run, while the address must be unique
     email: inputUser.email ?? faker.internet.email().replace('@', `+${crypto.randomUUID()}@`),
     firstName: inputUser.firstName ?? faker.person.firstName(),
-    lastName: inputUser.lastName ?? faker.person.lastName(),
     gender: inputUser.gender ?? faker.helpers.arrayElement(['MALE', 'FEMALE']),
+    isAdmin,
+    isTechnical,
+    lastName: inputUser.lastName ?? faker.person.lastName(),
     password: inputUser.password ?? strongPassword(),
+    role: isAdmin ? 'ADJOINT_SECRETAIRE_GENERAL' : (inputUser.role as Exclude<RoleEnum, 'ADMIN' | 'TEAM_MEMBER'>),
   } satisfies RegisterUserDto;
 
   const client = options.client;
   const { response: userResponse, data: createdUser } = await client.post({
-    url: `/api/auth/v2/register`,
     body: user,
-    throwOnError: true,
     headers: {
-      'Content-Type': 'application/json',
       Authorization: `Bearer ${registrationToken}`,
+      'Content-Type': 'application/json',
     },
+    throwOnError: true,
+    url: `/api/auth/v2/register`,
   });
   assert.ok(userResponse.status === 201, `Registering ${user.email} failed`);
 
@@ -78,9 +78,9 @@ export function makeLoggedInUserFixture(baseUrl: string) {
     const config = steps['@client'].getConfig();
 
     return makeStepsFixtures({
-      user,
-      cookies,
       baseUrl: config.baseUrl,
+      cookies,
+      user,
     });
   };
 }

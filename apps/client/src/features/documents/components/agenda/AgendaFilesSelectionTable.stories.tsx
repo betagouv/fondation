@@ -77,7 +77,7 @@ const meta = {
     layout: 'fullscreen',
     router: { initialEntries: ['/secretariat-general/session/draft/ordre-du-jour'] },
   },
-  title: 'Session/Transparence/AgendaFilesSelectionTable',
+  title: 'Session/GDS/AgendaFilesSelectionTable',
 } satisfies Meta<typeof AgendaFilesSelectionTableStory>;
 
 export default meta;

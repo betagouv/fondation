@@ -4,12 +4,12 @@ import { faker } from '@faker-js/faker';
 import { describe, it } from 'vitest';
 
 import { FICTITIOUS_ARCHIVE_SEED, FictitiousArchive } from '../fictitious-archive/fictitious-archive';
+import { LolfiReferential } from '../fictitious-archive/lolfi-referential';
+import { FEMALE_FIRST_NAMES, MALE_FIRST_NAMES } from '../fictitious-archive/names';
 import {
   FICTITIOUS_TRANSPARENCES,
   FIRST_SYNCHRONISED_PUBLICATION,
-} from '../fictitious-archive/fictitious-transparences';
-import { LolfiReferential } from '../fictitious-archive/lolfi-referential';
-import { FEMALE_FIRST_NAMES, MALE_FIRST_NAMES } from '../fictitious-archive/names';
+} from '../fictitious-archive/transparences-shape';
 import { generateLolfiFiles } from '../src/generate-lolfi-files';
 import { type LolfiArchiveContent } from '../src/types';
 
@@ -384,7 +384,7 @@ describe('fictitious archive', () => {
   });
 
   it('should give an age that matches the grade', () => {
-    const ages = { G1: [26, 56], G2: [33, 67], G3: [45, 67], G3sup: [50, 67] };
+    const ages = { G1: [26, 56], G2: [33, 67], G3: [45, 67], G3sup: [50, 69] };
 
     for (const c of magistrats) {
       const [day, month, year] = c.birthDate!.split('/').map(Number);
@@ -438,6 +438,74 @@ describe('fictitious archive', () => {
     assert.ok(others.every((m) => !magistrats.some((c) => c.id === m.id)));
     assert.ok(others.some((m) => !m.email));
     assert.ok(others.some((m) => !m.careerHistory));
+  });
+
+  it('should place the holders of the veille des postes as in production', () => {
+    const corps = [...magistrats, ...content.magistrats!];
+    const holdersOf = (functionId: string, jurisdictionType: string) =>
+      corps.filter(
+        (m) =>
+          m.position.function?.id === functionId &&
+          m.position.jurisdiction.jurisdictionType === jurisdictionType,
+      );
+    const courtsOf = (holders: readonly { position: { jurisdiction: { id: string } } }[]) =>
+      new Set(holders.map((m) => m.position.jurisdiction.id)).size;
+
+    assert.deepStrictEqual(
+      ['PP', 'PC', 'C', 'C SE', 'CR'].map((functionId) => holdersOf(functionId, 'CC').length),
+      [1, 7, 119, 8, 84],
+    );
+    assert.deepStrictEqual(
+      ['G1', 'G2'].map((grade) => holdersOf('ACC', 'CC').filter((m) => m.position.grade === grade).length),
+      [4, 8],
+    );
+    assert.deepStrictEqual([holdersOf('PP', 'CA').length, courtsOf(holdersOf('PP', 'CA'))], [35, 35]);
+    assert.deepStrictEqual([holdersOf('P', 'TJ').length, courtsOf(holdersOf('P', 'TJ'))], [160, 159]);
+  });
+
+  it('should leave a few holders of the veille des postes proposed or beyond the retirement age', () => {
+    const watched = ({ position }: { position: Candidate['position'] }) =>
+      ['ACC CC', 'C CC', 'C SE CC', 'CR CC', 'P TJ', 'PC CC', 'PP CA', 'PP CC'].includes(
+        `${position.function?.id} ${position.jurisdiction.jurisdictionType}`,
+      );
+    const yearsSince = (date: string) => {
+      const [day, month, year] = date.split('/').map(Number);
+      return (Date.UTC(2026, 9, 1) - Date.UTC(year!, month! - 1, day)) / (365.25 * 24 * 3600 * 1000);
+    };
+    const holders = [...magistrats, ...content.magistrats!].filter(watched);
+    const beyondRetirement = holders.filter((m) => yearsSince(m.birthDate!) >= 67);
+    const closeToSeven = holders.filter(
+      (m) =>
+        m.installationDate && yearsSince(m.installationDate) >= 6.5 && yearsSince(m.installationDate) < 7,
+    );
+    const atCourtOfCassation = (m: { position: Candidate['position'] }) =>
+      m.position.jurisdiction.jurisdictionType === 'CC';
+    const presidentsOfTj = (m: { position: Candidate['position'] }) => m.position.function?.id === 'P';
+
+    assert.strictEqual(magistrats.filter(watched).length, 19);
+    assert.strictEqual(beyondRetirement.filter(atCourtOfCassation).length, 9);
+    assert.ok(
+      beyondRetirement.some((m) => atCourtOfCassation(m) && m.position.function?.id === 'PP'),
+      'the premier président of the Cour de cassation',
+    );
+    assert.strictEqual(beyondRetirement.filter(presidentsOfTj).length, 1);
+    assert.ok(closeToSeven.filter(presidentsOfTj).length >= 2);
+    assert.ok(
+      !closeToSeven.some((m) => presidentsOfTj(m) && beyondRetirement.includes(m)),
+      'each case has holders of its own',
+    );
+    const tjPresidents = holders.filter(presidentsOfTj);
+    const sharedCourt = tjPresidents.find((m) =>
+      tjPresidents.some(
+        (other) => other !== m && other.position.jurisdiction.id === m.position.jurisdiction.id,
+      ),
+    )!.position.jurisdiction.id;
+    assert.ok(
+      tjPresidents
+        .filter((m) => m.position.jurisdiction.id === sharedCourt)
+        .every((m) => !beyondRetirement.includes(m) && !closeToSeven.includes(m)),
+      'the TJ led by two presidents is another case',
+    );
   });
 
   it('should give a few magistrats the grades of before the reform', () => {

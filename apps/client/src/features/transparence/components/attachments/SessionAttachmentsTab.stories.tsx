@@ -126,7 +126,7 @@ const meta = {
   },
   component: SessionAttachmentsTabStory,
   parameters: { layout: 'padded' },
-  title: 'Session/Transparence/SessionAttachmentsTable',
+  title: 'Session/GDS/SessionAttachmentsTable',
 } satisfies Meta<typeof SessionAttachmentsTabStory>;
 
 export default meta;

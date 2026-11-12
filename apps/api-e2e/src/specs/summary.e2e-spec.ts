@@ -197,10 +197,10 @@ test.describe('Summary E2E', () => {
   test('should offer as readers the members of the formation and the secretariat but no technical account, the president and the secretary general first', async ({
     admin,
     agent,
-    developer,
     expect,
     registerUser,
     sessions,
+    teamMember,
   }) => {
     const session = await sessions.createOne({
       candidates: [
@@ -230,7 +230,7 @@ test.describe('Summary E2E', () => {
     });
     const officer = await registerUser('ADJOINT_SECRETAIRE_GENERAL');
     const otherFormation = await registerUser('MEMBRE_DU_SIEGE');
-    const { data: technical } = await developer.administration.createUser({
+    const { data: technical } = await teamMember.administration.createUser({
       body: {
         email: `technical+${crypto.randomUUID()}@example.fr`,
         firstName: 'Camille',

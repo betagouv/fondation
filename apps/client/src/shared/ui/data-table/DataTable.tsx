@@ -87,6 +87,8 @@ export function DataTable<Data extends RowData>(props: {
   fluid?: boolean;
   isLoading?: boolean;
   onEndReached?: () => void;
+  /** the rows up to the last one on screen, without those rendered ahead: it goes down when scrolling back up */
+  onSeenRowsChange?: (seenRows: number) => void;
   revealedRowId?: string | null;
   rowTint?: (row: Row<Data>) => string | undefined;
   scrollsWithPage?: boolean;
@@ -96,7 +98,7 @@ export function DataTable<Data extends RowData>(props: {
 }) {
   const [scrollBox, setScrollBox] = useState<HTMLDivElement | null>(null);
   const headerRef = useRef<HTMLDivElement>(null);
-  const { onEndReached, scrollsWithPage, table, visibleRows } = props;
+  const { onEndReached, onSeenRowsChange, scrollsWithPage, table, visibleRows } = props;
 
   const rows = table.getRowModel().rows;
   const totalRows = rows.length;
@@ -105,6 +107,11 @@ export function DataTable<Data extends RowData>(props: {
   const virtualRows = virtualizer.getVirtualItems();
 
   const lastRenderedIndex = virtualRows.at(-1)?.index;
+  const seenRows = virtualizer.range ? virtualizer.range.endIndex + 1 : 0;
+  useEffect(() => {
+    onSeenRowsChange?.(seenRows);
+  }, [onSeenRowsChange, seenRows]);
+
   useEffect(() => {
     if (onEndReached && lastRenderedIndex !== undefined && lastRenderedIndex >= totalRows - 1) {
       onEndReached();

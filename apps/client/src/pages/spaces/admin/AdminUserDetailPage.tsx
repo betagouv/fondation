@@ -441,7 +441,7 @@ function TechnicalAccountToggle(props: { user: DetailedAdminUserDto }) {
   const mark = useMarkTechnicalAccount(props.user.id);
   const unmark = useUnmarkTechnicalAccount(props.user.id);
   const description = formatMessage({
-    defaultMessage: "Compte d'un développeur de Fondation",
+    defaultMessage: "Compte d'un membre de l'équipe Fondation",
   });
 
   if (!props.user.canManageTechnicalAccount && !props.user.isTechnical) return null;

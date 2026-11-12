@@ -263,7 +263,7 @@ export class User {
     return !isSecretariat(this.role.role);
   }
 
-  /** only a developer marks the accounts of the developers, for no agent of the CSM to drop out of its lists by mistake */
+  /** only a member of the Fondation team marks the accounts of the team, for no agent of the CSM to drop out of its lists by mistake */
   static canManageTechnicalAccounts(actor: { isTechnical: boolean }): boolean {
     return actor.isTechnical;
   }
