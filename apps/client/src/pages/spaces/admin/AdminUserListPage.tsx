@@ -71,9 +71,9 @@ function useAdminUserColumns() {
           <span className="inline-flex items-center gap-1">
             {getValue().label}
             {row.original.isTechnical && (
-              <Tooltip focusable label={formatMessage({ defaultMessage: 'Développeur' })}>
+              <Tooltip focusable label={formatMessage({ defaultMessage: 'Compte technique' })}>
                 <span
-                  aria-label={formatMessage({ defaultMessage: 'Développeur' })}
+                  aria-label={formatMessage({ defaultMessage: 'Compte technique' })}
                   className="fr-icon-macbook-line fr-icon--sm text-(--text-mention-grey)"
                   role="img"
                 />

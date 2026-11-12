@@ -93,10 +93,14 @@ test.describe('Administration', () => {
     expect(changes).toEqual([{ changedBy: admin['@user']!.id, status: 'ACTIVE' }]);
   });
 
-  test('should record each change a developer makes to a technical account', async ({ developer, expect, sql }) => {
+  test('should record each change a member of the Fondation team makes to a technical account', async ({
+    expect,
+    sql,
+    teamMember,
+  }) => {
     const email = `technical+${crypto.randomUUID()}@example.fr`;
 
-    const { data: created } = await developer.administration.createUser({
+    const { data: created } = await teamMember.administration.createUser({
       body: {
         email,
         firstName: 'Camille',
@@ -108,20 +112,23 @@ test.describe('Administration', () => {
       },
       throwOnError: true,
     });
-    const { data: listed } = await developer.administration.listUsers({ query: { search: email }, throwOnError: true });
+    const { data: listed } = await teamMember.administration.listUsers({
+      query: { search: email },
+      throwOnError: true,
+    });
     expect(listed.items).toEqual([expect.objectContaining({ id: created.id, isTechnical: true })]);
 
     const path = { userId: created.id };
-    await developer.administration.unmarkTechnicalAccount({ path, throwOnError: true });
-    await developer.administration.markTechnicalAccount({ path, throwOnError: true });
+    await teamMember.administration.unmarkTechnicalAccount({ path, throwOnError: true });
+    await teamMember.administration.markTechnicalAccount({ path, throwOnError: true });
 
-    const { data: detailed } = await developer.administration.detailsUser({ path, throwOnError: true });
+    const { data: detailed } = await teamMember.administration.detailsUser({ path, throwOnError: true });
     expect(detailed).toMatchObject({ canManageTechnicalAccount: true, isTechnical: true });
     const changes = await sql`
       select is_technical as "isTechnical", changed_by as "changedBy"
       from identity_and_access_context.technical_account_changes
       where user_id = ${created.id} order by changed_at`;
-    const by = developer['@user']!.id;
+    const by = teamMember['@user']!.id;
     expect(changes).toEqual([
       { changedBy: by, isTechnical: true },
       { changedBy: by, isTechnical: false },
