@@ -3,6 +3,7 @@ import { forwardRef, Inject, Injectable, Logger, NotFoundException, StreamableFi
 import * as Sentry from '@sentry/node';
 
 import { Prisma } from '../../../../generated/prisma/client';
+import { lockSessionRawQuery } from '../../../../generated/prisma/sql';
 import type { AuditionSchedule } from '../../../../utils/audition-schedule';
 import { DateOnly } from '../../../../utils/date-only';
 import { isDefined } from '../../../../utils/is-defined';
@@ -254,6 +255,7 @@ export class TransparenceService {
     authorId: string;
     sessionId: string;
   }): Promise<void> {
+    await this.lockReportersAndRecusals(command.sessionId);
     const session = await this.nominationSessionRepository.find(command.sessionId, {
       nominationFileIds: new Set(command.affectations.map(({ nominationFileId }) => nominationFileId)),
     });
@@ -339,6 +341,7 @@ export class TransparenceService {
     nominationFileIds: readonly string[] | undefined;
     sessionId: string;
   }): Promise<void> {
+    await this.lockReportersAndRecusals(command.sessionId);
     const session = await this.nominationSessionRepository.find(command.sessionId, {
       nominationFileIds: new Set(command.nominationFileIds),
     });
@@ -417,6 +420,7 @@ export class TransparenceService {
     recusals: readonly { memberIds: readonly string[]; nominationFileId: string }[];
     sessionId: string;
   }): Promise<void> {
+    await this.lockReportersAndRecusals(command.sessionId);
     const nominationFileIds = new Set(command.recusals.map(({ nominationFileId }) => nominationFileId));
     const session = await this.nominationSessionRepository.find(command.sessionId, { nominationFileIds });
 
@@ -437,6 +441,9 @@ export class TransparenceService {
           .entries()
           .map(([nominationFileId, members]) => [nominationFileId, new Set(members.map(({ id }) => id))]),
       ),
+      reportersByFile: await this.versions.findPublishedAndLatestReporters({
+        nominationFileIds: [...nominationFileIds],
+      }),
     });
     await this.docs.internalInvalidateDocs(await this.nominationSessionRepository.persist(session));
   }
@@ -1039,5 +1046,10 @@ export class TransparenceService {
     });
 
     await this.nominationSessionRepository.persist(session);
+  }
+
+  /** an affectation and a recusal sent together wait for each other, so each one sees the other's members */
+  private async lockReportersAndRecusals(sessionId: string): Promise<void> {
+    await this.db.tx.$queryRawTyped(lockSessionRawQuery(sessionId));
   }
 }

@@ -4,11 +4,13 @@ import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
 import { Prisma } from '../../../../../generated/prisma/client';
+import { findPublishedAndLatestReportersRawQuery } from '../../../../../generated/prisma/sql';
 import { Db } from '../../../../framework/database';
 import { prismaStatutAffectationEnumToStatutAffectationEnum } from '../../../../shared/mappers/statut-affectation.mapper';
 import type { PublicationStatus } from '../../../../shared/publication-status.enum';
 import type { StatutAffectationEnum } from '../../../../shared/statut-affectation.enum';
 import { PublishableAffectations } from '../../domain/affectations-publication';
+import type { FileReporters } from '../../domain/member-recusal';
 import { publicationStatusOf } from '../../domain/publication';
 
 @Injectable()
@@ -134,6 +136,31 @@ export class AffectationVersionFinder {
       const list = byNominationFileId.get(nominationFileId) ?? [];
       list.push(user);
       byNominationFileId.set(nominationFileId, list);
+    }
+
+    return byNominationFileId;
+  }
+
+  /** the reporters of each file in the last published version and in the latest version of its session */
+  @Transactional()
+  async findPublishedAndLatestReporters(query: {
+    nominationFileIds: readonly string[];
+  }): Promise<Map<string, FileReporters>> {
+    if (query.nominationFileIds.length === 0) return new Map();
+
+    const rows = await this.db.tx.$queryRawTyped(
+      findPublishedAndLatestReportersRawQuery(query.nominationFileIds as string[]),
+    );
+
+    const byNominationFileId = new Map<string, { latestIds: Set<string>; publishedIds: Set<string> }>();
+    for (const { isLatest, isPublished, nominationFileId, userId } of rows) {
+      const reporters = byNominationFileId.get(nominationFileId) ?? {
+        latestIds: new Set(),
+        publishedIds: new Set(),
+      };
+      if (isLatest) reporters.latestIds.add(userId);
+      if (isPublished) reporters.publishedIds.add(userId);
+      byNominationFileId.set(nominationFileId, reporters);
     }
 
     return byNominationFileId;

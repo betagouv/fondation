@@ -198,6 +198,7 @@ function makeNominationFile(args: SidePanelArgs): SessionNominationFile {
   const id = ['dossier', ...Object.values(args)].join('-');
 
   const isAuditionedPosition = args.audition !== NONE;
+  const canRecuseMembers = isSg && lockedReason === null;
 
   return makeSessionNominationFile({
     auditionDate: args.audition === 'scheduled' ? { day: 17, month: 11, year: 2026 } : null,
@@ -205,7 +206,7 @@ function makeNominationFile(args: SidePanelArgs): SessionNominationFile {
     // the members are not told who wanted the audition
     auditionRequirement: isSg && isAuditionedPosition ? 'POSITION' : null,
     auditionTime: args.audition === 'scheduled' ? { hours: 14, minutes: 30, seconds: 0 } : null,
-    canRecuseMembers: isSg && lockedReason === null,
+    canRecuseMembers,
     canScheduleAudition:
       lockedReason !== 'ARCHIVED_SESSION' && (outcome === null || PENDING_OUTCOMES.has(outcome)),
     comment: 'Candidature soutenue par la cheffe de cour, à rapprocher du profil attendu.',
@@ -243,6 +244,7 @@ function makeNominationFile(args: SidePanelArgs): SessionNominationFile {
     isArchived: lockedReason === 'ARCHIVED_SESSION',
     memo: isSg ? null : { value: null },
     missingEvaluation: args.missingEvaluation,
+    nonRecusableMembers: canRecuseMembers ? REPORTERS.map(({ id }) => ({ id, reason: 'REPORTER' })) : [],
     observations: args.hasObservations
       ? OBSERVATIONS.map(({ description, followUp, id, magistrat }) => ({
           audition: null,

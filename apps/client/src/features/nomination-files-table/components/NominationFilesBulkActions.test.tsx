@@ -49,6 +49,7 @@ function file(props: {
   canRecuseMembers?: boolean;
   id: string;
   nomMagistrat: string;
+  nonRecusableMemberIds?: readonly string[];
   outcome?: 'VALIDATED' | 'NON_VALIDATED';
   priorities?: readonly string[];
   recusedMembers?: SessionNominationFile['recusedMembers'];
@@ -64,6 +65,7 @@ function file(props: {
       posteCible: 'Substitut du procureur près le TJ de Lyon',
     },
     id: props.id,
+    nonRecusableMembers: (props.nonRecusableMemberIds ?? []).map((id) => ({ id, reason: 'REPORTER' })),
     priorities: props.priorities ?? [],
     recusedMembers: props.recusedMembers ?? [],
     reporters: props.reporters ?? [],
@@ -153,9 +155,9 @@ describe('NominationFilesBulkActions', () => {
     );
   });
 
-  it('should name the reporters and their files before recusing them', async () => {
+  it('should recuse a reporter only on the propositions they do not report', async () => {
     renderActions([
-      file({ id: 'file-1', nomMagistrat: 'BOURDIEU Pierre', reporters: [CAMILLE] }),
+      file({ id: 'file-1', nomMagistrat: 'BOURDIEU Pierre', nonRecusableMemberIds: [CAMILLE.id] }),
       file({ id: 'file-2', nomMagistrat: 'HARENDT Anna' }),
     ]);
 
@@ -163,8 +165,8 @@ describe('NominationFilesBulkActions', () => {
     await chooseOption('Camille COMMUN');
 
     const dialog = screen.getByRole('dialog', { name: 'Déporter un rapporteur' });
-    expect(within(dialog).getByRole('listitem')).toHaveTextContent(
-      'Camille COMMUN : BOURDIEU Pierre (Substitut du procureur près le TJ de Lyon)',
+    expect(dialog).toHaveTextContent(
+      'Vous souhaitez enregistrer le déport de Camille COMMUN sur la proposition de nomination de BOURDIEU Pierre (Substitut du procureur près le TJ de Lyon), dont ce membre est rapporteur. Pour pouvoir enregistrer ce déport, vous devez au préalable modifier le rapporteur, puis publier la nouvelle affectation si ce membre est rapporteur dans la version publiée. Le déport sera bien enregistré sur les autres propositions sélectionnées.',
     );
     expect(recuseMembers).not.toHaveBeenCalled();
 
@@ -173,7 +175,7 @@ describe('NominationFilesBulkActions', () => {
     expect(recuseMembers).toHaveBeenCalledWith(
       {
         items: [
-          { memberIds: ['member-1'], nominationFileId: 'file-1' },
+          { memberIds: [], nominationFileId: 'file-1' },
           { memberIds: ['member-1'], nominationFileId: 'file-2' },
         ],
       },
@@ -181,9 +183,47 @@ describe('NominationFilesBulkActions', () => {
     );
   });
 
+  it('should list the members and the propositions they report', async () => {
+    renderActions([
+      file({ id: 'file-1', nomMagistrat: 'BOURDIEU Pierre', nonRecusableMemberIds: [CAMILLE.id] }),
+      file({ id: 'file-2', nomMagistrat: 'HARENDT Anna', nonRecusableMemberIds: [CAMILLE.id] }),
+      file({ id: 'file-3', nomMagistrat: 'WEIL Simone' }),
+    ]);
+
+    await openDropdown(/Membres déportés/);
+    await chooseOption('Camille COMMUN');
+
+    const dialog = screen.getByRole('dialog', { name: 'Déporter un rapporteur' });
+    expect(within(dialog).getByRole('listitem')).toHaveTextContent(
+      'Camille COMMUN : BOURDIEU Pierre (Substitut du procureur près le TJ de Lyon), HARENDT Anna (Substitut du procureur près le TJ de Lyon)',
+    );
+    expect(dialog).toHaveTextContent(
+      'Les déports seront bien enregistrés sur les autres propositions sélectionnées.',
+    );
+  });
+
+  it('should only close when the member reports every selected proposition', async () => {
+    renderActions([
+      file({ id: 'file-1', nomMagistrat: 'BOURDIEU Pierre', nonRecusableMemberIds: [CAMILLE.id] }),
+      file({ id: 'file-2', nomMagistrat: 'HARENDT Anna', nonRecusableMemberIds: [CAMILLE.id] }),
+    ]);
+
+    await openDropdown(/Membres déportés/);
+    await chooseOption('Camille COMMUN');
+
+    const dialog = screen.getByRole('dialog', { name: 'Déporter un rapporteur' });
+    expect(dialog).not.toHaveTextContent('autres propositions sélectionnées');
+    expect(within(dialog).queryByRole('button', { name: 'Déporter' })).toBeNull();
+
+    const [close] = within(dialog).getAllByRole('button', { name: 'Fermer' }).reverse();
+    await userEvent.click(close!);
+
+    expect(recuseMembers).not.toHaveBeenCalled();
+  });
+
   it('should recuse nobody when the secretariat cancels', async () => {
     renderActions([
-      file({ id: 'file-1', nomMagistrat: 'BOURDIEU Pierre', reporters: [CAMILLE] }),
+      file({ id: 'file-1', nomMagistrat: 'BOURDIEU Pierre', nonRecusableMemberIds: [CAMILLE.id] }),
       file({ id: 'file-2', nomMagistrat: 'HARENDT Anna' }),
     ]);
 
@@ -193,24 +233,6 @@ describe('NominationFilesBulkActions', () => {
 
     expect(recuseMembers).not.toHaveBeenCalled();
     expect(screen.queryByRole('button', { name: 'Retirer Camille COMMUN' })).toBeNull();
-  });
-
-  it('should not ask again for a reporter already recused from their file', async () => {
-    renderActions([
-      file({
-        id: 'file-1',
-        nomMagistrat: 'BOURDIEU Pierre',
-        recusedMembers: [CAMILLE],
-        reporters: [CAMILLE],
-      }),
-      file({ id: 'file-2', nomMagistrat: 'HARENDT Anna' }),
-    ]);
-
-    await openDropdown(/Membres déportés/);
-    await chooseOption('Camille COMMUN');
-
-    expect(screen.queryByRole('dialog', { name: /Déporter/ })).toBeNull();
-    expect(recuseMembers).toHaveBeenCalled();
   });
 
   it('should withdraw the recusal of a reporter without asking', async () => {

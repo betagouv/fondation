@@ -76,6 +76,7 @@ const NOMINATION_FILE: DetailedNominationFileDto = {
   memo: null,
   missingEvaluation: false,
   missingEvaluationComment: null,
+  nonRecusableMembers: [],
   observations: [],
   priorities: ['ETOILE'],
   recusedMembers: [],

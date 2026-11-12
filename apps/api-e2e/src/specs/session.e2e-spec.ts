@@ -161,6 +161,7 @@ test.describe('Session E2E', () => {
         memo: null,
         missingEvaluation: false,
         missingEvaluationComment: null,
+        nonRecusableMembers: [{ id: expect.any(String), reason: 'REPORTER' }],
         observations: [],
         priorities: [],
         recusedMembers: [],
@@ -217,6 +218,10 @@ test.describe('Session E2E', () => {
         memo: null,
         missingEvaluation: false,
         missingEvaluationComment: null,
+        nonRecusableMembers: [
+          { id: expect.any(String), reason: 'REPORTER' },
+          { id: expect.any(String), reason: 'REPORTER' },
+        ],
         observations: [],
         priorities: [],
         recusedMembers: [],
@@ -788,6 +793,102 @@ test.describe('Session E2E', () => {
           [withdrawnFileId, []],
         ]),
       );
+    });
+
+    test('should serve a reporter of the unpublished affectation as a member who cannot recuse themselves', async ({
+      agent,
+      member,
+      sessions,
+      expect,
+    }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+      const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+      const memberId = member['@user']!.id;
+      await agent.sessions.affectReporters({
+        body: { items: [{ nominationFileId: path.nominationFileId, reporterIds: [memberId] }] },
+        path: { sessionId: session.id },
+        throwOnError: true,
+      });
+
+      const file = await agent.sessions.detailNominationFile({ path, throwOnError: true });
+      expect(file.data.nonRecusableMembers).toEqual([{ id: memberId, reason: 'REPORTER' }]);
+    });
+
+    test('should refuse to recuse a reporter of the unpublished affectation', async ({
+      agent,
+      member,
+      sessions,
+      expect,
+    }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+      const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+      const memberId = member['@user']!.id;
+      await agent.sessions.affectReporters({
+        body: { items: [{ nominationFileId: path.nominationFileId, reporterIds: [memberId] }] },
+        path: { sessionId: session.id },
+        throwOnError: true,
+      });
+
+      const refused = await agent.sessions.recuseMembers({ body: { memberIds: [memberId] }, path });
+      expect(refused.response?.status).toBe(400);
+      expect(refused.error).toMatchObject({
+        validationErrors: [
+          "Un rapporteur ne peut pas se déporter : retirez-le d'abord de l'affectation, puis publiez-la s'il est rapporteur dans la version publiée",
+        ],
+      });
+    });
+
+    test('should refuse to recuse a published reporter removed from a version not published yet', async ({
+      agent,
+      member,
+      sessions,
+      expect,
+    }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+      const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+      const memberId = member['@user']!.id;
+      const affect = (reporterIds: string[]) =>
+        agent.sessions.affectReporters({
+          body: { items: [{ nominationFileId: path.nominationFileId, reporterIds }] },
+          path: { sessionId: session.id },
+          throwOnError: true,
+        });
+      await affect([memberId]);
+      await agent.sessions.publishNominationSessionAffectationsVersion({
+        path: { sessionId: session.id },
+        throwOnError: true,
+      });
+      await affect([]);
+
+      const refused = await agent.sessions.recuseMembers({ body: { memberIds: [memberId] }, path });
+      expect(refused.response?.status).toBe(400);
+    });
+
+    test('should recuse a published reporter once a version without them is published', async ({
+      agent,
+      member,
+      sessions,
+      expect,
+    }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+      const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+      const memberId = member['@user']!.id;
+      const affectAndPublish = async (reporterIds: string[]) => {
+        await agent.sessions.affectReporters({
+          body: { items: [{ nominationFileId: path.nominationFileId, reporterIds }] },
+          path: { sessionId: session.id },
+          throwOnError: true,
+        });
+        await agent.sessions.publishNominationSessionAffectationsVersion({
+          path: { sessionId: session.id },
+          throwOnError: true,
+        });
+      };
+      await affectAndPublish([memberId]);
+      await affectAndPublish([]);
+
+      const recused = await agent.sessions.recuseMembers({ body: { memberIds: [memberId] }, path });
+      expect(recused.data?.recusedMembers.map(({ id }) => id)).toEqual([memberId]);
     });
 
     test('should only list the nomination files with a missing evaluation', async ({ agent, sessions, expect }) => {

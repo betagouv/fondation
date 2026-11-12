@@ -404,6 +404,13 @@ export type PaginatedNominationFiles = {
         expectedReportersCount: number | null;
         missingEvaluation: boolean;
         missingEvaluationComment: string | null;
+        /**
+         * empty when the user cannot recuse members on this file
+         */
+        nonRecusableMembers: Array<{
+            id: string;
+            reason: 'REPORTER';
+        }>;
         reporters: Array<{
             id: string;
             firstName: string;
@@ -722,6 +729,13 @@ export type DetailedNominationFileDto = {
     expectedReportersCount: number | null;
     missingEvaluation: boolean;
     missingEvaluationComment: string | null;
+    /**
+     * empty when the user cannot recuse members on this file
+     */
+    nonRecusableMembers: Array<{
+        id: string;
+        reason: 'REPORTER';
+    }>;
     reporters: Array<{
         id: string;
         firstName: string;

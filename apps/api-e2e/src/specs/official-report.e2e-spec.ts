@@ -522,6 +522,7 @@ test.describe('Official report', () => {
     agent,
     docs,
     expect,
+    logIn,
     member,
   }) => {
     const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
@@ -533,8 +534,12 @@ test.describe('Official report', () => {
       const block = document.data!.blocks.find((b) => b.kind === 'file' && b.nominationFileId === nominationFileId);
       return block?.kind === 'file' ? block.note : undefined;
     };
+    const colleague = await logIn('MEMBRE_COMMUN');
 
-    const { data } = await agent.sessions.recuseMembers({ body: { memberIds: [member['@user']!.id] }, path: filePath });
+    const { data } = await agent.sessions.recuseMembers({
+      body: { memberIds: [colleague['@user']!.id] },
+      path: filePath,
+    });
     const [recused] = data!.recusedMembers;
 
     const mentioned = await noteOf();
@@ -556,12 +561,13 @@ test.describe('Official report', () => {
     agent,
     docs,
     expect,
+    logIn,
     member,
   }) => {
     const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
     const { id: officialReportId } = await docs.officialReport(await docs.agenda(session));
     const nominationFileId = session.files[0]!.id;
-    const userId = member['@user']!.id;
+    const userId = (await logIn('MEMBRE_COMMUN'))['@user']!.id;
 
     await admin.administration.updateRecusalTitle({
       body: { recusalTitle: 'le Bâtonnier' },
@@ -586,12 +592,13 @@ test.describe('Official report', () => {
     agent,
     docs,
     expect,
+    logIn,
     member,
   }) => {
     const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
     const { id: officialReportId } = await docs.officialReport(await docs.agenda(session));
     const nominationFileId = session.files[0]!.id;
-    const userId = member['@user']!.id;
+    const userId = (await logIn('MEMBRE_COMMUN'))['@user']!.id;
 
     await agent.members.updateRecusalTitle({
       body: { recusalTitle: 'le Bâtonnier' },
@@ -638,12 +645,13 @@ test.describe('Official report', () => {
     agent,
     docs,
     expect,
+    logIn,
     member,
   }) => {
     const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
     const { id: officialReportId } = await docs.officialReport(await docs.agenda(session));
     const nominationFileId = session.files[0]!.id;
-    const userId = member['@user']!.id;
+    const userId = (await logIn('MEMBRE_COMMUN'))['@user']!.id;
 
     const { data } = await agent.sessions.recuseMembers({
       body: { memberIds: [userId] },
@@ -670,6 +678,7 @@ test.describe('Official report', () => {
     agent,
     docs,
     expect,
+    logIn,
     member,
   }) => {
     const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
@@ -684,9 +693,11 @@ test.describe('Official report', () => {
     const isOutdated = async () =>
       (await agent.docs.detailsOfficialReport({ path: { officialReportId } })).data?.outdated;
 
+    const colleague = await logIn('MEMBRE_COMMUN');
+
     await agent.docs.editOfficialReportFileNote({ body: { html: '<p>Information du PV</p>' }, path });
     await agent.sessions.recuseMembers({
-      body: { memberIds: [member['@user']!.id] },
+      body: { memberIds: [colleague['@user']!.id] },
       path: { nominationFileId, sessionId: session.id },
     });
 

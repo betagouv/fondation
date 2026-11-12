@@ -30,7 +30,7 @@
   },
   "overrides": [
     {
-      "files": ["./scripts/**/*.js"],
+      "files": ["./scripts/**/*.js", "./packages/documents-assets/blank-templates/*.cjs"],
       "rules": {
         "no-console": "off",
         "typescript/no-require-imports": "off"

@@ -19,6 +19,7 @@ import {
   NonFormationMemberDefinedAsReporter,
   NonFormationMemberRecused,
   PositionAuditionCannotBeDismissed,
+  ReporterRecused,
   SessionTransparenceAffectationHasUnassignableReporters,
   SessionTransparenceIsArchived,
   SessionTransparenceIsNotArchivable,
@@ -71,6 +72,10 @@ export class TransparenceExceptionFilter implements NestInterceptor {
               },
               { cause: err },
             );
+          }
+
+          if (err instanceof ReporterRecused) {
+            return new BadRequestException({ validationErrors: [err.message] }, { cause: err });
           }
 
           if (err instanceof UnknownNominationFiles) {
