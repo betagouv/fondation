@@ -172,11 +172,11 @@ describe('laterPropositions', () => {
     id,
     session: { date: DateOnly.fromUtcDate(new Date(session.date)), id: session.id ?? id },
   });
-  const block = { receptionDates: [new Date('2026-03-05'), new Date('2026-03-10')], sessionId: 'observed' };
+  const block = { lastReception: new Date('2026-03-10'), sessionId: 'observed' };
 
   it('keeps the propositions of sessions published after the most recent reception of the bloc', () => {
     const propositions = [
-      proposition('between', { date: '2026-03-07' }),
+      proposition('before', { date: '2026-03-07' }),
       proposition('same-day', { date: '2026-03-10' }),
       proposition('after', { date: '2026-03-11' }),
     ];

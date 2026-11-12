@@ -82,7 +82,6 @@ export class ListFollowedUpObservationsQuery {
           { comment, status },
         ]),
       );
-      const receptionDatesByBlock = Map.groupBy(observations, blockKey);
 
       const followUps = new Set(query.filters.followUps);
       const sessionStatuses = new Set(query.filters.sessionStatuses);
@@ -128,17 +127,29 @@ export class ListFollowedUpObservationsQuery {
       const files = await this.sessions.internalFindNominationFilesByIds({
         nominationFileIds: pageItems.map(({ nominationFileId }) => nominationFileId),
       });
-      const propositions = await this.sessions.internalFindMagistratsPropositions({
-        magistratIds: [...new Set(pageItems.map(({ magistratId }) => magistratId))],
+      const magistratIds = [...new Set(pageItems.map(({ magistratId }) => magistratId))];
+      const propositions = await this.sessions.internalFindMagistratsPropositions({ magistratIds });
+      // the bloc counts all the observations of the observant in the session, those without a suite too
+      const blocks = await this.db.tx.observation.groupBy({
+        _max: { dateReception: true },
+        by: ['magistratId', 'sessionId'],
+        where: {
+          magistratId: { in: magistratIds },
+          sessionId: { in: [...new Set(pageItems.map(({ sessionId }) => sessionId))] },
+        },
       });
+      const lastReceptionByBlock = new Map(
+        blocks.map(({ _max, magistratId, sessionId }) => [
+          blockKey({ magistratId, sessionId }),
+          _max.dateReception,
+        ]),
+      );
 
       return paginate({
         items: pageItems.map((observation) => ({
           laterPropositions: laterPropositions(
             {
-              receptionDates: (receptionDatesByBlock.get(blockKey(observation)) ?? []).map(
-                ({ dateReception }) => dateReception,
-              ),
+              lastReception: lastReceptionByBlock.get(blockKey(observation)) ?? observation.dateReception,
               sessionId: observation.sessionId,
             },
             propositions.get(observation.magistratId) ?? [],

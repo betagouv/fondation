@@ -40,14 +40,14 @@ export function sortByObservationBlock<T extends BlockedObservation>(
 }
 
 // the observant is proposed again after their observations: in another session published after the most
-// recent reception date of the bloc
+// recent reception date of the bloc, observations without a suite included
 export function laterPropositions<T extends { session: { date: DateOnly; id: string } }>(
-  block: { receptionDates: readonly Date[]; sessionId: string },
+  block: { lastReception: Date; sessionId: string },
   propositions: readonly T[],
 ): T[] {
-  const lastReception = Math.max(...block.receptionDates.map((date) => date.getTime()));
   return propositions.filter(
-    ({ session }) => session.id !== block.sessionId && session.date.toDate().getTime() > lastReception,
+    ({ session }) =>
+      session.id !== block.sessionId && session.date.toDate().getTime() > block.lastReception.getTime(),
   );
 }
 
