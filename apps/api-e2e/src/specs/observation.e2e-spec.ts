@@ -174,6 +174,37 @@ test.describe('Observation', () => {
     expect(readByOther.data!.memberComment).toBeNull();
   });
 
+  test('should let the secretariat edit an observation and a reporter only comment it', async ({
+    agent,
+    expect,
+    logIn,
+    member,
+    sessions,
+  }) => {
+    const notReporter = await logIn('MEMBRE_COMMUN');
+    const session = await sessions.createOne(SESSION, { reporters: [member['@user']!] });
+    const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+    const { data } = await agent.observations.createObservation({
+      body: { form: observationForm({ dateReception: '2026-05-02', magistratId: session.files[1]!.magistratId }) },
+      path,
+      throwOnError: true,
+    });
+    const observationPath = { ...path, observationId: data.id };
+
+    const capabilities = await Promise.all(
+      [agent, member, notReporter].map(async (user) => {
+        const read = await user.observations.getObservationDetails({ path: observationPath, throwOnError: true });
+        return { canComment: read.data.canComment, canEdit: read.data.canEdit };
+      }),
+    );
+
+    expect(capabilities).toEqual([
+      { canComment: false, canEdit: true },
+      { canComment: true, canEdit: false },
+      { canComment: false, canEdit: false },
+    ]);
+  });
+
   test('should set aside the screenshots an observation comment no longer embeds', async ({
     agent,
     expect,

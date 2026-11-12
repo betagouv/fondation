@@ -2170,6 +2170,8 @@ export type ListObservationsResponseDto = {
 
 export type GetObservationDetailsResponseDto = {
     id: string;
+    canEdit: boolean;
+    canComment: boolean;
     isArchived: boolean;
     receptionDate: {
         year: number;
@@ -2225,7 +2227,6 @@ export type GetObservationDetailsResponseDto = {
             day: number;
         };
     }>;
-    isMemberReporter: boolean;
     memberComment: {
         comment: string;
         screenshots: Array<{

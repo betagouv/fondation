@@ -7,7 +7,6 @@ import type { GetObservationDetailsResponseDto } from '@api/types';
 import { useUpdateObservationMutation } from '@queries/observations.queries';
 
 export function ObservationDescription(props: {
-  isArchived: boolean;
   nominationFileId: string;
   observation: GetObservationDetailsResponseDto;
   sessionId: string;
@@ -42,7 +41,7 @@ export function ObservationDescription(props: {
           })
         }
         placeholder={formatMessage({ defaultMessage: 'Saisissez un commentaire…' })}
-        readOnly={!isSg || props.isArchived}
+        readOnly={!props.observation.canEdit}
       />
     </>
   );

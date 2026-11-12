@@ -235,12 +235,17 @@ export class Observation {
     this.#messages.push(new ObservationFilesDetached(this.id, command.fileIds));
   }
 
+  // a reporter of the file comments the observation for themselves; the secretariat général edits the observation itself
+  static canComment(reader: { userId: string; reporterIds: readonly string[] }): boolean {
+    return reader.reporterIds.includes(reader.userId);
+  }
+
   attachMemberCommentScreenshots(command: {
     userId: string;
     reporterIds: readonly string[];
     files: readonly { id: string }[];
   }): void {
-    if (!command.reporterIds.includes(command.userId)) {
+    if (!Observation.canComment(command)) {
       throw new UserNotAllowedToAttachScreenshotsError();
     }
 
@@ -252,7 +257,7 @@ export class Observation {
   }
 
   writeMemberComment(command: { userId: string; reporterIds: readonly string[]; comment: string }): void {
-    if (!command.reporterIds.includes(command.userId)) {
+    if (!Observation.canComment(command)) {
       throw new UserNotAllowedToWriteCommentError();
     }
 
