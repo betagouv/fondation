@@ -1,5 +1,6 @@
 import {
   ObservationBlockEmptied,
+  ObservationBlockReopened,
   Observation,
   ObservationDeleted,
   ObservationFollowedUp,
@@ -116,6 +117,44 @@ describe('Observation', () => {
       });
 
       expect(updated.messages).toEqual([expect.any(ObservationUpdated)]);
+    });
+  });
+
+  describe('the tracking of the bloc', () => {
+    it('reopens the bloc a new observation joins', () => {
+      const created = Observation.create({
+        createdByUserId: 'user-1',
+        dateReception: new Date(2026, 4, 2),
+        description: null,
+        files: [],
+        linkedFiles: [],
+        magistratId: 'magistrat-1',
+        nominationFile: { id: 'file-1', observations: [] },
+        sessionId: 'session-1',
+      });
+
+      expect(created.messages).toContainEqual(new ObservationBlockReopened('session-1', 'magistrat-1'));
+    });
+
+    it('reopens the bloc of the observant an observation moves to', () => {
+      const updated = Observation.from({
+        dateReception: new Date(2026, 4, 2),
+        id: 'obs-1',
+        magistratId: 'magistrat-1',
+        nominationFileId: 'file-1',
+        sessionId: 'session-1',
+      });
+
+      updated.update({
+        dateReception: new Date(2026, 4, 2),
+        description: '',
+        impersonatorId: null,
+        isLastOfObservant: false,
+        magistratId: 'magistrat-2',
+        userId: 'user-1',
+      });
+
+      expect(updated.messages).toContainEqual(new ObservationBlockReopened('session-1', 'magistrat-2'));
     });
   });
 

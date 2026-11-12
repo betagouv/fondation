@@ -19,6 +19,7 @@ import { Files } from '../../../framework/files/files';
 import { TransparenceService } from '../../../session/transparence/infrastructure/transparence.service';
 import {
   ObservationBlockEmptied,
+  ObservationBlockReopened,
   Observation,
   ObservationCreated,
   ObservationDeleted,
@@ -114,6 +115,8 @@ export class ObservationRepository {
         await this.persistObservationFileLinked(message);
       } else if (message instanceof ObservationBlockEmptied) {
         await this.persistObservationBlockEmptied(message);
+      } else if (message instanceof ObservationBlockReopened) {
+        await this.persistObservationBlockReopened(message);
       } else {
         assertNever(message);
       }
@@ -173,6 +176,13 @@ export class ObservationRepository {
         writtenAt: this.clock.now(),
         writtenBy: message.userId,
       },
+    });
+  }
+
+  private persistObservationBlockReopened(message: ObservationBlockReopened) {
+    return this.db.tx.observationBlockTracking.updateMany({
+      data: { status: 'IN_PROGRESS' },
+      where: { magistratId: message.magistratId, sessionId: message.sessionId },
     });
   }
 

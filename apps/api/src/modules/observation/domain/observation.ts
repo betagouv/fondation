@@ -64,6 +64,15 @@ export class ObservationBlockEmptied {
   ) {}
 }
 
+// an observation joins the bloc d'observations of an observant in a session: the bloc needs handling again,
+// so its tracking goes back in progress and keeps its comment
+export class ObservationBlockReopened {
+  constructor(
+    readonly sessionId: string,
+    readonly magistratId: string,
+  ) {}
+}
+
 export class ObservationUpdated {
   constructor(
     readonly id: string,
@@ -116,7 +125,8 @@ type ObservationEvent =
   | ObservationMemberCommentScreenshotsAttached
   | ObservationFollowedUp
   | ObservationFileLinked
-  | ObservationBlockEmptied;
+  | ObservationBlockEmptied
+  | ObservationBlockReopened;
 
 export class Observation {
   private constructor(
@@ -161,6 +171,7 @@ export class Observation {
         command.createdByUserId,
         (command.description || '').trim(),
       ),
+      new ObservationBlockReopened(command.sessionId, command.magistratId),
     );
 
     observation.attachFiles({ files: command.files });
@@ -226,7 +237,10 @@ export class Observation {
         magistratId: command.magistratId,
       }),
     );
-    if (command.magistratId !== this.magistratId && command.isLastOfObservant) this.emptyBlock(command);
+    if (command.magistratId === this.magistratId) return;
+
+    if (command.isLastOfObservant) this.emptyBlock(command);
+    this.#messages.push(new ObservationBlockReopened(this.sessionId, command.magistratId));
   }
 
   detachFiles(command: { fileIds: readonly string[] }): void {
