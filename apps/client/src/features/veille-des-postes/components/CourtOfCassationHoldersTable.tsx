@@ -1,4 +1,3 @@
-import Badge from '@codegouvfr/react-dsfr/Badge';
 import { createColumnHelper, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import clsx from 'clsx';
 import { useCallback, useMemo, useState, type MouseEvent } from 'react';
@@ -6,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { useIntl } from 'react-intl';
 import { generatePath, Link } from 'react-router';
 
+import { knownPositionStatuses } from '../utils/position-status.utils';
 import { useRowRevealedOnReturn } from '@/shared/hooks/useRowRevealedOnReturn';
 import {
   DataTable,
@@ -29,12 +29,13 @@ import {
   useCourtOfCassationHoldersQuery,
 } from '@queries/veille-des-postes.queries';
 
+import { PositionStatusBadge } from './PositionStatusBadge';
+
 const SORTABLE_COLUMNS = new Set<string>([
   'installationDate',
   'name',
 ] satisfies CourtOfCassationHoldersSorting[number]['id'][]);
 
-// a saved link can carry a value the API no longer knows, which it would refuse
 const KNOWN_POSITIONS: Record<CourtOfCassationPosition, true> = {
   AUDITOR_FIRST_GRADE: true,
   AUDITOR_SECOND_GRADE: true,
@@ -43,24 +44,16 @@ const KNOWN_POSITIONS: Record<CourtOfCassationPosition, true> = {
   FIRST_PRESIDENT: true,
   REFERENDARY_COUNSELLOR: true,
 };
-const KNOWN_STATUSES: Record<PositionStatus, true> = {
-  MAY_BECOME_VACANT: true,
-  OCCUPIED: true,
-  VACANT: true,
-};
 
-/** the URL holds anything once edited by hand: only an array of known ids reaches the API */
-function knownValues<Id extends string>(value: unknown, known: Record<Id, true>): Id[] {
-  return Array.isArray(value) ? value.filter((id): id is Id => typeof id === 'string' && id in known) : [];
+/** a saved or hand-edited link can hold anything: only an array of ids the API knows reaches it */
+function knownPositions(value: unknown): CourtOfCassationPosition[] {
+  return Array.isArray(value)
+    ? value.filter((id): id is CourtOfCassationPosition => typeof id === 'string' && id in KNOWN_POSITIONS)
+    : [];
 }
 
 const NO_POSITIONS: CourtOfCassationPositionCount[] = [];
 const NO_STATUSES: PositionStatusCount[] = [];
-const STATUS_SEVERITIES: Record<PositionStatus, 'error' | 'info' | 'warning'> = {
-  MAY_BECOME_VACANT: 'warning',
-  OCCUPIED: 'info',
-  VACANT: 'error',
-};
 
 const h = createColumnHelper<CourtOfCassationHolder>();
 
@@ -96,11 +89,7 @@ function useCourtOfCassationHoldersColumns(props: {
         size: 220,
       }),
       h.accessor('status', {
-        cell: ({ getValue }) => (
-          <Badge noIcon severity={STATUS_SEVERITIES[getValue().id]} small>
-            {getValue().label}
-          </Badge>
-        ),
+        cell: ({ getValue }) => <PositionStatusBadge status={getValue()} />,
         enableSorting: false,
         header: formatMessage({ defaultMessage: 'Alerte / statut' }),
         id: 'status',
@@ -140,7 +129,7 @@ function useCourtOfCassationHoldersColumns(props: {
       h.accessor('installationDate', {
         cell: ({ getValue }) => {
           const installationDate = getValue();
-          return installationDate && formatDateOnly(installationDate);
+          return installationDate ? formatDateOnly(installationDate) : '-';
         },
         header: formatMessage({ defaultMessage: "Date d'installation" }),
         id: 'installationDate',
@@ -195,15 +184,11 @@ export function CourtOfCassationHoldersTable(props: {
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useCourtOfCassationHoldersQuery(
     {
-      positions: knownValues(
-        tableState.columnFilters.find((filter) => filter.id === 'position')?.value,
-        KNOWN_POSITIONS,
-      ),
+      positions: knownPositions(tableState.columnFilters.find((filter) => filter.id === 'position')?.value),
       search: tableState.globalFilter,
       sorting,
-      statuses: knownValues(
+      statuses: knownPositionStatuses(
         tableState.columnFilters.find((filter) => filter.id === 'status')?.value,
-        KNOWN_STATUSES,
       ),
     },
   );

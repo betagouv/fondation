@@ -176,8 +176,8 @@ export const routes: RouteObject[] = [
               },
               {
                 lazy: () =>
-                  import('@/pages/veille-des-postes/UpcomingTab').then(({ UpcomingTab }) => ({
-                    Component: UpcomingTab,
+                  import('@/pages/veille-des-postes/CourtsOfAppealTab').then(({ CourtsOfAppealTab }) => ({
+                    Component: CourtsOfAppealTab,
                   })),
                 path: ROUTE_PATHS.SG.CSM.VEILLE_DES_POSTES_COURTS_OF_APPEAL,
               },
