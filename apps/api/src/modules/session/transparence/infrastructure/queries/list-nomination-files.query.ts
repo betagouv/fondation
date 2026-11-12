@@ -260,7 +260,6 @@ export class ListNominationFilesQuery {
       };
 
       const audition = auditions.get(x.id);
-      const recusedIds = new Set(recusedMembers.get(x.id)?.map(({ id }) => id));
       assert.ok(audition, `no audition seen for the nomination file ${x.id}`);
 
       return {
@@ -317,12 +316,7 @@ export class ListNominationFilesQuery {
           : null,
         missingEvaluation: x.missingEvaluation,
         missingEvaluationComment: x.missingEvaluationComment,
-        nonAffectableMembers: nominationFilesPolicies.canAffectReporters(x, query.user)
-          ? nonAffectableMembers({
-              assignedReporterIds: new Set(x.reporters.map(({ user }) => user.id)),
-              recusedIds,
-            })
-          : [],
+        nonAffectableMembers: nonAffectableMembers(new Set(recusedMembers.get(x.id)?.map(({ id }) => id))),
         nonRecusableMembers: nominationFilesPolicies.canRecuseMembers(x, query.user)
           ? nonRecusableMembers(reporters.get(x.id) ?? { latestIds: new Set(), publishedIds: new Set() })
           : [],
@@ -512,9 +506,7 @@ const NominationFileAffectationItemSchema = z.object({
   expectedReportersCount: z.number().nullable(),
   missingEvaluation: z.boolean(),
   missingEvaluationComment: z.string().nullable(),
-  nonAffectableMembers: z
-    .array(z.object({ id: z.string(), reason: z.enum(NON_AFFECTABLE_REASONS) }))
-    .meta({ description: 'empty when the user cannot affect reporters on this file' }),
+  nonAffectableMembers: z.array(z.object({ id: z.string(), reason: z.enum(NON_AFFECTABLE_REASONS) })),
   nonRecusableMembers: z
     .array(z.object({ id: z.string(), reason: z.enum(NON_RECUSABLE_REASONS) }))
     .meta({ description: 'empty when the user cannot recuse members on this file' }),

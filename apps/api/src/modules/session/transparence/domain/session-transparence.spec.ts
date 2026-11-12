@@ -259,23 +259,6 @@ describe('SessionTransparence', () => {
       expect(transparence.messages).toEqual([]);
     });
 
-    it('keeps a reporter recused before the rule while another reporter is affected', () => {
-      const transparence = session();
-      transparence.affectNominationFileReporters({
-        ...command,
-        affectations: [
-          { nominationFileId: 'nomination-file-id-2', reporterIds: ['recused-member', 'reporter-1'] },
-        ],
-        assignedReporterIds: new Map([['nomination-file-id-2', new Set(['recused-member'])]]),
-      });
-
-      expect(transparence.messages).toEqual([
-        new SessionTransparenceFileReportersAffected('session-id', 'version-id', [
-          { nominationFileId: 'nomination-file-id-2', reporterIds: ['recused-member', 'reporter-1'] },
-        ]),
-      ]);
-    });
-
     it('refuses an auto-affectation that would affect a member recused from the file', () => {
       const transparence = session();
       const autoAffectations = AutoAffectations.from({

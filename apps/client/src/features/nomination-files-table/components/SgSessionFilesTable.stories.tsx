@@ -26,9 +26,7 @@ const sgSessionFiles = sessionFiles.map((file) => {
   return {
     ...file,
     canRecuseMembers,
-    nonAffectableMembers: canRecuseMembers
-      ? recusedMembers.map(({ id }) => ({ id, reason: 'RECUSED' as const }))
-      : [],
+    nonAffectableMembers: recusedMembers.map(({ id }) => ({ id, reason: 'RECUSED' as const })),
     nonRecusableMembers: canRecuseMembers
       ? file.reporters.map(({ id }) => ({ id, reason: 'REPORTER' as const }))
       : [],

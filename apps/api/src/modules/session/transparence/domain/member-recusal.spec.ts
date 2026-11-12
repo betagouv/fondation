@@ -2,18 +2,10 @@ import { nonAffectableMembers, nonRecusableMembers } from './member-recusal';
 
 describe('nonAffectableMembers', () => {
   it('keeps every member recused from the file out of its reporters', () => {
-    expect(
-      nonAffectableMembers({ assignedReporterIds: new Set(), recusedIds: new Set(['member-1', 'member-2']) }),
-    ).toEqual([
+    expect(nonAffectableMembers(new Set(['member-1', 'member-2']))).toEqual([
       { id: 'member-1', reason: 'RECUSED' },
       { id: 'member-2', reason: 'RECUSED' },
     ]);
-  });
-
-  it('keeps a reporter recused before the rule in their place', () => {
-    expect(
-      nonAffectableMembers({ assignedReporterIds: new Set(['member-1']), recusedIds: new Set(['member-1']) }),
-    ).toEqual([]);
   });
 });
 

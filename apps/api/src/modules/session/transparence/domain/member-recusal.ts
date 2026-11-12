@@ -12,15 +12,9 @@ export type NonAffectableReasonEnum = (typeof NON_AFFECTABLE_REASONS)[number];
 
 export type NonAffectableMember = { id: string; reason: NonAffectableReasonEnum };
 
-/**
- * the mirror of nonRecusableMembers: a member recused from a file never becomes its reporter,
- * while a reporter of the latest version recused before the rule keeps their place
- */
-export function nonAffectableMembers(file: {
-  assignedReporterIds: ReadonlySet<string>;
-  recusedIds: ReadonlySet<string>;
-}): NonAffectableMember[] {
-  return [...file.recusedIds.difference(file.assignedReporterIds)].map((id) => ({ id, reason: 'RECUSED' }));
+/** the mirror of nonRecusableMembers: a member recused from a file never becomes its reporter */
+export function nonAffectableMembers(recusedIds: ReadonlySet<string>): NonAffectableMember[] {
+  return [...recusedIds].map((id) => ({ id, reason: 'RECUSED' }));
 }
 
 /**

@@ -401,9 +401,6 @@ export type PaginatedNominationFiles = {
         expectedReportersCount: number | null;
         missingEvaluation: boolean;
         missingEvaluationComment: string | null;
-        /**
-         * empty when the user cannot affect reporters on this file
-         */
         nonAffectableMembers: Array<{
             id: string;
             reason: 'RECUSED';
@@ -733,9 +730,6 @@ export type DetailedNominationFileDto = {
     expectedReportersCount: number | null;
     missingEvaluation: boolean;
     missingEvaluationComment: string | null;
-    /**
-     * empty when the user cannot affect reporters on this file
-     */
     nonAffectableMembers: Array<{
         id: string;
         reason: 'RECUSED';

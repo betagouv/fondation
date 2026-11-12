@@ -936,18 +936,12 @@ export class SessionTransparence {
 
   private assertsNoRecusedMemberAffected(command: {
     affectations: readonly { nominationFileId: string; reporterIds: readonly string[] }[];
-    assignedReporterIds?: ReadonlyMap<string, ReadonlySet<string>>;
     recusedMemberIdsByFile: ReadonlyMap<string, ReadonlySet<string>>;
   }): void {
     const affectsARecusedMember = command.affectations.some(({ nominationFileId, reporterIds }) => {
       const recusedIds = command.recusedMemberIdsByFile.get(nominationFileId);
       if (!recusedIds) return false;
-      const nonAffectableIds = new Set(
-        nonAffectableMembers({
-          assignedReporterIds: command.assignedReporterIds?.get(nominationFileId) ?? new Set(),
-          recusedIds,
-        }).map(({ id }) => id),
-      );
+      const nonAffectableIds = new Set(nonAffectableMembers(recusedIds).map(({ id }) => id));
       return reporterIds.some((id) => nonAffectableIds.has(id));
     });
     if (affectsARecusedMember) throw new RecusedMemberAffected();

@@ -464,25 +464,6 @@ describe('NominationFilesBulkActions', () => {
     expect(screen.queryByRole('button', { name: 'Retirer Camille COMMUN' })).toBeNull();
   });
 
-  // the API leaves a reporter recused before the rule out of the members it refuses to affect
-  it('should not ask again for a member already reporter of the file they recused from', async () => {
-    renderActions([
-      file({
-        id: 'file-1',
-        nomMagistrat: 'BOURDIEU Pierre',
-        recusedMembers: [CAMILLE],
-        reporters: [CAMILLE],
-      }),
-      file({ id: 'file-2', nomMagistrat: 'HARENDT Anna' }),
-    ]);
-
-    await openDropdown(/Affecter un rapporteur/);
-    await chooseOption('Camille COMMUN');
-
-    expect(screen.queryByRole('dialog', { name: /Affecter/ })).toBeNull();
-    expect(affectReporters).toHaveBeenCalled();
-  });
-
   it('should empty the reporters of every selected file', async () => {
     renderActions([
       file({
