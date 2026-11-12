@@ -6,10 +6,13 @@ import type {
   ListCourtOfCassationHoldersData,
   ListedCourtOfAppealFirstPresidentsDto,
   ListedCourtOfCassationHoldersDto,
+  ListedJudicialCourtPresidentsDto,
+  ListJudicialCourtPresidentsData,
 } from '@api/types';
 
 type CourtOfAppealFirstPresidentsQuery = NonNullable<ListCourtOfAppealFirstPresidentsData['query']>;
 type CourtOfCassationHoldersQuery = NonNullable<ListCourtOfCassationHoldersData['query']>;
+type JudicialCourtPresidentsQuery = NonNullable<ListJudicialCourtPresidentsData['query']>;
 
 export type CourtOfAppealFirstPresident = ListedCourtOfAppealFirstPresidentsDto['items'][number];
 export type CourtOfAppealFirstPresidentsSorting =
@@ -36,6 +39,18 @@ type CourtOfCassationHoldersList = {
   statuses: PositionStatus[];
 };
 
+export type JudicialCourtPresident = ListedJudicialCourtPresidentsDto['items'][number];
+export type RessortCount = ListedJudicialCourtPresidentsDto['ressorts'][number];
+export type JudicialCourtPresidentsSorting =
+  | []
+  | [{ desc: boolean; id: NonNullable<JudicialCourtPresidentsQuery['sortBy']> }];
+type JudicialCourtPresidentsList = {
+  ressorts: string[];
+  search: string;
+  sorting: JudicialCourtPresidentsSorting;
+  statuses: PositionStatus[];
+};
+
 export const COURT_OF_APPEAL_FIRST_PRESIDENTS_DEFAULT_SORTING: CourtOfAppealFirstPresidentsSorting = [
   { desc: false, id: 'court' },
 ];
@@ -44,12 +59,18 @@ export const COURT_OF_CASSATION_HOLDERS_DEFAULT_SORTING: CourtOfCassationHolders
   { desc: false, id: 'name' },
 ];
 export const COURT_OF_CASSATION_HOLDERS_PAGE_SIZE = 20;
+export const JUDICIAL_COURT_PRESIDENTS_DEFAULT_SORTING: JudicialCourtPresidentsSorting = [
+  { desc: false, id: 'ressort' },
+];
+export const JUDICIAL_COURT_PRESIDENTS_PAGE_SIZE = 20;
 
 const veilleDesPostesKeys = {
   courtOfAppealFirstPresidents: (props: CourtOfAppealFirstPresidentsList) =>
     ['veilleDesPostes', 'courtOfAppealFirstPresidents', props] as const,
   courtOfCassationHolders: (props: CourtOfCassationHoldersList) =>
     ['veilleDesPostes', 'courtOfCassationHolders', props] as const,
+  judicialCourtPresidents: (props: JudicialCourtPresidentsList) =>
+    ['veilleDesPostes', 'judicialCourtPresidents', props] as const,
 };
 
 /** @warning must stay stable, tanstack only reuses the selection when the function identity does not change */
@@ -140,5 +161,52 @@ export function useCourtOfCassationHoldersQuery(props: CourtOfCassationHoldersLi
     getNextPageParam: (lastPage) => lastPage.nextPageIndex,
     queryKey: veilleDesPostesKeys.courtOfCassationHolders(props),
     select: selectCourtOfCassationHolders,
+  });
+}
+
+/** @warning must stay stable, tanstack only reuses the selection when the function identity does not change */
+function selectJudicialCourtPresidents(data: InfiniteData<ListedJudicialCourtPresidentsDto>) {
+  return {
+    items: data.pages.flatMap((page) => page.items),
+    ressorts: data.pages.at(-1)?.ressorts ?? [],
+    statuses: data.pages.at(-1)?.statuses ?? [],
+    totalCount: data.pages.at(-1)?.totalCount ?? 0,
+  };
+}
+
+/** the same as the unfiltered table, so that both share one request */
+export function useJudicialCourtPresidentsCountQuery() {
+  const { data } = useJudicialCourtPresidentsQuery({
+    ressorts: [],
+    search: '',
+    sorting: JUDICIAL_COURT_PRESIDENTS_DEFAULT_SORTING,
+    statuses: [],
+  });
+  return data?.totalCount;
+}
+
+export function useJudicialCourtPresidentsQuery(props: JudicialCourtPresidentsList) {
+  return useInfiniteQuery({
+    initialPageParam: 1,
+    placeholderData: (previous) => previous,
+    queryFn: async ({ pageParam }) => {
+      const { data } = await $api.veilleDesPostes.listJudicialCourtPresidents({
+        query: {
+          limit: JUDICIAL_COURT_PRESIDENTS_PAGE_SIZE,
+          page: pageParam,
+          ressorts: props.ressorts,
+          search: props.search || undefined,
+          sortBy: props.sorting[0]?.id,
+          sortDesc: props.sorting[0]?.desc ? 'true' : undefined,
+          statuses: props.statuses,
+        },
+        throwOnError: true,
+      });
+      return data;
+    },
+    // after queryFn, which TypeScript reads first to infer the type of lastPage
+    getNextPageParam: (lastPage) => lastPage.nextPageIndex,
+    queryKey: veilleDesPostesKeys.judicialCourtPresidents(props),
+    select: selectJudicialCourtPresidents,
   });
 }

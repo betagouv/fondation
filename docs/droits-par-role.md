@@ -71,45 +71,45 @@ Un Membre ne voit les auditions d'une session qu'une fois publiées.
 
 L'accueil propose les deux pouvoirs de proposition. Le menu garde partout Rechercher un magistrat. Depuis le GDS, il y ajoute Gérer une session, Restitutions, Gérer les membres et Archives. Depuis le CSM, il y ajoute Veille des postes, Appels à candidature, Processus de sélection et Membres. Le logo ramène à l'accueil. L'Administrateur y voit en plus un sous-menu Administration. Sur Gérer une session, il peut aussi créer une session depuis une extraction Lodam.
 
-| URL                                                                                              | Vue                                                              | Membre | Secrétariat général | Administrateur |
-| ------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------- | ------ | ------------------- | -------------- |
-| `/secretariat-general`                                                                           | Accueil : choix du pouvoir de proposition                        | —      | ✓                   | ✓              |
-| `/secretariat-general/csm/veille-des-postes`                                                     | Veille des postes : les trois tableaux de postes                 | —      | ✓                   | ✓              |
-| `/secretariat-general/csm/veille-des-postes/cours-d-appel`                                       | Veille des postes, premiers présidents de cour d'appel           | —      | ✓                   | ✓              |
-| `/secretariat-general/csm/veille-des-postes/tribunaux-judiciaires`                               | Veille des postes, présidents de tribunaux judiciaires (à venir) | —      | ✓                   | ✓              |
-| `/secretariat-general/csm/veille-des-postes/cour-de-cassation`                                   | Veille des postes, magistrats du siège de la Cour de cassation   | —      | ✓                   | ✓              |
-| `/secretariat-general/csm/appels-a-candidature`                                                  | Appels à candidature (à venir)                                   | —      | ✓                   | ✓              |
-| `/secretariat-general/csm/processus-de-selection`                                                | Processus de sélection (à venir)                                 | —      | ✓                   | ✓              |
-| `/secretariat-general/csm/membres`                                                               | Membres du pouvoir CSM (à venir)                                 | —      | ✓                   | ✓              |
-| `/secretariat-general/sessions`                                                                  | Gérer les sessions                                               | —      | ✓                   | ✓              |
-| `/secretariat-general/archives/sessions`                                                         | Sessions archivées                                               | —      | ✓                   | ✓              |
-| `/secretariat-general/session/:sessionId`                                                        | Session, onglet Propositions : dossiers, affectation, décisions  | —      | ✓                   | ✓              |
-| `/secretariat-general/session/:sessionId/auditions`                                              | Session, onglet Auditions                                        | —      | ✓                   | ✓              |
-| `/secretariat-general/session/:sessionId/evaluations-manquantes`                                 | Session, onglet Évaluations manquantes                           | —      | ✓                   | ✓              |
-| `/secretariat-general/session/:sessionId/documents`                                              | Session, onglet Documents : ordres du jour, procès-verbaux       | —      | ✓                   | ✓              |
-| `/secretariat-general/session/:sessionId/pieces-jointes`                                         | Session, onglet Pièces jointes                                   | —      | ✓                   | ✓              |
-| `/secretariat-general/session/:sessionId/commentaire`                                            | Commentaire de session                                           | —      | ✓                   | ✓              |
-| `/secretariat-general/session/:sessionId/dossiers/:nominationFileId/observations/:observationId` | Détail d'une observation                                         | —      | ✓                   | ✓              |
-| `/secretariat-general/magistrats`                                                                | Recherche de magistrats                                          | —      | ✓                   | ✓              |
-| `/secretariat-general/magistrats/:magistratId`                                                   | Fiche d'un magistrat, avec ses numéros de téléphone              | —      | ✓                   | ✓              |
-| `/secretariat-general/membres`                                                                   | Liste des membres                                                | —      | ✓                   | ✓              |
-| `/secretariat-general/membres/:userId`                                                           | Fiche d'un membre : titre, juridictions exclues                  | —      | ✓                   | ✓              |
-| `/secretariat-general/session/:sessionId/docs/ordre-du-jour`                                     | Nouvel ordre du jour                                             | —      | ✓                   | ✓              |
-| `/secretariat-general/session/:sessionId/docs/ordre-du-jour/:agendaId/metadonnees`               | Ordre du jour : métadonnées                                      | —      | ✓                   | ✓              |
-| `/secretariat-general/session/:sessionId/docs/ordre-du-jour/:agendaId/dossiers`                  | Ordre du jour : dossiers                                         | —      | ✓                   | ✓              |
-| `/secretariat-general/session/:sessionId/docs/ordre-du-jour/:agendaId/validation`                | Ordre du jour : aperçu et validation                             | —      | ✓                   | ✓              |
-| `/secretariat-general/session/:sessionId/docs/ordre-du-jour/:agendaId/validation/edition`        | Ordre du jour : retouche du document                             | —      | ✓                   | ✓              |
-| `/secretariat-general/session/:sessionId/docs/pv`                                                | Nouveau procès-verbal                                            | —      | ✓                   | ✓              |
-| `/secretariat-general/session/:sessionId/docs/pv/:officialReportId`                              | Procès-verbal : saisie                                           | —      | ✓                   | ✓              |
-| `/secretariat-general/session/:sessionId/docs/pv/:officialReportId/validation`                   | Procès-verbal : aperçu et validation                             | —      | ✓                   | ✓              |
-| `/secretariat-general/session/:sessionId/docs/pv/:officialReportId/validation/edition`           | Procès-verbal : retouche du document                             | —      | ✓                   | ✓              |
-| `/secretariat-general/restitutions/ordres-du-jour`                                               | Restitutions, onglet Ordres du jour                              | —      | ✓                   | ✓              |
-| `/secretariat-general/restitutions/a-restituer`                                                  | Restitutions, onglet À restituer                                 | —      | ✓                   | ✓              |
-| `/secretariat-general/restitutions/restituees`                                                   | Restitutions, onglet Restituées                                  | —      | ✓                   | ✓              |
-| `/secretariat-general/restitutions/nouvelle-notice`                                              | Nouvelle notice de restitution                                   | —      | ✓                   | ✓              |
-| `/secretariat-general/restitutions/:planId`                                                      | Notice de restitution : saisie                                   | —      | ✓                   | ✓              |
-| `/secretariat-general/restitutions/:planId/validation`                                           | Notice : aperçu et validation                                    | —      | ✓                   | ✓              |
-| `/secretariat-general/restitutions/:planId/validation/edition`                                   | Notice : retouche du document                                    | —      | ✓                   | ✓              |
+| URL                                                                                              | Vue                                                             | Membre | Secrétariat général | Administrateur |
+| ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------- | ------ | ------------------- | -------------- |
+| `/secretariat-general`                                                                           | Accueil : choix du pouvoir de proposition                       | —      | ✓                   | ✓              |
+| `/secretariat-general/csm/veille-des-postes`                                                     | Veille des postes : les trois tableaux de postes                | —      | ✓                   | ✓              |
+| `/secretariat-general/csm/veille-des-postes/cours-d-appel`                                       | Veille des postes, premiers présidents de cour d'appel          | —      | ✓                   | ✓              |
+| `/secretariat-general/csm/veille-des-postes/tribunaux-judiciaires`                               | Veille des postes, présidents de tribunaux judiciaires          | —      | ✓                   | ✓              |
+| `/secretariat-general/csm/veille-des-postes/cour-de-cassation`                                   | Veille des postes, magistrats du siège de la Cour de cassation  | —      | ✓                   | ✓              |
+| `/secretariat-general/csm/appels-a-candidature`                                                  | Appels à candidature (à venir)                                  | —      | ✓                   | ✓              |
+| `/secretariat-general/csm/processus-de-selection`                                                | Processus de sélection (à venir)                                | —      | ✓                   | ✓              |
+| `/secretariat-general/csm/membres`                                                               | Membres du pouvoir CSM (à venir)                                | —      | ✓                   | ✓              |
+| `/secretariat-general/sessions`                                                                  | Gérer les sessions                                              | —      | ✓                   | ✓              |
+| `/secretariat-general/archives/sessions`                                                         | Sessions archivées                                              | —      | ✓                   | ✓              |
+| `/secretariat-general/session/:sessionId`                                                        | Session, onglet Propositions : dossiers, affectation, décisions | —      | ✓                   | ✓              |
+| `/secretariat-general/session/:sessionId/auditions`                                              | Session, onglet Auditions                                       | —      | ✓                   | ✓              |
+| `/secretariat-general/session/:sessionId/evaluations-manquantes`                                 | Session, onglet Évaluations manquantes                          | —      | ✓                   | ✓              |
+| `/secretariat-general/session/:sessionId/documents`                                              | Session, onglet Documents : ordres du jour, procès-verbaux      | —      | ✓                   | ✓              |
+| `/secretariat-general/session/:sessionId/pieces-jointes`                                         | Session, onglet Pièces jointes                                  | —      | ✓                   | ✓              |
+| `/secretariat-general/session/:sessionId/commentaire`                                            | Commentaire de session                                          | —      | ✓                   | ✓              |
+| `/secretariat-general/session/:sessionId/dossiers/:nominationFileId/observations/:observationId` | Détail d'une observation                                        | —      | ✓                   | ✓              |
+| `/secretariat-general/magistrats`                                                                | Recherche de magistrats                                         | —      | ✓                   | ✓              |
+| `/secretariat-general/magistrats/:magistratId`                                                   | Fiche d'un magistrat, avec ses numéros de téléphone             | —      | ✓                   | ✓              |
+| `/secretariat-general/membres`                                                                   | Liste des membres                                               | —      | ✓                   | ✓              |
+| `/secretariat-general/membres/:userId`                                                           | Fiche d'un membre : titre, juridictions exclues                 | —      | ✓                   | ✓              |
+| `/secretariat-general/session/:sessionId/docs/ordre-du-jour`                                     | Nouvel ordre du jour                                            | —      | ✓                   | ✓              |
+| `/secretariat-general/session/:sessionId/docs/ordre-du-jour/:agendaId/metadonnees`               | Ordre du jour : métadonnées                                     | —      | ✓                   | ✓              |
+| `/secretariat-general/session/:sessionId/docs/ordre-du-jour/:agendaId/dossiers`                  | Ordre du jour : dossiers                                        | —      | ✓                   | ✓              |
+| `/secretariat-general/session/:sessionId/docs/ordre-du-jour/:agendaId/validation`                | Ordre du jour : aperçu et validation                            | —      | ✓                   | ✓              |
+| `/secretariat-general/session/:sessionId/docs/ordre-du-jour/:agendaId/validation/edition`        | Ordre du jour : retouche du document                            | —      | ✓                   | ✓              |
+| `/secretariat-general/session/:sessionId/docs/pv`                                                | Nouveau procès-verbal                                           | —      | ✓                   | ✓              |
+| `/secretariat-general/session/:sessionId/docs/pv/:officialReportId`                              | Procès-verbal : saisie                                          | —      | ✓                   | ✓              |
+| `/secretariat-general/session/:sessionId/docs/pv/:officialReportId/validation`                   | Procès-verbal : aperçu et validation                            | —      | ✓                   | ✓              |
+| `/secretariat-general/session/:sessionId/docs/pv/:officialReportId/validation/edition`           | Procès-verbal : retouche du document                            | —      | ✓                   | ✓              |
+| `/secretariat-general/restitutions/ordres-du-jour`                                               | Restitutions, onglet Ordres du jour                             | —      | ✓                   | ✓              |
+| `/secretariat-general/restitutions/a-restituer`                                                  | Restitutions, onglet À restituer                                | —      | ✓                   | ✓              |
+| `/secretariat-general/restitutions/restituees`                                                   | Restitutions, onglet Restituées                                 | —      | ✓                   | ✓              |
+| `/secretariat-general/restitutions/nouvelle-notice`                                              | Nouvelle notice de restitution                                  | —      | ✓                   | ✓              |
+| `/secretariat-general/restitutions/:planId`                                                      | Notice de restitution : saisie                                  | —      | ✓                   | ✓              |
+| `/secretariat-general/restitutions/:planId/validation`                                           | Notice : aperçu et validation                                   | —      | ✓                   | ✓              |
+| `/secretariat-general/restitutions/:planId/validation/edition`                                   | Notice : retouche du document                                   | —      | ✓                   | ✓              |
 
 ### Espace administration
 
@@ -297,10 +297,11 @@ Dans les dossiers d'un magistrat, un Membre ne voit que l'affectation et les aud
 
 ### Veille des postes
 
-| Action                                                 | Endpoint                                      | Membre | Secrétariat général | Administrateur |
-| ------------------------------------------------------ | --------------------------------------------- | ------ | ------------------- | -------------- |
-| Lister les cours d'appel et leur premier président     | `GET /veille-des-postes/v1/cours-d-appel`     | —      | ✓                   | ✓              |
-| Lister les magistrats du siège de la Cour de cassation | `GET /veille-des-postes/v1/cour-de-cassation` | —      | ✓                   | ✓              |
+| Action                                                 | Endpoint                                          | Membre | Secrétariat général | Administrateur |
+| ------------------------------------------------------ | ------------------------------------------------- | ------ | ------------------- | -------------- |
+| Lister les cours d'appel et leur premier président     | `GET /veille-des-postes/v1/cours-d-appel`         | —      | ✓                   | ✓              |
+| Lister les magistrats du siège de la Cour de cassation | `GET /veille-des-postes/v1/cour-de-cassation`     | —      | ✓                   | ✓              |
+| Lister les tribunaux judiciaires et leur président     | `GET /veille-des-postes/v1/tribunaux-judiciaires` | —      | ✓                   | ✓              |
 
 ### Documents de séance : préparation
 
