@@ -118,7 +118,8 @@ export function FollowedUpObservationsTable() {
         enableSorting: true,
         header: intl.formatMessage({ defaultMessage: 'Date de réception' }),
         id: 'dateReception',
-        size: 130,
+        // the header, its sort icon and its padding on one line
+        minSize: 190,
         sortDescFirst: true,
       }),
       h.display({
