@@ -8,9 +8,11 @@ import { HasRole } from '../simple-auth';
 import {
   ListCourtOfAppealFirstPresidentsDto,
   ListCourtOfCassationHoldersDto,
+  ListJudicialCourtPresidentsDto,
 } from './infrastructure/dtos/veille-des-postes.dto';
 import { ListedCourtOfAppealFirstPresidentsDto } from './infrastructure/queries/list-court-of-appeal-first-presidents.query';
 import { ListedCourtOfCassationHoldersDto } from './infrastructure/queries/list-court-of-cassation-holders.query';
+import { ListedJudicialCourtPresidentsDto } from './infrastructure/queries/list-judicial-court-presidents.query';
 import { VeilleDesPostesService } from './veille-des-postes.service';
 
 @ApiTags('Veille des postes')
@@ -47,6 +49,24 @@ export class VeilleDesPostesController {
     return this.veilleDesPostes.listCourtOfCassationHolders({
       pagination,
       positions: query.positions ?? [],
+      search: query.search,
+      sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
+      statuses: query.statuses ?? [],
+    });
+  }
+
+  @Get('/tribunaux-judiciaires')
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @UsePipes(ZodValidationPipe)
+  @ApiPaginated()
+  @ZodResponse({ status: HttpStatus.OK, type: ListedJudicialCourtPresidentsDto })
+  listJudicialCourtPresidents(
+    @Query() query: ListJudicialCourtPresidentsDto,
+    @QueryPagination({ defaultLimit: 20 }) pagination: Pagination,
+  ): Promise<ListedJudicialCourtPresidentsDto> {
+    return this.veilleDesPostes.listJudicialCourtPresidents({
+      pagination,
+      ressorts: query.ressorts ?? [],
       search: query.search,
       sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
       statuses: query.statuses ?? [],

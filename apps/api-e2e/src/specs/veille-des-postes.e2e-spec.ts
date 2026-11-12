@@ -65,6 +65,52 @@ test.describe('Veille des postes E2E', () => {
     });
   });
 
+  test('should find a judicial court by its ressort and its president, and count it in its ressort', async ({
+    agent,
+    expect,
+    sessions,
+  }) => {
+    const lastName = Array.from({ length: 12 }, () => String.fromCharCode(65 + crypto.randomInt(26))).join('');
+    const president = {
+      function: seed.functions.P,
+      grade: 'G3' as const,
+      jurisdiction: seed.jurisdictions['TJ  GRASSE'],
+    };
+    await sessions.createOne({
+      candidates: [
+        {
+          firstName: 'ZOE',
+          installationDate: '01/09/2021',
+          lastName,
+          position: president,
+          targetPosition: president,
+        },
+      ],
+      createdAt: '22/04/2026',
+      name: 'Transparence annuelle',
+    });
+
+    const { data } = await agent.veilleDesPostes.listJudicialCourtPresidents({
+      query: { ressorts: ['CA  AIX EN PROVENCE'], search: `Aix-en-Provence ${lastName}` },
+      throwOnError: true,
+    });
+
+    expect(data.ressorts.filter(({ count }) => count > 0)).toEqual([
+      { count: 1, id: 'CA  AIX EN PROVENCE', label: expect.any(String) },
+    ]);
+
+    expect(data.items).toEqual([
+      {
+        court: { id: 'TJ  GRASSE', label: 'Tribunal judiciaire de Grasse' },
+        installationDate: { day: 1, month: 9, year: 2021 },
+        magistrat: { id: expect.any(String), name: `${lastName} Zoe` },
+        // the archive of the test labels a court of appeal only met as a ressort with its code
+        ressort: { id: 'CA  AIX EN PROVENCE', label: expect.any(String) },
+        status: { id: 'OCCUPIED', label: 'Occupé' },
+      },
+    ]);
+  });
+
   test('should list the holders of the Cour de cassation by position, then by last name', async ({
     agent,
     expect,
