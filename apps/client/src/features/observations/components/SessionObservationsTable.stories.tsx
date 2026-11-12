@@ -22,7 +22,7 @@ const OBSERVATIONS: Observations = [
     id: 'observation-1',
     nominationFile: {
       id: 'file-3',
-      magistrat: { currentPosition: 'Juge TJ DOUAI', grade: 'II', name: 'KOFFI Aminata' },
+      magistrat: { currentPosition: 'Juge TJ DOUAI', grade: 'II', id: 'magistrat-3', name: 'KOFFI Aminata' },
       number: 3,
       targeted: { grade: 'I', position: 'Vice-présidente TJ LILLE' },
     },
@@ -34,7 +34,13 @@ const OBSERVATIONS: Observations = [
     id: 'observation-2',
     nominationFile: {
       id: 'file-7',
-      magistrat: { currentPosition: 'Substitut du procureur TJ ARRAS', grade: 'II', name: 'MARTIN Paul' },
+      // not detected in LOLFI: no link to a magistrat page
+      magistrat: {
+        currentPosition: 'Substitut du procureur TJ ARRAS',
+        grade: 'II',
+        id: null,
+        name: 'MARTIN Paul',
+      },
       number: 7,
       targeted: { grade: 'I', position: 'Procureur adjoint TJ LILLE' },
     },
@@ -46,7 +52,7 @@ const OBSERVATIONS: Observations = [
     id: 'observation-3',
     nominationFile: {
       id: 'file-3',
-      magistrat: { currentPosition: 'Juge TJ DOUAI', grade: 'II', name: 'KOFFI Aminata' },
+      magistrat: { currentPosition: 'Juge TJ DOUAI', grade: 'II', id: 'magistrat-3', name: 'KOFFI Aminata' },
       number: 3,
       targeted: { grade: 'I', position: 'Vice-présidente TJ LILLE' },
     },

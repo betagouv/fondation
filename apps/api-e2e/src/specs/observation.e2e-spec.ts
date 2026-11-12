@@ -377,7 +377,7 @@ test.describe('Observation', () => {
     expect(byDefault.items[0]).toMatchObject({
       dateReception: { day: 5, month: 5, year: 2026 },
       followUp: 'ALERT',
-      nominationFile: { id: first!.id, magistrat: { name: 'CORVISART Blanche' } },
+      nominationFile: { id: first!.id, magistrat: { id: first!.magistratId, name: 'CORVISART Blanche' } },
       observant: { id: second!.magistratId, name: 'DAUBENTON Lucien' },
     });
     const ascending = await list({ sortBy: 'dateReception', sortDesc: 'false' });

@@ -97,7 +97,12 @@ export class ListSessionObservationsQuery {
             id: observation.id,
             nominationFile: {
               id: observation.nominationFileId,
-              magistrat: { currentPosition: file.currentPosition, grade: file.grade, name: file.name },
+              magistrat: {
+                currentPosition: file.currentPosition,
+                grade: file.grade,
+                id: file.detectedMagistratId,
+                name: file.name,
+              },
               number: file.number,
               targeted: { grade: file.targetedGrade, position: file.targetedPosition },
             },

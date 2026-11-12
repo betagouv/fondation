@@ -20,7 +20,7 @@ import {
 import { SearchInput } from '@/shared/ui/search-input';
 import { TotalBadge } from '@/shared/ui/total-badge';
 import { formatDateOnly } from '@/utils/date-only.util';
-import { getObservationDetailsPath } from '@/utils/route-path.utils';
+import { getMagistratDetailsPath, getObservationDetailsPath } from '@/utils/route-path.utils';
 import { type SessionObservation, useInfiniteSessionObservationsQuery } from '@queries/observations.queries';
 
 import { ObservationFollowUpTag } from './ObservationFollowUpTag';
@@ -199,9 +199,21 @@ const dateReceptionCell = rowCell<SessionObservation>(({ dateReception }) => for
 
 const fileNumberCell = rowCell<SessionObservation>(({ nominationFile }) => nominationFile.number ?? '-');
 
+// as in the auditions tab: the profile icon marks a link to the magistrat page
 const observedCell = rowCell<SessionObservation>(({ nominationFile: { magistrat } }) => (
-  <div className="flex flex-col gap-1 leading-6">
-    <span className="font-medium">{magistrat.name}</span>
+  <div className="flex flex-col items-start gap-1 leading-6">
+    {magistrat.id ? (
+      <span>
+        <Link
+          className="fr-link fr-link--sm fr-icon-account-circle-fill fr-link--icon-left box-decoration-clone"
+          to={getMagistratDetailsPath({ context: 'sg', magistratId: magistrat.id })}
+        >
+          {magistrat.name}
+        </Link>
+      </span>
+    ) : (
+      <span className="font-medium text-(--text-default-grey)">{magistrat.name}</span>
+    )}
     <span className="text-xs leading-6">
       <GradeAndPosition boldGrade={false} grade={magistrat.grade} position={magistrat.currentPosition} />
     </span>
@@ -210,7 +222,7 @@ const observedCell = rowCell<SessionObservation>(({ nominationFile: { magistrat 
 
 const targetedCell = rowCell<SessionObservation>(({ nominationFile: { targeted } }) => (
   <span className="leading-6">
-    <GradeAndPosition grade={targeted.grade} position={targeted.position} />
+    <GradeAndPosition boldGrade={false} grade={targeted.grade} position={targeted.position} />
   </span>
 ));
 

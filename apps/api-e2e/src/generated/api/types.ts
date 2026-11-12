@@ -2309,6 +2309,7 @@ export type ListedSessionObservationsDto = {
             id: string;
             number: number | null;
             magistrat: {
+                id: string | null;
                 name: string;
                 grade: string | null;
                 currentPosition: string | null;

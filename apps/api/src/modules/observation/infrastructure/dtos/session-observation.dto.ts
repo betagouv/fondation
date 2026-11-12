@@ -42,6 +42,8 @@ const ListedSessionObservationSchema = z.object({
     id: z.string(),
     number: z.number().int().nullable(),
     magistrat: z.object({
+      // null until the proposed magistrat is detected in LOLFI
+      id: z.string().nullable(),
       name: z.string(),
       grade: z.string().nullable(),
       currentPosition: z.string().nullable(),
