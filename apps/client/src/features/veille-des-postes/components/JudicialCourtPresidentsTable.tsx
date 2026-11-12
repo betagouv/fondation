@@ -206,10 +206,12 @@ export function JudicialCourtPresidentsTable(props: {
           <div className="flex items-center justify-between gap-4">
             <DataTableFilters table={table} />
             <SearchInput
-              className="w-112"
+              className="w-128"
               onChange={search.onChange}
               onClear={search.clear}
-              placeholder={formatMessage({ defaultMessage: 'Rechercher une juridiction ou un magistrat' })}
+              placeholder={formatMessage({
+                defaultMessage: 'Rechercher un ressort, une juridiction ou un magistrat',
+              })}
               value={search.value}
             />
           </div>,

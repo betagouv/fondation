@@ -109,6 +109,13 @@ test.describe('Veille des postes E2E', () => {
         status: { id: 'OCCUPIED', label: 'Occupé' },
       },
     ]);
+
+    const { data: otherRessort } = await agent.veilleDesPostes.listJudicialCourtPresidents({
+      query: { ressorts: ['CA  LYON'], search: lastName },
+      throwOnError: true,
+    });
+
+    expect(otherRessort.items).toEqual([]);
   });
 
   test('should list the holders of the Cour de cassation by position, then by last name', async ({
