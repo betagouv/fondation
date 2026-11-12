@@ -109,6 +109,10 @@ li {
   margin-bottom: 1.75rem;
 }
 
+.fr-link.fr-link--icon-left.fr-icon-account-circle-fill::before {
+  margin-right: 0.35rem;
+}
+
 .editor-resizable-image {
   min-width: var(--fondation-editor-min-width);
   max-width: 100%;
