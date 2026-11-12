@@ -51,15 +51,16 @@ export function laterPropositions<T extends { session: { date: DateOnly; id: str
   );
 }
 
-// sessions follow their date in the requested order; inside a session, the most recent blocs come first
+// sessions always come first, in their date order, so that a bloc never leaves its session: sorting by
+// reception date only orders the blocs inside each session
 export function sortBySessionThenObservationBlock<T extends BlockedObservation & { sessionDate: Date }>(
   observations: readonly T[],
-  order: 'asc' | 'desc',
+  order: { blocks: 'asc' | 'desc'; sessions: 'asc' | 'desc' },
 ): T[] {
-  const direction = order === 'asc' ? 1 : -1;
+  const direction = order.sessions === 'asc' ? 1 : -1;
 
   // a stable sort keeps the bloc order inside each session
-  return sortByObservationBlock(observations, 'desc').toSorted(
+  return sortByObservationBlock(observations, order.blocks).toSorted(
     (a, b) =>
       direction * (a.sessionDate.getTime() - b.sessionDate.getTime()) ||
       a.sessionId.localeCompare(b.sessionId),
