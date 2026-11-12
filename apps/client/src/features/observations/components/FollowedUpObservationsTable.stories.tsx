@@ -38,7 +38,6 @@ const JUNE_TRACKING = { comment: 'Signalement transmis au premier président', s
 const OBSERVATIONS: Observations = [
   {
     laterPropositions: [],
-    tracking: JUNE_TRACKING,
     observation: {
       dateReception: { day: 4, month: 6, year: 2028 },
       followUp: 'ALERT',
@@ -47,10 +46,10 @@ const OBSERVATIONS: Observations = [
       observant: DURAND,
     },
     session: JUNE,
+    tracking: JUNE_TRACKING,
   },
   {
     laterPropositions: [],
-    tracking: JUNE_TRACKING,
     observation: {
       dateReception: { day: 2, month: 6, year: 2028 },
       followUp: 'INTERESTING',
@@ -70,6 +69,7 @@ const OBSERVATIONS: Observations = [
       observant: DURAND,
     },
     session: JUNE,
+    tracking: JUNE_TRACKING,
   },
   {
     laterPropositions: [
@@ -80,7 +80,6 @@ const OBSERVATIONS: Observations = [
         targeted: { grade: 'I', position: 'Présidente de chambre CA DOUAI' },
       },
     ],
-    tracking: UNTRACKED,
     observation: {
       dateReception: { day: 10, month: 3, year: 2028 },
       followUp: 'REFERENCE',
@@ -94,10 +93,10 @@ const OBSERVATIONS: Observations = [
       name: 'Transparence du 2 mars 2028',
       status: 'REPORTED',
     },
+    tracking: UNTRACKED,
   },
   {
     laterPropositions: [],
-    tracking: { comment: null, status: 'DONE' },
     observation: {
       dateReception: { day: 3, month: 11, year: 2027 },
       followUp: 'ALERT',
@@ -115,6 +114,7 @@ const OBSERVATIONS: Observations = [
       name: 'Transparence du 15 octobre 2027',
       status: 'ARCHIVED',
     },
+    tracking: { comment: null, status: 'DONE' },
   },
 ];
 
