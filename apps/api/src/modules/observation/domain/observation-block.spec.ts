@@ -1,4 +1,12 @@
-import { sortByObservationBlock, sortBySessionThenObservationBlock } from './observation-block';
+import { DateOnly } from '../../../utils/date-only';
+
+import {
+  laterPropositions,
+  ObservationBlock,
+  ObservationBlockTracked,
+  sortByObservationBlock,
+  sortBySessionThenObservationBlock,
+} from './observation-block';
 
 const observation = (
   id: string,
@@ -157,6 +165,54 @@ describe('sortBySessionThenObservationBlock', () => {
       'march',
       'june-martin',
       'june-durand',
+    ]);
+  });
+});
+
+describe('laterPropositions', () => {
+  const proposition = (id: string, session: { date: string; id?: string }) => ({
+    id,
+    session: { date: DateOnly.fromUtcDate(new Date(session.date)), id: session.id ?? id },
+  });
+  const block = { lastReception: new Date('2026-03-10'), sessionId: 'observed' };
+
+  it('keeps the propositions of sessions published after the most recent reception of the bloc', () => {
+    const propositions = [
+      proposition('before', { date: '2026-03-07' }),
+      proposition('same-day', { date: '2026-03-10' }),
+      proposition('after', { date: '2026-03-11' }),
+    ];
+
+    expect(ids(laterPropositions(block, propositions))).toEqual(['after']);
+  });
+
+  it('leaves out a proposition in the session of the bloc itself', () => {
+    const propositions = [proposition('own', { date: '2026-04-01', id: 'observed' })];
+
+    expect(laterPropositions(block, propositions)).toEqual([]);
+  });
+});
+
+describe('ObservationBlock', () => {
+  const block = () => ObservationBlock.from({ magistratId: 'magistrat-1', sessionId: 'session-1' });
+
+  it('tracks the bloc with its status and a trimmed comment', () => {
+    const tracked = block();
+
+    tracked.track({ comment: '  Proposé en juin  ', status: 'DONE' });
+
+    expect(tracked.messages).toEqual([
+      new ObservationBlockTracked('session-1', 'magistrat-1', 'DONE', 'Proposé en juin'),
+    ]);
+  });
+
+  it('records a blank comment as none', () => {
+    const tracked = block();
+
+    tracked.track({ comment: '   ', status: 'IN_PROGRESS' });
+
+    expect(tracked.messages).toEqual([
+      new ObservationBlockTracked('session-1', 'magistrat-1', 'IN_PROGRESS', null),
     ]);
   });
 });

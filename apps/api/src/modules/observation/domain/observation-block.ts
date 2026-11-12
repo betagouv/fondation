@@ -1,3 +1,5 @@
+import type { DateOnly } from '../../../utils/date-only';
+
 type BlockedObservation = {
   dateReception: Date;
   fileRank: number;
@@ -37,6 +39,18 @@ export function sortByObservationBlock<T extends BlockedObservation>(
   );
 }
 
+// the observant is proposed again after their observations: in another session published after the most
+// recent reception date of the bloc, observations without a suite included
+export function laterPropositions<T extends { session: { date: DateOnly; id: string } }>(
+  block: { lastReception: Date; sessionId: string },
+  propositions: readonly T[],
+): T[] {
+  return propositions.filter(
+    ({ session }) =>
+      session.id !== block.sessionId && session.date.toDate().getTime() > block.lastReception.getTime(),
+  );
+}
+
 // sessions follow their date in the requested order; inside a session, the most recent blocs come first
 export function sortBySessionThenObservationBlock<T extends BlockedObservation & { sessionDate: Date }>(
   observations: readonly T[],
@@ -50,4 +64,48 @@ export function sortBySessionThenObservationBlock<T extends BlockedObservation &
       direction * (a.sessionDate.getTime() - b.sessionDate.getTime()) ||
       a.sessionId.localeCompare(b.sessionId),
   );
+}
+
+export const OBSERVATION_BLOCK_TRACKING_STATUSES = ['IN_PROGRESS', 'DONE'] as const;
+export type ObservationBlockTrackingStatus = (typeof OBSERVATION_BLOCK_TRACKING_STATUSES)[number];
+
+// a bloc without any tracking yet reads as in progress
+export const UNTRACKED_BLOCK = { comment: null, status: 'IN_PROGRESS' } as const;
+
+export class ObservationBlockTracked {
+  constructor(
+    readonly sessionId: string,
+    readonly magistratId: string,
+    readonly status: ObservationBlockTrackingStatus,
+    readonly comment: string | null,
+  ) {}
+}
+
+// the observations of one observant in one session share one tracking, kept once the session is archived
+export class ObservationBlock {
+  readonly #messages: ObservationBlockTracked[] = [];
+
+  private constructor(
+    readonly sessionId: string,
+    readonly magistratId: string,
+  ) {}
+
+  get messages(): readonly ObservationBlockTracked[] {
+    return this.#messages;
+  }
+
+  static from(props: { magistratId: string; sessionId: string }): ObservationBlock {
+    return new ObservationBlock(props.sessionId, props.magistratId);
+  }
+
+  track(command: { comment: string | null; status: ObservationBlockTrackingStatus }): void {
+    this.#messages.push(
+      new ObservationBlockTracked(
+        this.sessionId,
+        this.magistratId,
+        command.status,
+        command.comment?.trim() || null,
+      ),
+    );
+  }
 }

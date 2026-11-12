@@ -9,11 +9,20 @@ import { paginate, type Pagination } from '../../../framework/pagination';
 import { MagistratService } from '../../../magistrat/magistrat.service';
 import type { SessionStatus } from '../../../session/transparence/infrastructure/finders/session-statuses.finder';
 import { TransparenceService } from '../../../session/transparence/infrastructure/transparence.service';
-import { sortByObservationBlock, sortBySessionThenObservationBlock } from '../../domain/observation-block';
+import {
+  laterPropositions,
+  type ObservationBlockTrackingStatus,
+  sortByObservationBlock,
+  sortBySessionThenObservationBlock,
+  UNTRACKED_BLOCK,
+} from '../../domain/observation-block';
 import type { ObservationFollowUpEnum } from '../../domain/observation-follow-up';
 import type { ListedFollowedUpObservationsDto } from '../dtos/followed-up-observation.dto';
 
 import { toListedSessionObservation } from './list-session-observations.query';
+
+const blockKey = ({ magistratId, sessionId }: { magistratId: string; sessionId: string }) =>
+  `${sessionId}:${magistratId}`;
 
 @Injectable()
 export class ListFollowedUpObservationsQuery {
@@ -30,6 +39,7 @@ export class ListFollowedUpObservationsQuery {
       followUps: readonly (ObservationFollowUpEnum | null)[];
       search: string | null;
       sessionStatuses: readonly SessionStatus[];
+      trackingStatuses: readonly ObservationBlockTrackingStatus[];
     };
     pagination: Pagination;
     sortBy: 'dateReception' | 'session' | null;
@@ -55,9 +65,25 @@ export class ListFollowedUpObservationsQuery {
       const observants = await this.magistrats.internalFindMagistratProfiles({
         magistratIds: [...new Set(observations.map(({ magistratId }) => magistratId))],
       });
+      const trackings = await this.db.tx.observationBlockTracking.findMany({
+        select: {
+          comment: true,
+          magistratId: true,
+          sessionId: true,
+          status: true,
+        } satisfies Prisma.ObservationBlockTrackingSelect,
+        where: { sessionId: { in: sessionIds } },
+      });
+      const trackingByBlock = new Map(
+        trackings.map(({ comment, magistratId, sessionId, status }) => [
+          blockKey({ magistratId, sessionId }),
+          { comment, status },
+        ]),
+      );
 
       const followUps = new Set(query.filters.followUps);
       const sessionStatuses = new Set(query.filters.sessionStatuses);
+      const trackingStatuses = new Set(query.filters.trackingStatuses);
       const search = unaccent(query.filters.search ?? '').toLowerCase();
       const matching = observations.flatMap((observation) => {
         // a deleted session is left out by the finder, and its observations with it
@@ -67,11 +93,13 @@ export class ListFollowedUpObservationsQuery {
         assert.ok(status, `no status for the session ${observation.sessionId}`);
         const observant = observants.get(observation.magistratId);
         assert.ok(observant, `no profile for the observant ${observation.magistratId}`);
+        const tracking = trackingByBlock.get(blockKey(observation)) ?? UNTRACKED_BLOCK;
 
         if (followUps.size && !followUps.has(observation.followUp)) return [];
         if (sessionStatuses.size && !sessionStatuses.has(status)) return [];
+        if (trackingStatuses.size && !trackingStatuses.has(tracking.status)) return [];
         if (search && !unaccent(observant.name).toLowerCase().includes(search)) return [];
-        return [{ ...observation, observant, session: { ...session, status } }];
+        return [{ ...observation, observant, session: { ...session, status }, tracking }];
       });
 
       const sortedFileIds = await this.sessions.internalSortNominationFiles({
@@ -97,9 +125,38 @@ export class ListFollowedUpObservationsQuery {
       const files = await this.sessions.internalFindNominationFilesByIds({
         nominationFileIds: pageItems.map(({ nominationFileId }) => nominationFileId),
       });
+      const magistratIds = [...new Set(pageItems.map(({ magistratId }) => magistratId))];
+      const propositions = await this.sessions.internalFindMagistratsPropositions({ magistratIds });
+      // the bloc counts all the observations of the observant in the session, those without a suite too
+      const blocks = await this.db.tx.observation.groupBy({
+        _max: { dateReception: true },
+        by: ['magistratId', 'sessionId'],
+        where: {
+          magistratId: { in: magistratIds },
+          sessionId: { in: [...new Set(pageItems.map(({ sessionId }) => sessionId))] },
+        },
+      });
+      const lastReceptionByBlock = new Map(
+        blocks.map(({ _max, magistratId, sessionId }) => [
+          blockKey({ magistratId, sessionId }),
+          _max.dateReception,
+        ]),
+      );
 
       return paginate({
         items: pageItems.map((observation) => ({
+          laterPropositions: laterPropositions(
+            {
+              lastReception: lastReceptionByBlock.get(blockKey(observation)) ?? observation.dateReception,
+              sessionId: observation.sessionId,
+            },
+            propositions.get(observation.magistratId) ?? [],
+          ).map(({ id, number, session, targetedGrade, targetedPosition }) => ({
+            id,
+            number,
+            session: { date: session.date.toJson(), id: session.id, name: session.name },
+            targeted: { grade: targetedGrade, position: targetedPosition },
+          })),
           observation: toListedSessionObservation(observation, files),
           session: {
             date: observation.session.date.toJson(),
@@ -107,6 +164,7 @@ export class ListFollowedUpObservationsQuery {
             name: observation.session.name,
             status: observation.session.status,
           },
+          tracking: observation.tracking,
         })),
         pagination: query.pagination,
         totalCount: sorted.length,

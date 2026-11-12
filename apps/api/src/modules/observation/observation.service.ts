@@ -28,6 +28,7 @@ import {
   UserNotAllowedToAttachScreenshotsError,
   UserNotAllowedToWriteCommentError,
 } from './domain/observation';
+import type { ObservationBlockTrackingStatus } from './domain/observation-block';
 import type { ObservationFollowUpEnum } from './domain/observation-follow-up';
 import type { ListedFollowedUpObservationsDto } from './infrastructure/dtos/followed-up-observation.dto';
 import { AttachedMemberCommentScreenshotsDto } from './infrastructure/dtos/observation-member-comment.dto';
@@ -64,6 +65,7 @@ import {
 } from './infrastructure/queries/list-observations.query';
 import { ListSessionObservationsQuery } from './infrastructure/queries/list-session-observations.query';
 import { ObservantAuditionRepository } from './infrastructure/repositories/observant-audition.repository';
+import { ObservationBlockRepository } from './infrastructure/repositories/observation-block.repository';
 import { ObservationRepository } from './infrastructure/repositories/observation.repository';
 
 @Injectable()
@@ -85,6 +87,7 @@ export class ObservationService {
     private readonly listSessionObservationsQuery: ListSessionObservationsQuery,
     private readonly countSessionObservationsQuery: CountSessionObservationsQuery,
     private readonly listFollowedUpObservationsQuery: ListFollowedUpObservationsQuery,
+    private readonly observationBlockRepository: ObservationBlockRepository,
 
     @Inject(forwardRef(() => TransparenceService))
     private readonly transparences: TransparenceService,
@@ -392,6 +395,18 @@ export class ObservationService {
     await this.observationRepository.persist(observation);
   }
 
+  @Transactional()
+  async trackObservationBlock(command: {
+    comment: string | null;
+    magistratId: string;
+    sessionId: string;
+    status: ObservationBlockTrackingStatus;
+  }): Promise<void> {
+    const block = await this.observationBlockRepository.find(command);
+    block.track(command);
+    await this.observationBlockRepository.persist(block);
+  }
+
   listObservationsAttachments(query: {
     excludeObservationId: string | undefined;
     magistratId: string | undefined;
@@ -416,6 +431,7 @@ export class ObservationService {
       followUps: readonly (ObservationFollowUpEnum | null)[];
       search: string | null;
       sessionStatuses: readonly SessionStatus[];
+      trackingStatuses: readonly ObservationBlockTrackingStatus[];
     };
     pagination: Pagination;
     sortBy: 'dateReception' | 'session' | null;

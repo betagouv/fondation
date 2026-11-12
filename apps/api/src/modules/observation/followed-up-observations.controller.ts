@@ -29,6 +29,7 @@ export class FollowedUpObservationsController {
         followUps: query.followUps,
         search: query.search ?? null,
         sessionStatuses: query.sessionStatuses,
+        trackingStatuses: query.trackingStatuses,
       },
       pagination,
       sortBy: query.sortBy ?? null,

@@ -56,6 +56,15 @@ export type FoundNominationFile = {
   targetedPosition: string | null;
 };
 
+export type MagistratProposition = {
+  id: string;
+  magistratId: string;
+  number: number | null;
+  session: { date: DateOnly; id: string; name: string };
+  targetedGrade: string | null;
+  targetedPosition: string | null;
+};
+
 @Injectable()
 export class HydratedNominationFilesFinder {
   constructor(
@@ -90,6 +99,43 @@ export class HydratedNominationFilesFinder {
         id,
         { ...file, name: proposedMagistratName({ detectedMagistrat, name: file.name }) },
       ]),
+    );
+  }
+
+  /** the files where each magistrat is proposed, by magistrat; files of deleted sessions are left out */
+  @Transactional()
+  async byProposedMagistrats(query: {
+    magistratIds: readonly string[];
+  }): Promise<Map<string, MagistratProposition[]>> {
+    assertPgParams(query.magistratIds);
+
+    const files = await this.db.tx.dossierDeNomination.findMany({
+      orderBy: [{ session: { date: 'asc' } }, { number: { nulls: 'last', sort: 'asc' } }],
+      select: {
+        detectedMagistratId: true,
+        id: true,
+        number: true,
+        session: { select: { date: true, id: true, name: true } },
+        targetedGrade: true,
+        targetedPosition: true,
+      } satisfies Prisma.DossierDeNominationSelect,
+      where: { detectedMagistratId: { in: [...query.magistratIds] }, session: { deletedAt: null } },
+    });
+
+    return Map.groupBy(
+      // the filter on the magistrats already leaves out the files without one
+      files.flatMap(({ detectedMagistratId, session, ...file }) =>
+        detectedMagistratId === null
+          ? []
+          : [
+              {
+                ...file,
+                magistratId: detectedMagistratId,
+                session: { ...session, date: DateOnly.fromUtcDate(session.date) },
+              },
+            ],
+      ),
+      ({ magistratId }) => magistratId,
     );
   }
 

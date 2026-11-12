@@ -15,14 +15,21 @@ import { ListObservationsAttachmentsQuery } from './infrastructure/queries/list-
 import { ListObservationsQuery } from './infrastructure/queries/list-observations.query';
 import { ListSessionObservationsQuery } from './infrastructure/queries/list-session-observations.query';
 import { ObservantAuditionRepository } from './infrastructure/repositories/observant-audition.repository';
+import { ObservationBlockRepository } from './infrastructure/repositories/observation-block.repository';
 import { ObservationRepository } from './infrastructure/repositories/observation.repository';
+import { ObservationBlocksController } from './observation-blocks.controller';
 import { ObservationController } from './observation.controller';
 import { ObservationService } from './observation.service';
 import { SessionObservationsController } from './session-observations.controller';
 
 @Module({
   imports: [MagistratModule, forwardRef(() => TransparenceModule)],
-  controllers: [FollowedUpObservationsController, ObservationController, SessionObservationsController],
+  controllers: [
+    FollowedUpObservationsController,
+    ObservationBlocksController,
+    ObservationController,
+    SessionObservationsController,
+  ],
   exports: [ObservationService],
   providers: [
     CountSessionObservationsQuery,
@@ -35,6 +42,7 @@ import { SessionObservationsController } from './session-observations.controller
     NominationFileObservationsFinder,
     ObservantAuditionRepository,
     ObservantAuditionsFinder,
+    ObservationBlockRepository,
     ObservationFinder,
     ObservationRepository,
     ObservationService,
