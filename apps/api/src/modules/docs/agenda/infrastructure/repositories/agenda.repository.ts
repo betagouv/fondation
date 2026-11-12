@@ -19,6 +19,7 @@ import { MembersService } from '../../../../members';
 import { TransparenceService } from '../../../../session/transparence/infrastructure/transparence.service';
 import { formationEnumToPrismaFormationEnum } from '../../../../shared/mappers/formation.mapper';
 import { DocsNominationFilesFinder } from '../../../shared/infrastructure/finders/docs-nomination-files.finder';
+import { namedMembersOf, parseNamedMembers } from '../../../shared/infrastructure/named-members';
 import {
   Agenda,
   AgendaCreated,
@@ -118,7 +119,7 @@ export class AgendaRepository {
               {
                 id: f.id,
                 nominationFileId: f.nominationFileId,
-                reporters: f.reporters,
+                reporters: parseNamedMembers(f.reporters),
                 isManuallyEdited: isDefined(f.htmlEdited),
               },
             ]
@@ -179,7 +180,7 @@ export class AgendaRepository {
                   nominationFileId: file.id,
                   outcome: file.outcome?.value,
                   outcomeComment: file.outcome?.comment,
-                  reporters: file.reporters as string[],
+                  reporters: file.reporters,
                 })),
               },
             },
@@ -241,7 +242,7 @@ export class AgendaRepository {
           nominationFileId: file.id,
           outcome: file.outcome?.value,
           outcomeComment: file.outcome?.comment,
-          reporters: file.reporters.map((r) => r.fullTitledName),
+          reporters: namedMembersOf(file.reporters),
         })),
       });
     }
@@ -374,7 +375,9 @@ export class AgendaRepository {
         id: makeId('AgendaVersionId'),
         agendaId: message.agendaId,
         nominationFiles: {
-          createMany: { data: nominationFiles.map((file) => ({ ...file, reporters: [...file.reporters] })) },
+          createMany: {
+            data: nominationFiles.map((file) => ({ ...file, reporters: parseNamedMembers(file.reporters) })),
+          },
         },
       },
     });
@@ -465,7 +468,8 @@ export class AgendaRepository {
     for (const nf of message.files) {
       await this.db.tx.agendaNominationFile.updateMany({
         where: { nominationFileId: nf.nominationFileId, versionId },
-        data: { reporters: [...nf.reporters], htmlOutdated: nf.isOutdated },
+        // a renaming leaves a block already outdated as it is
+        data: { reporters: [...nf.reporters], ...(nf.isOutdated && { htmlOutdated: true }) },
       });
     }
 

@@ -6,6 +6,7 @@ import { UserTitleEnum } from '../../../shared/user-title.enum';
 import { type DocSystemUpdateCause } from '../../shared/domain/doc-system-update-cause';
 import { canDiscardDraft, canValidateDocument } from '../../shared/domain/document.policies';
 import { type DraftChangesBy } from '../../shared/domain/draft-changes-by';
+import { type NamedMember } from '../../shared/domain/named-member';
 
 import { AgendaNominationFile } from './agenda-nomination-file';
 import { AgendaFilesDiff, AgendaMetadataDiff, AgendaSnapshot } from './agenda-snapshot';
@@ -96,9 +97,10 @@ export class AgendaFilesReportersUpdated {
   constructor(
     readonly agendaId: Id<'AgendaId'>,
     readonly files: readonly {
+      /** the block written by hand keeps its text but no longer names who reports */
       isOutdated: boolean;
       nominationFileId: string;
-      reporters: readonly string[];
+      reporters: readonly NamedMember[];
     }[],
   ) {}
 }
@@ -270,16 +272,34 @@ export class Agenda {
     return diff;
   }
 
+  /**
+   * a validated agenda was sent as it reads: only a change of who reports opens a draft. In a draft, a
+   * new name tells the reader only when a block shows it, so a draft changed out of sight stays theirs.
+   */
   updateFilesReporters(command: {
-    nominationFiles: readonly { id: string; reporters: readonly string[] }[];
+    nominationFiles: readonly { id: string; reporters: readonly NamedMember[] }[];
   }): void {
     if (command.nominationFiles.length === 0) throw new EmptyAgenda();
 
     const diff = assertIsDefined(this.snapshot).diffReporters(command);
-    if (diff.hasAny) {
-      this.openDraft('REPORTERS');
-      this.#messages.push(new AgendaFilesReportersUpdated(this.id, diff.updated));
-    }
+    if (!diff.hasAny) return;
+
+    const whoChanged = diff.updated.some((file) => file.whoChanged);
+    if (this.#isValidated && !whoChanged) return;
+
+    if (whoChanged) this.openDraft('REPORTERS');
+    else if (diff.updated.some((file) => !file.isManuallyEdited)) this.openDraft('DESIGNATION');
+
+    this.#messages.push(
+      new AgendaFilesReportersUpdated(
+        this.id,
+        diff.updated.map(({ isManuallyEdited, nominationFileId, reporters, whoChanged }) => ({
+          isOutdated: isManuallyEdited && whoChanged,
+          nominationFileId,
+          reporters,
+        })),
+      ),
+    );
   }
 
   delete(): void {

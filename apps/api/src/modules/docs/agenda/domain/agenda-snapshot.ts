@@ -1,11 +1,12 @@
 import { DateOnly } from '../../../../utils/date-only';
 import { Id } from '../../../../utils/id';
 import { DocInvalidation } from '../../shared/domain/doc-invalidation';
+import { NamedMember, sameMembers, sameNames } from '../../shared/domain/named-member';
 
 type AgendaSnapshotFile = {
   id: bigint;
   nominationFileId: string;
-  reporters: readonly string[];
+  reporters: readonly NamedMember[];
   isManuallyEdited: boolean;
 };
 
@@ -90,23 +91,21 @@ export class AgendaSnapshot {
     return { hasAny, added, removed, officialReportInvalidations };
   }
 
+  /** who reports on a file, and how they are named, are told apart: only the first outdates a block written by hand */
   diffReporters(next: {
-    nominationFiles: readonly { id: string; reporters: readonly string[] }[];
+    nominationFiles: readonly { id: string; reporters: readonly NamedMember[] }[];
   }): AgendaFilesReportersDiff {
-    const updatedReporters = next.nominationFiles.flatMap(({ id, reporters }) => {
+    const updated = next.nominationFiles.flatMap(({ id, reporters }) => {
       const knownFile = this.nominationFiles.get(id);
       if (!knownFile) return [];
 
-      const reportersChanged =
-        reporters.length !== knownFile.reporters.length ||
-        reporters.some((r) => !knownFile.reporters.includes(r));
+      const whoChanged = !sameMembers(knownFile.reporters, reporters);
+      if (!whoChanged && sameNames(knownFile.reporters, reporters)) return [];
 
-      if (!reportersChanged) return [];
-
-      return [{ nominationFileId: id, reporters, isOutdated: knownFile.isManuallyEdited }];
+      return [{ isManuallyEdited: knownFile.isManuallyEdited, nominationFileId: id, reporters, whoChanged }];
     });
 
-    return updatedReporters.length > 0 ? { hasAny: true, updated: updatedReporters } : { hasAny: false };
+    return updated.length > 0 ? { hasAny: true, updated } : { hasAny: false };
   }
 }
 
@@ -131,5 +130,11 @@ export type AgendaFilesReportersDiff =
   | { hasAny: false }
   | {
       hasAny: true;
-      updated: readonly { isOutdated: boolean; nominationFileId: string; reporters: readonly string[] }[];
+      updated: readonly {
+        isManuallyEdited: boolean;
+        nominationFileId: string;
+        reporters: readonly NamedMember[];
+        /** a member joined or left the file's reporters, rather than only being named anew */
+        whoChanged: boolean;
+      }[];
     };

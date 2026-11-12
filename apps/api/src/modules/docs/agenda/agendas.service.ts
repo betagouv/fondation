@@ -11,6 +11,7 @@ import { MembersService } from '../../members';
 import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../shared/infrastructure/agenda-content';
 import { ActedNominationFilesFinder } from '../shared/infrastructure/finders/acted-nomination-files.finder';
 import { DocsNominationFilesFinder } from '../shared/infrastructure/finders/docs-nomination-files.finder';
+import { namedMembersOf } from '../shared/infrastructure/named-members';
 import { InvalidateDocsUseCase } from '../shared/infrastructure/use-cases/invalidate-docs.use-case';
 
 import { Agenda } from './domain/agenda';
@@ -90,7 +91,7 @@ export class AgendasService {
         name: f.magistrat.name,
         number: f.number,
         outcome: f.outcome,
-        reporters: f.reporters.map((r) => r.fullTitledName),
+        reporters: namedMembersOf(f.reporters),
         targetedGrade: f.targetPosition.grade,
         targetedPosition: f.targetPosition.label,
       })),

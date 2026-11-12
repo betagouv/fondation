@@ -146,7 +146,8 @@ model AgendaNominationFile {
   targetedGrade    String                     @map("targeted_grade")
   outcome          PrismaDocsFileOutcomeEnum?
   outcomeComment   String?                    @map("outcome_comment")
-  reporters        String[]
+  // `{ id, name }[]`, like the official report's
+  reporters        Json                       @db.JsonB
 
   htmlEdited   String?   @map("html_edited")
   htmlOutdated Boolean   @default(false) @map("html_outdated")
