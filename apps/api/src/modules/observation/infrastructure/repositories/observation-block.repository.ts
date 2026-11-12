@@ -1,6 +1,7 @@
 import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 
+import { lockObservationBlockRawQuery } from '../../../../generated/prisma/sql';
 import { Db } from '../../../framework/database';
 import { TransparenceService } from '../../../session/transparence/infrastructure/transparence.service';
 import { ObservationBlock } from '../../domain/observation-block';
@@ -15,6 +16,7 @@ export class ObservationBlockRepository {
   ) {}
 
   // the tracking stays editable once the session is archived, but not once it is deleted
+  @Transactional(Propagation.Mandatory)
   async find({
     magistratId,
     sessionId,
@@ -25,8 +27,12 @@ export class ObservationBlockRepository {
     const state = await this.sessions.internalFindSessionState({ sessionId });
     if (state === 'DELETED') throw new NotFoundException();
 
-    const observations = await this.db.tx.observation.count({ where: { magistratId, sessionId } });
-    if (observations === 0) throw new NotFoundException();
+    // locked until the tracking is saved: deleting the last observation meanwhile would empty the bloc after
+    // its tracking was checked, and the tracking would outlive it
+    const observations = await this.db.tx.$queryRawTyped(
+      lockObservationBlockRawQuery(sessionId, magistratId),
+    );
+    if (observations.length === 0) throw new NotFoundException();
 
     return ObservationBlock.from({ magistratId, sessionId });
   }
