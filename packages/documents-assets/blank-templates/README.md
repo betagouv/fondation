@@ -24,7 +24,7 @@ TMP=$(mktemp -d)
 for f in 'montserrat/Montserrat[wght].ttf' 'notosans/NotoSans[wdth,wght].ttf' 'notosans/NotoSans-Italic[wdth,wght].ttf'; do
   curl -sfL "https://raw.githubusercontent.com/google/fonts/5bb28733cec313b63fbd415b574b5ae35c8aa8b8/ofl/$(echo $f | sed 's/\[/%5B/;s/\]/%5D/')" -o "$TMP/$(basename $f)"
 done
-python3 -m venv "$TMP/venv" && "$TMP/venv/bin/pip" install -q fonttools
+python3 -m venv "$TMP/venv" && "$TMP/venv/bin/pip" install -q fonttools==4.68.0
 "$TMP/venv/bin/python" make-fonts.py "$TMP"
 rm -rf "$TMP"
 ```

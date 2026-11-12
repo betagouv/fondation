@@ -275,7 +275,7 @@ async function embedFonts(buffer, asTemplate) {
   }
 
   const settings = await zip.file('word/settings.xml').async('string');
-  zip.file('word/settings.xml', settings.replace(/(<w:settings[^>]*>)/, '$1<w:embedTrueTypeFonts/>'));
+  zip.file('word/settings.xml', settings.replace('<w:displayBackgroundShape/>', '$&<w:embedTrueTypeFonts/>'));
 
   // Word has refused packages with folder entries when opened through a co-editing service
   const clean = new JSZip();
