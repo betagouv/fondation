@@ -446,10 +446,11 @@ test.describe('Observation', () => {
     expect(ids(bySession)).toEqual([latest, inJune, inMarch]);
     expect(bySession[2]).toMatchObject({
       observation: { followUp: 'ALERT', observant: { id: marchObservant } },
-      session: { date: { day: 2, month: 3, year: 2026 }, id: march!.id, status: 'ONGOING' },
+      // a session created from LOLFI is new until its data is validated
+      session: { date: { day: 2, month: 3, year: 2026 }, id: march!.id, status: 'TO_VALIDATE' },
     });
     expect(ids(await list({ sortBy: 'dateReception', sortDesc: 'false' }))).toEqual([inMarch, inJune, latest]);
-    expect(ids(await list({ sessionStatuses: 'ONGOING' }))).toEqual([latest, inJune, inMarch]);
+    expect(ids(await list({ sessionStatuses: 'TO_VALIDATE' }))).toEqual([latest, inJune, inMarch]);
     expect(await list({ sessionStatuses: 'ARCHIVED' })).toEqual([]);
   });
 });

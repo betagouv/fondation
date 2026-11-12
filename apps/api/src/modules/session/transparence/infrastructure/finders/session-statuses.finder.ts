@@ -7,7 +7,8 @@ import { Db } from '../../../../framework/database';
 
 import { ReportedSessionsFinder } from './reported-sessions.finder';
 
-export const SESSION_STATUSES = ['ONGOING', 'REPORTED', 'ARCHIVED'] as const;
+// a session not validated yet is new (TO_VALIDATE), as in the sessions list
+export const SESSION_STATUSES = ['TO_VALIDATE', 'ONGOING', 'REPORTED', 'ARCHIVED'] as const;
 export type SessionStatus = (typeof SESSION_STATUSES)[number];
 
 @Injectable()
@@ -38,6 +39,7 @@ function sessionStatus(
   reportedIds: ReadonlySet<string>,
 ): SessionStatus {
   if (session.archivedAt) return 'ARCHIVED';
-  if (session.validatedAt && reportedIds.has(session.id)) return 'REPORTED';
+  if (!session.validatedAt) return 'TO_VALIDATE';
+  if (reportedIds.has(session.id)) return 'REPORTED';
   return 'ONGOING';
 }

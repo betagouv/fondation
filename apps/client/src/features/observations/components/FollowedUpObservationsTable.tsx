@@ -77,6 +77,7 @@ export function FollowedUpObservationsTable() {
       label: intl.formatMessage({ defaultMessage: 'Statut de session' }),
       type: 'enum',
       values: [
+        { id: 'TO_VALIDATE', label: intl.formatMessage({ defaultMessage: 'Nouvelles sessions' }) },
         { id: 'ONGOING', label: intl.formatMessage({ defaultMessage: 'Sessions en cours' }) },
         { id: 'REPORTED', label: intl.formatMessage({ defaultMessage: 'Sessions restituées' }) },
         { id: 'ARCHIVED', label: intl.formatMessage({ defaultMessage: 'Sessions archivées' }) },

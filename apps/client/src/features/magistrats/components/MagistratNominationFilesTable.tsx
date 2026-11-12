@@ -35,7 +35,8 @@ export function MagistratNominationFilesTable({
       columnHelper.accessor((row) => row.session.name, {
         cell: (info) => {
           const { session } = info.row.original;
-          const isOngoing = session.status === 'ONGOING';
+          // a new session, not validated yet, is already ongoing for the history of a magistrat
+          const isOngoing = session.status === 'ONGOING' || session.status === 'TO_VALIDATE';
           const sessionPath =
             context === 'membre'
               ? getDetailSessionGdsPath({ sessionId: session.id })

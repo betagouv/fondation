@@ -2139,7 +2139,7 @@ export type ListedFollowedUpObservationsDto = {
         session: {
             id: string;
             name: string;
-            status: 'ONGOING' | 'REPORTED' | 'ARCHIVED';
+            status: 'TO_VALIDATE' | 'ONGOING' | 'REPORTED' | 'ARCHIVED';
             date: {
                 year: number;
                 month: number;
@@ -2412,7 +2412,7 @@ export type ListedMagistratNominationFilesDto = {
                 month: number;
                 day: number;
             };
-            status: 'ONGOING' | 'REPORTED' | 'ARCHIVED';
+            status: 'TO_VALIDATE' | 'ONGOING' | 'REPORTED' | 'ARCHIVED';
             canOpen: boolean;
         };
         auditionDate: {
@@ -2470,7 +2470,7 @@ export type ListedMagistratObservationsDto = {
                     month: number;
                     day: number;
                 };
-                status: 'ONGOING' | 'REPORTED' | 'ARCHIVED';
+                status: 'TO_VALIDATE' | 'ONGOING' | 'REPORTED' | 'ARCHIVED';
                 canOpen: boolean;
             };
             auditionDate: {
