@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import { useIntl } from 'react-intl';
 import { generatePath, Link } from 'react-router';
 
-import { knownPositionStatuses } from '../utils/position-status.utils';
+import { KNOWN_STATUSES, knownValues } from '../utils/known-values.utils';
 import { useRowRevealedOnReturn } from '@/shared/hooks/useRowRevealedOnReturn';
 import {
   DataTable,
@@ -19,8 +19,8 @@ import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
   type CourtOfAppealFirstPresident,
   type CourtOfAppealFirstPresidentsSorting,
-  type CourtOfAppealStatusCount,
   type PositionStatus,
+  type PositionStatusCount,
   COURT_OF_APPEAL_FIRST_PRESIDENTS_DEFAULT_SORTING,
   COURT_OF_APPEAL_FIRST_PRESIDENTS_PAGE_SIZE,
   useCourtOfAppealFirstPresidentsQuery,
@@ -34,13 +34,13 @@ const SORTABLE_COLUMNS = new Set<string>([
   'name',
 ] satisfies CourtOfAppealFirstPresidentsSorting[number]['id'][]);
 
-const NO_STATUSES: CourtOfAppealStatusCount[] = [];
+const NO_STATUSES: PositionStatusCount[] = [];
 
 const h = createColumnHelper<CourtOfAppealFirstPresident>();
 
 function useCourtOfAppealFirstPresidentsColumns(props: {
   onMagistratOpened: (event: MouseEvent, magistratId: string) => void;
-  statuses: CourtOfAppealStatusCount[];
+  statuses: PositionStatusCount[];
 }) {
   const { formatMessage } = useIntl();
   const { onMagistratOpened, statuses } = props;
@@ -64,9 +64,9 @@ function useCourtOfAppealFirstPresidentsColumns(props: {
             filterId: 'status',
             label: formatMessage({ defaultMessage: 'Alerte / statut' }),
             type: 'enum',
-            values: statuses.map(({ id, label, positions }) => ({
+            values: statuses.map(({ count, id, label }) => ({
               id,
-              label: formatMessage({ defaultMessage: '{label} ({positions})' }, { label, positions }),
+              label: formatMessage({ defaultMessage: '{label} ({count})' }, { count, label }),
             })),
           },
         },
@@ -155,8 +155,9 @@ export function CourtOfAppealFirstPresidentsTable(props: {
     useCourtOfAppealFirstPresidentsQuery({
       search: tableState.globalFilter,
       sorting,
-      statuses: knownPositionStatuses(
+      statuses: knownValues(
         tableState.columnFilters.find((filter) => filter.id === 'status')?.value,
+        KNOWN_STATUSES,
       ),
     });
 
@@ -182,7 +183,7 @@ export function CourtOfAppealFirstPresidentsTable(props: {
     manualSorting: true,
     onColumnFiltersChange,
     onSortingChange,
-    state: { columnFilters: tableState.columnFilters, sorting },
+    state: { columnFilters: tableState.columnFilters, globalFilter: tableState.globalFilter, sorting },
   });
 
   return (

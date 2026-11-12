@@ -97,11 +97,11 @@ const holdersHandler = http.get('*/api/veille-des-postes/v1/cour-de-cassation', 
     nextPageIndex: page * limit < matching.length ? page + 1 : undefined,
     positions: POSITIONS.map((position) => ({
       ...position,
-      holders: searched.filter((h) => h.position.id === position.id && ofStatuses(h)).length,
+      count: searched.filter((h) => h.position.id === position.id && ofStatuses(h)).length,
     })),
     statuses: STATUSES.map((status) => ({
       ...status,
-      holders: searched.filter((h) => h.status.id === status.id && ofPositions(h)).length,
+      count: searched.filter((h) => h.status.id === status.id && ofPositions(h)).length,
     })),
     totalCount: matching.length,
   });

@@ -162,7 +162,7 @@ test.describe('Veille des postes E2E', () => {
 
     expect(data.items.map(({ magistrat }) => magistrat.name)).toEqual([`${lastName}B Camille`]);
     expect(data.totalCount).toBe(1);
-    expect(data.positions.map(({ holders, id }) => [id, holders])).toEqual([
+    expect(data.positions.map(({ count, id }) => [id, count])).toEqual([
       ['FIRST_PRESIDENT', 0],
       ['CHAMBER_PRESIDENT', 1],
       ['COUNSELLOR', 1],

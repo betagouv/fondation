@@ -104,7 +104,7 @@ const courtsHandler = http.get('*/api/veille-des-postes/v1/cours-d-appel', ({ re
     nextPageIndex: page * limit < matching.length ? page + 1 : undefined,
     statuses: STATUSES.map((status) => ({
       ...status,
-      positions: searched.filter((court) => court.status.id === status.id).length,
+      count: searched.filter((court) => court.status.id === status.id).length,
     })),
     totalCount: matching.length,
   });

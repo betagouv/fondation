@@ -81,7 +81,7 @@ export class ListCourtOfAppealFirstPresidentsQuery {
       }),
       statuses: positionStatuses().map((status) => ({
         ...status,
-        positions:
+        count:
           status.id === HELD_POSITION_STATUS
             ? heldCount
             : status.id === UNHELD_POSITION_STATUS
@@ -100,6 +100,6 @@ export class ListedCourtOfAppealFirstPresidentsDto extends createPaginatedZodDto
     status: z.object({ id: z.enum(POSITION_STATUSES), label: z.string() }),
   }),
   z.object({
-    statuses: z.array(z.object({ id: z.enum(POSITION_STATUSES), label: z.string(), positions: z.number() })),
+    statuses: z.array(z.object({ count: z.number(), id: z.enum(POSITION_STATUSES), label: z.string() })),
   }),
 ) {}

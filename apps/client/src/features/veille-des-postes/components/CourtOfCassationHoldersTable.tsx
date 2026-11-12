@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { useIntl } from 'react-intl';
 import { generatePath, Link } from 'react-router';
 
-import { knownPositionStatuses } from '../utils/position-status.utils';
+import { KNOWN_STATUSES, knownValues } from '../utils/known-values.utils';
 import { useRowRevealedOnReturn } from '@/shared/hooks/useRowRevealedOnReturn';
 import {
   DataTable,
@@ -45,13 +45,6 @@ const KNOWN_POSITIONS: Record<CourtOfCassationPosition, true> = {
   REFERENDARY_COUNSELLOR: true,
 };
 
-/** a saved or hand-edited link can hold anything: only an array of ids the API knows reaches it */
-function knownPositions(value: unknown): CourtOfCassationPosition[] {
-  return Array.isArray(value)
-    ? value.filter((id): id is CourtOfCassationPosition => typeof id === 'string' && id in KNOWN_POSITIONS)
-    : [];
-}
-
 const NO_POSITIONS: CourtOfCassationPositionCount[] = [];
 const NO_STATUSES: PositionStatusCount[] = [];
 
@@ -66,10 +59,10 @@ function useCourtOfCassationHoldersColumns(props: {
   const { onMagistratOpened } = props;
 
   return useMemo(() => {
-    const counted = (values: { holders: number; id: string; label: string }[]) =>
-      values.map(({ holders, id, label }) => ({
+    const counted = (values: { count: number; id: string; label: string }[]) =>
+      values.map(({ count, id, label }) => ({
         id,
-        label: formatMessage({ defaultMessage: '{label} ({holders})' }, { holders, label }),
+        label: formatMessage({ defaultMessage: '{label} ({count})' }, { count, label }),
       }));
 
     return [
@@ -184,11 +177,15 @@ export function CourtOfCassationHoldersTable(props: {
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useCourtOfCassationHoldersQuery(
     {
-      positions: knownPositions(tableState.columnFilters.find((filter) => filter.id === 'position')?.value),
+      positions: knownValues(
+        tableState.columnFilters.find((filter) => filter.id === 'position')?.value,
+        KNOWN_POSITIONS,
+      ),
       search: tableState.globalFilter,
       sorting,
-      statuses: knownPositionStatuses(
+      statuses: knownValues(
         tableState.columnFilters.find((filter) => filter.id === 'status')?.value,
+        KNOWN_STATUSES,
       ),
     },
   );
@@ -216,7 +213,7 @@ export function CourtOfCassationHoldersTable(props: {
     manualSorting: true,
     onColumnFiltersChange,
     onSortingChange,
-    state: { columnFilters: tableState.columnFilters, sorting },
+    state: { columnFilters: tableState.columnFilters, globalFilter: tableState.globalFilter, sorting },
   });
 
   return (

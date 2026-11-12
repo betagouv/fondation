@@ -103,11 +103,11 @@ export class ListCourtOfCassationHoldersQuery {
       }),
       positions: courtOfCassationPositions().map((position, rank) => ({
         ...position,
-        holders: matches ? (holdersByRank.get(rank) ?? 0) : 0,
+        count: matches ? (holdersByRank.get(rank) ?? 0) : 0,
       })),
       statuses: positionStatuses().map((status) => ({
         ...status,
-        holders: status.id === HELD_POSITION_STATUS ? heldInAskedPositions : 0,
+        count: status.id === HELD_POSITION_STATUS ? heldInAskedPositions : 0,
       })),
     };
   }
@@ -123,8 +123,8 @@ export class ListedCourtOfCassationHoldersDto extends createPaginatedZodDto(
   }),
   z.object({
     positions: z.array(
-      z.object({ holders: z.number(), id: z.enum(COURT_OF_CASSATION_POSITIONS), label: z.string() }),
+      z.object({ count: z.number(), id: z.enum(COURT_OF_CASSATION_POSITIONS), label: z.string() }),
     ),
-    statuses: z.array(z.object({ holders: z.number(), id: z.enum(POSITION_STATUSES), label: z.string() })),
+    statuses: z.array(z.object({ count: z.number(), id: z.enum(POSITION_STATUSES), label: z.string() })),
   }),
 ) {}

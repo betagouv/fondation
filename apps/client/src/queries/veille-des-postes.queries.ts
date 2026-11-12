@@ -12,7 +12,6 @@ type CourtOfAppealFirstPresidentsQuery = NonNullable<ListCourtOfAppealFirstPresi
 type CourtOfCassationHoldersQuery = NonNullable<ListCourtOfCassationHoldersData['query']>;
 
 export type CourtOfAppealFirstPresident = ListedCourtOfAppealFirstPresidentsDto['items'][number];
-export type CourtOfAppealStatusCount = ListedCourtOfAppealFirstPresidentsDto['statuses'][number];
 export type CourtOfAppealFirstPresidentsSorting =
   | []
   | [{ desc: boolean; id: NonNullable<CourtOfAppealFirstPresidentsQuery['sortBy']> }];

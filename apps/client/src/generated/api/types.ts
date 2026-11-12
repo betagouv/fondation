@@ -2694,9 +2694,9 @@ export type ListedCourtOfAppealFirstPresidentsDto = {
         previous?: string;
     };
     statuses: Array<{
+        count: number;
         id: 'OCCUPIED' | 'MAY_BECOME_VACANT' | 'VACANT';
         label: string;
-        positions: number;
     }>;
 };
 
@@ -2733,12 +2733,12 @@ export type ListedCourtOfCassationHoldersDto = {
         previous?: string;
     };
     positions: Array<{
-        holders: number;
+        count: number;
         id: 'FIRST_PRESIDENT' | 'CHAMBER_PRESIDENT' | 'COUNSELLOR' | 'REFERENDARY_COUNSELLOR' | 'AUDITOR_SECOND_GRADE' | 'AUDITOR_FIRST_GRADE';
         label: string;
     }>;
     statuses: Array<{
-        holders: number;
+        count: number;
         id: 'OCCUPIED' | 'MAY_BECOME_VACANT' | 'VACANT';
         label: string;
     }>;
