@@ -11,6 +11,7 @@ import {
   useListNominationSessionAttachmentsQuery,
   useNominationFilesStatusCountsQuery,
 } from '@queries/nomination-sessions.queries';
+import { useSessionObservationsCountQuery } from '@queries/observations.queries';
 
 export function MemberSessionTabsBar(props: { sessionId: string }) {
   const { formatMessage } = useIntl();
@@ -65,6 +66,7 @@ export function SessionTabsBar(props: { transparence: DetailedNominationSessionD
     sessionId: transparence.id,
   });
   const { data: auditionCounts } = useSessionAuditionsCountsQuery({ sessionId: transparence.id });
+  const { data: observationsCount } = useSessionObservationsCountQuery({ sessionId: transparence.id });
 
   const params = { sessionId: transparence.id };
 
@@ -87,6 +89,13 @@ export function SessionTabsBar(props: { transparence: DetailedNominationSessionD
         icon="fr-icon-list-unordered"
         label={formatMessage({ defaultMessage: 'Propositions' })}
         to={generatePath(ROUTE_PATHS.SG.SESSION_ID, params)}
+      />
+      <LinkTab
+        count={observationsCount?.total}
+        disabled={isSidePanelOpen}
+        icon="fr-icon-chat-3-line"
+        label={formatMessage({ defaultMessage: 'Observations' })}
+        to={generatePath(ROUTE_PATHS.SG.SESSION_ID_OBSERVATIONS, params)}
       />
       <LinkTab
         count={auditionsCount}

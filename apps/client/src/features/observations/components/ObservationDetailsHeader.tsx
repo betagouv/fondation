@@ -14,7 +14,6 @@ import { ObservationFollowUpSelector } from './ObservationFollowUpSelector';
 export function ObservationDetailsHeader(props: {
   backTo: string;
   context: 'sg' | 'membre';
-  isArchived: boolean;
   nominationFileId: string;
   observation: GetObservationDetailsResponseDto;
   sessionId: string;
@@ -41,9 +40,9 @@ export function ObservationDetailsHeader(props: {
     <DetailsHeader
       action={
         <ObservationFollowUpSelector
+          canEdit={props.observation.canEdit}
           comment={props.observation.followUpComment}
           followUp={props.observation.followUp}
-          isArchived={props.isArchived}
           nominationFileId={props.nominationFileId}
           observationId={props.observation.id}
           sessionId={props.sessionId}

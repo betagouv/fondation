@@ -1,5 +1,5 @@
 import { Transactional } from '@nestjs-cls/transactional';
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { ForbiddenException, forwardRef, Inject, Injectable } from '@nestjs/common';
 
 import { Prisma } from '../../../../generated/prisma/client';
 import { Db } from '../../../framework/database';
@@ -26,6 +26,10 @@ export class ObservationFinder {
       nominationFileIds: [query.nominationFileId],
     });
     if (files.get(query.nominationFileId)?.sessionId !== query.sessionId) return null;
+
+    // same rule as ObservationRepository.findById: an archived session is read-only
+    const state = await this.sessions.internalFindSessionState({ sessionId: query.sessionId });
+    if (state !== 'OPEN') throw new ForbiddenException();
 
     const observations = await this.db.tx.observation.findMany({
       select: { magistratId: true } satisfies Prisma.ObservationSelect,

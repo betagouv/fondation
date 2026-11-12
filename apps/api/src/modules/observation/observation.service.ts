@@ -18,6 +18,7 @@ import type { TimeOnly } from '../../utils/time-only';
 import { Db } from '../framework/database';
 import { Files } from '../framework/files';
 import type { StoredFile } from '../framework/files/multipart/multipart.types';
+import type { Pagination } from '../framework/pagination';
 import { TransparenceService } from '../session/transparence/infrastructure/transparence.service';
 import type { RoleEnum } from '../shared/role.enum';
 
@@ -26,7 +27,12 @@ import {
   UserNotAllowedToAttachScreenshotsError,
   UserNotAllowedToWriteCommentError,
 } from './domain/observation';
+import type { ObservationFollowUpEnum } from './domain/observation-follow-up';
 import { AttachedMemberCommentScreenshotsDto } from './infrastructure/dtos/observation-member-comment.dto';
+import type {
+  CountedSessionObservationsDto,
+  ListedSessionObservationsDto,
+} from './infrastructure/dtos/session-observation.dto';
 import {
   type NominationFileObservation,
   NominationFileObservationsFinder,
@@ -36,6 +42,7 @@ import {
   type ObservantAuditionWithObservations,
 } from './infrastructure/finders/observant-auditions.finder';
 import { ObservationFinder } from './infrastructure/finders/observation.finder';
+import { CountSessionObservationsQuery } from './infrastructure/queries/count-session-observations.query';
 import {
   GetObservationDetailsQuery,
   GetObservationDetailsResponseDto,
@@ -52,6 +59,7 @@ import {
   ListObservationsQuery,
   ListObservationsResponseDto,
 } from './infrastructure/queries/list-observations.query';
+import { ListSessionObservationsQuery } from './infrastructure/queries/list-session-observations.query';
 import { ObservantAuditionRepository } from './infrastructure/repositories/observant-audition.repository';
 import { ObservationRepository } from './infrastructure/repositories/observation.repository';
 
@@ -71,6 +79,8 @@ export class ObservationService {
     private readonly nominationFileObservationsFinder: NominationFileObservationsFinder,
     private readonly observantAuditionRepository: ObservantAuditionRepository,
     private readonly observantAuditions: ObservantAuditionsFinder,
+    private readonly listSessionObservationsQuery: ListSessionObservationsQuery,
+    private readonly countSessionObservationsQuery: CountSessionObservationsQuery,
 
     @Inject(forwardRef(() => TransparenceService))
     private readonly transparences: TransparenceService,
@@ -384,5 +394,23 @@ export class ObservationService {
     sessionId: string;
   }): Promise<ListedObservationsAttachmentsDto> {
     return this.listObservationsAttachmentsQuery.handle(query);
+  }
+
+  listSessionObservations(query: {
+    filters: { followUps: readonly (ObservationFollowUpEnum | null)[]; search: string | null };
+    pagination: Pagination;
+    role: RoleEnum;
+    sessionId: string;
+    sortBy: 'dateReception' | null;
+    sortDesc: boolean;
+  }): Promise<ListedSessionObservationsDto> {
+    return this.listSessionObservationsQuery.handle(query);
+  }
+
+  countSessionObservations(query: {
+    role: RoleEnum;
+    sessionId: string;
+  }): Promise<CountedSessionObservationsDto> {
+    return this.countSessionObservationsQuery.handle(query);
   }
 }

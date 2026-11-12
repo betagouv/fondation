@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import type { ObservationFollowUpEnum } from '@/shared/enums/observation-follow-up.enum';
 import { HttpException } from '@/utils/http-exception';
@@ -7,6 +7,7 @@ import { withScreenshotUrls } from '@/utils/with-screenshot-urls';
 import * as $api from '@api/sdk';
 import type {
   CreateObservationDto,
+  ListedSessionObservationsDto,
   ListObservationsResponseDto,
   ScheduleObservantAuditionDto,
   UpdateObservationDto,
@@ -18,8 +19,22 @@ import { mapCachedNominationFiles, sessionKeys } from './nomination-sessions.que
 
 export type Observation = ListObservationsResponseDto['observations'][number];
 export type Observant = NonNullable<Observation['magistrat']>;
+export type SessionObservation = ListedSessionObservationsDto['items'][number];
+
+type SessionObservationsFilters = {
+  followUps: string[];
+  search: string;
+  sortDesc: boolean;
+};
+
+const SESSION_OBSERVATIONS_PAGE_SIZE = 50;
 
 export const observationKeys = {
+  /** the list and the count of the observations tab, both stale once an observation of the session changes */
+  session: (props: { sessionId: string }) => ['observations', 'session', props] as const,
+  sessionCount: (props: { sessionId: string }) => [...observationKeys.session(props), 'count'] as const,
+  sessionList: (props: { filters: SessionObservationsFilters; sessionId: string }) =>
+    [...observationKeys.session({ sessionId: props.sessionId }), 'list', props.filters] as const,
   observations: (props?: { sessionId: string; nominationFileId: string | undefined }) =>
     ['observations', props] as const,
   allObservationDetails: () => ['observationDetails'] as const,
@@ -92,6 +107,45 @@ export function useObservationsQuery(props: { sessionId: string; nominationFileI
   });
 }
 
+export const useSessionObservationsCountQuery = (props: { sessionId: string }) =>
+  useQuery({
+    queryFn: async () => {
+      const { data } = await $api.observations.countSessionObservations({ path: props, throwOnError: true });
+      return data;
+    },
+    queryKey: observationKeys.sessionCount(props),
+  });
+
+export const useInfiniteSessionObservationsQuery = (props: {
+  filters: SessionObservationsFilters;
+  sessionId: string;
+}) =>
+  useInfiniteQuery({
+    getNextPageParam: (lastPage: ListedSessionObservationsDto | null) => lastPage?.nextPageIndex,
+    initialPageParam: 1,
+    placeholderData: (previous) => previous,
+    queryFn: async ({ pageParam }) => {
+      const { followUps, search, sortDesc } = props.filters;
+      const { data = null } = await $api.observations.listSessionObservations({
+        path: { sessionId: props.sessionId },
+        query: {
+          followUps: followUps.length ? followUps.join(',') : undefined,
+          limit: SESSION_OBSERVATIONS_PAGE_SIZE,
+          page: pageParam,
+          search: search || undefined,
+          sortBy: 'dateReception',
+          sortDesc: sortDesc ? 'true' : undefined,
+        },
+      });
+      return data;
+    },
+    queryKey: observationKeys.sessionList(props),
+    select: (data) => ({
+      items: data.pages.flatMap((page) => page?.items ?? []),
+      totalCount: data.pages.at(-1)?.totalCount ?? 0,
+    }),
+  });
+
 export function useCreateObservationMutation() {
   const queryClient = useQueryClient();
 
@@ -128,6 +182,7 @@ export function useCreateObservationMutation() {
         queryClient.invalidateQueries({
           queryKey: observationKeys.observations({ sessionId, nominationFileId }),
         }),
+        queryClient.invalidateQueries({ queryKey: observationKeys.session({ sessionId }) }),
         queryClient.invalidateQueries({
           queryKey: sessionKeys.listSessionNominationFiles({ sessionId }),
         }),
@@ -158,6 +213,7 @@ export function useDeleteObservationMutation() {
         queryClient.invalidateQueries({
           queryKey: observationKeys.observations({ sessionId, nominationFileId }),
         }),
+        queryClient.invalidateQueries({ queryKey: observationKeys.session({ sessionId }) }),
         queryClient.invalidateQueries({
           queryKey: sessionKeys.listSessionNominationFiles({ sessionId }),
         }),
@@ -232,6 +288,7 @@ export function useUpdateObservationMutation() {
         queryClient.invalidateQueries({
           queryKey: observationKeys.observations({ sessionId, nominationFileId }),
         }),
+        queryClient.invalidateQueries({ queryKey: observationKeys.session({ sessionId }) }),
         queryClient.invalidateQueries({
           queryKey: sessionKeys.listSessionNominationFiles({ sessionId }),
         }),
@@ -318,13 +375,16 @@ export function useFollowUpOnObservationMutation() {
         ),
       ),
     onSettled: (_data, _error, { sessionId, nominationFileId, observationId }) =>
-      queryClient.invalidateQueries({
-        queryKey: observationKeys.observationDetails({
-          sessionId,
-          nominationFileId,
-          observationId,
+      Promise.allSettled([
+        queryClient.invalidateQueries({
+          queryKey: observationKeys.observationDetails({
+            sessionId,
+            nominationFileId,
+            observationId,
+          }),
         }),
-      }),
+        queryClient.invalidateQueries({ queryKey: observationKeys.session({ sessionId }) }),
+      ]),
   });
 }
 

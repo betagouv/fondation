@@ -67,6 +67,7 @@ export const ROUTE_PATHS = {
     SESSION_ID_COMMENT: '/secretariat-general/session/:sessionId/commentaire',
     SESSION_ID_DOCUMENTS: '/secretariat-general/session/:sessionId/documents',
     SESSION_ID_MISSING_EVALUATIONS: '/secretariat-general/session/:sessionId/evaluations-manquantes',
+    SESSION_ID_OBSERVATIONS: '/secretariat-general/session/:sessionId/observations',
   },
   SUMMARY: '/session/:sessionId/dossier/:fileId/synthese',
   SURVEY: '/avis',

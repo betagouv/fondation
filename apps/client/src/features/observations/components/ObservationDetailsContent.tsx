@@ -1,7 +1,6 @@
 import Card from '@codegouvfr/react-dsfr/Card';
 import { FormattedMessage } from 'react-intl';
 
-import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { AuditionScheduledBanner } from '@/shared/components/audition-banner';
 import { DetailsCard, DetailsPageLayout } from '@/shared/ui/details';
 import { type FilesUploader, TipTapEditor } from '@/shared/ui/tip-tap-editor';
@@ -17,7 +16,6 @@ import { ObservationIdentityCard } from './ObservationIdentityCard';
 type ObservationDetailsContentProps = {
   backTo: string;
   context: 'sg' | 'membre';
-  isArchived: boolean;
   nominationFileId: string;
   observation: GetObservationDetailsResponseDto;
   observationId: string;
@@ -31,7 +29,6 @@ type ObservationDetailsContentProps = {
 export function ObservationDetailsContent({
   backTo,
   context,
-  isArchived,
   nominationFileId,
   observation,
   onDownloadFile,
@@ -40,7 +37,6 @@ export function ObservationDetailsContent({
   sessionId,
   uploadFiles,
 }: ObservationDetailsContentProps) {
-  const isSg = useIsSg();
   const relatedPropositions = observation.relatedPropositions ?? [];
 
   return (
@@ -57,7 +53,6 @@ export function ObservationDetailsContent({
         <ObservationDetailsHeader
           backTo={backTo}
           context={context}
-          isArchived={isArchived}
           nominationFileId={nominationFileId}
           observation={observation}
           sessionId={sessionId}
@@ -74,7 +69,6 @@ export function ObservationDetailsContent({
       wideIdentity
     >
       <ObservationAttachmentsCard
-        isArchived={isArchived}
         nominationFileId={nominationFileId}
         observation={observation}
         onDownloadFile={onDownloadFile}
@@ -83,16 +77,14 @@ export function ObservationDetailsContent({
       />
 
       <ObservationAuditionCard
-        isArchived={isArchived}
         nominationFileId={nominationFileId}
         observation={observation}
         sessionId={sessionId}
       />
 
-      {observation.description || (!isArchived && isSg) ? (
+      {observation.description || observation.canEdit ? (
         <DetailsCard>
           <ObservationDescription
-            isArchived={isArchived}
             nominationFileId={nominationFileId}
             observation={observation}
             sessionId={sessionId}
@@ -101,8 +93,7 @@ export function ObservationDetailsContent({
       ) : null}
 
       {context === 'membre' &&
-        observation.isMemberReporter &&
-        ((!isArchived && onUpdateMemberComment) || (isArchived && observation.memberComment?.comment)) && (
+        ((observation.canComment && onUpdateMemberComment) || observation.memberComment?.comment) && (
           <DetailsCard>
             <h2 className="fr-h4" id="member-comment-label">
               <FormattedMessage defaultMessage="Mon commentaire" />
@@ -110,7 +101,7 @@ export function ObservationDetailsContent({
             <TipTapEditor
               ariaLabelledby="member-comment-label"
               onChange={onUpdateMemberComment}
-              readOnly={isArchived}
+              readOnly={!observation.canComment}
               uploadFiles={uploadFiles}
               value={observation.memberComment?.comment ?? ''}
             />

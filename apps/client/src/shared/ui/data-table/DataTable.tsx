@@ -61,7 +61,11 @@ function HeaderCell<Data extends RowData>(props: { fluid?: boolean; header: Head
       role="columnheader"
       style={
         props.fluid
-          ? { flexBasis: header.getSize(), flexGrow: header.getSize(), minWidth: 0 }
+          ? {
+              flexBasis: header.getSize(),
+              flexGrow: header.getSize(),
+              minWidth: header.column.columnDef.minSize,
+            }
           : { width: header.getSize() }
       }
     >
@@ -287,7 +291,7 @@ export function DataTable<Data extends RowData>(props: {
                             ? {
                                 flexBasis: cell.column.getSize(),
                                 flexGrow: cell.column.getSize(),
-                                minWidth: 0,
+                                minWidth: cell.column.columnDef.minSize,
                               }
                             : { width: cell.column.getSize() }
                         }
