@@ -123,11 +123,18 @@ export class HydratedNominationFilesFinder {
     });
 
     return Map.groupBy(
-      files.map(({ detectedMagistratId, session, ...file }) => ({
-        ...file,
-        magistratId: detectedMagistratId ?? '',
-        session: { ...session, date: DateOnly.fromUtcDate(session.date) },
-      })),
+      // the filter on the magistrats already leaves out the files without one
+      files.flatMap(({ detectedMagistratId, session, ...file }) =>
+        detectedMagistratId === null
+          ? []
+          : [
+              {
+                ...file,
+                magistratId: detectedMagistratId,
+                session: { ...session, date: DateOnly.fromUtcDate(session.date) },
+              },
+            ],
+      ),
       ({ magistratId }) => magistratId,
     );
   }

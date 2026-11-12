@@ -1,7 +1,7 @@
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { OBSERVATION_BLOCK_TRACKING_STATUSES } from '../../domain/observation-block-tracking';
+import { OBSERVATION_BLOCK_TRACKING_STATUSES } from '../../domain/observation-block';
 
 export const ObservationBlockTrackingSchema = z.object({
   status: z.enum(OBSERVATION_BLOCK_TRACKING_STATUSES),

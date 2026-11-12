@@ -4,7 +4,7 @@ import { dateOnlyJsonSchema } from '../../../../utils/date-only';
 import { createPaginatedZodDto } from '../../../framework/pagination';
 import { createSortableDto } from '../../../framework/sorting';
 import { SESSION_STATUSES } from '../../../session/transparence/infrastructure/finders/session-statuses.finder';
-import { OBSERVATION_BLOCK_TRACKING_STATUSES } from '../../domain/observation-block-tracking';
+import { OBSERVATION_BLOCK_TRACKING_STATUSES } from '../../domain/observation-block';
 
 import { ObservationBlockTrackingSchema } from './observation-block-tracking.dto';
 import {

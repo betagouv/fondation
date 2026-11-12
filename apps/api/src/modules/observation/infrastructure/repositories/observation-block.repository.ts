@@ -3,7 +3,7 @@ import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/commo
 
 import { Db } from '../../../framework/database';
 import { TransparenceService } from '../../../session/transparence/infrastructure/transparence.service';
-import { ObservationBlock } from '../../domain/observation-block-tracking';
+import { ObservationBlock } from '../../domain/observation-block';
 
 @Injectable()
 export class ObservationBlockRepository {

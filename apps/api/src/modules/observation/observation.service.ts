@@ -28,7 +28,7 @@ import {
   UserNotAllowedToAttachScreenshotsError,
   UserNotAllowedToWriteCommentError,
 } from './domain/observation';
-import type { ObservationBlockTrackingStatus } from './domain/observation-block-tracking';
+import type { ObservationBlockTrackingStatus } from './domain/observation-block';
 import type { ObservationFollowUpEnum } from './domain/observation-follow-up';
 import type { ListedFollowedUpObservationsDto } from './infrastructure/dtos/followed-up-observation.dto';
 import { AttachedMemberCommentScreenshotsDto } from './infrastructure/dtos/observation-member-comment.dto';

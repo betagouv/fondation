@@ -11,13 +11,11 @@ import type { SessionStatus } from '../../../session/transparence/infrastructure
 import { TransparenceService } from '../../../session/transparence/infrastructure/transparence.service';
 import {
   laterPropositions,
+  type ObservationBlockTrackingStatus,
   sortByObservationBlock,
   sortBySessionThenObservationBlock,
-} from '../../domain/observation-block';
-import {
-  type ObservationBlockTrackingStatus,
   UNTRACKED_BLOCK,
-} from '../../domain/observation-block-tracking';
+} from '../../domain/observation-block';
 import type { ObservationFollowUpEnum } from '../../domain/observation-follow-up';
 import type { ListedFollowedUpObservationsDto } from '../dtos/followed-up-observation.dto';
 
