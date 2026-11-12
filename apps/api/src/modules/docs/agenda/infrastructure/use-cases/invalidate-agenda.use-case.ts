@@ -110,7 +110,6 @@ export class InvalidateAgendasUseCase {
         const file = nominationFilesPerId.get(id);
         return file ? [{ id, reporters: namedMembersOf(file.reporters) }] : [];
       });
-      if (nominationFiles.length === 0) continue;
 
       const agenda = await this.agendaRepository.find({ actorId: null, agendaId });
       agenda.updateFilesReporters({ nominationFiles });

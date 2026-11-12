@@ -385,6 +385,14 @@ describe('Agenda', () => {
       ]);
     });
 
+    it('should change nothing once none of its files is found among the session ones', () => {
+      const agenda = agendaReportedBy({ isManuallyEdited: false, isValidated: false });
+
+      agenda.updateFilesReporters({ nominationFiles: [] });
+
+      expect(agenda.messages).toEqual([]);
+    });
+
     it('should leave a validated agenda as it was sent when a reporter is only renamed', () => {
       const agenda = agendaReportedBy({ isManuallyEdited: false, isValidated: true });
 

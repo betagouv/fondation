@@ -279,8 +279,6 @@ export class Agenda {
   updateFilesReporters(command: {
     nominationFiles: readonly { id: string; reporters: readonly NamedMember[] }[];
   }): void {
-    if (command.nominationFiles.length === 0) throw new EmptyAgenda();
-
     const diff = assertIsDefined(this.snapshot).diffReporters(command);
     if (!diff.hasAny) return;
 
