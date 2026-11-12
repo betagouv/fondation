@@ -344,9 +344,18 @@ test.describe('Observation', () => {
       });
       return data.id;
     };
-    // the first observant wrote the two earliest observations, the second one the latest
-    const onSecondFile = await observe(second!, first!.magistratId, '2026-05-01');
-    const onFirstFile = await observe(first!, first!.magistratId, '2026-05-03');
+    // LOLFI numbers the files in no fixed order: read the numbers rather than assume the candidates' order
+    const { data: files } = await agent.sessions.listNominationFiles({
+      path: { sessionId: session.id },
+      throwOnError: true,
+    });
+    const numberOf = (file: { id: string }) =>
+      files.items.find(({ id }) => id === file.id)?.content.numeroDeDossier ?? Infinity;
+    const [lowFile, highFile] = [first!, second!].toSorted((a, b) => numberOf(a) - numberOf(b));
+    // the first observant wrote the two earliest observations, the second one the latest; inside the bloc,
+    // the file with the lowest number comes first whatever the reception dates
+    const onHighFile = await observe(highFile!, first!.magistratId, '2026-05-01');
+    const onLowFile = await observe(lowFile!, first!.magistratId, '2026-05-03');
     const latest = await observe(first!, second!.magistratId, '2026-05-05');
     await agent.observations.followUpOnObservation({
       body: { comment: null, followUp: 'ALERT' },
@@ -364,7 +373,7 @@ test.describe('Observation', () => {
     };
 
     const byDefault = await list();
-    expect(byDefault.items.map(({ id }) => id)).toEqual([latest, onFirstFile, onSecondFile]);
+    expect(byDefault.items.map(({ id }) => id)).toEqual([latest, onLowFile, onHighFile]);
     expect(byDefault.items[0]).toMatchObject({
       dateReception: { day: 5, month: 5, year: 2026 },
       followUp: 'ALERT',
@@ -372,9 +381,9 @@ test.describe('Observation', () => {
       observant: { id: second!.magistratId, name: 'DAUBENTON Lucien' },
     });
     const ascending = await list({ sortBy: 'dateReception', sortDesc: 'false' });
-    expect(ascending.items.map(({ id }) => id)).toEqual([onFirstFile, onSecondFile, latest]);
+    expect(ascending.items.map(({ id }) => id)).toEqual([onLowFile, onHighFile, latest]);
     const withoutFollowUp = await list({ followUps: 'null' });
-    expect(withoutFollowUp.items.map(({ id }) => id)).toEqual([onFirstFile, onSecondFile]);
+    expect(withoutFollowUp.items.map(({ id }) => id)).toEqual([onLowFile, onHighFile]);
 
     const { data: count } = await agent.observations.countSessionObservations({
       path: { sessionId: session.id },
