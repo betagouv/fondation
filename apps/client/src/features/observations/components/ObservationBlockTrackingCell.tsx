@@ -89,7 +89,7 @@ function ObservationBlockTrackingModal(props: { onClosed: () => void; row: Follo
   const save = () =>
     update.mutate(
       {
-        comment: comment.trim() || null,
+        comment,
         magistratId: observant.id,
         sessionId: props.row.session.id,
         status,
