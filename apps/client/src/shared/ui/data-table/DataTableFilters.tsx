@@ -41,7 +41,8 @@ function DataTableEnumFilter<Data extends RowData>(props: {
     <DropdownFilter
       onSelectionChange={onSelectionChange}
       options={options}
-      selectedValues={currentFilter.value}
+      // the URL holds anything once edited by hand
+      selectedValues={Array.isArray(currentFilter.value) ? currentFilter.value : []}
       tagName={props.filter.label}
     />
   );
