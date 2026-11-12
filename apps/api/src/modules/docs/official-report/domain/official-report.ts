@@ -135,6 +135,8 @@ export class OfficialReportInvalidated {
   constructor(
     readonly officialReportId: Id<'OfficialReportId'>,
     readonly diff: OfficialReportSnapshotDiff,
+    /** the stored document reads differently and is rendered again */
+    readonly changesDocument: boolean,
   ) {}
 }
 
@@ -207,8 +209,11 @@ const INVALIDATION_CAUSES = {
   DocSystemUpdateCause
 >;
 
-/** only the names behind a text written by hand, or behind a removed mention, changed: the page reads the same */
-function showsInDraft(diff: OfficialReportSnapshotDiff): boolean {
+/**
+ * false when only the names behind a text written by hand, or behind a removed mention, changed: the page reads the same.
+ * TODO: see changesDocument in Agenda, which tells a renaming apart the same way
+ */
+function changesDocument(diff: OfficialReportSnapshotDiff): boolean {
   return (
     diff.intro !== 'NOOP' ||
     diff.conclusion !== 'NOOP' ||
@@ -339,8 +344,9 @@ export class OfficialReport {
     if (!diff.hasAny) return;
 
     // a change the draft does not show leaves it the reader's, and so discardable
-    if (showsInDraft(diff)) this.openDraft(INVALIDATION_CAUSES[command.type]);
-    this.#messages.push(new OfficialReportInvalidated(this.id, diff));
+    const changed = changesDocument(diff);
+    if (changed) this.openDraft(INVALIDATION_CAUSES[command.type]);
+    this.#messages.push(new OfficialReportInvalidated(this.id, diff, changed));
   }
 
   /** a validated report tells its meeting as it was held: the application only says what changed since */
@@ -368,7 +374,7 @@ export class OfficialReport {
     if (!changed) return;
 
     this.openDraft();
-    if (diff.hasAny) this.#messages.push(new OfficialReportInvalidated(this.id, diff));
+    if (diff.hasAny) this.#messages.push(new OfficialReportInvalidated(this.id, diff, changesDocument(diff)));
     this.#messages.push(new OfficialReportUpdated(this.id, command.authorId, next, diff));
   }
 

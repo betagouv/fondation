@@ -473,7 +473,7 @@ export class AgendaRepository {
       });
     }
 
-    await this.recomputeAgendaState(versionId);
+    if (message.changesDocument) await this.recomputeAgendaState(versionId);
   }
 
   private async recomputeAgendaState(versionId: string): Promise<void> {

@@ -490,7 +490,7 @@ export class OfficialReportRepository {
       where: { id: editedVersionId },
     });
 
-    if (message.diff.hasAny) await this.recomputeState(editedVersionId);
+    if (message.changesDocument) await this.recomputeState(editedVersionId);
   }
 
   private async resolveJusticeContact(

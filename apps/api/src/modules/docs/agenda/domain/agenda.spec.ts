@@ -354,9 +354,11 @@ describe('Agenda', () => {
 
       expect(agenda.messages).toEqual([
         new AgendaDraftUpdatedBySystem(agenda.id, 'DESIGNATION'),
-        new AgendaFilesReportersUpdated(agenda.id, [
-          { isOutdated: false, nominationFileId: props.nominationFiles[0].id, reporters: [RENAMED] },
-        ]),
+        new AgendaFilesReportersUpdated(
+          agenda.id,
+          [{ isOutdated: false, nominationFileId: props.nominationFiles[0].id, reporters: [RENAMED] }],
+          true,
+        ),
       ]);
     });
 
@@ -366,9 +368,11 @@ describe('Agenda', () => {
       update(agenda, [RENAMED]);
 
       expect(agenda.messages).toEqual([
-        new AgendaFilesReportersUpdated(agenda.id, [
-          { isOutdated: false, nominationFileId: props.nominationFiles[0].id, reporters: [RENAMED] },
-        ]),
+        new AgendaFilesReportersUpdated(
+          agenda.id,
+          [{ isOutdated: false, nominationFileId: props.nominationFiles[0].id, reporters: [RENAMED] }],
+          false,
+        ),
       ]);
     });
 
@@ -379,9 +383,11 @@ describe('Agenda', () => {
 
       expect(agenda.messages).toEqual([
         new AgendaDraftUpdatedBySystem(agenda.id, 'REPORTERS'),
-        new AgendaFilesReportersUpdated(agenda.id, [
-          { isOutdated: true, nominationFileId: props.nominationFiles[0].id, reporters: [MARTIN] },
-        ]),
+        new AgendaFilesReportersUpdated(
+          agenda.id,
+          [{ isOutdated: true, nominationFileId: props.nominationFiles[0].id, reporters: [MARTIN] }],
+          true,
+        ),
       ]);
     });
 
@@ -409,9 +415,11 @@ describe('Agenda', () => {
       expect(agenda.messages).toEqual([
         new AgendaDraftOpened(agenda.id, null),
         new AgendaDraftUpdatedBySystem(agenda.id, 'REPORTERS'),
-        new AgendaFilesReportersUpdated(agenda.id, [
-          { isOutdated: false, nominationFileId: props.nominationFiles[0].id, reporters: [MARTIN] },
-        ]),
+        new AgendaFilesReportersUpdated(
+          agenda.id,
+          [{ isOutdated: false, nominationFileId: props.nominationFiles[0].id, reporters: [MARTIN] }],
+          true,
+        ),
       ]);
     });
   });

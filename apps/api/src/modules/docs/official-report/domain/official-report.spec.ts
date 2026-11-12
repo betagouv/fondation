@@ -322,6 +322,7 @@ describe('OfficialReport', () => {
 
         expect(report.messages).toEqual([
           expect.objectContaining({
+            changesDocument: false,
             diff: expect.objectContaining({
               files: [expect.objectContaining({ action: 'recuse', note: 'keep' })],
             }),

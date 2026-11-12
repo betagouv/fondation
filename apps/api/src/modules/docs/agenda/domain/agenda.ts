@@ -9,7 +9,12 @@ import { type DraftChangesBy } from '../../shared/domain/draft-changes-by';
 import { type NamedMember } from '../../shared/domain/named-member';
 
 import { AgendaNominationFile } from './agenda-nomination-file';
-import { AgendaFilesDiff, AgendaMetadataDiff, AgendaSnapshot } from './agenda-snapshot';
+import {
+  AgendaFilesDiff,
+  AgendaFilesReportersDiff,
+  AgendaMetadataDiff,
+  AgendaSnapshot,
+} from './agenda-snapshot';
 
 export type AgendaChairman = {
   displayTitle: string | null;
@@ -102,6 +107,8 @@ export class AgendaFilesReportersUpdated {
       nominationFileId: string;
       reporters: readonly NamedMember[];
     }[],
+    /** the stored document reads differently and is rendered again */
+    readonly changesDocument: boolean,
   ) {}
 }
 
@@ -150,6 +157,14 @@ export class AgendaFilesAlreadyReported extends Error {
   constructor(readonly fileIds: readonly string[]) {
     super();
   }
+}
+
+/**
+ * false when only the names behind a block written by hand changed: the agenda reads the same.
+ * TODO: see changesDocument in OfficialReport, which tells a renaming apart the same way
+ */
+function changesDocument(diff: Extract<AgendaFilesReportersDiff, { hasAny: true }>): boolean {
+  return diff.updated.some((file) => file.whoChanged || !file.isManuallyEdited);
 }
 
 export class Agenda {
@@ -286,7 +301,7 @@ export class Agenda {
     if (this.#isValidated && !whoChanged) return;
 
     if (whoChanged) this.openDraft('REPORTERS');
-    else if (diff.updated.some((file) => !file.isManuallyEdited)) this.openDraft('DESIGNATION');
+    else if (changesDocument(diff)) this.openDraft('DESIGNATION');
 
     this.#messages.push(
       new AgendaFilesReportersUpdated(
@@ -296,6 +311,7 @@ export class Agenda {
           nominationFileId,
           reporters,
         })),
+        changesDocument(diff),
       ),
     );
   }
