@@ -239,7 +239,7 @@ describe('OfficialReportSnapshotFile', () => {
       const diff = file.diff({ nominationFileId: NOMINATION_FILE_ID, recusedMembers: [renamed] });
 
       expect(diff).toEqual([
-        { action: 'recuse', nominationFileId: NOMINATION_FILE_ID, note: 'follow', recusedMembers: [renamed] },
+        { action: 'recuse', nominationFileId: NOMINATION_FILE_ID, note: 'keep', recusedMembers: [renamed] },
       ]);
     });
 

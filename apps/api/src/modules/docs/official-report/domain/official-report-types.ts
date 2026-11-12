@@ -103,11 +103,15 @@ export type OfficialReportSnapshotDiff = {
       }
     | ({
         /** `follow`: the sentence reads the new recusal, `outdate`: the hand-written slot is flagged,
-         * `generate`: a removal with nothing left to hide gives the slot back to the sentence */
+         * `generate`: a removal with nothing left to hide gives the slot back to the sentence,
+         * `keep`: the slot stays empty, only the names it would bring back follow */
         action: 'recuse';
         nominationFileId: string;
         recusedMembers: readonly NamedMember[];
-      } & ({ note: 'follow' | 'generate' } | { note: 'outdate'; outdatedBy: OfficialReportNoteOutdatedBy }))
+      } & (
+        | { note: 'follow' | 'generate' | 'keep' }
+        | { note: 'outdate'; outdatedBy: OfficialReportNoteOutdatedBy }
+      ))
     | {
         action: 'create';
         nominationFileId: string;

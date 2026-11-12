@@ -125,7 +125,7 @@ export class OfficialReportSnapshotFile {
       return { ...recuse, note: 'generate' };
     }
     // a removed mention prints no name: a renaming only changes the names it would bring back
-    if (this.note.status === 'REMOVED' && !whoChanged) return { ...recuse, note: 'follow' };
+    if (this.note.status === 'REMOVED' && !whoChanged) return { ...recuse, note: 'keep' };
 
     // a change of who is recused outranks a renaming, even one flagged before
     const outdatedBy = whoChanged || this.note.outdatedBy === 'RECUSAL' ? 'RECUSAL' : 'DESIGNATION';

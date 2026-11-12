@@ -309,6 +309,26 @@ describe('OfficialReport', () => {
         ]);
       });
 
+      it('should let the names behind a removed mention follow, without telling the draft changed', () => {
+        const report = withFile(
+          { actorId: null },
+          {
+            note: { html: null, outdatedBy: null, status: 'REMOVED' },
+            recusedMembers: [{ id: 'member-forget', name: 'M. Paul FORGET' }],
+          },
+        );
+
+        renamed(report);
+
+        expect(report.messages).toEqual([
+          expect.objectContaining({
+            diff: expect.objectContaining({
+              files: [expect.objectContaining({ action: 'recuse', note: 'keep' })],
+            }),
+          }),
+        ]);
+      });
+
       it('should leave a validated report as the meeting was held, without saying the designation changed', () => {
         const report = withRecusal({ actorId: null, isValidated: true });
 

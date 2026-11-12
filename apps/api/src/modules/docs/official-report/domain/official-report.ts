@@ -207,6 +207,20 @@ const INVALIDATION_CAUSES = {
   DocSystemUpdateCause
 >;
 
+/** only the names behind a text written by hand, or behind a removed mention, changed: the page reads the same */
+function showsInDraft(diff: OfficialReportSnapshotDiff): boolean {
+  return (
+    diff.intro !== 'NOOP' ||
+    diff.conclusion !== 'NOOP' ||
+    diff.files.some(
+      (file) =>
+        file.action !== 'noop' &&
+        file.action !== 'rename' &&
+        !(file.action === 'recuse' && file.note === 'keep'),
+    )
+  );
+}
+
 export class OfficialReportDocumentNotStored extends Error {}
 
 export class OfficialReportAlreadyValidated extends Error {}
@@ -324,7 +338,8 @@ export class OfficialReport {
     const diff = this.snapshot.invalidate(command);
     if (!diff.hasAny) return;
 
-    this.openDraft(INVALIDATION_CAUSES[command.type]);
+    // a change the draft does not show leaves it the reader's, and so discardable
+    if (showsInDraft(diff)) this.openDraft(INVALIDATION_CAUSES[command.type]);
     this.#messages.push(new OfficialReportInvalidated(this.id, diff));
   }
 
