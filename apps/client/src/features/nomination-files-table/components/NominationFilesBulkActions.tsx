@@ -29,8 +29,8 @@ import {
 } from './cells/magistrat-side-panel/components/header/AffectationFields';
 import { AffectedRecusedMembersNotice } from './cells/magistrat-side-panel/components/recused-members/AffectedRecusedMembersNotice';
 import {
-  affectedRecusedMembers,
-  blockedRecusals,
+  blockedMembers,
+  isNonAffectableOn,
   isNonRecusableOn,
 } from './cells/magistrat-side-panel/components/recused-members/recused-reporters';
 import { RecusedMemberSelect } from './cells/magistrat-side-panel/components/recused-members/RecusedMemberSelect';
@@ -177,14 +177,40 @@ export function NominationFilesBulkActions(props: {
       if (!hasSelection) return;
 
       const change = diff(reporterIds, next);
-      const recusedMembers = affectedRecusedMembers(props.selectedFiles, change.added);
+      const changedAffectations = props.selectedFiles
+        .map((file) => {
+          const formerReporterIds = file.reporters.map(({ id }) => id);
+          return {
+            formerReporterIds,
+            nominationFileId: file.id,
+            reporterIds: applyChange(formerReporterIds, {
+              added: change.added.filter((id) => !isNonAffectableOn(file, id)),
+              removed: change.removed,
+            }),
+          };
+        })
+        .filter(({ formerReporterIds, reporterIds }) => isChanged(formerReporterIds, reporterIds));
+      const recusedMembers = blockedMembers(
+        props.selectedFiles,
+        change.added,
+        members?.items ?? [],
+        isNonAffectableOn,
+      );
       if (recusedMembers.length > 0) {
+        const hasOtherPropositions = changedAffectations.length > 0;
         const { isConfirmed } = await waitForConfirmation({
-          content: <AffectedRecusedMembersNotice members={recusedMembers} />,
-          i18n: {
-            cancel: formatMessage({ defaultMessage: 'Annuler' }),
-            confirm: formatMessage({ defaultMessage: 'Affecter' }),
-          },
+          content: (
+            <AffectedRecusedMembersNotice
+              hasOtherPropositions={hasOtherPropositions}
+              members={recusedMembers}
+            />
+          ),
+          i18n: hasOtherPropositions
+            ? {
+                cancel: formatMessage({ defaultMessage: 'Annuler' }),
+                confirm: formatMessage({ defaultMessage: 'Affecter' }),
+              }
+            : { cancel: formatMessage({ defaultMessage: 'Fermer' }), confirm: null },
           title:
             recusedMembers.length > 1
               ? formatMessage({ defaultMessage: 'Affecter des membres déportés' })
@@ -194,15 +220,14 @@ export function NominationFilesBulkActions(props: {
       }
 
       setReporterIds(next);
+      // the API refuses an empty affectation
+      if (changedAffectations.length === 0) return;
 
       affectReporters.mutate(
         {
-          affectations: props.selectedFiles.map((file) => ({
-            nominationFileId: file.id,
-            reporterIds: applyChange(
-              file.reporters.map(({ id }) => id),
-              change,
-            ),
+          affectations: changedAffectations.map(({ nominationFileId, reporterIds }) => ({
+            nominationFileId,
+            reporterIds,
           })),
           sessionId,
         },
@@ -213,6 +238,7 @@ export function NominationFilesBulkActions(props: {
       affectReporters,
       formatMessage,
       hasSelection,
+      members,
       onFailure,
       props.selectedFiles,
       reporterIds,
@@ -269,7 +295,12 @@ export function NominationFilesBulkActions(props: {
         }),
         nominationFileId: file.id,
       }));
-      const reporters = blockedRecusals(props.selectedFiles, change.added, members?.items ?? []);
+      const reporters = blockedMembers(
+        props.selectedFiles,
+        change.added,
+        members?.items ?? [],
+        isNonRecusableOn,
+      );
       if (reporters.length > 0) {
         const hasOtherPropositions = items.some(({ before, memberIds }) => isChanged(before, memberIds));
         const { isConfirmed } = await waitForConfirmation({

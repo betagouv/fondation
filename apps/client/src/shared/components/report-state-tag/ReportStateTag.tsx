@@ -3,9 +3,9 @@ import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 import { useIntl } from 'react-intl';
 
-import { type MemberReportStatusEnum, ReportStatusEnumMessages } from '@/shared/enums/report-status.enum';
+import { type ReportStatusEnum, ReportStatusEnumMessages } from '@/shared/enums/report-status.enum';
 
-const statesSpec: Record<MemberReportStatusEnum, { backgroundColor: string; color?: string }> = {
+const statesSpec: Record<ReportStatusEnum, { backgroundColor: string; color?: string }> = {
   NEW: {
     backgroundColor: colors.decisions.background.actionLow.redMarianne.default,
     color: colors.decisions.text.actionHigh.redMarianne.default,
@@ -22,13 +22,9 @@ const statesSpec: Record<MemberReportStatusEnum, { backgroundColor: string; colo
     backgroundColor: colors.decisions.background.disabled.grey.default,
     color: colors.decisions.text.mention.grey.default,
   },
-  NOT_APPLICABLE: {
-    backgroundColor: colors.decisions.background.contrast.grey.default,
-    color: colors.decisions.text.mention.grey.default,
-  },
 };
 
-export function ReportStateTag(props: { state: MemberReportStatusEnum }) {
+export function ReportStateTag(props: { state: ReportStatusEnum }) {
   const activeSpec = statesSpec[props.state];
   const { formatMessage } = useIntl();
 

@@ -19,6 +19,7 @@ import {
   NonFormationMemberDefinedAsReporter,
   NonFormationMemberRecused,
   PositionAuditionCannotBeDismissed,
+  RecusedMemberAffected,
   ReporterRecused,
   SessionTransparenceAffectationHasUnassignableReporters,
   SessionTransparenceIsArchived,
@@ -74,7 +75,7 @@ export class TransparenceExceptionFilter implements NestInterceptor {
             );
           }
 
-          if (err instanceof ReporterRecused) {
+          if (err instanceof ReporterRecused || err instanceof RecusedMemberAffected) {
             return new BadRequestException({ validationErrors: [err.message] }, { cause: err });
           }
 

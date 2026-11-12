@@ -6,7 +6,6 @@ import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { ObservationsCard } from '@/features/observations/components/ObservationsCard';
 import { AuditionAnnouncedBanner, AuditionScheduledBanner } from '@/shared/components/audition-banner';
 import { ArchiveBannerPortal } from '@/shared/components/banners';
-import { RecusedReporterBanner } from '@/shared/components/recused-reporter-banner';
 import type { ReportStatusEnum } from '@/shared/enums/report-status.enum';
 import { useAttachmentFailureToast } from '@/shared/hooks/useAttachmentFailureToast';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
@@ -110,7 +109,6 @@ export function ReportOverview({ id }: { id: string }) {
       <DetailsPageLayout
         alerts={
           <>
-            {!isSg && retrievedReport.lockedReason === 'RECUSED' && <RecusedReporterBanner fullWidth />}
             {!isSg && isAuditionMissing(nominationFile) && <AuditionAnnouncedBanner fullWidth />}
             <AuditionScheduledBanner
               date={nominationFile.auditionDate}

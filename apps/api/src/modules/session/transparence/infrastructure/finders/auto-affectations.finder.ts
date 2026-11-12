@@ -65,7 +65,7 @@ export class AutoAffectationsFinder {
 
     const nominationFileIds = nominationFiles.items.map(({ id }) => id);
     const jurisdictions = await this.jurisdictionsFinder.find({ nominationFileIds });
-    const recusedMembers = await this.recusedMembersFinder.find({
+    const recusedMemberIds = await this.recusedMembersFinder.findIds({
       nominationFileIds: new Set(nominationFileIds),
     });
 
@@ -75,7 +75,7 @@ export class AutoAffectationsFinder {
         return {
           ...file,
           currentJurisdiction: current?.id ?? null,
-          recusedMemberIds: new Set(recusedMembers.get(file.id)?.map(({ id }) => id)),
+          recusedMemberIds: recusedMemberIds.get(file.id) ?? new Set(),
           targetedJurisdiction: targeted?.id ?? null,
         };
       }),

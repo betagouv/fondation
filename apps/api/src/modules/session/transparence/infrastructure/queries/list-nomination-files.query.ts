@@ -41,7 +41,13 @@ import { canReadSession } from '../../../../shared/policies/session.policies';
 import { canReadSummary, canWriteSummary } from '../../../../shared/policies/summary.policies';
 import { PriorityEnum } from '../../../../shared/priority.enum';
 import { isSecretariat, type RoleEnum } from '../../../../shared/role.enum';
-import { type FileReporters, NON_RECUSABLE_REASONS, nonRecusableMembers } from '../../domain/member-recusal';
+import {
+  type FileReporters,
+  NON_AFFECTABLE_REASONS,
+  NON_RECUSABLE_REASONS,
+  nonAffectableMembers,
+  nonRecusableMembers,
+} from '../../domain/member-recusal';
 import {
   NOMINATION_SESSION_FILE_STATUSES,
   transparenceFileStatus,
@@ -310,6 +316,7 @@ export class ListNominationFilesQuery {
           : null,
         missingEvaluation: x.missingEvaluation,
         missingEvaluationComment: x.missingEvaluationComment,
+        nonAffectableMembers: nonAffectableMembers(new Set(recusedMembers.get(x.id)?.map(({ id }) => id))),
         nonRecusableMembers: nominationFilesPolicies.canRecuseMembers(x, query.user)
           ? nonRecusableMembers(reporters.get(x.id) ?? { latestIds: new Set(), publishedIds: new Set() })
           : [],
@@ -499,6 +506,7 @@ const NominationFileAffectationItemSchema = z.object({
   expectedReportersCount: z.number().nullable(),
   missingEvaluation: z.boolean(),
   missingEvaluationComment: z.string().nullable(),
+  nonAffectableMembers: z.array(z.object({ id: z.string(), reason: z.enum(NON_AFFECTABLE_REASONS) })),
   nonRecusableMembers: z
     .array(z.object({ id: z.string(), reason: z.enum(NON_RECUSABLE_REASONS) }))
     .meta({ description: 'empty when the user cannot recuse members on this file' }),

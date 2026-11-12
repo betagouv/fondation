@@ -56,7 +56,7 @@ export type ListedMemberSessionReportsDto = {
         number: number | null;
         report: {
             id: string;
-            state: 'NEW' | 'IN_PROGRESS' | 'READY_TO_SUPPORT' | 'SUPPORTED' | 'NOT_APPLICABLE';
+            state: 'NEW' | 'IN_PROGRESS' | 'READY_TO_SUPPORT' | 'SUPPORTED';
         };
     }>;
 };
@@ -64,7 +64,7 @@ export type ListedMemberSessionReportsDto = {
 export type FoundNominationFileMembersReportDto = {
     report: {
         id: string;
-        state: 'NEW' | 'IN_PROGRESS' | 'READY_TO_SUPPORT' | 'SUPPORTED' | 'NOT_APPLICABLE';
+        state: 'NEW' | 'IN_PROGRESS' | 'READY_TO_SUPPORT' | 'SUPPORTED';
     } | null;
 };
 
@@ -97,8 +97,8 @@ export type DetailedReportDto = {
     sessionId: string;
     nominationFileId: string;
     comment: string | null;
-    state: 'NEW' | 'IN_PROGRESS' | 'READY_TO_SUPPORT' | 'SUPPORTED' | 'NOT_APPLICABLE';
-    lockedReason: 'CLOSED_SESSION' | 'RECUSED' | null;
+    state: 'NEW' | 'IN_PROGRESS' | 'READY_TO_SUPPORT' | 'SUPPORTED';
+    lockedReason: 'CLOSED_SESSION' | null;
     screenshots: Array<{
         usage: 'EMBEDDED_SCREENSHOT';
         name: string;
@@ -401,6 +401,10 @@ export type PaginatedNominationFiles = {
         expectedReportersCount: number | null;
         missingEvaluation: boolean;
         missingEvaluationComment: string | null;
+        nonAffectableMembers: Array<{
+            id: string;
+            reason: 'RECUSED';
+        }>;
         /**
          * empty when the user cannot recuse members on this file
          */
@@ -726,6 +730,10 @@ export type DetailedNominationFileDto = {
     expectedReportersCount: number | null;
     missingEvaluation: boolean;
     missingEvaluationComment: string | null;
+    nonAffectableMembers: Array<{
+        id: string;
+        reason: 'RECUSED';
+    }>;
     /**
      * empty when the user cannot recuse members on this file
      */

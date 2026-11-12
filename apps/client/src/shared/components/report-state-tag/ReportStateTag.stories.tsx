@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
-import { REPORT_STATUSES, type MemberReportStatusEnum } from '@/shared/enums/report-status.enum';
+import { REPORT_STATUSES } from '@/shared/enums/report-status.enum';
 
 import { ReportStateTag } from './ReportStateTag';
 
@@ -10,11 +10,7 @@ const meta = {
   parameters: { layout: 'padded' },
   tags: ['autodocs'],
   argTypes: {
-    state: {
-      control: 'inline-radio',
-      description: 'NOT_APPLICABLE: the reporter recused themselves',
-      options: [...REPORT_STATUSES, 'NOT_APPLICABLE'] satisfies MemberReportStatusEnum[],
-    },
+    state: { control: 'inline-radio', options: REPORT_STATUSES },
   },
   args: { state: 'IN_PROGRESS' },
 } satisfies Meta<typeof ReportStateTag>;

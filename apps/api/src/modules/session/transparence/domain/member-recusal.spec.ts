@@ -1,4 +1,13 @@
-import { nonRecusableMembers } from './member-recusal';
+import { nonAffectableMembers, nonRecusableMembers } from './member-recusal';
+
+describe('nonAffectableMembers', () => {
+  it('keeps every member recused from the file out of its reporters', () => {
+    expect(nonAffectableMembers(new Set(['member-1', 'member-2']))).toEqual([
+      { id: 'member-1', reason: 'RECUSED' },
+      { id: 'member-2', reason: 'RECUSED' },
+    ]);
+  });
+});
 
 describe('nonRecusableMembers', () => {
   it('keeps a published reporter removed from the latest version, whose report still exists', () => {

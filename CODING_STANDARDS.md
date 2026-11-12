@@ -56,7 +56,7 @@ Ce que les revues ont relevé plusieurs fois.
 
 Chaque capacité servie au client (`canX`, `xRequired`, un statut) est revérifiée par la mutation correspondante, avec la même règle du domaine : un client qui masque un bouton n'empêche pas l'appel. Voir [l'ADR](docs/adr/2026-10-19-regles-metier-servies-comme-capacites.md).
 
-Défaut type : un menu affiché sur un dossier verrouillé, dont l'action finit en 409, ou une écriture acceptée alors que la lecture affiche « Sans objet ».
+Défaut type : un menu affiché sur un dossier verrouillé, dont l'action finit en 409, ou un membre grisé dans une liste que l'API accepte pourtant d'affecter.
 
 ### Cette règle de gestion existe-t-elle déjà ailleurs ?
 

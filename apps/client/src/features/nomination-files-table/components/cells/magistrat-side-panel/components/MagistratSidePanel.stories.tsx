@@ -244,6 +244,7 @@ function makeNominationFile(args: SidePanelArgs): SessionNominationFile {
     isArchived: lockedReason === 'ARCHIVED_SESSION',
     memo: isSg ? null : { value: null },
     missingEvaluation: args.missingEvaluation,
+    nonAffectableMembers: args.hasRecusedMembers ? [{ id: READER.id, reason: 'RECUSED' }] : [],
     nonRecusableMembers: canRecuseMembers ? REPORTERS.map(({ id }) => ({ id, reason: 'REPORTER' })) : [],
     observations: args.hasObservations
       ? OBSERVATIONS.map(({ description, followUp, id, magistrat }) => ({

@@ -1,9 +1,8 @@
 import clsx from 'clsx';
-import type { Ref } from 'react';
+import { useId, type Ref } from 'react';
 import { FormattedMessage } from 'react-intl';
 
 import { MEMBER_TAG } from '../member-tag';
-import { useRecusalLabel } from '../recused-members/RecusalIcon';
 import { PriorityBadge } from '@/shared/components/priority-badge';
 import { PrioriteEnum } from '@/shared/enums/priorite.enum';
 import { Dropdown, type DropdownHandle } from '@/shared/ui/dropdown';
@@ -44,7 +43,8 @@ export function ReporterSelect(props: {
   available: readonly Reporter[];
   disabled?: boolean;
   excludedTitleByRapporteurId?: ReadonlyMap<string, string>;
-  isRecused?: (memberId: string) => boolean;
+  /** a member recused from the file, who cannot become its reporter */
+  isNonAffectable?: (memberId: string) => boolean;
   onChange: (ids: string[]) => void;
   onClear?: () => void;
   ref?: Ref<DropdownHandle>;
@@ -53,38 +53,46 @@ export function ReporterSelect(props: {
   const {
     available,
     excludedTitleByRapporteurId = NO_EXCLUSION,
-    isRecused,
+    isNonAffectable,
     onChange,
     onClear,
     ref,
     value,
   } = props;
-
-  const recusalLabel = useRecusalLabel();
+  const hintId = useId();
 
   const reporterOptions = [...available]
     .sort((a, b) => a.lastName.localeCompare(b.lastName))
     .map((reporter) => {
-      const warnings = [
-        excludedTitleByRapporteurId.get(reporter.userId),
-        isRecused?.(reporter.userId) ? recusalLabel : undefined,
-      ].filter((warning) => warning !== undefined);
-      const title = warnings.length > 0 ? warnings.join('\n') : undefined;
+      const title = excludedTitleByRapporteurId.get(reporter.userId);
+      const nonAffectable = !!isNonAffectable?.(reporter.userId);
 
       return {
+        disabled: nonAffectable,
         label: (
           <span
             className={clsx(
               MEMBER_TAG,
-              title ? 'text-(--text-default-warning)!' : 'text-(--text-action-high-blue-france)!',
+              nonAffectable
+                ? 'text-(--text-disabled-grey)!'
+                : title
+                  ? 'text-(--text-default-warning)!'
+                  : 'text-(--text-action-high-blue-france)!',
             )}
             title={title}
           >
-            {memberFullName(reporter)}
-            {warnings.length > 0 && (
+            {nonAffectable ? (
+              <FormattedMessage
+                defaultMessage="{member} (déport)"
+                values={{ member: memberFullName(reporter) }}
+              />
+            ) : (
+              memberFullName(reporter)
+            )}
+            {title && (
               <>
-                {/* keeps the warnings apart from the member name in the accessible name of an option */}{' '}
-                <span className="fr-sr-only">{warnings.join('. ')}</span>
+                {/* keeps the warning apart from the member name in the accessible name of an option */}{' '}
+                <span className="fr-sr-only">{title}</span>
               </>
             )}
           </span>
@@ -111,20 +119,29 @@ export function ReporterSelect(props: {
         ...reporterOptions,
       ]
     : reporterOptions;
+  const hasNonAffectable = reporterOptions.some(({ disabled }) => disabled);
 
   return (
-    <Dropdown
-      disabled={props.disabled}
-      label={<FormattedMessage defaultMessage="Affecter un rapporteur" />}
-      multiple
-      onSelect={(ids) => {
-        if (ids.includes(NO_REPORTER)) onClear?.();
-        else onChange(ids);
-      }}
-      options={options}
-      placeholder={<FormattedMessage defaultMessage="Sélectionner" />}
-      ref={ref}
-      selected={value}
-    />
+    <>
+      <Dropdown
+        aria-describedby={hasNonAffectable ? hintId : undefined}
+        disabled={props.disabled}
+        label={<FormattedMessage defaultMessage="Affecter un rapporteur" />}
+        multiple
+        onSelect={(ids) => {
+          if (ids.includes(NO_REPORTER)) onClear?.();
+          else onChange(ids);
+        }}
+        options={options}
+        placeholder={<FormattedMessage defaultMessage="Sélectionner" />}
+        ref={ref}
+        selected={value}
+      />
+      {hasNonAffectable && (
+        <p className="fr-hint-text fr-mb-0" id={hintId}>
+          <FormattedMessage defaultMessage="Un membre déporté de ce dossier ne peut pas être affecté : retirez d'abord son déport." />
+        </p>
+      )}
+    </>
   );
 }

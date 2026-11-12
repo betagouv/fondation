@@ -35,18 +35,15 @@ export class RecusedMembersFinder {
     return members;
   }
 
-  @Transactional()
-  async findFilesRecusedBy(query: {
-    memberId: string;
-    nominationFileIds: readonly string[];
-  }): Promise<Set<string>> {
-    if (query.nominationFileIds.length === 0) return new Set();
-    assertPgParams(query.nominationFileIds);
-
-    const recusals = await this.db.tx.recusedMember.findMany({
-      select: { nominationFileId: true } satisfies Prisma.RecusedMemberSelect,
-      where: { nominationFileId: { in: [...query.nominationFileIds] }, userId: query.memberId },
-    });
-    return new Set(recusals.map(({ nominationFileId }) => nominationFileId));
+  /** the recused member ids of each file, for the rules that only compare them */
+  async findIds(query: {
+    nominationFileIds: ReadonlySet<string>;
+  }): Promise<Map<string, ReadonlySet<string>>> {
+    const members = await this.find(query);
+    return new Map(
+      members
+        .entries()
+        .map(([nominationFileId, list]) => [nominationFileId, new Set(list.map(({ id }) => id))]),
+    );
   }
 }

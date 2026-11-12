@@ -49,6 +49,7 @@ function file(props: {
   canRecuseMembers?: boolean;
   id: string;
   nomMagistrat: string;
+  nonAffectableMemberIds?: readonly string[];
   nonRecusableMemberIds?: readonly string[];
   outcome?: 'VALIDATED' | 'NON_VALIDATED';
   priorities?: readonly string[];
@@ -65,6 +66,7 @@ function file(props: {
       posteCible: 'Substitut du procureur près le TJ de Lyon',
     },
     id: props.id,
+    nonAffectableMembers: (props.nonAffectableMemberIds ?? []).map((id) => ({ id, reason: 'RECUSED' })),
     nonRecusableMembers: (props.nonRecusableMemberIds ?? []).map((id) => ({ id, reason: 'REPORTER' })),
     priorities: props.priorities ?? [],
     recusedMembers: props.recusedMembers ?? [],
@@ -374,20 +376,19 @@ describe('NominationFilesBulkActions', () => {
     await chooseOption('Camille COMMUN');
 
     expect(affectReporters).toHaveBeenLastCalledWith(
-      {
-        affectations: [
-          { nominationFileId: 'file-1', reporterIds: [] },
-          { nominationFileId: 'file-2', reporterIds: ['member-2'] },
-        ],
-        sessionId: 'session-1',
-      },
+      { affectations: [{ nominationFileId: 'file-1', reporterIds: [] }], sessionId: 'session-1' },
       expect.anything(),
     );
   });
 
-  it('should name the recused members and their files before affecting them', async () => {
+  it('should affect a recused member only on the propositions they did not recuse from', async () => {
     renderActions([
-      file({ id: 'file-1', nomMagistrat: 'BOURDIEU Pierre', recusedMembers: [CAMILLE] }),
+      file({
+        id: 'file-1',
+        nomMagistrat: 'BOURDIEU Pierre',
+        nonAffectableMemberIds: [CAMILLE.id],
+        recusedMembers: [CAMILLE],
+      }),
       file({ id: 'file-2', nomMagistrat: 'HARENDT Anna' }),
     ]);
 
@@ -396,30 +397,62 @@ describe('NominationFilesBulkActions', () => {
 
     const dialog = screen.getByRole('dialog', { name: 'Affecter un membre déporté' });
     expect(dialog).toHaveTextContent(
-      "Ce membre s'est déporté d'un dossier sélectionné. Avec cette affectation, son rapport sur ce dossier passe à « Sans objet » et en lecture seule.",
-    );
-    expect(within(dialog).getByRole('listitem')).toHaveTextContent(
-      'Camille COMMUN : BOURDIEU Pierre (Substitut du procureur près le TJ de Lyon)',
+      "Vous souhaitez affecter Camille COMMUN à la proposition de nomination de BOURDIEU Pierre (Substitut du procureur près le TJ de Lyon), dont ce membre s'est déporté. Pour pouvoir l'affecter, vous devez au préalable retirer son déport. L'affectation sera bien enregistrée sur les autres propositions sélectionnées.",
     );
     expect(affectReporters).not.toHaveBeenCalled();
 
     await userEvent.click(within(dialog).getByRole('button', { name: 'Affecter' }));
 
     expect(affectReporters).toHaveBeenCalledWith(
-      {
-        affectations: [
-          { nominationFileId: 'file-1', reporterIds: ['member-1'] },
-          { nominationFileId: 'file-2', reporterIds: ['member-1'] },
-        ],
-        sessionId: 'session-1',
-      },
+      { affectations: [{ nominationFileId: 'file-2', reporterIds: ['member-1'] }], sessionId: 'session-1' },
       expect.anything(),
     );
   });
 
+  it('should list the members and the propositions they recused from', async () => {
+    renderActions([
+      file({ id: 'file-1', nomMagistrat: 'BOURDIEU Pierre', nonAffectableMemberIds: [CAMILLE.id] }),
+      file({ id: 'file-2', nomMagistrat: 'HARENDT Anna', nonAffectableMemberIds: [CAMILLE.id] }),
+      file({ id: 'file-3', nomMagistrat: 'WEIL Simone' }),
+    ]);
+
+    await openDropdown(/Affecter un rapporteur/);
+    await chooseOption('Camille COMMUN');
+
+    const dialog = screen.getByRole('dialog', { name: 'Affecter un membre déporté' });
+    expect(dialog).toHaveTextContent(
+      'Vous souhaitez affecter des membres à des propositions de nomination dont ils se sont déportés :',
+    );
+    expect(within(dialog).getByRole('listitem')).toHaveTextContent(
+      'Camille COMMUN : BOURDIEU Pierre (Substitut du procureur près le TJ de Lyon), HARENDT Anna (Substitut du procureur près le TJ de Lyon)',
+    );
+    expect(dialog).toHaveTextContent(
+      "Pour pouvoir les affecter, vous devez au préalable retirer leur déport. L'affectation sera bien enregistrée sur les autres propositions sélectionnées.",
+    );
+  });
+
+  it('should only close when the member recused from every selected proposition', async () => {
+    renderActions([
+      file({ id: 'file-1', nomMagistrat: 'BOURDIEU Pierre', nonAffectableMemberIds: [CAMILLE.id] }),
+      file({ id: 'file-2', nomMagistrat: 'HARENDT Anna', nonAffectableMemberIds: [CAMILLE.id] }),
+    ]);
+
+    await openDropdown(/Affecter un rapporteur/);
+    await chooseOption('Camille COMMUN');
+
+    const dialog = screen.getByRole('dialog', { name: 'Affecter un membre déporté' });
+    expect(dialog).not.toHaveTextContent('autres propositions sélectionnées');
+    expect(within(dialog).queryByRole('button', { name: 'Affecter' })).toBeNull();
+
+    const [close] = within(dialog).getAllByRole('button', { name: 'Fermer' }).reverse();
+    await userEvent.click(close!);
+
+    expect(affectReporters).not.toHaveBeenCalled();
+  });
+
   it('should affect nobody when the secretariat cancels', async () => {
     renderActions([
-      file({ id: 'file-1', nomMagistrat: 'BOURDIEU Pierre', recusedMembers: [CAMILLE] }),
+      file({ id: 'file-1', nomMagistrat: 'BOURDIEU Pierre', nonAffectableMemberIds: [CAMILLE.id] }),
       file({ id: 'file-2', nomMagistrat: 'HARENDT Anna' }),
     ]);
 
@@ -429,24 +462,6 @@ describe('NominationFilesBulkActions', () => {
 
     expect(affectReporters).not.toHaveBeenCalled();
     expect(screen.queryByRole('button', { name: 'Retirer Camille COMMUN' })).toBeNull();
-  });
-
-  it('should not ask again for a member already reporter of the file they recused from', async () => {
-    renderActions([
-      file({
-        id: 'file-1',
-        nomMagistrat: 'BOURDIEU Pierre',
-        recusedMembers: [CAMILLE],
-        reporters: [CAMILLE],
-      }),
-      file({ id: 'file-2', nomMagistrat: 'HARENDT Anna' }),
-    ]);
-
-    await openDropdown(/Affecter un rapporteur/);
-    await chooseOption('Camille COMMUN');
-
-    expect(screen.queryByRole('dialog', { name: /Affecter/ })).toBeNull();
-    expect(affectReporters).toHaveBeenCalled();
   });
 
   it('should empty the reporters of every selected file', async () => {

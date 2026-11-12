@@ -76,6 +76,7 @@ const NOMINATION_FILE: DetailedNominationFileDto = {
   memo: null,
   missingEvaluation: false,
   missingEvaluationComment: null,
+  nonAffectableMembers: [],
   nonRecusableMembers: [],
   observations: [],
   priorities: ['ETOILE'],
@@ -107,7 +108,7 @@ const MEMBER_REPORTS: ListedMemberSessionReportsDto = {
   ],
 };
 
-function ReportOverviewPageStory(props: { isRecused: boolean; view: StoryView }) {
+function ReportOverviewPageStory(props: { view: StoryView }) {
   return (
     <PageStory
       location={getGdsReportPath(REPORT.id)}
@@ -120,19 +121,14 @@ function ReportOverviewPageStory(props: { isRecused: boolean; view: StoryView })
 }
 
 const meta = {
-  args: { isRecused: false, view: 'member' },
+  args: { view: 'member' },
   argTypes: {
-    isRecused: { control: 'boolean', description: 'the member recused themselves from the file' },
     view: { control: 'inline-radio', options: STORY_VIEWS },
   },
-  beforeEach: ({ args, msw }) => {
+  beforeEach: ({ msw }) => {
     msw.use(
       ...summaryObservationsHandlers,
-      http.get('*/api/reports/v2/:reportId', () =>
-        HttpResponse.json<DetailedReportDto>(
-          args.isRecused ? { ...REPORT, lockedReason: 'RECUSED', state: 'NOT_APPLICABLE' } : REPORT,
-        ),
-      ),
+      http.get('*/api/reports/v2/:reportId', () => HttpResponse.json<DetailedReportDto>(REPORT)),
       http.get('*/api/sessions/v2/:sessionId', () =>
         HttpResponse.json<DetailedNominationSessionDto>(STORY_SESSION),
       ),

@@ -268,12 +268,19 @@ export class TransparenceService {
       .findMembers({ formation: session.formation, ids: memberIds })
       .then((ids) => new Set(ids));
 
+    const nominationFileIds = new Set(command.affectations.map(({ nominationFileId }) => nominationFileId));
     const assignedReporterIds = await this.reportersAffectation.findAssigned({
-      nominationFileIds: command.affectations.map(({ nominationFileId }) => nominationFileId),
+      nominationFileIds: [...nominationFileIds],
       sessionId: command.sessionId,
     });
+    const recusedMemberIdsByFile = await this.recusedMembersFinder.findIds({ nominationFileIds });
 
-    session.affectNominationFileReporters({ ...command, assignedReporterIds, formationMemberIds });
+    session.affectNominationFileReporters({
+      ...command,
+      assignedReporterIds,
+      formationMemberIds,
+      recusedMemberIdsByFile,
+    });
 
     await this.nominationSessionRepository.persist(session);
   }
@@ -424,7 +431,7 @@ export class TransparenceService {
     const nominationFileIds = new Set(command.recusals.map(({ nominationFileId }) => nominationFileId));
     const session = await this.nominationSessionRepository.find(command.sessionId, { nominationFileIds });
 
-    const formerRecusals = await this.recusedMembersFinder.find({ nominationFileIds });
+    const recusedMemberIdsByFile = await this.recusedMembersFinder.findIds({ nominationFileIds });
     const formationMemberIds = await this.members
       .findMembers({
         formation: session.formation,
@@ -436,11 +443,7 @@ export class TransparenceService {
       authorId: command.authorId,
       formationMemberIds,
       recusals: command.recusals,
-      recusedMemberIdsByFile: new Map(
-        formerRecusals
-          .entries()
-          .map(([nominationFileId, members]) => [nominationFileId, new Set(members.map(({ id }) => id))]),
-      ),
+      recusedMemberIdsByFile,
       reportersByFile: await this.versions.findPublishedAndLatestReporters({
         nominationFileIds: [...nominationFileIds],
       }),
@@ -984,14 +987,6 @@ export class TransparenceService {
     nominationFileIds: readonly string[];
   }): Promise<Map<string, { firstName: string; id: string; lastName: string }[]>> {
     return this.versions.findPublishedReporters(query);
-  }
-
-  /** @internal */
-  internalFindFilesRecusedBy(query: {
-    memberId: string;
-    nominationFileIds: readonly string[];
-  }): Promise<Set<string>> {
-    return this.recusedMembersFinder.findFilesRecusedBy(query);
   }
 
   /** @internal */
