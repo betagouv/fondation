@@ -1,4 +1,5 @@
 import { makeId } from '../../../../utils/id';
+import type { CurrentNames } from '../../shared/domain/named-member';
 
 import {
   OfficialReport,
@@ -37,6 +38,7 @@ const VALIDATED_AT = new Date('2026-06-08T09:00:00.000Z');
 function makeReport(
   state: {
     actorId?: string | null;
+    currentNames?: CurrentNames;
     isDocumentStored?: boolean;
     isValidated?: boolean;
     snapshot?: Partial<PlainOfficialReportSnapshot>;
@@ -44,6 +46,7 @@ function makeReport(
 ): OfficialReport {
   return OfficialReport.from({
     actorId: state.actorId === undefined ? AUTHOR : state.actorId,
+    currentNames: state.currentNames,
     id: makeId('OfficialReportId'),
     isDocumentStored: state.isDocumentStored ?? true,
     isValidated: state.isValidated ?? false,
@@ -175,7 +178,7 @@ describe('OfficialReport', () => {
 
   describe('a note under a proposition', () => {
     const withFile = (
-      state: { actorId?: string | null; isValidated?: boolean },
+      state: { actorId?: string | null; currentNames?: CurrentNames; isValidated?: boolean },
       file: Pick<PlainOfficialReportSnapshotFile, 'note' | 'recusedMembers'>,
     ) =>
       makeReport({
@@ -336,6 +339,44 @@ describe('OfficialReport', () => {
         renamed(report);
 
         expect(report.messages).toEqual([]);
+      });
+
+      it('should name the members as they are today in a draft someone opens, flagging a note written by hand', () => {
+        const report = withFile(
+          {
+            currentNames: {
+              recusedMembers: new Map([['member-forget', 'M. le Bâtonnier FORGET']]),
+              reporters: new Map(),
+            },
+            isValidated: true,
+          },
+          {
+            note: { html: '<p>M. Paul FORGET se déporte</p>', outdatedBy: null, status: 'EDITED' },
+            recusedMembers: [{ id: 'member-forget', name: 'M. Paul FORGET' }],
+          },
+        );
+
+        report.editIntro({ html: '<p>intro</p>', outdated: false });
+
+        expect(report.messages.slice(0, 2)).toEqual([
+          new OfficialReportDraftOpened(report.id, AUTHOR),
+          expect.objectContaining({
+            changesDocument: true,
+            diff: expect.objectContaining({
+              files: [
+                expect.objectContaining({
+                  action: 'recuse',
+                  note: 'outdate',
+                  outdatedBy: 'DESIGNATION',
+                  recusedMembers: [{ id: 'member-forget', name: 'M. le Bâtonnier FORGET' }],
+                }),
+              ],
+            }),
+          }),
+        ]);
+        expect(report.messages.some((message) => message instanceof OfficialReportDraftUpdatedBySystem)).toBe(
+          false,
+        );
       });
     });
 

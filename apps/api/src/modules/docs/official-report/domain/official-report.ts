@@ -5,6 +5,7 @@ import { type DocNominationFileOutcomeEnum } from '../../shared/domain/doc-nomin
 import { type DocSystemUpdateCause } from '../../shared/domain/doc-system-update-cause';
 import { canDiscardDraft, canValidateDocument } from '../../shared/domain/document.policies';
 import { type DraftChangesBy } from '../../shared/domain/draft-changes-by';
+import { type CurrentNames, NO_CURRENT_NAMES } from '../../shared/domain/named-member';
 
 import {
   InvalidateOfficialReportCommand,
@@ -260,10 +261,16 @@ export class OfficialReport {
     readonly snapshot: OfficialReportSnapshot,
     private readonly state: OfficialReportState,
     private readonly actorId: string | null = null,
+    private readonly currentNames: CurrentNames = NO_CURRENT_NAMES,
   ) {}
 
   static from(
-    props: { id: Id<'OfficialReportId'>; snapshot: OfficialReportSnapshot } & OfficialReportActor &
+    props: {
+      /** how its members are printed today: a draft opened on the validated report starts from these names */
+      currentNames?: CurrentNames;
+      id: Id<'OfficialReportId'>;
+      snapshot: OfficialReportSnapshot;
+    } & OfficialReportActor &
       OfficialReportState,
   ) {
     return new OfficialReport(
@@ -271,6 +278,7 @@ export class OfficialReport {
       props.snapshot,
       { isDocumentStored: props.isDocumentStored, isValidated: props.isValidated },
       props.actorId ?? null,
+      props.currentNames,
     );
   }
 
@@ -298,6 +306,7 @@ export class OfficialReport {
     if (this.state.isValidated) {
       this.#messages.push(new OfficialReportDraftOpened(this.id, this.actorId));
       this.state.isValidated = false;
+      this.followCurrentNames();
     } else if (this.actorId) {
       this.#messages.push(new OfficialReportDraftEdited(this.id, this.actorId));
     }
@@ -306,6 +315,15 @@ export class OfficialReport {
       const cause = assertIsDefined(systemCause, 'the application updates a draft for a reason');
       this.#messages.push(new OfficialReportDraftUpdatedBySystem(this.id, cause));
     }
+  }
+
+  /**
+   * a draft opened on the validated report names its members as they are today, a change nobody made: a
+   * text written by hand is flagged as a renaming flags it in a draft
+   */
+  private followCurrentNames(): void {
+    const diff = this.snapshot.diffNames(this.currentNames);
+    if (diff.hasAny) this.#messages.push(new OfficialReportInvalidated(this.id, diff, changesDocument(diff)));
   }
 
   validate(command: { at: Date; authorId: string }): void {

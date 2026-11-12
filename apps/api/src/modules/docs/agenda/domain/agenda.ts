@@ -6,7 +6,7 @@ import { UserTitleEnum } from '../../../shared/user-title.enum';
 import { type DocSystemUpdateCause } from '../../shared/domain/doc-system-update-cause';
 import { canDiscardDraft, canValidateDocument } from '../../shared/domain/document.policies';
 import { type DraftChangesBy } from '../../shared/domain/draft-changes-by';
-import { type NamedMember } from '../../shared/domain/named-member';
+import { type CurrentNames, type NamedMember, NO_CURRENT_NAMES } from '../../shared/domain/named-member';
 
 import { AgendaNominationFile } from './agenda-nomination-file';
 import {
@@ -181,6 +181,7 @@ export class Agenda {
     isDocumentStored: boolean,
     isValidated: boolean,
     private readonly snapshot?: AgendaSnapshot,
+    private readonly currentNames: CurrentNames = NO_CURRENT_NAMES,
   ) {
     this.#actorId = actorId;
     this.#isDocumentStored = isDocumentStored;
@@ -194,6 +195,8 @@ export class Agenda {
   static from(props: {
     /** whoever is acting on the agenda: the draft a change opens is theirs, not the previous author's */
     actorId?: string | null;
+    /** how its reporters are printed today: a draft opened on the validated agenda starts from these names */
+    currentNames?: CurrentNames;
     id: Id<'AgendaId'>;
     isDocumentStored?: boolean;
     isValidated?: boolean;
@@ -209,6 +212,7 @@ export class Agenda {
       props.isDocumentStored ?? false,
       props.isValidated ?? false,
       props.snapshot,
+      props.currentNames,
     );
   }
 
@@ -217,6 +221,7 @@ export class Agenda {
     if (this.#isValidated) {
       this.#messages.push(new AgendaDraftOpened(this.id, this.#actorId));
       this.#isValidated = false;
+      this.followCurrentNames();
     } else if (this.#actorId) {
       this.#messages.push(new AgendaDraftEdited(this.id, this.#actorId));
     }
@@ -303,6 +308,16 @@ export class Agenda {
     if (whoChanged) this.openDraft('REPORTERS');
     else if (changesDocument(diff)) this.openDraft('DESIGNATION');
 
+    this.pushReportersUpdated(diff);
+  }
+
+  /** a draft opened on the validated agenda names its reporters as they are today, a change nobody made */
+  private followCurrentNames(): void {
+    const diff = this.snapshot?.diffNames(this.currentNames);
+    if (diff?.hasAny) this.pushReportersUpdated(diff);
+  }
+
+  private pushReportersUpdated(diff: Extract<AgendaFilesReportersDiff, { hasAny: true }>): void {
     this.#messages.push(
       new AgendaFilesReportersUpdated(
         this.id,

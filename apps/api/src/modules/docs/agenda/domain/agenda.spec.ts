@@ -407,6 +407,44 @@ describe('Agenda', () => {
       expect(agenda.messages).toEqual([]);
     });
 
+    it('should name the reporters as they are today in a draft someone opens, without telling the application did', () => {
+      const agenda = makeAgenda({
+        currentNames: { recusedMembers: new Map(), reporters: new Map([[DURAND.id, RENAMED.name]]) },
+        isValidated: true,
+        snapshot: {
+          nominationFiles: [
+            {
+              id: 1n,
+              isManuallyEdited: false,
+              nominationFileId: props.nominationFiles[0].id,
+              reporters: [DURAND],
+            },
+            { id: 2n, isManuallyEdited: true, nominationFileId: 'nf-2', reporters: [DURAND, MARTIN] },
+          ],
+        },
+      });
+
+      agenda.updateMetadata({
+        authorId: AUTHOR,
+        chairmanId: props.chairman.id,
+        date: DateOnly.fromJson({ day: 3, month: 3, year: 2026 }),
+        sessionMeetingDate: props.sessionMeetingDate,
+      });
+
+      expect(agenda.messages.slice(0, 2)).toEqual([
+        new AgendaDraftOpened(agenda.id, AUTHOR),
+        new AgendaFilesReportersUpdated(
+          agenda.id,
+          [
+            { isOutdated: false, nominationFileId: props.nominationFiles[0].id, reporters: [RENAMED] },
+            { isOutdated: false, nominationFileId: 'nf-2', reporters: [RENAMED, MARTIN] },
+          ],
+          true,
+        ),
+      ]);
+      expect(agenda.messages.some((message) => message instanceof AgendaDraftUpdatedBySystem)).toBe(false);
+    });
+
     it('should open a draft of a validated agenda when another member reports', () => {
       const agenda = agendaReportedBy({ isManuallyEdited: false, isValidated: true });
 

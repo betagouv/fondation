@@ -1,7 +1,13 @@
 import { DateOnly } from '../../../../utils/date-only';
 import { Id } from '../../../../utils/id';
 import { DocInvalidation } from '../../shared/domain/doc-invalidation';
-import { NamedMember, sameMembers, sameNames } from '../../shared/domain/named-member';
+import {
+  type CurrentNames,
+  NamedMember,
+  namedToday,
+  sameMembers,
+  sameNames,
+} from '../../shared/domain/named-member';
 
 type AgendaSnapshotFile = {
   id: bigint;
@@ -89,6 +95,16 @@ export class AgendaSnapshot {
     ];
 
     return { hasAny, added, removed, officialReportInvalidations };
+  }
+
+  /** the files whose reporters bear another name today */
+  diffNames(names: CurrentNames): AgendaFilesReportersDiff {
+    return this.diffReporters({
+      nominationFiles: [...this.nominationFiles].map(([id, { reporters }]) => ({
+        id,
+        reporters: namedToday(reporters, names.reporters),
+      })),
+    });
   }
 
   /** who reports on a file, and how they are named, are told apart: only the first outdates a block written by hand */

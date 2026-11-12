@@ -28,7 +28,11 @@ import { prismaGenderEnumToGenderEnum } from '../../../../shared/mappers/gender-
 import { DocNominationFileOutcomeEnum } from '../../../shared/domain/doc-nomination-file-outcome';
 import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../../../shared/infrastructure/agenda-content';
 import { DocsNominationFilesFinder } from '../../../shared/infrastructure/finders/docs-nomination-files.finder';
-import { namedMembersOf, parseNamedMembers } from '../../../shared/infrastructure/named-members';
+import {
+  currentNamesOf,
+  namedMembersOf,
+  parseNamedMembers,
+} from '../../../shared/infrastructure/named-members';
 import {
   OfficialReport,
   OfficialReportConclusionEdited,
@@ -211,11 +215,21 @@ export class OfficialReportRepository {
       sessionMeeting,
     });
 
+    const isValidated = isDefined(officialReport.validatedAt);
+    // only a validated report can open a draft, which starts from the names of today
+    const currentNames = isValidated
+      ? currentNamesOf(
+          (await this.nominationFilesFinder.find({ ids: [...files.keys()], sessionId: rawAgenda.sessionId }))
+            .items,
+        )
+      : undefined;
+
     return OfficialReport.from({
       actorId: query.actorId ?? null,
+      currentNames,
       id: officialReportId,
       isDocumentStored: isDefined(officialReport.pdfId),
-      isValidated: isDefined(officialReport.validatedAt),
+      isValidated,
       snapshot: snapshot,
     });
   }

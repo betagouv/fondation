@@ -19,7 +19,11 @@ import { MembersService } from '../../../../members';
 import { TransparenceService } from '../../../../session/transparence/infrastructure/transparence.service';
 import { formationEnumToPrismaFormationEnum } from '../../../../shared/mappers/formation.mapper';
 import { DocsNominationFilesFinder } from '../../../shared/infrastructure/finders/docs-nomination-files.finder';
-import { namedMembersOf, parseNamedMembers } from '../../../shared/infrastructure/named-members';
+import {
+  currentNamesOf,
+  namedMembersOf,
+  parseNamedMembers,
+} from '../../../shared/infrastructure/named-members';
 import {
   Agenda,
   AgendaCreated,
@@ -127,11 +131,25 @@ export class AgendaRepository {
       ),
     });
 
+    const isValidated = foundVersion.status === 'VALIDATED';
+    // only a validated agenda can open a draft, which starts from the names of today
+    const currentNames = isValidated
+      ? currentNamesOf(
+          (
+            await this.docsNominationFilesFinder.find({
+              ids: foundVersion.nominationFiles.flatMap(({ nominationFileId }) => nominationFileId ?? []),
+              sessionId: foundAgenda.sessionId,
+            })
+          ).items,
+        )
+      : undefined;
+
     return Agenda.from({
       snapshot,
       actorId: query.actorId ?? null,
+      currentNames,
       isDocumentStored: isDefined(foundVersion.pdfFileId),
-      isValidated: foundVersion.status === 'VALIDATED',
+      isValidated,
       id: makeId('AgendaId', foundAgenda.id),
       sessionId: makeId('SessionId', foundAgenda.sessionId),
       officialReportId: foundAgenda.officialReportId
