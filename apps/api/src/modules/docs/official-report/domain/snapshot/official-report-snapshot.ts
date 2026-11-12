@@ -1,6 +1,7 @@
 import { assertNever } from '../../../../../utils/assert-never';
 import { DateOnly } from '../../../../../utils/date-only';
 import { DocNominationFileOutcomeEnum } from '../../../shared/domain/doc-nomination-file-outcome';
+import { type CurrentNames, NamedMember, namedToday } from '../../../shared/domain/named-member';
 import { OfficialReportAgenda } from '../official-report-agenda';
 import { OfficialReportChairman } from '../official-report-chairman';
 import { OfficialReportMembersList } from '../official-report-member-list';
@@ -8,7 +9,6 @@ import { OfficialReportSecretary } from '../official-report-secretary';
 import { OfficialReportSessionMeeting } from '../official-report-session-meeting';
 import {
   InvalidateOfficialReportCommand,
-  OfficialReportNamedMember,
   OfficialReportSnapshotDiff,
   UpdateOfficialReportCommand,
 } from '../official-report-types';
@@ -95,6 +95,19 @@ export class OfficialReportSnapshot {
     }
   }
 
+  /** the files whose members bear another name today, told as a renaming tells them */
+  diffNames(names: CurrentNames): OfficialReportSnapshotDiff {
+    return this.invalidateFiles(
+      [...this.filesSnapshot.files].flatMap(([nominationFileId, file]) =>
+        file.diff({
+          nominationFileId,
+          recusedMembers: namedToday(file.recusedMembers, names.recusedMembers),
+          reporters: namedToday(file.reporters, names.reporters),
+        }),
+      ),
+    );
+  }
+
   private invalidateFiles(files: OfficialReportSnapshotDiff['files']): OfficialReportSnapshotDiff {
     return {
       conclusion: 'NOOP',
@@ -139,8 +152,8 @@ class OfficialReportSnapshotFilesCollection {
   diffFile(next: {
     nominationFileId: string;
     outcome?: { comment: string | null; value: DocNominationFileOutcomeEnum };
-    recusedMembers?: readonly OfficialReportNamedMember[];
-    reporters?: readonly OfficialReportNamedMember[];
+    recusedMembers?: readonly NamedMember[];
+    reporters?: readonly NamedMember[];
   }): OfficialReportSnapshotDiff['files'] {
     const file = this.files.get(next.nominationFileId);
     if (!file) return [{ action: 'create', nominationFileId: next.nominationFileId }];
@@ -161,8 +174,8 @@ class OfficialReportSnapshotFilesCollection {
     files: readonly {
       nominationFileId: string;
       outcome?: { comment: string | null; value: DocNominationFileOutcomeEnum };
-      recusedMembers?: readonly OfficialReportNamedMember[];
-      reporters?: readonly OfficialReportNamedMember[];
+      recusedMembers?: readonly NamedMember[];
+      reporters?: readonly NamedMember[];
     }[];
   }): OfficialReportSnapshotDiff['files'] {
     return this.deletedFiles(next.files).concat(next.files.flatMap((file) => this.diffFile(file)));

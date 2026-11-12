@@ -1,5 +1,6 @@
 import { DocInvalidation } from '../../shared/domain/doc-invalidation';
 import { DocNominationFileOutcomeEnum } from '../../shared/domain/doc-nomination-file-outcome';
+import { NamedMember } from '../../shared/domain/named-member';
 
 import { OfficialReportAgenda } from './official-report-agenda';
 import { OfficialReportChairman } from './official-report-chairman';
@@ -14,9 +15,6 @@ export const OFFICIAL_REPORT_NOTE_OUTDATED_BY = ['RECUSAL', 'DESIGNATION'] as co
 /** what changed since the slot was written or emptied by hand: who is recused, or only how one is named */
 export type OfficialReportNoteOutdatedBy = (typeof OFFICIAL_REPORT_NOTE_OUTDATED_BY)[number];
 
-/** a member as the report names them: `id` is null when a name written before the ids were kept matched no single member */
-export type OfficialReportNamedMember = { id: string | null; name: string };
-
 export type UpdateOfficialReportCommand = {
   authorId: string;
   officialReport: {
@@ -29,8 +27,8 @@ export type UpdateOfficialReportCommand = {
     members: OfficialReportMembersList;
     files: readonly {
       nominationFileId: string;
-      recusedMembers: readonly OfficialReportNamedMember[];
-      reporters: readonly OfficialReportNamedMember[];
+      recusedMembers: readonly NamedMember[];
+      reporters: readonly NamedMember[];
       outcome: { value: DocNominationFileOutcomeEnum; comment: string | null };
     }[];
   };
@@ -52,8 +50,8 @@ export type InvalidateOfficialReportCommand = { id: string } & (
       payload: {
         files: readonly {
           nominationFileId: string;
-          recusedMembers: readonly OfficialReportNamedMember[];
-          reporters: readonly OfficialReportNamedMember[];
+          recusedMembers: readonly NamedMember[];
+          reporters: readonly NamedMember[];
           outcome: { value: DocNominationFileOutcomeEnum; comment: string | null };
         }[];
       };
@@ -61,7 +59,7 @@ export type InvalidateOfficialReportCommand = { id: string } & (
   | {
       type: 'NominationFilesReportersUpdated';
       payload: {
-        files: readonly { nominationFileId: string; reporters: readonly OfficialReportNamedMember[] }[];
+        files: readonly { nominationFileId: string; reporters: readonly NamedMember[] }[];
       };
     }
   | {
@@ -70,15 +68,15 @@ export type InvalidateOfficialReportCommand = { id: string } & (
       payload: {
         files: readonly {
           nominationFileId: string;
-          recusedMembers: readonly OfficialReportNamedMember[];
-          reporters: readonly OfficialReportNamedMember[];
+          recusedMembers: readonly NamedMember[];
+          reporters: readonly NamedMember[];
         }[];
       };
     }
   | {
       type: 'NominationFilesRecusalsUpdated';
       payload: {
-        files: readonly { nominationFileId: string; recusedMembers: readonly OfficialReportNamedMember[] }[];
+        files: readonly { nominationFileId: string; recusedMembers: readonly NamedMember[] }[];
       };
     }
   | {
@@ -99,17 +97,21 @@ export type OfficialReportSnapshotDiff = {
          * block written by hand will print once given back to the template follow, leaving its flag as it is */
         action: 'outdate' | 'rename' | 'update';
         nominationFileId: string;
-        reporters: readonly OfficialReportNamedMember[] | undefined;
+        reporters: readonly NamedMember[] | undefined;
         outcome: DocNominationFileOutcomeEnum | undefined;
         outcomeComment: string | null | undefined;
       }
     | ({
         /** `follow`: the sentence reads the new recusal, `outdate`: the hand-written slot is flagged,
-         * `generate`: a removal with nothing left to hide gives the slot back to the sentence */
+         * `generate`: a removal with nothing left to hide gives the slot back to the sentence,
+         * `keep`: the slot stays empty, only the names it would bring back follow */
         action: 'recuse';
         nominationFileId: string;
-        recusedMembers: readonly OfficialReportNamedMember[];
-      } & ({ note: 'follow' | 'generate' } | { note: 'outdate'; outdatedBy: OfficialReportNoteOutdatedBy }))
+        recusedMembers: readonly NamedMember[];
+      } & (
+        | { note: 'follow' | 'generate' | 'keep' }
+        | { note: 'outdate'; outdatedBy: OfficialReportNoteOutdatedBy }
+      ))
     | {
         action: 'create';
         nominationFileId: string;

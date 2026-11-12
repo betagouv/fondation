@@ -20,6 +20,11 @@ import { TransparenceService } from '../../../../session/transparence/infrastruc
 import { formationEnumToPrismaFormationEnum } from '../../../../shared/mappers/formation.mapper';
 import { DocsNominationFilesFinder } from '../../../shared/infrastructure/finders/docs-nomination-files.finder';
 import {
+  currentNamesOf,
+  namedMembersOf,
+  parseNamedMembers,
+} from '../../../shared/infrastructure/named-members';
+import {
   Agenda,
   AgendaCreated,
   AgendaDeleted,
@@ -118,7 +123,7 @@ export class AgendaRepository {
               {
                 id: f.id,
                 nominationFileId: f.nominationFileId,
-                reporters: f.reporters,
+                reporters: parseNamedMembers(f.reporters),
                 isManuallyEdited: isDefined(f.htmlEdited),
               },
             ]
@@ -126,11 +131,25 @@ export class AgendaRepository {
       ),
     });
 
+    const isValidated = foundVersion.status === 'VALIDATED';
+    // only a validated agenda can open a draft, which starts from the names of today
+    const currentNames = isValidated
+      ? currentNamesOf(
+          (
+            await this.docsNominationFilesFinder.find({
+              ids: foundVersion.nominationFiles.flatMap(({ nominationFileId }) => nominationFileId ?? []),
+              sessionId: foundAgenda.sessionId,
+            })
+          ).items,
+        )
+      : undefined;
+
     return Agenda.from({
       snapshot,
       actorId: query.actorId ?? null,
+      currentNames,
       isDocumentStored: isDefined(foundVersion.pdfFileId),
-      isValidated: foundVersion.status === 'VALIDATED',
+      isValidated,
       id: makeId('AgendaId', foundAgenda.id),
       sessionId: makeId('SessionId', foundAgenda.sessionId),
       officialReportId: foundAgenda.officialReportId
@@ -179,7 +198,7 @@ export class AgendaRepository {
                   nominationFileId: file.id,
                   outcome: file.outcome?.value,
                   outcomeComment: file.outcome?.comment,
-                  reporters: file.reporters as string[],
+                  reporters: file.reporters,
                 })),
               },
             },
@@ -241,7 +260,7 @@ export class AgendaRepository {
           nominationFileId: file.id,
           outcome: file.outcome?.value,
           outcomeComment: file.outcome?.comment,
-          reporters: file.reporters.map((r) => r.fullTitledName),
+          reporters: namedMembersOf(file.reporters),
         })),
       });
     }
@@ -374,7 +393,9 @@ export class AgendaRepository {
         id: makeId('AgendaVersionId'),
         agendaId: message.agendaId,
         nominationFiles: {
-          createMany: { data: nominationFiles.map((file) => ({ ...file, reporters: [...file.reporters] })) },
+          createMany: {
+            data: nominationFiles.map((file) => ({ ...file, reporters: parseNamedMembers(file.reporters) })),
+          },
         },
       },
     });
@@ -465,11 +486,12 @@ export class AgendaRepository {
     for (const nf of message.files) {
       await this.db.tx.agendaNominationFile.updateMany({
         where: { nominationFileId: nf.nominationFileId, versionId },
-        data: { reporters: [...nf.reporters], htmlOutdated: nf.isOutdated },
+        // a renaming leaves a block already outdated as it is
+        data: { reporters: [...nf.reporters], ...(nf.isOutdated && { htmlOutdated: true }) },
       });
     }
 
-    await this.recomputeAgendaState(versionId);
+    if (message.changesDocument) await this.recomputeAgendaState(versionId);
   }
 
   private async recomputeAgendaState(versionId: string): Promise<void> {

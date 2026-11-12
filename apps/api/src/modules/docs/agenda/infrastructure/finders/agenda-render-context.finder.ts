@@ -9,6 +9,7 @@ import { Db } from '../../../../framework/database';
 import { prismaFormationEnumToFormationEnum } from '../../../../shared/mappers/formation.mapper';
 import { prismaGenderEnumToGenderEnum } from '../../../../shared/mappers/gender-enum.mapper';
 import { USER_TITLES } from '../../../../shared/user-title.enum';
+import { parseNamedMembers } from '../../../shared/infrastructure/named-members';
 import type { AgendaRenderContext } from '../services/renderers/agenda.renderer';
 
 import { AgendaVersionFinder } from './agenda-version.finder';
@@ -93,7 +94,7 @@ export class AgendaRenderContextFinder {
         currentPosition: f.position,
         targetedPosition: f.targetedPosition,
         targetedGrade: f.targetedGrade,
-        reporters: f.reporters,
+        reporters: parseNamedMembers(f.reporters).map(({ name }) => name),
       })),
       userDefinedBlocks: { files: userDefinedFiles },
     };

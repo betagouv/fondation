@@ -11,7 +11,9 @@ const SYSTEM_UPDATE_CAUSES = defineMessages<SystemUpdateCause>({
   AGENDA_DATE: { defaultMessage: "au changement de date de l'ordre du jour" },
   AGENDA_PROPOSITIONS: { defaultMessage: "à l'ajout ou au retrait de propositions dans l'ordre du jour" },
   AGENDA_TEXT: { defaultMessage: "à la modification du texte d'une proposition dans l'ordre du jour" },
-  DESIGNATION: { defaultMessage: "au changement de désignation d'un membre déporté ou d'un rapporteur" },
+  DESIGNATION: {
+    defaultMessage: "au changement du nom ou du titre d'un membre déporté, ou du nom d'un rapporteur",
+  },
   OUTCOME: { defaultMessage: "au changement d'issue d'une proposition" },
   RECUSAL: { defaultMessage: "au changement des membres déportés d'une proposition" },
   REPORTERS: { defaultMessage: 'au changement de rapporteurs' },

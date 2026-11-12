@@ -188,6 +188,70 @@ test.describe('Agenda', () => {
     expect(readiness.data).toMatchObject({ agendaBlocker: 'NO_AFFECTATION', canCreateAgenda: false });
   });
 
+  test('should follow in a draft the new name an admin gives a reporter, without flagging a block written by hand', async ({
+    admin,
+    agent,
+    docs,
+    expect,
+    member,
+  }) => {
+    const { id: agendaId } = await docs.agenda(await docs.session({ reporters: [member['@user']!] }));
+    const before = await agent.docs.detailsAgendaDocumentBlocks({ path: { agendaId } });
+    const [writtenBlock, generatedBlock] = before.data!.blocks;
+    await agent.docs.editAgendaFileBlock({
+      body: { html: '<p>Une phrase écrite à la main</p>', outdated: false },
+      path: { agendaId, fileId: writtenBlock!.id },
+      throwOnError: true,
+    });
+
+    await admin.administration.updateName({
+      body: { lastName: 'Renommé' },
+      path: { userId: member['@user']!.id },
+      throwOnError: true,
+    });
+
+    const after = await agent.docs.detailsAgendaDocumentBlocks({ path: { agendaId } });
+    const byId = new Map(after.data!.blocks.map((block) => [block.nominationFileId, block]));
+    expect(byId.get(generatedBlock!.nominationFileId)?.html).toContain('RENOMMÉ');
+    expect(byId.get(writtenBlock!.nominationFileId)).toMatchObject({
+      html: '<p>Une phrase écrite à la main</p>',
+      outdated: false,
+    });
+  });
+
+  test('should keep the name a validated agenda was sent with, and give the new one to the draft opened on it', async ({
+    admin,
+    agent,
+    docs,
+    expect,
+    member,
+  }) => {
+    const { id: agendaId } = await docs.agenda(await docs.session({ reporters: [member['@user']!] }), {
+      status: 'VALIDATED',
+    });
+    await admin.administration.updateName({
+      body: { lastName: 'Renommé' },
+      path: { userId: member['@user']!.id },
+      throwOnError: true,
+    });
+
+    const validated = await agent.docs.detailsAgendaDocumentBlocks({ path: { agendaId } });
+    const [writtenBlock, generatedBlock] = validated.data!.blocks;
+    expect(generatedBlock!.html).not.toContain('RENOMMÉ');
+
+    await agent.docs.editAgendaFileBlock({
+      body: { html: '<p>Une phrase écrite à la main</p>', outdated: false },
+      path: { agendaId, fileId: writtenBlock!.id },
+      throwOnError: true,
+    });
+
+    const draft = await agent.docs.detailsAgendaDocumentBlocks({ path: { agendaId } });
+    const byId = new Map(draft.data!.blocks.map((block) => [block.nominationFileId, block]));
+    expect(byId.get(generatedBlock!.nominationFileId)?.html).toContain('RENOMMÉ');
+    const metadata = await agent.docs.detailsAgendaMetadata({ path: { agendaId } });
+    expect(metadata.data).toMatchObject({ canDiscardDraft: true, status: 'DRAFT' });
+  });
+
   test('should keep an edition made after a validation, and undo it when the draft is discarded', async ({
     agent,
     docs,

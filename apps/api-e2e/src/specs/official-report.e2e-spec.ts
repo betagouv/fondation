@@ -641,6 +641,40 @@ test.describe('Official report', () => {
     expect(block?.kind === 'file' && block.html).toContain('RENOMMÉ');
   });
 
+  test('should keep the name a validated report was sent with, and give the new one to the draft opened on it', async ({
+    admin,
+    agent,
+    docs,
+    expect,
+    member,
+  }) => {
+    const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
+    const { id: officialReportId } = await docs.officialReport(await docs.agenda(session), { status: 'VALIDATED' });
+    const nominationFileId = session.files[0]!.id;
+    const fileHtml = async () => {
+      const document = await agent.docs.detailsOfficialReportDocument({ path: { officialReportId } });
+      const block = document.data!.blocks.find((b) => b.kind === 'file' && b.nominationFileId === nominationFileId);
+      return block?.kind === 'file' ? block.html : undefined;
+    };
+    await admin.administration.updateName({
+      body: { lastName: 'Renommé' },
+      path: { userId: member['@user']!.id },
+      throwOnError: true,
+    });
+
+    expect(await fileHtml()).not.toContain('RENOMMÉ');
+
+    await agent.docs.editOfficialReportIntro({
+      body: { html: '<p>Une introduction écrite à la main</p>', outdated: false },
+      path: { officialReportId },
+      throwOnError: true,
+    });
+
+    expect(await fileHtml()).toContain('RENOMMÉ');
+    const details = await agent.docs.detailsOfficialReport({ path: { officialReportId } });
+    expect(details.data).toMatchObject({ canDiscardDraft: true, status: 'DRAFT' });
+  });
+
   test('should follow in a draft the recusal title the secretariat gives a member already recused', async ({
     agent,
     docs,

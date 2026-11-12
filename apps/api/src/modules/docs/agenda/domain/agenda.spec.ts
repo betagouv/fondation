@@ -18,6 +18,7 @@ import {
   AgendaFileBlockReset,
   UnknownAgendaFileBlock,
   AgendaFilesAlreadyReported,
+  AgendaFilesReportersUpdated,
   AgendaFilesUpdated,
   AgendaValidated,
   AgendaWithoutValidatedVersion,
@@ -27,6 +28,8 @@ import { AgendaSnapshot } from './agenda-snapshot';
 
 const AUTHOR = 'author-1';
 const NO_PRESENTED_FILE: ReadonlySet<string> = new Set();
+const DURAND = { id: 'user-durand', name: 'Mme Lucie DURAND' };
+const MARTIN = { id: 'user-martin', name: 'M. Paul MARTIN' };
 
 function presentedFiles(...nominationFileIds: string[]): ReadonlySet<string> {
   return new Set(nominationFileIds);
@@ -320,6 +323,145 @@ describe('Agenda', () => {
     });
   });
 
+  describe('the reporters of a file', () => {
+    const RENAMED = { ...DURAND, name: 'Mme Lucie DURAND-PETIT' };
+
+    function agendaReportedBy(localProps: { isManuallyEdited: boolean; isValidated: boolean }): Agenda {
+      return makeAgenda({
+        actorId: null,
+        isValidated: localProps.isValidated,
+        snapshot: {
+          nominationFiles: [
+            {
+              id: 1n,
+              isManuallyEdited: localProps.isManuallyEdited,
+              nominationFileId: props.nominationFiles[0].id,
+              reporters: [DURAND],
+            },
+          ],
+        },
+      });
+    }
+
+    function update(agenda: Agenda, reporters: readonly { id: string; name: string }[]): void {
+      agenda.updateFilesReporters({ nominationFiles: [{ id: props.nominationFiles[0].id, reporters }] });
+    }
+
+    it('should give a draft block nobody edited the new name, and say so', () => {
+      const agenda = agendaReportedBy({ isManuallyEdited: false, isValidated: false });
+
+      update(agenda, [RENAMED]);
+
+      expect(agenda.messages).toEqual([
+        new AgendaDraftUpdatedBySystem(agenda.id, 'DESIGNATION'),
+        new AgendaFilesReportersUpdated(
+          agenda.id,
+          [{ isOutdated: false, nominationFileId: props.nominationFiles[0].id, reporters: [RENAMED] }],
+          true,
+        ),
+      ]);
+    });
+
+    it('should keep the names behind a block written by hand up to date, without telling anyone', () => {
+      const agenda = agendaReportedBy({ isManuallyEdited: true, isValidated: false });
+
+      update(agenda, [RENAMED]);
+
+      expect(agenda.messages).toEqual([
+        new AgendaFilesReportersUpdated(
+          agenda.id,
+          [{ isOutdated: false, nominationFileId: props.nominationFiles[0].id, reporters: [RENAMED] }],
+          false,
+        ),
+      ]);
+    });
+
+    it('should outdate a block written by hand when another member reports', () => {
+      const agenda = agendaReportedBy({ isManuallyEdited: true, isValidated: false });
+
+      update(agenda, [MARTIN]);
+
+      expect(agenda.messages).toEqual([
+        new AgendaDraftUpdatedBySystem(agenda.id, 'REPORTERS'),
+        new AgendaFilesReportersUpdated(
+          agenda.id,
+          [{ isOutdated: true, nominationFileId: props.nominationFiles[0].id, reporters: [MARTIN] }],
+          true,
+        ),
+      ]);
+    });
+
+    it('should change nothing once none of its files is found among the session ones', () => {
+      const agenda = agendaReportedBy({ isManuallyEdited: false, isValidated: false });
+
+      agenda.updateFilesReporters({ nominationFiles: [] });
+
+      expect(agenda.messages).toEqual([]);
+    });
+
+    it('should leave a validated agenda as it was sent when a reporter is only renamed', () => {
+      const agenda = agendaReportedBy({ isManuallyEdited: false, isValidated: true });
+
+      update(agenda, [RENAMED]);
+
+      expect(agenda.messages).toEqual([]);
+    });
+
+    it('should name the reporters as they are today in a draft someone opens, without telling the application did', () => {
+      const agenda = makeAgenda({
+        currentNames: { recusedMembers: new Map(), reporters: new Map([[DURAND.id, RENAMED.name]]) },
+        isValidated: true,
+        snapshot: {
+          nominationFiles: [
+            {
+              id: 1n,
+              isManuallyEdited: false,
+              nominationFileId: props.nominationFiles[0].id,
+              reporters: [DURAND],
+            },
+            { id: 2n, isManuallyEdited: true, nominationFileId: 'nf-2', reporters: [DURAND, MARTIN] },
+          ],
+        },
+      });
+
+      agenda.updateMetadata({
+        authorId: AUTHOR,
+        chairmanId: props.chairman.id,
+        date: DateOnly.fromJson({ day: 3, month: 3, year: 2026 }),
+        sessionMeetingDate: props.sessionMeetingDate,
+      });
+
+      expect(agenda.messages.slice(0, 2)).toEqual([
+        new AgendaDraftOpened(agenda.id, AUTHOR),
+        new AgendaFilesReportersUpdated(
+          agenda.id,
+          [
+            { isOutdated: false, nominationFileId: props.nominationFiles[0].id, reporters: [RENAMED] },
+            { isOutdated: false, nominationFileId: 'nf-2', reporters: [RENAMED, MARTIN] },
+          ],
+          true,
+        ),
+      ]);
+      expect(agenda.messages.some((message) => message instanceof AgendaDraftUpdatedBySystem)).toBe(false);
+    });
+
+    it('should open a draft of a validated agenda when another member reports', () => {
+      const agenda = agendaReportedBy({ isManuallyEdited: false, isValidated: true });
+
+      update(agenda, [MARTIN]);
+
+      expect(agenda.messages).toEqual([
+        new AgendaDraftOpened(agenda.id, null),
+        new AgendaDraftUpdatedBySystem(agenda.id, 'REPORTERS'),
+        new AgendaFilesReportersUpdated(
+          agenda.id,
+          [{ isOutdated: false, nominationFileId: props.nominationFiles[0].id, reporters: [MARTIN] }],
+          true,
+        ),
+      ]);
+    });
+  });
+
   describe('a draft agenda', () => {
     it('should record the person who edits it', () => {
       const agenda = makeAgenda({ actorId: AUTHOR });
@@ -333,7 +475,7 @@ describe('Agenda', () => {
       const agenda = makeAgenda({ actorId: null });
 
       agenda.updateFilesReporters({
-        nominationFiles: [{ id: props.nominationFiles[0].id, reporters: ['Mme DURAND Lucie'] }],
+        nominationFiles: [{ id: props.nominationFiles[0].id, reporters: [DURAND] }],
       });
 
       expect(agenda.messages).toContainEqual(new AgendaDraftUpdatedBySystem(agenda.id, 'REPORTERS'));

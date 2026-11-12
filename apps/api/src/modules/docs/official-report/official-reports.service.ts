@@ -12,6 +12,7 @@ import { SimpleAuthService } from '../../simple-auth';
 import { DocNominationFileOutcomeEnum } from '../shared/domain/doc-nomination-file-outcome';
 import { AgendaFinder, FoundAgendasDto } from '../shared/infrastructure/finders/agenda.finder';
 import { DocsNominationFilesFinder } from '../shared/infrastructure/finders/docs-nomination-files.finder';
+import { namedMembersOf } from '../shared/infrastructure/named-members';
 
 import { OfficialReport } from './domain/official-report';
 import { OfficialReportChairman } from './domain/official-report-chairman';
@@ -20,7 +21,6 @@ import { OfficialReportMembersList } from './domain/official-report-member-list'
 import { OfficialReportSecretary } from './domain/official-report-secretary';
 import { OfficialReportSessionMeeting } from './domain/official-report-session-meeting';
 import { OfficialReportVersionFinder } from './infrastructure/finders/official-report-version.finder';
-import { namedMembersOf } from './infrastructure/official-report-named-members';
 import {
   CreatedOfficialReportDto,
   DetailedOfficialReportDocumentDto,

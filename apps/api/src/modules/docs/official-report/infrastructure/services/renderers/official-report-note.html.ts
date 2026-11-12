@@ -1,14 +1,14 @@
 import type { Prisma } from '../../../../../../generated/prisma/client';
 import { writerOf } from '../../../../../../utils/user.util';
+import type { NamedMember } from '../../../../shared/domain/named-member';
+import { parseNamedMembers } from '../../../../shared/infrastructure/named-members';
 import { conjunctionList } from '../../../../shared/infrastructure/services/renderers/helpers';
 import { escapeHtml } from '../../../../shared/infrastructure/services/renderers/safe-html';
 import type { OfficialReportFileNote } from '../../../domain/official-report-doc-block';
 import type {
-  OfficialReportNamedMember,
   OfficialReportNoteOutdatedBy,
   OfficialReportNoteStatus,
 } from '../../../domain/official-report-types';
-import { parseNamedMembers } from '../../official-report-named-members';
 
 export type OfficialReportStoredNote = {
   note: string | null;
@@ -20,7 +20,7 @@ export type OfficialReportStoredNote = {
   recusedMembers: Prisma.JsonValue;
 };
 
-export function recusalMention(recusedMembers: readonly OfficialReportNamedMember[]): string | null {
+export function recusalMention(recusedMembers: readonly NamedMember[]): string | null {
   if (recusedMembers.length === 0) return null;
 
   const members = escapeHtml(conjunctionList(recusedMembers.map(({ name }) => name)));

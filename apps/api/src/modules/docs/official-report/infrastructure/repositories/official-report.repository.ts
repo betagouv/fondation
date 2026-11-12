@@ -29,6 +29,11 @@ import { DocNominationFileOutcomeEnum } from '../../../shared/domain/doc-nominat
 import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../../../shared/infrastructure/agenda-content';
 import { DocsNominationFilesFinder } from '../../../shared/infrastructure/finders/docs-nomination-files.finder';
 import {
+  currentNamesOf,
+  namedMembersOf,
+  parseNamedMembers,
+} from '../../../shared/infrastructure/named-members';
+import {
   OfficialReport,
   OfficialReportConclusionEdited,
   OfficialReportConclusionReset,
@@ -63,7 +68,6 @@ import { OfficialReportSnapshot } from '../../domain/snapshot/official-report-sn
 import { OfficialReportSnapshotFile } from '../../domain/snapshot/official-report-snapshot-file';
 import { OfficialReportSnapshotMeta } from '../../domain/snapshot/official-report-snapshot-meta';
 import { OfficialReportVersionFinder } from '../finders/official-report-version.finder';
-import { namedMembersOf, parseNamedMembers } from '../official-report-named-members';
 
 @Injectable()
 export class OfficialReportRepository {
@@ -211,11 +215,21 @@ export class OfficialReportRepository {
       sessionMeeting,
     });
 
+    const isValidated = isDefined(officialReport.validatedAt);
+    // only a validated report can open a draft, which starts from the names of today
+    const currentNames = isValidated
+      ? currentNamesOf(
+          (await this.nominationFilesFinder.find({ ids: [...files.keys()], sessionId: rawAgenda.sessionId }))
+            .items,
+        )
+      : undefined;
+
     return OfficialReport.from({
       actorId: query.actorId ?? null,
+      currentNames,
       id: officialReportId,
       isDocumentStored: isDefined(officialReport.pdfId),
-      isValidated: isDefined(officialReport.validatedAt),
+      isValidated,
       snapshot: snapshot,
     });
   }
@@ -490,7 +504,7 @@ export class OfficialReportRepository {
       where: { id: editedVersionId },
     });
 
-    if (message.diff.hasAny) await this.recomputeState(editedVersionId);
+    if (message.changesDocument) await this.recomputeState(editedVersionId);
   }
 
   private async resolveJusticeContact(
