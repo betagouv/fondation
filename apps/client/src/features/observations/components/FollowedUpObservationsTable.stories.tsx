@@ -3,6 +3,7 @@ import { http, HttpResponse } from 'msw';
 
 import { sgAuthHandlers } from '@/shared/storybook/msw.handlers';
 import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
+import { ToastProvider } from '@/shared/ui/toast';
 import type { ListedFollowedUpObservationsDto } from '@api/types';
 
 import { FollowedUpObservationsTable } from './FollowedUpObservationsTable';
@@ -29,9 +30,15 @@ const JUNE = {
   status: 'ONGOING',
 } as const;
 
-// Durand wrote in both sessions: two blocs, one per session
+const UNTRACKED = { comment: null, status: 'IN_PROGRESS' } as const;
+const JUNE_TRACKING = { comment: 'Signalement transmis au premier président', status: 'DONE' } as const;
+
+// Durand wrote in both sessions: two blocs, one per session, each with its own tracking. Proposed in June,
+// after her March observations, she shows that proposition in her March bloc
 const OBSERVATIONS: Observations = [
   {
+    laterPropositions: [],
+    tracking: JUNE_TRACKING,
     observation: {
       dateReception: { day: 4, month: 6, year: 2028 },
       followUp: 'ALERT',
@@ -42,6 +49,8 @@ const OBSERVATIONS: Observations = [
     session: JUNE,
   },
   {
+    laterPropositions: [],
+    tracking: JUNE_TRACKING,
     observation: {
       dateReception: { day: 2, month: 6, year: 2028 },
       followUp: 'INTERESTING',
@@ -63,6 +72,15 @@ const OBSERVATIONS: Observations = [
     session: JUNE,
   },
   {
+    laterPropositions: [
+      {
+        id: 'file-30',
+        number: 30,
+        session: { date: JUNE.date, id: JUNE.id, name: JUNE.name },
+        targeted: { grade: 'I', position: 'Présidente de chambre CA DOUAI' },
+      },
+    ],
+    tracking: UNTRACKED,
     observation: {
       dateReception: { day: 10, month: 3, year: 2028 },
       followUp: 'REFERENCE',
@@ -78,6 +96,8 @@ const OBSERVATIONS: Observations = [
     },
   },
   {
+    laterPropositions: [],
+    tracking: { comment: null, status: 'DONE' },
     observation: {
       dateReception: { day: 3, month: 11, year: 2027 },
       followUp: 'ALERT',
@@ -103,7 +123,9 @@ const datasets: Record<string, Observations> = { blocs: OBSERVATIONS, empty: [] 
 function FollowedUpObservationsTableStory(props: { dataset: string }) {
   return (
     <StoryQueryClient key={props.dataset}>
-      <FollowedUpObservationsTable />
+      <ToastProvider>
+        <FollowedUpObservationsTable />
+      </ToastProvider>
     </StoryQueryClient>
   );
 }
@@ -121,6 +143,10 @@ const meta = {
           items,
           totalCount: items.length,
         }),
+      ),
+      http.put(
+        '*/api/sessions/v2/:sessionId/observation-blocks/:magistratId/tracking',
+        () => new HttpResponse(null, { status: 204 }),
       ),
     );
   },

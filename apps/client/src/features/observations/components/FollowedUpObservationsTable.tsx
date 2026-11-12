@@ -7,6 +7,11 @@ import { generatePath, Link } from 'react-router';
 import { SessionStatusBadge } from '@/features/sessions/components/SessionStatusBadge';
 import { PinnedHeader } from '@/shared/components/pinned-header';
 import {
+  OBSERVATION_BLOCK_TRACKING_STATUSES,
+  type ObservationBlockTrackingStatusEnum,
+  ObservationBlockTrackingStatusEnumMessages,
+} from '@/shared/enums/observation-block-tracking-status.enum';
+import {
   ObservationFollowUpEnum,
   ObservationFollowUpEnumMessages,
 } from '@/shared/enums/observation-follow-up.enum';
@@ -29,6 +34,7 @@ import {
   useInfiniteFollowedUpObservationsQuery,
 } from '@queries/observations.queries';
 
+import { ObservationBlockTrackingCell } from './ObservationBlockTrackingCell';
 import { FollowUpCell, ObservantCell, ObservedCell, TargetedCell } from './ObservationCells';
 
 const h = createColumnHelper<FollowedUpObservation>();
@@ -43,6 +49,7 @@ export function FollowedUpObservationsTable() {
     columnFilters: [] as (
       | { id: 'followUps'; value: string[] }
       | { id: 'sessionStatuses'; value: SessionStatus[] }
+      | { id: 'trackingStatuses'; value: ObservationBlockTrackingStatusEnum[] }
     )[],
     globalFilter: '',
     sorting: DEFAULT_SORTING,
@@ -61,6 +68,9 @@ export function FollowedUpObservationsTable() {
         filter.id === 'sessionStatuses' ? filter.value : [],
       ),
       sorting,
+      trackingStatuses: tableState.columnFilters.flatMap((filter) =>
+        filter.id === 'trackingStatuses' ? filter.value : [],
+      ),
     });
 
   const search = useDataTableSearch(tableState.globalFilter ?? '', (globalFilter) =>
@@ -91,6 +101,16 @@ export function FollowedUpObservationsTable() {
       values: Object.values(ObservationFollowUpEnum).map((followUp) => ({
         id: followUp,
         label: intl.formatMessage(ObservationFollowUpEnumMessages[followUp]),
+      })),
+    };
+
+    const trackingStatuses: TableMetaFilterEnum = {
+      filterId: 'trackingStatuses',
+      label: intl.formatMessage({ defaultMessage: 'Statut de suivi' }),
+      type: 'enum',
+      values: OBSERVATION_BLOCK_TRACKING_STATUSES.map((status) => ({
+        id: status,
+        label: intl.formatMessage(ObservationBlockTrackingStatusEnumMessages[status]),
       })),
     };
 
@@ -146,6 +166,13 @@ export function FollowedUpObservationsTable() {
         id: 'followUps',
         meta: { filters: followUps },
         size: 140,
+      }),
+      h.display({
+        cell: rowCell<FollowedUpObservation>((row) => <ObservationBlockTrackingCell row={row} />),
+        header: intl.formatMessage({ defaultMessage: 'Statut de suivi' }),
+        id: 'trackingStatuses',
+        meta: { filters: trackingStatuses },
+        size: 200,
       }),
     ];
   }, [intl]);

@@ -1,5 +1,6 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import type { ObservationBlockTrackingStatusEnum } from '@/shared/enums/observation-block-tracking-status.enum';
 import type { ObservationFollowUpEnum } from '@/shared/enums/observation-follow-up.enum';
 import { HttpException } from '@/utils/http-exception';
 import { multipartJson } from '@/utils/multipart-json';
@@ -37,6 +38,7 @@ type FollowedUpObservationsFilters = {
   search: string;
   sessionStatuses: SessionStatus[];
   sorting: FollowedUpObservationsSorting;
+  trackingStatuses: ObservationBlockTrackingStatusEnum[];
 };
 
 const SESSION_OBSERVATIONS_PAGE_SIZE = 50;
@@ -178,6 +180,7 @@ export const useInfiniteFollowedUpObservationsQuery = (filters: FollowedUpObserv
           sessionStatuses: filters.sessionStatuses.length ? filters.sessionStatuses.join(',') : undefined,
           sortBy: sort.id,
           sortDesc: sort.desc ? 'true' : undefined,
+          trackingStatuses: filters.trackingStatuses.length ? filters.trackingStatuses.join(',') : undefined,
         },
       });
       return data;
@@ -384,6 +387,28 @@ export function useWriteObservationMemberCommentMutation() {
         },
       });
     },
+  });
+}
+
+// the tracking belongs to the bloc: every row of the observant in the session changes with it
+export function useUpdateObservationBlockTrackingMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (mutation: {
+      comment: string | null;
+      magistratId: string;
+      sessionId: string;
+      status: ObservationBlockTrackingStatusEnum;
+    }) => {
+      const { comment, magistratId, sessionId, status } = mutation;
+      return $api.observations.updateObservationBlockTracking({
+        body: { comment, status },
+        path: { magistratId, sessionId },
+        throwOnError: true,
+      });
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: observationKeys.followedUp() }),
   });
 }
 
