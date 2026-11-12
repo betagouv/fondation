@@ -14,12 +14,12 @@ import { prismaGenderEnumToGenderEnum } from '../../../../shared/mappers/gender-
 import { prismaRoleEnumToRoleEnum } from '../../../../shared/mappers/role-enum.mapper';
 import { DocNominationFileOutcomeEnum } from '../../../shared/domain/doc-nomination-file-outcome';
 import { agendaContentOf } from '../../../shared/infrastructure/agenda-content';
+import { parseNamedMembers } from '../../../shared/infrastructure/named-members';
 import { OfficialReportChairman } from '../../domain/official-report-chairman';
 import { OfficialReportMember } from '../../domain/official-report-member';
 import { OfficialReportMembersList } from '../../domain/official-report-member-list';
 import { OfficialReportSecretary } from '../../domain/official-report-secretary';
 import { OfficialReportSessionMeeting } from '../../domain/official-report-session-meeting';
-import { parseNamedMembers } from '../official-report-named-members';
 import { officialReportFileNote } from '../services/renderers/official-report-note.html';
 import type { OfficialReportRenderContext } from '../services/renderers/official-report.renderer';
 

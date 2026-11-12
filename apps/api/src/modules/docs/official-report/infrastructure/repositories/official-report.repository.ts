@@ -28,6 +28,7 @@ import { prismaGenderEnumToGenderEnum } from '../../../../shared/mappers/gender-
 import { DocNominationFileOutcomeEnum } from '../../../shared/domain/doc-nomination-file-outcome';
 import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../../../shared/infrastructure/agenda-content';
 import { DocsNominationFilesFinder } from '../../../shared/infrastructure/finders/docs-nomination-files.finder';
+import { namedMembersOf, parseNamedMembers } from '../../../shared/infrastructure/named-members';
 import {
   OfficialReport,
   OfficialReportConclusionEdited,
@@ -63,7 +64,6 @@ import { OfficialReportSnapshot } from '../../domain/snapshot/official-report-sn
 import { OfficialReportSnapshotFile } from '../../domain/snapshot/official-report-snapshot-file';
 import { OfficialReportSnapshotMeta } from '../../domain/snapshot/official-report-snapshot-meta';
 import { OfficialReportVersionFinder } from '../finders/official-report-version.finder';
-import { namedMembersOf, parseNamedMembers } from '../official-report-named-members';
 
 @Injectable()
 export class OfficialReportRepository {

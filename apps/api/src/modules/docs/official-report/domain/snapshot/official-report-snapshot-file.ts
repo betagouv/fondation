@@ -3,8 +3,8 @@ import {
   type DocNominationFileOutcomeEnum,
   isFinalDocNominationFileOutcome,
 } from '../../../shared/domain/doc-nomination-file-outcome';
+import { type NamedMember, sameMembers, sameNames } from '../../../shared/domain/named-member';
 import type {
-  OfficialReportNamedMember,
   OfficialReportNoteOutdatedBy,
   OfficialReportNoteStatus,
   OfficialReportSnapshotDiff,
@@ -25,18 +25,18 @@ export type PlainOfficialReportSnapshotFile = {
     comment: string | null;
     value: DocNominationFileOutcomeEnum;
   };
-  recusedMembers: readonly OfficialReportNamedMember[];
-  reporters: readonly OfficialReportNamedMember[];
+  recusedMembers: readonly NamedMember[];
+  reporters: readonly NamedMember[];
 };
 
 export class OfficialReportSnapshotFile {
   private constructor(
     readonly nominationFileId: string | null,
-    readonly reporters: readonly OfficialReportNamedMember[],
+    readonly reporters: readonly NamedMember[],
     readonly outcome: { comment: string | null; value: DocNominationFileOutcomeEnum },
     readonly hasManuallyEditedHtml: boolean,
     readonly note: OfficialReportSnapshotNote,
-    readonly recusedMembers: readonly OfficialReportNamedMember[],
+    readonly recusedMembers: readonly NamedMember[],
   ) {}
 
   static from(plain: PlainOfficialReportSnapshotFile): OfficialReportSnapshotFile {
@@ -53,8 +53,8 @@ export class OfficialReportSnapshotFile {
   diff(next: {
     nominationFileId: string;
     outcome?: { comment: string | null; value: DocNominationFileOutcomeEnum };
-    recusedMembers?: readonly OfficialReportNamedMember[];
-    reporters?: readonly OfficialReportNamedMember[];
+    recusedMembers?: readonly NamedMember[];
+    reporters?: readonly NamedMember[];
   }): OfficialReportSnapshotDiff['files'] {
     return [this.blockDiff(next), this.recusalDiff(next)].filter(({ action }) => action !== 'noop');
   }
@@ -79,11 +79,10 @@ export class OfficialReportSnapshotFile {
   private blockDiff(next: {
     nominationFileId: string;
     outcome?: { comment: string | null; value: DocNominationFileOutcomeEnum };
-    reporters?: readonly OfficialReportNamedMember[];
+    reporters?: readonly NamedMember[];
   }): OfficialReportSnapshotDiff['files'][number] {
     const reportersChanged = isDefined(next.reporters) && !sameMembers(this.reporters, next.reporters);
-    const reportersRenamed =
-      isDefined(next.reporters) && !sameList(namesOf(this.reporters), namesOf(next.reporters));
+    const reportersRenamed = isDefined(next.reporters) && !sameNames(this.reporters, next.reporters);
     const outcomeChanged = this.outcomeChanged(next);
 
     if (!reportersRenamed && !reportersChanged && !outcomeChanged) return { action: 'noop' };
@@ -106,12 +105,12 @@ export class OfficialReportSnapshotFile {
    */
   private recusalDiff(next: {
     nominationFileId: string;
-    recusedMembers?: readonly OfficialReportNamedMember[];
+    recusedMembers?: readonly NamedMember[];
   }): OfficialReportSnapshotDiff['files'][number] {
     if (!next.recusedMembers) return { action: 'noop' };
 
     const whoChanged = !sameMembers(this.recusedMembers, next.recusedMembers);
-    if (!whoChanged && sameList(namesOf(this.recusedMembers), namesOf(next.recusedMembers))) {
+    if (!whoChanged && sameNames(this.recusedMembers, next.recusedMembers)) {
       return { action: 'noop' };
     }
 
@@ -151,25 +150,4 @@ export class OfficialReportSnapshotFile {
 
     return this.outcomeDiffers(next.outcome);
   }
-}
-
-/** who is recused, however they are named: a member stored before the ids were kept is known by name */
-function sameMembers(
-  current: readonly OfficialReportNamedMember[],
-  next: readonly OfficialReportNamedMember[],
-): boolean {
-  return (
-    current.length === next.length &&
-    current.every((member) =>
-      next.some((other) => (member.id === null ? other.name === member.name : other.id === member.id)),
-    )
-  );
-}
-
-function namesOf(members: readonly OfficialReportNamedMember[]): string[] {
-  return members.map(({ name }) => name);
-}
-
-function sameList(current: readonly string[], next: readonly string[]): boolean {
-  return current.length === next.length && current.every((item, i) => next[i] === item);
 }

@@ -11,10 +11,10 @@ import {
   DocsNominationFilesFinder,
   type FoundDocsNominationFiles,
 } from '../../../shared/infrastructure/finders/docs-nomination-files.finder';
+import { namedMembersOf } from '../../../shared/infrastructure/named-members';
 import { readsTheSame } from '../../../shared/infrastructure/services/renderers/helpers';
 import { InvalidateOfficialReportCommand } from '../../domain/official-report-types';
 import { OfficialReportVersionFinder } from '../finders/official-report-version.finder';
-import { namedMembersOf } from '../official-report-named-members';
 import { OfficialReportRepository } from '../repositories/official-report.repository';
 
 @Injectable()
