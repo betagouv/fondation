@@ -11,8 +11,8 @@ WITH holder AS (
     INNER JOIN data_administration_context."position" AS p
       ON p.id = NULLIF(m.current_position_id, '')::INT
   WHERE m.status = 'ACTIVE' AND p.function_id = $2::TEXT
-  -- one row per court: during a handover, the latest installed
-  ORDER BY p.jurisdiction_id, m.installation_date DESC NULLS LAST, m.id
+  -- one row per court: during a handover, the latest nominated, whose installation date can still be missing
+  ORDER BY p.jurisdiction_id, m.nomination_date DESC NULLS LAST, m.installation_date DESC NULLS LAST, m.id
 )
 
 SELECT
