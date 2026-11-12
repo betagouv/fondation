@@ -4,6 +4,67 @@ import { test } from '../fixtures.ts';
 import * as seed from '../utils/seed.ts';
 
 test.describe('Veille des postes E2E', () => {
+  test('should find a court of appeal by its ressort and its first president', async ({ agent, expect, sessions }) => {
+    const lastName = Array.from({ length: 12 }, () => String.fromCharCode(65 + crypto.randomInt(26))).join('');
+    const firstPresident = {
+      function: seed.functions.PP,
+      grade: 'G3sup' as const,
+      jurisdiction: seed.jurisdictions['CA  LYON'],
+    };
+    await sessions.createOne({
+      candidates: [
+        {
+          firstName: 'ZOE',
+          installationDate: '01/09/2021',
+          lastName,
+          position: firstPresident,
+          targetPosition: firstPresident,
+        },
+      ],
+      createdAt: '22/04/2026',
+      name: 'Transparence annuelle',
+    });
+
+    const { data } = await agent.veilleDesPostes.listCourtOfAppealFirstPresidents({
+      query: { search: `Lyon ${lastName}` },
+      throwOnError: true,
+    });
+
+    expect(data.items).toEqual([
+      {
+        court: { id: 'CA  LYON', label: "Cour d'appel de Lyon" },
+        installationDate: { day: 1, month: 9, year: 2021 },
+        magistrat: { id: expect.any(String), name: `${lastName} Zoe` },
+        status: { id: 'OCCUPIED', label: 'Occupé' },
+      },
+    ]);
+  });
+
+  test('should list a court of appeal without first president as vacant', async ({ agent, expect, sessions }) => {
+    const prosecutor = {
+      function: seed.functions.PG,
+      grade: 'G3sup' as const,
+      jurisdiction: seed.jurisdictions['CA  AMIENS'],
+    };
+    await sessions.createOne({
+      candidates: [{ firstName: 'ALINE', lastName: 'MARTIN', position: prosecutor, targetPosition: prosecutor }],
+      createdAt: '22/04/2026',
+      name: 'Transparence annuelle',
+    });
+
+    const { data } = await agent.veilleDesPostes.listCourtOfAppealFirstPresidents({
+      query: { limit: 100, statuses: ['VACANT'] },
+      throwOnError: true,
+    });
+
+    expect(data.items).toContainEqual({
+      court: { id: 'CA  AMIENS', label: "Cour d'appel d'Amiens" },
+      installationDate: null,
+      magistrat: null,
+      status: { id: 'VACANT', label: 'Vacant' },
+    });
+  });
+
   test('should list the holders of the Cour de cassation by position, then by last name', async ({
     agent,
     expect,
@@ -101,7 +162,7 @@ test.describe('Veille des postes E2E', () => {
 
     expect(data.items.map(({ magistrat }) => magistrat.name)).toEqual([`${lastName}B Camille`]);
     expect(data.totalCount).toBe(1);
-    expect(data.positions.map(({ holders, id }) => [id, holders])).toEqual([
+    expect(data.positions.map(({ count, id }) => [id, count])).toEqual([
       ['FIRST_PRESIDENT', 0],
       ['CHAMBER_PRESIDENT', 1],
       ['COUNSELLOR', 1],

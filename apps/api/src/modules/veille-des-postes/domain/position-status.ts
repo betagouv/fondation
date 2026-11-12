@@ -7,8 +7,9 @@ const LABELS: Record<PositionStatus, string> = {
   VACANT: 'Vacant',
 };
 
-/* until the alerts and the manual edition, every position held is occupied */
+/* until the alerts and the manual edition, every position held is occupied and every other one vacant */
 export const HELD_POSITION_STATUS: PositionStatus = 'OCCUPIED';
+export const UNHELD_POSITION_STATUS: PositionStatus = 'VACANT';
 
 export function positionStatuses(): { id: PositionStatus; label: string }[] {
   return POSITION_STATUSES.map((id) => ({ id, label: LABELS[id] }));
@@ -20,4 +21,8 @@ export function positionStatusOf(id: PositionStatus): { id: PositionStatus; labe
 
 export function heldPositionMatches(statuses: readonly PositionStatus[]): boolean {
   return statuses.length === 0 || statuses.includes(HELD_POSITION_STATUS);
+}
+
+export function unheldPositionMatches(statuses: readonly PositionStatus[]): boolean {
+  return statuses.length === 0 || statuses.includes(UNHELD_POSITION_STATUS);
 }

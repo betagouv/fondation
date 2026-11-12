@@ -2665,6 +2665,41 @@ export type ChangeFeedbackStatusDto = {
     status: 'NEW' | 'ACKNOWLEDGED' | 'PROCESSED' | 'DISMISSED';
 };
 
+export type ListedCourtOfAppealFirstPresidentsDto = {
+    items: Array<{
+        court: {
+            id: string;
+            label: string;
+        };
+        installationDate: {
+            year: number;
+            month: number;
+            day: number;
+        } | null;
+        magistrat: {
+            id: string;
+            name: string;
+        } | null;
+        status: {
+            id: 'OCCUPIED' | 'MAY_BECOME_VACANT' | 'VACANT';
+            label: string;
+        };
+    }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
+    links?: {
+        next?: string;
+        previous?: string;
+    };
+    statuses: Array<{
+        count: number;
+        id: 'OCCUPIED' | 'MAY_BECOME_VACANT' | 'VACANT';
+        label: string;
+    }>;
+};
+
 export type ListedCourtOfCassationHoldersDto = {
     items: Array<{
         installationDate: {
@@ -2698,12 +2733,12 @@ export type ListedCourtOfCassationHoldersDto = {
         previous?: string;
     };
     positions: Array<{
-        holders: number;
+        count: number;
         id: 'FIRST_PRESIDENT' | 'CHAMBER_PRESIDENT' | 'COUNSELLOR' | 'REFERENDARY_COUNSELLOR' | 'AUDITOR_SECOND_GRADE' | 'AUDITOR_FIRST_GRADE';
         label: string;
     }>;
     statuses: Array<{
-        holders: number;
+        count: number;
         id: 'OCCUPIED' | 'MAY_BECOME_VACANT' | 'VACANT';
         label: string;
     }>;
@@ -5714,6 +5749,29 @@ export type ChangeFeedbackStatusResponses = {
 };
 
 export type ChangeFeedbackStatusResponse = ChangeFeedbackStatusResponses[keyof ChangeFeedbackStatusResponses];
+
+export type ListCourtOfAppealFirstPresidentsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        search?: string;
+        sortBy?: 'court' | 'installationDate' | 'name';
+        statuses?: Array<'OCCUPIED' | 'MAY_BECOME_VACANT' | 'VACANT'>;
+        /**
+         * true
+         */
+        sortDesc?: string | boolean;
+        page?: number;
+        limit?: number;
+    };
+    url: '/api/veille-des-postes/v1/cours-d-appel';
+};
+
+export type ListCourtOfAppealFirstPresidentsResponses = {
+    200: ListedCourtOfAppealFirstPresidentsDto;
+};
+
+export type ListCourtOfAppealFirstPresidentsResponse = ListCourtOfAppealFirstPresidentsResponses[keyof ListCourtOfAppealFirstPresidentsResponses];
 
 export type ListCourtOfCassationHoldersData = {
     body?: never;

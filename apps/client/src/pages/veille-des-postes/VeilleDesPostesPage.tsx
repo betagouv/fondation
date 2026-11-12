@@ -7,7 +7,10 @@ import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { LinkTab, LinkTabs } from '@/shared/ui/link-tabs';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import { useCourtOfCassationHoldersCountQuery } from '@queries/veille-des-postes.queries';
+import {
+  useCourtOfAppealFirstPresidentsCountQuery,
+  useCourtOfCassationHoldersCountQuery,
+} from '@queries/veille-des-postes.queries';
 
 import type { VeilleDesPostesOutletContext } from './veille-des-postes-outlet-context.type';
 
@@ -17,10 +20,12 @@ export function VeilleDesPostesPage() {
   const [titleSlot, setTitleSlot] = useState<HTMLSpanElement | null>(null);
   const breadcrumbRoot = useBreadcrumbRoot();
   const { pathname } = useLocation();
+  const courtOfAppealFirstPresidents = useCourtOfAppealFirstPresidentsCountQuery();
   const courtOfCassationHolders = useCourtOfCassationHoldersCountQuery();
 
   const tabs = [
     {
+      count: courtOfAppealFirstPresidents,
       label: formatMessage({ defaultMessage: "Premiers présidents de cour d'appel" }),
       to: ROUTE_PATHS.SG.CSM.VEILLE_DES_POSTES_COURTS_OF_APPEAL,
     },

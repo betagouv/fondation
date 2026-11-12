@@ -2,6 +2,7 @@ import { flexRender, type Header, type Row, type RowData, type Table } from '@ta
 import clsx from 'clsx';
 import { type ReactNode, type RefObject, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
+import { useFadeInOnQueryChange } from './hooks/useFadeInOnQueryChange';
 import { ESTIMATED_ROW_HEIGHT, useTableVirtualizer } from './hooks/useTableVirtualizer';
 
 function useScrollMargin(element: HTMLDivElement | null, scrollsWithPage?: boolean) {
@@ -102,6 +103,9 @@ export function DataTable<Data extends RowData>(props: {
 
   const rows = table.getRowModel().rows;
   const totalRows = rows.length;
+  const rowGroupRef = useRef<HTMLDivElement>(null);
+  const { columnFilters, globalFilter, sorting } = table.getState();
+  useFadeInOnQueryChange(rowGroupRef, JSON.stringify([columnFilters, globalFilter, sorting]), rows);
   const scrollMargin = useScrollMargin(scrollBox, scrollsWithPage);
   const virtualizer = useTableVirtualizer({ rowCount: totalRows, scrollBox, scrollMargin, scrollsWithPage });
   const virtualRows = virtualizer.getVirtualItems();
@@ -224,6 +228,7 @@ export function DataTable<Data extends RowData>(props: {
 
         <div
           className="grid"
+          ref={rowGroupRef}
           role="rowgroup"
           style={
             props.unvirtualized

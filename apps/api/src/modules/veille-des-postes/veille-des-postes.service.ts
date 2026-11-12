@@ -5,7 +5,14 @@ import { Sortable } from '../framework/sorting';
 
 import type { CourtOfCassationPosition } from './domain/court-of-cassation-position';
 import type { PositionStatus } from './domain/position-status';
-import type { ListCourtOfCassationHoldersDto } from './infrastructure/dtos/veille-des-postes.dto';
+import type {
+  ListCourtOfAppealFirstPresidentsDto,
+  ListCourtOfCassationHoldersDto,
+} from './infrastructure/dtos/veille-des-postes.dto';
+import {
+  ListCourtOfAppealFirstPresidentsQuery,
+  ListedCourtOfAppealFirstPresidentsDto,
+} from './infrastructure/queries/list-court-of-appeal-first-presidents.query';
 import {
   ListCourtOfCassationHoldersQuery,
   ListedCourtOfCassationHoldersDto,
@@ -13,7 +20,19 @@ import {
 
 @Injectable()
 export class VeilleDesPostesService {
-  constructor(private readonly listCourtOfCassationHoldersQuery: ListCourtOfCassationHoldersQuery) {}
+  constructor(
+    private readonly listCourtOfAppealFirstPresidentsQuery: ListCourtOfAppealFirstPresidentsQuery,
+    private readonly listCourtOfCassationHoldersQuery: ListCourtOfCassationHoldersQuery,
+  ) {}
+
+  listCourtOfAppealFirstPresidents(query: {
+    pagination: Pagination;
+    search: string | undefined;
+    sorting: Sortable<ListCourtOfAppealFirstPresidentsDto>;
+    statuses: readonly PositionStatus[];
+  }): Promise<ListedCourtOfAppealFirstPresidentsDto> {
+    return this.listCourtOfAppealFirstPresidentsQuery.handle(query);
+  }
 
   listCourtOfCassationHolders(query: {
     pagination: Pagination;
