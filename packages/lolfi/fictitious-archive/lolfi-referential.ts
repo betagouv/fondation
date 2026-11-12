@@ -15,12 +15,14 @@ import jurisdictions from './referential/jurisdictions.json';
 import positionKinds from './referential/position-kinds.json';
 
 /* Exported from staging on 2026-10-07. It holds no personal data: the referential is institutional,
-   and the position kinds only count which function exists in which jurisdiction type at which grade */
+   and the position kinds only count which function exists in which jurisdiction type at which grade.
+   Their holders, the active magistrats on such a position, were counted on production on 2026-11-12 */
 
 export type PositionKind = {
   count: number;
   functionId: string;
   grade: LolfiGradeEnum;
+  holders: number;
   jurisdictionType: string;
 };
 
@@ -98,12 +100,28 @@ export class LolfiReferential {
     formation: LolfiFormationEnum;
     grade?: LolfiGradeEnum;
   }): ReadonlyMap<PositionKind, number> {
+    return new Map(this.#positionKindsOf(filter).map((k) => [k, k.count]));
+  }
+
+  positionKindsWeightedByHolders(filter: {
+    formation: LolfiFormationEnum;
+    grade?: LolfiGradeEnum;
+  }): ReadonlyMap<PositionKind, number> {
     return new Map(
-      this.#positionKinds
-        .filter((k) => this.function(k.functionId).formation === filter.formation)
-        .filter((k) => !filter.grade || k.grade === filter.grade)
-        .filter((k) => this.jurisdictionsOf(k.jurisdictionType).length > 0)
-        .map((k) => [k, k.count]),
+      this.#positionKindsOf(filter)
+        .filter((k) => k.holders > 0)
+        .map((k) => [k, k.holders]),
     );
+  }
+
+  positionKindsWhere(predicate: (kind: PositionKind) => boolean): readonly PositionKind[] {
+    return this.#positionKinds.filter(predicate);
+  }
+
+  #positionKindsOf(filter: { formation: LolfiFormationEnum; grade?: LolfiGradeEnum }): PositionKind[] {
+    return this.#positionKinds
+      .filter((k) => this.function(k.functionId).formation === filter.formation)
+      .filter((k) => !filter.grade || k.grade === filter.grade)
+      .filter((k) => this.jurisdictionsOf(k.jurisdictionType).length > 0);
   }
 }
