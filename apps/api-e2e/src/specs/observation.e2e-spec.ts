@@ -328,4 +328,58 @@ test.describe('Observation', () => {
     ]);
     expect(hidden.map(({ response }) => response?.status)).toEqual([404, 404, 404]);
   });
+
+  test('should list the observations of a session by bloc of observant, filtered by follow-up', async ({
+    agent,
+    expect,
+    sessions,
+  }) => {
+    const session = await sessions.createOne(SESSION);
+    const [first, second] = session.files;
+    const observe = async (file: { id: string }, magistratId: string, dateReception: string) => {
+      const { data } = await agent.observations.createObservation({
+        body: { form: observationForm({ dateReception, magistratId }) },
+        path: { nominationFileId: file.id, sessionId: session.id },
+        throwOnError: true,
+      });
+      return data.id;
+    };
+    // the first observant wrote the two earliest observations, the second one the latest
+    const onSecondFile = await observe(second!, first!.magistratId, '2026-05-01');
+    const onFirstFile = await observe(first!, first!.magistratId, '2026-05-03');
+    const latest = await observe(first!, second!.magistratId, '2026-05-05');
+    await agent.observations.followUpOnObservation({
+      body: { comment: null, followUp: 'ALERT' },
+      path: { nominationFileId: first!.id, observationId: latest, sessionId: session.id },
+      throwOnError: true,
+    });
+
+    const list = async (query?: { followUps?: string; sortBy?: 'dateReception'; sortDesc?: string }) => {
+      const { data } = await agent.observations.listSessionObservations({
+        path: { sessionId: session.id },
+        query,
+        throwOnError: true,
+      });
+      return data;
+    };
+
+    const byDefault = await list();
+    expect(byDefault.items.map(({ id }) => id)).toEqual([latest, onFirstFile, onSecondFile]);
+    expect(byDefault.items[0]).toMatchObject({
+      dateReception: { day: 5, month: 5, year: 2026 },
+      followUp: 'ALERT',
+      nominationFile: { id: first!.id, magistrat: { name: 'CORVISART Blanche' } },
+      observant: { id: second!.magistratId, name: 'DAUBENTON Lucien' },
+    });
+    const ascending = await list({ sortBy: 'dateReception', sortDesc: 'false' });
+    expect(ascending.items.map(({ id }) => id)).toEqual([onFirstFile, onSecondFile, latest]);
+    const withoutFollowUp = await list({ followUps: 'null' });
+    expect(withoutFollowUp.items.map(({ id }) => id)).toEqual([onFirstFile, onSecondFile]);
+
+    const { data: count } = await agent.observations.countSessionObservations({
+      path: { sessionId: session.id },
+      throwOnError: true,
+    });
+    expect(count.total).toBe(3);
+  });
 });

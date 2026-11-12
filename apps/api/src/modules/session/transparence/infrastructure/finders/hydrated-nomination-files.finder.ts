@@ -49,10 +49,13 @@ export type HydratedNominationFile = {
 };
 
 export type FoundNominationFile = {
+  currentPosition: string | null;
   detectedMagistratId: string | null;
+  grade: string | null;
   name: string;
   number: number | null;
   sessionId: string;
+  targetedGrade: string | null;
   targetedPosition: string | null;
 };
 
@@ -71,12 +74,15 @@ export class HydratedNominationFilesFinder {
 
     const files = await this.db.tx.dossierDeNomination.findMany({
       select: {
+        currentPosition: true,
         detectedMagistrat: { select: { firstName: true, lastName: true, marriedName: true } },
         detectedMagistratId: true,
+        grade: true,
         id: true,
         name: true,
         number: true,
         sessionId: true,
+        targetedGrade: true,
         targetedPosition: true,
       } satisfies Prisma.DossierDeNominationSelect,
       where: { id: { in: [...query.nominationFileIds] } },
