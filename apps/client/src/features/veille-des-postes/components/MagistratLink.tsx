@@ -13,7 +13,7 @@ export function MagistratLink(props: {
     // a flex item turns into a block, which draws the DSFR underline under its last line only
     <span className="leading-6">
       <Link
-        className="fr-link fr-link--sm box-decoration-clone"
+        className="fr-link fr-link--sm fr-icon-account-circle-fill fr-link--icon-left box-decoration-clone"
         onClick={(event) => props.onClick(event, id)}
         to={generatePath(ROUTE_PATHS.SG.MAGISTRAT_DETAILS, { magistratId: id })}
       >

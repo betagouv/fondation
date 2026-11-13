@@ -2788,6 +2788,11 @@ export type ChangeFeedbackStatusDto = {
 
 export type ListedCourtOfAppealFirstPresidentsDto = {
     items: Array<{
+        alerts: Array<{
+            id: 'RETIREMENT' | 'SEVEN_YEARS_ON_POSITION' | 'PROPOSED_IN_SESSION';
+            label: string;
+            shortLabel: string;
+        }>;
         court: {
             id: string;
             label: string;
@@ -2814,6 +2819,16 @@ export type ListedCourtOfAppealFirstPresidentsDto = {
         next?: string;
         previous?: string;
     };
+    alerts: Array<{
+        count: number;
+        id: 'RETIREMENT' | 'SEVEN_YEARS_ON_POSITION' | 'PROPOSED_IN_SESSION';
+        label: string;
+    }>;
+    deadlines: Array<{
+        count: number;
+        id: 'WITHIN_SIX_MONTHS' | 'WITHIN_TWELVE_MONTHS';
+        label: string;
+    }>;
     statuses: Array<{
         count: number;
         id: 'OCCUPIED' | 'MAY_BECOME_VACANT' | 'VACANT';
@@ -2823,6 +2838,11 @@ export type ListedCourtOfAppealFirstPresidentsDto = {
 
 export type ListedCourtOfCassationHoldersDto = {
     items: Array<{
+        alerts: Array<{
+            id: 'RETIREMENT' | 'SEVEN_YEARS_ON_POSITION' | 'PROPOSED_IN_SESSION';
+            label: string;
+            shortLabel: string;
+        }>;
         installationDate: {
             year: number;
             month: number;
@@ -2853,9 +2873,14 @@ export type ListedCourtOfCassationHoldersDto = {
         next?: string;
         previous?: string;
     };
-    positions: Array<{
+    alerts: Array<{
         count: number;
-        id: 'FIRST_PRESIDENT' | 'CHAMBER_PRESIDENT' | 'COUNSELLOR' | 'REFERENDARY_COUNSELLOR' | 'AUDITOR_SECOND_GRADE' | 'AUDITOR_FIRST_GRADE';
+        id: 'RETIREMENT' | 'SEVEN_YEARS_ON_POSITION' | 'PROPOSED_IN_SESSION';
+        label: string;
+    }>;
+    deadlines: Array<{
+        count: number;
+        id: 'WITHIN_SIX_MONTHS' | 'WITHIN_TWELVE_MONTHS';
         label: string;
     }>;
     statuses: Array<{
@@ -2863,10 +2888,20 @@ export type ListedCourtOfCassationHoldersDto = {
         id: 'OCCUPIED' | 'MAY_BECOME_VACANT' | 'VACANT';
         label: string;
     }>;
+    positions: Array<{
+        count: number;
+        id: 'FIRST_PRESIDENT' | 'CHAMBER_PRESIDENT' | 'COUNSELLOR' | 'REFERENDARY_COUNSELLOR' | 'AUDITOR_SECOND_GRADE' | 'AUDITOR_FIRST_GRADE';
+        label: string;
+    }>;
 };
 
 export type ListedJudicialCourtPresidentsDto = {
     items: Array<{
+        alerts: Array<{
+            id: 'RETIREMENT' | 'SEVEN_YEARS_ON_POSITION' | 'PROPOSED_IN_SESSION';
+            label: string;
+            shortLabel: string;
+        }>;
         court: {
             id: string;
             label: string;
@@ -2897,14 +2932,24 @@ export type ListedJudicialCourtPresidentsDto = {
         next?: string;
         previous?: string;
     };
-    ressorts: Array<{
+    alerts: Array<{
         count: number;
-        id: string;
+        id: 'RETIREMENT' | 'SEVEN_YEARS_ON_POSITION' | 'PROPOSED_IN_SESSION';
+        label: string;
+    }>;
+    deadlines: Array<{
+        count: number;
+        id: 'WITHIN_SIX_MONTHS' | 'WITHIN_TWELVE_MONTHS';
         label: string;
     }>;
     statuses: Array<{
         count: number;
         id: 'OCCUPIED' | 'MAY_BECOME_VACANT' | 'VACANT';
+        label: string;
+    }>;
+    ressorts: Array<{
+        count: number;
+        id: string;
         label: string;
     }>;
 };
@@ -6000,9 +6045,11 @@ export type ListCourtOfAppealFirstPresidentsData = {
     body?: never;
     path?: never;
     query?: {
+        alerts?: Array<'RETIREMENT' | 'SEVEN_YEARS_ON_POSITION' | 'PROPOSED_IN_SESSION'>;
+        deadlines?: Array<'WITHIN_SIX_MONTHS' | 'WITHIN_TWELVE_MONTHS'>;
         search?: string;
-        sortBy?: 'court' | 'installationDate' | 'name';
         statuses?: Array<'OCCUPIED' | 'MAY_BECOME_VACANT' | 'VACANT'>;
+        sortBy?: 'court' | 'installationDate' | 'name' | 'status';
         /**
          * true
          */
@@ -6023,10 +6070,12 @@ export type ListCourtOfCassationHoldersData = {
     body?: never;
     path?: never;
     query?: {
-        positions?: Array<'FIRST_PRESIDENT' | 'CHAMBER_PRESIDENT' | 'COUNSELLOR' | 'REFERENDARY_COUNSELLOR' | 'AUDITOR_SECOND_GRADE' | 'AUDITOR_FIRST_GRADE'>;
+        alerts?: Array<'RETIREMENT' | 'SEVEN_YEARS_ON_POSITION' | 'PROPOSED_IN_SESSION'>;
+        deadlines?: Array<'WITHIN_SIX_MONTHS' | 'WITHIN_TWELVE_MONTHS'>;
         search?: string;
-        sortBy?: 'installationDate' | 'name';
         statuses?: Array<'OCCUPIED' | 'MAY_BECOME_VACANT' | 'VACANT'>;
+        positions?: Array<'FIRST_PRESIDENT' | 'CHAMBER_PRESIDENT' | 'COUNSELLOR' | 'REFERENDARY_COUNSELLOR' | 'AUDITOR_SECOND_GRADE' | 'AUDITOR_FIRST_GRADE'>;
+        sortBy?: 'installationDate' | 'name' | 'status';
         /**
          * true
          */
@@ -6047,10 +6096,12 @@ export type ListJudicialCourtPresidentsData = {
     body?: never;
     path?: never;
     query?: {
-        ressorts?: Array<string>;
+        alerts?: Array<'RETIREMENT' | 'SEVEN_YEARS_ON_POSITION' | 'PROPOSED_IN_SESSION'>;
+        deadlines?: Array<'WITHIN_SIX_MONTHS' | 'WITHIN_TWELVE_MONTHS'>;
         search?: string;
-        sortBy?: 'court' | 'installationDate' | 'name' | 'ressort';
         statuses?: Array<'OCCUPIED' | 'MAY_BECOME_VACANT' | 'VACANT'>;
+        ressorts?: Array<string>;
+        sortBy?: 'court' | 'installationDate' | 'name' | 'ressort' | 'status';
         /**
          * true
          */

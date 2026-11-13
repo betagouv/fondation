@@ -19,6 +19,8 @@ export type CourtOfAppealFirstPresidentsSorting =
   | []
   | [{ desc: boolean; id: NonNullable<CourtOfAppealFirstPresidentsQuery['sortBy']> }];
 type CourtOfAppealFirstPresidentsList = {
+  alerts: PositionAlert[];
+  deadlines: AlertDeadline[];
   search: string;
   sorting: CourtOfAppealFirstPresidentsSorting;
   statuses: PositionStatus[];
@@ -27,12 +29,19 @@ type CourtOfAppealFirstPresidentsList = {
 export type CourtOfCassationHolder = ListedCourtOfCassationHoldersDto['items'][number];
 export type CourtOfCassationPosition = CourtOfCassationHolder['position']['id'];
 export type CourtOfCassationPositionCount = ListedCourtOfCassationHoldersDto['positions'][number];
+export type AlertDeadline = AlertDeadlineCount['id'];
+export type AlertDeadlineCount = ListedCourtOfCassationHoldersDto['deadlines'][number];
+export type HolderAlert = CourtOfCassationHolder['alerts'][number];
+export type PositionAlert = HolderAlert['id'];
+export type PositionAlertCount = ListedCourtOfCassationHoldersDto['alerts'][number];
 export type PositionStatus = CourtOfCassationHolder['status']['id'];
 export type PositionStatusCount = ListedCourtOfCassationHoldersDto['statuses'][number];
 export type CourtOfCassationHoldersSorting =
   | []
   | [{ desc: boolean; id: NonNullable<CourtOfCassationHoldersQuery['sortBy']> }];
 type CourtOfCassationHoldersList = {
+  alerts: PositionAlert[];
+  deadlines: AlertDeadline[];
   positions: CourtOfCassationPosition[];
   search: string;
   sorting: CourtOfCassationHoldersSorting;
@@ -45,6 +54,8 @@ export type JudicialCourtPresidentsSorting =
   | []
   | [{ desc: boolean; id: NonNullable<JudicialCourtPresidentsQuery['sortBy']> }];
 type JudicialCourtPresidentsList = {
+  alerts: PositionAlert[];
+  deadlines: AlertDeadline[];
   ressorts: string[];
   search: string;
   sorting: JudicialCourtPresidentsSorting;
@@ -76,6 +87,8 @@ const veilleDesPostesKeys = {
 /** @warning must stay stable, tanstack only reuses the selection when the function identity does not change */
 function selectCourtOfAppealFirstPresidents(data: InfiniteData<ListedCourtOfAppealFirstPresidentsDto>) {
   return {
+    alerts: data.pages.at(-1)?.alerts ?? [],
+    deadlines: data.pages.at(-1)?.deadlines ?? [],
     items: data.pages.flatMap((page) => page.items),
     statuses: data.pages.at(-1)?.statuses ?? [],
     totalCount: data.pages.at(-1)?.totalCount ?? 0,
@@ -85,6 +98,8 @@ function selectCourtOfAppealFirstPresidents(data: InfiniteData<ListedCourtOfAppe
 /** @warning must stay stable, tanstack only reuses the selection when the function identity does not change */
 function selectCourtOfCassationHolders(data: InfiniteData<ListedCourtOfCassationHoldersDto>) {
   return {
+    alerts: data.pages.at(-1)?.alerts ?? [],
+    deadlines: data.pages.at(-1)?.deadlines ?? [],
     items: data.pages.flatMap((page) => page.items),
     positions: data.pages.at(-1)?.positions ?? [],
     statuses: data.pages.at(-1)?.statuses ?? [],
@@ -95,6 +110,8 @@ function selectCourtOfCassationHolders(data: InfiniteData<ListedCourtOfCassation
 /** the same as the unfiltered table, so that both share one request */
 export function useCourtOfAppealFirstPresidentsCountQuery() {
   const { data } = useCourtOfAppealFirstPresidentsQuery({
+    alerts: [],
+    deadlines: [],
     search: '',
     sorting: COURT_OF_APPEAL_FIRST_PRESIDENTS_DEFAULT_SORTING,
     statuses: [],
@@ -109,6 +126,8 @@ export function useCourtOfAppealFirstPresidentsQuery(props: CourtOfAppealFirstPr
     queryFn: async ({ pageParam }) => {
       const { data } = await $api.veilleDesPostes.listCourtOfAppealFirstPresidents({
         query: {
+          alerts: props.alerts,
+          deadlines: props.deadlines,
           limit: COURT_OF_APPEAL_FIRST_PRESIDENTS_PAGE_SIZE,
           page: pageParam,
           search: props.search || undefined,
@@ -130,6 +149,8 @@ export function useCourtOfAppealFirstPresidentsQuery(props: CourtOfAppealFirstPr
 /** the same as the unfiltered table, so that both share one request */
 export function useCourtOfCassationHoldersCountQuery() {
   const { data } = useCourtOfCassationHoldersQuery({
+    alerts: [],
+    deadlines: [],
     positions: [],
     search: '',
     sorting: COURT_OF_CASSATION_HOLDERS_DEFAULT_SORTING,
@@ -145,6 +166,8 @@ export function useCourtOfCassationHoldersQuery(props: CourtOfCassationHoldersLi
     queryFn: async ({ pageParam }) => {
       const { data } = await $api.veilleDesPostes.listCourtOfCassationHolders({
         query: {
+          alerts: props.alerts,
+          deadlines: props.deadlines,
           limit: COURT_OF_CASSATION_HOLDERS_PAGE_SIZE,
           page: pageParam,
           positions: props.positions,
@@ -167,6 +190,8 @@ export function useCourtOfCassationHoldersQuery(props: CourtOfCassationHoldersLi
 /** @warning must stay stable, tanstack only reuses the selection when the function identity does not change */
 function selectJudicialCourtPresidents(data: InfiniteData<ListedJudicialCourtPresidentsDto>) {
   return {
+    alerts: data.pages.at(-1)?.alerts ?? [],
+    deadlines: data.pages.at(-1)?.deadlines ?? [],
     items: data.pages.flatMap((page) => page.items),
     ressorts: data.pages.at(-1)?.ressorts ?? [],
     statuses: data.pages.at(-1)?.statuses ?? [],
@@ -177,6 +202,8 @@ function selectJudicialCourtPresidents(data: InfiniteData<ListedJudicialCourtPre
 /** the same as the unfiltered table, so that both share one request */
 export function useJudicialCourtPresidentsCountQuery() {
   const { data } = useJudicialCourtPresidentsQuery({
+    alerts: [],
+    deadlines: [],
     ressorts: [],
     search: '',
     sorting: JUDICIAL_COURT_PRESIDENTS_DEFAULT_SORTING,
@@ -192,6 +219,8 @@ export function useJudicialCourtPresidentsQuery(props: JudicialCourtPresidentsLi
     queryFn: async ({ pageParam }) => {
       const { data } = await $api.veilleDesPostes.listJudicialCourtPresidents({
         query: {
+          alerts: props.alerts,
+          deadlines: props.deadlines,
           limit: JUDICIAL_COURT_PRESIDENTS_PAGE_SIZE,
           page: pageParam,
           ressorts: props.ressorts,

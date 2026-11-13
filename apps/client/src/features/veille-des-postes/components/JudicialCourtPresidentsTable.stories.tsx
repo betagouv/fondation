@@ -7,6 +7,7 @@ import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
 import type { ListedJudicialCourtPresidentsDto } from '@api/types';
 
 import { JudicialCourtPresidentsTable } from './JudicialCourtPresidentsTable';
+import { storyFacets, storyHolderOf } from './veille-des-postes.story-fixtures';
 
 type JudicialCourt = ListedJudicialCourtPresidentsDto['items'][number];
 
@@ -80,12 +81,6 @@ const LAST_NAMES = [
 ];
 const FIRST_NAMES = ['Claire', 'Karim', 'Hélène', 'Mamadou', 'Pierre', 'Léa', 'Sophie'];
 
-const STATUSES = [
-  { id: 'OCCUPIED', label: 'Occupé' },
-  { id: 'MAY_BECOME_VACANT', label: 'Susceptible de devenir vacant' },
-  { id: 'VACANT', label: 'Vacant' },
-] as const satisfies readonly JudicialCourt['status'][];
-
 const VACANT_COURTS = new Set([4, 17]);
 
 const JUDICIAL_COURTS: JudicialCourt[] = RESSORTS.flatMap(([ressort, courts], ressortIndex) =>
@@ -93,13 +88,14 @@ const JUDICIAL_COURTS: JudicialCourt[] = RESSORTS.flatMap(([ressort, courts], re
 ).map(({ label, ressort }, index) =>
   VACANT_COURTS.has(index)
     ? {
+        ...storyHolderOf(index, { held: false, movesAfterSevenYears: true }),
         court: { id: `${index}`, label },
         installationDate: null,
         magistrat: null,
         ressort,
-        status: STATUSES[2],
       }
     : {
+        ...storyHolderOf(index, { held: true, movesAfterSevenYears: true }),
         court: { id: `${index}`, label },
         installationDate:
           index % 11 === 4
@@ -110,14 +106,11 @@ const JUDICIAL_COURTS: JudicialCourt[] = RESSORTS.flatMap(([ressort, courts], re
           name: `${LAST_NAMES[index % LAST_NAMES.length]} ${FIRST_NAMES[index % FIRST_NAMES.length]}`,
         },
         ressort,
-        status: STATUSES[index % 8 === 5 ? 1 : 0],
       },
 );
 
 const courtsHandler = http.get('*/api/veille-des-postes/v1/tribunaux-judiciaires', ({ request }) => {
   const params = new URL(request.url).searchParams;
-  const ressorts = params.getAll('ressorts');
-  const statuses = params.getAll('statuses');
   const search = params.get('search')?.toLowerCase();
   const page = Number(params.get('page') ?? 1);
   const limit = Number(params.get('limit') ?? 20);
@@ -127,22 +120,19 @@ const courtsHandler = http.get('*/api/veille-des-postes/v1/tribunaux-judiciaires
       !search ||
       `${court.ressort.label} ${court.court.label} ${court.magistrat?.name}`.toLowerCase().includes(search),
   );
-  const ofRessorts = (court: JudicialCourt) => ressorts.length === 0 || ressorts.includes(court.ressort.id);
-  const ofStatuses = (court: JudicialCourt) => statuses.length === 0 || statuses.includes(court.status.id);
-  const matching = searched.filter((court) => ofRessorts(court) && ofStatuses(court));
+  const { count, counts, matching } = storyFacets(searched, params, {
+    ressort: [params.getAll('ressorts'), (court) => [court.ressort.id]],
+  });
 
   return HttpResponse.json<ListedJudicialCourtPresidentsDto>({
+    ...counts,
     currentPageIndex: page,
     items: matching.slice((page - 1) * limit, page * limit),
     nextPageIndex: page * limit < matching.length ? page + 1 : undefined,
     ressorts: RESSORTS.map(([label], index) => ({
-      count: searched.filter((court) => court.ressort.id === `ressort-${index}` && ofStatuses(court)).length,
+      count: count('ressort', `ressort-${index}`),
       id: `ressort-${index}`,
       label,
-    })),
-    statuses: STATUSES.map((status) => ({
-      ...status,
-      count: searched.filter((court) => court.status.id === status.id && ofRessorts(court)).length,
     })),
     totalCount: matching.length,
   });

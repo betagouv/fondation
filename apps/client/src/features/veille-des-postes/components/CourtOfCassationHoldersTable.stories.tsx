@@ -7,6 +7,7 @@ import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
 import type { ListedCourtOfCassationHoldersDto } from '@api/types';
 
 import { CourtOfCassationHoldersTable } from './CourtOfCassationHoldersTable';
+import { storyFacets, storyHolderOf } from './veille-des-postes.story-fixtures';
 
 type Holder = ListedCourtOfCassationHoldersDto['items'][number];
 
@@ -18,12 +19,6 @@ const POSITIONS = [
   { id: 'AUDITOR_SECOND_GRADE', label: 'Auditeur 2e grade' },
   { id: 'AUDITOR_FIRST_GRADE', label: 'Auditeur 1er grade' },
 ] as const satisfies readonly Holder['position'][];
-
-const STATUSES = [
-  { id: 'OCCUPIED', label: 'Occupé' },
-  { id: 'MAY_BECOME_VACANT', label: 'Susceptible de devenir vacant' },
-  { id: 'VACANT', label: 'Vacant' },
-] as const satisfies readonly Holder['status'][];
 
 const HOLDERS_PER_POSITION = [1, 4, 28, 20, 5, 6];
 const LAST_NAMES = [
@@ -63,6 +58,7 @@ const FIRST_NAMES = [
 
 const HOLDERS: Holder[] = HOLDERS_PER_POSITION.flatMap((count, rank) =>
   Array.from({ length: count }, (_, index): Holder => ({
+    ...storyHolderOf(index + rank, { held: true, movesAfterSevenYears: false }),
     installationDate:
       index % 7 === 3 ? null : { day: 1 + (index % 27), month: 1 + (index % 12), year: 2016 + (index % 10) },
     magistrat: {
@@ -74,35 +70,26 @@ const HOLDERS: Holder[] = HOLDERS_PER_POSITION.flatMap((count, rank) =>
       rank === 2 && index % 9 === 4
         ? { id: 'EXTRAORDINARY', label: 'Service extraordinaire' }
         : { id: 'ORDINARY', label: 'Service ordinaire' },
-    status: STATUSES[index % 5 === 2 ? 1 : index % 11 === 7 ? 2 : 0]!,
   })).toSorted((a, b) => a.magistrat.name.localeCompare(b.magistrat.name)),
 );
 
 const holdersHandler = http.get('*/api/veille-des-postes/v1/cour-de-cassation', ({ request }) => {
   const params = new URL(request.url).searchParams;
-  const positions = params.getAll('positions');
-  const statuses = params.getAll('statuses');
   const search = params.get('search')?.toLowerCase();
   const page = Number(params.get('page') ?? 1);
   const limit = Number(params.get('limit') ?? 20);
 
   const searched = HOLDERS.filter((h) => !search || h.magistrat.name.toLowerCase().includes(search));
-  const ofPositions = (h: Holder) => positions.length === 0 || positions.includes(h.position.id);
-  const ofStatuses = (h: Holder) => statuses.length === 0 || statuses.includes(h.status.id);
-  const matching = searched.filter((h) => ofPositions(h) && ofStatuses(h));
+  const { count, counts, matching } = storyFacets(searched, params, {
+    position: [params.getAll('positions'), (h) => [h.position.id]],
+  });
 
   return HttpResponse.json<ListedCourtOfCassationHoldersDto>({
+    ...counts,
     currentPageIndex: page,
     items: matching.slice((page - 1) * limit, page * limit),
     nextPageIndex: page * limit < matching.length ? page + 1 : undefined,
-    positions: POSITIONS.map((position) => ({
-      ...position,
-      count: searched.filter((h) => h.position.id === position.id && ofStatuses(h)).length,
-    })),
-    statuses: STATUSES.map((status) => ({
-      ...status,
-      count: searched.filter((h) => h.status.id === status.id && ofPositions(h)).length,
-    })),
+    positions: POSITIONS.map((position) => ({ ...position, count: count('position', position.id) })),
     totalCount: matching.length,
   });
 });
