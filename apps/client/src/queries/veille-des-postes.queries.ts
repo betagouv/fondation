@@ -27,7 +27,7 @@ type CourtOfAppealFirstPresidentsList = {
 };
 
 export type CourtOfCassationHolder = ListedCourtOfCassationHoldersDto['items'][number];
-export type CourtOfCassationPosition = CourtOfCassationHolder['position']['id'];
+export type CourtOfCassationPosition = CourtOfCassationPositionCount['id'];
 export type CourtOfCassationPositionCount = ListedCourtOfCassationHoldersDto['positions'][number];
 export type AlertDeadline = AlertDeadlineCount['id'];
 export type AlertDeadlineCount = ListedCourtOfCassationHoldersDto['deadlines'][number];
@@ -146,7 +146,7 @@ export function useCourtOfAppealFirstPresidentsQuery(props: CourtOfAppealFirstPr
   });
 }
 
-/** the same as the unfiltered table, so that both share one request */
+/** every position at once, for the count of the tab: the table asks one position at a time */
 export function useCourtOfCassationHoldersCountQuery() {
   const { data } = useCourtOfCassationHoldersQuery({
     alerts: [],

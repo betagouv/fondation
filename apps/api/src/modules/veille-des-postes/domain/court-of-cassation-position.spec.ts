@@ -16,7 +16,7 @@ describe('rankedLolfiPositions', () => {
 
 describe('courtOfCassationPositionOfRank', () => {
   it('gives the position of a rank with its label', () => {
-    expect(courtOfCassationPositionOfRank(2)).toEqual({ id: 'COUNSELLOR', label: 'Conseiller' });
+    expect(courtOfCassationPositionOfRank(2)).toEqual({ id: 'COUNSELLOR', label: 'Conseillers' });
   });
 });
 

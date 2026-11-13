@@ -83,7 +83,7 @@ export class ListCourtOfCassationHoldersQuery {
         alerts,
         installationDate: installationDate?.toJson() ?? null,
         magistrat: { id: holder.id, name: magistratFullName(holder) },
-        position,
+        positionId: position.id,
         service: holderServiceOf(holder.functionId),
         status: positionStatusOf({ alertCount: alerts.length, held: true }),
       };
@@ -92,7 +92,7 @@ export class ListCourtOfCassationHoldersQuery {
     const { counts, matching } = facetedRows(
       rows,
       { alert: query.alerts, deadline: query.deadlines, position: query.positions, status: query.statuses },
-      (asked) => ({ ...statusAndAlertValues(asked), position: (row) => [row.position.id] }),
+      (asked) => ({ ...statusAndAlertValues(asked), position: (row) => [row.positionId] }),
     );
     const sorted =
       query.sorting.sortBy === 'status'
@@ -105,7 +105,15 @@ export class ListCourtOfCassationHoldersQuery {
 
     return {
       ...paginate({
-        items: pageOf(sorted, query.pagination).map((row) => ({ ...row, alerts: row.alerts.map(alertJson) })),
+        items: pageOf(sorted, query.pagination).map(
+          ({ alerts, installationDate, magistrat, service, status }) => ({
+            alerts: alerts.map(alertJson),
+            installationDate,
+            magistrat,
+            service,
+            status,
+          }),
+        ),
         pagination: query.pagination,
         totalCount: matching.length,
       }),
@@ -123,7 +131,6 @@ export class ListedCourtOfCassationHoldersDto extends createPaginatedZodDto(
     alerts: z.array(holderAlertSchema),
     installationDate: dateOnlyJsonSchema.nullable(),
     magistrat: z.object({ id: z.string(), name: z.string() }),
-    position: z.object({ id: z.enum(COURT_OF_CASSATION_POSITIONS), label: z.string() }),
     service: z.object({ id: z.enum(HOLDER_SERVICES), label: z.string() }),
     status: z.object({ id: z.enum(POSITION_STATUSES), label: z.string() }),
   }),

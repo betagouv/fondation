@@ -18,13 +18,14 @@ export type RankedLolfiPositions = { functionIds: string[]; gradeIds: (string | 
 
 const EXTRAORDINARY_SERVICE_COUNSELLOR = 'C SE';
 
+/** the holders of a position, as the tabs name them: the first president is alone */
 const LABELS: Record<CourtOfCassationPosition, string> = {
-  AUDITOR_FIRST_GRADE: 'Auditeur 1er grade',
-  AUDITOR_SECOND_GRADE: 'Auditeur 2e grade',
-  CHAMBER_PRESIDENT: 'Président de chambre',
-  COUNSELLOR: 'Conseiller',
+  AUDITOR_FIRST_GRADE: 'Auditeurs 1er grade',
+  AUDITOR_SECOND_GRADE: 'Auditeurs 2e grade',
+  CHAMBER_PRESIDENT: 'Présidents de chambre',
+  COUNSELLOR: 'Conseillers',
   FIRST_PRESIDENT: 'Premier président',
-  REFERENDARY_COUNSELLOR: 'Conseiller référendaire',
+  REFERENDARY_COUNSELLOR: 'Conseillers référendaires',
 };
 
 // the grades follow the scale of 01/12/2025, where G1 is the first and lowest grade. LOLFI still names many

@@ -2852,10 +2852,6 @@ export type ListedCourtOfCassationHoldersDto = {
             id: string;
             name: string;
         };
-        position: {
-            id: 'FIRST_PRESIDENT' | 'CHAMBER_PRESIDENT' | 'COUNSELLOR' | 'REFERENDARY_COUNSELLOR' | 'AUDITOR_SECOND_GRADE' | 'AUDITOR_FIRST_GRADE';
-            label: string;
-        };
         service: {
             id: 'EXTRAORDINARY' | 'ORDINARY';
             label: string;
