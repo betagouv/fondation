@@ -12,9 +12,9 @@ import type { RoleEnum } from '../shared/role.enum';
 import { AttachedScreenshotsDto } from './infrastructure/dtos/report.dto';
 import { type DetailedReportDto, DetailReportQuery } from './infrastructure/queries/detail-report.query';
 import {
-  GetReportFileUrlsQuery,
-  type GetReportFileUrlsResponseDto,
-} from './infrastructure/queries/get-report-file-urls.query';
+  type GeneratedReportAttachmentUrlDto,
+  GetReportAttachmentUrlQuery,
+} from './infrastructure/queries/get-report-attachment-url.query';
 import {
   type ListedMemberSessionReportsDto,
   ListMemberSessionReportsQuery,
@@ -31,7 +31,7 @@ export class ReportService {
   constructor(
     private readonly reportRepository: ReportRepository,
     private readonly sessionReportsRepository: SessionReportsRepository,
-    private readonly getReportFileUrlsQuery: GetReportFileUrlsQuery,
+    private readonly getReportAttachmentUrlQuery: GetReportAttachmentUrlQuery,
     private readonly detailReportQuery: DetailReportQuery,
     private readonly listMemberSessionReportsQuery: ListMemberSessionReportsQuery,
     private readonly searchNominationFileMembersReportQuery: SearchNominationFileMembersReportQuery,
@@ -58,19 +58,12 @@ export class ReportService {
   }
 
   @Transactional()
-  async detachFiles(command: {
-    userId: string;
-    reportId: string;
-    fileNames: readonly string[];
-  }): Promise<void> {
+  async detachAttachment(command: { fileId: string; reportId: string; userId: string }): Promise<void> {
     const report = await this.reportRepository.find({
       id: command.reportId,
       reporterId: command.userId,
     });
-    report.detachFiles({
-      fileNames: command.fileNames,
-      reporterId: command.userId,
-    });
+    report.detachAttachment({ fileId: command.fileId });
     await this.reportRepository.persist(report);
   }
 
@@ -104,12 +97,12 @@ export class ReportService {
     };
   }
 
-  getReportFileUrls(query: {
-    userId: string;
+  getAttachmentUrl(query: {
+    fileId: string;
     reportId: string;
-    fileNames: readonly string[];
-  }): Promise<GetReportFileUrlsResponseDto> {
-    return this.getReportFileUrlsQuery.handle(query);
+    userId: string;
+  }): Promise<GeneratedReportAttachmentUrlDto> {
+    return this.getReportAttachmentUrlQuery.handle(query);
   }
 
   detailReport(query: {

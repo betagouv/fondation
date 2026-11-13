@@ -3,7 +3,7 @@ import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { Observations } from '@/features/observations/components/observations-section/Observations';
 import { SummarySection } from '@/features/summary/components/summary-section/SummarySection';
 import { Attachments } from '@/features/transparence/components/nomination-file-attachments/Attachments';
-import { isUpdatable, type SessionNominationFile } from '@queries/nomination-sessions.queries';
+import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 import { AuditionBanner } from './audition-date/AuditionBanner';
 import { AuditionDate } from './audition-date/AuditionDate';
@@ -61,7 +61,7 @@ export function MagistratSidePanelContent(props: {
         nominationFileId={nominationFile.id}
       />
       <Attachments
-        isUpdatable={isUpdatable(nominationFile)}
+        key={`${nominationFile.id}-attachments`}
         nominationFileId={nominationFile.id}
         sessionId={sessionId}
       />

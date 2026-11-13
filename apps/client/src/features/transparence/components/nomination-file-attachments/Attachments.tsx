@@ -3,7 +3,6 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { useCallback } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import type { NominationFileAttachmentTypeEnum } from '@/features/transparence/components/nomination-file-attachments/nomination-file-attachment-type';
 import { FileList, FileListItem } from '@/shared/components/file-list';
 import { useRenameAttachmentModal } from '@/shared/components/rename-attachment';
@@ -22,13 +21,7 @@ import { attachmentsSectionId } from './attachments-section';
 import { useAddNominationFileAttachmentModal } from './context/AddNominationFileAttachmentModalContext';
 import { NominationFileAttachmentTypeTag } from './NominationFileAttachmentTypeTag';
 
-export function Attachments(props: {
-  headingLevel?: 2;
-  isUpdatable: boolean;
-  nominationFileId: string;
-  sessionId: string;
-}) {
-  const isSg = useIsSgNavigation();
+export function Attachments(props: { headingLevel?: 2; nominationFileId: string; sessionId: string }) {
   const { open: openAddAttachment } = useAddNominationFileAttachmentModal();
   const { data } = useListNominationFileAttachmentsQuery({
     nominationFileId: props.nominationFileId,
@@ -36,7 +29,7 @@ export function Attachments(props: {
   });
 
   const attachments = data?.items ?? [];
-  const canManage = isSg && props.isUpdatable;
+  const canManage = !!data?.canManageAttachments;
   const labelId = `attachments-${props.nominationFileId}`;
   const Heading = props.headingLevel === 2 ? 'h2' : 'p';
   const headingClass = props.headingLevel === 2 ? 'fr-h6 fr-mb-0' : 'fr-mb-0 text-xl font-semibold';

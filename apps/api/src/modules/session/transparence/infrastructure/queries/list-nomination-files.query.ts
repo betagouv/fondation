@@ -238,15 +238,14 @@ export class ListNominationFilesQuery {
         })
       : new Map<string, FileReporters>();
 
-    const sessionArchivedAt = query.session.archivedAt;
-    const isArchived = !!sessionArchivedAt;
+    const isArchived = !!query.session.archivedAt;
 
     const files = txFiles.map((file) => ({
       ...file,
       jurisdictions: jurisdictions.get(file.id) ?? { current: null, targeted: null },
       lockedReason: nominationFilesPolicies.nominationFileLock(
         { isReported: reportedFileIds.has(file.id) },
-        { archivedAt: sessionArchivedAt },
+        { isArchived },
       ),
       status: transparenceFileStatus({ docs: linkedDocs.get(file.id) ?? [] }),
     }));
@@ -264,10 +263,8 @@ export class ListNominationFilesQuery {
 
       return {
         ...audition,
-        canRecuseMembers: nominationFilesPolicies.canRecuseMembers(x, query.user),
-        canScheduleAudition: nominationFilesPolicies.canScheduleAudition(x, {
-          archivedAt: sessionArchivedAt,
-        }),
+        canRecuseMembers: nominationFilesPolicies.canUpdateNominationFile(x, query.user),
+        canScheduleAudition: nominationFilesPolicies.canScheduleAudition(x, { isArchived }),
         comment: x.comment,
         content: {
           dateDeNaissance: DateOnly.fromOptionalUtcDate(x.birthDate)?.toJson() ?? null,
@@ -317,7 +314,7 @@ export class ListNominationFilesQuery {
         missingEvaluation: x.missingEvaluation,
         missingEvaluationComment: x.missingEvaluationComment,
         nonAffectableMembers: nonAffectableMembers(new Set(recusedMembers.get(x.id)?.map(({ id }) => id))),
-        nonRecusableMembers: nominationFilesPolicies.canRecuseMembers(x, query.user)
+        nonRecusableMembers: nominationFilesPolicies.canUpdateNominationFile(x, query.user)
           ? nonRecusableMembers(reporters.get(x.id) ?? { latestIds: new Set(), publishedIds: new Set() })
           : [],
         observations: (observations.get(x.id) ?? []).map((obs) => ({

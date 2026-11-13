@@ -220,8 +220,8 @@ export class TransparenceService {
       .findSnapshots({ nominationFileIds: new Set(query.nominationFileIds), sessionId: query.sessionId })
       .then((files) =>
         files.map((file) => ({
-          allowsAudition: policies.canScheduleAudition(file, { archivedAt: null }),
-          isLocked: !!policies.nominationFileLock(file, { archivedAt: null }),
+          allowsAudition: policies.canScheduleAudition(file, { isArchived: false }),
+          isLocked: !!policies.nominationFileLock(file, { isArchived: false }),
         })),
       );
   }
@@ -232,7 +232,7 @@ export class TransparenceService {
 
     return !!policies.nominationFileLock(
       { isReported: reported.has(query.nominationFileId) },
-      { archivedAt: null },
+      { isArchived: false },
     );
   }
 

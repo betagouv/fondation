@@ -268,6 +268,7 @@ function makeNominationFile(args: SidePanelArgs): SessionNominationFile {
 // msw handlers are set once while the data changes with the controls: the story fills these stores,
 // keyed by nomination file, before the panel asks for them
 const attachmentsByFile = new Map<string, ListedNominationFileAttachmentDto['items']>();
+const canManageAttachmentsByFile = new Map<string, boolean>();
 const observationsByFile = new Map<string, Observation[]>();
 
 async function readObservationForm(request: Request) {
@@ -327,11 +328,12 @@ const handlers = [
   ),
   http.put('*/api/sessions/v2/:sessionId/files/:nominationFileId/summary/readers', noContent),
 
-  http.get('*/api/sessions/v2/:sessionId/files/:nominationFileId/attachments', ({ params }) =>
-    HttpResponse.json<ListedNominationFileAttachmentDto>({
+  http.get('*/api/sessions/v2/:sessionId/files/:nominationFileId/attachments', ({ params }) => {
+    return HttpResponse.json<ListedNominationFileAttachmentDto>({
+      canManageAttachments: !!canManageAttachmentsByFile.get(String(params.nominationFileId)),
       items: attachmentsByFile.get(String(params.nominationFileId)) ?? [],
-    }),
-  ),
+    });
+  }),
   http.put(
     '*/api/sessions/v2/:sessionId/files/:nominationFileId/attachments',
     async ({ params, request }) => {
@@ -484,6 +486,10 @@ function MagistratSidePanelStory(args: SidePanelArgs) {
 
   if (!attachmentsByFile.has(nominationFile.id))
     attachmentsByFile.set(nominationFile.id, args.hasAttachments ? [...ATTACHMENTS] : []);
+  canManageAttachmentsByFile.set(
+    nominationFile.id,
+    args.view === 'sg' && !nominationFile.content.lockedReason,
+  );
   if (!observationsByFile.has(nominationFile.id))
     observationsByFile.set(nominationFile.id, args.hasObservations ? [...OBSERVATIONS] : []);
 

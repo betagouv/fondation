@@ -33,18 +33,13 @@ export const useMyReportQuery = (props: {
     queryKey: reportKeys.myReport({ nominationFileId: props.nominationFileId }),
   });
 
-export const useGenerateReportFilePublicUrlMutation = () =>
+export const useGenerateReportAttachmentUrlMutation = () =>
   useMutation({
-    mutationFn: async (mutation: { fileName: string; reportId: string }): Promise<string> => {
-      const { data } = await $api.reports.getReportFilesUrl({
-        path: { reportId: mutation.reportId },
-        query: { fileNames: [mutation.fileName] },
-      });
+    mutationFn: async (path: { fileId: string; reportId: string }): Promise<string> => {
+      const { data } = await $api.reports.getAttachmentUrl({ path });
+      if (!data) throw new Error(`no public url for ${path.fileId}`);
 
-      const [file] = data?.items ?? [];
-      if (!file) throw new Error(`no public url for ${mutation.fileName}`);
-
-      return file.url;
+      return data.url;
     },
   });
 
@@ -86,14 +81,10 @@ export function useUpdateReportMutation() {
   });
 }
 
-export function useDetachReportFilesMutation() {
+export function useDetachReportAttachmentMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (props: { reportId: string; fileNames: readonly string[] }) =>
-      $api.reports.detachFiles({
-        path: { reportId: props.reportId },
-        query: { fileNames: props.fileNames as string[] },
-      }),
+    mutationFn: (path: { fileId: string; reportId: string }) => $api.reports.detachAttachment({ path }),
     onSettled: (_data, _error, { reportId }) =>
       queryClient.invalidateQueries({ queryKey: reportKeys.reportById({ reportId }) }),
   });

@@ -4,9 +4,9 @@ import { isSecretariat, type RoleEnum } from '../role.enum';
 
 export function nominationFileLock(
   file: { isReported: boolean },
-  session: { archivedAt: Date | null | undefined },
+  session: { isArchived: boolean },
 ): NominationFileLockEnum | null {
-  if (session.archivedAt) return 'ARCHIVED_SESSION';
+  if (session.isArchived) return 'ARCHIVED_SESSION';
   if (file.isReported) return 'REPORTED';
 
   return null;
@@ -14,12 +14,13 @@ export function nominationFileLock(
 
 export function canScheduleAudition(
   file: { outcome: NominationFileOutcomeEnum | null },
-  session: { archivedAt: Date | null | undefined },
+  session: { isArchived: boolean },
 ): boolean {
-  return !session.archivedAt && NominationFileOutcome.allowsAudition(file.outcome);
+  return !session.isArchived && NominationFileOutcome.allowsAudition(file.outcome);
 }
 
-export function canRecuseMembers(
+/** recusing members as adding, renaming or detaching attachments */
+export function canUpdateNominationFile(
   file: { lockedReason: NominationFileLockEnum | null },
   user: { role: RoleEnum },
 ): boolean {

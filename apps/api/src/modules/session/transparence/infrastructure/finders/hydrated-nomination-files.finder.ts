@@ -202,7 +202,7 @@ export class HydratedNominationFilesFinder {
 
       return {
         ...audition,
-        canScheduleAudition: canScheduleAudition(file, file.session),
+        canScheduleAudition: canScheduleAudition(file, { isArchived: !!file.session.archivedAt }),
         id: file.id,
         name: file.name,
         number: file.number,

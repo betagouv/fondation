@@ -2,14 +2,14 @@ import { NominationFileOutcome } from '../nomination-file-outcome.enum';
 
 import {
   canKeepMemberMemo,
-  canRecuseMembers,
   canScheduleAudition,
+  canUpdateNominationFile,
   nominationFileLock,
 } from './nomination-file.policies';
 
 describe('nominationFileLock', () => {
   describe('given a non-archived session', () => {
-    const session = { archivedAt: null };
+    const session = { isArchived: false };
 
     it('leaves a file open while it has not been reported', () => {
       expect(nominationFileLock({ isReported: false }, session)).toBeNull();
@@ -21,7 +21,7 @@ describe('nominationFileLock', () => {
   });
 
   describe('given an archived session', () => {
-    const session = { archivedAt: new Date() };
+    const session = { isArchived: true };
 
     it('locks a file that was never reported', () => {
       expect(nominationFileLock({ isReported: false }, session)).toBe('ARCHIVED_SESSION');
@@ -35,7 +35,7 @@ describe('nominationFileLock', () => {
 
 describe('canScheduleAudition', () => {
   describe('given a non-archived session', () => {
-    const session = { archivedAt: null };
+    const session = { isArchived: false };
 
     it('allows an audition when no outcome is defined yet', () => {
       expect(canScheduleAudition({ outcome: null }, session)).toBe(true);
@@ -57,7 +57,7 @@ describe('canScheduleAudition', () => {
   });
 
   describe('given an archived session', () => {
-    const session = { archivedAt: new Date() };
+    const session = { isArchived: true };
     it.each(NominationFileOutcome.enum)(`prevents to schedule an audition with outcome: %s`, (outcome) => {
       expect(canScheduleAudition({ outcome }, session)).toBe(false);
     });
@@ -80,21 +80,21 @@ describe('canKeepMemberMemo', () => {
   });
 });
 
-describe('canRecuseMembers', () => {
+describe('canUpdateNominationFile', () => {
   const secretariat = { role: 'ADJOINT_SECRETAIRE_GENERAL' } as const;
 
-  it('lets the secretariat record the recusals of an open file', () => {
-    expect(canRecuseMembers({ lockedReason: null }, secretariat)).toBe(true);
+  it('lets the secretariat update an open file', () => {
+    expect(canUpdateNominationFile({ lockedReason: null }, secretariat)).toBe(true);
   });
 
-  it.each(['ARCHIVED_SESSION', 'REPORTED'] as const)(
-    'freezes the recusals of a locked file (%s)',
-    (lockedReason) => {
-      expect(canRecuseMembers({ lockedReason }, secretariat)).toBe(false);
+  it.each(['ARCHIVED_SESSION', 'REPORTED'] as const)('freezes a locked file (%s)', (lockedReason) => {
+    expect(canUpdateNominationFile({ lockedReason }, secretariat)).toBe(false);
+  });
+
+  it.each(['MEMBRE_COMMUN', 'MEMBRE_DU_PARQUET', 'MEMBRE_DU_SIEGE'] as const)(
+    'never lets a member (%s) update it',
+    (role) => {
+      expect(canUpdateNominationFile({ lockedReason: null }, { role })).toBe(false);
     },
   );
-
-  it('never lets a member record them', () => {
-    expect(canRecuseMembers({ lockedReason: null }, { role: 'MEMBRE_DU_SIEGE' })).toBe(false);
-  });
 });

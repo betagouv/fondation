@@ -11,10 +11,10 @@ import { Attachments } from './Attachments';
 
 const mocks = vi.hoisted(() => ({
   attachments: [] as ListedNominationFileAttachmentDto['items'],
+  canManage: true,
   cancelTab: vi.fn(),
   createUrl: vi.fn(),
   downloadFile: vi.fn(),
-  isSg: vi.fn(() => true),
   open: vi.fn(),
   openAddAttachment: vi.fn(),
   remove: vi.fn(),
@@ -37,7 +37,6 @@ vi.mock('@/shared/hooks/useTab', () => ({
   }),
 }));
 vi.mock('@/shared/ui/toast', () => ({ useToasts: () => ({ error: mocks.toastError }) }));
-vi.mock('@/features/auth/hooks/roles.hook', () => ({ useIsSgNavigation: () => mocks.isSg() }));
 vi.mock('@queries/auth.queries', () => ({ useUser: () => ({ user: mocks.user }) }));
 vi.mock('@queries/files.queries', () => ({
   useDownloadFileMutation: () => ({
@@ -54,7 +53,12 @@ vi.mock('@queries/nomination-sessions.queries', () => ({
     mutate: mocks.createUrl,
     reset: vi.fn(),
   }),
-  useListNominationFileAttachmentsQuery: () => ({ data: { items: mocks.attachments } }),
+  useListNominationFileAttachmentsQuery: () => ({
+    data: {
+      canManageAttachments: mocks.canManage,
+      items: mocks.attachments,
+    },
+  }),
   useRemoveNominationFileAttachmentMutation: () => ({
     isError: false,
     isPending: false,
@@ -64,7 +68,7 @@ vi.mock('@queries/nomination-sessions.queries', () => ({
   useRenameNominationFileAttachmentMutation: () => ({ mutateAsync: vi.fn() }),
 }));
 
-const PROPS = { isUpdatable: true, nominationFileId: 'nf-1', sessionId: 'session-1' };
+const PROPS = { nominationFileId: 'nf-1', sessionId: 'session-1' };
 
 function renderAttachments(overrides: Partial<typeof PROPS> = {}) {
   return render(
@@ -76,7 +80,7 @@ function renderAttachments(overrides: Partial<typeof PROPS> = {}) {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mocks.isSg.mockReturnValue(true);
+  mocks.canManage = true;
   mocks.user = { id: 'user-2' };
   mocks.attachments = [
     {
@@ -120,16 +124,15 @@ describe('Attachments listing', () => {
     expect(screen.getByText('Ajoutée : le 18/06/2026 à 08h30')).toBeInTheDocument();
   });
 
-  it('renders nothing for a member when there is no attachment', () => {
-    mocks.isSg.mockReturnValue(false);
+  it('renders nothing when there is no attachment and none can be added', () => {
+    mocks.canManage = false;
     mocks.attachments = [];
     const { container } = renderAttachments();
 
     expect(container).toBeEmptyDOMElement();
   });
 
-  it('tells the secretariat that no attachment has been added yet', () => {
-    mocks.isSg.mockReturnValue(true);
+  it('tells that no attachment has been added yet when one can be', () => {
     mocks.attachments = [];
     renderAttachments();
 
@@ -247,16 +250,9 @@ describe('Attachments actions', () => {
 });
 
 describe('Attachments permissions', () => {
-  it('hides delete and upload from a member', () => {
-    mocks.isSg.mockReturnValue(false);
+  it('hides delete, rename and upload when the api allows none of them', () => {
+    mocks.canManage = false;
     renderAttachments();
-
-    expect(screen.queryByRole('button', { name: /Supprimer/ })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Ajouter' })).not.toBeInTheDocument();
-  });
-
-  it('hides delete, rename and upload on a file that can no longer be updated', () => {
-    renderAttachments({ isUpdatable: false });
 
     expect(screen.queryByRole('button', { name: /Supprimer/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Renommer/ })).not.toBeInTheDocument();
