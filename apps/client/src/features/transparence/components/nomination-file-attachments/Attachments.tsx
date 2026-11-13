@@ -1,13 +1,14 @@
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { useCallback } from 'react';
-import { FormattedMessage, useIntl } from 'react-intl';
+import { defineMessages, FormattedMessage, useIntl } from 'react-intl';
 
 import type { NominationFileAttachmentTypeEnum } from '@/features/transparence/components/nomination-file-attachments/nomination-file-attachment-type';
 import { FileList, FileListItem } from '@/shared/components/file-list';
 import { useRenameAttachmentModal } from '@/shared/components/rename-attachment';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { useAttachmentFailureToast } from '@/shared/hooks/useAttachmentFailureToast';
+import { useRequestFailure } from '@/shared/hooks/useRequestFailure';
 import { useTab } from '@/shared/hooks/useTab';
 import { useDownloadFileMutation } from '@queries/files.queries';
 import {
@@ -20,6 +21,13 @@ import {
 import { attachmentsSectionId } from './attachments-section';
 import { useAddNominationFileAttachmentModal } from './context/AddNominationFileAttachmentModalContext';
 import { NominationFileAttachmentTypeTag } from './NominationFileAttachmentTypeTag';
+
+// see CantUpdateNominationFiles: the mutation then reloads the attachments, without their actions
+const REMOVE_FAILURES = defineMessages({
+  conflict: {
+    defaultMessage: 'Le dossier a été figé entre-temps : ses pièces jointes ne se suppriment plus.',
+  },
+});
 
 export function Attachments(props: { headingLevel?: 2; nominationFileId: string; sessionId: string }) {
   const { open: openAddAttachment } = useAddNominationFileAttachmentModal();
@@ -103,8 +111,9 @@ function AttachmentItem(props: {
   const notifyFailure = useAttachmentFailureToast();
   const { isPending: isUrlPending, mutate: createUrl } = useCreateNominationFileAttachmentUrlMutation();
   const { isPending: isDownloadPending, mutate: download } = useDownloadFileMutation();
+  const describeFailure = useRequestFailure(REMOVE_FAILURES);
   const {
-    isError: isRemoveError,
+    error: removeError,
     isPending: isRemovePending,
     mutate: remove,
     reset: resetRemove,
@@ -119,10 +128,6 @@ function AttachmentItem(props: {
       sessionId: props.sessionId,
     }),
   );
-
-  const error = isRemoveError
-    ? formatMessage({ defaultMessage: 'La suppression du fichier a échoué. Veuillez réessayer.' })
-    : null;
 
   const onPreview = useCallback(() => {
     const attachmentTab = tab.openDeferred({
@@ -212,14 +217,15 @@ function AttachmentItem(props: {
       size={props.size}
     >
       {renaming.modal}
-      {error && (
+      {removeError && (
         <Alert
           className="fr-mt-2v"
           closable
-          description={error}
+          description={describeFailure(removeError)}
           onClose={resetRemove}
           severity="error"
           small
+          title={formatMessage({ defaultMessage: 'La suppression de la pièce jointe a échoué' })}
         />
       )}
     </FileListItem>

@@ -2,7 +2,7 @@ import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import Select from '@codegouvfr/react-dsfr/Select';
 import { useCallback, useState } from 'react';
-import { FormattedMessage, useIntl } from 'react-intl';
+import { defineMessages, FormattedMessage, useIntl } from 'react-intl';
 
 import { useRequestFailure } from '@/shared/hooks/useRequestFailure';
 import { Modal } from '@/shared/ui/modal';
@@ -18,6 +18,11 @@ import {
   useNominationFileAttachmentTypeLabel,
 } from './nomination-file-attachment-type';
 
+// see CantUpdateNominationFiles: the mutation then reloads the attachments, without their add button
+const FAILURES = defineMessages({
+  conflict: { defaultMessage: 'Le dossier a été figé entre-temps : il ne reçoit plus de pièce jointe.' },
+});
+
 export function AddNominationFileAttachmentModal(props: {
   onClose: () => void;
   target: AttachmentTarget | null;
@@ -28,7 +33,7 @@ export function AddNominationFileAttachmentModal(props: {
   const [files, setFiles] = useState<readonly File[]>([]);
   const [type, setType] = useState<NominationFileAttachmentTypeEnum | ''>('');
   const { error, isPending, mutate: add, reset } = useAddNominationFileAttachmentsMutation();
-  const describeFailure = useRequestFailure();
+  const describeFailure = useRequestFailure(FAILURES);
 
   const close = useCallback(() => {
     setFiles([]);

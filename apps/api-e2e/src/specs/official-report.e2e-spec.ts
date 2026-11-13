@@ -2,6 +2,7 @@ import type { Sql } from 'postgres';
 
 import { test } from '../fixtures.ts';
 import { MEETING_DATE } from '../fixtures/docs.fixture.ts';
+import { makeFile } from '../utils/files.ts';
 
 async function filesOfValidatedVersionsReading(sql: Sql, html: string): Promise<number> {
   const [row] = await sql<{ count: bigint }[]>`
@@ -123,6 +124,15 @@ test.describe('Official report', () => {
       lockedReasons: ['REPORTED', 'REPORTED'],
       status: 'REPORTED',
     });
+    // a page loaded before the validation tells this refusal from a refused file name
+    const attached = await agent.sessions.uploadNominationFileAttachments({
+      body: {
+        files: [makeFile({ name: 'note.pdf', type: 'application/pdf' })],
+        form: new Blob([JSON.stringify({ type: 'FICHE_DE_JURIDICTION' })], { type: 'application/json' }) as any,
+      },
+      path: { nominationFileId: session.files[0]!.id, sessionId },
+    });
+    expect(attached.response?.status).toBe(409);
 
     await agent.docs.validateAgenda({ path: { agendaId: agenda.id } });
     await docs.notice([agenda], { status: 'PRESENTED' });
