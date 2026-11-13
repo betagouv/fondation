@@ -264,7 +264,7 @@ export class ListNominationFilesQuery {
 
       return {
         ...audition,
-        canRecuseMembers: nominationFilesPolicies.canRecuseMembers(x, query.user),
+        canRecuseMembers: nominationFilesPolicies.canUpdateNominationFile(x, query.user),
         canScheduleAudition: nominationFilesPolicies.canScheduleAudition(x, {
           archivedAt: sessionArchivedAt,
         }),
@@ -317,7 +317,7 @@ export class ListNominationFilesQuery {
         missingEvaluation: x.missingEvaluation,
         missingEvaluationComment: x.missingEvaluationComment,
         nonAffectableMembers: nonAffectableMembers(new Set(recusedMembers.get(x.id)?.map(({ id }) => id))),
-        nonRecusableMembers: nominationFilesPolicies.canRecuseMembers(x, query.user)
+        nonRecusableMembers: nominationFilesPolicies.canUpdateNominationFile(x, query.user)
           ? nonRecusableMembers(reporters.get(x.id) ?? { latestIds: new Set(), publishedIds: new Set() })
           : [],
         observations: (observations.get(x.id) ?? []).map((obs) => ({

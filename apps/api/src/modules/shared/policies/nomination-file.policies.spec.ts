@@ -2,9 +2,8 @@ import { NominationFileOutcome } from '../nomination-file-outcome.enum';
 
 import {
   canKeepMemberMemo,
-  canManageAttachments,
-  canRecuseMembers,
   canScheduleAudition,
+  canUpdateNominationFile,
   nominationFileLock,
 } from './nomination-file.policies';
 
@@ -65,28 +64,6 @@ describe('canScheduleAudition', () => {
   });
 });
 
-describe('canManageAttachments', () => {
-  const sg = { role: 'ADJOINT_SECRETAIRE_GENERAL' } as const;
-
-  it('lets the secretariat manage the attachments of an open dossier', () => {
-    expect(canManageAttachments({ lockedReason: null }, sg)).toBe(true);
-  });
-
-  it.each(['REPORTED', 'ARCHIVED_SESSION'] as const)(
-    'keeps the attachments of a %s dossier as they are',
-    (lockedReason) => {
-      expect(canManageAttachments({ lockedReason }, sg)).toBe(false);
-    },
-  );
-
-  it.each(['MEMBRE_COMMUN', 'MEMBRE_DU_PARQUET', 'MEMBRE_DU_SIEGE'] as const)(
-    'keeps a member (%s) from managing them',
-    (role) => {
-      expect(canManageAttachments({ lockedReason: null }, { role })).toBe(false);
-    },
-  );
-});
-
 describe('canKeepMemberMemo', () => {
   const member = { id: 'member-1', role: 'MEMBRE_DU_SIEGE' } as const;
 
@@ -103,21 +80,21 @@ describe('canKeepMemberMemo', () => {
   });
 });
 
-describe('canRecuseMembers', () => {
+describe('canUpdateNominationFile', () => {
   const secretariat = { role: 'ADJOINT_SECRETAIRE_GENERAL' } as const;
 
-  it('lets the secretariat record the recusals of an open file', () => {
-    expect(canRecuseMembers({ lockedReason: null }, secretariat)).toBe(true);
+  it('lets the secretariat update an open file', () => {
+    expect(canUpdateNominationFile({ lockedReason: null }, secretariat)).toBe(true);
   });
 
-  it.each(['ARCHIVED_SESSION', 'REPORTED'] as const)(
-    'freezes the recusals of a locked file (%s)',
-    (lockedReason) => {
-      expect(canRecuseMembers({ lockedReason }, secretariat)).toBe(false);
+  it.each(['ARCHIVED_SESSION', 'REPORTED'] as const)('freezes a locked file (%s)', (lockedReason) => {
+    expect(canUpdateNominationFile({ lockedReason }, secretariat)).toBe(false);
+  });
+
+  it.each(['MEMBRE_COMMUN', 'MEMBRE_DU_PARQUET', 'MEMBRE_DU_SIEGE'] as const)(
+    'never lets a member (%s) update it',
+    (role) => {
+      expect(canUpdateNominationFile({ lockedReason: null }, { role })).toBe(false);
     },
   );
-
-  it('never lets a member record them', () => {
-    expect(canRecuseMembers({ lockedReason: null }, { role: 'MEMBRE_DU_SIEGE' })).toBe(false);
-  });
 });

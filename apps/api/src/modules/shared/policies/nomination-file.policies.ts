@@ -19,15 +19,8 @@ export function canScheduleAudition(
   return !session.archivedAt && NominationFileOutcome.allowsAudition(file.outcome);
 }
 
-export function canRecuseMembers(
-  file: { lockedReason: NominationFileLockEnum | null },
-  user: { role: RoleEnum },
-): boolean {
-  return isSecretariat(user.role) && !file.lockedReason;
-}
-
-/** adding files to a dossier as renaming or detaching those it holds, unlike its observations and its synthèse */
-export function canManageAttachments(
+/** recusing members as adding, renaming or detaching attachments */
+export function canUpdateNominationFile(
   file: { lockedReason: NominationFileLockEnum | null },
   user: { role: RoleEnum },
 ): boolean {

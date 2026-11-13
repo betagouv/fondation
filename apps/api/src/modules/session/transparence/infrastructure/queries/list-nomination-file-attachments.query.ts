@@ -8,7 +8,7 @@ import { writerOf, writerSchema } from '../../../../../utils/user.util';
 import { Db } from '../../../../framework/database';
 import { NominationFileAttachmentTypeEnum } from '../../../../shared/nomination-file-attachment-type.enum';
 import {
-  canManageAttachments,
+  canUpdateNominationFile,
   nominationFileLock,
 } from '../../../../shared/policies/nomination-file.policies';
 import type { RoleEnum } from '../../../../shared/role.enum';
@@ -61,7 +61,7 @@ export class ListNominationFileAttachmentsQuery {
       session,
     );
     return {
-      canManageAttachments: canManageAttachments({ lockedReason }, query),
+      canManageAttachments: canUpdateNominationFile({ lockedReason }, query),
       items: nominationFile.attachments.map(({ createdAt, file, type }) => ({
         id: file.id,
         name: file.name,
