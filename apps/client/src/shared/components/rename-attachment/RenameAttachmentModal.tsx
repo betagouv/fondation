@@ -11,7 +11,7 @@ import { splitFileName } from '@/utils/file.utils';
 // see renamedFileName in apps/api/src/modules/framework/files: the extension counts in it
 const FILE_NAME_MAX_LENGTH = 255;
 
-// see ObservationAttachmentsLocked and SummaryAttachmentsLocked: the mutation then reloads the attachments
+// see ObservationAttachmentsLocked, SummaryAttachmentsLocked and CantUpdateNominationFiles: the mutation then reloads the attachments
 const FAILURES = defineMessages({
   conflict: {
     defaultMessage: 'Le dossier a été figé entre-temps : ses pièces jointes ne se renomment plus.',

@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   CallHandler,
+  ConflictException,
   ExecutionContext,
   ForbiddenException,
   Logger,
@@ -106,8 +107,9 @@ export class TransparenceExceptionFilter implements NestInterceptor {
             );
           }
 
+          // a 409 like the observations and the synthèses: the dossier may have been figé after the page loaded
           if (err instanceof CantUpdateNominationFiles) {
-            return new BadRequestException(
+            return new ConflictException(
               {
                 validationErrors: [
                   err.fileIds.size === 1

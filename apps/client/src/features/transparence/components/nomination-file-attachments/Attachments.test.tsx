@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { axe } from 'vitest-axe';
 
 import { frFormat } from '@/i18n/formats';
+import { httpAssert } from '@/utils/http-exception';
 import type { ListedNominationFileAttachmentDto } from '@api/types';
 
 import { Attachments } from './Attachments';
@@ -18,6 +19,7 @@ const mocks = vi.hoisted(() => ({
   open: vi.fn(),
   openAddAttachment: vi.fn(),
   remove: vi.fn(),
+  removeError: null as Error | null,
   settleTab: vi.fn(),
   toastError: vi.fn(),
   user: { id: 'user-2' },
@@ -60,7 +62,7 @@ vi.mock('@queries/nomination-sessions.queries', () => ({
     },
   }),
   useRemoveNominationFileAttachmentMutation: () => ({
-    isError: false,
+    error: mocks.removeError,
     isPending: false,
     mutate: mocks.remove,
     reset: vi.fn(),
@@ -81,6 +83,7 @@ function renderAttachments(overrides: Partial<typeof PROPS> = {}) {
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.canManage = true;
+  mocks.removeError = null;
   mocks.user = { id: 'user-2' };
   mocks.attachments = [
     {
@@ -234,6 +237,19 @@ describe('Attachments actions', () => {
 
     expect(mocks.waitForConfirmation).toHaveBeenCalledOnce();
     expect(mocks.remove).not.toHaveBeenCalled();
+  });
+
+  it('tells the dossier was figé meanwhile when the removal is refused, without advising to retry', () => {
+    try {
+      httpAssert(new Response(null, { status: 409 }));
+    } catch (refusal) {
+      mocks.removeError = refusal as Error;
+    }
+    renderAttachments();
+
+    expect(
+      screen.getByText('Le dossier a été figé entre-temps : ses pièces jointes ne se suppriment plus.'),
+    ).toBeInTheDocument();
   });
 
   it('opens the add modal on the displayed nomination file', async () => {
