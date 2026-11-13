@@ -1,4 +1,5 @@
 import { createColumnHelper, getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import clsx from 'clsx';
 import { useCallback, useMemo, useState, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { useIntl } from 'react-intl';
@@ -9,6 +10,7 @@ import {
   type StatusAndAlertCounts,
   statusAndAlertFilters,
 } from '../utils/status-and-alert-filters.utils';
+import { VEILLE_ROW_CLASS } from '../utils/veille-row.utils';
 import { useRowRevealedOnReturn } from '@/shared/hooks/useRowRevealedOnReturn';
 import {
   DataTable,
@@ -58,14 +60,6 @@ function useCourtOfAppealFirstPresidentsColumns(props: {
         size: 280,
         sortDescFirst: false,
       }),
-      h.accessor('status', {
-        cell: ({ getValue, row }) => <PositionStatusCell alerts={row.original.alerts} status={getValue()} />,
-        header: formatMessage({ defaultMessage: 'Alerte / statut' }),
-        id: 'status',
-        meta: { filters: statusAndAlertFilters(formatMessage, statusAndAlertCounts) },
-        size: 240,
-        sortDescFirst: false,
-      }),
       h.accessor('magistrat', {
         cell: ({ getValue }) => {
           const magistrat = getValue();
@@ -87,11 +81,13 @@ function useCourtOfAppealFirstPresidentsColumns(props: {
         size: 180,
         sortDescFirst: false,
       }),
-      h.display({
-        cell: () => '-',
-        header: formatMessage({ defaultMessage: 'Desiderata' }),
-        id: 'desiderata',
-        size: 160,
+      h.accessor('status', {
+        cell: ({ getValue, row }) => <PositionStatusCell alerts={row.original.alerts} status={getValue()} />,
+        header: formatMessage({ defaultMessage: 'Alerte / statut' }),
+        id: 'status',
+        meta: { filters: statusAndAlertFilters(formatMessage, statusAndAlertCounts) },
+        size: 240,
+        sortDescFirst: false,
       }),
       h.display({
         cell: () => '-',
@@ -219,7 +215,9 @@ export function CourtOfAppealFirstPresidentsTable(props: {
         onEndReached={fetchMore}
         onSeenRowsChange={onSeenRowsChange}
         revealedRowId={revealedRowId}
-        rowTint={(row) => (row.id === revealedRowId ? 'bg-(--background-alt-blue-france)' : undefined)}
+        rowTint={(row) =>
+          clsx(VEILLE_ROW_CLASS, row.id === revealedRowId && 'bg-(--background-alt-blue-france)')
+        }
         scrollsWithPage
         table={table}
       />

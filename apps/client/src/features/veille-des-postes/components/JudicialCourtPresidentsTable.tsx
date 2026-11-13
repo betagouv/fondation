@@ -11,11 +11,13 @@ import {
   knownValues,
   stringValues,
 } from '../utils/known-values.utils';
+import { rowsInsideRessortGroups } from '../utils/ressort-groups.utils';
 import {
   NO_STATUS_AND_ALERT_COUNTS,
   type StatusAndAlertCounts,
   statusAndAlertFilters,
 } from '../utils/status-and-alert-filters.utils';
+import { VEILLE_ROW_CLASS } from '../utils/veille-row.utils';
 import { useRowRevealedOnReturn } from '@/shared/hooks/useRowRevealedOnReturn';
 import {
   DataTable,
@@ -38,6 +40,7 @@ import {
   useJudicialCourtPresidentsQuery,
 } from '@queries/veille-des-postes.queries';
 
+import { CenteredRessortLabel } from './CenteredRessortLabel';
 import { MagistratLink } from './MagistratLink';
 import { PositionStatusCell } from './PositionStatusCell';
 
@@ -53,13 +56,19 @@ const NO_RESSORTS: RessortCount[] = [];
 
 const h = createColumnHelper<JudicialCourtPresident>();
 
+/** a magistrat holds one position only, and a court without one is listed once */
+function rowIdOf(president: JudicialCourtPresident): string {
+  return president.magistrat?.id ?? president.court.id;
+}
+
 function useJudicialCourtPresidentsColumns(props: {
+  groupedRows: Set<string> | null;
   onMagistratOpened: (event: MouseEvent, magistratId: string) => void;
   ressorts: RessortCount[];
   statusAndAlertCounts: StatusAndAlertCounts;
 }) {
   const { formatMessage } = useIntl();
-  const { onMagistratOpened, ressorts, statusAndAlertCounts } = props;
+  const { groupedRows, onMagistratOpened, ressorts, statusAndAlertCounts } = props;
 
   return useMemo(() => {
     const counted = (values: { count: number; id: string; label: string }[]) =>
@@ -70,10 +79,22 @@ function useJudicialCourtPresidentsColumns(props: {
 
     return [
       h.accessor('ressort.label', {
-        cell: ({ getValue }) => <span className="font-medium">{getValue()}</span>,
+        cell: ({ getValue, row }) =>
+          groupedRows ? (
+            <CenteredRessortLabel groupId={row.original.ressort.id} label={getValue()} />
+          ) : (
+            <span className="font-medium">{getValue()}</span>
+          ),
         header: formatMessage({ defaultMessage: 'Ressort' }),
         id: 'ressort',
         meta: {
+          // one cell for the courts of a ressort, without line inside it
+          cellClassName: (row) =>
+            clsx(
+              'relative border-r border-(--border-default-grey)',
+              groupedRows?.has(row.id) &&
+                "overflow-visible! after:absolute after:inset-x-0 after:-bottom-px after:h-px after:bg-(--background-default-grey) after:content-['']",
+            ),
           filters: {
             filterId: 'ressort',
             label: formatMessage({ defaultMessage: 'Ressort' }),
@@ -88,14 +109,6 @@ function useJudicialCourtPresidentsColumns(props: {
         header: formatMessage({ defaultMessage: 'Juridiction' }),
         id: 'court',
         size: 220,
-        sortDescFirst: false,
-      }),
-      h.accessor('status', {
-        cell: ({ getValue, row }) => <PositionStatusCell alerts={row.original.alerts} status={getValue()} />,
-        header: formatMessage({ defaultMessage: 'Alerte / statut' }),
-        id: 'status',
-        meta: { filters: statusAndAlertFilters(formatMessage, statusAndAlertCounts) },
-        size: 200,
         sortDescFirst: false,
       }),
       h.accessor('magistrat', {
@@ -119,11 +132,13 @@ function useJudicialCourtPresidentsColumns(props: {
         size: 180,
         sortDescFirst: false,
       }),
-      h.display({
-        cell: () => '-',
-        header: formatMessage({ defaultMessage: 'Desiderata' }),
-        id: 'desiderata',
-        size: 160,
+      h.accessor('status', {
+        cell: ({ getValue, row }) => <PositionStatusCell alerts={row.original.alerts} status={getValue()} />,
+        header: formatMessage({ defaultMessage: 'Alerte / statut' }),
+        id: 'status',
+        meta: { filters: statusAndAlertFilters(formatMessage, statusAndAlertCounts) },
+        size: 200,
+        sortDescFirst: false,
       }),
       h.display({
         cell: () => '-',
@@ -132,7 +147,7 @@ function useJudicialCourtPresidentsColumns(props: {
         size: 160,
       }),
     ];
-  }, [formatMessage, onMagistratOpened, ressorts, statusAndAlertCounts]);
+  }, [formatMessage, groupedRows, onMagistratOpened, ressorts, statusAndAlertCounts]);
 }
 
 export function JudicialCourtPresidentsTable(props: {
@@ -203,8 +218,22 @@ export function JudicialCourtPresidentsTable(props: {
         : NO_STATUS_AND_ALERT_COUNTS,
     [data],
   );
+  // the courts of a ressort only follow each other when sorted by ressort
+  const groupedRows = useMemo(
+    () =>
+      sorting[0]?.id === 'ressort'
+        ? rowsInsideRessortGroups(
+            presidents.map((president) => ({
+              id: rowIdOf(president),
+              ressortId: president.ressort.id,
+            })),
+          )
+        : null,
+    [presidents, sorting],
+  );
   const table = useReactTable({
     columns: useJudicialCourtPresidentsColumns({
+      groupedRows,
       onMagistratOpened: remember,
       ressorts: data?.ressorts ?? NO_RESSORTS,
       statusAndAlertCounts,
@@ -212,8 +241,7 @@ export function JudicialCourtPresidentsTable(props: {
     data: presidents,
     enableSortingRemoval: false,
     getCoreRowModel: getCoreRowModel(),
-    // a magistrat holds one position only, and a court without one is listed once
-    getRowId: (row) => row.magistrat?.id ?? row.court.id,
+    getRowId: rowIdOf,
     manualFiltering: true,
     manualSorting: true,
     onColumnFiltersChange,
@@ -256,11 +284,12 @@ export function JudicialCourtPresidentsTable(props: {
         revealedRowId={revealedRowId}
         rowTint={(row) =>
           clsx(
+            VEILLE_ROW_CLASS,
             row.id === revealedRowId && 'bg-(--background-alt-blue-france)',
             sorting[0]?.id === 'ressort' &&
               row.index > 0 &&
               presidents[row.index - 1]?.ressort.id !== row.original.ressort.id &&
-              'border-t-2 border-t-(--border-plain-blue-france)',
+              'border-t border-t-(--border-plain-blue-france)',
           )
         }
         scrollsWithPage

@@ -5,6 +5,10 @@ import { roleGuard } from '@/features/auth/guards/role-guard';
 import { RootLayout } from '@/layout/RootLayout';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { ErrorPage } from '@/pages/error/ErrorPage';
+import {
+  courtOfCassationPositionPath,
+  FIRST_COURT_OF_CASSATION_POSITION,
+} from '@/pages/veille-des-postes/court-of-cassation-position-paths';
 import { redirectToMemberMagistratDetails, ROUTE_PATHS } from '@/utils/route-path.utils';
 
 export const routes: RouteObject[] = [
@@ -189,11 +193,15 @@ export const routes: RouteObject[] = [
                 path: ROUTE_PATHS.SG.CSM.VEILLE_DES_POSTES_JUDICIAL_COURTS,
               },
               {
+                loader: () => redirect(courtOfCassationPositionPath(FIRST_COURT_OF_CASSATION_POSITION)),
+                path: ROUTE_PATHS.SG.CSM.VEILLE_DES_POSTES_COURT_OF_CASSATION,
+              },
+              {
                 lazy: () =>
                   import('@/pages/veille-des-postes/CourtOfCassationTab').then(({ CourtOfCassationTab }) => ({
                     Component: CourtOfCassationTab,
                   })),
-                path: ROUTE_PATHS.SG.CSM.VEILLE_DES_POSTES_COURT_OF_CASSATION,
+                path: ROUTE_PATHS.SG.CSM.VEILLE_DES_POSTES_COURT_OF_CASSATION_POSITION,
               },
             ],
             lazy: () =>

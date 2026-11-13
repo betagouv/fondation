@@ -39,6 +39,8 @@ export const ROUTE_PATHS = {
       VEILLE_DES_POSTES: '/secretariat-general/csm/veille-des-postes',
       VEILLE_DES_POSTES_COURTS_OF_APPEAL: '/secretariat-general/csm/veille-des-postes/cours-d-appel',
       VEILLE_DES_POSTES_COURT_OF_CASSATION: '/secretariat-general/csm/veille-des-postes/cour-de-cassation',
+      VEILLE_DES_POSTES_COURT_OF_CASSATION_POSITION:
+        '/secretariat-general/csm/veille-des-postes/cour-de-cassation/:position',
       VEILLE_DES_POSTES_JUDICIAL_COURTS: '/secretariat-general/csm/veille-des-postes/tribunaux-judiciaires',
     },
     DASHBOARD: '/secretariat-general',
