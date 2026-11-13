@@ -225,8 +225,10 @@ export function useCreateObservationMutation() {
         });
       return data ?? null;
     },
-    onSettled: (_data, _error, { sessionId, nominationFileId }) =>
+    onSettled: (_data, _error, { magistratId, sessionId, nominationFileId }) =>
       Promise.allSettled([
+        // its files become linkable from the other observations of the observant
+        queryClient.invalidateQueries({ queryKey: observationKeys.observationAttachments({ magistratId }) }),
         queryClient.invalidateQueries({
           queryKey: observationKeys.observations({ sessionId, nominationFileId }),
         }),
@@ -325,9 +327,11 @@ export function useUpdateObservationMutation() {
           throw err;
         });
     },
-    onSettled: (_data, _error, { sessionId, nominationFileId, observationId }) =>
+    onSettled: (_data, _error, { magistratId, sessionId, nominationFileId, observationId }) =>
       Promise.allSettled([
         queryClient.invalidateQueries({ queryKey: auditionKeys.all() }),
+        // files added or detached change what the other observations of the observant can link
+        queryClient.invalidateQueries({ queryKey: observationKeys.observationAttachments({ magistratId }) }),
         queryClient.invalidateQueries({
           queryKey: observationKeys.observationDetails({
             sessionId,
