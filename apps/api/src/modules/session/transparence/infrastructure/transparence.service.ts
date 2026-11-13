@@ -221,7 +221,7 @@ export class TransparenceService {
       .then((files) =>
         files.map((file) => ({
           allowsAudition: policies.canScheduleAudition(file, { archivedAt: null }),
-          isLocked: !!policies.nominationFileLock(file, { archivedAt: null }),
+          isLocked: !!policies.nominationFileLock(file, { isArchived: false }),
         })),
       );
   }
@@ -232,7 +232,7 @@ export class TransparenceService {
 
     return !!policies.nominationFileLock(
       { isReported: reported.has(query.nominationFileId) },
-      { archivedAt: null },
+      { isArchived: false },
     );
   }
 

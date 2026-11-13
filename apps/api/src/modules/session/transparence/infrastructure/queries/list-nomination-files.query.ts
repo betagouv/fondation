@@ -246,7 +246,7 @@ export class ListNominationFilesQuery {
       jurisdictions: jurisdictions.get(file.id) ?? { current: null, targeted: null },
       lockedReason: nominationFilesPolicies.nominationFileLock(
         { isReported: reportedFileIds.has(file.id) },
-        { archivedAt: sessionArchivedAt },
+        { isArchived },
       ),
       status: transparenceFileStatus({ docs: linkedDocs.get(file.id) ?? [] }),
     }));

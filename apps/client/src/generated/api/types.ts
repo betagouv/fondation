@@ -636,6 +636,10 @@ export type UploadNominationFileAttachmentsDto = {
 };
 
 export type ListedNominationFileAttachmentDto = {
+    /**
+     * adding, renaming or detaching the files: a locked dossier takes none, unlike its synthèse
+     */
+    canManageAttachments: boolean;
     items: Array<{
         id: string;
         name: string;

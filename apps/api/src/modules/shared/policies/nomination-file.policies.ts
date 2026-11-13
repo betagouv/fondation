@@ -4,9 +4,9 @@ import { isSecretariat, type RoleEnum } from '../role.enum';
 
 export function nominationFileLock(
   file: { isReported: boolean },
-  session: { archivedAt: Date | null | undefined },
+  session: { isArchived: boolean },
 ): NominationFileLockEnum | null {
-  if (session.archivedAt) return 'ARCHIVED_SESSION';
+  if (session.isArchived) return 'ARCHIVED_SESSION';
   if (file.isReported) return 'REPORTED';
 
   return null;
@@ -20,6 +20,14 @@ export function canScheduleAudition(
 }
 
 export function canRecuseMembers(
+  file: { lockedReason: NominationFileLockEnum | null },
+  user: { role: RoleEnum },
+): boolean {
+  return isSecretariat(user.role) && !file.lockedReason;
+}
+
+/** adding files to a dossier as renaming or detaching those it holds, unlike its observations and its synthèse */
+export function canManageAttachments(
   file: { lockedReason: NominationFileLockEnum | null },
   user: { role: RoleEnum },
 ): boolean {

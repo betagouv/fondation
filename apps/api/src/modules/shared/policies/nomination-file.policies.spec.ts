@@ -2,6 +2,7 @@ import { NominationFileOutcome } from '../nomination-file-outcome.enum';
 
 import {
   canKeepMemberMemo,
+  canManageAttachments,
   canRecuseMembers,
   canScheduleAudition,
   nominationFileLock,
@@ -9,7 +10,7 @@ import {
 
 describe('nominationFileLock', () => {
   describe('given a non-archived session', () => {
-    const session = { archivedAt: null };
+    const session = { isArchived: false };
 
     it('leaves a file open while it has not been reported', () => {
       expect(nominationFileLock({ isReported: false }, session)).toBeNull();
@@ -21,7 +22,7 @@ describe('nominationFileLock', () => {
   });
 
   describe('given an archived session', () => {
-    const session = { archivedAt: new Date() };
+    const session = { isArchived: true };
 
     it('locks a file that was never reported', () => {
       expect(nominationFileLock({ isReported: false }, session)).toBe('ARCHIVED_SESSION');
@@ -62,6 +63,28 @@ describe('canScheduleAudition', () => {
       expect(canScheduleAudition({ outcome }, session)).toBe(false);
     });
   });
+});
+
+describe('canManageAttachments', () => {
+  const sg = { role: 'ADJOINT_SECRETAIRE_GENERAL' } as const;
+
+  it('lets the secretariat manage the attachments of an open dossier', () => {
+    expect(canManageAttachments({ lockedReason: null }, sg)).toBe(true);
+  });
+
+  it.each(['REPORTED', 'ARCHIVED_SESSION'] as const)(
+    'keeps the attachments of a %s dossier as they are',
+    (lockedReason) => {
+      expect(canManageAttachments({ lockedReason }, sg)).toBe(false);
+    },
+  );
+
+  it.each(['MEMBRE_COMMUN', 'MEMBRE_DU_PARQUET', 'MEMBRE_DU_SIEGE'] as const)(
+    'keeps a member (%s) from managing them',
+    (role) => {
+      expect(canManageAttachments({ lockedReason: null }, { role })).toBe(false);
+    },
+  );
 });
 
 describe('canKeepMemberMemo', () => {

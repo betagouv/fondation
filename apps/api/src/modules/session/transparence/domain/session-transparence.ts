@@ -445,7 +445,7 @@ export class SessionTransparence {
             {
               auditionRequired: file.auditionRequired,
               canScheduleAudition: policies.canScheduleAudition(file, { archivedAt: null }),
-              canUpdate: !policies.nominationFileLock(file, { archivedAt: null }),
+              canUpdate: !policies.nominationFileLock(file, { isArchived: false }),
               positionRequiresAudition: file.positionRequiresAudition,
             },
           ] as const,
