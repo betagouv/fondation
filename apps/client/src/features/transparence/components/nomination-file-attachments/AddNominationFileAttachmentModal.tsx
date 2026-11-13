@@ -4,7 +4,7 @@ import Select from '@codegouvfr/react-dsfr/Select';
 import { useCallback, useState } from 'react';
 import { defineMessages, FormattedMessage, useIntl } from 'react-intl';
 
-import { useRequestFailure } from '@/shared/hooks/useRequestFailure';
+import { failureOf, useRequestFailure } from '@/shared/hooks/useRequestFailure';
 import { Modal } from '@/shared/ui/modal';
 import { RequiredLabel } from '@/shared/ui/required-label';
 import { AttachmentFormatsHint, Upload } from '@/shared/ui/upload';
@@ -18,7 +18,8 @@ import {
   useNominationFileAttachmentTypeLabel,
 } from './nomination-file-attachment-type';
 
-// see CantUpdateNominationFiles: the mutation then reloads the attachments, without their add button
+// see CantUpdateNominationFiles: the mutation then reloads the attachments, without their add button,
+// while the modal, already open, only lets the user cancel
 const FAILURES = defineMessages({
   conflict: { defaultMessage: 'Le dossier a été figé entre-temps : il ne reçoit plus de pièce jointe.' },
 });
@@ -34,6 +35,7 @@ export function AddNominationFileAttachmentModal(props: {
   const [type, setType] = useState<NominationFileAttachmentTypeEnum | ''>('');
   const { error, isPending, mutate: add, reset } = useAddNominationFileAttachmentsMutation();
   const describeFailure = useRequestFailure(FAILURES);
+  const isFrozen = failureOf(error).reason === 'conflict';
 
   const close = useCallback(() => {
     setFiles([]);
@@ -55,7 +57,7 @@ export function AddNominationFileAttachmentModal(props: {
           <Button disabled={isPending} onClick={close} priority="secondary">
             <FormattedMessage defaultMessage="Annuler" />
           </Button>
-          <Button disabled={files.length === 0 || !type || isPending} onClick={onSubmit}>
+          <Button disabled={files.length === 0 || !type || isPending || isFrozen} onClick={onSubmit}>
             <FormattedMessage defaultMessage="Ajouter à la proposition" />
           </Button>
         </>
@@ -100,7 +102,7 @@ export function AddNominationFileAttachmentModal(props: {
       {error && (
         <Alert
           className="fr-mt-2v"
-          closable
+          closable={!isFrozen}
           description={describeFailure(error)}
           onClose={reset}
           severity="error"
