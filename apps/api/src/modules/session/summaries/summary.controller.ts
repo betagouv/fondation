@@ -63,6 +63,7 @@ export class SummaryController {
     schema: AttachSummaryFilesDto,
   })
   async attachSummaryFiles(
+    @AuthedUser() user: { id: string; role: RoleEnum },
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
     @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
     @Body() body: Multipart<typeof AttachSummaryFilesDto>,
@@ -71,6 +72,7 @@ export class SummaryController {
       fileIds: body.files.map(({ id }) => id),
       nominationFileId,
       sessionId,
+      user,
     });
   }
 
@@ -78,6 +80,7 @@ export class SummaryController {
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @HttpCode(HttpStatus.NO_CONTENT)
   async detachSummaryFiles(
+    @AuthedUser() user: { id: string; role: RoleEnum },
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
     @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
     @Query(ZodValidationPipe) { fileIds }: DetachSummaryFilesQueryDto,
@@ -86,6 +89,7 @@ export class SummaryController {
       fileIds,
       nominationFileId,
       sessionId,
+      user,
     });
   }
 

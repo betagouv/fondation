@@ -43,6 +43,7 @@ export class SummaryService {
     fileIds: readonly string[];
     nominationFileId: string;
     sessionId: string;
+    user: { id: string; role: RoleEnum };
   }): Promise<void> {
     const summary = await this.summaryRepository.find(command);
     summary.attachFiles(command);
@@ -54,6 +55,7 @@ export class SummaryService {
     fileIds: readonly string[];
     nominationFileId: string;
     sessionId: string;
+    user: { id: string; role: RoleEnum };
   }): Promise<void> {
     const summary = await this.summaryRepository.find(command);
     summary.detachFiles(command);

@@ -67,7 +67,7 @@ describe('Summary', () => {
     });
   });
 
-  describe('renaming an attachment', () => {
+  describe('attachments', () => {
     const writtenBy = (authorId: string | null) =>
       Summary.from({
         authorId,
@@ -89,14 +89,15 @@ describe('Summary', () => {
       expect(summary.messages).toEqual([new RenamedSummaryFile(summary.id, 'f-1', 'Avis')]);
     });
 
-    it('should refuse another member of the secretariat once someone wrote it', () => {
-      expect(() =>
-        writtenBy('author').renameFile({
-          fileId: 'f-1',
-          name: 'Avis',
-          user: { id: 'colleague', role: 'ADJOINT_SECRETAIRE_GENERAL' },
-        }),
-      ).toThrow(OnlyAuthorCanWriteSummary);
+    it('should keep the attachments to its author once someone wrote it', () => {
+      const summary = writtenBy('author');
+      const user = { id: 'colleague', role: 'ADJOINT_SECRETAIRE_GENERAL' } as const;
+
+      expect(() => summary.attachFiles({ fileIds: ['f-2'], user })).toThrow(OnlyAuthorCanWriteSummary);
+      expect(() => summary.detachFiles({ fileIds: ['f-1'], user })).toThrow(OnlyAuthorCanWriteSummary);
+      expect(() => summary.renameFile({ fileId: 'f-1', name: 'Avis', user })).toThrow(
+        OnlyAuthorCanWriteSummary,
+      );
     });
   });
 

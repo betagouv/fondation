@@ -112,22 +112,22 @@ export class Summary {
     );
   }
 
-  attachFiles(command: { fileIds: readonly string[] }): void {
+  attachFiles(command: { fileIds: readonly string[]; user: { id: string; role: RoleEnum } }): void {
+    this.assertsCanWrite(command.user);
     if (command.fileIds.length === 0) return;
 
     this.#messages.push(new AttachedFilesToSummary(this.id, command.fileIds));
   }
 
-  detachFiles(command: { fileIds: readonly string[] }): void {
+  detachFiles(command: { fileIds: readonly string[]; user: { id: string; role: RoleEnum } }): void {
+    this.assertsCanWrite(command.user);
     if (command.fileIds.length === 0) return;
 
     this.#messages.push(new DetachedFilesFromSummary(this.id, command.fileIds));
   }
 
   renameFile(command: { fileId: string; name: string; user: { id: string; role: RoleEnum } }): void {
-    if (!canWriteSummary(this, command.user)) {
-      throw new OnlyAuthorCanWriteSummary(this.id, this.authorId, command.user.id);
-    }
+    this.assertsCanWrite(command.user);
 
     this.#messages.push(new RenamedSummaryFile(this.id, command.fileId, command.name));
   }
@@ -155,12 +155,14 @@ export class Summary {
   }
 
   writeContent(command: { content: string; user: { id: string; role: RoleEnum } }): void {
-    if (!canWriteSummary(this, command.user)) {
-      throw new OnlyAuthorCanWriteSummary(this.id, this.authorId, command.user.id);
-    }
+    this.assertsCanWrite(command.user);
 
     const newAuthorId = this.authorId ? null : command.user.id;
     this.#messages.push(new SummaryContentWritten(this.id, command.content, newAuthorId));
+  }
+
+  private assertsCanWrite(user: { id: string; role: RoleEnum }): void {
+    if (!canWriteSummary(this, user)) throw new OnlyAuthorCanWriteSummary(this.id, this.authorId, user.id);
   }
 
   readonly #messages: SummaryMessage[] = [];
