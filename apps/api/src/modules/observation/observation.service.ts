@@ -206,7 +206,10 @@ export class ObservationService {
       userId: command.userId,
     });
     observation.attachFiles({ files: command.filesToAttach });
-    observation.detachFiles({ fileIds: command.fileIdsToDetach });
+    observation.detachFiles({
+      fileIds: command.fileIdsToDetach,
+      isNominationFileLocked: await this.transparences.internalIsNominationFileLocked(command),
+    });
     observation.linkFiles({ files: command.linkedFiles });
 
     await this.observationRepository.persist(observation);
@@ -221,7 +224,10 @@ export class ObservationService {
     sessionId: string;
   }): Promise<void> {
     const observation = await this.observationRepository.findById(command);
-    observation.renameFile(command);
+    observation.renameFile({
+      ...command,
+      isNominationFileLocked: await this.transparences.internalIsNominationFileLocked(command),
+    });
     await this.observationRepository.persist(observation);
   }
 

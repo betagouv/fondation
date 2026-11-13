@@ -58,7 +58,10 @@ export class SummaryService {
     user: { id: string; role: RoleEnum };
   }): Promise<void> {
     const summary = await this.summaryRepository.find(command);
-    summary.detachFiles(command);
+    summary.detachFiles({
+      ...command,
+      isNominationFileLocked: await this.summaryRepository.isNominationFileLocked(command),
+    });
     await this.summaryRepository.persist(summary);
   }
 
@@ -71,7 +74,10 @@ export class SummaryService {
     user: { id: string; role: RoleEnum };
   }): Promise<void> {
     const summary = await this.summaryRepository.find(command);
-    summary.renameFile(command);
+    summary.renameFile({
+      ...command,
+      isNominationFileLocked: await this.summaryRepository.isNominationFileLocked(command),
+    });
     await this.summaryRepository.persist(summary);
   }
 

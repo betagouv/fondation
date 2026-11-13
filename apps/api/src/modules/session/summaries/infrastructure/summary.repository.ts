@@ -36,6 +36,10 @@ export class SummaryRepository {
     return state === 'ARCHIVED';
   }
 
+  isNominationFileLocked(query: { nominationFileId: string }): Promise<boolean> {
+    return this.sessions.internalIsNominationFileLocked(query);
+  }
+
   async find(query: { sessionId: string; nominationFileId: string }) {
     const sessionIsArchived = await this.isSessionArchived(query);
     const summary = await this.db.tx.summary.findUnique({

@@ -88,6 +88,11 @@ export class Summary {
     return new Summary(makeId('SummaryId', props.id), props.authorId, new Set(props.readerIds));
   }
 
+  /** files are still added to the synthèse of a figé dossier, but those it holds stay as they are */
+  static canManageAttachments(props: { canWrite: boolean; isNominationFileLocked: boolean }): boolean {
+    return props.canWrite && !props.isNominationFileLocked;
+  }
+
   static create(props: { nominationFileId: string; sessionId: string; sessionIsArchived: boolean }): Summary {
     if (props.sessionIsArchived) throw new SummarySessionIsArchived(props.sessionId);
 
@@ -119,15 +124,26 @@ export class Summary {
     this.#messages.push(new AttachedFilesToSummary(this.id, command.fileIds));
   }
 
-  detachFiles(command: { fileIds: readonly string[]; user: { id: string; role: RoleEnum } }): void {
+  detachFiles(command: {
+    fileIds: readonly string[];
+    isNominationFileLocked: boolean;
+    user: { id: string; role: RoleEnum };
+  }): void {
     this.assertsCanWrite(command.user);
     if (command.fileIds.length === 0) return;
+    this.assertsAttachmentsUnlocked(command);
 
     this.#messages.push(new DetachedFilesFromSummary(this.id, command.fileIds));
   }
 
-  renameFile(command: { fileId: string; name: string; user: { id: string; role: RoleEnum } }): void {
+  renameFile(command: {
+    fileId: string;
+    isNominationFileLocked: boolean;
+    name: string;
+    user: { id: string; role: RoleEnum };
+  }): void {
     this.assertsCanWrite(command.user);
+    this.assertsAttachmentsUnlocked(command);
 
     this.#messages.push(new RenamedSummaryFile(this.id, command.fileId, command.name));
   }
@@ -165,9 +181,19 @@ export class Summary {
     if (!canWriteSummary(this, user)) throw new OnlyAuthorCanWriteSummary(this.id, this.authorId, user.id);
   }
 
+  private assertsAttachmentsUnlocked(command: { isNominationFileLocked: boolean }): void {
+    if (command.isNominationFileLocked) throw new SummaryAttachmentsLocked(this.id);
+  }
+
   readonly #messages: SummaryMessage[] = [];
   get messages(): readonly SummaryMessage[] {
     return this.#messages;
+  }
+}
+
+export class SummaryAttachmentsLocked extends Error {
+  constructor(readonly id: Id<'SummaryId'>) {
+    super();
   }
 }
 

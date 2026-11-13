@@ -53,6 +53,7 @@ import {
 import { RecusedMembersFinder } from './finders/recused-members.finder';
 import { ReportedSessionsFinder } from './finders/reported-sessions.finder';
 import { ReportersAffectationFinder } from './finders/reporters-affectation.finder';
+import { SessionReportedFilesFinder } from './finders/session-reported-files.finder';
 import { type SessionStatus, SessionStatusesFinder } from './finders/session-statuses.finder';
 import { SynchronisedLolfiSessionsFinder } from './finders/synchronised-lolfi-sessions.finder';
 import { TransparenceFilesFinder } from './finders/transparence-files.finder';
@@ -181,6 +182,7 @@ export class TransparenceService {
     private readonly nominationFileOutcomesFinder: NominationFileOutcomesFinder,
     private readonly nominationFilesProgressFinder: NominationFilesProgressFinder,
     private readonly synchronisedLolfiSessionsFinder: SynchronisedLolfiSessionsFinder,
+    private readonly reportedFiles: SessionReportedFilesFinder,
     private readonly reportedSessionsFinder: ReportedSessionsFinder,
     private readonly reportersAffectation: ReportersAffectationFinder,
     private readonly sessionStatuses: SessionStatusesFinder,
@@ -222,6 +224,16 @@ export class TransparenceService {
           isLocked: !!policies.nominationFileLock(file, { archivedAt: null }),
         })),
       );
+  }
+
+  /** @internal a figé dossier keeps the attachments of its observations and of its synthèse as they are */
+  async internalIsNominationFileLocked(query: { nominationFileId: string }): Promise<boolean> {
+    const reported = await this.reportedFiles.find({ nominationFileIds: new Set([query.nominationFileId]) });
+
+    return !!policies.nominationFileLock(
+      { isReported: reported.has(query.nominationFileId) },
+      { archivedAt: null },
+    );
   }
 
   /** @internal */

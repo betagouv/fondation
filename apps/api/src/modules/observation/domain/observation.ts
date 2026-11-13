@@ -14,6 +14,12 @@ export class UserNotAllowedToWriteCommentError extends Error {
   }
 }
 
+export class ObservationAttachmentsLocked extends Error {
+  constructor(readonly nominationFileId: string) {
+    super();
+  }
+}
+
 export class ObservationAlreadyExist extends Error {
   constructor(
     readonly nominationFileId: string,
@@ -206,6 +212,11 @@ export class Observation {
     );
   }
 
+  /** files are still added to a figé dossier, but those it holds stay as they are */
+  static canManageAttachments(props: { canEdit: boolean; isNominationFileLocked: boolean }): boolean {
+    return props.canEdit && !props.isNominationFileLocked;
+  }
+
   attachFiles(command: { files: readonly { id: string }[] }): void {
     if (command.files.length === 0) return;
 
@@ -253,13 +264,16 @@ export class Observation {
     this.#messages.push(new ObservationBlockReopened(this.sessionId, command.magistratId));
   }
 
-  detachFiles(command: { fileIds: readonly string[] }): void {
+  detachFiles(command: { fileIds: readonly string[]; isNominationFileLocked: boolean }): void {
     if (command.fileIds.length === 0) return;
+    this.assertsAttachmentsUnlocked(command);
 
     this.#messages.push(new ObservationFilesDetached(this.id, command.fileIds));
   }
 
-  renameFile(command: { fileId: string; name: string }): void {
+  renameFile(command: { fileId: string; isNominationFileLocked: boolean; name: string }): void {
+    this.assertsAttachmentsUnlocked(command);
+
     this.#messages.push(new ObservationFileRenamed(this.id, command.fileId, command.name));
   }
 
@@ -303,6 +317,10 @@ export class Observation {
       comment: command.comment,
     });
     this.#messages.push(new ObservationFollowedUp(this.id, followUp, command.userId));
+  }
+
+  private assertsAttachmentsUnlocked(command: { isNominationFileLocked: boolean }): void {
+    if (command.isNominationFileLocked) throw new ObservationAttachmentsLocked(this.nominationFileId);
   }
 
   private static assertNominationFileIsObservable(

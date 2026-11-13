@@ -1,4 +1,5 @@
 import {
+  ObservationAttachmentsLocked,
   ObservationBlockEmptied,
   ObservationBlockReopened,
   Observation,
@@ -156,6 +157,27 @@ describe('Observation', () => {
 
       expect(updated.messages).toContainEqual(new ObservationBlockReopened('session-1', 'magistrat-2'));
     });
+  });
+
+  it('keeps the attachments of a figé dossier as they are', () => {
+    const observation = Observation.from({
+      dateReception: new Date(2026, 4, 2),
+      id: 'obs-1',
+      magistratId: 'magistrat-1',
+      nominationFileId: 'file-1',
+      sessionId: 'session-1',
+    });
+    const isNominationFileLocked = true;
+
+    expect(() => observation.detachFiles({ fileIds: ['f-1'], isNominationFileLocked })).toThrow(
+      ObservationAttachmentsLocked,
+    );
+    expect(() => observation.renameFile({ fileId: 'f-1', isNominationFileLocked, name: 'Avis' })).toThrow(
+      ObservationAttachmentsLocked,
+    );
+    // an update that detaches nothing goes through
+    observation.detachFiles({ fileIds: [], isNominationFileLocked });
+    expect(observation.messages).toEqual([]);
   });
 
   describe('the comment of a member', () => {

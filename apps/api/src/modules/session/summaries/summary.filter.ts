@@ -1,5 +1,6 @@
 import {
   CallHandler,
+  ConflictException,
   ExecutionContext,
   ForbiddenException,
   Injectable,
@@ -9,7 +10,12 @@ import {
 } from '@nestjs/common';
 import { catchError, Observable, throwError } from 'rxjs';
 
-import { OnlyAuthorCanWriteSummary, SummarySessionIsArchived, UnknownReader } from './domain/summary';
+import {
+  OnlyAuthorCanWriteSummary,
+  SummaryAttachmentsLocked,
+  SummarySessionIsArchived,
+  UnknownReader,
+} from './domain/summary';
 
 @Injectable()
 export class SummaryFilter implements NestInterceptor {
@@ -34,6 +40,15 @@ export class SummaryFilter implements NestInterceptor {
             });
 
             return new ForbiddenException();
+          }
+
+          // the dossier got figé after the page loaded: the client reloads what it shows
+          if (err instanceof SummaryAttachmentsLocked) {
+            return new ConflictException({
+              validationErrors: [
+                `le dossier est figé : ses pièces jointes ne se renomment ni ne se retirent plus`,
+              ],
+            });
           }
 
           if (err instanceof SummarySessionIsArchived) {

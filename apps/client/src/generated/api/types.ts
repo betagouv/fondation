@@ -936,6 +936,10 @@ export type DetailedSummaryDto = {
         status: 'FINAL' | 'PENDING';
     } | null;
     summary: {
+        /**
+         * renaming or detaching the files, not adding some
+         */
+        canManageAttachments: boolean;
         canWrite: boolean;
         content: string;
         author: {
@@ -2258,6 +2262,10 @@ export type ListObservationsResponseDto = {
 export type GetObservationDetailsResponseDto = {
     id: string;
     canEdit: boolean;
+    /**
+     * renaming or detaching the files, not adding some
+     */
+    canManageAttachments: boolean;
     canComment: boolean;
     isArchived: boolean;
     receptionDate: {

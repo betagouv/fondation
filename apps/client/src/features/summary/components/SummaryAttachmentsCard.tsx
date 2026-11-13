@@ -81,7 +81,8 @@ function SummaryAttachmentInput() {
 }
 
 function SummaryAttachment({ attachment }: { attachment: SummaryAttachmentDto }) {
-  const { canWriteSummary, nominationFileId, sessionId } = useSummary();
+  const { nominationFileId, sessionId, summary } = useSummary();
+  const { canManageAttachments } = summary.summary;
   const { formatMessage } = useIntl();
   const notifyFailure = useAttachmentFailureToast();
 
@@ -134,10 +135,10 @@ function SummaryAttachment({ attachment }: { attachment: SummaryAttachmentDto })
       addedBy={attachment.addedBy}
       disabled={isOpening || isCreatingUrl || isDownloading || isDetaching}
       name={attachment.name}
-      onDelete={canWriteSummary ? onDelete : undefined}
+      onDelete={canManageAttachments ? onDelete : undefined}
       onDownload={onDownload}
       onOpen={onOpen}
-      onRename={canWriteSummary ? () => renaming.open(attachment) : undefined}
+      onRename={canManageAttachments ? () => renaming.open(attachment) : undefined}
       size={attachment.size}
     >
       {renaming.modal}

@@ -26,7 +26,7 @@ export function ObservationAttachmentsCard(props: {
   const { isPending, mutate } = useUpdateObservationMutation();
   const notifyFailure = useAttachmentFailureToast();
 
-  const { canEdit, files } = props.observation;
+  const { canEdit, canManageAttachments, files } = props.observation;
 
   // the update endpoint rewrites the whole form: omitting the description would erase it
   const update = (
@@ -95,10 +95,10 @@ export function ObservationAttachmentsCard(props: {
               disabled={isPending}
               key={file.id}
               name={file.name}
-              onDelete={canEdit ? () => onDelete(file.id) : undefined}
+              onDelete={canManageAttachments ? () => onDelete(file.id) : undefined}
               onDownload={() => props.onDownloadFile(file)}
               onOpen={() => props.onOpenFile(file)}
-              onRename={canEdit ? () => renaming.open(file) : undefined}
+              onRename={canManageAttachments ? () => renaming.open(file) : undefined}
               size={file.size}
             />
           ))}
