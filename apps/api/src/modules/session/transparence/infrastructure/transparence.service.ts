@@ -220,7 +220,7 @@ export class TransparenceService {
       .findSnapshots({ nominationFileIds: new Set(query.nominationFileIds), sessionId: query.sessionId })
       .then((files) =>
         files.map((file) => ({
-          allowsAudition: policies.canScheduleAudition(file, { archivedAt: null }),
+          allowsAudition: policies.canScheduleAudition(file, { isArchived: false }),
           isLocked: !!policies.nominationFileLock(file, { isArchived: false }),
         })),
       );

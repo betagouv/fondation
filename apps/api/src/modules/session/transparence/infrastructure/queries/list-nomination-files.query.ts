@@ -238,8 +238,7 @@ export class ListNominationFilesQuery {
         })
       : new Map<string, FileReporters>();
 
-    const sessionArchivedAt = query.session.archivedAt;
-    const isArchived = !!sessionArchivedAt;
+    const isArchived = !!query.session.archivedAt;
 
     const files = txFiles.map((file) => ({
       ...file,
@@ -265,9 +264,7 @@ export class ListNominationFilesQuery {
       return {
         ...audition,
         canRecuseMembers: nominationFilesPolicies.canUpdateNominationFile(x, query.user),
-        canScheduleAudition: nominationFilesPolicies.canScheduleAudition(x, {
-          archivedAt: sessionArchivedAt,
-        }),
+        canScheduleAudition: nominationFilesPolicies.canScheduleAudition(x, { isArchived }),
         comment: x.comment,
         content: {
           dateDeNaissance: DateOnly.fromOptionalUtcDate(x.birthDate)?.toJson() ?? null,

@@ -14,9 +14,9 @@ export function nominationFileLock(
 
 export function canScheduleAudition(
   file: { outcome: NominationFileOutcomeEnum | null },
-  session: { archivedAt: Date | null | undefined },
+  session: { isArchived: boolean },
 ): boolean {
-  return !session.archivedAt && NominationFileOutcome.allowsAudition(file.outcome);
+  return !session.isArchived && NominationFileOutcome.allowsAudition(file.outcome);
 }
 
 /** recusing members as adding, renaming or detaching attachments */

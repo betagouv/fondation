@@ -168,7 +168,7 @@ export class DetailSummaryQuery {
       ...audition,
       biography: nominationFile.biography ?? '',
       birthDate: DateOnly.fromOptionalUtcDate(nominationFile.birthDate)?.toJson() ?? null,
-      canScheduleAudition: canScheduleAudition(nominationFile, session),
+      canScheduleAudition: canScheduleAudition(nominationFile, { isArchived: !!session.archivedAt }),
       detectedMagistratId: nominationFile.detectedMagistratId,
       grade: isGrade(nominationFile.grade) ? nominationFile.grade : null,
       isArchived: !!session.archivedAt,

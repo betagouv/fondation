@@ -35,7 +35,7 @@ describe('nominationFileLock', () => {
 
 describe('canScheduleAudition', () => {
   describe('given a non-archived session', () => {
-    const session = { archivedAt: null };
+    const session = { isArchived: false };
 
     it('allows an audition when no outcome is defined yet', () => {
       expect(canScheduleAudition({ outcome: null }, session)).toBe(true);
@@ -57,7 +57,7 @@ describe('canScheduleAudition', () => {
   });
 
   describe('given an archived session', () => {
-    const session = { archivedAt: new Date() };
+    const session = { isArchived: true };
     it.each(NominationFileOutcome.enum)(`prevents to schedule an audition with outcome: %s`, (outcome) => {
       expect(canScheduleAudition({ outcome }, session)).toBe(false);
     });
