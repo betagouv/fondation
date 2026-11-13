@@ -6,7 +6,6 @@ import type {
 } from '@queries/veille-des-postes.queries';
 
 type StoryRow = { alerts: HolderAlert[]; status: { id: PositionStatus; label: string } };
-type StoryFacet<Row> = [asked: string[], valuesOf: (row: Row) => string[]];
 
 const STATUSES = [
   { id: 'OCCUPIED', label: 'Occupé' },
@@ -79,59 +78,30 @@ export function storyHolderOf(
   return { alerts, status: alerts.length > 0 ? STATUSES[1] : STATUSES[0] };
 }
 
-/** filters and counts the rows as the API does: each facet under the others, not under its own */
-export function storyFacets<Row extends StoryRow>(
-  rows: Row[],
-  params: URLSearchParams,
-  others: Record<string, StoryFacet<Row>> = {},
-) {
-  const deadlinesOf = (alert: HolderAlert) =>
-    DEADLINES_OF.get(alert) === 'WITHIN_SIX_MONTHS'
-      ? DEADLINES.map(({ id }) => id)
-      : ['WITHIN_TWELVE_MONTHS'];
-  const asked: Record<string, string[]> = {
-    alert: params.getAll('alerts'),
-    deadline: params.getAll('deadlines'),
-    status: params.getAll('statuses'),
-    ...Object.fromEntries(Object.entries(others).map(([key, [otherAsked]]) => [key, otherAsked])),
-  };
-  // the alert and its deadline go together, as in the API
-  const valuesOf = (ofAsked: Record<string, string[]>): Record<string, (row: Row) => string[]> => ({
-    alert: (row) =>
-      row.alerts
-        .filter(
-          (alert) =>
-            ofAsked.deadline!.length === 0 || deadlinesOf(alert).some((d) => ofAsked.deadline!.includes(d)),
-        )
-        .map(({ id }) => id),
-    deadline: (row) => [
-      ...new Set(
-        row.alerts
-          .filter((alert) => ofAsked.alert!.length === 0 || ofAsked.alert!.includes(alert.id))
-          .flatMap(deadlinesOf),
-      ),
-    ],
-    status: (row) => [row.status.id],
-    ...Object.fromEntries(Object.entries(others).map(([key, [, otherValuesOf]]) => [key, otherValuesOf])),
-  });
-  const matchesAll = (row: Row, values: Record<string, (row: Row) => string[]>, except?: string) =>
-    Object.keys(asked).every(
-      (key) =>
-        key === except || asked[key]!.length === 0 || values[key]!(row).some((v) => asked[key]!.includes(v)),
-    );
-  const count = (key: string, id: string) => {
-    const values = valuesOf({ ...asked, [key]: [] });
-    return rows.filter((row) => matchesAll(row, values, key) && values[key]!(row).includes(id)).length;
-  };
-  const values = valuesOf(asked);
+export function storyCountOf<Row>(rows: Row[], valuesOf: (row: Row) => string[], id: string): number {
+  return rows.filter((row) => valuesOf(row).includes(id)).length;
+}
 
+/** fixed counts over every row: the stories show the table, the API filters and counts */
+export function storyCounts<Row extends StoryRow>(rows: Row[]) {
   return {
-    count,
-    counts: {
-      alerts: ALERTS.map((alert) => ({ ...alert, count: count('alert', alert.id) })),
-      deadlines: DEADLINES.map((deadline) => ({ ...deadline, count: count('deadline', deadline.id) })),
-      statuses: STATUSES.map((status) => ({ ...status, count: count('status', status.id) })),
-    },
-    matching: rows.filter((row) => matchesAll(row, values)),
+    alerts: ALERTS.map((alert) => ({
+      ...alert,
+      count: storyCountOf(rows, (row) => row.alerts.map(({ id }) => id), alert.id),
+    })),
+    deadlines: DEADLINES.map((deadline) => ({
+      ...deadline,
+      count: storyCountOf(rows, (row) => row.alerts.flatMap(deadlinesOf), deadline.id),
+    })),
+    statuses: STATUSES.map((status) => ({
+      ...status,
+      count: storyCountOf(rows, (row) => [row.status.id], status.id),
+    })),
   };
+}
+
+function deadlinesOf(alert: HolderAlert): AlertDeadline[] {
+  return DEADLINES_OF.get(alert) === 'WITHIN_SIX_MONTHS'
+    ? DEADLINES.map(({ id }) => id)
+    : ['WITHIN_TWELVE_MONTHS'];
 }

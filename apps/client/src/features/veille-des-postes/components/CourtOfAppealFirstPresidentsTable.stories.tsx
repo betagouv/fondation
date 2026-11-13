@@ -7,7 +7,7 @@ import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
 import type { ListedCourtOfAppealFirstPresidentsDto } from '@api/types';
 
 import { CourtOfAppealFirstPresidentsTable } from './CourtOfAppealFirstPresidentsTable';
-import { storyFacets, storyHolderOf } from './veille-des-postes.story-fixtures';
+import { storyCounts, storyHolderOf } from './veille-des-postes.story-fixtures';
 
 type CourtOfAppeal = ListedCourtOfAppealFirstPresidentsDto['items'][number];
 
@@ -95,14 +95,14 @@ const courtsHandler = http.get('*/api/veille-des-postes/v1/cours-d-appel', ({ re
   const searched = COURTS_OF_APPEAL.filter(
     (court) => !search || `${court.court.label} ${court.magistrat?.name}`.toLowerCase().includes(search),
   );
-  const { counts, matching } = storyFacets(searched, params);
+  const counts = storyCounts(searched);
 
   return HttpResponse.json<ListedCourtOfAppealFirstPresidentsDto>({
     ...counts,
     currentPageIndex: page,
-    items: matching.slice((page - 1) * limit, page * limit),
-    nextPageIndex: page * limit < matching.length ? page + 1 : undefined,
-    totalCount: matching.length,
+    items: searched.slice((page - 1) * limit, page * limit),
+    nextPageIndex: page * limit < searched.length ? page + 1 : undefined,
+    totalCount: searched.length,
   });
 });
 
@@ -140,7 +140,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'Une ligne par cour d\'appel, par ordre alphabétique du ressort, avec son premier président. Une cour sans premier président est "Vacant". La recherche porte sur le ressort et sur le magistrat. Le filtre "Alerte / statut" donne le nombre de cours de chaque valeur. En défilant, l\'en-tête se colle en haut et le compteur des lignes vues apparaît à côté du titre, par pages de 20. Les desiderata et les candidats arriveront avec leurs tickets.',
+          'Une ligne par cour d\'appel, par ordre alphabétique du ressort, avec son premier président. Une cour sans premier président est "Vacant". La recherche porte sur le ressort et sur le magistrat. Le filtre "Alerte / statut" donne le nombre de cours de chaque valeur. La story ne filtre pas, c\'est l\'API qui le fait. En défilant, l\'en-tête se colle en haut et le compteur des lignes vues apparaît à côté du titre, par pages de 20. Les desiderata et les candidats arriveront avec leurs tickets.',
       },
     },
     layout: 'fullscreen',

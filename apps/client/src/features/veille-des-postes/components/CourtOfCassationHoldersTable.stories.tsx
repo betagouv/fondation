@@ -7,7 +7,7 @@ import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
 import type { ListedCourtOfCassationHoldersDto } from '@api/types';
 
 import { CourtOfCassationHoldersTable } from './CourtOfCassationHoldersTable';
-import { storyFacets, storyHolderOf } from './veille-des-postes.story-fixtures';
+import { storyCountOf, storyCounts, storyHolderOf } from './veille-des-postes.story-fixtures';
 
 type Holder = ListedCourtOfCassationHoldersDto['items'][number];
 
@@ -80,17 +80,18 @@ const holdersHandler = http.get('*/api/veille-des-postes/v1/cour-de-cassation', 
   const limit = Number(params.get('limit') ?? 20);
 
   const searched = HOLDERS.filter((h) => !search || h.magistrat.name.toLowerCase().includes(search));
-  const { count, counts, matching } = storyFacets(searched, params, {
-    position: [params.getAll('positions'), (h) => [h.position.id]],
-  });
+  const counts = storyCounts(searched);
 
   return HttpResponse.json<ListedCourtOfCassationHoldersDto>({
     ...counts,
     currentPageIndex: page,
-    items: matching.slice((page - 1) * limit, page * limit),
-    nextPageIndex: page * limit < matching.length ? page + 1 : undefined,
-    positions: POSITIONS.map((position) => ({ ...position, count: count('position', position.id) })),
-    totalCount: matching.length,
+    items: searched.slice((page - 1) * limit, page * limit),
+    nextPageIndex: page * limit < searched.length ? page + 1 : undefined,
+    positions: POSITIONS.map((position) => ({
+      ...position,
+      count: storyCountOf(searched, (h) => [h.position.id], position.id),
+    })),
+    totalCount: searched.length,
   });
 });
 
@@ -128,7 +129,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'Les magistrats du siège de la Cour de cassation, par poste dans l\'ordre de la hiérarchie puis par nom. Un trait bleu marque le passage à un autre poste. Les filtres "Poste" et "Alerte / statut" donnent le nombre de titulaires de chaque valeur. En défilant, l\'en-tête se colle en haut et le compteur des lignes vues apparaît à côté du titre, par pages de 20. Les desiderata et les candidats arriveront avec leurs tickets.',
+          'Les magistrats du siège de la Cour de cassation, par poste dans l\'ordre de la hiérarchie puis par nom. Un trait bleu marque le passage à un autre poste. Les filtres "Poste" et "Alerte / statut" donnent le nombre de titulaires de chaque valeur. La story ne filtre pas, c\'est l\'API qui le fait. En défilant, l\'en-tête se colle en haut et le compteur des lignes vues apparaît à côté du titre, par pages de 20. Les desiderata et les candidats arriveront avec leurs tickets.',
       },
     },
     layout: 'fullscreen',

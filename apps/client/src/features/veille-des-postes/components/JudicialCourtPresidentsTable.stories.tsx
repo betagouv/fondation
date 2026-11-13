@@ -7,7 +7,7 @@ import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
 import type { ListedJudicialCourtPresidentsDto } from '@api/types';
 
 import { JudicialCourtPresidentsTable } from './JudicialCourtPresidentsTable';
-import { storyFacets, storyHolderOf } from './veille-des-postes.story-fixtures';
+import { storyCountOf, storyCounts, storyHolderOf } from './veille-des-postes.story-fixtures';
 
 type JudicialCourt = ListedJudicialCourtPresidentsDto['items'][number];
 
@@ -120,21 +120,19 @@ const courtsHandler = http.get('*/api/veille-des-postes/v1/tribunaux-judiciaires
       !search ||
       `${court.ressort.label} ${court.court.label} ${court.magistrat?.name}`.toLowerCase().includes(search),
   );
-  const { count, counts, matching } = storyFacets(searched, params, {
-    ressort: [params.getAll('ressorts'), (court) => [court.ressort.id]],
-  });
+  const counts = storyCounts(searched);
 
   return HttpResponse.json<ListedJudicialCourtPresidentsDto>({
     ...counts,
     currentPageIndex: page,
-    items: matching.slice((page - 1) * limit, page * limit),
-    nextPageIndex: page * limit < matching.length ? page + 1 : undefined,
+    items: searched.slice((page - 1) * limit, page * limit),
+    nextPageIndex: page * limit < searched.length ? page + 1 : undefined,
     ressorts: RESSORTS.map(([label], index) => ({
-      count: count('ressort', `ressort-${index}`),
+      count: storyCountOf(searched, (court) => [court.ressort.id], `ressort-${index}`),
       id: `ressort-${index}`,
       label,
     })),
-    totalCount: matching.length,
+    totalCount: searched.length,
   });
 });
 
@@ -172,7 +170,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'Une ligne par tribunal judiciaire, par ressort puis par juridiction, avec son président. Un trait bleu marque le passage à un autre ressort. Un tribunal sans président est "Vacant". La recherche porte sur le ressort, la juridiction et le magistrat. Les filtres "Ressort" et "Alerte / statut" donnent le nombre de tribunaux de chaque valeur. En défilant, l\'en-tête se colle en haut et le compteur des lignes vues apparaît à côté du titre, par pages de 20. Les desiderata et les candidats arriveront avec leurs tickets.',
+          'Une ligne par tribunal judiciaire, par ressort puis par juridiction, avec son président. Un trait bleu marque le passage à un autre ressort. Un tribunal sans président est "Vacant". La recherche porte sur le ressort, la juridiction et le magistrat. Les filtres "Ressort" et "Alerte / statut" donnent le nombre de tribunaux de chaque valeur. La story ne filtre pas, c\'est l\'API qui le fait. En défilant, l\'en-tête se colle en haut et le compteur des lignes vues apparaît à côté du titre, par pages de 20. Les desiderata et les candidats arriveront avec leurs tickets.',
       },
     },
     layout: 'fullscreen',

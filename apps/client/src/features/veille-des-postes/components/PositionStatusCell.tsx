@@ -14,7 +14,7 @@ export function PositionStatusCell(props: {
   status: { id: PositionStatus; label: string };
 }) {
   return (
-    <span className="flex flex-col items-start gap-2">
+    <div className="flex flex-col items-start gap-2">
       <Badge noIcon severity={SEVERITIES[props.status.id]} small>
         {props.status.label}
       </Badge>
@@ -23,6 +23,6 @@ export function PositionStatusCell(props: {
           <span className="text-xs leading-5 text-(--text-mention-grey)">{alert.shortLabel}</span>
         </Tooltip>
       ))}
-    </span>
+    </div>
   );
 }
