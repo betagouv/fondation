@@ -11,25 +11,31 @@ on:
 
   workflow_call:
 
+# a new push to a pull request cancels the checks of the previous one
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  TZ: Etc/UTC
+  DATABASE_URL: postgresql://fondation:secret@localhost:5435/fondation
+  COOKIE_SECRET: 'secret-48b86b07-8668-4e1d-86b8-ee62e97fec7e'
+  ORIGIN_URL: http://localhost:3000
+  FRONTEND_ORIGIN_URL: http://localhost:5173
+  S3_ACCESS_KEY: fondation
+  S3_SECRET_KEY: fondation-secret
+  S3_BUCKET: sandbox-csm-fondation-reports-context
+  S3_REGION: eu-west-2
+  S3_FORCE_PATH_STYLE: 'true'
+  S3_ENDPOINT: http://localhost:9000
+  GOTENBERG_API_URL: http://gotenberg.example.com
+
 jobs:
-  build:
+  checks:
     if: github.actor != 'dependabot[bot]'
     timeout-minutes: 10
     runs-on: ubuntu-latest
-    env:
-      TZ: Etc/UTC
-      DATABASE_URL: postgresql://fondation:secret@localhost:5435/fondation
-      COOKIE_SECRET: 'secret-48b86b07-8668-4e1d-86b8-ee62e97fec7e'
-      ORIGIN_URL: http://localhost:3000
-      FRONTEND_ORIGIN_URL: http://localhost:5173
-      S3_ACCESS_KEY: fondation
-      S3_SECRET_KEY: fondation-secret
-      S3_BUCKET: sandbox-csm-fondation-reports-context
-      S3_REGION: eu-west-2
-      S3_FORCE_PATH_STYLE: 'true'
-      S3_ENDPOINT: http://localhost:9000
-      GOTENBERG_API_URL: http://gotenberg.example.com
-    services:
+    services: &services
       postgres:
         image: postgres:17.10@sha256:7958605b474b3d264a969cb3a123d6aa00ad1e1fe9da8a69984dabb704d93317
         env:
@@ -41,7 +47,6 @@ jobs:
         options: >-
           --health-cmd pg_isready --health-interval 10s --health-timeout 5s
           --health-retries 5
-
       minio:
         image: ghcr.io/betagouv/fondation-ci-minio:2025-11-11
         env:
@@ -55,28 +60,10 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
-        with:
-          version: 11.28.8
-          run_install: false
+      - uses: ./.github/setup
 
-      - name: Use Node.js
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
-        with:
-          node-version: '24.22.1'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile --ignore-scripts
-
-      - name: Build internal dependencies
-        run: pnpm --filter "./packages/*" build
-
-      - name: Migrate Prisma
-        run: pnpm --filter api exec prisma migrate deploy
-
-      - name: Generate prisma
-        run: pnpm --filter api exec prisma generate --generator client --sql --config prisma.config.ts
+      - name: Create buckets if necessary
+        run: node apps/api/scripts/init-buckets.js
 
       - name: Types check
         run: pnpm types:check
@@ -93,11 +80,51 @@ jobs:
       - name: Format
         run: pnpm format:check
 
+      - name: Test Api UNIT
+        run: pnpm --filter api test
+
+      - name: Build
+        run: pnpm build
+
+  # the API end-to-end files run one after the other: two machines take half of them each
+  api-e2e:
+    if: github.actor != 'dependabot[bot]'
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        shard: [1, 2]
+    services: *services
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/setup
+
       - name: Create buckets if necessary
         run: node apps/api/scripts/init-buckets.js
 
-      - name: Test Api UNIT
-        run: pnpm --filter api test
+      - name: Test API E2E
+        run: pnpm --filter api-e2e test --shard=${{ matrix.shard }}/2
+
+  # the end-to-end tests of the client start the API, hence the database and the storage
+  front:
+    if: github.actor != 'dependabot[bot]'
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    services: *services
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/setup
+
+      - name: Create buckets if necessary
+        run: node apps/api/scripts/init-buckets.js
 
       - name: Test Front UNIT
         run: pnpm --filter client test
@@ -105,14 +132,22 @@ jobs:
       - name: Test LOLFI generator
         run: pnpm --filter lolfi test
 
-      - name: Test API E2E
-        run: pnpm --filter api-e2e test
-
       - name: Install Playwright
         uses: ./.github/playwright
 
       - name: Test Client E2E
         run: pnpm --filter client test:e2e
 
-      - name: Build
-        run: pnpm build
+  # the check the protection of develop requires: a skipped job would count as passed, so it runs whatever
+  # the other jobs give and fails unless the three succeeded
+  build:
+    if: always() && github.actor != 'dependabot[bot]'
+    needs: [checks, api-e2e, front]
+    timeout-minutes: 1
+    runs-on: ubuntu-latest
+    steps:
+      - name: Every job succeeded
+        run: |
+          test "${{ needs.checks.result }}" = success
+          test "${{ needs.api-e2e.result }}" = success
+          test "${{ needs.front.result }}" = success
