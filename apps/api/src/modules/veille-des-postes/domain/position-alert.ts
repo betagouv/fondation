@@ -2,6 +2,8 @@ import { addMonths, format } from 'date-fns';
 
 import { DateOnly } from '../../../utils/date-only';
 
+import type { CourtOfCassationPosition } from './court-of-cassation-position';
+
 export const POSITION_ALERTS = ['RETIREMENT', 'SEVEN_YEARS_ON_POSITION', 'PROPOSED_IN_SESSION'] as const;
 export type PositionAlert = (typeof POSITION_ALERTS)[number];
 
@@ -19,11 +21,29 @@ const DEADLINE_LABELS: Record<AlertDeadline, string> = {
 };
 
 /** art. 76 of the ordonnance n° 58-1270: 68 for the first president of the Cour de cassation only */
-export const RETIREMENT_AGE = 67;
-export const COURT_OF_CASSATION_FIRST_PRESIDENT_RETIREMENT_AGE = 68;
+const RETIREMENT_AGE = 67;
+const COURT_OF_CASSATION_FIRST_PRESIDENT_RETIREMENT_AGE = 68;
 const RETIREMENT_NOTICE_MONTHS = 12;
 const YEARS_BEFORE_A_MOVE = 7;
 const MOVE_NOTICE_MONTHS = 6;
+
+export type WatchedPosition =
+  | 'COURT_OF_APPEAL_FIRST_PRESIDENT'
+  | 'JUDICIAL_COURT_PRESIDENT'
+  | CourtOfCassationPosition;
+export type AlertRules = { movesAfterSevenYears: boolean; retirementAge: number };
+
+/** only the presidents of a court of appeal or of a judicial court must move after seven years */
+export function alertRulesOf(position: WatchedPosition): AlertRules {
+  if (position === 'COURT_OF_APPEAL_FIRST_PRESIDENT' || position === 'JUDICIAL_COURT_PRESIDENT') {
+    return { movesAfterSevenYears: true, retirementAge: RETIREMENT_AGE };
+  }
+  return {
+    movesAfterSevenYears: false,
+    retirementAge:
+      position === 'FIRST_PRESIDENT' ? COURT_OF_CASSATION_FIRST_PRESIDENT_RETIREMENT_AGE : RETIREMENT_AGE,
+  };
+}
 
 export type HolderProposal = { sessionDate: DateOnly; sessionName: string; targetedPosition: string | null };
 export type HolderFacts = {
@@ -43,11 +63,7 @@ export type HolderAlert = {
 };
 
 /** the most urgent first: the sort by alert reads the first one */
-export function alertsOf(
-  holder: HolderFacts,
-  rules: { movesAfterSevenYears: boolean; retirementAge: number },
-  today: DateOnly,
-): HolderAlert[] {
+export function alertsOf(holder: HolderFacts, rules: AlertRules, today: DateOnly): HolderAlert[] {
   const alerts: Omit<HolderAlert, 'deadline'>[] = [];
 
   if (holder.birthDate) {

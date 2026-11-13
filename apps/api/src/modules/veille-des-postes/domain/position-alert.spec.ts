@@ -1,6 +1,6 @@
 import { DateOnly } from '../../../utils/date-only';
 
-import { alertsOf, deadlinesOf } from './position-alert';
+import { alertRulesOf, alertsOf, deadlinesOf } from './position-alert';
 
 const TODAY = new DateOnly(2026, 11, 13);
 const PRESIDENT = { movesAfterSevenYears: true, retirementAge: 67 };
@@ -122,5 +122,16 @@ describe('deadlinesOf', () => {
     expect(deadlinesOf([soon!])).toEqual(['WITHIN_SIX_MONTHS', 'WITHIN_TWELVE_MONTHS']);
     expect(deadlinesOf([later!])).toEqual(['WITHIN_TWELVE_MONTHS']);
     expect(deadlinesOf([])).toEqual([]);
+  });
+});
+
+describe('alertRulesOf', () => {
+  it.each([
+    ['COURT_OF_APPEAL_FIRST_PRESIDENT', { movesAfterSevenYears: true, retirementAge: 67 }],
+    ['JUDICIAL_COURT_PRESIDENT', { movesAfterSevenYears: true, retirementAge: 67 }],
+    ['FIRST_PRESIDENT', { movesAfterSevenYears: false, retirementAge: 68 }],
+    ['COUNSELLOR', { movesAfterSevenYears: false, retirementAge: 67 }],
+  ] as const)('gives the %s position its rules', (position, rules) => {
+    expect(alertRulesOf(position)).toEqual(rules);
   });
 });

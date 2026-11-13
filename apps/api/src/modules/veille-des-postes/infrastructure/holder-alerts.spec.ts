@@ -2,7 +2,7 @@ import { DateOnly } from '../../../utils/date-only';
 import { alertsOf, type HolderFacts } from '../domain/position-alert';
 
 import { facetedRows } from './faceted-rows';
-import { sortedByAlert, statusAndAlertValues } from './holder-alerts';
+import { statusAndAlertValues } from './holder-alerts';
 
 const TODAY = new DateOnly(2026, 11, 13);
 const PRESIDENT = { movesAfterSevenYears: true, retirementAge: 67 };
@@ -34,22 +34,5 @@ describe('statusAndAlertValues', () => {
     expect(matching.map(({ name }) => name)).toEqual(['retirement in three months']);
     expect(counts.alert.get('PROPOSED_IN_SESSION')).toBe(1);
     expect(counts.deadline.get('WITHIN_TWELVE_MONTHS')).toBe(2);
-  });
-});
-
-describe('sortedByAlert', () => {
-  it('sorts by the earliest alert, the rows without one last in both directions', () => {
-    const rows = [WITHOUT_ALERT, SOON_RETIREMENT, IN_TEN_MONTHS_RETIREMENT];
-
-    expect(sortedByAlert(rows, false).map(({ name }) => name)).toEqual([
-      'retirement in ten months, proposal next month',
-      'retirement in three months',
-      'without alert',
-    ]);
-    expect(sortedByAlert(rows, true).map(({ name }) => name)).toEqual([
-      'retirement in three months',
-      'retirement in ten months, proposal next month',
-      'without alert',
-    ]);
   });
 });

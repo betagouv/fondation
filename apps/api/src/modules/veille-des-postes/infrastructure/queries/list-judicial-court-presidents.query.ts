@@ -10,13 +10,9 @@ import { createPaginatedZodDto, pageOf, paginate, Pagination } from '../../../fr
 import { Sortable } from '../../../framework/sorting';
 import { magistratFullName } from '../../../magistrat/domain/magistrat-name';
 import { JUDICIAL_COURT_TYPE_ID, PRESIDENT_FUNCTION_ID } from '../../domain/judicial-court-president';
-import {
-  type AlertDeadline,
-  alertsOf,
-  type PositionAlert,
-  RETIREMENT_AGE,
-} from '../../domain/position-alert';
+import { type AlertDeadline, alertRulesOf, alertsOf, type PositionAlert } from '../../domain/position-alert';
 import { POSITION_STATUSES, type PositionStatus, positionStatusOf } from '../../domain/position-status';
+import { sortedByUrgency } from '../../domain/position-urgency';
 import type { ListJudicialCourtPresidentsDto } from '../dtos/veille-des-postes.dto';
 import { facetedRows } from '../faceted-rows';
 import { HolderProposalsFinder } from '../finders/holder-proposals.finder';
@@ -24,7 +20,6 @@ import {
   alertJson,
   countedStatusAndAlertFacets,
   holderAlertSchema,
-  sortedByAlert,
   statusAndAlertFacetsSchema,
   statusAndAlertValues,
 } from '../holder-alerts';
@@ -71,7 +66,7 @@ export class ListJudicialCourtPresidentsQuery {
               installationDate,
               proposal: proposals.get(court.id) ?? null,
             },
-            { movesAfterSevenYears: true, retirementAge: RETIREMENT_AGE },
+            alertRulesOf('JUDICIAL_COURT_PRESIDENT'),
             today,
           )
         : [];
@@ -91,8 +86,14 @@ export class ListJudicialCourtPresidentsQuery {
       (asked) => ({ ...statusAndAlertValues(asked), ressort: (row) => [row.ressort.id] }),
     );
     const sorted =
-      query.sorting.sortBy === 'status' ? sortedByAlert(matching, query.sorting.sortDesc) : matching;
-    // every ressort stays listed, even without a court matching the search
+      query.sorting.sortBy === 'status'
+        ? sortedByUrgency(
+            matching,
+            { alert: query.alerts, deadline: query.deadlines },
+            query.sorting.sortDesc,
+          )
+        : matching;
+    // every ressort stays listed, even without a court matching the search, in the order of their codes
     const ressorts = new Map(courts.map((court) => [court.ressortId, court.ressortLabel ?? court.ressortId]));
 
     return {
@@ -102,7 +103,9 @@ export class ListJudicialCourtPresidentsQuery {
         totalCount: matching.length,
       }),
       ...countedStatusAndAlertFacets(counts),
-      ressorts: [...ressorts].map(([id, label]) => ({ count: counts.ressort.get(id) ?? 0, id, label })),
+      ressorts: [...ressorts]
+        .toSorted(([a], [b]) => a.localeCompare(b))
+        .map(([id, label]) => ({ count: counts.ressort.get(id) ?? 0, id, label })),
     };
   }
 }

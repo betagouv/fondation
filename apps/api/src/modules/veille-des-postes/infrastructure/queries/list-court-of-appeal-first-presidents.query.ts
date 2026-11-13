@@ -13,13 +13,9 @@ import {
   COURT_OF_APPEAL_TYPE_ID,
   FIRST_PRESIDENT_FUNCTION_ID,
 } from '../../domain/court-of-appeal-first-president';
-import {
-  type AlertDeadline,
-  alertsOf,
-  type PositionAlert,
-  RETIREMENT_AGE,
-} from '../../domain/position-alert';
+import { type AlertDeadline, alertRulesOf, alertsOf, type PositionAlert } from '../../domain/position-alert';
 import { POSITION_STATUSES, type PositionStatus, positionStatusOf } from '../../domain/position-status';
+import { sortedByUrgency } from '../../domain/position-urgency';
 import type { ListCourtOfAppealFirstPresidentsDto } from '../dtos/veille-des-postes.dto';
 import { facetedRows } from '../faceted-rows';
 import { HolderProposalsFinder } from '../finders/holder-proposals.finder';
@@ -27,7 +23,6 @@ import {
   alertJson,
   countedStatusAndAlertFacets,
   holderAlertSchema,
-  sortedByAlert,
   statusAndAlertFacetsSchema,
   statusAndAlertValues,
 } from '../holder-alerts';
@@ -72,7 +67,7 @@ export class ListCourtOfAppealFirstPresidentsQuery {
               installationDate,
               proposal: proposals.get(court.id) ?? null,
             },
-            { movesAfterSevenYears: true, retirementAge: RETIREMENT_AGE },
+            alertRulesOf('COURT_OF_APPEAL_FIRST_PRESIDENT'),
             today,
           )
         : [];
@@ -91,7 +86,13 @@ export class ListCourtOfAppealFirstPresidentsQuery {
       statusAndAlertValues,
     );
     const sorted =
-      query.sorting.sortBy === 'status' ? sortedByAlert(matching, query.sorting.sortDesc) : matching;
+      query.sorting.sortBy === 'status'
+        ? sortedByUrgency(
+            matching,
+            { alert: query.alerts, deadline: query.deadlines },
+            query.sorting.sortDesc,
+          )
+        : matching;
 
     return {
       ...paginate({

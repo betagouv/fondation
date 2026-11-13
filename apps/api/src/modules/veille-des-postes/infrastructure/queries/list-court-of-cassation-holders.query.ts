@@ -19,14 +19,9 @@ import {
   holderServiceOf,
   rankedLolfiPositions,
 } from '../../domain/court-of-cassation-position';
-import {
-  type AlertDeadline,
-  alertsOf,
-  COURT_OF_CASSATION_FIRST_PRESIDENT_RETIREMENT_AGE,
-  type PositionAlert,
-  RETIREMENT_AGE,
-} from '../../domain/position-alert';
+import { type AlertDeadline, alertRulesOf, alertsOf, type PositionAlert } from '../../domain/position-alert';
 import { POSITION_STATUSES, type PositionStatus, positionStatusOf } from '../../domain/position-status';
+import { sortedByUrgency } from '../../domain/position-urgency';
 import type { ListCourtOfCassationHoldersDto } from '../dtos/veille-des-postes.dto';
 import { facetedRows } from '../faceted-rows';
 import { HolderProposalsFinder } from '../finders/holder-proposals.finder';
@@ -34,7 +29,6 @@ import {
   alertJson,
   countedStatusAndAlertFacets,
   holderAlertSchema,
-  sortedByAlert,
   statusAndAlertFacetsSchema,
   statusAndAlertValues,
 } from '../holder-alerts';
@@ -82,13 +76,7 @@ export class ListCourtOfCassationHoldersQuery {
           installationDate,
           proposal: proposals.get(holder.id) ?? null,
         },
-        {
-          movesAfterSevenYears: false,
-          retirementAge:
-            position.id === 'FIRST_PRESIDENT'
-              ? COURT_OF_CASSATION_FIRST_PRESIDENT_RETIREMENT_AGE
-              : RETIREMENT_AGE,
-        },
+        alertRulesOf(position.id),
         today,
       );
       return {
@@ -107,7 +95,13 @@ export class ListCourtOfCassationHoldersQuery {
       (asked) => ({ ...statusAndAlertValues(asked), position: (row) => [row.position.id] }),
     );
     const sorted =
-      query.sorting.sortBy === 'status' ? sortedByAlert(matching, query.sorting.sortDesc) : matching;
+      query.sorting.sortBy === 'status'
+        ? sortedByUrgency(
+            matching,
+            { alert: query.alerts, deadline: query.deadlines },
+            query.sorting.sortDesc,
+          )
+        : matching;
 
     return {
       ...paginate({
