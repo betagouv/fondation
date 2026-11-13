@@ -2,7 +2,6 @@ import { createColumnHelper, getCoreRowModel, useReactTable } from '@tanstack/re
 import { useCallback, useMemo, useState, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { useIntl } from 'react-intl';
-import { generatePath, Link } from 'react-router';
 
 import { KNOWN_STATUSES, knownValues } from '../utils/known-values.utils';
 import { useRowRevealedOnReturn } from '@/shared/hooks/useRowRevealedOnReturn';
@@ -15,7 +14,6 @@ import {
 } from '@/shared/ui/data-table';
 import { SearchInput } from '@/shared/ui/search-input';
 import { formatDateOnly } from '@/utils/date-only.util';
-import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
   type CourtOfAppealFirstPresident,
   type CourtOfAppealFirstPresidentsSorting,
@@ -26,6 +24,7 @@ import {
   useCourtOfAppealFirstPresidentsQuery,
 } from '@queries/veille-des-postes.queries';
 
+import { MagistratLink } from './MagistratLink';
 import { PositionStatusBadge } from './PositionStatusBadge';
 
 const SORTABLE_COLUMNS = new Set<string>([
@@ -76,18 +75,7 @@ function useCourtOfAppealFirstPresidentsColumns(props: {
         cell: ({ getValue }) => {
           const magistrat = getValue();
           if (!magistrat) return '-';
-          return (
-            // a flex item turns into a block, which draws the DSFR underline under its last line only
-            <span className="leading-6">
-              <Link
-                className="fr-link fr-link--sm box-decoration-clone"
-                onClick={(event) => onMagistratOpened(event, magistrat.id)}
-                to={generatePath(ROUTE_PATHS.SG.MAGISTRAT_DETAILS, { magistratId: magistrat.id })}
-              >
-                {magistrat.name}
-              </Link>
-            </span>
-          );
+          return <MagistratLink magistrat={magistrat} onClick={onMagistratOpened} />;
         },
         header: formatMessage({ defaultMessage: 'Magistrat' }),
         id: 'name',

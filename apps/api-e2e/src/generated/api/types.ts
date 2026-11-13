@@ -2862,6 +2862,50 @@ export type ListedCourtOfCassationHoldersDto = {
     }>;
 };
 
+export type ListedJudicialCourtPresidentsDto = {
+    items: Array<{
+        court: {
+            id: string;
+            label: string;
+        };
+        installationDate: {
+            year: number;
+            month: number;
+            day: number;
+        } | null;
+        magistrat: {
+            id: string;
+            name: string;
+        } | null;
+        ressort: {
+            id: string;
+            label: string;
+        };
+        status: {
+            id: 'OCCUPIED' | 'MAY_BECOME_VACANT' | 'VACANT';
+            label: string;
+        };
+    }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
+    links?: {
+        next?: string;
+        previous?: string;
+    };
+    ressorts: Array<{
+        count: number;
+        id: string;
+        label: string;
+    }>;
+    statuses: Array<{
+        count: number;
+        id: 'OCCUPIED' | 'MAY_BECOME_VACANT' | 'VACANT';
+        label: string;
+    }>;
+};
+
 export type GetFileByFileUrlData = {
     body?: never;
     headers?: {
@@ -5995,3 +6039,27 @@ export type ListCourtOfCassationHoldersResponses = {
 };
 
 export type ListCourtOfCassationHoldersResponse = ListCourtOfCassationHoldersResponses[keyof ListCourtOfCassationHoldersResponses];
+
+export type ListJudicialCourtPresidentsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        ressorts?: Array<string>;
+        search?: string;
+        sortBy?: 'court' | 'installationDate' | 'name' | 'ressort';
+        statuses?: Array<'OCCUPIED' | 'MAY_BECOME_VACANT' | 'VACANT'>;
+        /**
+         * true
+         */
+        sortDesc?: string | boolean;
+        page?: number;
+        limit?: number;
+    };
+    url: '/api/veille-des-postes/v1/tribunaux-judiciaires';
+};
+
+export type ListJudicialCourtPresidentsResponses = {
+    200: ListedJudicialCourtPresidentsDto;
+};
+
+export type ListJudicialCourtPresidentsResponse = ListJudicialCourtPresidentsResponses[keyof ListJudicialCourtPresidentsResponses];

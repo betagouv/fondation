@@ -8,6 +8,7 @@ import type { PositionStatus } from './domain/position-status';
 import type {
   ListCourtOfAppealFirstPresidentsDto,
   ListCourtOfCassationHoldersDto,
+  ListJudicialCourtPresidentsDto,
 } from './infrastructure/dtos/veille-des-postes.dto';
 import {
   ListCourtOfAppealFirstPresidentsQuery,
@@ -17,12 +18,17 @@ import {
   ListCourtOfCassationHoldersQuery,
   ListedCourtOfCassationHoldersDto,
 } from './infrastructure/queries/list-court-of-cassation-holders.query';
+import {
+  ListedJudicialCourtPresidentsDto,
+  ListJudicialCourtPresidentsQuery,
+} from './infrastructure/queries/list-judicial-court-presidents.query';
 
 @Injectable()
 export class VeilleDesPostesService {
   constructor(
     private readonly listCourtOfAppealFirstPresidentsQuery: ListCourtOfAppealFirstPresidentsQuery,
     private readonly listCourtOfCassationHoldersQuery: ListCourtOfCassationHoldersQuery,
+    private readonly listJudicialCourtPresidentsQuery: ListJudicialCourtPresidentsQuery,
   ) {}
 
   listCourtOfAppealFirstPresidents(query: {
@@ -42,5 +48,15 @@ export class VeilleDesPostesService {
     statuses: readonly PositionStatus[];
   }): Promise<ListedCourtOfCassationHoldersDto> {
     return this.listCourtOfCassationHoldersQuery.handle(query);
+  }
+
+  listJudicialCourtPresidents(query: {
+    pagination: Pagination;
+    ressorts: readonly string[];
+    search: string | undefined;
+    sorting: Sortable<ListJudicialCourtPresidentsDto>;
+    statuses: readonly PositionStatus[];
+  }): Promise<ListedJudicialCourtPresidentsDto> {
+    return this.listJudicialCourtPresidentsQuery.handle(query);
   }
 }

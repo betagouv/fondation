@@ -10,6 +10,7 @@ import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
   useCourtOfAppealFirstPresidentsCountQuery,
   useCourtOfCassationHoldersCountQuery,
+  useJudicialCourtPresidentsCountQuery,
 } from '@queries/veille-des-postes.queries';
 
 import type { VeilleDesPostesOutletContext } from './veille-des-postes-outlet-context.type';
@@ -22,6 +23,7 @@ export function VeilleDesPostesPage() {
   const { pathname } = useLocation();
   const courtOfAppealFirstPresidents = useCourtOfAppealFirstPresidentsCountQuery();
   const courtOfCassationHolders = useCourtOfCassationHoldersCountQuery();
+  const judicialCourtPresidents = useJudicialCourtPresidentsCountQuery();
 
   const tabs = [
     {
@@ -30,6 +32,7 @@ export function VeilleDesPostesPage() {
       to: ROUTE_PATHS.SG.CSM.VEILLE_DES_POSTES_COURTS_OF_APPEAL,
     },
     {
+      count: judicialCourtPresidents,
       label: formatMessage({ defaultMessage: 'Présidents de tribunaux judiciaires' }),
       to: ROUTE_PATHS.SG.CSM.VEILLE_DES_POSTES_JUDICIAL_COURTS,
     },

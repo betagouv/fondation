@@ -15,6 +15,18 @@ export class ListCourtOfAppealFirstPresidentsDto extends createSortableDto(
   }),
 ) {}
 
+export class ListJudicialCourtPresidentsDto extends createSortableDto(
+  z.object({
+    ressorts: z.preprocess((x) => (x ? ([] as unknown[]).concat(x) : x), z.array(z.string()).optional()),
+    search: z.string().optional(),
+    sortBy: z.enum(['court', 'installationDate', 'name', 'ressort']).optional(),
+    statuses: z.preprocess(
+      (x) => (x ? ([] as unknown[]).concat(x) : x),
+      z.array(z.enum(POSITION_STATUSES)).optional(),
+    ),
+  }),
+) {}
+
 export class ListCourtOfCassationHoldersDto extends createSortableDto(
   z.object({
     positions: z.preprocess(

@@ -76,7 +76,7 @@ L'accueil propose les deux pouvoirs de proposition. Le menu garde partout Recher
 | `/secretariat-general`                                                                           | Accueil : choix du pouvoir de proposition                          | —      | ✓                   | ✓              |
 | `/secretariat-general/csm/veille-des-postes`                                                     | Veille des postes : les trois tableaux de postes                   | —      | ✓                   | ✓              |
 | `/secretariat-general/csm/veille-des-postes/cours-d-appel`                                       | Veille des postes, premiers présidents de cour d'appel             | —      | ✓                   | ✓              |
-| `/secretariat-general/csm/veille-des-postes/tribunaux-judiciaires`                               | Veille des postes, présidents de tribunaux judiciaires (à venir)   | —      | ✓                   | ✓              |
+| `/secretariat-general/csm/veille-des-postes/tribunaux-judiciaires`                               | Veille des postes, présidents de tribunaux judiciaires             | —      | ✓                   | ✓              |
 | `/secretariat-general/csm/veille-des-postes/cour-de-cassation`                                   | Veille des postes, magistrats du siège de la Cour de cassation     | —      | ✓                   | ✓              |
 | `/secretariat-general/csm/appels-a-candidature`                                                  | Appels à candidature (à venir)                                     | —      | ✓                   | ✓              |
 | `/secretariat-general/csm/processus-de-selection`                                                | Processus de sélection (à venir)                                   | —      | ✓                   | ✓              |
@@ -303,10 +303,11 @@ Dans les dossiers d'un magistrat, un Membre ne voit que l'affectation et les aud
 
 ### Veille des postes
 
-| Action                                                 | Endpoint                                      | Membre | Secrétariat général | Administrateur |
-| ------------------------------------------------------ | --------------------------------------------- | ------ | ------------------- | -------------- |
-| Lister les cours d'appel et leur premier président     | `GET /veille-des-postes/v1/cours-d-appel`     | —      | ✓                   | ✓              |
-| Lister les magistrats du siège de la Cour de cassation | `GET /veille-des-postes/v1/cour-de-cassation` | —      | ✓                   | ✓              |
+| Action                                                 | Endpoint                                          | Membre | Secrétariat général | Administrateur |
+| ------------------------------------------------------ | ------------------------------------------------- | ------ | ------------------- | -------------- |
+| Lister les cours d'appel et leur premier président     | `GET /veille-des-postes/v1/cours-d-appel`         | —      | ✓                   | ✓              |
+| Lister les magistrats du siège de la Cour de cassation | `GET /veille-des-postes/v1/cour-de-cassation`     | —      | ✓                   | ✓              |
+| Lister les tribunaux judiciaires et leur président     | `GET /veille-des-postes/v1/tribunaux-judiciaires` | —      | ✓                   | ✓              |
 
 ### Documents de séance : préparation
 
