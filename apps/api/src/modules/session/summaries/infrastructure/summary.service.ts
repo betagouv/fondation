@@ -60,6 +60,19 @@ export class SummaryService {
     await this.summaryRepository.persist(summary);
   }
 
+  @Transactional()
+  async renameFile(command: {
+    fileId: string;
+    name: string;
+    nominationFileId: string;
+    sessionId: string;
+    user: { id: string; role: RoleEnum };
+  }): Promise<void> {
+    const summary = await this.summaryRepository.find(command);
+    summary.renameFile(command);
+    await this.summaryRepository.persist(summary);
+  }
+
   async includeFilesIntoContent(command: {
     files: readonly { id: string; name: string }[];
     nominationFileId: string;

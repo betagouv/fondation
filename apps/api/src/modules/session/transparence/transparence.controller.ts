@@ -20,7 +20,13 @@ import { ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { DateOnly } from '../../../utils/date-only';
-import { FILE_EXTENSIONS, FILE_MIME_TYPES, Multipart, UseMultipartBody } from '../../framework/files';
+import {
+  FILE_EXTENSIONS,
+  FILE_MIME_TYPES,
+  Multipart,
+  RenameAttachmentDto,
+  UseMultipartBody,
+} from '../../framework/files';
 import { ApiPaginated, Pagination, QueryPagination } from '../../framework/pagination';
 import type { RoleEnum } from '../../shared/role.enum';
 import { AuthedUser, AuthedUserId, HasRole } from '../../simple-auth';
@@ -600,6 +606,18 @@ export class SessionController {
     });
   }
 
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Patch('/:sessionId/attachments/:fileId')
+  @UsePipes(ZodValidationPipe)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async renameSessionAttachment(
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('fileId', ParseUUIDPipe) fileId: string,
+    @Body() { name }: RenameAttachmentDto,
+  ): Promise<void> {
+    await this.sessions.renameNominationSessionAttachment({ fileId, name, sessionId });
+  }
+
   @HasRole()
   @Get('/:sessionId/attachments')
   @ZodResponse({
@@ -658,6 +676,19 @@ export class SessionController {
     @Param('fileId') fileId: string,
   ) {
     await this.sessions.removeNominationFileAttachment({ fileId, nominationFileId, sessionId });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Patch('/:sessionId/files/:nominationFileId/attachments/:fileId')
+  @UsePipes(ZodValidationPipe)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async renameNominationFileAttachment(
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
+    @Param('fileId', ParseUUIDPipe) fileId: string,
+    @Body() { name }: RenameAttachmentDto,
+  ): Promise<void> {
+    await this.sessions.renameNominationFileAttachment({ fileId, name, nominationFileId, sessionId });
   }
 
   @HasRole()

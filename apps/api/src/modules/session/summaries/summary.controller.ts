@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   Put,
   Query,
@@ -16,7 +17,7 @@ import {
 import { ApiParam, ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
-import { FILE_EXTENSIONS, Multipart, UseMultipartBody } from '../../framework/files';
+import { FILE_EXTENSIONS, Multipart, RenameAttachmentDto, UseMultipartBody } from '../../framework/files';
 import type { RoleEnum } from '../../shared/role.enum';
 import { AuthedUser, HasRole } from '../../simple-auth';
 
@@ -86,6 +87,20 @@ export class SummaryController {
       nominationFileId,
       sessionId,
     });
+  }
+
+  @Patch('/attachments/:fileId')
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UsePipes(ZodValidationPipe)
+  async renameSummaryAttachment(
+    @AuthedUser() user: { id: string; role: RoleEnum },
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
+    @Param('fileId', ParseUUIDPipe) fileId: string,
+    @Body() { name }: RenameAttachmentDto,
+  ): Promise<void> {
+    await this.summaries.renameFile({ fileId, name, nominationFileId, sessionId, user });
   }
 
   @Post('/screenshots')

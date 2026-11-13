@@ -604,6 +604,13 @@ export type UploadSessionAttachmentsDto = {
     files?: Array<Blob | File>;
 };
 
+export type RenameAttachmentDto = {
+    /**
+     * the new name, without extension: the file keeps the one it was added with
+     */
+    name: string;
+};
+
 export type ListedNominationSessionAttachmentDto = {
     items: Array<{
         name: string;
@@ -3891,6 +3898,22 @@ export type CreateNominationSessionAttachmentUrlResponses = {
 
 export type CreateNominationSessionAttachmentUrlResponse = CreateNominationSessionAttachmentUrlResponses[keyof CreateNominationSessionAttachmentUrlResponses];
 
+export type RenameSessionAttachmentData = {
+    body: RenameAttachmentDto;
+    path: {
+        sessionId: string;
+        fileId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/attachments/{fileId}';
+};
+
+export type RenameSessionAttachmentResponses = {
+    204: void;
+};
+
+export type RenameSessionAttachmentResponse = RenameSessionAttachmentResponses[keyof RenameSessionAttachmentResponses];
+
 export type ListNominationSessionAttachmentsData = {
     body?: never;
     path: {
@@ -3971,6 +3994,23 @@ export type CreateNominationFileAttachmentUrlResponses = {
 };
 
 export type CreateNominationFileAttachmentUrlResponse = CreateNominationFileAttachmentUrlResponses[keyof CreateNominationFileAttachmentUrlResponses];
+
+export type RenameNominationFileAttachmentData = {
+    body: RenameAttachmentDto;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+        fileId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/attachments/{fileId}';
+};
+
+export type RenameNominationFileAttachmentResponses = {
+    204: void;
+};
+
+export type RenameNominationFileAttachmentResponse = RenameNominationFileAttachmentResponses[keyof RenameNominationFileAttachmentResponses];
 
 export type DetailNominationFileData = {
     body?: never;
@@ -4114,6 +4154,23 @@ export type AttachSummaryFilesResponses = {
 };
 
 export type AttachSummaryFilesResponse = AttachSummaryFilesResponses[keyof AttachSummaryFilesResponses];
+
+export type RenameSummaryAttachmentData = {
+    body: RenameAttachmentDto;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+        fileId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/summary/attachments/{fileId}';
+};
+
+export type RenameSummaryAttachmentResponses = {
+    204: void;
+};
+
+export type RenameSummaryAttachmentResponse = RenameSummaryAttachmentResponses[keyof RenameSummaryAttachmentResponses];
 
 export type IncludeFilesInContentData = {
     body: IncludeFilesInSummaryContentDto;
@@ -5458,6 +5515,24 @@ export type GetObservationFileUrlResponses = {
 };
 
 export type GetObservationFileUrlResponse = GetObservationFileUrlResponses[keyof GetObservationFileUrlResponses];
+
+export type RenameObservationFileData = {
+    body: RenameAttachmentDto;
+    path: {
+        sessionId: string;
+        nominationFileId: string;
+        observationId: string;
+        fileId: string;
+    };
+    query?: never;
+    url: '/api/sessions/v2/{sessionId}/files/{nominationFileId}/observations/{observationId}/files/{fileId}';
+};
+
+export type RenameObservationFileResponses = {
+    204: void;
+};
+
+export type RenameObservationFileResponse = RenameObservationFileResponses[keyof RenameObservationFileResponses];
 
 export type AttachMemberCommentScreenshotsData = {
     body: AttachMemberCommentScreenshotsDto;

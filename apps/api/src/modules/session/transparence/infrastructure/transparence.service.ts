@@ -598,6 +598,18 @@ export class TransparenceService {
   }
 
   @Transactional()
+  async renameNominationSessionAttachment(command: {
+    fileId: string;
+    name: string;
+    sessionId: string;
+  }): Promise<void> {
+    const session = await this.nominationSessionRepository.find(command.sessionId);
+
+    session.renameAttachment(command);
+    await this.nominationSessionRepository.persist(session);
+  }
+
+  @Transactional()
   async addNominationFileAttachments(command: {
     files: { id: string }[];
     nominationFileId: string;
@@ -626,6 +638,21 @@ export class TransparenceService {
       fileId: command.fileId,
       nominationFileId: command.nominationFileId,
     });
+    await this.nominationSessionRepository.persist(session);
+  }
+
+  @Transactional()
+  async renameNominationFileAttachment(command: {
+    fileId: string;
+    name: string;
+    nominationFileId: string;
+    sessionId: string;
+  }): Promise<void> {
+    const session = await this.nominationSessionRepository.find(command.sessionId, {
+      nominationFileIds: new Set([command.nominationFileId]),
+    });
+
+    session.renameNominationFileAttachment(command);
     await this.nominationSessionRepository.persist(session);
   }
 

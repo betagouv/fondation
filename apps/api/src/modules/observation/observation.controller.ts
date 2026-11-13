@@ -17,7 +17,7 @@ import { ApiParam, ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { DateOnly } from '../../utils/date-only';
-import { FILE_EXTENSIONS, UseMultipartBody, type Multipart } from '../framework/files';
+import { FILE_EXTENSIONS, RenameAttachmentDto, UseMultipartBody, type Multipart } from '../framework/files';
 import { MEMBER_ROLES, type RoleEnum } from '../shared/role.enum';
 import { AuthedUser, AuthedUserId, HasRole } from '../simple-auth';
 
@@ -184,6 +184,26 @@ export class ObservationController {
       observationId,
       sessionId,
       userId: user.id,
+    });
+  }
+
+  @Patch('/:observationId/files/:fileId')
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @UsePipes(ZodValidationPipe)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async renameObservationFile(
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
+    @Param('observationId', ParseUUIDPipe) observationId: string,
+    @Param('fileId', ParseUUIDPipe) fileId: string,
+    @Body() { name }: RenameAttachmentDto,
+  ): Promise<void> {
+    await this.observations.renameObservationFile({
+      fileId,
+      name,
+      nominationFileId,
+      observationId,
+      sessionId,
     });
   }
 

@@ -212,6 +212,19 @@ export class ObservationService {
     await this.observationRepository.persist(observation);
   }
 
+  @Transactional()
+  async renameObservationFile(command: {
+    fileId: string;
+    name: string;
+    nominationFileId: string;
+    observationId: string;
+    sessionId: string;
+  }): Promise<void> {
+    const observation = await this.observationRepository.findById(command);
+    observation.renameFile(command);
+    await this.observationRepository.persist(observation);
+  }
+
   /** @internal */
   internalFindNominationFilesObservations(query: {
     nominationFileIds: ReadonlySet<string>;

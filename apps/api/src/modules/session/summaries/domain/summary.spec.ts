@@ -1,4 +1,6 @@
 import {
+  OnlyAuthorCanWriteSummary,
+  RenamedSummaryFile,
   Summary,
   SummaryCreated,
   SummarySessionIsArchived,
@@ -62,6 +64,39 @@ describe('Summary', () => {
       expect(() =>
         summary().updateReadersList({ availableUserIds: new Set(), readerIds: ['another-deactivated'] }),
       ).toThrow(UnknownReader);
+    });
+  });
+
+  describe('renaming an attachment', () => {
+    const writtenBy = (authorId: string | null) =>
+      Summary.from({
+        authorId,
+        id: 'file-1',
+        readerIds: [],
+        sessionId: 'session-1',
+        sessionIsArchived: false,
+      });
+
+    it('should let its author rename an attachment', () => {
+      const summary = writtenBy('author');
+
+      summary.renameFile({
+        fileId: 'f-1',
+        name: 'Avis',
+        user: { id: 'author', role: 'ADJOINT_SECRETAIRE_GENERAL' },
+      });
+
+      expect(summary.messages).toEqual([new RenamedSummaryFile(summary.id, 'f-1', 'Avis')]);
+    });
+
+    it('should refuse another member of the secretariat once someone wrote it', () => {
+      expect(() =>
+        writtenBy('author').renameFile({
+          fileId: 'f-1',
+          name: 'Avis',
+          user: { id: 'colleague', role: 'ADJOINT_SECRETAIRE_GENERAL' },
+        }),
+      ).toThrow(OnlyAuthorCanWriteSummary);
     });
   });
 

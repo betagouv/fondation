@@ -361,6 +361,64 @@ test.describe('Session E2E', () => {
       expect(updatedFile?.hasJurisdictionSheet).toBe(false);
     });
 
+    test('should rename a session attachment, keeping its extension, behind a new link', async ({
+      agent,
+      expect,
+      sessions,
+    }) => {
+      const { id: sessionId } = await sessions.createOne(TREVOUX_SESSION);
+      await agent.sessions.uploadSessionAttachments({
+        body: { files: [makeFile({ name: 'scan_0042.pdf', type: 'application/pdf' })] },
+        path: { sessionId },
+        throwOnError: true,
+      });
+      const { data: before } = await agent.sessions.listNominationSessionAttachments({
+        path: { sessionId },
+        throwOnError: true,
+      });
+      const path = { fileId: before.items[0]!.id, sessionId };
+      const { data: formerLink } = await agent.sessions.createNominationSessionAttachmentUrl({
+        path,
+        throwOnError: true,
+      });
+
+      const renamed = await agent.sessions.renameSessionAttachment({ body: { name: 'Circulaire' }, path });
+
+      expect(renamed.response?.status).toBe(204);
+      const { data: after } = await agent.sessions.listNominationSessionAttachments({
+        path: { sessionId },
+        throwOnError: true,
+      });
+      expect(after.items.map(({ name }) => name)).toEqual(['Circulaire.pdf']);
+      // the browser caches the file under the link it opened, with its former name
+      const { data: link } = await agent.sessions.createNominationSessionAttachmentUrl({ path, throwOnError: true });
+      expect(link.url).not.toBe(formerLink.url);
+    });
+
+    test('should rename an attachment of a nomination file', async ({ agent, expect, sessions }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+      const listed = await agent.sessions.listNominationFiles({ path: { sessionId: session.id } });
+      const path = { nominationFileId: listed.data!.items[0]!.id, sessionId: session.id };
+      await agent.sessions.uploadNominationFileAttachments({
+        body: {
+          files: [makeFile({ name: 'scan_0042.pdf', type: 'application/pdf' })],
+          form: attachmentForm({ type: 'FICHE_DE_JURIDICTION' }),
+        },
+        path,
+        throwOnError: true,
+      });
+      const { data: before } = await agent.sessions.listNominationFileAttachments({ path, throwOnError: true });
+
+      const renamed = await agent.sessions.renameNominationFileAttachment({
+        body: { name: 'Fiche de juridiction' },
+        path: { ...path, fileId: before.items[0]!.id },
+      });
+
+      expect(renamed.response?.status).toBe(204);
+      const { data: after } = await agent.sessions.listNominationFileAttachments({ path, throwOnError: true });
+      expect(after.items.map(({ name }) => name)).toEqual(['Fiche de juridiction.pdf']);
+    });
+
     test('should refuse a session attachment heavier than fifty mebibytes', async ({ agent, expect, sessions }) => {
       const { id: sessionId } = await sessions.createOne(TREVOUX_SESSION);
       const heavy = new File([new Uint8Array(50 * 1_024 * 1_024 + 1)], 'circulaire.docx', {

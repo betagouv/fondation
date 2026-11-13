@@ -100,6 +100,54 @@ test.describe('Observation', () => {
     expect(taken.response?.status).toBe(409);
   });
 
+  test('should rename a file of an observation and leave its copy linked to another one as it is', async ({
+    agent,
+    expect,
+    sessions,
+  }) => {
+    const session = await sessions.createOne(SESSION);
+    const observant = session.files[0]!.magistratId;
+    // an observant's letter is linked from their observation on one file to the one on another
+    const [originalPath, linkingPath] = session.files.map(({ id }) => ({
+      nominationFileId: id,
+      sessionId: session.id,
+    }));
+
+    const { data: original } = await agent.observations.createObservation({
+      body: {
+        files: [pdf('scan_0042.pdf')],
+        form: observationForm({ dateReception: '2026-05-02', magistratId: observant }),
+      },
+      path: originalPath!,
+      throwOnError: true,
+    });
+    const filesOf = async (path: { nominationFileId: string; sessionId: string }) => {
+      const { data } = await agent.observations.listObservations({ path, throwOnError: true });
+      return data.observations.flatMap(({ files }) => files);
+    };
+    const [originalFile] = await filesOf(originalPath!);
+    await agent.observations.createObservation({
+      body: {
+        form: observationForm({
+          dateReception: '2026-05-02',
+          linkedObservationsAttachments: [{ fileId: originalFile!.id, observationId: original.id }],
+          magistratId: observant,
+        }),
+      },
+      path: linkingPath!,
+      throwOnError: true,
+    });
+
+    const renamed = await agent.observations.renameObservationFile({
+      body: { name: 'Courrier du chef de cour' },
+      path: { ...originalPath!, fileId: originalFile!.id, observationId: original.id },
+    });
+
+    expect(renamed.response?.status).toBe(204);
+    expect((await filesOf(originalPath!)).map(({ name }) => name)).toEqual(['Courrier du chef de cour.pdf']);
+    expect((await filesOf(linkingPath!)).map(({ name }) => name)).toEqual(['scan_0042.pdf']);
+  });
+
   test('should detach a file from an observation without touching the files of another one', async ({
     agent,
     expect,

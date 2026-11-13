@@ -91,6 +91,15 @@ export class ObservationFilesDetached {
   ) {}
 }
 
+// a file linked from another observation is a copy of its own: renaming one leaves the other as it is
+export class ObservationFileRenamed {
+  constructor(
+    readonly observationId: string,
+    readonly fileId: string,
+    readonly name: string,
+  ) {}
+}
+
 export class ObservationMemberCommentWritten {
   constructor(
     readonly observationId: string,
@@ -121,6 +130,7 @@ type ObservationEvent =
   | ObservationDeleted
   | ObservationUpdated
   | ObservationFilesDetached
+  | ObservationFileRenamed
   | ObservationMemberCommentWritten
   | ObservationMemberCommentScreenshotsAttached
   | ObservationFollowedUp
@@ -247,6 +257,10 @@ export class Observation {
     if (command.fileIds.length === 0) return;
 
     this.#messages.push(new ObservationFilesDetached(this.id, command.fileIds));
+  }
+
+  renameFile(command: { fileId: string; name: string }): void {
+    this.#messages.push(new ObservationFileRenamed(this.id, command.fileId, command.name));
   }
 
   // a reporter of the file comments the observation for themselves; the secretariat général edits the observation itself

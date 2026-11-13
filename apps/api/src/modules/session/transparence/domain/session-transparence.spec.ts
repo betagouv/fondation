@@ -1230,6 +1230,31 @@ describe('SessionTransparence', () => {
     ).toThrow(CantUpdateNominationFiles);
   });
 
+  it('should throw when renaming an attachment on a file already presented', () => {
+    const session = SessionTransparence.from({
+      formation: 'SIEGE',
+      id: 'session-id',
+      nominationFiles: [
+        {
+          auditionRequired: false,
+          id: 'nomination-file-id-1',
+          isReported: true,
+          outcome: 'VALIDATED',
+          positionRequiresAudition: false,
+        },
+      ],
+      version: null,
+    });
+
+    expect(() =>
+      session.renameNominationFileAttachment({
+        fileId: 'file-1',
+        name: 'Avis',
+        nominationFileId: 'nomination-file-id-1',
+      }),
+    ).toThrow(CantUpdateNominationFiles);
+  });
+
   it('should throw when attaching to a nomination file that does not belong to the session', () => {
     const session = SessionTransparence.from({
       formation: 'SIEGE',

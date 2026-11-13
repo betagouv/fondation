@@ -30,6 +30,14 @@ export class DetachedFilesFromSummary {
   ) {}
 }
 
+export class RenamedSummaryFile {
+  constructor(
+    readonly id: Id<'SummaryId'>,
+    readonly fileId: string,
+    readonly name: string,
+  ) {}
+}
+
 export class IncludedFilesInSummaryContent {
   constructor(
     readonly id: Id<'SummaryId'>,
@@ -56,6 +64,7 @@ type SummaryMessage =
   | SummaryCreated
   | AttachedFilesToSummary
   | DetachedFilesFromSummary
+  | RenamedSummaryFile
   | IncludedFilesInSummaryContent
   | SummaryContentWritten
   | UpdatedSummaryReaderList;
@@ -113,6 +122,14 @@ export class Summary {
     if (command.fileIds.length === 0) return;
 
     this.#messages.push(new DetachedFilesFromSummary(this.id, command.fileIds));
+  }
+
+  renameFile(command: { fileId: string; name: string; user: { id: string; role: RoleEnum } }): void {
+    if (!canWriteSummary(this, command.user)) {
+      throw new OnlyAuthorCanWriteSummary(this.id, this.authorId, command.user.id);
+    }
+
+    this.#messages.push(new RenamedSummaryFile(this.id, command.fileId, command.name));
   }
 
   includeFilesIntoContent(command: { fileIds: readonly string[] }): void {
