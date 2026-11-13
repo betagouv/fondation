@@ -5,8 +5,6 @@
 -- @param {String} $5:search?
 -- @param {String} $6:sortBy?
 -- @param {Boolean} $7:sortDesc
--- @param {Int} $8:offset
--- @param {Int} $9:limit
 
 -- an empty grade stands for any grade: TypedSQL types the list without null
 WITH ranked_position AS (
@@ -19,6 +17,7 @@ WITH ranked_position AS (
 
 SELECT
   m.id,
+  m.birth_date AS "birthDate",
   m.first_name AS "firstName",
   m.installation_date AS "installationDate",
   m.last_name AS "lastName",
@@ -45,6 +44,4 @@ ORDER BY
   CASE WHEN $6::TEXT = 'name' AND $7::BOOLEAN THEN m.first_name END DESC,
   m.last_name ASC,
   m.first_name ASC,
-  m.id ASC
-
-LIMIT $9::INT OFFSET $8::INT;
+  m.id ASC;

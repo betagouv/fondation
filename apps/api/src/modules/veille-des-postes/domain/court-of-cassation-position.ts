@@ -45,14 +45,12 @@ export function courtOfCassationPositions(): { id: CourtOfCassationPosition; lab
   return COURT_OF_CASSATION_POSITIONS.map((id) => ({ id, label: LABELS[id] }));
 }
 
-/** the LOLFI positions of the positions asked, all of them when none is, ranked by the hierarchy, as parallel lists for SQL */
-export function rankedLolfiPositions(positions: readonly CourtOfCassationPosition[]): RankedLolfiPositions {
+/** the LOLFI positions ranked by the hierarchy, as parallel lists for SQL */
+export function rankedLolfiPositions(): RankedLolfiPositions {
   const rows = COURT_OF_CASSATION_POSITIONS.flatMap((position, rank) =>
-    positions.length === 0 || positions.includes(position)
-      ? LOLFI_POSITIONS[position].functionIds.flatMap((functionId) =>
-          (LOLFI_POSITIONS[position].gradeIds ?? [null]).map((gradeId) => ({ functionId, gradeId, rank })),
-        )
-      : [],
+    LOLFI_POSITIONS[position].functionIds.flatMap((functionId) =>
+      (LOLFI_POSITIONS[position].gradeIds ?? [null]).map((gradeId) => ({ functionId, gradeId, rank })),
+    ),
   );
 
   return {

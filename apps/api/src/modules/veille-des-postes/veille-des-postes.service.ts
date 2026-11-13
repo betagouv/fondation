@@ -4,6 +4,7 @@ import { Pagination } from '../framework/pagination';
 import { Sortable } from '../framework/sorting';
 
 import type { CourtOfCassationPosition } from './domain/court-of-cassation-position';
+import type { AlertDeadline, PositionAlert } from './domain/position-alert';
 import type { PositionStatus } from './domain/position-status';
 import type {
   ListCourtOfAppealFirstPresidentsDto,
@@ -23,6 +24,14 @@ import {
   ListJudicialCourtPresidentsQuery,
 } from './infrastructure/queries/list-judicial-court-presidents.query';
 
+type StatusAndAlertFilters = {
+  alerts: readonly PositionAlert[];
+  deadlines: readonly AlertDeadline[];
+  pagination: Pagination;
+  search: string | undefined;
+  statuses: readonly PositionStatus[];
+};
+
 @Injectable()
 export class VeilleDesPostesService {
   constructor(
@@ -31,32 +40,27 @@ export class VeilleDesPostesService {
     private readonly listJudicialCourtPresidentsQuery: ListJudicialCourtPresidentsQuery,
   ) {}
 
-  listCourtOfAppealFirstPresidents(query: {
-    pagination: Pagination;
-    search: string | undefined;
-    sorting: Sortable<ListCourtOfAppealFirstPresidentsDto>;
-    statuses: readonly PositionStatus[];
-  }): Promise<ListedCourtOfAppealFirstPresidentsDto> {
+  listCourtOfAppealFirstPresidents(
+    query: StatusAndAlertFilters & { sorting: Sortable<ListCourtOfAppealFirstPresidentsDto> },
+  ): Promise<ListedCourtOfAppealFirstPresidentsDto> {
     return this.listCourtOfAppealFirstPresidentsQuery.handle(query);
   }
 
-  listCourtOfCassationHolders(query: {
-    pagination: Pagination;
-    positions: readonly CourtOfCassationPosition[];
-    search: string | undefined;
-    sorting: Sortable<ListCourtOfCassationHoldersDto>;
-    statuses: readonly PositionStatus[];
-  }): Promise<ListedCourtOfCassationHoldersDto> {
+  listCourtOfCassationHolders(
+    query: StatusAndAlertFilters & {
+      positions: readonly CourtOfCassationPosition[];
+      sorting: Sortable<ListCourtOfCassationHoldersDto>;
+    },
+  ): Promise<ListedCourtOfCassationHoldersDto> {
     return this.listCourtOfCassationHoldersQuery.handle(query);
   }
 
-  listJudicialCourtPresidents(query: {
-    pagination: Pagination;
-    ressorts: readonly string[];
-    search: string | undefined;
-    sorting: Sortable<ListJudicialCourtPresidentsDto>;
-    statuses: readonly PositionStatus[];
-  }): Promise<ListedJudicialCourtPresidentsDto> {
+  listJudicialCourtPresidents(
+    query: StatusAndAlertFilters & {
+      ressorts: readonly string[];
+      sorting: Sortable<ListJudicialCourtPresidentsDto>;
+    },
+  ): Promise<ListedJudicialCourtPresidentsDto> {
     return this.listJudicialCourtPresidentsQuery.handle(query);
   }
 }
