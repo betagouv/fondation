@@ -83,6 +83,11 @@ export function createPaginatedZodDto(schema: z.ZodObject, extension?: z.ZodObje
   );
 }
 
+/** the rows of the page asked, for a list read whole */
+export function pageOf<T>(rows: readonly T[], pagination: Pagination): T[] {
+  return rows.slice((pagination.page - 1) * pagination.limit, pagination.page * pagination.limit);
+}
+
 export function paginate<T>(input: {
   items: readonly T[];
   totalCount: number;

@@ -2,41 +2,39 @@ import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import z from 'zod';
 
-import {
-  countJudicialCourtPresidentsRawQuery,
-  listJudicialCourtPresidentsRawQuery,
-} from '../../../../generated/prisma/sql';
+import { listJudicialCourtPresidentsRawQuery } from '../../../../generated/prisma/sql';
 import { DateOnly, dateOnlyJsonSchema } from '../../../../utils/date-only';
 import { toMagistratFullTextQuery } from '../../../../utils/fulltext-search';
 import { Db } from '../../../framework/database';
-import { createPaginatedZodDto, paginate, Pagination } from '../../../framework/pagination';
+import { createPaginatedZodDto, pageOf, paginate, Pagination } from '../../../framework/pagination';
 import { Sortable } from '../../../framework/sorting';
 import { magistratFullName } from '../../../magistrat/domain/magistrat-name';
 import { JUDICIAL_COURT_TYPE_ID, PRESIDENT_FUNCTION_ID } from '../../domain/judicial-court-president';
-import {
-  HELD_POSITION_STATUS,
-  heldPositionMatches,
-  POSITION_STATUSES,
-  type PositionStatus,
-  positionStatuses,
-  positionStatusOf,
-  UNHELD_POSITION_STATUS,
-  unheldPositionMatches,
-} from '../../domain/position-status';
+import { type AlertDeadline, alertRulesOf, alertsOf, type PositionAlert } from '../../domain/position-alert';
+import { POSITION_STATUSES, type PositionStatus, positionStatusOf } from '../../domain/position-status';
+import { sortedByUrgency } from '../../domain/position-urgency';
 import type { ListJudicialCourtPresidentsDto } from '../dtos/veille-des-postes.dto';
-
-type JudicialCourtsCount = countJudicialCourtPresidentsRawQuery.Result;
-
-function seatsOf(counts: readonly JudicialCourtsCount[]): number {
-  return counts.reduce((sum, count) => sum + Number(count.seats ?? 0), 0);
-}
+import { facetedRows } from '../faceted-rows';
+import { HolderProposalsFinder } from '../finders/holder-proposals.finder';
+import {
+  alertJson,
+  countedStatusAndAlertFacets,
+  holderAlertSchema,
+  statusAndAlertFacetsSchema,
+  statusAndAlertValues,
+} from '../holder-alerts';
 
 @Injectable()
 export class ListJudicialCourtPresidentsQuery {
-  constructor(private readonly db: Db) {}
+  constructor(
+    private readonly db: Db,
+    private readonly proposals: HolderProposalsFinder,
+  ) {}
 
   @Transactional()
   async handle(query: {
+    alerts: readonly PositionAlert[];
+    deadlines: readonly AlertDeadline[];
     pagination: Pagination;
     ressorts: readonly string[];
     search: string | undefined;
@@ -44,80 +42,84 @@ export class ListJudicialCourtPresidentsQuery {
     statuses: readonly PositionStatus[];
   }): Promise<ListedJudicialCourtPresidentsDto> {
     const search = query.search?.trim() ? toMagistratFullTextQuery(query.search) : null;
-    const held = heldPositionMatches(query.statuses);
-    const unheld = unheldPositionMatches(query.statuses);
-    const { limit, page } = query.pagination;
-
-    const counts = await this.db.tx.$queryRawTyped(
-      countJudicialCourtPresidentsRawQuery(JUDICIAL_COURT_TYPE_ID, PRESIDENT_FUNCTION_ID, search),
+    const courts = await this.db.tx.$queryRawTyped(
+      listJudicialCourtPresidentsRawQuery(
+        JUDICIAL_COURT_TYPE_ID,
+        PRESIDENT_FUNCTION_ID,
+        search,
+        query.sorting.sortBy ?? null,
+        query.sorting.sortDesc,
+      ),
     );
-    // each filter counts its values under the other filters, not under its own
-    const inAskedRessorts = (count: JudicialCourtsCount) =>
-      query.ressorts.length === 0 || query.ressorts.includes(count.ressortId);
-    const ofAskedStatuses = (count: JudicialCourtsCount) => (count.held ? held : unheld);
-    const totalCount = seatsOf(counts.filter((count) => inAskedRessorts(count) && ofAskedStatuses(count)));
+    const searched = courts.filter(({ matchesSearch }) => matchesSearch);
+    const proposals = await this.proposals.byHolders({
+      magistratIds: searched.flatMap(({ id }) => (id ? [id] : [])),
+    });
+    const today = DateOnly.fromInstantInParis(new Date());
 
-    const courts =
-      totalCount > 0
-        ? await this.db.tx.$queryRawTyped(
-            listJudicialCourtPresidentsRawQuery(
-              JUDICIAL_COURT_TYPE_ID,
-              PRESIDENT_FUNCTION_ID,
-              search,
-              held,
-              unheld,
-              query.sorting.sortBy ?? null,
-              query.sorting.sortDesc,
-              (page - 1) * limit,
-              limit,
-              [...query.ressorts],
-            ),
+    const rows = searched.map((court) => {
+      const installationDate = DateOnly.fromOptionalUtcDate(court.installationDate);
+      const alerts = court.id
+        ? alertsOf(
+            {
+              birthDate: DateOnly.fromOptionalUtcDate(court.birthDate),
+              installationDate,
+              proposal: proposals.get(court.id) ?? null,
+            },
+            alertRulesOf('JUDICIAL_COURT_PRESIDENT'),
+            today,
           )
         : [];
+      return {
+        alerts,
+        court: { id: court.courtId, label: court.courtLabel ?? court.courtId },
+        installationDate: installationDate?.toJson() ?? null,
+        magistrat: court.id ? { id: court.id, name: magistratFullName(court) } : null,
+        ressort: { id: court.ressortId, label: court.ressortLabel ?? court.ressortId },
+        status: positionStatusOf({ alertCount: alerts.length, held: !!court.id }),
+      };
+    });
+
+    const { counts, matching } = facetedRows(
+      rows,
+      { alert: query.alerts, deadline: query.deadlines, ressort: query.ressorts, status: query.statuses },
+      (asked) => ({ ...statusAndAlertValues(asked), ressort: (row) => [row.ressort.id] }),
+    );
+    const sorted =
+      query.sorting.sortBy === 'status'
+        ? sortedByUrgency(
+            matching,
+            { alert: query.alerts, deadline: query.deadlines },
+            query.sorting.sortDesc,
+          )
+        : matching;
+    // every ressort stays listed, even without a court matching the search, in the order of their codes
+    const ressorts = new Map(courts.map((court) => [court.ressortId, court.ressortLabel ?? court.ressortId]));
 
     return {
       ...paginate({
-        items: courts.map((court) => ({
-          court: { id: court.courtId, label: court.courtLabel ?? court.courtId },
-          installationDate: court.installationDate
-            ? DateOnly.fromUtcDate(court.installationDate).toJson()
-            : null,
-          magistrat: court.id ? { id: court.id, name: magistratFullName(court) } : null,
-          ressort: { id: court.ressortId, label: court.ressortLabel ?? court.ressortId },
-          status: positionStatusOf(court.id ? HELD_POSITION_STATUS : UNHELD_POSITION_STATUS),
-        })),
+        items: pageOf(sorted, query.pagination).map((row) => ({ ...row, alerts: row.alerts.map(alertJson) })),
         pagination: query.pagination,
-        totalCount,
+        totalCount: matching.length,
       }),
-      ressorts: [...Map.groupBy(counts, (count) => count.ressortId).values()].map((ofRessort) => ({
-        count: seatsOf(ofRessort.filter(ofAskedStatuses)),
-        id: ofRessort[0]!.ressortId,
-        label: ofRessort[0]!.ressortLabel ?? ofRessort[0]!.ressortId,
-      })),
-      statuses: positionStatuses().map((status) => ({
-        ...status,
-        count: seatsOf(
-          counts.filter(
-            (count) =>
-              inAskedRessorts(count) &&
-              status.id === (count.held ? HELD_POSITION_STATUS : UNHELD_POSITION_STATUS),
-          ),
-        ),
-      })),
+      ...countedStatusAndAlertFacets(counts),
+      ressorts: [...ressorts]
+        .toSorted(([a], [b]) => a.localeCompare(b))
+        .map(([id, label]) => ({ count: counts.ressort.get(id) ?? 0, id, label })),
     };
   }
 }
 
 export class ListedJudicialCourtPresidentsDto extends createPaginatedZodDto(
   z.object({
+    alerts: z.array(holderAlertSchema),
     court: z.object({ id: z.string(), label: z.string() }),
     installationDate: dateOnlyJsonSchema.nullable(),
     magistrat: z.object({ id: z.string(), name: z.string() }).nullable(),
     ressort: z.object({ id: z.string(), label: z.string() }),
     status: z.object({ id: z.enum(POSITION_STATUSES), label: z.string() }),
   }),
-  z.object({
+  statusAndAlertFacetsSchema.extend({
     ressorts: z.array(z.object({ count: z.number(), id: z.string(), label: z.string() })),
-    statuses: z.array(z.object({ count: z.number(), id: z.enum(POSITION_STATUSES), label: z.string() })),
   }),
 ) {}

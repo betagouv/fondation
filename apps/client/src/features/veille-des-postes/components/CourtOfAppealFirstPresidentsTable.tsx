@@ -3,7 +3,12 @@ import { useCallback, useMemo, useState, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { useIntl } from 'react-intl';
 
-import { KNOWN_STATUSES, knownValues } from '../utils/known-values.utils';
+import { KNOWN_ALERTS, KNOWN_DEADLINES, KNOWN_STATUSES, knownValues } from '../utils/known-values.utils';
+import {
+  NO_STATUS_AND_ALERT_COUNTS,
+  type StatusAndAlertCounts,
+  statusAndAlertFilters,
+} from '../utils/status-and-alert-filters.utils';
 import { useRowRevealedOnReturn } from '@/shared/hooks/useRowRevealedOnReturn';
 import {
   DataTable,
@@ -15,34 +20,34 @@ import {
 import { SearchInput } from '@/shared/ui/search-input';
 import { formatDateOnly } from '@/utils/date-only.util';
 import {
+  type AlertDeadline,
   type CourtOfAppealFirstPresident,
   type CourtOfAppealFirstPresidentsSorting,
+  type PositionAlert,
   type PositionStatus,
-  type PositionStatusCount,
   COURT_OF_APPEAL_FIRST_PRESIDENTS_DEFAULT_SORTING,
   COURT_OF_APPEAL_FIRST_PRESIDENTS_PAGE_SIZE,
   useCourtOfAppealFirstPresidentsQuery,
 } from '@queries/veille-des-postes.queries';
 
 import { MagistratLink } from './MagistratLink';
-import { PositionStatusBadge } from './PositionStatusBadge';
+import { PositionStatusCell } from './PositionStatusCell';
 
 const SORTABLE_COLUMNS = new Set<string>([
   'court',
   'installationDate',
   'name',
+  'status',
 ] satisfies CourtOfAppealFirstPresidentsSorting[number]['id'][]);
-
-const NO_STATUSES: PositionStatusCount[] = [];
 
 const h = createColumnHelper<CourtOfAppealFirstPresident>();
 
 function useCourtOfAppealFirstPresidentsColumns(props: {
   onMagistratOpened: (event: MouseEvent, magistratId: string) => void;
-  statuses: PositionStatusCount[];
+  statusAndAlertCounts: StatusAndAlertCounts;
 }) {
   const { formatMessage } = useIntl();
-  const { onMagistratOpened, statuses } = props;
+  const { onMagistratOpened, statusAndAlertCounts } = props;
 
   return useMemo(
     () => [
@@ -54,22 +59,12 @@ function useCourtOfAppealFirstPresidentsColumns(props: {
         sortDescFirst: false,
       }),
       h.accessor('status', {
-        cell: ({ getValue }) => <PositionStatusBadge status={getValue()} />,
-        enableSorting: false,
+        cell: ({ getValue, row }) => <PositionStatusCell alerts={row.original.alerts} status={getValue()} />,
         header: formatMessage({ defaultMessage: 'Alerte / statut' }),
         id: 'status',
-        meta: {
-          filters: {
-            filterId: 'status',
-            label: formatMessage({ defaultMessage: 'Alerte / statut' }),
-            type: 'enum',
-            values: statuses.map(({ count, id, label }) => ({
-              id,
-              label: formatMessage({ defaultMessage: '{label} ({count})' }, { count, label }),
-            })),
-          },
-        },
+        meta: { filters: statusAndAlertFilters(formatMessage, statusAndAlertCounts) },
         size: 240,
+        sortDescFirst: false,
       }),
       h.accessor('magistrat', {
         cell: ({ getValue }) => {
@@ -105,7 +100,7 @@ function useCourtOfAppealFirstPresidentsColumns(props: {
         size: 160,
       }),
     ],
-    [formatMessage, onMagistratOpened, statuses],
+    [formatMessage, onMagistratOpened, statusAndAlertCounts],
   );
 }
 
@@ -127,7 +122,11 @@ export function CourtOfAppealFirstPresidentsTable(props: {
   const { remember, revealedRowId } = useRowRevealedOnReturn();
 
   const { onColumnFiltersChange, onSortingChange, setTableState, tableState } = useDataTableUrlState({
-    columnFilters: [] as { id: 'status'; value: PositionStatus[] }[],
+    columnFilters: [] as (
+      | { id: 'alert'; value: PositionAlert[] }
+      | { id: 'deadline'; value: AlertDeadline[] }
+      | { id: 'status'; value: PositionStatus[] }
+    )[],
     globalFilter: '',
     sorting: COURT_OF_APPEAL_FIRST_PRESIDENTS_DEFAULT_SORTING,
   });
@@ -141,6 +140,14 @@ export function CourtOfAppealFirstPresidentsTable(props: {
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
     useCourtOfAppealFirstPresidentsQuery({
+      alerts: knownValues(
+        tableState.columnFilters.find((filter) => filter.id === 'alert')?.value,
+        KNOWN_ALERTS,
+      ),
+      deadlines: knownValues(
+        tableState.columnFilters.find((filter) => filter.id === 'deadline')?.value,
+        KNOWN_DEADLINES,
+      ),
       search: tableState.globalFilter,
       sorting,
       statuses: knownValues(
@@ -157,10 +164,17 @@ export function CourtOfAppealFirstPresidentsTable(props: {
     if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
+  const statusAndAlertCounts = useMemo(
+    () =>
+      data
+        ? { alerts: data.alerts, deadlines: data.deadlines, statuses: data.statuses }
+        : NO_STATUS_AND_ALERT_COUNTS,
+    [data],
+  );
   const table = useReactTable({
     columns: useCourtOfAppealFirstPresidentsColumns({
       onMagistratOpened: remember,
-      statuses: data?.statuses ?? NO_STATUSES,
+      statusAndAlertCounts,
     }),
     data: useMemo(() => data?.items ?? [], [data]),
     enableSortingRemoval: false,

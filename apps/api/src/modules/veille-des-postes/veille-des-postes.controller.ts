@@ -30,6 +30,8 @@ export class VeilleDesPostesController {
     @QueryPagination({ defaultLimit: 20 }) pagination: Pagination,
   ): Promise<ListedCourtOfAppealFirstPresidentsDto> {
     return this.veilleDesPostes.listCourtOfAppealFirstPresidents({
+      alerts: query.alerts ?? [],
+      deadlines: query.deadlines ?? [],
       pagination,
       search: query.search,
       sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
@@ -47,6 +49,8 @@ export class VeilleDesPostesController {
     @QueryPagination({ defaultLimit: 20 }) pagination: Pagination,
   ): Promise<ListedCourtOfCassationHoldersDto> {
     return this.veilleDesPostes.listCourtOfCassationHolders({
+      alerts: query.alerts ?? [],
+      deadlines: query.deadlines ?? [],
       pagination,
       positions: query.positions ?? [],
       search: query.search,
@@ -65,6 +69,8 @@ export class VeilleDesPostesController {
     @QueryPagination({ defaultLimit: 20 }) pagination: Pagination,
   ): Promise<ListedJudicialCourtPresidentsDto> {
     return this.veilleDesPostes.listJudicialCourtPresidents({
+      alerts: query.alerts ?? [],
+      deadlines: query.deadlines ?? [],
       pagination,
       ressorts: query.ressorts ?? [],
       search: query.search,

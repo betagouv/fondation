@@ -4,7 +4,18 @@ import { useCallback, useMemo, useState, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { useIntl } from 'react-intl';
 
-import { KNOWN_STATUSES, knownValues, stringValues } from '../utils/known-values.utils';
+import {
+  KNOWN_ALERTS,
+  KNOWN_DEADLINES,
+  KNOWN_STATUSES,
+  knownValues,
+  stringValues,
+} from '../utils/known-values.utils';
+import {
+  NO_STATUS_AND_ALERT_COUNTS,
+  type StatusAndAlertCounts,
+  statusAndAlertFilters,
+} from '../utils/status-and-alert-filters.utils';
 import { useRowRevealedOnReturn } from '@/shared/hooks/useRowRevealedOnReturn';
 import {
   DataTable,
@@ -16,10 +27,11 @@ import {
 import { SearchInput } from '@/shared/ui/search-input';
 import { formatDateOnly } from '@/utils/date-only.util';
 import {
+  type AlertDeadline,
   type JudicialCourtPresident,
   type JudicialCourtPresidentsSorting,
+  type PositionAlert,
   type PositionStatus,
-  type PositionStatusCount,
   type RessortCount,
   JUDICIAL_COURT_PRESIDENTS_DEFAULT_SORTING,
   JUDICIAL_COURT_PRESIDENTS_PAGE_SIZE,
@@ -27,27 +39,27 @@ import {
 } from '@queries/veille-des-postes.queries';
 
 import { MagistratLink } from './MagistratLink';
-import { PositionStatusBadge } from './PositionStatusBadge';
+import { PositionStatusCell } from './PositionStatusCell';
 
 const SORTABLE_COLUMNS = new Set<string>([
   'court',
   'installationDate',
   'name',
   'ressort',
+  'status',
 ] satisfies JudicialCourtPresidentsSorting[number]['id'][]);
 
 const NO_RESSORTS: RessortCount[] = [];
-const NO_STATUSES: PositionStatusCount[] = [];
 
 const h = createColumnHelper<JudicialCourtPresident>();
 
 function useJudicialCourtPresidentsColumns(props: {
   onMagistratOpened: (event: MouseEvent, magistratId: string) => void;
   ressorts: RessortCount[];
-  statuses: PositionStatusCount[];
+  statusAndAlertCounts: StatusAndAlertCounts;
 }) {
   const { formatMessage } = useIntl();
-  const { onMagistratOpened, ressorts, statuses } = props;
+  const { onMagistratOpened, ressorts, statusAndAlertCounts } = props;
 
   return useMemo(() => {
     const counted = (values: { count: number; id: string; label: string }[]) =>
@@ -79,19 +91,12 @@ function useJudicialCourtPresidentsColumns(props: {
         sortDescFirst: false,
       }),
       h.accessor('status', {
-        cell: ({ getValue }) => <PositionStatusBadge status={getValue()} />,
-        enableSorting: false,
+        cell: ({ getValue, row }) => <PositionStatusCell alerts={row.original.alerts} status={getValue()} />,
         header: formatMessage({ defaultMessage: 'Alerte / statut' }),
         id: 'status',
-        meta: {
-          filters: {
-            filterId: 'status',
-            label: formatMessage({ defaultMessage: 'Alerte / statut' }),
-            type: 'enum',
-            values: counted(statuses),
-          },
-        },
+        meta: { filters: statusAndAlertFilters(formatMessage, statusAndAlertCounts) },
         size: 200,
+        sortDescFirst: false,
       }),
       h.accessor('magistrat', {
         cell: ({ getValue }) => {
@@ -127,7 +132,7 @@ function useJudicialCourtPresidentsColumns(props: {
         size: 160,
       }),
     ];
-  }, [formatMessage, onMagistratOpened, ressorts, statuses]);
+  }, [formatMessage, onMagistratOpened, ressorts, statusAndAlertCounts]);
 }
 
 export function JudicialCourtPresidentsTable(props: {
@@ -147,7 +152,12 @@ export function JudicialCourtPresidentsTable(props: {
   const { remember, revealedRowId } = useRowRevealedOnReturn();
 
   const { onColumnFiltersChange, onSortingChange, setTableState, tableState } = useDataTableUrlState({
-    columnFilters: [] as ({ id: 'ressort'; value: string[] } | { id: 'status'; value: PositionStatus[] })[],
+    columnFilters: [] as (
+      | { id: 'alert'; value: PositionAlert[] }
+      | { id: 'deadline'; value: AlertDeadline[] }
+      | { id: 'ressort'; value: string[] }
+      | { id: 'status'; value: PositionStatus[] }
+    )[],
     globalFilter: '',
     sorting: JUDICIAL_COURT_PRESIDENTS_DEFAULT_SORTING,
   });
@@ -159,6 +169,14 @@ export function JudicialCourtPresidentsTable(props: {
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useJudicialCourtPresidentsQuery(
     {
+      alerts: knownValues(
+        tableState.columnFilters.find((filter) => filter.id === 'alert')?.value,
+        KNOWN_ALERTS,
+      ),
+      deadlines: knownValues(
+        tableState.columnFilters.find((filter) => filter.id === 'deadline')?.value,
+        KNOWN_DEADLINES,
+      ),
       ressorts: stringValues(tableState.columnFilters.find((filter) => filter.id === 'ressort')?.value),
       search: tableState.globalFilter,
       sorting,
@@ -178,11 +196,18 @@ export function JudicialCourtPresidentsTable(props: {
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   const presidents = useMemo(() => data?.items ?? [], [data]);
+  const statusAndAlertCounts = useMemo(
+    () =>
+      data
+        ? { alerts: data.alerts, deadlines: data.deadlines, statuses: data.statuses }
+        : NO_STATUS_AND_ALERT_COUNTS,
+    [data],
+  );
   const table = useReactTable({
     columns: useJudicialCourtPresidentsColumns({
       onMagistratOpened: remember,
       ressorts: data?.ressorts ?? NO_RESSORTS,
-      statuses: data?.statuses ?? NO_STATUSES,
+      statusAndAlertCounts,
     }),
     data: presidents,
     enableSortingRemoval: false,

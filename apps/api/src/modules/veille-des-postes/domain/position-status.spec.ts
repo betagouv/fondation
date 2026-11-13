@@ -1,21 +1,11 @@
-import { heldPositionMatches, unheldPositionMatches } from './position-status';
+import { positionStatusOf } from './position-status';
 
-describe('heldPositionMatches', () => {
+describe('positionStatusOf', () => {
   it.each([
-    [[], true],
-    [['OCCUPIED', 'VACANT'], true],
-    [['VACANT'], false],
-  ] as const)('tells whether a held position matches the statuses %j', (statuses, matches) => {
-    expect(heldPositionMatches(statuses)).toBe(matches);
-  });
-});
-
-describe('unheldPositionMatches', () => {
-  it.each([
-    [[], true],
-    [['OCCUPIED', 'VACANT'], true],
-    [['OCCUPIED'], false],
-  ] as const)('tells whether a position without holder matches the statuses %j', (statuses, matches) => {
-    expect(unheldPositionMatches(statuses)).toBe(matches);
+    [{ alertCount: 0, held: true }, 'OCCUPIED'],
+    [{ alertCount: 1, held: true }, 'MAY_BECOME_VACANT'],
+    [{ alertCount: 0, held: false }, 'VACANT'],
+  ] as const)('gives the position %j the status %s', (position, status) => {
+    expect(positionStatusOf(position).id).toBe(status);
   });
 });

@@ -1,4 +1,4 @@
-import type { PositionStatus } from '@queries/veille-des-postes.queries';
+import type { AlertDeadline, PositionAlert, PositionStatus } from '@queries/veille-des-postes.queries';
 
 export const KNOWN_STATUSES: Record<PositionStatus, true> = {
   MAY_BECOME_VACANT: true,
@@ -17,3 +17,14 @@ export function knownValues<Id extends string>(value: unknown, known: Record<Id,
 export function stringValues(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((id): id is string => typeof id === 'string') : [];
 }
+
+export const KNOWN_ALERTS: Record<PositionAlert, true> = {
+  PROPOSED_IN_SESSION: true,
+  RETIREMENT: true,
+  SEVEN_YEARS_ON_POSITION: true,
+};
+
+export const KNOWN_DEADLINES: Record<AlertDeadline, true> = {
+  WITHIN_SIX_MONTHS: true,
+  WITHIN_TWELVE_MONTHS: true,
+};

@@ -2,14 +2,11 @@ import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import z from 'zod';
 
-import {
-  countCourtOfCassationHoldersRawQuery,
-  listCourtOfCassationHoldersRawQuery,
-} from '../../../../generated/prisma/sql';
+import { listCourtOfCassationHoldersRawQuery } from '../../../../generated/prisma/sql';
 import { DateOnly, dateOnlyJsonSchema } from '../../../../utils/date-only';
 import { toMagistratFullTextQuery } from '../../../../utils/fulltext-search';
 import { Db } from '../../../framework/database';
-import { createPaginatedZodDto, paginate, Pagination } from '../../../framework/pagination';
+import { createPaginatedZodDto, pageOf, paginate, Pagination } from '../../../framework/pagination';
 import { Sortable } from '../../../framework/sorting';
 import { magistratFullName } from '../../../magistrat/domain/magistrat-name';
 import {
@@ -21,93 +18,101 @@ import {
   HOLDER_SERVICES,
   holderServiceOf,
   rankedLolfiPositions,
-  type RankedLolfiPositions,
 } from '../../domain/court-of-cassation-position';
-import {
-  HELD_POSITION_STATUS,
-  heldPositionMatches,
-  POSITION_STATUSES,
-  type PositionStatus,
-  positionStatuses,
-  positionStatusOf,
-} from '../../domain/position-status';
+import { type AlertDeadline, alertRulesOf, alertsOf, type PositionAlert } from '../../domain/position-alert';
+import { POSITION_STATUSES, type PositionStatus, positionStatusOf } from '../../domain/position-status';
+import { sortedByUrgency } from '../../domain/position-urgency';
 import type { ListCourtOfCassationHoldersDto } from '../dtos/veille-des-postes.dto';
-
-// an empty grade stands for any grade: TypedSQL types the list without null
-function sqlListsOf(positions: RankedLolfiPositions) {
-  return { ...positions, gradeIds: positions.gradeIds.map((gradeId) => gradeId ?? '') };
-}
+import { facetedRows } from '../faceted-rows';
+import { HolderProposalsFinder } from '../finders/holder-proposals.finder';
+import {
+  alertJson,
+  countedStatusAndAlertFacets,
+  holderAlertSchema,
+  statusAndAlertFacetsSchema,
+  statusAndAlertValues,
+} from '../holder-alerts';
 
 @Injectable()
 export class ListCourtOfCassationHoldersQuery {
-  constructor(private readonly db: Db) {}
+  constructor(
+    private readonly db: Db,
+    private readonly proposals: HolderProposalsFinder,
+  ) {}
 
   @Transactional()
   async handle(query: {
+    alerts: readonly PositionAlert[];
+    deadlines: readonly AlertDeadline[];
     pagination: Pagination;
     positions: readonly CourtOfCassationPosition[];
     search: string | undefined;
     sorting: Sortable<ListCourtOfCassationHoldersDto>;
     statuses: readonly PositionStatus[];
   }): Promise<ListedCourtOfCassationHoldersDto> {
-    const every = sqlListsOf(rankedLolfiPositions([]));
-    const asked = sqlListsOf(rankedLolfiPositions(query.positions));
+    const { functionIds, gradeIds, ranks } = rankedLolfiPositions();
     const search = query.search?.trim() ? toMagistratFullTextQuery(query.search) : null;
-    const { limit, page } = query.pagination;
-
-    const counts = await this.db.tx.$queryRawTyped(
-      countCourtOfCassationHoldersRawQuery(
+    const holders = await this.db.tx.$queryRawTyped(
+      listCourtOfCassationHoldersRawQuery(
         COURT_OF_CASSATION_ID,
-        every.functionIds,
-        every.gradeIds,
-        every.ranks,
+        functionIds,
+        // an empty grade stands for any grade: TypedSQL types the list without null
+        gradeIds.map((gradeId) => gradeId ?? ''),
+        ranks,
         search,
+        query.sorting.sortBy ?? null,
+        query.sorting.sortDesc,
       ),
     );
-    const matches = heldPositionMatches(query.statuses);
-    const holdersByRank = new Map(counts.map(({ holders, rank }) => [rank, Number(holders)]));
-    // each filter counts its values under the other filters, not under its own
-    const heldInAskedPositions = [...new Set(asked.ranks)].reduce(
-      (sum, rank) => sum + (holdersByRank.get(rank) ?? 0),
-      0,
+    const proposals = await this.proposals.byHolders({ magistratIds: holders.map(({ id }) => id) });
+    const today = DateOnly.fromInstantInParis(new Date());
+
+    const rows = holders.map((holder) => {
+      const position = courtOfCassationPositionOfRank(holder.rank!);
+      const installationDate = DateOnly.fromOptionalUtcDate(holder.installationDate);
+      const alerts = alertsOf(
+        {
+          birthDate: DateOnly.fromOptionalUtcDate(holder.birthDate),
+          installationDate,
+          proposal: proposals.get(holder.id) ?? null,
+        },
+        alertRulesOf(position.id),
+        today,
+      );
+      return {
+        alerts,
+        installationDate: installationDate?.toJson() ?? null,
+        magistrat: { id: holder.id, name: magistratFullName(holder) },
+        position,
+        service: holderServiceOf(holder.functionId),
+        status: positionStatusOf({ alertCount: alerts.length, held: true }),
+      };
+    });
+
+    const { counts, matching } = facetedRows(
+      rows,
+      { alert: query.alerts, deadline: query.deadlines, position: query.positions, status: query.statuses },
+      (asked) => ({ ...statusAndAlertValues(asked), position: (row) => [row.position.id] }),
     );
-    const holders = !matches
-      ? []
-      : await this.db.tx.$queryRawTyped(
-          listCourtOfCassationHoldersRawQuery(
-            COURT_OF_CASSATION_ID,
-            asked.functionIds,
-            asked.gradeIds,
-            asked.ranks,
-            search,
-            query.sorting.sortBy ?? null,
+    const sorted =
+      query.sorting.sortBy === 'status'
+        ? sortedByUrgency(
+            matching,
+            { alert: query.alerts, deadline: query.deadlines },
             query.sorting.sortDesc,
-            (page - 1) * limit,
-            limit,
-          ),
-        );
+          )
+        : matching;
 
     return {
       ...paginate({
-        items: holders.map((holder) => ({
-          installationDate: holder.installationDate
-            ? DateOnly.fromUtcDate(holder.installationDate).toJson()
-            : null,
-          magistrat: { id: holder.id, name: magistratFullName(holder) },
-          position: courtOfCassationPositionOfRank(holder.rank!),
-          service: holderServiceOf(holder.functionId),
-          status: positionStatusOf(HELD_POSITION_STATUS),
-        })),
+        items: pageOf(sorted, query.pagination).map((row) => ({ ...row, alerts: row.alerts.map(alertJson) })),
         pagination: query.pagination,
-        totalCount: matches ? heldInAskedPositions : 0,
+        totalCount: matching.length,
       }),
-      positions: courtOfCassationPositions().map((position, rank) => ({
+      ...countedStatusAndAlertFacets(counts),
+      positions: courtOfCassationPositions().map((position) => ({
         ...position,
-        count: matches ? (holdersByRank.get(rank) ?? 0) : 0,
-      })),
-      statuses: positionStatuses().map((status) => ({
-        ...status,
-        count: status.id === HELD_POSITION_STATUS ? heldInAskedPositions : 0,
+        count: counts.position.get(position.id) ?? 0,
       })),
     };
   }
@@ -115,16 +120,16 @@ export class ListCourtOfCassationHoldersQuery {
 
 export class ListedCourtOfCassationHoldersDto extends createPaginatedZodDto(
   z.object({
+    alerts: z.array(holderAlertSchema),
     installationDate: dateOnlyJsonSchema.nullable(),
     magistrat: z.object({ id: z.string(), name: z.string() }),
     position: z.object({ id: z.enum(COURT_OF_CASSATION_POSITIONS), label: z.string() }),
     service: z.object({ id: z.enum(HOLDER_SERVICES), label: z.string() }),
     status: z.object({ id: z.enum(POSITION_STATUSES), label: z.string() }),
   }),
-  z.object({
+  statusAndAlertFacetsSchema.extend({
     positions: z.array(
       z.object({ count: z.number(), id: z.enum(COURT_OF_CASSATION_POSITIONS), label: z.string() }),
     ),
-    statuses: z.array(z.object({ count: z.number(), id: z.enum(POSITION_STATUSES), label: z.string() })),
   }),
 ) {}

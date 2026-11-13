@@ -4,7 +4,12 @@ import { useCallback, useMemo, useState, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { useIntl } from 'react-intl';
 
-import { KNOWN_STATUSES, knownValues } from '../utils/known-values.utils';
+import { KNOWN_ALERTS, KNOWN_DEADLINES, KNOWN_STATUSES, knownValues } from '../utils/known-values.utils';
+import {
+  NO_STATUS_AND_ALERT_COUNTS,
+  type StatusAndAlertCounts,
+  statusAndAlertFilters,
+} from '../utils/status-and-alert-filters.utils';
 import { useRowRevealedOnReturn } from '@/shared/hooks/useRowRevealedOnReturn';
 import {
   DataTable,
@@ -16,23 +21,25 @@ import {
 import { SearchInput } from '@/shared/ui/search-input';
 import { formatDateOnly } from '@/utils/date-only.util';
 import {
+  type AlertDeadline,
   type CourtOfCassationHolder,
   type CourtOfCassationHoldersSorting,
   type CourtOfCassationPosition,
   type CourtOfCassationPositionCount,
+  type PositionAlert,
   type PositionStatus,
-  type PositionStatusCount,
   COURT_OF_CASSATION_HOLDERS_DEFAULT_SORTING,
   COURT_OF_CASSATION_HOLDERS_PAGE_SIZE,
   useCourtOfCassationHoldersQuery,
 } from '@queries/veille-des-postes.queries';
 
 import { MagistratLink } from './MagistratLink';
-import { PositionStatusBadge } from './PositionStatusBadge';
+import { PositionStatusCell } from './PositionStatusCell';
 
 const SORTABLE_COLUMNS = new Set<string>([
   'installationDate',
   'name',
+  'status',
 ] satisfies CourtOfCassationHoldersSorting[number]['id'][]);
 
 const KNOWN_POSITIONS: Record<CourtOfCassationPosition, true> = {
@@ -45,14 +52,13 @@ const KNOWN_POSITIONS: Record<CourtOfCassationPosition, true> = {
 };
 
 const NO_POSITIONS: CourtOfCassationPositionCount[] = [];
-const NO_STATUSES: PositionStatusCount[] = [];
 
 const h = createColumnHelper<CourtOfCassationHolder>();
 
 function useCourtOfCassationHoldersColumns(props: {
   onMagistratOpened: (event: MouseEvent, magistratId: string) => void;
   positions: CourtOfCassationPositionCount[];
-  statuses: PositionStatusCount[];
+  statusAndAlertCounts: StatusAndAlertCounts;
 }) {
   const { formatMessage } = useIntl();
   const { onMagistratOpened } = props;
@@ -81,19 +87,12 @@ function useCourtOfCassationHoldersColumns(props: {
         size: 220,
       }),
       h.accessor('status', {
-        cell: ({ getValue }) => <PositionStatusBadge status={getValue()} />,
-        enableSorting: false,
+        cell: ({ getValue, row }) => <PositionStatusCell alerts={row.original.alerts} status={getValue()} />,
         header: formatMessage({ defaultMessage: 'Alerte / statut' }),
         id: 'status',
-        meta: {
-          filters: {
-            filterId: 'status',
-            label: formatMessage({ defaultMessage: 'Alerte / statut' }),
-            type: 'enum',
-            values: counted(props.statuses),
-          },
-        },
+        meta: { filters: statusAndAlertFilters(formatMessage, props.statusAndAlertCounts) },
         size: 240,
+        sortDescFirst: false,
       }),
       h.accessor('magistrat', {
         cell: ({ getValue, row }) => (
@@ -132,7 +131,7 @@ function useCourtOfCassationHoldersColumns(props: {
         size: 160,
       }),
     ];
-  }, [formatMessage, onMagistratOpened, props.positions, props.statuses]);
+  }, [formatMessage, onMagistratOpened, props.positions, props.statusAndAlertCounts]);
 }
 
 export function CourtOfCassationHoldersTable(props: {
@@ -153,6 +152,8 @@ export function CourtOfCassationHoldersTable(props: {
 
   const { onColumnFiltersChange, onSortingChange, setTableState, tableState } = useDataTableUrlState({
     columnFilters: [] as (
+      | { id: 'alert'; value: PositionAlert[] }
+      | { id: 'deadline'; value: AlertDeadline[] }
       | { id: 'position'; value: CourtOfCassationPosition[] }
       | { id: 'status'; value: PositionStatus[] }
     )[],
@@ -167,6 +168,14 @@ export function CourtOfCassationHoldersTable(props: {
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useCourtOfCassationHoldersQuery(
     {
+      alerts: knownValues(
+        tableState.columnFilters.find((filter) => filter.id === 'alert')?.value,
+        KNOWN_ALERTS,
+      ),
+      deadlines: knownValues(
+        tableState.columnFilters.find((filter) => filter.id === 'deadline')?.value,
+        KNOWN_DEADLINES,
+      ),
       positions: knownValues(
         tableState.columnFilters.find((filter) => filter.id === 'position')?.value,
         KNOWN_POSITIONS,
@@ -189,11 +198,18 @@ export function CourtOfCassationHoldersTable(props: {
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   const holders = useMemo(() => data?.items ?? [], [data]);
+  const statusAndAlertCounts = useMemo(
+    () =>
+      data
+        ? { alerts: data.alerts, deadlines: data.deadlines, statuses: data.statuses }
+        : NO_STATUS_AND_ALERT_COUNTS,
+    [data],
+  );
   const table = useReactTable({
     columns: useCourtOfCassationHoldersColumns({
       onMagistratOpened: remember,
       positions: data?.positions ?? NO_POSITIONS,
-      statuses: data?.statuses ?? NO_STATUSES,
+      statusAndAlertCounts,
     }),
     data: holders,
     enableSortingRemoval: false,

@@ -7,6 +7,7 @@ import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
 import type { ListedCourtOfAppealFirstPresidentsDto } from '@api/types';
 
 import { CourtOfAppealFirstPresidentsTable } from './CourtOfAppealFirstPresidentsTable';
+import { storyCounts, storyHolderOf } from './veille-des-postes.story-fixtures';
 
 type CourtOfAppeal = ListedCourtOfAppealFirstPresidentsDto['items'][number];
 
@@ -61,18 +62,18 @@ const LAST_NAMES = [
 ];
 const FIRST_NAMES = ['Claire', 'Karim', 'Hélène', 'Mamadou', 'Pierre', 'Léa', 'Sophie'];
 
-const STATUSES = [
-  { id: 'OCCUPIED', label: 'Occupé' },
-  { id: 'MAY_BECOME_VACANT', label: 'Susceptible de devenir vacant' },
-  { id: 'VACANT', label: 'Vacant' },
-] as const satisfies readonly CourtOfAppeal['status'][];
-
 const VACANT_COURT = 9;
 
 const COURTS_OF_APPEAL: CourtOfAppeal[] = COURTS.map((label, index) =>
   index === VACANT_COURT
-    ? { court: { id: `${index}`, label }, installationDate: null, magistrat: null, status: STATUSES[2] }
+    ? {
+        ...storyHolderOf(index, { held: false, movesAfterSevenYears: true }),
+        court: { id: `${index}`, label },
+        installationDate: null,
+        magistrat: null,
+      }
     : {
+        ...storyHolderOf(index, { held: true, movesAfterSevenYears: true }),
         court: { id: `${index}`, label },
         installationDate:
           index % 11 === 4
@@ -82,13 +83,11 @@ const COURTS_OF_APPEAL: CourtOfAppeal[] = COURTS.map((label, index) =>
           id: `magistrat-${index}`,
           name: `${LAST_NAMES[index % LAST_NAMES.length]} ${FIRST_NAMES[index % FIRST_NAMES.length]}`,
         },
-        status: STATUSES[index % 8 === 5 ? 1 : 0],
       },
 );
 
 const courtsHandler = http.get('*/api/veille-des-postes/v1/cours-d-appel', ({ request }) => {
   const params = new URL(request.url).searchParams;
-  const statuses = params.getAll('statuses');
   const search = params.get('search')?.toLowerCase();
   const page = Number(params.get('page') ?? 1);
   const limit = Number(params.get('limit') ?? 20);
@@ -96,17 +95,14 @@ const courtsHandler = http.get('*/api/veille-des-postes/v1/cours-d-appel', ({ re
   const searched = COURTS_OF_APPEAL.filter(
     (court) => !search || `${court.court.label} ${court.magistrat?.name}`.toLowerCase().includes(search),
   );
-  const matching = searched.filter((court) => statuses.length === 0 || statuses.includes(court.status.id));
+  const counts = storyCounts(searched);
 
   return HttpResponse.json<ListedCourtOfAppealFirstPresidentsDto>({
+    ...counts,
     currentPageIndex: page,
-    items: matching.slice((page - 1) * limit, page * limit),
-    nextPageIndex: page * limit < matching.length ? page + 1 : undefined,
-    statuses: STATUSES.map((status) => ({
-      ...status,
-      count: searched.filter((court) => court.status.id === status.id).length,
-    })),
-    totalCount: matching.length,
+    items: searched.slice((page - 1) * limit, page * limit),
+    nextPageIndex: page * limit < searched.length ? page + 1 : undefined,
+    totalCount: searched.length,
   });
 });
 
@@ -144,7 +140,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'Une ligne par cour d\'appel, par ordre alphabétique du ressort, avec son premier président. Une cour sans premier président est "Vacant". La recherche porte sur le ressort et sur le magistrat. Le filtre "Alerte / statut" donne le nombre de cours de chaque valeur. En défilant, l\'en-tête se colle en haut et le compteur des lignes vues apparaît à côté du titre, par pages de 20. Les desiderata et les candidats arriveront avec leurs tickets.',
+          'Une ligne par cour d\'appel, par ordre alphabétique du ressort, avec son premier président. Une cour sans premier président est "Vacant". La recherche porte sur le ressort et sur le magistrat. Le filtre "Alerte / statut" donne le nombre de cours de chaque valeur. La story ne filtre pas, c\'est l\'API qui le fait. En défilant, l\'en-tête se colle en haut et le compteur des lignes vues apparaît à côté du titre, par pages de 20. Les desiderata et les candidats arriveront avec leurs tickets.',
       },
     },
     layout: 'fullscreen',
