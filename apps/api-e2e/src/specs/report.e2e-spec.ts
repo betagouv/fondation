@@ -209,4 +209,23 @@ test.describe('Report E2E', () => {
     });
     expect(opened.data.id).toBe(kept!.id);
   });
+
+  test('should leave a pasted screenshot in place when detaching it as an attachment', async ({ member, expect }) => {
+    const attached = await member.reports.attachScreenshots({
+      body: { files: [makeFile({ name: 'evaluation.png', type: 'image/png' })] },
+      path: { reportId },
+      throwOnError: true,
+    });
+    const [screenshot] = attached.data.items;
+    await member.reports.updateReport({
+      body: { comment: `<p>Avis</p><img data-file-id="${screenshot!.id}" src="${screenshot!.url}">` },
+      path: { reportId },
+      throwOnError: true,
+    });
+
+    await member.reports.detachAttachment({ path: { fileId: screenshot!.id, reportId }, throwOnError: true });
+
+    const { data } = await member.reports.detailReport({ path: { reportId }, throwOnError: true });
+    expect(data.screenshots.map(({ id }) => id)).toEqual([screenshot!.id]);
+  });
 });
