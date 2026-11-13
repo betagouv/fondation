@@ -170,7 +170,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'Une ligne par tribunal judiciaire, par ressort puis par juridiction, avec son président. Un trait bleu marque le passage à un autre ressort. Un tribunal sans président est "Vacant". La recherche porte sur le ressort, la juridiction et le magistrat. Les filtres "Ressort" et "Alerte / statut" donnent le nombre de tribunaux de chaque valeur. La story ne filtre pas, c\'est l\'API qui le fait. En défilant, l\'en-tête se colle en haut et le compteur des lignes vues apparaît à côté du titre, par pages de 20. Les desiderata et les candidats arriveront avec leurs tickets.',
+          'Une ligne par tribunal judiciaire, par ressort puis par juridiction, avec son président. Le ressort n\'est écrit qu\'une fois, au milieu de ses tribunaux, et un trait bleu marque le passage à un autre ressort. Un tribunal sans président est "Vacant". La recherche porte sur le ressort, la juridiction et le magistrat. Les filtres "Ressort" et "Alerte / statut" donnent le nombre de tribunaux de chaque valeur. La story ne filtre pas, c\'est l\'API qui le fait. En défilant, l\'en-tête se colle en haut et le compteur des lignes vues apparaît à côté du titre, par pages de 20. Les candidats arriveront avec leur ticket.',
       },
     },
     layout: 'fullscreen',
