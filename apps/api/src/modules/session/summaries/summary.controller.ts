@@ -119,6 +119,7 @@ export class SummaryController {
     type: IncludedFilesInSummaryContentDto,
   })
   async includeFilesInContent(
+    @AuthedUser() user: { id: string; role: RoleEnum },
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
     @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
     @Body() { files }: Multipart<typeof IncludeFilesInSummaryContentDto>,
@@ -127,6 +128,7 @@ export class SummaryController {
       files,
       nominationFileId,
       sessionId,
+      user,
     });
   }
 

@@ -148,7 +148,11 @@ export class Summary {
     this.#messages.push(new RenamedSummaryFile(this.id, command.fileId, command.name));
   }
 
-  includeFilesIntoContent(command: { fileIds: readonly string[] }): void {
+  includeFilesIntoContent(command: {
+    fileIds: readonly string[];
+    user: { id: string; role: RoleEnum };
+  }): void {
+    this.assertsCanWrite(command.user);
     if (command.fileIds.length === 0) return;
 
     this.#messages.push(new IncludedFilesInSummaryContent(this.id, command.fileIds));

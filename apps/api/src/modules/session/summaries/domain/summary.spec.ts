@@ -104,6 +104,9 @@ describe('Summary', () => {
       expect(() => summary.renameFile({ fileId: 'f-1', isNominationFileLocked, name: 'Avis', user })).toThrow(
         OnlyAuthorCanWriteSummary,
       );
+      expect(() => summary.includeFilesIntoContent({ fileIds: ['f-3'], user })).toThrow(
+        OnlyAuthorCanWriteSummary,
+      );
     });
 
     it('should keep the attachments of a figé dossier as they are, while still adding some', () => {

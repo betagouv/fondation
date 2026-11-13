@@ -85,11 +85,13 @@ export class SummaryService {
     files: readonly { id: string; name: string }[];
     nominationFileId: string;
     sessionId: string;
+    user: { id: string; role: RoleEnum };
   }): Promise<IncludedFilesInSummaryContentDto> {
     await this.db.withTransaction(async () => {
       const summary = await this.summaryRepository.find(command);
       summary.includeFilesIntoContent({
         fileIds: command.files.map(({ id }) => id),
+        user: command.user,
       });
       await this.summaryRepository.persist(summary);
     });
