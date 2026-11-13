@@ -707,6 +707,7 @@ export function useDefineNominationFileOutcomeMutation(input: {
         predicate: doesQueryKey.matchesAny(
           sessionKeys.listSessionNominationFiles({ sessionId: input.sessionId }),
           sessionKeys.detailSessionNominationFile(input),
+          sessionKeys.listNominationFileAttachments(input),
           sessionKeys.countUnaffectedFiles({ sessionId: input.sessionId }),
           sessionKeys.nominationFilesStatusCounts({ sessionId: input.sessionId }),
           agendaKeys.isSessionReadyForDocGeneration(input.sessionId),
@@ -742,9 +743,10 @@ export function useDefineNominationFilesOutcomeMutation(input: { sessionId: stri
           agendaKeys.findSessionDocs(input.sessionId),
           agendaKeys.findAgendaNominationFiles({ sessionId: input.sessionId }),
           officialReportKeys.all(),
-          ...items.map(({ nominationFileId }) =>
+          ...items.flatMap(({ nominationFileId }) => [
             sessionKeys.detailSessionNominationFile({ nominationFileId, sessionId: input.sessionId }),
-          ),
+            sessionKeys.listNominationFileAttachments({ nominationFileId, sessionId: input.sessionId }),
+          ]),
         ),
       }),
   });

@@ -60,7 +60,11 @@ export function MagistratSidePanelContent(props: {
         key={`${nominationFile.id}-comment`}
         nominationFileId={nominationFile.id}
       />
-      <Attachments nominationFileId={nominationFile.id} sessionId={sessionId} />
+      <Attachments
+        key={`${nominationFile.id}-attachments`}
+        nominationFileId={nominationFile.id}
+        sessionId={sessionId}
+      />
       <SummarySection
         canRead={!!nominationFile.summary?.canRead}
         hasSummary={!!nominationFile.summary}
