@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Put,
@@ -24,13 +25,11 @@ import {
   AttachReportFileDto,
   AttachReportFileQueryDto,
   AttachScreenshotsDto,
-  DetachReportFilesQueryDto,
-  GetReportFileUrlsQueryDto,
   UpdateReportDto,
   UpdateReportRuleValidationDto,
 } from './infrastructure/dtos/report.dto';
 import { DetailedReportDto } from './infrastructure/queries/detail-report.query';
-import { GetReportFileUrlsResponseDto } from './infrastructure/queries/get-report-file-urls.query';
+import { GeneratedReportAttachmentUrlDto } from './infrastructure/queries/get-report-attachment-url.query';
 import { ReportService } from './report.service';
 
 @ApiTags('Reports')
@@ -60,20 +59,15 @@ export class ReportController {
     });
   }
 
-  @Delete('/:reportId/files')
+  @Delete('/:reportId/files/:fileId')
   @HasRole(...MEMBER_ROLES)
   @HttpCode(HttpStatus.NO_CONTENT)
-  @UsePipes(ZodValidationPipe)
-  async detachFiles(
-    @Param('reportId') reportId: string,
-    @Query() query: DetachReportFilesQueryDto,
+  async detachAttachment(
+    @Param('reportId', ParseUUIDPipe) reportId: string,
+    @Param('fileId', ParseUUIDPipe) fileId: string,
     @AuthedUserId() userId: string,
-  ) {
-    await this.reports.detachFiles({
-      userId,
-      reportId,
-      fileNames: query.fileNames,
-    });
+  ): Promise<void> {
+    await this.reports.detachAttachment({ fileId, reportId, userId });
   }
 
   @Post('/:reportId/screenshots')
@@ -96,20 +90,15 @@ export class ReportController {
     });
   }
 
-  @Get('/:reportId/files/url')
+  @Get('/:reportId/files/:fileId/url')
   @HasRole(...MEMBER_ROLES)
-  @UsePipes(ZodValidationPipe)
-  @ZodResponse({ type: GetReportFileUrlsResponseDto, status: HttpStatus.OK })
-  async getReportFilesUrl(
+  @ZodResponse({ type: GeneratedReportAttachmentUrlDto, status: HttpStatus.OK })
+  getAttachmentUrl(
     @AuthedUserId() userId: string,
-    @Param('reportId') reportId: string,
-    @Query() query: GetReportFileUrlsQueryDto,
-  ) {
-    return this.reports.getReportFileUrls({
-      userId,
-      reportId,
-      fileNames: query.fileNames,
-    });
+    @Param('reportId', ParseUUIDPipe) reportId: string,
+    @Param('fileId', ParseUUIDPipe) fileId: string,
+  ): Promise<GeneratedReportAttachmentUrlDto> {
+    return this.reports.getAttachmentUrl({ fileId, reportId, userId });
   }
 
   @Get('/:reportId')

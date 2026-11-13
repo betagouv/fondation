@@ -188,31 +188,25 @@ test.describe('Report E2E', () => {
     expect(responseBody.data?.attachments.map(({ name }) => name)).toContain(file.name);
   });
 
-  test('should detach files from a report', async ({ member, expect }) => {
-    const [file1, file2] = [null, null].map((_, i) =>
-      makeFile({ name: `image_${i + 1}_${crypto.randomUUID()}.png`, type: 'image/png' }),
-    ) as [File, File];
-
-    const attachmentRes = await member.reports.attachFiles({
-      body: { files: [file1, file2] },
+  test('should detach one of two attachments of the same name, the other still opening', async ({ member, expect }) => {
+    const name = `evaluation_${crypto.randomUUID()}.png`;
+    await member.reports.attachFiles({
+      body: { files: [makeFile({ name, type: 'image/png' }), makeFile({ name, type: 'image/png' })] },
       path: { reportId },
       query: { usage: 'ATTACHMENT' },
+      throwOnError: true,
     });
-    expect(attachmentRes.response?.status).toBe(204);
+    const before = await member.reports.detailReport({ path: { reportId }, throwOnError: true });
+    const [detached, kept] = before.data.attachments;
 
-    const reportResBefore = await member.reports.detailReport({ path: { reportId } });
-    expect(reportResBefore.data?.attachments).toHaveLength(2);
+    await member.reports.detachAttachment({ path: { fileId: detached!.id, reportId }, throwOnError: true });
 
-    const deleteAttachmentRes = await member.reports.detachFiles({
-      path: { reportId },
-      query: { fileNames: file1.name },
+    const after = await member.reports.detailReport({ path: { reportId }, throwOnError: true });
+    expect(after.data.attachments.map(({ id }) => id)).toEqual([kept!.id]);
+    const opened = await member.reports.getAttachmentUrl({
+      path: { fileId: kept!.id, reportId },
+      throwOnError: true,
     });
-    expect(deleteAttachmentRes.response?.status).toBe(204);
-
-    const reportResAfter = await member.reports.detailReport({ path: { reportId } });
-    expect(reportResAfter.data?.attachments).toHaveLength(1);
-
-    expect(reportResAfter.data?.attachments.map(({ name }) => name)).not.toContain(file1.name);
-    expect(reportResAfter.data?.attachments.map(({ name }) => name)).toContain(file2.name);
+    expect(opened.data.id).toBe(kept!.id);
   });
 });

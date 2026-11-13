@@ -21,7 +21,7 @@ import {
 } from '@queries/nomination-sessions.queries';
 import {
   useAttachReportFilesMutation,
-  useDetachReportFilesMutation,
+  useDetachReportAttachmentMutation,
   useReportQuery,
   useUpdateReportMutation,
 } from '@queries/reports.queries';
@@ -47,7 +47,7 @@ export function ReportOverview({ id }: { id: string }) {
   });
   const sessionQuery = useDetailedNominationSessionQuery({ sessionId: retrievedReport?.sessionId });
   const { mutate: attachReportFiles } = useAttachReportFilesMutation();
-  const { mutate: detachReportFiles } = useDetachReportFilesMutation();
+  const { mutate: detachReportAttachment } = useDetachReportAttachmentMutation();
   const { mutate: updateReport } = useUpdateReportMutation();
   const notifyFailure = useAttachmentFailureToast();
 
@@ -97,12 +97,7 @@ export function ReportOverview({ id }: { id: string }) {
     );
   };
 
-  const onAttachedFileDeleted = async (fileName: string) => {
-    detachReportFiles({
-      fileNames: [fileName],
-      reportId: id,
-    });
-  };
+  const onAttachedFileDeleted = (fileId: string) => detachReportAttachment({ fileId, reportId: id });
 
   return (
     <ArchiveBannerPortal isArchived={nominationFile.isArchived}>

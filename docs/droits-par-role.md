@@ -225,9 +225,9 @@ Un Membre ne voit pas le commentaire de décision d'un dossier. Un rapporteur du
 | Rédiger un rapport                      | `PATCH /reports/v2/:reportId`                                                                               | ✓ si rapporteur du dossier, session non archivée | —                        | —                        |
 | Valider une règle statutaire du rapport | `PUT /reports/v2/:reportId/rules/:ruleId`                                                                   | ✓ si rapporteur du dossier, session non archivée | —                        | —                        |
 | Joindre des fichiers au rapport         | `POST /reports/v2/:reportId/files`                                                                          | ✓ si rapporteur du dossier, session non archivée | —                        | —                        |
-| Retirer des fichiers du rapport         | `DELETE /reports/v2/:reportId/files`                                                                        | ✓ si rapporteur du dossier, session non archivée | —                        | —                        |
+| Retirer une pièce jointe du rapport     | `DELETE /reports/v2/:reportId/files/:fileId`                                                                | ✓ si rapporteur du dossier, session non archivée | —                        | —                        |
 | Coller des captures dans le rapport     | `POST /reports/v2/:reportId/screenshots`                                                                    | ✓ si rapporteur du dossier, session non archivée | —                        | —                        |
-| Télécharger les fichiers du rapport     | `GET /reports/v2/:reportId/files/url`                                                                       | ✓ si rapporteur du dossier                       | —                        | —                        |
+| Ouvrir une pièce jointe du rapport      | `GET /reports/v2/:reportId/files/:fileId/url`                                                               | ✓ si rapporteur du dossier                       | —                        | —                        |
 
 ### Synthèses
 

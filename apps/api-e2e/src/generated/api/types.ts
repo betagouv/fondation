@@ -84,12 +84,10 @@ export type AttachedScreenshotsDto = {
     }>;
 };
 
-export type GetReportFileUrlsResponseDto = {
-    items: Array<{
-        id: string;
-        name: string;
-        url: string;
-    }>;
+export type GeneratedReportAttachmentUrlDto = {
+    id: string;
+    name: string;
+    url: string;
 };
 
 export type DetailedReportDto = {
@@ -3127,23 +3125,6 @@ export type SearchNominationFileMembersReportResponses = {
 
 export type SearchNominationFileMembersReportResponse = SearchNominationFileMembersReportResponses[keyof SearchNominationFileMembersReportResponses];
 
-export type DetachFilesData = {
-    body?: never;
-    path: {
-        reportId: string;
-    };
-    query: {
-        fileNames: string | Array<string>;
-    };
-    url: '/api/reports/v2/{reportId}/files';
-};
-
-export type DetachFilesResponses = {
-    204: void;
-};
-
-export type DetachFilesResponse = DetachFilesResponses[keyof DetachFilesResponses];
-
 export type AttachFilesData = {
     body: AttachReportFileDto;
     path: {
@@ -3161,6 +3142,22 @@ export type AttachFilesResponses = {
 
 export type AttachFilesResponse = AttachFilesResponses[keyof AttachFilesResponses];
 
+export type DetachAttachmentData = {
+    body?: never;
+    path: {
+        reportId: string;
+        fileId: string;
+    };
+    query?: never;
+    url: '/api/reports/v2/{reportId}/files/{fileId}';
+};
+
+export type DetachAttachmentResponses = {
+    204: void;
+};
+
+export type DetachAttachmentResponse = DetachAttachmentResponses[keyof DetachAttachmentResponses];
+
 export type AttachScreenshotsData = {
     body: AttachScreenshotsDto;
     path: {
@@ -3176,22 +3173,21 @@ export type AttachScreenshotsResponses = {
 
 export type AttachScreenshotsResponse = AttachScreenshotsResponses[keyof AttachScreenshotsResponses];
 
-export type GetReportFilesUrlData = {
+export type GetAttachmentUrlData = {
     body?: never;
     path: {
         reportId: string;
+        fileId: string;
     };
-    query: {
-        fileNames: string | Array<string>;
-    };
-    url: '/api/reports/v2/{reportId}/files/url';
+    query?: never;
+    url: '/api/reports/v2/{reportId}/files/{fileId}/url';
 };
 
-export type GetReportFilesUrlResponses = {
-    200: GetReportFileUrlsResponseDto;
+export type GetAttachmentUrlResponses = {
+    200: GeneratedReportAttachmentUrlDto;
 };
 
-export type GetReportFilesUrlResponse = GetReportFilesUrlResponses[keyof GetReportFilesUrlResponses];
+export type GetAttachmentUrlResponse = GetAttachmentUrlResponses[keyof GetAttachmentUrlResponses];
 
 export type DetailReportData = {
     body?: never;

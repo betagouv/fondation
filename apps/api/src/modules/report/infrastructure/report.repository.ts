@@ -17,8 +17,8 @@ import { Files } from '../../framework/files';
 import { TransparenceService } from '../../session/transparence/infrastructure/transparence.service';
 import {
   Report,
+  ReportAttachmentDetached,
   ReportFilesAttached,
-  ReportFilesDetached,
   ReportRuleValidationUpdated,
   ReportUpdated,
 } from '../domain/report';
@@ -60,8 +60,8 @@ export class ReportRepository {
     for (const message of report.messages) {
       if (message instanceof ReportFilesAttached) {
         await this.persistReportFilesAttached(message);
-      } else if (message instanceof ReportFilesDetached) {
-        await this.persistReportFilesDetached(message);
+      } else if (message instanceof ReportAttachmentDetached) {
+        await this.persistReportAttachmentDetached(message);
       } else if (message instanceof ReportUpdated) {
         await this.persistReportUpdated(message);
       } else if (message instanceof ReportRuleValidationUpdated) {
@@ -72,28 +72,18 @@ export class ReportRepository {
     }
   }
 
-  private async persistReportFilesDetached(message: ReportFilesDetached) {
-    const report = await this.db.tx.report.findFirst({
-      include: {
-        files: {
-          include: { file: { select: { id: true, name: true, path: true } } },
-          where: { file: { name: { in: message.fileNames as string[] } } },
-        },
-      } satisfies Prisma.ReportInclude,
-      where: { id: message.id, reporterId: message.reporterId },
+  /** the screenshots follow the comment instead, see syncScreenshotsWith */
+  private async persistReportAttachmentDetached(message: ReportAttachmentDetached) {
+    const primaryKey = { fileId: message.fileId, reportId: message.id };
+    const attachment = await this.db.tx.reportFile.findUnique({
+      select: { file: { select: { id: true, path: true } } } satisfies Prisma.ReportFileSelect,
+      where: { primaryKey, usage: 'ATTACHMENT' },
     });
+    if (!attachment) return;
 
-    const files = (report?.files ?? []).map(({ file }) => ({
-      id: file.id,
-      path: file.path,
-    }));
-    if (files.length === 0) return;
+    await this.db.tx.reportFile.delete({ where: { primaryKey } });
 
-    await this.db.tx.reportFile.deleteMany({
-      where: { fileId: { in: files.map(({ id }) => id) } },
-    });
-
-    this.files.delete(files);
+    this.files.delete([attachment.file]);
   }
 
   private async persistReportFilesAttached(message: ReportFilesAttached) {
