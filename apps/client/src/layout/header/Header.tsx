@@ -94,6 +94,11 @@ export const AppHeader = () => {
       text: formatMessage({ defaultMessage: `Restitutions` }),
     },
     {
+      isActive: routeMatches([ROUTE_PATHS.SG.FOLLOWED_UP_OBSERVATIONS]),
+      linkProps: { to: ROUTE_PATHS.SG.FOLLOWED_UP_OBSERVATIONS, viewTransition: true },
+      text: formatMessage({ defaultMessage: 'Suivi des observations' }),
+    },
+    {
       isActive: routeMatches([ROUTE_PATHS.SG.MANAGE_MEMBERS, ROUTE_PATHS.SG.MANAGE_SINGLE_MEMBER]),
       linkProps: { to: ROUTE_PATHS.SG.MANAGE_MEMBERS, viewTransition: true },
       text: formatMessage({ defaultMessage: 'Gérer les membres' }),

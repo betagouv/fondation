@@ -42,6 +42,7 @@ export const ROUTE_PATHS = {
       VEILLE_DES_POSTES_JUDICIAL_COURTS: '/secretariat-general/csm/veille-des-postes/tribunaux-judiciaires',
     },
     DASHBOARD: '/secretariat-general',
+    FOLLOWED_UP_OBSERVATIONS: '/secretariat-general/suivi-des-observations',
     MAGISTRAT_DETAILS: '/secretariat-general/magistrats/:magistratId',
     MAGISTRAT_SEARCH: '/secretariat-general/magistrats',
     MANAGE_MEMBERS: '/secretariat-general/membres',

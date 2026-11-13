@@ -217,6 +217,7 @@ model Session {
   dossierDeNominations      DossierDeNomination[]
   observantAuditions        ObservantAudition[]
   observantAuditionVersions ObservantAuditionVersion[]
+  observationBlockTrackings ObservationBlockTracking[]
 
   @@index([deletedAt])
   @@index([archivedAt])

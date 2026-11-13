@@ -326,6 +326,13 @@ export const routes: RouteObject[] = [
           },
           {
             lazy: () =>
+              import('@/pages/observations/FollowedUpObservationsPage').then(
+                ({ FollowedUpObservationsPage }) => ({ Component: FollowedUpObservationsPage }),
+              ),
+            path: ROUTE_PATHS.SG.FOLLOWED_UP_OBSERVATIONS,
+          },
+          {
+            lazy: () =>
               import('@/pages/members/MemberListPage').then(({ MemberListPage }) => ({
                 Component: MemberListPage,
               })),

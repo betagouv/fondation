@@ -42,6 +42,7 @@ import {
   type HydratedNominationFile,
   type FoundNominationFile,
   HydratedNominationFilesFinder,
+  type MagistratProposition,
 } from './finders/hydrated-nomination-files.finder';
 import { LolfiNominationSessionFinder } from './finders/lolfi-nomination-session.finder';
 import { NominationFileOutcomesFinder } from './finders/nomination-file-outcomes.finder';
@@ -52,6 +53,7 @@ import {
 import { RecusedMembersFinder } from './finders/recused-members.finder';
 import { ReportedSessionsFinder } from './finders/reported-sessions.finder';
 import { ReportersAffectationFinder } from './finders/reporters-affectation.finder';
+import { type SessionStatus, SessionStatusesFinder } from './finders/session-statuses.finder';
 import { SynchronisedLolfiSessionsFinder } from './finders/synchronised-lolfi-sessions.finder';
 import { TransparenceFilesFinder } from './finders/transparence-files.finder';
 import {
@@ -181,6 +183,7 @@ export class TransparenceService {
     private readonly synchronisedLolfiSessionsFinder: SynchronisedLolfiSessionsFinder,
     private readonly reportedSessionsFinder: ReportedSessionsFinder,
     private readonly reportersAffectation: ReportersAffectationFinder,
+    private readonly sessionStatuses: SessionStatusesFinder,
 
     @Inject(forwardRef(() => DocsService))
     private readonly docs: DocsService,
@@ -935,6 +938,11 @@ export class TransparenceService {
   }
 
   /** @internal */
+  internalFindSessionStatuses(query: { sessionIds: readonly string[] }): Promise<Map<string, SessionStatus>> {
+    return this.sessionStatuses.find(query);
+  }
+
+  /** @internal */
   async internalGetSession(query: { sessionId: string }): Promise<FoundNominationSession> {
     const sessions = await this.sessionsFinder.find({ sessionIds: [query.sessionId] });
     const session = sessions.get(query.sessionId);
@@ -994,6 +1002,13 @@ export class TransparenceService {
     nominationFileIds: readonly string[];
   }): Promise<Map<string, FoundNominationFile>> {
     return this.hydratedNominationFiles.byIds(query);
+  }
+
+  /** @internal oldest session first, then by file number */
+  internalFindMagistratsPropositions(query: {
+    magistratIds: readonly string[];
+  }): Promise<Map<string, MagistratProposition[]>> {
+    return this.hydratedNominationFiles.byProposedMagistrats(query);
   }
 
   /** @internal */

@@ -24,6 +24,7 @@ import { ReportedSessionsFinder } from './infrastructure/finders/reported-sessio
 import { ReportersAffectationFinder } from './infrastructure/finders/reporters-affectation.finder';
 import { SessionAuditionsFinder } from './infrastructure/finders/session-auditions.finder';
 import { SessionReportedFilesFinder } from './infrastructure/finders/session-reported-files.finder';
+import { SessionStatusesFinder } from './infrastructure/finders/session-statuses.finder';
 import { SynchronisedLolfiSessionsFinder } from './infrastructure/finders/synchronised-lolfi-sessions.finder';
 import { TransparenceFilesFinder } from './infrastructure/finders/transparence-files.finder';
 import { NominationSessionFinder } from './infrastructure/finders/transparence-session.finder';
@@ -110,6 +111,7 @@ import { SessionController } from './transparence.controller';
     RecusedMembersFinder,
     ReportedSessionsFinder,
     SessionReportedFilesFinder,
+    SessionStatusesFinder,
     ReportersAffectationFinder,
     SessionAuditionsFinder,
     SessionTransparenceRepository,

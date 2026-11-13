@@ -4,7 +4,10 @@ import Badge from '@codegouvfr/react-dsfr/Badge';
 const reportedBgColor = colors.decisions.artwork.background.purpleGlycine.default;
 const reportedTextColor = colors.decisions.text.actionHigh.purpleGlycine.default;
 
-export function SessionStatusBadge(props: { status: 'READY' | 'TO_VALIDATE' | 'REPORTED' }) {
+// the sessions list knows READY, the tables across sessions ONGOING and ARCHIVED; both know TO_VALIDATE
+export function SessionStatusBadge(props: {
+  status: 'ARCHIVED' | 'ONGOING' | 'READY' | 'REPORTED' | 'TO_VALIDATE';
+}) {
   switch (props.status) {
     case 'TO_VALIDATE':
       return (
@@ -16,6 +19,12 @@ export function SessionStatusBadge(props: { status: 'READY' | 'TO_VALIDATE' | 'R
       return (
         <Badge noIcon as="span" small style={{ color: reportedTextColor, background: reportedBgColor }}>
           RESTITUÉE
+        </Badge>
+      );
+    case 'ARCHIVED':
+      return (
+        <Badge noIcon as="span" small>
+          ARCHIVÉE
         </Badge>
       );
     default:

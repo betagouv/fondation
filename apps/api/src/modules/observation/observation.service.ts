@@ -19,6 +19,7 @@ import { Db } from '../framework/database';
 import { Files } from '../framework/files';
 import type { StoredFile } from '../framework/files/multipart/multipart.types';
 import type { Pagination } from '../framework/pagination';
+import type { SessionStatus } from '../session/transparence/infrastructure/finders/session-statuses.finder';
 import { TransparenceService } from '../session/transparence/infrastructure/transparence.service';
 import type { RoleEnum } from '../shared/role.enum';
 
@@ -27,7 +28,9 @@ import {
   UserNotAllowedToAttachScreenshotsError,
   UserNotAllowedToWriteCommentError,
 } from './domain/observation';
+import type { ObservationBlockTrackingStatus } from './domain/observation-block';
 import type { ObservationFollowUpEnum } from './domain/observation-follow-up';
+import type { ListedFollowedUpObservationsDto } from './infrastructure/dtos/followed-up-observation.dto';
 import { AttachedMemberCommentScreenshotsDto } from './infrastructure/dtos/observation-member-comment.dto';
 import type {
   CountedSessionObservationsDto,
@@ -51,6 +54,7 @@ import {
   GetObservationFileUrlQuery,
   GetObservationFileUrlResponseDto,
 } from './infrastructure/queries/get-observation-file-url.query';
+import { ListFollowedUpObservationsQuery } from './infrastructure/queries/list-followed-up-observations.query';
 import {
   ListedObservationsAttachmentsDto,
   ListObservationsAttachmentsQuery,
@@ -61,6 +65,7 @@ import {
 } from './infrastructure/queries/list-observations.query';
 import { ListSessionObservationsQuery } from './infrastructure/queries/list-session-observations.query';
 import { ObservantAuditionRepository } from './infrastructure/repositories/observant-audition.repository';
+import { ObservationBlockRepository } from './infrastructure/repositories/observation-block.repository';
 import { ObservationRepository } from './infrastructure/repositories/observation.repository';
 
 @Injectable()
@@ -81,6 +86,8 @@ export class ObservationService {
     private readonly observantAuditions: ObservantAuditionsFinder,
     private readonly listSessionObservationsQuery: ListSessionObservationsQuery,
     private readonly countSessionObservationsQuery: CountSessionObservationsQuery,
+    private readonly listFollowedUpObservationsQuery: ListFollowedUpObservationsQuery,
+    private readonly observationBlockRepository: ObservationBlockRepository,
 
     @Inject(forwardRef(() => TransparenceService))
     private readonly transparences: TransparenceService,
@@ -388,6 +395,18 @@ export class ObservationService {
     await this.observationRepository.persist(observation);
   }
 
+  @Transactional()
+  async trackObservationBlock(command: {
+    comment: string | null;
+    magistratId: string;
+    sessionId: string;
+    status: ObservationBlockTrackingStatus;
+  }): Promise<void> {
+    const block = await this.observationBlockRepository.find(command);
+    block.track(command);
+    await this.observationBlockRepository.persist(block);
+  }
+
   listObservationsAttachments(query: {
     excludeObservationId: string | undefined;
     magistratId: string | undefined;
@@ -405,6 +424,20 @@ export class ObservationService {
     sortDesc: boolean;
   }): Promise<ListedSessionObservationsDto> {
     return this.listSessionObservationsQuery.handle(query);
+  }
+
+  listFollowedUpObservations(query: {
+    filters: {
+      followUps: readonly (ObservationFollowUpEnum | null)[];
+      search: string | null;
+      sessionStatuses: readonly SessionStatus[];
+      trackingStatuses: readonly ObservationBlockTrackingStatus[];
+    };
+    pagination: Pagination;
+    sortBy: 'dateReception' | 'session' | null;
+    sortDesc: boolean;
+  }): Promise<ListedFollowedUpObservationsDto> {
+    return this.listFollowedUpObservationsQuery.handle(query);
   }
 
   countSessionObservations(query: {
