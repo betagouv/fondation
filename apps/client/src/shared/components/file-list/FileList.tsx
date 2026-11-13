@@ -33,6 +33,7 @@ export function FileListItem(props: {
   onDelete?: () => void;
   onDownload: () => void;
   onOpen: () => void;
+  onRename?: () => void;
   size?: number | null;
 }) {
   const { formatMessage } = useIntl();
@@ -101,6 +102,16 @@ export function FileListItem(props: {
             size="small"
             title={formatMessage({ defaultMessage: 'Télécharger {name}' }, { name: props.name })}
           />
+          {props.onRename && (
+            <Button
+              disabled={props.disabled}
+              iconId="fr-icon-edit-line"
+              onClick={props.onRename}
+              priority="tertiary no outline"
+              size="small"
+              title={formatMessage({ defaultMessage: 'Renommer {name}' }, { name: props.name })}
+            />
+          )}
           {props.onDelete && (
             <Button
               disabled={props.disabled}

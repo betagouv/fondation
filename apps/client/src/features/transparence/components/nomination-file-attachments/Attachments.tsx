@@ -6,6 +6,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import type { NominationFileAttachmentTypeEnum } from '@/features/transparence/components/nomination-file-attachments/nomination-file-attachment-type';
 import { FileList, FileListItem } from '@/shared/components/file-list';
+import { useRenameAttachmentModal } from '@/shared/components/rename-attachment';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { useAttachmentFailureToast } from '@/shared/hooks/useAttachmentFailureToast';
 import { useTab } from '@/shared/hooks/useTab';
@@ -14,6 +15,7 @@ import {
   useCreateNominationFileAttachmentUrlMutation,
   useListNominationFileAttachmentsQuery,
   useRemoveNominationFileAttachmentMutation,
+  useRenameNominationFileAttachmentMutation,
 } from '@queries/nomination-sessions.queries';
 
 import { attachmentsSectionId } from './attachments-section';
@@ -72,7 +74,7 @@ export function Attachments(props: {
             <AttachmentItem
               addedAt={file.addedAt}
               addedBy={file.addedBy}
-              canDelete={canManage}
+              canManage={canManage}
               fileId={file.id}
               key={file.id}
               name={file.name}
@@ -95,7 +97,7 @@ export function Attachments(props: {
 function AttachmentItem(props: {
   addedAt: string;
   addedBy: { id: string; name: string } | null;
-  canDelete: boolean;
+  canManage: boolean;
   fileId: string;
   name: string;
   nominationFileId: string;
@@ -115,6 +117,15 @@ function AttachmentItem(props: {
     reset: resetRemove,
   } = useRemoveNominationFileAttachmentMutation();
   const { waitForConfirmation } = useConfirmModal();
+  const { mutateAsync: renameAttachment } = useRenameNominationFileAttachmentMutation();
+  const renaming = useRenameAttachmentModal((file: { id: string; name: string }, name) =>
+    renameAttachment({
+      fileId: file.id,
+      name,
+      nominationFileId: props.nominationFileId,
+      sessionId: props.sessionId,
+    }),
+  );
 
   const error = isRemoveError
     ? formatMessage({ defaultMessage: 'La suppression du fichier a échoué. Veuillez réessayer.' })
@@ -201,11 +212,13 @@ function AttachmentItem(props: {
       disabled={isUrlPending || isDownloadPending || isRemovePending}
       header={<NominationFileAttachmentTypeTag type={props.type} />}
       name={props.name}
-      onDelete={props.canDelete ? onDelete : undefined}
+      onDelete={props.canManage ? onDelete : undefined}
       onDownload={onDownload}
       onOpen={onPreview}
+      onRename={props.canManage ? () => renaming.open({ id: props.fileId, name: props.name }) : undefined}
       size={props.size}
     >
+      {renaming.modal}
       {error && (
         <Alert
           className="fr-mt-2v"

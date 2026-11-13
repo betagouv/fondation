@@ -113,6 +113,14 @@ export class SessionTransparenceAttachmentRemoved {
   ) {}
 }
 
+export class SessionTransparenceAttachmentRenamed {
+  constructor(
+    readonly sessionId: string,
+    readonly fileId: string,
+    readonly name: string,
+  ) {}
+}
+
 export class SessionTransparenceFileAttachmentAdded {
   constructor(
     readonly nominationFileId: string,
@@ -125,6 +133,14 @@ export class SessionTransparenceFileAttachmentRemoved {
   constructor(
     readonly nominationFileId: string,
     readonly fileId: string,
+  ) {}
+}
+
+export class SessionTransparenceFileAttachmentRenamed {
+  constructor(
+    readonly nominationFileId: string,
+    readonly fileId: string,
+    readonly name: string,
   ) {}
 }
 
@@ -279,8 +295,10 @@ type NominationSessionEvent =
   | SessionTransparenceAffectationVersionPublished
   | SessionTransparenceAttachmentAdded
   | SessionTransparenceAttachmentRemoved
+  | SessionTransparenceAttachmentRenamed
   | SessionTransparenceFileAttachmentAdded
   | SessionTransparenceFileAttachmentRemoved
+  | SessionTransparenceFileAttachmentRenamed
   | SessionTransparenceCreated
   | SessionTransparenceFilePrioritiesUpdated
   | SessionTransparenceFileReportersAffected
@@ -671,6 +689,10 @@ export class SessionTransparence {
     this.#messages.push(new SessionTransparenceAttachmentRemoved(this.id, command.fileId));
   }
 
+  renameAttachment(command: { fileId: string; name: string }) {
+    this.#messages.push(new SessionTransparenceAttachmentRenamed(this.id, command.fileId, command.name));
+  }
+
   update(command: {
     date: DateOnly;
     dueDate: DateOnly | null;
@@ -899,6 +921,14 @@ export class SessionTransparence {
 
     this.#messages.push(
       new SessionTransparenceFileAttachmentRemoved(command.nominationFileId, command.fileId),
+    );
+  }
+
+  renameNominationFileAttachment(command: { fileId: string; name: string; nominationFileId: string }) {
+    this.assertsCanUpdateFiles(command.nominationFileId);
+
+    this.#messages.push(
+      new SessionTransparenceFileAttachmentRenamed(command.nominationFileId, command.fileId, command.name),
     );
   }
 

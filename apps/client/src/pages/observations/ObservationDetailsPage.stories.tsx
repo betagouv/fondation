@@ -11,6 +11,7 @@ import { ObservationDetailsPage } from './ObservationDetailsPage';
 const OBSERVATION: GetObservationDetailsResponseDto = {
   canComment: false,
   canEdit: true,
+  canManageAttachments: true,
   description:
     'Le magistrat observant souligne avoir exercé les mêmes fonctions pendant six ans et demande que son ancienneté soit prise en compte.',
   files: [

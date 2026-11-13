@@ -98,6 +98,33 @@ test.describe('Summary E2E', () => {
     expect(summary.data).toMatchObject({ auditionRequired: true, canScheduleAudition: true, reportersMissing: true });
   });
 
+  test('should rename an attachment of a summary, keeping its extension', async ({ agent, expect, sessions }) => {
+    const session = await sessions.createOne({
+      candidates: [
+        {
+          firstName: 'HONORINE',
+          lastName: 'VALROSE',
+          position: { function: seed.functions.PR, grade: 'G3', jurisdiction: seed.jurisdictions['CA  LYON'] },
+          targetPosition: { function: seed.functions.PR, grade: 'G3', jurisdiction: seed.jurisdictions['CA  REIMS'] },
+        },
+      ],
+      createdAt: '22/04/2026',
+    });
+    const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+    await agent.summaries.createSummary({ path, throwOnError: true });
+    await agent.summaries.attachSummaryFiles({ body: { files: [pdf('scan_0042.pdf')] }, path, throwOnError: true });
+    const { data: before } = await agent.summaries.detailSummary({ path, throwOnError: true });
+
+    const renamed = await agent.summaries.renameSummaryAttachment({
+      body: { name: '  Évaluation 2023-2024  ' },
+      path: { ...path, fileId: before.summary.attachments[0]!.id },
+    });
+
+    expect(renamed.response?.status).toBe(204);
+    const { data: after } = await agent.summaries.detailSummary({ path, throwOnError: true });
+    expect(after.summary.attachments.map(({ name }) => name)).toEqual(['Évaluation 2023-2024.pdf']);
+  });
+
   test('should detach a file from a summary without touching the files of another one', async ({
     agent,
     expect,

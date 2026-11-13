@@ -24,6 +24,7 @@ import {
   ObservationCreated,
   ObservationDeleted,
   ObservationFileLinked,
+  ObservationFileRenamed,
   ObservationFilesAttached,
   ObservationFilesDetached,
   ObservationFollowedUp,
@@ -105,6 +106,8 @@ export class ObservationRepository {
         await this.persistObservationUpdated(message);
       } else if (message instanceof ObservationFilesDetached) {
         await this.persistObservationFilesDetached(message);
+      } else if (message instanceof ObservationFileRenamed) {
+        await this.persistObservationFileRenamed(message);
       } else if (message instanceof ObservationMemberCommentWritten) {
         await this.persistObservationMemberCommentWritten(message);
       } else if (message instanceof ObservationMemberCommentScreenshotsAttached) {
@@ -208,6 +211,16 @@ export class ObservationRepository {
     });
 
     this.files.delete(detached.map(({ file }) => file));
+  }
+
+  private async persistObservationFileRenamed(message: ObservationFileRenamed) {
+    const file = await this.db.tx.observationFile.findFirst({
+      select: { fileId: true } satisfies Prisma.ObservationFileSelect,
+      where: { fileId: message.fileId, observationId: message.observationId },
+    });
+    if (!file) throw new NotFoundException();
+
+    await this.files.rename({ id: message.fileId, name: message.name });
   }
 
   private async persistObservationMemberCommentWritten(message: ObservationMemberCommentWritten) {

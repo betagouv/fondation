@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   Put,
   Query,
@@ -16,7 +17,7 @@ import {
 import { ApiParam, ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
-import { FILE_EXTENSIONS, Multipart, UseMultipartBody } from '../../framework/files';
+import { FILE_EXTENSIONS, Multipart, RenameAttachmentDto, UseMultipartBody } from '../../framework/files';
 import type { RoleEnum } from '../../shared/role.enum';
 import { AuthedUser, HasRole } from '../../simple-auth';
 
@@ -62,6 +63,7 @@ export class SummaryController {
     schema: AttachSummaryFilesDto,
   })
   async attachSummaryFiles(
+    @AuthedUser() user: { id: string; role: RoleEnum },
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
     @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
     @Body() body: Multipart<typeof AttachSummaryFilesDto>,
@@ -70,6 +72,7 @@ export class SummaryController {
       fileIds: body.files.map(({ id }) => id),
       nominationFileId,
       sessionId,
+      user,
     });
   }
 
@@ -77,6 +80,7 @@ export class SummaryController {
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @HttpCode(HttpStatus.NO_CONTENT)
   async detachSummaryFiles(
+    @AuthedUser() user: { id: string; role: RoleEnum },
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
     @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
     @Query(ZodValidationPipe) { fileIds }: DetachSummaryFilesQueryDto,
@@ -85,7 +89,22 @@ export class SummaryController {
       fileIds,
       nominationFileId,
       sessionId,
+      user,
     });
+  }
+
+  @Patch('/attachments/:fileId')
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UsePipes(ZodValidationPipe)
+  async renameSummaryAttachment(
+    @AuthedUser() user: { id: string; role: RoleEnum },
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
+    @Param('fileId', ParseUUIDPipe) fileId: string,
+    @Body() { name }: RenameAttachmentDto,
+  ): Promise<void> {
+    await this.summaries.renameFile({ fileId, name, nominationFileId, sessionId, user });
   }
 
   @Post('/screenshots')
@@ -100,6 +119,7 @@ export class SummaryController {
     type: IncludedFilesInSummaryContentDto,
   })
   async includeFilesInContent(
+    @AuthedUser() user: { id: string; role: RoleEnum },
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
     @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
     @Body() { files }: Multipart<typeof IncludeFilesInSummaryContentDto>,
@@ -108,6 +128,7 @@ export class SummaryController {
       files,
       nominationFileId,
       sessionId,
+      user,
     });
   }
 

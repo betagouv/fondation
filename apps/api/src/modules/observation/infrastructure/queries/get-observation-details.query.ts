@@ -123,6 +123,8 @@ export class GetObservationDetailsQuery {
         nominationFileIds: [query.nominationFileId, ...relatedFileIds],
         sessionId: query.sessionId,
       });
+      const isNominationFileLocked = await this.transparences.internalIsNominationFileLocked(query);
+      const canEdit = !session.isArchived && isSecretariat(query.role);
       const auditions = await this.transparences.internalFindSeenObservantAuditions({
         magistratIds: [observation.magistrat.id],
         role: query.role,
@@ -132,7 +134,8 @@ export class GetObservationDetailsQuery {
       return {
         // mutations refuse a session that is not open: ObservationRepository.findById, ObservationFinder
         canComment: !session.isArchived && Observation.canComment({ reporterIds, userId: query.userId }),
-        canEdit: !session.isArchived && isSecretariat(query.role),
+        canEdit,
+        canManageAttachments: Observation.canManageAttachments({ canEdit, isNominationFileLocked }),
         description: observation.description,
         files: observation.files.map(({ file }) => ({
           addedAt: file.createdAt.toISOString(),
@@ -228,6 +231,7 @@ export class GetObservationDetailsResponseDto extends createZodDto(
   z.object({
     id: z.string(),
     canEdit: z.boolean(),
+    canManageAttachments: z.boolean().describe('renaming or detaching the files, not adding some'),
     canComment: z.boolean(),
     isArchived: z.boolean(),
     receptionDate: dateOnlyJsonSchema,

@@ -32,6 +32,7 @@ import {
   SessionTransparenceArchived,
   SessionTransparenceAttachmentAdded,
   SessionTransparenceAttachmentRemoved,
+  SessionTransparenceAttachmentRenamed,
   SessionTransparenceAuditionRequestDefined,
   SessionTransparenceAuditionScheduled,
   SessionTransparenceAuditionsPublished,
@@ -42,6 +43,7 @@ import {
   SessionTransparenceFileAlertHidden,
   SessionTransparenceFileAttachmentAdded,
   SessionTransparenceFileAttachmentRemoved,
+  SessionTransparenceFileAttachmentRenamed,
   SessionTransparenceFileMemberMemoWritten,
   SessionTransparenceFileMembersRecused,
   SessionTransparenceFileMissingEvaluationCommentUpdated,
@@ -179,10 +181,14 @@ export class SessionTransparenceRepository {
         await this.persistSessionTransparenceAttachmentAdded(message);
       } else if (message instanceof SessionTransparenceAttachmentRemoved) {
         await this.persistSessionTransparenceAttachmentRemoved(message);
+      } else if (message instanceof SessionTransparenceAttachmentRenamed) {
+        await this.persistSessionTransparenceAttachmentRenamed(message);
       } else if (message instanceof SessionTransparenceFileAttachmentAdded) {
         await this.persistSessionTransparenceFileAttachmentAdded(message);
       } else if (message instanceof SessionTransparenceFileAttachmentRemoved) {
         await this.persistSessionTransparenceFileAttachmentRemoved(message);
+      } else if (message instanceof SessionTransparenceFileAttachmentRenamed) {
+        await this.persistSessionTransparenceFileAttachmentRenamed(message);
       } else if (message instanceof SessionTransparenceUpdated) {
         invalidations.push(...(await this.persistSessionTransparenceUpdated(message)));
       } else if (message instanceof SessionTransparenceCommentWritten) {
@@ -512,6 +518,16 @@ export class SessionTransparenceRepository {
     this.files.delete([{ id: attachment.file.id, path: attachment.file.path }]);
   }
 
+  private async persistSessionTransparenceAttachmentRenamed(message: SessionTransparenceAttachmentRenamed) {
+    const attachment = await this.db.tx.sessionAttachment.findUnique({
+      select: { fileId: true } satisfies Prisma.SessionAttachmentSelect,
+      where: { sessionId_fileId: { fileId: message.fileId, sessionId: message.sessionId } },
+    });
+    if (!attachment) throw new NotFoundException();
+
+    await this.files.rename({ id: message.fileId, name: message.name });
+  }
+
   private async persistSessionTransparenceFileAttachmentAdded(
     message: SessionTransparenceFileAttachmentAdded,
   ) {
@@ -540,6 +556,18 @@ export class SessionTransparenceRepository {
     });
 
     this.files.delete([{ id: attachment.file.id, path: attachment.file.path }]);
+  }
+
+  private async persistSessionTransparenceFileAttachmentRenamed(
+    message: SessionTransparenceFileAttachmentRenamed,
+  ) {
+    const attachment = await this.db.tx.nominationFileAttachment.findUnique({
+      select: { fileId: true } satisfies Prisma.NominationFileAttachmentSelect,
+      where: { primaryKey: { fileId: message.fileId, nominationFileId: message.nominationFileId } },
+    });
+    if (!attachment) throw new NotFoundException();
+
+    await this.files.rename({ id: message.fileId, name: message.name });
   }
 
   private async persistSessionTransparenceUpdated(message: SessionTransparenceUpdated) {

@@ -11,7 +11,7 @@ import { catchError, Observable, throwError } from 'rxjs';
 
 import { assertNever } from '../../../utils/assert-never';
 import { CannotScheduleObservantAudition, type UnschedulableReason } from '../domain/observant-audition';
-import { ObservationAlreadyExist } from '../domain/observation';
+import { ObservationAlreadyExist, ObservationAttachmentsLocked } from '../domain/observation';
 
 @Injectable()
 export class ObservationsFilter implements NestInterceptor {
@@ -28,6 +28,13 @@ export class ObservationsFilter implements NestInterceptor {
 
             return new ConflictException({
               validationError: `Une observation de ce magistrat existe déjà pour ce dossier`,
+            });
+          }
+
+          // the dossier got figé after the page loaded: the client reloads what it shows
+          if (err instanceof ObservationAttachmentsLocked) {
+            return new ConflictException({
+              validationError: `le dossier est figé : ses pièces jointes ne se renomment ni ne se retirent plus`,
             });
           }
 

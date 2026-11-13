@@ -28,6 +28,7 @@ import { canReadSummary, canWriteSummary } from '../../../../shared/policies/sum
 import { PriorityEnum } from '../../../../shared/priority.enum';
 import type { RoleEnum } from '../../../../shared/role.enum';
 import { TransparenceService } from '../../../transparence/infrastructure/transparence.service';
+import { Summary } from '../../domain/summary';
 
 @Injectable()
 export class DetailSummaryQuery {
@@ -160,6 +161,8 @@ export class DetailSummaryQuery {
       ...nominationFile,
       detectedJurisdictionType: nominationFile.detectedJurisdiction?.typeJur ?? null,
     };
+    const canWrite = canWriteSummary({ authorId: summary.author?.id ?? null }, user);
+    const isNominationFileLocked = await this.transparences.internalIsNominationFileLocked(query);
 
     return {
       ...audition,
@@ -212,7 +215,8 @@ export class DetailSummaryQuery {
               lastName: summary.author.lastName,
             }
           : null,
-        canWrite: canWriteSummary({ authorId: summary.author?.id ?? null }, user),
+        canManageAttachments: Summary.canManageAttachments({ canWrite, isNominationFileLocked }),
+        canWrite,
         content: summary.content,
         readers: summary.readers.map(({ user }) => ({
           firstName: user.firstName,
@@ -278,6 +282,7 @@ export class DetailedSummaryDto extends createZodDto(
       .nullable(),
 
     summary: z.object({
+      canManageAttachments: z.boolean().describe('renaming or detaching the files, not adding some'),
       canWrite: z.boolean(),
       content: z.string(),
       author: z.object({ id: z.string(), firstName: z.string(), lastName: z.string() }).nullable(),
