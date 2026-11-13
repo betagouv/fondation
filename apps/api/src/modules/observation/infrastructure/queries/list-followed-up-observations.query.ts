@@ -12,7 +12,6 @@ import { TransparenceService } from '../../../session/transparence/infrastructur
 import {
   laterPropositions,
   type ObservationBlockTrackingStatus,
-  sortByObservationBlock,
   sortBySessionThenObservationBlock,
   UNTRACKED_BLOCK,
 } from '../../domain/observation-block';
@@ -115,10 +114,10 @@ export class ListFollowedUpObservationsQuery {
       }));
       // most recent first unless a column is explicitly sorted ascending
       const order = query.sortBy && !query.sortDesc ? 'asc' : 'desc';
-      const sorted =
-        query.sortBy === 'dateReception'
-          ? sortByObservationBlock(blocked, order)
-          : sortBySessionThenObservationBlock(blocked, order);
+      const sorted = sortBySessionThenObservationBlock(blocked, {
+        blocks: query.sortBy === 'dateReception' ? order : 'desc',
+        sessions: order,
+      });
 
       const { limit, page } = query.pagination;
       const pageItems = sorted.slice((page - 1) * limit, page * limit);

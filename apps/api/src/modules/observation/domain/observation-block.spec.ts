@@ -153,18 +153,22 @@ describe('sortBySessionThenObservationBlock', () => {
   ];
 
   it('places the most recent session first, then its most recent blocs, when descending', () => {
-    expect(ids(sortBySessionThenObservationBlock(observations, 'desc'))).toEqual([
-      'june-martin',
-      'june-durand',
-      'march',
-    ]);
+    expect(
+      ids(sortBySessionThenObservationBlock(observations, { blocks: 'desc', sessions: 'desc' })),
+    ).toEqual(['june-martin', 'june-durand', 'march']);
   });
 
   it('places the oldest session first but keeps its most recent blocs first, when ascending', () => {
-    expect(ids(sortBySessionThenObservationBlock(observations, 'asc'))).toEqual([
+    expect(ids(sortBySessionThenObservationBlock(observations, { blocks: 'desc', sessions: 'asc' }))).toEqual(
+      ['march', 'june-martin', 'june-durand'],
+    );
+  });
+
+  it('keeps the blocs inside their session when sorted by reception date, oldest first', () => {
+    expect(ids(sortBySessionThenObservationBlock(observations, { blocks: 'asc', sessions: 'asc' }))).toEqual([
       'march',
-      'june-martin',
       'june-durand',
+      'june-martin',
     ]);
   });
 });
