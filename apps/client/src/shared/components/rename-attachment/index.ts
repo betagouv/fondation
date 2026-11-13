@@ -1,0 +1,1 @@
+export { useRenameAttachmentModal } from './RenameAttachmentModal';

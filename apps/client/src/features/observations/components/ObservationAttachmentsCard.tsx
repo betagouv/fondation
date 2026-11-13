@@ -1,6 +1,7 @@
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import { FileList, FileListItem } from '@/shared/components/file-list';
+import { useRenameAttachmentModal } from '@/shared/components/rename-attachment';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { useAttachmentFailureToast } from '@/shared/hooks/useAttachmentFailureToast';
 import { DetailsCard } from '@/shared/ui/details';
@@ -8,7 +9,10 @@ import { AttachmentFormatsHint, Upload } from '@/shared/ui/upload';
 import { ATTACHMENT_FILE_TYPES } from '@/shared/ui/upload/file-types';
 import { dateOnlyToIso } from '@/utils/date-only.util';
 import type { GetObservationDetailsResponseDto } from '@api/types';
-import { useUpdateObservationMutation } from '@queries/observations.queries';
+import {
+  useRenameObservationFileMutation,
+  useUpdateObservationMutation,
+} from '@queries/observations.queries';
 
 export function ObservationAttachmentsCard(props: {
   nominationFileId: string;
@@ -61,8 +65,20 @@ export function ObservationAttachmentsCard(props: {
     if (isConfirmed) update({ detachFileIds: [fileId] });
   };
 
+  const { mutateAsync: renameFile } = useRenameObservationFileMutation();
+  const renaming = useRenameAttachmentModal((file: { id: string; name: string }, name) =>
+    renameFile({
+      fileId: file.id,
+      name,
+      nominationFileId: props.nominationFileId,
+      observationId: props.observation.id,
+      sessionId: props.sessionId,
+    }),
+  );
+
   return (
     <DetailsCard>
+      {renaming.modal}
       <h2 className="fr-h4" id="observation-files-title">
         <FormattedMessage
           defaultMessage="{count, plural, one {Pièce jointe} other {Pièces jointes ({count})}}"
@@ -82,6 +98,7 @@ export function ObservationAttachmentsCard(props: {
               onDelete={canEdit ? () => onDelete(file.id) : undefined}
               onDownload={() => props.onDownloadFile(file)}
               onOpen={() => props.onOpenFile(file)}
+              onRename={canEdit ? () => renaming.open(file) : undefined}
               size={file.size}
             />
           ))}

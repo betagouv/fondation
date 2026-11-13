@@ -43,6 +43,28 @@ export function useAttachSummaryFilesMutation() {
   });
 }
 
+export function useRenameSummaryAttachmentMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (mutation: {
+      fileId: string;
+      name: string;
+      nominationFileId: string;
+      sessionId: string;
+    }) => {
+      const { fileId, name, nominationFileId, sessionId } = mutation;
+      await $api.summaries.renameSummaryAttachment({
+        body: { name },
+        path: { fileId, nominationFileId, sessionId },
+      });
+    },
+    onSettled: (_data, _error, { nominationFileId, sessionId }) =>
+      queryClient.invalidateQueries({
+        queryKey: summaryKeys.detailsSummary({ nominationFileId, sessionId }),
+      }),
+  });
+}
+
 export function useDetachSummaryFilesMutation() {
   const queryClient = useQueryClient();
 

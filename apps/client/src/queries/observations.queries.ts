@@ -60,8 +60,10 @@ export const observationKeys = {
   observationDetails: (props: { sessionId: string; nominationFileId: string; observationId: string }) =>
     ['observationDetails', props] as const,
   searchMagistrats: (props?: { search?: string }) => ['searchMagistrats', props?.search] as const,
+  /** the files an observation can link, from the other observations of its observant */
+  allObservationAttachments: () => ['observation', 'attachments'] as const,
   observationAttachments: (props?: { magistratId?: string }) =>
-    ['observation', 'attachments', props?.magistratId] as const,
+    [...observationKeys.allObservationAttachments(), props?.magistratId] as const,
 };
 
 export function useObservationDetailsQuery(props: {
@@ -341,6 +343,32 @@ export function useUpdateObservationMutation() {
         queryClient.invalidateQueries({
           queryKey: sessionKeys.listSessionNominationFiles({ sessionId }),
         }),
+      ]),
+  });
+}
+
+export function useRenameObservationFileMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (mutation: {
+      fileId: string;
+      name: string;
+      nominationFileId: string;
+      observationId: string;
+      sessionId: string;
+    }): Promise<void> => {
+      const { name, ...path } = mutation;
+      await $api.observations.renameObservationFile({ body: { name }, path });
+    },
+    onSettled: (_data, _error, { nominationFileId, observationId, sessionId }) =>
+      Promise.allSettled([
+        queryClient.invalidateQueries({
+          queryKey: observationKeys.observationDetails({ nominationFileId, observationId, sessionId }),
+        }),
+        // the lists of a file and of a session show the names of the files too, as do the files to link
+        queryClient.invalidateQueries({ queryKey: observationKeys.allObservations() }),
+        queryClient.invalidateQueries({ queryKey: observationKeys.allObservationAttachments() }),
       ]),
   });
 }

@@ -420,6 +420,20 @@ export const useRemoveNominationSessionAttachmentMutation = () => {
   });
 };
 
+export function useRenameNominationSessionAttachmentMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (props: { fileId: string; name: string; sessionId: string }) => {
+      await $api.sessions.renameSessionAttachment({
+        body: { name: props.name },
+        path: { fileId: props.fileId, sessionId: props.sessionId },
+      });
+    },
+    onSettled: (_data, _error, { sessionId }) =>
+      queryClient.invalidateQueries({ queryKey: sessionKeys.listSessionAttachments({ sessionId }) }),
+  });
+}
+
 export const useListNominationSessionAttachmentsQuery = (props: { sessionId: string }) =>
   useQuery({
     placeholderData: (prev) => prev,
@@ -512,6 +526,27 @@ export const useRemoveNominationFileAttachmentMutation = () => {
     },
   });
 };
+
+export function useRenameNominationFileAttachmentMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (props: {
+      fileId: string;
+      name: string;
+      nominationFileId: string;
+      sessionId: string;
+    }) => {
+      await $api.sessions.renameNominationFileAttachment({
+        body: { name: props.name },
+        path: { fileId: props.fileId, nominationFileId: props.nominationFileId, sessionId: props.sessionId },
+      });
+    },
+    onSettled: (_data, _error, { nominationFileId, sessionId }) =>
+      queryClient.invalidateQueries({
+        queryKey: sessionKeys.listNominationFileAttachments({ nominationFileId, sessionId }),
+      }),
+  });
+}
 
 export const useListNominationFileAttachmentsQuery = (props: {
   nominationFileId: string;

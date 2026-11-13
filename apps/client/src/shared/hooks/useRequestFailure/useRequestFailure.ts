@@ -4,6 +4,7 @@ import { defineMessages, useIntl, type MessageDescriptor } from 'react-intl';
 import { HttpException } from '@/utils/http-exception';
 
 export type FailureReason =
+  | 'conflict'
   | 'forbidden'
   | 'missing'
   | 'offline'
@@ -17,6 +18,7 @@ const REASON_BY_STATUS: Record<number, FailureReason> = {
   400: 'refused',
   403: 'forbidden',
   404: 'missing',
+  409: 'conflict',
   413: 'tooLarge',
   502: 'unavailable',
   503: 'unavailable',
@@ -55,7 +57,7 @@ function adviceOf(
   failure: { code: number | null; reason: FailureReason },
   explained: boolean,
 ): MessageDescriptor | null {
-  if ((failure.reason === 'refused' || failure.reason === 'tooLarge') && explained) return null;
+  if (['conflict', 'refused', 'tooLarge'].includes(failure.reason) && explained) return null;
   if (failure.reason === 'missing') return ADVICES.report;
   return Number.isFinite(failure.code) ? ADVICES.retryWithCode : ADVICES.retry;
 }

@@ -45,6 +45,15 @@ describe('useRequestFailure', () => {
     expect(renderUseRequestFailure({})(failureWith(400))).toBe(
       'Réessayez et prévenez le support si cela persiste (code 400).',
     );
+    expect(renderUseRequestFailure({})(failureWith(409))).toBe(
+      'Réessayez et prévenez le support si cela persiste (code 409).',
+    );
+  });
+
+  it('explains a conflict the caller knows, retrying being of no use', () => {
+    expect(renderUseRequestFailure({ conflict: REASONS.refused })(failureWith(409))).toBe(
+      'Une image pèse 5 Mo au plus.',
+    );
   });
 
   it('keeps a reason apart from a refusal', () => {

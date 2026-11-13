@@ -61,6 +61,7 @@ vi.mock('@queries/nomination-sessions.queries', () => ({
     mutate: mocks.remove,
     reset: vi.fn(),
   }),
+  useRenameNominationFileAttachmentMutation: () => ({ mutateAsync: vi.fn() }),
 }));
 
 const PROPS = { isUpdatable: true, nominationFileId: 'nf-1', sessionId: 'session-1' };
@@ -254,10 +255,11 @@ describe('Attachments permissions', () => {
     expect(screen.queryByRole('button', { name: 'Ajouter' })).not.toBeInTheDocument();
   });
 
-  it('hides delete and upload on a file that can no longer be updated', () => {
+  it('hides delete, rename and upload on a file that can no longer be updated', () => {
     renderAttachments({ isUpdatable: false });
 
     expect(screen.queryByRole('button', { name: /Supprimer/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Renommer/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Ajouter' })).not.toBeInTheDocument();
   });
 });
