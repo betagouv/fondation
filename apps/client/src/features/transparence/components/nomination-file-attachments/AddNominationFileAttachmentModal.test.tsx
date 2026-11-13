@@ -13,8 +13,8 @@ const mocks = vi.hoisted(() => ({ add: vi.fn(), error: null as Error | null }));
 vi.mock('@queries/nomination-sessions.queries', () => ({
   useAddNominationFileAttachmentsMutation: () => ({
     error: mocks.error,
-    mutate: mocks.add,
     isPending: false,
+    mutate: mocks.add,
     reset: vi.fn(),
   }),
 }));
@@ -128,6 +128,19 @@ describe('AddNominationFileAttachmentModal', () => {
     expect(
       screen.getByText('Le dossier a été figé entre-temps : il ne reçoit plus de pièce jointe.'),
     ).toBeInTheDocument();
+  });
+
+  it('only lets the user cancel once the dossier was figé meanwhile', () => {
+    try {
+      httpAssert(new Response(null, { status: 409 }));
+    } catch (refusal) {
+      mocks.error = refusal as Error;
+    }
+    const { container } = renderModal();
+
+    expect(container.querySelector('input[type="file"]')).toBeDisabled();
+    expect(submitButton()).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'Masquer le message' })).not.toBeInTheDocument();
   });
 
   it('passes basic accessibility checks', async () => {
