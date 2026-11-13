@@ -10,7 +10,7 @@ import { AttachmentFormatsHint, Upload } from '@/shared/ui/upload';
 import { ATTACHMENT_FILE_TYPES } from '@/shared/ui/upload/file-types';
 import { useAddNominationSessionAttachmentMutation } from '@queries/nomination-sessions.queries';
 
-export function ImportAttachmentModal(props: { onClose: () => void; open: boolean; sessionId: string }) {
+export function AddSessionAttachmentModal(props: { onClose: () => void; open: boolean; sessionId: string }) {
   const { formatMessage } = useIntl();
   const toasts = useToasts();
   const describeFailure = useRequestFailure();
@@ -18,13 +18,13 @@ export function ImportAttachmentModal(props: { onClose: () => void; open: boolea
   const [files, setFiles] = useState<File[]>([]);
   const [attempt, setAttempt] = useState(0);
   const [failure, setFailure] = useState<unknown>(null);
-  const { mutate: importAttachments, isPending } = useAddNominationSessionAttachmentMutation();
+  const { mutate: addAttachments, isPending } = useAddNominationSessionAttachmentMutation();
 
-  const onImport = useCallback(() => {
+  const onAdd = useCallback(() => {
     if (files.length === 0) return;
 
     setFailure(null);
-    importAttachments(
+    addAttachments(
       { files, sessionId: props.sessionId },
       {
         onError: (error) => {
@@ -39,22 +39,22 @@ export function ImportAttachmentModal(props: { onClose: () => void; open: boolea
         },
       },
     );
-  }, [files, formatMessage, importAttachments, props, toasts]);
+  }, [addAttachments, files, formatMessage, props, toasts]);
 
   return (
     <Modal
       actions={
-        <Button disabled={files.length === 0 || isPending} onClick={onImport}>
+        <Button disabled={files.length === 0 || isPending} onClick={onAdd}>
           {isPending ? (
-            <FormattedMessage defaultMessage="Import en cours..." />
+            <FormattedMessage defaultMessage="Ajout en cours..." />
           ) : (
-            <FormattedMessage defaultMessage="Importer" />
+            <FormattedMessage defaultMessage="Ajouter" />
           )}
         </Button>
       }
       onClose={props.onClose}
       open={props.open}
-      title={<FormattedMessage defaultMessage="Importer des pièces jointes" />}
+      title={<FormattedMessage defaultMessage="Ajouter des pièces jointes" />}
     >
       {failure !== null && (
         <Alert
@@ -63,7 +63,7 @@ export function ImportAttachmentModal(props: { onClose: () => void; open: boolea
           role="alert"
           severity="error"
           small
-          title={formatMessage({ defaultMessage: "L'import des pièces jointes a échoué" })}
+          title={formatMessage({ defaultMessage: "L'ajout des pièces jointes a échoué" })}
         />
       )}
 

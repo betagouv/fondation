@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useOutletContext } from 'react-router';
 
-import { ImportAttachmentModal } from '@/features/transparence/components/attachments/ImportAttachmentModal';
+import { AddSessionAttachmentModal } from '@/features/transparence/components/attachments/AddSessionAttachmentModal';
 import { SessionAttachmentsTab } from '@/features/transparence/components/attachments/SessionAttachmentsTab';
 import type { SessionAttachment } from '@/features/transparence/components/attachments/SessionAttachmentsTable';
 import { useRenameAttachmentModal } from '@/shared/components/rename-attachment';
@@ -24,7 +24,7 @@ export function TransparenceAttachmentsTab() {
   const toasts = useToasts();
   const { isArchived } = useArchivedSession();
   const { filtersSlot, toolbarSlot, transparence } = useOutletContext<TransparenceOutletContext>();
-  const [isImporting, setIsImporting] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
 
   const { mutate: deleteAttachment } = useRemoveNominationSessionAttachmentMutation();
   const { mutateAsync: renameAttachment } = useRenameNominationSessionAttachmentMutation();
@@ -34,9 +34,9 @@ export function TransparenceAttachmentsTab() {
 
   return (
     <>
-      <ImportAttachmentModal
-        onClose={() => setIsImporting(false)}
-        open={isImporting}
+      <AddSessionAttachmentModal
+        onClose={() => setIsAdding(false)}
+        open={isAdding}
         sessionId={transparence.id}
       />
       {renaming.modal}
@@ -80,7 +80,7 @@ export function TransparenceAttachmentsTab() {
             <Button
               className="py-2!"
               iconId="fr-icon-add-line"
-              onClick={() => setIsImporting(true)}
+              onClick={() => setIsAdding(true)}
               priority="primary"
               size="small"
             >
