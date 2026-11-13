@@ -94,4 +94,33 @@ describe('DataTableFilters', () => {
 
     expect(screen.getByLabelText('Ouvert')).not.toBeChecked();
   });
+
+  it('should show every filter of a column carrying several, in their order', () => {
+    function SeveralFiltersTable() {
+      const table = useReactTable({
+        columns: [
+          h.accessor('status', {
+            meta: {
+              filters: [
+                { filterId: 'status', label: 'Statut', type: 'enum', values: [] },
+                { filterId: 'deadline', label: 'Échéance', type: 'enum', values: [] },
+              ],
+            },
+          }),
+        ],
+        data: [],
+        getCoreRowModel: getCoreRowModel(),
+        manualFiltering: true,
+      });
+      return <DataTableFilters table={table} />;
+    }
+
+    render(
+      <IntlProvider defaultLocale="fr" locale="fr">
+        <SeveralFiltersTable />
+      </IntlProvider>,
+    );
+
+    expect(screen.getAllByRole('button').map((button) => button.textContent)).toEqual(['Statut', 'Échéance']);
+  });
 });
