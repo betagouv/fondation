@@ -23,4 +23,20 @@ describe('AttachedLinkTab', () => {
       '/presidents-de-chambre?filters=alert%3A%5B%22RETIREMENT%22%5D',
     );
   });
+
+  it('adds no entry to the history when the current tab is clicked again', async () => {
+    window.history.replaceState(null, '', '/conseillers');
+    render(
+      <BrowserRouter>
+        <AttachedLinkTabs ariaLabel="Postes">
+          <AttachedLinkTab keepsQuery label="Conseillers" to="/conseillers" />
+        </AttachedLinkTabs>
+      </BrowserRouter>,
+    );
+    const entries = window.history.length;
+
+    await userEvent.click(screen.getByRole('link', { name: 'Conseillers' }));
+
+    expect(window.history.length).toBe(entries);
+  });
 });

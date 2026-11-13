@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 import type { ReactNode } from 'react';
-import { NavLink, useNavigate } from 'react-router';
+import { NavLink, useLocation, useNavigate } from 'react-router';
 
 /** tabs set on the top edge of the table they switch, the current one merging into its header */
 export function AttachedLinkTabs(props: { ariaLabel: string; children: ReactNode }) {
@@ -19,6 +19,7 @@ export function AttachedLinkTab(props: {
   to: string;
 }) {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
 
   return (
     <li className="fr-p-0 flex flex-auto">
@@ -35,7 +36,11 @@ export function AttachedLinkTab(props: {
           if (!props.keepsQuery || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey)
             return;
           event.preventDefault();
-          void navigate({ pathname: props.to, search: window.location.search });
+          // replaces the entry, as Link does, when the tab is already the current one
+          void navigate(
+            { pathname: props.to, search: window.location.search },
+            { replace: pathname === props.to },
+          );
         }}
         to={props.to}
       >

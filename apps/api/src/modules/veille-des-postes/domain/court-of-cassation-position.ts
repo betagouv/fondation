@@ -1,6 +1,6 @@
 export const COURT_OF_CASSATION_ID = 'CC  PARIS';
 
-/* In the order of the hierarchy, which sorts the holders */
+/** in the order of the hierarchy, which sorts the holders */
 export const COURT_OF_CASSATION_POSITIONS = [
   'FIRST_PRESIDENT',
   'CHAMBER_PRESIDENT',
@@ -61,11 +61,8 @@ export function rankedLolfiPositions(): RankedLolfiPositions {
   };
 }
 
-export function courtOfCassationPositionOfRank(rank: number): {
-  id: CourtOfCassationPosition;
-  label: string;
-} {
-  return courtOfCassationPositions()[rank]!;
+export function courtOfCassationPositionOfRank(rank: number): CourtOfCassationPosition {
+  return COURT_OF_CASSATION_POSITIONS[rank]!;
 }
 
 const SERVICE_LABELS: Record<HolderService, string> = {

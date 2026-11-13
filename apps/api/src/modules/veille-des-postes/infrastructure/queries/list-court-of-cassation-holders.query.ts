@@ -68,7 +68,7 @@ export class ListCourtOfCassationHoldersQuery {
     const today = DateOnly.fromInstantInParis(new Date());
 
     const rows = holders.map((holder) => {
-      const position = courtOfCassationPositionOfRank(holder.rank!);
+      const positionId = courtOfCassationPositionOfRank(holder.rank!);
       const installationDate = DateOnly.fromOptionalUtcDate(holder.installationDate);
       const alerts = alertsOf(
         {
@@ -76,14 +76,14 @@ export class ListCourtOfCassationHoldersQuery {
           installationDate,
           proposal: proposals.get(holder.id) ?? null,
         },
-        alertRulesOf(position.id),
+        alertRulesOf(positionId),
         today,
       );
       return {
         alerts,
         installationDate: installationDate?.toJson() ?? null,
         magistrat: { id: holder.id, name: magistratFullName(holder) },
-        positionId: position.id,
+        positionId,
         service: holderServiceOf(holder.functionId),
         status: positionStatusOf({ alertCount: alerts.length, held: true }),
       };
