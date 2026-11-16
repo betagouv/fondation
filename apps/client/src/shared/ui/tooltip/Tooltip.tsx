@@ -7,6 +7,8 @@ const SAFE_MARGIN = 16;
 let openedTooltip: (() => void) | null = null;
 
 export function Tooltip(props: {
+  /** start: the bubble begins where the anchor begins, for a line of text among others */
+  align?: 'center' | 'start';
   children: ReactNode;
   className?: string;
   /** takes the focus itself, for when it wraps something a keyboard cannot reach, such as a disabled button */
@@ -41,18 +43,20 @@ export function Tooltip(props: {
     const { height, width } = bubble.getBoundingClientRect();
 
     const under = from.top - height - ARROW_GAP < SAFE_MARGIN;
-    const left = Math.min(
-      Math.max(from.left + from.width / 2 - width / 2, SAFE_MARGIN),
-      window.innerWidth - SAFE_MARGIN - width,
-    );
+    const wanted = props.align === 'start' ? from.left : from.left + from.width / 2 - width / 2;
+    const left = Math.min(Math.max(wanted, SAFE_MARGIN), window.innerWidth - SAFE_MARGIN - width);
 
     bubble.style.left = `${left}px`;
     bubble.style.top = `${under ? from.bottom + ARROW_GAP : from.top - height - ARROW_GAP}px`;
 
-    setArrowX(from.left + from.width / 2 - left);
+    setArrowX(
+      props.align === 'start'
+        ? Math.min(from.width / 2, 16) + from.left - left
+        : from.left + from.width / 2 - left,
+    );
     setIsUnder(under);
     setIsShown(true);
-  }, [hide, props.label]);
+  }, [hide, props.align, props.label]);
 
   useEffect(() => {
     if (!isShown) return;

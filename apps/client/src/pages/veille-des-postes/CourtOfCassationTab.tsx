@@ -13,7 +13,7 @@ import type { VeilleDesPostesOutletContext } from './veille-des-postes-outlet-co
 
 export function CourtOfCassationTab() {
   const { formatMessage } = useIntl();
-  const { filtersSlot, titleSlot } = useOutletContext<VeilleDesPostesOutletContext>();
+  const { filtersSlot, onSidePanelToggle, titleSlot } = useOutletContext<VeilleDesPostesOutletContext>();
   const position = courtOfCassationPositionOf(useParams().position);
 
   if (!position)
@@ -22,6 +22,7 @@ export function CourtOfCassationTab() {
   return (
     <CourtOfCassationHoldersTable
       filtersSlot={filtersSlot}
+      onSidePanelToggle={onSidePanelToggle}
       position={position}
       positionTabs={(positions) => (
         <AttachedLinkTabs ariaLabel={formatMessage({ defaultMessage: 'Postes de la Cour de cassation' })}>

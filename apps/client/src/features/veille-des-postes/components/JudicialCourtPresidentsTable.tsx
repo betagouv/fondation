@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { useIntl } from 'react-intl';
 
+import { useEditedPosition } from '../hooks/useEditedPosition';
 import {
   KNOWN_ALERTS,
   KNOWN_DEADLINES,
@@ -43,6 +44,7 @@ import {
 import { CenteredRessortLabel } from './CenteredRessortLabel';
 import { MagistratLink } from './MagistratLink';
 import { PositionStatusCell } from './PositionStatusCell';
+import { type EditedPosition, PositionVacancySidePanel } from './PositionVacancySidePanel';
 
 const SORTABLE_COLUMNS = new Set<string>([
   'court',
@@ -54,7 +56,13 @@ const SORTABLE_COLUMNS = new Set<string>([
 
 const NO_RESSORTS: RessortCount[] = [];
 
+const COLUMNS_BESIDE_SIDE_PANEL = { candidates: false, installationDate: false, status: false };
+
 const h = createColumnHelper<JudicialCourtPresident>();
+
+function editedPositionOf(row: JudicialCourtPresident): EditedPosition | null {
+  return row.magistrat && { ...row, magistrat: row.magistrat };
+}
 
 /** a magistrat holds one position only, and a court without one is listed once */
 function rowIdOf(president: JudicialCourtPresident): string {
@@ -63,12 +71,22 @@ function rowIdOf(president: JudicialCourtPresident): string {
 
 function useJudicialCourtPresidentsColumns(props: {
   groupedRows: Set<string> | null;
+  /** the ressort of the highlighted row, whose merged cell is highlighted whole */
+  highlightedRessortId: string | undefined;
   onMagistratOpened: (event: MouseEvent, magistratId: string) => void;
+  onPositionEdited: (row: JudicialCourtPresident) => void;
   ressorts: RessortCount[];
   statusAndAlertCounts: StatusAndAlertCounts;
 }) {
   const { formatMessage } = useIntl();
-  const { groupedRows, onMagistratOpened, ressorts, statusAndAlertCounts } = props;
+  const {
+    groupedRows,
+    highlightedRessortId,
+    onMagistratOpened,
+    onPositionEdited,
+    ressorts,
+    statusAndAlertCounts,
+  } = props;
 
   return useMemo(() => {
     const counted = (values: { count: number; id: string; label: string }[]) =>
@@ -88,12 +106,20 @@ function useJudicialCourtPresidentsColumns(props: {
         header: formatMessage({ defaultMessage: 'Ressort' }),
         id: 'ressort',
         meta: {
+          cellBackground: (row) =>
+            groupedRows && row.original.ressort.id === highlightedRessortId
+              ? 'bg-(--background-alt-blue-france)'
+              : undefined,
           // one cell for the courts of a ressort, without line inside it
           cellClassName: (row) =>
             clsx(
               'relative border-r border-(--border-default-grey)',
               groupedRows?.has(row.id) &&
-                "overflow-visible! after:absolute after:inset-x-0 after:-bottom-px after:h-px after:bg-(--background-default-grey) after:content-['']",
+                "overflow-visible! after:absolute after:inset-x-0 after:-bottom-px after:h-px after:content-['']",
+              groupedRows?.has(row.id) &&
+                (row.original.ressort.id === highlightedRessortId
+                  ? 'after:bg-(--background-alt-blue-france)'
+                  : 'after:bg-(--background-default-grey)'),
             ),
           filters: {
             filterId: 'ressort',
@@ -112,10 +138,16 @@ function useJudicialCourtPresidentsColumns(props: {
         sortDescFirst: false,
       }),
       h.accessor('magistrat', {
-        cell: ({ getValue }) => {
+        cell: ({ getValue, row }) => {
           const magistrat = getValue();
           if (!magistrat) return '-';
-          return <MagistratLink magistrat={magistrat} onClick={onMagistratOpened} />;
+          return (
+            <MagistratLink
+              isFormerHolder={row.original.status.id === 'VACANT'}
+              magistrat={magistrat}
+              onClick={onMagistratOpened}
+            />
+          );
         },
         header: formatMessage({ defaultMessage: 'Magistrat' }),
         id: 'name',
@@ -133,7 +165,13 @@ function useJudicialCourtPresidentsColumns(props: {
         sortDescFirst: false,
       }),
       h.accessor('status', {
-        cell: ({ getValue, row }) => <PositionStatusCell alerts={row.original.alerts} status={getValue()} />,
+        cell: ({ getValue, row }) => (
+          <PositionStatusCell
+            alerts={row.original.alerts}
+            onEdit={row.original.magistrat ? () => onPositionEdited(row.original) : undefined}
+            status={getValue()}
+          />
+        ),
         header: formatMessage({ defaultMessage: 'Alerte / statut' }),
         id: 'status',
         meta: { filters: statusAndAlertFilters(formatMessage, statusAndAlertCounts) },
@@ -147,11 +185,20 @@ function useJudicialCourtPresidentsColumns(props: {
         size: 160,
       }),
     ];
-  }, [formatMessage, groupedRows, onMagistratOpened, ressorts, statusAndAlertCounts]);
+  }, [
+    formatMessage,
+    groupedRows,
+    highlightedRessortId,
+    onMagistratOpened,
+    onPositionEdited,
+    ressorts,
+    statusAndAlertCounts,
+  ]);
 }
 
 export function JudicialCourtPresidentsTable(props: {
   filtersSlot: HTMLDivElement | null;
+  onSidePanelToggle: (open: boolean) => void;
   titleSlot: HTMLSpanElement | null;
 }) {
   const { formatMessage } = useIntl();
@@ -231,10 +278,16 @@ export function JudicialCourtPresidentsTable(props: {
         : null,
     [presidents, sorting],
   );
+  const editing = useEditedPosition(presidents, editedPositionOf, props.onSidePanelToggle);
+  // the row of the side panel, or the one left for a magistrat's page
+  const highlightedRowId = editing.edited?.magistrat.id ?? revealedRowId;
   const table = useReactTable({
     columns: useJudicialCourtPresidentsColumns({
       groupedRows,
+      highlightedRessortId: presidents.find((president) => rowIdOf(president) === highlightedRowId)?.ressort
+        .id,
       onMagistratOpened: remember,
+      onPositionEdited: editing.open,
       ressorts: data?.ressorts ?? NO_RESSORTS,
       statusAndAlertCounts,
     }),
@@ -246,7 +299,12 @@ export function JudicialCourtPresidentsTable(props: {
     manualSorting: true,
     onColumnFiltersChange,
     onSortingChange,
-    state: { columnFilters: tableState.columnFilters, globalFilter: tableState.globalFilter, sorting },
+    state: {
+      columnFilters: tableState.columnFilters,
+      columnVisibility: editing.edited ? COLUMNS_BESIDE_SIDE_PANEL : {},
+      globalFilter: tableState.globalFilter,
+      sorting,
+    },
   });
 
   return (
@@ -270,30 +328,44 @@ export function JudicialCourtPresidentsTable(props: {
           </div>,
           props.filtersSlot,
         )}
-      <DataTable
-        ariaLabel={formatMessage({ defaultMessage: 'Présidents de tribunaux judiciaires' })}
-        emptyLabel={
-          tableState.globalFilter || tableState.columnFilters.length
-            ? formatMessage({ defaultMessage: 'Aucun tribunal judiciaire ne correspond aux filtres fournis' })
-            : formatMessage({ defaultMessage: 'Aucun tribunal judiciaire' })
-        }
-        fluid
-        isLoading={isLoading}
-        onEndReached={fetchMore}
-        onSeenRowsChange={onSeenRowsChange}
-        revealedRowId={revealedRowId}
-        rowTint={(row) =>
-          clsx(
-            VEILLE_ROW_CLASS,
-            row.id === revealedRowId && 'bg-(--background-alt-blue-france)',
-            sorting[0]?.id === 'ressort' &&
-              row.index > 0 &&
-              presidents[row.index - 1]?.ressort.id !== row.original.ressort.id &&
-              'border-t border-t-(--border-plain-blue-france)',
-          )
-        }
-        scrollsWithPage
-        table={table}
+      <div
+        className={clsx('w-full transition-[width] duration-300 ease-out', editing.edited && 'md:w-[52%]')}
+      >
+        <DataTable
+          ariaLabel={formatMessage({ defaultMessage: 'Présidents de tribunaux judiciaires' })}
+          emptyLabel={
+            tableState.globalFilter || tableState.columnFilters.length
+              ? formatMessage({
+                  defaultMessage: 'Aucun tribunal judiciaire ne correspond aux filtres fournis',
+                })
+              : formatMessage({ defaultMessage: 'Aucun tribunal judiciaire' })
+          }
+          fluid
+          isLoading={isLoading}
+          onEndReached={fetchMore}
+          onSeenRowsChange={onSeenRowsChange}
+          revealedRowId={highlightedRowId}
+          rowTint={(row) =>
+            clsx(
+              VEILLE_ROW_CLASS,
+              row.id === highlightedRowId && 'bg-(--background-alt-blue-france)',
+              sorting[0]?.id === 'ressort' &&
+                row.index > 0 &&
+                presidents[row.index - 1]?.ressort.id !== row.original.ressort.id &&
+                'border-t border-t-(--border-plain-blue-france)',
+            )
+          }
+          scrollsWithPage
+          table={table}
+        />
+      </div>
+      <PositionVacancySidePanel
+        edited={editing.edited}
+        isLeaveBlocked={editing.isLeaveBlocked}
+        onClose={editing.close}
+        onLeaveBlockedChange={editing.setLeaveBlocked}
+        onNext={editing.next}
+        onPrevious={editing.previous}
       />
     </>
   );

@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { useIntl } from 'react-intl';
 
+import { useEditedPosition } from '../hooks/useEditedPosition';
 import { KNOWN_ALERTS, KNOWN_DEADLINES, KNOWN_STATUSES, knownValues } from '../utils/known-values.utils';
 import {
   NO_STATUS_AND_ALERT_COUNTS,
@@ -34,6 +35,7 @@ import {
 
 import { MagistratLink } from './MagistratLink';
 import { PositionStatusCell } from './PositionStatusCell';
+import { type EditedPosition, PositionVacancySidePanel } from './PositionVacancySidePanel';
 
 const SORTABLE_COLUMNS = new Set<string>([
   'court',
@@ -42,14 +44,21 @@ const SORTABLE_COLUMNS = new Set<string>([
   'status',
 ] satisfies CourtOfAppealFirstPresidentsSorting[number]['id'][]);
 
+const COLUMNS_BESIDE_SIDE_PANEL = { candidates: false, installationDate: false, status: false };
+
 const h = createColumnHelper<CourtOfAppealFirstPresident>();
+
+function editedPositionOf(row: CourtOfAppealFirstPresident): EditedPosition | null {
+  return row.magistrat && { ...row, magistrat: row.magistrat };
+}
 
 function useCourtOfAppealFirstPresidentsColumns(props: {
   onMagistratOpened: (event: MouseEvent, magistratId: string) => void;
+  onPositionEdited: (row: CourtOfAppealFirstPresident) => void;
   statusAndAlertCounts: StatusAndAlertCounts;
 }) {
   const { formatMessage } = useIntl();
-  const { onMagistratOpened, statusAndAlertCounts } = props;
+  const { onMagistratOpened, onPositionEdited, statusAndAlertCounts } = props;
 
   return useMemo(
     () => [
@@ -61,10 +70,16 @@ function useCourtOfAppealFirstPresidentsColumns(props: {
         sortDescFirst: false,
       }),
       h.accessor('magistrat', {
-        cell: ({ getValue }) => {
+        cell: ({ getValue, row }) => {
           const magistrat = getValue();
           if (!magistrat) return '-';
-          return <MagistratLink magistrat={magistrat} onClick={onMagistratOpened} />;
+          return (
+            <MagistratLink
+              isFormerHolder={row.original.status.id === 'VACANT'}
+              magistrat={magistrat}
+              onClick={onMagistratOpened}
+            />
+          );
         },
         header: formatMessage({ defaultMessage: 'Magistrat' }),
         id: 'name',
@@ -82,7 +97,13 @@ function useCourtOfAppealFirstPresidentsColumns(props: {
         sortDescFirst: false,
       }),
       h.accessor('status', {
-        cell: ({ getValue, row }) => <PositionStatusCell alerts={row.original.alerts} status={getValue()} />,
+        cell: ({ getValue, row }) => (
+          <PositionStatusCell
+            alerts={row.original.alerts}
+            onEdit={row.original.magistrat ? () => onPositionEdited(row.original) : undefined}
+            status={getValue()}
+          />
+        ),
         header: formatMessage({ defaultMessage: 'Alerte / statut' }),
         id: 'status',
         meta: { filters: statusAndAlertFilters(formatMessage, statusAndAlertCounts) },
@@ -96,12 +117,13 @@ function useCourtOfAppealFirstPresidentsColumns(props: {
         size: 160,
       }),
     ],
-    [formatMessage, onMagistratOpened, statusAndAlertCounts],
+    [formatMessage, onMagistratOpened, onPositionEdited, statusAndAlertCounts],
   );
 }
 
 export function CourtOfAppealFirstPresidentsTable(props: {
   filtersSlot: HTMLDivElement | null;
+  onSidePanelToggle: (open: boolean) => void;
   titleSlot: HTMLSpanElement | null;
 }) {
   const { formatMessage } = useIntl();
@@ -167,12 +189,17 @@ export function CourtOfAppealFirstPresidentsTable(props: {
         : NO_STATUS_AND_ALERT_COUNTS,
     [data],
   );
+  const items = useMemo(() => data?.items ?? [], [data]);
+  const editing = useEditedPosition(items, editedPositionOf, props.onSidePanelToggle);
+  // the row of the side panel, or the one left for a magistrat's page
+  const highlightedRowId = editing.edited?.magistrat.id ?? revealedRowId;
   const table = useReactTable({
     columns: useCourtOfAppealFirstPresidentsColumns({
       onMagistratOpened: remember,
+      onPositionEdited: editing.open,
       statusAndAlertCounts,
     }),
-    data: useMemo(() => data?.items ?? [], [data]),
+    data: items,
     enableSortingRemoval: false,
     getCoreRowModel: getCoreRowModel(),
     // a magistrat holds one position only, and a court without one is listed once
@@ -181,7 +208,12 @@ export function CourtOfAppealFirstPresidentsTable(props: {
     manualSorting: true,
     onColumnFiltersChange,
     onSortingChange,
-    state: { columnFilters: tableState.columnFilters, globalFilter: tableState.globalFilter, sorting },
+    state: {
+      columnFilters: tableState.columnFilters,
+      columnVisibility: editing.edited ? COLUMNS_BESIDE_SIDE_PANEL : {},
+      globalFilter: tableState.globalFilter,
+      sorting,
+    },
   });
 
   return (
@@ -203,23 +235,35 @@ export function CourtOfAppealFirstPresidentsTable(props: {
           </div>,
           props.filtersSlot,
         )}
-      <DataTable
-        ariaLabel={formatMessage({ defaultMessage: "Premiers présidents de cour d'appel" })}
-        emptyLabel={
-          tableState.globalFilter || tableState.columnFilters.length
-            ? formatMessage({ defaultMessage: "Aucune cour d'appel ne correspond aux filtres fournis" })
-            : formatMessage({ defaultMessage: "Aucune cour d'appel" })
-        }
-        fluid
-        isLoading={isLoading}
-        onEndReached={fetchMore}
-        onSeenRowsChange={onSeenRowsChange}
-        revealedRowId={revealedRowId}
-        rowTint={(row) =>
-          clsx(VEILLE_ROW_CLASS, row.id === revealedRowId && 'bg-(--background-alt-blue-france)')
-        }
-        scrollsWithPage
-        table={table}
+      <div
+        className={clsx('w-full transition-[width] duration-300 ease-out', editing.edited && 'md:w-[52%]')}
+      >
+        <DataTable
+          ariaLabel={formatMessage({ defaultMessage: "Premiers présidents de cour d'appel" })}
+          emptyLabel={
+            tableState.globalFilter || tableState.columnFilters.length
+              ? formatMessage({ defaultMessage: "Aucune cour d'appel ne correspond aux filtres fournis" })
+              : formatMessage({ defaultMessage: "Aucune cour d'appel" })
+          }
+          fluid
+          isLoading={isLoading}
+          onEndReached={fetchMore}
+          onSeenRowsChange={onSeenRowsChange}
+          revealedRowId={highlightedRowId}
+          rowTint={(row) =>
+            clsx(VEILLE_ROW_CLASS, row.id === highlightedRowId && 'bg-(--background-alt-blue-france)')
+          }
+          scrollsWithPage
+          table={table}
+        />
+      </div>
+      <PositionVacancySidePanel
+        edited={editing.edited}
+        isLeaveBlocked={editing.isLeaveBlocked}
+        onClose={editing.close}
+        onLeaveBlockedChange={editing.setLeaveBlocked}
+        onNext={editing.next}
+        onPrevious={editing.previous}
       />
     </>
   );

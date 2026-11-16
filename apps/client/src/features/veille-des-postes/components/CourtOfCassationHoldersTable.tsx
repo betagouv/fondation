@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState, type MouseEvent, type ReactNode } from 
 import { createPortal } from 'react-dom';
 import { useIntl } from 'react-intl';
 
+import { useEditedPosition } from '../hooks/useEditedPosition';
 import { KNOWN_ALERTS, KNOWN_DEADLINES, KNOWN_STATUSES, knownValues } from '../utils/known-values.utils';
 import {
   NO_STATUS_AND_ALERT_COUNTS,
@@ -36,6 +37,7 @@ import {
 
 import { MagistratLink } from './MagistratLink';
 import { PositionStatusCell } from './PositionStatusCell';
+import { type EditedPosition, PositionVacancySidePanel } from './PositionVacancySidePanel';
 
 const SORTABLE_COLUMNS = new Set<string>([
   'installationDate',
@@ -45,21 +47,32 @@ const SORTABLE_COLUMNS = new Set<string>([
 
 const NO_POSITIONS: CourtOfCassationPositionCount[] = [];
 
+const COLUMNS_BESIDE_SIDE_PANEL = { candidates: false, status: false };
+
 const h = createColumnHelper<CourtOfCassationHolder>();
+
+function editedPositionOf(row: CourtOfCassationHolder): EditedPosition {
+  return row;
+}
 
 function useCourtOfCassationHoldersColumns(props: {
   onMagistratOpened: (event: MouseEvent, magistratId: string) => void;
+  onPositionEdited: (row: CourtOfCassationHolder) => void;
   statusAndAlertCounts: StatusAndAlertCounts;
 }) {
   const { formatMessage } = useIntl();
-  const { onMagistratOpened, statusAndAlertCounts } = props;
+  const { onMagistratOpened, onPositionEdited, statusAndAlertCounts } = props;
 
   return useMemo(
     () => [
       h.accessor('magistrat', {
         cell: ({ getValue, row }) => (
           <div className="flex flex-col items-start gap-1 leading-6">
-            <MagistratLink magistrat={getValue()} onClick={onMagistratOpened} />
+            <MagistratLink
+              isFormerHolder={row.original.status.id === 'VACANT'}
+              magistrat={getValue()}
+              onClick={onMagistratOpened}
+            />
             {row.original.service.id === 'EXTRAORDINARY' && (
               <span className="text-xs leading-6">{row.original.service.label}</span>
             )}
@@ -81,7 +94,13 @@ function useCourtOfCassationHoldersColumns(props: {
         sortDescFirst: false,
       }),
       h.accessor('status', {
-        cell: ({ getValue, row }) => <PositionStatusCell alerts={row.original.alerts} status={getValue()} />,
+        cell: ({ getValue, row }) => (
+          <PositionStatusCell
+            alerts={row.original.alerts}
+            onEdit={() => onPositionEdited(row.original)}
+            status={getValue()}
+          />
+        ),
         header: formatMessage({ defaultMessage: 'Alerte / statut' }),
         id: 'status',
         meta: { filters: statusAndAlertFilters(formatMessage, statusAndAlertCounts) },
@@ -95,12 +114,13 @@ function useCourtOfCassationHoldersColumns(props: {
         size: 160,
       }),
     ],
-    [formatMessage, onMagistratOpened, statusAndAlertCounts],
+    [formatMessage, onMagistratOpened, onPositionEdited, statusAndAlertCounts],
   );
 }
 
 export function CourtOfCassationHoldersTable(props: {
   filtersSlot: HTMLDivElement | null;
+  onSidePanelToggle: (open: boolean) => void;
   position: CourtOfCassationPosition;
   /** the tabs of the positions, counted under the search and the filters of the table */
   positionTabs: (positions: CourtOfCassationPositionCount[]) => ReactNode;
@@ -175,12 +195,17 @@ export function CourtOfCassationHoldersTable(props: {
         : NO_STATUS_AND_ALERT_COUNTS,
     [holders],
   );
+  const items = useMemo(() => holders?.items ?? [], [holders]);
+  const editing = useEditedPosition(items, editedPositionOf, props.onSidePanelToggle);
+  // the row of the side panel, or the one left for a magistrat's page
+  const highlightedRowId = editing.edited?.magistrat.id ?? revealedRowId;
   const table = useReactTable({
     columns: useCourtOfCassationHoldersColumns({
       onMagistratOpened: remember,
+      onPositionEdited: editing.open,
       statusAndAlertCounts,
     }),
-    data: useMemo(() => holders?.items ?? [], [holders]),
+    data: items,
     enableSortingRemoval: false,
     getCoreRowModel: getCoreRowModel(),
     getRowId: (row) => row.magistrat.id,
@@ -188,7 +213,12 @@ export function CourtOfCassationHoldersTable(props: {
     manualSorting: true,
     onColumnFiltersChange,
     onSortingChange,
-    state: { columnFilters: tableState.columnFilters, globalFilter: tableState.globalFilter, sorting },
+    state: {
+      columnFilters: tableState.columnFilters,
+      columnVisibility: editing.edited ? COLUMNS_BESIDE_SIDE_PANEL : {},
+      globalFilter: tableState.globalFilter,
+      sorting,
+    },
   });
 
   return (
@@ -210,27 +240,42 @@ export function CourtOfCassationHoldersTable(props: {
           </div>,
           props.filtersSlot,
         )}
-      {props.positionTabs(positions)}
-      <DataTable
-        ariaLabel={formatMessage(
-          { defaultMessage: '{position} de la Cour de cassation' },
-          { position: positions.find(({ id }) => id === props.position)?.label },
+      <div
+        className={clsx('w-full transition-[width] duration-300 ease-out', editing.edited && 'md:w-[52%]')}
+      >
+        {props.positionTabs(
+          // beside the side panel, as the tabs of the page
+          editing.edited ? positions.filter(({ id }) => id === props.position) : positions,
         )}
-        emptyLabel={
-          tableState.globalFilter || tableState.columnFilters.length
-            ? formatMessage({ defaultMessage: 'Aucun magistrat ne correspond aux filtres fournis' })
-            : formatMessage({ defaultMessage: 'Aucun magistrat à ce poste' })
-        }
-        fluid
-        isLoading={isLoading || !holders}
-        onEndReached={fetchMore}
-        onSeenRowsChange={onSeenRowsChange}
-        revealedRowId={revealedRowId}
-        rowTint={(row) =>
-          clsx(VEILLE_ROW_CLASS, row.id === revealedRowId && 'bg-(--background-alt-blue-france)')
-        }
-        scrollsWithPage
-        table={table}
+        <DataTable
+          ariaLabel={formatMessage(
+            { defaultMessage: '{position} de la Cour de cassation' },
+            { position: positions.find(({ id }) => id === props.position)?.label },
+          )}
+          emptyLabel={
+            tableState.globalFilter || tableState.columnFilters.length
+              ? formatMessage({ defaultMessage: 'Aucun magistrat ne correspond aux filtres fournis' })
+              : formatMessage({ defaultMessage: 'Aucun magistrat à ce poste' })
+          }
+          fluid
+          isLoading={isLoading || !holders}
+          onEndReached={fetchMore}
+          onSeenRowsChange={onSeenRowsChange}
+          revealedRowId={highlightedRowId}
+          rowTint={(row) =>
+            clsx(VEILLE_ROW_CLASS, row.id === highlightedRowId && 'bg-(--background-alt-blue-france)')
+          }
+          scrollsWithPage
+          table={table}
+        />
+      </div>
+      <PositionVacancySidePanel
+        edited={editing.edited}
+        isLeaveBlocked={editing.isLeaveBlocked}
+        onClose={editing.close}
+        onLeaveBlockedChange={editing.setLeaveBlocked}
+        onNext={editing.next}
+        onPrevious={editing.previous}
       />
     </>
   );

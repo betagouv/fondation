@@ -5,7 +5,13 @@ import { JudicialCourtPresidentsTable } from '@/features/veille-des-postes/compo
 import type { VeilleDesPostesOutletContext } from './veille-des-postes-outlet-context.type';
 
 export function JudicialCourtsTab() {
-  const { filtersSlot, titleSlot } = useOutletContext<VeilleDesPostesOutletContext>();
+  const { filtersSlot, onSidePanelToggle, titleSlot } = useOutletContext<VeilleDesPostesOutletContext>();
 
-  return <JudicialCourtPresidentsTable filtersSlot={filtersSlot} titleSlot={titleSlot} />;
+  return (
+    <JudicialCourtPresidentsTable
+      filtersSlot={filtersSlot}
+      onSidePanelToggle={onSidePanelToggle}
+      titleSlot={titleSlot}
+    />
+  );
 }

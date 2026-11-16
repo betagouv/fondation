@@ -3,11 +3,18 @@ import { http, HttpResponse } from 'msw';
 import { useState } from 'react';
 
 import { PinnedHeader } from '@/shared/components/pinned-header';
+import { ConfirmModalProvider } from '@/shared/context/confirm-modal';
 import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
+import { ToastProvider } from '@/shared/ui/toast';
 import type { ListedJudicialCourtPresidentsDto } from '@api/types';
 
 import { JudicialCourtPresidentsTable } from './JudicialCourtPresidentsTable';
-import { storyCountOf, storyCounts, storyHolderOf } from './veille-des-postes.story-fixtures';
+import {
+  positionVacancyHandlers,
+  storyCountOf,
+  storyCounts,
+  storyHolderOf,
+} from './veille-des-postes.story-fixtures';
 
 type JudicialCourt = ListedJudicialCourtPresidentsDto['items'][number];
 
@@ -104,6 +111,7 @@ const JUDICIAL_COURTS: JudicialCourt[] = RESSORTS.flatMap(([ressort, courts], re
         magistrat: {
           id: `magistrat-${index}`,
           name: `${LAST_NAMES[index % LAST_NAMES.length]} ${FIRST_NAMES[index % FIRST_NAMES.length]}`,
+          title: `Président du ${label.charAt(0).toLowerCase()}${label.slice(1)}`,
         },
         ressort,
       },
@@ -142,28 +150,36 @@ function JudicialCourtPresidentsStory() {
 
   return (
     <StoryQueryClient>
-      <PinnedHeader
-        bar={(isPinned) => (
-          <div className="fr-container flex flex-col gap-y-4">
-            <h1 className="fr-h3 fr-mb-0">
-              Veille des postes
-              {isPinned && <span ref={setTitleSlot} />}
-            </h1>
-            <div className="min-h-10" ref={setFiltersSlot} />
-          </div>
-        )}
-        barClassName="fr-pt-6v"
-        contentClassName="fr-container fr-mt-6v fr-mb-8v"
-      >
-        <JudicialCourtPresidentsTable filtersSlot={filtersSlot} titleSlot={titleSlot} />
-      </PinnedHeader>
+      <ToastProvider>
+        <ConfirmModalProvider>
+          <PinnedHeader
+            bar={(isPinned) => (
+              <div className="fr-container flex flex-col gap-y-4">
+                <h1 className="fr-h3 fr-mb-0">
+                  Veille des postes
+                  {isPinned && <span ref={setTitleSlot} />}
+                </h1>
+                <div className="min-h-10" ref={setFiltersSlot} />
+              </div>
+            )}
+            barClassName="fr-pt-6v"
+            contentClassName="fr-container fr-mt-6v fr-mb-8v"
+          >
+            <JudicialCourtPresidentsTable
+              filtersSlot={filtersSlot}
+              onSidePanelToggle={() => {}}
+              titleSlot={titleSlot}
+            />
+          </PinnedHeader>
+        </ConfirmModalProvider>
+      </ToastProvider>
     </StoryQueryClient>
   );
 }
 
 const meta = {
   beforeEach: ({ msw }) => {
-    msw.use(courtsHandler);
+    msw.use(courtsHandler, ...positionVacancyHandlers(JUDICIAL_COURTS));
   },
   component: JudicialCourtPresidentsStory,
   parameters: {

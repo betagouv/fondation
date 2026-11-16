@@ -1,7 +1,17 @@
-import { useInfiniteQuery, type InfiniteData } from '@tanstack/react-query';
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryClient,
+  type InfiniteData,
+} from '@tanstack/react-query';
 
+import { multipartJson } from '@/utils/multipart-json';
 import * as $api from '@api/sdk';
 import type {
+  DeclarePositionVacancyDto,
+  FoundPositionVacancyDto,
   ListCourtOfAppealFirstPresidentsData,
   ListCourtOfCassationHoldersData,
   ListedCourtOfAppealFirstPresidentsDto,
@@ -32,6 +42,7 @@ export type CourtOfCassationPositionCount = ListedCourtOfCassationHoldersDto['po
 export type AlertDeadline = AlertDeadlineCount['id'];
 export type AlertDeadlineCount = ListedCourtOfCassationHoldersDto['deadlines'][number];
 export type HolderAlert = CourtOfCassationHolder['alerts'][number];
+export type HolderStatus = CourtOfCassationHolder['status'];
 export type PositionAlert = HolderAlert['id'];
 export type PositionAlertCount = ListedCourtOfCassationHoldersDto['alerts'][number];
 export type PositionStatus = CourtOfCassationHolder['status']['id'];
@@ -75,13 +86,18 @@ export const JUDICIAL_COURT_PRESIDENTS_DEFAULT_SORTING: JudicialCourtPresidentsS
 ];
 export const JUDICIAL_COURT_PRESIDENTS_PAGE_SIZE = 20;
 
+export type PositionVacancy = NonNullable<FoundPositionVacancyDto['vacancy']>;
+export type VacancyReason = FoundPositionVacancyDto['reasons'][number]['id'];
+
 const veilleDesPostesKeys = {
+  all: () => ['veilleDesPostes'] as const,
   courtOfAppealFirstPresidents: (props: CourtOfAppealFirstPresidentsList) =>
     ['veilleDesPostes', 'courtOfAppealFirstPresidents', props] as const,
   courtOfCassationHolders: (props: CourtOfCassationHoldersList) =>
     ['veilleDesPostes', 'courtOfCassationHolders', props] as const,
   judicialCourtPresidents: (props: JudicialCourtPresidentsList) =>
     ['veilleDesPostes', 'judicialCourtPresidents', props] as const,
+  positionVacancy: (magistratId: string) => ['veilleDesPostes', 'positionVacancy', magistratId] as const,
 };
 
 /** @warning must stay stable, tanstack only reuses the selection when the function identity does not change */
@@ -237,5 +253,94 @@ export function useJudicialCourtPresidentsQuery(props: JudicialCourtPresidentsLi
     getNextPageParam: (lastPage) => lastPage.nextPageIndex,
     queryKey: veilleDesPostesKeys.judicialCourtPresidents(props),
     select: selectJudicialCourtPresidents,
+  });
+}
+
+/** a vacancy changes the status of its row: every table and the panel read it again */
+function useInvalidatingVeilleDesPostes() {
+  const queryClient = useQueryClient();
+  return () => queryClient.invalidateQueries({ queryKey: veilleDesPostesKeys.all() });
+}
+
+export function useDeclarePositionVacancyMutation() {
+  const onSettled = useInvalidatingVeilleDesPostes();
+  return useMutation({
+    mutationFn: async ({
+      files,
+      magistratId,
+      ...form
+    }: DeclarePositionVacancyDto['form'] & { files: File[]; magistratId: string }) => {
+      await $api.veilleDesPostes.declarePositionVacancy({
+        body: { files, form: multipartJson(form satisfies DeclarePositionVacancyDto['form']) },
+        path: { magistratId },
+        throwOnError: true,
+      });
+    },
+    onSettled,
+  });
+}
+
+export function useOpenPositionVacancyAttachmentMutation() {
+  return useMutation({
+    mutationFn: async (path: { fileId: string; magistratId: string }): Promise<string> => {
+      const { data } = await $api.veilleDesPostes.openPositionVacancyAttachment({ path, throwOnError: true });
+      return data.url;
+    },
+  });
+}
+
+function positionVacancyQuery(magistratId: string) {
+  return {
+    queryFn: async () => {
+      const { data } = await $api.veilleDesPostes.findPositionVacancy({
+        path: { magistratId },
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: veilleDesPostesKeys.positionVacancy(magistratId),
+  };
+}
+
+export function usePositionVacancyQuery(magistratId: string) {
+  return useQuery(positionVacancyQuery(magistratId));
+}
+
+/** the positions the side panel can move to, read ahead so that it shows them at once */
+export function usePrefetchedPositionVacancies(magistratIds: readonly string[]) {
+  useQueries({ queries: magistratIds.map(positionVacancyQuery) });
+}
+
+export function useRemovePositionVacancyAttachmentMutation() {
+  const onSettled = useInvalidatingVeilleDesPostes();
+  return useMutation({
+    mutationFn: async (path: { fileId: string; magistratId: string }) => {
+      await $api.veilleDesPostes.removePositionVacancyAttachment({ path, throwOnError: true });
+    },
+    onSettled,
+  });
+}
+
+export function useRenamePositionVacancyAttachmentMutation() {
+  const onSettled = useInvalidatingVeilleDesPostes();
+  return useMutation({
+    mutationFn: async ({ name, ...path }: { fileId: string; magistratId: string; name: string }) => {
+      await $api.veilleDesPostes.renamePositionVacancyAttachment({
+        body: { name },
+        path,
+        throwOnError: true,
+      });
+    },
+    onSettled,
+  });
+}
+
+export function useWithdrawPositionVacancyMutation() {
+  const onSettled = useInvalidatingVeilleDesPostes();
+  return useMutation({
+    mutationFn: async (path: { magistratId: string }) => {
+      await $api.veilleDesPostes.withdrawPositionVacancy({ path, throwOnError: true });
+    },
+    onSettled,
   });
 }
