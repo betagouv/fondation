@@ -78,13 +78,13 @@ export function AddNominationFileAttachmentModal(props: {
 
       <Select
         className="fr-mt-4v"
+        disabled={isPending || isFrozen}
         label={
           <RequiredLabel>
             <FormattedMessage defaultMessage="Type de document" />
           </RequiredLabel>
         }
         nativeSelectProps={{
-          disabled: isPending || isFrozen,
           onChange: (event) => setType(event.target.value as NominationFileAttachmentTypeEnum),
           required: true,
           value: type,

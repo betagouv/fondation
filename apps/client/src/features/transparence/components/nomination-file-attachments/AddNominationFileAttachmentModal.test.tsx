@@ -139,6 +139,7 @@ describe('AddNominationFileAttachmentModal', () => {
     const { container } = renderModal();
 
     expect(container.querySelector('input[type="file"]')).toBeDisabled();
+    expect(typeSelect()).toBeDisabled();
     expect(submitButton()).toBeDisabled();
     expect(screen.queryByRole('button', { name: 'Masquer le message' })).not.toBeInTheDocument();
   });
