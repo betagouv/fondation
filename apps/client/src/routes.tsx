@@ -389,32 +389,44 @@ export const routes: RouteObject[] = [
             path: ROUTE_PATHS.SG.AGENDA_EDIT,
           },
           {
+            children: [
+              {
+                lazy: () =>
+                  import('@/pages/documents/official-report/OfficialReportPage').then(
+                    ({ CreateOrUpdateOfficialReportPage }) => ({
+                      Component: CreateOrUpdateOfficialReportPage,
+                    }),
+                  ),
+                path: ROUTE_PATHS.SG.OFFICIAL_REPORT_NEW,
+              },
+              {
+                lazy: () =>
+                  import('@/pages/documents/official-report/OfficialReportPage').then(
+                    ({ CreateOrUpdateOfficialReportPage }) => ({
+                      Component: CreateOrUpdateOfficialReportPage,
+                    }),
+                  ),
+                path: ROUTE_PATHS.SG.OFFICIAL_REPORT_UPDATE,
+              },
+              {
+                lazy: () =>
+                  import('@/pages/documents/official-report/OfficialReportPreviewPage').then(
+                    ({ OfficialReportPreviewPage }) => ({ Component: OfficialReportPreviewPage }),
+                  ),
+                path: ROUTE_PATHS.SG.OFFICIAL_REPORT_PREVIEW,
+              },
+              {
+                lazy: () =>
+                  import('@/pages/documents/official-report/OfficialReportEditPage').then(
+                    ({ OfficialReportEditPage }) => ({ Component: OfficialReportEditPage }),
+                  ),
+                path: ROUTE_PATHS.SG.OFFICIAL_REPORT_EDIT,
+              },
+            ],
             lazy: () =>
-              import('@/pages/documents/official-report/OfficialReportPage').then(
-                ({ CreateOrUpdateOfficialReportPage }) => ({ Component: CreateOrUpdateOfficialReportPage }),
+              import('@/pages/documents/official-report/OfficialReportLayout').then(
+                ({ OfficialReportLayout }) => ({ Component: OfficialReportLayout }),
               ),
-            path: ROUTE_PATHS.SG.OFFICIAL_REPORT_NEW,
-          },
-          {
-            lazy: () =>
-              import('@/pages/documents/official-report/OfficialReportPage').then(
-                ({ CreateOrUpdateOfficialReportPage }) => ({ Component: CreateOrUpdateOfficialReportPage }),
-              ),
-            path: ROUTE_PATHS.SG.OFFICIAL_REPORT_UPDATE,
-          },
-          {
-            lazy: () =>
-              import('@/pages/documents/official-report/OfficialReportPreviewPage').then(
-                ({ OfficialReportPreviewPage }) => ({ Component: OfficialReportPreviewPage }),
-              ),
-            path: ROUTE_PATHS.SG.OFFICIAL_REPORT_PREVIEW,
-          },
-          {
-            lazy: () =>
-              import('@/pages/documents/official-report/OfficialReportEditPage').then(
-                ({ OfficialReportEditPage }) => ({ Component: OfficialReportEditPage }),
-              ),
-            path: ROUTE_PATHS.SG.OFFICIAL_REPORT_EDIT,
           },
           {
             children: [
