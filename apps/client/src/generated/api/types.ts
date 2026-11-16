@@ -1616,7 +1616,7 @@ export type DetailedOfficialReportMetadataDto = {
     hasRenunciation: boolean;
     absentMembers: Array<string>;
     recordedMembers: Array<string>;
-    agendaId: string | null;
+    agendaId: string;
     session: {
         id: string;
     };

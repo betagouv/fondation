@@ -38,7 +38,7 @@ export function OfficialReportProvider(props: PropsWithChildren) {
 
     setState((s) => ({
       ...s,
-      agendaId: officialReportMetadata.agendaId ?? '',
+      agendaId: officialReportMetadata.agendaId,
       sessionMeetingDate: officialReportMetadata.sessionMeetingDate,
       sessionMeetingStartingTime: officialReportMetadata.sessionMeetingStartingTime,
       sessionMeetingEndingTime: officialReportMetadata.sessionMeetingEndingTime,
