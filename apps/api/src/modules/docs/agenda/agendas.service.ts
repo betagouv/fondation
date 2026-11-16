@@ -1,5 +1,5 @@
 import { Transactional } from '@nestjs-cls/transactional';
-import { Injectable, StreamableFile } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, StreamableFile } from '@nestjs/common';
 
 import { Prisma } from '../../../generated/prisma/client';
 import { lockAgendasRawQuery } from '../../../generated/prisma/sql';
@@ -8,6 +8,7 @@ import { isDefined } from '../../../utils/is-defined';
 import { Clock } from '../../framework/clock';
 import { Db } from '../../framework/database';
 import { MembersService } from '../../members';
+import { TransparenceService } from '../../session/transparence/infrastructure/transparence.service';
 import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../shared/infrastructure/agenda-content';
 import { ActedNominationFilesFinder } from '../shared/infrastructure/finders/acted-nomination-files.finder';
 import { DocsNominationFilesFinder } from '../shared/infrastructure/finders/docs-nomination-files.finder';
@@ -55,6 +56,8 @@ export class AgendasService {
     private readonly db: Db,
 
     private readonly members: MembersService,
+    @Inject(forwardRef(() => TransparenceService))
+    private readonly sessions: TransparenceService,
   ) {}
 
   @Transactional()
@@ -142,7 +145,7 @@ export class AgendasService {
     const actedNominationFileIds = await this.actedNominationFilesFinder.find({
       fileIds: nominationFileIds,
     });
-    const { items: sessionNominationFiles } = await this.docsNominationFilesFinder.find({
+    const sessionNominationFileIds = await this.sessions.internalFindSessionNominationFileIds({
       ids: command.nominationFileIds,
       sessionId: agenda.sessionId,
     });
@@ -151,7 +154,7 @@ export class AgendasService {
       actedNominationFileIds,
       authorId: command.authorId,
       nominationFileIds,
-      sessionNominationFileIds: new Set(sessionNominationFiles.map(({ id }) => id)),
+      sessionNominationFileIds,
     });
 
     await this.agendaRepository.persist(agenda);
