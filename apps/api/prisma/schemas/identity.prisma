@@ -222,10 +222,12 @@ model TechnicalAccountChange {
 
 /// No index: a row lives 16 minutes at most, and bcrypt caps how many logins the API checks per second
 model LoginAttempt {
-  id          String   @id @db.Uuid
-  email       String   @db.VarChar
-  ip          String   @db.VarChar
-  attemptedAt DateTime @map("attempted_at") @db.Timestamp(6)
+  id             String   @id @db.Uuid
+  email          String   @db.VarChar
+  ip             String   @db.VarChar
+  attemptedAt    DateTime @map("attempted_at") @db.Timestamp(6)
+  /// The known browser it comes from: its failures then count for this browser, not for the address
+  knownBrowserId String?  @map("known_browser_id") @db.Uuid
 
   @@map("login_attempts")
   @@schema("identity_and_access_context")
