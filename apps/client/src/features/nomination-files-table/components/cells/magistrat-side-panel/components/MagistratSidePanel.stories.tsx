@@ -251,7 +251,6 @@ function makeNominationFile(args: SidePanelArgs): SessionNominationFile {
           audition: null,
           date: RECEIVED_ON,
           followUp,
-          followUpComment: null,
           hasDescription: !!description,
           hasUserComment: false,
           id,

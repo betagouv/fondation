@@ -321,7 +321,6 @@ export class ListNominationFilesQuery {
           audition: observantAuditions.get(obs.magistrat.id) ?? null,
           date: DateOnly.fromUtcDate(obs.dateReception).toJson(),
           followUp: obs.followUp,
-          followUpComment: obs.followUp ? obs.followUpComment : null,
           hasDescription: !!obs.description.trim(),
           hasUserComment: obs.hasUserComment,
           id: obs.id,
@@ -521,7 +520,6 @@ const NominationFileAffectationItemSchema = z.object({
       audition: auditionScheduleSchema.nullable(),
       date: dateOnlyJsonSchema,
       followUp: z.enum(ObservationFollowUp.enum).nullable(),
-      followUpComment: z.string().nullable(),
       hasDescription: z.boolean(),
       hasUserComment: z.boolean(),
       magistrat: z.object({
