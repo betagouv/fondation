@@ -142,11 +142,16 @@ export class AgendasService {
     const actedNominationFileIds = await this.actedNominationFilesFinder.find({
       fileIds: nominationFileIds,
     });
+    const { items: sessionNominationFiles } = await this.docsNominationFilesFinder.find({
+      ids: command.nominationFileIds,
+      sessionId: agenda.sessionId,
+    });
 
     const diff = agenda.updateFiles({
       actedNominationFileIds,
       authorId: command.authorId,
       nominationFileIds,
+      sessionNominationFileIds: new Set(sessionNominationFiles.map(({ id }) => id)),
     });
 
     await this.agendaRepository.persist(agenda);

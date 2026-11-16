@@ -13,6 +13,7 @@ import {
   AgendaDocumentNotStored,
   AgendaDraftChangedByTheApplication,
   AgendaFilesAlreadyReported,
+  AgendaFilesOutsideSession,
   AgendaWithoutValidatedVersion,
   EmptyAgenda,
   UnknownAgendaFileBlock,
@@ -66,6 +67,15 @@ export class AgendasFilter implements NestInterceptor {
                 err.fileIds.length > 1
                   ? `${err.fileIds.length} dossiers ont déjà été actés dans un ordre du jour restitué et avec une issue définitive`
                   : `1 dossier a déjà été acté dans un ordre du jour restitué et avec une issue définitive`,
+            });
+          }
+
+          if (err instanceof AgendaFilesOutsideSession) {
+            return new BadRequestException({
+              validationError:
+                err.fileIds.length > 1
+                  ? `${err.fileIds.length} dossiers n'appartiennent pas à la session de cet ordre du jour`
+                  : `1 dossier n'appartient pas à la session de cet ordre du jour`,
             });
           }
 
