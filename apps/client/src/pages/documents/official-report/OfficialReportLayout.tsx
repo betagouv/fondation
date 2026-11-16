@@ -21,7 +21,10 @@ export function OfficialReportLayout() {
   if (officialReport.error && !isNotFound(officialReport.error) && !officialReport.data) {
     throw officialReport.error;
   }
-  if (isNotFound(officialReport.error)) return <OfficialReportNotFound sessionId={sessionId} />;
+  // a missing session comes first: wait for it before saying that only the official report is missing
+  if (isNotFound(officialReport.error)) {
+    return session.isPending ? null : <OfficialReportNotFound sessionId={sessionId} />;
+  }
 
   return <Outlet />;
 }

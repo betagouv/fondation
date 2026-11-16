@@ -86,6 +86,14 @@ describe('OfficialReportLayout', () => {
     expect(screen.queryByRole('heading', { name: 'Procès-verbal du 12 mars' })).not.toBeInTheDocument();
   });
 
+  it('waits for the session before saying that only the official report is missing', () => {
+    mocks.session = { data: undefined, error: null, isPending: true };
+    mocks.officialReport = { data: undefined, error: failureWith(404), isPending: false };
+    renderOfficialReport();
+
+    expect(screen.queryByRole('heading', { name: 'Procès-verbal introuvable' })).not.toBeInTheDocument();
+  });
+
   it('shows the error page when the official report fails to load for another reason', () => {
     mocks.officialReport = { data: undefined, error: failureWith(500), isPending: false };
     renderOfficialReport();
