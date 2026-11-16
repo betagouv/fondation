@@ -75,6 +75,12 @@
       "additionalBranchPrefix": ""
     },
     {
+      "description": "A private image Renovate cannot read, frozen on the last MinIO build: MinIO is archived upstream and its replacement is FON-801",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["ghcr.io/betagouv/fondation-ci-minio"],
+      "enabled": false
+    },
+    {
       "allowedVersions": "<18",
       "description": "PostgreSQL follows the major version of the Scalingo production database",
       "matchDatasources": ["docker"],
