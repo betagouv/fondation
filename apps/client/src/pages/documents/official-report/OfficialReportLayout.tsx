@@ -21,8 +21,10 @@ export function OfficialReportLayout() {
   if (officialReport.error && !isNotFound(officialReport.error) && !officialReport.data) {
     throw officialReport.error;
   }
+  // an official report opened under the address of another session is as missing as a deleted one
+  const isElsewhere = officialReport.data && officialReport.data.session.id !== sessionId;
   // a missing session comes first: wait for it before saying that only the official report is missing
-  if (isNotFound(officialReport.error)) {
+  if (isNotFound(officialReport.error) || isElsewhere) {
     return session.isPending ? null : <OfficialReportNotFound sessionId={sessionId} />;
   }
 

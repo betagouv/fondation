@@ -43,7 +43,11 @@ describe('OfficialReportLayout', () => {
   beforeEach(() => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
     mocks.session = { data: { id: 'session-1' }, error: null, isPending: false };
-    mocks.officialReport = { data: { id: 'report-1' }, error: null, isPending: false };
+    mocks.officialReport = {
+      data: { id: 'report-1', session: { id: 'session-1' } },
+      error: null,
+      isPending: false,
+    };
   });
 
   it('lets the page load alongside the session and the official report', () => {
@@ -75,6 +79,18 @@ describe('OfficialReportLayout', () => {
       'href',
       '/secretariat-general/session/session-1/documents',
     );
+    expect(screen.queryByRole('heading', { name: 'Procès-verbal du 12 mars' })).not.toBeInTheDocument();
+  });
+
+  it('says that an official report of another session is missing', () => {
+    mocks.officialReport = {
+      data: { id: 'report-1', session: { id: 'session-2' } },
+      error: null,
+      isPending: false,
+    };
+    renderOfficialReport();
+
+    expect(screen.getByRole('heading', { name: 'Procès-verbal introuvable' })).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Procès-verbal du 12 mars' })).not.toBeInTheDocument();
   });
 

@@ -43,7 +43,7 @@ describe('AgendaLayout', () => {
   beforeEach(() => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
     mocks.session = { data: { id: 'session-1' }, error: null, isPending: false };
-    mocks.agenda = { data: { status: 'DRAFT' }, error: null, isPending: false };
+    mocks.agenda = { data: { session: { id: 'session-1' }, status: 'DRAFT' }, error: null, isPending: false };
   });
 
   it('lets the page load alongside the session and the agenda', () => {
@@ -75,6 +75,14 @@ describe('AgendaLayout', () => {
       'href',
       '/secretariat-general/session/session-1/documents',
     );
+    expect(screen.queryByRole('heading', { name: 'Ordre du jour du 12 mars' })).not.toBeInTheDocument();
+  });
+
+  it('says that an agenda of another session is missing', () => {
+    mocks.agenda = { data: { session: { id: 'session-2' }, status: 'DRAFT' }, error: null, isPending: false };
+    renderAgenda();
+
+    expect(screen.getByRole('heading', { name: 'Ordre du jour introuvable' })).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Ordre du jour du 12 mars' })).not.toBeInTheDocument();
   });
 

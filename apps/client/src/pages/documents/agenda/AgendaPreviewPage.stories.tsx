@@ -38,6 +38,7 @@ function AgendaPreviewPageStory(props: {
     isManuallyEdited: blocks.some((block) => block.edited),
     outdated: props.outdated,
     outdatedPropositions: blocks.filter((block) => block.outdated).length,
+    session: { id: STORY_SESSION_ID },
     sessionMeetingDate: { day: 3, month: 3, year: 2026 },
   };
   storyBlocks = { blocks };

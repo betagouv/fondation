@@ -36,6 +36,7 @@ export class DetailsAgendaMetadataQuery {
       select: {
         ...DRAFT_TRACE_SELECT,
         _count: { select: { nominationFiles: { where: { htmlOutdated: true } } } },
+        agenda: { select: { sessionId: true } },
         agendaId: true,
         chairmanId: true,
         createdBy: true,
@@ -63,6 +64,7 @@ export class DetailsAgendaMetadataQuery {
 
     return {
       id: version.agendaId,
+      session: { id: version.agenda.sessionId },
       status: version.status,
       outdated: version.outdated,
       outdatedPropositions: version._count.nominationFiles,
@@ -83,6 +85,7 @@ export class DetailsAgendaMetadataQuery {
 export class DetailedAgendaMetadata extends createZodDto(
   z.object({
     id: z.string(),
+    session: z.object({ id: z.string() }),
     status: z.enum(['DRAFT', 'VALIDATED']),
     /** another text is proposed for at least one of its blocks, and waits for the reader's call */
     outdated: z.boolean(),

@@ -1422,6 +1422,9 @@ export type DetailedSessionAgenda = {
 
 export type DetailedAgendaMetadata = {
     id: string;
+    session: {
+        id: string;
+    };
     status: 'DRAFT' | 'VALIDATED';
     outdated: boolean;
     outdatedPropositions: number;
@@ -1614,6 +1617,9 @@ export type DetailedOfficialReportMetadataDto = {
     absentMembers: Array<string>;
     recordedMembers: Array<string>;
     agendaId: string | null;
+    session: {
+        id: string;
+    };
     sessionMeetingDate: {
         year: number;
         month: number;
