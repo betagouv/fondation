@@ -67,8 +67,8 @@ function renderSection() {
 describe('MagistratNominationFilesSection', () => {
   beforeEach(() => {
     // jsdom lays nothing out: the virtualized table only renders rows once its box has a height
-    Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, get: () => 320 });
-    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, get: () => 800 });
+    Object.defineProperty(HTMLElement.prototype, 'clientHeight', { configurable: true, get: () => 320 });
+    Object.defineProperty(HTMLElement.prototype, 'clientWidth', { configurable: true, get: () => 800 });
     fetchNextPage.mockClear();
     query = { data: undefined, hasNextPage: false, isFetchingNextPage: false, isLoading: false };
   });
