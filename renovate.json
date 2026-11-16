@@ -33,6 +33,11 @@
       "allowedVersions": "<4.5.0"
     },
     {
+      "description": "nest-commander 3 brings inquirer 8, which ships no types, and requires @types/inquirer 8: version 9 types inquirer 9 and version 10 is an empty stub",
+      "matchPackageNames": ["@types/inquirer"],
+      "allowedVersions": "<9"
+    },
+    {
       "matchFileNames": ["apps/api/package.json", "apps/api-e2e/package.json"],
       "groupName": "api",
       "additionalBranchPrefix": "api/"
