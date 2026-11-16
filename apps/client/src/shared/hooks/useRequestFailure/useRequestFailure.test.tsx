@@ -3,21 +3,13 @@ import type { ReactNode } from 'react';
 import { defineMessages, IntlProvider, type MessageDescriptor } from 'react-intl';
 import { describe, expect, it } from 'vitest';
 
-import { httpAssert } from '@/utils/http-exception';
+import { failureWith } from '@/test-utils/http-failure';
 
 import { type FailureReason, useRequestFailure } from './useRequestFailure';
 
 const REASONS = defineMessages({
   refused: { defaultMessage: 'Une image pèse 5 Mo au plus.' },
 });
-
-function failureWith(status: number): unknown {
-  try {
-    httpAssert(new Response(null, { status }));
-  } catch (exception) {
-    return exception;
-  }
-}
 
 function renderUseRequestFailure(reasons: Readonly<Partial<Record<FailureReason, MessageDescriptor>>>) {
   return renderHook(() => useRequestFailure(reasons), {

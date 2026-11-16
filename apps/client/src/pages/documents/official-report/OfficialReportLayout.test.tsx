@@ -3,7 +3,7 @@ import { IntlProvider } from 'react-intl';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { httpAssert } from '@/utils/http-exception';
+import { failureWith } from '@/test-utils/http-failure';
 
 import { OfficialReportLayout } from './OfficialReportLayout';
 
@@ -18,14 +18,6 @@ vi.mock('@queries/agenda.queries', () => ({ useDetailsOfficialReportQuery: () =>
 vi.mock('@queries/nomination-sessions.queries', () => ({
   useDetailedNominationSessionQuery: () => mocks.session,
 }));
-
-function failureWith(status: number): unknown {
-  try {
-    httpAssert(new Response(null, { status }));
-  } catch (exception) {
-    return exception;
-  }
-}
 
 function renderOfficialReport() {
   const router = createMemoryRouter(

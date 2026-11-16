@@ -3,7 +3,7 @@ import { IntlProvider } from 'react-intl';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { httpAssert } from '@/utils/http-exception';
+import { failureWith } from '@/test-utils/http-failure';
 
 import { PresentationPlanLayout } from './PresentationPlanLayout';
 
@@ -12,14 +12,6 @@ type QueryState = { data: unknown; error: unknown; isPending: boolean };
 const mocks = vi.hoisted(() => ({ plan: undefined as unknown as QueryState }));
 
 vi.mock('@queries/agenda.queries', () => ({ useJusticePresentationPlanMetadataQuery: () => mocks.plan }));
-
-function failureWith(status: number): unknown {
-  try {
-    httpAssert(new Response(null, { status }));
-  } catch (exception) {
-    return exception;
-  }
-}
 
 function renderPresentationPlan() {
   const router = createMemoryRouter(

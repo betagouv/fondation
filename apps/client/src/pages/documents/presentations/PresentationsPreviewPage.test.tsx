@@ -4,7 +4,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { frFormat } from '@/i18n/formats';
-import { httpAssert } from '@/utils/http-exception';
+import { failureWith } from '@/test-utils/http-failure';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 
 import { PresentationPreviewPage } from './PresentationsPreviewPage';
@@ -28,14 +28,6 @@ vi.mock('@queries/agenda.queries', () => ({
   useJusticePresentationPlanMetadataQuery: () => mocks.metadata,
   useValidatePresentationPlanMutation: () => ({ isError: false, isPending: false }),
 }));
-
-function failureWith(status: number): unknown {
-  try {
-    httpAssert(new Response(null, { status }));
-  } catch (exception) {
-    return exception;
-  }
-}
 
 function renderPage(state?: { returnPath: string }) {
   const router = createMemoryRouter(
