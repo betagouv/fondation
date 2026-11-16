@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
+import type { ReactNode } from 'react';
 import { IntlProvider } from 'react-intl';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { describe, expect, it, vi } from 'vitest';
@@ -25,6 +26,7 @@ const mocks = vi.hoisted(() => ({
     status: 'DRAFT' as 'DRAFT' | 'VALIDATED',
     time: { hours: 9, minutes: 30 },
   },
+  metadataError: null as unknown,
   mutation: () => ({ error: null, isPending: false, mutate: () => {}, reset: () => {} }),
 }));
 
@@ -35,7 +37,10 @@ vi.mock('@/shared/context/confirm-modal', () => ({
 vi.mock('@queries/agenda.queries', () => ({
   presentationPlanKeys: { planHtml: vi.fn() },
   useCreateJusticePresentationPlanMutation: mocks.mutation,
-  useJusticePresentationPlanMetadataQuery: () => ({ data: mocks.metadata, isFetching: false }),
+  useJusticePresentationPlanMetadataQuery: () =>
+    mocks.metadataError
+      ? { data: undefined, error: mocks.metadataError, isFetching: false }
+      : { data: mocks.metadata, error: null, isFetching: false },
   useListPresentationPlansAgendasQuery: () => ({
     data: { items: [{ id: 'agenda-1', session: { comment: null, id: 'session-1', name: 'T1' } }] },
   }),
@@ -45,14 +50,15 @@ vi.mock('@queries/agenda.queries', () => ({
 function renderSavedNotice(props: { isManuallyEdited?: boolean; status: 'DRAFT' | 'VALIDATED' }) {
   mocks.metadata.isManuallyEdited = props.isManuallyEdited ?? false;
   mocks.metadata.status = props.status;
+  mocks.metadataError = null;
+  renderNotice(<PresentationAgendaCommentsStep />);
+}
+
+function renderNotice(children: ReactNode) {
   const router = createMemoryRouter(
     [
       {
-        element: (
-          <PresentationPlanProvider>
-            <PresentationAgendaCommentsStep />
-          </PresentationPlanProvider>
-        ),
+        element: <PresentationPlanProvider>{children}</PresentationPlanProvider>,
         path: '/restitutions/:planId',
       },
     ],
@@ -85,5 +91,12 @@ describe('PresentationPlanProvider', () => {
     renderSavedNotice({ isManuallyEdited: true, status: 'DRAFT' });
 
     expect(screen.getByRole('button', { name: 'Enregistrer la notice' })).toBeDisabled();
+  });
+
+  it('should let its pages answer a notice that failed to load', () => {
+    mocks.metadataError = new Error('Not Found');
+    renderNotice(<h1>Notice introuvable</h1>);
+
+    expect(screen.getByRole('heading', { name: 'Notice introuvable' })).toBeInTheDocument();
   });
 });

@@ -354,67 +354,87 @@ export const routes: RouteObject[] = [
             path: ROUTE_PATHS.SG.MANAGE_SINGLE_MEMBER,
           },
           {
+            children: [
+              {
+                lazy: () =>
+                  import('@/pages/documents/agenda/AgendaPage').then(({ CreateAgendaPage }) => ({
+                    Component: CreateAgendaPage,
+                  })),
+                path: ROUTE_PATHS.SG.AGENDA_NEW,
+              },
+              {
+                lazy: () =>
+                  import('@/pages/documents/agenda/AgendaUpdateMetadataPage').then(
+                    ({ AgendaUpdateMetadataPage }) => ({ Component: AgendaUpdateMetadataPage }),
+                  ),
+                path: ROUTE_PATHS.SG.AGENDA_UPDATE_METADATA,
+              },
+              {
+                lazy: () =>
+                  import('@/pages/documents/agenda/AgendaUpdateFilesPage').then(
+                    ({ AgendaUpdateFilesPage }) => ({ Component: AgendaUpdateFilesPage }),
+                  ),
+                path: ROUTE_PATHS.SG.AGENDA_UPDATE_FILES,
+              },
+              {
+                lazy: () =>
+                  import('@/pages/documents/agenda/AgendaPreviewPage').then(({ AgendaPreviewPage }) => ({
+                    Component: AgendaPreviewPage,
+                  })),
+                path: ROUTE_PATHS.SG.AGENDA_PREVIEW,
+              },
+              {
+                lazy: () =>
+                  import('@/pages/documents/agenda/AgendaEditPage').then(({ AgendaEditPage }) => ({
+                    Component: AgendaEditPage,
+                  })),
+                path: ROUTE_PATHS.SG.AGENDA_EDIT,
+              },
+            ],
             lazy: () =>
-              import('@/pages/documents/agenda/AgendaPage').then(({ CreateAgendaPage }) => ({
-                Component: CreateAgendaPage,
+              import('@/pages/documents/agenda/AgendaLayout').then(({ AgendaLayout }) => ({
+                Component: AgendaLayout,
               })),
-            path: ROUTE_PATHS.SG.AGENDA_NEW,
           },
           {
+            children: [
+              {
+                lazy: () =>
+                  import('@/pages/documents/official-report/OfficialReportPage').then(
+                    ({ CreateOrUpdateOfficialReportPage }) => ({
+                      Component: CreateOrUpdateOfficialReportPage,
+                    }),
+                  ),
+                path: ROUTE_PATHS.SG.OFFICIAL_REPORT_NEW,
+              },
+              {
+                lazy: () =>
+                  import('@/pages/documents/official-report/OfficialReportPage').then(
+                    ({ CreateOrUpdateOfficialReportPage }) => ({
+                      Component: CreateOrUpdateOfficialReportPage,
+                    }),
+                  ),
+                path: ROUTE_PATHS.SG.OFFICIAL_REPORT_UPDATE,
+              },
+              {
+                lazy: () =>
+                  import('@/pages/documents/official-report/OfficialReportPreviewPage').then(
+                    ({ OfficialReportPreviewPage }) => ({ Component: OfficialReportPreviewPage }),
+                  ),
+                path: ROUTE_PATHS.SG.OFFICIAL_REPORT_PREVIEW,
+              },
+              {
+                lazy: () =>
+                  import('@/pages/documents/official-report/OfficialReportEditPage').then(
+                    ({ OfficialReportEditPage }) => ({ Component: OfficialReportEditPage }),
+                  ),
+                path: ROUTE_PATHS.SG.OFFICIAL_REPORT_EDIT,
+              },
+            ],
             lazy: () =>
-              import('@/pages/documents/agenda/AgendaUpdateMetadataPage').then(
-                ({ AgendaUpdateMetadataPage }) => ({ Component: AgendaUpdateMetadataPage }),
+              import('@/pages/documents/official-report/OfficialReportLayout').then(
+                ({ OfficialReportLayout }) => ({ Component: OfficialReportLayout }),
               ),
-            path: ROUTE_PATHS.SG.AGENDA_UPDATE_METADATA,
-          },
-          {
-            lazy: () =>
-              import('@/pages/documents/agenda/AgendaUpdateFilesPage').then(({ AgendaUpdateFilesPage }) => ({
-                Component: AgendaUpdateFilesPage,
-              })),
-            path: ROUTE_PATHS.SG.AGENDA_UPDATE_FILES,
-          },
-          {
-            lazy: () =>
-              import('@/pages/documents/agenda/AgendaPreviewPage').then(({ AgendaPreviewPage }) => ({
-                Component: AgendaPreviewPage,
-              })),
-            path: ROUTE_PATHS.SG.AGENDA_PREVIEW,
-          },
-          {
-            lazy: () =>
-              import('@/pages/documents/agenda/AgendaEditPage').then(({ AgendaEditPage }) => ({
-                Component: AgendaEditPage,
-              })),
-            path: ROUTE_PATHS.SG.AGENDA_EDIT,
-          },
-          {
-            lazy: () =>
-              import('@/pages/documents/official-report/OfficialReportPage').then(
-                ({ CreateOrUpdateOfficialReportPage }) => ({ Component: CreateOrUpdateOfficialReportPage }),
-              ),
-            path: ROUTE_PATHS.SG.OFFICIAL_REPORT_NEW,
-          },
-          {
-            lazy: () =>
-              import('@/pages/documents/official-report/OfficialReportPage').then(
-                ({ CreateOrUpdateOfficialReportPage }) => ({ Component: CreateOrUpdateOfficialReportPage }),
-              ),
-            path: ROUTE_PATHS.SG.OFFICIAL_REPORT_UPDATE,
-          },
-          {
-            lazy: () =>
-              import('@/pages/documents/official-report/OfficialReportPreviewPage').then(
-                ({ OfficialReportPreviewPage }) => ({ Component: OfficialReportPreviewPage }),
-              ),
-            path: ROUTE_PATHS.SG.OFFICIAL_REPORT_PREVIEW,
-          },
-          {
-            lazy: () =>
-              import('@/pages/documents/official-report/OfficialReportEditPage').then(
-                ({ OfficialReportEditPage }) => ({ Component: OfficialReportEditPage }),
-              ),
-            path: ROUTE_PATHS.SG.OFFICIAL_REPORT_EDIT,
           },
           {
             children: [
@@ -461,25 +481,33 @@ export const routes: RouteObject[] = [
                 path: ROUTE_PATHS.SG.PRESENTATIONS_NEW,
               },
               {
+                children: [
+                  {
+                    lazy: () =>
+                      import('@/pages/documents/presentations/PresentationUpsertPage').then(
+                        ({ PresentationUpsertPage }) => ({ Component: PresentationUpsertPage }),
+                      ),
+                    path: ROUTE_PATHS.SG.PRESENTATIONS_UPDATE,
+                  },
+                  {
+                    lazy: () =>
+                      import('@/pages/documents/presentations/PresentationsPreviewPage').then(
+                        ({ PresentationPreviewPage }) => ({ Component: PresentationPreviewPage }),
+                      ),
+                    path: ROUTE_PATHS.SG.PRESENTATIONS_PREVIEW,
+                  },
+                  {
+                    lazy: () =>
+                      import('@/pages/documents/presentations/PresentationEditPage').then(
+                        ({ PresentationEditPage }) => ({ Component: PresentationEditPage }),
+                      ),
+                    path: ROUTE_PATHS.SG.PRESENTATIONS_EDIT,
+                  },
+                ],
                 lazy: () =>
-                  import('@/pages/documents/presentations/PresentationUpsertPage').then(
-                    ({ PresentationUpsertPage }) => ({ Component: PresentationUpsertPage }),
+                  import('@/pages/documents/presentations/PresentationPlanLayout').then(
+                    ({ PresentationPlanLayout }) => ({ Component: PresentationPlanLayout }),
                   ),
-                path: ROUTE_PATHS.SG.PRESENTATIONS_UPDATE,
-              },
-              {
-                lazy: () =>
-                  import('@/pages/documents/presentations/PresentationsPreviewPage').then(
-                    ({ PresentationPreviewPage }) => ({ Component: PresentationPreviewPage }),
-                  ),
-                path: ROUTE_PATHS.SG.PRESENTATIONS_PREVIEW,
-              },
-              {
-                lazy: () =>
-                  import('@/pages/documents/presentations/PresentationEditPage').then(
-                    ({ PresentationEditPage }) => ({ Component: PresentationEditPage }),
-                  ),
-                path: ROUTE_PATHS.SG.PRESENTATIONS_EDIT,
               },
             ],
             lazy: () =>

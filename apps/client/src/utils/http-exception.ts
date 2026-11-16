@@ -18,6 +18,10 @@ class UnauthorizedHttpException extends HttpExceptionImpl {
   override readonly name = 'UnauthorizedHttpException';
 }
 
+export function isNotFound(error: unknown) {
+  return error instanceof HttpException && error.statusCode === 404;
+}
+
 export function httpAssert(response: Response): Response {
   if (response.ok) return response;
 

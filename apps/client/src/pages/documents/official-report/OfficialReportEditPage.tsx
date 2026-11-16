@@ -35,8 +35,14 @@ export function OfficialReportEditPage() {
   const describeFailure = useDocumentFailure();
   const { officialReportId, sessionId } = useParams<{ officialReportId: string; sessionId: string }>();
 
-  const { data: document, isFetchedAfterMount } = useOfficialReportDocumentQuery({ id: officialReportId });
-  const { data: metadata } = useDetailsOfficialReportQuery({ officialReportId });
+  const {
+    data: document,
+    error: documentError,
+    isFetchedAfterMount,
+  } = useOfficialReportDocumentQuery({ id: officialReportId });
+  const { data: metadata, isFetching: isFetchingMetadata } = useDetailsOfficialReportQuery({
+    officialReportId,
+  });
 
   const [pendingRevalidations, setPendingRevalidations] = useState({ others: 0, propositions: 0 });
   const [isSaving, setIsSaving] = useState(false);
@@ -100,6 +106,9 @@ export function OfficialReportEditPage() {
     rebuildEditorOnStoredBlocks();
   };
 
+  // the layout answers a deleted official report: only one that fresh metadata still show goes to the error page
+  if (documentError && metadata && !isFetchingMetadata && !document) throw documentError;
+
   return (
     <DocumentScreen
       actions={
@@ -153,7 +162,7 @@ export function OfficialReportEditPage() {
           </div>
         </>
       }
-      title={<FormattedMessage defaultMessage="Texte du PV de restitution" />}
+      title={<FormattedMessage defaultMessage="Texte du procès-verbal" />}
     >
       {!isFetchedAfterMount || !officialReportId || !document ? (
         <i className="ri-loader-4-line m-auto animate-spin text-[2rem]" />

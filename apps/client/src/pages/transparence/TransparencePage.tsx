@@ -13,7 +13,7 @@ import { PinnedHeader } from '@/shared/components/pinned-header';
 import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { Breadcrumb, type BreadcrumbVM } from '@/shared/ui/Breadcrumb';
 import { Collapse } from '@/shared/ui/collapse';
-import { HttpException } from '@/utils/http-exception';
+import { isNotFound } from '@/utils/http-exception';
 import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
 
 import type { TransparenceOutletContext } from './transparence-outlet-context.type';
@@ -33,10 +33,9 @@ export function TransparencePage() {
     return null;
   }
 
-  const isNotFound = error instanceof HttpException && error.statusCode === 404;
   // a failed reload keeps the data loaded before: the page stays rather than the error page
-  if (error && !isNotFound && !transparence) throw error;
-  if (isNotFound || !transparence) {
+  if (error && !isNotFound(error) && !transparence) throw error;
+  if (isNotFound(error) || !transparence) {
     return (
       <div className="fr-container fr-pt-5v">
         <FormattedMessage defaultMessage="Session de type Transparence non trouvée." />
