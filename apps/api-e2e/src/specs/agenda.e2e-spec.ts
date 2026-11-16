@@ -511,4 +511,34 @@ test.describe('Agenda', () => {
       presentation: { date: MEETING_DATE, endTime: { hours: 11, minutes: 0, seconds: 0 }, status: 'PRESENTED' },
     });
   });
+
+  test('should refuse to create an agenda with a file of another session', async ({ agent, docs, expect }) => {
+    const session = await docs.session();
+    const [otherFile] = (await docs.session()).files;
+
+    const created = await agent.docs.createAgenda({
+      body: {
+        chairmanId: docs.chairman.id,
+        date: { day: 1, month: 2, year: 2026 },
+        nominationFileIds: [session.files[0]!.id, otherFile!.id],
+        sessionMeetingDate: MEETING_DATE,
+      },
+      path: { sessionId: session.id },
+    });
+
+    expect(created.response?.status).toBe(400);
+  });
+
+  test('should refuse to add to an agenda a file of another session', async ({ agent, docs, expect }) => {
+    const session = await docs.session();
+    const [otherFile] = (await docs.session()).files;
+    const { id: agendaId } = await docs.agenda(session, { files: [session.files[0]!] });
+
+    const updated = await agent.docs.updateAgendaFiles({
+      body: { nominationFileIds: [session.files[0]!.id, otherFile!.id] },
+      path: { agendaId },
+    });
+
+    expect(updated.response?.status).toBe(400);
+  });
 });

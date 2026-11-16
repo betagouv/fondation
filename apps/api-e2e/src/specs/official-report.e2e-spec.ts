@@ -1013,4 +1013,25 @@ test.describe('Official report', () => {
     expect(rendered.data).toContain(secondContact.data!.name);
     expect(rendered.data).not.toContain(docs.justiceContact.name);
   });
+
+  test('should find a validated official report under the session of its agenda only', async ({
+    agent,
+    docs,
+    expect,
+    member,
+  }) => {
+    const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
+    const otherSession = await docs.session();
+    const { id: officialReportId } = await docs.officialReport(await docs.agenda(session), { status: 'VALIDATED' });
+
+    const underItsSession = await agent.docs.detailsSessionOfficialReport({
+      path: { officialReportId, sessionId: session.id },
+    });
+    const underAnotherSession = await agent.docs.detailsSessionOfficialReport({
+      path: { officialReportId, sessionId: otherSession.id },
+    });
+
+    expect(underItsSession.response?.status).toBe(200);
+    expect(underAnotherSession.response?.status).toBe(404);
+  });
 });
