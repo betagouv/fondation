@@ -6,7 +6,7 @@ import { MagistratDetailsContent } from '@/features/magistrats/components/Magist
 import { MagistratNotFound } from '@/features/magistrats/components/MagistratNotFound';
 import { useScrollToTop } from '@/shared/hooks/useScrollToTop';
 import { PageContentLayout } from '@/shared/ui/PageContentLayout';
-import { HttpException } from '@/utils/http-exception';
+import { isNotFound } from '@/utils/http-exception';
 import { useMagistratDetailsQuery } from '@queries/magistrats.queries';
 
 export function MagistratDetailsPage() {
@@ -29,9 +29,8 @@ export function MagistratDetailsPage() {
     );
   }
 
-  const isNotFound = error instanceof HttpException && error.statusCode === 404;
   // a failed reload keeps the data loaded before: the page stays rather than the error page
-  if (error && !isNotFound && !magistrat) throw error;
+  if (error && !isNotFound(error) && !magistrat) throw error;
   if (!magistrat) return <MagistratNotFound context={context} />;
 
   return <MagistratDetailsContent context={context} magistrat={magistrat} />;

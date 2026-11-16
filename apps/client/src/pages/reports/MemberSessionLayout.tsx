@@ -10,7 +10,7 @@ import { ArchiveBannerPortal } from '@/shared/components/banners';
 import { PinnedHeader } from '@/shared/components/pinned-header';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { Collapse } from '@/shared/ui/collapse';
-import { HttpException } from '@/utils/http-exception';
+import { isNotFound } from '@/utils/http-exception';
 import { TransparencesCurrentPage, useTransparencesBreadCrumb } from '@/utils/transparences-breadcrumb.utils';
 import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
 
@@ -26,10 +26,9 @@ export function MemberSessionLayout() {
   const { data: session, error, isPending } = useDetailedNominationSessionQuery({ sessionId });
 
   if (isPending) return null;
-  const isNotFound = error instanceof HttpException && error.statusCode === 404;
   // a failed reload keeps the data loaded before: the page stays rather than the error page
-  if (error && !isNotFound && !session) throw error;
-  if (isNotFound || !session) return <SessionNotFound context="membre" />;
+  if (error && !isNotFound(error) && !session) throw error;
+  if (isNotFound(error) || !session) return <SessionNotFound context="membre" />;
 
   return (
     <ArchiveBannerPortal isArchived={session.isArchived}>
