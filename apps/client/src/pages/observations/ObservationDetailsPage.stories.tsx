@@ -95,6 +95,7 @@ const meta = {
           ...OBSERVATION,
           canComment: args.view !== 'sg',
           canEdit: args.view === 'sg',
+          canManageAttachments: args.view === 'sg',
           followUp: args.followUp,
           followUpComment: args.view === 'sg' && args.followUp ? OBSERVATION.followUpComment : null,
         }),
