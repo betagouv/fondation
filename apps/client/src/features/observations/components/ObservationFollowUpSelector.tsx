@@ -19,20 +19,22 @@ export function ObservationFollowUpSelector(props: {
   const { formatMessage } = useIntl();
   const { mutate: followUpOnObservation, reset, isPending } = useFollowUpOnObservationMutation();
   const { waitForComment } = useObservationFollowUpCommentDialog();
-  const [selected, select] = useState(props.followUp ?? 'null');
+  // the value picked shows until the details are reloaded, then the saved one shows again, even on a failure
+  const [picked, pick] = useState<ObservationFollowUpEnum | 'null' | null>(null);
+  const selected = picked ?? props.followUp ?? 'null';
 
   const onChange = useCallback(
     async (e: ChangeEvent<HTMLSelectElement>) => {
       const value = e.target.value.trim() as ObservationFollowUpEnum | 'null';
 
-      select(value);
+      pick(value);
 
       let comment: string | null = null;
 
       if (value !== 'null') {
         const event = await waitForComment(value);
         if (event.type === 'drop') {
-          select(props.followUp ?? 'null');
+          pick(null);
           return;
         }
 
@@ -50,7 +52,9 @@ export function ObservationFollowUpSelector(props: {
           followUp,
         },
         {
+          // runs once the mutation's own onSettled has reloaded the details
           onSettled() {
+            pick(null);
             reset();
           },
           onSuccess() {
@@ -59,7 +63,7 @@ export function ObservationFollowUpSelector(props: {
         },
       );
     },
-    [props, select, waitForComment, followUpOnObservation, reset],
+    [props, pick, waitForComment, followUpOnObservation, reset],
   );
 
   return (
