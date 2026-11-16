@@ -40,7 +40,9 @@ export function OfficialReportEditPage() {
     error: documentError,
     isFetchedAfterMount,
   } = useOfficialReportDocumentQuery({ id: officialReportId });
-  const { data: metadata } = useDetailsOfficialReportQuery({ officialReportId });
+  const { data: metadata, isFetching: isFetchingMetadata } = useDetailsOfficialReportQuery({
+    officialReportId,
+  });
 
   const [pendingRevalidations, setPendingRevalidations] = useState({ others: 0, propositions: 0 });
   const [isSaving, setIsSaving] = useState(false);
@@ -104,8 +106,8 @@ export function OfficialReportEditPage() {
     rebuildEditorOnStoredBlocks();
   };
 
-  // the layout answers a deleted official report: only one that exists goes to the error page
-  if (documentError && metadata && !document) throw documentError;
+  // the layout answers a deleted official report: only one that fresh metadata still show goes to the error page
+  if (documentError && metadata && !isFetchingMetadata && !document) throw documentError;
 
   return (
     <DocumentScreen
