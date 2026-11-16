@@ -257,7 +257,7 @@ test.describe('Observation', () => {
     ]);
   });
 
-  test('should show a member the suite of an observation but not its comment', async ({
+  test('should show the comment of a suite to the secretariat only, its suite to everyone', async ({
     agent,
     expect,
     member,
@@ -277,9 +277,17 @@ test.describe('Observation', () => {
       throwOnError: true,
     });
 
-    const read = await member.observations.getObservationDetails({ path: observationPath, throwOnError: true });
+    const followUps = await Promise.all(
+      [agent, member].map(async (user) => {
+        const read = await user.observations.getObservationDetails({ path: observationPath, throwOnError: true });
+        return { followUp: read.data.followUp, followUpComment: read.data.followUpComment };
+      }),
+    );
 
-    expect(read.data).toMatchObject({ followUp: 'INTERESTING', followUpComment: null });
+    expect(followUps).toEqual([
+      { followUp: 'INTERESTING', followUpComment: 'Demande une mutation à Lyon' },
+      { followUp: 'INTERESTING', followUpComment: null },
+    ]);
   });
 
   test('should set aside the screenshots an observation comment no longer embeds', async ({

@@ -145,7 +145,10 @@ export class GetObservationDetailsQuery {
           size: file.sizeInBytes,
         })),
         followUp: observation.followUp,
-        followUpComment: isSecretariat(query.role) ? observation.followUpComment : null,
+        followUpComment: ObservationFollowUp.commentSeenBy({
+          comment: observation.followUpComment,
+          role: query.role,
+        }),
         id: observation.id,
         isArchived: session.isArchived,
         memberComment: observation.memberComments[0]

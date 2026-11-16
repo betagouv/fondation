@@ -26,4 +26,17 @@ describe('ObservationFollowUp', () => {
     expect(status).toBe('INTERESTING');
     expect(comment).toBe('this is a comment');
   });
+
+  describe('commentSeenBy', () => {
+    it.each(['ADJOINT_SECRETAIRE_GENERAL'] as const)('shows the comment to %s', (role) => {
+      expect(ObservationFollowUp.commentSeenBy({ comment: 'a comment', role })).toBe('a comment');
+    });
+
+    it.each(['MEMBRE_COMMUN', 'MEMBRE_DU_PARQUET', 'MEMBRE_DU_SIEGE'] as const)(
+      'hides the comment from %s',
+      (role) => {
+        expect(ObservationFollowUp.commentSeenBy({ comment: 'a comment', role })).toBeNull();
+      },
+    );
+  });
 });

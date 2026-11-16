@@ -1,3 +1,5 @@
+import { isSecretariat, type RoleEnum } from '../../shared/role.enum';
+
 const OBSERVATION_FOLLOW_UPS = ['ALERT', 'INTERESTING', 'REFERENCE'] as const;
 export type ObservationFollowUpEnum = (typeof OBSERVATION_FOLLOW_UPS)[number];
 
@@ -14,6 +16,11 @@ export class ObservationFollowUp {
     const comment = this.assertIsFollowUpComment(status, props.comment);
 
     return new ObservationFollowUp(status, comment);
+  }
+
+  /** a member sees the suite of an observation, never its comment */
+  static commentSeenBy(props: { comment: string | null; role: RoleEnum }): string | null {
+    return isSecretariat(props.role) ? props.comment : null;
   }
 
   private static assertIsFollowUpComment(
