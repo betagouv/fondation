@@ -1,6 +1,7 @@
 import { forwardRef, Module } from '@nestjs/common';
 
 import { TransparenceModule } from '../session/transparence/transparence.module';
+import { VeilleDesPostesModule } from '../veille-des-postes/veille-des-postes.module';
 
 import { LolfiSessionsFinder } from './infrastructure/finders/lolfi-sessions.finder';
 import { IngestController } from './infrastructure/ingest.controller';
@@ -25,7 +26,7 @@ import { LolfiArchiveIngestor } from './services/lolfi-archive-ingest';
 import { LolfiCryptoService } from './services/lolfi-crypto.service';
 
 @Module({
-  imports: [JobsModule, forwardRef(() => TransparenceModule)],
+  imports: [JobsModule, forwardRef(() => TransparenceModule), forwardRef(() => VeilleDesPostesModule)],
   controllers: [IngestController],
   exports: [IngestService],
   providers: [
