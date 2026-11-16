@@ -3,10 +3,10 @@ import { LoginAttempt } from './login-attempt';
 describe('LoginAttempt', () => {
   const attempt = (
     failures: { email: number; ip: number; knownBrowser?: number },
-    knownBrowser: string | null = null,
+    knownBrowserId: string | null = null,
   ) =>
     new LoginAttempt(
-      { email: 'Ada@Example.com', id: 'attempt-1', ip: '203.0.113.7', knownBrowser },
+      { email: 'Ada@Example.com', id: 'attempt-1', ip: '203.0.113.7', knownBrowserId },
       { knownBrowser: 0, ...failures },
     );
 

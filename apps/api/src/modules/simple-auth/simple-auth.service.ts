@@ -57,7 +57,7 @@ export class SimpleAuthService {
   async login(command: {
     email: string;
     ip: string;
-    knownBrowserCookie: string | undefined;
+    knownBrowserCookie: unknown;
     password: string;
   }): Promise<{ knownBrowser: { cookie: string; expiresAt: Date }; session: AuthSession }> {
     const now = this.clock.now();
@@ -68,7 +68,7 @@ export class SimpleAuthService {
     );
     const attempt = await this.loginAttemptRepository.start({
       ...command,
-      knownBrowser: knownBrowser?.id ?? null,
+      knownBrowserId: knownBrowser?.id ?? null,
       now,
     });
     // A suspended login fails like a wrong password, the right one included, so that nothing reveals whether the account exists

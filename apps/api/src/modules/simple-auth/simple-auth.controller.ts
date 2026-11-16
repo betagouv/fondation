@@ -52,6 +52,7 @@ export class SimpleAuthController {
   @ApiResponse({
     headers: {
       'Set-Cookie': {
+        description: 'The session, and the known browser: a cookie kept for a year, logout included',
         example: 'sessionId=f256088e-e97a-4b56-919a-20af8329421a',
       },
     },

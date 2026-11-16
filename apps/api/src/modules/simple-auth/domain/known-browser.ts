@@ -8,7 +8,7 @@ import * as time from '../../../utils/time';
  * stored, so nothing revokes it, and a stolen cookie only gives a quota of tries, not an access
  */
 export class KnownBrowser {
-  private static readonly LIFETIME_MS = time.YEARS;
+  private static readonly LIFETIME_MS = 365 * time.DAYS;
 
   private constructor(
     readonly id: string,
@@ -20,18 +20,24 @@ export class KnownBrowser {
     return new Date(this.issuedAt.getTime() + KnownBrowser.LIFETIME_MS);
   }
 
-  /** at each successful login, which replaces the cookie of any other address */
+  /**
+   * At each successful login, which replaces the cookie of any other address. A new id each time: kept, a stolen copy
+   * of the cookie would share the count of the browser for good, and could suspend it
+   */
   static issue(login: { email: string; now: Date }): KnownBrowser {
     return new KnownBrowser(randomUUID(), login.email.toLowerCase(), login.now);
   }
 
-  /** null when the cookie is missing, altered, expired or issued for another address */
+  /**
+   * null when the cookie is missing, altered, expired or issued for another address.
+   * Unknown, because cookie-parser parses a value starting with `j:` as JSON
+   */
   static recognize(
-    cookie: string | undefined,
+    cookie: unknown,
     login: { email: string; now: Date },
     secret: string,
   ): KnownBrowser | null {
-    const [id, issuedAt, signature] = cookie?.split('.') ?? [];
+    const [id, issuedAt, signature] = typeof cookie === 'string' ? cookie.split('.') : [];
     if (!id || !issuedAt || !signature) return null;
 
     // The expiry rests on the signed date: the one of the cookie is up to the browser

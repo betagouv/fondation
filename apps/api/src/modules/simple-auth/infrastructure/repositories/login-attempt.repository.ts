@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '../../../../generated/prisma/client';
 import { makeId } from '../../../../utils/id';
 import { Db } from '../../../framework/database';
-import { LoginAttempt } from '../../domain/login-attempt';
+import { LoginAttempt, LoginCount } from '../../domain/login-attempt';
 
 @Injectable()
 export class LoginAttemptRepository {
@@ -13,28 +13,33 @@ export class LoginAttemptRepository {
   async start(command: {
     email: string;
     ip: string;
-    knownBrowser: string | null;
+    knownBrowserId: string | null;
     now: Date;
   }): Promise<LoginAttempt> {
     const id = makeId('LoginAttemptId');
-    const { email, ip, knownBrowser } = command;
-    await this.db.tx.loginAttempt.create({ data: { attemptedAt: command.now, email, id, ip, knownBrowser } });
+    const { email, ip, knownBrowserId } = command;
+    await this.db.tx.loginAttempt.create({
+      data: { attemptedAt: command.now, email, id, ip, knownBrowserId },
+    });
 
     const others = {
       attemptedAt: { gte: LoginAttempt.windowStart(command.now) },
       id: { not: id },
     } satisfies Prisma.LoginAttemptWhereInput;
-    const failures = {
-      email: await this.db.tx.loginAttempt.count({
-        where: { ...others, ...LoginAttemptRepository.ofAddress(email) },
-      }),
-      ip: await this.db.tx.loginAttempt.count({ where: { ...others, ip } }),
-      knownBrowser: knownBrowser
-        ? await this.db.tx.loginAttempt.count({ where: { ...others, knownBrowser } })
-        : 0,
-    };
+    const failures = (count: LoginCount) =>
+      this.db.tx.loginAttempt.count({ where: { ...others, ...LoginAttemptRepository.of(count) } });
 
-    return new LoginAttempt({ email, id, ip, knownBrowser }, failures);
+    // A known browser escapes the count of its address, which is not read then
+    return new LoginAttempt(
+      { email, id, ip, knownBrowserId },
+      {
+        email: knownBrowserId ? 0 : await failures({ target: email, throttle: 'email' }),
+        ip: await failures({ target: ip, throttle: 'ip' }),
+        knownBrowser: knownBrowserId
+          ? await failures({ target: knownBrowserId, throttle: 'knownBrowser' })
+          : 0,
+      },
+    );
   }
 
   async forget(attempt: LoginAttempt): Promise<void> {
@@ -43,16 +48,16 @@ export class LoginAttemptRepository {
 
   /** From every IP, while the failures of the IP on other addresses still count */
   async forgetFailuresOnSuccess(attempt: LoginAttempt): Promise<void> {
-    const { target, throttle } = attempt.forgottenOnSuccess;
     await this.db.tx.loginAttempt.deleteMany({
-      where:
-        throttle === 'knownBrowser' ? { knownBrowser: target } : LoginAttemptRepository.ofAddress(target),
+      where: LoginAttemptRepository.of(attempt.forgottenOnSuccess),
     });
   }
 
   /** The attempts of known browsers count for them, not for their address */
-  private static ofAddress(email: string): Prisma.LoginAttemptWhereInput {
-    return { email: { equals: email, mode: 'insensitive' }, knownBrowser: null };
+  private static of({ target, throttle }: LoginCount): Prisma.LoginAttemptWhereInput {
+    if (throttle === 'knownBrowser') return { knownBrowserId: target };
+    if (throttle === 'ip') return { ip: target };
+    return { email: { equals: target, mode: 'insensitive' }, knownBrowserId: null };
   }
 
   async purge(now: Date): Promise<void> {

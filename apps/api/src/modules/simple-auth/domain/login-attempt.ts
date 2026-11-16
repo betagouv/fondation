@@ -3,6 +3,9 @@ import * as time from '../../../utils/time';
 const LOGIN_THROTTLES = ['email', 'ip', 'knownBrowser'] as const;
 export type LoginThrottle = (typeof LOGIN_THROTTLES)[number];
 
+/** A count of failures, and what it counts them by: an address, an IP or the id of a known browser */
+export type LoginCount = { target: string; throttle: LoginThrottle };
+
 /**
  * A password login, counted per address typed, whether it has an account or not, and per IP.
  *
@@ -17,17 +20,17 @@ export class LoginAttempt {
   readonly email: string;
   readonly id: string;
   readonly ip: string;
-  readonly knownBrowser: string | null;
+  readonly knownBrowserId: string | null;
 
   constructor(
-    attempt: { email: string; id: string; ip: string; knownBrowser: string | null },
+    attempt: { email: string; id: string; ip: string; knownBrowserId: string | null },
     /** the failures within the window, before this attempt */
     private readonly failures: Record<LoginThrottle, number>,
   ) {
     this.email = attempt.email;
     this.id = attempt.id;
     this.ip = attempt.ip;
-    this.knownBrowser = attempt.knownBrowser;
+    this.knownBrowserId = attempt.knownBrowserId;
   }
 
   static windowStart(now: Date): Date {
@@ -40,7 +43,7 @@ export class LoginAttempt {
   }
 
   /** the thresholds that the failure of this attempt reaches, which the next attempt would exceed */
-  get crossedThresholds(): { limit: number; target: string; throttle: LoginThrottle }[] {
+  get crossedThresholds(): (LoginCount & { limit: number })[] {
     return this.counts
       .filter(({ throttle }) => this.failures[throttle] + 1 === LoginAttempt.LIMITS[throttle])
       .map((count) => ({ ...count, limit: LoginAttempt.LIMITS[count.throttle] }));
@@ -51,14 +54,13 @@ export class LoginAttempt {
    * Not those of the address when the browser is known: each login of the member would give ten more tries to whoever
    * tries their address
    */
-  get forgottenOnSuccess(): { target: string; throttle: Exclude<LoginThrottle, 'ip'> } {
-    return this.knownBrowser
-      ? { target: this.knownBrowser, throttle: 'knownBrowser' }
+  get forgottenOnSuccess(): LoginCount {
+    return this.knownBrowserId
+      ? { target: this.knownBrowserId, throttle: 'knownBrowser' }
       : { target: this.email.toLowerCase(), throttle: 'email' };
   }
 
-  /** the counts that apply to this attempt, each with what it counts by */
-  private get counts(): { target: string; throttle: LoginThrottle }[] {
+  private get counts(): LoginCount[] {
     return [this.forgottenOnSuccess, { target: this.ip, throttle: 'ip' }];
   }
 }
