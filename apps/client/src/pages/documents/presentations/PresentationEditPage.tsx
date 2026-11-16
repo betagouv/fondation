@@ -28,6 +28,7 @@ export function PresentationEditPage() {
 
   const {
     data: html,
+    error: htmlError,
     isPending,
     refetch: refetchHtml,
   } = useJusticePresentationPlanHtmlQuery({ presentationPlanId: planId });
@@ -123,6 +124,8 @@ export function PresentationEditPage() {
   const title = formatMessage({ defaultMessage: 'Notice de restitution' });
 
   if (metadata && !metadata.canEdit) return <Navigate replace to={previewPath} />;
+  // the layout answers a deleted notice: only one that exists goes to the error page
+  if (htmlError && metadata && !html) throw htmlError;
 
   return (
     <DocumentScreen

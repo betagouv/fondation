@@ -481,25 +481,33 @@ export const routes: RouteObject[] = [
                 path: ROUTE_PATHS.SG.PRESENTATIONS_NEW,
               },
               {
+                children: [
+                  {
+                    lazy: () =>
+                      import('@/pages/documents/presentations/PresentationUpsertPage').then(
+                        ({ PresentationUpsertPage }) => ({ Component: PresentationUpsertPage }),
+                      ),
+                    path: ROUTE_PATHS.SG.PRESENTATIONS_UPDATE,
+                  },
+                  {
+                    lazy: () =>
+                      import('@/pages/documents/presentations/PresentationsPreviewPage').then(
+                        ({ PresentationPreviewPage }) => ({ Component: PresentationPreviewPage }),
+                      ),
+                    path: ROUTE_PATHS.SG.PRESENTATIONS_PREVIEW,
+                  },
+                  {
+                    lazy: () =>
+                      import('@/pages/documents/presentations/PresentationEditPage').then(
+                        ({ PresentationEditPage }) => ({ Component: PresentationEditPage }),
+                      ),
+                    path: ROUTE_PATHS.SG.PRESENTATIONS_EDIT,
+                  },
+                ],
                 lazy: () =>
-                  import('@/pages/documents/presentations/PresentationUpsertPage').then(
-                    ({ PresentationUpsertPage }) => ({ Component: PresentationUpsertPage }),
+                  import('@/pages/documents/presentations/PresentationPlanLayout').then(
+                    ({ PresentationPlanLayout }) => ({ Component: PresentationPlanLayout }),
                   ),
-                path: ROUTE_PATHS.SG.PRESENTATIONS_UPDATE,
-              },
-              {
-                lazy: () =>
-                  import('@/pages/documents/presentations/PresentationsPreviewPage').then(
-                    ({ PresentationPreviewPage }) => ({ Component: PresentationPreviewPage }),
-                  ),
-                path: ROUTE_PATHS.SG.PRESENTATIONS_PREVIEW,
-              },
-              {
-                lazy: () =>
-                  import('@/pages/documents/presentations/PresentationEditPage').then(
-                    ({ PresentationEditPage }) => ({ Component: PresentationEditPage }),
-                  ),
-                path: ROUTE_PATHS.SG.PRESENTATIONS_EDIT,
               },
             ],
             lazy: () =>
