@@ -19,7 +19,8 @@ export function AgendaLayout() {
   if (isNotFound(session.error)) return <SessionNotFound context="sg" />;
 
   if (agenda.error && !isNotFound(agenda.error) && !agenda.data) throw agenda.error;
-  if (isNotFound(agenda.error)) return <AgendaNotFound sessionId={sessionId} />;
+  // a missing session comes first: wait for it before saying that only the agenda is missing
+  if (isNotFound(agenda.error)) return session.isPending ? null : <AgendaNotFound sessionId={sessionId} />;
 
   return <Outlet />;
 }

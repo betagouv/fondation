@@ -86,6 +86,14 @@ describe('AgendaLayout', () => {
     expect(screen.queryByRole('heading', { name: 'Ordre du jour du 12 mars' })).not.toBeInTheDocument();
   });
 
+  it('waits for the session before saying that only the agenda is missing', () => {
+    mocks.session = { data: undefined, error: null, isPending: true };
+    mocks.agenda = { data: undefined, error: failureWith(404), isPending: false };
+    renderAgenda();
+
+    expect(screen.queryByRole('heading', { name: 'Ordre du jour introuvable' })).not.toBeInTheDocument();
+  });
+
   it('shows the error page when the agenda fails to load for another reason', () => {
     mocks.agenda = { data: undefined, error: failureWith(500), isPending: false };
     renderAgenda();
