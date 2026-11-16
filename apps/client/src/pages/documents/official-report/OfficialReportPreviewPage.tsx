@@ -43,7 +43,7 @@ export function OfficialReportPreviewPage() {
     sessionId: sessionId!,
   });
 
-  const title = formatMessage({ defaultMessage: 'PV de restitution' });
+  const title = formatMessage({ defaultMessage: 'Procès-verbal' });
   const isDraft = metadata?.status === 'DRAFT';
   const confirmation = useConfirmModal();
   const dateAndTime = useDateAndTime();

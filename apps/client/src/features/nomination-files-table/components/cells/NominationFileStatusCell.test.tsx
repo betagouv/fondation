@@ -48,7 +48,7 @@ describe('NominationFileStatusCell', () => {
     renderCell({ value: 'DSJ_REPORTED', dates: [{ year: 2026, month: 6, day: 8 }] });
 
     expect(screen.getByText('PV')).toHaveAttribute('aria-hidden');
-    expect(screen.getByText('PV de restitution')).toHaveClass('fr-sr-only');
+    expect(screen.getByText('Procès-verbal')).toHaveClass('fr-sr-only');
     expect(screen.getByText('08/06/2026')).toBeInTheDocument();
   });
 });

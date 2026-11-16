@@ -153,7 +153,7 @@ export function OfficialReportEditPage() {
           </div>
         </>
       }
-      title={<FormattedMessage defaultMessage="Texte du PV de restitution" />}
+      title={<FormattedMessage defaultMessage="Texte du procès-verbal" />}
     >
       {!isFetchedAfterMount || !officialReportId || !document ? (
         <i className="ri-loader-4-line m-auto animate-spin text-[2rem]" />
