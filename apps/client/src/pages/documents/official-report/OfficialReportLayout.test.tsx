@@ -54,12 +54,24 @@ describe('OfficialReportLayout', () => {
     mocks.officialReport = { data: { id: 'report-1' }, error: null, isPending: false };
   });
 
+  it('lets the page load alongside the session and the official report', () => {
+    mocks.session = { data: undefined, error: null, isPending: true };
+    mocks.officialReport = { data: undefined, error: null, isPending: true };
+    renderOfficialReport();
+
+    expect(screen.getByRole('heading', { name: 'Procès-verbal du 12 mars' })).toBeInTheDocument();
+  });
+
   it('tells the secretariat that the session no longer exists', () => {
     mocks.session = { data: undefined, error: failureWith(404), isPending: false };
     mocks.officialReport = { data: undefined, error: failureWith(404), isPending: false };
     renderOfficialReport();
 
     expect(screen.getByRole('heading', { name: 'Session introuvable' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: "Page d'accueil" })).toHaveAttribute(
+      'href',
+      '/secretariat-general',
+    );
   });
 
   it('leads back to the documents of the session when the official report no longer exists', () => {

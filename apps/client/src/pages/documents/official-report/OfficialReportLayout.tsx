@@ -10,21 +10,17 @@ function isNotFound(error: Error | null) {
   return error instanceof HttpException && error.statusCode === 404;
 }
 
-// the pages below read the same queries from the cache: none of them renders on data that does not exist
+// the pages below mount at once, so they share the requests made here and start their own alongside:
+// waiting for these before rendering them would request the details twice and the document later
 export function OfficialReportLayout() {
   const { officialReportId, sessionId = '' } = useParams();
 
   const session = useDetailedNominationSessionQuery({ sessionId });
   const officialReport = useDetailsOfficialReportQuery({ officialReportId });
 
-  // a disabled query stays pending: the creation has no official report to wait for
-  if (session.isPending || (officialReportId && officialReport.isPending)) {
-    return <span className="ri-loader-4-line animate-spin" />;
-  }
-
   // a failed reload keeps the data loaded before: the page stays rather than the error page
   if (session.error && !isNotFound(session.error) && !session.data) throw session.error;
-  if (isNotFound(session.error) || !session.data) return <SessionNotFound />;
+  if (isNotFound(session.error)) return <SessionNotFound context="sg" />;
 
   if (officialReport.error && !isNotFound(officialReport.error) && !officialReport.data) {
     throw officialReport.error;

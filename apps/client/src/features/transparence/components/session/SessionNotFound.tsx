@@ -5,7 +5,7 @@ import { FormattedMessage } from 'react-intl';
 import { ErrorPageLayout } from '@/shared/ui/error-page';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 
-export function SessionNotFound() {
+export function SessionNotFound(props: { context: 'sg' | 'membre' }) {
   return (
     <ErrorPageLayout>
       <h1>
@@ -15,10 +15,18 @@ export function SessionNotFound() {
         <FormattedMessage defaultMessage="Erreur 404" />
       </p>
       <p className={cx('fr-text--lead', 'fr-mb-6v')}>
-        <FormattedMessage defaultMessage="La session à laquelle vous tentez d'accéder n'existe pas ou ne relève pas de votre formation." />
+        {props.context === 'sg' ? (
+          <FormattedMessage defaultMessage="La session à laquelle vous tentez d'accéder n'existe pas." />
+        ) : (
+          <FormattedMessage defaultMessage="La session à laquelle vous tentez d'accéder n'existe pas ou ne relève pas de votre formation." />
+        )}
       </p>
 
-      <Button linkProps={{ to: ROUTE_PATHS.TRANSPARENCES.DASHBOARD }}>
+      <Button
+        linkProps={{
+          to: props.context === 'sg' ? ROUTE_PATHS.SG.DASHBOARD : ROUTE_PATHS.TRANSPARENCES.DASHBOARD,
+        }}
+      >
         <FormattedMessage defaultMessage="Page d'accueil" />
       </Button>
     </ErrorPageLayout>

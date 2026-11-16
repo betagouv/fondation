@@ -29,7 +29,7 @@ export function MemberSessionLayout() {
   const isNotFound = error instanceof HttpException && error.statusCode === 404;
   // a failed reload keeps the data loaded before: the page stays rather than the error page
   if (error && !isNotFound && !session) throw error;
-  if (isNotFound || !session) return <SessionNotFound />;
+  if (isNotFound || !session) return <SessionNotFound context="membre" />;
 
   return (
     <ArchiveBannerPortal isArchived={session.isArchived}>
