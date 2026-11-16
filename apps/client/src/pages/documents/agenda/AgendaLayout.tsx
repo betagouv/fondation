@@ -19,8 +19,12 @@ export function AgendaLayout() {
   if (isNotFound(session.error)) return <SessionNotFound context="sg" />;
 
   if (agenda.error && !isNotFound(agenda.error) && !agenda.data) throw agenda.error;
+  // an agenda opened under the address of another session is as missing as a deleted one
+  const isElsewhere = agenda.data && agenda.data.session.id !== sessionId;
   // a missing session comes first: wait for it before saying that only the agenda is missing
-  if (isNotFound(agenda.error)) return session.isPending ? null : <AgendaNotFound sessionId={sessionId} />;
+  if (isNotFound(agenda.error) || isElsewhere) {
+    return session.isPending ? null : <AgendaNotFound sessionId={sessionId} />;
+  }
 
   return <Outlet />;
 }

@@ -934,6 +934,14 @@ export class TransparenceService {
     );
   }
 
+  /** @internal the given files the session holds, whether their magistrat is identified or not */
+  internalFindSessionNominationFileIds(query: {
+    ids: readonly string[];
+    sessionId: string;
+  }): Promise<Set<string>> {
+    return this.nominationSessionFileFinder.idsInSession(query);
+  }
+
   /** @internal */
   internalGetSessionFormation(query: { sessionId: string }): Promise<FormationEnum> {
     return this.sessionsFinder.formation(query);

@@ -1,5 +1,5 @@
 import { Transactional } from '@nestjs-cls/transactional';
-import { Injectable, StreamableFile } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, StreamableFile } from '@nestjs/common';
 
 import { Prisma } from '../../../generated/prisma/client';
 import { lockAgendasRawQuery } from '../../../generated/prisma/sql';
@@ -8,6 +8,7 @@ import { isDefined } from '../../../utils/is-defined';
 import { Clock } from '../../framework/clock';
 import { Db } from '../../framework/database';
 import { MembersService } from '../../members';
+import { TransparenceService } from '../../session/transparence/infrastructure/transparence.service';
 import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../shared/infrastructure/agenda-content';
 import { ActedNominationFilesFinder } from '../shared/infrastructure/finders/acted-nomination-files.finder';
 import { DocsNominationFilesFinder } from '../shared/infrastructure/finders/docs-nomination-files.finder';
@@ -55,6 +56,8 @@ export class AgendasService {
     private readonly db: Db,
 
     private readonly members: MembersService,
+    @Inject(forwardRef(() => TransparenceService))
+    private readonly sessions: TransparenceService,
   ) {}
 
   @Transactional()
@@ -70,6 +73,10 @@ export class AgendasService {
       id: command.chairmanId,
     });
 
+    const sessionNominationFileIds = await this.sessions.internalFindSessionNominationFileIds({
+      ids: command.nominationFileIds,
+      sessionId: command.sessionId,
+    });
     const { items: nominationFiles } = await this.docsNominationFilesFinder.find({
       ids: command.nominationFileIds,
       sessionId: command.sessionId,
@@ -84,6 +91,7 @@ export class AgendasService {
       authorId: command.authorId,
       chairman,
       date: DateOnly.fromJson(command.date),
+      nominationFileIds: new Set(command.nominationFileIds),
       nominationFiles: nominationFiles.map((f) => ({
         currentPosition: f.magistrat.position.label,
         grade: f.magistrat.position.grade,
@@ -97,6 +105,7 @@ export class AgendasService {
       })),
       sessionId: command.sessionId,
       sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
+      sessionNominationFileIds,
     });
 
     await this.agendaRepository.persist(agenda);
@@ -142,11 +151,16 @@ export class AgendasService {
     const actedNominationFileIds = await this.actedNominationFilesFinder.find({
       fileIds: nominationFileIds,
     });
+    const sessionNominationFileIds = await this.sessions.internalFindSessionNominationFileIds({
+      ids: command.nominationFileIds,
+      sessionId: agenda.sessionId,
+    });
 
     const diff = agenda.updateFiles({
       actedNominationFileIds,
       authorId: command.authorId,
       nominationFileIds,
+      sessionNominationFileIds,
     });
 
     await this.agendaRepository.persist(agenda);

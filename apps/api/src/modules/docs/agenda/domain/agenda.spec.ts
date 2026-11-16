@@ -18,6 +18,7 @@ import {
   AgendaFileBlockReset,
   UnknownAgendaFileBlock,
   AgendaFilesAlreadyReported,
+  AgendaFilesOutsideSession,
   AgendaFilesReportersUpdated,
   AgendaFilesUpdated,
   AgendaValidated,
@@ -48,6 +49,7 @@ describe('Agenda', () => {
       title: null,
     },
     date: DateOnly.fromJson({ day: 2, month: 2, year: 2026 }),
+    nominationFileIds: new Set(['nf-1']),
     nominationFiles: [
       {
         currentPosition: faker.lorem.sentence(10),
@@ -63,6 +65,7 @@ describe('Agenda', () => {
     ],
     sessionId: 'session-1',
     sessionMeetingDate: DateOnly.fromJson({ day: 10, month: 2, year: 2026 }),
+    sessionNominationFileIds: new Set(['nf-1']),
   } as const satisfies Parameters<(typeof Agenda)['create']>[0]);
 
   type AgendaWithSnapshotProps = Partial<Omit<Parameters<(typeof Agenda)['from']>[0], 'snapshot'>> & {
@@ -117,6 +120,16 @@ describe('Agenda', () => {
     expect(act).toThrow(AgendaFilesAlreadyReported);
   });
 
+  it('should prevent creating an agenda with a file of another session', () => {
+    const act = () =>
+      Agenda.create({
+        ...props,
+        nominationFileIds: new Set([props.nominationFiles[0].id, 'nf-2']),
+      });
+
+    expect(act).toThrow(AgendaFilesOutsideSession);
+  });
+
   it('should prevent adding a file already presented', () => {
     const agenda = makeAgenda();
 
@@ -125,6 +138,7 @@ describe('Agenda', () => {
         actedNominationFileIds: presentedFiles('nf-2'),
         authorId: props.authorId,
         nominationFileIds: new Set([...props.nominationFiles.map((nf) => nf.id), 'nf-2']),
+        sessionNominationFileIds: new Set([...props.nominationFiles.map((nf) => nf.id), 'nf-2']),
       });
 
     expect(act).toThrow(AgendaFilesAlreadyReported);
@@ -138,6 +152,7 @@ describe('Agenda', () => {
         actedNominationFileIds: presentedFiles(props.nominationFiles[0].id),
         authorId: props.authorId,
         nominationFileIds: new Set([...props.nominationFiles.map((nf) => nf.id), 'nf-2']),
+        sessionNominationFileIds: new Set([...props.nominationFiles.map((nf) => nf.id), 'nf-2']),
       });
 
     expect(act).not.toThrow();
@@ -151,6 +166,35 @@ describe('Agenda', () => {
         actedNominationFileIds: presentedFiles(props.nominationFiles[0].id),
         authorId: props.authorId,
         nominationFileIds: new Set(['nf-2']),
+        sessionNominationFileIds: new Set(['nf-2']),
+      });
+
+    expect(act).not.toThrow();
+  });
+
+  it('should prevent adding a file of another session', () => {
+    const agenda = makeAgenda();
+
+    const act = () =>
+      agenda.updateFiles({
+        actedNominationFileIds: NO_PRESENTED_FILE,
+        authorId: props.authorId,
+        nominationFileIds: new Set([props.nominationFiles[0].id, 'nf-2']),
+        sessionNominationFileIds: new Set([props.nominationFiles[0].id]),
+      });
+
+    expect(act).toThrow(AgendaFilesOutsideSession);
+  });
+
+  it('should allow keeping a file of the agenda that left its session', () => {
+    const agenda = makeAgenda();
+
+    const act = () =>
+      agenda.updateFiles({
+        actedNominationFileIds: NO_PRESENTED_FILE,
+        authorId: props.authorId,
+        nominationFileIds: new Set([props.nominationFiles[0].id, 'nf-2']),
+        sessionNominationFileIds: new Set(['nf-2']),
       });
 
     expect(act).not.toThrow();
@@ -242,6 +286,7 @@ describe('Agenda', () => {
       actedNominationFileIds: NO_PRESENTED_FILE,
       authorId: props.authorId,
       nominationFileIds: new Set(props.nominationFiles.map(({ id }) => id)),
+      sessionNominationFileIds: new Set(props.nominationFiles.map(({ id }) => id)),
     });
 
     expect(agenda.messages).toEqual([]);
@@ -254,6 +299,7 @@ describe('Agenda', () => {
       actedNominationFileIds: NO_PRESENTED_FILE,
       authorId: props.authorId,
       nominationFileIds: new Set(['nf-2']),
+      sessionNominationFileIds: new Set(['nf-2']),
     });
 
     expect(agenda.messages).toContainEqual(

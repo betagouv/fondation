@@ -40,6 +40,18 @@ export class TransparenceFilesFinder {
   }
 
   @Transactional()
+  async idsInSession(query: { ids: readonly string[]; sessionId: string }): Promise<Set<string>> {
+    assertPgParams(query.ids);
+
+    const files = await this.db.tx.dossierDeNomination.findMany({
+      select: { id: true } satisfies Prisma.DossierDeNominationSelect,
+      where: { id: { in: [...query.ids] }, sessionId: query.sessionId },
+    });
+
+    return new Set(files.map(({ id }) => id));
+  }
+
+  @Transactional()
   async findSnapshots(query: {
     nominationFileIds: Set<string> | undefined;
     sessionId: string;

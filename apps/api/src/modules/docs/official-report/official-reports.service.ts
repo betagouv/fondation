@@ -67,6 +67,7 @@ export class OfficialReportsService {
 
   detailsSessionOfficialReport(query: {
     officialReportId: string;
+    sessionId: string;
   }): Promise<DetailedSessionOfficialReportDto> {
     return this.detailsSessionOfficialReportQuery.handle(query);
   }

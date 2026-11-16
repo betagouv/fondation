@@ -47,7 +47,7 @@ export class DetailsOfficialReportQuery {
         isManuallyEdited: true,
         justiceDepartmentContactId: true,
         members: { select: { isAbsent: true, memberId: true } },
-        officialReport: { select: { agenda: { select: { id: true } }, id: true } },
+        officialReport: { select: { agenda: { select: { id: true, sessionId: true } }, id: true } },
         outdated: true,
         secretaryId: true,
         sessionMeetingDate: true,
@@ -59,7 +59,9 @@ export class DetailsOfficialReportQuery {
       where: { id: versionId },
     });
 
-    if (!version) throw new NotFoundException();
+    // an official report belongs to the session of its agenda: without one, no session shows it
+    const agenda = version?.officialReport.agenda;
+    if (!version || !agenda) throw new NotFoundException();
     const report = { ...version, ...version.officialReport };
     const publishedId = await this.officialReportVersionFinder.published({
       officialReportId: query.officialReportId,
@@ -83,7 +85,8 @@ export class DetailsOfficialReportQuery {
       outdated: version.outdated,
       outdatedPropositions: version._count.nominationFiles,
       hasRenunciation: report.hasRenunciation,
-      agendaId: report.agenda?.id ?? null,
+      agendaId: agenda.id,
+      session: { id: agenda.sessionId },
       absentMembers: report.members.flatMap((member) =>
         member.isAbsent && member.memberId ? [member.memberId] : [],
       ),
@@ -113,7 +116,8 @@ export class DetailedOfficialReportMetadataDto extends createZodDto(
     hasRenunciation: z.boolean(),
     absentMembers: z.array(z.string()),
     recordedMembers: z.array(z.string()),
-    agendaId: z.uuid().nullable(),
+    agendaId: z.uuid(),
+    session: z.object({ id: z.string() }),
     sessionMeetingDate: dateOnlyJsonSchema,
     sessionMeetingStartingTime: timeOnlySchema,
     sessionMeetingEndingTime: timeOnlySchema,

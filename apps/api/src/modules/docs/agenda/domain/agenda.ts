@@ -159,6 +159,12 @@ export class AgendaFilesAlreadyReported extends Error {
   }
 }
 
+export class AgendaFilesOutsideSession extends Error {
+  constructor(readonly fileIds: readonly string[]) {
+    super();
+  }
+}
+
 /**
  * false when only the names behind a block written by hand changed: the agenda reads the same.
  * TODO: see changesDocument in OfficialReport, which tells a renaming apart the same way
@@ -270,6 +276,8 @@ export class Agenda {
     actedNominationFileIds: ReadonlySet<string>;
     authorId: string;
     nominationFileIds: Set<string>;
+    /** the requested files the agenda's session holds: a file kept from before may have left it since */
+    sessionNominationFileIds: ReadonlySet<string>;
   }): AgendaFilesDiff {
     if (command.nominationFileIds.size === 0) throw new EmptyAgenda();
 
@@ -278,6 +286,9 @@ export class Agenda {
     });
 
     if (!diff.hasAny) return diff;
+
+    const outsideSession = diff.added.filter((id) => !command.sessionNominationFileIds.has(id));
+    if (outsideSession.length > 0) throw new AgendaFilesOutsideSession(outsideSession);
 
     const alreadyPresented = diff.added.filter((nominationFileId) =>
       command.actedNominationFileIds.has(nominationFileId),
@@ -370,10 +381,18 @@ export class Agenda {
       title: UserTitleEnum | null;
     };
     date: DateOnly;
+    /** the requested files: nominationFiles holds only those of the session */
+    nominationFileIds: ReadonlySet<string>;
     nominationFiles: readonly AgendaNominationFile[];
     sessionId: string;
     sessionMeetingDate: DateOnly;
+    sessionNominationFileIds: ReadonlySet<string>;
   }): Agenda {
+    const outsideSession = [...props.nominationFileIds].filter(
+      (id) => !props.sessionNominationFileIds.has(id),
+    );
+    if (outsideSession.length > 0) throw new AgendaFilesOutsideSession(outsideSession);
+
     if (props.nominationFiles.length === 0) throw new EmptyAgenda();
 
     const alreadyPresented = props.nominationFiles.flatMap(({ id }) =>
