@@ -461,7 +461,7 @@ export function useFollowUpOnObservationMutation() {
         path: { sessionId, nominationFileId, observationId },
       });
     },
-    onSuccess: (_data, { sessionId, nominationFileId, observationId, followUp, comment }) =>
+    onSuccess: (_data, { sessionId, nominationFileId, observationId, followUp }) =>
       queryClient.setQueriesData(
         { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
         mapCachedNominationFiles((item) =>
@@ -469,9 +469,7 @@ export function useFollowUpOnObservationMutation() {
             ? {
                 ...item,
                 observations: item.observations.map((observation) =>
-                  observation.id === observationId
-                    ? { ...observation, followUp, followUpComment: comment }
-                    : observation,
+                  observation.id === observationId ? { ...observation, followUp } : observation,
                 ),
               }
             : item,

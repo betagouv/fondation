@@ -10,6 +10,7 @@ import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import type { GetObservationDetailsResponseDto } from '@api/types';
 
 import { ObservationFollowUpSelector } from './ObservationFollowUpSelector';
+import { ObservationFollowUpTag } from './ObservationFollowUpTag';
 
 export function ObservationDetailsHeader(props: {
   backTo: string;
@@ -20,7 +21,7 @@ export function ObservationDetailsHeader(props: {
 }) {
   const { formatMessage } = useIntl();
   const breadcrumbRoot = useBreadcrumbRoot();
-  const { observant } = props.observation;
+  const { canEdit, followUp, followUpComment, observant } = props.observation;
 
   const segments =
     props.context === 'sg'
@@ -39,14 +40,23 @@ export function ObservationDetailsHeader(props: {
   return (
     <DetailsHeader
       action={
-        <ObservationFollowUpSelector
-          canEdit={props.observation.canEdit}
-          comment={props.observation.followUpComment}
-          followUp={props.observation.followUp}
-          nominationFileId={props.nominationFileId}
-          observationId={props.observation.id}
-          sessionId={props.sessionId}
-        />
+        (canEdit || followUp) && (
+          <div>
+            {canEdit ? (
+              <ObservationFollowUpSelector
+                followUp={followUp}
+                nominationFileId={props.nominationFileId}
+                observationId={props.observation.id}
+                sessionId={props.sessionId}
+              />
+            ) : (
+              followUp && <ObservationFollowUpTag followUp={followUp} />
+            )}
+            {followUpComment && (
+              <p className="fr-mt-2v fr-mb-0 fr-p-0 text-sm font-normal italic">{followUpComment}</p>
+            )}
+          </div>
+        )
       }
       backTo={props.backTo}
       backThroughHistory

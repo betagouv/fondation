@@ -600,7 +600,6 @@ test.describe('Magistrat E2E', () => {
       expect.objectContaining({
         date: { day: 2, month: 5, year: 2026 },
         followUp: null,
-        followUpComment: null,
         hasDescription: true,
         hasUserComment: false,
         magistrat: expect.objectContaining({ id: valrose.magistratId }),

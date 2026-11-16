@@ -257,6 +257,39 @@ test.describe('Observation', () => {
     ]);
   });
 
+  test('should show the comment of a suite to the secretariat only, its suite to everyone', async ({
+    agent,
+    expect,
+    member,
+    sessions,
+  }) => {
+    const session = await sessions.createOne(SESSION, { reporters: [member['@user']!] });
+    const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+    const { data } = await agent.observations.createObservation({
+      body: { form: observationForm({ dateReception: '2026-05-02', magistratId: session.files[1]!.magistratId }) },
+      path,
+      throwOnError: true,
+    });
+    const observationPath = { ...path, observationId: data.id };
+    await agent.observations.followUpOnObservation({
+      body: { comment: 'Demande une mutation à Lyon', followUp: 'INTERESTING' },
+      path: observationPath,
+      throwOnError: true,
+    });
+
+    const followUps = await Promise.all(
+      [agent, member].map(async (user) => {
+        const read = await user.observations.getObservationDetails({ path: observationPath, throwOnError: true });
+        return { followUp: read.data.followUp, followUpComment: read.data.followUpComment };
+      }),
+    );
+
+    expect(followUps).toEqual([
+      { followUp: 'INTERESTING', followUpComment: 'Demande une mutation à Lyon' },
+      { followUp: 'INTERESTING', followUpComment: null },
+    ]);
+  });
+
   test('should set aside the screenshots an observation comment no longer embeds', async ({
     agent,
     expect,
