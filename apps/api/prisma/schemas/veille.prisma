@@ -1,0 +1,45 @@
+// a vacancy declared by an agent, effective or ahead: it lapses as soon as LOLFI moves the magistrat to another
+// position, so a new holder starts from the computed status
+model PositionVacancy {
+  authorId     String?                         @map("author_id") @db.Uuid
+  magistratId  String                          @map("magistrat_id") @db.Uuid
+  positionId   Int                             @map("position_id")
+  reason       PrismaPositionVacancyReasonEnum
+  reasonDetail String?                         @map("reason_detail")
+  startDate    DateTime                        @map("start_date") @db.Date
+  updatedAt    DateTime                        @map("updated_at") @db.Timestamp(3)
+
+  attachments PositionVacancyAttachment[]
+  author      User?                       @relation(fields: [authorId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  magistrat   Magistrat                   @relation(fields: [magistratId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  position    Position                    @relation(fields: [positionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([magistratId, positionId], name: "primaryKey")
+  @@map("position_vacancy")
+  @@schema("nominations_context")
+}
+
+model PositionVacancyAttachment {
+  fileId      String @map("file_id") @db.Uuid
+  magistratId String @map("magistrat_id") @db.Uuid
+  positionId  Int    @map("position_id")
+
+  file    File            @relation(fields: [fileId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  vacancy PositionVacancy @relation(fields: [magistratId, positionId], references: [magistratId, positionId], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([magistratId, positionId, fileId], name: "primaryKey")
+  @@map("position_vacancy_attachment")
+  @@schema("nominations_context")
+}
+
+enum PrismaPositionVacancyReasonEnum {
+  DEATH
+  DISCHARGE
+  DISCIPLINARY_DISMISSAL
+  OTHER
+  RETIREMENT
+  STRIKING_OFF
+
+  @@map("position_vacancy_reason_enum")
+  @@schema("nominations_context")
+}
