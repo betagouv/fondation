@@ -53,17 +53,21 @@ describe('retryFailedRequests', () => {
     expect(adapter).toHaveBeenCalledTimes(2);
   });
 
-  it.each([400, 404])('should not retry a %i', async (status) => {
+  it.each([400, 404, 429])('should not retry a %i', async (status) => {
     const { adapter, instance } = clientFailingWith(statusError(status), 1);
 
     await expect(instance.get('http://example.test')).rejects.toThrow('failed');
     expect(adapter).toHaveBeenCalledTimes(1);
   });
 
-  it('should not retry a server error on a POST', async () => {
-    const { adapter, instance } = clientFailingWith(statusError(503), 1);
+  it.each`
+    failure             | message
+    ${networkError}     | ${'socket hang up'}
+    ${statusError(503)} | ${'failed'}
+  `('should never send a POST twice, even after "$message"', async ({ failure, message }) => {
+    const { adapter, instance } = clientFailingWith(failure, 1);
 
-    await expect(instance.post('http://example.test', {})).rejects.toThrow('failed');
+    await expect(instance.post('http://example.test', {})).rejects.toThrow(message);
     expect(adapter).toHaveBeenCalledTimes(1);
   });
 });

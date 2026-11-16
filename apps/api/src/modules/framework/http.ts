@@ -19,12 +19,12 @@ export function loggableUrl(url: string | undefined): string | undefined {
   return url?.split('?')[0];
 }
 
+// A POST is never sent twice: the server may have handled the first one before the connection dropped
 function isRetryable(error: unknown, config: InternalAxiosRequestConfig): boolean {
+  if (!IDEMPOTENT_METHODS.includes(config.method ?? '')) return false;
   if (!axios.isAxiosError(error) || error.code === 'ECONNABORTED' || axios.isCancel(error)) return false;
-  if (!error.response) return true;
-  const { status } = error.response;
 
-  return IDEMPOTENT_METHODS.includes(config.method ?? '') && (status === 429 || status >= 500);
+  return !error.response || error.response.status >= 500;
 }
 
 // Retries inside the adapter, so the request and its interceptors stay the same across attempts
