@@ -44,6 +44,7 @@ export class DeleteUnusedFilesCommand extends CommandRunner {
           attachedToNominationFiles: { none: {} },
           attachedToObservationMemberComments: { none: embedding },
           attachedToObservations: { none: {} },
+          attachedToPositionVacancies: { none: {} },
           attachedToReports: { none: embedding },
           attachedToSessions: { none: {} },
           attachedToSummaries: { none: {} },

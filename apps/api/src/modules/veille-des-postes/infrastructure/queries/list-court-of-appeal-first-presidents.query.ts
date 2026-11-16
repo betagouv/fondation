@@ -13,8 +13,9 @@ import {
   COURT_OF_APPEAL_TYPE_ID,
   FIRST_PRESIDENT_FUNCTION_ID,
 } from '../../domain/court-of-appeal-first-president';
+import { courtOfAppealFirstPresidentTitle } from '../../domain/holder-title';
 import { type AlertDeadline, alertRulesOf, alertsOf, type PositionAlert } from '../../domain/position-alert';
-import { POSITION_STATUSES, type PositionStatus, positionStatusOf } from '../../domain/position-status';
+import { type PositionStatus, positionStatusOf } from '../../domain/position-status';
 import { sortedByUrgency } from '../../domain/position-urgency';
 import type { ListCourtOfAppealFirstPresidentsDto } from '../dtos/veille-des-postes.dto';
 import { facetedRows } from '../faceted-rows';
@@ -23,6 +24,7 @@ import {
   alertJson,
   countedStatusAndAlertFacets,
   holderAlertSchema,
+  positionStatusSchema,
   statusAndAlertFacetsSchema,
   statusAndAlertValues,
 } from '../holder-alerts';
@@ -60,6 +62,15 @@ export class ListCourtOfAppealFirstPresidentsQuery {
 
     const rows = courts.map((court) => {
       const installationDate = DateOnly.fromOptionalUtcDate(court.installationDate);
+      const vacancyStartDate = DateOnly.fromOptionalUtcDate(court.vacancyStartDate);
+      const vacancy =
+        court.vacancyReason && vacancyStartDate
+          ? {
+              reason: court.vacancyReason,
+              reasonDetail: court.vacancyReasonDetail,
+              startDate: vacancyStartDate,
+            }
+          : null;
       const alerts = court.id
         ? alertsOf(
             {
@@ -75,8 +86,18 @@ export class ListCourtOfAppealFirstPresidentsQuery {
         alerts,
         court: { id: court.courtId, label: court.courtLabel ?? court.courtId },
         installationDate: installationDate?.toJson() ?? null,
-        magistrat: court.id ? { id: court.id, name: magistratFullName(court) } : null,
-        status: positionStatusOf({ alertCount: alerts.length, held: !!court.id }),
+        magistrat: court.id
+          ? {
+              id: court.id,
+              name: magistratFullName(court),
+              title: courtOfAppealFirstPresidentTitle({
+                civility: court.civility,
+                courtLabel: court.courtLabel ?? court.courtId,
+              }),
+            }
+          : null,
+        status: positionStatusOf({ alertCount: alerts.length, held: !!court.id, vacancy }, today),
+        vacancyStartDate,
       };
     });
 
@@ -96,7 +117,15 @@ export class ListCourtOfAppealFirstPresidentsQuery {
 
     return {
       ...paginate({
-        items: pageOf(sorted, query.pagination).map((row) => ({ ...row, alerts: row.alerts.map(alertJson) })),
+        items: pageOf(sorted, query.pagination).map(
+          ({ alerts, court, installationDate, magistrat, status }) => ({
+            alerts: alerts.map(alertJson),
+            court,
+            installationDate,
+            magistrat,
+            status,
+          }),
+        ),
         pagination: query.pagination,
         totalCount: matching.length,
       }),
@@ -110,8 +139,14 @@ export class ListedCourtOfAppealFirstPresidentsDto extends createPaginatedZodDto
     alerts: z.array(holderAlertSchema),
     court: z.object({ id: z.string(), label: z.string() }),
     installationDate: dateOnlyJsonSchema.nullable(),
-    magistrat: z.object({ id: z.string(), name: z.string() }).nullable(),
-    status: z.object({ id: z.enum(POSITION_STATUSES), label: z.string() }),
+    magistrat: z
+      .object({
+        id: z.string(),
+        name: z.string(),
+        title: z.string(),
+      })
+      .nullable(),
+    status: positionStatusSchema,
   }),
   statusAndAlertFacetsSchema,
 ) {}

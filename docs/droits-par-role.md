@@ -307,11 +307,17 @@ Dans les dossiers d'un magistrat, un Membre ne voit que l'affectation et les aud
 
 ### Veille des postes
 
-| Action                                                 | Endpoint                                          | Membre | Secrétariat général | Administrateur |
-| ------------------------------------------------------ | ------------------------------------------------- | ------ | ------------------- | -------------- |
-| Lister les cours d'appel et leur premier président     | `GET /veille-des-postes/v1/cours-d-appel`         | —      | ✓                   | ✓              |
-| Lister les magistrats du siège de la Cour de cassation | `GET /veille-des-postes/v1/cour-de-cassation`     | —      | ✓                   | ✓              |
-| Lister les tribunaux judiciaires et leur président     | `GET /veille-des-postes/v1/tribunaux-judiciaires` | —      | ✓                   | ✓              |
+| Action                                                 | Endpoint                                                                              | Membre | Secrétariat général | Administrateur |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------- | ------ | ------------------- | -------------- |
+| Lister les cours d'appel et leur premier président     | `GET /veille-des-postes/v1/cours-d-appel`                                             | —      | ✓                   | ✓              |
+| Lister les magistrats du siège de la Cour de cassation | `GET /veille-des-postes/v1/cour-de-cassation`                                         | —      | ✓                   | ✓              |
+| Lister les tribunaux judiciaires et leur président     | `GET /veille-des-postes/v1/tribunaux-judiciaires`                                     | —      | ✓                   | ✓              |
+| Consulter la vacance déclarée d'un poste               | `GET /veille-des-postes/v1/titulaires/:magistratId/vacance`                           | —      | ✓                   | ✓              |
+| Déclarer la vacance d'un poste                         | `PUT /veille-des-postes/v1/titulaires/:magistratId/vacance`                           | —      | ✓                   | ✓              |
+| Revenir au statut calculé d'un poste                   | `DELETE /veille-des-postes/v1/titulaires/:magistratId/vacance`                        | —      | ✓                   | ✓              |
+| Ouvrir une pièce jointe de la vacance                  | `GET /veille-des-postes/v1/titulaires/:magistratId/vacance/pieces-jointes/:fileId`    | —      | ✓                   | ✓              |
+| Renommer une pièce jointe de la vacance                | `PATCH /veille-des-postes/v1/titulaires/:magistratId/vacance/pieces-jointes/:fileId`  | —      | ✓                   | ✓              |
+| Supprimer une pièce jointe de la vacance               | `DELETE /veille-des-postes/v1/titulaires/:magistratId/vacance/pieces-jointes/:fileId` | —      | ✓                   | ✓              |
 
 ### Documents de séance : préparation
 

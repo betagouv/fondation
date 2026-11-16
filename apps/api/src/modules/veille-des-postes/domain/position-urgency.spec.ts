@@ -8,11 +8,29 @@ const TODAY = new DateOnly(2026, 11, 13);
 const PRESIDENT = { movesAfterSevenYears: true, retirementAge: 67 };
 const NO_FILTER = { alert: [], deadline: [] };
 
-function position(name: string, facts: Partial<HolderFacts> | null) {
+function position(
+  name: string,
+  facts: Partial<HolderFacts> | null,
+  vacancyStartDate: DateOnly | null = null,
+) {
   const alerts = facts
     ? alertsOf({ birthDate: null, installationDate: null, proposal: null, ...facts }, PRESIDENT, TODAY)
     : [];
-  return { alerts, name, status: positionStatusOf({ alertCount: alerts.length, held: !!facts }) };
+  return {
+    alerts,
+    name,
+    status: positionStatusOf(
+      {
+        alertCount: alerts.length,
+        held: !!facts,
+        vacancy: vacancyStartDate
+          ? { reason: 'RETIREMENT', reasonDetail: null, startDate: vacancyStartDate }
+          : null,
+      },
+      TODAY,
+    ),
+    vacancyStartDate,
+  };
 }
 
 const LATER_RETIREMENT = position('retirement in ten months, proposal next month', {
@@ -20,6 +38,7 @@ const LATER_RETIREMENT = position('retirement in ten months, proposal next month
   proposal: { sessionDate: new DateOnly(2026, 12, 10), sessionName: 'Décembre', targetedPosition: null },
 });
 const SOON_RETIREMENT = position('retirement in three months', { birthDate: new DateOnly(1960, 2, 13) });
+const DECLARED = position('vacancy declared in two months', {}, new DateOnly(2027, 1, 13));
 const OCCUPIED = position('occupied without alert', {});
 const VACANT = position('vacant', null);
 
@@ -35,6 +54,15 @@ describe('alertFacetValues', () => {
 describe('sortedByUrgency', () => {
   const positions = [OCCUPIED, LATER_RETIREMENT, VACANT, SOON_RETIREMENT];
 
+  it('keeps the occupied positions last in the other direction', () => {
+    expect(sortedByUrgency(positions, NO_FILTER, true).map(({ name }) => name)).toEqual([
+      'retirement in three months',
+      'retirement in ten months, proposal next month',
+      'vacant',
+      'occupied without alert',
+    ]);
+  });
+
   it('puts the vacancies first, then the earliest alerts, and the occupied positions last', () => {
     expect(sortedByUrgency(positions, NO_FILTER, false).map(({ name }) => name)).toEqual([
       'vacant',
@@ -44,11 +72,15 @@ describe('sortedByUrgency', () => {
     ]);
   });
 
-  it('keeps the occupied positions last in the other direction', () => {
-    expect(sortedByUrgency(positions, NO_FILTER, true).map(({ name }) => name)).toEqual([
-      'retirement in three months',
+  it('sorts a vacancy declared ahead by its start date', () => {
+    expect(
+      sortedByUrgency([OCCUPIED, SOON_RETIREMENT, DECLARED, LATER_RETIREMENT], NO_FILTER, false).map(
+        ({ name }) => name,
+      ),
+    ).toEqual([
       'retirement in ten months, proposal next month',
-      'vacant',
+      'vacancy declared in two months',
+      'retirement in three months',
       'occupied without alert',
     ]);
   });

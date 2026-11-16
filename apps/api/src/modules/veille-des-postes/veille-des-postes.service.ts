@@ -1,16 +1,23 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
+import type { DateOnly } from '../../utils/date-only';
 import { Pagination } from '../framework/pagination';
 import { Sortable } from '../framework/sorting';
 
 import type { CourtOfCassationPosition } from './domain/court-of-cassation-position';
 import type { AlertDeadline, PositionAlert } from './domain/position-alert';
 import type { PositionStatus } from './domain/position-status';
+import type { VacancyReason } from './domain/position-vacancy';
 import type {
   ListCourtOfAppealFirstPresidentsDto,
   ListCourtOfCassationHoldersDto,
   ListJudicialCourtPresidentsDto,
 } from './infrastructure/dtos/veille-des-postes.dto';
+import {
+  FindPositionVacancyQuery,
+  FoundPositionVacancyDto,
+} from './infrastructure/queries/find-position-vacancy.query';
 import {
   ListCourtOfAppealFirstPresidentsQuery,
   ListedCourtOfAppealFirstPresidentsDto,
@@ -23,6 +30,11 @@ import {
   ListedJudicialCourtPresidentsDto,
   ListJudicialCourtPresidentsQuery,
 } from './infrastructure/queries/list-judicial-court-presidents.query';
+import {
+  OpenedPositionVacancyAttachmentDto,
+  OpenPositionVacancyAttachmentQuery,
+} from './infrastructure/queries/open-position-vacancy-attachment.query';
+import { PositionVacancyRepository } from './infrastructure/repositories/position-vacancy.repository';
 
 type StatusAndAlertFilters = {
   alerts: readonly PositionAlert[];
@@ -35,10 +47,31 @@ type StatusAndAlertFilters = {
 @Injectable()
 export class VeilleDesPostesService {
   constructor(
+    private readonly findPositionVacancyQuery: FindPositionVacancyQuery,
     private readonly listCourtOfAppealFirstPresidentsQuery: ListCourtOfAppealFirstPresidentsQuery,
     private readonly listCourtOfCassationHoldersQuery: ListCourtOfCassationHoldersQuery,
     private readonly listJudicialCourtPresidentsQuery: ListJudicialCourtPresidentsQuery,
+    private readonly openPositionVacancyAttachmentQuery: OpenPositionVacancyAttachmentQuery,
+    private readonly vacancies: PositionVacancyRepository,
   ) {}
+
+  @Transactional()
+  async declarePositionVacancy(command: {
+    authorId: string;
+    files: readonly { id: string }[];
+    magistratId: string;
+    reason: VacancyReason;
+    reasonDetail: string | null;
+    startDate: DateOnly;
+  }): Promise<void> {
+    const vacancy = await this.vacancies.find(command);
+    vacancy.declare({ ...command, fileIds: command.files.map(({ id }) => id) });
+    await this.vacancies.persist(vacancy);
+  }
+
+  findPositionVacancy(query: { magistratId: string }): Promise<FoundPositionVacancyDto> {
+    return this.findPositionVacancyQuery.handle(query);
+  }
 
   listCourtOfAppealFirstPresidents(
     query: StatusAndAlertFilters & { sorting: Sortable<ListCourtOfAppealFirstPresidentsDto> },
@@ -62,5 +95,37 @@ export class VeilleDesPostesService {
     },
   ): Promise<ListedJudicialCourtPresidentsDto> {
     return this.listJudicialCourtPresidentsQuery.handle(query);
+  }
+
+  openPositionVacancyAttachment(query: {
+    fileId: string;
+    magistratId: string;
+  }): Promise<OpenedPositionVacancyAttachmentDto> {
+    return this.openPositionVacancyAttachmentQuery.handle(query);
+  }
+
+  @Transactional()
+  async removePositionVacancyAttachment(command: { fileId: string; magistratId: string }): Promise<void> {
+    const vacancy = await this.vacancies.find(command);
+    vacancy.removeAttachment(command.fileId);
+    await this.vacancies.persist(vacancy);
+  }
+
+  @Transactional()
+  async renamePositionVacancyAttachment(command: {
+    fileId: string;
+    magistratId: string;
+    name: string;
+  }): Promise<void> {
+    const vacancy = await this.vacancies.find(command);
+    vacancy.renameAttachment(command.fileId, command.name);
+    await this.vacancies.persist(vacancy);
+  }
+
+  @Transactional()
+  async withdrawPositionVacancy(command: { magistratId: string }): Promise<void> {
+    const vacancy = await this.vacancies.find(command);
+    vacancy.withdraw();
+    await this.vacancies.persist(vacancy);
   }
 }

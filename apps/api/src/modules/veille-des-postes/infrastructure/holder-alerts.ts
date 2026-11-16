@@ -19,6 +19,14 @@ export const holderAlertSchema = z.object({
   shortLabel: z.string(),
 });
 
+/** a declared vacancy gives its reason and date in the detail, and the text of another reason in the hint */
+export const positionStatusSchema = z.object({
+  detail: z.string().nullable(),
+  hint: z.string().nullable(),
+  id: z.enum(POSITION_STATUSES),
+  label: z.string(),
+});
+
 export const statusAndAlertFacetsSchema = z.object({
   alerts: z.array(z.object({ count: z.number(), id: z.enum(POSITION_ALERTS), label: z.string() })),
   deadlines: z.array(z.object({ count: z.number(), id: z.enum(ALERT_DEADLINES), label: z.string() })),
