@@ -10,11 +10,10 @@ import {
 import { useFollowUpOnObservationMutation } from '@queries/observations.queries';
 
 export function ObservationFollowUpSelector(props: {
-  sessionId: string;
+  followUp: ObservationFollowUpEnum | null;
   nominationFileId: string;
   observationId: string;
-  followUp: ObservationFollowUpEnum | null;
-  onChange?: (data: { followUp: ObservationFollowUpEnum | null; comment: string | null }) => unknown;
+  sessionId: string;
 }) {
   const { formatMessage } = useIntl();
   const { mutate: followUpOnObservation, reset, isPending } = useFollowUpOnObservationMutation();
@@ -44,21 +43,12 @@ export function ObservationFollowUpSelector(props: {
       const followUp = value === 'null' ? null : value;
       const { sessionId, nominationFileId, observationId } = props;
       followUpOnObservation(
-        {
-          sessionId,
-          nominationFileId,
-          observationId,
-          comment,
-          followUp,
-        },
+        { comment, followUp, nominationFileId, observationId, sessionId },
         {
           // runs once the mutation's own onSettled has reloaded the details
           onSettled() {
             pick(null);
             reset();
-          },
-          onSuccess() {
-            props.onChange?.({ comment, followUp });
           },
         },
       );
@@ -72,6 +62,7 @@ export function ObservationFollowUpSelector(props: {
       disabled={isPending}
       label={formatMessage({ defaultMessage: 'Suite' })}
       nativeSelectProps={{
+        disabled: isPending,
         onChange,
         value: selected,
       }}
