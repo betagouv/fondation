@@ -1,13 +1,17 @@
-import Select from '@codegouvfr/react-dsfr/Select';
-import { useCallback, useState, type ChangeEvent } from 'react';
-import { useIntl } from 'react-intl';
+import { useState } from 'react';
+import { FormattedMessage } from 'react-intl';
 
 import { useObservationFollowUpCommentDialog } from '@/features/observations/context/ObservationFollowUpCommentContext';
-import {
-  ObservationFollowUpEnum,
-  ObservationFollowUpEnumMessages,
-} from '@/shared/enums/observation-follow-up.enum';
+import { ObservationFollowUpEnum } from '@/shared/enums/observation-follow-up.enum';
+import { Dropdown } from '@/shared/ui/dropdown';
 import { useFollowUpOnObservationMutation } from '@queries/observations.queries';
+
+import { ObservationFollowUpTag } from './ObservationFollowUpTag';
+
+const OPTIONS = Object.values(ObservationFollowUpEnum).map((value) => ({
+  value,
+  label: <ObservationFollowUpTag followUp={value} />,
+}));
 
 export function ObservationFollowUpSelector(props: {
   followUp: ObservationFollowUpEnum | null;
@@ -15,66 +19,48 @@ export function ObservationFollowUpSelector(props: {
   observationId: string;
   sessionId: string;
 }) {
-  const { formatMessage } = useIntl();
   const { mutate: followUpOnObservation, reset, isPending } = useFollowUpOnObservationMutation();
   const { waitForComment } = useObservationFollowUpCommentDialog();
   // the value picked shows until the details are reloaded, then the saved one shows again, even on a failure
-  const [picked, pick] = useState<ObservationFollowUpEnum | 'null' | null>(null);
-  const selected = picked ?? props.followUp ?? 'null';
+  const [picked, pick] = useState<ObservationFollowUpEnum | null | undefined>(undefined);
+  const selected = picked === undefined ? props.followUp : picked;
 
-  const onChange = useCallback(
-    async (e: ChangeEvent<HTMLSelectElement>) => {
-      const value = e.target.value.trim() as ObservationFollowUpEnum | 'null';
+  const select = async (followUp: ObservationFollowUpEnum | null) => {
+    pick(followUp);
 
-      pick(value);
+    let comment: string | null = null;
 
-      let comment: string | null = null;
-
-      if (value !== 'null') {
-        const event = await waitForComment(value);
-        if (event.type === 'drop') {
-          pick(null);
-          return;
-        }
-
-        comment = event.value;
+    if (followUp !== null) {
+      const event = await waitForComment(followUp);
+      if (event.type === 'drop') {
+        pick(undefined);
+        return;
       }
 
-      const followUp = value === 'null' ? null : value;
-      const { sessionId, nominationFileId, observationId } = props;
-      followUpOnObservation(
-        { comment, followUp, nominationFileId, observationId, sessionId },
-        {
-          // runs once the mutation's own onSettled has reloaded the details
-          onSettled() {
-            pick(null);
-            reset();
-          },
+      comment = event.value;
+    }
+
+    const { sessionId, nominationFileId, observationId } = props;
+    followUpOnObservation(
+      { comment, followUp, nominationFileId, observationId, sessionId },
+      {
+        // runs once the mutation's own onSettled has reloaded the details
+        onSettled() {
+          pick(undefined);
+          reset();
         },
-      );
-    },
-    [props, pick, waitForComment, followUpOnObservation, reset],
-  );
+      },
+    );
+  };
 
   return (
-    <Select
-      className="fr-mb-0"
+    <Dropdown
       disabled={isPending}
-      label={formatMessage({ defaultMessage: 'Suite' })}
-      nativeSelectProps={{
-        disabled: isPending,
-        onChange,
-        value: selected,
-      }}
-    >
-      <option key="observation_followUp_null" value={'null'}>
-        {formatMessage({ defaultMessage: 'Aucune' })}
-      </option>
-      {Object.values(ObservationFollowUpEnum).map((value) => (
-        <option key={`observation_followUp_${value}`} value={value}>
-          {formatMessage(ObservationFollowUpEnumMessages[value])}
-        </option>
-      ))}
-    </Select>
+      label={<FormattedMessage defaultMessage="Suite" />}
+      onSelect={(value) => select(value as ObservationFollowUpEnum | null)}
+      options={OPTIONS}
+      placeholder={<FormattedMessage defaultMessage="Sélectionner" />}
+      selected={selected}
+    />
   );
 }
