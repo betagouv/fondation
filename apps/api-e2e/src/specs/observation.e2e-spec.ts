@@ -257,6 +257,31 @@ test.describe('Observation', () => {
     ]);
   });
 
+  test('should show a member the suite of an observation but not its comment', async ({
+    agent,
+    expect,
+    member,
+    sessions,
+  }) => {
+    const session = await sessions.createOne(SESSION, { reporters: [member['@user']!] });
+    const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+    const { data } = await agent.observations.createObservation({
+      body: { form: observationForm({ dateReception: '2026-05-02', magistratId: session.files[1]!.magistratId }) },
+      path,
+      throwOnError: true,
+    });
+    const observationPath = { ...path, observationId: data.id };
+    await agent.observations.followUpOnObservation({
+      body: { comment: 'Demande une mutation à Lyon', followUp: 'INTERESTING' },
+      path: observationPath,
+      throwOnError: true,
+    });
+
+    const read = await member.observations.getObservationDetails({ path: observationPath, throwOnError: true });
+
+    expect(read.data).toMatchObject({ followUp: 'INTERESTING', followUpComment: null });
+  });
+
   test('should set aside the screenshots an observation comment no longer embeds', async ({
     agent,
     expect,

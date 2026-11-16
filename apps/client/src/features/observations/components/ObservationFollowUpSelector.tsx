@@ -2,7 +2,6 @@ import Select from '@codegouvfr/react-dsfr/Select';
 import { useCallback, useState, type ChangeEvent } from 'react';
 import { useIntl } from 'react-intl';
 
-import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { useObservationFollowUpCommentDialog } from '@/features/observations/context/ObservationFollowUpCommentContext';
 import {
   ObservationFollowUpEnum,
@@ -11,16 +10,13 @@ import {
 import { useFollowUpOnObservationMutation } from '@queries/observations.queries';
 
 export function ObservationFollowUpSelector(props: {
-  canEdit: boolean;
   sessionId: string;
   nominationFileId: string;
   observationId: string;
   followUp: ObservationFollowUpEnum | null;
-  comment: string | null;
   onChange?: (data: { followUp: ObservationFollowUpEnum | null; comment: string | null }) => unknown;
 }) {
   const { formatMessage } = useIntl();
-  const isSg = useIsSg();
   const { mutate: followUpOnObservation, reset, isPending } = useFollowUpOnObservationMutation();
   const { waitForComment } = useObservationFollowUpCommentDialog();
   const [selected, select] = useState(props.followUp ?? 'null');
@@ -66,29 +62,24 @@ export function ObservationFollowUpSelector(props: {
     [props, select, waitForComment, followUpOnObservation, reset],
   );
 
-  if (!isSg) return null;
-
   return (
-    <div>
-      <Select
-        className="fr-mb-0"
-        disabled={!props.canEdit || isPending}
-        label={formatMessage({ defaultMessage: 'Suite' })}
-        nativeSelectProps={{
-          onChange,
-          value: selected,
-        }}
-      >
-        <option key="observation_followUp_null" value={'null'}>
-          {formatMessage({ defaultMessage: 'Aucune' })}
+    <Select
+      className="fr-mb-0"
+      disabled={isPending}
+      label={formatMessage({ defaultMessage: 'Suite' })}
+      nativeSelectProps={{
+        onChange,
+        value: selected,
+      }}
+    >
+      <option key="observation_followUp_null" value={'null'}>
+        {formatMessage({ defaultMessage: 'Aucune' })}
+      </option>
+      {Object.values(ObservationFollowUpEnum).map((value) => (
+        <option key={`observation_followUp_${value}`} value={value}>
+          {formatMessage(ObservationFollowUpEnumMessages[value])}
         </option>
-        {Object.values(ObservationFollowUpEnum).map((value) => (
-          <option key={`observation_followUp_${value}`} value={value}>
-            {formatMessage(ObservationFollowUpEnumMessages[value])}
-          </option>
-        ))}
-      </Select>
-      {props.comment && <p className="fr-mt-2v fr-mb-0 fr-p-0 text-sm font-normal italic">{props.comment}</p>}
-    </div>
+      ))}
+    </Select>
   );
 }

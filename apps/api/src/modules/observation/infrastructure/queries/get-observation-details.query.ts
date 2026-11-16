@@ -145,7 +145,7 @@ export class GetObservationDetailsQuery {
           size: file.sizeInBytes,
         })),
         followUp: observation.followUp,
-        followUpComment: observation.followUpComment,
+        followUpComment: isSecretariat(query.role) ? observation.followUpComment : null,
         id: observation.id,
         isArchived: session.isArchived,
         memberComment: observation.memberComments[0]

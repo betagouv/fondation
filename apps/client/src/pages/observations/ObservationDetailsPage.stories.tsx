@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { http, HttpResponse } from 'msw';
 
+import { ObservationFollowUpEnum } from '@/shared/enums/observation-follow-up.enum';
 import { PageStory } from '@/shared/storybook/PageStory';
 import { STORY_AUTHORS, STORY_VIEWS, type StoryView } from '@/shared/storybook/story-users';
 import { getObservationDetailsPath, ROUTE_PATHS } from '@/utils/route-path.utils';
@@ -60,7 +61,7 @@ const PATHS = {
   sg: ROUTE_PATHS.SG.OBSERVATION_DETAILS,
 } satisfies Record<StoryView, string>;
 
-function ObservationDetailsPageStory(props: { view: StoryView }) {
+function ObservationDetailsPageStory(props: { followUp: ObservationFollowUpEnum | null; view: StoryView }) {
   return (
     <PageStory
       location={getObservationDetailsPath({
@@ -78,8 +79,15 @@ function ObservationDetailsPageStory(props: { view: StoryView }) {
 }
 
 const meta = {
-  args: { view: 'sg' },
-  argTypes: { view: { control: 'inline-radio', options: STORY_VIEWS } },
+  args: { followUp: OBSERVATION.followUp, view: 'sg' },
+  argTypes: {
+    followUp: {
+      control: 'inline-radio',
+      mapping: { aucune: null },
+      options: ['aucune', ...Object.values(ObservationFollowUpEnum)],
+    },
+    view: { control: 'inline-radio', options: STORY_VIEWS },
+  },
   beforeEach: ({ args, msw }) => {
     msw.use(
       http.get('*/api/sessions/v2/:sessionId/files/:nominationFileId/observations/:observationId', () =>
@@ -87,6 +95,8 @@ const meta = {
           ...OBSERVATION,
           canComment: args.view !== 'sg',
           canEdit: args.view === 'sg',
+          followUp: args.followUp,
+          followUpComment: args.view === 'sg' && args.followUp ? OBSERVATION.followUpComment : null,
         }),
       ),
     );
