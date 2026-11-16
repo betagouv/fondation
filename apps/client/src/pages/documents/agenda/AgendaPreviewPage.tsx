@@ -35,7 +35,7 @@ export function AgendaPreviewPage() {
       : generatePath(ROUTE_PATHS.SG.SESSION_ID_DOCUMENTS, { sessionId: sessionId! });
 
   const { data: html, error: htmlError, isPending } = useAgendaHtmlQuery({ id: agendaId });
-  const { data: metadata } = useDetailsAgendaMetadataQuery({ agendaId });
+  const { data: metadata, isFetching: isFetchingMetadata } = useDetailsAgendaMetadataQuery({ agendaId });
 
   const validate = useValidateAgendaMutation({
     agendaId: agendaId!,
@@ -74,8 +74,8 @@ export function AgendaPreviewPage() {
 
   const isBusy = validate.isPending || discardDraft.isPending;
 
-  // the layout answers a deleted agenda: only one that exists goes to the error page
-  if (htmlError && metadata && !html) throw htmlError;
+  // the layout answers a deleted agenda: only one that fresh metadata still show goes to the error page
+  if (htmlError && metadata && !isFetchingMetadata && !html) throw htmlError;
 
   return (
     <DocumentScreen
