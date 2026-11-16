@@ -15,13 +15,17 @@ export class DetailsSessionOfficialReportQuery {
     private readonly officialReportVersionFinder: OfficialReportVersionFinder,
   ) {}
 
-  async handle(query: { officialReportId: string }): Promise<DetailedSessionOfficialReportDto> {
+  async handle(query: {
+    officialReportId: string;
+    sessionId: string;
+  }): Promise<DetailedSessionOfficialReportDto> {
     const publishedVersionId = await this.officialReportVersionFinder.published(query);
     if (!publishedVersionId) throw new NotFoundException();
 
     const version = await this.db.withTransaction(() =>
       this.db.tx.officialReportVersion.findUnique({
-        where: { id: publishedVersionId },
+        // an official report belongs to the session of its agenda
+        where: { id: publishedVersionId, officialReport: { agenda: { sessionId: query.sessionId } } },
         select: {
           officialReportId: true,
           pdf: { select: { id: true } },

@@ -56,10 +56,10 @@ export class OfficialReportsController {
     type: DetailedSessionOfficialReportDto,
   })
   detailsSessionOfficialReport(
-    @Param('sessionId') _sessionId: string,
+    @Param('sessionId') sessionId: string,
     @Param('officialReportId') officialReportId: string,
   ): Promise<DetailedSessionOfficialReportDto> {
-    return this.officialReports.detailsSessionOfficialReport({ officialReportId });
+    return this.officialReports.detailsSessionOfficialReport({ officialReportId, sessionId });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
