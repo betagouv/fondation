@@ -1,15 +1,44 @@
 import { HttpService } from '@nestjs/axios';
 import { AXIOS_INSTANCE_TOKEN } from '@nestjs/axios/dist/http.constants';
 import { DynamicModule, Inject, Injectable, Logger, Module } from '@nestjs/common';
-import axios, { AxiosHeaders, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import retry from 'axios-retry';
+import axios, {
+  AxiosHeaders,
+  AxiosInstance,
+  AxiosRequestConfig,
+  AxiosResponse,
+  InternalAxiosRequestConfig,
+} from 'axios';
 import { type Observable } from 'rxjs';
 
 const INTERNAL_HTTP_SERVICE = Symbol();
+const RETRIES = 3;
+const IDEMPOTENT_METHODS = ['get', 'head', 'options', 'put', 'delete'];
 
 // Logs never get the query, which may carry a token
 export function loggableUrl(url: string | undefined): string | undefined {
   return url?.split('?')[0];
+}
+
+function isRetryable(error: unknown, config: InternalAxiosRequestConfig): boolean {
+  if (!axios.isAxiosError(error) || error.code === 'ECONNABORTED' || axios.isCancel(error)) return false;
+  if (!error.response) return true;
+  const { status } = error.response;
+
+  return IDEMPOTENT_METHODS.includes(config.method ?? '') && (status === 429 || status >= 500);
+}
+
+// Retries inside the adapter, so the request and its interceptors stay the same across attempts
+export function retryFailedRequests(instance: AxiosInstance): void {
+  const adapter = axios.getAdapter(instance.defaults.adapter);
+  instance.defaults.adapter = async (config) => {
+    for (let attempt = 0; ; attempt++) {
+      try {
+        return await adapter(config);
+      } catch (error) {
+        if (attempt === RETRIES || !isRetryable(error, config)) throw error;
+      }
+    }
+  };
 }
 
 @Injectable()
@@ -115,7 +144,7 @@ class HttpModule {
           provide: AXIOS_INSTANCE_TOKEN,
           useFactory(): AxiosInstance {
             const instance = axios.create();
-            retry(instance);
+            retryFailedRequests(instance);
 
             return instance;
           },
