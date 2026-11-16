@@ -34,7 +34,7 @@ export function AgendaPreviewPage() {
       ? state.returnPath
       : generatePath(ROUTE_PATHS.SG.SESSION_ID_DOCUMENTS, { sessionId: sessionId! });
 
-  const { data: html, isPending } = useAgendaHtmlQuery({ id: agendaId });
+  const { data: html, error: htmlError, isPending } = useAgendaHtmlQuery({ id: agendaId });
   const { data: metadata } = useDetailsAgendaMetadataQuery({ agendaId });
 
   const validate = useValidateAgendaMutation({
@@ -73,6 +73,9 @@ export function AgendaPreviewPage() {
   };
 
   const isBusy = validate.isPending || discardDraft.isPending;
+
+  // the layout answers a deleted agenda: only one that exists goes to the error page
+  if (htmlError && metadata && !html) throw htmlError;
 
   return (
     <DocumentScreen

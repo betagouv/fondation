@@ -354,39 +354,47 @@ export const routes: RouteObject[] = [
             path: ROUTE_PATHS.SG.MANAGE_SINGLE_MEMBER,
           },
           {
+            children: [
+              {
+                lazy: () =>
+                  import('@/pages/documents/agenda/AgendaPage').then(({ CreateAgendaPage }) => ({
+                    Component: CreateAgendaPage,
+                  })),
+                path: ROUTE_PATHS.SG.AGENDA_NEW,
+              },
+              {
+                lazy: () =>
+                  import('@/pages/documents/agenda/AgendaUpdateMetadataPage').then(
+                    ({ AgendaUpdateMetadataPage }) => ({ Component: AgendaUpdateMetadataPage }),
+                  ),
+                path: ROUTE_PATHS.SG.AGENDA_UPDATE_METADATA,
+              },
+              {
+                lazy: () =>
+                  import('@/pages/documents/agenda/AgendaUpdateFilesPage').then(
+                    ({ AgendaUpdateFilesPage }) => ({ Component: AgendaUpdateFilesPage }),
+                  ),
+                path: ROUTE_PATHS.SG.AGENDA_UPDATE_FILES,
+              },
+              {
+                lazy: () =>
+                  import('@/pages/documents/agenda/AgendaPreviewPage').then(({ AgendaPreviewPage }) => ({
+                    Component: AgendaPreviewPage,
+                  })),
+                path: ROUTE_PATHS.SG.AGENDA_PREVIEW,
+              },
+              {
+                lazy: () =>
+                  import('@/pages/documents/agenda/AgendaEditPage').then(({ AgendaEditPage }) => ({
+                    Component: AgendaEditPage,
+                  })),
+                path: ROUTE_PATHS.SG.AGENDA_EDIT,
+              },
+            ],
             lazy: () =>
-              import('@/pages/documents/agenda/AgendaPage').then(({ CreateAgendaPage }) => ({
-                Component: CreateAgendaPage,
+              import('@/pages/documents/agenda/AgendaLayout').then(({ AgendaLayout }) => ({
+                Component: AgendaLayout,
               })),
-            path: ROUTE_PATHS.SG.AGENDA_NEW,
-          },
-          {
-            lazy: () =>
-              import('@/pages/documents/agenda/AgendaUpdateMetadataPage').then(
-                ({ AgendaUpdateMetadataPage }) => ({ Component: AgendaUpdateMetadataPage }),
-              ),
-            path: ROUTE_PATHS.SG.AGENDA_UPDATE_METADATA,
-          },
-          {
-            lazy: () =>
-              import('@/pages/documents/agenda/AgendaUpdateFilesPage').then(({ AgendaUpdateFilesPage }) => ({
-                Component: AgendaUpdateFilesPage,
-              })),
-            path: ROUTE_PATHS.SG.AGENDA_UPDATE_FILES,
-          },
-          {
-            lazy: () =>
-              import('@/pages/documents/agenda/AgendaPreviewPage').then(({ AgendaPreviewPage }) => ({
-                Component: AgendaPreviewPage,
-              })),
-            path: ROUTE_PATHS.SG.AGENDA_PREVIEW,
-          },
-          {
-            lazy: () =>
-              import('@/pages/documents/agenda/AgendaEditPage').then(({ AgendaEditPage }) => ({
-                Component: AgendaEditPage,
-              })),
-            path: ROUTE_PATHS.SG.AGENDA_EDIT,
           },
           {
             children: [

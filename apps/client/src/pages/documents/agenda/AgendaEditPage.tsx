@@ -40,7 +40,11 @@ export function AgendaEditPage() {
   const officialReportPath: string | null =
     typeof state?.officialReportPath === 'string' ? state.officialReportPath : null;
 
-  const { data: document, isFetchedAfterMount } = useAgendaDocumentBlocksQuery({ id: agendaId });
+  const {
+    data: document,
+    error: documentError,
+    isFetchedAfterMount,
+  } = useAgendaDocumentBlocksQuery({ id: agendaId });
   const { data: metadata, refetch: refetchMetadata } = useDetailsAgendaMetadataQuery({ agendaId });
 
   const [pendingRevalidations, setPendingRevalidations] = useState({ others: 0, propositions: 0 });
@@ -152,6 +156,9 @@ export function AgendaEditPage() {
     setSaveError(null);
     rebuildEditorOnStoredBlocks();
   };
+
+  // the layout answers a deleted agenda: only one that exists goes to the error page
+  if (documentError && metadata && !document) throw documentError;
 
   return (
     <DocumentScreen
