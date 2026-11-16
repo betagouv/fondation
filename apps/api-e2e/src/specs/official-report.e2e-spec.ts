@@ -2,6 +2,8 @@ import type { Sql } from 'postgres';
 
 import { test } from '../fixtures.ts';
 import { MEETING_DATE } from '../fixtures/docs.fixture.ts';
+import { makeFile } from '../utils/files.ts';
+import { attachmentForm } from '../utils/nomination-file-attachment.ts';
 
 async function filesOfValidatedVersionsReading(sql: Sql, html: string): Promise<number> {
   const [row] = await sql<{ count: bigint }[]>`
@@ -123,6 +125,16 @@ test.describe('Official report', () => {
       lockedReasons: ['REPORTED', 'REPORTED'],
       status: 'REPORTED',
     });
+
+    // a 409, not a 400: a page loaded before the validation explains that the dossier got figé
+    const attached = await agent.sessions.uploadNominationFileAttachments({
+      body: {
+        files: [makeFile({ name: 'note.pdf', type: 'application/pdf' })],
+        form: attachmentForm({ type: 'FICHE_DE_JURIDICTION' }),
+      },
+      path: { nominationFileId: session.files[0]!.id, sessionId },
+    });
+    expect(attached.response?.status).toBe(409);
 
     await agent.docs.validateAgenda({ path: { agendaId: agenda.id } });
     await docs.notice([agenda], { status: 'PRESENTED' });

@@ -66,4 +66,15 @@ describe('RenameAttachmentModal', () => {
     ).toBeInTheDocument();
     expect(onClose).not.toHaveBeenCalled();
   });
+
+  it('tells the dossier was figé meanwhile, without advising to retry', async () => {
+    const user = userEvent.setup();
+    renderModal(async () => httpAssert(new Response(null, { status: 409 })));
+
+    await user.click(submitButton());
+
+    expect(
+      await screen.findByText('Le dossier a été figé entre-temps : ses pièces jointes ne se renomment plus.'),
+    ).toBeInTheDocument();
+  });
 });

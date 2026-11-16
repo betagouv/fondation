@@ -4,15 +4,17 @@ import { IntlProvider } from 'react-intl';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { axe } from 'vitest-axe';
 
+import { httpAssert } from '@/utils/http-exception';
+
 import { AddNominationFileAttachmentModal } from './AddNominationFileAttachmentModal';
 
-const mocks = vi.hoisted(() => ({ add: vi.fn() }));
+const mocks = vi.hoisted(() => ({ add: vi.fn(), error: null as Error | null }));
 
 vi.mock('@queries/nomination-sessions.queries', () => ({
   useAddNominationFileAttachmentsMutation: () => ({
-    mutate: mocks.add,
+    error: mocks.error,
     isPending: false,
-    isError: false,
+    mutate: mocks.add,
     reset: vi.fn(),
   }),
 }));
@@ -41,6 +43,7 @@ async function selectFile(container: HTMLElement, user: ReturnType<typeof userEv
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mocks.error = null;
 });
 
 describe('AddNominationFileAttachmentModal', () => {
@@ -112,6 +115,33 @@ describe('AddNominationFileAttachmentModal', () => {
 
     expect(onClose).toHaveBeenCalledTimes(1);
     expect(typeSelect()).toHaveValue('');
+  });
+
+  it('tells the dossier was figé meanwhile when the upload is refused, without advising to retry', () => {
+    try {
+      httpAssert(new Response(null, { status: 409 }));
+    } catch (refusal) {
+      mocks.error = refusal as Error;
+    }
+    renderModal();
+
+    expect(
+      screen.getByText('Le dossier a été figé entre-temps : il ne reçoit plus de pièce jointe.'),
+    ).toBeInTheDocument();
+  });
+
+  it('only lets the user cancel once the dossier was figé meanwhile', () => {
+    try {
+      httpAssert(new Response(null, { status: 409 }));
+    } catch (refusal) {
+      mocks.error = refusal as Error;
+    }
+    const { container } = renderModal();
+
+    expect(container.querySelector('input[type="file"]')).toBeDisabled();
+    expect(typeSelect()).toBeDisabled();
+    expect(submitButton()).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'Masquer le message' })).not.toBeInTheDocument();
   });
 
   it('passes basic accessibility checks', async () => {

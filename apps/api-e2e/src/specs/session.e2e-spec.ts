@@ -9,12 +9,9 @@ import type { Sql } from 'postgres';
 import { test } from '../fixtures.ts';
 import { strongPassword } from '../fixtures/auth.fixture.ts';
 import * as api from '../generated/api/sdk.ts';
-import type {
-  ImportNominationSessionFromLodamXlsxDto,
-  PaginatedNominationFiles,
-  UploadNominationFileAttachmentsDto,
-} from '../generated/api/types.ts';
+import type { ImportNominationSessionFromLodamXlsxDto, PaginatedNominationFiles } from '../generated/api/types.ts';
 import { makeFile } from '../utils/files.ts';
+import { attachmentForm } from '../utils/nomination-file-attachment.ts';
 import * as seed from '../utils/seed.ts';
 
 const LODAM_FILE_PATH = fileURLToPath(new URL('../../assets/lodam/lodam_transparence.xlsx', import.meta.url));
@@ -49,10 +46,6 @@ function isoDate(date: { day: number; month: number; year: number }): string {
 // the e2e reach the database, not the storage: a path nothing was stored at stands for a lost object
 async function loseFromStorage(sql: Sql, fileId: string): Promise<void> {
   await sql`update files_context.files set path = array['lost', ${fileId}] where id = ${fileId}`;
-}
-
-function attachmentForm(form: UploadNominationFileAttachmentsDto['form']): UploadNominationFileAttachmentsDto['form'] {
-  return new Blob([JSON.stringify(form)], { type: 'application/json' }) as any;
 }
 
 const TREVOUX_SESSION: LolfiArchiveContent['sessions'][number] = {

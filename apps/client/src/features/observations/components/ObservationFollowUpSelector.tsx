@@ -72,12 +72,11 @@ export function ObservationFollowUpSelector(props: {
     <div>
       <Select
         className="fr-mb-0"
-        disabled={!props.canEdit}
+        disabled={!props.canEdit || isPending}
         label={formatMessage({ defaultMessage: 'Suite' })}
         nativeSelectProps={{
           onChange,
           value: selected,
-          disabled: isPending,
         }}
       >
         <option key="observation_followUp_null" value={'null'}>
