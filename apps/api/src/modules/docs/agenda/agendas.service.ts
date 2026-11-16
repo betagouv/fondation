@@ -73,6 +73,10 @@ export class AgendasService {
       id: command.chairmanId,
     });
 
+    const sessionNominationFileIds = await this.sessions.internalFindSessionNominationFileIds({
+      ids: command.nominationFileIds,
+      sessionId: command.sessionId,
+    });
     const { items: nominationFiles } = await this.docsNominationFilesFinder.find({
       ids: command.nominationFileIds,
       sessionId: command.sessionId,
@@ -87,6 +91,7 @@ export class AgendasService {
       authorId: command.authorId,
       chairman,
       date: DateOnly.fromJson(command.date),
+      nominationFileIds: new Set(command.nominationFileIds),
       nominationFiles: nominationFiles.map((f) => ({
         currentPosition: f.magistrat.position.label,
         grade: f.magistrat.position.grade,
@@ -100,6 +105,7 @@ export class AgendasService {
       })),
       sessionId: command.sessionId,
       sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
+      sessionNominationFileIds,
     });
 
     await this.agendaRepository.persist(agenda);

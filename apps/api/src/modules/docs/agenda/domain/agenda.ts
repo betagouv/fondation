@@ -381,10 +381,18 @@ export class Agenda {
       title: UserTitleEnum | null;
     };
     date: DateOnly;
+    /** the requested files: nominationFiles holds only those of the session */
+    nominationFileIds: ReadonlySet<string>;
     nominationFiles: readonly AgendaNominationFile[];
     sessionId: string;
     sessionMeetingDate: DateOnly;
+    sessionNominationFileIds: ReadonlySet<string>;
   }): Agenda {
+    const outsideSession = [...props.nominationFileIds].filter(
+      (id) => !props.sessionNominationFileIds.has(id),
+    );
+    if (outsideSession.length > 0) throw new AgendaFilesOutsideSession(outsideSession);
+
     if (props.nominationFiles.length === 0) throw new EmptyAgenda();
 
     const alreadyPresented = props.nominationFiles.flatMap(({ id }) =>

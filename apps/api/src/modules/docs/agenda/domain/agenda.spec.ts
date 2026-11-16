@@ -49,6 +49,7 @@ describe('Agenda', () => {
       title: null,
     },
     date: DateOnly.fromJson({ day: 2, month: 2, year: 2026 }),
+    nominationFileIds: new Set(['nf-1']),
     nominationFiles: [
       {
         currentPosition: faker.lorem.sentence(10),
@@ -64,6 +65,7 @@ describe('Agenda', () => {
     ],
     sessionId: 'session-1',
     sessionMeetingDate: DateOnly.fromJson({ day: 10, month: 2, year: 2026 }),
+    sessionNominationFileIds: new Set(['nf-1']),
   } as const satisfies Parameters<(typeof Agenda)['create']>[0]);
 
   type AgendaWithSnapshotProps = Partial<Omit<Parameters<(typeof Agenda)['from']>[0], 'snapshot'>> & {
@@ -116,6 +118,16 @@ describe('Agenda', () => {
       });
 
     expect(act).toThrow(AgendaFilesAlreadyReported);
+  });
+
+  it('should prevent creating an agenda with a file of another session', () => {
+    const act = () =>
+      Agenda.create({
+        ...props,
+        nominationFileIds: new Set([props.nominationFiles[0].id, 'nf-2']),
+      });
+
+    expect(act).toThrow(AgendaFilesOutsideSession);
   });
 
   it('should prevent adding a file already presented', () => {
