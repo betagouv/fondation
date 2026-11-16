@@ -39,6 +39,7 @@ export class SimpleAuthController {
     secure: true,
     signed: true,
   };
+  private static readonly KNOWN_BROWSER_COOKIE = 'knownBrowser';
 
   constructor(private readonly auth: SimpleAuthService) {}
 
@@ -75,7 +76,18 @@ export class SimpleAuthController {
       throw new BadRequestException();
     }
 
-    const session = await this.auth.login({ ...body, ip: req.ip ?? 'unknown' });
+    const { knownBrowser, session } = await this.auth.login({
+      ...body,
+      ip: req.ip ?? 'unknown',
+      knownBrowserCookie: req.cookies?.[SimpleAuthController.KNOWN_BROWSER_COOKIE],
+    });
+    // Signed by the domain, with the address: the signature of cookie-parser would not bind it to the address.
+    // Kept on logout, so that the browser stays known
+    res.cookie(SimpleAuthController.KNOWN_BROWSER_COOKIE, knownBrowser.cookie, {
+      ...SimpleAuthController.COOKIE_OPTIONS,
+      expires: knownBrowser.expiresAt,
+      signed: false,
+    });
     this.decorateResponse(res, session).end();
   }
 

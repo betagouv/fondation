@@ -10,6 +10,7 @@ import { API_CONFIG_TOKEN, ApiConfig } from '../framework/config';
 import { AuthImpersonation } from './domain/auth-impersonation';
 import { AuthSession } from './domain/auth-session';
 import { AuthUserNotAuthentifiable } from './domain/auth-user';
+import { KnownBrowser } from './domain/known-browser';
 import { LoginAttempt } from './domain/login-attempt';
 import { PasswordHasher } from './infrastructure/password-hasher';
 import { DetailsUserFromImpersonationQuery } from './infrastructure/queries/details-user-from-impesronation-id.query';
@@ -52,8 +53,24 @@ export class SimpleAuthService {
     return this.detailsUserFromImpersonationQuery.handle(impersonation);
   }
 
-  async login(command: { email: string; ip: string; password: string }): Promise<AuthSession> {
-    const attempt = await this.loginAttemptRepository.start({ ...command, now: this.clock.now() });
+  /** The known browser is reissued at each success: a new cookie, for the address typed, for another year */
+  async login(command: {
+    email: string;
+    ip: string;
+    knownBrowserCookie: string | undefined;
+    password: string;
+  }): Promise<{ knownBrowser: { cookie: string; expiresAt: Date }; session: AuthSession }> {
+    const now = this.clock.now();
+    const knownBrowser = KnownBrowser.recognize(
+      command.knownBrowserCookie,
+      { ...command, now },
+      this.config.cookieSecret,
+    );
+    const attempt = await this.loginAttemptRepository.start({
+      ...command,
+      knownBrowser: knownBrowser?.id ?? null,
+      now,
+    });
     // A suspended login fails like a wrong password, the right one included, so that nothing reveals whether the account exists
     if (attempt.isSuspended) {
       await this.loginAttemptRepository.forget(attempt);
@@ -62,8 +79,12 @@ export class SimpleAuthService {
 
     try {
       const session = await this.authenticate(command);
-      await this.loginAttemptRepository.forgetFailuresOfAddress(attempt);
-      return session;
+      await this.loginAttemptRepository.forgetFailuresOnSuccess(attempt);
+      const issued = KnownBrowser.issue({ ...command, now });
+      return {
+        knownBrowser: { cookie: issued.cookie(this.config.cookieSecret), expiresAt: issued.expiresAt },
+        session,
+      };
     } catch (error) {
       if (error instanceof AuthUserNotAuthentifiable) await this.reportCrossedThresholds(attempt);
       throw error;
@@ -71,13 +92,12 @@ export class SimpleAuthService {
   }
 
   private async reportCrossedThresholds(attempt: LoginAttempt): Promise<void> {
-    for (const { limit, throttle } of attempt.crossedThresholds) {
-      const target = throttle === 'email' ? attempt.email.toLowerCase() : attempt.ip;
-      // One issue per address or IP: under a single one, an alert rule on new issues would only notify the first suspension.
-      // Keyed, because a plain hash of an IPv4 is reversed by trying them all
+    for (const { limit, target, throttle } of attempt.crossedThresholds) {
+      // One issue per address, IP or known browser: under a single one, an alert rule on new issues would only notify the
+      // first suspension. Keyed, because a plain hash of an IPv4 is reversed by trying them all
       const targetHash = createHmac('sha256', this.config.cookieSecret).update(target).digest('base64url');
       // The account attacked goes by its id, as in every Sentry event: neither the address nor the IP leave in clear
-      const user = throttle === 'email' ? await this.userRepository.findByEmail(attempt.email) : null;
+      const user = throttle === 'ip' ? null : await this.userRepository.findByEmail(attempt.email);
       Sentry.captureMessage('Password logins suspended', {
         extra: { limit, throttle },
         fingerprint: ['password-logins-suspended', throttle, targetHash],

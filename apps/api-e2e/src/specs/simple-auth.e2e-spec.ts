@@ -68,6 +68,29 @@ test.describe('Simple Auth E2E', () => {
     expect((await login(other)).response?.status).toBe(204);
   });
 
+  test('should let a known browser log in to a suspended address, which stays suspended for the others', async ({
+    baseUrl,
+    expect,
+    registerUser,
+  }) => {
+    const member = await registerUser('MEMBRE_COMMUN');
+    const anonymous = makeStepsFixtures({ baseUrl });
+    const login = (browser: typeof anonymous, password: string) =>
+      browser.auth.login({
+        body: { email: member.email, password },
+        headers: { 'x-forwarded-for': '198.51.100.8' },
+      });
+    const { response } = await login(anonymous, member.password);
+    const knownBrowser = makeStepsFixtures({ baseUrl, cookies: [cookieHeader(response!)] });
+
+    for (let failure = 0; failure < 10; failure++) {
+      await login(anonymous, 'wrong password');
+    }
+
+    expect((await login(knownBrowser, member.password)).response?.status).toBe(204);
+    expect((await login(anonymous, member.password)).response?.status).toBe(401);
+  });
+
   test.describe('Given a logged-in user', () => {
     test('should have an introspectable session', async ({ expect, member }) => {
       const introspectRes = await member.auth.introspectSession();
