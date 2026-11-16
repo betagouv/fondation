@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { IntlProvider } from 'react-intl';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { httpAssert } from '@/utils/http-exception';
+import { failureWith } from '@/test-utils/http-failure';
 
 import { useAttachmentFailureToast } from './useAttachmentFailureToast';
 
@@ -12,14 +12,6 @@ const error = vi.fn();
 vi.mock('@/shared/ui/toast', () => ({
   useToasts: () => ({ error }),
 }));
-
-function failureWith(status: number): unknown {
-  try {
-    httpAssert(new Response(null, { status }));
-  } catch (exception) {
-    return exception;
-  }
-}
 
 function renderUseAttachmentFailureToast() {
   return renderHook(() => useAttachmentFailureToast(), {

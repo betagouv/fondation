@@ -31,11 +31,20 @@ export function PresentationPreviewPage() {
   const navigate = useNavigate();
   const describeFailure = useDocumentFailure();
 
-  const { data: html, isPending } = useJusticePresentationPlanHtmlQuery({ presentationPlanId: planId });
-  const { data: metadata } = useJusticePresentationPlanMetadataQuery({ presentationPlanId: planId });
+  const {
+    data: html,
+    error: htmlError,
+    isPending,
+  } = useJusticePresentationPlanHtmlQuery({ presentationPlanId: planId });
+  const { data: metadata, isFetching: isFetchingMetadata } = useJusticePresentationPlanMetadataQuery({
+    presentationPlanId: planId,
+  });
   const validate = useValidatePresentationPlanMutation({ planId: planId! });
   const isValidating = validate.isPending;
   const title = formatMessage({ defaultMessage: 'Notice de restitution' });
+
+  // the layout answers a deleted notice: only one that fresh metadata still show goes to the error page
+  if (htmlError && metadata && !isFetchingMetadata && !html) throw htmlError;
 
   return (
     <DocumentScreen

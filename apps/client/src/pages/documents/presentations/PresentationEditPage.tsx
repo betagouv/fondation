@@ -28,10 +28,13 @@ export function PresentationEditPage() {
 
   const {
     data: html,
+    error: htmlError,
     isPending,
     refetch: refetchHtml,
   } = useJusticePresentationPlanHtmlQuery({ presentationPlanId: planId });
-  const { data: metadata } = useJusticePresentationPlanMetadataQuery({ presentationPlanId: planId });
+  const { data: metadata, isFetching: isFetchingMetadata } = useJusticePresentationPlanMetadataQuery({
+    presentationPlanId: planId,
+  });
   const updateHtml = useUpdatePresentationPlanHtmlMutation(planId!);
   const revert = useResetPresentationPlanDocumentMutation(planId!);
   const confirmation = useConfirmModal();
@@ -123,6 +126,8 @@ export function PresentationEditPage() {
   const title = formatMessage({ defaultMessage: 'Notice de restitution' });
 
   if (metadata && !metadata.canEdit) return <Navigate replace to={previewPath} />;
+  // the layout answers a deleted notice: only one that fresh metadata still show goes to the error page
+  if (htmlError && metadata && !isFetchingMetadata && !html) throw htmlError;
 
   return (
     <DocumentScreen

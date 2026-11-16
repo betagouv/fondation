@@ -31,7 +31,9 @@ export function OfficialReportPreviewPage() {
   const { officialReportId, sessionId } = useParams<{ officialReportId: string; sessionId: string }>();
 
   const { data: html, error: htmlError, isPending } = useOfficialReportHtmlQuery({ id: officialReportId });
-  const { data: metadata } = useDetailsOfficialReportQuery({ officialReportId });
+  const { data: metadata, isFetching: isFetchingMetadata } = useDetailsOfficialReportQuery({
+    officialReportId,
+  });
 
   const validate = useValidateOfficialReportMutation({
     officialReportId: officialReportId!,
@@ -70,8 +72,8 @@ export function OfficialReportPreviewPage() {
 
   const isBusy = validate.isPending || discardDraft.isPending;
 
-  // the layout answers a deleted official report: only one that exists goes to the error page
-  if (htmlError && metadata && !html) throw htmlError;
+  // the layout answers a deleted official report: only one that fresh metadata still show goes to the error page
+  if (htmlError && metadata && !isFetchingMetadata && !html) throw htmlError;
 
   return (
     <DocumentScreen

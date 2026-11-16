@@ -7,7 +7,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Avatar } from '@/layout/header/Avatar';
-import { httpAssert } from '@/utils/http-exception';
+import { failureWith } from '@/test-utils/http-failure';
 
 import { ErrorPage } from './ErrorPage';
 
@@ -37,14 +37,6 @@ function renderRoute(element: ReactNode) {
       </QueryClientProvider>
     </IntlProvider>,
   );
-}
-
-function failureWith(status: number): unknown {
-  try {
-    httpAssert(new Response(null, { status }));
-  } catch (exception) {
-    return exception;
-  }
 }
 
 describe('ErrorPage', () => {

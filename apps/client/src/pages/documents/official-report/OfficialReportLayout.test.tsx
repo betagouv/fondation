@@ -3,7 +3,7 @@ import { IntlProvider } from 'react-intl';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { httpAssert } from '@/utils/http-exception';
+import { failureWith } from '@/test-utils/http-failure';
 
 import { OfficialReportLayout } from './OfficialReportLayout';
 
@@ -18,14 +18,6 @@ vi.mock('@queries/agenda.queries', () => ({ useDetailsOfficialReportQuery: () =>
 vi.mock('@queries/nomination-sessions.queries', () => ({
   useDetailedNominationSessionQuery: () => mocks.session,
 }));
-
-function failureWith(status: number): unknown {
-  try {
-    httpAssert(new Response(null, { status }));
-  } catch (exception) {
-    return exception;
-  }
-}
 
 function renderOfficialReport() {
   const router = createMemoryRouter(
@@ -84,6 +76,14 @@ describe('OfficialReportLayout', () => {
       '/secretariat-general/session/session-1/documents',
     );
     expect(screen.queryByRole('heading', { name: 'Procès-verbal du 12 mars' })).not.toBeInTheDocument();
+  });
+
+  it('waits for the session before saying that only the official report is missing', () => {
+    mocks.session = { data: undefined, error: null, isPending: true };
+    mocks.officialReport = { data: undefined, error: failureWith(404), isPending: false };
+    renderOfficialReport();
+
+    expect(screen.queryByRole('heading', { name: 'Procès-verbal introuvable' })).not.toBeInTheDocument();
   });
 
   it('shows the error page when the official report fails to load for another reason', () => {

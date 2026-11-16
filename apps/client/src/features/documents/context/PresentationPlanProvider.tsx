@@ -18,7 +18,11 @@ const MANDATORY_METADATA = ['chairmanId', 'date', 'justiceContactId', 'secretary
 export function PresentationPlanProvider(props: PropsWithChildren) {
   const { planId = null } = useParams<{ planId: string }>();
 
-  const { data: metadata, isFetching: isFetchingMeta } = useJusticePresentationPlanMetadataQuery({
+  const {
+    data: metadata,
+    error: metadataError,
+    isFetching: isFetchingMeta,
+  } = useJusticePresentationPlanMetadataQuery({
     presentationPlanId: planId,
   });
 
@@ -293,7 +297,8 @@ export function PresentationPlanProvider(props: PropsWithChildren) {
         state,
       }}
     >
-      {planId ? state.formation && props.children : props.children}
+      {/* a notice that failed to load never gets its formation: its pages answer the failure */}
+      {planId && !metadataError ? state.formation && props.children : props.children}
     </PresentationPlanContext>
   );
 }
