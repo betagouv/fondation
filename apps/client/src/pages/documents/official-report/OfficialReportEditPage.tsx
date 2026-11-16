@@ -35,7 +35,11 @@ export function OfficialReportEditPage() {
   const describeFailure = useDocumentFailure();
   const { officialReportId, sessionId } = useParams<{ officialReportId: string; sessionId: string }>();
 
-  const { data: document, isFetchedAfterMount } = useOfficialReportDocumentQuery({ id: officialReportId });
+  const {
+    data: document,
+    error: documentError,
+    isFetchedAfterMount,
+  } = useOfficialReportDocumentQuery({ id: officialReportId });
   const { data: metadata } = useDetailsOfficialReportQuery({ officialReportId });
 
   const [pendingRevalidations, setPendingRevalidations] = useState({ others: 0, propositions: 0 });
@@ -99,6 +103,9 @@ export function OfficialReportEditPage() {
     setSaveError(null);
     rebuildEditorOnStoredBlocks();
   };
+
+  // the layout answers a deleted official report: only one that exists goes to the error page
+  if (documentError && metadata && !document) throw documentError;
 
   return (
     <DocumentScreen
