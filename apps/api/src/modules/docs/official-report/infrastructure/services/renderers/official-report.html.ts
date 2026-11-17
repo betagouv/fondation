@@ -154,8 +154,7 @@ function displayIntroduction(
 
   const role = chairmanRole(ctx.chairman);
   const presence = [
-    `Sous la présidence ${requiresElision(ctx.chairman.firstName) ? `d'` : 'de '}${fullname(ctx.chairman)}`,
-    ctx.chairman.displayTitle,
+    `Sous la présidence de ${displayTitled(ctx.chairman)}`,
     role && chairmanRoleLabel(role, ctx.chairman.gender),
     'en présence de\u00A0:',
   ]
