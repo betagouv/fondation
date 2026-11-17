@@ -202,6 +202,24 @@ describe('officialReportTemplate', () => {
     expect($('main').text()).toContain(`de l'avis émis par le Conseil sur la proposition figurant`);
   });
 
+  it('names the chairman with their civility in the introduction', () => {
+    const c = baseContext.chairman;
+    const chairman = new OfficialReportChairman(
+      c.id,
+      'rémi',
+      'boureau',
+      'MALE',
+      'Président de chambre honoraire',
+      c.title,
+    );
+
+    const $ = load(officialReportTemplate.render({ ...baseContext, chairman }));
+
+    expect($('main p:contains("Sous la présidence")').text()).toBe(
+      'Sous la présidence de M.\u00A0Rémi\u00A0BOUREAU, président de chambre honoraire, président de la formation, en présence de\u00A0:',
+    );
+  });
+
   it('should include non president members in end-time', () => {
     const c = baseContext.chairman;
     const chairman = new OfficialReportChairman(
