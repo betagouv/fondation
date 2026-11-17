@@ -2,7 +2,6 @@ name: Warm Playwright cache
 
 permissions:
   contents: read
-  packages: read
 
 on:
   push:
