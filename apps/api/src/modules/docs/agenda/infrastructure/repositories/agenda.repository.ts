@@ -105,6 +105,7 @@ export class AgendaRepository {
         chairmanId: true,
         chairmanFirstName: true,
         chairmanLastName: true,
+        chairman: { select: { firstName: true, id: true, lastName: true } },
         agenda: { select: { id: true, sessionId: true, officialReportId: true } },
         nominationFiles: {
           where: { nominationFileId: { not: null } },
@@ -152,18 +153,11 @@ export class AgendaRepository {
           ).items,
         )
       : undefined;
-    const currentChairman =
-      isValidated && foundVersion.chairmanId
-        ? await this.db.tx.user.findUnique({
-            where: { id: foundVersion.chairmanId },
-            select: { firstName: true, id: true, lastName: true } satisfies Prisma.UserSelect,
-          })
-        : null;
 
     return Agenda.from({
       snapshot,
       actorId: query.actorId ?? null,
-      currentChairman,
+      currentChairman: isValidated ? foundVersion.chairman : null,
       currentNames,
       isDocumentStored: isDefined(foundVersion.pdfFileId),
       isValidated,

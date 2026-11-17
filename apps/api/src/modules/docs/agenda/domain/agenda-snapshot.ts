@@ -16,8 +16,10 @@ export type AgendaSnapshotFile = {
   isManuallyEdited: boolean;
 };
 
+export type AgendaChairmanName = { firstName: string; id: string; lastName: string };
+
 /** the chairman as the agenda signs: `id` is null once their account is deleted */
-export type AgendaSnapshotChairman = { firstName: string; id: string | null; lastName: string };
+export type AgendaSnapshotChairman = Omit<AgendaChairmanName, 'id'> & { id: string | null };
 
 export class AgendaSnapshot {
   private constructor(
@@ -44,8 +46,7 @@ export class AgendaSnapshot {
     );
   }
 
-  /** the agenda's chairman bears another name today */
-  isChairmanRenamed(today: { firstName: string; id: string; lastName: string }): boolean {
+  isChairmanRenamed(today: AgendaChairmanName): boolean {
     return (
       this.chairman.id === today.id &&
       (this.chairman.firstName !== today.firstName || this.chairman.lastName !== today.lastName)

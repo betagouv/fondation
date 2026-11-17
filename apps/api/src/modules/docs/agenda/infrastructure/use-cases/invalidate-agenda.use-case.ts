@@ -87,17 +87,23 @@ export class InvalidateAgendasUseCase {
     await this.followRenamedChairman(invalidation.payload);
   }
 
-  /** a renaming of anything else than the name, such as a recusal title, leaves the signature as it is */
+  /** a new recusal title sends the same invalidation: only the drafts signed with another name are loaded */
   private async followRenamedChairman(member: { userId: string }): Promise<void> {
-    const drafts = await this.db.tx.agendaVersion.findMany({
-      where: { chairmanId: member.userId, status: 'DRAFT' },
-      select: { agendaId: true } satisfies Prisma.AgendaVersionSelect,
-    });
-    if (drafts.length === 0) return;
-
     const chairman = await this.db.tx.user.findUniqueOrThrow({
       where: { id: member.userId },
       select: { firstName: true, id: true, lastName: true } satisfies Prisma.UserSelect,
+    });
+
+    const drafts = await this.db.tx.agendaVersion.findMany({
+      where: {
+        chairmanId: chairman.id,
+        status: 'DRAFT',
+        OR: [
+          { chairmanFirstName: { not: chairman.firstName } },
+          { chairmanLastName: { not: chairman.lastName } },
+        ],
+      },
+      select: { agendaId: true } satisfies Prisma.AgendaVersionSelect,
     });
 
     for (const { agendaId } of drafts) {

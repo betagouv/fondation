@@ -10,6 +10,7 @@ import { type CurrentNames, type NamedMember, NO_CURRENT_NAMES } from '../../sha
 
 import { AgendaNominationFile } from './agenda-nomination-file';
 import {
+  type AgendaChairmanName,
   AgendaFilesDiff,
   AgendaFilesReportersDiff,
   AgendaMetadataDiff,
@@ -111,8 +112,6 @@ export class AgendaFilesReportersUpdated {
     readonly changesDocument: boolean,
   ) {}
 }
-
-export type AgendaChairmanName = { firstName: string; id: string; lastName: string };
 
 /** the signature reads the chairman's name of today: the document is rendered again */
 export class AgendaChairmanRenamed {
@@ -216,7 +215,7 @@ export class Agenda {
     actorId?: string | null;
     /**
      * how its chairman is named today, for a draft opened on the validated agenda to sign with it.
-     * TODO: see the official report, whose chairman and secretary keep the names they were given
+     * TODO: see FON-805, for the official report to follow its chairman's name the same way
      */
     currentChairman?: AgendaChairmanName | null;
     /** how its reporters are printed today: a draft opened on the validated agenda starts from these names */
@@ -346,7 +345,7 @@ export class Agenda {
     if (this.#isValidated || !assertIsDefined(this.snapshot).isChairmanRenamed(chairman)) return;
 
     this.openDraft('DESIGNATION');
-    this.#messages.push(new AgendaChairmanRenamed(this.id, chairman.firstName, chairman.lastName));
+    this.pushChairmanRenamed(chairman);
   }
 
   /** a draft opened on the validated agenda names its members as they are today, a change nobody made */
@@ -355,9 +354,11 @@ export class Agenda {
     if (diff?.hasAny) this.pushReportersUpdated(diff);
 
     const chairman = this.currentChairman;
-    if (chairman && this.snapshot?.isChairmanRenamed(chairman)) {
-      this.#messages.push(new AgendaChairmanRenamed(this.id, chairman.firstName, chairman.lastName));
-    }
+    if (chairman && this.snapshot?.isChairmanRenamed(chairman)) this.pushChairmanRenamed(chairman);
+  }
+
+  private pushChairmanRenamed(chairman: AgendaChairmanName): void {
+    this.#messages.push(new AgendaChairmanRenamed(this.id, chairman.firstName, chairman.lastName));
   }
 
   private pushReportersUpdated(diff: Extract<AgendaFilesReportersDiff, { hasAny: true }>): void {
