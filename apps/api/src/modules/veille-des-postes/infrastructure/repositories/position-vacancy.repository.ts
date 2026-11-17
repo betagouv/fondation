@@ -26,10 +26,10 @@ export class PositionVacancyRepository {
   ) {}
 
   /**
-   * the vacancies whose magistrat LOLFI moved or let go: no route reaches them any more, and their documents
-   * (death certificates, disciplinary decisions) would stay for nothing. Answers how many were deleted
+   * the vacancies whose magistrat LOLFI moved or let go: no route reaches them any more and their documents
+   * (death certificates or disciplinary decisions) would stay for nothing. Answers how many were deleted
    */
-  @Transactional()
+  @Transactional(Propagation.Mandatory)
   async deleteLapsed(): Promise<number> {
     const vacancies = await this.db.tx.positionVacancy.findMany({
       select: {
@@ -51,7 +51,7 @@ export class PositionVacancyRepository {
     return lapsed.length;
   }
 
-  /** the vacancy of the position the magistrat holds today, declared or not */
+  /** the vacancy of the position the magistrat holds today (declared or not) */
   @Transactional(Propagation.Mandatory)
   async find({ magistratId }: { magistratId: string }): Promise<PositionVacancy> {
     const { positionId } = await this.heldPositions.byHolder({ magistratId });

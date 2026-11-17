@@ -10,14 +10,13 @@ import { ListCourtOfCassationHoldersQuery } from './infrastructure/queries/list-
 import { ListJudicialCourtPresidentsQuery } from './infrastructure/queries/list-judicial-court-presidents.query';
 import { OpenPositionVacancyAttachmentQuery } from './infrastructure/queries/open-position-vacancy-attachment.query';
 import { PositionVacancyRepository } from './infrastructure/repositories/position-vacancy.repository';
+import { VeilleDesPostesInternalService } from './veille-des-postes-internal.service';
 import { VeilleDesPostesController } from './veille-des-postes.controller';
 import { VeilleDesPostesService } from './veille-des-postes.service';
 
 @Module({
   controllers: [VeilleDesPostesController],
-  // the LOLFI import deletes the lapsed vacancies through the repository: the service would bring the queries
-  // that reach the sessions, which import the LOLFI import, and the circle leaves a class undefined at boot
-  exports: [PositionVacancyRepository],
+  exports: [VeilleDesPostesInternalService],
   imports: [forwardRef(() => TransparenceModule)],
   providers: [
     FindPositionVacancyQuery,
@@ -28,6 +27,7 @@ import { VeilleDesPostesService } from './veille-des-postes.service';
     ListJudicialCourtPresidentsQuery,
     OpenPositionVacancyAttachmentQuery,
     PositionVacancyRepository,
+    VeilleDesPostesInternalService,
     VeilleDesPostesService,
   ],
 })
