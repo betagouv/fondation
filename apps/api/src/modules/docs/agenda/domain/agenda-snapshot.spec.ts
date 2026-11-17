@@ -3,15 +3,20 @@ import * as assert from 'node:assert';
 import { DateOnly } from '../../../../utils/date-only';
 import { makeId } from '../../../../utils/id';
 
-import { AgendaSnapshot, type AgendaSnapshotFile } from './agenda-snapshot';
+import { AgendaSnapshot, type AgendaSnapshotChairman, type AgendaSnapshotFile } from './agenda-snapshot';
 
 const MAS = { id: 'user-mas', name: 'Mme Jeanne MAS' };
 const JARRE = { id: 'user-jarre', name: 'M. Jean-Michel JARRE' };
 
-function makeSnapshot(nominationFiles: readonly AgendaSnapshotFile[]): AgendaSnapshot {
+const BERGER = { firstName: 'Michel', id: 'user-berger', lastName: 'BERGER' };
+
+function makeSnapshot(
+  nominationFiles: readonly AgendaSnapshotFile[],
+  chairman: AgendaSnapshotChairman = BERGER,
+): AgendaSnapshot {
   return AgendaSnapshot.from({
     agendaId: makeId('AgendaId'),
-    chairmanId: null,
+    chairman,
     date: DateOnly.fromJson({ year: 2026, month: 8, day: 1 }),
     nominationFiles,
     sessionMeetingDate: DateOnly.fromJson({ year: 2026, month: 8, day: 1 }),
@@ -83,5 +88,18 @@ describe('AgendaSnapshot', () => {
     expect(sameName.hasAny).toBe(false);
     assert.ok(otherName.hasAny);
     expect(otherName.updated[0]?.whoChanged).toBe(true);
+  });
+
+  it('should tell its chairman bears another name today', () => {
+    const snapshot = makeSnapshot([]);
+
+    expect(snapshot.isChairmanRenamed({ ...BERGER, lastName: 'BERGER-GALL' })).toBe(true);
+    expect(snapshot.isChairmanRenamed(BERGER)).toBe(false);
+  });
+
+  it('should not take a member of the same name for a chairman whose account was deleted', () => {
+    const snapshot = makeSnapshot([], { ...BERGER, id: null });
+
+    expect(snapshot.isChairmanRenamed({ ...BERGER, lastName: 'BERGER-GALL' })).toBe(false);
   });
 });
