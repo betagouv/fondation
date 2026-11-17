@@ -191,7 +191,7 @@ export function CourtOfAppealFirstPresidentsTable(props: {
   );
   const items = useMemo(() => data?.items ?? [], [data]);
   const editing = useEditedPosition(items, editedPositionOf, props.onSidePanelToggle);
-  // the row of the side panel, or the one left for a magistrat's page
+  // the row of the side panel or the one left for a magistrat's page
   const highlightedRowId = editing.edited?.magistrat.id ?? revealedRowId;
   const table = useReactTable({
     columns: useCourtOfAppealFirstPresidentsColumns({

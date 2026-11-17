@@ -26,7 +26,7 @@ function editedPositionOf(row: Row): EditedPosition | null {
   );
 }
 
-/** the neighbours are read ahead, never answered here */
+/** the neighbours are read ahead but never answered here */
 function renderEditedPosition(rows: readonly Row[]) {
   const client = new QueryClient({ defaultOptions: { queries: { enabled: false } } });
   return renderHook(({ shown }) => useEditedPosition(shown, editedPositionOf, () => {}), {

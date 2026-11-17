@@ -5,15 +5,15 @@ import { generatePath, Link } from 'react-router';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 
 export function MagistratLink(props: {
-  /** still holder in LOLFI while their position is vacant, until LOLFI gives it a new one */
+  /** LOLFI keeps them as holder of a vacant position until it names a new one */
   isFormerHolder?: boolean;
   magistrat: { id: string; name: string };
   onClick: (event: MouseEvent, magistratId: string) => void;
 }) {
   const { id, name } = props.magistrat;
 
-  // the link sits in an inline span: a flex item turns into a block, which draws the DSFR underline under its
-  // last line only
+  // the link sits in an inline span: a flex item would turn into a block and draw the DSFR underline under
+  // its last line only
   return (
     <span className="flex flex-col items-start">
       <span className="leading-6">

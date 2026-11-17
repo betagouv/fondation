@@ -17,7 +17,7 @@ const SEVERITIES: Record<PositionStatus, 'error' | 'info' | 'warning'> = {
 export function PositionStatusBadge(props: { status: { id: PositionStatus; label: string } }) {
   return (
     <Badge
-      // inline, a badge on two lines hugs each of them rather than keeping the width of the cell
+      // inline: a badge on two lines hugs each of them rather than keeping the width of the cell
       className="inline box-decoration-clone whitespace-normal"
       noIcon
       severity={SEVERITIES[props.status.id]}
@@ -35,7 +35,7 @@ export function PositionStatusCell(props: {
 }) {
   const { formatMessage } = useIntl();
 
-  // the badge wraps between its words only: the pencil follows its last one, never alone on a line
+  // the badge wraps between its words only: the pencil follows its last word and never sits alone on a line
   return (
     <div className="flex flex-col items-start gap-2">
       <div className="flex flex-col items-start gap-1">
@@ -45,8 +45,8 @@ export function PositionStatusCell(props: {
             <IconButton
               aria-controls={POSITION_VACANCY_SIDE_PANEL_ID}
               aria-haspopup="dialog"
-              // taller than the badge: the line keeps the height of the badge, and the middle of the text sits higher
-              // than the middle of the badge
+              // taller than the badge: the line keeps the height of the badge. The middle of the text sits
+              // higher than the middle of the badge
               className="-my-1.5 ml-1 translate-y-1 align-middle"
               iconId={ACTION_ICONS.edit}
               label={formatMessage({ defaultMessage: 'Modifier le statut' })}

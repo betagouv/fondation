@@ -19,7 +19,7 @@ export const holderAlertSchema = z.object({
   shortLabel: z.string(),
 });
 
-/** a declared vacancy gives its reason and date in the detail, and the text of another reason in the hint */
+/** a declared vacancy puts its reason and date in the detail and the text of "other" in the hint */
 export const positionStatusSchema = z.object({
   detail: z.string().nullable(),
   hint: z.string().nullable(),

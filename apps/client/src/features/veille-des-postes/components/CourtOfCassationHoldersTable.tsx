@@ -197,7 +197,7 @@ export function CourtOfCassationHoldersTable(props: {
   );
   const items = useMemo(() => holders?.items ?? [], [holders]);
   const editing = useEditedPosition(items, editedPositionOf, props.onSidePanelToggle);
-  // the row of the side panel, or the one left for a magistrat's page
+  // the row of the side panel or the one left for a magistrat's page
   const highlightedRowId = editing.edited?.magistrat.id ?? revealedRowId;
   const table = useReactTable({
     columns: useCourtOfCassationHoldersColumns({
@@ -244,7 +244,7 @@ export function CourtOfCassationHoldersTable(props: {
         className={clsx('w-full transition-[width] duration-300 ease-out', editing.edited && 'md:w-[52%]')}
       >
         {props.positionTabs(
-          // beside the side panel, as the tabs of the page
+          // only the current tab beside the side panel, like the tabs of the page
           editing.edited ? positions.filter(({ id }) => id === props.position) : positions,
         )}
         <DataTable

@@ -7,7 +7,7 @@ const SAFE_MARGIN = 16;
 let openedTooltip: (() => void) | null = null;
 
 export function Tooltip(props: {
-  /** start: the bubble begins where the anchor begins, for a line of text among others */
+  /** start: the bubble begins where the anchor begins (for a line of text among others) */
   align?: 'center' | 'start';
   children: ReactNode;
   className?: string;

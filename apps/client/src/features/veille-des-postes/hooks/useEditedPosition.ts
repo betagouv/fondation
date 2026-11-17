@@ -4,9 +4,9 @@ import type { EditedPosition } from '../components/PositionVacancySidePanel';
 import { usePrefetchedPositionVacancies } from '@queries/veille-des-postes.queries';
 
 /**
- * the position whose status the side panel edits, among the rows loaded with a holder: read again from them
- * once a change refreshed them, or kept as it was once a filter left it out. toEdited must keep its identity,
- * as the columns built with open. While the form tells what it lacks to be saved, the panel stays on its
+ * the position whose status the side panel edits among the rows loaded with a holder: read again from them
+ * once a change refreshed them or kept as it was once a filter left it out. toEdited must keep its identity:
+ * the columns are built with open. While the form tells what it lacks to be saved the panel stays on its
  * position
  */
 export function useEditedPosition<Row>(

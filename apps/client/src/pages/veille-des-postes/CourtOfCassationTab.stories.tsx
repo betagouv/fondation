@@ -31,7 +31,7 @@ const POSITIONS = [
   { id: 'AUDITOR_FIRST_GRADE', label: 'Auditeurs 1er grade' },
 ] as const satisfies readonly { id: CourtOfCassationPosition; label: string }[];
 
-/** one holder of each position, as the API titles them */
+/** one holder of each position titled like the API does */
 const HOLDER_TITLES = [
   'Premier président à la Cour de cassation',
   'Président de chambre à la Cour de cassation',

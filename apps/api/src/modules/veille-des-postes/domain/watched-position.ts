@@ -3,7 +3,7 @@ import { COURT_OF_CASSATION_ID, courtOfCassationPositionOf } from './court-of-ca
 import { JUDICIAL_COURT_TYPE_ID, PRESIDENT_FUNCTION_ID } from './judicial-court-president';
 import type { WatchedPosition } from './position-alert';
 
-/** the position a table of the veille lists, as the three queries select it; null for any other */
+/** the position a table of the veille lists (as its query selects it): null for any other */
 export function watchedPositionOf(lolfi: {
   courtTypeId: string;
   functionId: string | null;

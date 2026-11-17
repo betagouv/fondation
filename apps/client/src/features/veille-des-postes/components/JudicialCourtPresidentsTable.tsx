@@ -71,7 +71,7 @@ function rowIdOf(president: JudicialCourtPresident): string {
 
 function useJudicialCourtPresidentsColumns(props: {
   groupedRows: Set<string> | null;
-  /** the ressort of the highlighted row, whose merged cell is highlighted whole */
+  /** the ressort of the highlighted row: its merged cell is highlighted whole */
   highlightedRessortId: string | undefined;
   onMagistratOpened: (event: MouseEvent, magistratId: string) => void;
   onPositionEdited: (row: JudicialCourtPresident) => void;
@@ -279,7 +279,7 @@ export function JudicialCourtPresidentsTable(props: {
     [presidents, sorting],
   );
   const editing = useEditedPosition(presidents, editedPositionOf, props.onSidePanelToggle);
-  // the row of the side panel, or the one left for a magistrat's page
+  // the row of the side panel or the one left for a magistrat's page
   const highlightedRowId = editing.edited?.magistrat.id ?? revealedRowId;
   const table = useReactTable({
     columns: useJudicialCourtPresidentsColumns({

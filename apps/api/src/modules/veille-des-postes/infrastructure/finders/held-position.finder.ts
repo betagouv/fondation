@@ -18,7 +18,7 @@ export class HeldPositionFinder {
   constructor(private readonly db: Db) {}
 
   /**
-   * the position LOLFI gives the magistrat today, which carries the vacancies declared on them: not found unless a
+   * the position LOLFI gives the magistrat today carries the vacancies declared on them: not found unless a
    * table of the veille lists it
    */
   async byHolder({ magistratId }: { magistratId: string }): Promise<HeldPosition> {

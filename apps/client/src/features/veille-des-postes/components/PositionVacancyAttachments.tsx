@@ -15,7 +15,7 @@ import {
 
 type Attachment = PositionVacancy['attachments'][number];
 
-/** the attachments already saved, titled by the form around them */
+/** the attachments already saved: the form around them gives the title */
 export function PositionVacancyAttachments(props: {
   attachments: Attachment[];
   labelledBy: string;

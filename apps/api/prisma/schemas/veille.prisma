@@ -1,5 +1,5 @@
-// a vacancy declared by an agent, effective or ahead: it lapses as soon as LOLFI moves the magistrat to another
-// position, so a new holder starts from the computed status
+// a vacancy declared by an agent: it lapses once LOLFI moves the magistrat and a new holder starts from the
+// computed status
 model PositionVacancy {
   authorId     String?                         @map("author_id") @db.Uuid
   magistratId  String                          @map("magistrat_id") @db.Uuid
