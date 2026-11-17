@@ -6323,6 +6323,8 @@ export type ListFeedbacksData = {
     body?: never;
     path?: never;
     query?: {
+        search?: string;
+        sentAgo?: 'MORE_THAN_7_DAYS' | 'MORE_THAN_14_DAYS' | 'MORE_THAN_21_DAYS' | 'MORE_THAN_1_MONTH' | 'MORE_THAN_2_MONTHS';
         sortBy?: 'sentAt' | 'status';
         statuses?: Array<'NEW' | 'ACKNOWLEDGED' | 'PROCESSED' | 'DISMISSED'>;
         /**

@@ -4,7 +4,12 @@ import { Injectable } from '@nestjs/common';
 import { Pagination } from '../framework/pagination';
 import { Sortable } from '../framework/sorting';
 
-import { Feedback, type FeedbackStatus, type FeedbackStatusWithComment } from './domain/feedback';
+import {
+  Feedback,
+  type FeedbackAge,
+  type FeedbackStatus,
+  type FeedbackStatusWithComment,
+} from './domain/feedback';
 import type { ListFeedbacksQueryDto } from './infrastructure/feedback.dto';
 import { FeedbackRepository } from './infrastructure/feedback.repository';
 import { ListFeedbacksQuery, ListedFeedbacksDto } from './infrastructure/queries/list-feedbacks.query';
@@ -18,6 +23,8 @@ export class FeedbacksService {
 
   listFeedbacks(query: {
     pagination: Pagination;
+    search: string | undefined;
+    sentAgo: FeedbackAge | undefined;
     sorting: Sortable<ListFeedbacksQueryDto>;
     statuses: readonly FeedbackStatus[];
   }): Promise<ListedFeedbacksDto> {

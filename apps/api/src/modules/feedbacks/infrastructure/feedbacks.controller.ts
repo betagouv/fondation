@@ -37,6 +37,8 @@ export class FeedbacksController {
   ): Promise<ListedFeedbacksDto> {
     return this.feedbacks.listFeedbacks({
       pagination,
+      search: query.search,
+      sentAgo: query.sentAgo,
       sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
       statuses: query.statuses ?? [],
     });
