@@ -1,7 +1,10 @@
 #!/usr/bin/env node
 const { S3Client, CreateBucketCommand, PutBucketVersioningCommand } = require('@aws-sdk/client-s3');
 
-main().catch(console.error);
+main().catch((err) => {
+  console.error(err);
+  process.exitCode = 1;
+});
 async function main() {
   const s3 = new S3Client({
     region: 'eu-west-2',
@@ -18,16 +21,17 @@ async function main() {
   for (const bucketName of BUCKETS) {
     try {
       await s3.send(new CreateBucketCommand({ Bucket: bucketName }));
-      await s3.send(
-        new PutBucketVersioningCommand({
-          Bucket: bucketName,
-          VersioningConfiguration: {
-            Status: 'Enabled',
-          },
-        }),
-      );
-    } catch {
-      /* noop */
+    } catch (err) {
+      if (err.name !== 'BucketAlreadyOwnedByYou') throw err;
     }
+    // Undoing a deletion removes its delete marker: without versioning, the file would stay deleted
+    await s3.send(
+      new PutBucketVersioningCommand({
+        Bucket: bucketName,
+        VersioningConfiguration: {
+          Status: 'Enabled',
+        },
+      }),
+    );
   }
 }

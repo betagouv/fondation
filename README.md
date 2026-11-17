@@ -59,7 +59,8 @@ propre application Scalingo `fondation-gotenberg`.
 
 Le stockage objet, hébergé chez Scaleway et compatible S3, contient les pièces jointes ainsi
 que les PDF générés, qui y sont mis en cache pour éviter de les reconstruire à chaque
-consultation. En local, il est émulé par MinIO (voir l'installation).
+consultation. En local, il est émulé par [Versity S3 Gateway](https://github.com/versity/versitygw)
+(voir l'installation).
 
 ## Installation et lancement
 
@@ -85,7 +86,7 @@ déjà présent sur la machine.
 3. Démarrer les services et la base de données
 
 ```bash
-docker compose --file apps/api/test/docker-compose-test.yaml up -d   # Postgres :5435 + MinIO/S3 :9000 + Gotenberg :9091
+docker compose --file apps/api/test/docker-compose-test.yaml up -d   # Postgres :5435 + S3 :9000 + Gotenberg :9091
 pnpm --filter api prisma migrate deploy
 ```
 
@@ -119,6 +120,14 @@ pnpm --filter api prisma:generate   # client Prisma + requêtes TypedSQL
 
 ```bash
 node apps/api/scripts/init-buckets.js
+```
+
+Pour parcourir les fichiers stockés, avec l'[AWS CLI](https://docs.aws.amazon.com/cli/) :
+
+```bash
+AWS_ACCESS_KEY_ID=fondation AWS_SECRET_ACCESS_KEY=fondation-secret \
+  aws --endpoint-url http://localhost:9000 --region eu-west-2 \
+  s3 ls --recursive s3://sandbox-csm-fondation-reports-context
 ```
 
 6. Lancement de l'application
