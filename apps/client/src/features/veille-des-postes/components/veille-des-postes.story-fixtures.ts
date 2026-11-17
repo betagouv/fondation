@@ -85,12 +85,12 @@ const SAMPLES: HolderAlert[][] = [
 type StoryVacancy = Pick<PositionVacancy, 'reasonDetail' | 'startDate'> & { reason: VacancyReason };
 
 const REASONS: FoundPositionVacancyDto['reasons'] = [
-  { id: 'DISCHARGE', label: 'Décharge' },
-  { id: 'DEATH', label: 'Décès' },
-  { id: 'DISCIPLINARY_DISMISSAL', label: 'Révocation disciplinaire' },
-  { id: 'RETIREMENT', label: 'Retraite' },
-  { id: 'STRIKING_OFF', label: 'Radiation' },
-  { id: 'OTHER', label: 'Autre' },
+  { detailRequired: false, id: 'DISCHARGE', label: 'Décharge' },
+  { detailRequired: false, id: 'DEATH', label: 'Décès' },
+  { detailRequired: false, id: 'DISCIPLINARY_DISMISSAL', label: 'Révocation disciplinaire' },
+  { detailRequired: false, id: 'RETIREMENT', label: 'Retraite' },
+  { detailRequired: false, id: 'STRIKING_OFF', label: 'Radiation' },
+  { detailRequired: true, id: 'OTHER', label: 'Autre' },
 ];
 
 /** the vacancies the stories start with: the side panel finds them by the status of their row */
@@ -120,7 +120,7 @@ export function storyHolderOf(
   const alerts = SAMPLES[index % SAMPLES.length]!.filter(
     ({ id }) => options.movesAfterSevenYears || id !== 'SEVEN_YEARS_ON_POSITION',
   );
-  // a vacancy declared by an agent now and then, with the alerts that go with it
+  // now and then a vacancy declared by an agent with the alerts that go with it
   if (index % 9 === 4) return { alerts: [REACHED_RETIREMENT], status: DECLARED_RETIREMENT.status };
   if (index % 9 === 7) return { alerts: [], status: DECLARED_DETACHMENT.status };
   return { alerts, status: { ...(alerts.length > 0 ? STATUSES[1] : STATUSES[0]), detail: null, hint: null } };
@@ -157,7 +157,12 @@ function deadlinesOf(alert: HolderAlert): AlertDeadline[] {
 const VACANCY_PATH = '*/api/veille-des-postes/v1/titulaires/:magistratId/vacance';
 const ATTACHMENT_PATH = `${VACANCY_PATH}/pieces-jointes/:fileId`;
 
-/** a rough copy of the rule of the API, enough for the stories to show the status a change gives */
+function reasonOf(id: VacancyReason): PositionVacancy['reason'] {
+  const { label } = REASONS.find((reason) => reason.id === id)!;
+  return { id, label };
+}
+
+/** a rough copy of the rule of the API: enough for the stories to show the status a change gives */
 function storyStatusOf(vacancy: StoryVacancy): HolderStatus {
   const { day, month, year } = vacancy.startDate;
   const date = `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}`;
@@ -170,8 +175,8 @@ function storyStatusOf(vacancy: StoryVacancy): HolderStatus {
 }
 
 /**
- * the side panel of the positions of a story, as the API would answer it: the vacancies declared are kept while
- * the story runs, the tables keep their rows as they were
+ * the side panel of the positions of a story as the API would answer it: the declared vacancies are kept
+ * while the story runs and the tables keep their rows as they were
  */
 export function positionVacancyHandlers(
   rows: readonly (StoryRow & { magistrat: { id: string } | null })[],
@@ -184,7 +189,7 @@ export function positionVacancyHandlers(
       const vacancy: PositionVacancy = {
         ...declared.vacancy,
         attachments: [],
-        reason: REASONS.find(({ id }) => id === declared.vacancy.reason)!,
+        reason: reasonOf(declared.vacancy.reason),
         updatedAt: '2026-11-10T09:30:00.000Z',
         updatedBy: writer,
       };
@@ -196,7 +201,9 @@ export function positionVacancyHandlers(
     const vacancy = vacancies.get(magistratId) ?? null;
     return {
       alerts: row?.alerts ?? [],
+      detailMaxLength: 300,
       reasons: REASONS,
+      startDateRange: { max: '2100-12-31', min: '2000-01-01' },
       status: vacancy
         ? storyStatusOf({ ...vacancy, reason: vacancy.reason.id })
         : row && [DECLARED_DETACHMENT, DECLARED_RETIREMENT].some(({ status }) => status === row.status)
@@ -226,8 +233,10 @@ export function positionVacancyHandlers(
       }));
       vacancies.set(magistratId, {
         attachments: [...added, ...(vacancies.get(magistratId)?.attachments ?? [])],
-        reason: REASONS.find(({ id }) => id === form.reason)!,
-        reasonDetail: form.reason === 'OTHER' ? (form.reasonDetail ?? null) : null,
+        reason: reasonOf(form.reason),
+        reasonDetail: REASONS.find(({ id }) => id === form.reason)!.detailRequired
+          ? (form.reasonDetail ?? null)
+          : null,
         startDate: { day: day!, month: month!, year: year! },
         updatedAt: new Date().toISOString(),
         updatedBy: writer,

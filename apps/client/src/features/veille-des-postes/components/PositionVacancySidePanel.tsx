@@ -1,3 +1,4 @@
+import Alert from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
@@ -6,6 +7,7 @@ import { useDateAndTime } from '@/shared/hooks/useDateAndTime';
 import { SidePanel } from '@/shared/ui/side-panel';
 import { Tooltip } from '@/shared/ui/tooltip';
 import { formatDateOnly, type PlainDateOnly } from '@/utils/date-only.util';
+import { HttpException } from '@/utils/http-exception';
 import { useUser } from '@queries/auth.queries';
 import {
   type HolderAlert,
@@ -22,7 +24,7 @@ export const POSITION_VACANCY_SIDE_PANEL_ID = 'position-vacancy-side-panel';
 export type EditedPosition = {
   alerts: HolderAlert[];
   installationDate: PlainDateOnly | null;
-  /** the title tells the position and its court, as a sentence: "Présidente du tribunal judiciaire de Grasse" */
+  /** the title tells the position and its court in a sentence: "Présidente du tribunal judiciaire de Grasse" */
   magistrat: { id: string; name: string; title: string };
   status: HolderStatus;
 };
@@ -86,7 +88,7 @@ function PositionVacancyContent({
 }) {
   const dateAndTime = useDateAndTime();
   const { user } = useUser();
-  const { data } = usePositionVacancyQuery(edited.magistrat.id);
+  const { data, error, isFetching, refetch } = usePositionVacancyQuery(edited.magistrat.id);
   const { formatMessage } = useIntl();
   const definedBy =
     data?.vacancy &&
@@ -101,11 +103,11 @@ function PositionVacancyContent({
         who: !data.vacancy.updatedBy ? 'nobody' : data.vacancy.updatedBy.id === user?.id ? 'self' : 'someone',
       },
     );
-  // read again after each change, when the row may have left a filtered table
+  // read again after each change: the row may have left a filtered table
   const status = data?.status ?? edited.status;
   const alerts = data?.alerts ?? edited.alerts;
-  // the form keeps what was typed across the saves: a vacancy gone, withdrawn here or elsewhere, starts it over.
-  // Read from the data, as the button that withdrew it may be gone before its own callback
+  // the form keeps what was typed across the saves: a vacancy gone (withdrawn here or elsewhere) starts it
+  // over. Read from the data: the button that withdrew it may be gone before its own callback
   const [resets, setResets] = useState(0);
   const [hadVacancy, setHadVacancy] = useState(!!data?.vacancy);
   if (data && hadVacancy !== !!data.vacancy) {
@@ -163,15 +165,51 @@ function PositionVacancyContent({
         ))}
       </section>
 
+      {!data && error && (
+        <PositionVacancyLoadFailure error={error} isRetrying={isFetching} onRetry={() => void refetch()} />
+      )}
       {data && (
         <PositionVacancyForm
           key={`${edited.magistrat.id} ${resets}`}
           magistratId={edited.magistrat.id}
           onIncompleteChange={onIncompleteChange}
-          reasons={data.reasons}
+          rules={data}
           vacancy={data.vacancy}
         />
       )}
+    </div>
+  );
+}
+
+/** a 404: LOLFI moved the magistrat since the table loaded or their position left the veille */
+function PositionVacancyLoadFailure(props: { error: Error; isRetrying: boolean; onRetry: () => void }) {
+  if (props.error instanceof HttpException && props.error.statusCode === 404) {
+    return (
+      <Alert
+        description={<FormattedMessage defaultMessage="Rechargez la page pour mettre le tableau à jour" />}
+        severity="info"
+        small
+        title={<FormattedMessage defaultMessage="Ce magistrat n'occupe plus ce poste" />}
+      />
+    );
+  }
+  return (
+    <div className="flex flex-col items-start gap-4">
+      <Alert
+        description={<FormattedMessage defaultMessage="Réessayez et prévenez le support si cela persiste" />}
+        severity="error"
+        small
+        title={<FormattedMessage defaultMessage="Le statut n'a pas pu être chargé" />}
+      />
+      <Button
+        disabled={props.isRetrying}
+        iconId="fr-icon-refresh-line"
+        onClick={props.onRetry}
+        priority="secondary"
+        size="small"
+      >
+        <FormattedMessage defaultMessage="Réessayer" />
+      </Button>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import {
+  hashKey,
   useInfiniteQuery,
   useMutation,
   useQueries,
@@ -256,10 +257,20 @@ export function useJudicialCourtPresidentsQuery(props: JudicialCourtPresidentsLi
   });
 }
 
-/** a vacancy changes the status of its row: every table and the panel read it again */
+/**
+ * a vacancy changes the status of its row: every table and the panel read it again. The mutation waits for
+ * the panel only: the tables can take long with many pages loaded and the next save waits for this one
+ */
 function useInvalidatingVeilleDesPostes() {
   const queryClient = useQueryClient();
-  return () => queryClient.invalidateQueries({ queryKey: veilleDesPostesKeys.all() });
+  return (_data: unknown, _error: unknown, { magistratId }: { magistratId: string }) => {
+    const panel = veilleDesPostesKeys.positionVacancy(magistratId);
+    void queryClient.invalidateQueries({
+      predicate: (query) => query.queryHash !== hashKey(panel),
+      queryKey: veilleDesPostesKeys.all(),
+    });
+    return queryClient.invalidateQueries({ queryKey: panel });
+  };
 }
 
 export function useDeclarePositionVacancyMutation() {
@@ -306,7 +317,7 @@ export function usePositionVacancyQuery(magistratId: string) {
   return useQuery(positionVacancyQuery(magistratId));
 }
 
-/** the positions the side panel can move to, read ahead so that it shows them at once */
+/** the positions the side panel can move to: read ahead to show them at once */
 export function usePrefetchedPositionVacancies(magistratIds: readonly string[]) {
   useQueries({ queries: magistratIds.map(positionVacancyQuery) });
 }
