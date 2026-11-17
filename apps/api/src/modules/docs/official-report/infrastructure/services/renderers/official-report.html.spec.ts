@@ -216,7 +216,7 @@ describe('officialReportTemplate', () => {
     const $ = load(officialReportTemplate.render({ ...baseContext, chairman }));
 
     expect($('main p:contains("Sous la présidence")').text()).toBe(
-      'Sous la présidence de M. Rémi BOUREAU, président de chambre honoraire, président de la formation, en présence de :',
+      'Sous la présidence de M.\u00A0Rémi\u00A0BOUREAU, président de chambre honoraire, président de la formation, en présence de\u00A0:',
     );
   });
 
