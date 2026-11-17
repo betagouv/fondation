@@ -44,6 +44,17 @@ export class DocsNominationFilesFinder {
     return { items: await this.withDocsOutcomes(found, query) };
   }
 
+  /** the name each document prints today for the magistrat of a nomination file, by nomination file id */
+  async magistratNames(query: {
+    ids: readonly string[];
+    sessionId: string;
+  }): Promise<ReadonlyMap<string, string>> {
+    if (query.ids.length === 0) return new Map();
+
+    const { items } = await this.sessions.internalFindNominationFiles(query);
+    return new Map(items.map((file) => [file.id, file.magistrat.name]));
+  }
+
   @Transactional()
   async findForAgenda(query: { sessionId: string }): Promise<FoundAgendaNominationFiles> {
     const found = await this.sessions.internalFindNominationFiles({ sessionId: query.sessionId });

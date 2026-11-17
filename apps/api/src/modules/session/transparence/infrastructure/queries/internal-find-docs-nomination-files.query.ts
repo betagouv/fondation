@@ -7,7 +7,7 @@ import { Prisma } from '../../../../../generated/prisma/client';
 import { findAgendaNominationFilesRawQuery } from '../../../../../generated/prisma/sql';
 import { assertPgParams } from '../../../../../utils/assert-pg-params';
 import { Db } from '../../../../framework/database';
-import { CIVILITIES, magistratTitledFullName } from '../../../../magistrat/domain/magistrat-name';
+import { CIVILITIES, magistratDocumentName } from '../../../../magistrat/domain/magistrat-name';
 import { GenderEnum } from '../../../../shared/gender.enum';
 import { GradeEnum } from '../../../../shared/grade.enum';
 import { NominationFileOutcome } from '../../../../shared/nomination-file-outcome.enum';
@@ -165,7 +165,7 @@ const SqlNominationFilesSchema = z
       magistrat: {
         externalId: item.magistrat.externalId,
         id: item.magistrat.id,
-        name: magistratTitledFullName(item.magistrat),
+        name: magistratDocumentName(item.magistrat),
         position: {
           functionId: item.magistrat.position.function?.id ?? null,
           grade: item.magistrat.position.grade,
