@@ -758,6 +758,27 @@ test.describe('Session E2E', () => {
       expect(data).toEqual({ comment: null, writtenAt: null, writtenBy: null });
     });
 
+    test('should write then read back the comment of the secretariat on a nomination file', async ({
+      agent,
+      sessions,
+      expect,
+    }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+      const nominationFileId = session.files[0]!.id;
+
+      await agent.sessions.updateNominationFileComment({
+        body: { comment: 'Voir avec le président' },
+        path: { nominationFileId, sessionId: session.id },
+        throwOnError: true,
+      });
+
+      const { data } = await agent.sessions.listNominationFiles({
+        path: { sessionId: session.id },
+        throwOnError: true,
+      });
+      expect(data.items.find(({ id }) => id === nominationFileId)?.comment).toBe('Voir avec le président');
+    });
+
     test('should flag then clear a missing evaluation on a nomination file', async ({ agent, sessions, expect }) => {
       const session = await sessions.createOne(TREVOUX_SESSION);
 

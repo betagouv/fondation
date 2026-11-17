@@ -21,12 +21,14 @@ import { FILE_EXTENSIONS, type Multipart, RenameAttachmentDto, UseMultipartBody 
 import { ApiPaginated, Pagination, QueryPagination } from '../framework/pagination';
 import { AuthedUserId, HasRole } from '../simple-auth';
 
+import { WritePositionCommentDto } from './infrastructure/dtos/position-comment.dto';
 import { DeclarePositionVacancyDto } from './infrastructure/dtos/position-vacancy.dto';
 import {
   ListCourtOfAppealFirstPresidentsDto,
   ListCourtOfCassationHoldersDto,
   ListJudicialCourtPresidentsDto,
 } from './infrastructure/dtos/veille-des-postes.dto';
+import { FoundPositionCommentDto } from './infrastructure/queries/find-position-comment.query';
 import { FoundPositionVacancyDto } from './infrastructure/queries/find-position-vacancy.query';
 import { ListedCourtOfAppealFirstPresidentsDto } from './infrastructure/queries/list-court-of-appeal-first-presidents.query';
 import { ListedCourtOfCassationHoldersDto } from './infrastructure/queries/list-court-of-cassation-holders.query';
@@ -124,6 +126,15 @@ export class VeilleDesPostesController {
     });
   }
 
+  @Get('/titulaires/:magistratId/commentaire')
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @ZodResponse({ status: HttpStatus.OK, type: FoundPositionCommentDto })
+  findPositionComment(
+    @Param('magistratId', ParseUUIDPipe) magistratId: string,
+  ): Promise<FoundPositionCommentDto> {
+    return this.veilleDesPostes.findPositionComment({ magistratId });
+  }
+
   @Get('/titulaires/:magistratId/vacance')
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @ZodResponse({ status: HttpStatus.OK, type: FoundPositionVacancyDto })
@@ -171,5 +182,17 @@ export class VeilleDesPostesController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async withdrawPositionVacancy(@Param('magistratId', ParseUUIDPipe) magistratId: string): Promise<void> {
     await this.veilleDesPostes.withdrawPositionVacancy({ magistratId });
+  }
+
+  @Put('/titulaires/:magistratId/commentaire')
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @UsePipes(ZodValidationPipe)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async writePositionComment(
+    @AuthedUserId() authorId: string,
+    @Param('magistratId', ParseUUIDPipe) magistratId: string,
+    @Body() { comment }: WritePositionCommentDto,
+  ): Promise<void> {
+    await this.veilleDesPostes.writePositionComment({ authorId, comment, magistratId });
   }
 }

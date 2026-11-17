@@ -17,6 +17,7 @@ import { useDateAndTime } from '@/shared/hooks/useDateAndTime';
 import { DataTable } from '@/shared/ui/data-table';
 import { compareDateOnly, formatLongDateOnly, type PlainDateOnly } from '@/utils/date-only.util';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import { whoWrote } from '@/utils/user.utils';
 import { useUser } from '@queries/auth.queries';
 
 import {
@@ -83,7 +84,7 @@ function useAuthorship() {
   return (moment: ReactNode, by: SessionDocument['createdBy']) => ({
     author: by?.name,
     moment,
-    who: !by ? 'nobody' : by.id === currentUserId ? 'self' : 'someone',
+    who: whoWrote({ currentUserId, writer: by }),
   });
 }
 

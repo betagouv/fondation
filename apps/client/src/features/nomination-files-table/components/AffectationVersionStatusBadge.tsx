@@ -3,6 +3,7 @@ import { FormattedMessage } from 'react-intl';
 
 import { useDateAndTime } from '@/shared/hooks/useDateAndTime';
 import { Tooltip } from '@/shared/ui/tooltip';
+import { whoWrote } from '@/utils/user.utils';
 import { useUser } from '@queries/auth.queries';
 import { useDetailAffectationHistoryQuery } from '@queries/nomination-sessions.queries';
 
@@ -43,7 +44,7 @@ function AffectationHistory(props: { sessionId: string }) {
   if (!history) return null;
   const { lastPublished, pending } = history;
 
-  const who = (writer: Writer) => (!writer ? 'nobody' : writer.id === user?.id ? 'self' : 'someone');
+  const who = (writer: Writer) => whoWrote({ currentUserId: user?.id, writer });
   // the number only tells something once a second version exists
   const numbered = Math.max(lastPublished?.version ?? 0, pending?.version ?? 0) > 1 ? 'yes' : 'no';
   const values = (at: string, writer: Writer, version: number) => ({

@@ -1,3 +1,20 @@
+// a free comment on a holder, kept like their declared vacancy: it lapses once LOLFI moves the magistrat
+model PositionComment {
+  authorId    String?  @map("author_id") @db.Uuid
+  comment     String
+  magistratId String   @map("magistrat_id") @db.Uuid
+  positionId  Int      @map("position_id")
+  updatedAt   DateTime @map("updated_at") @db.Timestamp(3)
+
+  author    User?     @relation(fields: [authorId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  magistrat Magistrat @relation(fields: [magistratId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  position  Position  @relation(fields: [positionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([magistratId, positionId], name: "primaryKey")
+  @@map("position_comment")
+  @@schema("nominations_context")
+}
+
 // a vacancy declared by an agent: it lapses once LOLFI moves the magistrat and a new holder starts from the
 // computed status
 model PositionVacancy {

@@ -2,6 +2,7 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { scheduleAuditionSchema } from '../../../../../utils/audition-schedule';
+import { COMMENT_MAX_LENGTH } from '../../../../../utils/comment';
 import { createSortableDto } from '../../../../framework/sorting';
 import { NominationFileOutcome } from '../../../../shared/nomination-file-outcome.enum';
 import { PriorityEnum } from '../../../../shared/priority.enum';
@@ -75,7 +76,7 @@ export class ListNominationFilesQueryDto extends createSortableDto(
 
 export class UpdateCommentDto extends createZodDto(
   z.object({
-    comment: z.string().max(50000).nullable(),
+    comment: z.string().max(COMMENT_MAX_LENGTH).nullable(),
   }),
 ) {}
 

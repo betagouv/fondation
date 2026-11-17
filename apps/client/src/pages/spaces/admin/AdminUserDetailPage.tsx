@@ -20,7 +20,7 @@ import { generatePassword } from '@/utils/password.utils';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { capitalize } from '@/utils/string.utils';
 import { tabImpersonation } from '@/utils/tab-impersonation';
-import { memberFullName } from '@/utils/user.utils';
+import { memberFullName, whoWrote } from '@/utils/user.utils';
 import type { DetailedAdminUserDto } from '@api/types';
 import {
   type AdminUserRoleEnum,
@@ -697,7 +697,7 @@ function AccountStatusHistory(props: { statusChanges: DetailedAdminUserDto['stat
                   values={{
                     change,
                     name: changedBy?.name,
-                    who: !changedBy ? 'nobody' : changedBy.id === currentUser?.id ? 'self' : 'someone',
+                    who: whoWrote({ currentUserId: currentUser?.id, writer: changedBy }),
                   }}
                 />
               </p>

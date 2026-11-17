@@ -15,6 +15,7 @@ import {
 } from '../../domain/court-of-appeal-first-president';
 import { civilityOf, courtOfAppealFirstPresidentTitle } from '../../domain/holder-title';
 import { type AlertDeadline, alertRulesOf, alertsOf, type PositionAlert } from '../../domain/position-alert';
+import { commentPreviewOf } from '../../domain/position-comment';
 import { type PositionStatus, positionStatusOf } from '../../domain/position-status';
 import { sortedByUrgency } from '../../domain/position-urgency';
 import type { ListCourtOfAppealFirstPresidentsDto } from '../dtos/veille-des-postes.dto';
@@ -88,6 +89,7 @@ export class ListCourtOfAppealFirstPresidentsQuery {
         installationDate: installationDate?.toJson() ?? null,
         magistrat: court.id
           ? {
+              commentPreview: commentPreviewOf(court.comment),
               id: court.id,
               name: magistratFullName(court),
               title: courtOfAppealFirstPresidentTitle({
@@ -141,6 +143,7 @@ export class ListedCourtOfAppealFirstPresidentsDto extends createPaginatedZodDto
     installationDate: dateOnlyJsonSchema.nullable(),
     magistrat: z
       .object({
+        commentPreview: z.string().nullable(),
         id: z.string(),
         name: z.string(),
         title: z.string(),

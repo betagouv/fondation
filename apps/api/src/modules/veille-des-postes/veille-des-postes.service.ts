@@ -15,6 +15,10 @@ import type {
   ListJudicialCourtPresidentsDto,
 } from './infrastructure/dtos/veille-des-postes.dto';
 import {
+  FindPositionCommentQuery,
+  FoundPositionCommentDto,
+} from './infrastructure/queries/find-position-comment.query';
+import {
   FindPositionVacancyQuery,
   FoundPositionVacancyDto,
 } from './infrastructure/queries/find-position-vacancy.query';
@@ -34,6 +38,7 @@ import {
   OpenedPositionVacancyAttachmentDto,
   OpenPositionVacancyAttachmentQuery,
 } from './infrastructure/queries/open-position-vacancy-attachment.query';
+import { PositionCommentRepository } from './infrastructure/repositories/position-comment.repository';
 import { PositionVacancyRepository } from './infrastructure/repositories/position-vacancy.repository';
 
 type StatusAndAlertFilters = {
@@ -47,6 +52,8 @@ type StatusAndAlertFilters = {
 @Injectable()
 export class VeilleDesPostesService {
   constructor(
+    private readonly comments: PositionCommentRepository,
+    private readonly findPositionCommentQuery: FindPositionCommentQuery,
     private readonly findPositionVacancyQuery: FindPositionVacancyQuery,
     private readonly listCourtOfAppealFirstPresidentsQuery: ListCourtOfAppealFirstPresidentsQuery,
     private readonly listCourtOfCassationHoldersQuery: ListCourtOfCassationHoldersQuery,
@@ -67,6 +74,10 @@ export class VeilleDesPostesService {
     const vacancy = await this.vacancies.find(command);
     vacancy.declare({ ...command, fileIds: command.files.map(({ id }) => id) });
     await this.vacancies.persist(vacancy);
+  }
+
+  findPositionComment(query: { magistratId: string }): Promise<FoundPositionCommentDto> {
+    return this.findPositionCommentQuery.handle(query);
   }
 
   findPositionVacancy(query: { magistratId: string }): Promise<FoundPositionVacancyDto> {
@@ -127,5 +138,16 @@ export class VeilleDesPostesService {
     const vacancy = await this.vacancies.find(command);
     vacancy.withdraw();
     await this.vacancies.persist(vacancy);
+  }
+
+  @Transactional()
+  async writePositionComment(command: {
+    authorId: string;
+    comment: string;
+    magistratId: string;
+  }): Promise<void> {
+    const comment = await this.comments.find(command);
+    comment.write(command);
+    await this.comments.persist(comment);
   }
 }

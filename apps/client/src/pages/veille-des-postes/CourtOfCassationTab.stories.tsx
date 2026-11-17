@@ -83,6 +83,7 @@ const HOLDERS: Holder[] = HOLDERS_PER_POSITION.flatMap((count, rank) =>
     installationDate:
       index % 7 === 3 ? null : { day: 1 + (index % 27), month: 1 + (index % 12), year: 2016 + (index % 10) },
     magistrat: {
+      commentPreview: index % 5 === 1 ? 'Souhaite partir en 2027' : null,
       id: `${rank}-${index}`,
       name: `${LAST_NAMES[(index + rank * 5) % LAST_NAMES.length]} ${FIRST_NAMES[(index * 3 + rank) % FIRST_NAMES.length]}`,
       title: HOLDER_TITLES[rank]!,

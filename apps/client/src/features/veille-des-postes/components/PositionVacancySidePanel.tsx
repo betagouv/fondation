@@ -1,6 +1,6 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useDateAndTime } from '@/shared/hooks/useDateAndTime';
@@ -8,6 +8,7 @@ import { SidePanel } from '@/shared/ui/side-panel';
 import { Tooltip } from '@/shared/ui/tooltip';
 import { formatDateOnly, type PlainDateOnly } from '@/utils/date-only.util';
 import { HttpException } from '@/utils/http-exception';
+import { whoWrote } from '@/utils/user.utils';
 import { useUser } from '@queries/auth.queries';
 import {
   type HolderAlert,
@@ -15,8 +16,10 @@ import {
   usePositionVacancyQuery,
 } from '@queries/veille-des-postes.queries';
 
+import { PositionCommentSection } from './PositionCommentSection';
 import { PositionStatusBadge } from './PositionStatusCell';
 import { PositionVacancyForm } from './PositionVacancyForm';
+import { RetryableLoadFailure } from './RetryableLoadFailure';
 import { WithdrawPositionVacancyButton } from './WithdrawPositionVacancyButton';
 
 export const POSITION_VACANCY_SIDE_PANEL_ID = 'position-vacancy-side-panel';
@@ -73,7 +76,7 @@ export function PositionVacancySidePanel(props: {
       open={!!props.edited}
     >
       {props.edited && (
-        <PositionVacancyContent edited={props.edited} onIncompleteChange={props.onLeaveBlockedChange} />
+        <PositionVacancyContent edited={props.edited} onLeaveBlockedChange={props.onLeaveBlockedChange} />
       )}
     </SidePanel>
   );
@@ -81,15 +84,40 @@ export function PositionVacancySidePanel(props: {
 
 function PositionVacancyContent({
   edited,
-  onIncompleteChange,
+  onLeaveBlockedChange,
 }: {
   edited: EditedPosition;
-  onIncompleteChange: (incomplete: boolean) => void;
+  onLeaveBlockedChange: (isLeaveBlocked: boolean) => void;
 }) {
+  const { formatMessage } = useIntl();
   const dateAndTime = useDateAndTime();
   const { user } = useUser();
   const { data, error, isFetching, refetch } = usePositionVacancyQuery(edited.magistrat.id);
-  const { formatMessage } = useIntl();
+
+  const [isFormIncomplete, setFormIncomplete] = useState(false);
+  const [isCommentDirty, setCommentDirty] = useState(false);
+  const isLeaveBlocked = isFormIncomplete || isCommentDirty;
+
+  useEffect(() => {
+    onLeaveBlockedChange(isLeaveBlocked);
+
+    return () => onLeaveBlockedChange(false);
+  }, [isLeaveBlocked, onLeaveBlockedChange]);
+
+  // the form keeps what was typed across the saves: a vacancy gone (withdrawn here or elsewhere) starts it
+  // over. Read from the data: the button that withdrew it may be gone before its own callback
+  const [resets, setResets] = useState(0);
+  const [hadVacancy, setHadVacancy] = useState(!!data?.vacancy);
+
+  if (data && hadVacancy !== !!data.vacancy) {
+    setHadVacancy(!!data.vacancy);
+    if (hadVacancy) setResets((count) => count + 1);
+  }
+
+  // read again after each change: the row may have left a filtered table
+  const status = data?.status ?? edited.status;
+  const alerts = data?.alerts ?? edited.alerts;
+
   const definedBy =
     data?.vacancy &&
     formatMessage(
@@ -100,20 +128,9 @@ function PositionVacancyContent({
       {
         author: data.vacancy.updatedBy?.name,
         ...dateAndTime(data.vacancy.updatedAt),
-        who: !data.vacancy.updatedBy ? 'nobody' : data.vacancy.updatedBy.id === user?.id ? 'self' : 'someone',
+        who: whoWrote({ currentUserId: user?.id, writer: data.vacancy.updatedBy }),
       },
     );
-  // read again after each change: the row may have left a filtered table
-  const status = data?.status ?? edited.status;
-  const alerts = data?.alerts ?? edited.alerts;
-  // the form keeps what was typed across the saves: a vacancy gone (withdrawn here or elsewhere) starts it
-  // over. Read from the data: the button that withdrew it may be gone before its own callback
-  const [resets, setResets] = useState(0);
-  const [hadVacancy, setHadVacancy] = useState(!!data?.vacancy);
-  if (data && hadVacancy !== !!data.vacancy) {
-    setHadVacancy(!!data.vacancy);
-    if (hadVacancy) setResets((count) => count + 1);
-  }
 
   return (
     <div className="flex flex-col gap-8">
@@ -172,11 +189,16 @@ function PositionVacancyContent({
         <PositionVacancyForm
           key={`${edited.magistrat.id} ${resets}`}
           magistratId={edited.magistrat.id}
-          onIncompleteChange={onIncompleteChange}
+          onIncompleteChange={setFormIncomplete}
           rules={data}
           vacancy={data.vacancy}
         />
       )}
+      <PositionCommentSection
+        key={edited.magistrat.id}
+        magistratId={edited.magistrat.id}
+        onDirtyChange={setCommentDirty}
+      />
     </div>
   );
 }
@@ -194,22 +216,10 @@ function PositionVacancyLoadFailure(props: { error: Error; isRetrying: boolean; 
     );
   }
   return (
-    <div className="flex flex-col items-start gap-4">
-      <Alert
-        description={<FormattedMessage defaultMessage="Réessayez et prévenez le support si cela persiste" />}
-        severity="error"
-        small
-        title={<FormattedMessage defaultMessage="Le statut n'a pas pu être chargé" />}
-      />
-      <Button
-        disabled={props.isRetrying}
-        iconId="fr-icon-refresh-line"
-        onClick={props.onRetry}
-        priority="secondary"
-        size="small"
-      >
-        <FormattedMessage defaultMessage="Réessayer" />
-      </Button>
-    </div>
+    <RetryableLoadFailure
+      isRetrying={props.isRetrying}
+      onRetry={props.onRetry}
+      title={<FormattedMessage defaultMessage="Le statut n'a pas pu être chargé" />}
+    />
   );
 }

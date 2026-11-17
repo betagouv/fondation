@@ -1,6 +1,7 @@
 import clsx from 'clsx';
 import { FormattedMessage, useIntl } from 'react-intl';
 
+import { whoWrote } from '@/utils/user.utils';
 import type { DetailedHelpPageDto } from '@api/types';
 import { useUser } from '@queries/auth.queries';
 
@@ -19,7 +20,7 @@ export function HelpPageUpdate(props: { className?: string; helpPage: DetailedHe
           date: formatDate(updatedAt, { format: 'zonedDateShort' }),
           name: updatedBy.name,
           time: formatTime(updatedAt, { format: 'zonedTimeShort' }),
-          who: updatedBy.id === user?.id ? 'self' : 'someone',
+          who: whoWrote({ currentUserId: user?.id, writer: updatedBy }),
         }}
       />
     </p>

@@ -109,6 +109,7 @@ const JUDICIAL_COURTS: JudicialCourt[] = RESSORTS.flatMap(([ressort, courts], re
             ? null
             : { day: 1 + (index % 27), month: 1 + (index % 12), year: 2019 + (index % 7) },
         magistrat: {
+          commentPreview: index % 5 === 1 ? 'Souhaite partir en 2027' : null,
           id: `magistrat-${index}`,
           name: `${LAST_NAMES[index % LAST_NAMES.length]} ${FIRST_NAMES[index % FIRST_NAMES.length]}`,
           title: `Président du ${label.charAt(0).toLowerCase()}${label.slice(1)}`,

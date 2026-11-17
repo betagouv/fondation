@@ -2457,6 +2457,7 @@ export type ListedCourtOfAppealFirstPresidentsDto = {
             day: number;
         } | null;
         magistrat: {
+            commentPreview: string | null;
             id: string;
             name: string;
             title: string;
@@ -2506,6 +2507,7 @@ export type ListedCourtOfCassationHoldersDto = {
             day: number;
         } | null;
         magistrat: {
+            commentPreview: string | null;
             id: string;
             name: string;
             title: string;
@@ -2568,6 +2570,7 @@ export type ListedJudicialCourtPresidentsDto = {
             day: number;
         } | null;
         magistrat: {
+            commentPreview: string | null;
             id: string;
             name: string;
             title: string;
@@ -2620,6 +2623,18 @@ export type DeclarePositionVacancyDto = {
         reasonDetail?: string | null;
         startDate: string;
     };
+};
+
+export type FoundPositionCommentDto = {
+    comment: {
+        text: string;
+        updatedAt: string;
+        updatedBy: {
+            id: string;
+            name: string;
+        } | null;
+    } | null;
+    maxLength: number;
 };
 
 export type FoundPositionVacancyDto = {
@@ -2677,6 +2692,10 @@ export type OpenedPositionVacancyAttachmentDto = {
     id: string;
     name: string;
     url: string;
+};
+
+export type WritePositionCommentDto = {
+    comment: string;
 };
 
 export type ListedMagistratNominationFilesDto = {
@@ -5861,6 +5880,36 @@ export type DeclarePositionVacancyResponses = {
 };
 
 export type DeclarePositionVacancyResponse = DeclarePositionVacancyResponses[keyof DeclarePositionVacancyResponses];
+
+export type FindPositionCommentData = {
+    body?: never;
+    path: {
+        magistratId: string;
+    };
+    query?: never;
+    url: '/api/veille-des-postes/v1/titulaires/{magistratId}/commentaire';
+};
+
+export type FindPositionCommentResponses = {
+    200: FoundPositionCommentDto;
+};
+
+export type FindPositionCommentResponse = FindPositionCommentResponses[keyof FindPositionCommentResponses];
+
+export type WritePositionCommentData = {
+    body: WritePositionCommentDto;
+    path: {
+        magistratId: string;
+    };
+    query?: never;
+    url: '/api/veille-des-postes/v1/titulaires/{magistratId}/commentaire';
+};
+
+export type WritePositionCommentResponses = {
+    204: void;
+};
+
+export type WritePositionCommentResponse = WritePositionCommentResponses[keyof WritePositionCommentResponses];
 
 export type RemovePositionVacancyAttachmentData = {
     body?: never;

@@ -40,6 +40,17 @@ function renderTrigger(overrides: NominationFileOverrides, route = SG_ROUTE) {
 }
 
 describe('SidePanelTrigger', () => {
+  it.each([
+    ['Voir avec le président', true],
+    ['   ', false],
+  ])('should count the comment %j among the annotations: %s', (comment, counted) => {
+    renderTrigger({ comment });
+
+    expect(screen.queryByRole('img', { name: 'Ce dossier a des annotations (commentaire)' }) !== null).toBe(
+      counted,
+    );
+  });
+
   it('should display the full magistrat name', () => {
     const { container } = renderTrigger({ content: { nomMagistrat: 'DUPONT DE LA TOUR Anne-Charlotte' } });
 

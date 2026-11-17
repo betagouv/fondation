@@ -1,11 +1,6 @@
-import { ClsPluginTransactional, TransactionHost } from '@nestjs-cls/transactional';
-import { Test } from '@nestjs/testing';
-import { ClsModule } from 'nestjs-cls';
-
-import { afterCommit, TransactionalAdapterPrismaWithAfterCommit } from './after-commit';
+import { afterCommit } from './after-commit';
 import { type Db } from './db';
-
-const PRISMA = Symbol('prisma');
+import { transactionalTest } from './transactional-test';
 
 describe('afterCommit', () => {
   let db: Db;
@@ -13,27 +8,7 @@ describe('afterCommit', () => {
   beforeEach(async () => {
     const prisma = { $transaction: (fn: (client: object) => Promise<unknown>) => fn({}) };
 
-    const moduleRef = await Test.createTestingModule({
-      imports: [
-        ClsModule.forRoot({
-          global: true,
-          plugins: [
-            new ClsPluginTransactional({
-              adapter: new TransactionalAdapterPrismaWithAfterCommit({ prismaInjectionToken: PRISMA }),
-              imports: [
-                {
-                  exports: [PRISMA],
-                  module: class PrismaModule {},
-                  providers: [{ provide: PRISMA, useValue: prisma }],
-                },
-              ],
-            }),
-          ],
-        }),
-      ],
-    }).compile();
-
-    db = moduleRef.get(TransactionHost);
+    ({ db } = await transactionalTest(prisma));
   });
 
   it('should run the action once the transaction is committed', async () => {

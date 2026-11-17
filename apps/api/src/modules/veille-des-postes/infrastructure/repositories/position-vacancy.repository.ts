@@ -27,7 +27,7 @@ export class PositionVacancyRepository {
 
   /**
    * the vacancies whose magistrat LOLFI moved or let go: no route reaches them any more and their documents
-   * (death certificates or disciplinary decisions) would stay for nothing. Answers how many were deleted
+   * (death certificates or disciplinary decisions) would stay for nothing
    */
   @Transactional(Propagation.Mandatory)
   async deleteLapsed(): Promise<number> {
@@ -39,6 +39,7 @@ export class PositionVacancyRepository {
         positionId: true,
       } satisfies Prisma.PositionVacancySelect,
     });
+
     const lapsed = vacancies.filter((vacancy) => hasLapsed(vacancy, vacancy.magistrat));
     if (lapsed.length === 0) return 0;
 
@@ -48,6 +49,7 @@ export class PositionVacancyRepository {
       },
     });
     this.files.delete(lapsed.flatMap(({ attachments }) => attachments.map(({ file }) => file)));
+
     return lapsed.length;
   }
 

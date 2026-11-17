@@ -75,8 +75,8 @@ export class LolfiFilesIngestor {
         return { success };
       }
 
-      // before the job reads as succeeded: whoever waits for it finds the vacancies cleaned
-      await this.deleteLapsedPositionVacancies();
+      // before the job reads as succeeded: whoever waits for it finds the vacancies and the comments cleaned
+      await this.deleteLapsedVacanciesAndComments();
       await this.succeedJob(jobId);
       await this.synchroniseSessions(jobId);
 
@@ -91,12 +91,14 @@ export class LolfiFilesIngestor {
     }
   }
 
-  private async deleteLapsedPositionVacancies(): Promise<void> {
+  private async deleteLapsedVacanciesAndComments(): Promise<void> {
     await this.db
-      .withTransaction(() => this.veilleDesPostes.internalDeleteLapsedPositionVacancies())
-      .then((count) => count > 0 && this.logger.log(`${count} lapsed position vacancies deleted`))
+      .withTransaction(() => this.veilleDesPostes.internalDeleteLapsedVacanciesAndComments())
+      .then(
+        (count) => count > 0 && this.logger.log(`${count} lapsed position vacancies and comments deleted`),
+      )
       .catch((error) => {
-        this.logger.error(`error while deleting the lapsed position vacancies`, error);
+        this.logger.error(`error while deleting the lapsed position vacancies and comments`, error);
         Sentry.captureException(error);
       });
   }
