@@ -5,6 +5,7 @@ import { roleGuard } from '@/features/auth/guards/role-guard';
 import { RootLayout } from '@/layout/RootLayout';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { ErrorPage } from '@/pages/error/ErrorPage';
+import { feedbackStatusPath } from '@/pages/spaces/admin/feedback-status-paths';
 import {
   courtOfCassationPositionPath,
   FIRST_COURT_OF_CASSATION_POSITION,
@@ -562,6 +563,10 @@ export const routes: RouteObject[] = [
               import('@/pages/spaces/admin/AdminFeedbacksPage').then(({ AdminFeedbacksPage }) => ({
                 Component: AdminFeedbacksPage,
               })),
+            path: ROUTE_PATHS.ADMIN.FEEDBACKS_STATUS,
+          },
+          {
+            loader: () => redirect(feedbackStatusPath('NEW')),
             path: ROUTE_PATHS.ADMIN.FEEDBACKS,
           },
           {
