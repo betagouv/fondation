@@ -51,7 +51,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'Le panneau ouvert par le stylo de la colonne "Alerte / statut". Le motif, la date et les justificatifs s\'enregistrent à chaque changement, dès que le motif et la date sont connus. La story garde ce qui est déclaré tant qu\'elle tourne.',
+          "Le panneau ouvert par le stylo de la colonne \"Alerte / statut\". Le motif, la date et les justificatifs s'enregistrent à chaque changement dès que le motif et la date sont connus. La story garde ce qui est déclaré tant qu'elle tourne. Le statut affiché reste celui de la ligne puisque c'est l'API qui le calcule.",
       },
     },
     layout: 'fullscreen',

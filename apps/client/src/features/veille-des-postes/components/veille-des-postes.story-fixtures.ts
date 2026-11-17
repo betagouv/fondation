@@ -162,18 +162,6 @@ function reasonOf(id: VacancyReason): PositionVacancy['reason'] {
   return { id, label };
 }
 
-/** a rough copy of the rule of the API: enough for the stories to show the status a change gives */
-function storyStatusOf(vacancy: StoryVacancy): HolderStatus {
-  const { day, month, year } = vacancy.startDate;
-  const date = `${String(day).padStart(2, '0')}/${String(month).padStart(2, '0')}/${year}`;
-  const reason =
-    vacancy.reason === 'OTHER' ? 'Autre motif' : REASONS.find(({ id }) => id === vacancy.reason)!.label;
-  const hint = vacancy.reason === 'OTHER' ? vacancy.reasonDetail : null;
-  return new Date(year, month - 1, day) <= new Date()
-    ? { ...STATUSES[2], detail: `${reason} depuis le ${date}`, hint }
-    : { ...STATUSES[1], detail: `${reason} à compter du ${date}`, hint };
-}
-
 /**
  * the side panel of the positions of a story as the API would answer it: the declared vacancies are kept
  * while the story runs and the tables keep their rows as they were
@@ -204,11 +192,8 @@ export function positionVacancyHandlers(
       detailMaxLength: 300,
       reasons: REASONS,
       startDateRange: { max: '2100-12-31', min: '2000-01-01' },
-      status: vacancy
-        ? storyStatusOf({ ...vacancy, reason: vacancy.reason.id })
-        : row && [DECLARED_DETACHMENT, DECLARED_RETIREMENT].some(({ status }) => status === row.status)
-          ? { ...(row.alerts.length > 0 ? STATUSES[1] : STATUSES[0]), detail: null, hint: null }
-          : (row?.status ?? { ...STATUSES[0], detail: null, hint: null }),
+      // the status of the row as it was: the API computes it, the stories do not copy its rule
+      status: row?.status ?? { ...STATUSES[0], detail: null, hint: null },
       vacancy,
     };
   };
