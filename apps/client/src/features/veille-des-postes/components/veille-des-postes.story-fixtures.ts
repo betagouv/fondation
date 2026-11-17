@@ -1,6 +1,6 @@
 import { http, HttpResponse } from 'msw';
 
-import type { FoundPositionVacancyDto } from '@api/types';
+import type { FoundPositionCommentDto, FoundPositionVacancyDto } from '@api/types';
 import type {
   AlertDeadline,
   HolderAlert,
@@ -154,6 +154,7 @@ function deadlinesOf(alert: HolderAlert): AlertDeadline[] {
     : ['WITHIN_TWELVE_MONTHS'];
 }
 
+const COMMENT_PATH = '*/api/veille-des-postes/v1/titulaires/:magistratId/commentaire';
 const VACANCY_PATH = '*/api/veille-des-postes/v1/titulaires/:magistratId/vacance';
 const ATTACHMENT_PATH = `${VACANCY_PATH}/pieces-jointes/:fileId`;
 
@@ -167,9 +168,21 @@ function reasonOf(id: VacancyReason): PositionVacancy['reason'] {
  * while the story runs and the tables keep their rows as they were
  */
 export function positionVacancyHandlers(
-  rows: readonly (StoryRow & { magistrat: { id: string } | null })[],
+  rows: readonly (StoryRow & { magistrat: { commentPreview?: string | null; id: string } | null })[],
 ): ReturnType<typeof http.get>[] {
   const writer = { id: 'story-user', name: 'Jess TEST' };
+  const comments = new Map<string, NonNullable<FoundPositionCommentDto['comment']>>(
+    rows.flatMap(({ magistrat }) =>
+      magistrat?.commentPreview
+        ? [
+            [
+              magistrat.id,
+              { text: magistrat.commentPreview, updatedAt: '2026-11-10T09:30:00.000Z', updatedBy: writer },
+            ] as const,
+          ]
+        : [],
+    ),
+  );
   const vacancies = new Map<string, PositionVacancy>(
     rows.flatMap((row) => {
       const declared = [DECLARED_DETACHMENT, DECLARED_RETIREMENT].find(({ status }) => status === row.status);
@@ -199,6 +212,23 @@ export function positionVacancyHandlers(
   };
 
   return [
+    http.get(COMMENT_PATH, ({ params }) =>
+      HttpResponse.json({
+        comment: comments.get(String(params.magistratId)) ?? null,
+        maxLength: 50_000,
+      } satisfies FoundPositionCommentDto),
+    ),
+    // kept as sent: the API trims and erases, the stories do not copy its rule
+    http.put(COMMENT_PATH, async ({ params, request }) => {
+      const { comment } = (await request.json()) as { comment: string };
+      comments.set(String(params.magistratId), {
+        text: comment,
+        updatedAt: new Date().toISOString(),
+        updatedBy: writer,
+      });
+
+      return new HttpResponse(null, { status: 204 });
+    }),
     http.get(VACANCY_PATH, ({ params }) => HttpResponse.json(found(String(params.magistratId)))),
     http.put(VACANCY_PATH, async ({ params, request }) => {
       const body = await request.formData();

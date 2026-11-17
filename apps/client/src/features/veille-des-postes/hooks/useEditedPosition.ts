@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { EditedPosition } from '../components/PositionVacancySidePanel';
-import { usePrefetchedPositionVacancies } from '@queries/veille-des-postes.queries';
+import { usePrefetchedPositionPanels } from '@queries/veille-des-postes.queries';
 
 /**
  * the position whose status the side panel edits among the rows loaded with a holder: read again from them
@@ -38,7 +38,7 @@ export function useEditedPosition<Row>(
     : index === -1
       ? [undefined, undefined]
       : [editable[index - 1], editable[index + 1]];
-  usePrefetchedPositionVacancies([previous, next].flatMap((position) => position?.magistrat.id ?? []));
+  usePrefetchedPositionPanels([previous, next].flatMap((position) => position?.magistrat.id ?? []));
 
   return {
     close: useCallback(() => leave(null), [leave]),
