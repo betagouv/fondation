@@ -1,8 +1,8 @@
 -- the session documents now name a magistrat « Mme Isabelle GAUTHIER (ép. ROBERT) ». A draft written
 -- before keeps « Mme GAUTHIER Isabelle (ép. ROBERT) »: its first name and last name swap places. Non-breaking
 -- spaces tie the civility, the last name and the first name, and a last name never holds one, so the split
--- is exact. A name written another way, before the non-breaking spaces, is left as it is. Validated
--- documents are never rewritten: what they print was sent.
+-- is exact. A name written another way, before the non-breaking spaces, is left as it is. A validated
+-- agenda or official report is never rewritten: what it prints was sent.
 CREATE FUNCTION pg_temp.first_name_first(name TEXT) RETURNS TEXT
 LANGUAGE sql IMMUTABLE
 AS $$
@@ -67,18 +67,19 @@ INSERT INTO stale_pdf (id)
 SELECT versions.pdf_id FROM versions
 WHERE versions.pdf_id IS NOT NULL;
 
--- a notice is a draft until its pdf is stored
+-- a notice has a single version, compared name by name with the agendas: a validated one is renamed too, or it would
+-- read as outdated, but keeps its html and pdf. A notice is a draft until its pdf is stored, and its html is the text
+-- written by hand once it is manually edited, which the migration keeps
 WITH renamed AS (
     UPDATE "docs"."justice_presentation_plan_nomination_file" AS jpf
     SET "name" = pg_temp.first_name_first(jpf."name")
-    FROM "docs"."justice_presentation_plan" AS jp
-    WHERE jp.id = jpf.plan_id AND jp.pdf_id IS NULL AND jpf."name" <> pg_temp.first_name_first(jpf."name")
+    WHERE jpf."name" <> pg_temp.first_name_first(jpf."name")
     RETURNING jpf.plan_id
 )
 
 UPDATE "docs"."justice_presentation_plan" AS jp
 SET "html" = NULL
-WHERE jp.id IN (SELECT renamed.plan_id FROM renamed);
+WHERE jp.id IN (SELECT renamed.plan_id FROM renamed) AND jp.pdf_id IS NULL AND NOT jp.is_manually_edited;
 
 DELETE FROM "files_context"."files" AS f
 USING stale_pdf

@@ -687,6 +687,33 @@ test.describe('Official report', () => {
     expect(details.data).toMatchObject({ canDiscardDraft: true, status: 'DRAFT' });
   });
 
+  test('should name a magistrat first name first, as Lolfi names them today, in the draft opened on a validated report', async ({
+    agent,
+    docs,
+    expect,
+    member,
+    sql,
+  }) => {
+    const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
+    const { id: officialReportId } = await docs.officialReport(await docs.agenda(session), { status: 'VALIDATED' });
+    const [file] = session.files;
+    await sql`
+      UPDATE data_administration_context.magistrat
+      SET first_name = 'JEANNE', last_name = 'Renommée', married_name = NULL
+      WHERE id = ${file!.magistratId}
+    `;
+
+    await agent.docs.editOfficialReportIntro({
+      body: { html: '<p>Une introduction écrite à la main</p>', outdated: false },
+      path: { officialReportId },
+      throwOnError: true,
+    });
+
+    const document = await agent.docs.detailsOfficialReportDocument({ path: { officialReportId } });
+    const block = document.data!.blocks.find((b) => b.kind === 'file' && b.nominationFileId === file!.id);
+    expect(block?.kind === 'file' && block.html).toContain('Jeanne RENOMMÉE');
+  });
+
   test('should follow in a draft the recusal title the secretariat gives a member already recused', async ({
     agent,
     docs,

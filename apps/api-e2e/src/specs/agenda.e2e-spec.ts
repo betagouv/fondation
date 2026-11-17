@@ -278,6 +278,7 @@ test.describe('Agenda', () => {
 
     const draft = await agent.docs.detailsAgendaDocumentBlocks({ path: { agendaId } });
     const byId = new Map(draft.data!.blocks.map((block) => [block.nominationFileId, block]));
+    expect(byId.get(writtenBlock!.nominationFileId)?.html).toBe('<p>Une phrase écrite à la main</p>');
     expect(byId.get(generatedBlock!.nominationFileId)?.html).toContain('Jeanne RENOMMÉE');
   });
 
