@@ -1,14 +1,26 @@
 import {
+  civilityOf,
   courtOfAppealFirstPresidentTitle,
   courtOfCassationHolderTitle,
   judicialCourtPresidentTitle,
 } from './holder-title';
 
+describe('civilityOf', () => {
+  it.each([
+    ['MME', 'MME'],
+    ['M.', 'M.'],
+    ['Mme', null],
+    [null, null],
+  ])('reads the LOLFI civility %s as %s', (lolfi, civility) => {
+    expect(civilityOf(lolfi)).toBe(civility);
+  });
+});
+
 describe('courtOfAppealFirstPresidentTitle', () => {
   it.each([
     ['M.', "Premier président de la cour d'appel d'Agen"],
     ['MME', "Première présidente de la cour d'appel d'Agen"],
-  ])('titles a holder %s', (civility, title) => {
+  ] as const)('titles a holder %s', (civility, title) => {
     expect(courtOfAppealFirstPresidentTitle({ civility, courtLabel: "Cour d'appel d'Agen" })).toBe(title);
   });
 });
@@ -24,6 +36,12 @@ describe('courtOfCassationHolderTitle', () => {
     expect(
       courtOfCassationHolderTitle({ civility: 'MME', position: 'COUNSELLOR', service: 'EXTRAORDINARY' }),
     ).toBe('Conseillère en service extraordinaire à la Cour de cassation');
+  });
+
+  it('titles the first president of the court, not in it', () => {
+    expect(
+      courtOfCassationHolderTitle({ civility: 'MME', position: 'FIRST_PRESIDENT', service: 'ORDINARY' }),
+    ).toBe('Première présidente de la Cour de cassation');
   });
 });
 

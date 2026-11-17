@@ -19,7 +19,7 @@ import {
   rankedLolfiPositions,
   type CourtOfCassationPosition,
 } from '../../domain/court-of-cassation-position';
-import { courtOfCassationHolderTitle } from '../../domain/holder-title';
+import { civilityOf, courtOfCassationHolderTitle } from '../../domain/holder-title';
 import { type AlertDeadline, alertRulesOf, alertsOf, type PositionAlert } from '../../domain/position-alert';
 import { type PositionStatus, positionStatusOf } from '../../domain/position-status';
 import { sortedByUrgency } from '../../domain/position-urgency';
@@ -98,7 +98,7 @@ export class ListCourtOfCassationHoldersQuery {
           id: holder.id,
           name: magistratFullName(holder),
           title: courtOfCassationHolderTitle({
-            civility: holder.civility,
+            civility: civilityOf(holder.civility),
             position: positionId,
             service: service.id,
           }),

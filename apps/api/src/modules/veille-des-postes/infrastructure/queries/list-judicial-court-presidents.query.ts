@@ -9,7 +9,7 @@ import { Db } from '../../../framework/database';
 import { createPaginatedZodDto, pageOf, paginate, Pagination } from '../../../framework/pagination';
 import { Sortable } from '../../../framework/sorting';
 import { magistratFullName } from '../../../magistrat/domain/magistrat-name';
-import { judicialCourtPresidentTitle } from '../../domain/holder-title';
+import { civilityOf, judicialCourtPresidentTitle } from '../../domain/holder-title';
 import { JUDICIAL_COURT_TYPE_ID, PRESIDENT_FUNCTION_ID } from '../../domain/judicial-court-president';
 import { type AlertDeadline, alertRulesOf, alertsOf, type PositionAlert } from '../../domain/position-alert';
 import { type PositionStatus, positionStatusOf } from '../../domain/position-status';
@@ -90,7 +90,7 @@ export class ListJudicialCourtPresidentsQuery {
               id: court.id,
               name: magistratFullName(court),
               title: judicialCourtPresidentTitle({
-                civility: court.civility,
+                civility: civilityOf(court.civility),
                 courtLabel: court.courtLabel ?? court.courtId,
               }),
             }

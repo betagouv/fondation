@@ -13,7 +13,7 @@ import {
   COURT_OF_APPEAL_TYPE_ID,
   FIRST_PRESIDENT_FUNCTION_ID,
 } from '../../domain/court-of-appeal-first-president';
-import { courtOfAppealFirstPresidentTitle } from '../../domain/holder-title';
+import { civilityOf, courtOfAppealFirstPresidentTitle } from '../../domain/holder-title';
 import { type AlertDeadline, alertRulesOf, alertsOf, type PositionAlert } from '../../domain/position-alert';
 import { type PositionStatus, positionStatusOf } from '../../domain/position-status';
 import { sortedByUrgency } from '../../domain/position-urgency';
@@ -91,7 +91,7 @@ export class ListCourtOfAppealFirstPresidentsQuery {
               id: court.id,
               name: magistratFullName(court),
               title: courtOfAppealFirstPresidentTitle({
-                civility: court.civility,
+                civility: civilityOf(court.civility),
                 courtLabel: court.courtLabel ?? court.courtId,
               }),
             }
