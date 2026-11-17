@@ -18,6 +18,7 @@ import type { VeilleDesPostesOutletContext } from './veille-des-postes-outlet-co
 export function VeilleDesPostesPage() {
   const { formatMessage } = useIntl();
   const [filtersSlot, setFiltersSlot] = useState<HTMLDivElement | null>(null);
+  const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
   const [titleSlot, setTitleSlot] = useState<HTMLSpanElement | null>(null);
   const breadcrumbRoot = useBreadcrumbRoot();
   const { pathname } = useLocation();
@@ -66,7 +67,7 @@ export function VeilleDesPostesPage() {
             </h1>
             <div className="min-h-10" ref={setFiltersSlot} />
             <LinkTabs ariaLabel={formatMessage({ defaultMessage: 'Types de postes en veille' })}>
-              {tabs.map((tab) => (
+              {(isSidePanelOpen ? tabs.filter((tab) => tab === currentTab) : tabs).map((tab) => (
                 <LinkTab count={tab.count} key={tab.to} label={tab.label} to={tab.to} />
               ))}
             </LinkTabs>
@@ -75,7 +76,15 @@ export function VeilleDesPostesPage() {
         barClassName="fr-pt-6v"
         contentClassName="fr-container fr-mt-6v fr-mb-8v"
       >
-        <Outlet context={{ filtersSlot, titleSlot } satisfies VeilleDesPostesOutletContext} />
+        <Outlet
+          context={
+            {
+              filtersSlot,
+              onSidePanelToggle: setIsSidePanelOpen,
+              titleSlot,
+            } satisfies VeilleDesPostesOutletContext
+          }
+        />
       </PinnedHeader>
     </>
   );

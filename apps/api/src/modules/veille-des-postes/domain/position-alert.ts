@@ -1,8 +1,9 @@
-import { addMonths, format } from 'date-fns';
+import { addMonths } from 'date-fns';
 
 import { DateOnly } from '../../../utils/date-only';
 
 import type { CourtOfCassationPosition } from './court-of-cassation-position';
+import { frenchDate } from './french-date';
 
 export const POSITION_ALERTS = ['RETIREMENT', 'SEVEN_YEARS_ON_POSITION', 'PROPOSED_IN_SESSION'] as const;
 export type PositionAlert = (typeof POSITION_ALERTS)[number];
@@ -146,8 +147,4 @@ function plusMonths(date: DateOnly, months: number): DateOnly {
 
 function isAfter(date: DateOnly, other: DateOnly): boolean {
   return date.toDate().getTime() > other.toDate().getTime();
-}
-
-function frenchDate(date: DateOnly): string {
-  return format(date.toLocalStartOfDay(), 'dd/MM/yyyy');
 }

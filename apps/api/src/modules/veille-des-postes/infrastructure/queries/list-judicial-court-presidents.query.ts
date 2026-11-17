@@ -9,9 +9,10 @@ import { Db } from '../../../framework/database';
 import { createPaginatedZodDto, pageOf, paginate, Pagination } from '../../../framework/pagination';
 import { Sortable } from '../../../framework/sorting';
 import { magistratFullName } from '../../../magistrat/domain/magistrat-name';
+import { civilityOf, judicialCourtPresidentTitle } from '../../domain/holder-title';
 import { JUDICIAL_COURT_TYPE_ID, PRESIDENT_FUNCTION_ID } from '../../domain/judicial-court-president';
 import { type AlertDeadline, alertRulesOf, alertsOf, type PositionAlert } from '../../domain/position-alert';
-import { POSITION_STATUSES, type PositionStatus, positionStatusOf } from '../../domain/position-status';
+import { type PositionStatus, positionStatusOf } from '../../domain/position-status';
 import { sortedByUrgency } from '../../domain/position-urgency';
 import type { ListJudicialCourtPresidentsDto } from '../dtos/veille-des-postes.dto';
 import { facetedRows } from '../faceted-rows';
@@ -20,6 +21,7 @@ import {
   alertJson,
   countedStatusAndAlertFacets,
   holderAlertSchema,
+  positionStatusSchema,
   statusAndAlertFacetsSchema,
   statusAndAlertValues,
 } from '../holder-alerts';
@@ -59,6 +61,15 @@ export class ListJudicialCourtPresidentsQuery {
 
     const rows = searched.map((court) => {
       const installationDate = DateOnly.fromOptionalUtcDate(court.installationDate);
+      const vacancyStartDate = DateOnly.fromOptionalUtcDate(court.vacancyStartDate);
+      const vacancy =
+        court.vacancyReason && vacancyStartDate
+          ? {
+              reason: court.vacancyReason,
+              reasonDetail: court.vacancyReasonDetail,
+              startDate: vacancyStartDate,
+            }
+          : null;
       const alerts = court.id
         ? alertsOf(
             {
@@ -74,9 +85,19 @@ export class ListJudicialCourtPresidentsQuery {
         alerts,
         court: { id: court.courtId, label: court.courtLabel ?? court.courtId },
         installationDate: installationDate?.toJson() ?? null,
-        magistrat: court.id ? { id: court.id, name: magistratFullName(court) } : null,
+        magistrat: court.id
+          ? {
+              id: court.id,
+              name: magistratFullName(court),
+              title: judicialCourtPresidentTitle({
+                civility: civilityOf(court.civility),
+                courtLabel: court.courtLabel ?? court.courtId,
+              }),
+            }
+          : null,
         ressort: { id: court.ressortId, label: court.ressortLabel ?? court.ressortId },
-        status: positionStatusOf({ alertCount: alerts.length, held: !!court.id }),
+        status: positionStatusOf({ alertCount: alerts.length, held: !!court.id, vacancy }, today),
+        vacancyStartDate,
       };
     });
 
@@ -98,7 +119,16 @@ export class ListJudicialCourtPresidentsQuery {
 
     return {
       ...paginate({
-        items: pageOf(sorted, query.pagination).map((row) => ({ ...row, alerts: row.alerts.map(alertJson) })),
+        items: pageOf(sorted, query.pagination).map(
+          ({ alerts, court, installationDate, magistrat, ressort, status }) => ({
+            alerts: alerts.map(alertJson),
+            court,
+            installationDate,
+            magistrat,
+            ressort,
+            status,
+          }),
+        ),
         pagination: query.pagination,
         totalCount: matching.length,
       }),
@@ -115,9 +145,15 @@ export class ListedJudicialCourtPresidentsDto extends createPaginatedZodDto(
     alerts: z.array(holderAlertSchema),
     court: z.object({ id: z.string(), label: z.string() }),
     installationDate: dateOnlyJsonSchema.nullable(),
-    magistrat: z.object({ id: z.string(), name: z.string() }).nullable(),
+    magistrat: z
+      .object({
+        id: z.string(),
+        name: z.string(),
+        title: z.string(),
+      })
+      .nullable(),
     ressort: z.object({ id: z.string(), label: z.string() }),
-    status: z.object({ id: z.enum(POSITION_STATUSES), label: z.string() }),
+    status: positionStatusSchema,
   }),
   statusAndAlertFacetsSchema.extend({
     ressorts: z.array(z.object({ count: z.number(), id: z.string(), label: z.string() })),

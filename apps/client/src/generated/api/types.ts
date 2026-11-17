@@ -2443,6 +2443,245 @@ export type ListedObservationsAttachmentsDto = {
     }>;
 };
 
+export type ListedCourtOfAppealFirstPresidentsDto = {
+    items: Array<{
+        alerts: Array<{
+            id: 'RETIREMENT' | 'SEVEN_YEARS_ON_POSITION' | 'PROPOSED_IN_SESSION';
+            label: string;
+            shortLabel: string;
+        }>;
+        court: {
+            id: string;
+            label: string;
+        };
+        installationDate: {
+            year: number;
+            month: number;
+            day: number;
+        } | null;
+        magistrat: {
+            id: string;
+            name: string;
+            title: string;
+        } | null;
+        status: {
+            detail: string | null;
+            hint: string | null;
+            id: 'OCCUPIED' | 'MAY_BECOME_VACANT' | 'VACANT';
+            label: string;
+        };
+    }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
+    links?: {
+        next?: string;
+        previous?: string;
+    };
+    alerts: Array<{
+        count: number;
+        id: 'RETIREMENT' | 'SEVEN_YEARS_ON_POSITION' | 'PROPOSED_IN_SESSION';
+        label: string;
+    }>;
+    deadlines: Array<{
+        count: number;
+        id: 'WITHIN_SIX_MONTHS' | 'WITHIN_TWELVE_MONTHS';
+        label: string;
+    }>;
+    statuses: Array<{
+        count: number;
+        id: 'OCCUPIED' | 'MAY_BECOME_VACANT' | 'VACANT';
+        label: string;
+    }>;
+};
+
+export type ListedCourtOfCassationHoldersDto = {
+    items: Array<{
+        alerts: Array<{
+            id: 'RETIREMENT' | 'SEVEN_YEARS_ON_POSITION' | 'PROPOSED_IN_SESSION';
+            label: string;
+            shortLabel: string;
+        }>;
+        installationDate: {
+            year: number;
+            month: number;
+            day: number;
+        } | null;
+        magistrat: {
+            id: string;
+            name: string;
+            title: string;
+        };
+        service: {
+            id: 'EXTRAORDINARY' | 'ORDINARY';
+            label: string;
+        };
+        status: {
+            detail: string | null;
+            hint: string | null;
+            id: 'OCCUPIED' | 'MAY_BECOME_VACANT' | 'VACANT';
+            label: string;
+        };
+    }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
+    links?: {
+        next?: string;
+        previous?: string;
+    };
+    alerts: Array<{
+        count: number;
+        id: 'RETIREMENT' | 'SEVEN_YEARS_ON_POSITION' | 'PROPOSED_IN_SESSION';
+        label: string;
+    }>;
+    deadlines: Array<{
+        count: number;
+        id: 'WITHIN_SIX_MONTHS' | 'WITHIN_TWELVE_MONTHS';
+        label: string;
+    }>;
+    statuses: Array<{
+        count: number;
+        id: 'OCCUPIED' | 'MAY_BECOME_VACANT' | 'VACANT';
+        label: string;
+    }>;
+    positions: Array<{
+        count: number;
+        id: 'FIRST_PRESIDENT' | 'CHAMBER_PRESIDENT' | 'COUNSELLOR' | 'REFERENDARY_COUNSELLOR' | 'AUDITOR_SECOND_GRADE' | 'AUDITOR_FIRST_GRADE';
+        label: string;
+    }>;
+};
+
+export type ListedJudicialCourtPresidentsDto = {
+    items: Array<{
+        alerts: Array<{
+            id: 'RETIREMENT' | 'SEVEN_YEARS_ON_POSITION' | 'PROPOSED_IN_SESSION';
+            label: string;
+            shortLabel: string;
+        }>;
+        court: {
+            id: string;
+            label: string;
+        };
+        installationDate: {
+            year: number;
+            month: number;
+            day: number;
+        } | null;
+        magistrat: {
+            id: string;
+            name: string;
+            title: string;
+        } | null;
+        ressort: {
+            id: string;
+            label: string;
+        };
+        status: {
+            detail: string | null;
+            hint: string | null;
+            id: 'OCCUPIED' | 'MAY_BECOME_VACANT' | 'VACANT';
+            label: string;
+        };
+    }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
+    links?: {
+        next?: string;
+        previous?: string;
+    };
+    alerts: Array<{
+        count: number;
+        id: 'RETIREMENT' | 'SEVEN_YEARS_ON_POSITION' | 'PROPOSED_IN_SESSION';
+        label: string;
+    }>;
+    deadlines: Array<{
+        count: number;
+        id: 'WITHIN_SIX_MONTHS' | 'WITHIN_TWELVE_MONTHS';
+        label: string;
+    }>;
+    statuses: Array<{
+        count: number;
+        id: 'OCCUPIED' | 'MAY_BECOME_VACANT' | 'VACANT';
+        label: string;
+    }>;
+    ressorts: Array<{
+        count: number;
+        id: string;
+        label: string;
+    }>;
+};
+
+export type DeclarePositionVacancyDto = {
+    files?: Array<Blob | File>;
+    form: {
+        reason: 'DISCHARGE' | 'DEATH' | 'DISCIPLINARY_DISMISSAL' | 'RETIREMENT' | 'STRIKING_OFF' | 'OTHER';
+        reasonDetail?: string | null;
+        startDate: string;
+    };
+};
+
+export type FoundPositionVacancyDto = {
+    alerts: Array<{
+        id: 'RETIREMENT' | 'SEVEN_YEARS_ON_POSITION' | 'PROPOSED_IN_SESSION';
+        label: string;
+        shortLabel: string;
+    }>;
+    detailMaxLength: number;
+    reasons: Array<{
+        id: 'DISCHARGE' | 'DEATH' | 'DISCIPLINARY_DISMISSAL' | 'RETIREMENT' | 'STRIKING_OFF' | 'OTHER';
+        label: string;
+        detailRequired: boolean;
+    }>;
+    startDateRange: {
+        max: string;
+        min: string;
+    };
+    status: {
+        detail: string | null;
+        hint: string | null;
+        id: 'OCCUPIED' | 'MAY_BECOME_VACANT' | 'VACANT';
+        label: string;
+    };
+    vacancy: {
+        attachments: Array<{
+            addedAt: string;
+            addedBy: {
+                id: string;
+                name: string;
+            } | null;
+            id: string;
+            name: string;
+            size: number | null;
+        }>;
+        reason: {
+            id: 'DISCHARGE' | 'DEATH' | 'DISCIPLINARY_DISMISSAL' | 'RETIREMENT' | 'STRIKING_OFF' | 'OTHER';
+            label: string;
+        };
+        reasonDetail: string | null;
+        startDate: {
+            year: number;
+            month: number;
+            day: number;
+        };
+        updatedAt: string;
+        updatedBy: {
+            id: string;
+            name: string;
+        } | null;
+    } | null;
+};
+
+export type OpenedPositionVacancyAttachmentDto = {
+    id: string;
+    name: string;
+    url: string;
+};
+
 export type ListedMagistratNominationFilesDto = {
     items: Array<{
         id: string;
@@ -2805,170 +3044,6 @@ export type SendFeedbackDto = {
 export type ChangeFeedbackStatusDto = {
     comment: string | null;
     status: 'NEW' | 'ACKNOWLEDGED' | 'PROCESSED' | 'DISMISSED';
-};
-
-export type ListedCourtOfAppealFirstPresidentsDto = {
-    items: Array<{
-        alerts: Array<{
-            id: 'RETIREMENT' | 'SEVEN_YEARS_ON_POSITION' | 'PROPOSED_IN_SESSION';
-            label: string;
-            shortLabel: string;
-        }>;
-        court: {
-            id: string;
-            label: string;
-        };
-        installationDate: {
-            year: number;
-            month: number;
-            day: number;
-        } | null;
-        magistrat: {
-            id: string;
-            name: string;
-        } | null;
-        status: {
-            id: 'OCCUPIED' | 'MAY_BECOME_VACANT' | 'VACANT';
-            label: string;
-        };
-    }>;
-    totalCount: number;
-    currentPageIndex: number;
-    nextPageIndex?: number;
-    previousPageIndex?: number;
-    links?: {
-        next?: string;
-        previous?: string;
-    };
-    alerts: Array<{
-        count: number;
-        id: 'RETIREMENT' | 'SEVEN_YEARS_ON_POSITION' | 'PROPOSED_IN_SESSION';
-        label: string;
-    }>;
-    deadlines: Array<{
-        count: number;
-        id: 'WITHIN_SIX_MONTHS' | 'WITHIN_TWELVE_MONTHS';
-        label: string;
-    }>;
-    statuses: Array<{
-        count: number;
-        id: 'OCCUPIED' | 'MAY_BECOME_VACANT' | 'VACANT';
-        label: string;
-    }>;
-};
-
-export type ListedCourtOfCassationHoldersDto = {
-    items: Array<{
-        alerts: Array<{
-            id: 'RETIREMENT' | 'SEVEN_YEARS_ON_POSITION' | 'PROPOSED_IN_SESSION';
-            label: string;
-            shortLabel: string;
-        }>;
-        installationDate: {
-            year: number;
-            month: number;
-            day: number;
-        } | null;
-        magistrat: {
-            id: string;
-            name: string;
-        };
-        service: {
-            id: 'EXTRAORDINARY' | 'ORDINARY';
-            label: string;
-        };
-        status: {
-            id: 'OCCUPIED' | 'MAY_BECOME_VACANT' | 'VACANT';
-            label: string;
-        };
-    }>;
-    totalCount: number;
-    currentPageIndex: number;
-    nextPageIndex?: number;
-    previousPageIndex?: number;
-    links?: {
-        next?: string;
-        previous?: string;
-    };
-    alerts: Array<{
-        count: number;
-        id: 'RETIREMENT' | 'SEVEN_YEARS_ON_POSITION' | 'PROPOSED_IN_SESSION';
-        label: string;
-    }>;
-    deadlines: Array<{
-        count: number;
-        id: 'WITHIN_SIX_MONTHS' | 'WITHIN_TWELVE_MONTHS';
-        label: string;
-    }>;
-    statuses: Array<{
-        count: number;
-        id: 'OCCUPIED' | 'MAY_BECOME_VACANT' | 'VACANT';
-        label: string;
-    }>;
-    positions: Array<{
-        count: number;
-        id: 'FIRST_PRESIDENT' | 'CHAMBER_PRESIDENT' | 'COUNSELLOR' | 'REFERENDARY_COUNSELLOR' | 'AUDITOR_SECOND_GRADE' | 'AUDITOR_FIRST_GRADE';
-        label: string;
-    }>;
-};
-
-export type ListedJudicialCourtPresidentsDto = {
-    items: Array<{
-        alerts: Array<{
-            id: 'RETIREMENT' | 'SEVEN_YEARS_ON_POSITION' | 'PROPOSED_IN_SESSION';
-            label: string;
-            shortLabel: string;
-        }>;
-        court: {
-            id: string;
-            label: string;
-        };
-        installationDate: {
-            year: number;
-            month: number;
-            day: number;
-        } | null;
-        magistrat: {
-            id: string;
-            name: string;
-        } | null;
-        ressort: {
-            id: string;
-            label: string;
-        };
-        status: {
-            id: 'OCCUPIED' | 'MAY_BECOME_VACANT' | 'VACANT';
-            label: string;
-        };
-    }>;
-    totalCount: number;
-    currentPageIndex: number;
-    nextPageIndex?: number;
-    previousPageIndex?: number;
-    links?: {
-        next?: string;
-        previous?: string;
-    };
-    alerts: Array<{
-        count: number;
-        id: 'RETIREMENT' | 'SEVEN_YEARS_ON_POSITION' | 'PROPOSED_IN_SESSION';
-        label: string;
-    }>;
-    deadlines: Array<{
-        count: number;
-        id: 'WITHIN_SIX_MONTHS' | 'WITHIN_TWELVE_MONTHS';
-        label: string;
-    }>;
-    statuses: Array<{
-        count: number;
-        id: 'OCCUPIED' | 'MAY_BECOME_VACANT' | 'VACANT';
-        label: string;
-    }>;
-    ressorts: Array<{
-        count: number;
-        id: string;
-        label: string;
-    }>;
 };
 
 export type GetFileByFileUrlData = {
@@ -5668,6 +5743,176 @@ export type ListObservationsAttachmentsResponses = {
 
 export type ListObservationsAttachmentsResponse = ListObservationsAttachmentsResponses[keyof ListObservationsAttachmentsResponses];
 
+export type ListCourtOfAppealFirstPresidentsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        alerts?: Array<'RETIREMENT' | 'SEVEN_YEARS_ON_POSITION' | 'PROPOSED_IN_SESSION'>;
+        deadlines?: Array<'WITHIN_SIX_MONTHS' | 'WITHIN_TWELVE_MONTHS'>;
+        search?: string;
+        statuses?: Array<'OCCUPIED' | 'MAY_BECOME_VACANT' | 'VACANT'>;
+        sortBy?: 'court' | 'installationDate' | 'name' | 'status';
+        /**
+         * true
+         */
+        sortDesc?: string | boolean;
+        page?: number;
+        limit?: number;
+    };
+    url: '/api/veille-des-postes/v1/cours-d-appel';
+};
+
+export type ListCourtOfAppealFirstPresidentsResponses = {
+    200: ListedCourtOfAppealFirstPresidentsDto;
+};
+
+export type ListCourtOfAppealFirstPresidentsResponse = ListCourtOfAppealFirstPresidentsResponses[keyof ListCourtOfAppealFirstPresidentsResponses];
+
+export type ListCourtOfCassationHoldersData = {
+    body?: never;
+    path?: never;
+    query?: {
+        alerts?: Array<'RETIREMENT' | 'SEVEN_YEARS_ON_POSITION' | 'PROPOSED_IN_SESSION'>;
+        deadlines?: Array<'WITHIN_SIX_MONTHS' | 'WITHIN_TWELVE_MONTHS'>;
+        search?: string;
+        statuses?: Array<'OCCUPIED' | 'MAY_BECOME_VACANT' | 'VACANT'>;
+        positions?: Array<'FIRST_PRESIDENT' | 'CHAMBER_PRESIDENT' | 'COUNSELLOR' | 'REFERENDARY_COUNSELLOR' | 'AUDITOR_SECOND_GRADE' | 'AUDITOR_FIRST_GRADE'>;
+        sortBy?: 'installationDate' | 'name' | 'status';
+        /**
+         * true
+         */
+        sortDesc?: string | boolean;
+        page?: number;
+        limit?: number;
+    };
+    url: '/api/veille-des-postes/v1/cour-de-cassation';
+};
+
+export type ListCourtOfCassationHoldersResponses = {
+    200: ListedCourtOfCassationHoldersDto;
+};
+
+export type ListCourtOfCassationHoldersResponse = ListCourtOfCassationHoldersResponses[keyof ListCourtOfCassationHoldersResponses];
+
+export type ListJudicialCourtPresidentsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        alerts?: Array<'RETIREMENT' | 'SEVEN_YEARS_ON_POSITION' | 'PROPOSED_IN_SESSION'>;
+        deadlines?: Array<'WITHIN_SIX_MONTHS' | 'WITHIN_TWELVE_MONTHS'>;
+        search?: string;
+        statuses?: Array<'OCCUPIED' | 'MAY_BECOME_VACANT' | 'VACANT'>;
+        ressorts?: Array<string>;
+        sortBy?: 'court' | 'installationDate' | 'name' | 'ressort' | 'status';
+        /**
+         * true
+         */
+        sortDesc?: string | boolean;
+        page?: number;
+        limit?: number;
+    };
+    url: '/api/veille-des-postes/v1/tribunaux-judiciaires';
+};
+
+export type ListJudicialCourtPresidentsResponses = {
+    200: ListedJudicialCourtPresidentsDto;
+};
+
+export type ListJudicialCourtPresidentsResponse = ListJudicialCourtPresidentsResponses[keyof ListJudicialCourtPresidentsResponses];
+
+export type WithdrawPositionVacancyData = {
+    body?: never;
+    path: {
+        magistratId: string;
+    };
+    query?: never;
+    url: '/api/veille-des-postes/v1/titulaires/{magistratId}/vacance';
+};
+
+export type WithdrawPositionVacancyResponses = {
+    204: void;
+};
+
+export type WithdrawPositionVacancyResponse = WithdrawPositionVacancyResponses[keyof WithdrawPositionVacancyResponses];
+
+export type FindPositionVacancyData = {
+    body?: never;
+    path: {
+        magistratId: string;
+    };
+    query?: never;
+    url: '/api/veille-des-postes/v1/titulaires/{magistratId}/vacance';
+};
+
+export type FindPositionVacancyResponses = {
+    200: FoundPositionVacancyDto;
+};
+
+export type FindPositionVacancyResponse = FindPositionVacancyResponses[keyof FindPositionVacancyResponses];
+
+export type DeclarePositionVacancyData = {
+    body: DeclarePositionVacancyDto;
+    path: {
+        magistratId: string;
+    };
+    query?: never;
+    url: '/api/veille-des-postes/v1/titulaires/{magistratId}/vacance';
+};
+
+export type DeclarePositionVacancyResponses = {
+    204: void;
+};
+
+export type DeclarePositionVacancyResponse = DeclarePositionVacancyResponses[keyof DeclarePositionVacancyResponses];
+
+export type RemovePositionVacancyAttachmentData = {
+    body?: never;
+    path: {
+        fileId: string;
+        magistratId: string;
+    };
+    query?: never;
+    url: '/api/veille-des-postes/v1/titulaires/{magistratId}/vacance/pieces-jointes/{fileId}';
+};
+
+export type RemovePositionVacancyAttachmentResponses = {
+    204: void;
+};
+
+export type RemovePositionVacancyAttachmentResponse = RemovePositionVacancyAttachmentResponses[keyof RemovePositionVacancyAttachmentResponses];
+
+export type OpenPositionVacancyAttachmentData = {
+    body?: never;
+    path: {
+        fileId: string;
+        magistratId: string;
+    };
+    query?: never;
+    url: '/api/veille-des-postes/v1/titulaires/{magistratId}/vacance/pieces-jointes/{fileId}';
+};
+
+export type OpenPositionVacancyAttachmentResponses = {
+    200: OpenedPositionVacancyAttachmentDto;
+};
+
+export type OpenPositionVacancyAttachmentResponse = OpenPositionVacancyAttachmentResponses[keyof OpenPositionVacancyAttachmentResponses];
+
+export type RenamePositionVacancyAttachmentData = {
+    body: RenameAttachmentDto;
+    path: {
+        fileId: string;
+        magistratId: string;
+    };
+    query?: never;
+    url: '/api/veille-des-postes/v1/titulaires/{magistratId}/vacance/pieces-jointes/{fileId}';
+};
+
+export type RenamePositionVacancyAttachmentResponses = {
+    204: void;
+};
+
+export type RenamePositionVacancyAttachmentResponse = RenamePositionVacancyAttachmentResponses[keyof RenamePositionVacancyAttachmentResponses];
+
 export type ListMagistratNominationFilesData = {
     body?: never;
     path: {
@@ -6123,80 +6368,3 @@ export type ChangeFeedbackStatusResponses = {
 };
 
 export type ChangeFeedbackStatusResponse = ChangeFeedbackStatusResponses[keyof ChangeFeedbackStatusResponses];
-
-export type ListCourtOfAppealFirstPresidentsData = {
-    body?: never;
-    path?: never;
-    query?: {
-        alerts?: Array<'RETIREMENT' | 'SEVEN_YEARS_ON_POSITION' | 'PROPOSED_IN_SESSION'>;
-        deadlines?: Array<'WITHIN_SIX_MONTHS' | 'WITHIN_TWELVE_MONTHS'>;
-        search?: string;
-        statuses?: Array<'OCCUPIED' | 'MAY_BECOME_VACANT' | 'VACANT'>;
-        sortBy?: 'court' | 'installationDate' | 'name' | 'status';
-        /**
-         * true
-         */
-        sortDesc?: string | boolean;
-        page?: number;
-        limit?: number;
-    };
-    url: '/api/veille-des-postes/v1/cours-d-appel';
-};
-
-export type ListCourtOfAppealFirstPresidentsResponses = {
-    200: ListedCourtOfAppealFirstPresidentsDto;
-};
-
-export type ListCourtOfAppealFirstPresidentsResponse = ListCourtOfAppealFirstPresidentsResponses[keyof ListCourtOfAppealFirstPresidentsResponses];
-
-export type ListCourtOfCassationHoldersData = {
-    body?: never;
-    path?: never;
-    query?: {
-        alerts?: Array<'RETIREMENT' | 'SEVEN_YEARS_ON_POSITION' | 'PROPOSED_IN_SESSION'>;
-        deadlines?: Array<'WITHIN_SIX_MONTHS' | 'WITHIN_TWELVE_MONTHS'>;
-        search?: string;
-        statuses?: Array<'OCCUPIED' | 'MAY_BECOME_VACANT' | 'VACANT'>;
-        positions?: Array<'FIRST_PRESIDENT' | 'CHAMBER_PRESIDENT' | 'COUNSELLOR' | 'REFERENDARY_COUNSELLOR' | 'AUDITOR_SECOND_GRADE' | 'AUDITOR_FIRST_GRADE'>;
-        sortBy?: 'installationDate' | 'name' | 'status';
-        /**
-         * true
-         */
-        sortDesc?: string | boolean;
-        page?: number;
-        limit?: number;
-    };
-    url: '/api/veille-des-postes/v1/cour-de-cassation';
-};
-
-export type ListCourtOfCassationHoldersResponses = {
-    200: ListedCourtOfCassationHoldersDto;
-};
-
-export type ListCourtOfCassationHoldersResponse = ListCourtOfCassationHoldersResponses[keyof ListCourtOfCassationHoldersResponses];
-
-export type ListJudicialCourtPresidentsData = {
-    body?: never;
-    path?: never;
-    query?: {
-        alerts?: Array<'RETIREMENT' | 'SEVEN_YEARS_ON_POSITION' | 'PROPOSED_IN_SESSION'>;
-        deadlines?: Array<'WITHIN_SIX_MONTHS' | 'WITHIN_TWELVE_MONTHS'>;
-        search?: string;
-        statuses?: Array<'OCCUPIED' | 'MAY_BECOME_VACANT' | 'VACANT'>;
-        ressorts?: Array<string>;
-        sortBy?: 'court' | 'installationDate' | 'name' | 'ressort' | 'status';
-        /**
-         * true
-         */
-        sortDesc?: string | boolean;
-        page?: number;
-        limit?: number;
-    };
-    url: '/api/veille-des-postes/v1/tribunaux-judiciaires';
-};
-
-export type ListJudicialCourtPresidentsResponses = {
-    200: ListedJudicialCourtPresidentsDto;
-};
-
-export type ListJudicialCourtPresidentsResponse = ListJudicialCourtPresidentsResponses[keyof ListJudicialCourtPresidentsResponses];

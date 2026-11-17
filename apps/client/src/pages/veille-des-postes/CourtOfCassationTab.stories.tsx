@@ -4,12 +4,15 @@ import { useState } from 'react';
 import { Outlet, Route, Routes } from 'react-router';
 
 import {
+  positionVacancyHandlers,
   storyCountOf,
   storyCounts,
   storyHolderOf,
 } from '@/features/veille-des-postes/components/veille-des-postes.story-fixtures';
 import { PinnedHeader } from '@/shared/components/pinned-header';
+import { ConfirmModalProvider } from '@/shared/context/confirm-modal';
 import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
+import { ToastProvider } from '@/shared/ui/toast';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import type { ListedCourtOfCassationHoldersDto } from '@api/types';
 import type { CourtOfCassationPosition } from '@queries/veille-des-postes.queries';
@@ -27,6 +30,16 @@ const POSITIONS = [
   { id: 'AUDITOR_SECOND_GRADE', label: 'Auditeurs 2e grade' },
   { id: 'AUDITOR_FIRST_GRADE', label: 'Auditeurs 1er grade' },
 ] as const satisfies readonly { id: CourtOfCassationPosition; label: string }[];
+
+/** one holder of each position titled like the API does */
+const HOLDER_TITLES = [
+  'Premier président à la Cour de cassation',
+  'Président de chambre à la Cour de cassation',
+  'Conseiller à la Cour de cassation',
+  'Conseiller référendaire à la Cour de cassation',
+  'Auditeur 2e grade à la Cour de cassation',
+  'Auditeur 1er grade à la Cour de cassation',
+];
 
 const HOLDERS_PER_POSITION = [1, 4, 28, 20, 5, 6];
 const LAST_NAMES = [
@@ -72,6 +85,7 @@ const HOLDERS: Holder[] = HOLDERS_PER_POSITION.flatMap((count, rank) =>
     magistrat: {
       id: `${rank}-${index}`,
       name: `${LAST_NAMES[(index + rank * 5) % LAST_NAMES.length]} ${FIRST_NAMES[(index * 3 + rank) % FIRST_NAMES.length]}`,
+      title: HOLDER_TITLES[rank]!,
     },
     positionId: POSITIONS[rank]!.id,
     service:
@@ -111,21 +125,29 @@ function VeilleHeader() {
   const [titleSlot, setTitleSlot] = useState<HTMLSpanElement | null>(null);
 
   return (
-    <PinnedHeader
-      bar={(isPinned) => (
-        <div className="fr-container flex flex-col gap-y-4">
-          <h1 className="fr-h3 fr-mb-0">
-            Veille des postes
-            {isPinned && <span ref={setTitleSlot} />}
-          </h1>
-          <div className="min-h-10" ref={setFiltersSlot} />
-        </div>
-      )}
-      barClassName="fr-pt-6v"
-      contentClassName="fr-container fr-mt-6v fr-mb-8v"
-    >
-      <Outlet context={{ filtersSlot, titleSlot } satisfies VeilleDesPostesOutletContext} />
-    </PinnedHeader>
+    <ToastProvider>
+      <ConfirmModalProvider>
+        <PinnedHeader
+          bar={(isPinned) => (
+            <div className="fr-container flex flex-col gap-y-4">
+              <h1 className="fr-h3 fr-mb-0">
+                Veille des postes
+                {isPinned && <span ref={setTitleSlot} />}
+              </h1>
+              <div className="min-h-10" ref={setFiltersSlot} />
+            </div>
+          )}
+          barClassName="fr-pt-6v"
+          contentClassName="fr-container fr-mt-6v fr-mb-8v"
+        >
+          <Outlet
+            context={
+              { filtersSlot, onSidePanelToggle: () => {}, titleSlot } satisfies VeilleDesPostesOutletContext
+            }
+          />
+        </PinnedHeader>
+      </ConfirmModalProvider>
+    </ToastProvider>
   );
 }
 
@@ -146,7 +168,7 @@ function CourtOfCassationHoldersStory() {
 
 const meta = {
   beforeEach: ({ msw }) => {
-    msw.use(holdersHandler);
+    msw.use(holdersHandler, ...positionVacancyHandlers(HOLDERS));
   },
   component: CourtOfCassationHoldersStory,
   parameters: {

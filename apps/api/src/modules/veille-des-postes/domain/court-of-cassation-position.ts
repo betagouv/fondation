@@ -61,6 +61,22 @@ export function rankedLolfiPositions(): RankedLolfiPositions {
   };
 }
 
+export function courtOfCassationPositionOf(lolfi: {
+  functionId: string | null;
+  gradeId: string;
+}): CourtOfCassationPosition | null {
+  return (
+    COURT_OF_CASSATION_POSITIONS.find((position) => {
+      const { functionIds, gradeIds } = LOLFI_POSITIONS[position];
+      return (
+        lolfi.functionId !== null &&
+        functionIds.includes(lolfi.functionId) &&
+        (gradeIds === null || gradeIds.includes(lolfi.gradeId))
+      );
+    }) ?? null
+  );
+}
+
 export function courtOfCassationPositionOfRank(rank: number): CourtOfCassationPosition {
   return COURT_OF_CASSATION_POSITIONS[rank]!;
 }

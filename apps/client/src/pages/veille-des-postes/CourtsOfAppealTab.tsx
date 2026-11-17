@@ -5,7 +5,13 @@ import { CourtOfAppealFirstPresidentsTable } from '@/features/veille-des-postes/
 import type { VeilleDesPostesOutletContext } from './veille-des-postes-outlet-context.type';
 
 export function CourtsOfAppealTab() {
-  const { filtersSlot, titleSlot } = useOutletContext<VeilleDesPostesOutletContext>();
+  const { filtersSlot, onSidePanelToggle, titleSlot } = useOutletContext<VeilleDesPostesOutletContext>();
 
-  return <CourtOfAppealFirstPresidentsTable filtersSlot={filtersSlot} titleSlot={titleSlot} />;
+  return (
+    <CourtOfAppealFirstPresidentsTable
+      filtersSlot={filtersSlot}
+      onSidePanelToggle={onSidePanelToggle}
+      titleSlot={titleSlot}
+    />
+  );
 }

@@ -8,11 +8,13 @@ WITH holder AS (
   SELECT DISTINCT ON (p.jurisdiction_id)
     m.id,
     m.birth_date,
+    m.civilite,
     m.first_name,
     m.installation_date,
     m.last_name,
     m.married_name,
     m."search",
+    p.id AS position_id,
     p.jurisdiction_id
   FROM data_administration_context.magistrat AS m
     INNER JOIN data_administration_context."position" AS p
@@ -22,18 +24,26 @@ WITH holder AS (
   ORDER BY p.jurisdiction_id, m.nomination_date DESC NULLS LAST, m.installation_date DESC NULLS LAST, m.id
 )
 
--- TypedSQL ignores the LEFT JOIN: the cast types the id as nullable, the names are null whenever it is
+-- TypedSQL ignores the LEFT JOINs: the cast types the id as nullable, the names are null whenever it is, and
+-- NULLIF types the reason and the date of the vacancy as nullable
 SELECT
   j.codejur AS "courtId",
   j.libelle AS "courtLabel",
   h.id::TEXT AS id,
   h.birth_date AS "birthDate",
+  h.civilite AS civility,
   h.first_name AS "firstName",
   h.installation_date AS "installationDate",
   h.last_name AS "lastName",
-  h.married_name AS "marriedName"
+  h.married_name AS "marriedName",
+  NULLIF(pv.reason, NULL) AS "vacancyReason",
+  pv.reason_detail AS "vacancyReasonDetail",
+  NULLIF(pv.start_date, NULL) AS "vacancyStartDate"
 FROM data_administration_context.jurisdictions AS j
   LEFT JOIN holder AS h ON h.jurisdiction_id = j.codejur
+  -- a vacancy declared on another position of the magistrat lapsed when LOLFI moved them
+  LEFT JOIN nominations_context.position_vacancy AS pv
+    ON pv.magistrat_id = h.id AND pv.position_id = h.position_id
 
 WHERE (
   j.type_jur = $1::TEXT

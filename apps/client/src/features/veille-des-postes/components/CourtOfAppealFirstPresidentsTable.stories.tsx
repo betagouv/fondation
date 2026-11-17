@@ -3,11 +3,13 @@ import { http, HttpResponse } from 'msw';
 import { useState } from 'react';
 
 import { PinnedHeader } from '@/shared/components/pinned-header';
+import { ConfirmModalProvider } from '@/shared/context/confirm-modal';
 import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
+import { ToastProvider } from '@/shared/ui/toast';
 import type { ListedCourtOfAppealFirstPresidentsDto } from '@api/types';
 
 import { CourtOfAppealFirstPresidentsTable } from './CourtOfAppealFirstPresidentsTable';
-import { storyCounts, storyHolderOf } from './veille-des-postes.story-fixtures';
+import { positionVacancyHandlers, storyCounts, storyHolderOf } from './veille-des-postes.story-fixtures';
 
 type CourtOfAppeal = ListedCourtOfAppealFirstPresidentsDto['items'][number];
 
@@ -82,6 +84,7 @@ const COURTS_OF_APPEAL: CourtOfAppeal[] = COURTS.map((label, index) =>
         magistrat: {
           id: `magistrat-${index}`,
           name: `${LAST_NAMES[index % LAST_NAMES.length]} ${FIRST_NAMES[index % FIRST_NAMES.length]}`,
+          title: `Premier président de la ${label.charAt(0).toLowerCase()}${label.slice(1)}`,
         },
       },
 );
@@ -112,28 +115,36 @@ function CourtOfAppealFirstPresidentsStory() {
 
   return (
     <StoryQueryClient>
-      <PinnedHeader
-        bar={(isPinned) => (
-          <div className="fr-container flex flex-col gap-y-4">
-            <h1 className="fr-h3 fr-mb-0">
-              Veille des postes
-              {isPinned && <span ref={setTitleSlot} />}
-            </h1>
-            <div className="min-h-10" ref={setFiltersSlot} />
-          </div>
-        )}
-        barClassName="fr-pt-6v"
-        contentClassName="fr-container fr-mt-6v fr-mb-8v"
-      >
-        <CourtOfAppealFirstPresidentsTable filtersSlot={filtersSlot} titleSlot={titleSlot} />
-      </PinnedHeader>
+      <ToastProvider>
+        <ConfirmModalProvider>
+          <PinnedHeader
+            bar={(isPinned) => (
+              <div className="fr-container flex flex-col gap-y-4">
+                <h1 className="fr-h3 fr-mb-0">
+                  Veille des postes
+                  {isPinned && <span ref={setTitleSlot} />}
+                </h1>
+                <div className="min-h-10" ref={setFiltersSlot} />
+              </div>
+            )}
+            barClassName="fr-pt-6v"
+            contentClassName="fr-container fr-mt-6v fr-mb-8v"
+          >
+            <CourtOfAppealFirstPresidentsTable
+              filtersSlot={filtersSlot}
+              onSidePanelToggle={() => {}}
+              titleSlot={titleSlot}
+            />
+          </PinnedHeader>
+        </ConfirmModalProvider>
+      </ToastProvider>
     </StoryQueryClient>
   );
 }
 
 const meta = {
   beforeEach: ({ msw }) => {
-    msw.use(courtsHandler);
+    msw.use(courtsHandler, ...positionVacancyHandlers(COURTS_OF_APPEAL));
   },
   component: CourtOfAppealFirstPresidentsStory,
   parameters: {

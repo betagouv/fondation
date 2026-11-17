@@ -14,13 +14,14 @@ import {
   COURT_OF_CASSATION_POSITIONS,
   courtOfCassationPositionOfRank,
   courtOfCassationPositions,
-  type CourtOfCassationPosition,
   HOLDER_SERVICES,
   holderServiceOf,
   rankedLolfiPositions,
+  type CourtOfCassationPosition,
 } from '../../domain/court-of-cassation-position';
+import { civilityOf, courtOfCassationHolderTitle } from '../../domain/holder-title';
 import { type AlertDeadline, alertRulesOf, alertsOf, type PositionAlert } from '../../domain/position-alert';
-import { POSITION_STATUSES, type PositionStatus, positionStatusOf } from '../../domain/position-status';
+import { type PositionStatus, positionStatusOf } from '../../domain/position-status';
 import { sortedByUrgency } from '../../domain/position-urgency';
 import type { ListCourtOfCassationHoldersDto } from '../dtos/veille-des-postes.dto';
 import { facetedRows } from '../faceted-rows';
@@ -29,6 +30,7 @@ import {
   alertJson,
   countedStatusAndAlertFacets,
   holderAlertSchema,
+  positionStatusSchema,
   statusAndAlertFacetsSchema,
   statusAndAlertValues,
 } from '../holder-alerts';
@@ -69,7 +71,17 @@ export class ListCourtOfCassationHoldersQuery {
 
     const rows = holders.map((holder) => {
       const positionId = courtOfCassationPositionOfRank(holder.rank!);
+      const service = holderServiceOf(holder.functionId);
       const installationDate = DateOnly.fromOptionalUtcDate(holder.installationDate);
+      const vacancyStartDate = DateOnly.fromOptionalUtcDate(holder.vacancyStartDate);
+      const vacancy =
+        holder.vacancyReason && vacancyStartDate
+          ? {
+              reason: holder.vacancyReason,
+              reasonDetail: holder.vacancyReasonDetail,
+              startDate: vacancyStartDate,
+            }
+          : null;
       const alerts = alertsOf(
         {
           birthDate: DateOnly.fromOptionalUtcDate(holder.birthDate),
@@ -82,10 +94,19 @@ export class ListCourtOfCassationHoldersQuery {
       return {
         alerts,
         installationDate: installationDate?.toJson() ?? null,
-        magistrat: { id: holder.id, name: magistratFullName(holder) },
+        magistrat: {
+          id: holder.id,
+          name: magistratFullName(holder),
+          title: courtOfCassationHolderTitle({
+            civility: civilityOf(holder.civility),
+            position: positionId,
+            service: service.id,
+          }),
+        },
         positionId,
-        service: holderServiceOf(holder.functionId),
-        status: positionStatusOf({ alertCount: alerts.length, held: true }),
+        service,
+        status: positionStatusOf({ alertCount: alerts.length, held: true, vacancy }, today),
+        vacancyStartDate,
       };
     });
 
@@ -130,9 +151,13 @@ export class ListedCourtOfCassationHoldersDto extends createPaginatedZodDto(
   z.object({
     alerts: z.array(holderAlertSchema),
     installationDate: dateOnlyJsonSchema.nullable(),
-    magistrat: z.object({ id: z.string(), name: z.string() }),
+    magistrat: z.object({
+      id: z.string(),
+      name: z.string(),
+      title: z.string(),
+    }),
     service: z.object({ id: z.enum(HOLDER_SERVICES), label: z.string() }),
-    status: z.object({ id: z.enum(POSITION_STATUSES), label: z.string() }),
+    status: positionStatusSchema,
   }),
   statusAndAlertFacetsSchema.extend({
     positions: z.array(

@@ -11,6 +11,7 @@ import { API_CONFIG_TOKEN, ApiConfig } from '../../../framework/config';
 import { Db } from '../../../framework/database';
 import { Tchap } from '../../../framework/tchap';
 import { TransparenceService } from '../../../session/transparence/infrastructure/transparence.service';
+import { VeilleDesPostesInternalService } from '../../../veille-des-postes/veille-des-postes-internal.service';
 import { incompleteTransparenceReason } from '../../domain/incomplete-transparence';
 import { dag } from '../../domain/requirements';
 import {
@@ -57,6 +58,8 @@ export class LolfiFilesIngestor {
     private readonly anomalies: TransparenceAnomaliesRepository,
     @Inject(forwardRef(() => TransparenceService))
     private readonly sessions: TransparenceService,
+    @Inject(forwardRef(() => VeilleDesPostesInternalService))
+    private readonly veilleDesPostes: VeilleDesPostesInternalService,
   ) {
     this.frontendOriginUrl = config.frontendOriginUrl;
   }
@@ -72,6 +75,8 @@ export class LolfiFilesIngestor {
         return { success };
       }
 
+      // before the job reads as succeeded: whoever waits for it finds the vacancies cleaned
+      await this.deleteLapsedPositionVacancies();
       await this.succeedJob(jobId);
       await this.synchroniseSessions(jobId);
 
@@ -84,6 +89,16 @@ export class LolfiFilesIngestor {
       await this.failJob(jobId, e);
       return { success: false };
     }
+  }
+
+  private async deleteLapsedPositionVacancies(): Promise<void> {
+    await this.db
+      .withTransaction(() => this.veilleDesPostes.internalDeleteLapsedPositionVacancies())
+      .then((count) => count > 0 && this.logger.log(`${count} lapsed position vacancies deleted`))
+      .catch((error) => {
+        this.logger.error(`error while deleting the lapsed position vacancies`, error);
+        Sentry.captureException(error);
+      });
   }
 
   private async synchroniseSessions(jobId: number): Promise<void> {

@@ -110,8 +110,9 @@ export function SidePanel(props: {
       id={id}
       inert={!open}
       onKeyDown={(event) => {
-        if (event.key === 'Escape') onClose();
-        else if (event.key === 'Tab') trapTab(event);
+        if (event.key === 'Escape') {
+          if (!disableClose) onClose();
+        } else if (event.key === 'Tab') trapTab(event);
       }}
       ref={panelRef}
       role="dialog"

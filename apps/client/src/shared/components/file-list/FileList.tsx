@@ -15,7 +15,7 @@ export function FileList(props: { 'aria-labelledby'?: string; children: ReactNod
     <CurrentUserIdContext value={user?.id}>
       <ul
         aria-labelledby={props['aria-labelledby']}
-        className="fr-m-0 fr-p-0 list-none divide-y divide-(--border-default-grey) border-y border-(--border-default-grey)"
+        className="fr-m-0 fr-p-0 list-none divide-y divide-(--border-default-grey)"
       >
         {props.children}
       </ul>
