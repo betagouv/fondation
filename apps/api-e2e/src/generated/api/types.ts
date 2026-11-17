@@ -2624,10 +2624,16 @@ export type FoundPositionVacancyDto = {
         label: string;
         shortLabel: string;
     }>;
+    detailMaxLength: number;
     reasons: Array<{
         id: 'DISCHARGE' | 'DEATH' | 'DISCIPLINARY_DISMISSAL' | 'RETIREMENT' | 'STRIKING_OFF' | 'OTHER';
         label: string;
+        detailRequired: boolean;
     }>;
+    startDateRange: {
+        max: string;
+        min: string;
+    };
     status: {
         detail: string | null;
         hint: string | null;

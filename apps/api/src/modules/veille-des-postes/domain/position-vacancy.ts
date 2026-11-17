@@ -1,6 +1,6 @@
 import type { DateOnly } from '../../../utils/date-only';
 
-/** in the order of the specification, which the form follows */
+/** in the order of the specification: the form follows it */
 export const VACANCY_REASONS = [
   'DISCHARGE',
   'DEATH',
@@ -11,8 +11,11 @@ export const VACANCY_REASONS = [
 ] as const;
 export type VacancyReason = (typeof VACANCY_REASONS)[number];
 
-/** shown whole in the side panel, and on hover in the tables */
+/** shown whole in the side panel and on hover in the tables */
 export const REASON_DETAIL_MAX_LENGTH = 300;
+
+/** a date out of these is a typing slip: the field saves once left, even on "05/01/02" */
+export const VACANCY_START_DATE_RANGE = { max: '2100-12-31', min: '2000-01-01' };
 
 const REASON_LABELS: Record<VacancyReason, string> = {
   DEATH: 'Décès',
@@ -27,13 +30,18 @@ export function vacancyReasonOf(id: VacancyReason): { id: VacancyReason; label: 
   return { id, label: REASON_LABELS[id] };
 }
 
-export function vacancyReasons(): { id: VacancyReason; label: string }[] {
-  return VACANCY_REASONS.map(vacancyReasonOf);
+/** only "other" says nothing by itself */
+export function isDetailRequired(reason: VacancyReason): boolean {
+  return reason === 'OTHER';
+}
+
+export function vacancyReasons(): { detailRequired: boolean; id: VacancyReason; label: string }[] {
+  return VACANCY_REASONS.map((id) => ({ ...vacancyReasonOf(id), detailRequired: isDetailRequired(id) }));
 }
 
 /**
- * a vacancy holds while LOLFI keeps its magistrat, active, on its position. LOLFI sends the position as text,
- * read as a number like the queries do: "0123" is the position 123
+ * a vacancy holds while LOLFI keeps its magistrat active on its position. LOLFI sends the position as text,
+ * read here as a number like the queries do: "0123" is the position 123
  */
 export function hasLapsed(
   vacancy: { positionId: number },
@@ -111,7 +119,7 @@ export class PositionVacancy {
     return new PositionVacancy(props.magistratId, props.positionId, props.attachmentIds);
   }
 
-  /** declaring again replaces the reason and the date, the attachments add up */
+  /** declaring again replaces the reason and the date: the attachments add up */
   declare(command: {
     authorId: string;
     fileIds: readonly string[];
@@ -120,7 +128,7 @@ export class PositionVacancy {
     startDate: DateOnly;
   }): void {
     const reasonDetail = command.reasonDetail?.trim() || null;
-    if (command.reason === 'OTHER' && !reasonDetail) throw new MissingReasonDetail();
+    if (isDetailRequired(command.reason) && !reasonDetail) throw new MissingReasonDetail();
 
     this.#messages.push(
       new PositionVacancyDeclared(
@@ -129,7 +137,7 @@ export class PositionVacancy {
         this.magistratId,
         this.positionId,
         command.reason,
-        command.reason === 'OTHER' ? reasonDetail : null,
+        isDetailRequired(command.reason) ? reasonDetail : null,
         command.startDate,
       ),
     );

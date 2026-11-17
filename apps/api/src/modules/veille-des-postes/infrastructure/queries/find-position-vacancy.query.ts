@@ -9,7 +9,13 @@ import { writerOf, writerSchema } from '../../../../utils/user.util';
 import { Db } from '../../../framework/database';
 import { alertRulesOf, alertsOf } from '../../domain/position-alert';
 import { positionStatusOf } from '../../domain/position-status';
-import { VACANCY_REASONS, vacancyReasonOf, vacancyReasons } from '../../domain/position-vacancy';
+import {
+  REASON_DETAIL_MAX_LENGTH,
+  VACANCY_REASONS,
+  VACANCY_START_DATE_RANGE,
+  vacancyReasonOf,
+  vacancyReasons,
+} from '../../domain/position-vacancy';
 import { HeldPositionFinder } from '../finders/held-position.finder';
 import { HolderProposalsFinder } from '../finders/holder-proposals.finder';
 import { alertJson, holderAlertSchema, positionStatusSchema } from '../holder-alerts';
@@ -62,9 +68,11 @@ export class FindPositionVacancyQuery {
     );
 
     return {
-      // as the tables give them, which a filter may no longer list once the status changed
+      // as the tables give them: a filter may leave the row out once the status changed
       alerts: alerts.map(alertJson),
+      detailMaxLength: REASON_DETAIL_MAX_LENGTH,
       reasons: vacancyReasons(),
+      startDateRange: VACANCY_START_DATE_RANGE,
       status: positionStatusOf(
         {
           alertCount: alerts.length,
@@ -100,7 +108,9 @@ const vacancyReasonSchema = z.object({ id: z.enum(VACANCY_REASONS), label: z.str
 export class FoundPositionVacancyDto extends createZodDto(
   z.object({
     alerts: z.array(holderAlertSchema),
-    reasons: z.array(vacancyReasonSchema),
+    detailMaxLength: z.number().int(),
+    reasons: z.array(vacancyReasonSchema.extend({ detailRequired: z.boolean() })),
+    startDateRange: z.object({ max: z.iso.date(), min: z.iso.date() }),
     status: positionStatusSchema,
     /** null while the status is the one computed from LOLFI */
     vacancy: z

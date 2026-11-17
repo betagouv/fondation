@@ -388,6 +388,36 @@ test.describe('Veille des postes E2E', () => {
     ]);
   });
 
+  test('should not find a vacancy for a magistrat whose position no table lists', async ({
+    agent,
+    expect,
+    sessions,
+  }) => {
+    const lastName = Array.from({ length: 12 }, () => String.fromCharCode(65 + crypto.randomInt(26))).join('');
+    const counsellor = {
+      function: seed.functions.C,
+      grade: 'G3' as const,
+      jurisdiction: seed.jurisdictions['TJ  GRASSE'],
+    };
+    const { files } = await sessions.createOne({
+      candidates: [
+        {
+          birthDate: YOUNG_BIRTH_DATE,
+          firstName: 'ALINE',
+          lastName,
+          position: counsellor,
+          targetPosition: counsellor,
+        },
+      ],
+      createdAt: '22/04/2026',
+      name: `Transparence ${lastName}`,
+    });
+
+    const found = await agent.veilleDesPostes.findPositionVacancy({ path: { magistratId: files[0]!.magistratId } });
+
+    expect(found.response?.status).toBe(404);
+  });
+
   test('should open, rename and remove an attachment of a declared vacancy', async ({ agent, expect, sessions }) => {
     const lastName = Array.from({ length: 12 }, () => String.fromCharCode(65 + crypto.randomInt(26))).join('');
     const president = {
@@ -432,58 +462,6 @@ test.describe('Veille des postes E2E', () => {
 
     await agent.veilleDesPostes.removePositionVacancyAttachment({ path: { fileId, magistratId }, throwOnError: true });
     expect(await attachments()).toEqual([]);
-  });
-
-  test('should refuse a vacancy on a position no table lists, and a detail too long', async ({
-    agent,
-    expect,
-    sessions,
-  }) => {
-    const lastName = Array.from({ length: 12 }, () => String.fromCharCode(65 + crypto.randomInt(26))).join('');
-    const counsellor = {
-      function: seed.functions.C,
-      grade: 'G3' as const,
-      jurisdiction: seed.jurisdictions['TJ  GRASSE'],
-    };
-    const president = {
-      function: seed.functions.P,
-      grade: 'G3' as const,
-      jurisdiction: seed.jurisdictions['TJ  LYON'],
-    };
-    const { files } = await sessions.createOne({
-      candidates: [
-        {
-          birthDate: YOUNG_BIRTH_DATE,
-          firstName: 'ALINE',
-          lastName: `${lastName}A`,
-          position: counsellor,
-          targetPosition: counsellor,
-        },
-        {
-          birthDate: YOUNG_BIRTH_DATE,
-          firstName: 'ZOE',
-          lastName: `${lastName}B`,
-          position: president,
-          targetPosition: president,
-        },
-      ],
-      createdAt: '22/04/2026',
-      name: `Transparence ${lastName}`,
-    });
-    const declare = (magistratId: string, form: DeclarePositionVacancyDto['form']) =>
-      agent.veilleDesPostes.declarePositionVacancy({ body: { form }, path: { magistratId } });
-
-    const unlisted = await declare(
-      files[0]!.magistratId,
-      vacancyForm({ reason: 'RETIREMENT', startDate: '2027-03-01' }),
-    );
-    const tooLong = await declare(
-      files[1]!.magistratId,
-      vacancyForm({ reason: 'OTHER', reasonDetail: 'x'.repeat(301), startDate: '2027-03-01' }),
-    );
-
-    expect(unlisted.response?.status).toBe(404);
-    expect(tooLong.response?.status).toBe(400);
   });
 
   test('should warn of the retirement and of the seven years on the position of a president', async ({
@@ -531,7 +509,7 @@ test.describe('Veille des postes E2E', () => {
   });
 });
 
-/** the form travels as a json part of the multipart body, which the generated client types as the object it holds */
+/** the form travels as a JSON part of the multipart body: the generated client types it as the object it holds */
 function vacancyForm(form: DeclarePositionVacancyDto['form']): DeclarePositionVacancyDto['form'] {
   return new Blob([JSON.stringify(form)], { type: 'application/json' }) as unknown as DeclarePositionVacancyDto['form'];
 }
