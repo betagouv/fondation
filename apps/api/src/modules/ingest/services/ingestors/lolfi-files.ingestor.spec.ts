@@ -13,7 +13,7 @@ vi.mock('@sentry/node', async (importOriginal) => ({
 }));
 
 /** the cleanup is private: an import reaches it only through a whole run */
-function deleteLapsedPositionVacanciesOf(veilleDesPostes: VeilleDesPostesInternalService): Promise<void> {
+function deleteLapsedVacanciesAndCommentsOf(veilleDesPostes: VeilleDesPostesInternalService): Promise<void> {
   const db = mock<Db>();
   // withTransaction has overloads: the ingestor uses the one with the callback only
   db.withTransaction.mockImplementation(((run: () => Promise<unknown>) => run()) as never);
@@ -39,8 +39,8 @@ function deleteLapsedPositionVacanciesOf(veilleDesPostes: VeilleDesPostesInterna
     veilleDesPostes,
   );
   return (
-    ingestor as unknown as { deleteLapsedPositionVacancies: () => Promise<void> }
-  ).deleteLapsedPositionVacancies();
+    ingestor as unknown as { deleteLapsedVacanciesAndComments: () => Promise<void> }
+  ).deleteLapsedVacanciesAndComments();
 }
 
 describe('LolfiFilesIngestor', () => {
@@ -49,9 +49,9 @@ describe('LolfiFilesIngestor', () => {
   it('reports a failed cleanup of the lapsed vacancies, without failing the import', async () => {
     const error = new Error('the database went away');
     const veilleDesPostes = mock<VeilleDesPostesInternalService>();
-    veilleDesPostes.internalDeleteLapsedPositionVacancies.mockRejectedValue(error);
+    veilleDesPostes.internalDeleteLapsedVacanciesAndComments.mockRejectedValue(error);
 
-    await expect(deleteLapsedPositionVacanciesOf(veilleDesPostes)).resolves.toBeUndefined();
+    await expect(deleteLapsedVacanciesAndCommentsOf(veilleDesPostes)).resolves.toBeUndefined();
 
     expect(Sentry.captureException).toHaveBeenCalledWith(error);
   });

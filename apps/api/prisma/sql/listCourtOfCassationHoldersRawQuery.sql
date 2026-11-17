@@ -15,11 +15,12 @@ WITH ranked_position AS (
   FROM UNNEST($2::TEXT[], $3::TEXT[], $4::INT[]) AS r (function_id, grade_id, rank)
 )
 
--- TypedSQL ignores the LEFT JOIN: NULLIF types the reason and the date of the vacancy as nullable
+-- TypedSQL ignores the LEFT JOINs: NULLIF types the comment, the reason and the date of the vacancy as nullable
 SELECT
   m.id,
   m.birth_date AS "birthDate",
   m.civilite AS civility,
+  NULLIF(pc.comment, NULL) AS comment,
   m.first_name AS "firstName",
   m.installation_date AS "installationDate",
   m.last_name AS "lastName",
@@ -37,6 +38,8 @@ FROM data_administration_context.magistrat AS m
   -- a vacancy declared on another position of the magistrat lapsed when LOLFI moved them
   LEFT JOIN nominations_context.position_vacancy AS pv
     ON pv.magistrat_id = m.id AND pv.position_id = p.id
+  LEFT JOIN nominations_context.position_comment AS pc
+    ON pc.magistrat_id = m.id AND pc.position_id = p.id
 
 WHERE (
   m.status = 'ACTIVE'

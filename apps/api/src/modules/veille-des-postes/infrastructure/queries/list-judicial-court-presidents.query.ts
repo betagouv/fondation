@@ -12,6 +12,7 @@ import { magistratFullName } from '../../../magistrat/domain/magistrat-name';
 import { civilityOf, judicialCourtPresidentTitle } from '../../domain/holder-title';
 import { JUDICIAL_COURT_TYPE_ID, PRESIDENT_FUNCTION_ID } from '../../domain/judicial-court-president';
 import { type AlertDeadline, alertRulesOf, alertsOf, type PositionAlert } from '../../domain/position-alert';
+import { commentPreviewOf } from '../../domain/position-comment';
 import { type PositionStatus, positionStatusOf } from '../../domain/position-status';
 import { sortedByUrgency } from '../../domain/position-urgency';
 import type { ListJudicialCourtPresidentsDto } from '../dtos/veille-des-postes.dto';
@@ -87,8 +88,10 @@ export class ListJudicialCourtPresidentsQuery {
         installationDate: installationDate?.toJson() ?? null,
         magistrat: court.id
           ? {
+              commentPreview: commentPreviewOf(court.comment),
               id: court.id,
               name: magistratFullName(court),
+
               title: judicialCourtPresidentTitle({
                 civility: civilityOf(court.civility),
                 courtLabel: court.courtLabel ?? court.courtId,
@@ -147,8 +150,10 @@ export class ListedJudicialCourtPresidentsDto extends createPaginatedZodDto(
     installationDate: dateOnlyJsonSchema.nullable(),
     magistrat: z
       .object({
+        commentPreview: z.string().nullable(),
         id: z.string(),
         name: z.string(),
+
         title: z.string(),
       })
       .nullable(),

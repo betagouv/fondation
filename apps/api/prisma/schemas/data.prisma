@@ -95,6 +95,7 @@ model Position {
   candidateWishes           CandidateWish[]
   nominationsTargeting      Nomination[]          @relation("targetPositionFk")
   nominationsCurrent        Nomination[]          @relation("currentPositionFk")
+  comments                  PositionComment[]
   detectedInNominationFiles DossierDeNomination[]
   vacancies                 PositionVacancy[]
 
@@ -233,6 +234,7 @@ model Magistrat {
   nominations                 Nomination[]
   detectedInNominationFiles   DossierDeNomination[]
   phoneNumbers                MagistratPhoneNumber[]
+  positionComments            PositionComment[]
   positionVacancies           PositionVacancy[]
 
   search Unsupported("tsvector")? @default(dbgenerated("((((setweight(to_tsvector('unaccent_simple'::regconfig, lower(COALESCE(first_name, ''::text))), 'A'::\"char\") || setweight(to_tsvector('unaccent_simple'::regconfig, lower(COALESCE(used_name, ''::text))), 'A'::\"char\")) || setweight(to_tsvector('unaccent_simple'::regconfig, lower(COALESCE(last_name, ''::text))), 'B'::\"char\")) || setweight(to_tsvector('unaccent_simple'::regconfig, lower(COALESCE(married_name, ''::text))), 'B'::\"char\")) || setweight(to_tsvector('unaccent_simple'::regconfig, lower(COALESCE(professional_email, ''::text))), 'C'::\"char\"))"))

@@ -162,7 +162,7 @@ test.describe('Veille des postes E2E', () => {
         ],
         court: { id: 'CA  LYON', label: "Cour d'appel de Lyon" },
         installationDate: dateOnlyIn(TWO_YEARS_AGO),
-        magistrat: { id: expect.any(String), name: `${lastName} Zoe`, title: expect.any(String) },
+        magistrat: { commentPreview: null, id: expect.any(String), name: `${lastName} Zoe`, title: expect.any(String) },
         status: { detail: null, hint: null, id: 'MAY_BECOME_VACANT', label: 'Susceptible de devenir vacant' },
       },
     ]);
@@ -210,7 +210,7 @@ test.describe('Veille des postes E2E', () => {
         ],
         court: { id: 'TJ  GRASSE', label: 'Tribunal judiciaire de Grasse' },
         installationDate: dateOnlyIn(TWO_YEARS_AGO),
-        magistrat: { id: expect.any(String), name: `${lastName} Zoe`, title: expect.any(String) },
+        magistrat: { commentPreview: null, id: expect.any(String), name: `${lastName} Zoe`, title: expect.any(String) },
         // the archive of the test labels a court of appeal only met as a ressort with its code
         ressort: { id: 'CA  AIX EN PROVENCE', label: expect.any(String) },
         status: { detail: null, hint: null, id: 'MAY_BECOME_VACANT', label: 'Susceptible de devenir vacant' },
@@ -363,7 +363,12 @@ test.describe('Veille des postes E2E', () => {
           expect.objectContaining({ id: 'PROPOSED_IN_SESSION', shortLabel: 'Proposé en session du 22/04/2026' }),
         ],
         installationDate: null,
-        magistrat: { id: expect.any(String), name: `${lastName}D Camille`, title: expect.any(String) },
+        magistrat: {
+          commentPreview: null,
+          id: expect.any(String),
+          name: `${lastName}D Camille`,
+          title: expect.any(String),
+        },
         service: { id: 'ORDINARY', label: 'Service ordinaire' },
         status: { detail: null, hint: null, id: 'MAY_BECOME_VACANT', label: 'Susceptible de devenir vacant' },
       },
@@ -372,7 +377,12 @@ test.describe('Veille des postes E2E', () => {
           expect.objectContaining({ id: 'PROPOSED_IN_SESSION', shortLabel: 'Proposé en session du 22/04/2026' }),
         ],
         installationDate: null,
-        magistrat: { id: expect.any(String), name: `${lastName}A Aline`, title: expect.any(String) },
+        magistrat: {
+          commentPreview: null,
+          id: expect.any(String),
+          name: `${lastName}A Aline`,
+          title: expect.any(String),
+        },
         service: { id: 'ORDINARY', label: 'Service ordinaire' },
         status: { detail: null, hint: null, id: 'MAY_BECOME_VACANT', label: 'Susceptible de devenir vacant' },
       },
@@ -381,14 +391,19 @@ test.describe('Veille des postes E2E', () => {
           expect.objectContaining({ id: 'PROPOSED_IN_SESSION', shortLabel: 'Proposé en session du 22/04/2026' }),
         ],
         installationDate: dateOnlyIn(TWO_YEARS_AGO),
-        magistrat: { id: expect.any(String), name: `${lastName}B Zoe`, title: expect.any(String) },
+        magistrat: {
+          commentPreview: null,
+          id: expect.any(String),
+          name: `${lastName}B Zoe`,
+          title: expect.any(String),
+        },
         service: { id: 'ORDINARY', label: 'Service ordinaire' },
         status: { detail: null, hint: null, id: 'MAY_BECOME_VACANT', label: 'Susceptible de devenir vacant' },
       },
     ]);
   });
 
-  test('should not find a vacancy for a magistrat whose position no table lists', async ({
+  test('should not find the vacancy nor the comment of a magistrat whose position no table lists', async ({
     agent,
     expect,
     sessions,
@@ -413,9 +428,13 @@ test.describe('Veille des postes E2E', () => {
       name: `Transparence ${lastName}`,
     });
 
-    const found = await agent.veilleDesPostes.findPositionVacancy({ path: { magistratId: files[0]!.magistratId } });
+    const path = { magistratId: files[0]!.magistratId };
 
-    expect(found.response?.status).toBe(404);
+    const vacancy = await agent.veilleDesPostes.findPositionVacancy({ path });
+    const comment = await agent.veilleDesPostes.findPositionComment({ path });
+
+    expect(vacancy.response?.status).toBe(404);
+    expect(comment.response?.status).toBe(404);
   });
 
   test('should open, rename and remove an attachment of a declared vacancy', async ({ agent, expect, sessions }) => {
@@ -464,6 +483,76 @@ test.describe('Veille des postes E2E', () => {
     expect(await attachments()).toEqual([]);
   });
 
+  test('should show the comment of a first president of a court of appeal in its table', async ({
+    agent,
+    expect,
+    sessions,
+  }) => {
+    const lastName = Array.from({ length: 12 }, () => String.fromCharCode(65 + crypto.randomInt(26))).join('');
+    const firstPresident = {
+      function: seed.functions.PP,
+      grade: 'G3sup' as const,
+      jurisdiction: seed.jurisdictions['CA  LYON'],
+    };
+    const { files } = await sessions.createOne({
+      candidates: [
+        {
+          birthDate: YOUNG_BIRTH_DATE,
+          firstName: 'ZOE',
+          lastName,
+          position: firstPresident,
+          targetPosition: firstPresident,
+        },
+      ],
+      createdAt: '22/04/2026',
+      name: `Transparence ${lastName}`,
+    });
+
+    await agent.veilleDesPostes.writePositionComment({
+      body: { comment: 'Souhaite partir en 2027' },
+      path: { magistratId: files[0]!.magistratId },
+      throwOnError: true,
+    });
+
+    const { data } = await agent.veilleDesPostes.listCourtOfAppealFirstPresidents({
+      query: { search: `Lyon ${lastName}` },
+      throwOnError: true,
+    });
+    expect(data.items[0]!.magistrat!.commentPreview).toBe('Souhaite partir en 2027');
+  });
+
+  test('should show the comment of a holder of the Cour de cassation in its table', async ({
+    agent,
+    expect,
+    sessions,
+  }) => {
+    const lastName = Array.from({ length: 12 }, () => String.fromCharCode(65 + crypto.randomInt(26))).join('');
+    const counsellor = {
+      function: seed.functions.C,
+      grade: 'G3sup' as const,
+      jurisdiction: seed.jurisdictions['CC  PARIS'],
+    };
+    const { files } = await sessions.createOne({
+      candidates: [
+        { birthDate: YOUNG_BIRTH_DATE, firstName: 'ZOE', lastName, position: counsellor, targetPosition: counsellor },
+      ],
+      createdAt: '22/04/2026',
+      name: `Transparence ${lastName}`,
+    });
+
+    await agent.veilleDesPostes.writePositionComment({
+      body: { comment: 'Souhaite partir en 2027' },
+      path: { magistratId: files[0]!.magistratId },
+      throwOnError: true,
+    });
+
+    const { data } = await agent.veilleDesPostes.listCourtOfCassationHolders({
+      query: { search: lastName },
+      throwOnError: true,
+    });
+    expect(data.items[0]!.magistrat.commentPreview).toBe('Souhaite partir en 2027');
+  });
+
   test('should warn of the retirement and of the seven years on the position of a president', async ({
     agent,
     expect,
@@ -506,6 +595,58 @@ test.describe('Veille des postes E2E', () => {
       [`${lastName}A Zoe`, ['PROPOSED_IN_SESSION', 'SEVEN_YEARS_ON_POSITION', 'RETIREMENT']],
     ]);
     expect(data.alerts.find(({ id }) => id === 'RETIREMENT')?.count).toBe(1);
+  });
+
+  test('should write a comment on a holder, show it in the table, then erase it', async ({
+    agent,
+    expect,
+    sessions,
+  }) => {
+    const lastName = Array.from({ length: 12 }, () => String.fromCharCode(65 + crypto.randomInt(26))).join('');
+    const president = {
+      function: seed.functions.P,
+      grade: 'G3' as const,
+      jurisdiction: seed.jurisdictions['TJ  GRASSE'],
+    };
+    const { files } = await sessions.createOne({
+      candidates: [
+        { birthDate: YOUNG_BIRTH_DATE, firstName: 'ZOE', lastName, position: president, targetPosition: president },
+      ],
+      createdAt: '22/04/2026',
+      name: `Transparence ${lastName}`,
+    });
+    const { magistratId } = files[0]!;
+    const listed = async () => {
+      const { data } = await agent.veilleDesPostes.listJudicialCourtPresidents({
+        query: { search: lastName },
+        throwOnError: true,
+      });
+      return data.items[0]!.magistrat!;
+    };
+    const write = (comment: string) =>
+      agent.veilleDesPostes.writePositionComment({ body: { comment }, path: { magistratId }, throwOnError: true });
+
+    await write('  Souhaite partir en 2027 ');
+
+    const { data: found } = await agent.veilleDesPostes.findPositionComment({
+      path: { magistratId },
+      throwOnError: true,
+    });
+    expect(found.comment).toEqual({
+      text: 'Souhaite partir en 2027',
+      updatedAt: expect.any(String),
+      updatedBy: expect.objectContaining({ id: expect.any(String) }),
+    });
+    expect((await listed()).commentPreview).toBe('Souhaite partir en 2027');
+
+    await write('   ');
+
+    const { data: erased } = await agent.veilleDesPostes.findPositionComment({
+      path: { magistratId },
+      throwOnError: true,
+    });
+    expect(erased.comment).toBeNull();
+    expect((await listed()).commentPreview).toBeNull();
   });
 });
 
