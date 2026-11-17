@@ -42,7 +42,6 @@
     "@prisma/client": "7.10.1",
     "@sentry/node": "10.78.0",
     "axios": "1.21.0",
-    "axios-retry": "4.5.0",
     "bcrypt": "6.0.0",
     "cheerio": "1.2.0",
     "common-tags": "1.8.2",
