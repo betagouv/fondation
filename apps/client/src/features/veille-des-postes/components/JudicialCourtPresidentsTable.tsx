@@ -5,13 +5,7 @@ import { createPortal } from 'react-dom';
 import { useIntl } from 'react-intl';
 
 import { useEditedPosition } from '../hooks/useEditedPosition';
-import {
-  KNOWN_ALERTS,
-  KNOWN_DEADLINES,
-  KNOWN_STATUSES,
-  knownValues,
-  stringValues,
-} from '../utils/known-values.utils';
+import { KNOWN_ALERTS, KNOWN_DEADLINES, KNOWN_STATUSES } from '../utils/known-values.utils';
 import { rowsInsideRessortGroups } from '../utils/ressort-groups.utils';
 import {
   NO_STATUS_AND_ALERT_COUNTS,
@@ -29,6 +23,7 @@ import {
 } from '@/shared/ui/data-table';
 import { SearchInput } from '@/shared/ui/search-input';
 import { formatDateOnly } from '@/utils/date-only.util';
+import { knownValues, stringValues } from '@/utils/known-values.utils';
 import {
   type AlertDeadline,
   type JudicialCourtPresident,
