@@ -112,6 +112,17 @@ export class AgendaFilesReportersUpdated {
   ) {}
 }
 
+export type AgendaChairmanName = { firstName: string; id: string; lastName: string };
+
+/** the signature reads the chairman's name of today: the document is rendered again */
+export class AgendaChairmanRenamed {
+  constructor(
+    readonly agendaId: Id<'AgendaId'>,
+    readonly firstName: string,
+    readonly lastName: string,
+  ) {}
+}
+
 export class AgendaFileBlockEdited {
   constructor(
     readonly agendaId: Id<'AgendaId'>,
@@ -141,7 +152,8 @@ export type AgendaEvent =
   | AgendaDraftDiscarded
   | AgendaFileBlockEdited
   | AgendaFileBlockReset
-  | AgendaFilesReportersUpdated;
+  | AgendaFilesReportersUpdated
+  | AgendaChairmanRenamed;
 
 export class EmptyAgenda extends Error {}
 
@@ -188,6 +200,7 @@ export class Agenda {
     isValidated: boolean,
     private readonly snapshot?: AgendaSnapshot,
     private readonly currentNames: CurrentNames = NO_CURRENT_NAMES,
+    private readonly currentChairman: AgendaChairmanName | null = null,
   ) {
     this.#actorId = actorId;
     this.#isDocumentStored = isDocumentStored;
@@ -201,6 +214,11 @@ export class Agenda {
   static from(props: {
     /** whoever is acting on the agenda: the draft a change opens is theirs, not the previous author's */
     actorId?: string | null;
+    /**
+     * how its chairman is named today, for a draft opened on the validated agenda to sign with it.
+     * TODO: see the official report, whose chairman and secretary keep the names they were given
+     */
+    currentChairman?: AgendaChairmanName | null;
     /** how its reporters are printed today: a draft opened on the validated agenda starts from these names */
     currentNames?: CurrentNames;
     id: Id<'AgendaId'>;
@@ -219,6 +237,7 @@ export class Agenda {
       props.isValidated ?? false,
       props.snapshot,
       props.currentNames,
+      props.currentChairman,
     );
   }
 
@@ -322,10 +341,23 @@ export class Agenda {
     this.pushReportersUpdated(diff);
   }
 
-  /** a draft opened on the validated agenda names its reporters as they are today, a change nobody made */
+  /** a validated agenda keeps the name it was sent with: only a draft signs with the chairman's new name */
+  followChairmanName(chairman: AgendaChairmanName): void {
+    if (this.#isValidated || !assertIsDefined(this.snapshot).isChairmanRenamed(chairman)) return;
+
+    this.openDraft('DESIGNATION');
+    this.#messages.push(new AgendaChairmanRenamed(this.id, chairman.firstName, chairman.lastName));
+  }
+
+  /** a draft opened on the validated agenda names its members as they are today, a change nobody made */
   private followCurrentNames(): void {
     const diff = this.snapshot?.diffNames(this.currentNames);
     if (diff?.hasAny) this.pushReportersUpdated(diff);
+
+    const chairman = this.currentChairman;
+    if (chairman && this.snapshot?.isChairmanRenamed(chairman)) {
+      this.#messages.push(new AgendaChairmanRenamed(this.id, chairman.firstName, chairman.lastName));
+    }
   }
 
   private pushReportersUpdated(diff: Extract<AgendaFilesReportersDiff, { hasAny: true }>): void {

@@ -8,6 +8,7 @@ import { DocInvalidation } from '../../shared/domain/doc-invalidation';
 import {
   Agenda,
   AgendaAlreadyValidated,
+  AgendaChairmanRenamed,
   AgendaDocumentNotStored,
   AgendaDraftChangedByTheApplication,
   AgendaDraftDiscarded,
@@ -82,7 +83,7 @@ describe('Agenda', () => {
       sessionId: makeId('SessionId'),
       snapshot: AgendaSnapshot.from({
         agendaId: id,
-        chairmanId: props.chairman.id,
+        chairman: props.chairman,
         date: props.date,
         nominationFiles: [
           {
@@ -505,6 +506,54 @@ describe('Agenda', () => {
           true,
         ),
       ]);
+    });
+  });
+
+  describe('the chairman', () => {
+    const RENAMED = { ...props.chairman, lastName: 'DURAND-PETIT' };
+
+    it('should sign a draft with the new name, and say so', () => {
+      const agenda = makeAgenda({ actorId: null });
+
+      agenda.followChairmanName(RENAMED);
+
+      expect(agenda.messages).toEqual([
+        new AgendaDraftUpdatedBySystem(agenda.id, 'DESIGNATION'),
+        new AgendaChairmanRenamed(agenda.id, RENAMED.firstName, RENAMED.lastName),
+      ]);
+    });
+
+    it('should leave a draft as it is when the name did not change', () => {
+      const agenda = makeAgenda({ actorId: null });
+
+      agenda.followChairmanName(props.chairman);
+
+      expect(agenda.messages).toEqual([]);
+    });
+
+    it('should leave a validated agenda as it was sent', () => {
+      const agenda = makeAgenda({ actorId: null, isValidated: true });
+
+      agenda.followChairmanName(RENAMED);
+
+      expect(agenda.messages).toEqual([]);
+    });
+
+    it('should sign with the name of today a draft someone opens, without telling the application did', () => {
+      const agenda = makeAgenda({ currentChairman: RENAMED, isValidated: true });
+
+      agenda.updateMetadata({
+        authorId: AUTHOR,
+        chairmanId: props.chairman.id,
+        date: DateOnly.fromJson({ day: 3, month: 3, year: 2026 }),
+        sessionMeetingDate: props.sessionMeetingDate,
+      });
+
+      expect(agenda.messages.slice(0, 2)).toEqual([
+        new AgendaDraftOpened(agenda.id, AUTHOR),
+        new AgendaChairmanRenamed(agenda.id, RENAMED.firstName, RENAMED.lastName),
+      ]);
+      expect(agenda.messages.some((message) => message instanceof AgendaDraftUpdatedBySystem)).toBe(false);
     });
   });
 

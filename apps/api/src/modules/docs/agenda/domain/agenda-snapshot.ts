@@ -16,19 +16,22 @@ export type AgendaSnapshotFile = {
   isManuallyEdited: boolean;
 };
 
+/** the chairman as the agenda signs: `id` is null once their account is deleted */
+export type AgendaSnapshotChairman = { firstName: string; id: string | null; lastName: string };
+
 export class AgendaSnapshot {
   private constructor(
     private readonly agendaId: Id<'AgendaId'>,
     private readonly date: DateOnly,
     private readonly sessionMeetingDate: DateOnly,
-    private readonly chairmanId: string | null,
+    private readonly chairman: AgendaSnapshotChairman,
     private readonly nominationFiles: Map<string, AgendaSnapshotFile>,
   ) {}
 
   static from(plain: {
     date: DateOnly;
     agendaId: Id<'AgendaId'>;
-    chairmanId: string | null;
+    chairman: AgendaSnapshotChairman;
     sessionMeetingDate: DateOnly;
     nominationFiles: readonly AgendaSnapshotFile[];
   }): AgendaSnapshot {
@@ -36,8 +39,16 @@ export class AgendaSnapshot {
       plain.agendaId,
       plain.date,
       plain.sessionMeetingDate,
-      plain.chairmanId,
+      plain.chairman,
       new Map(plain.nominationFiles.map((f) => [f.nominationFileId, f])),
+    );
+  }
+
+  /** the agenda's chairman bears another name today */
+  isChairmanRenamed(today: { firstName: string; id: string; lastName: string }): boolean {
+    return (
+      this.chairman.id === today.id &&
+      (this.chairman.firstName !== today.firstName || this.chairman.lastName !== today.lastName)
     );
   }
 
@@ -48,7 +59,7 @@ export class AgendaSnapshot {
   }): AgendaMetadataDiff {
     const dateChanged = !this.date.equals(next.date);
     const sessionMeetingDateChanged = !this.sessionMeetingDate.equals(next.sessionMeetingDate);
-    const chairmanChanged = this.chairmanId !== next.chairmanId;
+    const chairmanChanged = this.chairman.id !== next.chairmanId;
 
     const hasAny = dateChanged || sessionMeetingDateChanged || chairmanChanged;
     if (!hasAny) return { hasAny: false };

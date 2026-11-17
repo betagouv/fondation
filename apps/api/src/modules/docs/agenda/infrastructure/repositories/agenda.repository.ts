@@ -26,6 +26,7 @@ import {
 } from '../../../shared/infrastructure/named-members';
 import {
   Agenda,
+  AgendaChairmanRenamed,
   AgendaCreated,
   AgendaDeleted,
   AgendaDraftDiscarded,
@@ -83,6 +84,8 @@ export class AgendaRepository {
         await this.persistAgendaFileBlockReset(message);
       } else if (message instanceof AgendaFilesReportersUpdated) {
         await this.persistAgendaFilesReportersUpdated(message);
+      } else if (message instanceof AgendaChairmanRenamed) {
+        await this.persistAgendaChairmanRenamed(message);
       } else {
         assertNever(message);
       }
@@ -100,6 +103,8 @@ export class AgendaRepository {
         pdfFileId: true,
         sessionMeetingDate: true,
         chairmanId: true,
+        chairmanFirstName: true,
+        chairmanLastName: true,
         agenda: { select: { id: true, sessionId: true, officialReportId: true } },
         nominationFiles: {
           where: { nominationFileId: { not: null } },
@@ -114,7 +119,11 @@ export class AgendaRepository {
 
     const snapshot = AgendaSnapshot.from({
       agendaId: makeId('AgendaId', foundAgenda.id),
-      chairmanId: foundVersion.chairmanId,
+      chairman: {
+        firstName: foundVersion.chairmanFirstName,
+        id: foundVersion.chairmanId,
+        lastName: foundVersion.chairmanLastName,
+      },
       date: DateOnly.fromUtcDate(foundVersion.date),
       sessionMeetingDate: DateOnly.fromUtcDate(foundVersion.sessionMeetingDate),
       nominationFiles: foundVersion.nominationFiles.flatMap((f) =>
@@ -143,10 +152,18 @@ export class AgendaRepository {
           ).items,
         )
       : undefined;
+    const currentChairman =
+      isValidated && foundVersion.chairmanId
+        ? await this.db.tx.user.findUnique({
+            where: { id: foundVersion.chairmanId },
+            select: { firstName: true, id: true, lastName: true } satisfies Prisma.UserSelect,
+          })
+        : null;
 
     return Agenda.from({
       snapshot,
       actorId: query.actorId ?? null,
+      currentChairman,
       currentNames,
       isDocumentStored: isDefined(foundVersion.pdfFileId),
       isValidated,
@@ -492,6 +509,17 @@ export class AgendaRepository {
     }
 
     if (message.changesDocument) await this.recomputeAgendaState(versionId);
+  }
+
+  private async persistAgendaChairmanRenamed(message: AgendaChairmanRenamed): Promise<void> {
+    const versionId = await this.agendaVersionFinder.latest({ agendaId: message.agendaId });
+
+    await this.db.tx.agendaVersion.update({
+      where: { id: versionId },
+      data: { chairmanFirstName: message.firstName, chairmanLastName: message.lastName },
+    });
+
+    await this.invalidateAgendaDocument(versionId);
   }
 
   private async recomputeAgendaState(versionId: string): Promise<void> {

@@ -11,7 +11,7 @@ const JARRE = { id: 'user-jarre', name: 'M. Jean-Michel JARRE' };
 function makeSnapshot(nominationFiles: readonly AgendaSnapshotFile[]): AgendaSnapshot {
   return AgendaSnapshot.from({
     agendaId: makeId('AgendaId'),
-    chairmanId: null,
+    chairman: { firstName: 'Michel', id: null, lastName: 'BERGER' },
     date: DateOnly.fromJson({ year: 2026, month: 8, day: 1 }),
     nominationFiles,
     sessionMeetingDate: DateOnly.fromJson({ year: 2026, month: 8, day: 1 }),
