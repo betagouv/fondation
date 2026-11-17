@@ -1,6 +1,3 @@
-/** as much as the comments of the sessions and of the nomination files */
-export const COMMENT_MAX_LENGTH = 50_000;
-
 /** six lines of a tooltip at most: the side panel gives the whole comment */
 const PREVIEW_LENGTH = 300;
 
@@ -8,14 +5,14 @@ export function showsCommentIcon(comment: string | null): boolean {
   return comment !== null && /[\p{L}\p{N}]/u.test(comment);
 }
 
-/** the comment the icon of the tables shows on hover, null when it shows no icon */
+/** the comment the icon of the tables shows on hover: null when it shows no icon */
 export function commentPreviewOf(comment: string | null): string | null {
   if (comment === null || !showsCommentIcon(comment)) return null;
 
   // a comment never holds more characters than code units: a short one needs no segmenting
   if (comment.length <= PREVIEW_LENGTH) return comment;
 
-  // by what reads as one character, a slice could split an emoji in two. Read up to the first one left out
+  // cut by what reads as one character: a slice could split an emoji in two. Read up to the first one left out
   let preview = '';
   let count = 0;
   for (const { segment } of new Intl.Segmenter('fr', { granularity: 'grapheme' }).segment(comment)) {

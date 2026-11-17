@@ -1,6 +1,7 @@
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { COMMENT_MAX_LENGTH } from '../../../../../utils/comment';
 import { DateOnly } from '../../../../../utils/date-only';
 import { isDefined } from '../../../../../utils/is-defined';
 import { attachmentFiles, FILE_MIME_TYPES } from '../../../../framework/files';
@@ -55,7 +56,9 @@ export class UpdateNominationSessionDto extends createZodDto(
   }),
 ) {}
 
-export class WriteSessionCommentDto extends createZodDto(z.object({ comment: z.string().max(50000) })) {}
+export class WriteSessionCommentDto extends createZodDto(
+  z.object({ comment: z.string().max(COMMENT_MAX_LENGTH) }),
+) {}
 
 export class UploadSessionAttachmentsDto extends createZodDto(
   z.object({

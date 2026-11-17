@@ -4,9 +4,9 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { Prisma } from '../../../../generated/prisma/client';
+import { COMMENT_MAX_LENGTH } from '../../../../utils/comment';
 import { writerOf, writerSchema } from '../../../../utils/user.util';
 import { Db } from '../../../framework/database';
-import { COMMENT_MAX_LENGTH } from '../../domain/position-comment';
 import { HeldPositionFinder } from '../finders/held-position.finder';
 
 @Injectable()
