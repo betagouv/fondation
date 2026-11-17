@@ -7,6 +7,7 @@ import { IconButton } from '@/shared/ui/icon-button';
 import { Tooltip } from '@/shared/ui/tooltip';
 import { formatDateOnly } from '@/utils/date-only.util';
 import { formatPhoneNumber } from '@/utils/string.utils';
+import { whoWrote } from '@/utils/user.utils';
 import { ValidationError } from '@/utils/validation-error';
 import { useUser } from '@queries/auth.queries';
 import {
@@ -174,7 +175,7 @@ function MagistratPhoneNumberItem(props: {
           {
             date,
             name: phoneNumber.savedBy?.name,
-            who: !phoneNumber.savedBy ? 'nobody' : phoneNumber.savedBy.id === user?.id ? 'self' : 'someone',
+            who: whoWrote({ currentUserId: user?.id, writer: phoneNumber.savedBy }),
           },
         )
       : date

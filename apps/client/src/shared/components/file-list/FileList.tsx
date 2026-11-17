@@ -4,6 +4,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useDateAndTime } from '@/shared/hooks/useDateAndTime';
 import { formatFileSize, splitFileName } from '@/utils/file.utils';
+import { whoWrote } from '@/utils/user.utils';
 import { useUser } from '@queries/auth.queries';
 
 const CurrentUserIdContext = createContext<string | undefined>(undefined);
@@ -86,7 +87,7 @@ export function FileListItem(props: {
                 values={{
                   author: props.addedBy?.name,
                   ...dateAndTime(props.addedAt),
-                  who: !props.addedBy ? 'nobody' : props.addedBy.id === currentUserId ? 'self' : 'someone',
+                  who: whoWrote({ currentUserId, writer: props.addedBy }),
                 }}
               />
             </span>

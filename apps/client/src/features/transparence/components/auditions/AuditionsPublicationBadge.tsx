@@ -3,6 +3,7 @@ import { FormattedMessage } from 'react-intl';
 
 import { useDateAndTime } from '@/shared/hooks/useDateAndTime';
 import { Tooltip } from '@/shared/ui/tooltip';
+import { whoWrote } from '@/utils/user.utils';
 import { useLastAuditionsPublicationQuery } from '@queries/auditions.queries';
 import { useUser } from '@queries/auth.queries';
 
@@ -30,7 +31,7 @@ export function AuditionsPublicationBadge(props: { sessionId: string }) {
   const values = {
     ...dateAndTime(lastPublished.at),
     name: lastPublished.by?.name,
-    who: !lastPublished.by ? 'nobody' : lastPublished.by.id === user?.id ? 'self' : 'someone',
+    who: whoWrote({ currentUserId: user?.id, writer: lastPublished.by }),
   };
 
   return (

@@ -37,3 +37,12 @@ function extractInitial(word: string) {
 export function toInitials(user: { firstName: string; lastName: string }): string {
   return `${extractInitial(user.firstName)}${extractInitial(user.lastName)}`;
 }
+
+export function whoWrote(props: {
+  currentUserId: string | undefined;
+  writer: { id: string } | null | undefined;
+}): 'nobody' | 'self' | 'someone' {
+  if (!props.writer) return 'nobody';
+
+  return props.writer.id === props.currentUserId ? 'self' : 'someone';
+}
