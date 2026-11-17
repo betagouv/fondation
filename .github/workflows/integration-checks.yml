@@ -1,7 +1,6 @@
 name: Integration checks
 permissions:
   contents: read
-  packages: read
 
 on:
   pull_request:
@@ -45,13 +44,22 @@ jobs:
         options: >-
           --health-cmd pg_isready --health-interval 10s --health-timeout 5s
           --health-retries 5
-      minio:
-        image: ghcr.io/betagouv/fondation-ci-minio:2025-11-11
+      # same image and settings as apps/api/test/docker-compose-test.yaml
+      s3:
+        image: versity/versitygw:v1.10.0@sha256:89cad13cc981986ee284cbafea4613f9533ce6fd5f37a2c96c4c4fb8adb3a316
         env:
-          MINIO_ROOT_USER: ${{ env.S3_ACCESS_KEY }}
-          MINIO_ROOT_PASSWORD: ${{ env.S3_SECRET_KEY }}
+          ROOT_ACCESS_KEY: ${{ env.S3_ACCESS_KEY }}
+          ROOT_SECRET_KEY: ${{ env.S3_SECRET_KEY }}
+          VGW_BACKEND: posix
+          VGW_BACKEND_ARG: /data
+          VGW_PORT: ':9000'
+          VGW_REGION: ${{ env.S3_REGION }}
+          VGW_VERSIONING_DIR: /versions
         ports:
           - 9000:9000
+        volumes:
+          - s3-data:/data
+          - s3-versions:/versions
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd

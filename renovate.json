@@ -75,10 +75,11 @@
       "additionalBranchPrefix": ""
     },
     {
-      "description": "A private image Renovate cannot read, frozen on the last MinIO build: MinIO is archived upstream and its replacement is FON-801",
-      "enabled": false,
+      "description": "The S3 server is pinned both in the test compose and in the CI services: both move together",
       "matchDatasources": ["docker"],
-      "matchPackageNames": ["ghcr.io/betagouv/fondation-ci-minio"]
+      "matchPackageNames": ["versity/versitygw"],
+      "groupName": "versitygw",
+      "additionalBranchPrefix": ""
     },
     {
       "allowedVersions": "<18",
