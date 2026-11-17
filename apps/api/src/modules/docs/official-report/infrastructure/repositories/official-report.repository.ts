@@ -895,6 +895,7 @@ export class OfficialReportRepository {
       include: {
         members: { omit: { id: true, versionId: true } },
         nominationFiles: { omit: { createdAt: true, id: true, updatedAt: true, versionId: true } },
+        officialReport: { select: { agenda: { select: { sessionId: true } } } },
         sectionIntros: { omit: { createdAt: true, updatedAt: true, versionId: true } },
         sectionTitles: { omit: { versionId: true } },
       } satisfies Prisma.OfficialReportVersionInclude,
@@ -914,7 +915,16 @@ export class OfficialReportRepository {
     });
 
     if (!validated) throw new NotFoundException();
-    const { members, nominationFiles, sectionIntros, sectionTitles, version, ...content } = validated;
+    const { members, nominationFiles, officialReport, sectionIntros, sectionTitles, version, ...content } =
+      validated;
+
+    // like its members, the draft names the magistrats as they are today; a hand-written block keeps its text
+    const names = officialReport.agenda
+      ? await this.nominationFilesFinder.magistratNames({
+          ids: nominationFiles.flatMap(({ nominationFileId }) => nominationFileId ?? []),
+          sessionId: officialReport.agenda.sessionId,
+        })
+      : new Map<string, string>();
 
     // the draft starts as an exact copy: html and pdf stay empty until it is rendered again
     await this.db.tx.officialReportVersion.create({
@@ -928,6 +938,7 @@ export class OfficialReportRepository {
           createMany: {
             data: nominationFiles.map((file) => ({
               ...file,
+              name: (file.nominationFileId && names.get(file.nominationFileId)) ?? file.name,
               recusedMembers: parseNamedMembers(file.recusedMembers),
               reporters: parseNamedMembers(file.reporters),
             })),

@@ -252,6 +252,36 @@ test.describe('Agenda', () => {
     expect(metadata.data).toMatchObject({ canDiscardDraft: true, status: 'DRAFT' });
   });
 
+  test('should name a magistrat first name first, as Lolfi names them today, in the draft opened on a validated agenda', async ({
+    agent,
+    docs,
+    expect,
+    member,
+    sql,
+  }) => {
+    const session = await docs.session({ reporters: [member['@user']!] });
+    const { id: agendaId } = await docs.agenda(session, { status: 'VALIDATED' });
+    const validated = await agent.docs.detailsAgendaDocumentBlocks({ path: { agendaId } });
+    const [writtenBlock, generatedBlock] = validated.data!.blocks;
+    const magistratId = session.files.find(({ id }) => id === generatedBlock!.nominationFileId)!.magistratId;
+    await sql`
+      UPDATE data_administration_context.magistrat
+      SET first_name = 'JEANNE', last_name = 'Renommée', married_name = NULL
+      WHERE id = ${magistratId}
+    `;
+
+    await agent.docs.editAgendaFileBlock({
+      body: { html: '<p>Une phrase écrite à la main</p>', outdated: false },
+      path: { agendaId, fileId: writtenBlock!.id },
+      throwOnError: true,
+    });
+
+    const draft = await agent.docs.detailsAgendaDocumentBlocks({ path: { agendaId } });
+    const byId = new Map(draft.data!.blocks.map((block) => [block.nominationFileId, block]));
+    expect(byId.get(writtenBlock!.nominationFileId)?.html).toBe('<p>Une phrase écrite à la main</p>');
+    expect(byId.get(generatedBlock!.nominationFileId)?.html).toContain('Jeanne RENOMMÉE');
+  });
+
   test('should sign a draft with the new name an admin gives its chairman', async ({
     admin,
     agent,

@@ -370,6 +370,7 @@ export class AgendaRepository {
         chairmanGender: true,
         outdated: true,
         isManuallyEdited: true,
+        agenda: { select: { sessionId: true } },
         nominationFiles: {
           select: {
             nominationFileId: true,
@@ -392,7 +393,13 @@ export class AgendaRepository {
     });
 
     if (!validated) throw new NotFoundException();
-    const { nominationFiles, version, ...content } = validated;
+    const { agenda, nominationFiles, version, ...content } = validated;
+
+    // like its members, the draft names the magistrats as they are today; a hand-written block keeps its text
+    const names = await this.docsNominationFilesFinder.magistratNames({
+      ids: nominationFiles.flatMap(({ nominationFileId }) => nominationFileId ?? []),
+      sessionId: agenda.sessionId,
+    });
 
     // the draft starts as an exact copy: html and pdf stay empty until it is rendered again
     await this.db.tx.agendaVersion.create({
@@ -405,7 +412,11 @@ export class AgendaRepository {
         agendaId: message.agendaId,
         nominationFiles: {
           createMany: {
-            data: nominationFiles.map((file) => ({ ...file, reporters: parseNamedMembers(file.reporters) })),
+            data: nominationFiles.map((file) => ({
+              ...file,
+              name: (file.nominationFileId && names.get(file.nominationFileId)) ?? file.name,
+              reporters: parseNamedMembers(file.reporters),
+            })),
           },
         },
       },
