@@ -11,11 +11,11 @@ describe('commentPreviewOf', () => {
     expect(commentPreviewOf('a'.repeat(400))).toBe(`${'a'.repeat(300)}…`);
   });
 
-  it('cuts between two characters, not in the middle of an emoji', () => {
+  it('cuts between two characters rather than inside an emoji', () => {
     expect(commentPreviewOf(`${'a'.repeat(299)}👩‍⚖️ fin`)).toBe(`${'a'.repeat(299)}👩‍⚖️…`);
   });
 
-  it('keeps whole a comment of three hundred characters, emojis longer than one code unit included', () => {
+  it('keeps whole a comment of three hundred characters with an emoji longer than one code unit', () => {
     const comment = `${'a'.repeat(299)}👩‍⚖️`;
 
     expect(commentPreviewOf(comment)).toBe(comment);

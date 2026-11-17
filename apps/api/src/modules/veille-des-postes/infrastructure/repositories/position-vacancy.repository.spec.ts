@@ -42,7 +42,7 @@ describe('PositionVacancyRepository', () => {
     expect(files.delete).not.toHaveBeenCalled();
   });
 
-  it('deletes the vacancies of the magistrats LOLFI moved, with their attachments', async () => {
+  it('deletes with their attachments the vacancies of the magistrats LOLFI moved', async () => {
     const decision = { id: 'decision', path: ['veille-des-postes', 'decision.pdf'] };
     prisma.positionVacancy.findMany.mockResolvedValue([
       {

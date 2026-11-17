@@ -99,7 +99,6 @@ export class ListCourtOfCassationHoldersQuery {
           commentPreview: commentPreviewOf(holder.comment),
           id: holder.id,
           name: magistratFullName(holder),
-
           title: courtOfCassationHolderTitle({
             civility: civilityOf(holder.civility),
             position: positionId,
@@ -158,7 +157,6 @@ export class ListedCourtOfCassationHoldersDto extends createPaginatedZodDto(
       commentPreview: z.string().nullable(),
       id: z.string(),
       name: z.string(),
-
       title: z.string(),
     }),
     service: z.object({ id: z.enum(HOLDER_SERVICES), label: z.string() }),

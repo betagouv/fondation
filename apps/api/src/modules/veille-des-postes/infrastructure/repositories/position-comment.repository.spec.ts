@@ -33,7 +33,7 @@ describe('PositionCommentRepository', () => {
     expect(prisma.positionComment.deleteMany).not.toHaveBeenCalled();
   });
 
-  it('deletes the comments of the magistrats LOLFI moved or let go, and only them', async () => {
+  it('deletes only the comments of the magistrats LOLFI moved or let go', async () => {
     prisma.positionComment.findMany.mockResolvedValue([
       { magistrat: { currentPositionId: '7', status: 'ACTIVE' }, magistratId: 'kept', positionId: 7 },
       { magistrat: { currentPositionId: '8', status: 'ACTIVE' }, magistratId: 'moved', positionId: 7 },

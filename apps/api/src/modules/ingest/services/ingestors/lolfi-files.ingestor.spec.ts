@@ -46,7 +46,7 @@ function deleteLapsedVacanciesAndCommentsOf(veilleDesPostes: VeilleDesPostesInte
 describe('LolfiFilesIngestor', () => {
   beforeEach(() => vi.mocked(Sentry.captureException).mockClear());
 
-  it('reports a failed cleanup of the lapsed vacancies, without failing the import', async () => {
+  it('reports a failed cleanup of the lapsed vacancies and comments without failing the import', async () => {
     const error = new Error('the database went away');
     const veilleDesPostes = mock<VeilleDesPostesInternalService>();
     veilleDesPostes.internalDeleteLapsedVacanciesAndComments.mockRejectedValue(error);

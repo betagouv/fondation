@@ -15,7 +15,7 @@ export function MagistratLink(props: {
   const { commentPreview, id, name } = props.magistrat;
 
   // the link sits in a block of its own: as a flex item it would draw the DSFR underline under its last line
-  // only. Divs, as the tooltip adds one next to its icon
+  // only. Divs because the tooltip adds one next to its icon
   return (
     <div className="flex flex-col items-start">
       <div className="leading-6">

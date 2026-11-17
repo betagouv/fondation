@@ -258,7 +258,7 @@ export function useJudicialCourtPresidentsQuery(props: JudicialCourtPresidentsLi
   });
 }
 
-/** the mutation waits for the part of the panel it changed: the tables, long to reload, follow in the background */
+/** the mutation waits for the part of the panel it changed: the tables follow in the background as they are long to reload */
 function useInvalidatingVeilleDesPostes(
   panelKeyOf: (magistratId: string) => readonly unknown[] = veilleDesPostesKeys.positionVacancy,
 ) {

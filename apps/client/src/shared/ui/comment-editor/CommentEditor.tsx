@@ -79,7 +79,7 @@ export function CommentEditor(props: {
       onFocus={() => setIsFocused(true)}
     >
       <Input
-        // the DSFR leaves 16px above the message, which reads as detached from its field
+        // the DSFR leaves 16px above the message: it reads as detached from its field
         className="fr-mb-0 [&_.fr-message]:mt-2"
         label=""
         nativeTextAreaProps={{

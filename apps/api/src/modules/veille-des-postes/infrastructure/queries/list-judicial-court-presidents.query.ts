@@ -91,7 +91,6 @@ export class ListJudicialCourtPresidentsQuery {
               commentPreview: commentPreviewOf(court.comment),
               id: court.id,
               name: magistratFullName(court),
-
               title: judicialCourtPresidentTitle({
                 civility: civilityOf(court.civility),
                 courtLabel: court.courtLabel ?? court.courtId,
@@ -153,7 +152,6 @@ export class ListedJudicialCourtPresidentsDto extends createPaginatedZodDto(
         commentPreview: z.string().nullable(),
         id: z.string(),
         name: z.string(),
-
         title: z.string(),
       })
       .nullable(),

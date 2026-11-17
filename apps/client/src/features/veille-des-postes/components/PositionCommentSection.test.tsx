@@ -13,7 +13,7 @@ import { PositionCommentSection } from './PositionCommentSection';
 
 const ME = { firstName: 'Anne', id: 'me', lastName: 'Roy', role: 'ADJOINT_SECRETAIRE_GENERAL' };
 
-/** what the client of the API answers, as the component reads it */
+/** what the client of the API answers as the component reads it */
 function found(comment: FoundPositionCommentDto['comment']): never {
   return { data: { comment, maxLength: 50_000 } } as never;
 }
@@ -51,7 +51,7 @@ function renderSection() {
 describe('PositionCommentSection', () => {
   afterEach(() => vi.restoreAllMocks());
 
-  it('frees the side panel once the comment is gone, though a change was typed', async () => {
+  it('frees the side panel once the comment is gone even with a change typed', async () => {
     const find = vi.spyOn($api.veilleDesPostes, 'findPositionComment').mockResolvedValue(found(null));
     const { client, onDirtyChange } = renderSection();
     const user = userEvent.setup();
@@ -66,7 +66,7 @@ describe('PositionCommentSection', () => {
     expect(screen.queryByRole('textbox', { name: 'Commentaire' })).not.toBeInTheDocument();
   });
 
-  it('shows the comment as the API saved it, trimmed', async () => {
+  it('shows the comment trimmed as the API saved it', async () => {
     const find = vi.spyOn($api.veilleDesPostes, 'findPositionComment').mockResolvedValue(found(null));
     vi.spyOn($api.veilleDesPostes, 'writePositionComment').mockImplementation(async () => {
       find.mockResolvedValue(found(commentOf('Souhaite partir')));

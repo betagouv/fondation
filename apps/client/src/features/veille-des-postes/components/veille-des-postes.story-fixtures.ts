@@ -218,7 +218,7 @@ export function positionVacancyHandlers(
         maxLength: 50_000,
       } satisfies FoundPositionCommentDto),
     ),
-    // kept as sent: the API trims and erases, the stories do not copy its rule
+    // kept as sent: the API trims and erases. The stories do not copy its rule
     http.put(COMMENT_PATH, async ({ params, request }) => {
       const { comment } = (await request.json()) as { comment: string };
       comments.set(String(params.magistratId), {

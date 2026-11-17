@@ -10,7 +10,7 @@ import { usePositionCommentQuery, useWritePositionCommentMutation } from '@queri
 
 import { RetryableLoadFailure } from './RetryableLoadFailure';
 
-/** the comment block of the nomination files, its "Valider" included */
+/** the comment of a watched position: saved with "Valider" like the comment of the secretariat */
 export function PositionCommentSection(props: {
   magistratId: string;
   onDirtyChange: (isDirty: boolean) => void;
@@ -28,7 +28,7 @@ export function PositionCommentSection(props: {
   const [isFocused, setIsFocused] = useState(false);
   const warnsUnsaved = isDirty && !isFocused && !write.isPending;
 
-  // a click on "Valider" takes the focus away from the field before it saves, and Safari gives it to nothing
+  // a click on "Valider" takes the focus away from the field before it saves. Safari gives it to nothing
   const isPressing = useRef(false);
 
   const { onDirtyChange } = props;
@@ -39,8 +39,8 @@ export function PositionCommentSection(props: {
     return () => onDirtyChange(false);
   }, [isDirty, isGone, onDirtyChange]);
 
-  // the editor reads its text once: it starts over on the version of the API after each save, trimmed, and on
-  // another agent's version unless a change is being typed
+  // the editor reads its text once: it starts over on the trimmed version of the API after each save. It also
+  // takes another agent's version unless a change is being typed
   const savedVersion = data?.comment?.updatedAt ?? 'none';
   const [editorVersion, setEditorVersion] = useState(savedVersion);
   const [saves, setSaves] = useState(0);
@@ -84,7 +84,7 @@ export function PositionCommentSection(props: {
           onFocus={() => setIsFocused(true)}
           onPointerDown={() => {
             isPressing.current = true;
-            // released anywhere, even outside the block
+            // released anywhere even outside the block
             window.addEventListener('pointerup', () => (isPressing.current = false), { once: true });
           }}
         >

@@ -22,7 +22,7 @@ export async function transactionalTest(prisma: object): Promise<{
         global: true,
         plugins: [
           new ClsPluginTransactional({
-            // the adapter of DatabaseModule, which runs afterCommit
+            // as in DatabaseModule: this adapter runs afterCommit
             adapter: new TransactionalAdapterPrismaWithAfterCommit({ prismaInjectionToken: PRISMA }),
             imports: [
               {

@@ -75,7 +75,7 @@ export class LolfiFilesIngestor {
         return { success };
       }
 
-      // before the job reads as succeeded: whoever waits for it finds the vacancies cleaned
+      // before the job reads as succeeded: whoever waits for it finds the vacancies and the comments cleaned
       await this.deleteLapsedVacanciesAndComments();
       await this.succeedJob(jobId);
       await this.synchroniseSessions(jobId);
