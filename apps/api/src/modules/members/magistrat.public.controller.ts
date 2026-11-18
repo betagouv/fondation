@@ -3,6 +3,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import * as time from '../../utils/time';
+import { HasApiScope } from '../api-clients';
 import { HasRole } from '../simple-auth';
 
 import {
@@ -11,6 +12,11 @@ import {
   SearchMagistratAuthorizationUnauthorizedDto,
 } from './infrastructure/magistrat.dto';
 import {
+  IdentifiedMagistratDto,
+  IdentifyMagistratDto,
+  IdentifyMagistratQuery,
+} from './infrastructure/queries/identify-magistrat.query';
+import {
   FoundMagistratAuthorizationDto,
   SearchMagistratAuthorizationQuery,
 } from './infrastructure/queries/search-magistrat-authorization.query';
@@ -18,7 +24,18 @@ import {
 @ApiTags('Magistrats')
 @Controller('/api/public/v1')
 export class MagistratPublicController {
-  constructor(private readonly searchMagistratAuthorizationQuery: SearchMagistratAuthorizationQuery) {}
+  constructor(
+    private readonly identifyMagistratQuery: IdentifyMagistratQuery,
+    private readonly searchMagistratAuthorizationQuery: SearchMagistratAuthorizationQuery,
+  ) {}
+
+  @HasApiScope('magistrats:identification')
+  @Post('/magistrats/identification')
+  @UsePipes(ZodValidationPipe)
+  @ZodResponse({ status: HttpStatus.OK, type: IdentifiedMagistratDto })
+  identifyMagistrat(@Body() body: IdentifyMagistratDto): Promise<IdentifiedMagistratDto> {
+    return this.identifyMagistratQuery.handle({ email: body.email });
+  }
 
   @ApiBearerAuth()
   @HasRole('MACHINE')

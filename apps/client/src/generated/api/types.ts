@@ -1093,6 +1093,27 @@ export type ListedJurisdictions = {
     }>;
 };
 
+export type IdentifyMagistratDto = {
+    email: string;
+};
+
+export type IdentifiedMagistratDto = {
+    /**
+     * - `ACTIVE`: the address is the professional one of a single active _Magistrat_
+     * - `UNKNOWN`: unknown address, inactive _Magistrat_ or address held by several of them, never told apart
+     */
+    status: 'ACTIVE' | 'UNKNOWN';
+    /**
+     * Given with `ACTIVE` only
+     */
+    magistrat?: {
+        /**
+         * The Fondation identifier, to read the status again later
+         */
+        id: string;
+    };
+};
+
 export type SearchMagistratAuthorizationDto = {
     email: string;
 };
@@ -4488,6 +4509,19 @@ export type SearchResponses = {
 };
 
 export type SearchResponse = SearchResponses[keyof SearchResponses];
+
+export type IdentifyMagistratData = {
+    body: IdentifyMagistratDto;
+    path?: never;
+    query?: never;
+    url: '/api/public/v1/magistrats/identification';
+};
+
+export type IdentifyMagistratResponses = {
+    200: IdentifiedMagistratDto;
+};
+
+export type IdentifyMagistratResponse = IdentifyMagistratResponses[keyof IdentifyMagistratResponses];
 
 export type SearchMagistratAuthorizationData = {
     body: SearchMagistratAuthorizationDto;
