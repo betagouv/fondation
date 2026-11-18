@@ -10,7 +10,7 @@ import { createPaginatedZodDto, pageOf, paginate, Pagination } from '../../../fr
 import { Sortable } from '../../../framework/sorting';
 import { magistratFullName } from '../../../magistrat/domain/magistrat-name';
 import { civilityOf, judicialCourtPresidentTitle } from '../../domain/holder-title';
-import { JUDICIAL_COURT_TYPE_ID, PRESIDENT_FUNCTION_ID } from '../../domain/judicial-court-president';
+import { JUDICIAL_COURT_TYPE_IDS, PRESIDENT_FUNCTION_ID } from '../../domain/judicial-court-president';
 import { type AlertDeadline, alertRulesOf, alertsOf, type PositionAlert } from '../../domain/position-alert';
 import { commentPreviewOf } from '../../domain/position-comment';
 import { type PositionStatus, positionStatusOf } from '../../domain/position-status';
@@ -47,7 +47,7 @@ export class ListJudicialCourtPresidentsQuery {
     const search = query.search?.trim() ? toMagistratFullTextQuery(query.search) : null;
     const courts = await this.db.tx.$queryRawTyped(
       listJudicialCourtPresidentsRawQuery(
-        JUDICIAL_COURT_TYPE_ID,
+        [...JUDICIAL_COURT_TYPE_IDS],
         PRESIDENT_FUNCTION_ID,
         search,
         query.sorting.sortBy ?? null,
@@ -116,8 +116,13 @@ export class ListJudicialCourtPresidentsQuery {
             query.sorting.sortDesc,
           )
         : matching;
-    // every ressort stays listed, even without a court matching the search, in the order of their codes
-    const ressorts = new Map(courts.map((court) => [court.ressortId, court.ressortLabel ?? court.ressortId]));
+    // every ressort stays listed, even without a court matching the search, in the order of their cities
+    const ressorts = new Map(
+      courts.map((court) => [
+        court.ressortId,
+        { city: court.ressortCity ?? court.ressortId, label: court.ressortLabel ?? court.ressortId },
+      ]),
+    );
 
     return {
       ...paginate({
@@ -136,8 +141,8 @@ export class ListJudicialCourtPresidentsQuery {
       }),
       ...countedStatusAndAlertFacets(counts),
       ressorts: [...ressorts]
-        .toSorted(([a], [b]) => a.localeCompare(b))
-        .map(([id, label]) => ({ count: counts.ressort.get(id) ?? 0, id, label })),
+        .toSorted(([, a], [, b]) => a.city.localeCompare(b.city))
+        .map(([id, { label }]) => ({ count: counts.ressort.get(id) ?? 0, id, label })),
     };
   }
 }

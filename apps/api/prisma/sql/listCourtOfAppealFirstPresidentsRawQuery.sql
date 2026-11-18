@@ -1,5 +1,5 @@
--- @param {String} $1:jurisdictionTypeId
--- @param {String} $2:functionId
+-- @param $1:jurisdictionTypeIds
+-- @param $2:functionIds
 -- @param {String} $3:search?
 -- @param {String} $4:sortBy?
 -- @param {Boolean} $5:sortDesc
@@ -19,7 +19,10 @@ WITH holder AS (
   FROM data_administration_context.magistrat AS m
     INNER JOIN data_administration_context."position" AS p
       ON p.id = NULLIF(m.current_position_id, '')::INT
-  WHERE m.status = 'ACTIVE' AND p.function_id = $2::TEXT
+    -- the function that heads the court depends on its type
+    INNER JOIN UNNEST($1::TEXT[], $2::TEXT[]) AS head(jurisdiction_type_id, function_id)
+      ON head.jurisdiction_type_id = p.jurisdiction_type_id AND head.function_id = p.function_id
+  WHERE m.status = 'ACTIVE'
   -- one row per court: during a handover, the latest nominated, whose installation date can still be missing
   ORDER BY p.jurisdiction_id, m.nomination_date DESC NULLS LAST, m.installation_date DESC NULLS LAST, m.id
 )
@@ -29,6 +32,7 @@ WITH holder AS (
 SELECT
   j.codejur AS "courtId",
   j.libelle AS "courtLabel",
+  j.type_jur AS "courtTypeId",
   h.id::TEXT AS id,
   h.birth_date AS "birthDate",
   h.civilite AS civility,
@@ -49,7 +53,7 @@ FROM data_administration_context.jurisdictions AS j
     ON pc.magistrat_id = h.id AND pc.position_id = h.position_id
 
 WHERE (
-  j.type_jur = $1::TEXT
+  j.type_jur = ANY($1::TEXT[])
   AND (j.date_suppression IS NULL OR j.date_suppression > CURRENT_DATE)
   -- one vector for all, so that "lyon martin" finds the first president of Lyon named Martin. The city
   -- is hyphenated too, so that "aix-en-provence" finds "AIX EN PROVENCE"
@@ -63,7 +67,7 @@ WHERE (
   )
 )
 
--- by the code, which names the city: the labels start with "d'" or "de" depending on it
+-- by city: the labels start with "d'" or "de" and the codes with the type of the court ("TSA SAINT PIERRE…")
 ORDER BY
   CASE WHEN $4::TEXT = 'installationDate' AND $5::BOOLEAN THEN h.installation_date END DESC NULLS LAST,
   CASE WHEN $4::TEXT = 'installationDate' AND NOT $5::BOOLEAN THEN h.installation_date END ASC NULLS LAST,
@@ -71,6 +75,7 @@ ORDER BY
   CASE WHEN $4::TEXT = 'name' AND $5::BOOLEAN THEN h.first_name END DESC NULLS LAST,
   CASE WHEN $4::TEXT = 'name' AND NOT $5::BOOLEAN THEN h.last_name END ASC NULLS LAST,
   CASE WHEN $4::TEXT = 'name' AND NOT $5::BOOLEAN THEN h.first_name END ASC NULLS LAST,
-  CASE WHEN $4::TEXT = 'court' AND $5::BOOLEAN THEN j.codejur END DESC,
+  CASE WHEN $4::TEXT = 'court' AND $5::BOOLEAN THEN j.ville_jur END DESC,
+  j.ville_jur ASC,
   j.codejur ASC,
   h.id ASC;

@@ -225,6 +225,131 @@ test.describe('Veille des postes E2E', () => {
     expect(otherRessort.items).toEqual([]);
   });
 
+  test('should list the president of a tribunal de première instance under the ressort of its TSA by city', async ({
+    agent,
+    expect,
+    sessions,
+  }) => {
+    const lastName = Array.from({ length: 12 }, () => String.fromCharCode(65 + crypto.randomInt(26))).join('');
+    const president = {
+      function: seed.functions.P,
+      grade: 'G3' as const,
+      jurisdiction: seed.jurisdictions['TPI SAINT PIERRE ET MIQUELON'],
+    };
+    const toulouse = { ...president, jurisdiction: seed.jurisdictions['TJ  TOULOUSE'] };
+    await sessions.createOne({
+      candidates: [
+        {
+          birthDate: YOUNG_BIRTH_DATE,
+          civilite: 'MME',
+          firstName: 'ZOE',
+          installationDate: lolfiDateIn(TWO_YEARS_AGO),
+          lastName,
+          position: president,
+          targetPosition: president,
+        },
+        {
+          birthDate: YOUNG_BIRTH_DATE,
+          firstName: 'BRUNO',
+          installationDate: lolfiDateIn(TWO_YEARS_AGO),
+          lastName,
+          position: toulouse,
+          targetPosition: toulouse,
+        },
+      ],
+      createdAt: '22/04/2026',
+      name: 'Transparence annuelle',
+    });
+
+    const { data } = await agent.veilleDesPostes.listJudicialCourtPresidents({
+      query: { search: lastName },
+      throwOnError: true,
+    });
+
+    const ressortIds = data.ressorts.map(({ id }) => id);
+    expect(ressortIds.indexOf('TSA SAINT PIERRE ET MIQUELON')).toBeLessThan(ressortIds.indexOf('CA  TOULOUSE'));
+
+    // by code "CA  TOULOUSE" would come before "TSA SAINT PIERRE ET MIQUELON"
+    expect(data.items).toEqual([
+      expect.objectContaining({
+        court: {
+          id: 'TPI SAINT PIERRE ET MIQUELON',
+          label: 'Tribunal de première instance de Saint-Pierre et Miquelon',
+        },
+        magistrat: {
+          commentPreview: null,
+          id: expect.any(String),
+          name: `${lastName} Zoe`,
+          title: 'Présidente du tribunal de première instance de Saint-Pierre et Miquelon',
+        },
+        ressort: { id: 'TSA SAINT PIERRE ET MIQUELON', label: expect.any(String) },
+      }),
+      expect.objectContaining({ court: { id: 'TJ  TOULOUSE', label: 'Tribunal judiciaire de Toulouse' } }),
+    ]);
+  });
+
+  test("should list the president of a tribunal supérieur d'appel with the first presidents by city", async ({
+    agent,
+    expect,
+    sessions,
+  }) => {
+    const lastName = Array.from({ length: 12 }, () => String.fromCharCode(65 + crypto.randomInt(26))).join('');
+    const president = {
+      function: seed.functions.P,
+      grade: 'G3' as const,
+      jurisdiction: seed.jurisdictions['TSA SAINT PIERRE ET MIQUELON'],
+    };
+    const toulouse = {
+      function: seed.functions.PP,
+      grade: 'G3sup' as const,
+      jurisdiction: seed.jurisdictions['CA  TOULOUSE'],
+    };
+    await sessions.createOne({
+      candidates: [
+        {
+          birthDate: YOUNG_BIRTH_DATE,
+          firstName: 'ZOE',
+          installationDate: lolfiDateIn(TWO_YEARS_AGO),
+          lastName,
+          position: president,
+          targetPosition: president,
+        },
+        {
+          birthDate: YOUNG_BIRTH_DATE,
+          firstName: 'BRUNO',
+          installationDate: lolfiDateIn(TWO_YEARS_AGO),
+          lastName,
+          position: toulouse,
+          targetPosition: toulouse,
+        },
+      ],
+      createdAt: '22/04/2026',
+      name: 'Transparence annuelle',
+    });
+
+    const { data } = await agent.veilleDesPostes.listCourtOfAppealFirstPresidents({
+      query: { search: lastName },
+      throwOnError: true,
+    });
+
+    // by code "CA  TOULOUSE" would come before "TSA SAINT PIERRE ET MIQUELON"
+    expect(data.items).toEqual([
+      expect.objectContaining({
+        court: {
+          id: 'TSA SAINT PIERRE ET MIQUELON',
+          label: "Tribunal supérieur d'appel de Saint-Pierre et Miquelon",
+        },
+        magistrat: {
+          commentPreview: null,
+          id: expect.any(String),
+          name: `${lastName} Zoe`,
+          title: "Président du tribunal supérieur d'appel de Saint-Pierre et Miquelon",
+        },
+      }),
+      expect.objectContaining({ court: { id: 'CA  TOULOUSE', label: "Cour d'appel de Toulouse" } }),
+    ]);
+  });
+
   test('should list a court of appeal without first president as vacant', async ({ agent, expect, sessions }) => {
     const prosecutor = {
       function: seed.functions.PG,

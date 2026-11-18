@@ -1,5 +1,6 @@
 import { CIVILITIES, type Civility } from '../../magistrat/domain/magistrat-name';
 
+import { SUPERIOR_COURT_OF_APPEAL_TYPE_ID } from './court-of-appeal-first-president';
 import type { CourtOfCassationPosition, HolderService } from './court-of-cassation-position';
 
 type Titles = { man: string; woman: string };
@@ -27,10 +28,13 @@ function inSentence(courtLabel: string): string {
   return courtLabel.charAt(0).toLowerCase() + courtLabel.slice(1);
 }
 
-export function courtOfAppealFirstPresidentTitle(holder: {
+export function courtOfAppealHeadTitle(holder: {
   civility: Civility | null;
   courtLabel: string;
+  courtTypeId: string;
 }): string {
+  if (holder.courtTypeId === SUPERIOR_COURT_OF_APPEAL_TYPE_ID) return judicialCourtPresidentTitle(holder);
+
   const title = titleOf({ man: 'Premier président', woman: 'Première présidente' }, holder.civility);
   return `${title} de la ${inSentence(holder.courtLabel)}`;
 }

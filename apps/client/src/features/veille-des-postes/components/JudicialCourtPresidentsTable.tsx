@@ -332,13 +332,15 @@ export function JudicialCourtPresidentsTable(props: {
         className={clsx('w-full transition-[width] duration-300 ease-out', editing.edited && 'md:w-[52%]')}
       >
         <DataTable
-          ariaLabel={formatMessage({ defaultMessage: 'Présidents de tribunaux judiciaires' })}
+          ariaLabel={formatMessage({
+            defaultMessage: 'Présidents de tribunaux judiciaires et de première instance',
+          })}
           emptyLabel={
             tableState.globalFilter || tableState.columnFilters.length
               ? formatMessage({
-                  defaultMessage: 'Aucun tribunal judiciaire ne correspond aux filtres fournis',
+                  defaultMessage: 'Aucune juridiction ne correspond aux filtres fournis',
                 })
-              : formatMessage({ defaultMessage: 'Aucun tribunal judiciaire' })
+              : formatMessage({ defaultMessage: 'Aucune juridiction' })
           }
           fluid
           isLoading={isLoading}

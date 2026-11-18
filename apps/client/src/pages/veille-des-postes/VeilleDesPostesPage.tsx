@@ -29,12 +29,12 @@ export function VeilleDesPostesPage() {
   const tabs = [
     {
       count: courtOfAppealFirstPresidents,
-      label: formatMessage({ defaultMessage: "Premiers présidents de cour d'appel" }),
+      label: formatMessage({ defaultMessage: "Premiers présidents de cour d'appel et président de TSA" }),
       to: ROUTE_PATHS.SG.CSM.VEILLE_DES_POSTES_COURTS_OF_APPEAL,
     },
     {
       count: judicialCourtPresidents,
-      label: formatMessage({ defaultMessage: 'Présidents de tribunaux judiciaires' }),
+      label: formatMessage({ defaultMessage: 'Présidents de TJ et de TPI' }),
       to: ROUTE_PATHS.SG.CSM.VEILLE_DES_POSTES_JUDICIAL_COURTS,
     },
     {

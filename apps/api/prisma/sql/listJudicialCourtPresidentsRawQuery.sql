@@ -1,4 +1,4 @@
--- @param {String} $1:jurisdictionTypeId
+-- @param $1:jurisdictionTypeIds
 -- @param {String} $2:functionId
 -- @param {String} $3:search?
 -- @param {String} $4:sortBy?
@@ -42,6 +42,7 @@ SELECT
       || TO_TSVECTOR('unaccent_simple'::REGCONFIG, LOWER(REPLACE(COALESCE(r.ville_jur, ''), ' ', '-')))
     ) @@ TO_TSQUERY('unaccent_simple'::REGCONFIG, $3::TEXT)
   ) AS "matchesSearch",
+  r.ville_jur AS "ressortCity",
   r.codejur AS "ressortId",
   r.libelle AS "ressortLabel",
   h.id::TEXT AS id,
@@ -65,11 +66,11 @@ FROM data_administration_context.jurisdictions AS j
     ON pc.magistrat_id = h.id AND pc.position_id = h.position_id
 
 WHERE (
-  j.type_jur = $1::TEXT
+  j.type_jur = ANY($1::TEXT[])
   AND (j.date_suppression IS NULL OR j.date_suppression > CURRENT_DATE)
 )
 
--- by the codes, which name the cities: the labels start with "d'" or "de" depending on them
+-- by city: the labels start with "d'" or "de" and the codes with the type of the court ("TPI NOUMEA")
 ORDER BY
   CASE WHEN $4::TEXT = 'installationDate' AND $5::BOOLEAN THEN h.installation_date END DESC NULLS LAST,
   CASE WHEN $4::TEXT = 'installationDate' AND NOT $5::BOOLEAN THEN h.installation_date END ASC NULLS LAST,
@@ -77,9 +78,10 @@ ORDER BY
   CASE WHEN $4::TEXT = 'name' AND $5::BOOLEAN THEN h.first_name END DESC NULLS LAST,
   CASE WHEN $4::TEXT = 'name' AND NOT $5::BOOLEAN THEN h.last_name END ASC NULLS LAST,
   CASE WHEN $4::TEXT = 'name' AND NOT $5::BOOLEAN THEN h.first_name END ASC NULLS LAST,
-  CASE WHEN $4::TEXT = 'court' AND $5::BOOLEAN THEN j.codejur END DESC,
-  CASE WHEN $4::TEXT = 'court' AND NOT $5::BOOLEAN THEN j.codejur END ASC,
-  CASE WHEN $4::TEXT = 'ressort' AND $5::BOOLEAN THEN r.codejur END DESC,
-  r.codejur ASC,
+  CASE WHEN $4::TEXT = 'court' AND $5::BOOLEAN THEN j.ville_jur END DESC,
+  CASE WHEN $4::TEXT = 'court' AND NOT $5::BOOLEAN THEN j.ville_jur END ASC,
+  CASE WHEN $4::TEXT = 'ressort' AND $5::BOOLEAN THEN r.ville_jur END DESC,
+  r.ville_jur ASC,
+  j.ville_jur ASC,
   j.codejur ASC,
   h.id ASC;
