@@ -17,6 +17,7 @@ import {
   DataTable,
   DataTableCount,
   DataTableFilters,
+  loadFailureOf,
   useDataTableSearch,
   useDataTableUrlState,
 } from '@/shared/ui/data-table';
@@ -154,24 +155,34 @@ export function CourtOfCassationHoldersTable(props: {
   const sorting =
     sort && SORTABLE_COLUMNS.has(sort.id) ? tableState.sorting : COURT_OF_CASSATION_HOLDERS_DEFAULT_SORTING;
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isPlaceholderData } =
-    useCourtOfCassationHoldersQuery({
-      alerts: knownValues(
-        tableState.columnFilters.find((filter) => filter.id === 'alert')?.value,
-        KNOWN_ALERTS,
-      ),
-      deadlines: knownValues(
-        tableState.columnFilters.find((filter) => filter.id === 'deadline')?.value,
-        KNOWN_DEADLINES,
-      ),
-      positions: [props.position],
-      search: tableState.globalFilter,
-      sorting,
-      statuses: knownValues(
-        tableState.columnFilters.find((filter) => filter.id === 'status')?.value,
-        KNOWN_STATUSES,
-      ),
-    });
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isError,
+    isFetching,
+    isFetchingNextPage,
+    isFetchNextPageError,
+    isLoading,
+    isPlaceholderData,
+    refetch,
+  } = useCourtOfCassationHoldersQuery({
+    alerts: knownValues(
+      tableState.columnFilters.find((filter) => filter.id === 'alert')?.value,
+      KNOWN_ALERTS,
+    ),
+    deadlines: knownValues(
+      tableState.columnFilters.find((filter) => filter.id === 'deadline')?.value,
+      KNOWN_DEADLINES,
+    ),
+    positions: [props.position],
+    search: tableState.globalFilter,
+    sorting,
+    statuses: knownValues(
+      tableState.columnFilters.find((filter) => filter.id === 'status')?.value,
+      KNOWN_STATUSES,
+    ),
+  });
 
   // the rows of the previous position stay as placeholder until those of the new one arrive
   const [loadedPosition, setLoadedPosition] = useState(props.position);
@@ -186,8 +197,8 @@ export function CourtOfCassationHoldersTable(props: {
   const positions = data?.positions ?? NO_POSITIONS;
 
   const fetchMore = useCallback(() => {
-    if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+    if (hasNextPage && !isFetchingNextPage && !isFetchNextPageError) void fetchNextPage();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage, isFetchNextPageError]);
 
   const statusAndAlertCounts = useMemo(
     () =>
@@ -259,7 +270,8 @@ export function CourtOfCassationHoldersTable(props: {
               : formatMessage({ defaultMessage: 'Aucun magistrat à ce poste' })
           }
           fluid
-          isLoading={isLoading || !holders}
+          isLoading={!isError && (isLoading || !holders)}
+          loadError={loadFailureOf({ fetchNextPage, isError, isFetching, isFetchNextPageError, refetch })}
           onEndReached={fetchMore}
           onSeenRowsChange={onSeenRowsChange}
           revealedRowId={highlightedRowId}

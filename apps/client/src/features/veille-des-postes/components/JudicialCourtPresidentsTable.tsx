@@ -18,6 +18,7 @@ import {
   DataTable,
   DataTableCount,
   DataTableFilters,
+  loadFailureOf,
   useDataTableSearch,
   useDataTableUrlState,
 } from '@/shared/ui/data-table';
@@ -224,33 +225,41 @@ export function JudicialCourtPresidentsTable(props: {
   const sorting =
     sort && SORTABLE_COLUMNS.has(sort.id) ? tableState.sorting : JUDICIAL_COURT_PRESIDENTS_DEFAULT_SORTING;
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useJudicialCourtPresidentsQuery(
-    {
-      alerts: knownValues(
-        tableState.columnFilters.find((filter) => filter.id === 'alert')?.value,
-        KNOWN_ALERTS,
-      ),
-      deadlines: knownValues(
-        tableState.columnFilters.find((filter) => filter.id === 'deadline')?.value,
-        KNOWN_DEADLINES,
-      ),
-      ressorts: stringValues(tableState.columnFilters.find((filter) => filter.id === 'ressort')?.value),
-      search: tableState.globalFilter,
-      sorting,
-      statuses: knownValues(
-        tableState.columnFilters.find((filter) => filter.id === 'status')?.value,
-        KNOWN_STATUSES,
-      ),
-    },
-  );
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isError,
+    isFetching,
+    isFetchingNextPage,
+    isFetchNextPageError,
+    isLoading,
+    refetch,
+  } = useJudicialCourtPresidentsQuery({
+    alerts: knownValues(
+      tableState.columnFilters.find((filter) => filter.id === 'alert')?.value,
+      KNOWN_ALERTS,
+    ),
+    deadlines: knownValues(
+      tableState.columnFilters.find((filter) => filter.id === 'deadline')?.value,
+      KNOWN_DEADLINES,
+    ),
+    ressorts: stringValues(tableState.columnFilters.find((filter) => filter.id === 'ressort')?.value),
+    search: tableState.globalFilter,
+    sorting,
+    statuses: knownValues(
+      tableState.columnFilters.find((filter) => filter.id === 'status')?.value,
+      KNOWN_STATUSES,
+    ),
+  });
 
   const search = useDataTableSearch(tableState.globalFilter, (globalFilter) =>
     setTableState((state) => ({ ...state, globalFilter })),
   );
 
   const fetchMore = useCallback(() => {
-    if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+    if (hasNextPage && !isFetchingNextPage && !isFetchNextPageError) void fetchNextPage();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage, isFetchNextPageError]);
 
   const presidents = useMemo(() => data?.items ?? [], [data]);
   const statusAndAlertCounts = useMemo(
@@ -336,7 +345,8 @@ export function JudicialCourtPresidentsTable(props: {
               : formatMessage({ defaultMessage: 'Aucun tribunal judiciaire' })
           }
           fluid
-          isLoading={isLoading}
+          isLoading={!isError && isLoading}
+          loadError={loadFailureOf({ fetchNextPage, isError, isFetching, isFetchNextPageError, refetch })}
           onEndReached={fetchMore}
           onSeenRowsChange={onSeenRowsChange}
           revealedRowId={highlightedRowId}
