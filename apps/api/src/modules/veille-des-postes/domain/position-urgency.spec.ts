@@ -14,7 +14,11 @@ function position(
   vacancyStartDate: DateOnly | null = null,
 ) {
   const alerts = facts
-    ? alertsOf({ birthDate: null, installationDate: null, proposal: null, ...facts }, PRESIDENT, TODAY)
+    ? alertsOf(
+        { birthDate: null, civility: null, installationDate: null, proposal: null, ...facts },
+        PRESIDENT,
+        TODAY,
+      )
     : [];
   return {
     alerts,
@@ -35,7 +39,12 @@ function position(
 
 const LATER_RETIREMENT = position('retirement in ten months, proposal next month', {
   birthDate: new DateOnly(1960, 9, 13),
-  proposal: { sessionDate: new DateOnly(2026, 12, 10), sessionName: 'Décembre', targetedPosition: null },
+  proposal: {
+    sessionDate: new DateOnly(2026, 12, 10),
+    sessionName: 'Décembre',
+    stage: 'PROPOSED',
+    targetedPosition: null,
+  },
 });
 const SOON_RETIREMENT = position('retirement in three months', { birthDate: new DateOnly(1960, 2, 13) });
 const DECLARED = position('vacancy declared in two months', {}, new DateOnly(2027, 1, 13));

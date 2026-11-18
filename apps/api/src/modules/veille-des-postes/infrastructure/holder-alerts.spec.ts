@@ -9,7 +9,7 @@ const PRESIDENT = { movesAfterSevenYears: true, retirementAge: 67 };
 
 function holder(name: string, facts: Partial<HolderFacts>) {
   const alerts = alertsOf(
-    { birthDate: null, installationDate: null, proposal: null, ...facts },
+    { birthDate: null, civility: null, installationDate: null, proposal: null, ...facts },
     PRESIDENT,
     TODAY,
   );
@@ -18,7 +18,12 @@ function holder(name: string, facts: Partial<HolderFacts>) {
 
 const IN_TEN_MONTHS_RETIREMENT = holder('retirement in ten months, proposal next month', {
   birthDate: new DateOnly(1960, 9, 13),
-  proposal: { sessionDate: new DateOnly(2026, 12, 10), sessionName: 'Décembre', targetedPosition: null },
+  proposal: {
+    sessionDate: new DateOnly(2026, 12, 10),
+    sessionName: 'Décembre',
+    stage: 'PROPOSED',
+    targetedPosition: null,
+  },
 });
 const SOON_RETIREMENT = holder('retirement in three months', { birthDate: new DateOnly(1960, 2, 13) });
 const WITHOUT_ALERT = holder('without alert', {});

@@ -1,6 +1,8 @@
 import { addMonths } from 'date-fns';
 
 import { DateOnly } from '../../../utils/date-only';
+import type { Civility } from '../../magistrat/domain/magistrat-name';
+import type { NominationFileOutcomeEnum } from '../../shared/nomination-file-outcome.enum';
 
 import type { CourtOfCassationPosition } from './court-of-cassation-position';
 import { frenchDate } from './french-date';
@@ -46,9 +48,37 @@ export function alertRulesOf(position: WatchedPosition): AlertRules {
   };
 }
 
-export type HolderProposal = { sessionDate: DateOnly; sessionName: string; targetedPosition: string | null };
+export type ProposalStage = 'NOMINATED' | 'PROPOSED';
+const PROPOSAL_VERBS: Record<ProposalStage, { man: string; woman: string }> = {
+  NOMINATED: { man: 'Nommé', woman: 'Nommée' },
+  PROPOSED: { man: 'Proposé', woman: 'Proposée' },
+};
+export type HolderProposal = {
+  sessionDate: DateOnly;
+  sessionName: string;
+  stage: ProposalStage;
+  targetedPosition: string | null;
+};
+
+/**
+ * proposed until a validated official report gives it a final outcome, whatever the date of its session. A
+ * favorable one names the holder, who is leaving, until LOLFI puts them on the position it targets. Null once
+ * nothing is awaited
+ */
+export function proposalStageOf(proposal: {
+  isArchived: boolean;
+  isOnTargetedPosition: boolean;
+  isReported: boolean;
+  outcome: NominationFileOutcomeEnum | null;
+}): ProposalStage | null {
+  if (proposal.isArchived) return null;
+  if (!proposal.isReported) return 'PROPOSED';
+  return proposal.outcome === 'VALIDATED' && !proposal.isOnTargetedPosition ? 'NOMINATED' : null;
+}
+
 export type HolderFacts = {
   birthDate: DateOnly | null;
+  civility: Civility | null;
   installationDate: DateOnly | null;
   proposal: HolderProposal | null;
 };
@@ -104,15 +134,16 @@ export function alertsOf(holder: HolderFacts, rules: AlertRules, today: DateOnly
     }
   }
   if (holder.proposal) {
-    const { sessionDate, sessionName, targetedPosition } = holder.proposal;
+    const { sessionDate, sessionName, stage, targetedPosition } = holder.proposal;
     const session = `la session "${sessionName}" du ${frenchDate(sessionDate)}`;
+    const verb = holder.civility === 'MME' ? PROPOSAL_VERBS[stage].woman : PROPOSAL_VERBS[stage].man;
     alerts.push({
       dueDate: sessionDate,
       id: 'PROPOSED_IN_SESSION',
       label: targetedPosition
-        ? `Proposé sur le poste "${targetedPosition}" de ${session}`
-        : `Proposé sur un poste de ${session}`,
-      shortLabel: `Proposé en session du ${frenchDate(sessionDate)}`,
+        ? `${verb} sur le poste "${targetedPosition}" de ${session}`
+        : `${verb} sur un poste de ${session}`,
+      shortLabel: `${verb} en session du ${frenchDate(sessionDate)}`,
     });
   }
 

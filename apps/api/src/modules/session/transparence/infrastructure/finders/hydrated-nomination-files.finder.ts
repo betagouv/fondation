@@ -63,6 +63,7 @@ export type MagistratProposition = {
   session: { date: DateOnly; id: string; name: string };
   targetedGrade: string | null;
   targetedPosition: string | null;
+  targetedPositionId: number | null;
 };
 
 @Injectable()
@@ -113,6 +114,7 @@ export class HydratedNominationFilesFinder {
       orderBy: [{ session: { date: 'asc' } }, { number: { nulls: 'last', sort: 'asc' } }],
       select: {
         detectedMagistratId: true,
+        detectedTargetedPositionId: true,
         id: true,
         number: true,
         session: { select: { date: true, id: true, name: true } },
@@ -124,7 +126,7 @@ export class HydratedNominationFilesFinder {
 
     return Map.groupBy(
       // the filter on the magistrats already leaves out the files without one
-      files.flatMap(({ detectedMagistratId, session, ...file }) =>
+      files.flatMap(({ detectedMagistratId, detectedTargetedPositionId, session, ...file }) =>
         detectedMagistratId === null
           ? []
           : [
@@ -132,6 +134,7 @@ export class HydratedNominationFilesFinder {
                 ...file,
                 magistratId: detectedMagistratId,
                 session: { ...session, date: DateOnly.fromUtcDate(session.date) },
+                targetedPositionId: detectedTargetedPositionId,
               },
             ],
       ),

@@ -1059,7 +1059,13 @@ export class TransparenceService {
   }
 
   /** @internal */
-  /** most recent session first, then by file number */
+  internalFindReportedNominationFiles(query: {
+    nominationFileIds: ReadonlySet<string>;
+  }): Promise<Set<string>> {
+    return this.reportedFiles.find(query);
+  }
+
+  /** @internal most recent session first, then by file number */
   internalSortNominationFiles(query: { nominationFileIds: readonly string[] }): Promise<string[]> {
     return this.hydratedNominationFiles.sort(query);
   }
