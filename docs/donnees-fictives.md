@@ -19,6 +19,10 @@ La commande écrit deux archives dans `packages/lolfi`. `LOLFI_CSM_fictitious.zi
 444 magistrats du fichier, comme dans la prod. Ils deviennent alors inactifs. Renvoyer la première
 archive les rend de nouveau actifs.
 
+Ces 444 départs dépassent la part des magistrats actifs qu'un import peut désactiver (2 % par défaut) :
+sans `LOLFI_MAX_DEACTIVATION_RATIO=0.05` dans l'environnement de l'API, l'extraction est tenue pour
+incomplète, personne ne devient inactif et une alerte part sur Tchap.
+
 Les archives s'envoient avec un compte administrateur, par le menu "Administration" puis "Importer une
 archive LOLFI" ([/admin/lolfi](http://localhost:5173/admin/lolfi) en local). Le suivi est sur
 `/admin/ingestions`.

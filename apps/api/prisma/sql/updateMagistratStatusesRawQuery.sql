@@ -1,4 +1,5 @@
 -- @param $1:presentExternalIds
+-- @param {Boolean} $2:appliesDepartures
 
 WITH presence AS (
   SELECT
@@ -15,4 +16,8 @@ SET
   status = presence.status,
   updated_at = CURRENT_TIMESTAMP
 FROM presence
-WHERE presence.id = m.id AND presence.status != m.status;
+WHERE
+  presence.id = m.id
+  AND presence.status != m.status
+  -- A magistrat the file holds is in post however truncated the file is: only the departures can be held
+  AND (presence.status = 'ACTIVE' OR $2);

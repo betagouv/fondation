@@ -94,32 +94,35 @@ export class LolfiMagistratsIngestor {
       file: options.file,
       // An unchanged file is skipped without being read: the statuses of its last import still hold
       beforeSucceeding: async () => {
-        if (mappingResult.success && presentExternalIds)
-          await this.applyStatuses(options.job.id, presentExternalIds);
+        if (!mappingResult.success || !presentExternalIds) return undefined;
+
+        const held = await this.applyStatuses(presentExternalIds);
+        if (held) await this.alertIncompleteExtraction(options.job.id, held);
+
+        return held;
       },
     });
 
     return { success: success && mappingResult.success };
   }
 
-  private async applyStatuses(jobId: number, presentExternalIds: string[]): Promise<void> {
+  /** @returns what to tell of an extraction held incomplete, whose departures are then left out */
+  @Transactional()
+  private async applyStatuses(presentExternalIds: string[]): Promise<string | undefined> {
     const [counts] = await this.db.tx.$queryRawTyped(countMagistratDeactivationsRawQuery(presentExternalIds));
     const magistrats = { active: counts?.active ?? 0, deactivations: counts?.deactivations ?? 0 };
+    const isIncomplete = isIncompleteExtraction(magistrats, this.config.lolfi.maxDeactivationRatio);
 
-    if (!isIncompleteExtraction(magistrats, this.config.lolfi.maxDeactivationRatio)) {
-      await this.db.tx.$queryRawTyped(updateMagistratStatusesRawQuery(presentExternalIds));
-      return;
-    }
+    await this.db.tx.$queryRawTyped(updateMagistratStatusesRawQuery(presentExternalIds, !isIncomplete));
 
-    const message = `MAGISTRATS.xml : ${magistrats.deactivations} des ${magistrats.active} magistrats actifs sont absents de l'extraction, les statuts sont conservés`;
+    return isIncomplete
+      ? `MAGISTRATS.xml : ${magistrats.deactivations} des ${magistrats.active} magistrats actifs sont absents de l'extraction, leurs départs ne sont pas appliqués et le fichier sera relu au prochain import`
+      : undefined;
+  }
 
+  /** Sent at each import until the extraction is whole again or the threshold raised: nothing else settles it */
+  private async alertIncompleteExtraction(jobId: number, message: string): Promise<void> {
     this.logger.warn(message);
-    await this.db.tx.ingestionJobMessage
-      .create({ data: { jobId, severity: 'WARNING', text: message } })
-      .catch((error) => {
-        this.logger.error(`Failed recording the incomplete extraction of job #${jobId}`, error);
-      });
-
     await this.tchap.alert({
       text: `${message}\n\n${this.config.frontendOriginUrl}/admin/ingestions/${jobId}`,
       title: '🚨 Extraction LOLFI incomplète',
