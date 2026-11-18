@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-import { Prisma } from '../../../../generated/prisma/client';
+import { findActiveMagistratIdsByEmailRawQuery } from '../../../../generated/prisma/sql';
 import { Db } from '../../../framework/database';
 
 @Injectable()
@@ -11,11 +11,10 @@ export class IdentifyMagistratQuery {
 
   async handle(query: { email: string }): Promise<IdentifiedMagistratDto> {
     // Two rows tell an address held by several magistrats, which identifies none of them
-    const [magistrat, homonym] = await this.db.tx.magistrat.findMany({
-      where: { professionalEmail: { equals: query.email, mode: 'insensitive' }, status: 'ACTIVE' },
-      select: { id: true } satisfies Prisma.MagistratSelect,
-      take: 2,
-    });
+    // TODO: see SearchMagistratAuthorizationQuery, which answers the route this one replaces
+    const [magistrat, homonym] = await this.db.tx.$queryRawTyped(
+      findActiveMagistratIdsByEmailRawQuery(query.email),
+    );
 
     return magistrat && !homonym
       ? { status: 'ACTIVE', magistrat: { id: magistrat.id } }

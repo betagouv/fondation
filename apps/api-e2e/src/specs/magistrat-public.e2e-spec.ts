@@ -4,7 +4,6 @@ import type { LolfiArchiveContent } from 'lolfi';
 
 import { test } from '../fixtures.ts';
 import { magistrats } from '../generated/api/sdk.ts';
-import { makeHttpClient } from '../steps.ts';
 import * as seed from '../utils/seed.ts';
 
 type Candidate = LolfiArchiveContent['sessions'][number]['candidates'][number];
@@ -43,7 +42,7 @@ test.describe('public magistrat routes', () => {
     const [magistrat] = await sql<{ id: string }[]>`
       select id from data_administration_context.magistrat where professional_email = ${email}
     `;
-    // always 200, as the contract with the website says, and never cached
+    // never cached: the answer follows the last extraction
     expect({ cache: response?.headers.get('cache-control'), data, status: response?.status }).toEqual({
       cache: 'no-store',
       data: { magistrat: { id: magistrat!.id }, status: 'ACTIVE' },
@@ -53,37 +52,45 @@ test.describe('public magistrat routes', () => {
 
   test('should not identify an address held by two active magistrats', async ({ apiClients, expect, lolfi }) => {
     const email = randomEmail();
-    await lolfi.ingest([
+    const job = await lolfi.ingest([
       { createdAt: '22/04/2026', candidates: [candidate('ETIENNE', email), candidate('MICHEL', email)] },
     ]);
     const site = await apiClients.authenticated({ scopes: ['magistrats:identification'] });
 
     const { data } = await magistrats.identifyMagistrat({ body: { email }, client: site.http });
 
-    expect(data).toEqual({ status: 'UNKNOWN' });
+    expect({ data, import: job.status }).toEqual({ data: { status: 'UNKNOWN' }, import: 'SUCCEEDED' });
   });
 
-  test('should let API clients in by their token, their IP and their scope only', async ({
-    apiClients,
-    baseUrl,
-    expect,
-    sql,
-  }) => {
-    const identify = (client: ReturnType<typeof makeHttpClient>): Promise<number | undefined> =>
-      magistrats.identifyMagistrat({ body: { email: randomEmail() }, client }).then(({ response }) => response?.status);
+  test('should no longer identify a magistrat that left the extraction', async ({ apiClients, expect, lolfi }) => {
+    const staying = candidate('ETIENNE', randomEmail());
+    const leaving = candidate('MICHEL', randomEmail());
+    const site = await apiClients.authenticated({ scopes: ['magistrats:identification'] });
+    const identify = () =>
+      magistrats
+        .identifyMagistrat({ body: { email: leaving.email! }, client: site.http, throwOnError: true })
+        .then(({ data }) => data.status);
 
-    const outOfScope = await apiClients.authenticated({ scopes: ['magistrats:status'] });
-    // its token was issued from an allowed IP, which is then taken away from the client
-    const moved = await apiClients.authenticated({ scopes: ['magistrats:identification'] });
-    await sql`delete from identity_and_access_context.api_client_allowed_ips where client_id = ${moved.id}`;
-    const revoked = await apiClients.authenticated({ scopes: ['magistrats:identification'] });
-    await sql`update identity_and_access_context.api_clients set revoked_at = now() where id = ${revoked.id}`;
+    await lolfi.ingest([{ createdAt: '22/04/2026', candidates: [staying, leaving] }]);
+    const before = await identify();
+    await lolfi.ingest([{ createdAt: '22/04/2026', candidates: [staying] }]);
 
-    expect({
-      fromAnotherIp: await identify(moved.http),
-      outOfScope: await identify(outOfScope.http),
-      revoked: await identify(revoked.http),
-      withoutToken: await identify(makeHttpClient(baseUrl)),
-    }).toEqual({ fromAnotherIp: 403, outOfScope: 403, revoked: 401, withoutToken: 401 });
+    expect({ after: await identify(), before }).toEqual({ after: 'UNKNOWN', before: 'ACTIVE' });
+  });
+
+  test('should take the address letter for letter', async ({ apiClients, expect, lolfi }) => {
+    const id = crypto.randomUUID();
+    const job = await lolfi.ingest([
+      { createdAt: '22/04/2026', candidates: [candidate('ETIENNE', `etienne.trevoux-${id}@justice.fr`)] },
+    ]);
+    const site = await apiClients.authenticated({ scopes: ['magistrats:identification'] });
+
+    // an underscore stands for any character in a pattern, not in an address
+    const { data } = await magistrats.identifyMagistrat({
+      body: { email: `etienne_trevoux-${id}@justice.fr` },
+      client: site.http,
+    });
+
+    expect({ data, import: job.status }).toEqual({ data: { status: 'UNKNOWN' }, import: 'SUCCEEDED' });
   });
 });

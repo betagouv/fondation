@@ -7,8 +7,8 @@ import { HasApiScope } from '../api-clients';
 import { HasRole } from '../simple-auth';
 
 import {
+  InvalidMagistratEmailDto,
   SearchMagistratAuthorizationDto,
-  SearchMagistratAuthorizationInvalidEmailDto,
   SearchMagistratAuthorizationUnauthorizedDto,
 } from './infrastructure/magistrat.dto';
 import {
@@ -33,6 +33,7 @@ export class MagistratPublicController {
   @Post('/magistrats/identification')
   @UsePipes(ZodValidationPipe)
   @ZodResponse({ status: HttpStatus.OK, type: IdentifiedMagistratDto })
+  @ZodResponse<any>({ status: HttpStatus.BAD_REQUEST, type: InvalidMagistratEmailDto })
   identifyMagistrat(@Body() body: IdentifyMagistratDto): Promise<IdentifiedMagistratDto> {
     return this.identifyMagistratQuery.handle({ email: body.email });
   }
@@ -43,7 +44,7 @@ export class MagistratPublicController {
   @UsePipes(ZodValidationPipe)
   @ZodResponse({ status: HttpStatus.OK, type: FoundMagistratAuthorizationDto })
   @ZodResponse<any>({ status: HttpStatus.UNAUTHORIZED, type: SearchMagistratAuthorizationUnauthorizedDto })
-  @ZodResponse<any>({ status: HttpStatus.BAD_REQUEST, type: SearchMagistratAuthorizationInvalidEmailDto })
+  @ZodResponse<any>({ status: HttpStatus.BAD_REQUEST, type: InvalidMagistratEmailDto })
   @Header('Cache-Control', `max-age=${(1 * time.DAYS) / time.SECONDS}, private`)
   searchMagistratAuthorization(
     @Body() body: SearchMagistratAuthorizationDto,

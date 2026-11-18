@@ -1111,19 +1111,7 @@ export type IdentifiedMagistratDto = {
     };
 };
 
-export type SearchMagistratAuthorizationDto = {
-    email: string;
-};
-
-export type FoundMagistratAuthorizationDto = {
-    /**
-     * - `MAGISTRAT` means that the email exists and refers to an active _Magistrat_
-     * - `UNKNOWN` we did not find any active _Magistrat_ with that email
-     */
-    role: 'MAGISTRAT' | 'UNKNOWN';
-};
-
-export type SearchMagistratAuthorizationInvalidEmailDto = {
+export type InvalidMagistratEmailDto = {
     message: string;
     path: string;
     statusCode: 400;
@@ -1136,6 +1124,18 @@ export type SearchMagistratAuthorizationInvalidEmailDto = {
         path: Array<string>;
         pattern: string;
     }>;
+};
+
+export type SearchMagistratAuthorizationDto = {
+    email: string;
+};
+
+export type FoundMagistratAuthorizationDto = {
+    /**
+     * - `MAGISTRAT` means that the email exists and refers to an active _Magistrat_
+     * - `UNKNOWN` we did not find any active _Magistrat_ with that email
+     */
+    role: 'MAGISTRAT' | 'UNKNOWN';
 };
 
 export type SearchMagistratAuthorizationUnauthorizedDto = {
@@ -4514,6 +4514,12 @@ export type IdentifyMagistratData = {
     url: '/api/public/v1/magistrats/identification';
 };
 
+export type IdentifyMagistratErrors = {
+    400: InvalidMagistratEmailDto;
+};
+
+export type IdentifyMagistratError = IdentifyMagistratErrors[keyof IdentifyMagistratErrors];
+
 export type IdentifyMagistratResponses = {
     200: IdentifiedMagistratDto;
 };
@@ -4528,7 +4534,7 @@ export type SearchMagistratAuthorizationData = {
 };
 
 export type SearchMagistratAuthorizationErrors = {
-    400: SearchMagistratAuthorizationInvalidEmailDto;
+    400: InvalidMagistratEmailDto;
     401: SearchMagistratAuthorizationUnauthorizedDto;
 };
 
