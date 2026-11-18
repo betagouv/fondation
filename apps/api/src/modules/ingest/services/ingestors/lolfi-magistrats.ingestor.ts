@@ -1,10 +1,17 @@
 import { Propagation, Transactional } from '@nestjs-cls/transactional';
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import z from 'zod';
 
 import { PrismaSeverityEnum } from '../../../../generated/prisma/enums';
-import { insertMagistratRawQuery, updateMagistratStatusesRawQuery } from '../../../../generated/prisma/sql';
+import {
+  countMagistratDeactivationsRawQuery,
+  insertMagistratRawQuery,
+  updateMagistratStatusesRawQuery,
+} from '../../../../generated/prisma/sql';
+import { API_CONFIG_TOKEN, ApiConfig } from '../../../framework/config';
 import { Db } from '../../../framework/database';
+import { Tchap } from '../../../framework/tchap';
+import { isIncompleteExtraction } from '../../domain/incomplete-extraction';
 import { LolfiJob } from '../lolfi-job.type';
 
 import { JobFileIngestor } from './job-file-ingestor';
@@ -17,6 +24,8 @@ export class LolfiMagistratsIngestor {
   constructor(
     private readonly ingestor: JobFileIngestor,
     private readonly db: Db,
+    private readonly tchap: Tchap,
+    @Inject(API_CONFIG_TOKEN) private readonly config: ApiConfig,
   ) {}
 
   handles(file: LolfiJob['files'][number]): boolean {
@@ -86,11 +95,35 @@ export class LolfiMagistratsIngestor {
       // An unchanged file is skipped without being read: the statuses of its last import still hold
       beforeSucceeding: async () => {
         if (mappingResult.success && presentExternalIds)
-          await this.db.tx.$queryRawTyped(updateMagistratStatusesRawQuery(presentExternalIds));
+          await this.applyStatuses(options.job.id, presentExternalIds);
       },
     });
 
     return { success: success && mappingResult.success };
+  }
+
+  private async applyStatuses(jobId: number, presentExternalIds: string[]): Promise<void> {
+    const [counts] = await this.db.tx.$queryRawTyped(countMagistratDeactivationsRawQuery(presentExternalIds));
+    const magistrats = { active: counts?.active ?? 0, deactivations: counts?.deactivations ?? 0 };
+
+    if (!isIncompleteExtraction(magistrats, this.config.lolfi.maxDeactivationRatio)) {
+      await this.db.tx.$queryRawTyped(updateMagistratStatusesRawQuery(presentExternalIds));
+      return;
+    }
+
+    const message = `MAGISTRATS.xml : ${magistrats.deactivations} des ${magistrats.active} magistrats actifs sont absents de l'extraction, les statuts sont conservés`;
+
+    this.logger.warn(message);
+    await this.db.tx.ingestionJobMessage
+      .create({ data: { jobId, severity: 'WARNING', text: message } })
+      .catch((error) => {
+        this.logger.error(`Failed recording the incomplete extraction of job #${jobId}`, error);
+      });
+
+    await this.tchap.alert({
+      text: `${message}\n\n${this.config.frontendOriginUrl}/admin/ingestions/${jobId}`,
+      title: '🚨 Extraction LOLFI incomplète',
+    });
   }
 
   @Transactional(Propagation.RequiresNew)

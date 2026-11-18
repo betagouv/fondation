@@ -36,6 +36,11 @@ export const ConfigSchema = z.object({
   lolfi: z.preprocess(
     () => ({}),
     z.object({
+      // share of the active magistrats an import may deactivate before its extraction is held incomplete
+      maxDeactivationRatio: z.prefault(
+        z.number().min(0).max(1),
+        Number(process.env.LOLFI_MAX_DEACTIVATION_RATIO || 0.02),
+      ),
       privateKeyPath: z.prefault(
         z.string().trim().nonempty().optional(),
         process.env.LOLFI_CRYPTO_PRIVKEY_PATH,
