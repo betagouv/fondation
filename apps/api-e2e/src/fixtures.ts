@@ -1,6 +1,7 @@
 import postgres from 'postgres';
 import { test as base, inject } from 'vitest';
 
+import { makeApiClientFixture } from './fixtures/api-client.fixture.ts';
 import { makeLoggedInUserFixture, registerUser, type RoleEnum } from './fixtures/auth.fixture.ts';
 import { makeDocsFixture } from './fixtures/docs.fixture.ts';
 import { makeLolfiFixture } from './fixtures/lolfi.fixture.ts';
@@ -39,6 +40,7 @@ export const test = base
       return registerUser({ client, user });
     };
   })
+  .extend('apiClients', ({ baseUrl, sql }) => makeApiClientFixture({ baseUrl, sql }))
   .extend('lolfi', ({ admin, baseUrl }) => makeLolfiFixture({ admin, baseUrl }))
   .extend('sessions', ({ admin, lolfi }) => makeCreateSessionFixture(admin, lolfi))
   .extend('docs', ({ admin, agent, registerUser, sessions }) =>

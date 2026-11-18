@@ -49,6 +49,32 @@ export type PreparedOpenIdRequestDto = {
     url: string;
 };
 
+export type AuthenticateApiClientDto = {
+    client_id: string;
+    client_secret: string;
+    grant_type: 'client_credentials';
+};
+
+export type AuthenticatedApiClientDto = {
+    /**
+     * Sent as `Authorization: Bearer <access_token>`
+     */
+    access_token: string;
+    token_type: 'Bearer';
+    /**
+     * Seconds before the token stops working
+     */
+    expires_in: number;
+};
+
+export type AuthenticateApiClientRefusedDto = {
+    /**
+     * - `invalid_client` (401): unknown or revoked identifier, or wrong secret
+     * - `access_denied` (403): the request does not come from an allowed IP
+     */
+    error: 'invalid_client' | 'access_denied';
+};
+
 export type ListedMemberSessionReportsDto = {
     items: Array<{
         name: string;
@@ -3196,6 +3222,26 @@ export type CallbackData = {
 export type CallbackResponses = {
     200: unknown;
 };
+
+export type AuthenticateApiClientData = {
+    body: AuthenticateApiClientDto;
+    path?: never;
+    query?: never;
+    url: '/api/public/v1/auth';
+};
+
+export type AuthenticateApiClientErrors = {
+    401: AuthenticateApiClientRefusedDto;
+    403: AuthenticateApiClientRefusedDto;
+};
+
+export type AuthenticateApiClientError = AuthenticateApiClientErrors[keyof AuthenticateApiClientErrors];
+
+export type AuthenticateApiClientResponses = {
+    200: AuthenticatedApiClientDto;
+};
+
+export type AuthenticateApiClientResponse = AuthenticateApiClientResponses[keyof AuthenticateApiClientResponses];
 
 export type ListMemberSessionReportsData = {
     body?: never;
