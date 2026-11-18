@@ -53,7 +53,7 @@ describe('PresentationPlanLayout', () => {
     expect(screen.getByRole('heading', { name: 'Notice de restitution introuvable' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Restitutions' })).toHaveAttribute(
       'href',
-      '/secretariat-general/restitutions/a-restituer',
+      '/secretariat-general/gds/restitutions/a-restituer',
     );
     expect(screen.queryByRole('heading', { name: 'Notice du 12 mars' })).not.toBeInTheDocument();
   });

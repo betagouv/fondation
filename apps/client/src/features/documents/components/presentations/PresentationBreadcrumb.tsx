@@ -12,15 +12,15 @@ export function PresentationBreadcrumb() {
   const { pathname } = useLocation();
 
   const label = useMemo(() => {
-    if (matchPath({ path: ROUTE_PATHS.SG.PRESENTATIONS_NEW }, pathname)) {
+    if (matchPath({ path: ROUTE_PATHS.SG.GDS.PRESENTATIONS_NEW }, pathname)) {
       return formatMessage({ defaultMessage: `Génération d'une notice` });
     }
 
-    if (matchPath({ path: ROUTE_PATHS.SG.PRESENTATIONS_UPDATE }, pathname)) {
+    if (matchPath({ path: ROUTE_PATHS.SG.GDS.PRESENTATIONS_UPDATE }, pathname)) {
       return formatMessage({ defaultMessage: `Données d'une notice` });
     }
 
-    if (matchPath({ path: ROUTE_PATHS.SG.PRESENTATIONS_EDIT }, pathname)) {
+    if (matchPath({ path: ROUTE_PATHS.SG.GDS.PRESENTATIONS_EDIT }, pathname)) {
       return formatMessage({ defaultMessage: `Texte d'une notice` });
     }
 
@@ -36,7 +36,7 @@ export function PresentationBreadcrumb() {
           ...breadcrumbRoot,
           {
             label: formatMessage({ defaultMessage: 'Restitutions' }),
-            to: generatePath(ROUTE_PATHS.SG.PRESENTATIONS_READY),
+            to: generatePath(ROUTE_PATHS.SG.GDS.PRESENTATIONS_READY),
           },
         ],
       }}

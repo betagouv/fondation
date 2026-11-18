@@ -24,8 +24,8 @@ const PAGES = ['home', 'archives', 'archivedSession', 'magistratSearch', 'veille
 type Page = (typeof PAGES)[number];
 
 const SG_LOCATIONS = {
-  archivedSession: generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId: STORY_SESSION_ID }),
-  archives: ROUTE_PATHS.SG.ARCHIVED_SESSIONS,
+  archivedSession: generatePath(ROUTE_PATHS.SG.GDS.SESSION_ID, { sessionId: STORY_SESSION_ID }),
+  archives: ROUTE_PATHS.SG.GDS.ARCHIVED_SESSIONS,
   home: ROUTE_PATHS.SG.DASHBOARD,
   magistratSearch: ROUTE_PATHS.SG.MAGISTRAT_SEARCH,
   veilleDesPostes: ROUTE_PATHS.SG.CSM.VEILLE_DES_POSTES_COURTS_OF_APPEAL,

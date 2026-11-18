@@ -50,7 +50,7 @@ export function AgendaProvider(props: PropsWithChildren) {
   }, []);
 
   const cancel = useCallback(() => {
-    navigate(generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId }));
+    navigate(generatePath(ROUTE_PATHS.SG.GDS.SESSION_ID, { sessionId }));
   }, [navigate, sessionId]);
 
   const submit = useCallback(
@@ -82,7 +82,7 @@ export function AgendaProvider(props: PropsWithChildren) {
         {
           onSuccess: (result) => {
             if (result?.id) {
-              navigate(generatePath(ROUTE_PATHS.SG.AGENDA_PREVIEW, { sessionId, agendaId: result.id }));
+              navigate(generatePath(ROUTE_PATHS.SG.GDS.AGENDA_PREVIEW, { sessionId, agendaId: result.id }));
             }
           },
           onError: async (error) => {

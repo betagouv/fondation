@@ -13,9 +13,8 @@ function pouvoirDePropositionOfPage(pathname: string): PouvoirDeProposition | nu
   if (pathname === ROUTE_PATHS.SG.DASHBOARD || pathname === ROUTE_PATHS.LOGIN) return null;
   // a tab opened to act as a member inherits the storage of the secretariat's tab, then lands in the members' space
   if (matchPath({ end: false, path: ROUTE_PATHS.TRANSPARENCES.DASHBOARD }, pathname)) return null;
-  if (matchPath({ end: false, path: ROUTE_PATHS.SG.MAGISTRAT_SEARCH }, pathname)) return undefined;
   if (matchPath({ end: false, path: ROUTE_PATHS.SG.CSM.ROOT }, pathname)) return 'CSM';
-  if (pathname.startsWith(`${ROUTE_PATHS.SG.DASHBOARD}/`)) return 'GDS';
+  if (matchPath({ end: false, path: ROUTE_PATHS.SG.GDS.ROOT }, pathname)) return 'GDS';
 
   return undefined;
 }

@@ -54,7 +54,7 @@ export function TransparenceActions(props: { transparence: DetailedNominationSes
           ),
         }),
       onSuccess: () => {
-        navigate(ROUTE_PATHS.SG.MANAGE_SESSION);
+        navigate(ROUTE_PATHS.SG.GDS.MANAGE_SESSION);
         toasts.success({
           title: formatMessage(
             { defaultMessage: 'Transparence "{name}" archivée' },
@@ -103,7 +103,7 @@ export function TransparenceActions(props: { transparence: DetailedNominationSes
           ),
         }),
       onSuccess: () => {
-        navigate(ROUTE_PATHS.SG.MANAGE_SESSION);
+        navigate(ROUTE_PATHS.SG.GDS.MANAGE_SESSION);
         toasts.success({
           title: formatMessage(
             { defaultMessage: 'Transparence "{name}" supprimée' },

@@ -11,7 +11,7 @@ export function DocActionOfficialReportMetadata(props: {
   officialReport: { id: string; name: string; type: 'officialReport' };
 }) {
   const { formatMessage } = useIntl();
-  const to = generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_UPDATE, {
+  const to = generatePath(ROUTE_PATHS.SG.GDS.OFFICIAL_REPORT_UPDATE, {
     sessionId: props.sessionId,
     officialReportId: props.officialReport.id,
   });

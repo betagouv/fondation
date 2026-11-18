@@ -31,7 +31,7 @@ function DetailsMemberHeader(props: { name: string }) {
 
   return (
     <DetailsHeader
-      backTo={ROUTE_PATHS.SG.MANAGE_MEMBERS}
+      backTo={ROUTE_PATHS.SG.GDS.MANAGE_MEMBERS}
       backThroughHistory
       breadcrumb={
         <Breadcrumb
@@ -42,7 +42,7 @@ function DetailsMemberHeader(props: { name: string }) {
               ...breadcrumbRoot,
               {
                 label: formatMessage({ defaultMessage: 'Gérer les membres' }),
-                to: ROUTE_PATHS.SG.MANAGE_MEMBERS,
+                to: ROUTE_PATHS.SG.GDS.MANAGE_MEMBERS,
               },
             ],
           }}

@@ -36,7 +36,7 @@ function AgendaContent() {
         <Link
           className="fr-link fr-link--icon-left fr-icon-arrow-left-line"
           onClick={goBack}
-          to={generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId: session.id })}
+          to={generatePath(ROUTE_PATHS.SG.GDS.SESSION_ID, { sessionId: session.id })}
         >
           <FormattedMessage defaultMessage="Quitter" />
         </Link>

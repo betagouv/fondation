@@ -75,8 +75,8 @@ export function OfficialReportProvider(props: PropsWithChildren) {
     () =>
       navigate(
         officialReportId
-          ? generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_PREVIEW, { officialReportId, sessionId })
-          : generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId }),
+          ? generatePath(ROUTE_PATHS.SG.GDS.OFFICIAL_REPORT_PREVIEW, { officialReportId, sessionId })
+          : generatePath(ROUTE_PATHS.SG.GDS.SESSION_ID, { sessionId }),
       ),
     [navigate, officialReportId, sessionId],
   );
@@ -99,7 +99,7 @@ export function OfficialReportProvider(props: PropsWithChildren) {
         const id = result?.id || officialReportId;
         if (id) {
           navigate(
-            generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_PREVIEW, {
+            generatePath(ROUTE_PATHS.SG.GDS.OFFICIAL_REPORT_PREVIEW, {
               sessionId,
               officialReportId: id,
             }),

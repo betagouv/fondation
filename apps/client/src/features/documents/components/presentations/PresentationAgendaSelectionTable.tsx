@@ -182,7 +182,7 @@ export function PresentationAgendaSelectionTable(props: { items: readonly Agenda
                   <AgendaValidation
                     createdAt={item.createdAt}
                     createdBy={item.createdBy}
-                    draftPath={generatePath(ROUTE_PATHS.SG.AGENDA_PREVIEW, {
+                    draftPath={generatePath(ROUTE_PATHS.SG.GDS.AGENDA_PREVIEW, {
                       agendaId: item.id,
                       sessionId: item.session.id,
                     })}
@@ -204,7 +204,9 @@ export function PresentationAgendaSelectionTable(props: { items: readonly Agenda
                               <Link
                                 className="fr-link fr-link--sm whitespace-nowrap"
                                 key={notice.id}
-                                to={generatePath(ROUTE_PATHS.SG.PRESENTATIONS_PREVIEW, { planId: notice.id })}
+                                to={generatePath(ROUTE_PATHS.SG.GDS.PRESENTATIONS_PREVIEW, {
+                                  planId: notice.id,
+                                })}
                               >
                                 {notice.name}
                               </Link>

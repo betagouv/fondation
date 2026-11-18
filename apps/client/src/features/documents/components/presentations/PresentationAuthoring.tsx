@@ -65,7 +65,7 @@ export function AgendaValidation(props: {
               link: (chunks) => (
                 <Link
                   className="fr-link fr-link--sm"
-                  state={{ returnPath: ROUTE_PATHS.SG.PRESENTATIONS_AGENDAS }}
+                  state={{ returnPath: ROUTE_PATHS.SG.GDS.PRESENTATIONS_AGENDAS }}
                   to={props.draftPath}
                 >
                   {chunks}

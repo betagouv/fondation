@@ -40,7 +40,7 @@ export function MagistratNominationFilesTable({
           const sessionPath =
             context === 'membre'
               ? getDetailSessionGdsPath({ sessionId: session.id })
-              : generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId: session.id });
+              : generatePath(ROUTE_PATHS.SG.GDS.SESSION_ID, { sessionId: session.id });
           const words = session.name.split(' ');
           const lastWord = words.pop();
           const leadingWords = words.join(' ');

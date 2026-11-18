@@ -99,7 +99,7 @@ export function PresentationPlanProvider(props: PropsWithChildren) {
         secretaryId: null,
         time: null,
       }));
-      navigate(generatePath(ROUTE_PATHS.SG.PRESENTATIONS_NEW));
+      navigate(generatePath(ROUTE_PATHS.SG.GDS.PRESENTATIONS_NEW));
     },
     [navigate, setState],
   );
@@ -139,7 +139,7 @@ export function PresentationPlanProvider(props: PropsWithChildren) {
           onSuccess: ({ data }) => {
             if (!data) return;
 
-            navigate(generatePath(ROUTE_PATHS.SG.PRESENTATIONS_UPDATE, { planId: data.id }), {
+            navigate(generatePath(ROUTE_PATHS.SG.GDS.PRESENTATIONS_UPDATE, { planId: data.id }), {
               replace: true,
             });
           },
@@ -244,7 +244,7 @@ export function PresentationPlanProvider(props: PropsWithChildren) {
       function onSuccess(id: string) {
         resetCreation();
         resetUpdate();
-        navigate(generatePath(ROUTE_PATHS.SG.PRESENTATIONS_PREVIEW, { planId: id }));
+        navigate(generatePath(ROUTE_PATHS.SG.GDS.PRESENTATIONS_PREVIEW, { planId: id }));
       }
 
       if (planId) {

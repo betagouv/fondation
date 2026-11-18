@@ -32,7 +32,7 @@ export function SessionCommentPage() {
     );
   }
 
-  const sessionPath = generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId });
+  const sessionPath = generatePath(ROUTE_PATHS.SG.GDS.SESSION_ID, { sessionId });
 
   return (
     <DocumentScreen

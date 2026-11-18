@@ -109,7 +109,7 @@ function FileBlockView(props: ReactNodeViewProps) {
             iconPosition="right"
             linkProps={{
               state: { officialReportPath: pathname },
-              to: generatePath(ROUTE_PATHS.SG.AGENDA_EDIT, { agendaId, sessionId }),
+              to: generatePath(ROUTE_PATHS.SG.GDS.AGENDA_EDIT, { agendaId, sessionId }),
             }}
             priority="tertiary no outline"
             size="small"

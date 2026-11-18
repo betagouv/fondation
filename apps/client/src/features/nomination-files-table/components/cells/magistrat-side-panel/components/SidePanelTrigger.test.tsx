@@ -13,7 +13,7 @@ import {
 
 import { SidePanelTrigger } from './SidePanelTrigger';
 
-const SG_ROUTE = '/secretariat-general/session/session-1';
+const SG_ROUTE = '/secretariat-general/gds/session/session-1';
 const MEMBER_ROUTE = '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/session-1';
 
 function renderTrigger(overrides: NominationFileOverrides, route = SG_ROUTE) {

@@ -27,7 +27,7 @@ import {
 type ArchivedSession = ListedArchivedNominationSessionsDto['items'][number];
 export const SPACES = {
   SG: {
-    session: ROUTE_PATHS.SG.SESSION_ID,
+    session: ROUTE_PATHS.SG.GDS.SESSION_ID,
   },
   TRANSPARENCES: {
     home: ROUTE_PATHS.TRANSPARENCES.DASHBOARD,
