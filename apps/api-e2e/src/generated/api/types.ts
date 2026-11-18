@@ -1053,7 +1053,7 @@ export type SearchMagistratAuthorizationDto = {
 export type FoundMagistratAuthorizationDto = {
     /**
      * - `MAGISTRAT` means that the email exists and refers to an active _Magistrat_
-     * - `UNKNOWN` we did not find any _Magistrat_ with that email
+     * - `UNKNOWN` we did not find any active _Magistrat_ with that email
      */
     role: 'MAGISTRAT' | 'UNKNOWN';
 };
