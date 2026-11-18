@@ -136,4 +136,20 @@ test.describe('public magistrat routes', () => {
 
     expect({ data, import: job.status }).toEqual({ data: { status: 'UNKNOWN' }, import: 'SUCCEEDED' });
   });
+
+  test('should refuse the calls of an API client beyond its limit of the minute', async ({ apiClients, expect }) => {
+    const site = await apiClients.authenticated({ limitPerMinute: 1, scopes: ['magistrats:identification'] });
+    const identify = () => magistrats.identifyMagistrat({ body: { email: randomEmail() }, client: site.http });
+
+    await identify();
+    // were the minute to change right here, the third call would still be the second of its own minute
+    await identify();
+    const { response } = await identify();
+
+    const retryAfter = Number(response?.headers.get('retry-after'));
+    expect({ status: response?.status, waits: retryAfter >= 1 && retryAfter <= 60 }).toEqual({
+      status: 429,
+      waits: true,
+    });
+  });
 });

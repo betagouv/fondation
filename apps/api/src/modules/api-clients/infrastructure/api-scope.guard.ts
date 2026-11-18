@@ -10,10 +10,13 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ApiBearerAuth, ApiExtension } from '@nestjs/swagger';
-import { Request as ExpressRequest } from 'express';
+import { Request as ExpressRequest, Response as ExpressResponse } from 'express';
 
 import { ApiClientsService } from '../api-clients.service';
 import { ApiClientForbidden, ApiClientUnauthenticated, ApiScope } from '../domain/api-client';
+import { ApiClientRateLimited } from '../domain/rate-window';
+
+import { tooManyRequests } from './too-many-requests';
 
 const META_SCOPE = Symbol();
 
@@ -37,6 +40,9 @@ export class ApiScopeGuard implements CanActivate {
     } catch (error) {
       if (error instanceof ApiClientUnauthenticated) throw new UnauthorizedException();
       if (error instanceof ApiClientForbidden) throw new ForbiddenException();
+      if (error instanceof ApiClientRateLimited) {
+        throw tooManyRequests(context.switchToHttp().getResponse<ExpressResponse>(), error);
+      }
       throw error;
     }
 

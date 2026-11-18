@@ -25,6 +25,7 @@ export class ApiClientAuthController {
   @ZodResponse<any>({ status: HttpStatus.BAD_REQUEST, type: AuthenticateApiClientRefusedDto })
   @ZodResponse<any>({ status: HttpStatus.UNAUTHORIZED, type: AuthenticateApiClientRefusedDto })
   @ZodResponse<any>({ status: HttpStatus.FORBIDDEN, type: AuthenticateApiClientRefusedDto })
+  @ZodResponse<any>({ status: HttpStatus.TOO_MANY_REQUESTS, type: AuthenticateApiClientRefusedDto })
   @UseFilters(OAuthErrorFilter)
   async authenticateApiClient(
     @Body() body: AuthenticateApiClientDto,

@@ -1,13 +1,15 @@
 /// A partner system that calls the public API, such as the website of the CSM
 model ApiClient {
-  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  /// How many tokens it may ask for in a minute
+  authLimitPerMinute Int       @default(10) @map("auth_limit_per_minute")
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
   /// The `client_id` handed to the partner
-  id         String    @id @db.Uuid
-  name       String    @db.VarChar
+  id                 String    @id @db.Uuid
+  name               String    @db.VarChar
   /// Its tokens stop working at once
-  revokedAt  DateTime? @map("revoked_at") @db.Timestamp(6)
+  revokedAt          DateTime? @map("revoked_at") @db.Timestamp(6)
   /// SHA-256 of a random secret, shown once when the client is created
-  secretHash String    @map("secret_hash") @db.VarChar
+  secretHash         String    @map("secret_hash") @db.VarChar
 
   accessTokens ApiAccessToken[]
   allowedIps   ApiClientAllowedIp[]
@@ -28,15 +30,30 @@ model ApiClientAllowedIp {
   @@schema("identity_and_access_context")
 }
 
-/// A route of the public API that the client may call
+/// A route of the public API that the client may call, and how many times in a minute
 model ApiClientScope {
-  clientId String @map("client_id") @db.Uuid
-  scope    String @db.VarChar
+  clientId       String @map("client_id") @db.Uuid
+  limitPerMinute Int    @map("limit_per_minute")
+  scope          String @db.VarChar
 
   client ApiClient @relation(fields: [clientId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@id([clientId, scope], name: "primaryKey")
   @@map("api_client_scopes")
+  @@schema("identity_and_access_context")
+}
+
+/// The calls of one minute, counted in the database so that the limit holds whatever the number of containers.
+/// No relation: the caller is a client (`client:<id>`) or, for the failed authentications, an IP (`ip:<ip>`).
+/// The past minutes go when a client asks for a new token
+model ApiRateCounter {
+  caller String   @db.VarChar
+  count  Int
+  minute DateTime @db.Timestamp(0)
+  route  String   @db.VarChar
+
+  @@id([caller, route, minute], name: "primaryKey")
+  @@map("api_rate_counters")
   @@schema("identity_and_access_context")
 }
 

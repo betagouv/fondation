@@ -1,16 +1,18 @@
-import { Propagation, Transactional } from '@nestjs-cls/transactional';
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 import z from 'zod';
 
 import { Prisma } from '../../../generated/prisma/client';
+import { countApiCallRawQuery } from '../../../generated/prisma/sql';
 import { Db } from '../../framework/database';
-import { ApiClient, ApiScope, IssuedAccessToken } from '../domain/api-client';
+import { ApiClient, IssuedAccessToken } from '../domain/api-client';
 
 const CLIENT_SELECT = {
   allowedIps: { select: { ip: true } },
+  authLimitPerMinute: true,
   id: true,
   revokedAt: true,
-  scopes: { select: { scope: true } },
+  scopes: { select: { limitPerMinute: true, scope: true } },
   secretHash: true,
 } satisfies Prisma.ApiClientSelect;
 
@@ -39,11 +41,30 @@ export class ApiClientRepository {
     return found && { client: ApiClientRepository.toDomain(found.client), tokenExpiresAt: found.expiresAt };
   }
 
-  /** The expired tokens of the client go with each new one: no purge to schedule */
-  @Transactional(Propagation.Mandatory)
-  async saveToken(command: { clientId: string; now: Date; token: IssuedAccessToken }): Promise<void> {
-    const { clientId, now, token } = command;
+  /**
+   * Counted outside any transaction, so that a refused call still counts and simultaneous calls count each other
+   *
+   * @returns the calls of the caller on this route within the minute, this one included
+   */
+  async countCall(call: { caller: string; minute: Date; route: string }): Promise<number> {
+    const [counter] = await this.db.tx.$queryRawTyped(
+      countApiCallRawQuery(call.caller, call.route, call.minute),
+    );
+
+    return counter!.count;
+  }
+
+  /** What is over goes with each new token, the expired tokens of the client and the past counts of everyone: no purge to schedule */
+  @Transactional()
+  async saveToken(command: {
+    clientId: string;
+    countedSince: Date;
+    now: Date;
+    token: IssuedAccessToken;
+  }): Promise<void> {
+    const { clientId, countedSince, now, token } = command;
     await this.db.tx.apiAccessToken.deleteMany({ where: { clientId, expiresAt: { lte: now } } });
+    await this.db.tx.apiRateCounter.deleteMany({ where: { minute: { lt: countedSince } } });
     await this.db.tx.apiAccessToken.create({
       data: { clientId, expiresAt: token.expiresAt, hash: token.hash },
     });
@@ -51,17 +72,19 @@ export class ApiClientRepository {
 
   async create(client: {
     allowedIps: readonly string[];
+    authLimitPerMinute: number;
     id: string;
     name: string;
-    scopes: readonly ApiScope[];
+    scopes: readonly { limitPerMinute: number; scope: string }[];
     secretHash: string;
   }): Promise<void> {
     await this.db.tx.apiClient.create({
       data: {
         allowedIps: { create: client.allowedIps.map((ip) => ({ ip })) },
+        authLimitPerMinute: client.authLimitPerMinute,
         id: client.id,
         name: client.name,
-        scopes: { create: client.scopes.map((scope) => ({ scope })) },
+        scopes: { create: client.scopes.map(({ limitPerMinute, scope }) => ({ limitPerMinute, scope })) },
         secretHash: client.secretHash,
       },
     });
@@ -70,9 +93,10 @@ export class ApiClientRepository {
   private static toDomain(client: Prisma.ApiClientGetPayload<{ select: typeof CLIENT_SELECT }>): ApiClient {
     return new ApiClient({
       allowedIps: client.allowedIps.map(({ ip }) => ip),
+      authLimitPerMinute: client.authLimitPerMinute,
       id: client.id,
       revokedAt: client.revokedAt,
-      scopes: client.scopes.map(({ scope }) => scope),
+      scopes: client.scopes,
       secretHash: client.secretHash,
     });
   }

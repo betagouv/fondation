@@ -6,6 +6,13 @@ import * as time from '../../../utils/time';
 export const API_SCOPES = ['magistrats:identification', 'magistrats:status'] as const;
 export type ApiScope = (typeof API_SCOPES)[number];
 
+/** What a new client gets, and what a failed authentication is counted against for its IP */
+export const DEFAULT_LIMITS_PER_MINUTE = {
+  auth: 10,
+  'magistrats:identification': 20,
+  'magistrats:status': 300,
+} as const satisfies Record<ApiScope | 'auth', number>;
+
 /** Unknown or revoked client, wrong secret, unknown or expired token: the answer never tells which */
 export class ApiClientUnauthenticated extends Error {}
 
@@ -27,17 +34,20 @@ export type IssuedAccessToken = { expiresAt: Date; expiresIn: number; hash: stri
 export class ApiClient {
   static readonly TOKEN_LIFETIME_MS = 15 * time.MINUTES;
 
+  readonly authLimitPerMinute: number;
   readonly id: string;
 
   constructor(
     private readonly props: {
       allowedIps: readonly string[];
+      authLimitPerMinute: number;
       id: string;
       revokedAt: Date | null;
-      scopes: readonly string[];
+      scopes: readonly { limitPerMinute: number; scope: string }[];
       secretHash: string;
     },
   ) {
+    this.authLimitPerMinute = props.authLimitPerMinute;
     this.id = props.id;
   }
 
@@ -70,11 +80,20 @@ export class ApiClient {
     };
   }
 
-  /** What a new token would fix comes first (401), what only Fondation can fix comes next (403) */
-  authorize(command: { ip: string; now: Date; scope: ApiScope; tokenExpiresAt: Date }): void {
+  /**
+   * What a new token would fix comes first (401), what only Fondation can fix comes next (403)
+   *
+   * @returns how many calls a minute the client may make on this scope
+   */
+  authorize(command: { ip: string; now: Date; scope: ApiScope; tokenExpiresAt: Date }): {
+    limitPerMinute: number;
+  } {
     if (this.props.revokedAt || command.tokenExpiresAt <= command.now) throw new ApiClientUnauthenticated();
     this.assertAllowedIp(command.ip);
-    if (!this.props.scopes.includes(command.scope)) throw new ApiClientForbidden('scope');
+    const granted = this.props.scopes.find(({ scope }) => scope === command.scope);
+    if (!granted) throw new ApiClientForbidden('scope');
+
+    return { limitPerMinute: granted.limitPerMinute };
   }
 
   /** A client without any allowed IP is refused from everywhere */

@@ -5,7 +5,12 @@ import type { Sql } from 'postgres';
 import { type Client, createClient, createConfig } from '../generated/api/client/index.ts';
 import { apiClients } from '../generated/api/sdk.ts';
 
-type ApiClientOptions = { allowedIps?: string[]; scopes?: string[] };
+type ApiClientOptions = {
+  allowedIps?: string[];
+  /** the calls a minute allowed on each scope, far above what a test makes by default */
+  limitPerMinute?: number;
+  scopes?: string[];
+};
 
 /** registers an API client as the command line does, the API serving no route for it */
 export interface ApiClientFixture {
@@ -18,7 +23,7 @@ export interface ApiClientFixture {
 const LOOPBACK_IPS = ['127.0.0.1', '::1'];
 
 export function makeApiClientFixture({ baseUrl, sql }: { baseUrl: string; sql: Sql }): ApiClientFixture {
-  async function register({ allowedIps = LOOPBACK_IPS, scopes = [] }: ApiClientOptions = {}) {
+  async function register({ allowedIps = LOOPBACK_IPS, limitPerMinute = 1_000, scopes = [] }: ApiClientOptions = {}) {
     const id = crypto.randomUUID();
     const secret = crypto.randomBytes(32).toString('base64url');
     const secretHash = crypto.createHash('sha256').update(secret).digest('hex');
@@ -31,7 +36,10 @@ export function makeApiClientFixture({ baseUrl, sql }: { baseUrl: string; sql: S
       await sql`insert into identity_and_access_context.api_client_allowed_ips (client_id, ip) values (${id}, ${ip})`;
     }
     for (const scope of scopes) {
-      await sql`insert into identity_and_access_context.api_client_scopes (client_id, scope) values (${id}, ${scope})`;
+      await sql`
+        insert into identity_and_access_context.api_client_scopes (client_id, limit_per_minute, scope)
+        values (${id}, ${limitPerMinute}, ${scope})
+      `;
     }
 
     return { id, secret };
