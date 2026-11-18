@@ -11,7 +11,7 @@ export class SearchMagistratAuthorizationQuery {
 
   async handle(query: { email: string }): Promise<FoundMagistratAuthorizationDto> {
     const magistrat = await this.db.tx.magistrat.findFirst({
-      where: { professionalEmail: { equals: query.email, mode: 'insensitive' } },
+      where: { professionalEmail: { equals: query.email, mode: 'insensitive' }, status: 'ACTIVE' },
       select: { externalId: true } satisfies Prisma.MagistratSelect,
     });
 
