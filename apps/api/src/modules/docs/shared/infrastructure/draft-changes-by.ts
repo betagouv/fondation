@@ -1,6 +1,7 @@
 import z from 'zod';
 
 import { type DocSystemUpdateCause } from '../domain/doc-system-update-cause';
+import { type DraftChanges } from '../domain/document.policies';
 import { DRAFT_CHANGES_BY, type DraftChangesBy } from '../domain/draft-changes-by';
 
 export const draftChangesBySchema = z.enum(DRAFT_CHANGES_BY).nullable();
@@ -61,4 +62,17 @@ export function draftChangesBy(version: {
 
   if (byPerson && bySystem) return 'PERSON_AND_SYSTEM';
   return byPerson ? 'PERSON' : 'SYSTEM';
+}
+
+export function draftChanges(
+  version:
+    | (Parameters<typeof draftChangesBy>[0] & { systemUpdates: readonly { cause: DocSystemUpdateCause }[] })
+    | null,
+): DraftChanges {
+  if (!version) return { changesBy: null, systemCauses: [] };
+
+  return {
+    changesBy: draftChangesBy(version),
+    systemCauses: version.systemUpdates.map(({ cause }) => cause),
+  };
 }

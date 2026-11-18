@@ -476,7 +476,7 @@ describe('OfficialReport', () => {
     it('should have nothing to discard', () => {
       const report = validated();
 
-      report.discardDraft({ changesBy: 'PERSON', hasValidatedVersion: true });
+      report.discardDraft({ changesBy: 'PERSON', hasValidatedVersion: true, systemCauses: [] });
 
       expect(report.messages).toEqual([]);
     });
@@ -538,7 +538,7 @@ describe('OfficialReport', () => {
     it('should be discarded when a validated version remains underneath', () => {
       const report = makeReport();
 
-      report.discardDraft({ changesBy: 'PERSON', hasValidatedVersion: true });
+      report.discardDraft({ changesBy: 'PERSON', hasValidatedVersion: true, systemCauses: [] });
 
       expect(report.messages).toEqual([new OfficialReportDraftDiscarded(report.id)]);
     });
@@ -546,9 +546,9 @@ describe('OfficialReport', () => {
     it('should refuse to be discarded when nothing was ever validated', () => {
       const report = makeReport();
 
-      expect(() => report.discardDraft({ changesBy: 'PERSON', hasValidatedVersion: false })).toThrow(
-        OfficialReportWithoutValidatedVersion,
-      );
+      expect(() =>
+        report.discardDraft({ changesBy: 'PERSON', hasValidatedVersion: false, systemCauses: [] }),
+      ).toThrow(OfficialReportWithoutValidatedVersion);
       expect(report.messages).toEqual([]);
     });
 
@@ -557,9 +557,9 @@ describe('OfficialReport', () => {
       (changesBy) => {
         const report = makeReport();
 
-        expect(() => report.discardDraft({ changesBy, hasValidatedVersion: true })).toThrow(
-          OfficialReportDraftChangedByTheApplication,
-        );
+        expect(() =>
+          report.discardDraft({ changesBy, hasValidatedVersion: true, systemCauses: ['REPORTERS'] }),
+        ).toThrow(OfficialReportDraftChangedByTheApplication);
         expect(report.messages).toEqual([]);
       },
     );

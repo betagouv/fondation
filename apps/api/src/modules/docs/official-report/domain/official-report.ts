@@ -3,8 +3,11 @@ import { assertIsDefined } from '../../../../utils/is-defined';
 import type { FormationEnum } from '../../../shared/formation.enum';
 import { type DocNominationFileOutcomeEnum } from '../../shared/domain/doc-nomination-file-outcome';
 import { type DocSystemUpdateCause } from '../../shared/domain/doc-system-update-cause';
-import { canDiscardDraft, canValidateDocument } from '../../shared/domain/document.policies';
-import { type DraftChangesBy } from '../../shared/domain/draft-changes-by';
+import {
+  canDiscardDraft,
+  canValidateDocument,
+  type DraftChanges,
+} from '../../shared/domain/document.policies';
 import { type CurrentNames, NO_CURRENT_NAMES } from '../../shared/domain/named-member';
 
 import {
@@ -337,7 +340,7 @@ export class OfficialReport {
     this.state.isValidated = true;
   }
 
-  discardDraft(command: { changesBy: DraftChangesBy | null; hasValidatedVersion: boolean }): void {
+  discardDraft(command: DraftChanges & { hasValidatedVersion: boolean }): void {
     if (this.state.isValidated) return;
     if (!command.hasValidatedVersion) throw new OfficialReportWithoutValidatedVersion();
     if (!canDiscardDraft(command)) throw new OfficialReportDraftChangedByTheApplication();

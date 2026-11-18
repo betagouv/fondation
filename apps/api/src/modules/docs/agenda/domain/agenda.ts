@@ -4,8 +4,11 @@ import { assertIsDefined } from '../../../../utils/is-defined';
 import { GenderEnum } from '../../../shared/gender.enum';
 import { UserTitleEnum } from '../../../shared/user-title.enum';
 import { type DocSystemUpdateCause } from '../../shared/domain/doc-system-update-cause';
-import { canDiscardDraft, canValidateDocument } from '../../shared/domain/document.policies';
-import { type DraftChangesBy } from '../../shared/domain/draft-changes-by';
+import {
+  canDiscardDraft,
+  canValidateDocument,
+  type DraftChanges,
+} from '../../shared/domain/document.policies';
 import { type CurrentNames, type NamedMember, NO_CURRENT_NAMES } from '../../shared/domain/named-member';
 
 import { AgendaNominationFile } from './agenda-nomination-file';
@@ -264,7 +267,7 @@ export class Agenda {
     this.#isValidated = true;
   }
 
-  discardDraft(command: { changesBy: DraftChangesBy | null; hasValidatedVersion: boolean }): void {
+  discardDraft(command: DraftChanges & { hasValidatedVersion: boolean }): void {
     if (this.#isValidated) return;
     if (!command.hasValidatedVersion) throw new AgendaWithoutValidatedVersion();
     if (!canDiscardDraft(command)) throw new AgendaDraftChangedByTheApplication();

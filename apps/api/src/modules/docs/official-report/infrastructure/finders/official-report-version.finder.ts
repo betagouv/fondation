@@ -3,8 +3,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { Prisma } from '../../../../../generated/prisma/client';
 import { Db } from '../../../../framework/database';
-import { type DraftChangesBy } from '../../../shared/domain/draft-changes-by';
-import { draftChangesBy } from '../../../shared/infrastructure/draft-changes-by';
+import { type DraftChanges } from '../../../shared/domain/document.policies';
+import { draftChanges } from '../../../shared/infrastructure/draft-changes-by';
 
 @Injectable()
 export class OfficialReportVersionFinder {
@@ -40,18 +40,19 @@ export class OfficialReportVersionFinder {
   }
 
   @Transactional()
-  async draftChangesBy(query: { officialReportId: string }): Promise<DraftChangesBy | null> {
+  async draftChanges(query: { officialReportId: string }): Promise<DraftChanges> {
     const draft = await this.db.tx.officialReportVersion.findFirst({
       orderBy: { version: 'desc' },
       select: {
         createdBy: true,
         status: true,
         systemUpdatedAt: true,
+        systemUpdates: { select: { cause: true } },
         updatedBy: true,
       } satisfies Prisma.OfficialReportVersionSelect,
       where: { officialReportId: query.officialReportId, status: 'DRAFT' },
     });
 
-    return draft ? draftChangesBy(draft) : null;
+    return draftChanges(draft);
   }
 }
