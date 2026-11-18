@@ -199,18 +199,25 @@ export function makeSessionHandlers(sessions: Record<string, SessionDataset>) {
             id,
             reason: content.status.value === 'DSJ_REPORTED' ? 'REPORTED' : 'UNIDENTIFIED',
           }));
-      const ineligibleIds = new Set(ineligible.map(({ id }) => id));
+      const unidentifiedIds = new Set(
+        ineligible.flatMap(({ id, reason }) => (reason === 'UNIDENTIFIED' ? [id] : [])),
+      );
 
       return HttpResponse.json<FoundAgendaNominationFiles>({
         ineligible: [...ineligible],
-        items: files
-          .filter(({ id }) => !ineligibleIds.has(id))
-          .map((file) => ({
-            id: file.id,
-            magistrat: { id: `magistrat-${file.id}`, name: file.content.nomMagistrat },
-            number: file.content.numeroDeDossier ?? 0,
-            reporters: file.reporters.map(({ id }) => ({ id })),
-          })),
+        // like the API, an unidentified file is never an item, a reported one stays one
+        items: files.flatMap(({ content, id, reporters }) =>
+          unidentifiedIds.has(id) || !content.detectedMagistratId || content.numeroDeDossier === null
+            ? []
+            : [
+                {
+                  id,
+                  magistrat: { name: content.nomMagistrat },
+                  number: content.numeroDeDossier,
+                  reporters: reporters.map((reporter) => ({ id: reporter.id })),
+                },
+              ],
+        ),
       });
     }),
 

@@ -168,8 +168,8 @@ const SqlNominationFilesSchema = z
       id: item.id,
       magistrat: {
         externalId: item.magistrat.externalId,
-        id: item.magistrat.id,
         fullName: magistratFullName(item.magistrat),
+        id: item.magistrat.id,
         name: magistratDocumentName(item.magistrat),
         position: {
           functionId: item.magistrat.position.function?.id ?? null,

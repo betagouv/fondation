@@ -176,10 +176,13 @@ test.describe('Agenda', () => {
   }) => {
     const { id: sessionId } = await docs.session();
 
-    const foundFiles = await agent.docs.findAgendaNominationFiles({ path: { sessionId } });
-    const listedFiles = await agent.sessions.listNominationFiles({ path: { sessionId } });
+    const { items: foundFiles } = (await agent.docs.findAgendaNominationFiles({ path: { sessionId } })).data!;
+    const listedFiles = await agent.sessions.listNominationFiles({
+      path: { sessionId },
+      query: { limit: 200, nominationFileIds: foundFiles.map(({ id }) => id) },
+    });
 
-    expect(Object.fromEntries(foundFiles.data!.items.map(({ id, magistrat }) => [id, magistrat.name]))).toEqual(
+    expect(Object.fromEntries(foundFiles.map(({ id, magistrat }) => [id, magistrat.name]))).toEqual(
       Object.fromEntries(listedFiles.data!.items.map(({ content, id }) => [id, content.nomMagistrat])),
     );
   });
