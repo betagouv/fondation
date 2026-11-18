@@ -6,7 +6,7 @@ import { ApiClientsModule } from '../api-clients.module';
 import { ApiClientsService } from '../api-clients.service';
 import { API_SCOPES, ApiScope } from '../domain/api-client';
 
-type RegisterApiClientOptions = { ip?: string[]; name: string; scope?: ApiScope[] };
+type RegisterApiClientOptions = { ip: string[]; name: string; scope?: ApiScope[] };
 
 @SubCommand({ name: 'register' })
 export class RegisterApiClientCliCommand extends CommandRunner {
@@ -16,7 +16,7 @@ export class RegisterApiClientCliCommand extends CommandRunner {
 
   async run(_inputs: string[], options: RegisterApiClientOptions): Promise<void> {
     const { id, secret } = await this.apiClients.register({
-      allowedIps: options.ip ?? [],
+      allowedIps: options.ip,
       name: options.name,
       scopes: options.scope ?? [],
     });
@@ -31,9 +31,11 @@ export class RegisterApiClientCliCommand extends CommandRunner {
   }
 
   @Option({
+    // without any, the client would be refused from everywhere and its secret shown for nothing
     description: 'an IP the client may call from, repeated for each one',
     flags: '-i, --ip <ip>',
     name: 'ip',
+    required: true,
   })
   parseIp(ip: string, ips: string[] = []): string[] {
     return [...ips, z.union([z.ipv4(), z.ipv6()]).parse(ip)];

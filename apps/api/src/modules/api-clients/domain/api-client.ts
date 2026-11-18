@@ -1,4 +1,5 @@
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
+import { BlockList, isIP, isIPv6 } from 'node:net';
 
 import * as time from '../../../utils/time';
 
@@ -78,7 +79,15 @@ export class ApiClient {
 
   /** A client without any allowed IP is refused from everywhere */
   private assertAllowedIp(ip: string): void {
-    // Node gives an IPv4 received on a dual-stack socket as ::ffff:203.0.113.7
-    if (!this.props.allowedIps.includes(ip.replace(/^::ffff:/, ''))) throw new ApiClientForbidden('ip');
+    // Addresses and not their texts are compared: an IPv6 is written in several ways, and Node gives an IPv4 received
+    // on a dual-stack socket as ::ffff:203.0.113.7
+    const allowed = new BlockList();
+    for (const allowedIp of this.props.allowedIps) allowed.addAddress(allowedIp, ApiClient.family(allowedIp));
+
+    if (!isIP(ip) || !allowed.check(ip, ApiClient.family(ip))) throw new ApiClientForbidden('ip');
+  }
+
+  private static family(ip: string): 'ipv4' | 'ipv6' {
+    return isIPv6(ip) ? 'ipv6' : 'ipv4';
   }
 }

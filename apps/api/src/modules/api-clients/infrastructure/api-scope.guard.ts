@@ -31,6 +31,7 @@ export class ApiScopeGuard implements CanActivate {
       await this.apiClients.authorize({
         ip: request.ip ?? 'unknown',
         scope: this.reflector.get<ApiScope>(META_SCOPE, context.getHandler()),
+        // TODO: see SimpleAuthMiddleware.getBearer, which reads the same header for the fixed machine tokens
         token: /^Bearer +(\S+)$/i.exec(request.get('authorization') ?? '')?.[1],
       });
     } catch (error) {

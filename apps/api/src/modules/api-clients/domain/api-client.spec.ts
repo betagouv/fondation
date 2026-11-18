@@ -1,6 +1,12 @@
 import * as time from '../../../utils/time';
 
-import { ApiClient, ApiClientForbidden, ApiClientUnauthenticated } from './api-client';
+import {
+  ApiClient,
+  ApiClientForbidden,
+  ApiClientUnauthenticated,
+  ApiScope,
+  IssuedAccessToken,
+} from './api-client';
 
 describe('ApiClient', () => {
   const now = new Date('2026-11-18T10:00:00Z');
@@ -20,8 +26,7 @@ describe('ApiClient', () => {
     const authenticate = (
       authenticated: ApiClient,
       command: { ip?: string; secret?: string } = {},
-    ): ReturnType<ApiClient['authenticate']> =>
-      authenticated.authenticate({ ip: '203.0.113.7', now, secret, ...command });
+    ): IssuedAccessToken => authenticated.authenticate({ ip: '203.0.113.7', now, secret, ...command });
 
     it('should issue a token of fifteen minutes, known by its hash only', () => {
       const issued = authenticate(client());
@@ -58,7 +63,7 @@ describe('ApiClient', () => {
       authorized: ApiClient,
       command: {
         ip?: string;
-        scope?: 'magistrats:identification' | 'magistrats:status';
+        scope?: ApiScope;
         tokenExpiresAt?: Date;
       } = {},
     ): void =>
@@ -76,6 +81,12 @@ describe('ApiClient', () => {
 
     it('should recognise an allowed IPv4 given in its IPv6 form', () => {
       expect(() => authorize(client(), { ip: '::ffff:203.0.113.7' })).not.toThrow();
+    });
+
+    it('should recognise an allowed IPv6 however it is written', () => {
+      const registered = client({ allowedIps: ['2001:DB8:0:0:0:0:0:1'] });
+
+      expect(() => authorize(registered, { ip: '2001:db8::1' })).not.toThrow();
     });
 
     it('should refuse a token from the moment it expires', () => {

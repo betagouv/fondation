@@ -50,7 +50,14 @@ export class ApiClientsService {
   }): Promise<{ id: string; secret: string }> {
     const id = makeId('ApiClientId');
     const { hash: secretHash, secret } = ApiClient.generateSecret();
-    await this.repository.create({ ...command, id, secretHash });
+    await this.repository.create({
+      // an IP or a scope given twice would break the primary key
+      allowedIps: [...new Set(command.allowedIps)],
+      id,
+      name: command.name,
+      scopes: [...new Set(command.scopes)],
+      secretHash,
+    });
 
     return { id, secret };
   }

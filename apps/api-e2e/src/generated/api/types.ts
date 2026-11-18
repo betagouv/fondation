@@ -69,10 +69,12 @@ export type AuthenticatedApiClientDto = {
 
 export type AuthenticateApiClientRefusedDto = {
     /**
+     * - `invalid_request` (400): a parameter is missing
+     * - `unsupported_grant_type` (400): the grant is not `client_credentials`
      * - `invalid_client` (401): unknown or revoked identifier, or wrong secret
      * - `access_denied` (403): the request does not come from an allowed IP
      */
-    error: 'invalid_client' | 'access_denied';
+    error: 'invalid_request' | 'unsupported_grant_type' | 'invalid_client' | 'access_denied';
 };
 
 export type ListedMemberSessionReportsDto = {
@@ -3231,6 +3233,7 @@ export type AuthenticateApiClientData = {
 };
 
 export type AuthenticateApiClientErrors = {
+    400: AuthenticateApiClientRefusedDto;
     401: AuthenticateApiClientRefusedDto;
     403: AuthenticateApiClientRefusedDto;
 };
