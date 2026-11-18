@@ -250,11 +250,13 @@ export function CourtOfAppealFirstPresidentsTable(props: {
         className={clsx('w-full transition-[width] duration-300 ease-out', editing.edited && 'md:w-[52%]')}
       >
         <DataTable
-          ariaLabel={formatMessage({ defaultMessage: "Premiers présidents de cour d'appel" })}
+          ariaLabel={formatMessage({
+            defaultMessage: "Premiers présidents de cour d'appel et président du tribunal supérieur d'appel",
+          })}
           emptyLabel={
             tableState.globalFilter || tableState.columnFilters.length
-              ? formatMessage({ defaultMessage: "Aucune cour d'appel ne correspond aux filtres fournis" })
-              : formatMessage({ defaultMessage: "Aucune cour d'appel" })
+              ? formatMessage({ defaultMessage: 'Aucune juridiction ne correspond aux filtres fournis' })
+              : formatMessage({ defaultMessage: 'Aucune juridiction' })
           }
           fluid
           isLoading={!isError && isLoading}

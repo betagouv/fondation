@@ -9,11 +9,8 @@ import { Db } from '../../../framework/database';
 import { createPaginatedZodDto, pageOf, paginate, Pagination } from '../../../framework/pagination';
 import { Sortable } from '../../../framework/sorting';
 import { magistratFullName } from '../../../magistrat/domain/magistrat-name';
-import {
-  COURT_OF_APPEAL_TYPE_ID,
-  FIRST_PRESIDENT_FUNCTION_ID,
-} from '../../domain/court-of-appeal-first-president';
-import { civilityOf, courtOfAppealFirstPresidentTitle } from '../../domain/holder-title';
+import { COURT_OF_APPEAL_HEADS } from '../../domain/court-of-appeal-first-president';
+import { civilityOf, courtOfAppealHeadTitle } from '../../domain/holder-title';
 import { type AlertDeadline, alertRulesOf, alertsOf, type PositionAlert } from '../../domain/position-alert';
 import { commentPreviewOf } from '../../domain/position-comment';
 import { type PositionStatus, positionStatusOf } from '../../domain/position-status';
@@ -49,8 +46,8 @@ export class ListCourtOfAppealFirstPresidentsQuery {
     const search = query.search?.trim() ? toMagistratFullTextQuery(query.search) : null;
     const courts = await this.db.tx.$queryRawTyped(
       listCourtOfAppealFirstPresidentsRawQuery(
-        COURT_OF_APPEAL_TYPE_ID,
-        FIRST_PRESIDENT_FUNCTION_ID,
+        COURT_OF_APPEAL_HEADS.map(({ jurisdictionTypeId }) => jurisdictionTypeId),
+        COURT_OF_APPEAL_HEADS.map(({ functionId }) => functionId),
         search,
         query.sorting.sortBy ?? null,
         query.sorting.sortDesc,
@@ -92,9 +89,10 @@ export class ListCourtOfAppealFirstPresidentsQuery {
               commentPreview: commentPreviewOf(court.comment),
               id: court.id,
               name: magistratFullName(court),
-              title: courtOfAppealFirstPresidentTitle({
+              title: courtOfAppealHeadTitle({
                 civility: civilityOf(court.civility),
                 courtLabel: court.courtLabel ?? court.courtId,
+                courtTypeId: court.courtTypeId,
               }),
             }
           : null,
