@@ -333,6 +333,27 @@ describe('OfficialReport', () => {
         ]);
       });
 
+      it('should only rename in a draft, leaving who reports or is recused to the update that tells it', () => {
+        const report = withRecusal({ actorId: null });
+        const other = { id: 'member-other', name: 'Mme Anne AUTRE' };
+
+        report.invalidate({
+          id: report.id,
+          payload: {
+            files: [
+              {
+                nominationFileId: 'file-1',
+                recusedMembers: [{ id: 'member-forget', name: 'M. Paul FORGET' }, other],
+                reporters: [other],
+              },
+            ],
+          },
+          type: 'MemberRenamed',
+        });
+
+        expect(report.messages).toEqual([]);
+      });
+
       it('should leave a validated report as the meeting was held, without saying the designation changed', () => {
         const report = withRecusal({ actorId: null, isValidated: true });
 

@@ -49,7 +49,7 @@ describe('canDiscardDraft', () => {
     ).toBe(false);
   });
 
-  it('should keep a draft the application changed before keeping why', () => {
+  it('should keep a draft the application changed before its causes were recorded', () => {
     expect(
       canDiscardDraft({ changesBy: 'PERSON_AND_SYSTEM', hasValidatedVersion: true, systemCauses: [] }),
     ).toBe(false);

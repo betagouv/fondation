@@ -4,11 +4,8 @@ import { assertIsDefined } from '../../../../utils/is-defined';
 import { GenderEnum } from '../../../shared/gender.enum';
 import { UserTitleEnum } from '../../../shared/user-title.enum';
 import { type DocSystemUpdateCause } from '../../shared/domain/doc-system-update-cause';
-import {
-  canDiscardDraft,
-  canValidateDocument,
-  type DraftChanges,
-} from '../../shared/domain/document.policies';
+import { canDiscardDraft, canValidateDocument } from '../../shared/domain/document.policies';
+import { type DraftChanges } from '../../shared/domain/draft-changes-by';
 import { type CurrentNames, type NamedMember, NO_CURRENT_NAMES } from '../../shared/domain/named-member';
 
 import { AgendaNominationFile } from './agenda-nomination-file';

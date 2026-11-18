@@ -20,7 +20,21 @@ export function namedToday(
   }));
 }
 
-/** who the members are, however they are named: a member stored without id is known by name */
+/** how the members a document is sent bear their names, by id */
+export function namesOf(members: {
+  recusedMembers: readonly NamedMember[];
+  reporters: readonly NamedMember[];
+}): CurrentNames {
+  const byId = (list: readonly NamedMember[]) =>
+    new Map(list.flatMap(({ id, name }) => (id === null ? [] : [[id, name] as const])));
+
+  return { recusedMembers: byId(members.recusedMembers), reporters: byId(members.reporters) };
+}
+
+/**
+ * who the members are, however they are named and in whatever order: a member stored without id is known
+ * by name. The order follows the members' rank then their name, so a renaming alone can change it.
+ */
 export function sameMembers(current: readonly NamedMember[], next: readonly NamedMember[]): boolean {
   return (
     current.length === next.length &&

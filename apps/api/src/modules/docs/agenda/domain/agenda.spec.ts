@@ -438,6 +438,27 @@ describe('Agenda', () => {
       ]);
     });
 
+    it('should leave a validated agenda as it was sent when a renaming puts its reporters in another order', () => {
+      const agenda = makeAgenda({
+        actorId: null,
+        isValidated: true,
+        snapshot: {
+          nominationFiles: [
+            {
+              id: 1n,
+              isManuallyEdited: false,
+              nominationFileId: props.nominationFiles[0].id,
+              reporters: [DURAND, MARTIN],
+            },
+          ],
+        },
+      });
+
+      update(agenda, [{ ...MARTIN, name: 'M. Paul ABEL' }, DURAND]);
+
+      expect(agenda.messages).toEqual([]);
+    });
+
     it('should change nothing once none of its files is found among the session ones', () => {
       const agenda = agendaReportedBy({ isManuallyEdited: false, isValidated: false });
 

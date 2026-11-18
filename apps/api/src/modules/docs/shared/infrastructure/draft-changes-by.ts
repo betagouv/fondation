@@ -1,8 +1,7 @@
 import z from 'zod';
 
 import { type DocSystemUpdateCause } from '../domain/doc-system-update-cause';
-import { type DraftChanges } from '../domain/document.policies';
-import { DRAFT_CHANGES_BY, type DraftChangesBy } from '../domain/draft-changes-by';
+import { DRAFT_CHANGES_BY, type DraftChanges, type DraftChangesBy } from '../domain/draft-changes-by';
 
 export const draftChangesBySchema = z.enum(DRAFT_CHANGES_BY).nullable();
 
@@ -47,13 +46,15 @@ export function draftLastChange(
   );
 }
 
-/** PERSON_AND_SYSTEM lasts until the draft is validated or discarded: editing it does not prove the person saw what the application changed */
-export function draftChangesBy(version: {
+type TracedVersion = {
   createdBy: string | null;
   status: 'DRAFT' | 'VALIDATED';
   systemUpdatedAt: Date | null;
   updatedBy: string | null;
-}): DraftChangesBy | null {
+};
+
+/** PERSON_AND_SYSTEM lasts until the draft is validated or discarded: editing it does not prove the person saw what the application changed */
+export function draftChangesBy(version: TracedVersion): DraftChangesBy | null {
   if (version.status === 'VALIDATED') return null;
 
   const byPerson = Boolean(version.createdBy || version.updatedBy);
@@ -64,15 +65,12 @@ export function draftChangesBy(version: {
   return byPerson ? 'PERSON' : 'SYSTEM';
 }
 
+/** a validated version keeps the causes of its draft days, which no longer say anything */
 export function draftChanges(
-  version:
-    | (Parameters<typeof draftChangesBy>[0] & { systemUpdates: readonly { cause: DocSystemUpdateCause }[] })
-    | null,
+  version: (TracedVersion & { systemUpdates: readonly { cause: DocSystemUpdateCause }[] }) | null,
 ): DraftChanges {
-  if (!version) return { changesBy: null, systemCauses: [] };
+  const changesBy = version ? draftChangesBy(version) : null;
+  if (!version || !changesBy) return { changesBy: null, systemCauses: [] };
 
-  return {
-    changesBy: draftChangesBy(version),
-    systemCauses: version.systemUpdates.map(({ cause }) => cause),
-  };
+  return { changesBy, systemCauses: version.systemUpdates.map(({ cause }) => cause) };
 }

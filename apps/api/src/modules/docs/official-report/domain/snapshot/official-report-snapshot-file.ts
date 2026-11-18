@@ -3,7 +3,13 @@ import {
   type DocNominationFileOutcomeEnum,
   isFinalDocNominationFileOutcome,
 } from '../../../shared/domain/doc-nomination-file-outcome';
-import { type NamedMember, sameMembers, sameNames } from '../../../shared/domain/named-member';
+import {
+  type CurrentNames,
+  type NamedMember,
+  namedToday,
+  sameMembers,
+  sameNames,
+} from '../../../shared/domain/named-member';
 import type {
   OfficialReportNoteOutdatedBy,
   OfficialReportNoteStatus,
@@ -57,6 +63,15 @@ export class OfficialReportSnapshotFile {
     reporters?: readonly NamedMember[];
   }): OfficialReportSnapshotDiff['files'] {
     return [this.blockDiff(next), this.recusalDiff(next)].filter(({ action }) => action !== 'noop');
+  }
+
+  /** the same members under the names they bear today */
+  diffNames(nominationFileId: string, names: CurrentNames): OfficialReportSnapshotDiff['files'] {
+    return this.diff({
+      nominationFileId,
+      recusedMembers: namedToday(this.recusedMembers, names.recusedMembers),
+      reporters: namedToday(this.reporters, names.reporters),
+    });
   }
 
   /** the slot already reads this text, so writing it again changes nothing */
