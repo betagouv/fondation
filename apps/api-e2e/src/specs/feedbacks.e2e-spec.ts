@@ -173,6 +173,31 @@ test.describe('Feedbacks E2E', () => {
     expect(listed.data?.items.map((feedback) => feedback.text)).toEqual([waiting]);
   });
 
+  test('the admin counts the feedbacks of every status found, whatever the status listed', async ({
+    admin,
+    member,
+    expect,
+  }) => {
+    const id = randomUUID();
+    const dismissed = `Écarté ${id}`;
+    for (const text of [`Nouveau ${id}`, dismissed]) {
+      await member.feedbacks.sendFeedback({ body: { text, url: '/transparences' } });
+    }
+    await admin.feedbacks.changeFeedbackStatus({
+      body: { comment: null, status: 'DISMISSED' },
+      path: { feedbackId: (await findFeedback(admin, dismissed))!.id },
+    });
+
+    const listed = await admin.feedbacks.listFeedbacks({ query: { limit: 200, search: id, statuses: ['NEW'] } });
+
+    expect(listed.data?.statuses).toEqual([
+      { count: 1, id: 'NEW' },
+      { count: 0, id: 'ACKNOWLEDGED' },
+      { count: 0, id: 'PROCESSED' },
+      { count: 1, id: 'DISMISSED' },
+    ]);
+  });
+
   test('the admin pages through the feedbacks, the most recent first', async ({ admin, member, expect, sql }) => {
     const id = randomUUID();
     const texts = [`Il y a trois jours ${id}`, `Il y a deux jours ${id}`, `Hier ${id}`];

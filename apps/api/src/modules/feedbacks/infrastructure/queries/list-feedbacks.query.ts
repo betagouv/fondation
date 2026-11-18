@@ -71,27 +71,32 @@ export class ListFeedbacksQuery {
     });
     const byId = new Map(feedbacks.map((feedback) => [feedback.id, feedback]));
 
-    return paginate({
-      items: ids
-        .flatMap((id) => byId.get(id) ?? [])
-        .map((feedback) => ({
-          author: writerOf(feedback.author),
-          id: feedback.id,
-          impersonated: writerOf(feedback.impersonated),
-          openAs: openableAs(feedback.impersonated ?? feedback.author),
-          sentAt: feedback.sentAt.toISOString(),
-          status: {
-            changedAt: feedback.statusChangedAt?.toISOString() ?? null,
-            changedBy: writerOf(feedback.statusChangedBy),
-            comment: feedback.statusComment,
-            value: feedback.status,
-          },
-          text: feedback.text,
-          url: feedback.url,
-        })),
-      pagination: query.pagination,
-      totalCount: listed?.totalCount ?? 0,
-    });
+    const counts = statusCountsSchema.parse(listed?.statusCounts ?? {});
+
+    return {
+      ...paginate({
+        items: ids
+          .flatMap((id) => byId.get(id) ?? [])
+          .map((feedback) => ({
+            author: writerOf(feedback.author),
+            id: feedback.id,
+            impersonated: writerOf(feedback.impersonated),
+            openAs: openableAs(feedback.impersonated ?? feedback.author),
+            sentAt: feedback.sentAt.toISOString(),
+            status: {
+              changedAt: feedback.statusChangedAt?.toISOString() ?? null,
+              changedBy: writerOf(feedback.statusChangedBy),
+              comment: feedback.statusComment,
+              value: feedback.status,
+            },
+            text: feedback.text,
+            url: feedback.url,
+          })),
+        pagination: query.pagination,
+        totalCount: listed?.totalCount ?? 0,
+      }),
+      statuses: FEEDBACK_STATUSES.map((id) => ({ count: counts[id] ?? 0, id })),
+    };
   }
 }
 
@@ -123,6 +128,11 @@ const ListedFeedbackSchema = z.object({
   url: z.string(),
 });
 
-export class ListedFeedbacksDto extends createPaginatedZodDto(ListedFeedbackSchema) {}
+const statusCountsSchema = z.partialRecord(z.enum(FEEDBACK_STATUSES), z.number());
+
+export class ListedFeedbacksDto extends createPaginatedZodDto(
+  ListedFeedbackSchema,
+  z.object({ statuses: z.array(z.object({ count: z.number(), id: z.enum(FEEDBACK_STATUSES) })) }),
+) {}
 
 export type ListedFeedback = z.infer<typeof ListedFeedbackSchema>;

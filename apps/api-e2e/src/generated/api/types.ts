@@ -3031,6 +3031,10 @@ export type ListedFeedbacksDto = {
         next?: string;
         previous?: string;
     };
+    statuses: Array<{
+        count: number;
+        id: 'NEW' | 'ACKNOWLEDGED' | 'PROCESSED' | 'DISMISSED';
+    }>;
 };
 
 export type SendFeedbackDto = {

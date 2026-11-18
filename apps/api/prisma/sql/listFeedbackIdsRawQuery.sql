@@ -6,13 +6,12 @@
 -- @param {Int} $6:limit
 -- @param {Int} $7:offset
 
-WITH matched AS (
+WITH found AS (
   SELECT f.id, f.sent_at, f.status
   FROM nominations_context.feedback AS f
   JOIN identity_and_access_context.users AS author ON author.id = f.author_id
   LEFT JOIN identity_and_access_context.users AS impersonated ON impersonated.id = f.impersonated_id
-  WHERE (CARDINALITY($2::TEXT[]) = 0 OR f.status::TEXT = ANY($2::TEXT[]))
-    AND ($3::TIMESTAMP IS NULL OR f.sent_at < $3::TIMESTAMP)
+  WHERE ($3::TIMESTAMP IS NULL OR f.sent_at < $3::TIMESTAMP)
     -- every word appears
     AND NOT EXISTS (
       SELECT 1
@@ -33,6 +32,9 @@ WITH matched AS (
         LOWER(UNACCENT(word))
       ) = 0
     )
+),
+matched AS (
+  SELECT * FROM found WHERE CARDINALITY($2::TEXT[]) = 0 OR status::TEXT = ANY($2::TEXT[])
 )
 SELECT
   (SELECT COUNT(*) FROM matched)::INT AS "totalCount",
@@ -46,4 +48,8 @@ SELECT
       m.sent_at DESC,
       m.id ASC
     LIMIT $6::INT OFFSET $7::INT
-  ) AS "ids";
+  ) AS "ids",
+  (
+    SELECT COALESCE(JSON_OBJECT_AGG(counted.status, counted.count), '{}'::JSON)
+    FROM (SELECT status, COUNT(*)::INT AS count FROM found GROUP BY status) AS counted
+  ) AS "statusCounts";
