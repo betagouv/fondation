@@ -163,6 +163,26 @@ describe('AgendaFilesSelectionTable', () => {
     expect(screen.getByRole('button', { name: 'Continuer' })).toBeDisabled();
   });
 
+  it('should name the magistrat of a selected file without a published reporter as the API does', async () => {
+    mockQueries({
+      items: [
+        makeAgendaFile('dossier-1', {
+          number: 12,
+          magistrat: { id: 'm-1', name: 'GAUTHIER Isabelle' },
+          reporters: [],
+        }),
+      ],
+      ineligible: [],
+    });
+
+    renderTable();
+    await selectAllEligible();
+
+    expect(
+      await screen.findByText(/La proposition n° 12 \(GAUTHIER Isabelle\) n'a pas de rapporteur publié/),
+    ).toBeVisible();
+  });
+
   it('should submit the selected files', async () => {
     mockQueries({ items: [makeAgendaFile('dossier-1')], ineligible: [] });
 

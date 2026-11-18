@@ -7,7 +7,11 @@ import { Prisma } from '../../../../../generated/prisma/client';
 import { findAgendaNominationFilesRawQuery } from '../../../../../generated/prisma/sql';
 import { assertPgParams } from '../../../../../utils/assert-pg-params';
 import { Db } from '../../../../framework/database';
-import { CIVILITIES, magistratDocumentName } from '../../../../magistrat/domain/magistrat-name';
+import {
+  CIVILITIES,
+  magistratDocumentName,
+  magistratFullName,
+} from '../../../../magistrat/domain/magistrat-name';
 import { GenderEnum } from '../../../../shared/gender.enum';
 import { GradeEnum } from '../../../../shared/grade.enum';
 import { NominationFileOutcome } from '../../../../shared/nomination-file-outcome.enum';
@@ -165,6 +169,7 @@ const SqlNominationFilesSchema = z
       magistrat: {
         externalId: item.magistrat.externalId,
         id: item.magistrat.id,
+        fullName: magistratFullName(item.magistrat),
         name: magistratDocumentName(item.magistrat),
         position: {
           functionId: item.magistrat.position.function?.id ?? null,
@@ -201,6 +206,9 @@ export class InternalFoundAgendaNominationFiles extends createZodDto(
         magistrat: z.object({
           id: z.string(),
           externalId: z.number().int().gt(0),
+          /** the full name, shown on screen */
+          fullName: z.string(),
+          /** the name printed in the session documents */
           name: z.string(),
           position: z.object({
             label: z.string().nullable(),

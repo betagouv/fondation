@@ -66,7 +66,7 @@ export class DocsNominationFilesFinder {
     return {
       items: found.items.map(({ id, magistrat, number, reporters }) => ({
         id,
-        magistrat: { id: magistrat.id, name: magistrat.name },
+        magistrat: { name: magistrat.fullName },
         number,
         reporters: reporters.map((reporter) => ({ id: reporter.id })),
       })),
