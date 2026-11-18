@@ -60,7 +60,11 @@ const FEEDBACKS: Record<FeedbackStatusEnum, ListedFeedback[]> = {
   ],
 };
 
-function AdminFeedbacksPageStory(props: { loadFails: boolean; status: FeedbackStatusEnum }) {
+function AdminFeedbacksPageStory(props: {
+  loadFails: boolean;
+  nextPageFails: boolean;
+  status: FeedbackStatusEnum;
+}) {
   return (
     <PageStory
       location={feedbackStatusPath(props.status)}
@@ -73,22 +77,30 @@ function AdminFeedbacksPageStory(props: { loadFails: boolean; status: FeedbackSt
 }
 
 const meta = {
-  args: { loadFails: false, status: 'NEW' },
+  args: { loadFails: false, nextPageFails: false, status: 'NEW' },
   argTypes: {
     loadFails: { control: 'boolean', description: "L'API répond par une erreur." },
+    nextPageFails: {
+      control: 'boolean',
+      description: 'La première page arrive, la suivante répond par une erreur.',
+    },
     status: { control: 'inline-radio', options: FEEDBACK_STATUSES },
   },
   beforeEach: ({ args, msw }) => {
     msw.use(
       http.get('*/api/feedbacks/v1', ({ request }) => {
-        if (args.loadFails) return new HttpResponse(null, { status: 500 });
+        const params = new URL(request.url).searchParams;
+        const page = Number(params.get('page'));
+        if (args.loadFails || (args.nextPageFails && page > 1))
+          return new HttpResponse(null, { status: 500 });
 
-        const status = new URL(request.url).searchParams.get('statuses') as FeedbackStatusEnum;
-        const items = FEEDBACKS[status];
+        const items = FEEDBACKS[params.get('statuses') as FeedbackStatusEnum];
         return HttpResponse.json<ListedFeedbacksDto>({
-          currentPageIndex: 1,
+          currentPageIndex: page,
           items,
-          totalCount: items.length,
+          nextPageIndex: args.nextPageFails ? page + 1 : undefined,
+          statuses: FEEDBACK_STATUSES.map((id) => ({ count: FEEDBACKS[id].length, id })),
+          totalCount: args.nextPageFails ? items.length + 1 : items.length,
         });
       }),
     );

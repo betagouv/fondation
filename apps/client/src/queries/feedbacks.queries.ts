@@ -1,10 +1,4 @@
-import {
-  useInfiniteQuery,
-  useMutation,
-  useQuery,
-  useQueryClient,
-  type InfiniteData,
-} from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQueryClient, type InfiniteData } from '@tanstack/react-query';
 
 import type { FeedbackAgeEnum } from '@/shared/enums/feedback-age.enum';
 import type { FeedbackStatusEnum } from '@/shared/enums/feedback-status.enum';
@@ -27,9 +21,6 @@ export type FeedbacksSorting =
 
 const feedbackKeys = {
   allListFeedbacks: ['feedbacks', 'listFeedbacks'] as const,
-  // under the list, so that a change of status refreshes the counts too
-  countFeedbacks: (props: { filters: FeedbacksFilters; status: FeedbackStatusEnum }) =>
-    ['feedbacks', 'listFeedbacks', 'count', props] as const,
   listFeedbacks: (props: { filters: FeedbacksFilters; sorting: FeedbacksSorting }) =>
     ['feedbacks', 'listFeedbacks', props] as const,
 };
@@ -40,6 +31,7 @@ const FEEDBACKS_PAGE_SIZE = 50;
 function selectFeedbacks(data: InfiniteData<ListedFeedbacksDto>) {
   return {
     items: data.pages.flatMap((page) => page.items),
+    statuses: data.pages.at(-1)?.statuses ?? [],
     totalCount: data.pages.at(-1)?.totalCount ?? 0,
   };
 }
@@ -69,27 +61,6 @@ export const useInfiniteFeedbacksQuery = (options: {
         .then(({ data }) => data),
     queryKey: feedbackKeys.listFeedbacks(options),
     select: selectFeedbacks,
-  });
-
-export const useFeedbacksCountQuery = (options: {
-  filters: Omit<FeedbacksFilters, 'statuses'>;
-  status: FeedbackStatusEnum;
-}) =>
-  useQuery({
-    placeholderData: (previous) => previous,
-    queryFn: () =>
-      $api.feedbacks
-        .listFeedbacks({
-          query: {
-            limit: 1,
-            search: options.filters.search || undefined,
-            sentAgo: options.filters.sentAgo,
-            statuses: [options.status],
-          },
-          throwOnError: true,
-        })
-        .then(({ data }) => data.totalCount),
-    queryKey: feedbackKeys.countFeedbacks(options),
   });
 
 export function useSendFeedbackMutation() {

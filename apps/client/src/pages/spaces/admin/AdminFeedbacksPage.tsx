@@ -21,6 +21,7 @@ import {
   DataTable,
   DataTableCount,
   DataTableFilters,
+  loadFailureOf,
   rowCell,
   useDataTableSearch,
   useDataTableUrlState,
@@ -29,12 +30,7 @@ import { AttachedLinkTab, AttachedLinkTabs } from '@/shared/ui/link-tabs';
 import { SearchInput } from '@/shared/ui/search-input';
 import { knownValues } from '@/utils/known-values.utils';
 import type { ListedFeedbacksDto } from '@api/types';
-import {
-  type FeedbacksFilters,
-  type FeedbacksSorting,
-  useFeedbacksCountQuery,
-  useInfiniteFeedbacksQuery,
-} from '@queries/feedbacks.queries';
+import { type FeedbacksSorting, useInfiniteFeedbacksQuery } from '@queries/feedbacks.queries';
 
 import { feedbackStatusOf, feedbackStatusPath } from './feedback-status-paths';
 
@@ -62,7 +58,7 @@ const KNOWN_AGES: Record<FeedbackAgeEnum, true> = {
   MORE_THAN_7_DAYS: true,
 };
 const NEWEST_FIRST: FeedbacksSorting = [{ desc: true, id: 'sentAt' }];
-const SORTABLE_COLUMNS = new Set<string>(['sentAt', 'status']);
+const SORTABLE_COLUMNS = new Set<string>(['sentAt']);
 
 const h = createColumnHelper<ListedFeedback>();
 
@@ -165,13 +161,12 @@ function useFeedbackColumns() {
   );
 }
 
-function FeedbackStatusTab(props: { filters: FeedbacksFilters; status: FeedbackStatusEnum }) {
+function FeedbackStatusTab(props: { count: number | undefined; status: FeedbackStatusEnum }) {
   const { formatMessage } = useIntl();
-  const { data: count } = useFeedbacksCountQuery(props);
 
   return (
     <AttachedLinkTab
-      count={count}
+      count={props.count}
       countClassName={FEEDBACK_STATUS_BADGE_COLORS[props.status]}
       keepsQuery
       label={formatMessage(TAB_LABELS[props.status])}
@@ -229,8 +224,8 @@ function AdminFeedbacksOfStatus(props: { status: FeedbackStatusEnum }) {
   );
 
   const fetchMore = useCallback(() => {
-    if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+    if (hasNextPage && !isFetchingNextPage && !isFetchNextPageError) void fetchNextPage();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage, isFetchNextPageError]);
 
   const columns = useFeedbackColumns();
 
@@ -287,7 +282,11 @@ function AdminFeedbacksOfStatus(props: { status: FeedbackStatusEnum }) {
       >
         <AttachedLinkTabs ariaLabel={formatMessage({ defaultMessage: 'Retours par statut' })}>
           {FEEDBACK_STATUSES.map((status) => (
-            <FeedbackStatusTab filters={filters} key={status} status={status} />
+            <FeedbackStatusTab
+              count={data?.statuses.find(({ id }) => id === status)?.count}
+              key={status}
+              status={status}
+            />
           ))}
         </AttachedLinkTabs>
         <FeedbackStatusCommentModalProvider>
@@ -303,15 +302,7 @@ function AdminFeedbacksOfStatus(props: { status: FeedbackStatusEnum }) {
             }
             fluid
             isLoading={!isError && (isLoading || !listed)}
-            loadError={
-              isError
-                ? {
-                    isNextPage: isFetchNextPageError,
-                    isRetrying: isFetching,
-                    onRetry: () => void (isFetchNextPageError ? fetchNextPage() : refetch()),
-                  }
-                : undefined
-            }
+            loadError={loadFailureOf({ fetchNextPage, isError, isFetching, isFetchNextPageError, refetch })}
             onEndReached={fetchMore}
             scrollsWithPage
             table={table}
