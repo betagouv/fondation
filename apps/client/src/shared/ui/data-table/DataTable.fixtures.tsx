@@ -2,7 +2,7 @@ import { type ColumnDef, getCoreRowModel, getSortedRowModel, useReactTable } fro
 import { useCallback, useMemo, useState } from 'react';
 import { IntlProvider } from 'react-intl';
 
-import { DataTable } from './DataTable';
+import { DataTable, type DataTableLoadFailure } from './DataTable';
 import { useSelectionColumn } from './hooks/useSelectionColumn';
 
 export type Person = {
@@ -49,6 +49,7 @@ const ROW_TINTS = {
 type DemoTableProps = {
   enableSorting?: boolean;
   height?: number;
+  loadError?: DataTableLoadFailure;
   lockedRowIds?: readonly string[];
   rowCount?: number;
   rowTint?: keyof typeof ROW_TINTS;
@@ -91,6 +92,7 @@ function DemoTableContent(props: DemoTableProps) {
     <div style={{ height: props.height ?? 480 }}>
       <DataTable
         emptyLabel="Aucune donnée"
+        loadError={props.loadError}
         rowTint={props.rowTint ? () => ROW_TINTS[props.rowTint!] : undefined}
         table={table}
         unvirtualized={props.unvirtualized}

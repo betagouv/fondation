@@ -1,6 +1,8 @@
+import Button from '@codegouvfr/react-dsfr/Button';
 import { flexRender, type Header, type Row, type RowData, type Table } from '@tanstack/react-table';
 import clsx from 'clsx';
 import { type ReactNode, type RefObject, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { FormattedMessage } from 'react-intl';
 
 import { useFadeInOnQueryChange } from './hooks/useFadeInOnQueryChange';
 import { ESTIMATED_ROW_HEIGHT, useTableVirtualizer } from './hooks/useTableVirtualizer';
@@ -85,12 +87,38 @@ function HeaderCell<Data extends RowData>(props: { fluid?: boolean; header: Head
   );
 }
 
+export type DataTableLoadFailure = { isNextPage: boolean; isRetrying: boolean; onRetry: () => void };
+
+function DataTableLoadError(props: DataTableLoadFailure) {
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <p className="fr-mb-0" role="status">
+        {props.isNextPage ? (
+          <FormattedMessage defaultMessage="La suite de la liste n'a pas pu être chargée." />
+        ) : (
+          <FormattedMessage defaultMessage="La liste n'a pas pu être chargée." />
+        )}
+      </p>
+      <Button
+        className="aria-disabled:cursor-not-allowed aria-disabled:text-(--text-disabled-grey) aria-disabled:shadow-[inset_0_0_0_1px_var(--border-disabled-grey)]"
+        nativeButtonProps={props.isRetrying ? { 'aria-disabled': true } : undefined}
+        onClick={props.isRetrying ? undefined : props.onRetry}
+        priority="secondary"
+        size="small"
+      >
+        <FormattedMessage defaultMessage="Réessayer" />
+      </Button>
+    </div>
+  );
+}
+
 export function DataTable<Data extends RowData>(props: {
   ariaLabel?: string;
   className?: string;
   emptyLabel: ReactNode;
   fluid?: boolean;
   isLoading?: boolean;
+  loadError?: DataTableLoadFailure;
   onEndReached?: () => void;
   /** the rows up to the last one on screen, without those rendered ahead: it goes down when scrolling back up */
   onSeenRowsChange?: (seenRows: number) => void;
@@ -215,7 +243,7 @@ export function DataTable<Data extends RowData>(props: {
           className={clsx(
             'sticky z-2 grid bg-(--background-contrast-grey)',
             scrollsWithPage
-              ? 'top-(--fondation-table-header-top) border-t border-(--border-contrast-grey)'
+              ? 'top-[calc(var(--fondation-table-header-top)+var(--fondation-attached-tabs-height,0px))] border-t border-(--border-contrast-grey)'
               : 'top-0',
           )}
           ref={headerRef}
@@ -244,7 +272,7 @@ export function DataTable<Data extends RowData>(props: {
                 }
           }
         >
-          {isEmpty ? (
+          {isEmpty && !props.loadError ? (
             <div className="p-8 text-center text-(--text-mention-grey)" role="row">
               <div role="cell">{props.emptyLabel}</div>
             </div>
@@ -305,6 +333,16 @@ export function DataTable<Data extends RowData>(props: {
             },
           )}
         </div>
+
+        {props.loadError ? (
+          <div className="p-8 text-center text-(--text-mention-grey)" role="rowgroup">
+            <div role="row">
+              <div role="cell">
+                <DataTableLoadError {...props.loadError} />
+              </div>
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );

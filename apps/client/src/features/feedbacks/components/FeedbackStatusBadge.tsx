@@ -10,6 +10,13 @@ const SEVERITIES: Record<FeedbackStatusEnum, BadgeProps['severity']> = {
   PROCESSED: 'success',
 };
 
+export const FEEDBACK_STATUS_BADGE_COLORS: Record<FeedbackStatusEnum, string> = {
+  ACKNOWLEDGED: 'bg-(--background-contrast-info) text-(--text-default-info)',
+  DISMISSED: 'bg-(--background-contrast-grey-hover) text-(--text-default-grey)',
+  NEW: 'bg-(--background-contrast-yellow-moutarde) text-(--text-action-high-yellow-moutarde)',
+  PROCESSED: 'bg-(--background-contrast-success) text-(--text-default-success)',
+};
+
 export function FeedbackStatusBadge(props: { status: FeedbackStatusEnum }) {
   const { formatMessage } = useIntl();
 

@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { axe } from 'vitest-axe';
 
 import { DemoTable } from './DataTable.fixtures';
@@ -51,6 +51,45 @@ describe('DataTable', () => {
     render(<DemoTable rowCount={0} />);
 
     expect(screen.getByText('Aucune donnée')).toBeInTheDocument();
+  });
+
+  it('offers to try again when the rows could not be loaded instead of saying there are none', async () => {
+    const user = userEvent.setup();
+    const onRetry = vi.fn();
+    render(<DemoTable loadError={{ isNextPage: false, isRetrying: false, onRetry }} rowCount={0} />);
+
+    expect(screen.getByRole('status')).toHaveTextContent("La liste n'a pas pu être chargée.");
+    expect(screen.queryByText('Aucune donnée')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Réessayer' }));
+
+    expect(onRetry).toHaveBeenCalledOnce();
+  });
+
+  it('keeps the rows already loaded when the next ones could not be', () => {
+    render(
+      <DemoTable
+        loadError={{ isNextPage: true, isRetrying: false, onRetry: vi.fn() }}
+        rowCount={3}
+        unvirtualized
+      />,
+    );
+
+    expect(screen.getAllByRole('row')).toHaveLength(5);
+    expect(screen.getByRole('status')).toHaveTextContent("La suite de la liste n'a pas pu être chargée.");
+  });
+
+  it('keeps the focus on the retry button while retrying, without retrying twice', async () => {
+    const user = userEvent.setup();
+    const onRetry = vi.fn();
+    render(<DemoTable loadError={{ isNextPage: false, isRetrying: true, onRetry }} rowCount={0} />);
+    const retry = screen.getByRole('button', { name: 'Réessayer' });
+
+    await user.click(retry);
+
+    expect(retry).toHaveFocus();
+    expect(retry).toHaveAttribute('aria-disabled', 'true');
+    expect(onRetry).not.toHaveBeenCalled();
   });
 
   it('selects the whole dataset with select-all, not just the visible rows', async () => {
