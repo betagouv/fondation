@@ -1,11 +1,33 @@
 import clsx from 'clsx';
-import type { ReactNode } from 'react';
+import { type ReactNode, useLayoutEffect, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router';
 
 /** tabs set on the top edge of the table they switch, the current one merging into its header */
 export function AttachedLinkTabs(props: { ariaLabel: string; children: ReactNode }) {
+  const [nav, setNav] = useState<HTMLElement | null>(null);
+
+  useLayoutEffect(() => {
+    const parent = nav?.parentElement;
+    if (!nav || !parent) return;
+
+    const measure = () =>
+      parent.style.setProperty('--fondation-attached-tabs-height', `${nav.getBoundingClientRect().height}px`);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(nav);
+
+    return () => {
+      observer.disconnect();
+      parent.style.removeProperty('--fondation-attached-tabs-height');
+    };
+  }, [nav]);
+
   return (
-    <nav aria-label={props.ariaLabel}>
+    <nav
+      aria-label={props.ariaLabel}
+      className="sticky top-(--fondation-table-header-top) z-3 bg-(--background-default-grey)"
+      ref={setNav}
+    >
       <ul className="fr-m-0 fr-p-0 flex min-h-9 w-full list-none gap-1">{props.children}</ul>
     </nav>
   );
@@ -13,6 +35,7 @@ export function AttachedLinkTabs(props: { ariaLabel: string; children: ReactNode
 
 export function AttachedLinkTab(props: {
   count?: number;
+  countClassName?: string;
   /** keeps the query of the page, where nuqs writes the filters of a table without telling the router */
   keepsQuery?: boolean;
   label: string;
@@ -50,9 +73,14 @@ export function AttachedLinkTab(props: {
             {Number.isFinite(props.count) && (
               <span
                 className={clsx(
-                  'inline-flex h-5 min-w-5 items-center justify-center rounded px-1.5 text-xs font-normal text-(--text-mention-grey)',
-                  // a shade darker on the grey of the current tab, where the off-white would hardly show
-                  isActive ? 'bg-(--background-contrast-grey-hover)' : 'bg-(--background-alt-grey)',
+                  'inline-flex h-5 min-w-5 items-center justify-center rounded px-1.5 text-xs',
+                  props.countClassName
+                    ? ['font-bold', props.countClassName]
+                    : [
+                        'font-normal text-(--text-mention-grey)',
+                        // a shade darker on the grey of the current tab, where the off-white would hardly show
+                        isActive ? 'bg-(--background-contrast-grey-hover)' : 'bg-(--background-alt-grey)',
+                      ],
                 )}
               >
                 {props.count}

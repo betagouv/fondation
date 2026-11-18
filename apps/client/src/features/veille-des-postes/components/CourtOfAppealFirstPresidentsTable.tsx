@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { useIntl } from 'react-intl';
 
 import { useEditedPosition } from '../hooks/useEditedPosition';
-import { KNOWN_ALERTS, KNOWN_DEADLINES, KNOWN_STATUSES, knownValues } from '../utils/known-values.utils';
+import { KNOWN_ALERTS, KNOWN_DEADLINES, KNOWN_STATUSES } from '../utils/known-values.utils';
 import {
   NO_STATUS_AND_ALERT_COUNTS,
   type StatusAndAlertCounts,
@@ -17,11 +17,13 @@ import {
   DataTable,
   DataTableCount,
   DataTableFilters,
+  loadFailureOf,
   useDataTableSearch,
   useDataTableUrlState,
 } from '@/shared/ui/data-table';
 import { SearchInput } from '@/shared/ui/search-input';
 import { formatDateOnly } from '@/utils/date-only.util';
+import { knownValues } from '@/utils/known-values.utils';
 import {
   type AlertDeadline,
   type CourtOfAppealFirstPresident,
@@ -156,31 +158,40 @@ export function CourtOfAppealFirstPresidentsTable(props: {
       ? tableState.sorting
       : COURT_OF_APPEAL_FIRST_PRESIDENTS_DEFAULT_SORTING;
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
-    useCourtOfAppealFirstPresidentsQuery({
-      alerts: knownValues(
-        tableState.columnFilters.find((filter) => filter.id === 'alert')?.value,
-        KNOWN_ALERTS,
-      ),
-      deadlines: knownValues(
-        tableState.columnFilters.find((filter) => filter.id === 'deadline')?.value,
-        KNOWN_DEADLINES,
-      ),
-      search: tableState.globalFilter,
-      sorting,
-      statuses: knownValues(
-        tableState.columnFilters.find((filter) => filter.id === 'status')?.value,
-        KNOWN_STATUSES,
-      ),
-    });
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isError,
+    isFetching,
+    isFetchingNextPage,
+    isFetchNextPageError,
+    isLoading,
+    refetch,
+  } = useCourtOfAppealFirstPresidentsQuery({
+    alerts: knownValues(
+      tableState.columnFilters.find((filter) => filter.id === 'alert')?.value,
+      KNOWN_ALERTS,
+    ),
+    deadlines: knownValues(
+      tableState.columnFilters.find((filter) => filter.id === 'deadline')?.value,
+      KNOWN_DEADLINES,
+    ),
+    search: tableState.globalFilter,
+    sorting,
+    statuses: knownValues(
+      tableState.columnFilters.find((filter) => filter.id === 'status')?.value,
+      KNOWN_STATUSES,
+    ),
+  });
 
   const search = useDataTableSearch(tableState.globalFilter, (globalFilter) =>
     setTableState((state) => ({ ...state, globalFilter })),
   );
 
   const fetchMore = useCallback(() => {
-    if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+    if (hasNextPage && !isFetchingNextPage && !isFetchNextPageError) void fetchNextPage();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage, isFetchNextPageError]);
 
   const statusAndAlertCounts = useMemo(
     () =>
@@ -246,7 +257,8 @@ export function CourtOfAppealFirstPresidentsTable(props: {
               : formatMessage({ defaultMessage: "Aucune cour d'appel" })
           }
           fluid
-          isLoading={isLoading}
+          isLoading={!isError && isLoading}
+          loadError={loadFailureOf({ fetchNextPage, isError, isFetching, isFetchNextPageError, refetch })}
           onEndReached={fetchMore}
           onSeenRowsChange={onSeenRowsChange}
           revealedRowId={highlightedRowId}

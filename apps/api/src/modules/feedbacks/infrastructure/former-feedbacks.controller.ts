@@ -38,6 +38,8 @@ export class FormerFeedbacksController {
     const statuses = query.statuses ?? [];
     const listed = await this.feedbacks.listFeedbacks({
       pagination,
+      search: undefined,
+      sentAgo: undefined,
       sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
       statuses: statuses.includes('NEW') ? [...statuses, 'ACKNOWLEDGED'] : statuses,
     });

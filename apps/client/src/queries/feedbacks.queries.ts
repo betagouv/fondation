@@ -1,5 +1,6 @@
 import { useInfiniteQuery, useMutation, useQueryClient, type InfiniteData } from '@tanstack/react-query';
 
+import type { FeedbackAgeEnum } from '@/shared/enums/feedback-age.enum';
 import type { FeedbackStatusEnum } from '@/shared/enums/feedback-status.enum';
 import * as $api from '@api/sdk';
 import type {
@@ -9,7 +10,11 @@ import type {
   SendFeedbackDto,
 } from '@api/types';
 
-export type FeedbacksFilters = { statuses?: FeedbackStatusEnum[] };
+export type FeedbacksFilters = {
+  search?: string;
+  sentAgo?: FeedbackAgeEnum;
+  statuses?: FeedbackStatusEnum[];
+};
 export type FeedbacksSorting =
   | []
   | [{ desc: boolean; id: NonNullable<NonNullable<ListFeedbacksData['query']>['sortBy']> }];
@@ -23,9 +28,10 @@ const feedbackKeys = {
 const FEEDBACKS_PAGE_SIZE = 50;
 
 /** @warning must stay stable, tanstack only reuses the selection when the function identity does not change */
-function selectFeedbacks(data: InfiniteData<ListedFeedbacksDto | null>) {
+function selectFeedbacks(data: InfiniteData<ListedFeedbacksDto>) {
   return {
-    items: data.pages.flatMap((page) => page?.items ?? []),
+    items: data.pages.flatMap((page) => page.items),
+    statuses: data.pages.at(-1)?.statuses ?? [],
     totalCount: data.pages.at(-1)?.totalCount ?? 0,
   };
 }
@@ -35,7 +41,7 @@ export const useInfiniteFeedbacksQuery = (options: {
   sorting: FeedbacksSorting;
 }) =>
   useInfiniteQuery({
-    getNextPageParam: (lastPage: ListedFeedbacksDto | null) => lastPage?.nextPageIndex,
+    getNextPageParam: (lastPage: ListedFeedbacksDto) => lastPage.nextPageIndex,
     initialPageParam: 1,
     placeholderData: (previous) => previous,
     queryFn: ({ pageParam }) =>
@@ -44,12 +50,15 @@ export const useInfiniteFeedbacksQuery = (options: {
           query: {
             limit: FEEDBACKS_PAGE_SIZE,
             page: pageParam,
+            search: options.filters.search || undefined,
+            sentAgo: options.filters.sentAgo,
             sortBy: options.sorting[0]?.id,
             sortDesc: options.sorting[0]?.desc ? 'true' : undefined,
             statuses: options.filters.statuses,
           },
+          throwOnError: true,
         })
-        .then(({ data }) => data ?? null),
+        .then(({ data }) => data),
     queryKey: feedbackKeys.listFeedbacks(options),
     select: selectFeedbacks,
   });

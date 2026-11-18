@@ -2,7 +2,7 @@ import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
 import { createSortableDto } from '../../framework/sorting';
-import { FEEDBACK_STATUSES } from '../domain/feedback';
+import { FEEDBACK_AGES, FEEDBACK_STATUSES } from '../domain/feedback';
 
 export class SendFeedbackDto extends createZodDto(
   z.object({
@@ -29,6 +29,8 @@ export class ChangeFeedbackStatusDto extends createZodDto(
 
 export class ListFeedbacksQueryDto extends createSortableDto(
   z.object({
+    search: z.string().trim().max(200).optional(),
+    sentAgo: z.enum(FEEDBACK_AGES).optional(),
     sortBy: z.enum(['sentAt', 'status']).optional(),
     statuses: z.preprocess(
       (x) => (x ? ([] as unknown[]).concat(x) : x),

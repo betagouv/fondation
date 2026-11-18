@@ -8,6 +8,7 @@ export const ROUTE_PATHS = {
   ADMIN: {
     DETAILS_JOB: '/admin/ingestions/:jobId',
     FEEDBACKS: '/admin/retours',
+    FEEDBACKS_STATUS: '/admin/retours/:status',
     HELP: '/admin/aide',
     INGEST_LOLFI: '/admin/lolfi',
     LIST_JOBS: '/admin/ingestions',
