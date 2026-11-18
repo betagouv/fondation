@@ -152,7 +152,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'Une ligne par cour d\'appel, par ordre alphabétique du ressort, avec son premier président. Une cour sans premier président est "Vacant". La recherche porte sur le ressort et sur le magistrat. Le filtre "Alerte / statut" donne le nombre de cours de chaque valeur. La story ne filtre pas, c\'est l\'API qui le fait. En défilant, l\'en-tête se colle en haut et le compteur des lignes vues apparaît à côté du titre, par pages de 20. Les candidats arriveront avec leur ticket.',
+          "Une ligne par cour d'appel, par ordre alphabétique du ressort, avec son premier président. Le tribunal supérieur d'appel de Saint-Pierre-et-Miquelon a aussi sa ligne avec son président. Une juridiction sans titulaire est \"Vacant\". La recherche porte sur le ressort et sur le magistrat. Le filtre \"Alerte / statut\" donne le nombre de cours de chaque valeur. La story ne filtre pas, c'est l'API qui le fait. En défilant, l'en-tête se colle en haut et le compteur des lignes vues apparaît à côté du titre, par pages de 20. Les candidats arriveront avec leur ticket.",
       },
     },
     layout: 'fullscreen',

@@ -251,7 +251,7 @@ export function CourtOfAppealFirstPresidentsTable(props: {
       >
         <DataTable
           ariaLabel={formatMessage({
-            defaultMessage: "Premiers présidents de cour d'appel et président de tribunal supérieur d'appel",
+            defaultMessage: "Premiers présidents de cour d'appel et président du tribunal supérieur d'appel",
           })}
           emptyLabel={
             tableState.globalFilter || tableState.columnFilters.length

@@ -29,7 +29,7 @@ export function VeilleDesPostesPage() {
   const tabs = [
     {
       count: courtOfAppealFirstPresidents,
-      label: formatMessage({ defaultMessage: "Premiers présidents de cour d'appel et président de TSA" }),
+      label: formatMessage({ defaultMessage: "Premiers présidents de cour d'appel et président du TSA" }),
       to: ROUTE_PATHS.SG.CSM.VEILLE_DES_POSTES_COURTS_OF_APPEAL,
     },
     {

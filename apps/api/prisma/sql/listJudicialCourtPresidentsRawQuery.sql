@@ -80,8 +80,10 @@ ORDER BY
   CASE WHEN $4::TEXT = 'name' AND NOT $5::BOOLEAN THEN h.first_name END ASC NULLS LAST,
   CASE WHEN $4::TEXT = 'court' AND $5::BOOLEAN THEN j.ville_jur END DESC,
   CASE WHEN $4::TEXT = 'court' AND NOT $5::BOOLEAN THEN j.ville_jur END ASC,
-  CASE WHEN $4::TEXT = 'ressort' AND $5::BOOLEAN THEN r.ville_jur END DESC,
-  r.ville_jur ASC,
+  CASE WHEN $4::TEXT = 'ressort' AND $5::BOOLEAN THEN COALESCE(r.ville_jur, r.codejur) END DESC,
+  -- a ressort without city sorts by its code as in the ressort filter, and the code keeps the courts of a ressort together
+  COALESCE(r.ville_jur, r.codejur) ASC,
+  r.codejur ASC,
   j.ville_jur ASC,
   j.codejur ASC,
   h.id ASC;

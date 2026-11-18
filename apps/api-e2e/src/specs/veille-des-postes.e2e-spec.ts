@@ -266,10 +266,10 @@ test.describe('Veille des postes E2E', () => {
       throwOnError: true,
     });
 
-    const ressortIds = data.ressorts.map(({ id }) => id);
-    expect(ressortIds.indexOf('TSA SAINT PIERRE ET MIQUELON')).toBeLessThan(ressortIds.indexOf('CA  TOULOUSE'));
-
     // by code "CA  TOULOUSE" would come before "TSA SAINT PIERRE ET MIQUELON"
+    expect(
+      data.ressorts.map(({ id }) => id).filter((id) => id === 'CA  TOULOUSE' || id === 'TSA SAINT PIERRE ET MIQUELON'),
+    ).toEqual(['TSA SAINT PIERRE ET MIQUELON', 'CA  TOULOUSE']);
     expect(data.items).toEqual([
       expect.objectContaining({
         court: {
