@@ -78,6 +78,35 @@ test.describe('public magistrat routes', () => {
     expect({ after: await identify(), before }).toEqual({ after: 'UNKNOWN', before: 'ACTIVE' });
   });
 
+  test('should read again the status of an identified magistrat, until it leaves the extraction', async ({
+    apiClients,
+    expect,
+    lolfi,
+  }) => {
+    const staying = candidate('ETIENNE', randomEmail());
+    const leaving = candidate('MICHEL', randomEmail());
+    await lolfi.ingest([{ createdAt: '22/04/2026', candidates: [staying, leaving] }]);
+    const site = await apiClients.authenticated({ scopes: ['magistrats:identification', 'magistrats:status'] });
+    const identified = await magistrats.identifyMagistrat({
+      body: { email: leaving.email! },
+      client: site.http,
+      throwOnError: true,
+    });
+    const magistratId = identified.data.magistrat!.id;
+    const readStatus = () =>
+      magistrats.findMagistratStatus({ client: site.http, path: { magistratId }, throwOnError: true });
+
+    const before = await readStatus();
+    await lolfi.ingest([{ createdAt: '22/04/2026', candidates: [staying] }]);
+    const after = await readStatus();
+
+    expect({
+      after: after.data,
+      before: before.data,
+      cache: after.response.headers.get('cache-control'),
+    }).toEqual({ after: { status: 'INACTIVE' }, before: { status: 'ACTIVE' }, cache: 'private, max-age=86400' });
+  });
+
   test('should take the address letter for letter', async ({ apiClients, expect, lolfi }) => {
     const id = crypto.randomUUID();
     const job = await lolfi.ingest([

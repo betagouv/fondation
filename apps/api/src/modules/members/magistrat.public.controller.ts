@@ -1,4 +1,14 @@
-import { Body, Controller, Header, HttpStatus, Post, UsePipes } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Header,
+  HttpStatus,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  UsePipes,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
@@ -11,6 +21,10 @@ import {
   SearchMagistratAuthorizationDto,
   SearchMagistratAuthorizationUnauthorizedDto,
 } from './infrastructure/magistrat.dto';
+import {
+  FindMagistratStatusQuery,
+  FoundMagistratStatusDto,
+} from './infrastructure/queries/find-magistrat-status.query';
 import {
   IdentifiedMagistratDto,
   IdentifyMagistratDto,
@@ -25,6 +39,7 @@ import {
 @Controller('/api/public/v1')
 export class MagistratPublicController {
   constructor(
+    private readonly findMagistratStatusQuery: FindMagistratStatusQuery,
     private readonly identifyMagistratQuery: IdentifyMagistratQuery,
     private readonly searchMagistratAuthorizationQuery: SearchMagistratAuthorizationQuery,
   ) {}
@@ -36,6 +51,17 @@ export class MagistratPublicController {
   @ZodResponse<any>({ status: HttpStatus.BAD_REQUEST, type: InvalidMagistratEmailDto })
   identifyMagistrat(@Body() body: IdentifyMagistratDto): Promise<IdentifiedMagistratDto> {
     return this.identifyMagistratQuery.handle({ email: body.email });
+  }
+
+  @HasApiScope('magistrats:status')
+  @Get('/magistrats/:magistratId/status')
+  @ZodResponse({ status: HttpStatus.OK, type: FoundMagistratStatusDto })
+  // The website does not ask again for a status younger than a day
+  @Header('Cache-Control', `private, max-age=${(1 * time.DAYS) / time.SECONDS}`)
+  findMagistratStatus(
+    @Param('magistratId', ParseUUIDPipe) magistratId: string,
+  ): Promise<FoundMagistratStatusDto> {
+    return this.findMagistratStatusQuery.handle({ magistratId });
   }
 
   @ApiBearerAuth()

@@ -7,6 +7,7 @@ import { JurisdictionsService } from './infrastructure/jurisdictions.service';
 import { MemberRepository } from './infrastructure/member-repository';
 import { MembersService } from './infrastructure/members.service';
 import { DetailsMemberQuery } from './infrastructure/queries/details-member.query';
+import { FindMagistratStatusQuery } from './infrastructure/queries/find-magistrat-status.query';
 import { IdentifyMagistratQuery } from './infrastructure/queries/identify-magistrat.query';
 import { InternalFindMembersByFormationQuery } from './infrastructure/queries/internal-find-members-by-formation.query';
 import { InternalFindMembersByFullNameQuery } from './infrastructure/queries/internal-find-members-by-full-name.query';
@@ -26,6 +27,7 @@ import { MembersController } from './members.controller';
   providers: [
     DetailsMemberQuery,
     ExcludedJurisdictionsFinder,
+    FindMagistratStatusQuery,
     IdentifyMagistratQuery,
     InternalFindMembersByFormationQuery,
     InternalFindMembersByFullNameQuery,

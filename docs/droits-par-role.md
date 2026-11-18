@@ -443,16 +443,17 @@ Seul un compte technique peut en rendre un autre technique.
 
 Ces endpoints ne passent par aucun rôle : ils sont publics ou réservés à d'autres systèmes. Le préfixe `/api` est omis.
 
-| Accès                                             | Endpoint                                    | Qui                       | Raison                                                    |
-| ------------------------------------------------- | ------------------------------------------- | ------------------------- | --------------------------------------------------------- |
-| Se connecter                                      | `POST /auth/v2/login`                       | public                    | Connexion par e-mail et mot de passe                      |
-| Lister les fournisseurs OpenID                    | `GET /auth/v2/openid/providers`             | public                    | Connexion OpenID                                          |
-| Préparer une connexion OpenID                     | `POST /auth/v2/openid/:provider/requests`   | public                    | Connexion OpenID                                          |
-| Retour du fournisseur OpenID                      | `GET /auth/v2/openid/:provider/callback`    | public                    | Connexion OpenID                                          |
-| Vérifier les droits d'un magistrat (API publique) | `POST /public/v1/magistrats/role`           | machine                   | Service partenaire, authentifié par jeton                 |
-| Obtenir un jeton de client API (API publique)     | `POST /public/v1/auth`                      | public                    | Jeton de 15 minutes contre un identifiant et un secret    |
-| Identifier un magistrat actif (API publique)      | `POST /public/v1/magistrats/identification` | client API                | Site du CSM, première connexion d'un magistrat            |
-| Importer une archive Lolfi                        | `POST /ingest/v1/lolfi`                     | machine ou Administrateur | Dépôt automatique des archives Lolfi, ou import à la main |
+| Accès                                             | Endpoint                                        | Qui                       | Raison                                                    |
+| ------------------------------------------------- | ----------------------------------------------- | ------------------------- | --------------------------------------------------------- |
+| Se connecter                                      | `POST /auth/v2/login`                           | public                    | Connexion par e-mail et mot de passe                      |
+| Lister les fournisseurs OpenID                    | `GET /auth/v2/openid/providers`                 | public                    | Connexion OpenID                                          |
+| Préparer une connexion OpenID                     | `POST /auth/v2/openid/:provider/requests`       | public                    | Connexion OpenID                                          |
+| Retour du fournisseur OpenID                      | `GET /auth/v2/openid/:provider/callback`        | public                    | Connexion OpenID                                          |
+| Vérifier les droits d'un magistrat (API publique) | `POST /public/v1/magistrats/role`               | machine                   | Service partenaire, authentifié par jeton                 |
+| Obtenir un jeton de client API (API publique)     | `POST /public/v1/auth`                          | public                    | Jeton de 15 minutes contre un identifiant et un secret    |
+| Identifier un magistrat actif (API publique)      | `POST /public/v1/magistrats/identification`     | client API                | Site du CSM, première connexion d'un magistrat            |
+| Relire le statut d'un magistrat (API publique)    | `GET /public/v1/magistrats/:magistratId/status` | client API                | Site du CSM, à chaque connexion et avant chaque dépôt     |
+| Importer une archive Lolfi                        | `POST /ingest/v1/lolfi`                         | machine ou Administrateur | Dépôt automatique des archives Lolfi, ou import à la main |
 
 ### Hors spécification OpenAPI
 
