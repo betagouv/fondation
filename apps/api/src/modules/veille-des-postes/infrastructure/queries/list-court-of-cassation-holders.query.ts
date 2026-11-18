@@ -86,6 +86,7 @@ export class ListCourtOfCassationHoldersQuery {
       const alerts = alertsOf(
         {
           birthDate: DateOnly.fromOptionalUtcDate(holder.birthDate),
+          civility: civilityOf(holder.civility),
           installationDate,
           proposal: proposals.get(holder.id) ?? null,
         },

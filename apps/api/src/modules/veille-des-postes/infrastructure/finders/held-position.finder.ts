@@ -3,11 +3,14 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '../../../../generated/prisma/client';
 import { DateOnly } from '../../../../utils/date-only';
 import { Db } from '../../../framework/database';
+import type { Civility } from '../../../magistrat/domain/magistrat-name';
+import { civilityOf } from '../../domain/holder-title';
 import type { WatchedPosition } from '../../domain/position-alert';
 import { watchedPositionOf } from '../../domain/watched-position';
 
 export type HeldPosition = {
   birthDate: DateOnly | null;
+  civility: Civility | null;
   installationDate: DateOnly | null;
   positionId: number;
   watched: WatchedPosition;
@@ -25,6 +28,7 @@ export class HeldPositionFinder {
     const magistrat = await this.db.tx.magistrat.findUnique({
       select: {
         birthDate: true,
+        civilite: true,
         currentPositionId: true,
         installationDate: true,
         status: true,
@@ -57,6 +61,7 @@ export class HeldPositionFinder {
 
     return {
       birthDate: DateOnly.fromOptionalUtcDate(magistrat.birthDate),
+      civility: civilityOf(magistrat.civilite),
       installationDate: DateOnly.fromOptionalUtcDate(magistrat.installationDate),
       positionId,
       watched,

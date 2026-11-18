@@ -60,6 +60,7 @@ export class FindPositionVacancyQuery {
     const alerts = alertsOf(
       {
         birthDate: held.birthDate,
+        civility: held.civility,
         installationDate: held.installationDate,
         proposal: proposals.get(magistratId) ?? null,
       },

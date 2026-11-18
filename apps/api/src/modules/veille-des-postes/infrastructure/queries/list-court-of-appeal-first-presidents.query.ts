@@ -73,6 +73,7 @@ export class ListCourtOfAppealFirstPresidentsQuery {
         ? alertsOf(
             {
               birthDate: DateOnly.fromOptionalUtcDate(court.birthDate),
+              civility: civilityOf(court.civility),
               installationDate,
               proposal: proposals.get(court.id) ?? null,
             },

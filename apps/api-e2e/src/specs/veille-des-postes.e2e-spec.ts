@@ -2,6 +2,7 @@ import * as crypto from 'node:crypto';
 
 import { test } from '../fixtures.ts';
 import type { DeclarePositionVacancyDto } from '../generated/api/types.ts';
+import type { TestStepsAdmin } from '../steps.ts';
 import { makeFile } from '../utils/files.ts';
 import * as seed from '../utils/seed.ts';
 
@@ -223,6 +224,90 @@ test.describe('Veille des postes E2E', () => {
     });
 
     expect(otherRessort.items).toEqual([]);
+  });
+
+  test('should leave out the favorable proposal of a holder LOLFI already put on the position it targets', async ({
+    admin,
+    agent,
+    docs,
+    expect,
+    member,
+    registerUser,
+    sessions,
+  }) => {
+    const lastName = Array.from({ length: 12 }, () => String.fromCharCode(65 + crypto.randomInt(26))).join('');
+    const grasse = { function: seed.functions.P, grade: 'G3' as const, jurisdiction: seed.jurisdictions['TJ  GRASSE'] };
+    const session = await sessions.createOne(
+      {
+        candidates: [
+          {
+            birthDate: YOUNG_BIRTH_DATE,
+            firstName: 'ZOE',
+            installationDate: lolfiDateIn(TWO_YEARS_AGO),
+            lastName,
+            position: grasse,
+            targetPosition: grasse,
+          },
+        ],
+        createdAt: '22/04/2026',
+        name: `Transparence ${lastName}`,
+      },
+      { outcome: { comment: null, value: 'VALIDATED' }, reporters: [member['@user']!] },
+    );
+    await agent.sessions.validateSession({ path: { sessionId: session.id }, throwOnError: true });
+    const chairmanId = await siegeChairman({ admin, registerUser });
+    await docs.officialReport(await docs.agenda(session, { chairmanId }), { chairmanId, status: 'VALIDATED' });
+
+    const { data } = await agent.veilleDesPostes.listJudicialCourtPresidents({
+      query: { search: lastName },
+      throwOnError: true,
+    });
+
+    expect(data.items).toEqual([expect.objectContaining({ alerts: [] })]);
+  });
+
+  test('should leave out the proposal of a holder once a validated official report gives it an unfavorable outcome', async ({
+    admin,
+    agent,
+    docs,
+    expect,
+    member,
+    registerUser,
+    sessions,
+  }) => {
+    const lastName = Array.from({ length: 12 }, () => String.fromCharCode(65 + crypto.randomInt(26))).join('');
+    const grasse = { function: seed.functions.P, grade: 'G3' as const, jurisdiction: seed.jurisdictions['TJ  GRASSE'] };
+    const lyon = { function: seed.functions.P, grade: 'G3' as const, jurisdiction: seed.jurisdictions['TJ  LYON'] };
+    const holder = { birthDate: YOUNG_BIRTH_DATE, installationDate: lolfiDateIn(TWO_YEARS_AGO), lastName };
+    const session = await sessions.createOne(
+      {
+        candidates: [
+          { ...holder, firstName: 'ZOE', position: grasse, targetPosition: grasse },
+          { ...holder, firstName: 'BRUNO', position: lyon, targetPosition: lyon },
+        ],
+        createdAt: '22/04/2026',
+        name: `Transparence ${lastName}`,
+      },
+      { outcome: { comment: 'Profil inadapté', value: 'NON_VALIDATED' }, reporters: [member['@user']!] },
+    );
+    await agent.sessions.validateSession({ path: { sessionId: session.id }, throwOnError: true });
+    const chairmanId = await siegeChairman({ admin, registerUser });
+    const agenda = await docs.agenda(session, { chairmanId, files: [session.files[0]!] });
+    await docs.officialReport(agenda, { chairmanId, status: 'VALIDATED' });
+
+    const { data } = await agent.veilleDesPostes.listJudicialCourtPresidents({
+      query: { search: lastName },
+      throwOnError: true,
+    });
+
+    // the other file keeps the session from being reported as a whole
+    expect(data.items).toEqual([
+      expect.objectContaining({ alerts: [], court: expect.objectContaining({ id: 'TJ  GRASSE' }) }),
+      expect.objectContaining({
+        alerts: [expect.objectContaining({ id: 'PROPOSED_IN_SESSION' })],
+        court: expect.objectContaining({ id: 'TJ  LYON' }),
+      }),
+    ]);
   });
 
   test('should list the president of a tribunal de première instance under the ressort of its TSA by city', async ({
@@ -528,6 +613,54 @@ test.describe('Veille des postes E2E', () => {
     ]);
   });
 
+  test('should name the holder of a proposal a validated official report gives a favorable outcome', async ({
+    admin,
+    agent,
+    docs,
+    expect,
+    member,
+    registerUser,
+    sessions,
+  }) => {
+    const lastName = Array.from({ length: 12 }, () => String.fromCharCode(65 + crypto.randomInt(26))).join('');
+    const grasse = { function: seed.functions.P, grade: 'G3' as const, jurisdiction: seed.jurisdictions['TJ  GRASSE'] };
+    const lyon = { function: seed.functions.P, grade: 'G3' as const, jurisdiction: seed.jurisdictions['TJ  LYON'] };
+    const session = await sessions.createOne(
+      {
+        candidates: [
+          {
+            birthDate: YOUNG_BIRTH_DATE,
+            civilite: 'MME',
+            firstName: 'ZOE',
+            installationDate: lolfiDateIn(TWO_YEARS_AGO),
+            lastName,
+            position: grasse,
+            targetPosition: lyon,
+          },
+        ],
+        createdAt: '22/04/2026',
+        name: `Transparence ${lastName}`,
+      },
+      { outcome: { comment: null, value: 'VALIDATED' }, reporters: [member['@user']!] },
+    );
+    await agent.sessions.validateSession({ path: { sessionId: session.id }, throwOnError: true });
+    const chairmanId = await siegeChairman({ admin, registerUser });
+    await docs.officialReport(await docs.agenda(session, { chairmanId }), { chairmanId, status: 'VALIDATED' });
+
+    const { data } = await agent.veilleDesPostes.listJudicialCourtPresidents({
+      query: { search: lastName },
+      throwOnError: true,
+    });
+
+    // LOLFI has not put her on the position of Lyon yet
+    expect(data.items).toEqual([
+      expect.objectContaining({
+        alerts: [expect.objectContaining({ shortLabel: 'Nommée en session du 22/04/2026' })],
+        court: expect.objectContaining({ id: 'TJ  GRASSE' }),
+      }),
+    ]);
+  });
+
   test('should not find the vacancy nor the comment of a magistrat whose position no table lists', async ({
     agent,
     expect,
@@ -774,6 +907,20 @@ test.describe('Veille des postes E2E', () => {
     expect((await listed()).commentPreview).toBeNull();
   });
 });
+
+/** the presidents of the judicial courts are named by the formation of the siège */
+async function siegeChairman(fixtures: {
+  admin: TestStepsAdmin;
+  registerUser: (role: 'MEMBRE_DU_SIEGE') => Promise<{ id: string }>;
+}): Promise<string> {
+  const chairman = await fixtures.registerUser('MEMBRE_DU_SIEGE');
+  await fixtures.admin.administration.updateRole({
+    body: { role: 'PRESIDENT_SIEGE' },
+    path: { userId: chairman.id },
+    throwOnError: true,
+  });
+  return chairman.id;
+}
 
 /** the form travels as a JSON part of the multipart body: the generated client types it as the object it holds */
 function vacancyForm(form: DeclarePositionVacancyDto['form']): DeclarePositionVacancyDto['form'] {
