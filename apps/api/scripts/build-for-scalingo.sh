@@ -20,12 +20,13 @@ temp=$(basename $(mktemp -d)) && \
     -or -iname '*.map' -type f -delete \
     -or -iname '*.tsbuildinfo' -type f -delete && \
   mv bin pnpm-lock.yaml pnpm-workspace.yaml vendor "$temp" && \
-  mkdir -p "$temp/apps/api" "$temp/packages/documents-assets" && \
+  mkdir -p "$temp/apps/api" "$temp/packages/documents-assets" "$temp/packages/lolfi" && \
   mv apps/api/dist "$temp/apps/api" && \
   mv packages/documents-assets/{dist,assets} "$temp/packages/documents-assets" && \
   jq 'del(.scripts)' package.json > "$temp/package.json" && \
   jq 'del(.scripts)' apps/api/package.json > "$temp/apps/api/package.json" && \
   jq 'del(.scripts)' packages/documents-assets/package.json \
     > "$temp/packages/documents-assets/package.json" && \
+  jq 'del(.scripts)' packages/lolfi/package.json > "$temp/packages/lolfi/package.json" && \
   mv apps/api/scalingo/{.buildpacks,Procfile,cron.json} "$temp" && \
   tar -czf api-scalingo.tar.gz "$temp"
