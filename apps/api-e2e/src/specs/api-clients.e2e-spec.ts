@@ -61,5 +61,41 @@ test.describe('api clients', () => {
 
       expect(await statusOf(outOfScope.http)).toBe(403);
     });
+
+    // twice the limit and one more: wherever the minute changes, one of its sides holds more than the limit
+    const statusesOfRefusedCalls = async (client: Client): Promise<(number | undefined)[]> => {
+      const statuses: (number | undefined)[] = [];
+      for (let call = 0; call < 21; call++) statuses.push(await statusOf(client));
+
+      return statuses;
+    };
+
+    test('should turn away an IP that no client is allowed, whose calls were refused too often within the minute', async ({
+      baseUrl,
+      expect,
+      sql,
+    }) => {
+      // the proxy of Scalingo is trusted: the API takes the IP it forwards
+      const ip = '198.51.100.9';
+      const stranger = makeHttpClient(baseUrl);
+      stranger.setConfig({ headers: { 'X-Forwarded-For': ip } });
+      await sql`delete from identity_and_access_context.api_rate_counters where caller = ${`ip:${ip}`}`;
+
+      const statuses = await statusesOfRefusedCalls(stranger);
+
+      expect({ first: statuses[0], turnedAway: statuses.includes(429) }).toEqual({ first: 401, turnedAway: true });
+    });
+
+    test('should never turn away the IP of a client, which gets refused when its token expires', async ({
+      apiClients,
+      baseUrl,
+      expect,
+    }) => {
+      await apiClients.register();
+
+      const statuses = await statusesOfRefusedCalls(makeHttpClient(baseUrl));
+
+      expect(new Set(statuses)).toEqual(new Set([401]));
+    });
   });
 });

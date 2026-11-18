@@ -29,8 +29,8 @@ export function makeApiClientFixture({ baseUrl, sql }: { baseUrl: string; sql: S
     const secretHash = crypto.createHash('sha256').update(secret).digest('hex');
 
     await sql`
-      insert into identity_and_access_context.api_clients (id, name, secret_hash)
-      values (${id}, ${`e2e ${id}`}, ${secretHash})
+      insert into identity_and_access_context.api_clients (auth_limit_per_minute, id, name, secret_hash)
+      values (${limitPerMinute}, ${id}, ${`e2e ${id}`}, ${secretHash})
     `;
     for (const ip of allowedIps) {
       await sql`insert into identity_and_access_context.api_client_allowed_ips (client_id, ip) values (${id}, ${ip})`;

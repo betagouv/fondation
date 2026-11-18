@@ -142,14 +142,10 @@ test.describe('public magistrat routes', () => {
     const identify = () => magistrats.identifyMagistrat({ body: { email: randomEmail() }, client: site.http });
 
     await identify();
-    // were the minute to change right here, the third call would still be the second of its own minute
-    await identify();
-    const { response } = await identify();
+    // wherever the minute changes, the second or the third call is the second of its minute
+    const refused = [await identify(), await identify()].find(({ response }) => response?.status === 429);
 
-    const retryAfter = Number(response?.headers.get('retry-after'));
-    expect({ status: response?.status, waits: retryAfter >= 1 && retryAfter <= 60 }).toEqual({
-      status: 429,
-      waits: true,
-    });
+    const retryAfter = Number(refused?.response?.headers.get('retry-after'));
+    expect(retryAfter >= 1 && retryAfter <= 60).toBe(true);
   });
 });

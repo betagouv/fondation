@@ -8,7 +8,10 @@ import {
   ApiClientForbidden,
   ApiClientUnauthenticated,
   ApiScope,
+  canonicalIp,
   DEFAULT_LIMITS_PER_MINUTE,
+  isAllowedIp,
+  REFUSALS_LIMIT_PER_MINUTE,
 } from './domain/api-client';
 import { RateWindow } from './domain/rate-window';
 import { ApiClientRepository } from './infrastructure/api-client.repository';
@@ -20,18 +23,15 @@ export class ApiClientsService {
     private readonly repository: ApiClientRepository,
   ) {}
 
-  /**
-   * A refused authentication counts for its IP and an accepted one for the client: whoever knows the identifier alone
-   * cannot use up the tokens of the client, and whoever tries secrets is slowed down wherever the identifier comes from
-   */
-  async authenticate(command: {
+  /** An accepted authentication counts for the client: whoever knows the identifier alone cannot use up its tokens */
+  authenticate(command: {
     clientId: string;
     clientSecret: string;
     ip: string;
   }): Promise<{ accessToken: string; expiresIn: number }> {
     const window = new RateWindow(this.clock.now());
 
-    try {
+    return this.slowingRefusalsDown(window, command.ip, async () => {
       const client = await this.repository.findById(command.clientId);
       if (!client) throw new ApiClientUnauthenticated();
 
@@ -41,42 +41,52 @@ export class ApiClientsService {
         limit: client.authLimitPerMinute,
         route: 'auth',
       });
-      await this.repository.saveToken({
-        clientId: client.id,
-        countedSince: window.start,
-        now: window.now,
-        token,
-      });
+      await this.repository.saveToken({ clientId: client.id, token });
 
       return { accessToken: token.token, expiresIn: token.expiresIn };
+    });
+  }
+
+  authorize(command: { ip: string; scope: ApiScope; token: string | undefined }): Promise<void> {
+    const window = new RateWindow(this.clock.now());
+
+    return this.slowingRefusalsDown(window, command.ip, async () => {
+      const found = command.token ? await this.repository.findByToken(command.token) : null;
+      if (!found) throw new ApiClientUnauthenticated();
+
+      const { limitPerMinute } = found.client.authorize({
+        ip: command.ip,
+        now: window.now,
+        scope: command.scope,
+        tokenExpiresAt: found.tokenExpiresAt,
+      });
+      await this.countCall(window, {
+        caller: `client:${found.client.id}`,
+        limit: limitPerMinute,
+        route: command.scope,
+      });
+    });
+  }
+
+  /**
+   * Checks a caller, whose refusals (401, 403) count for its IP whatever the route and the identifier: an IP over their
+   * limit is turned away before anything is checked, a right secret included, so that trying secrets or tokens is
+   * slowed down for good. The IPs of the partners are left out (see REFUSALS_LIMIT_PER_MINUTE)
+   */
+  private async slowingRefusalsDown<T>(window: RateWindow, ip: string, check: () => Promise<T>): Promise<T> {
+    if (isAllowedIp(ip, await this.repository.findAllowedIps())) return check();
+
+    const refusals = { caller: `ip:${canonicalIp(ip) ?? ip}`, minute: window.start, route: 'refused' };
+    window.assertWithin(REFUSALS_LIMIT_PER_MINUTE, (await this.repository.findCount(refusals)) + 1);
+
+    try {
+      return await check();
     } catch (error) {
       if (error instanceof ApiClientUnauthenticated || error instanceof ApiClientForbidden) {
-        await this.countCall(window, {
-          caller: `ip:${command.ip}`,
-          limit: DEFAULT_LIMITS_PER_MINUTE.auth,
-          route: 'auth',
-        });
+        await this.repository.countCall(refusals);
       }
       throw error;
     }
-  }
-
-  async authorize(command: { ip: string; scope: ApiScope; token: string | undefined }): Promise<void> {
-    const found = command.token ? await this.repository.findByToken(command.token) : null;
-    if (!found) throw new ApiClientUnauthenticated();
-
-    const window = new RateWindow(this.clock.now());
-    const { limitPerMinute } = found.client.authorize({
-      ip: command.ip,
-      now: window.now,
-      scope: command.scope,
-      tokenExpiresAt: found.tokenExpiresAt,
-    });
-    await this.countCall(window, {
-      caller: `client:${found.client.id}`,
-      limit: limitPerMinute,
-      route: command.scope,
-    });
   }
 
   /** The secret is returned once and never stored: lost, it can only be replaced */

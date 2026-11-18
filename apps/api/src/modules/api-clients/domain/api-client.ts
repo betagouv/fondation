@@ -1,17 +1,24 @@
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
-import { BlockList, isIP, isIPv6 } from 'node:net';
+import { isIP, isIPv4, isIPv6, SocketAddress } from 'node:net';
 
 import * as time from '../../../utils/time';
 
 export const API_SCOPES = ['magistrats:identification', 'magistrats:status'] as const;
 export type ApiScope = (typeof API_SCOPES)[number];
 
-/** What a new client gets, and what a failed authentication is counted against for its IP */
+/** What a new client gets */
 export const DEFAULT_LIMITS_PER_MINUTE = {
   auth: 10,
   'magistrats:identification': 20,
   'magistrats:status': 300,
 } as const satisfies Record<ApiScope | 'auth', number>;
+
+/**
+ * How many calls of an IP may be refused (401, 403) in a minute, all routes together, before it is turned away
+ * unchecked. Not for an IP a client is allowed: a partner gets 401s in normal times, when its token expires or a
+ * rotation ends, and its tokens, 32 random bytes, cannot be guessed
+ */
+export const REFUSALS_LIMIT_PER_MINUTE = 10;
 
 /** Unknown or revoked client, wrong secret, unknown or expired token: the answer never tells which */
 export class ApiClientUnauthenticated extends Error {}
@@ -98,15 +105,25 @@ export class ApiClient {
 
   /** A client without any allowed IP is refused from everywhere */
   private assertAllowedIp(ip: string): void {
-    // Addresses and not their texts are compared: an IPv6 is written in several ways, and Node gives an IPv4 received
-    // on a dual-stack socket as ::ffff:203.0.113.7
-    const allowed = new BlockList();
-    for (const allowedIp of this.props.allowedIps) allowed.addAddress(allowedIp, ApiClient.family(allowedIp));
-
-    if (!isIP(ip) || !allowed.check(ip, ApiClient.family(ip))) throw new ApiClientForbidden('ip');
+    if (!isAllowedIp(ip, this.props.allowedIps)) throw new ApiClientForbidden('ip');
   }
+}
 
-  private static family(ip: string): 'ipv4' | 'ipv6' {
-    return isIPv6(ip) ? 'ipv6' : 'ipv4';
-  }
+/** Compares addresses, not their texts */
+export function isAllowedIp(ip: string, allowedIps: readonly string[]): boolean {
+  const caller = canonicalIp(ip);
+
+  return caller !== undefined && allowedIps.some((allowedIp) => canonicalIp(allowedIp) === caller);
+}
+
+/**
+ * One text per address, or undefined when it is none: an IPv6 is written in several ways, and Node gives an IPv4
+ * received on a dual-stack socket as ::ffff:203.0.113.7
+ */
+export function canonicalIp(ip: string): string | undefined {
+  if (!isIP(ip)) return undefined;
+  const { address } = new SocketAddress({ address: ip, family: isIPv6(ip) ? 'ipv6' : 'ipv4' });
+  const mapped = address.startsWith('::ffff:') ? address.slice('::ffff:'.length) : undefined;
+
+  return mapped && isIPv4(mapped) ? mapped : address;
 }

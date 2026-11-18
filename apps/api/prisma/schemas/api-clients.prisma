@@ -1,7 +1,7 @@
 /// A partner system that calls the public API, such as the website of the CSM
 model ApiClient {
   /// How many tokens it may ask for in a minute
-  authLimitPerMinute Int       @default(10) @map("auth_limit_per_minute")
+  authLimitPerMinute Int       @map("auth_limit_per_minute")
   createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
   /// The `client_id` handed to the partner
   id                 String    @id @db.Uuid
@@ -44,8 +44,8 @@ model ApiClientScope {
 }
 
 /// The calls of one minute, counted in the database so that the limit holds whatever the number of containers.
-/// No relation: the caller is a client (`client:<id>`) or, for the failed authentications, an IP (`ip:<ip>`).
-/// The past minutes go when a client asks for a new token
+/// No relation: the caller is a client (`client:<id>`) or, for the refused calls, an IP (`ip:<ip>`).
+/// The past minutes are purged every minute
 model ApiRateCounter {
   caller String   @db.VarChar
   count  Int
@@ -57,7 +57,7 @@ model ApiRateCounter {
   @@schema("identity_and_access_context")
 }
 
-/// No index on the client: a client holds a handful of tokens, the expired ones go when it asks for a new one
+/// No index on the client: a client holds a handful of tokens, the expired ones are purged every minute
 model ApiAccessToken {
   clientId  String   @map("client_id") @db.Uuid
   expiresAt DateTime @map("expires_at") @db.Timestamp(6)

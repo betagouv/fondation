@@ -9,7 +9,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { ApiBearerAuth, ApiExtension } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiExtension,
+  ApiForbiddenResponse,
+  ApiTooManyRequestsResponse,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 import { Request as ExpressRequest, Response as ExpressResponse } from 'express';
 
 import { ApiClientsService } from '../api-clients.service';
@@ -62,5 +68,15 @@ export function HasApiScope(scope: ApiScope): MethodDecorator {
     UseGuards(ApiScopeGuard),
     ApiBearerAuth(),
     ApiExtension('x-roles', ['API_CLIENT']),
+    ApiUnauthorizedResponse({
+      description: 'Missing, unknown or expired token, or revoked client: ask for a new token',
+    }),
+    ApiForbiddenResponse({
+      description: 'The request comes from an IP, or asks for a route, the client is not allowed',
+    }),
+    ApiTooManyRequestsResponse({
+      description: 'Too many calls within the minute',
+      headers: { 'Retry-After': { description: 'Seconds to wait', schema: { type: 'integer' } } },
+    }),
   );
 }
