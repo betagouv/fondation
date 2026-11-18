@@ -452,7 +452,7 @@ Ces endpoints ne passent par aucun rôle : ils sont publics ou réservés à d'a
 | Vérifier les droits d'un magistrat (API publique) | `POST /public/v1/magistrats/role`               | machine                   | Service partenaire, authentifié par jeton                 |
 | Obtenir un jeton de client API (API publique)     | `POST /public/v1/auth`                          | public                    | Jeton de 15 minutes contre un identifiant et un secret    |
 | Identifier un magistrat actif (API publique)      | `POST /public/v1/magistrats/identification`     | client API                | Site du CSM, première connexion d'un magistrat            |
-| Relire le statut d'un magistrat (API publique)    | `GET /public/v1/magistrats/:magistratId/status` | client API                | Site du CSM, à chaque connexion et avant chaque dépôt     |
+| Relire le statut d'un magistrat (API publique)    | `GET /public/v1/magistrats/:magistratId/status` | client API                | Site du CSM, une fois par jour au plus pour un magistrat  |
 | Importer une archive Lolfi                        | `POST /ingest/v1/lolfi`                         | machine ou Administrateur | Dépôt automatique des archives Lolfi, ou import à la main |
 
 ### Hors spécification OpenAPI

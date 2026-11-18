@@ -35,6 +35,8 @@ export class CatchEverythingFilter implements ExceptionFilter {
     const exceptionResponse = exception instanceof HttpException ? exception.getResponse() : {};
     ctx
       .getResponse<ExpressResponse>()
+      // Nest sets the `@Header` of a route before running it: without this, its errors would be cached like its answers
+      .setHeader('Cache-Control', 'no-store')
       .status(status)
       .json({
         statusCode: status,

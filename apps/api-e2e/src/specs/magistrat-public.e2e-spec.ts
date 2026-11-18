@@ -107,6 +107,20 @@ test.describe('public magistrat routes', () => {
     }).toEqual({ after: { status: 'INACTIVE' }, before: { status: 'ACTIVE' }, cache: 'private, max-age=86400' });
   });
 
+  test('should tell an unknown identifier without letting the answer be cached', async ({ apiClients, expect }) => {
+    const site = await apiClients.authenticated({ scopes: ['magistrats:status'] });
+
+    const { response } = await magistrats.findMagistratStatus({
+      client: site.http,
+      path: { magistratId: crypto.randomUUID() },
+    });
+
+    expect({ cache: response?.headers.get('cache-control'), status: response?.status }).toEqual({
+      cache: 'no-store',
+      status: 404,
+    });
+  });
+
   test('should take the address letter for letter', async ({ apiClients, expect, lolfi }) => {
     const id = crypto.randomUUID();
     const job = await lolfi.ingest([

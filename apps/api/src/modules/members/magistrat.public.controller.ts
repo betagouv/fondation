@@ -9,7 +9,7 @@ import {
   Post,
   UsePipes,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiNotFoundResponse, ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import * as time from '../../utils/time';
@@ -56,7 +56,9 @@ export class MagistratPublicController {
   @HasApiScope('magistrats:status')
   @Get('/magistrats/:magistratId/status')
   @ZodResponse({ status: HttpStatus.OK, type: FoundMagistratStatusDto })
-  // The website does not ask again for a status younger than a day
+  @ApiBadRequestResponse({ description: 'The identifier is not a UUID' })
+  @ApiNotFoundResponse({ description: 'No _Magistrat_ has this identifier: its status could not be checked' })
+  // Lets the website keep a status for a day instead of asking again
   @Header('Cache-Control', `private, max-age=${(1 * time.DAYS) / time.SECONDS}`)
   findMagistratStatus(
     @Param('magistratId', ParseUUIDPipe) magistratId: string,

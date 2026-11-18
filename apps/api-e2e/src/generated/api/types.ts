@@ -4543,6 +4543,17 @@ export type FindMagistratStatusData = {
     url: '/api/public/v1/magistrats/{magistratId}/status';
 };
 
+export type FindMagistratStatusErrors = {
+    /**
+     * The identifier is not a UUID
+     */
+    400: unknown;
+    /**
+     * No _Magistrat_ has this identifier: its status could not be checked
+     */
+    404: unknown;
+};
+
 export type FindMagistratStatusResponses = {
     200: FoundMagistratStatusDto;
 };
