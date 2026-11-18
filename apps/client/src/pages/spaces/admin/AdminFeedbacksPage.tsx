@@ -260,7 +260,7 @@ function AdminFeedbacksOfStatus(props: { status: FeedbackStatusEnum }) {
 
       <PinnedHeader
         bar={(isPinned) => (
-          <div className={clsx('flex flex-col gap-y-4', { 'fr-container': isPinned })}>
+          <div className={clsx('flex flex-col gap-y-6', { 'fr-container': isPinned })}>
             <h1 className="fr-h3 fr-mb-0">
               <FormattedMessage defaultMessage="Traiter les retours utilisateurs" />
               {listed && <DataTableCount loaded={feedbacks.length} total={listed.totalCount} />}
