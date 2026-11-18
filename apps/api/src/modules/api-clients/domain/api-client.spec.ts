@@ -13,11 +13,18 @@ describe('ApiClient', () => {
   const now = new Date('2026-11-18T10:00:00Z');
   const { hash: secretHash, secret } = ApiClient.generateSecret();
 
-  const client = (props: { allowedIps?: string[]; revokedAt?: Date } = {}) =>
+  const client = (
+    props: {
+      allowedIps?: string[];
+      previousSecret?: { expiresAt: Date; hash: string };
+      revokedAt?: Date;
+    } = {},
+  ) =>
     new ApiClient({
       allowedIps: ['203.0.113.7'],
       authLimitPerMinute: 10,
       id: 'client-1',
+      previousSecret: null,
       revokedAt: null,
       scopes: [{ limitPerMinute: 20, scope: 'magistrats:identification' }],
       secretHash,
@@ -55,6 +62,53 @@ describe('ApiClient', () => {
 
     it('should not tell a wrong secret from another IP that the identifier exists', () => {
       expect(() => authenticate(client(), { ip: '198.51.100.1', secret: 'wrong' })).toThrow(
+        ApiClientUnauthenticated,
+      );
+    });
+  });
+
+  describe('rotateSecret', () => {
+    const previousValidUntil = new Date('2026-11-25T10:00:00Z');
+    const rotatedClient = () => {
+      const {
+        previousSecret,
+        secret: newSecret,
+        secretHash: newSecretHash,
+      } = client().rotateSecret({
+        previousValidUntil,
+      });
+
+      return {
+        client: new ApiClient({
+          allowedIps: ['203.0.113.7'],
+          authLimitPerMinute: 10,
+          id: 'client-1',
+          previousSecret,
+          revokedAt: null,
+          scopes: [],
+          secretHash: newSecretHash,
+        }),
+        newSecret,
+      };
+    };
+
+    it('should accept the new secret and the one it replaces while the partner switches', () => {
+      const { client: rotatedOne, newSecret } = rotatedClient();
+
+      expect(() => rotatedOne.authenticate({ ip: '203.0.113.7', now, secret: newSecret })).not.toThrow();
+      expect(() => rotatedOne.authenticate({ ip: '203.0.113.7', now, secret })).not.toThrow();
+    });
+
+    it('should refuse the replaced secret from the end of the switch, the new one staying valid', () => {
+      const { client: rotatedOne, newSecret } = rotatedClient();
+      const afterwards = { ip: '203.0.113.7', now: previousValidUntil };
+
+      expect(() => rotatedOne.authenticate({ ...afterwards, secret })).toThrow(ApiClientUnauthenticated);
+      expect(() => rotatedOne.authenticate({ ...afterwards, secret: newSecret })).not.toThrow();
+    });
+
+    it('should not rotate the secret of a revoked client', () => {
+      expect(() => client({ revokedAt: now }).rotateSecret({ previousValidUntil })).toThrow(
         ApiClientUnauthenticated,
       );
     });

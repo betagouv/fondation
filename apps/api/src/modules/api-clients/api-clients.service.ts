@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { Transactional } from '@nestjs-cls/transactional';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { makeId } from '../../utils/id';
 import { Clock } from '../framework/clock';
@@ -111,6 +112,25 @@ export class ApiClientsService {
     });
 
     return { id, secret };
+  }
+
+  /** The new secret is returned once, like the first one */
+  @Transactional()
+  async rotateSecret(command: { clientId: string; previousValidUntil: Date }): Promise<{ secret: string }> {
+    const client = await this.repository.findById(command.clientId);
+    if (!client) throw new NotFoundException();
+
+    const { secret, ...secrets } = client.rotateSecret(command);
+    await this.repository.saveSecrets(client.id, secrets);
+
+    return { secret };
+  }
+
+  /** Once the partner confirms it has switched, or at once when the replaced secret is in doubt */
+  async endSecretRotation(command: { clientId: string }): Promise<void> {
+    if (!(await this.repository.findById(command.clientId))) throw new NotFoundException();
+
+    await this.repository.saveSecrets(command.clientId, { previousSecret: null });
   }
 
   private async countCall(

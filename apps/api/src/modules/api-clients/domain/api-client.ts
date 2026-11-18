@@ -49,6 +49,8 @@ export class ApiClient {
       allowedIps: readonly string[];
       authLimitPerMinute: number;
       id: string;
+      /** The secret replaced by the last rotation, still accepted until the partner has switched */
+      previousSecret: { expiresAt: Date; hash: string } | null;
       revokedAt: Date | null;
       scopes: readonly { limitPerMinute: number; scope: string }[];
       secretHash: string;
@@ -68,13 +70,21 @@ export class ApiClient {
     return createHash('sha256').update(secretOrToken).digest('hex');
   }
 
+  private static sameHash(given: string, expected: string): boolean {
+    return given.length === expected.length && timingSafeEqual(Buffer.from(given), Buffer.from(expected));
+  }
+
   /** Exchanges the secret for a token: the secret is checked before the IP, so that an IP never learns which identifiers exist */
   authenticate(command: { ip: string; now: Date; secret: string }): IssuedAccessToken {
-    const given = Buffer.from(ApiClient.hash(command.secret));
-    const expected = Buffer.from(this.props.secretHash);
-    if (this.props.revokedAt || given.length !== expected.length || !timingSafeEqual(given, expected)) {
-      throw new ApiClientUnauthenticated();
-    }
+    const { previousSecret, secretHash } = this.props;
+    const given = ApiClient.hash(command.secret);
+    const accepted =
+      previousSecret && command.now < previousSecret.expiresAt
+        ? [secretHash, previousSecret.hash]
+        : [secretHash];
+    // Each one is compared whatever the others say, so that the time taken tells nothing
+    const isKnown = accepted.map((hash) => ApiClient.sameHash(given, hash)).includes(true);
+    if (this.props.revokedAt || !isKnown) throw new ApiClientUnauthenticated();
     this.assertAllowedIp(command.ip);
 
     const token = randomBytes(32).toString('base64url');
@@ -84,6 +94,25 @@ export class ApiClient {
       expiresIn: ApiClient.TOKEN_LIFETIME_MS / time.SECONDS,
       hash: ApiClient.hash(token),
       token,
+    };
+  }
+
+  /**
+   * Replaces the secret, the one it replaces staying valid until the partner has switched: the website is never cut off.
+   * Rotating again before the end drops the oldest secret, two at most being valid at once
+   */
+  rotateSecret(command: { previousValidUntil: Date }): {
+    previousSecret: { expiresAt: Date; hash: string };
+    secret: string;
+    secretHash: string;
+  } {
+    if (this.props.revokedAt) throw new ApiClientUnauthenticated();
+    const { hash: secretHash, secret } = ApiClient.generateSecret();
+
+    return {
+      previousSecret: { expiresAt: command.previousValidUntil, hash: this.props.secretHash },
+      secret,
+      secretHash,
     };
   }
 

@@ -1,3 +1,5 @@
+import * as crypto from 'node:crypto';
+
 import { test } from '../fixtures.ts';
 import type { Client } from '../generated/api/client/index.ts';
 import { apiClients as api, magistrats } from '../generated/api/sdk.ts';
@@ -96,6 +98,37 @@ test.describe('api clients', () => {
       const statuses = await statusesOfRefusedCalls(makeHttpClient(baseUrl));
 
       expect(new Set(statuses)).toEqual(new Set([401]));
+    });
+  });
+
+  test('should give a token for the new secret and for the replaced one while a rotation lasts', async ({
+    apiClients,
+    baseUrl,
+    expect,
+    sql,
+  }) => {
+    const { id, secret: replaced } = await apiClients.register();
+    const renewed = crypto.randomBytes(32).toString('base64url');
+    // as the rotate-secret command leaves the client
+    await sql`
+      update identity_and_access_context.api_clients
+      set
+        previous_secret_hash = secret_hash,
+        previous_secret_expires_at = now() + interval '1 day',
+        secret_hash = ${crypto.createHash('sha256').update(renewed).digest('hex')}
+      where id = ${id}
+    `;
+    const statusFor = (secret: string): Promise<number | undefined> =>
+      api
+        .authenticateApiClient({
+          body: { client_id: id, client_secret: secret, grant_type: 'client_credentials' },
+          client: makeHttpClient(baseUrl),
+        })
+        .then(({ response }) => response?.status);
+
+    expect({ renewed: await statusFor(renewed), replaced: await statusFor(replaced) }).toEqual({
+      renewed: 200,
+      replaced: 200,
     });
   });
 });

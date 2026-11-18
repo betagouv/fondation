@@ -11,6 +11,8 @@ const CLIENT_SELECT = {
   allowedIps: { select: { ip: true } },
   authLimitPerMinute: true,
   id: true,
+  previousSecretExpiresAt: true,
+  previousSecretHash: true,
   revokedAt: true,
   scopes: { select: { limitPerMinute: true, scope: true } },
   secretHash: true,
@@ -109,11 +111,30 @@ export class ApiClientRepository {
     });
   }
 
+  /** @param secrets the previous one being null once the rotation is over */
+  async saveSecrets(
+    clientId: string,
+    secrets: { previousSecret: { expiresAt: Date; hash: string } | null; secretHash?: string },
+  ): Promise<void> {
+    await this.db.tx.apiClient.update({
+      where: { id: clientId },
+      data: {
+        previousSecretExpiresAt: secrets.previousSecret?.expiresAt ?? null,
+        previousSecretHash: secrets.previousSecret?.hash ?? null,
+        secretHash: secrets.secretHash,
+      },
+    });
+  }
+
   private static toDomain(client: Prisma.ApiClientGetPayload<{ select: typeof CLIENT_SELECT }>): ApiClient {
     return new ApiClient({
       allowedIps: client.allowedIps.map(({ ip }) => ip),
       authLimitPerMinute: client.authLimitPerMinute,
       id: client.id,
+      previousSecret:
+        client.previousSecretHash && client.previousSecretExpiresAt
+          ? { expiresAt: client.previousSecretExpiresAt, hash: client.previousSecretHash }
+          : null,
       revokedAt: client.revokedAt,
       scopes: client.scopes,
       secretHash: client.secretHash,
