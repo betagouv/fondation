@@ -58,16 +58,20 @@ export class DocsNominationFilesFinder {
   @Transactional()
   async findForAgenda(query: { sessionId: string }): Promise<FoundAgendaNominationFiles> {
     const found = await this.sessions.internalFindNominationFiles({ sessionId: query.sessionId });
-    const sessionNominationFiles = await this.withDocsOutcomes(found, query);
 
     const actedNominationFiles = await this.actedNominationFilesFinder.find({
-      fileIds: new Set(sessionNominationFiles.map(({ id }) => id)),
+      fileIds: new Set(found.items.map(({ id }) => id)),
     });
 
     return {
-      items: sessionNominationFiles,
+      items: found.items.map(({ id, magistrat, number, reporters }) => ({
+        id,
+        magistrat: { id: magistrat.id, name: magistrat.name },
+        number,
+        reporters: reporters.map((reporter) => ({ id: reporter.id })),
+      })),
       ineligible: [
-        ...sessionNominationFiles.flatMap(({ id }) =>
+        ...found.items.flatMap(({ id }) =>
           actedNominationFiles.has(id) ? [{ id, reason: 'REPORTED' as const }] : [],
         ),
         ...found.unidentifiedIds.map((id) => ({ id, reason: 'UNIDENTIFIED' as const })),
@@ -188,8 +192,18 @@ export class FoundDocsNominationFiles extends createZodDto(
 
 export const AGENDA_INELIGIBILITY_REASONS = ['REPORTED', 'UNIDENTIFIED'] as const;
 
+/** what the agenda files selection shows, not what the documents print */
 export class FoundAgendaNominationFiles extends createZodDto(
-  FoundDocsNominationFiles.schema.extend({
+  z.object({
+    items: z.array(
+      z.object({
+        id: z.string(),
+        number: z.number(),
+        magistrat: z.object({ name: z.string() }),
+        /** the published reporters: the agenda prints none without a publication */
+        reporters: z.array(z.object({ id: z.string() })),
+      }),
+    ),
     ineligible: z.array(
       z.object({
         id: z.uuid(),

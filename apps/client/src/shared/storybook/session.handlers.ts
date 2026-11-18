@@ -201,15 +201,15 @@ export function makeSessionHandlers(sessions: Record<string, SessionDataset>) {
           }));
       const ineligibleIds = new Set(ineligible.map(({ id }) => id));
 
-      return HttpResponse.json({
-        ineligible,
+      return HttpResponse.json<FoundAgendaNominationFiles>({
+        ineligible: [...ineligible],
         items: files
           .filter(({ id }) => !ineligibleIds.has(id))
           .map((file) => ({
             id: file.id,
-            number: file.content.numeroDeDossier,
-            outcome: file.content.outcome,
-            reporters: file.reporters,
+            magistrat: { id: `magistrat-${file.id}`, name: file.content.nomMagistrat },
+            number: file.content.numeroDeDossier ?? 0,
+            reporters: file.reporters.map(({ id }) => ({ id })),
           })),
       });
     }),
