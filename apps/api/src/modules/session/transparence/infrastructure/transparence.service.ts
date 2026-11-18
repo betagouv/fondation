@@ -9,6 +9,7 @@ import { DateOnly } from '../../../../utils/date-only';
 import { isDefined } from '../../../../utils/is-defined';
 import { TimeOnly } from '../../../../utils/time-only';
 import { DocsService } from '../../../docs/docs.service';
+import { Clock } from '../../../framework/clock';
 import { Db } from '../../../framework/database';
 import { Pagination } from '../../../framework/pagination';
 import { Sortable } from '../../../framework/sorting';
@@ -176,6 +177,7 @@ export class TransparenceService {
     private readonly listSessionAuditionsQuery: ListSessionAuditionsQuery,
     private readonly listNominationFilesAsExcelQuery: ListNominationFilesAsExcelQuery,
     private readonly lolfiNominationSessionFinder: LolfiNominationSessionFinder,
+    private readonly clock: Clock,
     private readonly db: Db,
     private readonly versions: AffectationVersionFinder,
     private readonly sessionsFinder: NominationSessionFinder,
@@ -386,16 +388,29 @@ export class TransparenceService {
     await this.nominationSessionRepository.persist(session);
   }
 
+  @Transactional()
   async updateNominationFileComment(command: {
     comment: string | null;
+    impersonatorId: string | null;
     nominationFileId: string;
     sessionId: string;
+    userId: string;
   }): Promise<void> {
     await this.db.tx.dossierDeNomination.update({
       data: { comment: command.comment },
       where: {
         id: command.nominationFileId,
         sessionId: command.sessionId,
+      },
+    });
+
+    await this.db.tx.nominationFileCommentVersion.create({
+      data: {
+        comment: command.comment,
+        impersonatorId: command.impersonatorId,
+        nominationFileId: command.nominationFileId,
+        writtenAt: this.clock.now(),
+        writtenBy: command.userId,
       },
     });
   }

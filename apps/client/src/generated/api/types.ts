@@ -385,6 +385,13 @@ export type PaginatedNominationFiles = {
             };
         };
         comment: string | null;
+        commentLastChange: {
+            at: string;
+            by: {
+                id: string;
+                name: string;
+            } | null;
+        } | null;
         canScheduleAudition: boolean;
         canRecuseMembers: boolean;
         auditionDate: {
@@ -724,6 +731,13 @@ export type DetailedNominationFileDto = {
         };
     };
     comment: string | null;
+    commentLastChange: {
+        at: string;
+        by: {
+            id: string;
+            name: string;
+        } | null;
+    } | null;
     canScheduleAudition: boolean;
     canRecuseMembers: boolean;
     auditionDate: {

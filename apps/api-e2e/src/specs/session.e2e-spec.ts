@@ -119,6 +119,7 @@ test.describe('Session E2E', () => {
         canRecuseMembers: true,
         canScheduleAudition: true,
         comment: null,
+        commentLastChange: null,
         content: {
           dateDeNaissance: { day: 9, month: 4, year: 1968 },
           dateEchéance: null,
@@ -177,6 +178,7 @@ test.describe('Session E2E', () => {
         canRecuseMembers: true,
         canScheduleAudition: true,
         comment: null,
+        commentLastChange: null,
         content: {
           dateDeNaissance: { day: 20, month: 5, year: 1972 },
           dateEchéance: null,
@@ -765,6 +767,7 @@ test.describe('Session E2E', () => {
     }) => {
       const session = await sessions.createOne(TREVOUX_SESSION);
       const nominationFileId = session.files[0]!.id;
+      const { data: me } = await agent.auth.introspectSession();
 
       await agent.sessions.updateNominationFileComment({
         body: { comment: 'Voir avec le président' },
@@ -776,7 +779,55 @@ test.describe('Session E2E', () => {
         path: { sessionId: session.id },
         throwOnError: true,
       });
-      expect(data.items.find(({ id }) => id === nominationFileId)?.comment).toBe('Voir avec le président');
+      expect(data.items.find(({ id }) => id === nominationFileId)).toMatchObject({
+        comment: 'Voir avec le président',
+        commentLastChange: { at: expect.any(String), by: { id: me!.userId, name: expect.any(String) } },
+      });
+    });
+
+    test('should date the comment of the secretariat without its author for a member', async ({
+      agent,
+      logIn,
+      sessions,
+      expect,
+    }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+      const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+      await agent.sessions.updateNominationFileComment({
+        body: { comment: 'Voir avec le président' },
+        path,
+        throwOnError: true,
+      });
+      const member = await logIn('MEMBRE_COMMUN');
+
+      const { data } = await member.sessions.detailNominationFile({ path, throwOnError: true });
+      expect(data.commentLastChange).toEqual({ at: expect.any(String), by: null });
+    });
+
+    test('should give no date nor author for an erased comment of the secretariat', async ({
+      agent,
+      sessions,
+      expect,
+    }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+      const nominationFileId = session.files[0]!.id;
+      const path = { nominationFileId, sessionId: session.id };
+      await agent.sessions.updateNominationFileComment({
+        body: { comment: 'Voir avec le président' },
+        path,
+        throwOnError: true,
+      });
+
+      await agent.sessions.updateNominationFileComment({ body: { comment: null }, path, throwOnError: true });
+
+      const { data } = await agent.sessions.listNominationFiles({
+        path: { sessionId: session.id },
+        throwOnError: true,
+      });
+      expect(data.items.find(({ id }) => id === nominationFileId)).toMatchObject({
+        comment: null,
+        commentLastChange: null,
+      });
     });
 
     test('should flag then clear a missing evaluation on a nomination file', async ({ agent, sessions, expect }) => {
