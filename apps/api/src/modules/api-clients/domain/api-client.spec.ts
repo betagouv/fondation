@@ -3,6 +3,7 @@ import * as time from '../../../utils/time';
 import {
   ApiClient,
   ApiClientForbidden,
+  ApiClientNotRotatable,
   ApiClientUnauthenticated,
   ApiScope,
   canonicalIp,
@@ -18,6 +19,7 @@ describe('ApiClient', () => {
       allowedIps?: string[];
       previousSecret?: { expiresAt: Date; hash: string };
       revokedAt?: Date;
+      secretHash?: string;
     } = {},
   ) =>
     new ApiClient({
@@ -68,28 +70,12 @@ describe('ApiClient', () => {
   });
 
   describe('rotateSecret', () => {
+    // seven days later, unless told otherwise
     const previousValidUntil = new Date('2026-11-25T10:00:00Z');
     const rotatedClient = () => {
-      const {
-        previousSecret,
-        secret: newSecret,
-        secretHash: newSecretHash,
-      } = client().rotateSecret({
-        previousValidUntil,
-      });
+      const { secret: newSecret, ...secrets } = client().rotateSecret({ now });
 
-      return {
-        client: new ApiClient({
-          allowedIps: ['203.0.113.7'],
-          authLimitPerMinute: 10,
-          id: 'client-1',
-          previousSecret,
-          revokedAt: null,
-          scopes: [],
-          secretHash: newSecretHash,
-        }),
-        newSecret,
-      };
+      return { client: client(secrets), newSecret };
     };
 
     it('should accept the new secret and the one it replaces while the partner switches', () => {
@@ -108,9 +94,25 @@ describe('ApiClient', () => {
     });
 
     it('should not rotate the secret of a revoked client', () => {
-      expect(() => client({ revokedAt: now }).rotateSecret({ previousValidUntil })).toThrow(
-        ApiClientUnauthenticated,
+      expect(() => client({ revokedAt: now }).rotateSecret({ now })).toThrow(
+        new ApiClientNotRotatable('revoked'),
       );
+    });
+
+    it('should not rotate again while the replaced secret is still valid, which would cut off its holder', () => {
+      const { client: rotatedOne } = rotatedClient();
+
+      expect(() => rotatedOne.rotateSecret({ now })).toThrow(new ApiClientNotRotatable('rotating'));
+    });
+
+    it('should rotate again once the replaced secret is no longer valid', () => {
+      const { client: rotatedOne } = rotatedClient();
+
+      expect(() => rotatedOne.rotateSecret({ now: previousValidUntil })).not.toThrow();
+    });
+
+    it('should not keep the replaced secret valid more than thirty days', () => {
+      expect(() => client().rotateSecret({ days: 31, now })).toThrow(new ApiClientNotRotatable('days'));
     });
   });
 

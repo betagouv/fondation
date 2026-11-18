@@ -1,4 +1,6 @@
+import { execFile } from 'node:child_process';
 import * as crypto from 'node:crypto';
+import { promisify } from 'node:util';
 
 import type { Sql } from 'postgres';
 
@@ -12,17 +14,35 @@ type ApiClientOptions = {
   scopes?: string[];
 };
 
+type AuthenticatedApiClient = { http: Client; id: string; secret: string };
+
 /** registers an API client as the command line does, the API serving no route for it */
 export interface ApiClientFixture {
   register(options?: ApiClientOptions): Promise<{ id: string; secret: string }>;
   /** a newly registered API client, with an http client holding its fresh token */
-  authenticated(options?: ApiClientOptions): Promise<{ http: Client; id: string }>;
+  authenticated(options?: ApiClientOptions): Promise<AuthenticatedApiClient>;
+  /**
+   * runs `api-client <args>` as an operator does: registering stays in SQL, which takes no second to start
+   *
+   * @returns what the command printed
+   */
+  command(...args: string[]): Promise<string>;
 }
+
+const run = promisify(execFile);
 
 // the tests reach the API through the loopback, in IPv4 or IPv6
 const LOOPBACK_IPS = ['127.0.0.1', '::1'];
 
-export function makeApiClientFixture({ baseUrl, sql }: { baseUrl: string; sql: Sql }): ApiClientFixture {
+export function makeApiClientFixture({
+  baseUrl,
+  databaseUrl,
+  sql,
+}: {
+  baseUrl: string;
+  databaseUrl: string;
+  sql: Sql;
+}): ApiClientFixture {
   async function register({ allowedIps = LOOPBACK_IPS, limitPerMinute = 1_000, scopes = [] }: ApiClientOptions = {}) {
     const id = crypto.randomUUID();
     const secret = crypto.randomBytes(32).toString('base64url');
@@ -45,7 +65,20 @@ export function makeApiClientFixture({ baseUrl, sql }: { baseUrl: string; sql: S
     return { id, secret };
   }
 
-  async function authenticated(options?: ApiClientOptions): Promise<{ http: Client; id: string }> {
+  async function command(...args: string[]): Promise<string> {
+    const { stdout } = await run(
+      'pnpm',
+      // the build of the API under test, with its environment
+      ['--filter', 'api', 'exec', 'dotenvx', 'run', '--quiet', '-f', '.env.e2e', '-f', '.env', '--']
+        .concat(['node', 'dist/cli', 'api-client'])
+        .concat(args),
+      { env: { ...process.env, DATABASE_URL: databaseUrl } },
+    );
+
+    return stdout;
+  }
+
+  async function authenticated(options?: ApiClientOptions): Promise<AuthenticatedApiClient> {
     const { id, secret } = await register(options);
     const { data } = await apiClients.authenticateApiClient({
       body: { client_id: id, client_secret: secret, grant_type: 'client_credentials' },
@@ -56,8 +89,9 @@ export function makeApiClientFixture({ baseUrl, sql }: { baseUrl: string; sql: S
     return {
       http: createClient(createConfig({ baseUrl, headers: { Authorization: `Bearer ${data.access_token}` } })),
       id,
+      secret,
     };
   }
 
-  return { authenticated, register };
+  return { authenticated, command, register };
 }

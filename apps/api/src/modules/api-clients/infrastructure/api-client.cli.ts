@@ -2,11 +2,9 @@ import { Module } from '@nestjs/common';
 import { Command, CommandRunner, Option, SubCommand } from 'nest-commander';
 import z from 'zod';
 
-import * as time from '../../../utils/time';
-import { Clock } from '../../framework/clock';
 import { ApiClientsModule } from '../api-clients.module';
 import { ApiClientsService } from '../api-clients.service';
-import { API_SCOPES, ApiScope } from '../domain/api-client';
+import { API_SCOPES, ApiScope, ROTATION_DAYS } from '../domain/api-client';
 
 type RegisterApiClientOptions = { ip: string[]; name: string; scope?: ApiScope[] };
 
@@ -56,16 +54,15 @@ export class RegisterApiClientCliCommand extends CommandRunner {
 
 @SubCommand({ name: 'rotate-secret' })
 export class RotateApiClientSecretCliCommand extends CommandRunner {
-  constructor(
-    private readonly apiClients: ApiClientsService,
-    private readonly clock: Clock,
-  ) {
+  constructor(private readonly apiClients: ApiClientsService) {
     super();
   }
 
   async run(_inputs: string[], options: { client: string; days?: number }): Promise<void> {
-    const previousValidUntil = new Date(this.clock.now().getTime() + (options.days ?? 7) * time.DAYS);
-    const { secret } = await this.apiClients.rotateSecret({ clientId: options.client, previousValidUntil });
+    const { previousValidUntil, secret } = await this.apiClients.rotateSecret({
+      clientId: options.client,
+      days: options.days,
+    });
 
     console.log(
       `client_secret: ${secret}\nThe replaced secret stays valid until ${previousValidUntil.toISOString()}`,
@@ -78,16 +75,21 @@ export class RotateApiClientSecretCliCommand extends CommandRunner {
   }
 
   @Option({
-    description: 'how long the replaced secret stays valid, 7 days by default',
+    description: `how long the replaced secret stays valid, ${ROTATION_DAYS.default} days by default and ${ROTATION_DAYS.max} at most`,
     flags: '-d, --days <days>',
     name: 'days',
   })
   parseDays(days: string): number {
-    return z.coerce.number().int().positive().parse(days);
+    // the bound is the domain's, ApiClientNotRotatable('days') tells it
+    return z.coerce.number().int().parse(days);
   }
 }
 
-@SubCommand({ name: 'end-rotation' })
+@SubCommand({
+  description:
+    'drops the replaced secret and deletes every token of the client, a rotation running or not: the partner gets a 401 on its next call and asks for a new token with its current secret. Without a rotation, it revokes the tokens at once, not the client',
+  name: 'end-rotation',
+})
 export class EndApiClientSecretRotationCliCommand extends CommandRunner {
   constructor(private readonly apiClients: ApiClientsService) {
     super();

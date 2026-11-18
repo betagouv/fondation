@@ -1,6 +1,7 @@
-import * as crypto from 'node:crypto';
+import * as assert from 'node:assert/strict';
 
 import { test } from '../fixtures.ts';
+import type { ApiClientFixture } from '../fixtures/api-client.fixture.ts';
 import type { Client } from '../generated/api/client/index.ts';
 import { apiClients as api, magistrats } from '../generated/api/sdk.ts';
 import { makeHttpClient } from '../steps.ts';
@@ -101,34 +102,58 @@ test.describe('api clients', () => {
     });
   });
 
-  test('should give a token for the new secret and for the replaced one while a rotation lasts', async ({
-    apiClients,
-    baseUrl,
-    expect,
-    sql,
-  }) => {
-    const { id, secret: replaced } = await apiClients.register();
-    const renewed = crypto.randomBytes(32).toString('base64url');
-    // as the rotate-secret command leaves the client
-    await sql`
-      update identity_and_access_context.api_clients
-      set
-        previous_secret_hash = secret_hash,
-        previous_secret_expires_at = now() + interval '1 day',
-        secret_hash = ${crypto.createHash('sha256').update(renewed).digest('hex')}
-      where id = ${id}
-    `;
-    const statusFor = (secret: string): Promise<number | undefined> =>
-      api
-        .authenticateApiClient({
-          body: { client_id: id, client_secret: secret, grant_type: 'client_credentials' },
-          client: makeHttpClient(baseUrl),
-        })
-        .then(({ response }) => response?.status);
+  test(
+    'should give a token for the new secret and for the replaced one while a rotation lasts',
+    // a command starts the application, which takes most of the default five seconds
+    { timeout: 20_000 },
+    async ({ apiClients, baseUrl, expect }) => {
+      const { id, secret: replaced } = await apiClients.register();
 
-    expect({ renewed: await statusFor(renewed), replaced: await statusFor(replaced) }).toEqual({
-      renewed: 200,
-      replaced: 200,
-    });
-  });
+      const renewed = await rotateSecret(apiClients, id);
+
+      expect({
+        renewed: await tokenStatus(baseUrl, id, renewed),
+        replaced: await tokenStatus(baseUrl, id, replaced),
+      }).toEqual({ renewed: 200, replaced: 200 });
+    },
+  );
+
+  test(
+    'should refuse the replaced secret and the tokens already given once the rotation is ended',
+    { timeout: 20_000 },
+    async ({ apiClients, baseUrl, expect }) => {
+      const site = await apiClients.authenticated({ scopes: ['magistrats:identification'] });
+      const renewed = await rotateSecret(apiClients, site.id);
+
+      await apiClients.command('end-rotation', '--client', site.id);
+
+      const { response } = await magistrats.identifyMagistrat({
+        body: { email: 'etienne.trevoux@justice.fr' },
+        client: site.http,
+      });
+      expect({
+        renewed: await tokenStatus(baseUrl, site.id, renewed),
+        replaced: await tokenStatus(baseUrl, site.id, site.secret),
+        token: response?.status,
+      }).toEqual({ renewed: 200, replaced: 401, token: 401 });
+    },
+  );
 });
+
+/** @returns the new secret, as the operator reads it once in the output of the command */
+async function rotateSecret(apiClients: ApiClientFixture, clientId: string): Promise<string> {
+  const output = await apiClients.command('rotate-secret', '--client', clientId);
+  const secret = /^client_secret: (\S+)$/m.exec(output)?.[1];
+  assert.ok(secret, `no secret in the output of rotate-secret: ${output}`);
+
+  return secret;
+}
+
+function tokenStatus(baseUrl: string, clientId: string, secret: string): Promise<number | undefined> {
+  return api
+    .authenticateApiClient({
+      body: { client_id: clientId, client_secret: secret, grant_type: 'client_credentials' },
+      client: makeHttpClient(baseUrl),
+    })
+    .then(({ response }) => response?.status);
+}

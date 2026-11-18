@@ -30,6 +30,22 @@ export class ApiClientForbidden extends Error {
   }
 }
 
+/** How many days the replaced secret stays valid: unless told otherwise, and at most */
+export const ROTATION_DAYS = { default: 7, max: 30 } as const;
+
+const NOT_ROTATABLE = {
+  days: `the replaced secret stays valid between 1 and ${ROTATION_DAYS.max} days`,
+  revoked: 'the API client is revoked',
+  rotating:
+    'a rotation is still running, and replacing the secret again would cut off a partner still on the replaced one: end the rotation first',
+} as const;
+
+export class ApiClientNotRotatable extends Error {
+  constructor(readonly reason: keyof typeof NOT_ROTATABLE) {
+    super(`The secret cannot be replaced: ${NOT_ROTATABLE[reason]}`);
+  }
+}
+
 export type IssuedAccessToken = { expiresAt: Date; expiresIn: number; hash: string; token: string };
 
 /**
@@ -40,7 +56,6 @@ export type IssuedAccessToken = { expiresAt: Date; expiresIn: number; hash: stri
  */
 export class ApiClient {
   static readonly TOKEN_LIFETIME_MS = 15 * time.MINUTES;
-
   readonly authLimitPerMinute: number;
   readonly id: string;
 
@@ -78,12 +93,8 @@ export class ApiClient {
   authenticate(command: { ip: string; now: Date; secret: string }): IssuedAccessToken {
     const { previousSecret, secretHash } = this.props;
     const given = ApiClient.hash(command.secret);
-    const accepted =
-      previousSecret && command.now < previousSecret.expiresAt
-        ? [secretHash, previousSecret.hash]
-        : [secretHash];
-    // Each one is compared whatever the others say, so that the time taken tells nothing
-    const isKnown = accepted.map((hash) => ApiClient.sameHash(given, hash)).includes(true);
+    const accepted = this.isRotating(command.now) ? [secretHash, previousSecret!.hash] : [secretHash];
+    const isKnown = accepted.some((hash) => ApiClient.sameHash(given, hash));
     if (this.props.revokedAt || !isKnown) throw new ApiClientUnauthenticated();
     this.assertAllowedIp(command.ip);
 
@@ -98,22 +109,37 @@ export class ApiClient {
   }
 
   /**
-   * Replaces the secret, the one it replaces staying valid until the partner has switched: the website is never cut off.
-   * Rotating again before the end drops the oldest secret, two at most being valid at once
+   * Replaces the secret, the one it replaces staying valid for some days, until the partner has switched: the website
+   * is never cut off.
+   *
+   * Not while a rotation lasts: the replaced secret may be the only one the partner holds yet, and replacing again
+   * would refuse it at once
    */
-  rotateSecret(command: { previousValidUntil: Date }): {
+  rotateSecret(command: { days?: number; now: Date }): {
     previousSecret: { expiresAt: Date; hash: string };
     secret: string;
     secretHash: string;
   } {
-    if (this.props.revokedAt) throw new ApiClientUnauthenticated();
+    const days = command.days ?? ROTATION_DAYS.default;
+    if (this.props.revokedAt) throw new ApiClientNotRotatable('revoked');
+    if (this.isRotating(command.now)) throw new ApiClientNotRotatable('rotating');
+    if (days < 1 || days > ROTATION_DAYS.max) throw new ApiClientNotRotatable('days');
     const { hash: secretHash, secret } = ApiClient.generateSecret();
 
     return {
-      previousSecret: { expiresAt: command.previousValidUntil, hash: this.props.secretHash },
+      previousSecret: {
+        expiresAt: new Date(command.now.getTime() + days * time.DAYS),
+        hash: this.props.secretHash,
+      },
       secret,
       secretHash,
     };
+  }
+
+  private isRotating(now: Date): boolean {
+    const { previousSecret } = this.props;
+
+    return previousSecret !== null && now < previousSecret.expiresAt;
   }
 
   /**

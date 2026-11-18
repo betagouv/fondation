@@ -111,19 +111,32 @@ export class ApiClientRepository {
     });
   }
 
-  /** @param secrets the previous one being null once the rotation is over */
-  async saveSecrets(
-    clientId: string,
-    secrets: { previousSecret: { expiresAt: Date; hash: string } | null; secretHash?: string },
-  ): Promise<void> {
-    await this.db.tx.apiClient.update({
-      where: { id: clientId },
+  /** @returns whether the secret was replaced: not when another rotation replaced it in the meantime */
+  async saveRotatedSecret(command: {
+    clientId: string;
+    previousSecret: { expiresAt: Date; hash: string };
+    secretHash: string;
+  }): Promise<boolean> {
+    const { count } = await this.db.tx.apiClient.updateMany({
+      where: { id: command.clientId, secretHash: command.previousSecret.hash },
       data: {
-        previousSecretExpiresAt: secrets.previousSecret?.expiresAt ?? null,
-        previousSecretHash: secrets.previousSecret?.hash ?? null,
-        secretHash: secrets.secretHash,
+        previousSecretExpiresAt: command.previousSecret.expiresAt,
+        previousSecretHash: command.previousSecret.hash,
+        secretHash: command.secretHash,
       },
     });
+
+    return count === 1;
+  }
+
+  /** The tokens do not tell which secret they were given for: all those of the client go with the replaced secret */
+  @Transactional(Propagation.Mandatory)
+  async endSecretRotation(clientId: string): Promise<void> {
+    await this.db.tx.apiClient.update({
+      where: { id: clientId },
+      data: { previousSecretExpiresAt: null, previousSecretHash: null },
+    });
+    await this.db.tx.apiAccessToken.deleteMany({ where: { clientId } });
   }
 
   private static toDomain(client: Prisma.ApiClientGetPayload<{ select: typeof CLIENT_SELECT }>): ApiClient {

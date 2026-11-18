@@ -6,9 +6,10 @@ model ApiClient {
   /// The `client_id` handed to the partner
   id                      String    @id @db.Uuid
   name                    String    @db.VarChar
-  /// The secret replaced by the last rotation, accepted until `previousSecretExpiresAt` so that the partner switches without being cut off
-  previousSecretHash      String?   @map("previous_secret_hash") @db.VarChar
+  /// Until when the secret replaced by the last rotation is accepted, so that the partner switches without being cut off.
+  /// A check constraint keeps both columns set or empty together
   previousSecretExpiresAt DateTime? @map("previous_secret_expires_at") @db.Timestamp(6)
+  previousSecretHash      String?   @map("previous_secret_hash") @db.VarChar
   /// Its tokens stop working at once
   revokedAt               DateTime? @map("revoked_at") @db.Timestamp(6)
   /// SHA-256 of a random secret, shown once when the client is created
