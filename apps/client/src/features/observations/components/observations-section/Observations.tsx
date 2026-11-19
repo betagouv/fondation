@@ -13,14 +13,18 @@ import {
 } from '@/features/observations/context/ObservationsModalContext';
 import { splitLodamObservers } from '@/features/observations/utils/split-lodam-observers';
 import { FileList, FileListItem } from '@/shared/components/file-list';
+import { useRenameAttachmentModal } from '@/shared/components/rename-attachment';
+import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { useAttachmentFailureToast } from '@/shared/hooks/useAttachmentFailureToast';
 import { useTab } from '@/shared/hooks/useTab';
-import { dateOnlyFromIso, formatDateOnly } from '@/utils/date-only.util';
+import { dateOnlyFromIso, dateOnlyToIso, formatDateOnly } from '@/utils/date-only.util';
 import { getObservationDetailsPath } from '@/utils/route-path.utils';
 import { useDownloadFileMutation } from '@queries/files.queries';
 import {
   useGetObservationFileUrlMutation,
   useObservationsQuery,
+  useRenameObservationFileMutation,
+  useUpdateObservationMutation,
   type Observation,
 } from '@queries/observations.queries';
 
@@ -28,22 +32,36 @@ const VISIBLE_OBSERVATIONS = 3;
 
 function ObservationCard({
   canManage,
+  canManageAttachments,
   context,
   file,
   observation,
 }: {
   canManage: boolean;
+  canManageAttachments: boolean;
   context: 'sg' | 'membre';
   file: ActiveFile;
   observation: Observation;
 }) {
   const intl = useIntl();
   const { edit, requestDelete } = useObservationsModal();
+  const { waitForConfirmation } = useConfirmModal();
   const notifyFailure = useAttachmentFailureToast();
   const tab = useTab();
   const { isPending: isDownloading, mutate: download } = useDownloadFileMutation();
   const { isPending: isLoadingUrl, mutate: getFileUrl } = useGetObservationFileUrlMutation();
-  const isLoadingFile = isDownloading || isLoadingUrl;
+  const { isPending: isUpdating, mutate: update } = useUpdateObservationMutation();
+  const { mutateAsync: renameFile } = useRenameObservationFileMutation();
+  const renaming = useRenameAttachmentModal((attachment: { id: string; name: string }, name) =>
+    renameFile({
+      fileId: attachment.id,
+      name,
+      nominationFileId: file.id,
+      observationId: observation.id,
+      sessionId: file.sessionId,
+    }),
+  );
+  const isLoadingFile = isDownloading || isLoadingUrl || isUpdating;
   const [expanded, setExpanded] = useState(false);
 
   const fileCount = observation.files.length;
@@ -71,6 +89,7 @@ function ObservationCard({
             { count: fileCount },
           );
 
+  const magistratId = observation.magistrat?.id;
   const magistratName = observation.magistrat
     ? observation.magistrat.name
     : intl.formatMessage({ defaultMessage: 'Magistrat inconnu' });
@@ -115,6 +134,32 @@ function ObservationCard({
           ),
       },
     );
+
+  const handleFileDelete = async (attachment: { id: string }, magistratId: string) => {
+    const { isConfirmed } = await waitForConfirmation({
+      content: intl.formatMessage({
+        defaultMessage: 'Une fois supprimé, il sera impossible de le récupérer.',
+      }),
+      i18n: {
+        cancel: intl.formatMessage({ defaultMessage: 'Annuler' }),
+        confirm: intl.formatMessage({ defaultMessage: 'Supprimer le fichier' }),
+      },
+      title: intl.formatMessage({ defaultMessage: 'Veuillez confirmer la suppression du fichier' }),
+    });
+    if (!isConfirmed) return;
+
+    // the update endpoint rewrites the whole form: omitting the description would erase it
+    update({
+      dateReception: dateOnlyToIso(dateOnlyFromIso(observation.dateReception)),
+      description: observation.description,
+      detachFileIds: [attachment.id],
+      linkedObservationsAttachments: [],
+      magistratId,
+      nominationFileId: file.id,
+      observationId: observation.id,
+      sessionId: file.sessionId,
+    });
+  };
 
   const detailPath = getObservationDetailsPath({
     context,
@@ -215,6 +260,7 @@ function ObservationCard({
                     />
                   </div>
                 )}
+                {renaming.modal}
                 <FileList>
                   {observation.files.map((attachment) => (
                     <FileListItem
@@ -223,8 +269,14 @@ function ObservationCard({
                       disabled={isLoadingFile}
                       key={attachment.id}
                       name={attachment.name}
+                      onDelete={
+                        canManageAttachments && magistratId
+                          ? () => handleFileDelete(attachment, magistratId)
+                          : undefined
+                      }
                       onDownload={() => handleFileDownload(attachment)}
                       onOpen={() => handleFileOpen(attachment)}
+                      onRename={canManageAttachments ? () => renaming.open(attachment) : undefined}
                       size={attachment.size}
                     />
                   ))}
@@ -318,6 +370,7 @@ export function Observations(props: {
           {visibleObservations.map((observation) => (
             <ObservationCard
               canManage={canManage}
+              canManageAttachments={canManage && !!data?.canManageAttachments}
               context={context}
               file={file}
               key={observation.id}

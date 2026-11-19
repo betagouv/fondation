@@ -2210,6 +2210,10 @@ export type CreateObservationResponseDto = {
 };
 
 export type ListObservationsResponseDto = {
+    /**
+     * renaming or detaching the files, not adding some
+     */
+    canManageAttachments: boolean;
     observations: Array<{
         id: string;
         audition: {

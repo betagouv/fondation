@@ -117,12 +117,13 @@ export function useObservationsQuery(props: { sessionId: string; nominationFileI
   return useQuery({
     enabled: !!props.nominationFileId,
     queryKey: observationKeys.observations(props),
-    queryFn: async () => {
-      if (!props.nominationFileId) return { observations: [] as Observation[] };
+    queryFn: async (): Promise<ListObservationsResponseDto> => {
+      const empty = { canManageAttachments: false, observations: [] };
+      if (!props.nominationFileId) return empty;
       const { data } = await $api.observations.listObservations({
         path: { sessionId: props.sessionId, nominationFileId: props.nominationFileId },
       });
-      return data ?? { observations: [] as Observation[] };
+      return data ?? empty;
     },
   });
 }

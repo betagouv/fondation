@@ -382,6 +382,7 @@ const handlers = [
   ),
   http.get('*/api/sessions/v2/:sessionId/files/:nominationFileId/observations', ({ params }) =>
     HttpResponse.json<ListObservationsResponseDto>({
+      canManageAttachments: true,
       observations: observationsByFile.get(String(params.nominationFileId)) ?? [],
     }),
   ),

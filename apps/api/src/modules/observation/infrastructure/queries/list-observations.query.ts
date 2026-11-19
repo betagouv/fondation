@@ -9,7 +9,8 @@ import { writerOf, writerSchema } from '../../../../utils/user.util';
 import { Db } from '../../../framework/database';
 import { magistratFullName } from '../../../magistrat/domain/magistrat-name';
 import { TransparenceService } from '../../../session/transparence/infrastructure/transparence.service';
-import type { RoleEnum } from '../../../shared/role.enum';
+import { isSecretariat, type RoleEnum } from '../../../shared/role.enum';
+import { Observation } from '../../domain/observation';
 import { ObservationFollowUp } from '../../domain/observation-follow-up';
 
 const ObservationFileSchema = z.object({
@@ -51,6 +52,7 @@ export class ObservationDto extends createZodDto(ObservationSchema) {}
 
 export class ListObservationsResponseDto extends createZodDto(
   z.object({
+    canManageAttachments: z.boolean().describe('renaming or detaching the files, not adding some'),
     observations: z.array(ObservationSchema),
   }),
 ) {}
@@ -69,7 +71,9 @@ export class ListObservationsQuery {
     role: RoleEnum;
     sessionId: string;
   }): Promise<ListObservationsResponseDto> {
-    await this.transparences.internalGetVisibleSession(query);
+    const session = await this.transparences.internalGetVisibleSession(query);
+    const isNominationFileLocked = await this.transparences.internalIsNominationFileLocked(query);
+    const canEdit = !session.isArchived && isSecretariat(query.role);
 
     const observations = await this.db.tx.observation.findMany({
       orderBy: { createdAt: 'desc' },
@@ -133,6 +137,7 @@ export class ListObservationsQuery {
     );
 
     return {
+      canManageAttachments: Observation.canManageAttachments({ canEdit, isNominationFileLocked }),
       observations: observations.map((obs) => {
         return {
           audition: (obs.magistrat && auditions.get(obs.magistrat.id)) ?? null,

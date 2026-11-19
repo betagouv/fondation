@@ -187,6 +187,48 @@ test.describe('Observation', () => {
     expect(data.observations[0]!.files.map(({ id }) => id)).toEqual(keptObservation.files);
   });
 
+  test('should let the secretariat rename the files of an observation until its dossier is figé', async ({
+    agent,
+    docs,
+    expect,
+    member,
+  }) => {
+    const session = await docs.session({
+      outcome: { comment: null, value: 'VALIDATED' },
+      reporters: [member['@user']!],
+    });
+    const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+    const { data: created } = await agent.observations.createObservation({
+      body: {
+        files: [pdf('courrier.pdf')],
+        form: observationForm({ dateReception: '2026-05-02', magistratId: session.files[0]!.magistratId }),
+      },
+      path,
+      throwOnError: true,
+    });
+    const observationPath = { ...path, observationId: created.id };
+    const capabilities = async () => {
+      const { data: listed } = await agent.observations.listObservations({ path, throwOnError: true });
+      const { data: detailed } = await agent.observations.getObservationDetails({
+        path: observationPath,
+        throwOnError: true,
+      });
+      return { detailed: detailed.canManageAttachments, listed: listed.canManageAttachments };
+    };
+
+    expect(await capabilities()).toEqual({ detailed: true, listed: true });
+
+    await docs.officialReport(await docs.agenda(session), { status: 'VALIDATED' });
+
+    expect(await capabilities()).toEqual({ detailed: false, listed: false });
+    const { data } = await agent.observations.listObservations({ path, throwOnError: true });
+    const renamed = await agent.observations.renameObservationFile({
+      body: { name: 'Courrier du chef de cour' },
+      path: { ...observationPath, fileId: data.observations[0]!.files[0]!.id },
+    });
+    expect(renamed.response?.status).toBe(409);
+  });
+
   test('should keep the comment of a reporter on an observation to its author', async ({
     agent,
     expect,

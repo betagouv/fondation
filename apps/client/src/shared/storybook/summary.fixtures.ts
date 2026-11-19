@@ -85,7 +85,10 @@ const SUMMARY_OBSERVATIONS: ListObservationsResponseDto['observations'] = [
 
 export const summaryObservationsHandlers = [
   http.get('*/api/sessions/v2/:sessionId/files/:nominationFileId/observations', () =>
-    HttpResponse.json<ListObservationsResponseDto>({ observations: SUMMARY_OBSERVATIONS }),
+    HttpResponse.json<ListObservationsResponseDto>({
+      canManageAttachments: false,
+      observations: SUMMARY_OBSERVATIONS,
+    }),
   ),
 ];
 
