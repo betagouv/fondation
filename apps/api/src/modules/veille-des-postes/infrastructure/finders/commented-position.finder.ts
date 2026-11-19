@@ -1,15 +1,18 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { Prisma } from '../../../../generated/prisma/client';
+import { Clock } from '../../../framework/clock';
 import { Db } from '../../../framework/database';
-import { type CommentedPosition, isCommentedOnCourt } from '../../domain/position-comment';
-import { isWatchedCourt } from '../../domain/watched-position';
+import { isHeadOfCourt } from '../../domain/position-alert';
+import type { CommentedPosition } from '../../domain/position-comment';
+import { isRemovedCourt, isWatchedCourt } from '../../domain/watched-position';
 
 import { HeldPositionFinder } from './held-position.finder';
 
 @Injectable()
 export class CommentedPositionFinder {
   constructor(
+    private readonly clock: Clock,
     private readonly db: Db,
     private readonly heldPositions: HeldPositionFinder,
   ) {}
@@ -19,8 +22,9 @@ export class CommentedPositionFinder {
       select: { dateSuppression: true, typeJur: true } satisfies Prisma.JurisdictionSelect,
       where: { codejur: courtId },
     });
-    const removed = court?.dateSuppression && court.dateSuppression <= new Date();
-    if (!court || removed || !isWatchedCourt(court.typeJur)) throw new NotFoundException();
+    if (!court || isRemovedCourt(court.dateSuppression, this.clock.now()) || !isWatchedCourt(court.typeJur)) {
+      throw new NotFoundException();
+    }
 
     return { courtId };
   }
@@ -28,6 +32,6 @@ export class CommentedPositionFinder {
   async ofHolder({ magistratId }: { magistratId: string }): Promise<CommentedPosition> {
     const { courtId, positionId, watched } = await this.heldPositions.byHolder({ magistratId });
 
-    return isCommentedOnCourt(watched) ? { courtId } : { magistratId, positionId };
+    return isHeadOfCourt(watched) ? { courtId } : { magistratId, positionId };
   }
 }

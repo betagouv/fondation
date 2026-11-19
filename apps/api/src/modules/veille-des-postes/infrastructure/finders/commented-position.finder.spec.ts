@@ -2,6 +2,7 @@ import { NotFoundException } from '@nestjs/common';
 import { mock, type MockProxy } from 'vitest-mock-extended';
 
 import type { JurisdictionDelegate } from '../../../../generated/prisma/models';
+import { Clock } from '../../../framework/clock';
 import { transactionalTest } from '../../../framework/database/transactional-test';
 
 import { CommentedPositionFinder } from './commented-position.finder';
@@ -29,7 +30,7 @@ describe('CommentedPositionFinder', () => {
     heldPositions = mock();
     prisma = { $transaction: (fn) => fn(prisma), jurisdiction: mock() };
     const { db, inTransaction } = await transactionalTest(prisma);
-    const finder = new CommentedPositionFinder(db, heldPositions);
+    const finder = new CommentedPositionFinder(new Clock(), db, heldPositions);
 
     ofCourt = (courtId) => inTransaction(() => finder.ofCourt({ courtId }));
     ofHolder = (magistratId) => inTransaction(() => finder.ofHolder({ magistratId }));

@@ -30,3 +30,7 @@ export function isWatchedCourt(courtTypeId: string): boolean {
     JUDICIAL_COURT_TYPE_IDS.includes(courtTypeId)
   );
 }
+
+export function isRemovedCourt(dateSuppression: Date | null, now: Date): boolean {
+  return dateSuppression !== null && dateSuppression <= now;
+}

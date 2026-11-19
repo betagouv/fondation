@@ -1,6 +1,6 @@
 import { DateOnly } from '../../../utils/date-only';
 
-import { alertRulesOf, alertsOf, deadlinesOf, proposalStageOf } from './position-alert';
+import { alertRulesOf, alertsOf, deadlinesOf, isHeadOfCourt, proposalStageOf } from './position-alert';
 
 const TODAY = new DateOnly(2026, 11, 13);
 const PRESIDENT = { movesAfterSevenYears: true, retirementAge: 67 };
@@ -206,5 +206,16 @@ describe('the alert of a proposal for a woman', () => {
     expect(nominated?.label).toBe(
       'Nommée sur un poste de la session "Transparence Automne 2026" du 16/10/2026',
     );
+  });
+});
+
+describe('isHeadOfCourt', () => {
+  it.each([
+    ['COURT_OF_APPEAL_FIRST_PRESIDENT', true],
+    ['JUDICIAL_COURT_PRESIDENT', true],
+    ['COUNSELLOR', false],
+    ['FIRST_PRESIDENT', false],
+  ] as const)('tells whether %s heads a court: %s', (position, head) => {
+    expect(isHeadOfCourt(position)).toBe(head);
   });
 });

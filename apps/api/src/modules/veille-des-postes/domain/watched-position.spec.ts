@@ -1,4 +1,17 @@
-import { isWatchedCourt, watchedPositionOf } from './watched-position';
+import { isRemovedCourt, isWatchedCourt, watchedPositionOf } from './watched-position';
+
+describe('isRemovedCourt', () => {
+  const NOW = new Date('2026-11-19T10:00:00Z');
+
+  it.each([
+    [null, false],
+    [new Date('2011-03-31'), true],
+    [new Date('2026-11-19'), true],
+    [new Date('2027-01-01'), false],
+  ])('removes a court suppressed on %s: %s', (dateSuppression, removed) => {
+    expect(isRemovedCourt(dateSuppression, NOW)).toBe(removed);
+  });
+});
 
 describe('isWatchedCourt', () => {
   it.each([

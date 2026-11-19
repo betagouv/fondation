@@ -1,5 +1,3 @@
-import type { WatchedPosition } from './position-alert';
-
 /** six lines of a tooltip at most: the side panel gives the whole comment */
 const PREVIEW_LENGTH = 300;
 
@@ -32,10 +30,6 @@ export function commentPreviewOf(comment: string | null): string | null {
  * vacant. The holders of the Cour de cassation share their positions: each one is commented on their own
  */
 export type CommentedPosition = { courtId: string } | { magistratId: string; positionId: number };
-
-export function isCommentedOnCourt(watched: WatchedPosition): boolean {
-  return watched === 'COURT_OF_APPEAL_FIRST_PRESIDENT' || watched === 'JUDICIAL_COURT_PRESIDENT';
-}
 
 export class PositionCommentErased {
   constructor(readonly position: CommentedPosition) {}

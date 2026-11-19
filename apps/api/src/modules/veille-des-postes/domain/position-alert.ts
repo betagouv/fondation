@@ -36,9 +36,14 @@ export type WatchedPosition =
   | CourtOfCassationPosition;
 export type AlertRules = { movesAfterSevenYears: boolean; retirementAge: number };
 
-/** only the presidents of a court of appeal or of a judicial court must move after seven years */
+/** the head of a court of appeal or of a judicial court, one per court */
+export function isHeadOfCourt(position: WatchedPosition): boolean {
+  return position === 'COURT_OF_APPEAL_FIRST_PRESIDENT' || position === 'JUDICIAL_COURT_PRESIDENT';
+}
+
+/** only the heads of a court must move after seven years */
 export function alertRulesOf(position: WatchedPosition): AlertRules {
-  if (position === 'COURT_OF_APPEAL_FIRST_PRESIDENT' || position === 'JUDICIAL_COURT_PRESIDENT') {
+  if (isHeadOfCourt(position)) {
     return { movesAfterSevenYears: true, retirementAge: RETIREMENT_AGE };
   }
   return {

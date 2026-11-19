@@ -1,6 +1,5 @@
 import {
   commentPreviewOf,
-  isCommentedOnCourt,
   PositionComment,
   PositionCommentErased,
   PositionCommentWritten,
@@ -56,16 +55,5 @@ describe('showsCommentIcon', () => {
     [null, false],
   ])('tells whether %j shows the comment icon: %s', (comment, shown) => {
     expect(showsCommentIcon(comment)).toBe(shown);
-  });
-});
-
-describe('isCommentedOnCourt', () => {
-  it.each([
-    ['COURT_OF_APPEAL_FIRST_PRESIDENT', true],
-    ['JUDICIAL_COURT_PRESIDENT', true],
-    ['COUNSELLOR', false],
-    ['FIRST_PRESIDENT', false],
-  ] as const)('comments the %s position on its court: %s', (position, onCourt) => {
-    expect(isCommentedOnCourt(position)).toBe(onCourt);
   });
 });
