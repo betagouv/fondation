@@ -69,7 +69,7 @@ Un Membre ne voit les auditions d'une session qu'une fois publiées.
 
 ### Espace Secrétariat général
 
-L'accueil propose les deux pouvoirs de proposition. Le menu garde partout Rechercher un magistrat. Depuis le GDS, il y ajoute Gérer une session, Restitutions, Gérer les membres et Archives. Depuis le CSM, il y ajoute Veille des postes, Appels à candidature, Processus de sélection et Membres. Le logo ramène à l'accueil. L'Administrateur y voit en plus un sous-menu Administration. Sur Gérer une session, il peut aussi créer une session depuis une extraction Lodam.
+L'accueil propose les deux pouvoirs de proposition. Le menu garde partout Rechercher un magistrat. Depuis le GDS, il y ajoute Gérer une session, Restitutions, Suivi des observations, Gérer les membres et Archives. Depuis le CSM, il y ajoute Veille des postes, Appels à candidature, Processus de sélection et Membres. Le logo ramène à l'accueil. L'Administrateur y voit en plus un sous-menu Administration. Sur Gérer une session, il peut aussi créer une session depuis une extraction Lodam.
 
 | URL                                                                                                  | Vue                                                                | Membre | Secrétariat général | Administrateur |
 | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ------ | ------------------- | -------------- |
