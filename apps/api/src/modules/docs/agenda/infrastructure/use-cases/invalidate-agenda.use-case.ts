@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import { Prisma } from '../../../../../generated/prisma/client';
+import { lockAgendasRawQuery } from '../../../../../generated/prisma/sql';
 import { assertNever } from '../../../../../utils/assert-never';
 import { Db } from '../../../../framework/database';
 import { DocInvalidation } from '../../../shared/domain/doc-invalidation';
@@ -43,6 +44,13 @@ export class InvalidateAgendasUseCase {
   ): Promise<void> {
     const { sessionId } = invalidation.payload;
 
+    // a draft discarded meanwhile hands back the files of its validated version: they are read after the lock
+    const sessionAgendas = await this.db.tx.agenda.findMany({
+      where: { sessionId },
+      select: { id: true } satisfies Prisma.AgendaSelect,
+    });
+    await this.db.tx.$queryRawTyped(lockAgendasRawQuery(sessionAgendas.map(({ id }) => id)));
+
     const agendas = await this.db.tx.agendaVersion.findMany({
       where: { agenda: { sessionId } },
       distinct: ['agendaId'],
@@ -63,9 +71,25 @@ export class InvalidateAgendasUseCase {
   private async followRenamedMember(
     invalidation: Extract<DocInvalidation, { type: 'MemberRenamed' }>,
   ): Promise<void> {
+    const member = [{ id: invalidation.payload.userId }];
+
+    // a draft opened meanwhile copies the old name from its validated version: every agenda naming the
+    // member is locked, in one sorted batch, before its drafts are read
+    const namingAgendas = await this.db.tx.agendaVersion.findMany({
+      where: {
+        OR: [
+          { chairmanId: invalidation.payload.userId },
+          { nominationFiles: { some: { reporters: { array_contains: member } } } },
+        ],
+      },
+      distinct: ['agendaId'],
+      select: { agendaId: true } satisfies Prisma.AgendaVersionSelect,
+    });
+    await this.db.tx.$queryRawTyped(lockAgendasRawQuery(namingAgendas.map(({ agendaId }) => agendaId)));
+
     const files = await this.db.tx.agendaNominationFile.findMany({
       where: {
-        reporters: { array_contains: [{ id: invalidation.payload.userId }] },
+        reporters: { array_contains: member },
         version: { status: 'DRAFT' },
       },
       select: {

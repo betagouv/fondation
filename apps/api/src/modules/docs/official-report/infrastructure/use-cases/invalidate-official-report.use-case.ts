@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { Prisma } from '../../../../../generated/prisma/client';
+import { lockOfficialReportsRawQuery } from '../../../../../generated/prisma/sql';
 import { assertNever } from '../../../../../utils/assert-never';
 import { isDefined } from '../../../../../utils/is-defined';
 import { Db } from '../../../../framework/database';
@@ -62,10 +63,18 @@ export class InvalidateOfficialReportUseCase {
   }
 
   private async invalidate(commands: readonly InvalidateOfficialReportCommand[]): Promise<void> {
+    if (commands.length === 0) return;
+
+    // a discard of the draft either sees this update or is followed by it, never in between
+    await this.db.tx.$queryRawTyped(lockOfficialReportsRawQuery(commands.map(({ id }) => id)));
+
     for (const command of commands) {
       const officialReport = await this.officialReportRepository
         .find({ actorId: null, id: command.id })
-        .catch(() => null);
+        .catch((error: unknown) => {
+          if (error instanceof NotFoundException) return null;
+          throw error;
+        });
 
       if (!officialReport) continue;
 
@@ -233,6 +242,9 @@ export class InvalidateOfficialReportUseCase {
     });
 
     if (!agenda?.officialReportId) return [];
+
+    // the sentence compared is the one the report keeps once a discard of its draft is done
+    await this.db.tx.$queryRawTyped(lockOfficialReportsRawQuery([agenda.officialReportId]));
 
     const agendaHtml = agendaContentOf(agenda.versions)?.nominationFiles[0]?.htmlEdited ?? null;
     const reportVersionId = await this.officialReportVersionFinder.latest({
