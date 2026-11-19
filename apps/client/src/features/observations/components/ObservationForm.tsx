@@ -83,7 +83,7 @@ export function ObservationForm({
   const attachedFiles = observation?.files ?? [];
   const existingFiles = attachedFiles.filter(({ id }) => keptFileIds.includes(id));
   const filesToDetach = attachedFiles.filter(({ id }) => !keptFileIds.includes(id));
-  const { data: observations } = useObservationsQuery({ nominationFileId, sessionId });
+  const { data: listed } = useObservationsQuery({ nominationFileId, sessionId });
 
   const { data: observationsAttachments } = useListObservationsAttachments({
     sessionId,
@@ -271,7 +271,7 @@ export function ObservationForm({
         <ObservationExistingFiles
           detachedFiles={filesToDetach}
           files={existingFiles}
-          onRemove={observations?.canManageAttachments ? handleRemoveExistingFile : undefined}
+          onRemove={listed?.canManageAttachments ? handleRemoveExistingFile : undefined}
         />
       )}
 
