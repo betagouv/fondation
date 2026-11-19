@@ -36,7 +36,7 @@ SELECT
   h.id::TEXT AS id,
   h.birth_date AS "birthDate",
   h.civilite AS civility,
-  NULLIF(pc.comment, NULL) AS comment,
+  NULLIF(cc.comment, NULL) AS comment,
   h.first_name AS "firstName",
   h.installation_date AS "installationDate",
   h.last_name AS "lastName",
@@ -49,8 +49,7 @@ FROM data_administration_context.jurisdictions AS j
   -- a vacancy declared on another position of the magistrat lapsed when LOLFI moved them
   LEFT JOIN nominations_context.position_vacancy AS pv
     ON pv.magistrat_id = h.id AND pv.position_id = h.position_id
-  LEFT JOIN nominations_context.position_comment AS pc
-    ON pc.magistrat_id = h.id AND pc.position_id = h.position_id
+  LEFT JOIN nominations_context.court_comment AS cc ON cc.court_id = j.codejur
 
 WHERE (
   j.type_jur = ANY($1::TEXT[])

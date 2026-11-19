@@ -11,6 +11,7 @@ import { watchedPositionOf } from '../../domain/watched-position';
 export type HeldPosition = {
   birthDate: DateOnly | null;
   civility: Civility | null;
+  courtId: string;
   installationDate: DateOnly | null;
   positionId: number;
   watched: WatchedPosition;
@@ -62,6 +63,7 @@ export class HeldPositionFinder {
     return {
       birthDate: DateOnly.fromOptionalUtcDate(magistrat.birthDate),
       civility: civilityOf(magistrat.civilite),
+      courtId: position.jurisdiction.codejur,
       installationDate: DateOnly.fromOptionalUtcDate(magistrat.installationDate),
       positionId,
       watched,

@@ -2,6 +2,7 @@ import { forwardRef, Module } from '@nestjs/common';
 
 import { TransparenceModule } from '../session/transparence/transparence.module';
 
+import { CommentedPositionFinder } from './infrastructure/finders/commented-position.finder';
 import { HeldPositionFinder } from './infrastructure/finders/held-position.finder';
 import { HolderProposalsFinder } from './infrastructure/finders/holder-proposals.finder';
 import { FindPositionCommentQuery } from './infrastructure/queries/find-position-comment.query';
@@ -21,6 +22,7 @@ import { VeilleDesPostesService } from './veille-des-postes.service';
   exports: [VeilleDesPostesInternalService],
   imports: [forwardRef(() => TransparenceModule)],
   providers: [
+    CommentedPositionFinder,
     FindPositionCommentQuery,
     FindPositionVacancyQuery,
     HeldPositionFinder,

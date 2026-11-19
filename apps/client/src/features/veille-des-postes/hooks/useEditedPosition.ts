@@ -4,7 +4,7 @@ import type { EditedPosition } from '../components/PositionVacancySidePanel';
 import { usePrefetchedPositionPanels } from '@queries/veille-des-postes.queries';
 
 /**
- * the position whose status the side panel edits among the rows loaded with a holder: read again from them
+ * the position whose status or comment the side panel edits among the rows loaded: read again from them
  * once a change refreshed them or kept as it was once a filter left it out. toEdited must keep its identity:
  * the columns are built with open. While the form tells what it lacks to be saved the panel stays on its
  * position
@@ -28,17 +28,21 @@ export function useEditedPosition<Row>(
     return () => onToggle(false);
   }, [isOpen, onToggle]);
   const editable = rows.flatMap((row) => toEdited(row) ?? []);
-  const index = edited ? editable.findIndex(({ magistrat }) => magistrat.id === edited.magistrat.id) : -1;
+  const index = edited ? editable.findIndex(({ id }) => id === edited.id) : -1;
   // a change can take the row out of a filtered table: its neighbours stay those around its last place
-  const lastPlace = useRef<{ index: number; magistratId: string } | null>(null);
-  if (edited && index !== -1) lastPlace.current = { index, magistratId: edited.magistrat.id };
-  const left = index === -1 && edited && lastPlace.current?.magistratId === edited.magistrat.id;
+  const lastPlace = useRef<{ id: string; index: number } | null>(null);
+  if (edited && index !== -1) lastPlace.current = { id: edited.id, index };
+  const left = index === -1 && edited && lastPlace.current?.id === edited.id;
   const [previous, next] = left
     ? [editable[lastPlace.current!.index - 1], editable[lastPlace.current!.index]]
     : index === -1
       ? [undefined, undefined]
       : [editable[index - 1], editable[index + 1]];
-  usePrefetchedPositionPanels([previous, next].flatMap((position) => position?.magistrat.id ?? []));
+  usePrefetchedPositionPanels(
+    [previous, next].flatMap((position) =>
+      position ? [{ commented: position.commented, magistratId: position.magistrat?.id ?? null }] : [],
+    ),
+  );
 
   return {
     close: useCallback(() => leave(null), [leave]),

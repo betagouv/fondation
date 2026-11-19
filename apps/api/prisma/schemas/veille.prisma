@@ -1,4 +1,19 @@
-// a free comment on a holder, kept like their declared vacancy: it lapses once LOLFI moves the magistrat
+// a free comment on the head of a court: it stays when its holder changes and is written on a vacant court too
+model CourtComment {
+  authorId  String?  @map("author_id") @db.Uuid
+  comment   String
+  courtId   String   @id @map("court_id")
+  updatedAt DateTime @map("updated_at") @db.Timestamp(3)
+
+  author User?        @relation(fields: [authorId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  court  Jurisdiction @relation(fields: [courtId], references: [codejur], onDelete: Cascade, onUpdate: NoAction)
+
+  @@map("court_comment")
+  @@schema("nominations_context")
+}
+
+// a free comment on a holder of the Cour de cassation, where holders share a position: it lapses like their
+// declared vacancy once LOLFI moves the magistrat
 model PositionComment {
   authorId    String?  @map("author_id") @db.Uuid
   comment     String

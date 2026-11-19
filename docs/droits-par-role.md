@@ -312,6 +312,8 @@ Dans les dossiers d'un magistrat, un Membre ne voit que l'affectation et les aud
 | Lister les cours d'appel et leur premier président     | `GET /veille-des-postes/v1/cours-d-appel`                                             | —      | ✓                   | ✓              |
 | Lister les magistrats du siège de la Cour de cassation | `GET /veille-des-postes/v1/cour-de-cassation`                                         | —      | ✓                   | ✓              |
 | Lister les tribunaux judiciaires et leur président     | `GET /veille-des-postes/v1/tribunaux-judiciaires`                                     | —      | ✓                   | ✓              |
+| Consulter le commentaire d'une juridiction             | `GET /veille-des-postes/v1/juridictions/:courtId/commentaire`                         | —      | ✓                   | ✓              |
+| Écrire le commentaire d'une juridiction                | `PUT /veille-des-postes/v1/juridictions/:courtId/commentaire`                         | —      | ✓                   | ✓              |
 | Consulter le commentaire d'un poste                    | `GET /veille-des-postes/v1/titulaires/:magistratId/commentaire`                       | —      | ✓                   | ✓              |
 | Écrire le commentaire d'un poste                       | `PUT /veille-des-postes/v1/titulaires/:magistratId/commentaire`                       | —      | ✓                   | ✓              |
 | Consulter la vacance déclarée d'un poste               | `GET /veille-des-postes/v1/titulaires/:magistratId/vacance`                           | —      | ✓                   | ✓              |

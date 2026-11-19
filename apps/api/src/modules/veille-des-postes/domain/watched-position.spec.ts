@@ -1,4 +1,17 @@
-import { watchedPositionOf } from './watched-position';
+import { isWatchedCourt, watchedPositionOf } from './watched-position';
+
+describe('isWatchedCourt', () => {
+  it.each([
+    ['CA', true],
+    ['TJ', true],
+    ['TPI', true],
+    ['TSA', true],
+    ['CC', false],
+    ['CHA', false],
+  ])('lists the head of a %s: %s', (courtTypeId, watched) => {
+    expect(isWatchedCourt(courtTypeId)).toBe(watched);
+  });
+});
 
 describe('watchedPositionOf', () => {
   it.each([

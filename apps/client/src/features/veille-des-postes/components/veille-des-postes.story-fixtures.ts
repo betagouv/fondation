@@ -154,7 +154,8 @@ function deadlinesOf(alert: HolderAlert): AlertDeadline[] {
     : ['WITHIN_TWELVE_MONTHS'];
 }
 
-const COMMENT_PATH = '*/api/veille-des-postes/v1/titulaires/:magistratId/commentaire';
+const COURT_COMMENT_PATH = '*/api/veille-des-postes/v1/juridictions/:courtId/commentaire';
+const HOLDER_COMMENT_PATH = '*/api/veille-des-postes/v1/titulaires/:magistratId/commentaire';
 const VACANCY_PATH = '*/api/veille-des-postes/v1/titulaires/:magistratId/vacance';
 const ATTACHMENT_PATH = `${VACANCY_PATH}/pieces-jointes/:fileId`;
 
@@ -168,20 +169,21 @@ function reasonOf(id: VacancyReason): PositionVacancy['reason'] {
  * while the story runs and the tables keep their rows as they were
  */
 export function positionVacancyHandlers(
-  rows: readonly (StoryRow & { magistrat: { commentPreview?: string | null; id: string } | null })[],
+  rows: readonly (StoryRow & {
+    commentPreview?: string | null;
+    court?: { id: string };
+    magistrat: { commentPreview?: string | null; id: string } | null;
+  })[],
 ): ReturnType<typeof http.get>[] {
   const writer = { id: 'story-user', name: 'Jess TEST' };
+  const written = (text: string) => ({ text, updatedAt: '2026-11-10T09:30:00.000Z', updatedBy: writer });
   const comments = new Map<string, NonNullable<FoundPositionCommentDto['comment']>>(
-    rows.flatMap(({ magistrat }) =>
-      magistrat?.commentPreview
-        ? [
-            [
-              magistrat.id,
-              { text: magistrat.commentPreview, updatedAt: '2026-11-10T09:30:00.000Z', updatedBy: writer },
-            ] as const,
-          ]
-        : [],
-    ),
+    rows.flatMap(({ commentPreview, court, magistrat }) => [
+      ...(court && commentPreview ? [[`court ${court.id}`, written(commentPreview)] as const] : []),
+      ...(magistrat?.commentPreview
+        ? [[`holder ${magistrat.id}`, written(magistrat.commentPreview)] as const]
+        : []),
+    ]),
   );
   const vacancies = new Map<string, PositionVacancy>(
     rows.flatMap((row) => {
@@ -212,23 +214,30 @@ export function positionVacancyHandlers(
   };
 
   return [
-    http.get(COMMENT_PATH, ({ params }) =>
-      HttpResponse.json({
-        comment: comments.get(String(params.magistratId)) ?? null,
-        maxLength: 50_000,
-      } satisfies FoundPositionCommentDto),
-    ),
-    // kept as sent: the API trims and erases. The stories do not copy its rule
-    http.put(COMMENT_PATH, async ({ params, request }) => {
-      const { comment } = (await request.json()) as { comment: string };
-      comments.set(String(params.magistratId), {
-        text: comment,
-        updatedAt: new Date().toISOString(),
-        updatedBy: writer,
-      });
+    ...[
+      {
+        key: (params: Record<string, unknown>) => `court ${String(params.courtId)}`,
+        path: COURT_COMMENT_PATH,
+      },
+      {
+        key: (params: Record<string, unknown>) => `holder ${String(params.magistratId)}`,
+        path: HOLDER_COMMENT_PATH,
+      },
+    ].flatMap(({ key, path }) => [
+      http.get(path, ({ params }) =>
+        HttpResponse.json({
+          comment: comments.get(key(params)) ?? null,
+          maxLength: 50_000,
+        } satisfies FoundPositionCommentDto),
+      ),
+      // kept as sent: the API trims and erases. The stories do not copy its rule
+      http.put(path, async ({ params, request }) => {
+        const { comment } = (await request.json()) as { comment: string };
+        comments.set(key(params), { text: comment, updatedAt: new Date().toISOString(), updatedBy: writer });
 
-      return new HttpResponse(null, { status: 204 });
-    }),
+        return new HttpResponse(null, { status: 204 });
+      }),
+    ]),
     http.get(VACANCY_PATH, ({ params }) => HttpResponse.json(found(String(params.magistratId)))),
     http.put(VACANCY_PATH, async ({ params, request }) => {
       const body = await request.formData();

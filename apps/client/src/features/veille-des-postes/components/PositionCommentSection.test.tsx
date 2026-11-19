@@ -8,6 +8,7 @@ import { httpAssert } from '@/utils/http-exception';
 import * as $api from '@api/sdk';
 import type { FoundPositionCommentDto } from '@api/types';
 import { authKeys } from '@queries/auth.queries';
+import type { CommentedPosition } from '@queries/veille-des-postes.queries';
 
 import { PositionCommentSection } from './PositionCommentSection';
 
@@ -30,7 +31,7 @@ function notFound(): unknown {
   }
 }
 
-function renderSection() {
+function renderSection(position: CommentedPosition = { magistratId: 'magistrat' }) {
   const client = new QueryClient({
     defaultOptions: { mutations: { retry: false }, queries: { retry: false } },
   });
@@ -40,7 +41,7 @@ function renderSection() {
   render(
     <IntlProvider defaultLocale="fr" locale="fr">
       <QueryClientProvider client={client}>
-        <PositionCommentSection magistratId="magistrat" onDirtyChange={onDirtyChange} />
+        <PositionCommentSection onDirtyChange={onDirtyChange} position={position} />
       </QueryClientProvider>
     </IntlProvider>,
   );
@@ -64,6 +65,22 @@ describe('PositionCommentSection', () => {
 
     await waitFor(() => expect(onDirtyChange).toHaveBeenLastCalledWith(false));
     expect(screen.queryByRole('textbox', { name: 'Commentaire' })).not.toBeInTheDocument();
+  });
+
+  it('reads and writes the comment of a court on the path of its court', async () => {
+    vi.spyOn($api.veilleDesPostes, 'findCourtComment').mockResolvedValue(found(null));
+    const write = vi.spyOn($api.veilleDesPostes, 'writeCourtComment').mockResolvedValue({} as never);
+    renderSection({ courtId: 'TJ  GRASSE' });
+    const user = userEvent.setup();
+
+    await user.type(await screen.findByRole('textbox', { name: 'Commentaire' }), 'Intérim');
+    await user.click(screen.getByRole('button', { name: 'Valider' }));
+
+    await waitFor(() =>
+      expect(write).toHaveBeenCalledWith(
+        expect.objectContaining({ body: { comment: 'Intérim' }, path: { courtId: 'TJ  GRASSE' } }),
+      ),
+    );
   });
 
   it('shows the comment trimmed as the API saved it', async () => {

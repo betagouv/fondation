@@ -7,27 +7,38 @@ import { Prisma } from '../../../../generated/prisma/client';
 import { COMMENT_MAX_LENGTH } from '../../../../utils/comment';
 import { writerOf, writerSchema } from '../../../../utils/user.util';
 import { Db } from '../../../framework/database';
-import { HeldPositionFinder } from '../finders/held-position.finder';
+import { CommentedPositionFinder } from '../finders/commented-position.finder';
+
+const COMMENT_SELECT = {
+  author: { select: { firstName: true, id: true, lastName: true } },
+  comment: true,
+  updatedAt: true,
+} satisfies Prisma.CourtCommentSelect & Prisma.PositionCommentSelect;
 
 @Injectable()
 export class FindPositionCommentQuery {
   constructor(
+    private readonly commentedPositions: CommentedPositionFinder,
     private readonly db: Db,
-    private readonly heldPositions: HeldPositionFinder,
   ) {}
 
   @Transactional()
-  async handle({ magistratId }: { magistratId: string }): Promise<FoundPositionCommentDto> {
-    const { positionId } = await this.heldPositions.byHolder({ magistratId });
+  async handle(query: { courtId: string } | { magistratId: string }): Promise<FoundPositionCommentDto> {
+    const position =
+      'courtId' in query
+        ? await this.commentedPositions.ofCourt(query)
+        : await this.commentedPositions.ofHolder(query);
 
-    const comment = await this.db.tx.positionComment.findUnique({
-      select: {
-        author: { select: { firstName: true, id: true, lastName: true } },
-        comment: true,
-        updatedAt: true,
-      } satisfies Prisma.PositionCommentSelect,
-      where: { primaryKey: { magistratId, positionId } },
-    });
+    const comment =
+      'courtId' in position
+        ? await this.db.tx.courtComment.findUnique({
+            select: COMMENT_SELECT satisfies Prisma.CourtCommentSelect,
+            where: { courtId: position.courtId },
+          })
+        : await this.db.tx.positionComment.findUnique({
+            select: COMMENT_SELECT satisfies Prisma.PositionCommentSelect,
+            where: { primaryKey: position },
+          });
 
     return {
       comment: comment && {

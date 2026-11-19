@@ -2450,6 +2450,7 @@ export type ListedCourtOfAppealFirstPresidentsDto = {
             label: string;
             shortLabel: string;
         }>;
+        commentPreview: string | null;
         court: {
             id: string;
             label: string;
@@ -2460,7 +2461,6 @@ export type ListedCourtOfAppealFirstPresidentsDto = {
             day: number;
         } | null;
         magistrat: {
-            commentPreview: string | null;
             id: string;
             name: string;
             title: string;
@@ -2563,6 +2563,7 @@ export type ListedJudicialCourtPresidentsDto = {
             label: string;
             shortLabel: string;
         }>;
+        commentPreview: string | null;
         court: {
             id: string;
             label: string;
@@ -2573,7 +2574,6 @@ export type ListedJudicialCourtPresidentsDto = {
             day: number;
         } | null;
         magistrat: {
-            commentPreview: string | null;
             id: string;
             name: string;
             title: string;
@@ -5887,6 +5887,36 @@ export type DeclarePositionVacancyResponses = {
 };
 
 export type DeclarePositionVacancyResponse = DeclarePositionVacancyResponses[keyof DeclarePositionVacancyResponses];
+
+export type FindCourtCommentData = {
+    body?: never;
+    path: {
+        courtId: string;
+    };
+    query?: never;
+    url: '/api/veille-des-postes/v1/juridictions/{courtId}/commentaire';
+};
+
+export type FindCourtCommentResponses = {
+    200: FoundPositionCommentDto;
+};
+
+export type FindCourtCommentResponse = FindCourtCommentResponses[keyof FindCourtCommentResponses];
+
+export type WriteCourtCommentData = {
+    body: WritePositionCommentDto;
+    path: {
+        courtId: string;
+    };
+    query?: never;
+    url: '/api/veille-des-postes/v1/juridictions/{courtId}/commentaire';
+};
+
+export type WriteCourtCommentResponses = {
+    204: void;
+};
+
+export type WriteCourtCommentResponse = WriteCourtCommentResponses[keyof WriteCourtCommentResponses];
 
 export type FindPositionCommentData = {
     body?: never;

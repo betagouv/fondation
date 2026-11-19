@@ -6,22 +6,26 @@ import { CommentEditor } from '@/shared/ui/comment-editor';
 import { HttpException } from '@/utils/http-exception';
 import { whoWrote } from '@/utils/user.utils';
 import { useUser } from '@queries/auth.queries';
-import { usePositionCommentQuery, useWritePositionCommentMutation } from '@queries/veille-des-postes.queries';
+import {
+  type CommentedPosition,
+  usePositionCommentQuery,
+  useWritePositionCommentMutation,
+} from '@queries/veille-des-postes.queries';
 
 import { RetryableLoadFailure } from './RetryableLoadFailure';
 
 /** the comment of a watched position: saved with "Valider" like the comment of the secretariat */
 export function PositionCommentSection(props: {
-  magistratId: string;
   onDirtyChange: (isDirty: boolean) => void;
+  position: CommentedPosition;
 }) {
   const { formatMessage } = useIntl();
   const dateAndTime = useDateAndTime();
   const { user } = useUser();
-  const { data, error, isFetching, refetch } = usePositionCommentQuery(props.magistratId);
+  const { data, error, isFetching, refetch } = usePositionCommentQuery(props.position);
   const write = useWritePositionCommentMutation();
 
-  // the side panel already says that the magistrat no longer holds the position
+  // the side panel already says that the magistrat no longer holds the position or that the court left the veille
   const isGone = error instanceof HttpException && error.statusCode === 404;
 
   const [isDirty, setIsDirty] = useState(false);
@@ -96,7 +100,7 @@ export function PositionCommentSection(props: {
             maxLength={data.maxLength}
             onDirtyChange={setIsDirty}
             onSave={async (comment) => {
-              await write.mutateAsync({ comment: comment ?? '', magistratId: props.magistratId });
+              await write.mutateAsync({ comment: comment ?? '', position: props.position });
               setSaves((count) => count + 1);
             }}
             placeholder={formatMessage({ defaultMessage: 'Saisissez un commentaire…' })}

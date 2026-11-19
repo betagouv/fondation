@@ -11,6 +11,9 @@ import { positionVacancyHandlers, storyHolderOf } from './veille-des-postes.stor
 
 const EDITED: EditedPosition = {
   ...storyHolderOf(2, { held: true, movesAfterSevenYears: true }),
+  commented: { courtId: 'CA  AMIENS' },
+  courtLabel: "Cour d'appel d'Amiens",
+  id: 'magistrat-2',
   installationDate: { day: 1, month: 9, year: 2021 },
   magistrat: {
     id: 'magistrat-2',
@@ -19,9 +22,19 @@ const EDITED: EditedPosition = {
   },
 };
 
+const VACANT: EditedPosition = {
+  ...storyHolderOf(9, { held: false, movesAfterSevenYears: true }),
+  commented: { courtId: 'CA  REIMS' },
+  courtLabel: "Cour d'appel de Reims",
+  id: 'CA  REIMS',
+  installationDate: null,
+  magistrat: null,
+};
+
+const COURT_COMMENT_PATH = '*/api/veille-des-postes/v1/juridictions/:courtId/commentaire';
 const VACANCY_PATH = '*/api/veille-des-postes/v1/titulaires/:magistratId/vacance';
 
-function PositionVacancySidePanelStory() {
+function PositionVacancySidePanelStory(props: { edited: EditedPosition }) {
   const [isLeaveBlocked, setLeaveBlocked] = useState(false);
 
   return (
@@ -29,7 +42,7 @@ function PositionVacancySidePanelStory() {
       <ToastProvider>
         <ConfirmModalProvider>
           <PositionVacancySidePanel
-            edited={EDITED}
+            edited={props.edited}
             isLeaveBlocked={isLeaveBlocked}
             onClose={() => {}}
             onLeaveBlockedChange={setLeaveBlocked}
@@ -44,8 +57,18 @@ function PositionVacancySidePanelStory() {
 
 const meta = {
   beforeEach: ({ msw }) => {
-    msw.use(...positionVacancyHandlers([EDITED]));
+    msw.use(
+      ...positionVacancyHandlers([
+        EDITED,
+        {
+          ...VACANT,
+          commentPreview: 'Intérim assuré par le président de chambre le plus ancien',
+          court: { id: 'CA  REIMS' },
+        },
+      ]),
+    );
   },
+  args: { edited: EDITED },
   component: PositionVacancySidePanelStory,
   parameters: {
     docs: {
@@ -80,6 +103,32 @@ export const NoLongerHeld: StoryObj<typeof meta> = {
     docs: {
       description: {
         story: 'LOLFI a déplacé le magistrat depuis le chargement du tableau : la lecture répond 404.',
+      },
+    },
+  },
+};
+
+export const VacantCourt: StoryObj<typeof meta> = {
+  args: { edited: VACANT },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Une juridiction sans titulaire : le panneau s'ouvre par le stylo \"Commenter le poste\" et n'y propose que le commentaire, gardé d'un titulaire à l'autre.",
+      },
+    },
+  },
+};
+
+export const VacantCourtNoLongerWatched: StoryObj<typeof meta> = {
+  args: { edited: VACANT },
+  beforeEach: ({ msw }) => {
+    msw.use(http.get(COURT_COMMENT_PATH, () => new HttpResponse(null, { status: 404 })));
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: 'La juridiction a quitté la veille depuis le chargement du tableau : la lecture répond 404.',
       },
     },
   },

@@ -87,6 +87,7 @@ export const JUDICIAL_COURT_PRESIDENTS_DEFAULT_SORTING: JudicialCourtPresidentsS
 ];
 export const JUDICIAL_COURT_PRESIDENTS_PAGE_SIZE = 20;
 
+export type CommentedPosition = { courtId: string } | { magistratId: string };
 export type PositionVacancy = NonNullable<FoundPositionVacancyDto['vacancy']>;
 export type VacancyReason = FoundPositionVacancyDto['reasons'][number]['id'];
 
@@ -98,7 +99,7 @@ const veilleDesPostesKeys = {
     ['veilleDesPostes', 'courtOfCassationHolders', props] as const,
   judicialCourtPresidents: (props: JudicialCourtPresidentsList) =>
     ['veilleDesPostes', 'judicialCourtPresidents', props] as const,
-  positionComment: (magistratId: string) => ['veilleDesPostes', 'positionComment', magistratId] as const,
+  positionComment: (position: CommentedPosition) => ['veilleDesPostes', 'positionComment', position] as const,
   positionVacancy: (magistratId: string) => ['veilleDesPostes', 'positionVacancy', magistratId] as const,
 };
 
@@ -258,13 +259,15 @@ export function useJudicialCourtPresidentsQuery(props: JudicialCourtPresidentsLi
   });
 }
 
+function vacancyPanelOf({ magistratId }: { magistratId: string }) {
+  return veilleDesPostesKeys.positionVacancy(magistratId);
+}
+
 /** the mutation waits for the part of the panel it changed: the tables follow in the background as they are long to reload */
-function useInvalidatingVeilleDesPostes(
-  panelKeyOf: (magistratId: string) => readonly unknown[] = veilleDesPostesKeys.positionVacancy,
-) {
+function useInvalidatingVeilleDesPostes<Variables>(panelKeyOf: (variables: Variables) => readonly unknown[]) {
   const queryClient = useQueryClient();
-  return (_data: unknown, _error: unknown, { magistratId }: { magistratId: string }) => {
-    const panel = panelKeyOf(magistratId);
+  return (_data: unknown, _error: unknown, variables: Variables) => {
+    const panel = panelKeyOf(variables);
     void queryClient.invalidateQueries({
       predicate: (query) => query.queryHash !== hashKey(panel),
       queryKey: veilleDesPostesKeys.all(),
@@ -274,7 +277,7 @@ function useInvalidatingVeilleDesPostes(
 }
 
 export function useDeclarePositionVacancyMutation() {
-  const onSettled = useInvalidatingVeilleDesPostes();
+  const onSettled = useInvalidatingVeilleDesPostes(vacancyPanelOf);
   return useMutation({
     mutationFn: async ({
       files,
@@ -313,21 +316,21 @@ function positionVacancyQuery(magistratId: string) {
   };
 }
 
-function positionCommentQuery(magistratId: string) {
+function positionCommentQuery(position: CommentedPosition) {
   return {
     queryFn: async () => {
-      const { data } = await $api.veilleDesPostes.findPositionComment({
-        path: { magistratId },
-        throwOnError: true,
-      });
+      const { data } =
+        'courtId' in position
+          ? await $api.veilleDesPostes.findCourtComment({ path: position, throwOnError: true })
+          : await $api.veilleDesPostes.findPositionComment({ path: position, throwOnError: true });
       return data;
     },
-    queryKey: veilleDesPostesKeys.positionComment(magistratId),
+    queryKey: veilleDesPostesKeys.positionComment(position),
   };
 }
 
-export function usePositionCommentQuery(magistratId: string) {
-  return useQuery(positionCommentQuery(magistratId));
+export function usePositionCommentQuery(position: CommentedPosition) {
+  return useQuery(positionCommentQuery(position));
 }
 
 export function usePositionVacancyQuery(magistratId: string) {
@@ -335,17 +338,19 @@ export function usePositionVacancyQuery(magistratId: string) {
 }
 
 /** the positions the side panel can move to: read ahead to show them at once */
-export function usePrefetchedPositionPanels(magistratIds: readonly string[]) {
+export function usePrefetchedPositionPanels(
+  positions: readonly { commented: CommentedPosition; magistratId: string | null }[],
+) {
   useQueries({
-    queries: magistratIds.flatMap((magistratId) => [
-      positionCommentQuery(magistratId),
-      positionVacancyQuery(magistratId),
+    queries: positions.flatMap(({ commented, magistratId }) => [
+      positionCommentQuery(commented),
+      ...(magistratId ? [positionVacancyQuery(magistratId)] : []),
     ]),
   });
 }
 
 export function useRemovePositionVacancyAttachmentMutation() {
-  const onSettled = useInvalidatingVeilleDesPostes();
+  const onSettled = useInvalidatingVeilleDesPostes(vacancyPanelOf);
   return useMutation({
     mutationFn: async (path: { fileId: string; magistratId: string }) => {
       await $api.veilleDesPostes.removePositionVacancyAttachment({ path, throwOnError: true });
@@ -355,7 +360,7 @@ export function useRemovePositionVacancyAttachmentMutation() {
 }
 
 export function useRenamePositionVacancyAttachmentMutation() {
-  const onSettled = useInvalidatingVeilleDesPostes();
+  const onSettled = useInvalidatingVeilleDesPostes(vacancyPanelOf);
   return useMutation({
     mutationFn: async ({ name, ...path }: { fileId: string; magistratId: string; name: string }) => {
       await $api.veilleDesPostes.renamePositionVacancyAttachment({
@@ -369,7 +374,7 @@ export function useRenamePositionVacancyAttachmentMutation() {
 }
 
 export function useWithdrawPositionVacancyMutation() {
-  const onSettled = useInvalidatingVeilleDesPostes();
+  const onSettled = useInvalidatingVeilleDesPostes(vacancyPanelOf);
   return useMutation({
     mutationFn: async (path: { magistratId: string }) => {
       await $api.veilleDesPostes.withdrawPositionVacancy({ path, throwOnError: true });
@@ -379,14 +384,24 @@ export function useWithdrawPositionVacancyMutation() {
 }
 
 export function useWritePositionCommentMutation() {
-  const onSettled = useInvalidatingVeilleDesPostes(veilleDesPostesKeys.positionComment);
+  const onSettled = useInvalidatingVeilleDesPostes(({ position }: { position: CommentedPosition }) =>
+    veilleDesPostesKeys.positionComment(position),
+  );
   return useMutation({
-    mutationFn: async ({ comment, magistratId }: { comment: string; magistratId: string }) => {
-      await $api.veilleDesPostes.writePositionComment({
-        body: { comment },
-        path: { magistratId },
-        throwOnError: true,
-      });
+    mutationFn: async ({ comment, position }: { comment: string; position: CommentedPosition }) => {
+      if ('courtId' in position) {
+        await $api.veilleDesPostes.writeCourtComment({
+          body: { comment },
+          path: position,
+          throwOnError: true,
+        });
+      } else {
+        await $api.veilleDesPostes.writePositionComment({
+          body: { comment },
+          path: position,
+          throwOnError: true,
+        });
+      }
     },
     onSettled,
   });

@@ -1,3 +1,5 @@
+import type { WatchedPosition } from './position-alert';
+
 /** six lines of a tooltip at most: the side panel gives the whole comment */
 const PREVIEW_LENGTH = 300;
 
@@ -25,19 +27,25 @@ export function commentPreviewOf(comment: string | null): string | null {
   return comment;
 }
 
+/**
+ * the head of a court is commented on its court, which keeps the comment from one holder to the next and while
+ * vacant. The holders of the Cour de cassation share their positions: each one is commented on their own
+ */
+export type CommentedPosition = { courtId: string } | { magistratId: string; positionId: number };
+
+export function isCommentedOnCourt(watched: WatchedPosition): boolean {
+  return watched === 'COURT_OF_APPEAL_FIRST_PRESIDENT' || watched === 'JUDICIAL_COURT_PRESIDENT';
+}
+
 export class PositionCommentErased {
-  constructor(
-    readonly magistratId: string,
-    readonly positionId: number,
-  ) {}
+  constructor(readonly position: CommentedPosition) {}
 }
 
 export class PositionCommentWritten {
   constructor(
     readonly authorId: string,
     readonly comment: string,
-    readonly magistratId: string,
-    readonly positionId: number,
+    readonly position: CommentedPosition,
   ) {}
 }
 
@@ -46,17 +54,14 @@ export type PositionCommentEvent = PositionCommentErased | PositionCommentWritte
 export class PositionComment {
   readonly #messages: PositionCommentEvent[] = [];
 
-  private constructor(
-    readonly magistratId: string,
-    readonly positionId: number,
-  ) {}
+  private constructor(readonly position: CommentedPosition) {}
 
   get messages(): readonly PositionCommentEvent[] {
     return this.#messages;
   }
 
-  static of(props: { magistratId: string; positionId: number }): PositionComment {
-    return new PositionComment(props.magistratId, props.positionId);
+  static of(position: CommentedPosition): PositionComment {
+    return new PositionComment(position);
   }
 
   write(command: { authorId: string; comment: string }): void {
@@ -64,8 +69,8 @@ export class PositionComment {
 
     this.#messages.push(
       comment
-        ? new PositionCommentWritten(command.authorId, comment, this.magistratId, this.positionId)
-        : new PositionCommentErased(this.magistratId, this.positionId),
+        ? new PositionCommentWritten(command.authorId, comment, this.position)
+        : new PositionCommentErased(this.position),
     );
   }
 }

@@ -126,6 +126,13 @@ export class VeilleDesPostesController {
     });
   }
 
+  @Get('/juridictions/:courtId/commentaire')
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @ZodResponse({ status: HttpStatus.OK, type: FoundPositionCommentDto })
+  findCourtComment(@Param('courtId') courtId: string): Promise<FoundPositionCommentDto> {
+    return this.veilleDesPostes.findCourtComment({ courtId });
+  }
+
   @Get('/titulaires/:magistratId/commentaire')
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @ZodResponse({ status: HttpStatus.OK, type: FoundPositionCommentDto })
@@ -182,6 +189,18 @@ export class VeilleDesPostesController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async withdrawPositionVacancy(@Param('magistratId', ParseUUIDPipe) magistratId: string): Promise<void> {
     await this.veilleDesPostes.withdrawPositionVacancy({ magistratId });
+  }
+
+  @Put('/juridictions/:courtId/commentaire')
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @UsePipes(ZodValidationPipe)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async writeCourtComment(
+    @AuthedUserId() authorId: string,
+    @Param('courtId') courtId: string,
+    @Body() { comment }: WritePositionCommentDto,
+  ): Promise<void> {
+    await this.veilleDesPostes.writeCourtComment({ authorId, comment, courtId });
   }
 
   @Put('/titulaires/:magistratId/commentaire')
