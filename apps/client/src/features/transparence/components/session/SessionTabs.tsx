@@ -88,42 +88,42 @@ export function SessionTabsBar(props: { transparence: DetailedNominationSessionD
         end
         icon="fr-icon-list-unordered"
         label={formatMessage({ defaultMessage: 'Propositions' })}
-        to={generatePath(ROUTE_PATHS.SG.SESSION_ID, params)}
+        to={generatePath(ROUTE_PATHS.SG.GDS.SESSION_ID, params)}
       />
       <LinkTab
         count={observationsCount?.total}
         disabled={isSidePanelOpen}
         icon="fr-icon-chat-3-line"
         label={formatMessage({ defaultMessage: 'Observations' })}
-        to={generatePath(ROUTE_PATHS.SG.SESSION_ID_OBSERVATIONS, params)}
+        to={generatePath(ROUTE_PATHS.SG.GDS.SESSION_ID_OBSERVATIONS, params)}
       />
       <LinkTab
         count={auditionsCount}
         disabled={isSidePanelOpen}
         icon="fr-icon-speak-line"
         label={formatMessage({ defaultMessage: 'Auditions' })}
-        to={generatePath(ROUTE_PATHS.SG.SESSION_ID_AUDITIONS, params)}
+        to={generatePath(ROUTE_PATHS.SG.GDS.SESSION_ID_AUDITIONS, params)}
       />
       <LinkTab
         count={missingEvaluationsCount}
         disabled={isSidePanelOpen}
         icon="fr-icon-draft-line"
         label={formatMessage({ defaultMessage: 'Évaluations manquantes' })}
-        to={generatePath(ROUTE_PATHS.SG.SESSION_ID_MISSING_EVALUATIONS, params)}
+        to={generatePath(ROUTE_PATHS.SG.GDS.SESSION_ID_MISSING_EVALUATIONS, params)}
       />
       <LinkTab
         count={docsCount}
         disabled={isSidePanelOpen}
         icon="fr-icon-folder-2-line"
         label={formatMessage({ defaultMessage: 'Documents' })}
-        to={generatePath(ROUTE_PATHS.SG.SESSION_ID_DOCUMENTS, params)}
+        to={generatePath(ROUTE_PATHS.SG.GDS.SESSION_ID_DOCUMENTS, params)}
       />
       <LinkTab
         count={attachmentsCount}
         disabled={isSidePanelOpen}
         icon="ri-image-line"
         label={formatMessage({ defaultMessage: 'Pièces jointes' })}
-        to={generatePath(ROUTE_PATHS.SG.SESSION_ID_ATTACHMENTS, params)}
+        to={generatePath(ROUTE_PATHS.SG.GDS.SESSION_ID_ATTACHMENTS, params)}
       />
     </LinkTabs>
   );

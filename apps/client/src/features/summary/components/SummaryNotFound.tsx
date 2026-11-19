@@ -18,7 +18,7 @@ export function SummaryNotFound() {
   if (isSg) {
     buttons.push({
       children: <FormattedMessage defaultMessage="Liste des propositions" />,
-      linkProps: { to: ROUTE_PATHS.SG.SESSION_ID.replace(':sessionId', sessionId) },
+      linkProps: { to: ROUTE_PATHS.SG.GDS.SESSION_ID.replace(':sessionId', sessionId) },
       priority: 'primary',
     });
   } else {

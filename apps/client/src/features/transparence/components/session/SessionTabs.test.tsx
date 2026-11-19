@@ -45,7 +45,7 @@ function renderTabs(children: ReactNode, initialPath: string, openedDossier?: st
   );
 }
 
-function renderBar(initialPath = '/secretariat-general/session/session-1', openedDossier?: string) {
+function renderBar(initialPath = '/secretariat-general/gds/session/session-1', openedDossier?: string) {
   return renderTabs(<SessionTabsBar transparence={TRANSPARENCE} />, initialPath, openedDossier);
 }
 
@@ -61,19 +61,19 @@ describe('SessionTabsBar', () => {
 
     expect(screen.getByRole('link', { name: 'Propositions 12' })).toHaveAttribute(
       'href',
-      '/secretariat-general/session/session-1',
+      '/secretariat-general/gds/session/session-1',
     );
     expect(screen.getByRole('link', { name: 'Évaluations manquantes 3' })).toHaveAttribute(
       'href',
-      '/secretariat-general/session/session-1/evaluations-manquantes',
+      '/secretariat-general/gds/session/session-1/evaluations-manquantes',
     );
     expect(screen.getByRole('link', { name: 'Documents 2' })).toHaveAttribute(
       'href',
-      '/secretariat-general/session/session-1/documents',
+      '/secretariat-general/gds/session/session-1/documents',
     );
     expect(screen.getByRole('link', { name: 'Pièces jointes 1' })).toHaveAttribute(
       'href',
-      '/secretariat-general/session/session-1/pieces-jointes',
+      '/secretariat-general/gds/session/session-1/pieces-jointes',
     );
   });
 
@@ -85,14 +85,14 @@ describe('SessionTabsBar', () => {
   });
 
   it('should mark the attachments as the current section on their own path', () => {
-    renderBar('/secretariat-general/session/session-1/pieces-jointes');
+    renderBar('/secretariat-general/gds/session/session-1/pieces-jointes');
 
     expect(screen.getByRole('link', { name: 'Pièces jointes 1' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('link', { name: 'Propositions 12' })).not.toHaveAttribute('aria-current');
   });
 
   it('should disable every section but the propositions while a dossier panel is open', () => {
-    renderBar('/secretariat-general/session/session-1', 'dossier-1');
+    renderBar('/secretariat-general/gds/session/session-1', 'dossier-1');
 
     expect(screen.getByRole('link', { name: 'Propositions 12' })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Évaluations manquantes 3' })).toBeNull();

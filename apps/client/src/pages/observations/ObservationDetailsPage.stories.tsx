@@ -58,7 +58,7 @@ const OBSERVATION: GetObservationDetailsResponseDto = {
 
 const PATHS = {
   member: ROUTE_PATHS.TRANSPARENCES.OBSERVATION_DETAILS,
-  sg: ROUTE_PATHS.SG.OBSERVATION_DETAILS,
+  sg: ROUTE_PATHS.SG.GDS.OBSERVATION_DETAILS,
 } satisfies Record<StoryView, string>;
 
 function ObservationDetailsPageStory(props: { followUp: ObservationFollowUpEnum | null; view: StoryView }) {

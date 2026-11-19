@@ -283,7 +283,7 @@ function PropositionLink(props: {
   const { nominationFileId, observationId } = props.proposition;
   const { sessionId } = useNominationFilesTable();
   const filesPath =
-    props.context === 'membre' ? ROUTE_PATHS.TRANSPARENCES.DETAIL_SESSION_GDS : ROUTE_PATHS.SG.SESSION_ID;
+    props.context === 'membre' ? ROUTE_PATHS.TRANSPARENCES.DETAIL_SESSION_GDS : ROUTE_PATHS.SG.GDS.SESSION_ID;
   const to = observationId
     ? getObservationDetailsPath({ context: props.context, nominationFileId, observationId, sessionId })
     : { pathname: generatePath(filesPath, { sessionId }), search: openedDossierSearch(nominationFileId) };

@@ -57,7 +57,9 @@ function OfficialReportPreviewPageStory(props: {
   storyMetadata = metadata;
 
   const path =
-    props.mode === 'edit' ? ROUTE_PATHS.SG.OFFICIAL_REPORT_EDIT : ROUTE_PATHS.SG.OFFICIAL_REPORT_PREVIEW;
+    props.mode === 'edit'
+      ? ROUTE_PATHS.SG.GDS.OFFICIAL_REPORT_EDIT
+      : ROUTE_PATHS.SG.GDS.OFFICIAL_REPORT_PREVIEW;
 
   return (
     <PageStory

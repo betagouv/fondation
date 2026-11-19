@@ -73,7 +73,7 @@ describe('AgendaLayout', () => {
     expect(screen.getByRole('heading', { name: 'Ordre du jour introuvable' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Documents de la session' })).toHaveAttribute(
       'href',
-      '/secretariat-general/session/session-1/documents',
+      '/secretariat-general/gds/session/session-1/documents',
     );
     expect(screen.queryByRole('heading', { name: 'Ordre du jour du 12 mars' })).not.toBeInTheDocument();
   });

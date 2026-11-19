@@ -67,7 +67,7 @@ export function NewOfficialReportButton(props: { agenda: AgendaDocument; session
         iconPosition="right"
         linkProps={{
           state: { agendaId: props.agenda.id },
-          to: generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_NEW, { sessionId: props.sessionId }),
+          to: generatePath(ROUTE_PATHS.SG.GDS.OFFICIAL_REPORT_NEW, { sessionId: props.sessionId }),
         }}
         priority="secondary"
         size="small"

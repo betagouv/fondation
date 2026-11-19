@@ -220,4 +220,15 @@ describe('Observation', () => {
       ).toThrow(UserNotAllowedToAttachScreenshotsError);
     });
   });
+
+  it.each([
+    { canEdit: true, isArchived: false, role: 'ADJOINT_SECRETAIRE_GENERAL' },
+    { canEdit: false, isArchived: true, role: 'ADJOINT_SECRETAIRE_GENERAL' },
+    { canEdit: false, isArchived: false, role: 'MEMBRE_COMMUN' },
+  ] as const)(
+    'lets only the secretariat edit, in a session not archived: $role, archived $isArchived',
+    (row) => {
+      expect(Observation.canEdit(row)).toBe(row.canEdit);
+    },
+  );
 });

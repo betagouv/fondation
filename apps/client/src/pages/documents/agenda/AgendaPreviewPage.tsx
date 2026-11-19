@@ -32,7 +32,7 @@ export function AgendaPreviewPage() {
   const returnPath: string =
     typeof state?.returnPath === 'string'
       ? state.returnPath
-      : generatePath(ROUTE_PATHS.SG.SESSION_ID_DOCUMENTS, { sessionId: sessionId! });
+      : generatePath(ROUTE_PATHS.SG.GDS.SESSION_ID_DOCUMENTS, { sessionId: sessionId! });
 
   const { data: html, error: htmlError, isPending } = useAgendaHtmlQuery({ id: agendaId });
   const { data: metadata, isFetching: isFetchingMetadata } = useDetailsAgendaMetadataQuery({ agendaId });
@@ -83,7 +83,7 @@ export function AgendaPreviewPage() {
         <>
           <Button
             linkProps={{
-              to: generatePath(ROUTE_PATHS.SG.AGENDA_UPDATE_METADATA, {
+              to: generatePath(ROUTE_PATHS.SG.GDS.AGENDA_UPDATE_METADATA, {
                 agendaId: agendaId!,
                 sessionId: sessionId!,
               }),
@@ -94,7 +94,7 @@ export function AgendaPreviewPage() {
           </Button>
           <Button
             linkProps={{
-              to: generatePath(ROUTE_PATHS.SG.AGENDA_UPDATE_FILES, {
+              to: generatePath(ROUTE_PATHS.SG.GDS.AGENDA_UPDATE_FILES, {
                 agendaId: agendaId!,
                 sessionId: sessionId!,
               }),
@@ -105,7 +105,7 @@ export function AgendaPreviewPage() {
           </Button>
           <Button
             linkProps={{
-              to: generatePath(ROUTE_PATHS.SG.AGENDA_EDIT, {
+              to: generatePath(ROUTE_PATHS.SG.GDS.AGENDA_EDIT, {
                 agendaId: agendaId!,
                 sessionId: sessionId!,
               }),
@@ -156,7 +156,7 @@ export function AgendaPreviewPage() {
             )}
             {metadata?.outdated && (
               <AgendaReportersChangedBanner
-                editionPath={generatePath(ROUTE_PATHS.SG.AGENDA_EDIT, {
+                editionPath={generatePath(ROUTE_PATHS.SG.GDS.AGENDA_EDIT, {
                   agendaId: agendaId!,
                   sessionId: sessionId!,
                 })}

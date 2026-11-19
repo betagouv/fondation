@@ -19,7 +19,7 @@ vi.mock('@/shared/ui/toast', () => ({ useToasts: () => ({ error: vi.fn(), succes
 describe('FeedbackButton', () => {
   it('sends the feedback with the page it was made on, its opened side panel included', async () => {
     // the way nuqs opens a side panel: in the address only
-    window.history.replaceState(null, '', '/secretariat-general/session/1?dossier=42');
+    window.history.replaceState(null, '', '/secretariat-general/gds/session/1?dossier=42');
     render(
       <IntlProvider defaultLocale="fr" locale="fr">
         <FloatingActionsProvider>
@@ -36,7 +36,7 @@ describe('FeedbackButton', () => {
     await user.click(screen.getByRole('button', { name: 'Envoyer' }));
 
     expect(mutate).toHaveBeenCalledWith(
-      { text: 'Ce libellé est trompeur', url: '/secretariat-general/session/1?dossier=42' },
+      { text: 'Ce libellé est trompeur', url: '/secretariat-general/gds/session/1?dossier=42' },
       expect.anything(),
     );
     expect(success).toHaveBeenCalledOnce();

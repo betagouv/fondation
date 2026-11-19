@@ -25,7 +25,7 @@ export function SummaryDetailsHeader() {
 
   const sessionPath = {
     pathname: isSg
-      ? ROUTE_PATHS.SG.SESSION_ID.replace(':sessionId', sessionId)
+      ? ROUTE_PATHS.SG.GDS.SESSION_ID.replace(':sessionId', sessionId)
       : ROUTE_PATHS.TRANSPARENCES.DETAIL_SESSION_GDS.replace(':sessionId', sessionId),
     search: openedDossierSearch(nominationFileId),
   };

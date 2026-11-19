@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { backToFilesListSearch, redirectToMemberMagistratDetails } from './route-path.utils';
+import {
+  backToFilesListSearch,
+  redirectToGdsPath,
+  redirectToMemberMagistratDetails,
+} from './route-path.utils';
 
 describe('redirectToMemberMagistratDetails', () => {
   it('redirects the old transparence URL to the member magistrat details page', () => {
@@ -10,6 +14,19 @@ describe('redirectToMemberMagistratDetails', () => {
 
     expect(response.status).toBe(302);
     expect(response.headers.get('Location')).toBe('/magistrats/magistrat-1');
+  });
+});
+
+describe('redirectToGdsPath', () => {
+  it('moves an old GDS URL under /gds and keeps the opened file', () => {
+    const response = redirectToGdsPath({
+      request: new Request('http://localhost/secretariat-general/session/session-1/documents?dossier=file-1'),
+    });
+
+    expect(response.status).toBe(302);
+    expect(response.headers.get('Location')).toBe(
+      '/secretariat-general/gds/session/session-1/documents?dossier=file-1',
+    );
   });
 });
 

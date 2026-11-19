@@ -22,7 +22,7 @@ export function DocActionAgendaFiles(props: {
         { name: props.name },
       )}
       small
-      to={generatePath(ROUTE_PATHS.SG.AGENDA_UPDATE_FILES, {
+      to={generatePath(ROUTE_PATHS.SG.GDS.AGENDA_UPDATE_FILES, {
         agendaId: props.agendaId,
         sessionId: props.sessionId,
       })}

@@ -64,7 +64,7 @@ export function AgendaDocumentEditor(props: {
         toasts.error({
           action: {
             label: formatMessage({ defaultMessage: 'Voir les documents de la session' }),
-            onClick: () => navigate(generatePath(ROUTE_PATHS.SG.SESSION_ID_DOCUMENTS, { sessionId })),
+            onClick: () => navigate(generatePath(ROUTE_PATHS.SG.GDS.SESSION_ID_DOCUMENTS, { sessionId })),
           },
           description: formatMessage({
             defaultMessage:
@@ -91,7 +91,7 @@ export function AgendaDocumentEditor(props: {
   // changes guard's business, which asks before anything is sent
   const onPreview = useCallback(
     async () =>
-      navigate(generatePath(ROUTE_PATHS.SG.AGENDA_PREVIEW, { agendaId: model.agendaId, sessionId })),
+      navigate(generatePath(ROUTE_PATHS.SG.GDS.AGENDA_PREVIEW, { agendaId: model.agendaId, sessionId })),
     [model.agendaId, navigate, sessionId],
   );
 

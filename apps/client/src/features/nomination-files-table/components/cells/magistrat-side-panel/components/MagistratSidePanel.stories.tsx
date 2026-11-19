@@ -44,7 +44,7 @@ const SESSION_ID = 'session-1';
 
 const PATHS = {
   member: ROUTE_PATHS.TRANSPARENCES.DETAIL_SESSION_GDS,
-  sg: ROUTE_PATHS.SG.SESSION_ID,
+  sg: ROUTE_PATHS.SG.GDS.SESSION_ID,
 } satisfies Record<StoryView, string>;
 
 const NONE = 'none';
@@ -382,6 +382,7 @@ const handlers = [
   ),
   http.get('*/api/sessions/v2/:sessionId/files/:nominationFileId/observations', ({ params }) =>
     HttpResponse.json<ListObservationsResponseDto>({
+      canManageAttachments: !!canManageAttachmentsByFile.get(String(params.nominationFileId)),
       observations: observationsByFile.get(String(params.nominationFileId)) ?? [],
     }),
   ),

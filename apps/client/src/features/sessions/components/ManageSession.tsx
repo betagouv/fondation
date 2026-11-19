@@ -35,7 +35,7 @@ function useManagedSessionColumns() {
     () => [
       h.accessor('name', {
         cell: ({ row }) => (
-          <Link to={generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId: row.original.id })}>
+          <Link to={generatePath(ROUTE_PATHS.SG.GDS.SESSION_ID, { sessionId: row.original.id })}>
             {row.original.name}
           </Link>
         ),
@@ -197,7 +197,7 @@ export function ManageSession() {
           className="fr-mt-6v"
           closable
           description={
-            <Link to={generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId: createdSession.id })}>
+            <Link to={generatePath(ROUTE_PATHS.SG.GDS.SESSION_ID, { sessionId: createdSession.id })}>
               <FormattedMessage defaultMessage="Ouvrir la session" />
             </Link>
           }

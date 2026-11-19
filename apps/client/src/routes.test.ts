@@ -1,10 +1,11 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import type { LoaderFunction, LoaderFunctionArgs, RouteObject } from 'react-router';
+import { matchRoutes, type LoaderFunction, type LoaderFunctionArgs, type RouteObject } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { AUTHORIZED_ROLES } from '@/features/auth/constants/authorized-roles.constants';
+import { redirectToGdsPath, ROUTE_PATHS } from '@/utils/route-path.utils';
 import { queryClient } from '@queries/query-client';
 
 import { routes } from './routes';
@@ -113,4 +114,33 @@ describe('routes', () => {
 
     expect(listedAccesses(listing).toSorted(byPath)).toEqual(accesses.toSorted(byPath));
   });
+
+  it.each([
+    '/secretariat-general/archives/sessions',
+    '/secretariat-general/membres',
+    '/secretariat-general/membres/user-1',
+    '/secretariat-general/restitutions/plan-1/validation',
+    '/secretariat-general/session/session-1/dossiers/file-1/observations/observation-1',
+    '/secretariat-general/sessions',
+    '/secretariat-general/suivi-des-observations',
+  ])('redirect the old GDS URL %s under /gds', (pathname) => {
+    expect(matchRoutes(routes, pathname)?.at(-1)?.route.loader).toBe(redirectToGdsPath);
+  });
+
+  it.each([
+    ['/secretariat-general/gds', ROUTE_PATHS.SG.GDS.MANAGE_SESSION],
+    ['/secretariat-general/restitutions/passees', ROUTE_PATHS.SG.GDS.PRESENTATIONS_PAST],
+  ])('redirect %s to %s', async (pathname, location) => {
+    const loader = matchRoutes(routes, pathname)?.at(-1)?.route.loader as LoaderFunction;
+    const response = (await loader({} as LoaderFunctionArgs)) as Response;
+
+    expect(response.headers.get('Location')).toBe(location);
+  });
+
+  it.each([ROUTE_PATHS.SG.MAGISTRAT_SEARCH, '/secretariat-general/magistrats/magistrat-1'])(
+    'leave the page %s common to both pouvoirs where it is',
+    (pathname) => {
+      expect(matchRoutes(routes, pathname)?.at(-1)?.route.loader).toBeUndefined();
+    },
+  );
 });

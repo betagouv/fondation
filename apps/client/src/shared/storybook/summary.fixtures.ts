@@ -78,14 +78,23 @@ const SUMMARY_OBSERVATIONS: ListObservationsResponseDto['observations'] = [
     files: [],
     followUp: null,
     id: 'observation-2',
-    magistrat: null,
+    magistrat: {
+      currentPosition: null,
+      firstName: 'Paul',
+      id: 'magistrat-durand',
+      lastName: 'Durand',
+      name: 'DURAND Paul',
+    },
     observantObservationsCount: 1,
   },
 ];
 
 export const summaryObservationsHandlers = [
   http.get('*/api/sessions/v2/:sessionId/files/:nominationFileId/observations', () =>
-    HttpResponse.json<ListObservationsResponseDto>({ observations: SUMMARY_OBSERVATIONS }),
+    HttpResponse.json<ListObservationsResponseDto>({
+      canManageAttachments: false,
+      observations: SUMMARY_OBSERVATIONS,
+    }),
   ),
 ];
 

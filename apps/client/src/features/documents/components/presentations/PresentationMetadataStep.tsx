@@ -78,7 +78,7 @@ export function PresentationMetadataStep(props: { className?: string }) {
 
   useEffect(() => {
     if (!Object.keys(state.agendas).length) {
-      navigate(ROUTE_PATHS.SG.PRESENTATIONS_READY);
+      navigate(ROUTE_PATHS.SG.GDS.PRESENTATIONS_READY);
     }
   }, [state.agendas, navigate]);
 
@@ -221,7 +221,7 @@ export function PresentationMetadataStep(props: { className?: string }) {
           {
             children: 'Annuler',
             priority: 'secondary',
-            onClick: () => navigate(ROUTE_PATHS.SG.PRESENTATIONS_READY),
+            onClick: () => navigate(ROUTE_PATHS.SG.GDS.PRESENTATIONS_READY),
             type: 'button',
           },
           {

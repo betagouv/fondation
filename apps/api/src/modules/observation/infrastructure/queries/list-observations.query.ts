@@ -10,6 +10,7 @@ import { Db } from '../../../framework/database';
 import { magistratFullName } from '../../../magistrat/domain/magistrat-name';
 import { TransparenceService } from '../../../session/transparence/infrastructure/transparence.service';
 import type { RoleEnum } from '../../../shared/role.enum';
+import { Observation } from '../../domain/observation';
 import { ObservationFollowUp } from '../../domain/observation-follow-up';
 
 const ObservationFileSchema = z.object({
@@ -27,15 +28,13 @@ const ObservationSchema = z.object({
   description: z.string(),
   followUp: z.enum(ObservationFollowUp.enum).nullable(),
   observantObservationsCount: z.number().int(),
-  magistrat: z
-    .object({
-      id: z.string(),
-      firstName: z.string(),
-      lastName: z.string(),
-      name: z.string(),
-      currentPosition: z.string().nullable(),
-    })
-    .nullable(),
+  magistrat: z.object({
+    id: z.string(),
+    firstName: z.string(),
+    lastName: z.string(),
+    name: z.string(),
+    currentPosition: z.string().nullable(),
+  }),
   createdBy: z
     .object({
       id: z.string(),
@@ -51,6 +50,7 @@ export class ObservationDto extends createZodDto(ObservationSchema) {}
 
 export class ListObservationsResponseDto extends createZodDto(
   z.object({
+    canManageAttachments: z.boolean().describe('renaming or detaching the files, not adding some'),
     observations: z.array(ObservationSchema),
   }),
 ) {}
@@ -69,7 +69,9 @@ export class ListObservationsQuery {
     role: RoleEnum;
     sessionId: string;
   }): Promise<ListObservationsResponseDto> {
-    await this.transparences.internalGetVisibleSession(query);
+    const session = await this.transparences.internalGetVisibleSession(query);
+    const isNominationFileLocked = await this.transparences.internalIsNominationFileLocked(query);
+    const canEdit = Observation.canEdit({ isArchived: session.isArchived, role: query.role });
 
     const observations = await this.db.tx.observation.findMany({
       orderBy: { createdAt: 'desc' },
@@ -111,9 +113,7 @@ export class ListObservationsQuery {
       where: { nominationFileId: query.nominationFileId, sessionId: query.sessionId },
     });
 
-    const magistratIds = [
-      ...new Set(observations.map((obs) => obs.magistrat?.id).filter((id) => id !== undefined)),
-    ];
+    const magistratIds = [...new Set(observations.map((obs) => obs.magistrat.id))];
     const positions = magistratIds.length
       ? await this.db.tx.$queryRawTyped(findMagistratsCurrentPositionRawQuery(magistratIds))
       : [];
@@ -133,9 +133,10 @@ export class ListObservationsQuery {
     );
 
     return {
+      canManageAttachments: Observation.canManageAttachments({ canEdit, isNominationFileLocked }),
       observations: observations.map((obs) => {
         return {
-          audition: (obs.magistrat && auditions.get(obs.magistrat.id)) ?? null,
+          audition: auditions.get(obs.magistrat.id) ?? null,
           createdAt: obs.createdAt.toISOString(),
           createdBy: obs.createdByUser,
           dateReception: obs.dateReception.toISOString(),
@@ -149,17 +150,14 @@ export class ListObservationsQuery {
           })),
           followUp: obs.followUp,
           id: obs.id,
-          magistrat: obs.magistrat
-            ? {
-                currentPosition: positionByMagistratId.get(obs.magistrat.id) || null,
-                firstName: obs.magistrat.firstName,
-                id: obs.magistrat.id,
-                lastName: obs.magistrat.lastName,
-                name: magistratFullName(obs.magistrat),
-              }
-            : null,
-          observantObservationsCount:
-            (obs.magistrat && observationCountByMagistratId.get(obs.magistrat.id)) ?? 1,
+          magistrat: {
+            currentPosition: positionByMagistratId.get(obs.magistrat.id) || null,
+            firstName: obs.magistrat.firstName,
+            id: obs.magistrat.id,
+            lastName: obs.magistrat.lastName,
+            name: magistratFullName(obs.magistrat),
+          },
+          observantObservationsCount: observationCountByMagistratId.get(obs.magistrat.id) ?? 1,
         };
       }),
     };

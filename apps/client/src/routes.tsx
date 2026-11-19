@@ -10,7 +10,12 @@ import {
   courtOfCassationPositionPath,
   FIRST_COURT_OF_CASSATION_POSITION,
 } from '@/pages/veille-des-postes/court-of-cassation-position-paths';
-import { redirectToMemberMagistratDetails, ROUTE_PATHS } from '@/utils/route-path.utils';
+import {
+  LEGACY_GDS_PATHS,
+  redirectToGdsPath,
+  redirectToMemberMagistratDetails,
+  ROUTE_PATHS,
+} from '@/utils/route-path.utils';
 
 export const routes: RouteObject[] = [
   {
@@ -170,9 +175,14 @@ export const routes: RouteObject[] = [
               ),
           },
           {
-            loader: () => redirect(ROUTE_PATHS.SG.MANAGE_SESSION),
+            loader: () => redirect(ROUTE_PATHS.SG.GDS.MANAGE_SESSION),
             path: '/secretariat-general/nouvelle-transparence',
           },
+          {
+            loader: () => redirect(ROUTE_PATHS.SG.GDS.MANAGE_SESSION),
+            path: ROUTE_PATHS.SG.GDS.ROOT,
+          },
+          ...LEGACY_GDS_PATHS.map((path) => ({ loader: redirectToGdsPath, path })),
           {
             children: [
               {
@@ -250,7 +260,7 @@ export const routes: RouteObject[] = [
                   import('@/pages/transparence/TransparenceObservationsTab').then(
                     ({ TransparenceObservationsTab }) => ({ Component: TransparenceObservationsTab }),
                   ),
-                path: ROUTE_PATHS.SG.SESSION_ID_OBSERVATIONS,
+                path: ROUTE_PATHS.SG.GDS.SESSION_ID_OBSERVATIONS,
               },
               {
                 lazy: () =>
@@ -259,7 +269,7 @@ export const routes: RouteObject[] = [
                       Component: TransparenceAuditionsTab,
                     }),
                   ),
-                path: ROUTE_PATHS.SG.SESSION_ID_AUDITIONS,
+                path: ROUTE_PATHS.SG.GDS.SESSION_ID_AUDITIONS,
               },
               {
                 lazy: () =>
@@ -268,42 +278,42 @@ export const routes: RouteObject[] = [
                       Component: TransparenceMissingEvaluationsTab,
                     }),
                   ),
-                path: ROUTE_PATHS.SG.SESSION_ID_MISSING_EVALUATIONS,
+                path: ROUTE_PATHS.SG.GDS.SESSION_ID_MISSING_EVALUATIONS,
               },
               {
                 lazy: () =>
                   import('@/pages/transparence/TransparenceDocumentsTab').then(
                     ({ TransparenceDocumentsTab }) => ({ Component: TransparenceDocumentsTab }),
                   ),
-                path: ROUTE_PATHS.SG.SESSION_ID_DOCUMENTS,
+                path: ROUTE_PATHS.SG.GDS.SESSION_ID_DOCUMENTS,
               },
               {
                 lazy: () =>
                   import('@/pages/transparence/TransparenceAttachmentsTab').then(
                     ({ TransparenceAttachmentsTab }) => ({ Component: TransparenceAttachmentsTab }),
                   ),
-                path: ROUTE_PATHS.SG.SESSION_ID_ATTACHMENTS,
+                path: ROUTE_PATHS.SG.GDS.SESSION_ID_ATTACHMENTS,
               },
             ],
             lazy: () =>
               import('@/pages/transparence/TransparencePage').then(({ TransparencePage }) => ({
                 Component: TransparencePage,
               })),
-            path: ROUTE_PATHS.SG.SESSION_ID,
+            path: ROUTE_PATHS.SG.GDS.SESSION_ID,
           },
           {
             lazy: () =>
               import('@/pages/transparence/SessionCommentPage').then(({ SessionCommentPage }) => ({
                 Component: SessionCommentPage,
               })),
-            path: ROUTE_PATHS.SG.SESSION_ID_COMMENT,
+            path: ROUTE_PATHS.SG.GDS.SESSION_ID_COMMENT,
           },
           {
             lazy: () =>
               import('@/pages/observations/ObservationDetailsPage').then(({ ObservationDetailsPage }) => ({
                 Component: ObservationDetailsPage,
               })),
-            path: ROUTE_PATHS.SG.OBSERVATION_DETAILS,
+            path: ROUTE_PATHS.SG.GDS.OBSERVATION_DETAILS,
           },
           {
             lazy: () =>
@@ -324,35 +334,35 @@ export const routes: RouteObject[] = [
               import('@/pages/sessions/ManageSessionPage').then(({ ManageSessionPage }) => ({
                 Component: ManageSessionPage,
               })),
-            path: ROUTE_PATHS.SG.MANAGE_SESSION,
+            path: ROUTE_PATHS.SG.GDS.MANAGE_SESSION,
           },
           {
             lazy: () =>
               import('@/pages/sessions/ArchivedSessionsPage').then(({ ArchivedSessionsPage }) => ({
                 Component: ArchivedSessionsPage,
               })),
-            path: ROUTE_PATHS.SG.ARCHIVED_SESSIONS,
+            path: ROUTE_PATHS.SG.GDS.ARCHIVED_SESSIONS,
           },
           {
             lazy: () =>
               import('@/pages/observations/FollowedUpObservationsPage').then(
                 ({ FollowedUpObservationsPage }) => ({ Component: FollowedUpObservationsPage }),
               ),
-            path: ROUTE_PATHS.SG.FOLLOWED_UP_OBSERVATIONS,
+            path: ROUTE_PATHS.SG.GDS.FOLLOWED_UP_OBSERVATIONS,
           },
           {
             lazy: () =>
               import('@/pages/members/MemberListPage').then(({ MemberListPage }) => ({
                 Component: MemberListPage,
               })),
-            path: ROUTE_PATHS.SG.MANAGE_MEMBERS,
+            path: ROUTE_PATHS.SG.GDS.MANAGE_MEMBERS,
           },
           {
             lazy: () =>
               import('@/pages/members/DetailsMemberPage').then(({ DetailsMemberPage }) => ({
                 Component: DetailsMemberPage,
               })),
-            path: ROUTE_PATHS.SG.MANAGE_SINGLE_MEMBER,
+            path: ROUTE_PATHS.SG.GDS.MANAGE_SINGLE_MEMBER,
           },
           {
             children: [
@@ -361,35 +371,35 @@ export const routes: RouteObject[] = [
                   import('@/pages/documents/agenda/AgendaPage').then(({ CreateAgendaPage }) => ({
                     Component: CreateAgendaPage,
                   })),
-                path: ROUTE_PATHS.SG.AGENDA_NEW,
+                path: ROUTE_PATHS.SG.GDS.AGENDA_NEW,
               },
               {
                 lazy: () =>
                   import('@/pages/documents/agenda/AgendaUpdateMetadataPage').then(
                     ({ AgendaUpdateMetadataPage }) => ({ Component: AgendaUpdateMetadataPage }),
                   ),
-                path: ROUTE_PATHS.SG.AGENDA_UPDATE_METADATA,
+                path: ROUTE_PATHS.SG.GDS.AGENDA_UPDATE_METADATA,
               },
               {
                 lazy: () =>
                   import('@/pages/documents/agenda/AgendaUpdateFilesPage').then(
                     ({ AgendaUpdateFilesPage }) => ({ Component: AgendaUpdateFilesPage }),
                   ),
-                path: ROUTE_PATHS.SG.AGENDA_UPDATE_FILES,
+                path: ROUTE_PATHS.SG.GDS.AGENDA_UPDATE_FILES,
               },
               {
                 lazy: () =>
                   import('@/pages/documents/agenda/AgendaPreviewPage').then(({ AgendaPreviewPage }) => ({
                     Component: AgendaPreviewPage,
                   })),
-                path: ROUTE_PATHS.SG.AGENDA_PREVIEW,
+                path: ROUTE_PATHS.SG.GDS.AGENDA_PREVIEW,
               },
               {
                 lazy: () =>
                   import('@/pages/documents/agenda/AgendaEditPage').then(({ AgendaEditPage }) => ({
                     Component: AgendaEditPage,
                   })),
-                path: ROUTE_PATHS.SG.AGENDA_EDIT,
+                path: ROUTE_PATHS.SG.GDS.AGENDA_EDIT,
               },
             ],
             lazy: () =>
@@ -406,7 +416,7 @@ export const routes: RouteObject[] = [
                       Component: CreateOrUpdateOfficialReportPage,
                     }),
                   ),
-                path: ROUTE_PATHS.SG.OFFICIAL_REPORT_NEW,
+                path: ROUTE_PATHS.SG.GDS.OFFICIAL_REPORT_NEW,
               },
               {
                 lazy: () =>
@@ -415,21 +425,21 @@ export const routes: RouteObject[] = [
                       Component: CreateOrUpdateOfficialReportPage,
                     }),
                   ),
-                path: ROUTE_PATHS.SG.OFFICIAL_REPORT_UPDATE,
+                path: ROUTE_PATHS.SG.GDS.OFFICIAL_REPORT_UPDATE,
               },
               {
                 lazy: () =>
                   import('@/pages/documents/official-report/OfficialReportPreviewPage').then(
                     ({ OfficialReportPreviewPage }) => ({ Component: OfficialReportPreviewPage }),
                   ),
-                path: ROUTE_PATHS.SG.OFFICIAL_REPORT_PREVIEW,
+                path: ROUTE_PATHS.SG.GDS.OFFICIAL_REPORT_PREVIEW,
               },
               {
                 lazy: () =>
                   import('@/pages/documents/official-report/OfficialReportEditPage').then(
                     ({ OfficialReportEditPage }) => ({ Component: OfficialReportEditPage }),
                   ),
-                path: ROUTE_PATHS.SG.OFFICIAL_REPORT_EDIT,
+                path: ROUTE_PATHS.SG.GDS.OFFICIAL_REPORT_EDIT,
               },
             ],
             lazy: () =>
@@ -446,10 +456,10 @@ export const routes: RouteObject[] = [
                       import('@/pages/documents/presentations/PresentationsTabAgendas').then(
                         ({ PresentationsTabAgendas }) => ({ Component: PresentationsTabAgendas }),
                       ),
-                    path: ROUTE_PATHS.SG.PRESENTATIONS_AGENDAS,
+                    path: ROUTE_PATHS.SG.GDS.PRESENTATIONS_AGENDAS,
                   },
                   {
-                    loader: () => redirect(ROUTE_PATHS.SG.PRESENTATIONS_PAST),
+                    loader: () => redirect(ROUTE_PATHS.SG.GDS.PRESENTATIONS_PAST),
                     path: '/secretariat-general/restitutions/passees',
                   },
                   {
@@ -457,14 +467,14 @@ export const routes: RouteObject[] = [
                       import('@/pages/documents/presentations/PresentationsTabPast').then(
                         ({ PresentationsTabPast }) => ({ Component: PresentationsTabPast }),
                       ),
-                    path: ROUTE_PATHS.SG.PRESENTATIONS_PAST,
+                    path: ROUTE_PATHS.SG.GDS.PRESENTATIONS_PAST,
                   },
                   {
                     lazy: () =>
                       import('@/pages/documents/presentations/PresentationsTabReady').then(
                         ({ PresentationsTabReady }) => ({ Component: PresentationsTabReady }),
                       ),
-                    path: ROUTE_PATHS.SG.PRESENTATIONS_READY,
+                    path: ROUTE_PATHS.SG.GDS.PRESENTATIONS_READY,
                   },
                 ],
                 lazy: () =>
@@ -479,7 +489,7 @@ export const routes: RouteObject[] = [
                   import('@/pages/documents/presentations/PresentationUpsertPage').then(
                     ({ PresentationUpsertPage }) => ({ Component: PresentationUpsertPage }),
                   ),
-                path: ROUTE_PATHS.SG.PRESENTATIONS_NEW,
+                path: ROUTE_PATHS.SG.GDS.PRESENTATIONS_NEW,
               },
               {
                 children: [
@@ -488,21 +498,21 @@ export const routes: RouteObject[] = [
                       import('@/pages/documents/presentations/PresentationUpsertPage').then(
                         ({ PresentationUpsertPage }) => ({ Component: PresentationUpsertPage }),
                       ),
-                    path: ROUTE_PATHS.SG.PRESENTATIONS_UPDATE,
+                    path: ROUTE_PATHS.SG.GDS.PRESENTATIONS_UPDATE,
                   },
                   {
                     lazy: () =>
                       import('@/pages/documents/presentations/PresentationsPreviewPage').then(
                         ({ PresentationPreviewPage }) => ({ Component: PresentationPreviewPage }),
                       ),
-                    path: ROUTE_PATHS.SG.PRESENTATIONS_PREVIEW,
+                    path: ROUTE_PATHS.SG.GDS.PRESENTATIONS_PREVIEW,
                   },
                   {
                     lazy: () =>
                       import('@/pages/documents/presentations/PresentationEditPage').then(
                         ({ PresentationEditPage }) => ({ Component: PresentationEditPage }),
                       ),
-                    path: ROUTE_PATHS.SG.PRESENTATIONS_EDIT,
+                    path: ROUTE_PATHS.SG.GDS.PRESENTATIONS_EDIT,
                   },
                 ],
                 lazy: () =>
@@ -532,7 +542,7 @@ export const routes: RouteObject[] = [
             path: ROUTE_PATHS.ADMIN.INGEST_LOLFI,
           },
           {
-            loader: () => redirect(ROUTE_PATHS.SG.MANAGE_SESSION),
+            loader: () => redirect(ROUTE_PATHS.SG.GDS.MANAGE_SESSION),
             path: '/admin/lodam',
           },
           {

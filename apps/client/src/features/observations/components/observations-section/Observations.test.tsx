@@ -4,6 +4,8 @@ import { IntlProvider } from 'react-intl';
 import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { ValidationError } from '@/utils/validation-error';
+
 import { Observations } from './Observations';
 
 const isSg = vi.fn(() => true);
@@ -20,7 +22,7 @@ const makeObservation = (id: string) => ({
   files: [],
   followUp: null,
   id,
-  magistrat: null,
+  magistrat: { currentPosition: null, id: 'magistrat-1', name: 'RAVEL Maurice' },
 });
 
 const withAttachment = () =>
@@ -32,6 +34,14 @@ const withAttachment = () =>
   }) as never;
 
 let observations: ReturnType<typeof makeObservation>[] = [];
+let canManageAttachments = true;
+const waitForConfirmation = vi.fn(async () => ({ isConfirmed: true }));
+vi.mock('@/shared/context/confirm-modal', () => ({ useConfirmModal: () => ({ waitForConfirmation }) }));
+const openRenaming = vi.fn();
+vi.mock('@/shared/components/rename-attachment', () => ({
+  useRenameAttachmentModal: () => ({ modal: null, open: openRenaming }),
+}));
+const updateObservation = vi.fn();
 vi.mock('@queries/auth.queries', () => ({ useUser: () => ({ user: { id: 'user-1' } }) }));
 const getFileUrl = vi.fn();
 const toastError = vi.fn();
@@ -45,7 +55,9 @@ vi.mock('@queries/files.queries', () => ({
 }));
 vi.mock('@queries/observations.queries', () => ({
   useGetObservationFileUrlMutation: () => ({ isPending: false, mutate: getFileUrl }),
-  useObservationsQuery: () => ({ data: { observations } }),
+  useObservationsQuery: () => ({ data: { canManageAttachments, observations } }),
+  useRenameObservationFileMutation: () => ({ mutateAsync: vi.fn() }),
+  useUpdateObservationMutation: () => ({ isPending: false, mutate: updateObservation }),
 }));
 
 function renderObservations(content: { observants?: string[] | null; readOnly?: boolean } = {}) {
@@ -68,6 +80,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   isSg.mockReturnValue(true);
   observations = [];
+  canManageAttachments = true;
 });
 
 describe('Observations', () => {
@@ -170,5 +183,54 @@ describe('Observations', () => {
     expect(toastError).toHaveBeenCalledWith(
       expect.objectContaining({ title: 'Le téléchargement de "courrier.pdf" a échoué' }),
     );
+  });
+
+  it('lets an SG rename and remove an attachment of an observation', async () => {
+    observations = [withAttachment()];
+    const user = userEvent.setup();
+    renderObservations();
+
+    await user.click(screen.getByRole('button', { name: 'Voir la pièce jointe' }));
+    await user.click(screen.getByRole('button', { name: 'Renommer courrier.pdf' }));
+    await user.click(screen.getByRole('button', { name: 'Supprimer courrier.pdf' }));
+
+    expect(openRenaming).toHaveBeenCalledWith(expect.objectContaining({ id: 'file-1' }));
+    expect(updateObservation).toHaveBeenCalledWith(
+      expect.objectContaining({
+        dateReception: '2025-01-10',
+        detachFileIds: ['file-1'],
+        magistratId: 'magistrat-1',
+      }),
+      expect.anything(),
+    );
+  });
+
+  it('tells why the removal of an attachment failed', async () => {
+    observations = [withAttachment()];
+    updateObservation.mockImplementation((_vars, options) =>
+      options.onError(new ValidationError('Le dossier a été figé entre-temps.')),
+    );
+    const user = userEvent.setup();
+    renderObservations();
+
+    await user.click(screen.getByRole('button', { name: 'Voir la pièce jointe' }));
+    await user.click(screen.getByRole('button', { name: 'Supprimer courrier.pdf' }));
+
+    expect(toastError).toHaveBeenCalledWith({
+      description: 'Le dossier a été figé entre-temps.',
+      title: 'La suppression de "courrier.pdf" a échoué',
+    });
+  });
+
+  it('keeps the attachments of an observation as they are in a dossier figé', async () => {
+    canManageAttachments = false;
+    observations = [withAttachment()];
+    const user = userEvent.setup();
+    renderObservations();
+
+    await user.click(screen.getByRole('button', { name: 'Voir la pièce jointe' }));
+
+    expect(screen.queryByRole('button', { name: 'Renommer courrier.pdf' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Supprimer courrier.pdf' })).not.toBeInTheDocument();
   });
 });

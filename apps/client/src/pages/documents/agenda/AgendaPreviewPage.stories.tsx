@@ -44,7 +44,7 @@ function AgendaPreviewPageStory(props: {
   storyBlocks = { blocks };
   storyMetadata = metadata;
 
-  const path = props.mode === 'edit' ? ROUTE_PATHS.SG.AGENDA_EDIT : ROUTE_PATHS.SG.AGENDA_PREVIEW;
+  const path = props.mode === 'edit' ? ROUTE_PATHS.SG.GDS.AGENDA_EDIT : ROUTE_PATHS.SG.GDS.AGENDA_PREVIEW;
 
   return (
     <PageStory

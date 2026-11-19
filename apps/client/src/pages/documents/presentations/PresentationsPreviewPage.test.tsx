@@ -35,10 +35,10 @@ function renderPage(state?: { returnPath: string }) {
       {
         element: <PresentationPreviewPage />,
         errorElement: <h1>Erreur inattendue</h1>,
-        path: ROUTE_PATHS.SG.PRESENTATIONS_PREVIEW,
+        path: ROUTE_PATHS.SG.GDS.PRESENTATIONS_PREVIEW,
       },
     ],
-    { initialEntries: [{ pathname: '/secretariat-general/restitutions/plan-1/validation', state }] },
+    { initialEntries: [{ pathname: '/secretariat-general/gds/restitutions/plan-1/validation', state }] },
   );
 
   render(
@@ -56,11 +56,11 @@ describe('PresentationPreviewPage', () => {
   });
 
   it('should close back to the page the notice was opened from', () => {
-    renderPage({ returnPath: '/secretariat-general/sessions/session-1/documents' });
+    renderPage({ returnPath: '/secretariat-general/gds/session/session-1/documents' });
 
     expect(screen.getByRole('link', { name: 'Fermer' })).toHaveAttribute(
       'href',
-      '/secretariat-general/sessions/session-1/documents',
+      '/secretariat-general/gds/session/session-1/documents',
     );
   });
 
@@ -69,7 +69,7 @@ describe('PresentationPreviewPage', () => {
 
     expect(screen.getByRole('link', { name: 'Fermer' })).toHaveAttribute(
       'href',
-      '/secretariat-general/restitutions/a-restituer',
+      '/secretariat-general/gds/restitutions/a-restituer',
     );
   });
 

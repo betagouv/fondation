@@ -27,7 +27,7 @@ export function PresentationPreviewPage() {
   const returnPath: string =
     typeof state?.returnPath === 'string'
       ? state.returnPath
-      : generatePath(ROUTE_PATHS.SG.PRESENTATIONS_READY);
+      : generatePath(ROUTE_PATHS.SG.GDS.PRESENTATIONS_READY);
   const navigate = useNavigate();
   const describeFailure = useDocumentFailure();
 
@@ -56,14 +56,14 @@ export function PresentationPreviewPage() {
               <>
                 <Button
                   linkProps={{
-                    to: generatePath(ROUTE_PATHS.SG.PRESENTATIONS_UPDATE, { planId: planId! }),
+                    to: generatePath(ROUTE_PATHS.SG.GDS.PRESENTATIONS_UPDATE, { planId: planId! }),
                   }}
                   priority="secondary"
                 >
                   <FormattedMessage defaultMessage="Éditer les métadonnées" />
                 </Button>
                 <Button
-                  linkProps={{ to: generatePath(ROUTE_PATHS.SG.PRESENTATIONS_EDIT, { planId: planId! }) }}
+                  linkProps={{ to: generatePath(ROUTE_PATHS.SG.GDS.PRESENTATIONS_EDIT, { planId: planId! }) }}
                   priority="secondary"
                 >
                   <FormattedMessage defaultMessage="Éditer le texte" />
@@ -75,7 +75,7 @@ export function PresentationPreviewPage() {
                 disabled={isValidating}
                 onClick={() =>
                   validate.mutate(undefined, {
-                    onSuccess: () => navigate(generatePath(ROUTE_PATHS.SG.PRESENTATIONS_READY)),
+                    onSuccess: () => navigate(generatePath(ROUTE_PATHS.SG.GDS.PRESENTATIONS_READY)),
                   })
                 }
               >
@@ -112,7 +112,7 @@ export function PresentationPreviewPage() {
               <PresentationDriftBanner
                 editionPath={
                   metadata.canEdit
-                    ? generatePath(ROUTE_PATHS.SG.PRESENTATIONS_UPDATE, { planId: planId! })
+                    ? generatePath(ROUTE_PATHS.SG.GDS.PRESENTATIONS_UPDATE, { planId: planId! })
                     : undefined
                 }
               />

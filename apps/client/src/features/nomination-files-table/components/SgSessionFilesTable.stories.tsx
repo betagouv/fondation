@@ -114,7 +114,7 @@ const meta = {
   component: SgSessionFilesTableStory,
   parameters: {
     layout: 'fullscreen',
-    router: { initialEntries: ['/secretariat-general/session/draft'] },
+    router: { initialEntries: ['/secretariat-general/gds/session/draft'] },
   },
   title: 'Session/GDS/SgSessionFilesTable',
 } satisfies Meta<typeof SgSessionFilesTableStory>;

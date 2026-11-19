@@ -80,32 +80,35 @@ export const AppHeader = () => {
 
   const sgNavigation: MainNavigationProps.Item[] = [
     {
-      isActive: routeMatches([ROUTE_PATHS.SG.MANAGE_SESSION, ROUTE_PATHS.SG.SESSION_ID]) && !isArchived,
-      linkProps: { to: ROUTE_PATHS.SG.MANAGE_SESSION, viewTransition: true },
+      isActive:
+        routeMatches([ROUTE_PATHS.SG.GDS.MANAGE_SESSION, ROUTE_PATHS.SG.GDS.SESSION_ID]) && !isArchived,
+      linkProps: { to: ROUTE_PATHS.SG.GDS.MANAGE_SESSION, viewTransition: true },
       text: <ManageSessionsLink />,
     },
     {
       isActive: routeMatches([
-        ROUTE_PATHS.SG.PRESENTATIONS_AGENDAS,
-        ROUTE_PATHS.SG.PRESENTATIONS_PAST,
-        ROUTE_PATHS.SG.PRESENTATIONS_READY,
+        ROUTE_PATHS.SG.GDS.PRESENTATIONS_AGENDAS,
+        ROUTE_PATHS.SG.GDS.PRESENTATIONS_NEW,
+        ROUTE_PATHS.SG.GDS.PRESENTATIONS_PAST,
+        ROUTE_PATHS.SG.GDS.PRESENTATIONS_READY,
+        ROUTE_PATHS.SG.GDS.PRESENTATIONS_UPDATE,
       ]),
-      linkProps: { to: ROUTE_PATHS.SG.PRESENTATIONS_AGENDAS, viewTransition: true },
+      linkProps: { to: ROUTE_PATHS.SG.GDS.PRESENTATIONS_AGENDAS, viewTransition: true },
       text: formatMessage({ defaultMessage: `Restitutions` }),
     },
     {
-      isActive: routeMatches([ROUTE_PATHS.SG.FOLLOWED_UP_OBSERVATIONS]),
-      linkProps: { to: ROUTE_PATHS.SG.FOLLOWED_UP_OBSERVATIONS, viewTransition: true },
+      isActive: routeMatches([ROUTE_PATHS.SG.GDS.FOLLOWED_UP_OBSERVATIONS]),
+      linkProps: { to: ROUTE_PATHS.SG.GDS.FOLLOWED_UP_OBSERVATIONS, viewTransition: true },
       text: formatMessage({ defaultMessage: 'Suivi des observations' }),
     },
     {
-      isActive: routeMatches([ROUTE_PATHS.SG.MANAGE_MEMBERS, ROUTE_PATHS.SG.MANAGE_SINGLE_MEMBER]),
-      linkProps: { to: ROUTE_PATHS.SG.MANAGE_MEMBERS, viewTransition: true },
+      isActive: routeMatches([ROUTE_PATHS.SG.GDS.MANAGE_MEMBERS, ROUTE_PATHS.SG.GDS.MANAGE_SINGLE_MEMBER]),
+      linkProps: { to: ROUTE_PATHS.SG.GDS.MANAGE_MEMBERS, viewTransition: true },
       text: formatMessage({ defaultMessage: 'Gérer les membres' }),
     },
     {
-      isActive: isArchived || routeMatches([ROUTE_PATHS.SG.ARCHIVED_SESSIONS]),
-      linkProps: { to: ROUTE_PATHS.SG.ARCHIVED_SESSIONS, viewTransition: true },
+      isActive: isArchived || routeMatches([ROUTE_PATHS.SG.GDS.ARCHIVED_SESSIONS]),
+      linkProps: { to: ROUTE_PATHS.SG.GDS.ARCHIVED_SESSIONS, viewTransition: true },
       text: formatMessage({ defaultMessage: 'Archives' }),
     },
   ];

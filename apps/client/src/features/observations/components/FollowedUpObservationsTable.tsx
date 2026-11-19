@@ -241,7 +241,7 @@ const sessionCell = rowCell<FollowedUpObservation>(({ session }) => (
     <span>
       <Link
         className="fr-link fr-link--sm box-decoration-clone"
-        to={generatePath(ROUTE_PATHS.SG.SESSION_ID_OBSERVATIONS, { sessionId: session.id })}
+        to={generatePath(ROUTE_PATHS.SG.GDS.SESSION_ID_OBSERVATIONS, { sessionId: session.id })}
       >
         {session.name}
       </Link>

@@ -11,6 +11,7 @@ import {
   useObservationsModal,
   type ActiveFile,
 } from '@/features/observations/context/ObservationsModalContext';
+import { useObservationFileActions } from '@/features/observations/hooks/useObservationFileActions';
 import { splitLodamObservers } from '@/features/observations/utils/split-lodam-observers';
 import { FileList, FileListItem } from '@/shared/components/file-list';
 import { useAttachmentFailureToast } from '@/shared/hooks/useAttachmentFailureToast';
@@ -28,11 +29,13 @@ const VISIBLE_OBSERVATIONS = 3;
 
 function ObservationCard({
   canManage,
+  canManageAttachments,
   context,
   file,
   observation,
 }: {
   canManage: boolean;
+  canManageAttachments: boolean;
   context: 'sg' | 'membre';
   file: ActiveFile;
   observation: Observation;
@@ -43,7 +46,19 @@ function ObservationCard({
   const tab = useTab();
   const { isPending: isDownloading, mutate: download } = useDownloadFileMutation();
   const { isPending: isLoadingUrl, mutate: getFileUrl } = useGetObservationFileUrlMutation();
-  const isLoadingFile = isDownloading || isLoadingUrl;
+  const {
+    detach,
+    isPending: isUpdating,
+    renaming,
+  } = useObservationFileActions({
+    description: observation.description,
+    id: observation.id,
+    magistratId: observation.magistrat.id,
+    nominationFileId: file.id,
+    receptionDate: dateOnlyFromIso(observation.dateReception),
+    sessionId: file.sessionId,
+  });
+  const isLoadingFile = isDownloading || isLoadingUrl || isUpdating;
   const [expanded, setExpanded] = useState(false);
 
   const fileCount = observation.files.length;
@@ -70,10 +85,6 @@ function ObservationCard({
             },
             { count: fileCount },
           );
-
-  const magistratName = observation.magistrat
-    ? observation.magistrat.name
-    : intl.formatMessage({ defaultMessage: 'Magistrat inconnu' });
 
   const handleFileOpen = (attachment: { id: string; name: string }) => {
     const attachmentTab = tab.openDeferred({
@@ -128,6 +139,7 @@ function ObservationCard({
 
   return (
     <li className="border border-(--border-default-grey) bg-(--background-default-grey)">
+      {renaming.modal}
       <div className="flex flex-col gap-1.5 p-6">
         <div className="flex items-start justify-between gap-2">
           <div className="flex min-w-0 flex-col gap-1.5">
@@ -137,12 +149,12 @@ function ObservationCard({
                 title={detailTitle}
                 to={detailPath}
               >
-                {magistratName}
+                {observation.magistrat.name}
               </Link>
               <ObservantAuditionIcon audition={observation.audition} />
               {observation.followUp && <ObservationFollowUpTag followUp={observation.followUp} />}
             </div>
-            {observation.magistrat?.currentPosition && (
+            {observation.magistrat.currentPosition && (
               <div className="fr-mt-1v text-xs text-(--text-mention-grey)">
                 {observation.magistrat.currentPosition}
               </div>
@@ -223,8 +235,10 @@ function ObservationCard({
                       disabled={isLoadingFile}
                       key={attachment.id}
                       name={attachment.name}
+                      onDelete={canManageAttachments ? () => detach(attachment) : undefined}
                       onDownload={() => handleFileDownload(attachment)}
                       onOpen={() => handleFileOpen(attachment)}
+                      onRename={canManageAttachments ? () => renaming.open(attachment) : undefined}
                       size={attachment.size}
                     />
                   ))}
@@ -318,6 +332,7 @@ export function Observations(props: {
           {visibleObservations.map((observation) => (
             <ObservationCard
               canManage={canManage}
+              canManageAttachments={canManage && !!data?.canManageAttachments}
               context={context}
               file={file}
               key={observation.id}

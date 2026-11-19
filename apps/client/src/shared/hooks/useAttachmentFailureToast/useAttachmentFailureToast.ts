@@ -3,8 +3,10 @@ import { defineMessages, useIntl } from 'react-intl';
 
 import { useRequestFailure } from '@/shared/hooks/useRequestFailure';
 import { useToasts } from '@/shared/ui/toast';
+import { ValidationError } from '@/utils/validation-error';
 
 const TITLES = defineMessages({
+  delete: { defaultMessage: 'La suppression de "{name}" a échoué' },
   download: { defaultMessage: 'Le téléchargement de "{name}" a échoué' },
   open: { defaultMessage: 'L\'ouverture de "{name}" a échoué' },
   upload: { defaultMessage: 'L\'ajout de "{name}" a échoué' },
@@ -24,7 +26,7 @@ export function useAttachmentFailureToast() {
   return useCallback(
     (action: keyof typeof TITLES, name: string, error: unknown) =>
       toasts.error({
-        description: describeFailure(error),
+        description: ValidationError.messageOf(error) ?? describeFailure(error),
         title: formatMessage(TITLES[action], { name }),
       }),
     [describeFailure, formatMessage, toasts],

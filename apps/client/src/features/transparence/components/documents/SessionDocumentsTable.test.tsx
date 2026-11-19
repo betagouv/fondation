@@ -166,7 +166,7 @@ describe('SessionDocumentsTable', () => {
 
       expect(screen.getByRole('link', { name: 'la notice' })).toHaveAttribute(
         'href',
-        '/secretariat-general/restitutions/plan-1/validation',
+        '/secretariat-general/gds/restitutions/plan-1/validation',
       );
     });
 

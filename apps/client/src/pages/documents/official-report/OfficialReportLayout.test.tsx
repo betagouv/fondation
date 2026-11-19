@@ -77,7 +77,7 @@ describe('OfficialReportLayout', () => {
     expect(screen.getByRole('heading', { name: 'Procès-verbal introuvable' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Documents de la session' })).toHaveAttribute(
       'href',
-      '/secretariat-general/session/session-1/documents',
+      '/secretariat-general/gds/session/session-1/documents',
     );
     expect(screen.queryByRole('heading', { name: 'Procès-verbal du 12 mars' })).not.toBeInTheDocument();
   });

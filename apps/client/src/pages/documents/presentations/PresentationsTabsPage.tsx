@@ -14,9 +14,9 @@ import {
 } from '@queries/agenda.queries';
 
 const TAB_PATHS = {
-  agendas: ROUTE_PATHS.SG.PRESENTATIONS_AGENDAS,
-  past: ROUTE_PATHS.SG.PRESENTATIONS_PAST,
-  ready: ROUTE_PATHS.SG.PRESENTATIONS_READY,
+  agendas: ROUTE_PATHS.SG.GDS.PRESENTATIONS_AGENDAS,
+  past: ROUTE_PATHS.SG.GDS.PRESENTATIONS_PAST,
+  ready: ROUTE_PATHS.SG.GDS.PRESENTATIONS_READY,
 };
 
 const PresentationsBreadcrumb = memo(function PresentationsBreadcrumb() {
@@ -39,8 +39,8 @@ export function PresentationsTabsPage() {
   const navigate = useNavigate();
   const { formatMessage } = useIntl();
 
-  const agendasPathMatch = useMatch(ROUTE_PATHS.SG.PRESENTATIONS_AGENDAS);
-  const pastPathMatch = useMatch(ROUTE_PATHS.SG.PRESENTATIONS_PAST);
+  const agendasPathMatch = useMatch(ROUTE_PATHS.SG.GDS.PRESENTATIONS_AGENDAS);
+  const pastPathMatch = useMatch(ROUTE_PATHS.SG.GDS.PRESENTATIONS_PAST);
 
   const { data: agendas } = useListPresentationPlansAgendasQuery();
   const { data: plans } = useListNonPresentedPlansQuery();

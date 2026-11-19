@@ -26,7 +26,9 @@ export function PresentationUpsertPage() {
   const nextTitle = state.step === 'METADATA' ? formatMessage(STEP_TITLES.AGENDA_COMMENTS) : undefined;
 
   if (metadata && !metadata.canEdit) {
-    return <Navigate replace to={generatePath(ROUTE_PATHS.SG.PRESENTATIONS_PREVIEW, { planId: planId! })} />;
+    return (
+      <Navigate replace to={generatePath(ROUTE_PATHS.SG.GDS.PRESENTATIONS_PREVIEW, { planId: planId! })} />
+    );
   }
 
   return (
