@@ -1,1 +1,3 @@
+# A tag deploys a commit the CI already checked: only branches go through the local checks
+grep -qv '^refs/tags/' || exit 0
 pnpm run prepush
