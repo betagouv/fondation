@@ -41,7 +41,7 @@ export class ListFollowedUpObservationsQuery {
       trackingStatuses: readonly ObservationBlockTrackingStatus[];
     };
     pagination: Pagination;
-    sortBy: 'dateReception' | 'session' | null;
+    sortBy: 'dateReception' | null;
     sortDesc: boolean;
   }): Promise<ListedFollowedUpObservationsDto> {
     return this.db.withTransaction(async () => {
@@ -112,12 +112,11 @@ export class ListFollowedUpObservationsQuery {
         observantName: observation.observant.name,
         sessionDate: observation.session.date.toDate(),
       }));
-      // most recent first unless a column is explicitly sorted ascending
-      const order = query.sortBy && !query.sortDesc ? 'asc' : 'desc';
-      const sorted = sortBySessionThenObservationBlock(blocked, {
-        blocks: query.sortBy === 'dateReception' ? order : 'desc',
-        sessions: order,
-      });
+      // most recent first unless the reception date is explicitly sorted ascending
+      const sorted = sortBySessionThenObservationBlock(
+        blocked,
+        query.sortBy === 'dateReception' && !query.sortDesc ? 'asc' : 'desc',
+      );
 
       const { limit, page } = query.pagination;
       const pageItems = sorted.slice((page - 1) * limit, page * limit);

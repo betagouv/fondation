@@ -39,7 +39,7 @@ function lowestScrollKeepingTheHeaderStuck(scrollBox: HTMLElement, header: RefOb
 function SortIcon(props: { direction: false | 'asc' | 'desc' }) {
   const glyph = props.direction === 'asc' ? '▲' : props.direction === 'desc' ? '▼' : '↕';
   return (
-    <span aria-hidden className="text-xs text-(--text-mention-grey)">
+    <span aria-hidden className="ml-1 text-xs text-(--text-mention-grey)">
       {glyph}
     </span>
   );
@@ -51,12 +51,14 @@ function HeaderCell<Data extends RowData>(props: { fluid?: boolean; header: Head
   const canSort = header.column.getCanSort();
   const direction = header.column.getIsSorted();
   const ariaSort = direction === 'asc' ? 'ascending' : direction === 'desc' ? 'descending' : 'none';
+  const wrap = header.column.columnDef.meta?.wrapHeader;
 
   return (
     <div
       aria-sort={canSort ? ariaSort : undefined}
       className={clsx(
-        'flex h-12 items-center overflow-hidden px-4 leading-6 font-bold text-ellipsis whitespace-nowrap text-(--text-default-grey)',
+        'flex h-12 items-center overflow-hidden px-4 leading-6 font-bold text-ellipsis text-(--text-default-grey)',
+        !wrap && 'whitespace-nowrap',
         sticky && 'sticky left-0 z-3 border-r border-(--border-default-grey) bg-(--background-contrast-grey)',
         header.column.columnDef.meta?.headerClassName,
       )}
@@ -73,7 +75,11 @@ function HeaderCell<Data extends RowData>(props: { fluid?: boolean; header: Head
     >
       {canSort ? (
         <button
-          className="inline-flex cursor-pointer items-center gap-1 border-none bg-transparent p-0 leading-6 font-bold text-(--text-default-grey) hover:text-(--text-action-high-blue-france)"
+          className={clsx(
+            'cursor-pointer border-none bg-transparent p-0 leading-6 font-bold text-(--text-default-grey) hover:text-(--text-action-high-blue-france)',
+            // a wrapped header flows as text, so that its sort icon follows its last word
+            wrap ? 'text-left' : 'inline-flex items-center',
+          )}
           onClick={header.column.getToggleSortingHandler()}
           type="button"
         >

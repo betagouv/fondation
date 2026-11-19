@@ -453,7 +453,7 @@ export class ObservationService {
       trackingStatuses: readonly ObservationBlockTrackingStatus[];
     };
     pagination: Pagination;
-    sortBy: 'dateReception' | 'session' | null;
+    sortBy: 'dateReception' | null;
     sortDesc: boolean;
   }): Promise<ListedFollowedUpObservationsDto> {
     return this.listFollowedUpObservationsQuery.handle(query);

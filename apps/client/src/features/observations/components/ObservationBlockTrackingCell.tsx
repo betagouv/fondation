@@ -29,7 +29,13 @@ export function ObservationBlockTrackingCell(props: { row: FollowedUpObservation
   return (
     <div className="flex flex-col items-start gap-1 leading-6">
       <div className="flex items-center gap-1">
-        <Badge as="span" noIcon severity={tracking.status === 'DONE' ? 'success' : 'info'} small>
+        <Badge
+          as="span"
+          className="shrink-0"
+          noIcon
+          severity={tracking.status === 'DONE' ? 'success' : 'info'}
+          small
+        >
           {formatMessage(ObservationBlockTrackingStatusEnumMessages[tracking.status])}
         </Badge>
         {laterPropositions.length > 0 && (

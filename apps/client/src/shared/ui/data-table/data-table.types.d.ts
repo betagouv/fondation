@@ -40,5 +40,7 @@ declare module '@tanstack/react-table' {
     filters?: TableMetaFilter | TableMetaFilter[];
     headerClassName?: string;
     sticky?: boolean;
+    /** lets a long header take two lines rather than widen its column */
+    wrapHeader?: boolean;
   }
 }

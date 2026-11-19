@@ -79,8 +79,9 @@ export function SessionObservationsTable(props: {
         enableSorting: true,
         header: intl.formatMessage({ defaultMessage: 'Date de réception' }),
         id: 'dateReception',
-        // the header, its sort icon and its padding on one line
-        minSize: 190,
+        meta: { wrapHeader: true },
+        // the header on two lines, its sort icon and its padding
+        minSize: 120,
         sortDescFirst: true,
       }),
       h.display({
@@ -106,7 +107,9 @@ export function SessionObservationsTable(props: {
         header: intl.formatMessage({ defaultMessage: 'Suite' }),
         id: 'followUps',
         meta: { filters: followUps },
-        size: 140,
+        // the longest tag and its padding on one line
+        minSize: 150,
+        size: 150,
       }),
     ];
   }, [intl, props.sessionId]);
