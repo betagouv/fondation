@@ -79,8 +79,9 @@ export function SessionObservationsTable(props: {
         enableSorting: true,
         header: intl.formatMessage({ defaultMessage: 'Date de réception' }),
         id: 'dateReception',
-        // the header, its sort icon and its padding on one line
-        minSize: 190,
+        meta: { wrapHeader: true },
+        // the header on two lines, its sort icon and its padding
+        minSize: 120,
         sortDescFirst: true,
       }),
       h.display({
