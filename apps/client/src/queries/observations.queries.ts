@@ -2,8 +2,8 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tansta
 
 import type { ObservationBlockTrackingStatusEnum } from '@/shared/enums/observation-block-tracking-status.enum';
 import type { ObservationFollowUpEnum } from '@/shared/enums/observation-follow-up.enum';
-import { HttpException } from '@/utils/http-exception';
 import { multipartJson } from '@/utils/multipart-json';
+import { withValidationError } from '@/utils/validation-error';
 import { withScreenshotUrls } from '@/utils/with-screenshot-urls';
 import * as $api from '@api/sdk';
 import type {
@@ -117,12 +117,13 @@ export function useObservationsQuery(props: { sessionId: string; nominationFileI
   return useQuery({
     enabled: !!props.nominationFileId,
     queryKey: observationKeys.observations(props),
-    queryFn: async () => {
-      if (!props.nominationFileId) return { observations: [] as Observation[] };
+    queryFn: async (): Promise<ListObservationsResponseDto> => {
+      const empty = { canManageAttachments: false, observations: [] };
+      if (!props.nominationFileId) return empty;
       const { data } = await $api.observations.listObservations({
         path: { sessionId: props.sessionId, nominationFileId: props.nominationFileId },
       });
-      return data ?? { observations: [] as Observation[] };
+      return data ?? empty;
     },
   });
 }
@@ -208,21 +209,15 @@ export function useCreateObservationMutation() {
       linkedObservationsAttachments: { observationId: string; fileId: string }[];
     }): Promise<{ id: string } | null> => {
       const { files, ...form } = mutation;
-      const { data } = await $api.observations
-        .createObservation({
+      const { data } = await withValidationError(() =>
+        $api.observations.createObservation({
           body: {
             files,
             form: multipartJson(form satisfies CreateObservationDto['form']),
           },
           path: { sessionId: mutation.sessionId, nominationFileId: mutation.nominationFileId },
-        })
-        .catch((err) => {
-          if (err instanceof HttpException && err.statusCode === 409) {
-            throw new Error(`Une autre observation de ce magistrat existe déjà`);
-          }
-
-          throw err;
-        });
+        }),
+      );
       return data ?? null;
     },
     onSettled: (_data, _error, { magistratId, sessionId, nominationFileId }) =>
@@ -311,21 +306,15 @@ export function useUpdateObservationMutation() {
       linkedObservationsAttachments: { observationId: string; fileId: string }[];
     }): Promise<void> => {
       const { files, sessionId, nominationFileId, observationId, ...form } = mutation;
-      await $api.observations
-        .updateObservation({
+      await withValidationError(() =>
+        $api.observations.updateObservation({
           path: { sessionId, nominationFileId, observationId },
           body: {
             files,
             form: multipartJson(form satisfies UpdateObservationDto['form']),
           },
-        })
-        .catch((err) => {
-          if (err instanceof HttpException && err.statusCode === 409) {
-            throw new Error(`Une autre observation de ce magistrat existe déjà`);
-          }
-
-          throw err;
-        });
+        }),
+      );
     },
     onSettled: (_data, _error, { magistratId, sessionId, nominationFileId, observationId }) =>
       Promise.allSettled([

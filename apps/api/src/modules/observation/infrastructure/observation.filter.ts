@@ -34,7 +34,7 @@ export class ObservationsFilter implements NestInterceptor {
           // the dossier got figé after the page loaded: the client reloads what it shows
           if (err instanceof ObservationAttachmentsLocked) {
             return new ConflictException({
-              validationError: `le dossier est figé : ses pièces jointes ne se renomment ni ne se retirent plus`,
+              validationError: `Le dossier a été figé entre-temps : ses pièces jointes ne se renomment ni ne se retirent plus.`,
             });
           }
 

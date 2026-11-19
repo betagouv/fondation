@@ -12,7 +12,7 @@ import { Db } from '../../../framework/database';
 import { Files } from '../../../framework/files';
 import { magistratFullName } from '../../../magistrat/domain/magistrat-name';
 import { TransparenceService } from '../../../session/transparence/infrastructure/transparence.service';
-import { isSecretariat, type RoleEnum } from '../../../shared/role.enum';
+import type { RoleEnum } from '../../../shared/role.enum';
 import { ObservantAudition, UNSCHEDULABLE_REASONS } from '../../domain/observant-audition';
 import { Observation } from '../../domain/observation';
 import { ObservationFollowUp } from '../../domain/observation-follow-up';
@@ -124,7 +124,7 @@ export class GetObservationDetailsQuery {
         sessionId: query.sessionId,
       });
       const isNominationFileLocked = await this.transparences.internalIsNominationFileLocked(query);
-      const canEdit = !session.isArchived && isSecretariat(query.role);
+      const canEdit = Observation.canEdit({ isArchived: session.isArchived, role: query.role });
       const auditions = await this.transparences.internalFindSeenObservantAuditions({
         magistratIds: [observation.magistrat.id],
         role: query.role,
