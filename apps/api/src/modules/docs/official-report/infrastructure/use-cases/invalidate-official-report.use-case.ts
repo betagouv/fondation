@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { Prisma } from '../../../../../generated/prisma/client';
 import { lockOfficialReportsRawQuery } from '../../../../../generated/prisma/sql';
@@ -71,7 +71,10 @@ export class InvalidateOfficialReportUseCase {
     for (const command of commands) {
       const officialReport = await this.officialReportRepository
         .find({ actorId: null, id: command.id })
-        .catch(() => null);
+        .catch((error: unknown) => {
+          if (error instanceof NotFoundException) return null;
+          throw error;
+        });
 
       if (!officialReport) continue;
 
