@@ -1,7 +1,7 @@
 import { BadRequestException, createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { ApiQuery } from '@nestjs/swagger';
 import { Request as ExpressRequest } from 'express';
-import { createZodDto } from 'nestjs-zod';
+import { createZodDto, type ZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 export type Pagination = { path: string; page: number; limit: number };
@@ -55,32 +55,51 @@ export const QueryPagination = createParamDecorator(
 );
 
 type Paginated<T> = {
-  items: T[];
-  totalCount: number;
   currentPageIndex: number;
+  items: T[];
+  links: { next?: string; previous?: string };
   nextPageIndex: number | undefined;
   previousPageIndex: number | undefined;
-  links: { next?: string; previous?: string };
+  totalCount: number;
 };
 
-export function createPaginatedZodDto(schema: z.ZodObject, extension?: z.ZodObject) {
-  return createZodDto(
-    z
+type PaginatedShape<TItem extends z.ZodObject> = {
+  currentPageIndex: z.ZodNumber;
+  items: z.ZodArray<TItem>;
+  links: z.ZodOptional<
+    z.ZodObject<{ next: z.ZodOptional<z.ZodString>; previous: z.ZodOptional<z.ZodString> }>
+  >;
+  nextPageIndex: z.ZodOptional<z.ZodNumber>;
+  previousPageIndex: z.ZodOptional<z.ZodNumber>;
+  totalCount: z.ZodNumber;
+};
+
+function paginatedSchema<TItem extends z.ZodObject>(item: TItem): z.ZodObject<PaginatedShape<TItem>> {
+  return z.object({
+    currentPageIndex: z.number().int().gte(1),
+    items: z.array(item),
+    links: z
       .object({
-        items: z.array(schema),
-        totalCount: z.number().int().gte(0),
-        currentPageIndex: z.number().int().gte(1),
-        nextPageIndex: z.number().int().gte(2).optional(),
-        previousPageIndex: z.number().int().gte(1).optional(),
-        links: z
-          .object({
-            next: z.string().optional(),
-            previous: z.string().optional(),
-          })
-          .optional(),
+        next: z.string().optional(),
+        previous: z.string().optional(),
       })
-      .safeExtend(extension?.shape ?? {}),
-  );
+      .optional(),
+    nextPageIndex: z.number().int().gte(2).optional(),
+    previousPageIndex: z.number().int().gte(1).optional(),
+    totalCount: z.number().int().gte(0),
+  });
+}
+
+export function createPaginatedZodDto<TItem extends z.ZodObject>(
+  item: TItem,
+): ZodDto<z.ZodObject<PaginatedShape<TItem>>, false>;
+export function createPaginatedZodDto<TItem extends z.ZodObject, TExtension extends z.ZodRawShape>(
+  item: TItem,
+  extension: z.ZodObject<TExtension>,
+): ZodDto<z.ZodObject<PaginatedShape<TItem> & TExtension>, false>;
+export function createPaginatedZodDto(item: z.ZodObject, extension?: z.ZodObject) {
+  const schema = paginatedSchema(item);
+  return createZodDto(extension ? schema.safeExtend(extension.shape) : schema);
 }
 
 /** the rows of the page asked, for a list read whole */
@@ -108,14 +127,14 @@ export function paginate<T>(input: {
   const prevPath = prevUrl.toString().slice('http://example.com'.length);
 
   return {
-    items: input.items as T[],
-    totalCount: input.totalCount,
     currentPageIndex: pagination.page,
-    nextPageIndex: hasNext ? pagination.page + 1 : undefined,
-    previousPageIndex: hasPrev ? pagination.page - 1 : undefined,
+    items: input.items as T[],
     links: {
       next: hasNext ? nextPath : undefined,
       previous: hasPrev ? prevPath : undefined,
     },
+    nextPageIndex: hasNext ? pagination.page + 1 : undefined,
+    previousPageIndex: hasPrev ? pagination.page - 1 : undefined,
+    totalCount: input.totalCount,
   };
 }

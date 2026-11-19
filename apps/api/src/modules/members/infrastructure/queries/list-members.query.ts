@@ -62,8 +62,9 @@ export class ListMembersQuery {
     );
 
     return paginate({
-      items: items.filter(isMember).map(({ deactivatedAt, role, ...member }) => ({
+      items: items.filter(isMember).map(({ deactivatedAt, excludedJurisdictions, role, ...member }) => ({
         ...member,
+        excludedJurisdictions: ExcludedJurisdictionsSchema.parse(excludedJurisdictions),
         formation: memberFormationOf(role),
         status: userStatusOf({ deactivatedAt }),
       })),
@@ -73,12 +74,14 @@ export class ListMembersQuery {
   }
 }
 
+const ExcludedJurisdictionsSchema = z.array(z.object({ id: z.string(), label: z.string().nullable() }));
+
 const MemberListItemDtoSchema = z.object({
-  id: z.string(),
+  excludedJurisdictions: ExcludedJurisdictionsSchema,
   firstName: z.string(),
-  lastName: z.string(),
   formation: MemberFormationSchema,
-  excludedJurisdictions: z.array(z.object({ id: z.string(), label: z.string().nullable() })),
+  id: z.string(),
+  lastName: z.string(),
   status: z.enum(USER_STATUSES),
 });
 

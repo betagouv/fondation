@@ -19,7 +19,7 @@ import { AuthedUser, HasRole } from '../../simple-auth';
 import { FeedbacksService } from '../feedbacks.service';
 
 import { ChangeFeedbackStatusDto, ListFeedbacksQueryDto, SendFeedbackDto } from './feedback.dto';
-import { type ListedFeedback, ListedFeedbacksDto } from './queries/list-feedbacks.query';
+import { ListedFeedbacksDto } from './queries/list-feedbacks.query';
 
 // the routes of the feedbacks before their renaming, for the tabs opened on the previous release: to remove at the next one
 @ApiExcludeController()
@@ -43,11 +43,9 @@ export class FormerFeedbacksController {
       sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
       statuses: statuses.includes('NEW') ? [...statuses, 'ACKNOWLEDGED'] : statuses,
     });
-    // createPaginatedZodDto loses the type of its items
-    const items = listed.items as ListedFeedback[];
     return {
       ...listed,
-      items: items.map((item) =>
+      items: listed.items.map((item) =>
         item.status.value === 'ACKNOWLEDGED' ? { ...item, status: { ...item.status, value: 'NEW' } } : item,
       ),
     };
