@@ -8,6 +8,7 @@ import { createPaginatedZodDto, paginate, Pagination } from '../../../framework/
 import { roleEnumToPrismaRoleEnum } from '../../../shared/mappers/role-enum.mapper';
 import { USER_STATUSES, UserStatus, userStatusOf } from '../../../shared/user-status.enum';
 import {
+  ExcludedJurisdictionsSchema,
   isMember,
   MemberFormation,
   memberFormationOf,
@@ -74,14 +75,12 @@ export class ListMembersQuery {
   }
 }
 
-const ExcludedJurisdictionsSchema = z.array(z.object({ id: z.string(), label: z.string().nullable() }));
-
 const MemberListItemDtoSchema = z.object({
-  excludedJurisdictions: ExcludedJurisdictionsSchema,
-  firstName: z.string(),
-  formation: MemberFormationSchema,
   id: z.string(),
+  firstName: z.string(),
   lastName: z.string(),
+  formation: MemberFormationSchema,
+  excludedJurisdictions: ExcludedJurisdictionsSchema,
   status: z.enum(USER_STATUSES),
 });
 
