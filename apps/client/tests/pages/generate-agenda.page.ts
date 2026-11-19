@@ -50,7 +50,7 @@ export class GenerateAgendaPage {
     await this.app.page.getByRole('button', { name: "Générer l'ordre du jour" }).click();
 
     const validationPattern = new URLPattern({
-      pathname: '/secretariat-general/session/:sessionId/docs/ordre-du-jour/:agendaId/validation',
+      pathname: '/secretariat-general/gds/session/:sessionId/docs/ordre-du-jour/:agendaId/validation',
     });
     await this.app.page.waitForURL((url) => validationPattern.test(url));
     const { agendaId } = validationPattern.exec(this.app.page.url())!.pathname.groups;

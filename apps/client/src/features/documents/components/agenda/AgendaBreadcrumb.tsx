@@ -15,19 +15,19 @@ export function AgendaBreadCrumb() {
   const { data: session } = useDetailedNominationSessionQuery({ sessionId });
 
   const label = useMemo(() => {
-    if (matchPath({ path: ROUTE_PATHS.SG.AGENDA_UPDATE_METADATA }, pathname)) {
+    if (matchPath({ path: ROUTE_PATHS.SG.GDS.AGENDA_UPDATE_METADATA }, pathname)) {
       return formatMessage({ defaultMessage: `Données d'un ordre du jour` });
     }
 
-    if (matchPath({ path: ROUTE_PATHS.SG.AGENDA_UPDATE_FILES }, pathname)) {
+    if (matchPath({ path: ROUTE_PATHS.SG.GDS.AGENDA_UPDATE_FILES }, pathname)) {
       return formatMessage({ defaultMessage: `Propositions d'un ordre du jour` });
     }
 
-    if (matchPath({ path: ROUTE_PATHS.SG.AGENDA_EDIT }, pathname)) {
+    if (matchPath({ path: ROUTE_PATHS.SG.GDS.AGENDA_EDIT }, pathname)) {
       return formatMessage({ defaultMessage: `Texte d'un ordre du jour` });
     }
 
-    if (matchPath({ path: ROUTE_PATHS.SG.AGENDA_PREVIEW }, pathname)) {
+    if (matchPath({ path: ROUTE_PATHS.SG.GDS.AGENDA_PREVIEW }, pathname)) {
       return formatMessage({ defaultMessage: `Validation d'un ordre du jour` });
     }
 
@@ -43,7 +43,7 @@ export function AgendaBreadCrumb() {
         segments: [
           ...breadcrumbRoot,
           {
-            to: generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId }),
+            to: generatePath(ROUTE_PATHS.SG.GDS.SESSION_ID, { sessionId }),
             label: session?.name ?? formatMessage({ defaultMessage: 'Session' }),
           },
         ],

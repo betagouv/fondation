@@ -118,7 +118,7 @@ export function AgendaEditPage() {
               label: formatMessage({ defaultMessage: "Voir l'aperçu" }),
               onClick: () =>
                 navigate(
-                  generatePath(ROUTE_PATHS.SG.AGENDA_PREVIEW, {
+                  generatePath(ROUTE_PATHS.SG.GDS.AGENDA_PREVIEW, {
                     agendaId: agendaId!,
                     sessionId: sessionId!,
                   }),

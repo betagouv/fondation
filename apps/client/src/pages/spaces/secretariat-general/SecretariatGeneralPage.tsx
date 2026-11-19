@@ -55,7 +55,7 @@ export const SecretariatGeneralPage = () => {
               classes={{ content: 'pt-6! pb-22!' }}
               enlargeLink
               imageComponent={<CardPictogram pictogram={JusticeScales} size="80" />}
-              linkProps={{ to: ROUTE_PATHS.SG.MANAGE_SESSION, viewTransition: true }}
+              linkProps={{ to: ROUTE_PATHS.SG.GDS.MANAGE_SESSION, viewTransition: true }}
               title={formatMessage({ defaultMessage: 'Pouvoir de proposition GDS' })}
               titleAs="h2"
             />

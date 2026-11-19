@@ -17,6 +17,6 @@ export function useBreadcrumbRoot(): { label: string; to: string }[] {
 
   return [
     { label: formatMessage({ defaultMessage: 'Accueil' }), to: ROUTE_PATHS.SG.DASHBOARD },
-    { label: formatMessage({ defaultMessage: 'GDS' }), to: ROUTE_PATHS.SG.MANAGE_SESSION },
+    { label: formatMessage({ defaultMessage: 'GDS' }), to: ROUTE_PATHS.SG.GDS.MANAGE_SESSION },
   ];
 }

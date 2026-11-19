@@ -122,7 +122,7 @@ export function DocGenerationMenu(props: { sessionId: string }) {
 
   const officialReportPath = useMemo(
     () =>
-      generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_NEW, {
+      generatePath(ROUTE_PATHS.SG.GDS.OFFICIAL_REPORT_NEW, {
         sessionId: props.sessionId,
       }),
     [props.sessionId],

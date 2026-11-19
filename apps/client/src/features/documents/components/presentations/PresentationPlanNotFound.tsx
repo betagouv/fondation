@@ -18,7 +18,7 @@ export function PresentationPlanNotFound() {
         <FormattedMessage defaultMessage="La notice de restitution à laquelle vous tentez d'accéder n'existe pas ou a été supprimée." />
       </p>
 
-      <Button linkProps={{ to: ROUTE_PATHS.SG.PRESENTATIONS_READY }}>
+      <Button linkProps={{ to: ROUTE_PATHS.SG.GDS.PRESENTATIONS_READY }}>
         <FormattedMessage defaultMessage="Restitutions" />
       </Button>
     </ErrorPageLayout>

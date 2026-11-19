@@ -67,7 +67,7 @@ describe('ArchivedSessions', () => {
     expect(screen.getByRole('button', { name: /Formation/ })).toBeVisible();
     expect(screen.getByRole('link', { name: 'Transparence du 4 février 2026' })).toHaveAttribute(
       'href',
-      '/secretariat-general/session/session-1',
+      '/secretariat-general/gds/session/session-1',
     );
   });
 

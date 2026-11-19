@@ -44,7 +44,7 @@ describe('NewOfficialReportButton', () => {
 
     expect(screen.getByRole('link', { name: 'Générer un procès-verbal' })).toHaveAttribute(
       'href',
-      '/secretariat-general/session/session-1/docs/pv',
+      '/secretariat-general/gds/session/session-1/docs/pv',
     );
   });
 

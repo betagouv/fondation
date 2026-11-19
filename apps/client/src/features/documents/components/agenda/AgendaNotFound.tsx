@@ -20,7 +20,9 @@ export function AgendaNotFound(props: { sessionId: string }) {
       </p>
 
       <Button
-        linkProps={{ to: generatePath(ROUTE_PATHS.SG.SESSION_ID_DOCUMENTS, { sessionId: props.sessionId }) }}
+        linkProps={{
+          to: generatePath(ROUTE_PATHS.SG.GDS.SESSION_ID_DOCUMENTS, { sessionId: props.sessionId }),
+        }}
       >
         <FormattedMessage defaultMessage="Documents de la session" />
       </Button>

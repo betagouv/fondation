@@ -98,7 +98,7 @@ function useMemberColumns() {
               iconId="fr-icon-edit-fill"
               label={label}
               small
-              to={ROUTE_PATHS.SG.MANAGE_SINGLE_MEMBER.replace(':userId', row.original.id)}
+              to={ROUTE_PATHS.SG.GDS.MANAGE_SINGLE_MEMBER.replace(':userId', row.original.id)}
             />
           );
         },

@@ -21,7 +21,7 @@ afterEach(() => {
 
 describe('usePouvoirDeProposition', () => {
   it('keeps the GDS on a common page opened from the GDS', () => {
-    pouvoirOn(ROUTE_PATHS.SG.MANAGE_SESSION);
+    pouvoirOn(ROUTE_PATHS.SG.GDS.MANAGE_SESSION);
 
     expect(pouvoirOn(ROUTE_PATHS.SG.MAGISTRAT_SEARCH)).toBe('GDS');
     expect(pouvoirOn(ROUTE_PATHS.ADMIN.USERS)).toBe('GDS');
@@ -34,7 +34,7 @@ describe('usePouvoirDeProposition', () => {
   });
 
   it('shows a common page opened from the home outside any pouvoir', () => {
-    pouvoirOn(ROUTE_PATHS.SG.MANAGE_SESSION);
+    pouvoirOn(ROUTE_PATHS.SG.GDS.MANAGE_SESSION);
     pouvoirOn(ROUTE_PATHS.SG.DASHBOARD);
 
     expect(pouvoirOn(ROUTE_PATHS.SG.MAGISTRAT_SEARCH)).toBeNull();
@@ -42,7 +42,7 @@ describe('usePouvoirDeProposition', () => {
   });
 
   it('never gives a pouvoir to a member, even in a tab opened from the secretariat', () => {
-    pouvoirOn(ROUTE_PATHS.SG.MANAGE_SESSION);
+    pouvoirOn(ROUTE_PATHS.SG.GDS.MANAGE_SESSION);
     pouvoirOn(ROUTE_PATHS.TRANSPARENCES.DASHBOARD);
 
     expect(pouvoirOn(ROUTE_PATHS.ACCOUNT)).toBeNull();

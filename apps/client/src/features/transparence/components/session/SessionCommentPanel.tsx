@@ -82,7 +82,7 @@ export function SessionCommentPanel(props: { isArchived: boolean; sessionId: str
                 label={formatMessage({ defaultMessage: 'Ouvrir en pleine page dans un nouvel onglet' })}
                 newTab
                 small
-                to={generatePath(ROUTE_PATHS.SG.SESSION_ID_COMMENT, { sessionId: props.sessionId })}
+                to={generatePath(ROUTE_PATHS.SG.GDS.SESSION_ID_COMMENT, { sessionId: props.sessionId })}
               />
             </div>
             <Button

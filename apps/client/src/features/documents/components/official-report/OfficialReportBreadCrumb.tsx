@@ -15,15 +15,15 @@ export function OfficialReportBreadCrumb() {
   const { data: session } = useDetailedNominationSessionQuery({ sessionId });
 
   const label = useMemo(() => {
-    if (matchPath({ path: ROUTE_PATHS.SG.OFFICIAL_REPORT_UPDATE }, pathname)) {
+    if (matchPath({ path: ROUTE_PATHS.SG.GDS.OFFICIAL_REPORT_UPDATE }, pathname)) {
       return formatMessage({ defaultMessage: `Mise à jour d'un PV` });
     }
 
-    if (matchPath({ path: ROUTE_PATHS.SG.OFFICIAL_REPORT_EDIT }, pathname)) {
+    if (matchPath({ path: ROUTE_PATHS.SG.GDS.OFFICIAL_REPORT_EDIT }, pathname)) {
       return formatMessage({ defaultMessage: `Texte d'un PV` });
     }
 
-    if (matchPath({ path: ROUTE_PATHS.SG.OFFICIAL_REPORT_PREVIEW }, pathname)) {
+    if (matchPath({ path: ROUTE_PATHS.SG.GDS.OFFICIAL_REPORT_PREVIEW }, pathname)) {
       return formatMessage({ defaultMessage: `Validation d'un PV` });
     }
 
@@ -39,7 +39,7 @@ export function OfficialReportBreadCrumb() {
         segments: [
           ...breadcrumbRoot,
           {
-            to: generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId }),
+            to: generatePath(ROUTE_PATHS.SG.GDS.SESSION_ID, { sessionId }),
             label: session?.name ?? formatMessage({ defaultMessage: 'Session' }),
           },
         ],

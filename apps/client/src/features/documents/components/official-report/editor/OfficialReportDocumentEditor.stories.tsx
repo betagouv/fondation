@@ -39,8 +39,10 @@ const meta = {
   parameters: {
     layout: 'fullscreen',
     router: {
-      initialEntries: ['/secretariat-general/session/session-1/docs/pv/official-report-1/validation/edition'],
-      path: ROUTE_PATHS.SG.OFFICIAL_REPORT_EDIT,
+      initialEntries: [
+        '/secretariat-general/gds/session/session-1/docs/pv/official-report-1/validation/edition',
+      ],
+      path: ROUTE_PATHS.SG.GDS.OFFICIAL_REPORT_EDIT,
     },
   },
   title: 'Features/DocumentEditor/OfficialReport',

@@ -42,7 +42,7 @@ export function AgendaUpdateFilesPage() {
               setError(defaultError);
             }
           },
-          onSuccess: () => navigate(generatePath(ROUTE_PATHS.SG.AGENDA_PREVIEW, { agendaId, sessionId })),
+          onSuccess: () => navigate(generatePath(ROUTE_PATHS.SG.GDS.AGENDA_PREVIEW, { agendaId, sessionId })),
         },
       );
     },
@@ -50,7 +50,7 @@ export function AgendaUpdateFilesPage() {
   );
 
   const onCancel = useCallback(
-    () => navigate(generatePath(ROUTE_PATHS.SG.AGENDA_PREVIEW, { agendaId, sessionId })),
+    () => navigate(generatePath(ROUTE_PATHS.SG.GDS.AGENDA_PREVIEW, { agendaId, sessionId })),
     [agendaId, navigate, sessionId],
   );
 

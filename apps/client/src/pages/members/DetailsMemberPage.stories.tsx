@@ -35,8 +35,8 @@ function DetailsMemberPageStory(props: { response: (typeof RESPONSES)[number] })
     <PageStory
       // a new response needs a new fetch: the query cache lives in PageStory
       key={props.response}
-      location={generatePath(ROUTE_PATHS.SG.MANAGE_SINGLE_MEMBER, { userId: MEMBER.id })}
-      path={ROUTE_PATHS.SG.MANAGE_SINGLE_MEMBER}
+      location={generatePath(ROUTE_PATHS.SG.GDS.MANAGE_SINGLE_MEMBER, { userId: MEMBER.id })}
+      path={ROUTE_PATHS.SG.GDS.MANAGE_SINGLE_MEMBER}
       view="sg"
     >
       <DetailsMemberPage />

@@ -68,7 +68,7 @@ export function OfficialReportEditPage() {
           label: formatMessage({ defaultMessage: "Voir l'aperçu" }),
           onClick: () =>
             navigate(
-              generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_PREVIEW, {
+              generatePath(ROUTE_PATHS.SG.GDS.OFFICIAL_REPORT_PREVIEW, {
                 officialReportId: officialReportId!,
                 sessionId: sessionId!,
               }),

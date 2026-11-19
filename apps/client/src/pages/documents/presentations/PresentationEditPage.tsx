@@ -43,7 +43,7 @@ export function PresentationEditPage() {
   const draftRef = useRef<string | null>(null);
   const [editorKey, setEditorKey] = useState(() => crypto.randomUUID());
 
-  const previewPath = generatePath(ROUTE_PATHS.SG.PRESENTATIONS_PREVIEW, { planId: planId! });
+  const previewPath = generatePath(ROUTE_PATHS.SG.GDS.PRESENTATIONS_PREVIEW, { planId: planId! });
   const seePreview = {
     label: formatMessage({ defaultMessage: "Voir l'aperçu" }),
     onClick: () => void navigate(previewPath),

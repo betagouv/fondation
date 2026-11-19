@@ -75,7 +75,7 @@ const meta = {
   component: AgendaFilesSelectionTableStory,
   parameters: {
     layout: 'fullscreen',
-    router: { initialEntries: ['/secretariat-general/session/draft/ordre-du-jour'] },
+    router: { initialEntries: ['/secretariat-general/gds/session/draft/ordre-du-jour'] },
   },
   title: 'Session/GDS/AgendaFilesSelectionTable',
 } satisfies Meta<typeof AgendaFilesSelectionTableStory>;

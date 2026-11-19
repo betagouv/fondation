@@ -154,7 +154,7 @@ function AgendaPresentationTrace(props: { doc: SessionDocument }) {
             <Link
               className="text-(--text-action-high-blue-france)"
               state={{ returnPath }}
-              to={generatePath(ROUTE_PATHS.SG.PRESENTATIONS_PREVIEW, { planId })}
+              to={generatePath(ROUTE_PATHS.SG.GDS.PRESENTATIONS_PREVIEW, { planId })}
             >
               {chunks}
             </Link>

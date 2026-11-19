@@ -81,7 +81,7 @@ export function OfficialReportPreviewPage() {
         <>
           <Button
             linkProps={{
-              to: generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_UPDATE, {
+              to: generatePath(ROUTE_PATHS.SG.GDS.OFFICIAL_REPORT_UPDATE, {
                 officialReportId: officialReportId!,
                 sessionId: sessionId!,
               }),
@@ -92,7 +92,7 @@ export function OfficialReportPreviewPage() {
           </Button>
           <Button
             linkProps={{
-              to: generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_EDIT, {
+              to: generatePath(ROUTE_PATHS.SG.GDS.OFFICIAL_REPORT_EDIT, {
                 officialReportId: officialReportId!,
                 sessionId: sessionId!,
               }),
@@ -112,7 +112,9 @@ export function OfficialReportPreviewPage() {
               onClick={() =>
                 validate.mutate(undefined, {
                   onSuccess: () =>
-                    navigate(generatePath(ROUTE_PATHS.SG.SESSION_ID_DOCUMENTS, { sessionId: sessionId! })),
+                    navigate(
+                      generatePath(ROUTE_PATHS.SG.GDS.SESSION_ID_DOCUMENTS, { sessionId: sessionId! }),
+                    ),
                 })
               }
             >
@@ -128,7 +130,7 @@ export function OfficialReportPreviewPage() {
       backLink={
         <Link
           className="fr-link fr-link--icon-left fr-icon-arrow-left-line"
-          to={generatePath(ROUTE_PATHS.SG.SESSION_ID_DOCUMENTS, { sessionId: sessionId! })}
+          to={generatePath(ROUTE_PATHS.SG.GDS.SESSION_ID_DOCUMENTS, { sessionId: sessionId! })}
         >
           <FormattedMessage defaultMessage="Fermer" />
         </Link>
@@ -154,7 +156,7 @@ export function OfficialReportPreviewPage() {
             )}
             {metadata?.outdated && (
               <DocumentDriftBanner
-                editionPath={generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_EDIT, {
+                editionPath={generatePath(ROUTE_PATHS.SG.GDS.OFFICIAL_REPORT_EDIT, {
                   officialReportId: officialReportId!,
                   sessionId: sessionId!,
                 })}

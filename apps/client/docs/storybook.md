@@ -151,7 +151,7 @@ const meta = {
   // ...
   parameters: {
     layout: 'padded',
-    router: { initialEntries: ['/secretariat-general/session/session-1'] },
+    router: { initialEntries: ['/secretariat-general/gds/session/session-1'] },
     // et si le composant lit des params : router: { initialEntries: [...], path: '/session/:id' }
   },
 } satisfies Meta<typeof MyComponent>;

@@ -238,7 +238,7 @@ function InnerPresentationNoticesList() {
                   iconId={ACTION_ICONS.edit}
                   label={formatMessage({ defaultMessage: `Ouvrir la notice` })}
                   small
-                  to={generatePath(ROUTE_PATHS.SG.PRESENTATIONS_PREVIEW, {
+                  to={generatePath(ROUTE_PATHS.SG.GDS.PRESENTATIONS_PREVIEW, {
                     planId: item.id,
                   })}
                 />
