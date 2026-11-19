@@ -170,6 +170,9 @@ export class AgendasService {
 
   @Transactional()
   async deleteAgenda(command: { agendaId: string }): Promise<void> {
+    // the deletion reaches the official report before the agenda: the agenda is locked first, as everywhere else
+    await this.db.tx.$queryRawTyped(lockAgendasRawQuery([command.agendaId]));
+
     const agenda = await this.agendaRepository.find({ actorId: null, agendaId: command.agendaId });
     agenda.delete();
     await this.agendaRepository.persist(agenda);
