@@ -11,20 +11,17 @@ import {
   useObservationsModal,
   type ActiveFile,
 } from '@/features/observations/context/ObservationsModalContext';
+import { useObservationFileActions } from '@/features/observations/hooks/useObservationFileActions';
 import { splitLodamObservers } from '@/features/observations/utils/split-lodam-observers';
 import { FileList, FileListItem } from '@/shared/components/file-list';
-import { useRenameAttachmentModal } from '@/shared/components/rename-attachment';
-import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { useAttachmentFailureToast } from '@/shared/hooks/useAttachmentFailureToast';
 import { useTab } from '@/shared/hooks/useTab';
-import { dateOnlyFromIso, dateOnlyToIso, formatDateOnly } from '@/utils/date-only.util';
+import { dateOnlyFromIso, formatDateOnly } from '@/utils/date-only.util';
 import { getObservationDetailsPath } from '@/utils/route-path.utils';
 import { useDownloadFileMutation } from '@queries/files.queries';
 import {
   useGetObservationFileUrlMutation,
   useObservationsQuery,
-  useRenameObservationFileMutation,
-  useUpdateObservationMutation,
   type Observation,
 } from '@queries/observations.queries';
 
@@ -45,22 +42,22 @@ function ObservationCard({
 }) {
   const intl = useIntl();
   const { edit, requestDelete } = useObservationsModal();
-  const { waitForConfirmation } = useConfirmModal();
   const notifyFailure = useAttachmentFailureToast();
   const tab = useTab();
   const { isPending: isDownloading, mutate: download } = useDownloadFileMutation();
   const { isPending: isLoadingUrl, mutate: getFileUrl } = useGetObservationFileUrlMutation();
-  const { isPending: isUpdating, mutate: update } = useUpdateObservationMutation();
-  const { mutateAsync: renameFile } = useRenameObservationFileMutation();
-  const renaming = useRenameAttachmentModal((attachment: { id: string; name: string }, name) =>
-    renameFile({
-      fileId: attachment.id,
-      name,
-      nominationFileId: file.id,
-      observationId: observation.id,
-      sessionId: file.sessionId,
-    }),
-  );
+  const {
+    detach,
+    isPending: isUpdating,
+    renaming,
+  } = useObservationFileActions({
+    description: observation.description,
+    id: observation.id,
+    magistratId: observation.magistrat.id,
+    nominationFileId: file.id,
+    receptionDate: dateOnlyFromIso(observation.dateReception),
+    sessionId: file.sessionId,
+  });
   const isLoadingFile = isDownloading || isLoadingUrl || isUpdating;
   const [expanded, setExpanded] = useState(false);
 
@@ -130,32 +127,6 @@ function ObservationCard({
       },
     );
 
-  const handleFileDelete = async (attachment: { id: string }) => {
-    const { isConfirmed } = await waitForConfirmation({
-      content: intl.formatMessage({
-        defaultMessage: 'Une fois supprimé, il sera impossible de le récupérer.',
-      }),
-      i18n: {
-        cancel: intl.formatMessage({ defaultMessage: 'Annuler' }),
-        confirm: intl.formatMessage({ defaultMessage: 'Supprimer le fichier' }),
-      },
-      title: intl.formatMessage({ defaultMessage: 'Veuillez confirmer la suppression du fichier' }),
-    });
-    if (!isConfirmed) return;
-
-    // the update endpoint rewrites the whole form: omitting the description would erase it
-    update({
-      dateReception: dateOnlyToIso(dateOnlyFromIso(observation.dateReception)),
-      description: observation.description,
-      detachFileIds: [attachment.id],
-      linkedObservationsAttachments: [],
-      magistratId: observation.magistrat.id,
-      nominationFileId: file.id,
-      observationId: observation.id,
-      sessionId: file.sessionId,
-    });
-  };
-
   const detailPath = getObservationDetailsPath({
     context,
     nominationFileId: file.id,
@@ -168,6 +139,7 @@ function ObservationCard({
 
   return (
     <li className="border border-(--border-default-grey) bg-(--background-default-grey)">
+      {renaming.modal}
       <div className="flex flex-col gap-1.5 p-6">
         <div className="flex items-start justify-between gap-2">
           <div className="flex min-w-0 flex-col gap-1.5">
@@ -255,7 +227,6 @@ function ObservationCard({
                     />
                   </div>
                 )}
-                {renaming.modal}
                 <FileList>
                   {observation.files.map((attachment) => (
                     <FileListItem
@@ -264,7 +235,7 @@ function ObservationCard({
                       disabled={isLoadingFile}
                       key={attachment.id}
                       name={attachment.name}
-                      onDelete={canManageAttachments ? () => handleFileDelete(attachment) : undefined}
+                      onDelete={canManageAttachments ? () => detach(attachment) : undefined}
                       onDownload={() => handleFileDownload(attachment)}
                       onOpen={() => handleFileOpen(attachment)}
                       onRename={canManageAttachments ? () => renaming.open(attachment) : undefined}

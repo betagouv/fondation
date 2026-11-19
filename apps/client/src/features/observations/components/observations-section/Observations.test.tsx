@@ -4,6 +4,8 @@ import { IntlProvider } from 'react-intl';
 import { MemoryRouter } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { ValidationError } from '@/utils/validation-error';
+
 import { Observations } from './Observations';
 
 const isSg = vi.fn(() => true);
@@ -199,7 +201,25 @@ describe('Observations', () => {
         detachFileIds: ['file-1'],
         magistratId: 'magistrat-1',
       }),
+      expect.anything(),
     );
+  });
+
+  it('tells why the removal of an attachment failed', async () => {
+    observations = [withAttachment()];
+    updateObservation.mockImplementation((_vars, options) =>
+      options.onError(new ValidationError('Le dossier a été figé entre-temps.')),
+    );
+    const user = userEvent.setup();
+    renderObservations();
+
+    await user.click(screen.getByRole('button', { name: 'Voir la pièce jointe' }));
+    await user.click(screen.getByRole('button', { name: 'Supprimer courrier.pdf' }));
+
+    expect(toastError).toHaveBeenCalledWith({
+      description: 'Le dossier a été figé entre-temps.',
+      title: 'La suppression de "courrier.pdf" a échoué',
+    });
   });
 
   it('keeps the attachments of an observation as they are in a dossier figé', async () => {
