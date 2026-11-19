@@ -169,6 +169,24 @@ test.describe('Agenda', () => {
     expect(foundFiles.data!.items.map(({ reporters }) => reporters)).toEqual([[], []]);
   });
 
+  test('should name the magistrats of the files to select as the session files list does', async ({
+    agent,
+    docs,
+    expect,
+  }) => {
+    const { id: sessionId } = await docs.session();
+
+    const { items: foundFiles } = (await agent.docs.findAgendaNominationFiles({ path: { sessionId } })).data!;
+    const listedFiles = await agent.sessions.listNominationFiles({
+      path: { sessionId },
+      query: { limit: 200, nominationFileIds: foundFiles.map(({ id }) => id) },
+    });
+
+    expect(Object.fromEntries(foundFiles.map(({ id, magistrat }) => [id, magistrat.name]))).toEqual(
+      Object.fromEntries(listedFiles.data!.items.map(({ content, id }) => [id, content.nomMagistrat])),
+    );
+  });
+
   test('should forget a reporter removed since the last publication', async ({ agent, docs, expect, member }) => {
     const session = await docs.session();
     const sessionId = session.id;
