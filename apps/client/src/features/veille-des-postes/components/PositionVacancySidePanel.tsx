@@ -1,6 +1,6 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
-import { useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useDateAndTime } from '@/shared/hooks/useDateAndTime';
@@ -11,8 +11,10 @@ import { HttpException } from '@/utils/http-exception';
 import { whoWrote } from '@/utils/user.utils';
 import { useUser } from '@queries/auth.queries';
 import {
+  type CommentedPosition,
   type HolderAlert,
   type HolderStatus,
+  usePositionCommentQuery,
   usePositionVacancyQuery,
 } from '@queries/veille-des-postes.queries';
 
@@ -26,11 +28,19 @@ export const POSITION_VACANCY_SIDE_PANEL_ID = 'position-vacancy-side-panel';
 
 export type EditedPosition = {
   alerts: HolderAlert[];
+  commented: CommentedPosition;
+  /** the id of its row in the table */
+  id: string;
   installationDate: PlainDateOnly | null;
-  /** the title tells the position and its court in a sentence: "Présidente du tribunal judiciaire de Grasse" */
-  magistrat: { id: string; name: string; title: string };
   status: HolderStatus;
-};
+} & (
+  | {
+      courtLabel: string | null;
+      /** the title tells the position and its court in a sentence: "Présidente du tribunal judiciaire de Grasse" */
+      magistrat: { id: string; name: string; title: string };
+    }
+  | { courtLabel: string; magistrat: null }
+);
 
 export function PositionVacancySidePanel(props: {
   edited: EditedPosition | null;
@@ -75,24 +85,91 @@ export function PositionVacancySidePanel(props: {
       onClose={props.onClose}
       open={!!props.edited}
     >
-      {props.edited && (
-        <PositionVacancyContent edited={props.edited} onLeaveBlockedChange={props.onLeaveBlockedChange} />
-      )}
+      {props.edited &&
+        (props.edited.magistrat ? (
+          <PositionVacancyContent
+            edited={props.edited}
+            magistrat={props.edited.magistrat}
+            onLeaveBlockedChange={props.onLeaveBlockedChange}
+          />
+        ) : (
+          <VacantCourtContent
+            courtLabel={props.edited.courtLabel}
+            edited={props.edited}
+            onLeaveBlockedChange={props.onLeaveBlockedChange}
+          />
+        ))}
     </SidePanel>
+  );
+}
+
+function VacantCourtContent({
+  courtLabel,
+  edited,
+  onLeaveBlockedChange,
+}: {
+  courtLabel: string;
+  edited: EditedPosition;
+  onLeaveBlockedChange: (isLeaveBlocked: boolean) => void;
+}) {
+  const { error } = usePositionCommentQuery(edited.commented);
+  // the court left the veille since the table loaded
+  const isGone = error instanceof HttpException && error.statusCode === 404;
+
+  return (
+    <div className="flex flex-col gap-8">
+      <PositionHeading name={courtLabel} />
+      <section className="flex flex-col gap-4">
+        <h3 className="fr-mb-0 text-lg font-semibold text-(--text-label-grey)">
+          <FormattedMessage defaultMessage="Statut du poste" />
+        </h3>
+        <div className="flex flex-col items-start gap-2">
+          <PositionStatusBadge status={edited.status} />
+        </div>
+      </section>
+      {isGone && (
+        <Alert
+          description={<FormattedMessage defaultMessage="Rechargez la page pour mettre le tableau à jour" />}
+          severity="info"
+          small
+          title={<FormattedMessage defaultMessage="Cette juridiction n'est plus suivie" />}
+        />
+      )}
+      <PositionCommentSection
+        key={edited.id}
+        onDirtyChange={onLeaveBlockedChange}
+        position={edited.commented}
+      />
+    </div>
+  );
+}
+
+function PositionHeading(props: { name: string; title?: ReactNode }) {
+  return (
+    <div className="-mx-8 -mt-8 flex flex-col gap-2 bg-(--background-alt-blue-france) px-8 py-6">
+      <div className="flex flex-col gap-2">
+        <h2 className="fr-h4 fr-mb-0 text-(--text-title-blue-france)" id="position-vacancy-title">
+          {props.name}
+        </h2>
+        {props.title && <p className="fr-mb-0">{props.title}</p>}
+      </div>
+    </div>
   );
 }
 
 function PositionVacancyContent({
   edited,
+  magistrat,
   onLeaveBlockedChange,
 }: {
   edited: EditedPosition;
+  magistrat: NonNullable<EditedPosition['magistrat']>;
   onLeaveBlockedChange: (isLeaveBlocked: boolean) => void;
 }) {
   const { formatMessage } = useIntl();
   const dateAndTime = useDateAndTime();
   const { user } = useUser();
-  const { data, error, isFetching, refetch } = usePositionVacancyQuery(edited.magistrat.id);
+  const { data, error, isFetching, refetch } = usePositionVacancyQuery(magistrat.id);
 
   const [isFormIncomplete, setFormIncomplete] = useState(false);
   const [isCommentDirty, setCommentDirty] = useState(false);
@@ -134,30 +211,26 @@ function PositionVacancyContent({
 
   return (
     <div className="flex flex-col gap-8">
-      <div className="-mx-8 -mt-8 flex flex-col gap-2 bg-(--background-alt-blue-france) px-8 py-6">
-        <div className="flex flex-col gap-2">
-          <h2 className="fr-h4 fr-mb-0 text-(--text-title-blue-france)" id="position-vacancy-title">
-            {edited.magistrat.name}
-          </h2>
-          <p className="fr-mb-0">
-            {edited.installationDate ? (
-              <FormattedMessage
-                defaultMessage="{title} depuis le {date}"
-                values={{ date: formatDateOnly(edited.installationDate), title: edited.magistrat.title }}
-              />
-            ) : (
-              edited.magistrat.title
-            )}
-          </p>
-        </div>
-      </div>
+      <PositionHeading
+        name={magistrat.name}
+        title={
+          edited.installationDate ? (
+            <FormattedMessage
+              defaultMessage="{title} depuis le {date}"
+              values={{ date: formatDateOnly(edited.installationDate), title: magistrat.title }}
+            />
+          ) : (
+            magistrat.title
+          )
+        }
+      />
 
       <section className="flex flex-col gap-4">
         <div className="flex items-center justify-between gap-4">
           <h3 className="fr-mb-0 text-lg font-semibold text-(--text-label-grey)">
             <FormattedMessage defaultMessage="Statut du poste" />
           </h3>
-          {data?.vacancy && <WithdrawPositionVacancyButton magistratId={edited.magistrat.id} />}
+          {data?.vacancy && <WithdrawPositionVacancyButton magistratId={magistrat.id} />}
         </div>
         <div className="flex flex-col items-start gap-2">
           <div className="flex items-center gap-2">
@@ -187,18 +260,14 @@ function PositionVacancyContent({
       )}
       {data && (
         <PositionVacancyForm
-          key={`${edited.magistrat.id} ${resets}`}
-          magistratId={edited.magistrat.id}
+          key={`${magistrat.id} ${resets}`}
+          magistratId={magistrat.id}
           onIncompleteChange={setFormIncomplete}
           rules={data}
           vacancy={data.vacancy}
         />
       )}
-      <PositionCommentSection
-        key={edited.magistrat.id}
-        magistratId={edited.magistrat.id}
-        onDirtyChange={setCommentDirty}
-      />
+      <PositionCommentSection key={edited.id} onDirtyChange={setCommentDirty} position={edited.commented} />
     </div>
   );
 }

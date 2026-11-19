@@ -15,15 +15,21 @@ const ROWS: Row[] = [
   { court: 'Angers', magistrat: { id: 'b', name: 'Bruno' } },
 ];
 
-function editedPositionOf(row: Row): EditedPosition | null {
-  return (
-    row.magistrat && {
-      alerts: [],
-      installationDate: null,
-      magistrat: { ...row.magistrat, title: `Premier président de la cour d'appel ${row.court}` },
-      status: { detail: null, hint: null, id: 'OCCUPIED', label: 'Occupé' },
-    }
-  );
+function editedPositionOf(row: Row): EditedPosition {
+  return {
+    alerts: [],
+    commented: { courtId: row.court },
+    courtLabel: row.court,
+    id: row.magistrat?.id ?? row.court,
+    installationDate: null,
+    magistrat: row.magistrat && {
+      ...row.magistrat,
+      title: `Premier président de la cour d'appel ${row.court}`,
+    },
+    status: row.magistrat
+      ? { detail: null, hint: null, id: 'OCCUPIED', label: 'Occupé' }
+      : { detail: null, hint: null, id: 'VACANT', label: 'Vacant' },
+  };
 }
 
 /** the neighbours are read ahead but never answered here */
@@ -44,20 +50,22 @@ describe('useEditedPosition', () => {
     ]);
     act(() => result.current.open(ROWS[2]!));
 
-    rerender({ shown: [ROWS[0]!, { court: 'Bastia', magistrat: { id: 'c', name: 'Chloé' } }] });
+    rerender({ shown: [ROWS[0]!, ROWS[1]!, { court: 'Bastia', magistrat: { id: 'c', name: 'Chloé' } }] });
 
-    expect(result.current.edited?.magistrat.name).toBe('Bruno');
+    expect(result.current.edited?.magistrat?.name).toBe('Bruno');
     act(() => result.current.next?.());
-    expect(result.current.edited?.magistrat.name).toBe('Chloé');
+    expect(result.current.edited?.magistrat?.name).toBe('Chloé');
   });
 
-  it('moves to the next position with a holder, and stops on the last one', () => {
+  it('moves to the next position, a court without holder too, and stops on the last one', () => {
     const { result } = renderEditedPosition(ROWS);
 
     act(() => result.current.open(ROWS[0]!));
     act(() => result.current.next?.());
+    expect(result.current.edited?.courtLabel).toBe('Amiens');
 
-    expect(result.current.edited?.magistrat.name).toBe('Bruno');
+    act(() => result.current.next?.());
+    expect(result.current.edited?.magistrat?.name).toBe('Bruno');
     expect(result.current.next).toBeUndefined();
     expect(result.current.previous).toBeDefined();
   });
@@ -70,6 +78,6 @@ describe('useEditedPosition', () => {
     act(() => result.current.next?.());
     act(() => result.current.close());
 
-    expect(result.current.edited?.magistrat.name).toBe('Alice');
+    expect(result.current.edited?.magistrat?.name).toBe('Alice');
   });
 });

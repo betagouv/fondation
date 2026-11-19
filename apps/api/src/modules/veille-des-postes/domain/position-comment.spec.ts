@@ -28,20 +28,20 @@ describe('commentPreviewOf', () => {
 
 describe('PositionComment', () => {
   it('erases a comment left with spaces only', () => {
-    const comment = PositionComment.of({ magistratId: 'magistrat', positionId: 7 });
+    const comment = PositionComment.of({ courtId: 'TJ  GRASSE' });
 
     comment.write({ authorId: 'author', comment: '   ' });
 
-    expect(comment.messages).toEqual([new PositionCommentErased('magistrat', 7)]);
+    expect(comment.messages).toEqual([new PositionCommentErased({ courtId: 'TJ  GRASSE' })]);
   });
 
   it('writes the comment without its surrounding spaces', () => {
-    const comment = PositionComment.of({ magistratId: 'magistrat', positionId: 7 });
+    const comment = PositionComment.of({ courtId: 'TJ  GRASSE' });
 
     comment.write({ authorId: 'author', comment: '  Souhaite partir en 2027 \n' });
 
     expect(comment.messages).toEqual([
-      new PositionCommentWritten('author', 'Souhaite partir en 2027', 'magistrat', 7),
+      new PositionCommentWritten('author', 'Souhaite partir en 2027', { courtId: 'TJ  GRASSE' }),
     ]);
   });
 });

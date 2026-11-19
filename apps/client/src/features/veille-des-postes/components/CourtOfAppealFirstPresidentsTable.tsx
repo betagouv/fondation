@@ -35,7 +35,7 @@ import {
   useCourtOfAppealFirstPresidentsQuery,
 } from '@queries/veille-des-postes.queries';
 
-import { MagistratLink } from './MagistratLink';
+import { CommentPreviewIcon, MagistratLink } from './MagistratLink';
 import { PositionStatusCell } from './PositionStatusCell';
 import { type EditedPosition, PositionVacancySidePanel } from './PositionVacancySidePanel';
 
@@ -50,8 +50,21 @@ const COLUMNS_BESIDE_SIDE_PANEL = { candidates: false, installationDate: false, 
 
 const h = createColumnHelper<CourtOfAppealFirstPresident>();
 
-function editedPositionOf(row: CourtOfAppealFirstPresident): EditedPosition | null {
-  return row.magistrat && { ...row, magistrat: row.magistrat };
+/** a magistrat holds one position only, and a court without one is listed once */
+function rowIdOf(firstPresident: CourtOfAppealFirstPresident): string {
+  return firstPresident.magistrat?.id ?? firstPresident.court.id;
+}
+
+function editedPositionOf(row: CourtOfAppealFirstPresident): EditedPosition {
+  return {
+    alerts: row.alerts,
+    commented: { courtId: row.court.id },
+    courtLabel: row.court.label,
+    id: rowIdOf(row),
+    installationDate: row.installationDate,
+    magistrat: row.magistrat,
+    status: row.status,
+  };
 }
 
 function useCourtOfAppealFirstPresidentsColumns(props: {
@@ -74,9 +87,16 @@ function useCourtOfAppealFirstPresidentsColumns(props: {
       h.accessor('magistrat', {
         cell: ({ getValue, row }) => {
           const magistrat = getValue();
-          if (!magistrat) return '-';
+          if (!magistrat) {
+            return row.original.commentPreview === null ? (
+              '-'
+            ) : (
+              <CommentPreviewIcon commentPreview={row.original.commentPreview} />
+            );
+          }
           return (
             <MagistratLink
+              commentPreview={row.original.commentPreview}
               isFormerHolder={row.original.status.id === 'VACANT'}
               magistrat={magistrat}
               onClick={onMagistratOpened}
@@ -102,7 +122,12 @@ function useCourtOfAppealFirstPresidentsColumns(props: {
         cell: ({ getValue, row }) => (
           <PositionStatusCell
             alerts={row.original.alerts}
-            onEdit={row.original.magistrat ? () => onPositionEdited(row.original) : undefined}
+            edit={{
+              label: row.original.magistrat
+                ? formatMessage({ defaultMessage: 'Modifier le statut' })
+                : formatMessage({ defaultMessage: 'Commenter le poste' }),
+              onClick: () => onPositionEdited(row.original),
+            }}
             status={getValue()}
           />
         ),
@@ -203,7 +228,7 @@ export function CourtOfAppealFirstPresidentsTable(props: {
   const items = useMemo(() => data?.items ?? [], [data]);
   const editing = useEditedPosition(items, editedPositionOf, props.onSidePanelToggle);
   // the row of the side panel or the one left for a magistrat's page
-  const highlightedRowId = editing.edited?.magistrat.id ?? revealedRowId;
+  const highlightedRowId = editing.edited?.id ?? revealedRowId;
   const table = useReactTable({
     columns: useCourtOfAppealFirstPresidentsColumns({
       onMagistratOpened: remember,
@@ -213,8 +238,7 @@ export function CourtOfAppealFirstPresidentsTable(props: {
     data: items,
     enableSortingRemoval: false,
     getCoreRowModel: getCoreRowModel(),
-    // a magistrat holds one position only, and a court without one is listed once
-    getRowId: (row) => row.magistrat?.id ?? row.court.id,
+    getRowId: rowIdOf,
     manualFiltering: true,
     manualSorting: true,
     onColumnFiltersChange,

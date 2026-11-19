@@ -76,6 +76,10 @@ export class VeilleDesPostesService {
     await this.vacancies.persist(vacancy);
   }
 
+  findCourtComment(query: { courtId: string }): Promise<FoundPositionCommentDto> {
+    return this.findPositionCommentQuery.handle(query);
+  }
+
   findPositionComment(query: { magistratId: string }): Promise<FoundPositionCommentDto> {
     return this.findPositionCommentQuery.handle(query);
   }
@@ -141,12 +145,19 @@ export class VeilleDesPostesService {
   }
 
   @Transactional()
+  async writeCourtComment(command: { authorId: string; comment: string; courtId: string }): Promise<void> {
+    const comment = await this.comments.findOfCourt(command);
+    comment.write(command);
+    await this.comments.persist(comment);
+  }
+
+  @Transactional()
   async writePositionComment(command: {
     authorId: string;
     comment: string;
     magistratId: string;
   }): Promise<void> {
-    const comment = await this.comments.find(command);
+    const comment = await this.comments.findOfHolder(command);
     comment.write(command);
     await this.comments.persist(comment);
   }

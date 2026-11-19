@@ -2,15 +2,17 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { Prisma } from '../../../../generated/prisma/client';
 import { DateOnly } from '../../../../utils/date-only';
+import { Clock } from '../../../framework/clock';
 import { Db } from '../../../framework/database';
 import type { Civility } from '../../../magistrat/domain/magistrat-name';
 import { civilityOf } from '../../domain/holder-title';
 import type { WatchedPosition } from '../../domain/position-alert';
-import { watchedPositionOf } from '../../domain/watched-position';
+import { isRemovedCourt, watchedPositionOf } from '../../domain/watched-position';
 
 export type HeldPosition = {
   birthDate: DateOnly | null;
   civility: Civility | null;
+  courtId: string;
   installationDate: DateOnly | null;
   positionId: number;
   watched: WatchedPosition;
@@ -18,7 +20,10 @@ export type HeldPosition = {
 
 @Injectable()
 export class HeldPositionFinder {
-  constructor(private readonly db: Db) {}
+  constructor(
+    private readonly clock: Clock,
+    private readonly db: Db,
+  ) {}
 
   /**
    * the position LOLFI gives the magistrat today carries the vacancies declared on them: not found unless a
@@ -46,8 +51,7 @@ export class HeldPositionFinder {
       } satisfies Prisma.PositionSelect,
       where: { id: positionId },
     });
-    const removed =
-      position?.jurisdiction.dateSuppression && position.jurisdiction.dateSuppression <= new Date();
+    const removed = position && isRemovedCourt(position.jurisdiction.dateSuppression, this.clock.now());
     const watched =
       position &&
       !removed &&
@@ -62,6 +66,7 @@ export class HeldPositionFinder {
     return {
       birthDate: DateOnly.fromOptionalUtcDate(magistrat.birthDate),
       civility: civilityOf(magistrat.civilite),
+      courtId: position.jurisdiction.codejur,
       installationDate: DateOnly.fromOptionalUtcDate(magistrat.installationDate),
       positionId,
       watched,

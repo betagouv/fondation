@@ -54,7 +54,15 @@ const COLUMNS_BESIDE_SIDE_PANEL = { candidates: false, status: false };
 const h = createColumnHelper<CourtOfCassationHolder>();
 
 function editedPositionOf(row: CourtOfCassationHolder): EditedPosition {
-  return row;
+  return {
+    alerts: row.alerts,
+    commented: { magistratId: row.magistrat.id },
+    courtLabel: null,
+    id: row.magistrat.id,
+    installationDate: row.installationDate,
+    magistrat: row.magistrat,
+    status: row.status,
+  };
 }
 
 function useCourtOfCassationHoldersColumns(props: {
@@ -71,6 +79,7 @@ function useCourtOfCassationHoldersColumns(props: {
         cell: ({ getValue, row }) => (
           <div className="flex flex-col items-start gap-1 leading-6">
             <MagistratLink
+              commentPreview={getValue().commentPreview}
               isFormerHolder={row.original.status.id === 'VACANT'}
               magistrat={getValue()}
               onClick={onMagistratOpened}
@@ -99,7 +108,10 @@ function useCourtOfCassationHoldersColumns(props: {
         cell: ({ getValue, row }) => (
           <PositionStatusCell
             alerts={row.original.alerts}
-            onEdit={() => onPositionEdited(row.original)}
+            edit={{
+              label: formatMessage({ defaultMessage: 'Modifier le statut' }),
+              onClick: () => onPositionEdited(row.original),
+            }}
             status={getValue()}
           />
         ),
@@ -210,7 +222,7 @@ export function CourtOfCassationHoldersTable(props: {
   const items = useMemo(() => holders?.items ?? [], [holders]);
   const editing = useEditedPosition(items, editedPositionOf, props.onSidePanelToggle);
   // the row of the side panel or the one left for a magistrat's page
-  const highlightedRowId = editing.edited?.magistrat.id ?? revealedRowId;
+  const highlightedRowId = editing.edited?.id ?? revealedRowId;
   const table = useReactTable({
     columns: useCourtOfCassationHoldersColumns({
       onMagistratOpened: remember,

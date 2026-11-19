@@ -11,14 +11,14 @@ import {
   PositionCommentWritten,
 } from '../../domain/position-comment';
 import { hasLapsed } from '../../domain/position-vacancy';
-import { HeldPositionFinder } from '../finders/held-position.finder';
+import { CommentedPositionFinder } from '../finders/commented-position.finder';
 
 @Injectable()
 export class PositionCommentRepository {
   constructor(
     private readonly clock: Clock,
+    private readonly commentedPositions: CommentedPositionFinder,
     private readonly db: Db,
-    private readonly heldPositions: HeldPositionFinder,
   ) {}
 
   @Transactional(Propagation.Mandatory)
@@ -41,12 +41,15 @@ export class PositionCommentRepository {
     return lapsed.length;
   }
 
+  @Transactional(Propagation.Mandatory)
+  async findOfCourt(query: { courtId: string }): Promise<PositionComment> {
+    return PositionComment.of(await this.commentedPositions.ofCourt(query));
+  }
+
   /** the comment of the position the magistrat holds today */
   @Transactional(Propagation.Mandatory)
-  async find({ magistratId }: { magistratId: string }): Promise<PositionComment> {
-    const { positionId } = await this.heldPositions.byHolder({ magistratId });
-
-    return PositionComment.of({ magistratId, positionId });
+  async findOfHolder(query: { magistratId: string }): Promise<PositionComment> {
+    return PositionComment.of(await this.commentedPositions.ofHolder(query));
   }
 
   @Transactional(Propagation.Mandatory)
@@ -58,19 +61,30 @@ export class PositionCommentRepository {
     }
   }
 
-  private async persistErased(message: PositionCommentErased) {
-    await this.db.tx.positionComment.deleteMany({
-      where: { magistratId: message.magistratId, positionId: message.positionId },
-    });
+  private async persistErased({ position }: PositionCommentErased) {
+    if ('courtId' in position) {
+      await this.db.tx.courtComment.deleteMany({ where: { courtId: position.courtId } });
+    } else {
+      await this.db.tx.positionComment.deleteMany({ where: position });
+    }
   }
 
   private async persistWritten(message: PositionCommentWritten) {
     const written = { authorId: message.authorId, comment: message.comment, updatedAt: this.clock.now() };
+    const { position } = message;
 
-    await this.db.tx.positionComment.upsert({
-      create: { ...written, magistratId: message.magistratId, positionId: message.positionId },
-      update: written,
-      where: { primaryKey: { magistratId: message.magistratId, positionId: message.positionId } },
-    });
+    if ('courtId' in position) {
+      await this.db.tx.courtComment.upsert({
+        create: { ...written, courtId: position.courtId },
+        update: written,
+        where: { courtId: position.courtId },
+      });
+    } else {
+      await this.db.tx.positionComment.upsert({
+        create: { ...written, ...position },
+        update: written,
+        where: { primaryKey: position },
+      });
+    }
   }
 }

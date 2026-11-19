@@ -1,5 +1,4 @@
 import Badge from '@codegouvfr/react-dsfr/Badge';
-import { useIntl } from 'react-intl';
 
 import { IconButton } from '@/shared/ui/icon-button';
 import { ACTION_ICONS } from '@/shared/ui/icons';
@@ -30,18 +29,16 @@ export function PositionStatusBadge(props: { status: { id: PositionStatus; label
 
 export function PositionStatusCell(props: {
   alerts: HolderAlert[];
-  onEdit?: () => void;
+  edit?: { label: string; onClick: () => void };
   status: HolderStatus;
 }) {
-  const { formatMessage } = useIntl();
-
   // the badge wraps between its words only: the pencil follows its last word and never sits alone on a line
   return (
     <div className="flex flex-col items-start gap-2">
       <div className="flex flex-col items-start gap-1">
         <div className="text-xs leading-5 whitespace-nowrap">
           <PositionStatusBadge status={props.status} />
-          {props.onEdit && (
+          {props.edit && (
             <IconButton
               aria-controls={POSITION_VACANCY_SIDE_PANEL_ID}
               aria-haspopup="dialog"
@@ -49,8 +46,8 @@ export function PositionStatusCell(props: {
               // higher than the middle of the badge
               className="-my-1.5 ml-1 translate-y-1 align-middle"
               iconId={ACTION_ICONS.edit}
-              label={formatMessage({ defaultMessage: 'Modifier le statut' })}
-              onClick={props.onEdit}
+              label={props.edit.label}
+              onClick={props.edit.onClick}
               small
             />
           )}

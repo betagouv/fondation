@@ -4,37 +4,45 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { Prisma } from '../../../../generated/prisma/client';
-import { COMMENT_MAX_LENGTH } from '../../../../utils/comment';
-import { writerOf, writerSchema } from '../../../../utils/user.util';
+import { COMMENT_MAX_LENGTH, commentLastChangeSchema } from '../../../../utils/comment';
+import { writerOf } from '../../../../utils/user.util';
 import { Db } from '../../../framework/database';
-import { HeldPositionFinder } from '../finders/held-position.finder';
+import { CommentedPositionFinder } from '../finders/commented-position.finder';
+
+const COMMENT_SELECT = {
+  author: { select: { firstName: true, id: true, lastName: true } },
+  comment: true,
+  updatedAt: true,
+} satisfies Prisma.CourtCommentSelect & Prisma.PositionCommentSelect;
 
 @Injectable()
 export class FindPositionCommentQuery {
   constructor(
+    private readonly commentedPositions: CommentedPositionFinder,
     private readonly db: Db,
-    private readonly heldPositions: HeldPositionFinder,
   ) {}
 
   @Transactional()
-  async handle({ magistratId }: { magistratId: string }): Promise<FoundPositionCommentDto> {
-    const { positionId } = await this.heldPositions.byHolder({ magistratId });
+  async handle(query: { courtId: string } | { magistratId: string }): Promise<FoundPositionCommentDto> {
+    const position =
+      'courtId' in query
+        ? await this.commentedPositions.ofCourt(query)
+        : await this.commentedPositions.ofHolder(query);
 
-    const comment = await this.db.tx.positionComment.findUnique({
-      select: {
-        author: { select: { firstName: true, id: true, lastName: true } },
-        comment: true,
-        updatedAt: true,
-      } satisfies Prisma.PositionCommentSelect,
-      where: { primaryKey: { magistratId, positionId } },
-    });
+    const comment =
+      'courtId' in position
+        ? await this.db.tx.courtComment.findUnique({
+            select: COMMENT_SELECT satisfies Prisma.CourtCommentSelect,
+            where: { courtId: position.courtId },
+          })
+        : await this.db.tx.positionComment.findUnique({
+            select: COMMENT_SELECT satisfies Prisma.PositionCommentSelect,
+            where: { primaryKey: position },
+          });
 
     return {
-      comment: comment && {
-        text: comment.comment,
-        updatedAt: comment.updatedAt.toISOString(),
-        updatedBy: writerOf(comment.author),
-      },
+      comment: comment?.comment ?? null,
+      lastChange: comment && { at: comment.updatedAt.toISOString(), by: writerOf(comment.author) },
       maxLength: COMMENT_MAX_LENGTH,
     };
   }
@@ -42,7 +50,8 @@ export class FindPositionCommentQuery {
 
 export class FoundPositionCommentDto extends createZodDto(
   z.object({
-    comment: z.object({ text: z.string(), updatedAt: z.iso.datetime(), updatedBy: writerSchema }).nullable(),
+    comment: z.string().nullable(),
+    lastChange: commentLastChangeSchema.nullable(),
     maxLength: z.number().int(),
   }),
 ) {}

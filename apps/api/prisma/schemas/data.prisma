@@ -11,6 +11,7 @@ model Jurisdiction {
   ville_jur       String?
   ville           String?
 
+  comments                  CourtComment[]
   excludedByUserIds         ExcludedJurisdiction[]
   positions                 Position[]
   detectedInNominationFiles DossierDeNomination[]

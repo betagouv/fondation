@@ -22,3 +22,15 @@ export function watchedPositionOf(lolfi: {
   }
   return null;
 }
+
+/** a court whose head a table lists */
+export function isWatchedCourt(courtTypeId: string): boolean {
+  return (
+    COURT_OF_APPEAL_HEADS.some((head) => head.jurisdictionTypeId === courtTypeId) ||
+    JUDICIAL_COURT_TYPE_IDS.includes(courtTypeId)
+  );
+}
+
+export function isRemovedCourt(dateSuppression: Date | null, now: Date): boolean {
+  return dateSuppression !== null && dateSuppression <= now;
+}

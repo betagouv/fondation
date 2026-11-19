@@ -58,6 +58,7 @@ model User {
   authorOfJusticeDepartmentContacts            JusticeDepartmentContact[]
   authorOfJusticePresentationPlans             JusticePresentationPlan[]              @relation("justice_presentation_author")
   authorOfMagistratPhoneNumbers                MagistratPhoneNumber[]
+  authorOfCourtComments                        CourtComment[]
   authorOfPositionComments                     PositionComment[]
   authorOfPositionVacancies                    PositionVacancy[]
   authorOfNominationFileAuditionVersions       NominationFileAuditionVersion[]        @relation("nomination_file_audition_version_author")

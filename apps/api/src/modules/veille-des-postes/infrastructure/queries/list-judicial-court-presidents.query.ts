@@ -85,11 +85,11 @@ export class ListJudicialCourtPresidentsQuery {
         : [];
       return {
         alerts,
+        commentPreview: commentPreviewOf(court.comment),
         court: { id: court.courtId, label: court.courtLabel ?? court.courtId },
         installationDate: installationDate?.toJson() ?? null,
         magistrat: court.id
           ? {
-              commentPreview: commentPreviewOf(court.comment),
               id: court.id,
               name: magistratFullName(court),
               title: judicialCourtPresidentTitle({
@@ -128,8 +128,9 @@ export class ListJudicialCourtPresidentsQuery {
     return {
       ...paginate({
         items: pageOf(sorted, query.pagination).map(
-          ({ alerts, court, installationDate, magistrat, ressort, status }) => ({
+          ({ alerts, commentPreview, court, installationDate, magistrat, ressort, status }) => ({
             alerts: alerts.map(alertJson),
+            commentPreview,
             court,
             installationDate,
             magistrat,
@@ -151,11 +152,11 @@ export class ListJudicialCourtPresidentsQuery {
 export class ListedJudicialCourtPresidentsDto extends createPaginatedZodDto(
   z.object({
     alerts: z.array(holderAlertSchema),
+    commentPreview: z.string().nullable(),
     court: z.object({ id: z.string(), label: z.string() }),
     installationDate: dateOnlyJsonSchema.nullable(),
     magistrat: z
       .object({
-        commentPreview: z.string().nullable(),
         id: z.string(),
         name: z.string(),
         title: z.string(),
