@@ -6,6 +6,7 @@ import { ApiPaginated, type Pagination, QueryPagination } from '../framework/pag
 import { HasRole } from '../simple-auth';
 
 import {
+  ListedFollowedUpObservationSessionYearsDto,
   ListedFollowedUpObservationsDto,
   ListFollowedUpObservationsQueryDto,
 } from './infrastructure/dtos/followed-up-observation.dto';
@@ -29,11 +30,19 @@ export class FollowedUpObservationsController {
         followUps: query.followUps,
         search: query.search ?? null,
         sessionStatuses: query.sessionStatuses,
+        sessionYears: query.sessionYears,
         trackingStatuses: query.trackingStatuses,
       },
       pagination,
       sortBy: query.sortBy ?? null,
       sortDesc: query.sortDesc,
     });
+  }
+
+  @Get('/session-years')
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @ZodResponse({ status: HttpStatus.OK, type: ListedFollowedUpObservationSessionYearsDto })
+  listFollowedUpObservationSessionYears(): Promise<ListedFollowedUpObservationSessionYearsDto> {
+    return this.observations.listFollowedUpObservationSessionYears();
   }
 }

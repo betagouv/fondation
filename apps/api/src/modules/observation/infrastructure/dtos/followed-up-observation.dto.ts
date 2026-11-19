@@ -1,3 +1,4 @@
+import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { dateOnlyJsonSchema } from '../../../../utils/date-only';
@@ -28,6 +29,24 @@ export class ListFollowedUpObservationsQueryDto extends createSortableDto(
           .filter(Boolean),
       )
       .pipe(z.array(z.enum(SESSION_STATUSES))),
+    sessionYears: z
+      .string()
+      .optional()
+      .meta({ example: '2025,2026' })
+      .transform((value) =>
+        (value ?? '')
+          .split(',')
+          .map((year) => year.trim())
+          .filter(Boolean),
+      )
+      .pipe(
+        z.array(
+          z
+            .string()
+            .regex(/^\d{4}$/)
+            .transform(Number),
+        ),
+      ),
     sortBy: z.enum(['dateReception']).optional(),
     trackingStatuses: z
       .string()
@@ -41,6 +60,11 @@ export class ListFollowedUpObservationsQueryDto extends createSortableDto(
       )
       .pipe(z.array(z.enum(OBSERVATION_BLOCK_TRACKING_STATUSES))),
   }),
+) {}
+
+// most recent first
+export class ListedFollowedUpObservationSessionYearsDto extends createZodDto(
+  z.object({ items: z.array(z.object({ year: z.number().int() })) }),
 ) {}
 
 export class ListedFollowedUpObservationsDto extends createPaginatedZodDto(

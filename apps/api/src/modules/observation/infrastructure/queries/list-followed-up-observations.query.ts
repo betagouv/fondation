@@ -12,6 +12,7 @@ import { TransparenceService } from '../../../session/transparence/infrastructur
 import {
   laterPropositions,
   type ObservationBlockTrackingStatus,
+  sessionYear,
   sortBySessionThenObservationBlock,
   UNTRACKED_BLOCK,
 } from '../../domain/observation-block';
@@ -38,6 +39,7 @@ export class ListFollowedUpObservationsQuery {
       followUps: readonly (ObservationFollowUpEnum | null)[];
       search: string | null;
       sessionStatuses: readonly SessionStatus[];
+      sessionYears: readonly number[];
       trackingStatuses: readonly ObservationBlockTrackingStatus[];
     };
     pagination: Pagination;
@@ -82,6 +84,7 @@ export class ListFollowedUpObservationsQuery {
 
       const followUps = new Set(query.filters.followUps);
       const sessionStatuses = new Set(query.filters.sessionStatuses);
+      const sessionYears = new Set(query.filters.sessionYears);
       const trackingStatuses = new Set(query.filters.trackingStatuses);
       const search = unaccent(query.filters.search ?? '').toLowerCase();
       const matching = observations.flatMap((observation) => {
@@ -96,6 +99,7 @@ export class ListFollowedUpObservationsQuery {
 
         if (followUps.size && !followUps.has(observation.followUp)) return [];
         if (sessionStatuses.size && !sessionStatuses.has(status)) return [];
+        if (sessionYears.size && !sessionYears.has(sessionYear(session))) return [];
         if (trackingStatuses.size && !trackingStatuses.has(tracking.status)) return [];
         if (search && !unaccent(observant.name).toLowerCase().includes(search)) return [];
         return [{ ...observation, observant, session: { ...session, status }, tracking }];

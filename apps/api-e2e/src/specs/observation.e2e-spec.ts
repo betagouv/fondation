@@ -582,6 +582,45 @@ test.describe('Observation', () => {
     expect(await list({ sessionStatuses: 'ARCHIVED' })).toEqual([]);
   });
 
+  test('should filter the observations with a suite by the year of their session', async ({
+    agent,
+    expect,
+    sessions,
+  }) => {
+    // no other scenario gives a suite to an observation of a session before 2026
+    const [of2023, of2024, of2025] = await sessions.createMany([
+      { ...SESSION, createdAt: '10/01/2023', name: 'Transparence de 2023' },
+      { ...SESSION, createdAt: '10/01/2024', name: 'Transparence de 2024' },
+      { ...SESSION, createdAt: '10/01/2025', name: 'Transparence de 2025' },
+    ]);
+    const observeIn = (session: typeof of2023) => ({
+      magistratId: session!.files[1]!.magistratId,
+      path: { nominationFileId: session!.files[0]!.id, sessionId: session!.id },
+    });
+    await agent.observations.createObservation({
+      body: { form: observationForm({ dateReception: '2023-01-15', magistratId: observeIn(of2023).magistratId }) },
+      path: observeIn(of2023).path,
+      throwOnError: true,
+    });
+    for (const [session, dateReception] of [
+      [of2024, '2024-01-15'],
+      [of2025, '2025-01-15'],
+    ] as const) {
+      const { magistratId, path } = observeIn(session);
+      await observeWithSuite(agent, path, { dateReception, magistratId });
+    }
+
+    const { data: years } = await agent.observations.listFollowedUpObservationSessionYears({ throwOnError: true });
+    expect(years.items.filter(({ year }) => year < 2026)).toEqual([{ year: 2025 }, { year: 2024 }]);
+
+    const { data } = await agent.observations.listFollowedUpObservations({
+      query: { limit: 200, sessionYears: '2024,2025' },
+      throwOnError: true,
+    });
+    const ours = new Set([of2023!.id, of2024!.id, of2025!.id]);
+    expect(data.items.map(({ session }) => session.id).filter((id) => ours.has(id))).toEqual([of2025!.id, of2024!.id]);
+  });
+
   test('should track a bloc of observations', async ({ agent, expect, sessions }) => {
     const { observant, session } = await sessionWithOwnObservant(sessions);
     const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };

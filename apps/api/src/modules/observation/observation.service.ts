@@ -30,7 +30,10 @@ import {
 } from './domain/observation';
 import type { ObservationBlockTrackingStatus } from './domain/observation-block';
 import type { ObservationFollowUpEnum } from './domain/observation-follow-up';
-import type { ListedFollowedUpObservationsDto } from './infrastructure/dtos/followed-up-observation.dto';
+import type {
+  ListedFollowedUpObservationSessionYearsDto,
+  ListedFollowedUpObservationsDto,
+} from './infrastructure/dtos/followed-up-observation.dto';
 import { AttachedMemberCommentScreenshotsDto } from './infrastructure/dtos/observation-member-comment.dto';
 import type {
   CountedSessionObservationsDto,
@@ -54,6 +57,7 @@ import {
   GetObservationFileUrlQuery,
   GetObservationFileUrlResponseDto,
 } from './infrastructure/queries/get-observation-file-url.query';
+import { ListFollowedUpObservationSessionYearsQuery } from './infrastructure/queries/list-followed-up-observation-session-years.query';
 import { ListFollowedUpObservationsQuery } from './infrastructure/queries/list-followed-up-observations.query';
 import {
   ListedObservationsAttachmentsDto,
@@ -87,6 +91,7 @@ export class ObservationService {
     private readonly listSessionObservationsQuery: ListSessionObservationsQuery,
     private readonly countSessionObservationsQuery: CountSessionObservationsQuery,
     private readonly listFollowedUpObservationsQuery: ListFollowedUpObservationsQuery,
+    private readonly listFollowedUpObservationSessionYearsQuery: ListFollowedUpObservationSessionYearsQuery,
     private readonly observationBlockRepository: ObservationBlockRepository,
 
     @Inject(forwardRef(() => TransparenceService))
@@ -450,6 +455,7 @@ export class ObservationService {
       followUps: readonly (ObservationFollowUpEnum | null)[];
       search: string | null;
       sessionStatuses: readonly SessionStatus[];
+      sessionYears: readonly number[];
       trackingStatuses: readonly ObservationBlockTrackingStatus[];
     };
     pagination: Pagination;
@@ -457,6 +463,10 @@ export class ObservationService {
     sortDesc: boolean;
   }): Promise<ListedFollowedUpObservationsDto> {
     return this.listFollowedUpObservationsQuery.handle(query);
+  }
+
+  listFollowedUpObservationSessionYears(): Promise<ListedFollowedUpObservationSessionYearsDto> {
+    return this.listFollowedUpObservationSessionYearsQuery.handle();
   }
 
   countSessionObservations(query: {
