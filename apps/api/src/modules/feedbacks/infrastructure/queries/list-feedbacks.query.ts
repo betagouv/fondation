@@ -134,5 +134,3 @@ export class ListedFeedbacksDto extends createPaginatedZodDto(
   ListedFeedbackSchema,
   z.object({ statuses: z.array(z.object({ count: z.number(), id: z.enum(FEEDBACK_STATUSES) })) }),
 ) {}
-
-export type ListedFeedback = z.infer<typeof ListedFeedbackSchema>;

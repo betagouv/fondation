@@ -5,7 +5,12 @@ import { z } from 'zod';
 import { detailsMemberRawQuery } from '../../../../generated/prisma/sql';
 import { Db } from '../../../framework/database';
 import { GradeEnum } from '../../../shared/grade.enum';
-import { isMember, memberFormationOf, MemberFormationSchema } from '../member.utils';
+import {
+  ExcludedJurisdictionsSchema,
+  isMember,
+  memberFormationOf,
+  MemberFormationSchema,
+} from '../member.utils';
 
 @Injectable()
 export class DetailsMemberQuery {
@@ -25,22 +30,19 @@ export class DetailsMemberQuery {
       gender: user.gender,
       displayTitle: user.displayTitle ?? null,
       recusalTitle: user.recusalTitle ?? null,
-      excludedJurisdictions: ((user.excludedJurisdictions as any[]) ?? []).map(
-        (j: { id: string; label: string }) => ({
-          id: j.id,
-          label: j.label,
-        }),
-      ),
-      stats: ((user.stats as any[]) ?? []).map(
-        (stat: { year: number; count: number; targetedGrade: GradeEnum }) => ({
-          year: stat.year,
-          count: stat.count,
-          targetedGrade: stat.targetedGrade,
-        }),
-      ),
+      excludedJurisdictions: ExcludedJurisdictionsSchema.parse(user.excludedJurisdictions),
+      stats: MemberStatsSchema.parse(user.stats ?? []),
     };
   }
 }
+
+const MemberStatsSchema = z.array(
+  z.object({
+    count: z.number().int().gte(0),
+    year: z.number().int().gte(1900),
+    targetedGrade: z.enum(GradeEnum),
+  }),
+);
 
 export class DetailedMemberDto extends createZodDto(
   z.object({
@@ -53,14 +55,8 @@ export class DetailedMemberDto extends createZodDto(
     displayTitle: z.string().nullable(),
     recusalTitle: z.string().nullable(),
 
-    excludedJurisdictions: z.array(z.object({ id: z.string(), label: z.string().nullable() })),
+    excludedJurisdictions: ExcludedJurisdictionsSchema,
 
-    stats: z.array(
-      z.object({
-        count: z.number().int().gte(0),
-        year: z.number().int().gte(1900),
-        targetedGrade: z.enum(GradeEnum),
-      }),
-    ),
+    stats: MemberStatsSchema,
   }),
 ) {}

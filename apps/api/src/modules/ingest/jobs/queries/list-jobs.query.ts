@@ -43,8 +43,8 @@ export class ListJobsQuery {
       items: items.map((item) => ({
         ...item,
         createdAt: item.createdAt.toISOString(),
-        startedAt: item.startedAt?.toISOString(),
-        endedAt: item.endedAt?.toISOString(),
+        startedAt: item.startedAt?.toISOString() ?? null,
+        endedAt: item.endedAt?.toISOString() ?? null,
       })),
     });
   }

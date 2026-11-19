@@ -1,7 +1,7 @@
 import { BadRequestException, createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { ApiQuery } from '@nestjs/swagger';
 import { Request as ExpressRequest } from 'express';
-import { createZodDto } from 'nestjs-zod';
+import { createZodDto, type ZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 export type Pagination = { path: string; page: number; limit: number };
@@ -63,24 +63,34 @@ type Paginated<T> = {
   links: { next?: string; previous?: string };
 };
 
-export function createPaginatedZodDto(schema: z.ZodObject, extension?: z.ZodObject) {
-  return createZodDto(
-    z
+function paginatedSchema<TItem extends z.ZodObject>(item: TItem) {
+  return z.object({
+    items: z.array(item),
+    totalCount: z.number().int().gte(0),
+    currentPageIndex: z.number().int().gte(1),
+    nextPageIndex: z.number().int().gte(2).optional(),
+    previousPageIndex: z.number().int().gte(1).optional(),
+    links: z
       .object({
-        items: z.array(schema),
-        totalCount: z.number().int().gte(0),
-        currentPageIndex: z.number().int().gte(1),
-        nextPageIndex: z.number().int().gte(2).optional(),
-        previousPageIndex: z.number().int().gte(1).optional(),
-        links: z
-          .object({
-            next: z.string().optional(),
-            previous: z.string().optional(),
-          })
-          .optional(),
+        next: z.string().optional(),
+        previous: z.string().optional(),
       })
-      .safeExtend(extension?.shape ?? {}),
-  );
+      .optional(),
+  });
+}
+
+type PaginatedSchema<TItem extends z.ZodObject> = ReturnType<typeof paginatedSchema<TItem>>;
+
+export function createPaginatedZodDto<TItem extends z.ZodObject>(
+  item: TItem,
+): ZodDto<PaginatedSchema<TItem>, false>;
+export function createPaginatedZodDto<TItem extends z.ZodObject, TExtension extends z.ZodRawShape>(
+  item: TItem,
+  extension: z.ZodObject<TExtension>,
+): ZodDto<z.ZodObject<PaginatedSchema<TItem>['shape'] & TExtension>, false>;
+export function createPaginatedZodDto(item: z.ZodObject, extension?: z.ZodObject) {
+  const schema = paginatedSchema(item);
+  return createZodDto(extension ? schema.safeExtend(extension.shape) : schema);
 }
 
 /** the rows of the page asked, for a list read whole */

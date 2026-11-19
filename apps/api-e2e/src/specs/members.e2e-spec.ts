@@ -59,6 +59,32 @@ test.describe('Members E2E', () => {
       ]);
     });
 
+    test('details a member with the count of their reports', async ({ agent, expect, sessions }) => {
+      await sessions.createOne(
+        {
+          candidates: [
+            {
+              firstName: 'ETIENNE',
+              lastName: 'TREVOUX',
+              position: { function: seed.functions.PR, grade: 'G3', jurisdiction: seed.jurisdictions['CA  LYON'] },
+              targetPosition: {
+                function: seed.functions.PR,
+                grade: 'G3',
+                jurisdiction: seed.jurisdictions['CA  GRENOBLE'],
+              },
+            },
+          ],
+          createdAt: '22/04/2026',
+          name: `Rapports (${randomUUID()})`,
+        },
+        { reporters: [{ id: memberId }] },
+      );
+
+      const { data } = await agent.members.detailsMember({ path: { userId: memberId }, throwOnError: true });
+
+      expect(data.stats).toEqual([{ count: 1, targetedGrade: 'G3', year: expect.any(Number) }]);
+    });
+
     test('lists members with their formation and excluded jurisdictions', async ({ agent, expect }) => {
       await agent.members.excludeJurisdictions({ path: { userId: memberId }, body: { jurisdictionIds } });
 
