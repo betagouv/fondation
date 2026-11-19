@@ -129,7 +129,6 @@ export type UpdateReportRuleValidationDto = {
 };
 
 export type ListedArchivedNominationSessionsDto = {
-    currentPageIndex: number;
     items: Array<{
         id: string;
         name: string;
@@ -149,13 +148,14 @@ export type ListedArchivedNominationSessionsDto = {
             label: string;
         };
     }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
     links?: {
         next?: string;
         previous?: string;
     };
-    nextPageIndex?: number;
-    previousPageIndex?: number;
-    totalCount: number;
 };
 
 export type ListedMemberSessionsDto = {
@@ -175,7 +175,6 @@ export type WriteNominationFileMemberMemoDto = {
 };
 
 export type ListedNominationSessionsDto = {
-    currentPageIndex: number;
     items: Array<{
         id: string;
         name: string;
@@ -193,13 +192,14 @@ export type ListedNominationSessionsDto = {
         typeDeSaisine: 'TRANSPARENCE_GDS';
         status: 'TO_VALIDATE' | 'READY' | 'REPORTED';
     }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
     links?: {
         next?: string;
         previous?: string;
     };
-    nextPageIndex?: number;
-    previousPageIndex?: number;
-    totalCount: number;
 };
 
 export type CountUsersNewSessionsDto = {
@@ -272,7 +272,6 @@ export type CountedSessionAuditionsDto = {
 };
 
 export type ListedSessionAuditionsDto = {
-    currentPageIndex: number;
     items: Array<{
         audition: {
             date: {
@@ -311,17 +310,17 @@ export type ListedSessionAuditionsDto = {
         }>;
         role: 'OBSERVANT' | 'PROPOSED';
     }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
     links?: {
         next?: string;
         previous?: string;
     };
-    nextPageIndex?: number;
-    previousPageIndex?: number;
-    totalCount: number;
 };
 
 export type PaginatedNominationFiles = {
-    currentPageIndex: number;
     items: Array<{
         id: string;
         isArchived: boolean;
@@ -477,13 +476,14 @@ export type PaginatedNominationFiles = {
         hasAttachment: boolean;
         hasJurisdictionSheet: boolean;
     }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
     links?: {
         next?: string;
         previous?: string;
     };
-    nextPageIndex?: number;
-    previousPageIndex?: number;
-    totalCount: number;
 };
 
 export type DetailedAffectationHistoryDto = {
@@ -1001,28 +1001,28 @@ export type ListedSummaryReadersDto = {
 };
 
 export type PaginatedMemberListItemDto = {
-    currentPageIndex: number;
     items: Array<{
-        excludedJurisdictions: Array<{
-            id: string;
-            label: string | null;
-        }>;
+        id: string;
         firstName: string;
+        lastName: string;
         formation: {
             id: 'COMMUN' | 'PARQUET' | 'SIEGE';
             label: string;
         };
-        id: string;
-        lastName: string;
+        excludedJurisdictions: Array<{
+            id: string;
+            label: string | null;
+        }>;
         status: 'ACTIVE' | 'DEACTIVATED';
     }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
     links?: {
         next?: string;
         previous?: string;
     };
-    nextPageIndex?: number;
-    previousPageIndex?: number;
-    totalCount: number;
 };
 
 export type DetailedMemberDto = {
@@ -1121,21 +1121,21 @@ export type IngestedLolfiArchiveDto = {
 export type JobStatusEnum = 'IDLE' | 'RUNNING' | 'FAILED' | 'SUCCEEDED' | 'CANCELED';
 
 export type PaginatedJobsDto = {
-    currentPageIndex: number;
     items: Array<{
-        createdAt: string;
-        endedAt: string | null;
         id: number;
-        startedAt: string | null;
         status: 'IDLE' | 'RUNNING' | 'FAILED' | 'SUCCEEDED' | 'CANCELED';
+        createdAt: string;
+        startedAt: string | null;
+        endedAt: string | null;
     }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
     links?: {
         next?: string;
         previous?: string;
     };
-    nextPageIndex?: number;
-    previousPageIndex?: number;
-    totalCount: number;
 };
 
 export type DetailedJobDto = {
@@ -1775,7 +1775,6 @@ export type EditedOfficialReportFileNoteDto = {
 };
 
 export type ListedPresentedPlansDto = {
-    currentPageIndex: number;
     items: Array<{
         id: string;
         time: {
@@ -1815,13 +1814,14 @@ export type ListedPresentedPlansDto = {
             lastName: string;
         };
     }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
     links?: {
         next?: string;
         previous?: string;
     };
-    nextPageIndex?: number;
-    previousPageIndex?: number;
-    totalCount: number;
 };
 
 export type DetailedPresentationPlanMetadataDto = {
@@ -2003,7 +2003,6 @@ export type PresentPlanDto = {
 };
 
 export type SearchMagistratsResponseDto = {
-    currentPageIndex: number;
     items: Array<{
         id: string;
         firstName: string;
@@ -2024,13 +2023,14 @@ export type SearchMagistratsResponseDto = {
             };
         } | null;
     }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
     links?: {
         next?: string;
         previous?: string;
     };
-    nextPageIndex?: number;
-    previousPageIndex?: number;
-    totalCount: number;
 };
 
 export type DetailedMagistratDto = {
@@ -2116,7 +2116,6 @@ export type UpdateMagistratPhoneNumberDto = {
 };
 
 export type ListedFollowedUpObservationsDto = {
-    currentPageIndex: number;
     items: Array<{
         observation: {
             id: string;
@@ -2178,13 +2177,14 @@ export type ListedFollowedUpObservationsDto = {
             };
         }>;
     }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
     links?: {
         next?: string;
         previous?: string;
     };
-    nextPageIndex?: number;
-    previousPageIndex?: number;
-    totalCount: number;
 };
 
 export type ListedFollowedUpObservationSessionYearsDto = {
@@ -2392,7 +2392,6 @@ export type FollowUpOnObservationDto = {
 };
 
 export type ListedSessionObservationsDto = {
-    currentPageIndex: number;
     items: Array<{
         id: string;
         dateReception: {
@@ -2421,13 +2420,14 @@ export type ListedSessionObservationsDto = {
             };
         };
     }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
     links?: {
         next?: string;
         previous?: string;
     };
-    nextPageIndex?: number;
-    previousPageIndex?: number;
-    totalCount: number;
 };
 
 export type CountedSessionObservationsDto = {
@@ -2443,7 +2443,6 @@ export type ListedObservationsAttachmentsDto = {
 };
 
 export type ListedCourtOfAppealFirstPresidentsDto = {
-    currentPageIndex: number;
     items: Array<{
         alerts: Array<{
             id: 'RETIREMENT' | 'SEVEN_YEARS_ON_POSITION' | 'PROPOSED_IN_SESSION';
@@ -2472,13 +2471,14 @@ export type ListedCourtOfAppealFirstPresidentsDto = {
             label: string;
         };
     }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
     links?: {
         next?: string;
         previous?: string;
     };
-    nextPageIndex?: number;
-    previousPageIndex?: number;
-    totalCount: number;
     alerts: Array<{
         count: number;
         id: 'RETIREMENT' | 'SEVEN_YEARS_ON_POSITION' | 'PROPOSED_IN_SESSION';
@@ -2497,7 +2497,6 @@ export type ListedCourtOfAppealFirstPresidentsDto = {
 };
 
 export type ListedCourtOfCassationHoldersDto = {
-    currentPageIndex: number;
     items: Array<{
         alerts: Array<{
             id: 'RETIREMENT' | 'SEVEN_YEARS_ON_POSITION' | 'PROPOSED_IN_SESSION';
@@ -2526,13 +2525,14 @@ export type ListedCourtOfCassationHoldersDto = {
             label: string;
         };
     }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
     links?: {
         next?: string;
         previous?: string;
     };
-    nextPageIndex?: number;
-    previousPageIndex?: number;
-    totalCount: number;
     alerts: Array<{
         count: number;
         id: 'RETIREMENT' | 'SEVEN_YEARS_ON_POSITION' | 'PROPOSED_IN_SESSION';
@@ -2556,7 +2556,6 @@ export type ListedCourtOfCassationHoldersDto = {
 };
 
 export type ListedJudicialCourtPresidentsDto = {
-    currentPageIndex: number;
     items: Array<{
         alerts: Array<{
             id: 'RETIREMENT' | 'SEVEN_YEARS_ON_POSITION' | 'PROPOSED_IN_SESSION';
@@ -2589,13 +2588,14 @@ export type ListedJudicialCourtPresidentsDto = {
             label: string;
         };
     }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
     links?: {
         next?: string;
         previous?: string;
     };
-    nextPageIndex?: number;
-    previousPageIndex?: number;
-    totalCount: number;
     alerts: Array<{
         count: number;
         id: 'RETIREMENT' | 'SEVEN_YEARS_ON_POSITION' | 'PROPOSED_IN_SESSION';
@@ -2701,7 +2701,6 @@ export type WritePositionCommentDto = {
 };
 
 export type ListedMagistratNominationFilesDto = {
-    currentPageIndex: number;
     items: Array<{
         id: string;
         name: string;
@@ -2742,17 +2741,17 @@ export type ListedMagistratNominationFilesDto = {
             comment: string | null;
         } | null;
     }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
     links?: {
         next?: string;
         previous?: string;
     };
-    nextPageIndex?: number;
-    previousPageIndex?: number;
-    totalCount: number;
 };
 
 export type ListedMagistratObservationsDto = {
-    currentPageIndex: number;
     items: Array<{
         id: string;
         dateReception: {
@@ -2801,17 +2800,17 @@ export type ListedMagistratObservationsDto = {
             } | null;
         };
     }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
     links?: {
         next?: string;
         previous?: string;
     };
-    nextPageIndex?: number;
-    previousPageIndex?: number;
-    totalCount: number;
 };
 
 export type PaginatedAdminUserListItemDto = {
-    currentPageIndex: number;
     items: Array<{
         id: string;
         firstName: string;
@@ -2826,13 +2825,14 @@ export type PaginatedAdminUserListItemDto = {
         isTechnical: boolean;
         status: 'ACTIVE' | 'DEACTIVATED';
     }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
     links?: {
         next?: string;
         previous?: string;
     };
-    nextPageIndex?: number;
-    previousPageIndex?: number;
-    totalCount: number;
 };
 
 export type CreateUserDto = {
@@ -3017,7 +3017,6 @@ export type WriteHelpPageContentDto = {
 };
 
 export type ListedFeedbacksDto = {
-    currentPageIndex: number;
     items: Array<{
         author: {
             id: string;
@@ -3045,13 +3044,14 @@ export type ListedFeedbacksDto = {
         text: string;
         url: string;
     }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
     links?: {
         next?: string;
         previous?: string;
     };
-    nextPageIndex?: number;
-    previousPageIndex?: number;
-    totalCount: number;
     statuses: Array<{
         count: number;
         id: 'NEW' | 'ACKNOWLEDGED' | 'PROCESSED' | 'DISMISSED';

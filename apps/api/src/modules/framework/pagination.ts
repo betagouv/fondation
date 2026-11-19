@@ -55,48 +55,39 @@ export const QueryPagination = createParamDecorator(
 );
 
 type Paginated<T> = {
-  currentPageIndex: number;
   items: T[];
-  links: { next?: string; previous?: string };
+  totalCount: number;
+  currentPageIndex: number;
   nextPageIndex: number | undefined;
   previousPageIndex: number | undefined;
-  totalCount: number;
+  links: { next?: string; previous?: string };
 };
 
-type PaginatedShape<TItem extends z.ZodObject> = {
-  currentPageIndex: z.ZodNumber;
-  items: z.ZodArray<TItem>;
-  links: z.ZodOptional<
-    z.ZodObject<{ next: z.ZodOptional<z.ZodString>; previous: z.ZodOptional<z.ZodString> }>
-  >;
-  nextPageIndex: z.ZodOptional<z.ZodNumber>;
-  previousPageIndex: z.ZodOptional<z.ZodNumber>;
-  totalCount: z.ZodNumber;
-};
-
-function paginatedSchema<TItem extends z.ZodObject>(item: TItem): z.ZodObject<PaginatedShape<TItem>> {
+function paginatedSchema<TItem extends z.ZodObject>(item: TItem) {
   return z.object({
-    currentPageIndex: z.number().int().gte(1),
     items: z.array(item),
+    totalCount: z.number().int().gte(0),
+    currentPageIndex: z.number().int().gte(1),
+    nextPageIndex: z.number().int().gte(2).optional(),
+    previousPageIndex: z.number().int().gte(1).optional(),
     links: z
       .object({
         next: z.string().optional(),
         previous: z.string().optional(),
       })
       .optional(),
-    nextPageIndex: z.number().int().gte(2).optional(),
-    previousPageIndex: z.number().int().gte(1).optional(),
-    totalCount: z.number().int().gte(0),
   });
 }
 
+type PaginatedSchema<TItem extends z.ZodObject> = ReturnType<typeof paginatedSchema<TItem>>;
+
 export function createPaginatedZodDto<TItem extends z.ZodObject>(
   item: TItem,
-): ZodDto<z.ZodObject<PaginatedShape<TItem>>, false>;
+): ZodDto<PaginatedSchema<TItem>, false>;
 export function createPaginatedZodDto<TItem extends z.ZodObject, TExtension extends z.ZodRawShape>(
   item: TItem,
   extension: z.ZodObject<TExtension>,
-): ZodDto<z.ZodObject<PaginatedShape<TItem> & TExtension>, false>;
+): ZodDto<z.ZodObject<PaginatedSchema<TItem>['shape'] & TExtension>, false>;
 export function createPaginatedZodDto(item: z.ZodObject, extension?: z.ZodObject) {
   const schema = paginatedSchema(item);
   return createZodDto(extension ? schema.safeExtend(extension.shape) : schema);
@@ -127,14 +118,14 @@ export function paginate<T>(input: {
   const prevPath = prevUrl.toString().slice('http://example.com'.length);
 
   return {
-    currentPageIndex: pagination.page,
     items: input.items as T[],
+    totalCount: input.totalCount,
+    currentPageIndex: pagination.page,
+    nextPageIndex: hasNext ? pagination.page + 1 : undefined,
+    previousPageIndex: hasPrev ? pagination.page - 1 : undefined,
     links: {
       next: hasNext ? nextPath : undefined,
       previous: hasPrev ? prevPath : undefined,
     },
-    nextPageIndex: hasNext ? pagination.page + 1 : undefined,
-    previousPageIndex: hasPrev ? pagination.page - 1 : undefined,
-    totalCount: input.totalCount,
   };
 }

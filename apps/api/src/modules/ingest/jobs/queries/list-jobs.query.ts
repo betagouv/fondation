@@ -23,39 +23,39 @@ export class ListJobsQuery {
     });
     const items = await this.db.tx.ingestionJob.findMany({
       orderBy: { id: 'desc' },
-      select: {
-        createdAt: true,
-        endedAt: true,
-        id: true,
-        startedAt: true,
-        status: true,
-      } satisfies Prisma.IngestionJobSelect,
-      skip: (query.pagination.page - 1) * query.pagination.limit,
-      take: query.pagination.limit,
       where: {
         status: query.statuses.length > 0 ? { in: query.statuses } : undefined,
       },
+      take: query.pagination.limit,
+      skip: (query.pagination.page - 1) * query.pagination.limit,
+      select: {
+        id: true,
+        status: true,
+        createdAt: true,
+        startedAt: true,
+        endedAt: true,
+      } satisfies Prisma.IngestionJobSelect,
     });
 
     return paginate({
+      totalCount,
+      pagination: query.pagination,
       items: items.map((item) => ({
         ...item,
         createdAt: item.createdAt.toISOString(),
-        endedAt: item.endedAt?.toISOString() ?? null,
         startedAt: item.startedAt?.toISOString() ?? null,
+        endedAt: item.endedAt?.toISOString() ?? null,
       })),
-      pagination: query.pagination,
-      totalCount,
     });
   }
 }
 
 export class PaginatedJobsDto extends createPaginatedZodDto(
   z.object({
-    createdAt: z.iso.datetime(),
-    endedAt: z.iso.datetime().nullable(),
     id: z.number(),
-    startedAt: z.iso.datetime().nullable(),
     status: z.enum(PrismaJobStatusEnum),
+    createdAt: z.iso.datetime(),
+    startedAt: z.iso.datetime().nullable(),
+    endedAt: z.iso.datetime().nullable(),
   }),
 ) {}
