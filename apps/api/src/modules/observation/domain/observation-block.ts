@@ -65,6 +65,9 @@ export function sortBySessionThenObservationBlock<T extends BlockedObservation &
   );
 }
 
+// the tracking table files an observation under the year of its session date
+export const sessionYear = (session: { date: DateOnly }): number => session.date.toJson().year;
+
 export const OBSERVATION_BLOCK_TRACKING_STATUSES = ['IN_PROGRESS', 'DONE'] as const;
 export type ObservationBlockTrackingStatus = (typeof OBSERVATION_BLOCK_TRACKING_STATUSES)[number];
 

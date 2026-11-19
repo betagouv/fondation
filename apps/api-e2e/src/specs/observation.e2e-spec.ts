@@ -587,7 +587,7 @@ test.describe('Observation', () => {
     expect,
     sessions,
   }) => {
-    // no other scenario publishes a session before 2026
+    // no other scenario gives a suite to an observation of a session before 2026
     const [of2023, of2024, of2025] = await sessions.createMany([
       { ...SESSION, createdAt: '10/01/2023', name: 'Transparence de 2023' },
       { ...SESSION, createdAt: '10/01/2024', name: 'Transparence de 2024' },

@@ -62,7 +62,7 @@ export class ListFollowedUpObservationsQueryDto extends createSortableDto(
   }),
 ) {}
 
-// the years of the sessions an observation with a suite belongs to, most recent first
+// most recent first
 export class ListedFollowedUpObservationSessionYearsDto extends createZodDto(
   z.object({ items: z.array(z.object({ year: z.number().int() })) }),
 ) {}

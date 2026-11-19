@@ -3,6 +3,7 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { Prisma } from '../../../../generated/prisma/client';
 import { Db } from '../../../framework/database';
 import { TransparenceService } from '../../../session/transparence/infrastructure/transparence.service';
+import { sessionYear } from '../../domain/observation-block';
 import type { ListedFollowedUpObservationSessionYearsDto } from '../dtos/followed-up-observation.dto';
 
 @Injectable()
@@ -25,7 +26,7 @@ export class ListFollowedUpObservationSessionYearsQuery {
       const sessions = await this.sessions.internalFindSessions({
         sessionIds: observations.map(({ sessionId }) => sessionId),
       });
-      const years = new Set([...sessions.values()].map(({ date }) => date.toJson().year));
+      const years = new Set([...sessions.values()].map(sessionYear));
       return { items: [...years].toSorted((a, b) => b - a).map((year) => ({ year })) };
     });
   }

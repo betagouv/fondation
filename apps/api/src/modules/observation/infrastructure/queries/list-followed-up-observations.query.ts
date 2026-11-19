@@ -12,6 +12,7 @@ import { TransparenceService } from '../../../session/transparence/infrastructur
 import {
   laterPropositions,
   type ObservationBlockTrackingStatus,
+  sessionYear,
   sortBySessionThenObservationBlock,
   UNTRACKED_BLOCK,
 } from '../../domain/observation-block';
@@ -98,7 +99,7 @@ export class ListFollowedUpObservationsQuery {
 
         if (followUps.size && !followUps.has(observation.followUp)) return [];
         if (sessionStatuses.size && !sessionStatuses.has(status)) return [];
-        if (sessionYears.size && !sessionYears.has(session.date.toJson().year)) return [];
+        if (sessionYears.size && !sessionYears.has(sessionYear(session))) return [];
         if (trackingStatuses.size && !trackingStatuses.has(tracking.status)) return [];
         if (search && !unaccent(observant.name).toLowerCase().includes(search)) return [];
         return [{ ...observation, observant, session: { ...session, status }, tracking }];

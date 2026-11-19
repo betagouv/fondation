@@ -4,6 +4,7 @@ import { useCallback, useMemo } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, Link } from 'react-router';
 
+import { toSessionYearOptions } from '@/features/observations/utils/session-year-options';
 import { SessionStatusBadge } from '@/features/sessions/components/SessionStatusBadge';
 import { PinnedHeader } from '@/shared/components/pinned-header';
 import {
@@ -48,20 +49,13 @@ const DEFAULT_SORTING: FollowedUpObservationsSorting = [{ desc: true, id: 'dateR
 const SORTABLE_COLUMNS = new Set<string>(['dateReception']);
 const YEAR = /^\d{4}$/;
 
-// the years of the sessions with an observation that has a suite, and those still checked: a year whose
-// last suite was just removed stays offered, else it could not be unchecked
-function toYearOptions(data: ListedFollowedUpObservationSessionYearsDto, checked: readonly string[]) {
-  const years = new Set([...data.items.map(({ year }) => String(year)), ...checked]);
-  return [...years].toSorted((a, b) => b.localeCompare(a)).map((year) => ({ id: year, label: year }));
-}
-
 export function FollowedUpObservationsTable() {
   const intl = useIntl();
   const { onColumnFiltersChange, onSortingChange, setTableState, tableState } = useDataTableUrlState({
     columnFilters: [] as (
       | { id: 'followUps'; value: string[] }
       | { id: 'sessionStatuses'; value: SessionStatus[] }
-      | { id: 'sessionYears'; value: string[] }
+      | { id: 'sessionYears'; value: unknown }
       | { id: 'trackingStatuses'; value: ObservationBlockTrackingStatusEnum[] }
     )[],
     globalFilter: '',
@@ -71,14 +65,13 @@ export function FollowedUpObservationsTable() {
   // a saved link can carry a sort the API does not accept
   const [sort] = tableState.sorting;
   const sorting = sort && SORTABLE_COLUMNS.has(sort.id) ? tableState.sorting : DEFAULT_SORTING;
-  // nor can the API take anything but a year
-  const sessionYears = useMemo(
-    () =>
-      tableState.columnFilters.flatMap((filter) =>
-        filter.id === 'sessionYears' ? filter.value.filter((year) => YEAR.test(year)) : [],
-      ),
-    [tableState.columnFilters],
-  );
+  // a link edited by hand holds any JSON: only its strings are kept as checked years, and only the years go
+  // to the API
+  const checkedYears = tableState.columnFilters
+    .flatMap((filter) => (filter.id === 'sessionYears' && Array.isArray(filter.value) ? filter.value : []))
+    .filter((year): year is string => typeof year === 'string');
+  // compared by value, so that the columns are rebuilt only when the checked years change
+  const checkedYearsJson = JSON.stringify(checkedYears);
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
     useInfiniteFollowedUpObservationsQuery({
       followUps: tableState.columnFilters.flatMap((filter) =>
@@ -88,7 +81,7 @@ export function FollowedUpObservationsTable() {
       sessionStatuses: tableState.columnFilters.flatMap((filter) =>
         filter.id === 'sessionStatuses' ? filter.value : [],
       ),
-      sessionYears,
+      sessionYears: checkedYears.filter((year) => YEAR.test(year)),
       sorting,
       trackingStatuses: tableState.columnFilters.flatMap((filter) =>
         filter.id === 'trackingStatuses' ? filter.value : [],
@@ -120,7 +113,8 @@ export function FollowedUpObservationsTable() {
       label: intl.formatMessage({ defaultMessage: 'Année' }),
       query: {
         ...getFollowedUpObservationSessionYearsQueryOptions(),
-        select: (data: ListedFollowedUpObservationSessionYearsDto) => toYearOptions(data, sessionYears),
+        select: (data: ListedFollowedUpObservationSessionYearsDto) =>
+          toSessionYearOptions(data, JSON.parse(checkedYearsJson) as string[]),
       },
       type: 'asyncList',
     };
@@ -208,7 +202,7 @@ export function FollowedUpObservationsTable() {
         size: 200,
       }),
     ];
-  }, [intl, sessionYears]);
+  }, [intl, checkedYearsJson]);
 
   const observations = useMemo(() => data?.items ?? [], [data]);
   const table = useReactTable({
