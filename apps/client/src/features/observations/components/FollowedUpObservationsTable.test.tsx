@@ -54,4 +54,9 @@ describe('FollowedUpObservationsTable', () => {
       sessionYears: ['2025'],
     });
   });
+
+  it('should open on the observations still to track, unless the link holds an empty filter list', () => {
+    expect(renderTable('')).toMatchObject({ trackingStatuses: ['IN_PROGRESS'] });
+    expect(renderTable('?filters=')).toMatchObject({ trackingStatuses: [] });
+  });
 });

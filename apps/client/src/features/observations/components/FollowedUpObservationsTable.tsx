@@ -52,7 +52,9 @@ const YEAR = /^\d{4}$/;
 export function FollowedUpObservationsTable() {
   const intl = useIntl();
   const { onColumnFiltersChange, onSortingChange, setTableState, tableState } = useDataTableUrlState({
-    columnFilters: [] as (
+    // opens on the observations still to track. Once every filter is unchecked, the link holds an empty
+    // `filters=`, which a reload or a shared link keeps: only a link without it opens filtered again
+    columnFilters: [{ id: 'trackingStatuses', value: ['IN_PROGRESS'] }] as (
       | { id: 'followUps'; value: string[] }
       | { id: 'sessionStatuses'; value: SessionStatus[] }
       | { id: 'sessionYears'; value: unknown }
