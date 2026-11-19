@@ -44,6 +44,7 @@ const NOMINATION_FILE: DetailedNominationFileDto = {
   canRecuseMembers: false,
   canScheduleAudition: true,
   comment: null,
+  commentLastChange: null,
   content: {
     dateDeNaissance: { day: 12, month: 4, year: 1978 },
     dateEchéance: null,

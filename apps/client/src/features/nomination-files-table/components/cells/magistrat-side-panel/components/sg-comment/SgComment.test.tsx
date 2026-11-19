@@ -5,6 +5,8 @@ import { IntlProvider } from 'react-intl';
 import { MemoryRouter, Route, Routes } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { frFormat } from '@/i18n/formats';
+import type { CommentChange } from '@/shared/components/comment-last-change';
 import { ArchivedSessionContext } from '@/shared/context/archived-session';
 import * as $api from '@api/sdk';
 import { authKeys } from '@queries/auth.queries';
@@ -14,21 +16,30 @@ import { SgComment } from './SgComment';
 const SG = { id: 'sg-1', firstName: 'Anne', lastName: 'Roy', role: 'ADJOINT_SECRETAIRE_GENERAL' };
 const MEMBER = { id: 'm-1', firstName: 'Jean', lastName: 'Petit', role: 'MEMBRE_COMMUN' };
 
-function renderComment(options: { user: typeof SG; isArchived?: boolean; initialComment?: string | null }) {
+function renderComment(options: {
+  initialComment?: string | null;
+  isArchived?: boolean;
+  lastChange?: CommentChange | null;
+  user: typeof SG;
+}) {
   const client = new QueryClient({
     defaultOptions: { mutations: { retry: false }, queries: { retry: false } },
   });
   client.setQueryData(authKeys.introspectSession(), options.user);
 
   return render(
-    <IntlProvider defaultLocale="fr" locale="fr">
+    <IntlProvider defaultLocale="fr" formats={frFormat} locale="fr">
       <QueryClientProvider client={client}>
         <ArchivedSessionContext value={{ isArchived: options.isArchived ?? false, setIsArchived: vi.fn() }}>
           <MemoryRouter initialEntries={['/sessions/session-1']}>
             <Routes>
               <Route
                 element={
-                  <SgComment initialComment={options.initialComment ?? null} nominationFileId="file-1" />
+                  <SgComment
+                    initialComment={options.initialComment ?? null}
+                    lastChange={options.lastChange ?? null}
+                    nominationFileId="file-1"
+                  />
                 }
                 path="/sessions/:sessionId"
               />
@@ -67,6 +78,42 @@ describe('SgComment visibility', () => {
     renderComment({ user: SG, isArchived: true });
 
     expect(screen.queryByText('Complément SG')).not.toBeInTheDocument();
+  });
+});
+
+describe('SgComment last change', () => {
+  const at = '2026-11-18T09:42:00.000Z';
+
+  it('names the author next to the title', () => {
+    renderComment({
+      initialComment: 'Avis du SG',
+      lastChange: { at, by: { id: 'sg-2', name: 'Paul Martin' } },
+      user: SG,
+    });
+
+    expect(screen.getByText(/^Modifié le 18\/11\/2026 à .* par Paul Martin$/)).toBeInTheDocument();
+  });
+
+  it('says "par vous" to its author', () => {
+    renderComment({
+      initialComment: 'Avis du SG',
+      lastChange: { at, by: { id: SG.id, name: 'Anne Roy' } },
+      user: SG,
+    });
+
+    expect(screen.getByText(/^Modifié le 18\/11\/2026 à .* par vous$/)).toBeInTheDocument();
+  });
+
+  it('dates the change without an author once their account is gone', () => {
+    renderComment({ initialComment: 'Avis du SG', lastChange: { at, by: null }, user: SG });
+
+    expect(screen.getByText(/^Modifié le 18\/11\/2026 à \S+$/)).toBeInTheDocument();
+  });
+
+  it('says nothing of a complement written before its changes were kept', () => {
+    renderComment({ initialComment: 'Avis du SG', lastChange: null, user: SG });
+
+    expect(screen.queryByText(/Modifié le/)).not.toBeInTheDocument();
   });
 });
 

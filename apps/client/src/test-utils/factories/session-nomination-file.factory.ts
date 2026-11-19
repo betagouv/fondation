@@ -38,6 +38,7 @@ export function makeSessionNominationFile(overrides: NominationFileOverrides = {
     canRecuseMembers: false,
     canScheduleAudition: true,
     comment: null,
+    commentLastChange: null,
     content: { ...baseContent, ...content },
     expectedReportersCount: null,
     hasAttachment: false,

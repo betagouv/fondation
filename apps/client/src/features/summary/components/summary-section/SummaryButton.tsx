@@ -41,14 +41,26 @@ export function SummaryButton(props: {
 
   if (canCreateSummary) {
     return (
-      <Button disabled={isCreating} onClick={createSummary} priority="secondary" size="medium">
+      <Button
+        className="btn-compact"
+        disabled={isCreating}
+        onClick={createSummary}
+        priority="secondary"
+        size="small"
+      >
         <FormattedMessage defaultMessage="Écrire une synthèse" />
       </Button>
     );
   }
 
   return (
-    <Button iconId="ri-eye-fill" linkProps={{ to: link }} priority="tertiary no outline" size="medium">
+    <Button
+      className="btn-compact"
+      iconId="ri-eye-fill"
+      linkProps={{ to: link }}
+      priority="tertiary no outline"
+      size="small"
+    >
       <FormattedMessage defaultMessage="Voir la synthèse" />
     </Button>
   );

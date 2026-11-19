@@ -1,8 +1,9 @@
 import Input from '@codegouvfr/react-dsfr/Input';
+import { useId } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import type { SessionCommentDraft } from '@/features/transparence/hooks/useSessionCommentDraft';
-import { useDateAndTime } from '@/shared/hooks/useDateAndTime';
+import { CommentLastChange } from '@/shared/components/comment-last-change';
 
 export function SessionCommentField(props: {
   draft: SessionCommentDraft;
@@ -10,22 +11,26 @@ export function SessionCommentField(props: {
   rows: number;
 }) {
   const { formatMessage } = useIntl();
-  const dateAndTime = useDateAndTime();
+  const hintId = useId();
   const { lastChange } = props.draft;
 
   return (
     <>
+      <div className="flex items-baseline justify-between gap-4">
+        <p className="fr-hint-text fr-mb-0" id={hintId}>
+          <FormattedMessage defaultMessage="Ce commentaire apparaîtra dans la notice de restitution" />
+        </p>
+        {lastChange && <CommentLastChange {...lastChange} />}
+      </div>
       <Input
         classes={{ nativeInputOrTextArea: 'fr-mt-3v' }}
         className="fr-mb-0"
         disabled={props.isArchived}
-        hintText={formatMessage({
-          defaultMessage: 'Ce commentaire apparaîtra dans la notice de restitution',
-        })}
         label={
           <span className="fr-sr-only">{formatMessage({ defaultMessage: 'Commentaire de la notice' })}</span>
         }
         nativeTextAreaProps={{
+          'aria-describedby': hintId,
           onChange: (e) => props.draft.onChange(e.target.value),
           rows: props.rows,
           value: props.draft.value,
@@ -43,21 +48,6 @@ export function SessionCommentField(props: {
         }
         textArea
       />
-      {lastChange && (
-        <p className="fr-mt-2v fr-mb-0 fr-text--xs text-(--text-mention-grey)">
-          {lastChange.by ? (
-            <FormattedMessage
-              defaultMessage="Modifié le {date} à {time} par {name}"
-              values={{ ...dateAndTime(lastChange.at), name: lastChange.by }}
-            />
-          ) : (
-            <FormattedMessage
-              defaultMessage="Modifié le {date} à {time}"
-              values={dateAndTime(lastChange.at)}
-            />
-          )}
-        </p>
-      )}
     </>
   );
 }

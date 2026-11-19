@@ -1,3 +1,4 @@
+import type { Writer } from '../../../utils/user.util';
 import { NominationFileLockEnum } from '../nomination-file-lock.enum';
 import { NominationFileOutcome, NominationFileOutcomeEnum } from '../nomination-file-outcome.enum';
 import { isSecretariat, type RoleEnum } from '../role.enum';
@@ -32,4 +33,12 @@ export function canKeepMemberMemo(
   user: { id: string; role: RoleEnum },
 ): boolean {
   return !isSecretariat(user.role) && !file.reporterIds.includes(user.id);
+}
+
+/** the members read the SG complement as the secretariat's: they see when it changed, not who changed it */
+export function sgCommentChangeSeenBy(
+  change: { at: string; by: Writer },
+  user: { role: RoleEnum },
+): { at: string; by: Writer } {
+  return isSecretariat(user.role) ? change : { ...change, by: null };
 }

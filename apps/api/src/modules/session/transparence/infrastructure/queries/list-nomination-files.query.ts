@@ -11,6 +11,7 @@ import {
   listNominationFilesRawQuery,
 } from '../../../../../generated/prisma/sql';
 import { auditionScheduleSchema } from '../../../../../utils/audition-schedule';
+import { commentLastChangeSchema } from '../../../../../utils/comment';
 import { DateOnly, dateOnlyJsonSchema } from '../../../../../utils/date-only';
 import { toFullTextQuery } from '../../../../../utils/fulltext-search';
 import { partition } from '../../../../../utils/iterables';
@@ -55,6 +56,7 @@ import {
 import { ListNominationFilesQueryDto, RecusedMemberSchema } from '../dtos/nomination-file.dto';
 import { AffectationVersionFinder, OptionalAffectationVersion } from '../finders/affectation-version.finder';
 import { AuditionsSeenFinder } from '../finders/auditions-seen.finder';
+import { NominationFileCommentChangesFinder } from '../finders/nomination-file-comment-changes.finder';
 import { NominationFileJurisdictionsFinder } from '../finders/nomination-file-jurisdictions.finder';
 import { RecusedMembersFinder } from '../finders/recused-members.finder';
 import { SessionReportedFilesFinder } from '../finders/session-reported-files.finder';
@@ -63,6 +65,7 @@ import { SessionReportedFilesFinder } from '../finders/session-reported-files.fi
 export class ListNominationFilesQuery {
   constructor(
     private readonly auditionsSeen: AuditionsSeenFinder,
+    private readonly commentChanges: NominationFileCommentChangesFinder,
     private readonly db: Db,
     private readonly versionFinder: AffectationVersionFinder,
     private readonly jurisdictionsFinder: NominationFileJurisdictionsFinder,
@@ -232,6 +235,7 @@ export class ListNominationFilesQuery {
       nominationFileIds: [...nominationFileIds],
     });
     const recusedMembers = await this.recusedMembersFinder.find({ nominationFileIds });
+    const commentChanges = await this.commentChanges.findLast({ nominationFileIds: [...nominationFileIds] });
     const reporters = isSecretariat(query.user.role)
       ? await this.versionFinder.findPublishedAndLatestReporters({
           nominationFileIds: [...nominationFileIds],
@@ -260,12 +264,17 @@ export class ListNominationFilesQuery {
 
       const audition = auditions.get(x.id);
       assert.ok(audition, `no audition seen for the nomination file ${x.id}`);
+      // an erased complement no longer exists: there is no change left to date
+      const changeOfComment = x.comment ? commentChanges.get(x.id) : undefined;
 
       return {
         ...audition,
         canRecuseMembers: nominationFilesPolicies.canUpdateNominationFile(x, query.user),
         canScheduleAudition: nominationFilesPolicies.canScheduleAudition(x, { isArchived }),
         comment: x.comment,
+        commentLastChange: changeOfComment
+          ? nominationFilesPolicies.sgCommentChangeSeenBy(changeOfComment, query.user)
+          : null,
         content: {
           dateDeNaissance: DateOnly.fromOptionalUtcDate(x.birthDate)?.toJson() ?? null,
           dateEchéance: DateOnly.fromOptionalUtcDate(x.dueDate)?.toJson() ?? null,
@@ -493,6 +502,7 @@ const NominationFileAffectationItemSchema = z.object({
   priorities: z.array(z.enum(PriorityEnum)),
   content: NominationFileContentSchema,
   comment: z.string().nullable(),
+  commentLastChange: commentLastChangeSchema.nullable(),
   canScheduleAudition: z.boolean(),
   canRecuseMembers: z.boolean(),
   auditionDate: dateOnlyJsonSchema.nullable(),

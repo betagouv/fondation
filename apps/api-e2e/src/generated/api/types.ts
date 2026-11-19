@@ -205,10 +205,12 @@ export type CountUsersNewSessionsDto = {
 
 export type DetailedSessionCommentDto = {
     comment: string | null;
-    writtenAt: string | null;
-    writtenBy: {
-        id: string;
-        name: string;
+    lastChange: {
+        at: string;
+        by: {
+            id: string;
+            name: string;
+        } | null;
     } | null;
 };
 
@@ -382,6 +384,13 @@ export type PaginatedNominationFiles = {
             };
         };
         comment: string | null;
+        commentLastChange: {
+            at: string;
+            by: {
+                id: string;
+                name: string;
+            } | null;
+        } | null;
         canScheduleAudition: boolean;
         canRecuseMembers: boolean;
         auditionDate: {
@@ -721,6 +730,13 @@ export type DetailedNominationFileDto = {
         };
     };
     comment: string | null;
+    commentLastChange: {
+        at: string;
+        by: {
+            id: string;
+            name: string;
+        } | null;
+    } | null;
     canScheduleAudition: boolean;
     canRecuseMembers: boolean;
     auditionDate: {

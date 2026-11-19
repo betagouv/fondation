@@ -80,7 +80,13 @@ function ReadableSummary(props: SummaryTarget) {
             <FormattedMessage defaultMessage="La synthèse n'a pas pu être chargée." />
           </p>
           {/* after a failure, isLoading stays false while retrying: only isFetching shows the attempt */}
-          <Button disabled={isFetching} onClick={() => refetch()} priority="secondary" size="small">
+          <Button
+            className="btn-compact"
+            disabled={isFetching}
+            onClick={() => refetch()}
+            priority="secondary"
+            size="small"
+          >
             <FormattedMessage defaultMessage="Réessayer" />
           </Button>
         </div>
