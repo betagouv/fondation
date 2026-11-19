@@ -28,7 +28,9 @@ vi.mock('@queries/observations.queries', () => ({
     isLoading: false,
   }),
   useListObservationsAttachments: () => ({ data: { items: linkableAttachments } }),
+  useObservationsQuery: () => ({ data: { canManageAttachments, observations: [] } }),
 }));
+let canManageAttachments = true;
 
 const PV = { observationId: 'other-observation', fileId: 'file-a', name: 'pv.pdf' };
 const NOTE = { observationId: 'other-observation', fileId: 'file-b', name: 'note.pdf' };
@@ -116,6 +118,7 @@ async function search(user: ReturnType<typeof userEvent.setup>) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  canManageAttachments = true;
   searchResults = [];
   searchFailed = false;
   linkableAttachments = [];
@@ -301,6 +304,14 @@ describe('ObservationForm', () => {
       expect.objectContaining({ observationId: 'observation-1', detachFileIds: ['file-1'] }),
       expect.anything(),
     );
+  });
+
+  it('keeps the files of an observation in a dossier figé', () => {
+    canManageAttachments = false;
+    renderForm(OBSERVATION);
+
+    expect(screen.getByText('courrier.pdf')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Supprimer courrier.pdf' })).not.toBeInTheDocument();
   });
 
   it.each([

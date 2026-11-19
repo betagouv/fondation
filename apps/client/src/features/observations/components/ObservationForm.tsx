@@ -13,6 +13,7 @@ import { ATTACHMENT_FILE_TYPES } from '@/shared/ui/upload/file-types';
 import {
   useCreateObservationMutation,
   useListObservationsAttachments,
+  useObservationsQuery,
   useUpdateObservationMutation,
   type Observant,
   type Observation,
@@ -81,6 +82,7 @@ export function ObservationForm({
   const attachedFiles = observation?.files ?? [];
   const existingFiles = attachedFiles.filter(({ id }) => keptFileIds.includes(id));
   const filesToDetach = attachedFiles.filter(({ id }) => !keptFileIds.includes(id));
+  const { data: observations } = useObservationsQuery({ nominationFileId, sessionId });
 
   const { data: observationsAttachments } = useListObservationsAttachments({
     sessionId,
@@ -269,7 +271,7 @@ export function ObservationForm({
         <ObservationExistingFiles
           detachedFiles={filesToDetach}
           files={existingFiles}
-          onRemove={handleRemoveExistingFile}
+          onRemove={observations?.canManageAttachments ? handleRemoveExistingFile : undefined}
         />
       )}
 
