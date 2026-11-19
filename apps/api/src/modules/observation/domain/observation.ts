@@ -1,4 +1,5 @@
 import { Id, makeId } from '../../../utils/id';
+import { isSecretariat, type RoleEnum } from '../../shared/role.enum';
 
 import { ObservationFollowUp } from './observation-follow-up';
 
@@ -210,6 +211,10 @@ export class Observation {
       props.magistratId,
       props.dateReception,
     );
+  }
+
+  static canEdit(props: { isArchived: boolean; role: RoleEnum }): boolean {
+    return !props.isArchived && isSecretariat(props.role);
   }
 
   /** files are still added to a figé dossier, but those it holds stay as they are */

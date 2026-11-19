@@ -9,7 +9,7 @@ import { writerOf, writerSchema } from '../../../../utils/user.util';
 import { Db } from '../../../framework/database';
 import { magistratFullName } from '../../../magistrat/domain/magistrat-name';
 import { TransparenceService } from '../../../session/transparence/infrastructure/transparence.service';
-import { isSecretariat, type RoleEnum } from '../../../shared/role.enum';
+import type { RoleEnum } from '../../../shared/role.enum';
 import { Observation } from '../../domain/observation';
 import { ObservationFollowUp } from '../../domain/observation-follow-up';
 
@@ -73,7 +73,7 @@ export class ListObservationsQuery {
   }): Promise<ListObservationsResponseDto> {
     const session = await this.transparences.internalGetVisibleSession(query);
     const isNominationFileLocked = await this.transparences.internalIsNominationFileLocked(query);
-    const canEdit = !session.isArchived && isSecretariat(query.role);
+    const canEdit = Observation.canEdit({ isArchived: session.isArchived, role: query.role });
 
     const observations = await this.db.tx.observation.findMany({
       orderBy: { createdAt: 'desc' },
