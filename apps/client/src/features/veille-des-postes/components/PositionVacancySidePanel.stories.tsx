@@ -31,18 +31,31 @@ const VACANT: EditedPosition = {
   magistrat: null,
 };
 
+const POSITIONS = { HELD: EDITED, VACANT };
+const ANSWERS = ['FOUND', 'NOT_FOUND', 'FAILED'] as const;
+
 const COURT_COMMENT_PATH = '*/api/veille-des-postes/v1/juridictions/:courtId/commentaire';
 const VACANCY_PATH = '*/api/veille-des-postes/v1/titulaires/:magistratId/vacance';
 
-function PositionVacancySidePanelStory(props: { edited: EditedPosition }) {
+/** an answer other than found replaces the one of the story: undefined lets the story answer */
+function answerOf(answer: (typeof ANSWERS)[number]) {
+  if (answer === 'NOT_FOUND') return new HttpResponse(null, { status: 404 });
+  if (answer === 'FAILED') return new HttpResponse(null, { status: 500 });
+  return undefined;
+}
+
+function PositionVacancySidePanelStory(props: {
+  answer: (typeof ANSWERS)[number];
+  position: keyof typeof POSITIONS;
+}) {
   const [isLeaveBlocked, setLeaveBlocked] = useState(false);
 
   return (
-    <StoryQueryClient>
+    <StoryQueryClient key={`${props.position} ${props.answer}`}>
       <ToastProvider>
         <ConfirmModalProvider>
           <PositionVacancySidePanel
-            edited={props.edited}
+            edited={POSITIONS[props.position]}
             isLeaveBlocked={isLeaveBlocked}
             onClose={() => {}}
             onLeaveBlockedChange={setLeaveBlocked}
@@ -56,8 +69,15 @@ function PositionVacancySidePanelStory(props: { edited: EditedPosition }) {
 }
 
 const meta = {
-  beforeEach: ({ msw }) => {
+  argTypes: {
+    answer: { control: 'inline-radio', options: ANSWERS },
+    position: { control: 'inline-radio', options: Object.keys(POSITIONS) },
+  },
+  args: { answer: 'FOUND', position: 'HELD' },
+  beforeEach: ({ args, msw }) => {
     msw.use(
+      http.get(VACANCY_PATH, () => answerOf(args.answer)),
+      http.get(COURT_COMMENT_PATH, () => answerOf(args.answer)),
       ...positionVacancyHandlers([
         EDITED,
         {
@@ -68,13 +88,12 @@ const meta = {
       ]),
     );
   },
-  args: { edited: EDITED },
   component: PositionVacancySidePanelStory,
   parameters: {
     docs: {
       description: {
         component:
-          "Le panneau ouvert par le stylo de la colonne \"Alerte / statut\". Le motif, la date et les justificatifs s'enregistrent à chaque changement dès que le motif et la date sont connus. La story garde ce qui est déclaré tant qu'elle tourne. Le statut affiché reste celui de la ligne puisque c'est l'API qui le calcule.",
+          "Le panneau ouvert par le stylo de la colonne \"Alerte / statut\". Le motif, la date et les justificatifs s'enregistrent à chaque changement dès que le motif et la date sont connus. La story garde ce qui est déclaré tant qu'elle tourne. Le statut affiché reste celui de la ligne puisque c'est l'API qui le calcule. Une juridiction vacante s'ouvre par \"Commenter le poste\" et ne propose que le commentaire. Une réponse 404 dit que le magistrat a quitté le poste ou que la juridiction n'est plus suivie. Une autre erreur propose de réessayer.",
       },
     },
     layout: 'fullscreen',
@@ -85,51 +104,3 @@ const meta = {
 export default meta;
 
 export const Playground: StoryObj<typeof meta> = {};
-
-export const LoadFailed: StoryObj<typeof meta> = {
-  beforeEach: ({ msw }) => {
-    msw.use(http.get(VACANCY_PATH, () => new HttpResponse(null, { status: 500 })));
-  },
-  parameters: {
-    docs: { description: { story: 'La lecture du statut échoue : le panneau propose de réessayer.' } },
-  },
-};
-
-export const NoLongerHeld: StoryObj<typeof meta> = {
-  beforeEach: ({ msw }) => {
-    msw.use(http.get(VACANCY_PATH, () => new HttpResponse(null, { status: 404 })));
-  },
-  parameters: {
-    docs: {
-      description: {
-        story: 'LOLFI a déplacé le magistrat depuis le chargement du tableau : la lecture répond 404.',
-      },
-    },
-  },
-};
-
-export const VacantCourt: StoryObj<typeof meta> = {
-  args: { edited: VACANT },
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "Une juridiction sans titulaire : le panneau s'ouvre par le stylo \"Commenter le poste\" et n'y propose que le commentaire, gardé d'un titulaire à l'autre.",
-      },
-    },
-  },
-};
-
-export const VacantCourtNoLongerWatched: StoryObj<typeof meta> = {
-  args: { edited: VACANT },
-  beforeEach: ({ msw }) => {
-    msw.use(http.get(COURT_COMMENT_PATH, () => new HttpResponse(null, { status: 404 })));
-  },
-  parameters: {
-    docs: {
-      description: {
-        story: 'La juridiction a quitté la veille depuis le chargement du tableau : la lecture répond 404.',
-      },
-    },
-  },
-};

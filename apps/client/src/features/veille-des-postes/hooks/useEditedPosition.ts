@@ -11,7 +11,7 @@ import { usePrefetchedPositionPanels } from '@queries/veille-des-postes.queries'
  */
 export function useEditedPosition<Row>(
   rows: readonly Row[],
-  toEdited: (row: Row) => EditedPosition | null,
+  toEdited: (row: Row) => EditedPosition,
   onToggle: (open: boolean) => void,
 ) {
   const [edited, setEdited] = useState<EditedPosition | null>(null);
@@ -27,7 +27,7 @@ export function useEditedPosition<Row>(
     onToggle(isOpen);
     return () => onToggle(false);
   }, [isOpen, onToggle]);
-  const editable = rows.flatMap((row) => toEdited(row) ?? []);
+  const editable = rows.map(toEdited);
   const index = edited ? editable.findIndex(({ id }) => id === edited.id) : -1;
   // a change can take the row out of a filtered table: its neighbours stay those around its last place
   const lastPlace = useRef<{ id: string; index: number } | null>(null);
