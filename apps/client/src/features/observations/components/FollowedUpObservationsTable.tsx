@@ -28,6 +28,7 @@ import {
 import { SearchInput } from '@/shared/ui/search-input';
 import { formatDateOnly } from '@/utils/date-only.util';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import type { ListedFollowedUpObservationSessionYearsDto } from '@api/types';
 import {
   type FollowedUpObservation,
   type FollowedUpObservationsSorting,
@@ -45,6 +46,14 @@ const h = createColumnHelper<FollowedUpObservation>();
 // as the API does without a sort
 const DEFAULT_SORTING: FollowedUpObservationsSorting = [{ desc: true, id: 'dateReception' }];
 const SORTABLE_COLUMNS = new Set<string>(['dateReception']);
+const YEAR = /^\d{4}$/;
+
+// the years of the sessions with an observation that has a suite, and those still checked: a year whose
+// last suite was just removed stays offered, else it could not be unchecked
+function toYearOptions(data: ListedFollowedUpObservationSessionYearsDto, checked: readonly string[]) {
+  const years = new Set([...data.items.map(({ year }) => String(year)), ...checked]);
+  return [...years].toSorted((a, b) => b.localeCompare(a)).map((year) => ({ id: year, label: year }));
+}
 
 export function FollowedUpObservationsTable() {
   const intl = useIntl();
@@ -62,6 +71,14 @@ export function FollowedUpObservationsTable() {
   // a saved link can carry a sort the API does not accept
   const [sort] = tableState.sorting;
   const sorting = sort && SORTABLE_COLUMNS.has(sort.id) ? tableState.sorting : DEFAULT_SORTING;
+  // nor can the API take anything but a year
+  const sessionYears = useMemo(
+    () =>
+      tableState.columnFilters.flatMap((filter) =>
+        filter.id === 'sessionYears' ? filter.value.filter((year) => YEAR.test(year)) : [],
+      ),
+    [tableState.columnFilters],
+  );
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
     useInfiniteFollowedUpObservationsQuery({
       followUps: tableState.columnFilters.flatMap((filter) =>
@@ -71,9 +88,7 @@ export function FollowedUpObservationsTable() {
       sessionStatuses: tableState.columnFilters.flatMap((filter) =>
         filter.id === 'sessionStatuses' ? filter.value : [],
       ),
-      sessionYears: tableState.columnFilters.flatMap((filter) =>
-        filter.id === 'sessionYears' ? filter.value : [],
-      ),
+      sessionYears,
       sorting,
       trackingStatuses: tableState.columnFilters.flatMap((filter) =>
         filter.id === 'trackingStatuses' ? filter.value : [],
@@ -100,11 +115,13 @@ export function FollowedUpObservationsTable() {
         { id: 'ARCHIVED', label: intl.formatMessage({ defaultMessage: 'Sessions archivées' }) },
       ] satisfies { id: SessionStatus; label: string }[],
     };
-    // only the years of the sessions with an observation that has a suite
-    const sessionYears: TableMetaFilterAsyncList = {
+    const sessionYearsFilter: TableMetaFilterAsyncList = {
       filterId: 'sessionYears',
       label: intl.formatMessage({ defaultMessage: 'Année' }),
-      query: getFollowedUpObservationSessionYearsQueryOptions(),
+      query: {
+        ...getFollowedUpObservationSessionYearsQueryOptions(),
+        select: (data: ListedFollowedUpObservationSessionYearsDto) => toYearOptions(data, sessionYears),
+      },
       type: 'asyncList',
     };
     // only the observations with a suite are listed: "Aucune" is not offered
@@ -133,7 +150,7 @@ export function FollowedUpObservationsTable() {
         cell: sessionCell,
         header: intl.formatMessage({ defaultMessage: 'Session' }),
         id: 'session',
-        meta: { filters: [sessionStatuses, sessionYears] },
+        meta: { filters: [sessionStatuses, sessionYearsFilter] },
         size: 220,
       }),
       h.display({
@@ -191,7 +208,7 @@ export function FollowedUpObservationsTable() {
         size: 200,
       }),
     ];
-  }, [intl]);
+  }, [intl, sessionYears]);
 
   const observations = useMemo(() => data?.items ?? [], [data]);
   const table = useReactTable({

@@ -202,7 +202,7 @@ export const getFollowedUpObservationSessionYearsQueryOptions = () =>
   ({
     queryFn: async () => {
       const { data } = await $api.observations.listFollowedUpObservationSessionYears({ throwOnError: true });
-      return data.items.map(({ year }) => ({ id: String(year), label: String(year) }));
+      return data;
     },
     queryKey: observationKeys.followedUpSessionYears(),
   }) as const;

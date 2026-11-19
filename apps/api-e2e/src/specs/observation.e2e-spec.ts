@@ -617,7 +617,8 @@ test.describe('Observation', () => {
       query: { limit: 200, sessionYears: '2024,2025' },
       throwOnError: true,
     });
-    expect(data.items.map(({ session }) => session.id)).toEqual([of2025!.id, of2024!.id]);
+    const ours = new Set([of2023!.id, of2024!.id, of2025!.id]);
+    expect(data.items.map(({ session }) => session.id).filter((id) => ours.has(id))).toEqual([of2025!.id, of2024!.id]);
   });
 
   test('should track a bloc of observations', async ({ agent, expect, sessions }) => {
