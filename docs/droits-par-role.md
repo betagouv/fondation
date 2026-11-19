@@ -260,6 +260,7 @@ Un Membre ne voit pas le commentaire de décision d'un dossier. Un rapporteur du
 | Donner une suite à une observation        | `PUT /sessions/v2/:sessionId/files/:nominationFileId/observations/:observationId/follow-up`                    | —                                                | ✓                            | ✓              |
 | Programmer l'audition d'un observant      | `PUT /sessions/v2/:sessionId/files/:nominationFileId/observations/:observationId/audition/schedule`            | —                                                | ✓                            | ✓              |
 | Lister les observations qui ont une suite | `GET /observations/v1`                                                                                         | —                                                | ✓                            | ✓              |
+| Lister les années de leurs sessions       | `GET /observations/v1/session-years`                                                                           | —                                                | ✓                            | ✓              |
 | Suivre un bloc d'observations             | `PUT /sessions/v2/:sessionId/observation-blocks/:magistratId/tracking`                                         | —                                                | ✓, session archivée comprise | ✓              |
 
 Dans le détail d'une observation, un Membre ne voit que son propre commentaire.

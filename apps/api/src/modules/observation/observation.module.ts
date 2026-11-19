@@ -10,6 +10,7 @@ import { ObservationFinder } from './infrastructure/finders/observation.finder';
 import { CountSessionObservationsQuery } from './infrastructure/queries/count-session-observations.query';
 import { GetObservationDetailsQuery } from './infrastructure/queries/get-observation-details.query';
 import { GetObservationFileUrlQuery } from './infrastructure/queries/get-observation-file-url.query';
+import { ListFollowedUpObservationSessionYearsQuery } from './infrastructure/queries/list-followed-up-observation-session-years.query';
 import { ListFollowedUpObservationsQuery } from './infrastructure/queries/list-followed-up-observations.query';
 import { ListObservationsAttachmentsQuery } from './infrastructure/queries/list-observations-attachments.query';
 import { ListObservationsQuery } from './infrastructure/queries/list-observations.query';
@@ -35,6 +36,7 @@ import { SessionObservationsController } from './session-observations.controller
     CountSessionObservationsQuery,
     GetObservationDetailsQuery,
     GetObservationFileUrlQuery,
+    ListFollowedUpObservationSessionYearsQuery,
     ListFollowedUpObservationsQuery,
     ListObservationsAttachmentsQuery,
     ListObservationsQuery,

@@ -2184,6 +2184,12 @@ export type ListedFollowedUpObservationsDto = {
     };
 };
 
+export type ListedFollowedUpObservationSessionYearsDto = {
+    items: Array<{
+        year: number;
+    }>;
+};
+
 export type UpdateObservationBlockTrackingDto = {
     status: 'IN_PROGRESS' | 'DONE';
     comment: string | null;
@@ -5477,6 +5483,7 @@ export type ListFollowedUpObservationsData = {
         followUps?: string;
         search?: string;
         sessionStatuses?: string;
+        sessionYears?: string;
         sortBy?: 'dateReception';
         trackingStatuses?: string;
         /**
@@ -5494,6 +5501,19 @@ export type ListFollowedUpObservationsResponses = {
 };
 
 export type ListFollowedUpObservationsResponse = ListFollowedUpObservationsResponses[keyof ListFollowedUpObservationsResponses];
+
+export type ListFollowedUpObservationSessionYearsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/observations/v1/session-years';
+};
+
+export type ListFollowedUpObservationSessionYearsResponses = {
+    200: ListedFollowedUpObservationSessionYearsDto;
+};
+
+export type ListFollowedUpObservationSessionYearsResponse = ListFollowedUpObservationSessionYearsResponses[keyof ListFollowedUpObservationSessionYearsResponses];
 
 export type UpdateObservationBlockTrackingData = {
     body: UpdateObservationBlockTrackingDto;
