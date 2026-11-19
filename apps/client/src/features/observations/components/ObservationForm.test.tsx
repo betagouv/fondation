@@ -4,6 +4,7 @@ import { IntlProvider } from 'react-intl';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ConfirmModalProvider } from '@/shared/context/confirm-modal';
+import { ValidationError } from '@/utils/validation-error';
 import type { FoundMagistrat } from '@queries/magistrats.queries';
 import type { Observation } from '@queries/observations.queries';
 
@@ -21,7 +22,7 @@ let linkableAttachments: { observationId: string; fileId: string; name: string }
 
 vi.mock('@queries/observations.queries', () => ({
   useCreateObservationMutation: () => ({ mutate: createObservation, reset: vi.fn(), error: null }),
-  useUpdateObservationMutation: () => ({ mutate: updateObservation, reset: vi.fn(), error: null }),
+  useUpdateObservationMutation: () => ({ mutate: updateObservation, reset: vi.fn(), error: updateError }),
   useSearchMagistratsQuery: () => ({
     data: searchFailed ? undefined : searchResults,
     isError: searchFailed,
@@ -31,6 +32,7 @@ vi.mock('@queries/observations.queries', () => ({
   useObservationsQuery: () => ({ data: { canManageAttachments, observations: [] } }),
 }));
 let canManageAttachments = true;
+let updateError: Error | null = null;
 
 const PV = { observationId: 'other-observation', fileId: 'file-a', name: 'pv.pdf' };
 const NOTE = { observationId: 'other-observation', fileId: 'file-b', name: 'note.pdf' };
@@ -119,6 +121,7 @@ async function search(user: ReturnType<typeof userEvent.setup>) {
 beforeEach(() => {
   vi.clearAllMocks();
   canManageAttachments = true;
+  updateError = null;
   searchResults = [];
   searchFailed = false;
   linkableAttachments = [];
@@ -304,6 +307,15 @@ describe('ObservationForm', () => {
       expect.objectContaining({ observationId: 'observation-1', detachFileIds: ['file-1'] }),
       expect.anything(),
     );
+  });
+
+  it('tells why the update was refused', () => {
+    updateError = new ValidationError('Une observation de ce magistrat existe déjà pour ce dossier');
+    renderForm(OBSERVATION);
+
+    expect(
+      screen.getByText(/Une observation de ce magistrat existe déjà pour ce dossier/),
+    ).toBeInTheDocument();
   });
 
   it('keeps the files of an observation in a dossier figé', () => {

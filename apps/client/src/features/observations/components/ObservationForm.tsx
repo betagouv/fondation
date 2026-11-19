@@ -10,6 +10,7 @@ import { useRequestFailure } from '@/shared/hooks/useRequestFailure';
 import { RequiredLabel } from '@/shared/ui/required-label';
 import { AttachmentFormatsHint, Upload } from '@/shared/ui/upload';
 import { ATTACHMENT_FILE_TYPES } from '@/shared/ui/upload/file-types';
+import { ValidationError } from '@/utils/validation-error';
 import {
   useCreateObservationMutation,
   useListObservationsAttachments,
@@ -233,7 +234,8 @@ export function ObservationForm({
           ) : (
             <FormattedMessage defaultMessage="Erreur à la création." />
           )}{' '}
-          {describeFailure(createError ?? updateError)}
+          {ValidationError.messageOf(createError ?? updateError) ??
+            describeFailure(createError ?? updateError)}
         </p>
       ) : null}
       <MagistratCombobox
