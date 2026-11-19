@@ -15,12 +15,10 @@ import { PositionCommentSection } from './PositionCommentSection';
 const ME = { firstName: 'Anne', id: 'me', lastName: 'Roy', role: 'ADJOINT_SECRETAIRE_GENERAL' };
 
 /** what the client of the API answers as the component reads it */
-function found(comment: FoundPositionCommentDto['comment']): never {
-  return { data: { comment, maxLength: 50_000 } } as never;
-}
-
-function commentOf(text: string): FoundPositionCommentDto['comment'] {
-  return { text, updatedAt: new Date().toISOString(), updatedBy: { id: ME.id, name: 'Anne ROY' } };
+function found(comment: string | null): never {
+  const lastChange =
+    comment === null ? null : { at: new Date().toISOString(), by: { id: ME.id, name: 'Anne ROY' } };
+  return { data: { comment, lastChange, maxLength: 50_000 } satisfies FoundPositionCommentDto } as never;
 }
 
 function notFound(): unknown {
@@ -86,7 +84,7 @@ describe('PositionCommentSection', () => {
   it('shows the comment trimmed as the API saved it', async () => {
     const find = vi.spyOn($api.veilleDesPostes, 'findPositionComment').mockResolvedValue(found(null));
     vi.spyOn($api.veilleDesPostes, 'writePositionComment').mockImplementation(async () => {
-      find.mockResolvedValue(found(commentOf('Souhaite partir')));
+      find.mockResolvedValue(found('Souhaite partir'));
       return {} as never;
     });
     renderSection();

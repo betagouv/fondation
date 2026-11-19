@@ -2622,10 +2622,10 @@ export type DeclarePositionVacancyDto = {
 };
 
 export type FoundPositionCommentDto = {
-    comment: {
-        text: string;
-        updatedAt: string;
-        updatedBy: {
+    comment: string | null;
+    lastChange: {
+        at: string;
+        by: {
             id: string;
             name: string;
         } | null;

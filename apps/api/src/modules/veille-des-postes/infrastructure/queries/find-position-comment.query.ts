@@ -4,8 +4,8 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { Prisma } from '../../../../generated/prisma/client';
-import { COMMENT_MAX_LENGTH } from '../../../../utils/comment';
-import { writerOf, writerSchema } from '../../../../utils/user.util';
+import { COMMENT_MAX_LENGTH, commentLastChangeSchema } from '../../../../utils/comment';
+import { writerOf } from '../../../../utils/user.util';
 import { Db } from '../../../framework/database';
 import { CommentedPositionFinder } from '../finders/commented-position.finder';
 
@@ -41,11 +41,8 @@ export class FindPositionCommentQuery {
           });
 
     return {
-      comment: comment && {
-        text: comment.comment,
-        updatedAt: comment.updatedAt.toISOString(),
-        updatedBy: writerOf(comment.author),
-      },
+      comment: comment?.comment ?? null,
+      lastChange: comment && { at: comment.updatedAt.toISOString(), by: writerOf(comment.author) },
       maxLength: COMMENT_MAX_LENGTH,
     };
   }
@@ -53,7 +50,8 @@ export class FindPositionCommentQuery {
 
 export class FoundPositionCommentDto extends createZodDto(
   z.object({
-    comment: z.object({ text: z.string(), updatedAt: z.iso.datetime(), updatedBy: writerSchema }).nullable(),
+    comment: z.string().nullable(),
+    lastChange: commentLastChangeSchema.nullable(),
     maxLength: z.number().int(),
   }),
 ) {}

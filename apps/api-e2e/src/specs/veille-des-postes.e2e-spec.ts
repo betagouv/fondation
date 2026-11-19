@@ -253,7 +253,7 @@ test.describe('Veille des postes E2E', () => {
       throwOnError: true,
     });
 
-    expect(data.comment?.text).toBe(`Intérim ${lastName}`);
+    expect(data.comment).toBe(`Intérim ${lastName}`);
   });
 
   test('should keep the comment of a court when LOLFI moves its president', async ({ agent, expect, sessions }) => {
@@ -939,17 +939,16 @@ test.describe('Veille des postes E2E', () => {
     await write('  Souhaite partir en 2027 ');
 
     const { data: found } = await agent.veilleDesPostes.findCourtComment({ path, throwOnError: true });
-    expect(found.comment).toEqual({
-      text: 'Souhaite partir en 2027',
-      updatedAt: expect.any(String),
-      updatedBy: expect.objectContaining({ id: expect.any(String) }),
+    expect(found).toMatchObject({
+      comment: 'Souhaite partir en 2027',
+      lastChange: { at: expect.any(String), by: expect.objectContaining({ id: expect.any(String) }) },
     });
     expect((await listed()).commentPreview).toBe('Souhaite partir en 2027');
 
     await write('   ');
 
     const { data: erased } = await agent.veilleDesPostes.findCourtComment({ path, throwOnError: true });
-    expect(erased.comment).toBeNull();
+    expect(erased).toMatchObject({ comment: null, lastChange: null });
     expect((await listed()).commentPreview).toBeNull();
   });
 

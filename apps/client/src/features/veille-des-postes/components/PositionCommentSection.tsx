@@ -41,7 +41,7 @@ export function PositionCommentSection(props: {
 
   // the editor reads its text once: it starts over on the trimmed version of the API after each save. It also
   // takes another agent's version unless a change is being typed
-  const savedVersion = data?.comment?.updatedAt ?? 'none';
+  const savedVersion = data?.lastChange?.at ?? 'none';
   const [editorVersion, setEditorVersion] = useState(savedVersion);
   const [saves, setSaves] = useState(0);
 
@@ -55,7 +55,7 @@ export function PositionCommentSection(props: {
         <h3 className="fr-mb-0 text-lg font-semibold text-(--text-label-grey)">
           <FormattedMessage defaultMessage="Commentaire" />
         </h3>
-        {data?.comment && <CommentLastChange at={data.comment.updatedAt} by={data.comment.updatedBy} />}
+        {data?.lastChange && <CommentLastChange {...data.lastChange} />}
       </div>
       {!data && error && (
         <RetryableLoadFailure
@@ -80,7 +80,7 @@ export function PositionCommentSection(props: {
           <CommentEditor
             ariaLabel={formatMessage({ defaultMessage: 'Commentaire' })}
             emptyLabel={<FormattedMessage defaultMessage="Aucun commentaire" />}
-            initialValue={data.comment?.text ?? null}
+            initialValue={data.comment}
             key={`${editorVersion} ${saves}`}
             maxLength={data.maxLength}
             onDirtyChange={setIsDirty}

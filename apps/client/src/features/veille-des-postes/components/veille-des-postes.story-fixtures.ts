@@ -176,8 +176,11 @@ export function positionVacancyHandlers(
   })[],
 ): ReturnType<typeof http.get>[] {
   const writer = { id: 'story-user', name: 'Jess TEST' };
-  const written = (text: string) => ({ text, updatedAt: '2026-11-10T09:30:00.000Z', updatedBy: writer });
-  const comments = new Map<string, NonNullable<FoundPositionCommentDto['comment']>>(
+  const written = (comment: string, at = '2026-11-10T09:30:00.000Z') => ({
+    comment,
+    lastChange: { at, by: writer },
+  });
+  const comments = new Map<string, Pick<FoundPositionCommentDto, 'comment' | 'lastChange'>>(
     rows.flatMap(({ commentPreview, court, magistrat }) => [
       ...(court && commentPreview ? [[`court ${court.id}`, written(commentPreview)] as const] : []),
       ...(magistrat?.commentPreview
@@ -226,14 +229,14 @@ export function positionVacancyHandlers(
     ].flatMap(({ key, path }) => [
       http.get(path, ({ params }) =>
         HttpResponse.json({
-          comment: comments.get(key(params)) ?? null,
+          ...(comments.get(key(params)) ?? { comment: null, lastChange: null }),
           maxLength: 50_000,
         } satisfies FoundPositionCommentDto),
       ),
       // kept as sent: the API trims and erases. The stories do not copy its rule
       http.put(path, async ({ params, request }) => {
         const { comment } = (await request.json()) as { comment: string };
-        comments.set(key(params), { text: comment, updatedAt: new Date().toISOString(), updatedBy: writer });
+        comments.set(key(params), written(comment, new Date().toISOString()));
 
         return new HttpResponse(null, { status: 204 });
       }),
