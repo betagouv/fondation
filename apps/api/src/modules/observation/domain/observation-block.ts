@@ -10,7 +10,8 @@ type BlockedObservation = {
 
 // a bloc gathers the observations of one observant in one session. It is placed by the reception
 // date that comes first in the requested order: its most recent one when descending, its oldest
-// when ascending. Inside a bloc, rows follow the nomination file order of the session
+// when ascending. Inside a bloc, rows follow their own reception date in the same order, then the
+// nomination file order of the session
 export function sortByObservationBlock<T extends BlockedObservation>(
   observations: readonly T[],
   order: 'asc' | 'desc',
@@ -35,6 +36,7 @@ export function sortByObservationBlock<T extends BlockedObservation>(
       // in the same order on every page
       a.observantId.localeCompare(b.observantId) ||
       a.sessionId.localeCompare(b.sessionId) ||
+      direction * (a.dateReception.getTime() - b.dateReception.getTime()) ||
       a.fileRank - b.fileRank,
   );
 }
@@ -51,19 +53,15 @@ export function laterPropositions<T extends { session: { date: DateOnly; id: str
   );
 }
 
-// sessions always come first, in their date order, so that a bloc never leaves its session: sorting by
-// reception date only orders the blocs inside each session
+// sessions never move: the most recently published comes first, whatever the order, so that a bloc never
+// leaves its session. The order only applies to the blocs inside each session
 export function sortBySessionThenObservationBlock<T extends BlockedObservation & { sessionDate: Date }>(
   observations: readonly T[],
-  order: { blocks: 'asc' | 'desc'; sessions: 'asc' | 'desc' },
+  order: 'asc' | 'desc',
 ): T[] {
-  const direction = order.sessions === 'asc' ? 1 : -1;
-
   // a stable sort keeps the bloc order inside each session
-  return sortByObservationBlock(observations, order.blocks).toSorted(
-    (a, b) =>
-      direction * (a.sessionDate.getTime() - b.sessionDate.getTime()) ||
-      a.sessionId.localeCompare(b.sessionId),
+  return sortByObservationBlock(observations, order).toSorted(
+    (a, b) => b.sessionDate.getTime() - a.sessionDate.getTime() || a.sessionId.localeCompare(b.sessionId),
   );
 }
 

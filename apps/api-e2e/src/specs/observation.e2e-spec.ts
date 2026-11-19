@@ -480,7 +480,7 @@ test.describe('Observation', () => {
       files.items.find(({ id }) => id === file.id)?.content.numeroDeDossier ?? Infinity;
     const [lowFile, highFile] = [first!, second!].toSorted((a, b) => numberOf(a) - numberOf(b));
     // the first observant wrote the two earliest observations, the second one the latest; inside the bloc,
-    // the file with the lowest number comes first whatever the reception dates
+    // the rows follow their reception date in the requested order, against the order of the file numbers
     const onHighFile = await observe(highFile!, first!.magistratId, '2026-05-01');
     const onLowFile = await observe(lowFile!, first!.magistratId, '2026-05-03');
     const latest = await observe(first!, second!.magistratId, '2026-05-05');
@@ -508,7 +508,7 @@ test.describe('Observation', () => {
       observant: { id: second!.magistratId, name: 'DAUBENTON Lucien' },
     });
     const ascending = await list({ sortBy: 'dateReception', sortDesc: 'false' });
-    expect(ascending.items.map(({ id }) => id)).toEqual([onLowFile, onHighFile, latest]);
+    expect(ascending.items.map(({ id }) => id)).toEqual([onHighFile, onLowFile, latest]);
     const withoutFollowUp = await list({ followUps: 'null' });
     expect(withoutFollowUp.items.map(({ id }) => id)).toEqual([onLowFile, onHighFile]);
 
@@ -576,7 +576,8 @@ test.describe('Observation', () => {
       // a session created from LOLFI is new until its data is validated
       session: { date: { day: 2, month: 3, year: 2026 }, id: march!.id, status: 'TO_VALIDATE' },
     });
-    expect(ids(await list({ sortBy: 'dateReception', sortDesc: 'false' }))).toEqual([inMarch, inJune, latest]);
+    // the sessions never move: only the blocs inside each one follow the reception date
+    expect(ids(await list({ sortBy: 'dateReception', sortDesc: 'false' }))).toEqual([inJune, latest, inMarch]);
     expect(ids(await list({ sessionStatuses: 'TO_VALIDATE' }))).toEqual([latest, inJune, inMarch]);
     expect(await list({ sessionStatuses: 'ARCHIVED' })).toEqual([]);
   });

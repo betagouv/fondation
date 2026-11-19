@@ -31,7 +31,7 @@ type SessionObservationsFilters = {
 
 export type FollowedUpObservation = ListedFollowedUpObservationsDto['items'][number];
 export type SessionStatus = FollowedUpObservation['session']['status'];
-export type FollowedUpObservationsSorting = [{ desc: boolean; id: 'dateReception' | 'session' }];
+export type FollowedUpObservationsSorting = [{ desc: boolean; id: 'dateReception' }];
 
 type FollowedUpObservationsFilters = {
   followUps: string[];

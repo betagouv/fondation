@@ -28,7 +28,7 @@ export class ListFollowedUpObservationsQueryDto extends createSortableDto(
           .filter(Boolean),
       )
       .pipe(z.array(z.enum(SESSION_STATUSES))),
-    sortBy: z.enum(['dateReception', 'session']).optional(),
+    sortBy: z.enum(['dateReception']).optional(),
     trackingStatuses: z
       .string()
       .optional()

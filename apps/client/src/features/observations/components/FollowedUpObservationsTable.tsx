@@ -39,9 +39,10 @@ import { FollowUpCell, ObservantCell, ObservedCell, TargetedCell } from './Obser
 
 const h = createColumnHelper<FollowedUpObservation>();
 
-// the most recent sessions come first, as the API does without a sort
-const DEFAULT_SORTING: FollowedUpObservationsSorting = [{ desc: true, id: 'session' }];
-const SORTABLE_COLUMNS = new Set<string>(['dateReception', 'session']);
+// the sessions never move: the reception date only orders the blocs inside each one, most recent first
+// as the API does without a sort
+const DEFAULT_SORTING: FollowedUpObservationsSorting = [{ desc: true, id: 'dateReception' }];
+const SORTABLE_COLUMNS = new Set<string>(['dateReception']);
 
 export function FollowedUpObservationsTable() {
   const intl = useIntl();
@@ -115,15 +116,12 @@ export function FollowedUpObservationsTable() {
     };
 
     return [
-      // TanStack only sorts a column with an accessor: the session is sorted by its date
-      h.accessor('session.date', {
+      h.display({
         cell: sessionCell,
-        enableSorting: true,
         header: intl.formatMessage({ defaultMessage: 'Session' }),
         id: 'session',
         meta: { filters: sessionStatuses },
         size: 220,
-        sortDescFirst: true,
       }),
       h.display({
         cell: rowCell<FollowedUpObservation>(({ observation, session }) => (

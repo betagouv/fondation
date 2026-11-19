@@ -5477,7 +5477,7 @@ export type ListFollowedUpObservationsData = {
         followUps?: string;
         search?: string;
         sessionStatuses?: string;
-        sortBy?: 'dateReception' | 'session';
+        sortBy?: 'dateReception';
         trackingStatuses?: string;
         /**
          * true

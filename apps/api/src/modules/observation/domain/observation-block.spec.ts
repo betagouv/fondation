@@ -49,16 +49,26 @@ describe('sortByObservationBlock', () => {
 
   it('places each bloc by its oldest reception date when ascending', () => {
     expect(ids(sortByObservationBlock(observations, 'asc'))).toEqual([
-      'martin-late',
       'martin-early',
+      'martin-late',
       'durand',
     ]);
   });
 
-  it('orders the rows of a bloc by nomination file, whatever their reception date', () => {
+  it('orders the rows of a bloc by their own reception date, in the requested order', () => {
+    const rows = [
+      observation('early-first-file', { date: '2026-03-01', fileRank: 0, observantId: 'Martin' }),
+      observation('late-second-file', { date: '2026-03-10', fileRank: 1, observantId: 'Martin' }),
+    ];
+
+    expect(ids(sortByObservationBlock(rows, 'desc'))).toEqual(['late-second-file', 'early-first-file']);
+    expect(ids(sortByObservationBlock(rows, 'asc'))).toEqual(['early-first-file', 'late-second-file']);
+  });
+
+  it('orders the rows of a bloc received the same day by nomination file', () => {
     const sorted = sortByObservationBlock(
       [
-        observation('second-file', { date: '2026-03-10', fileRank: 1, observantId: 'Martin' }),
+        observation('second-file', { date: '2026-03-01', fileRank: 1, observantId: 'Martin' }),
         observation('first-file', { date: '2026-03-01', fileRank: 0, observantId: 'Martin' }),
       ],
       'desc',
@@ -127,7 +137,7 @@ describe('sortByObservationBlock', () => {
 });
 
 describe('sortBySessionThenObservationBlock', () => {
-  // the march session holds the most recent observation: the session date still decides
+  // the march session holds the most recent observation: the session date still decides, in both orders
   const observations = [
     observation('march', {
       date: '2026-03-20',
@@ -153,22 +163,18 @@ describe('sortBySessionThenObservationBlock', () => {
   ];
 
   it('places the most recent session first, then its most recent blocs, when descending', () => {
-    expect(
-      ids(sortBySessionThenObservationBlock(observations, { blocks: 'desc', sessions: 'desc' })),
-    ).toEqual(['june-martin', 'june-durand', 'march']);
-  });
-
-  it('places the oldest session first but keeps its most recent blocs first, when ascending', () => {
-    expect(ids(sortBySessionThenObservationBlock(observations, { blocks: 'desc', sessions: 'asc' }))).toEqual(
-      ['march', 'june-martin', 'june-durand'],
-    );
-  });
-
-  it('keeps the blocs inside their session when sorted by reception date, oldest first', () => {
-    expect(ids(sortBySessionThenObservationBlock(observations, { blocks: 'asc', sessions: 'asc' }))).toEqual([
+    expect(ids(sortBySessionThenObservationBlock(observations, 'desc'))).toEqual([
+      'june-martin',
+      'june-durand',
       'march',
+    ]);
+  });
+
+  it('keeps the most recent session first but its oldest blocs first, when ascending', () => {
+    expect(ids(sortBySessionThenObservationBlock(observations, 'asc'))).toEqual([
       'june-durand',
       'june-martin',
+      'march',
     ]);
   });
 });
