@@ -3,7 +3,8 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { Prisma } from '../../../../../generated/prisma/client';
-import { writerOf, writerSchema } from '../../../../../utils/user.util';
+import { commentLastChangeSchema } from '../../../../../utils/comment';
+import { writerOf } from '../../../../../utils/user.util';
 import { Db } from '../../../../framework/database';
 
 @Injectable()
@@ -24,13 +25,14 @@ export class DetailSessionCommentQuery {
     });
     if (!session) throw new NotFoundException();
     // an erased comment no longer exists: there is no change left to date
-    if (!session.comment) return { comment: null, writtenAt: null, writtenBy: null };
+    if (!session.comment) return { comment: null, lastChange: null };
 
     const [lastVersion] = session.commentVersions;
     return {
       comment: session.comment,
-      writtenAt: lastVersion?.writtenAt.toISOString() ?? null,
-      writtenBy: writerOf(lastVersion?.author ?? null),
+      lastChange: lastVersion
+        ? { at: lastVersion.writtenAt.toISOString(), by: writerOf(lastVersion.author) }
+        : null,
     };
   }
 }
@@ -38,7 +40,6 @@ export class DetailSessionCommentQuery {
 export class DetailedSessionCommentDto extends createZodDto(
   z.object({
     comment: z.string().nullable(),
-    writtenAt: z.iso.datetime().nullable(),
-    writtenBy: writerSchema,
+    lastChange: commentLastChangeSchema.nullable(),
   }),
 ) {}

@@ -2,9 +2,10 @@ import { FormattedMessage } from 'react-intl';
 
 import { useDateAndTime } from '@/shared/hooks/useDateAndTime';
 import { whoWrote } from '@/utils/user.utils';
+import type { DetailedSessionCommentDto } from '@api/types';
 import { useUser } from '@queries/auth.queries';
 
-export type CommentChange = { at: string; by: { id: string; name: string } | null };
+export type CommentChange = NonNullable<DetailedSessionCommentDto['lastChange']>;
 
 export function CommentLastChange(props: CommentChange) {
   const dateAndTime = useDateAndTime();

@@ -39,7 +39,7 @@ export function useSessionCommentDraft(props: { sessionId: string }): SessionCom
     isError,
     isPending,
     isWarned: isWarned && draft !== null,
-    lastChange: data?.writtenAt ? { at: data.writtenAt, by: data.writtenBy } : null,
+    lastChange: data?.lastChange ?? null,
     onChange: setDraft,
     save: async () => {
       await mutateAsync({ comment: draft ?? '' });

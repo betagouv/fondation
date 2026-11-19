@@ -208,10 +208,12 @@ export type CountUsersNewSessionsDto = {
 
 export type DetailedSessionCommentDto = {
     comment: string | null;
-    writtenAt: string | null;
-    writtenBy: {
-        id: string;
-        name: string;
+    lastChange: {
+        at: string;
+        by: {
+            id: string;
+            name: string;
+        } | null;
     } | null;
 };
 

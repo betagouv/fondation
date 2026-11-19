@@ -11,11 +11,11 @@ import {
   listNominationFilesRawQuery,
 } from '../../../../../generated/prisma/sql';
 import { auditionScheduleSchema } from '../../../../../utils/audition-schedule';
+import { commentLastChangeSchema } from '../../../../../utils/comment';
 import { DateOnly, dateOnlyJsonSchema } from '../../../../../utils/date-only';
 import { toFullTextQuery } from '../../../../../utils/fulltext-search';
 import { partition } from '../../../../../utils/iterables';
 import { timeOnlySchema } from '../../../../../utils/time-only';
-import { writerSchema } from '../../../../../utils/user.util';
 import { DocsService } from '../../../../docs/docs.service';
 import { Db } from '../../../../framework/database';
 import { createPaginatedZodDto, paginate, Pagination } from '../../../../framework/pagination';
@@ -502,7 +502,7 @@ const NominationFileAffectationItemSchema = z.object({
   priorities: z.array(z.enum(PriorityEnum)),
   content: NominationFileContentSchema,
   comment: z.string().nullable(),
-  commentLastChange: z.object({ at: z.iso.datetime(), by: writerSchema }).nullable(),
+  commentLastChange: commentLastChangeSchema.nullable(),
   canScheduleAudition: z.boolean(),
   canRecuseMembers: z.boolean(),
   auditionDate: dateOnlyJsonSchema.nullable(),

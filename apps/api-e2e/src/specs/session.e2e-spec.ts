@@ -744,8 +744,7 @@ test.describe('Session E2E', () => {
       const { data } = await agent.sessions.detailSessionComment({ path: { sessionId: session.id } });
       expect(data).toEqual({
         comment: 'Une note pour la notice',
-        writtenAt: expect.any(String),
-        writtenBy: { id: me!.userId, name: expect.any(String) },
+        lastChange: { at: expect.any(String), by: { id: me!.userId, name: expect.any(String) } },
       });
     });
 
@@ -757,7 +756,7 @@ test.describe('Session E2E', () => {
       await agent.sessions.writeSessionComment({ body: { comment: '' }, path });
 
       const { data } = await agent.sessions.detailSessionComment({ path });
-      expect(data).toEqual({ comment: null, writtenAt: null, writtenBy: null });
+      expect(data).toEqual({ comment: null, lastChange: null });
     });
 
     test('should write then read back the comment of the secretariat on a nomination file', async ({
