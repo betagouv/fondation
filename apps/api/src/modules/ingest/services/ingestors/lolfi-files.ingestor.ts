@@ -233,6 +233,8 @@ export class LolfiFilesIngestor {
           where: { status: 'SUCCEEDED' },
           select: {
             files: {
+              // A file a succeeded job could not take as read is read again, even unchanged
+              where: { status: 'SUCCEEDED' },
               select: {
                 fileSha256: true,
                 file: { select: { id: true, name: true } },

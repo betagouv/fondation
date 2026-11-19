@@ -174,7 +174,8 @@ La commande écrit deux archives dans `packages/lolfi`. Elles s'envoient avec un
 
 1. Envoyer `LOLFI_CSM_fictitious.zip`
 2. Attendre la fin de son ingestion sur [/admin/ingestions](http://localhost:5173/admin/ingestions)
-3. Envoyer `LOLFI_CSM_fictitious_departures.zip` (qui rend inactifs les magistrats partis comme dans la prod)
+3. Envoyer `LOLFI_CSM_fictitious_departures.zip` (qui rend inactifs les magistrats partis comme dans la prod,
+   à condition d'avoir `LOLFI_MAX_DEACTIVATION_RATIO=0.05` dans `apps/api/.env`)
 
 L'envoi sur staging, la remise à zéro et la manière de remesurer la prod sont décrits dans
 [docs/donnees-fictives.md](./docs/donnees-fictives.md).
