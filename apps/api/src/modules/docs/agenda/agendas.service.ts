@@ -121,6 +121,9 @@ export class AgendasService {
     date: DateOnlyJson;
     sessionMeetingDate: DateOnlyJson;
   }): Promise<void> {
+    // a validation or a discard lands before this change, which then opens a new draft, or after it
+    await this.db.tx.$queryRawTyped(lockAgendasRawQuery([command.agendaId]));
+
     const agenda = await this.agendaRepository.find({
       actorId: command.authorId,
       agendaId: command.agendaId,
@@ -143,6 +146,9 @@ export class AgendasService {
     authorId: string;
     nominationFileIds: readonly string[];
   }): Promise<void> {
+    // a validation or a discard lands before this change, which then opens a new draft, or after it
+    await this.db.tx.$queryRawTyped(lockAgendasRawQuery([command.agendaId]));
+
     const agenda = await this.agendaRepository.find({
       actorId: command.authorId,
       agendaId: command.agendaId,
@@ -240,6 +246,9 @@ export class AgendasService {
     html: string;
     outdated: boolean;
   }): Promise<void> {
+    // a validation or a discard lands before this change, which then opens a new draft, or after it
+    await this.db.tx.$queryRawTyped(lockAgendasRawQuery([command.agendaId]));
+
     await this.announcingSentenceChanges(command.agendaId, async () => {
       const agenda = await this.agendaRepository.find({
         actorId: command.authorId,
@@ -257,6 +266,9 @@ export class AgendasService {
 
   @Transactional()
   async resetAgendaFileBlock(command: { agendaId: string; authorId: string; fileId: bigint }): Promise<void> {
+    // a validation or a discard lands before this change, which then opens a new draft, or after it
+    await this.db.tx.$queryRawTyped(lockAgendasRawQuery([command.agendaId]));
+
     await this.announcingSentenceChanges(command.agendaId, async () => {
       const agenda = await this.agendaRepository.find({
         actorId: command.authorId,

@@ -1,7 +1,8 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { forwardRef, Inject, Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
 
-import { lockOfficialReportsRawQuery } from '../../../generated/prisma/sql';
+import { Prisma } from '../../../generated/prisma/client';
+import { lockAgendasRawQuery, lockOfficialReportsRawQuery } from '../../../generated/prisma/sql';
 import { DateOnly, DateOnlyJson } from '../../../utils/date-only';
 import { isDefined } from '../../../utils/is-defined';
 import { Clock } from '../../framework/clock';
@@ -164,6 +165,9 @@ export class OfficialReportsService {
     secretaryId: string;
     absentMemberIds: readonly string[];
   }): Promise<void> {
+    // a validation or a discard lands before this change, which then opens a new draft, or after it
+    await this.db.tx.$queryRawTyped(lockOfficialReportsRawQuery([command.id]));
+
     const report = await this.officialReportRepository.find({ actorId: command.authorId, id: command.id });
 
     const secretary = await this.auth.detailsUser({
@@ -255,8 +259,16 @@ export class OfficialReportsService {
     return this.detailsOfficialReportDocumentQuery.handle(query);
   }
 
-  deleteOfficialReport(command: { id: string }): Promise<void> {
-    return this.withOfficialReport({ actorId: null, id: command.id }, (report) => report.delete());
+  @Transactional()
+  async deleteOfficialReport(command: { id: string }): Promise<void> {
+    // the deletion unlinks the agenda before the report goes: the agenda is locked first, as everywhere else
+    const agendas = await this.db.tx.agenda.findMany({
+      where: { officialReportId: command.id },
+      select: { id: true } satisfies Prisma.AgendaSelect,
+    });
+    await this.db.tx.$queryRawTyped(lockAgendasRawQuery(agendas.map(({ id }) => id)));
+
+    await this.withOfficialReport({ actorId: null, id: command.id }, (report) => report.delete());
   }
 
   async validateOfficialReport(command: { id: string; authorId: string }): Promise<void> {
@@ -414,6 +426,9 @@ export class OfficialReportsService {
     query: { actorId: string | null; id: string },
     mutation: (report: OfficialReport) => void,
   ): Promise<void> {
+    // a validation or a discard lands before this change, which then opens a new draft, or after it
+    await this.db.tx.$queryRawTyped(lockOfficialReportsRawQuery([query.id]));
+
     const report = await this.officialReportRepository.find(query);
 
     mutation(report);
