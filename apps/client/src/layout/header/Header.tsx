@@ -88,8 +88,10 @@ export const AppHeader = () => {
     {
       isActive: routeMatches([
         ROUTE_PATHS.SG.GDS.PRESENTATIONS_AGENDAS,
+        ROUTE_PATHS.SG.GDS.PRESENTATIONS_NEW,
         ROUTE_PATHS.SG.GDS.PRESENTATIONS_PAST,
         ROUTE_PATHS.SG.GDS.PRESENTATIONS_READY,
+        ROUTE_PATHS.SG.GDS.PRESENTATIONS_UPDATE,
       ]),
       linkProps: { to: ROUTE_PATHS.SG.GDS.PRESENTATIONS_AGENDAS, viewTransition: true },
       text: formatMessage({ defaultMessage: `Restitutions` }),
