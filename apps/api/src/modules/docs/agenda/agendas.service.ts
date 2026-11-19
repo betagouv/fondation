@@ -216,6 +216,9 @@ export class AgendasService {
 
   @Transactional()
   async discardAgendaDraft(command: { agendaId: string }): Promise<void> {
+    // an update the application makes to the draft lands either before, and the draft changes show it, or after
+    await this.db.tx.$queryRawTyped(lockAgendasRawQuery([command.agendaId]));
+
     await this.announcingSentenceChanges(command.agendaId, async () => {
       const hasValidatedVersion = await this.agendaVersionFinder.published({ agendaId: command.agendaId });
       const changes = await this.agendaVersionFinder.draftChanges({ agendaId: command.agendaId });

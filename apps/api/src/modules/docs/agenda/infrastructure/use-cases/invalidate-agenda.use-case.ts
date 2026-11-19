@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import { Prisma } from '../../../../../generated/prisma/client';
+import { lockAgendasRawQuery } from '../../../../../generated/prisma/sql';
 import { assertNever } from '../../../../../utils/assert-never';
 import { Db } from '../../../../framework/database';
 import { DocInvalidation } from '../../../shared/domain/doc-invalidation';
@@ -43,6 +44,13 @@ export class InvalidateAgendasUseCase {
   ): Promise<void> {
     const { sessionId } = invalidation.payload;
 
+    // a draft discarded meanwhile hands back the files of its validated version: they are read after the lock
+    const sessionAgendas = await this.db.tx.agenda.findMany({
+      where: { sessionId },
+      select: { id: true } satisfies Prisma.AgendaSelect,
+    });
+    await this.db.tx.$queryRawTyped(lockAgendasRawQuery(sessionAgendas.map(({ id }) => id)));
+
     const agendas = await this.db.tx.agendaVersion.findMany({
       where: { agenda: { sessionId } },
       distinct: ['agendaId'],
@@ -74,6 +82,20 @@ export class InvalidateAgendasUseCase {
       } satisfies Prisma.AgendaNominationFileSelect,
     });
 
+    const { chairman, drafts } = await this.findRenamedChairmanDrafts(invalidation.payload);
+
+    // one sorted batch, as a second one could wait on the agendas a publication locked in the other order.
+    // A draft discarded between these reads and the lock leaves its validated version, which keeps the
+    // name it was sent with: reading before the lock loses nothing.
+    await this.db.tx.$queryRawTyped(
+      lockAgendasRawQuery([
+        ...new Set([
+          ...files.map(({ version }) => version.agendaId),
+          ...drafts.map(({ agendaId }) => agendaId),
+        ]),
+      ]),
+    );
+
     const filesPerSession = Map.groupBy(files, ({ version }) => version.agenda.sessionId);
     for (const [sessionId, sessionFiles] of filesPerSession) {
       const filesPerAgenda = Map.groupBy(sessionFiles, ({ version }) => version.agendaId);
@@ -84,11 +106,18 @@ export class InvalidateAgendasUseCase {
       });
     }
 
-    await this.followRenamedChairman(invalidation.payload);
+    for (const { agendaId } of drafts) {
+      const agenda = await this.agendaRepository.find({ actorId: null, agendaId });
+      agenda.followChairmanName(chairman);
+      await this.agendaRepository.persist(agenda);
+    }
   }
 
   /** a new recusal title sends the same invalidation: only the drafts signed with another name are loaded */
-  private async followRenamedChairman(member: { userId: string }): Promise<void> {
+  private async findRenamedChairmanDrafts(member: { userId: string }): Promise<{
+    chairman: { firstName: string; id: string; lastName: string };
+    drafts: readonly { agendaId: string }[];
+  }> {
     const chairman = await this.db.tx.user.findUniqueOrThrow({
       where: { id: member.userId },
       select: { firstName: true, id: true, lastName: true } satisfies Prisma.UserSelect,
@@ -106,11 +135,7 @@ export class InvalidateAgendasUseCase {
       select: { agendaId: true } satisfies Prisma.AgendaVersionSelect,
     });
 
-    for (const { agendaId } of drafts) {
-      const agenda = await this.agendaRepository.find({ actorId: null, agendaId });
-      agenda.followChairmanName(chairman);
-      await this.agendaRepository.persist(agenda);
-    }
+    return { chairman, drafts };
   }
 
   private async updateReporters(command: {

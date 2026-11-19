@@ -1,7 +1,7 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { forwardRef, Inject, Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
 
-import { lockOfficialReportRawQuery } from '../../../generated/prisma/sql';
+import { lockOfficialReportsRawQuery } from '../../../generated/prisma/sql';
 import { DateOnly, DateOnlyJson } from '../../../utils/date-only';
 import { isDefined } from '../../../utils/is-defined';
 import { Clock } from '../../framework/clock';
@@ -265,7 +265,7 @@ export class OfficialReportsService {
 
     await this.db.withTransaction(async () => {
       // a validation sent twice waits for the first one, then finds the official report validated
-      await this.db.tx.$queryRawTyped(lockOfficialReportRawQuery(command.id));
+      await this.db.tx.$queryRawTyped(lockOfficialReportsRawQuery([command.id]));
 
       await this.withOfficialReport({ actorId: command.authorId, id: command.id }, (report) =>
         report.validate({ at: this.clock.now(), authorId: command.authorId }),
@@ -275,6 +275,9 @@ export class OfficialReportsService {
 
   @Transactional()
   async discardOfficialReportDraft(command: { id: string }): Promise<void> {
+    // an update the application makes to the draft lands either before, and the draft changes show it, or after
+    await this.db.tx.$queryRawTyped(lockOfficialReportsRawQuery([command.id]));
+
     const publishedId = await this.officialReportVersionFinder.published({ officialReportId: command.id });
     const changes = await this.officialReportVersionFinder.draftChanges({ officialReportId: command.id });
 
