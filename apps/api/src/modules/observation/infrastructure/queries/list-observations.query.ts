@@ -28,15 +28,13 @@ const ObservationSchema = z.object({
   description: z.string(),
   followUp: z.enum(ObservationFollowUp.enum).nullable(),
   observantObservationsCount: z.number().int(),
-  magistrat: z
-    .object({
-      id: z.string(),
-      firstName: z.string(),
-      lastName: z.string(),
-      name: z.string(),
-      currentPosition: z.string().nullable(),
-    })
-    .nullable(),
+  magistrat: z.object({
+    id: z.string(),
+    firstName: z.string(),
+    lastName: z.string(),
+    name: z.string(),
+    currentPosition: z.string().nullable(),
+  }),
   createdBy: z
     .object({
       id: z.string(),
@@ -115,9 +113,7 @@ export class ListObservationsQuery {
       where: { nominationFileId: query.nominationFileId, sessionId: query.sessionId },
     });
 
-    const magistratIds = [
-      ...new Set(observations.map((obs) => obs.magistrat?.id).filter((id) => id !== undefined)),
-    ];
+    const magistratIds = [...new Set(observations.map((obs) => obs.magistrat.id))];
     const positions = magistratIds.length
       ? await this.db.tx.$queryRawTyped(findMagistratsCurrentPositionRawQuery(magistratIds))
       : [];
@@ -140,7 +136,7 @@ export class ListObservationsQuery {
       canManageAttachments: Observation.canManageAttachments({ canEdit, isNominationFileLocked }),
       observations: observations.map((obs) => {
         return {
-          audition: (obs.magistrat && auditions.get(obs.magistrat.id)) ?? null,
+          audition: auditions.get(obs.magistrat.id) ?? null,
           createdAt: obs.createdAt.toISOString(),
           createdBy: obs.createdByUser,
           dateReception: obs.dateReception.toISOString(),
@@ -154,17 +150,14 @@ export class ListObservationsQuery {
           })),
           followUp: obs.followUp,
           id: obs.id,
-          magistrat: obs.magistrat
-            ? {
-                currentPosition: positionByMagistratId.get(obs.magistrat.id) || null,
-                firstName: obs.magistrat.firstName,
-                id: obs.magistrat.id,
-                lastName: obs.magistrat.lastName,
-                name: magistratFullName(obs.magistrat),
-              }
-            : null,
-          observantObservationsCount:
-            (obs.magistrat && observationCountByMagistratId.get(obs.magistrat.id)) ?? 1,
+          magistrat: {
+            currentPosition: positionByMagistratId.get(obs.magistrat.id) || null,
+            firstName: obs.magistrat.firstName,
+            id: obs.magistrat.id,
+            lastName: obs.magistrat.lastName,
+            name: magistratFullName(obs.magistrat),
+          },
+          observantObservationsCount: observationCountByMagistratId.get(obs.magistrat.id) ?? 1,
         };
       }),
     };

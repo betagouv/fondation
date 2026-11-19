@@ -78,7 +78,13 @@ const SUMMARY_OBSERVATIONS: ListObservationsResponseDto['observations'] = [
     files: [],
     followUp: null,
     id: 'observation-2',
-    magistrat: null,
+    magistrat: {
+      currentPosition: null,
+      firstName: 'Paul',
+      id: 'magistrat-durand',
+      lastName: 'Durand',
+      name: 'DURAND Paul',
+    },
     observantObservationsCount: 1,
   },
 ];

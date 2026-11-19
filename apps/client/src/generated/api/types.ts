@@ -2238,7 +2238,7 @@ export type ListObservationsResponseDto = {
             lastName: string;
             name: string;
             currentPosition: string | null;
-        } | null;
+        };
         createdBy: {
             id: string;
             firstName: string;

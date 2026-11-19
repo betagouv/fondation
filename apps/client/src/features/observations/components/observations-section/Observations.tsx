@@ -89,11 +89,6 @@ function ObservationCard({
             { count: fileCount },
           );
 
-  const magistratId = observation.magistrat?.id;
-  const magistratName = observation.magistrat
-    ? observation.magistrat.name
-    : intl.formatMessage({ defaultMessage: 'Magistrat inconnu' });
-
   const handleFileOpen = (attachment: { id: string; name: string }) => {
     const attachmentTab = tab.openDeferred({
       message: intl.formatMessage({ defaultMessage: 'Ouverture de la pièce jointe, merci de patienter...' }),
@@ -135,7 +130,7 @@ function ObservationCard({
       },
     );
 
-  const handleFileDelete = async (attachment: { id: string }, magistratId: string) => {
+  const handleFileDelete = async (attachment: { id: string }) => {
     const { isConfirmed } = await waitForConfirmation({
       content: intl.formatMessage({
         defaultMessage: 'Une fois supprimé, il sera impossible de le récupérer.',
@@ -154,7 +149,7 @@ function ObservationCard({
       description: observation.description,
       detachFileIds: [attachment.id],
       linkedObservationsAttachments: [],
-      magistratId,
+      magistratId: observation.magistrat.id,
       nominationFileId: file.id,
       observationId: observation.id,
       sessionId: file.sessionId,
@@ -182,12 +177,12 @@ function ObservationCard({
                 title={detailTitle}
                 to={detailPath}
               >
-                {magistratName}
+                {observation.magistrat.name}
               </Link>
               <ObservantAuditionIcon audition={observation.audition} />
               {observation.followUp && <ObservationFollowUpTag followUp={observation.followUp} />}
             </div>
-            {observation.magistrat?.currentPosition && (
+            {observation.magistrat.currentPosition && (
               <div className="fr-mt-1v text-xs text-(--text-mention-grey)">
                 {observation.magistrat.currentPosition}
               </div>
@@ -269,11 +264,7 @@ function ObservationCard({
                       disabled={isLoadingFile}
                       key={attachment.id}
                       name={attachment.name}
-                      onDelete={
-                        canManageAttachments && magistratId
-                          ? () => handleFileDelete(attachment, magistratId)
-                          : undefined
-                      }
+                      onDelete={canManageAttachments ? () => handleFileDelete(attachment) : undefined}
                       onDownload={() => handleFileDownload(attachment)}
                       onOpen={() => handleFileOpen(attachment)}
                       onRename={canManageAttachments ? () => renaming.open(attachment) : undefined}

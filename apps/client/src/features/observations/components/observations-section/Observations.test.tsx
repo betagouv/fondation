@@ -20,13 +20,12 @@ const makeObservation = (id: string) => ({
   files: [],
   followUp: null,
   id,
-  magistrat: null,
+  magistrat: { currentPosition: null, id: 'magistrat-1', name: 'RAVEL Maurice' },
 });
 
-const withAttachment = (magistrat: { id: string; name: string } | null = null) =>
+const withAttachment = () =>
   ({
     ...makeObservation('obs-1'),
-    magistrat,
     files: [
       { addedAt: '2025-01-10T10:00:00.000Z', addedBy: null, id: 'file-1', name: 'courrier.pdf', size: 1024 },
     ],
@@ -185,7 +184,7 @@ describe('Observations', () => {
   });
 
   it('lets an SG rename and remove an attachment of an observation', async () => {
-    observations = [withAttachment({ id: 'magistrat-1', name: 'RAVEL Maurice' })];
+    observations = [withAttachment()];
     const user = userEvent.setup();
     renderObservations();
 

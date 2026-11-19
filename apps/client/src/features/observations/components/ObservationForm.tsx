@@ -66,7 +66,7 @@ export function ObservationForm({
   } = useForm<FormSchema>({
     resolver: zodResolver(observationFormSchema),
     defaultValues: {
-      magistratId: observation?.magistrat?.id ?? '',
+      magistratId: observation?.magistrat.id ?? '',
       dateReception: observation?.dateReception?.split('T')[0] ?? '',
       description: observation?.description,
       files: [],
@@ -105,9 +105,7 @@ export function ObservationForm({
   const files = watch('files') ?? [];
 
   useEffect(() => {
-    if (observation?.magistrat) {
-      setSelectedMagistrat(observation.magistrat);
-    }
+    if (observation) setSelectedMagistrat(observation.magistrat);
   }, [observation]);
 
   useEffect(() => {
@@ -141,7 +139,7 @@ export function ObservationForm({
     const removesAudition =
       !!observation?.audition &&
       observation.observantObservationsCount === 1 &&
-      observation.magistrat?.id !== magistratId;
+      observation.magistrat.id !== magistratId;
     if (!removesAudition) return true;
 
     const { isConfirmed } = await waitForConfirmation({
