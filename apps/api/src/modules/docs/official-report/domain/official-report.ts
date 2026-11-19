@@ -2,9 +2,12 @@ import { makeId, type Id } from '../../../../utils/id';
 import { assertIsDefined } from '../../../../utils/is-defined';
 import type { FormationEnum } from '../../../shared/formation.enum';
 import { type DocNominationFileOutcomeEnum } from '../../shared/domain/doc-nomination-file-outcome';
-import { type DocSystemUpdateCause } from '../../shared/domain/doc-system-update-cause';
+import {
+  CAUSES_EACH_DRAFT_FOLLOWS,
+  type DocSystemUpdateCause,
+} from '../../shared/domain/doc-system-update-cause';
 import { canDiscardDraft, canValidateDocument } from '../../shared/domain/document.policies';
-import { type DraftChangesBy } from '../../shared/domain/draft-changes-by';
+import { type DraftChanges } from '../../shared/domain/draft-changes-by';
 import { type CurrentNames, NO_CURRENT_NAMES } from '../../shared/domain/named-member';
 
 import {
@@ -337,7 +340,7 @@ export class OfficialReport {
     this.state.isValidated = true;
   }
 
-  discardDraft(command: { changesBy: DraftChangesBy | null; hasValidatedVersion: boolean }): void {
+  discardDraft(command: DraftChanges & { hasValidatedVersion: boolean }): void {
     if (this.state.isValidated) return;
     if (!command.hasValidatedVersion) throw new OfficialReportWithoutValidatedVersion();
     if (!canDiscardDraft(command)) throw new OfficialReportDraftChangedByTheApplication();
@@ -369,9 +372,6 @@ export class OfficialReport {
 
   /** a validated report tells its meeting as it was held: the application only says what changed since */
   private skipUpdate(command: InvalidateOfficialReportCommand): void {
-    // a member renamed after the meeting does not make what it reports wrong
-    if (command.type === 'MemberRenamed') return;
-
     if (command.type === 'AgendaFileBlockEdited') {
       if (this.snapshot.holdsFile(command.payload.nominationFileId)) {
         this.#messages.push(new OfficialReportUpdateSkipped(this.id, 'AGENDA_TEXT'));
@@ -379,8 +379,12 @@ export class OfficialReport {
       return;
     }
 
+    // a member renamed after the meeting does not make what it reports wrong
+    const cause = INVALIDATION_CAUSES[command.type];
+    if (CAUSES_EACH_DRAFT_FOLLOWS.has(cause)) return;
+
     if (this.snapshot.changedSince(command)) {
-      this.#messages.push(new OfficialReportUpdateSkipped(this.id, INVALIDATION_CAUSES[command.type]));
+      this.#messages.push(new OfficialReportUpdateSkipped(this.id, cause));
     }
   }
 

@@ -58,6 +58,7 @@ export function MagistratSidePanelContent(props: {
       <SgComment
         initialComment={nominationFile.comment}
         key={`${nominationFile.id}-comment`}
+        lastChange={nominationFile.commentLastChange}
         nominationFileId={nominationFile.id}
       />
       <Attachments

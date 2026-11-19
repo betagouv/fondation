@@ -208,10 +208,12 @@ export type CountUsersNewSessionsDto = {
 
 export type DetailedSessionCommentDto = {
     comment: string | null;
-    writtenAt: string | null;
-    writtenBy: {
-        id: string;
-        name: string;
+    lastChange: {
+        at: string;
+        by: {
+            id: string;
+            name: string;
+        } | null;
     } | null;
 };
 
@@ -385,6 +387,13 @@ export type PaginatedNominationFiles = {
             };
         };
         comment: string | null;
+        commentLastChange: {
+            at: string;
+            by: {
+                id: string;
+                name: string;
+            } | null;
+        } | null;
         canScheduleAudition: boolean;
         canRecuseMembers: boolean;
         auditionDate: {
@@ -724,6 +733,13 @@ export type DetailedNominationFileDto = {
         };
     };
     comment: string | null;
+    commentLastChange: {
+        at: string;
+        by: {
+            id: string;
+            name: string;
+        } | null;
+    } | null;
     canScheduleAudition: boolean;
     canRecuseMembers: boolean;
     auditionDate: {
@@ -1336,39 +1352,12 @@ export type FoundAgendaNominationFiles = {
     items: Array<{
         id: string;
         number: number;
+        magistrat: {
+            name: string;
+        };
         reporters: Array<{
             id: string;
-            gender: 'MALE' | 'FEMALE';
-            firstName: string;
-            lastName: string;
-            fullTitledName: string;
         }>;
-        recusedMembers: Array<{
-            id: string;
-            fullTitledName: string;
-        }>;
-        outcome: {
-            value: 'NON_VALIDATED' | 'VALIDATED' | 'WITHDRAWN' | 'SUSPENDED';
-            label: string;
-            comment: string | null;
-        } | null;
-        magistrat: {
-            id: string;
-            externalId: number;
-            name: string;
-            position: {
-                grade: 'I' | 'II' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | 'MH';
-                label: string;
-                functionId: string | null;
-                jurisdictionId: string | null;
-            };
-        };
-        targetPosition: {
-            grade: 'I' | 'II' | 'HH' | 'G1' | 'G2' | 'G3' | 'G3sup' | 'MH';
-            label: string;
-            functionId: string | null;
-            jurisdictionId: string | null;
-        };
     }>;
     ineligible: Array<{
         id: string;

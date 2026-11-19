@@ -4,11 +4,16 @@ import { useParams } from 'react-router';
 
 import { useUnsavedGuard } from '../../hooks/use-unsaved-guard/use-unsaved-guard.hook';
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
+import { type CommentChange, CommentLastChange } from '@/shared/components/comment-last-change';
 import { useArchivedSession } from '@/shared/context/archived-session';
 import { CommentEditor } from '@/shared/ui/comment-editor';
 import { useUpdateNominationFileCommentMutation } from '@queries/members.queries';
 
-export function SgComment(props: { initialComment?: string | null; nominationFileId: string }) {
+export function SgComment(props: {
+  initialComment?: string | null;
+  lastChange: CommentChange | null;
+  nominationFileId: string;
+}) {
   const { initialComment, nominationFileId } = props;
   const { formatMessage } = useIntl();
   const { isArchived } = useArchivedSession();
@@ -25,9 +30,12 @@ export function SgComment(props: { initialComment?: string | null; nominationFil
 
   return (
     <div>
-      <h3 className="fr-mb-2v text-xl font-semibold">
-        <FormattedMessage defaultMessage="Complément SG" />
-      </h3>
+      <div className="fr-mb-2v flex items-baseline justify-between gap-4">
+        <h3 className="fr-mb-0 text-xl font-semibold">
+          <FormattedMessage defaultMessage="Complément SG" />
+        </h3>
+        {props.lastChange && <CommentLastChange {...props.lastChange} />}
+      </div>
       {isSg && (
         <p className="fr-mb-4v text-sm text-(--text-mention-grey)">
           <FormattedMessage defaultMessage="Ce commentaire est visible par les membres" />

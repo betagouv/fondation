@@ -438,6 +438,27 @@ describe('Agenda', () => {
       ]);
     });
 
+    it('should leave a validated agenda as it was sent when a renaming puts its reporters in another order', () => {
+      const agenda = makeAgenda({
+        actorId: null,
+        isValidated: true,
+        snapshot: {
+          nominationFiles: [
+            {
+              id: 1n,
+              isManuallyEdited: false,
+              nominationFileId: props.nominationFiles[0].id,
+              reporters: [DURAND, MARTIN],
+            },
+          ],
+        },
+      });
+
+      update(agenda, [{ ...MARTIN, name: 'M. Paul ABEL' }, DURAND]);
+
+      expect(agenda.messages).toEqual([]);
+    });
+
     it('should change nothing once none of its files is found among the session ones', () => {
       const agenda = agendaReportedBy({ isManuallyEdited: false, isValidated: false });
 
@@ -612,7 +633,7 @@ describe('Agenda', () => {
     it('should be discarded when a validated version remains underneath', () => {
       const agenda = makeAgenda();
 
-      agenda.discardDraft({ changesBy: 'PERSON', hasValidatedVersion: true });
+      agenda.discardDraft({ changesBy: 'PERSON', hasValidatedVersion: true, systemCauses: [] });
 
       expect(agenda.messages).toEqual([new AgendaDraftDiscarded(agenda.id)]);
     });
@@ -620,7 +641,8 @@ describe('Agenda', () => {
     it('should refuse to be discarded without a validated version to fall back on', () => {
       const agenda = makeAgenda();
 
-      const act = () => agenda.discardDraft({ changesBy: 'PERSON', hasValidatedVersion: false });
+      const act = () =>
+        agenda.discardDraft({ changesBy: 'PERSON', hasValidatedVersion: false, systemCauses: [] });
 
       expect(act).toThrow(AgendaWithoutValidatedVersion);
     });
@@ -630,7 +652,8 @@ describe('Agenda', () => {
       (changesBy) => {
         const agenda = makeAgenda();
 
-        const act = () => agenda.discardDraft({ changesBy, hasValidatedVersion: true });
+        const act = () =>
+          agenda.discardDraft({ changesBy, hasValidatedVersion: true, systemCauses: ['REPORTERS'] });
 
         expect(act).toThrow(AgendaDraftChangedByTheApplication);
         expect(agenda.messages).toEqual([]);

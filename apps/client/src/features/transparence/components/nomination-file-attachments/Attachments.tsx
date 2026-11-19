@@ -55,6 +55,7 @@ export function Attachments(props: { headingLevel?: 2; nominationFileId: string;
         </Heading>
         {canManage && (
           <Button
+            className="btn-compact"
             onClick={() =>
               openAddAttachment({
                 nominationFileId: props.nominationFileId,

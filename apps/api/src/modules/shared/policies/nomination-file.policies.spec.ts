@@ -5,6 +5,7 @@ import {
   canScheduleAudition,
   canUpdateNominationFile,
   nominationFileLock,
+  sgCommentChangeSeenBy,
 } from './nomination-file.policies';
 
 describe('nominationFileLock', () => {
@@ -95,6 +96,21 @@ describe('canUpdateNominationFile', () => {
     'never lets a member (%s) update it',
     (role) => {
       expect(canUpdateNominationFile({ lockedReason: null }, { role })).toBe(false);
+    },
+  );
+});
+
+describe('sgCommentChangeSeenBy', () => {
+  const change = { at: '2026-11-18T09:42:00.000Z', by: { id: 'sg-1', name: 'Anne\u00A0ROY' } };
+
+  it('names the author to the secretariat', () => {
+    expect(sgCommentChangeSeenBy(change, { role: 'ADJOINT_SECRETAIRE_GENERAL' })).toEqual(change);
+  });
+
+  it.each(['MEMBRE_COMMUN', 'MEMBRE_DU_PARQUET', 'MEMBRE_DU_SIEGE'] as const)(
+    'gives the date without the author to a %s',
+    (role) => {
+      expect(sgCommentChangeSeenBy(change, { role })).toEqual({ at: change.at, by: null });
     },
   );
 });
