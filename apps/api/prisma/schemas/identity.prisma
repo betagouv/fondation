@@ -62,6 +62,7 @@ model User {
   authorOfPositionComments                     PositionComment[]
   authorOfPositionVacancies                    PositionVacancy[]
   authorOfNominationFileAuditionVersions       NominationFileAuditionVersion[]        @relation("nomination_file_audition_version_author")
+  authorOfNominationFileCommentVersions        NominationFileCommentVersion[]         @relation("nomination_file_comment_version_author")
   authorOfObservantAuditionVersions            ObservantAuditionVersion[]             @relation("observant_audition_version_author")
   authorOfOfficialReports                      OfficialReport[]                       @relation("official_reports_author")
   authorOfOfficialReportVersions               OfficialReportVersion[]                @relation("official_report_version_author")
@@ -89,6 +90,7 @@ model User {
   impersonatedInFeedbacks                      Feedback[]                             @relation("feedback_impersonated")
   impersonatorOfAuditionPublications           AuditionPublication[]                  @relation("audition_publication_impersonator")
   impersonatorOfNominationFileAuditionVersions NominationFileAuditionVersion[]        @relation("nomination_file_audition_version_impersonator")
+  impersonatorOfNominationFileCommentVersions  NominationFileCommentVersion[]         @relation("nomination_file_comment_version_impersonator")
   impersonatorOfObservantAuditionVersions      ObservantAuditionVersion[]             @relation("observant_audition_version_impersonator")
   impersonatorOfSessionCommentVersions         SessionCommentVersion[]                @relation("session_comment_version_impersonator")
   memos                                        MemberMemo[]

@@ -169,6 +169,24 @@ test.describe('Agenda', () => {
     expect(foundFiles.data!.items.map(({ reporters }) => reporters)).toEqual([[], []]);
   });
 
+  test('should name the magistrats of the files to select as the session files list does', async ({
+    agent,
+    docs,
+    expect,
+  }) => {
+    const { id: sessionId } = await docs.session();
+
+    const { items: foundFiles } = (await agent.docs.findAgendaNominationFiles({ path: { sessionId } })).data!;
+    const listedFiles = await agent.sessions.listNominationFiles({
+      path: { sessionId },
+      query: { limit: 200, nominationFileIds: foundFiles.map(({ id }) => id) },
+    });
+
+    expect(Object.fromEntries(foundFiles.map(({ id, magistrat }) => [id, magistrat.name]))).toEqual(
+      Object.fromEntries(listedFiles.data!.items.map(({ content, id }) => [id, content.nomMagistrat])),
+    );
+  });
+
   test('should forget a reporter removed since the last publication', async ({ agent, docs, expect, member }) => {
     const session = await docs.session();
     const sessionId = session.id;
@@ -327,6 +345,34 @@ test.describe('Agenda', () => {
 
     const draft = await agent.docs.generateAgendaHtml({ parseAs: 'text', path: { agendaId } });
     expect(draft.data).toContain('RENOMMÉ');
+  });
+
+  test('should discard a draft the application only changed to follow the new name of its chairman', async ({
+    admin,
+    agent,
+    docs,
+    expect,
+  }) => {
+    const { id: agendaId } = await docs.agenda(await docs.session(), { status: 'VALIDATED' });
+    const { data } = await agent.docs.detailsAgendaDocumentBlocks({ path: { agendaId } });
+    await agent.docs.editAgendaFileBlock({
+      body: { html: '<p>Une phrase écrite à la main</p>', outdated: false },
+      path: { agendaId, fileId: data!.blocks[0]!.id },
+      throwOnError: true,
+    });
+    await admin.administration.updateName({
+      body: { lastName: 'Renommé' },
+      path: { userId: docs.chairman.id },
+      throwOnError: true,
+    });
+
+    const metadata = await agent.docs.detailsAgendaMetadata({ path: { agendaId } });
+    expect(metadata.data).toMatchObject({ canDiscardDraft: true, draftChangesBy: 'PERSON_AND_SYSTEM' });
+
+    const discarded = await agent.docs.discardAgendaDraft({ path: { agendaId } });
+    expect(discarded.response?.status).toBe(204);
+    const validated = await agent.docs.generateAgendaHtml({ parseAs: 'text', path: { agendaId } });
+    expect(validated.data).not.toContain('RENOMMÉ');
   });
 
   test('should keep an edition made after a validation, and undo it when the draft is discarded', async ({

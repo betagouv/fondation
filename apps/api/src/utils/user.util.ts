@@ -30,10 +30,9 @@ export function fullname(user: { firstName: string; lastName: string }): string 
 
 /** null when the application did it, or its author is gone */
 export const writerSchema = z.object({ id: z.string(), name: z.string() }).nullable();
+export type Writer = z.infer<typeof writerSchema>;
 
-export function writerOf(
-  user: { firstName: string; id: string; lastName: string } | null,
-): z.infer<typeof writerSchema> {
+export function writerOf(user: { firstName: string; id: string; lastName: string } | null): Writer {
   return user ? { id: user.id, name: fullname(user) } : null;
 }
 

@@ -276,10 +276,10 @@ export class OfficialReportsService {
   @Transactional()
   async discardOfficialReportDraft(command: { id: string }): Promise<void> {
     const publishedId = await this.officialReportVersionFinder.published({ officialReportId: command.id });
-    const changesBy = await this.officialReportVersionFinder.draftChangesBy({ officialReportId: command.id });
+    const changes = await this.officialReportVersionFinder.draftChanges({ officialReportId: command.id });
 
     await this.withOfficialReport({ actorId: null, id: command.id }, (report) =>
-      report.discardDraft({ changesBy, hasValidatedVersion: isDefined(publishedId) }),
+      report.discardDraft({ ...changes, hasValidatedVersion: isDefined(publishedId) }),
     );
   }
 

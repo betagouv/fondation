@@ -1,7 +1,7 @@
 import z from 'zod';
 
 import { type DocSystemUpdateCause } from '../domain/doc-system-update-cause';
-import { DRAFT_CHANGES_BY, type DraftChangesBy } from '../domain/draft-changes-by';
+import { DRAFT_CHANGES_BY, type DraftChanges, type DraftChangesBy } from '../domain/draft-changes-by';
 
 export const draftChangesBySchema = z.enum(DRAFT_CHANGES_BY).nullable();
 
@@ -46,13 +46,15 @@ export function draftLastChange(
   );
 }
 
-/** PERSON_AND_SYSTEM lasts until the draft is validated or discarded: editing it does not prove the person saw what the application changed */
-export function draftChangesBy(version: {
+type TracedVersion = {
   createdBy: string | null;
   status: 'DRAFT' | 'VALIDATED';
   systemUpdatedAt: Date | null;
   updatedBy: string | null;
-}): DraftChangesBy | null {
+};
+
+/** PERSON_AND_SYSTEM lasts until the draft is validated or discarded: editing it does not prove the person saw what the application changed */
+export function draftChangesBy(version: TracedVersion): DraftChangesBy | null {
   if (version.status === 'VALIDATED') return null;
 
   const byPerson = Boolean(version.createdBy || version.updatedBy);
@@ -61,4 +63,14 @@ export function draftChangesBy(version: {
 
   if (byPerson && bySystem) return 'PERSON_AND_SYSTEM';
   return byPerson ? 'PERSON' : 'SYSTEM';
+}
+
+/** a validated version keeps the causes of its draft days, which no longer say anything */
+export function draftChanges(
+  version: (TracedVersion & { systemUpdates: readonly { cause: DocSystemUpdateCause }[] }) | null,
+): DraftChanges {
+  const changesBy = version ? draftChangesBy(version) : null;
+  if (!version || !changesBy) return { changesBy: null, systemCauses: [] };
+
+  return { changesBy, systemCauses: version.systemUpdates.map(({ cause }) => cause) };
 }

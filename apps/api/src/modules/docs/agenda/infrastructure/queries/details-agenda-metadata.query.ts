@@ -17,7 +17,7 @@ import {
   traceOf,
   traceSchema,
 } from '../../../shared/infrastructure/document-trace';
-import { draftChangesBy, draftChangesBySchema } from '../../../shared/infrastructure/draft-changes-by';
+import { draftChanges, draftChangesBySchema } from '../../../shared/infrastructure/draft-changes-by';
 import { AgendaVersionFinder } from '../finders/agenda-version.finder';
 
 @Injectable()
@@ -59,7 +59,7 @@ export class DetailsAgendaMetadataQuery {
         })
       : null;
 
-    const changesBy = draftChangesBy(version);
+    const changes = draftChanges(version);
     const hasValidatedVersion = isDefined(publishedId);
 
     return {
@@ -69,9 +69,9 @@ export class DetailsAgendaMetadataQuery {
       outdated: version.outdated,
       outdatedPropositions: version._count.nominationFiles,
       hasValidatedVersion,
-      canDiscardDraft: canDiscardDraft({ changesBy, hasValidatedVersion }),
+      canDiscardDraft: canDiscardDraft({ ...changes, hasValidatedVersion }),
       canValidate: canValidateDocument({ isValidated: version.status === 'VALIDATED' }),
-      draftChangesBy: changesBy,
+      draftChangesBy: changes.changesBy,
       draft: draftTrace(version),
       validation: traceOf(published?.validatedAt, published?.validator),
       chairmanId: version.chairmanId,

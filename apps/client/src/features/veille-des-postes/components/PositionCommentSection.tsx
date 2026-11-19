@@ -1,11 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import { useDateAndTime } from '@/shared/hooks/useDateAndTime';
+import { CommentLastChange } from '@/shared/components/comment-last-change';
 import { CommentEditor } from '@/shared/ui/comment-editor';
 import { HttpException } from '@/utils/http-exception';
-import { whoWrote } from '@/utils/user.utils';
-import { useUser } from '@queries/auth.queries';
 import {
   type CommentedPosition,
   usePositionCommentQuery,
@@ -20,8 +18,6 @@ export function PositionCommentSection(props: {
   position: CommentedPosition;
 }) {
   const { formatMessage } = useIntl();
-  const dateAndTime = useDateAndTime();
-  const { user } = useUser();
   const { data, error, isFetching, refetch } = usePositionCommentQuery(props.position);
   const write = useWritePositionCommentMutation();
 
@@ -59,18 +55,7 @@ export function PositionCommentSection(props: {
         <h3 className="fr-mb-0 text-lg font-semibold text-(--text-label-grey)">
           <FormattedMessage defaultMessage="Commentaire" />
         </h3>
-        {data?.comment && (
-          <p className="fr-mb-0 text-xs text-(--text-mention-grey)">
-            <FormattedMessage
-              defaultMessage="Modifié le {date} à {time}{who, select, self { par vous} someone { par {author}} other {}}"
-              values={{
-                author: data.comment.updatedBy?.name,
-                ...dateAndTime(data.comment.updatedAt),
-                who: whoWrote({ currentUserId: user?.id, writer: data.comment.updatedBy }),
-              }}
-            />
-          </p>
-        )}
+        {data?.comment && <CommentLastChange at={data.comment.updatedAt} by={data.comment.updatedBy} />}
       </div>
       {!data && error && (
         <RetryableLoadFailure

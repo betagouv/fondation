@@ -687,6 +687,37 @@ test.describe('Official report', () => {
     expect(details.data).toMatchObject({ canDiscardDraft: true, status: 'DRAFT' });
   });
 
+  test('should discard a draft the application only changed to follow the new name of a reporter', async ({
+    admin,
+    agent,
+    docs,
+    expect,
+    member,
+  }) => {
+    const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
+    const { id: officialReportId } = await docs.officialReport(await docs.agenda(session), { status: 'VALIDATED' });
+    const nominationFileId = session.files[0]!.id;
+    await agent.docs.editOfficialReportIntro({
+      body: { html: '<p>Une introduction écrite à la main</p>', outdated: false },
+      path: { officialReportId },
+      throwOnError: true,
+    });
+    await admin.administration.updateName({
+      body: { lastName: 'Renommé' },
+      path: { userId: member['@user']!.id },
+      throwOnError: true,
+    });
+
+    const details = await agent.docs.detailsOfficialReport({ path: { officialReportId } });
+    expect(details.data).toMatchObject({ canDiscardDraft: true, draftChangesBy: 'PERSON_AND_SYSTEM' });
+
+    const discarded = await agent.docs.discardOfficialReportDraft({ path: { officialReportId } });
+    expect(discarded.response?.status).toBe(204);
+    const document = await agent.docs.detailsOfficialReportDocument({ path: { officialReportId } });
+    const block = document.data!.blocks.find((b) => b.kind === 'file' && b.nominationFileId === nominationFileId);
+    expect(block?.kind === 'file' && block.html).not.toContain('RENOMMÉ');
+  });
+
   test('should name a magistrat first name first, as Lolfi names them today, in the draft opened on a validated report', async ({
     agent,
     docs,

@@ -20,26 +20,11 @@ type AgendaFile = FoundAgendaNominationFiles['items'][number];
 function makeAgendaFile(id: string, overrides: Partial<AgendaFile> = {}): AgendaFile {
   return {
     id,
+    magistrat: { name: 'DURAND Camille' },
     number: 1,
-    magistrat: {
-      id: `magistrat-${id}`,
-      externalId: 1,
-      name: 'Camille DURAND',
-      position: { grade: 'I', label: null, functionId: null, jurisdictionId: null },
-    },
-    outcome: null,
-    reporters: [
-      {
-        id: `reporter-${id}`,
-        gender: 'FEMALE',
-        firstName: 'Alice',
-        lastName: 'MARTIN',
-        fullTitledName: 'Alice MARTIN',
-      },
-    ],
-    targetPosition: { grade: 'HH', label: null, functionId: null, jurisdictionId: null },
+    reporters: [{ id: `reporter-${id}` }],
     ...overrides,
-  } as AgendaFile;
+  };
 }
 
 function mockQueries(agenda: { items: AgendaFile[]; ineligible: FoundAgendaNominationFiles['ineligible'] }) {

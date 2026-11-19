@@ -6,7 +6,7 @@ import { plainText, readsTheSame } from '@/features/documents/components/blocks/
 import { tipTapNodeToHtml } from '@/features/documents/components/blocks/tiptap-node-to-html';
 import { assertNever } from '@/utils/types.util';
 import * as $api from '@api/sdk';
-import type { FoundAgendaNominationFiles } from '@api/types';
+import type { EditOfficialReportSectionTitleData } from '@api/types';
 
 import { type OfficialReportBlock } from './official-report-blocks.type';
 import { OfficialReportConclusionBlock } from './OfficialReportConclusionBlock';
@@ -215,9 +215,7 @@ export class OfficialReportBlocksModel {
   }
 }
 
-type DocNominationFileOutcomeEnum = NonNullable<
-  FoundAgendaNominationFiles['items'][number]['outcome']
->['value'];
+type DocNominationFileOutcomeEnum = EditOfficialReportSectionTitleData['path']['outcome'];
 
 type BlockKey =
   | `intro`

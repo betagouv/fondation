@@ -418,11 +418,14 @@ export class SessionController {
     @Param('sessionId') sessionId: string,
     @Param('nominationFileId') nominationFileId: string,
     @Body() body: UpdateCommentDto,
+    @AuthedUser() user: { id: string; impersonation?: { impersonatorId: string } },
   ): Promise<void> {
     await this.sessions.updateNominationFileComment({
       comment: body.comment,
+      impersonatorId: user.impersonation?.impersonatorId ?? null,
       nominationFileId,
       sessionId,
+      userId: user.id,
     });
   }
 

@@ -5,7 +5,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { httpAssert } from '@/utils/http-exception';
 import * as $api from '@api/sdk';
 
-import { useWriteNominationFileMemberMemoMutation } from './members.queries';
+import {
+  useUpdateNominationFileCommentMutation,
+  useWriteNominationFileMemberMemoMutation,
+} from './members.queries';
 import { sessionKeys } from './nomination-sessions.queries';
 
 const memo = {
@@ -34,6 +37,44 @@ function renderMemoWithList() {
 
   return { listNominationFiles, result };
 }
+
+describe('useUpdateNominationFileCommentMutation', () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it('reloads a file the side panel reads outside the loaded list once its comment is saved', async () => {
+    vi.spyOn($api.sessions, 'updateNominationFileComment').mockResolvedValue(
+      {} as Awaited<ReturnType<typeof $api.sessions.updateNominationFileComment>>,
+    );
+    const detailNominationFile = vi.fn().mockResolvedValue(null);
+    const client = new QueryClient({
+      defaultOptions: { mutations: { retry: false }, queries: { retry: false } },
+    });
+    const { result } = renderHook(
+      () => ({
+        comment: useUpdateNominationFileCommentMutation(),
+        detail: useQuery({
+          queryFn: detailNominationFile,
+          queryKey: sessionKeys.detailSessionNominationFile({
+            nominationFileId: memo.nominationFileId,
+            sessionId: memo.sessionId,
+          }),
+        }),
+      }),
+      { wrapper: (props) => <QueryClientProvider client={client}>{props.children}</QueryClientProvider> },
+    );
+    await waitFor(() => expect(result.current.detail.isSuccess).toBe(true));
+
+    await act(() =>
+      result.current.comment.mutateAsync({
+        comment: 'À compléter',
+        nominationFileId: memo.nominationFileId,
+        sessionId: memo.sessionId,
+      }),
+    );
+
+    await waitFor(() => expect(detailNominationFile).toHaveBeenCalledTimes(2));
+  });
+});
 
 describe('useWriteNominationFileMemberMemoMutation', () => {
   afterEach(() => vi.restoreAllMocks());
