@@ -17,7 +17,7 @@ export function ObservationFollowUpTag(props: { followUp: ObservationFollowUpEnu
 
   return (
     <Tag
-      className={`min-h-5! rounded-sm! px-1.5! py-0.5! text-[0.625rem]! leading-none! font-semibold! uppercase ${FOLLOW_UP_TAG_CLASS[props.followUp]}`}
+      className={`min-h-5! rounded-sm! px-1.5! py-0.5! text-[0.625rem]! leading-none! font-semibold! whitespace-nowrap uppercase ${FOLLOW_UP_TAG_CLASS[props.followUp]}`}
       small
     >
       {intl.formatMessage(ObservationFollowUpEnumMessages[props.followUp])}

@@ -163,13 +163,17 @@ export function FollowedUpObservationsTable() {
         header: intl.formatMessage({ defaultMessage: 'Suite' }),
         id: 'followUps',
         meta: { filters: followUps },
-        size: 140,
+        // the longest tag and its padding on one line
+        minSize: 150,
+        size: 150,
       }),
       h.display({
         cell: rowCell<FollowedUpObservation>((row) => <ObservationBlockTrackingCell row={row} />),
         header: intl.formatMessage({ defaultMessage: 'Statut de suivi' }),
         id: 'trackingStatuses',
         meta: { filters: trackingStatuses },
+        // the badge, the later propositions icon and the edit button on one line
+        minSize: 180,
         size: 200,
       }),
     ];

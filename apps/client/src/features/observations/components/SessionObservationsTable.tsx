@@ -106,7 +106,9 @@ export function SessionObservationsTable(props: {
         header: intl.formatMessage({ defaultMessage: 'Suite' }),
         id: 'followUps',
         meta: { filters: followUps },
-        size: 140,
+        // the longest tag and its padding on one line
+        minSize: 150,
+        size: 150,
       }),
     ];
   }, [intl, props.sessionId]);
