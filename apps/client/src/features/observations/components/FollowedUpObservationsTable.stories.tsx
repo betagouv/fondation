@@ -4,7 +4,7 @@ import { http, HttpResponse } from 'msw';
 import { sgAuthHandlers } from '@/shared/storybook/msw.handlers';
 import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
 import { ToastProvider } from '@/shared/ui/toast';
-import type { ListedFollowedUpObservationsDto } from '@api/types';
+import type { ListedFollowedUpObservationSessionYearsDto, ListedFollowedUpObservationsDto } from '@api/types';
 
 import { FollowedUpObservationsTable } from './FollowedUpObservationsTable';
 
@@ -142,6 +142,11 @@ const meta = {
           currentPageIndex: 1,
           items,
           totalCount: items.length,
+        }),
+      ),
+      http.get('*/api/observations/v1/session-years', () =>
+        HttpResponse.json<ListedFollowedUpObservationSessionYearsDto>({
+          items: [{ year: 2026 }, { year: 2025 }],
         }),
       ),
       http.put(

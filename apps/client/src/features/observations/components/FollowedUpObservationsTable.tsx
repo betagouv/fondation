@@ -20,6 +20,7 @@ import {
   DataTableCount,
   DataTableFilters,
   rowCell,
+  type TableMetaFilterAsyncList,
   type TableMetaFilterEnum,
   useDataTableSearch,
   useDataTableUrlState,
@@ -30,6 +31,7 @@ import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
   type FollowedUpObservation,
   type FollowedUpObservationsSorting,
+  getFollowedUpObservationSessionYearsQueryOptions,
   type SessionStatus,
   useInfiniteFollowedUpObservationsQuery,
 } from '@queries/observations.queries';
@@ -50,6 +52,7 @@ export function FollowedUpObservationsTable() {
     columnFilters: [] as (
       | { id: 'followUps'; value: string[] }
       | { id: 'sessionStatuses'; value: SessionStatus[] }
+      | { id: 'sessionYears'; value: string[] }
       | { id: 'trackingStatuses'; value: ObservationBlockTrackingStatusEnum[] }
     )[],
     globalFilter: '',
@@ -67,6 +70,9 @@ export function FollowedUpObservationsTable() {
       search: tableState.globalFilter ?? '',
       sessionStatuses: tableState.columnFilters.flatMap((filter) =>
         filter.id === 'sessionStatuses' ? filter.value : [],
+      ),
+      sessionYears: tableState.columnFilters.flatMap((filter) =>
+        filter.id === 'sessionYears' ? filter.value : [],
       ),
       sorting,
       trackingStatuses: tableState.columnFilters.flatMap((filter) =>
@@ -94,6 +100,13 @@ export function FollowedUpObservationsTable() {
         { id: 'ARCHIVED', label: intl.formatMessage({ defaultMessage: 'Sessions archivées' }) },
       ] satisfies { id: SessionStatus; label: string }[],
     };
+    // only the years of the sessions with an observation that has a suite
+    const sessionYears: TableMetaFilterAsyncList = {
+      filterId: 'sessionYears',
+      label: intl.formatMessage({ defaultMessage: 'Année' }),
+      query: getFollowedUpObservationSessionYearsQueryOptions(),
+      type: 'asyncList',
+    };
     // only the observations with a suite are listed: "Aucune" is not offered
     const followUps: TableMetaFilterEnum = {
       filterId: 'followUps',
@@ -120,7 +133,7 @@ export function FollowedUpObservationsTable() {
         cell: sessionCell,
         header: intl.formatMessage({ defaultMessage: 'Session' }),
         id: 'session',
-        meta: { filters: sessionStatuses },
+        meta: { filters: [sessionStatuses, sessionYears] },
         size: 220,
       }),
       h.display({

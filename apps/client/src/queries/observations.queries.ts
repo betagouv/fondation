@@ -37,6 +37,7 @@ type FollowedUpObservationsFilters = {
   followUps: string[];
   search: string;
   sessionStatuses: SessionStatus[];
+  sessionYears: string[];
   sorting: FollowedUpObservationsSorting;
   trackingStatuses: ObservationBlockTrackingStatusEnum[];
 };
@@ -48,6 +49,7 @@ export const observationKeys = {
   followedUp: () => ['observations', 'followedUp'] as const,
   followedUpList: (filters: FollowedUpObservationsFilters) =>
     [...observationKeys.followedUp(), filters] as const,
+  followedUpSessionYears: () => [...observationKeys.followedUp(), 'sessionYears'] as const,
   /** the list and the count of the observations tab, both stale once an observation of the session changes */
   session: (props: { sessionId: string }) => ['observations', 'session', props] as const,
   sessionCount: (props: { sessionId: string }) => [...observationKeys.session(props), 'count'] as const,
@@ -181,6 +183,7 @@ export const useInfiniteFollowedUpObservationsQuery = (filters: FollowedUpObserv
           page: pageParam,
           search: filters.search || undefined,
           sessionStatuses: filters.sessionStatuses.length ? filters.sessionStatuses.join(',') : undefined,
+          sessionYears: filters.sessionYears.length ? filters.sessionYears.join(',') : undefined,
           sortBy: sort.id,
           sortDesc: sort.desc ? 'true' : undefined,
           trackingStatuses: filters.trackingStatuses.length ? filters.trackingStatuses.join(',') : undefined,
@@ -194,6 +197,15 @@ export const useInfiniteFollowedUpObservationsQuery = (filters: FollowedUpObserv
       totalCount: data.pages.at(-1)?.totalCount ?? 0,
     }),
   });
+
+export const getFollowedUpObservationSessionYearsQueryOptions = () =>
+  ({
+    queryFn: async () => {
+      const { data } = await $api.observations.listFollowedUpObservationSessionYears({ throwOnError: true });
+      return data.items.map(({ year }) => ({ id: String(year), label: String(year) }));
+    },
+    queryKey: observationKeys.followedUpSessionYears(),
+  }) as const;
 
 export function useCreateObservationMutation() {
   const queryClient = useQueryClient();
