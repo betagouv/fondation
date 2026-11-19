@@ -240,9 +240,13 @@ export function useUpdateNominationFileCommentMutation() {
         path: { nominationFileId: mutation.nominationFileId, sessionId: mutation.sessionId },
       });
     },
-    onSettled: (_data, _error, { sessionId }) => {
+    onSettled: (_data, _error, { nominationFileId, sessionId }) => {
       // not awaited: "Valider" would wait for every loaded page
       void queryClient.invalidateQueries({ queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) });
+      // the side panel reads a file left out of the loaded list on its own
+      void queryClient.invalidateQueries({
+        queryKey: sessionKeys.detailSessionNominationFile({ nominationFileId, sessionId }),
+      });
     },
     onSuccess: (_, { comment, nominationFileId, sessionId }) => {
       queryClient.setQueriesData(
