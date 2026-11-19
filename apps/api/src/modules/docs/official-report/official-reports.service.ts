@@ -165,8 +165,7 @@ export class OfficialReportsService {
     secretaryId: string;
     absentMemberIds: readonly string[];
   }): Promise<void> {
-    // a validation or a discard lands before this change, which then opens a new draft, or after it
-    await this.db.tx.$queryRawTyped(lockOfficialReportsRawQuery([command.id]));
+    await this.lockOfficialReport(command.id);
 
     const report = await this.officialReportRepository.find({ actorId: command.authorId, id: command.id });
 
@@ -276,9 +275,7 @@ export class OfficialReportsService {
     await this.findOfficialReportDocumentPdfQuery.ensure({ id: command.id });
 
     await this.db.withTransaction(async () => {
-      // a validation sent twice waits for the first one, then finds the official report validated
-      await this.db.tx.$queryRawTyped(lockOfficialReportsRawQuery([command.id]));
-
+      // withOfficialReport locks the report: a validation sent twice waits for the first one, then finds it validated
       await this.withOfficialReport({ actorId: command.authorId, id: command.id }, (report) =>
         report.validate({ at: this.clock.now(), authorId: command.authorId }),
       );
@@ -288,7 +285,7 @@ export class OfficialReportsService {
   @Transactional()
   async discardOfficialReportDraft(command: { id: string }): Promise<void> {
     // an update the application makes to the draft lands either before, and the draft changes show it, or after
-    await this.db.tx.$queryRawTyped(lockOfficialReportsRawQuery([command.id]));
+    await this.lockOfficialReport(command.id);
 
     const publishedId = await this.officialReportVersionFinder.published({ officialReportId: command.id });
     const changes = await this.officialReportVersionFinder.draftChanges({ officialReportId: command.id });
@@ -426,13 +423,17 @@ export class OfficialReportsService {
     query: { actorId: string | null; id: string },
     mutation: (report: OfficialReport) => void,
   ): Promise<void> {
-    // a validation or a discard lands before this change, which then opens a new draft, or after it
-    await this.db.tx.$queryRawTyped(lockOfficialReportsRawQuery([query.id]));
+    await this.lockOfficialReport(query.id);
 
     const report = await this.officialReportRepository.find(query);
 
     mutation(report);
 
     await this.officialReportRepository.persist(report);
+  }
+
+  /** a validation or a discard of the draft lands before a change, which then opens a new draft, or after it */
+  private async lockOfficialReport(id: string): Promise<void> {
+    await this.db.tx.$queryRawTyped(lockOfficialReportsRawQuery([id]));
   }
 }

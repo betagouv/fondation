@@ -121,8 +121,7 @@ export class AgendasService {
     date: DateOnlyJson;
     sessionMeetingDate: DateOnlyJson;
   }): Promise<void> {
-    // a validation or a discard lands before this change, which then opens a new draft, or after it
-    await this.db.tx.$queryRawTyped(lockAgendasRawQuery([command.agendaId]));
+    await this.lockAgenda(command.agendaId);
 
     const agenda = await this.agendaRepository.find({
       actorId: command.authorId,
@@ -146,8 +145,7 @@ export class AgendasService {
     authorId: string;
     nominationFileIds: readonly string[];
   }): Promise<void> {
-    // a validation or a discard lands before this change, which then opens a new draft, or after it
-    await this.db.tx.$queryRawTyped(lockAgendasRawQuery([command.agendaId]));
+    await this.lockAgenda(command.agendaId);
 
     const agenda = await this.agendaRepository.find({
       actorId: command.authorId,
@@ -177,7 +175,7 @@ export class AgendasService {
   @Transactional()
   async deleteAgenda(command: { agendaId: string }): Promise<void> {
     // the deletion reaches the official report before the agenda: the agenda is locked first, as everywhere else
-    await this.db.tx.$queryRawTyped(lockAgendasRawQuery([command.agendaId]));
+    await this.lockAgenda(command.agendaId);
 
     const agenda = await this.agendaRepository.find({ actorId: null, agendaId: command.agendaId });
     agenda.delete();
@@ -206,7 +204,7 @@ export class AgendasService {
 
     await this.db.withTransaction(async () => {
       // a validation sent twice waits for the first one, then finds the agenda validated
-      await this.db.tx.$queryRawTyped(lockAgendasRawQuery([command.agendaId]));
+      await this.lockAgenda(command.agendaId);
 
       await this.announcingSentenceChanges(command.agendaId, async () => {
         const agenda = await this.agendaRepository.find({
@@ -226,7 +224,7 @@ export class AgendasService {
   @Transactional()
   async discardAgendaDraft(command: { agendaId: string }): Promise<void> {
     // an update the application makes to the draft lands either before, and the draft changes show it, or after
-    await this.db.tx.$queryRawTyped(lockAgendasRawQuery([command.agendaId]));
+    await this.lockAgenda(command.agendaId);
 
     await this.announcingSentenceChanges(command.agendaId, async () => {
       const hasValidatedVersion = await this.agendaVersionFinder.published({ agendaId: command.agendaId });
@@ -246,8 +244,7 @@ export class AgendasService {
     html: string;
     outdated: boolean;
   }): Promise<void> {
-    // a validation or a discard lands before this change, which then opens a new draft, or after it
-    await this.db.tx.$queryRawTyped(lockAgendasRawQuery([command.agendaId]));
+    await this.lockAgenda(command.agendaId);
 
     await this.announcingSentenceChanges(command.agendaId, async () => {
       const agenda = await this.agendaRepository.find({
@@ -266,8 +263,7 @@ export class AgendasService {
 
   @Transactional()
   async resetAgendaFileBlock(command: { agendaId: string; authorId: string; fileId: bigint }): Promise<void> {
-    // a validation or a discard lands before this change, which then opens a new draft, or after it
-    await this.db.tx.$queryRawTyped(lockAgendasRawQuery([command.agendaId]));
+    await this.lockAgenda(command.agendaId);
 
     await this.announcingSentenceChanges(command.agendaId, async () => {
       const agenda = await this.agendaRepository.find({
@@ -277,6 +273,11 @@ export class AgendasService {
       agenda.resetFileBlock({ fileId: command.fileId });
       await this.agendaRepository.persist(agenda);
     });
+  }
+
+  /** a validation or a discard of the draft lands before a change, which then opens a new draft, or after it */
+  private async lockAgenda(agendaId: string): Promise<void> {
+    await this.db.tx.$queryRawTyped(lockAgendasRawQuery([agendaId]));
   }
 
   /**
