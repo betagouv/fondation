@@ -1273,6 +1273,27 @@ describe('SessionTransparence', () => {
     ).toThrow(NominationFilesNotFound);
   });
 
+  it('should keep the jurisdiction sheet alert of a locked nomination file', () => {
+    const session = SessionTransparence.from({
+      formation: 'SIEGE',
+      id: 'session-id',
+      nominationFiles: [
+        {
+          auditionRequired: false,
+          id: 'nomination-file-id-1',
+          isReported: true,
+          outcome: 'VALIDATED',
+          positionRequiresAudition: false,
+        },
+      ],
+      version: null,
+    });
+
+    expect(() => session.hideAlert({ nominationFileId: 'nomination-file-id-1' })).toThrow(
+      CantUpdateNominationFiles,
+    );
+  });
+
   describe('writeNominationFileMemberMemo', () => {
     const member = { id: 'member-1', impersonation: undefined, role: 'MEMBRE_DU_SIEGE' } as const;
     const session = () =>

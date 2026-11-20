@@ -909,6 +909,8 @@ export class SessionTransparence {
   }
 
   hideAlert(command: { nominationFileId: string }) {
+    this.assertsCanUpdateFiles(command.nominationFileId);
+
     this.#messages.push(new SessionTransparenceFileAlertHidden(this.id, command.nominationFileId));
   }
 
