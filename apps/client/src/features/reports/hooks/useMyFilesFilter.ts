@@ -1,8 +1,21 @@
-import { parseAsIndex, useQueryStates } from 'nuqs';
+import { createSerializer, parseAsIndex, useQueryStates } from 'nuqs';
 
 import { parseAsFilters } from '@/shared/ui/data-table';
+import { getDetailSessionGdsPath } from '@/utils/route-path.utils';
 
 const REPORTERS_FILTER_ID = 'reporters';
+
+function myFilesFilter(userId: string) {
+  return { id: REPORTERS_FILTER_ID, value: [userId] };
+}
+
+const serializeFilters = createSerializer({ filters: parseAsFilters });
+
+export function getMySessionFilesPath(params: { sessionId: string; userId: string }): string {
+  return serializeFilters(getDetailSessionGdsPath({ sessionId: params.sessionId }), {
+    filters: [myFilesFilter(params.userId)],
+  });
+}
 
 export function useMyFilesFilter(userId: string | undefined) {
   const [{ filters }, setQueryState] = useQueryStates({
@@ -16,7 +29,7 @@ export function useMyFilesFilter(userId: string | undefined) {
   const setIsMine = (mine: boolean) => {
     const others = filters.filter(({ id }) => id !== REPORTERS_FILTER_ID);
     setQueryState({
-      filters: mine && userId ? others.concat({ id: REPORTERS_FILTER_ID, value: [userId] }) : others,
+      filters: mine && userId ? others.concat(myFilesFilter(userId)) : others,
       page: null,
     });
   };
