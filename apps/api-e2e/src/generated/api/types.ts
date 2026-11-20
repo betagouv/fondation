@@ -426,7 +426,7 @@ export type PaginatedNominationFiles = {
         } | null;
         canScheduleAudition: boolean;
         /**
-         * recusing members, defining the outcome, affecting reporters and priorities, updating the missing evaluation or the attachments
+         * recusing members, defining the outcome, affecting reporters and priorities, updating the missing evaluation or the attachments, hiding the jurisdiction sheet alert
          */
         canUpdate: boolean;
         auditionDate: {
@@ -782,7 +782,7 @@ export type DetailedNominationFileDto = {
     } | null;
     canScheduleAudition: boolean;
     /**
-     * recusing members, defining the outcome, affecting reporters and priorities, updating the missing evaluation or the attachments
+     * recusing members, defining the outcome, affecting reporters and priorities, updating the missing evaluation or the attachments, hiding the jurisdiction sheet alert
      */
     canUpdate: boolean;
     auditionDate: {

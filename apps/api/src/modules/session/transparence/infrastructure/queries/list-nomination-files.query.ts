@@ -538,7 +538,7 @@ const NominationFileAffectationItemSchema = z.object({
   canScheduleAudition: z.boolean(),
   canUpdate: z.boolean().meta({
     description:
-      'recusing members, defining the outcome, affecting reporters and priorities, updating the missing evaluation or the attachments',
+      'recusing members, defining the outcome, affecting reporters and priorities, updating the missing evaluation or the attachments, hiding the jurisdiction sheet alert',
   }),
   auditionDate: dateOnlyJsonSchema.nullable(),
   auditionRequired: z.boolean(),
