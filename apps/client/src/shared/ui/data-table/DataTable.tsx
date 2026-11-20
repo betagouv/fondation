@@ -1,8 +1,9 @@
-import Button from '@codegouvfr/react-dsfr/Button';
 import { flexRender, type Header, type Row, type RowData, type Table } from '@tanstack/react-table';
 import clsx from 'clsx';
 import { type ReactNode, type RefObject, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { FormattedMessage } from 'react-intl';
+
+import { LoadFailure } from '@/shared/ui/load-failure';
 
 import { useFadeInOnQueryChange } from './hooks/useFadeInOnQueryChange';
 import { ESTIMATED_ROW_HEIGHT, useTableVirtualizer } from './hooks/useTableVirtualizer';
@@ -97,24 +98,17 @@ export type DataTableLoadFailure = { isNextPage: boolean; isRetrying: boolean; o
 
 function DataTableLoadError(props: DataTableLoadFailure) {
   return (
-    <div className="flex flex-col items-center gap-2">
-      <p className="fr-mb-0" role="status">
-        {props.isNextPage ? (
+    <LoadFailure
+      isRetrying={props.isRetrying}
+      message={
+        props.isNextPage ? (
           <FormattedMessage defaultMessage="La suite de la liste n'a pas pu être chargée." />
         ) : (
           <FormattedMessage defaultMessage="La liste n'a pas pu être chargée." />
-        )}
-      </p>
-      <Button
-        className="aria-disabled:cursor-not-allowed aria-disabled:text-(--text-disabled-grey) aria-disabled:shadow-[inset_0_0_0_1px_var(--border-disabled-grey)]"
-        nativeButtonProps={props.isRetrying ? { 'aria-disabled': true } : undefined}
-        onClick={props.isRetrying ? undefined : props.onRetry}
-        priority="secondary"
-        size="small"
-      >
-        <FormattedMessage defaultMessage="Réessayer" />
-      </Button>
-    </div>
+        )
+      }
+      onRetry={props.onRetry}
+    />
   );
 }
 
