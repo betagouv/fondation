@@ -20,6 +20,9 @@ import { useHeaderBrand } from './useHeaderBrand';
 
 const NAV_ICON_CLASS = "before:mr-2 before:size-5! before:align-middle before:content-['']";
 
+/** off for the release: these pages only say they are to come */
+const SHOW_UPCOMING_CSM_PAGES = false;
+
 function useRouteMatcher() {
   const { pathname } = useLocation();
   return useCallback(
@@ -53,7 +56,7 @@ export const AppHeader = () => {
   const shouldShowNavBar = !!user && pathname !== ROUTE_PATHS.LOGIN;
 
   const magistratSearchItem = (path: FondationPath): MainNavigationProps.Item => ({
-    className: 'lg:ml-auto',
+    className: 'lg:ml-auto!',
     isActive: routeMatches([path], { end: true }),
     linkProps: { to: path, viewTransition: true },
     text: (
@@ -119,21 +122,25 @@ export const AppHeader = () => {
       linkProps: { to: ROUTE_PATHS.SG.CSM.VEILLE_DES_POSTES, viewTransition: true },
       text: formatMessage({ defaultMessage: 'Veille des postes' }),
     },
-    {
-      isActive: routeMatches([ROUTE_PATHS.SG.CSM.CALLS_FOR_APPLICATIONS]),
-      linkProps: { to: ROUTE_PATHS.SG.CSM.CALLS_FOR_APPLICATIONS, viewTransition: true },
-      text: formatMessage({ defaultMessage: 'Appels à candidature' }),
-    },
-    {
-      isActive: routeMatches([ROUTE_PATHS.SG.CSM.SELECTION_PROCESS]),
-      linkProps: { to: ROUTE_PATHS.SG.CSM.SELECTION_PROCESS, viewTransition: true },
-      text: formatMessage({ defaultMessage: 'Processus de sélection' }),
-    },
-    {
-      isActive: routeMatches([ROUTE_PATHS.SG.CSM.MEMBERS]),
-      linkProps: { to: ROUTE_PATHS.SG.CSM.MEMBERS, viewTransition: true },
-      text: formatMessage({ defaultMessage: 'Membres' }),
-    },
+    ...(SHOW_UPCOMING_CSM_PAGES
+      ? [
+          {
+            isActive: routeMatches([ROUTE_PATHS.SG.CSM.CALLS_FOR_APPLICATIONS]),
+            linkProps: { to: ROUTE_PATHS.SG.CSM.CALLS_FOR_APPLICATIONS, viewTransition: true },
+            text: formatMessage({ defaultMessage: 'Appels à candidature' }),
+          },
+          {
+            isActive: routeMatches([ROUTE_PATHS.SG.CSM.SELECTION_PROCESS]),
+            linkProps: { to: ROUTE_PATHS.SG.CSM.SELECTION_PROCESS, viewTransition: true },
+            text: formatMessage({ defaultMessage: 'Processus de sélection' }),
+          },
+          {
+            isActive: routeMatches([ROUTE_PATHS.SG.CSM.MEMBERS]),
+            linkProps: { to: ROUTE_PATHS.SG.CSM.MEMBERS, viewTransition: true },
+            text: formatMessage({ defaultMessage: 'Membres' }),
+          },
+        ]
+      : []),
   ];
 
   const sgCommonNavigation: MainNavigationProps.Item[] = [];
@@ -227,7 +234,8 @@ export const AppHeader = () => {
     <Header
       {...brand}
       className="[view-transition-name:app-header]"
-      classes={{ menu: 'lg:[&_.fr-nav>ul]:gap-2' }}
+      // the DSFR spaces a menu of 2 to 4 entries with a left margin, which also beats the search's ml-auto
+      classes={{ menu: 'lg:[&_.fr-nav>ul]:gap-2 lg:[&_.fr-nav>ul>li:not(:last-child)]:ml-0!' }}
       navigation={navigation}
       quickAccessItems={[
         <LolfiCsm key="header lolfi link" />,
