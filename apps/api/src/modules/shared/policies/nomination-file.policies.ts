@@ -3,6 +3,7 @@ import { NominationFileLockEnum } from '../nomination-file-lock.enum';
 import { NominationFileOutcome, NominationFileOutcomeEnum } from '../nomination-file-outcome.enum';
 import { isSecretariat, type RoleEnum } from '../role.enum';
 
+import { isJurisdictionSheetExpected } from './jurisdiction-sheet.policy';
 import {
   type Impersonation,
   personalContentVisibility,
@@ -32,6 +33,24 @@ export function canUpdateNominationFile(
   user: { role: RoleEnum },
 ): boolean {
   return isSecretariat(user.role) && !file.lockedReason;
+}
+
+/** the secretariat is asked for a jurisdiction sheet until it attaches one or hides the alert */
+export function jurisdictionSheetRequired(
+  file: {
+    alertHidden: boolean;
+    hasJurisdictionSheet: boolean;
+    lockedReason: NominationFileLockEnum | null;
+    targetedPosition: string | null;
+  },
+  user: { role: RoleEnum },
+): boolean {
+  return (
+    canUpdateNominationFile(file, user) &&
+    !file.alertHidden &&
+    !file.hasJurisdictionSheet &&
+    isJurisdictionSheetExpected(file.targetedPosition)
+  );
 }
 
 export function memberMemoVisibility(

@@ -474,7 +474,10 @@ export const useAddNominationFileAttachmentsMutation = () => {
         { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
         mapCachedNominationFiles((item) =>
           item.id === nominationFileId
-            ? { ...item, hasJurisdictionSheet: item.hasJurisdictionSheet || type === 'FICHE_DE_JURIDICTION' }
+            ? {
+                ...item,
+                jurisdictionSheetRequired: item.jurisdictionSheetRequired && type !== 'FICHE_DE_JURIDICTION',
+              }
             : item,
         ),
       ),
@@ -503,19 +506,13 @@ export const useRemoveNominationFileAttachmentMutation = () => {
         sessionKeys.listNominationFileAttachments({ nominationFileId, sessionId }),
       );
 
-      const remaining = error ? undefined : attachments?.items.filter((item) => item.id !== fileId);
+      const sheetLeft =
+        !error &&
+        attachments?.items.some((item) => item.id !== fileId && item.type === 'FICHE_DE_JURIDICTION');
 
-      if (remaining) {
-        queryClient.setQueriesData(
-          { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
-          mapCachedNominationFiles((item) =>
-            item.id === nominationFileId
-              ? { ...item, hasJurisdictionSheet: remaining.some((x) => x.type === 'FICHE_DE_JURIDICTION') }
-              : item,
-          ),
-        );
-      } else {
-        // refused, or nothing tells what is left on that file: let the listing say it
+      // refused, nothing tells what is left on that file, or its last sheet gone, which may bring the
+      // alert back: let the listing say it
+      if (!sheetLeft) {
         await queryClient.invalidateQueries({
           queryKey: sessionKeys.listSessionNominationFiles({ sessionId }),
         });
@@ -864,9 +861,7 @@ export function useNominationFilesAlertMutation(input: { sessionId: string }) {
       queryClient.setQueriesData(
         { queryKey },
         mapCachedNominationFiles((item) =>
-          item.id === nominationFileId
-            ? { ...item, content: { ...item.content, isAlertHidden: true } }
-            : item,
+          item.id === nominationFileId ? { ...item, jurisdictionSheetRequired: false } : item,
         ),
       );
     },

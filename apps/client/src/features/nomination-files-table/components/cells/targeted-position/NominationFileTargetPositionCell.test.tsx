@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import { userEvent } from '@testing-library/user-event';
 import { IntlProvider } from 'react-intl';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -15,7 +16,7 @@ vi.mock('./NominationFileTargetPositionContext', () => ({
   useNominationFileTargetPositionModal: () => ({ open }),
 }));
 
-const ALERTED_POSITION = { canUpdate: true, content: { posteCible: 'Procureur de la République TJ GRASSE' } };
+const POSITION = { content: { posteCible: 'Procureur de la République TJ GRASSE' } };
 
 function renderCell(overrides: NominationFileOverrides) {
   return render(
@@ -33,33 +34,19 @@ beforeEach(() => {
 });
 
 describe('NominationFileTargetPositionCell', () => {
-  it('asks for a jurisdiction sheet on the positions that need one', () => {
-    renderCell(ALERTED_POSITION);
+  it('asks for the jurisdiction sheet the API requires, through the modal', async () => {
+    const user = userEvent.setup();
+    renderCell({ ...POSITION, jurisdictionSheetRequired: true });
 
-    expect(positionButton()).toBeInTheDocument();
+    await user.click(positionButton()!);
+
+    expect(open).toHaveBeenCalledWith(expect.objectContaining({ jurisdictionSheetRequired: true }));
   });
 
-  it('stops asking once a jurisdiction sheet is attached', () => {
-    renderCell({ ...ALERTED_POSITION, hasJurisdictionSheet: true });
+  it('shows the plain position when no sheet is required', () => {
+    renderCell({ ...POSITION, jurisdictionSheetRequired: false });
 
     expect(positionButton()).not.toBeInTheDocument();
-  });
-
-  it('keeps asking when the attached files are of another kind', () => {
-    renderCell({ ...ALERTED_POSITION, hasAttachment: true });
-
-    expect(positionButton()).toBeInTheDocument();
-  });
-
-  it('stops asking once the alert has been explicitly ignored', () => {
-    renderCell({ content: { ...ALERTED_POSITION.content, isAlertHidden: true } });
-
-    expect(positionButton()).not.toBeInTheDocument();
-  });
-
-  it('never asks when the dossier cannot be updated, figé or seen by a member', () => {
-    renderCell({ ...ALERTED_POSITION, canUpdate: false });
-
-    expect(positionButton()).not.toBeInTheDocument();
+    expect(screen.getByText(/Procureur de la République TJ GRASSE/)).toBeInTheDocument();
   });
 });

@@ -6,23 +6,13 @@ import { GradeAndPosition } from '@/shared/components/GradeAndPosition';
 import { Tooltip } from '@/shared/ui/tooltip';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
-import { requiresJurisdictionSheet } from './jurisdiction-sheet-rule';
 import { useNominationFileTargetPositionModal } from './NominationFileTargetPositionContext';
 
 const alertColor = colors.decisions.text.default.warning.default;
 
-function missesJurisdictionSheet(nominationFile: SessionNominationFile): boolean {
-  const { isAlertHidden, posteCible } = nominationFile.content;
-
-  if (!nominationFile.canUpdate || isAlertHidden || nominationFile.hasJurisdictionSheet) return false;
-
-  return requiresJurisdictionSheet(posteCible);
-}
-
 export function NominationFileTargetPositionCell(props: { nominationFile: SessionNominationFile }) {
   const { formatMessage } = useIntl();
   const { open } = useNominationFileTargetPositionModal();
-  const hasAlert = missesJurisdictionSheet(props.nominationFile);
 
   const label = (
     <span className="leading-6">
@@ -33,7 +23,7 @@ export function NominationFileTargetPositionCell(props: { nominationFile: Sessio
     </span>
   );
 
-  if (!hasAlert) return label;
+  if (!props.nominationFile.jurisdictionSheetRequired) return label;
 
   return (
     <Tooltip label={formatMessage({ defaultMessage: 'Fiche de juridiction requise' })}>

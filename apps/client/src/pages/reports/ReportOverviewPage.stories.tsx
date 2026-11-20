@@ -57,7 +57,6 @@ const NOMINATION_FILE: DetailedNominationFileDto = {
     historique:
       '- Juge au tribunal judiciaire de Lyon (2008) - Vice-présidente au tribunal judiciaire de Lyon (2014) - Conseillère à la cour d’appel de Lyon (2021)',
     informationCarrière: null,
-    isAlertHidden: false,
     jurisdictions: { current: null, targeted: null },
     lockedReason: null,
     nomMagistrat: 'DURAND Camille',
@@ -72,9 +71,9 @@ const NOMINATION_FILE: DetailedNominationFileDto = {
   },
   expectedReportersCount: 2,
   hasAttachment: false,
-  hasJurisdictionSheet: false,
   id: REPORT.nominationFileId,
   isArchived: false,
+  jurisdictionSheetRequired: false,
   memo: null,
   missingEvaluation: false,
   missingEvaluationComment: null,

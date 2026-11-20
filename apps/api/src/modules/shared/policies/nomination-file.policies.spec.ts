@@ -3,6 +3,7 @@ import { NominationFileOutcome } from '../nomination-file-outcome.enum';
 import {
   canScheduleAudition,
   canUpdateNominationFile,
+  jurisdictionSheetRequired,
   memberMemoVisibility,
   nominationFileLock,
   sgCommentChangeSeenBy,
@@ -106,6 +107,39 @@ describe('canUpdateNominationFile', () => {
       expect(canUpdateNominationFile({ lockedReason: null }, { role })).toBe(false);
     },
   );
+});
+
+describe('jurisdictionSheetRequired', () => {
+  const secretariat = { role: 'ADJOINT_SECRETAIRE_GENERAL' } as const;
+  const awaited = {
+    alertHidden: false,
+    hasJurisdictionSheet: false,
+    lockedReason: null,
+    targetedPosition: 'Procureur de la République TJ GRASSE',
+  };
+
+  it('asks the secretariat for the sheet of a position that requires one', () => {
+    expect(jurisdictionSheetRequired(awaited, secretariat)).toBe(true);
+  });
+
+  it('stops asking once the sheet is attached or the alert hidden', () => {
+    expect(jurisdictionSheetRequired({ ...awaited, hasJurisdictionSheet: true }, secretariat)).toBe(false);
+    expect(jurisdictionSheetRequired({ ...awaited, alertHidden: true }, secretariat)).toBe(false);
+  });
+
+  it('asks nothing of a position without a sheet', () => {
+    expect(
+      jurisdictionSheetRequired(
+        { ...awaited, targetedPosition: 'Premier vice-procureur TJ LYON' },
+        secretariat,
+      ),
+    ).toBe(false);
+  });
+
+  it('asks nothing of whoever cannot update the dossier', () => {
+    expect(jurisdictionSheetRequired({ ...awaited, lockedReason: 'REPORTED' }, secretariat)).toBe(false);
+    expect(jurisdictionSheetRequired(awaited, { role: 'MEMBRE_COMMUN' })).toBe(false);
+  });
 });
 
 describe('sgCommentChangeSeenBy', () => {
