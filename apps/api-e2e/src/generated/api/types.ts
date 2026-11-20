@@ -73,8 +73,9 @@ export type AuthenticateApiClientRefusedDto = {
      * - `unsupported_grant_type` (400): the grant is not `client_credentials`
      * - `invalid_client` (401): unknown or revoked identifier, or wrong secret
      * - `access_denied` (403): the request does not come from an allowed IP
+     * - `slow_down` (429): too many requests within the minute, `Retry-After` tells how many seconds to wait
      */
-    error: 'invalid_request' | 'unsupported_grant_type' | 'invalid_client' | 'access_denied';
+    error: 'invalid_request' | 'unsupported_grant_type' | 'invalid_client' | 'access_denied' | 'slow_down';
 };
 
 export type ListedMemberSessionReportsDto = {
@@ -1108,19 +1109,28 @@ export type ListedJurisdictions = {
     }>;
 };
 
-export type SearchMagistratAuthorizationDto = {
+export type IdentifyMagistratDto = {
     email: string;
 };
 
-export type FoundMagistratAuthorizationDto = {
+export type IdentifiedMagistratDto = {
     /**
-     * - `MAGISTRAT` means that the email exists and refers to an active _Magistrat_
-     * - `UNKNOWN` we did not find any active _Magistrat_ with that email
+     * - `ACTIVE`: the address is the professional one of a single active _Magistrat_
+     * - `UNKNOWN`: unknown address, inactive _Magistrat_ or address held by several of them, never told apart
      */
-    role: 'MAGISTRAT' | 'UNKNOWN';
+    status: 'ACTIVE' | 'UNKNOWN';
+    /**
+     * Given with `ACTIVE` only
+     */
+    magistrat?: {
+        /**
+         * The Fondation identifier, to read the status again later
+         */
+        id: string;
+    };
 };
 
-export type SearchMagistratAuthorizationInvalidEmailDto = {
+export type InvalidMagistratEmailDto = {
     message: string;
     path: string;
     statusCode: 400;
@@ -1133,6 +1143,26 @@ export type SearchMagistratAuthorizationInvalidEmailDto = {
         path: Array<string>;
         pattern: string;
     }>;
+};
+
+export type FoundMagistratStatusDto = {
+    /**
+     * - `ACTIVE`: the _Magistrat_ is in the last LOLFI extraction imported successfully
+     * - `INACTIVE`: it is no longer
+     */
+    status: 'ACTIVE' | 'INACTIVE';
+};
+
+export type SearchMagistratAuthorizationDto = {
+    email: string;
+};
+
+export type FoundMagistratAuthorizationDto = {
+    /**
+     * - `MAGISTRAT` means that the email exists and refers to an active _Magistrat_
+     * - `UNKNOWN` we did not find any active _Magistrat_ with that email
+     */
+    role: 'MAGISTRAT' | 'UNKNOWN';
 };
 
 export type SearchMagistratAuthorizationUnauthorizedDto = {
@@ -3257,6 +3287,7 @@ export type AuthenticateApiClientErrors = {
     400: AuthenticateApiClientRefusedDto;
     401: AuthenticateApiClientRefusedDto;
     403: AuthenticateApiClientRefusedDto;
+    429: AuthenticateApiClientRefusedDto;
 };
 
 export type AuthenticateApiClientError = AuthenticateApiClientErrors[keyof AuthenticateApiClientErrors];
@@ -4507,6 +4538,75 @@ export type SearchResponses = {
 
 export type SearchResponse = SearchResponses[keyof SearchResponses];
 
+export type IdentifyMagistratData = {
+    body: IdentifyMagistratDto;
+    path?: never;
+    query?: never;
+    url: '/api/public/v1/magistrats/identification';
+};
+
+export type IdentifyMagistratErrors = {
+    400: InvalidMagistratEmailDto;
+    /**
+     * Missing, unknown or expired token, or revoked client: ask for a new token
+     */
+    401: unknown;
+    /**
+     * The request comes from an IP, or asks for a route, the client is not allowed
+     */
+    403: unknown;
+    /**
+     * Too many calls within the minute
+     */
+    429: unknown;
+};
+
+export type IdentifyMagistratError = IdentifyMagistratErrors[keyof IdentifyMagistratErrors];
+
+export type IdentifyMagistratResponses = {
+    200: IdentifiedMagistratDto;
+};
+
+export type IdentifyMagistratResponse = IdentifyMagistratResponses[keyof IdentifyMagistratResponses];
+
+export type FindMagistratStatusData = {
+    body?: never;
+    path: {
+        magistratId: string;
+    };
+    query?: never;
+    url: '/api/public/v1/magistrats/{magistratId}/status';
+};
+
+export type FindMagistratStatusErrors = {
+    /**
+     * The identifier is not a UUID
+     */
+    400: unknown;
+    /**
+     * Missing, unknown or expired token, or revoked client: ask for a new token
+     */
+    401: unknown;
+    /**
+     * The request comes from an IP, or asks for a route, the client is not allowed
+     */
+    403: unknown;
+    /**
+     * No _Magistrat_ has this identifier: its status could not be checked
+     */
+    404: unknown;
+    /**
+     * Too many calls within the minute
+     */
+    429: unknown;
+};
+
+export type FindMagistratStatusResponses = {
+    200: FoundMagistratStatusDto;
+};
+
+export type FindMagistratStatusResponse = FindMagistratStatusResponses[keyof FindMagistratStatusResponses];
+
 export type SearchMagistratAuthorizationData = {
     body: SearchMagistratAuthorizationDto;
     path?: never;
@@ -4515,7 +4615,7 @@ export type SearchMagistratAuthorizationData = {
 };
 
 export type SearchMagistratAuthorizationErrors = {
-    400: SearchMagistratAuthorizationInvalidEmailDto;
+    400: InvalidMagistratEmailDto;
     401: SearchMagistratAuthorizationUnauthorizedDto;
 };
 

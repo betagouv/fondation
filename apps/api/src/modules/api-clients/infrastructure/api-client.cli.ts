@@ -4,7 +4,7 @@ import z from 'zod';
 
 import { ApiClientsModule } from '../api-clients.module';
 import { ApiClientsService } from '../api-clients.service';
-import { API_SCOPES, ApiScope } from '../domain/api-client';
+import { API_SCOPES, ApiScope, ROTATION_DAYS } from '../domain/api-client';
 
 type RegisterApiClientOptions = { ip: string[]; name: string; scope?: ApiScope[] };
 
@@ -52,13 +52,78 @@ export class RegisterApiClientCliCommand extends CommandRunner {
   }
 }
 
-@Command({ name: 'api-client', subCommands: [RegisterApiClientCliCommand] })
+@SubCommand({ name: 'rotate-secret' })
+export class RotateApiClientSecretCliCommand extends CommandRunner {
+  constructor(private readonly apiClients: ApiClientsService) {
+    super();
+  }
+
+  async run(_inputs: string[], options: { client: string; days?: number }): Promise<void> {
+    const { previousValidUntil, secret } = await this.apiClients.rotateSecret({
+      clientId: options.client,
+      days: options.days,
+    });
+
+    console.log(
+      `client_secret: ${secret}\nThe replaced secret stays valid until ${previousValidUntil.toISOString()}`,
+    );
+  }
+
+  @Option({ flags: '-c, --client <id>', name: 'client', required: true })
+  parseClient(id: string): string {
+    return z.uuid().parse(id);
+  }
+
+  @Option({
+    description: `how long the replaced secret stays valid, ${ROTATION_DAYS.default} days by default and ${ROTATION_DAYS.max} at most`,
+    flags: '-d, --days <days>',
+    name: 'days',
+  })
+  parseDays(days: string): number {
+    // the bound is the domain's, ApiClientNotRotatable('days') tells it
+    return z.coerce.number().int().parse(days);
+  }
+}
+
+@SubCommand({
+  description:
+    'drops the replaced secret and deletes every token of the client, a rotation running or not: the partner gets a 401 on its next call and asks for a new token with its current secret. Without a rotation, it revokes the tokens at once, not the client',
+  name: 'end-rotation',
+})
+export class EndApiClientSecretRotationCliCommand extends CommandRunner {
+  constructor(private readonly apiClients: ApiClientsService) {
+    super();
+  }
+
+  async run(_inputs: string[], options: { client: string }): Promise<void> {
+    await this.apiClients.endSecretRotation({ clientId: options.client });
+  }
+
+  @Option({ flags: '-c, --client <id>', name: 'client', required: true })
+  parseClient(id: string): string {
+    return z.uuid().parse(id);
+  }
+}
+
+@Command({
+  name: 'api-client',
+  subCommands: [
+    EndApiClientSecretRotationCliCommand,
+    RegisterApiClientCliCommand,
+    RotateApiClientSecretCliCommand,
+  ],
+})
 export class ApiClientCliCommand extends CommandRunner {
   async run(): Promise<void> {}
 }
 
 @Module({
   imports: [ApiClientsModule],
-  providers: [ApiClientCliCommand, RegisterApiClientCliCommand],
+  providers: [
+    ApiClientCliCommand,
+    EndApiClientSecretRotationCliCommand,
+    RegisterApiClientCliCommand,
+    RotateApiClientSecretCliCommand,
+  ],
 })
 export class ApiClientsCliModule {}

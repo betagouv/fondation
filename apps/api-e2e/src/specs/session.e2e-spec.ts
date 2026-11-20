@@ -919,6 +919,29 @@ test.describe('Session E2E', () => {
       );
     });
 
+    test('should record the recusal once when it is sent twice at the same time', async ({
+      agent,
+      member,
+      sessions,
+      sql,
+      expect,
+    }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+      const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+      const memberId = member['@user']!.id;
+
+      const responses = await Promise.all([
+        agent.sessions.recuseMembers({ body: { memberIds: [memberId] }, path }),
+        agent.sessions.recuseMembers({ body: { memberIds: [memberId] }, path }),
+      ]);
+      expect(responses.map(({ response }) => response?.status)).toEqual([200, 200]);
+
+      const changes = await sql`
+        select action from nominations_context.recused_member_change
+        where nomination_file_id = ${path.nominationFileId}`;
+      expect(changes).toEqual([{ action: 'ADDED' }]);
+    });
+
     test('should serve a reporter of the unpublished affectation as a member who cannot recuse themselves', async ({
       agent,
       member,

@@ -8,29 +8,34 @@ import {
 import type { Request as ExpressRequest, Response as ExpressResponse } from 'express';
 
 import { ApiClientForbidden, ApiClientUnauthenticated } from '../domain/api-client';
+import { ApiClientRateLimited } from '../domain/rate-window';
+
+type TokenRouteError =
+  | ApiClientForbidden
+  | ApiClientRateLimited
+  | ApiClientUnauthenticated
+  | BadRequestException;
 
 /**
  * The errors of the token route alone follow OAuth 2.0 (RFC 6749, §5.2), which the partner's library expects: the
  * other routes keep the error format of Fondation
  */
-@Catch(ApiClientForbidden, ApiClientUnauthenticated, BadRequestException)
+@Catch(ApiClientForbidden, ApiClientRateLimited, ApiClientUnauthenticated, BadRequestException)
 export class OAuthErrorFilter implements ExceptionFilter {
-  catch(
-    exception: ApiClientForbidden | ApiClientUnauthenticated | BadRequestException,
-    host: ArgumentsHost,
-  ): void {
+  catch(exception: TokenRouteError, host: ArgumentsHost): void {
     const http = host.switchToHttp();
+    const response = http.getResponse<ExpressResponse>();
     const [status, error] = OAuthErrorFilter.answer(exception, http.getRequest<ExpressRequest>());
 
-    http.getResponse<ExpressResponse>().status(status).json({ error });
+    if (exception instanceof ApiClientRateLimited) response.setHeader('Retry-After', exception.retryAfter);
+    response.status(status).json({ error });
   }
 
-  private static answer(
-    exception: ApiClientForbidden | ApiClientUnauthenticated | BadRequestException,
-    request: ExpressRequest,
-  ): [HttpStatus, string] {
+  private static answer(exception: TokenRouteError, request: ExpressRequest): [HttpStatus, string] {
     if (exception instanceof ApiClientUnauthenticated) return [HttpStatus.UNAUTHORIZED, 'invalid_client'];
     if (exception instanceof ApiClientForbidden) return [HttpStatus.FORBIDDEN, 'access_denied'];
+    // RFC 6749 names no error for a rate limit: this one is what RFC 8628 answers to a client asking too often
+    if (exception instanceof ApiClientRateLimited) return [HttpStatus.TOO_MANY_REQUESTS, 'slow_down'];
 
     const grantType: unknown = (request.body as Record<string, unknown> | undefined)?.grant_type;
 
