@@ -419,7 +419,7 @@ export function useUpdateNominationFileMissingEvaluationCommentMutation() {
 export function useWriteNominationFileMemberMemoMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (mutation: { userId: string; sessionId: string; nominationFileId: string; memo: string }) =>
+    mutationFn: (mutation: { memo: string; nominationFileId: string; sessionId: string; userId: string }) =>
       $api.members.writeNominationFileMemberMemo({
         body: { memo: mutation.memo },
         path: {
@@ -428,16 +428,23 @@ export function useWriteNominationFileMemberMemoMutation() {
           userId: mutation.userId,
         },
       }),
-    onSuccess: (_, { nominationFileId, sessionId, memo }) =>
+    // a member who became a reporter of the file is refused: the reload removes the memo from the panel,
+    // while a success, patched below, does not refetch every loaded page
+    onError: (_error, { sessionId }) =>
+      queryClient.invalidateQueries({ queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) }),
+    // the side panel reads a file left out of the loaded list on its own
+    onSettled: (_data, _error, { nominationFileId, sessionId }) =>
+      queryClient.invalidateQueries({
+        queryKey: sessionKeys.detailSessionNominationFile({ nominationFileId, sessionId }),
+      }),
+    onSuccess: (_, { memo, nominationFileId, sessionId }) =>
       queryClient.setQueriesData(
         { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
         mapCachedNominationFiles((item) =>
-          item.id === nominationFileId ? { ...item, memo: { value: memo.trim() || null } } : item,
+          item.id === nominationFileId
+            ? { ...item, memo: { value: memo.trim() || null, visibility: 'VISIBLE' } }
+            : item,
         ),
       ),
-    // a member who became a reporter of the file is refused: the reload removes the memo from the panel,
-    // while a success, already patched above, does not refetch every loaded page
-    onError: (_error, { sessionId }) =>
-      queryClient.invalidateQueries({ queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) }),
   });
 }

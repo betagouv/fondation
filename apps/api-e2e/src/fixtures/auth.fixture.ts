@@ -60,27 +60,43 @@ export async function registerUser<Role extends RoleEnum>(options: {
   return { ...user, id: (createdUser as RegisteredUserDto).id };
 }
 
+async function registerAndLogIn(
+  steps: TestSteps,
+  input: RoleEnum | (Omit<RegisterUserDto, 'role'> & { role: RoleEnum }),
+): Promise<{ cookies: string[]; user: AuthUser }> {
+  const user = await registerUser({ client: steps['@client'], user: input });
+
+  const { response } = await steps.auth.login({
+    body: { email: user.email, password: user.password },
+    throwOnError: true,
+  });
+  assert.ok(response.status === 204, `Could not login as ${user.email}`);
+
+  return { cookies: response.headers.getSetCookie(), user };
+}
+
 export function makeLoggedInUserFixture(baseUrl: string) {
   const steps = makeStepsFixtures({ baseUrl });
 
   return async function loggedInUserFixture(
     input: RoleEnum | (Omit<RegisterUserDto, 'role'> & { role: RoleEnum }),
   ): Promise<TestSteps> {
-    const user = await registerUser({ client: steps['@client'], user: input });
+    const { cookies, user } = await registerAndLogIn(steps, input);
 
-    const { response } = await steps.auth.login({
-      body: { email: user.email, password: user.password },
+    return makeStepsFixtures({ baseUrl, cookies, user });
+  };
+}
+
+export function makeImpersonationFixture(baseUrl: string) {
+  const steps = makeStepsFixtures({ baseUrl });
+
+  return async function impersonationFixture(user: { id: string }): Promise<TestSteps> {
+    const { cookies } = await registerAndLogIn(steps, 'ADMIN');
+    const { data } = await makeStepsFixtures({ baseUrl, cookies }).auth.impersonate({
+      path: { userId: user.id },
       throwOnError: true,
     });
-    assert.ok(response.status === 204, `Could not login as ${user.email}`);
-    const cookies = response.headers.getSetCookie();
 
-    const config = steps['@client'].getConfig();
-
-    return makeStepsFixtures({
-      baseUrl: config.baseUrl,
-      cookies,
-      user,
-    });
+    return makeStepsFixtures({ baseUrl, cookies, impersonationId: data.id, user });
   };
 }

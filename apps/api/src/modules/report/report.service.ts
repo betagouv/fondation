@@ -5,6 +5,7 @@ import { isDefined } from '../../utils/is-defined';
 import { Files } from '../framework/files';
 import { StoredFile } from '../framework/files/multipart/multipart.types';
 import { FormationEnum } from '../shared/formation.enum';
+import type { Impersonation } from '../shared/policies/personal-content.policies';
 import { ReportFileUsageEnum } from '../shared/report-file-usage.enum';
 import { ReportStateEnum } from '../shared/report-state.enum';
 import type { RoleEnum } from '../shared/role.enum';
@@ -40,13 +41,15 @@ export class ReportService {
 
   @Transactional()
   async attachFiles(command: {
-    userId: string;
     fileUsage: ReportFileUsageEnum | undefined;
-    reportId: string;
     files: readonly { id: string }[];
+    impersonation: Impersonation | undefined;
+    reportId: string;
+    userId: string;
   }): Promise<void> {
     const report = await this.reportRepository.find({
       id: command.reportId,
+      impersonation: command.impersonation,
       reporterId: command.userId,
     });
     report.attachFiles({
@@ -58,9 +61,15 @@ export class ReportService {
   }
 
   @Transactional()
-  async detachAttachment(command: { fileId: string; reportId: string; userId: string }): Promise<void> {
+  async detachAttachment(command: {
+    fileId: string;
+    impersonation: Impersonation | undefined;
+    reportId: string;
+    userId: string;
+  }): Promise<void> {
     const report = await this.reportRepository.find({
       id: command.reportId,
+      impersonation: command.impersonation,
       reporterId: command.userId,
     });
     report.detachAttachment({ fileId: command.fileId });
@@ -69,14 +78,16 @@ export class ReportService {
 
   async attachScreenshots(command: {
     files: readonly StoredFile[];
+    impersonation: Impersonation | undefined;
     reportId: string;
     userId: string;
   }): Promise<AttachedScreenshotsDto> {
     await this.attachFiles({
-      userId: command.userId,
-      reportId: command.reportId,
-      files: command.files,
       fileUsage: 'EMBEDDED_SCREENSHOT',
+      files: command.files,
+      impersonation: command.impersonation,
+      reportId: command.reportId,
+      userId: command.userId,
     });
 
     const urls = await this.files.getPublicUrls(command.files.map((file) => file.id));
@@ -100,14 +111,14 @@ export class ReportService {
   getAttachmentUrl(query: {
     fileId: string;
     reportId: string;
-    userId: string;
+    user: { id: string; impersonation: Impersonation | undefined; role: RoleEnum };
   }): Promise<GeneratedReportAttachmentUrlDto> {
     return this.getReportAttachmentUrlQuery.handle(query);
   }
 
   detailReport(query: {
-    user: { id: string; role: RoleEnum };
     reportId: string;
+    user: { id: string; impersonation: Impersonation | undefined; role: RoleEnum };
   }): Promise<DetailedReportDto> {
     return this.detailReportQuery.handle(query);
   }
@@ -141,15 +152,17 @@ export class ReportService {
 
   @Transactional()
   async updateReport(command: {
-    reportId: string;
-    reporterId: string;
     data: {
       status: ReportStateEnum | undefined;
       comment: string | undefined;
     };
+    impersonation: Impersonation | undefined;
+    reportId: string;
+    reporterId: string;
   }) {
     const report = await this.reportRepository.find({
       id: command.reportId,
+      impersonation: command.impersonation,
       reporterId: command.reporterId,
     });
     report.update({ data: command.data });
@@ -159,13 +172,15 @@ export class ReportService {
 
   @Transactional()
   async updateRuleValidation(command: {
+    impersonation: Impersonation | undefined;
+    isValidated: boolean;
     reportId: string;
     reporterId: string;
     ruleId: string;
-    isValidated: boolean;
   }) {
     const report = await this.reportRepository.find({
       id: command.reportId,
+      impersonation: command.impersonation,
       reporterId: command.reporterId,
     });
     report.updateRuleValidation({

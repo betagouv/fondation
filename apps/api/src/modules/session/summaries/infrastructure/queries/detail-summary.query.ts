@@ -24,6 +24,7 @@ import {
   expectedReportersCount,
 } from '../../../../shared/policies/auditioned-position.policy';
 import { canScheduleAudition } from '../../../../shared/policies/nomination-file.policies';
+import type { Impersonation } from '../../../../shared/policies/personal-content.policies';
 import { canReadSummary, canWriteSummary } from '../../../../shared/policies/summary.policies';
 import { PriorityEnum } from '../../../../shared/priority.enum';
 import type { RoleEnum } from '../../../../shared/role.enum';
@@ -55,6 +56,7 @@ export class DetailSummaryQuery {
   }
 
   async handle(query: {
+    impersonation: Impersonation | undefined;
     nominationFileId: string;
     role: RoleEnum;
     sessionId: string;
@@ -140,7 +142,7 @@ export class DetailSummaryQuery {
     const summary = nominationFile.summary;
     if (!summary) throw new NotFoundException();
 
-    const user = { id: query.userId, role: query.role };
+    const user = { id: query.userId, impersonation: query.impersonation, role: query.role };
     const readable = canReadSummary(
       { authorId: summary.author?.id ?? null, readerIds: summary.readers.map(({ user }) => user.id) },
       user,

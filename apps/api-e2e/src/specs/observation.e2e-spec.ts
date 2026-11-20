@@ -1,3 +1,4 @@
+import * as assert from 'node:assert/strict';
 import { randomInt } from 'node:crypto';
 
 import type { LolfiArchiveContent } from 'lolfi';
@@ -262,10 +263,50 @@ test.describe('Observation', () => {
     expect(read.data!.memberComment).toEqual({
       comment: '<p>À rapprocher du dossier de 2024<img></p>',
       screenshots: [expect.objectContaining({ name: 'capture.png', url: expect.any(String) })],
+      visibility: 'VISIBLE',
     });
 
     const readByOther = await otherReporter.observations.getObservationDetails({ path: observationPath });
     expect(readByOther.data!.memberComment).toBeNull();
+  });
+
+  test('should keep the comment of a reporter private from the admin impersonating them', async ({
+    agent,
+    expect,
+    impersonate,
+    member,
+    sessions,
+  }) => {
+    const session = await sessions.createOne(SESSION, { reporters: [member['@user']!] });
+    const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+    const { data } = await agent.observations.createObservation({
+      body: { form: observationForm({ dateReception: '2026-05-02', magistratId: session.files[1]!.magistratId }) },
+      path,
+      throwOnError: true,
+    });
+    const observationPath = { ...path, observationId: data.id };
+    await member.observations.writeMemberComment({
+      body: { comment: '<p>À rapprocher du dossier de 2024</p>' },
+      path: observationPath,
+      throwOnError: true,
+    });
+
+    const impersonator = await impersonate(member['@user']!);
+
+    const read = await impersonator.observations.getObservationDetails({ path: observationPath, throwOnError: true });
+    expect(read.data).toMatchObject({ canComment: false, memberComment: { visibility: 'PRIVATE' } });
+    const file = await impersonator.sessions.detailNominationFile({ path, throwOnError: true });
+    expect(file.data.observations.map(({ hasUserComment }) => hasUserComment)).toEqual([false]);
+    const refused = await impersonator.observations.writeMemberComment({
+      body: { comment: '' },
+      path: observationPath,
+    });
+    expect(refused.response?.status).toBe(403);
+    const refusedScreenshots = await impersonator.observations.attachMemberCommentScreenshots({
+      body: { files: [makeFile({ name: 'capture.png', type: 'image/png' })] },
+      path: observationPath,
+    });
+    expect(refusedScreenshots.response?.status).toBe(403);
   });
 
   test('should let the secretariat edit an observation and a reporter only comment it', async ({
@@ -356,7 +397,8 @@ test.describe('Observation', () => {
     const comment = `<p>Avis</p><img data-file-id="${kept!.id}" src="${kept!.url}">`;
     await member.observations.writeMemberComment({ body: { comment }, path: observationPath, throwOnError: true });
     const read = await member.observations.getObservationDetails({ path: observationPath, throwOnError: true });
-    expect(read.data.memberComment!.screenshots.map(({ id }) => id)).toEqual([kept!.id]);
+    assert.ok(read.data.memberComment?.visibility === 'VISIBLE');
+    expect(read.data.memberComment.screenshots.map(({ id }) => id)).toEqual([kept!.id]);
 
     const restored = `${comment}<img data-file-id="${removed!.id}" src="${removed!.url}">`;
     await member.observations.writeMemberComment({
@@ -365,7 +407,8 @@ test.describe('Observation', () => {
       throwOnError: true,
     });
     const reread = await member.observations.getObservationDetails({ path: observationPath, throwOnError: true });
-    expect(reread.data.memberComment!.screenshots.map(({ id }) => id).sort()).toEqual([kept!.id, removed!.id].sort());
+    assert.ok(reread.data.memberComment?.visibility === 'VISIBLE');
+    expect(reread.data.memberComment.screenshots.map(({ id }) => id).sort()).toEqual([kept!.id, removed!.id].sort());
   });
 
   test('should not let a reporter comment an observation of another nomination file', async ({

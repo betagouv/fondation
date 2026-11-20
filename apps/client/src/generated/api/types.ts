@@ -128,13 +128,17 @@ export type DetailedReportDto = {
     nominationFileId: string;
     comment: string | null;
     state: 'NEW' | 'IN_PROGRESS' | 'READY_TO_SUPPORT' | 'SUPPORTED';
-    lockedReason: 'CLOSED_SESSION' | null;
+    lockedReason: 'CLOSED_SESSION' | 'IMPERSONATION' | null;
     screenshots: Array<{
         usage: 'EMBEDDED_SCREENSHOT';
         name: string;
         id: string;
         url: string;
     }>;
+    /**
+     * null when the user reads the report without opening its attachments
+     */
+    attachmentsVisibility: 'PRIVATE' | 'VISIBLE' | null;
     attachments: Array<{
         usage: 'ATTACHMENT';
         name: string;
@@ -495,12 +499,19 @@ export type PaginatedNominationFiles = {
          * null when the user keeps no personal notes on this file
          */
         memo: {
+            visibility: 'PRIVATE';
+        } | {
+            visibility: 'VISIBLE';
             value: string | null;
         } | null;
         summary: {
             id: string;
             canRead: boolean;
             canWrite: boolean;
+            /**
+             * null when the summary is not shared with the user
+             */
+            visibility: 'PRIVATE' | 'VISIBLE' | null;
         } | null;
         hasAttachment: boolean;
         hasJurisdictionSheet: boolean;
@@ -841,12 +852,19 @@ export type DetailedNominationFileDto = {
      * null when the user keeps no personal notes on this file
      */
     memo: {
+        visibility: 'PRIVATE';
+    } | {
+        visibility: 'VISIBLE';
         value: string | null;
     } | null;
     summary: {
         id: string;
         canRead: boolean;
         canWrite: boolean;
+        /**
+         * null when the summary is not shared with the user
+         */
+        visibility: 'PRIVATE' | 'VISIBLE' | null;
     } | null;
     hasAttachment: boolean;
     hasJurisdictionSheet: boolean;
@@ -2386,6 +2404,9 @@ export type GetObservationDetailsResponseDto = {
         };
     }>;
     memberComment: {
+        visibility: 'PRIVATE';
+    } | {
+        visibility: 'VISIBLE';
         comment: string;
         screenshots: Array<{
             id: string;

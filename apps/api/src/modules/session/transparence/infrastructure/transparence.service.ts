@@ -21,6 +21,7 @@ import {
   NominationFileOutcomeEnum,
 } from '../../../shared/nomination-file-outcome.enum';
 import * as policies from '../../../shared/policies/nomination-file.policies';
+import type { Impersonation } from '../../../shared/policies/personal-content.policies';
 import { canReadSession } from '../../../shared/policies/session.policies';
 import { PriorityEnum } from '../../../shared/priority.enum';
 import type { PublicationStatus } from '../../../shared/publication-status.enum';
@@ -328,7 +329,7 @@ export class TransparenceService {
     pagination: Pagination;
     sessionId: string;
     sorting: Sortable<ListNominationFilesQueryDto>;
-    user: { id: string; role: RoleEnum };
+    user: { id: string; impersonation: Impersonation | undefined; role: RoleEnum };
   }): Promise<PaginatedNominationFiles> {
     return this.listNominationFilesQuery.handle(query);
   }
@@ -336,7 +337,7 @@ export class TransparenceService {
   async detailNominationFile(query: {
     nominationFileId: string;
     sessionId: string;
-    user: { id: string; role: RoleEnum };
+    user: { id: string; impersonation: Impersonation | undefined; role: RoleEnum };
   }): Promise<DetailedNominationFileDto> {
     const file = await this.listNominationFilesQuery.detail(query);
     if (!file) throw new NotFoundException();
@@ -817,7 +818,7 @@ export class TransparenceService {
     memo: string;
     nominationFileId: string;
     sessionId: string;
-    user: { id: string; role: RoleEnum };
+    user: { id: string; impersonation: Impersonation | undefined; role: RoleEnum };
   }) {
     const { memo, nominationFileId, user } = command;
     const session = await this.nominationSessionRepository.find(command.sessionId, {

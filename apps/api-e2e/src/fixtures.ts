@@ -2,7 +2,12 @@ import postgres from 'postgres';
 import { test as base, inject } from 'vitest';
 
 import { makeApiClientFixture } from './fixtures/api-client.fixture.ts';
-import { makeLoggedInUserFixture, registerUser, type RoleEnum } from './fixtures/auth.fixture.ts';
+import {
+  makeImpersonationFixture,
+  makeLoggedInUserFixture,
+  registerUser,
+  type RoleEnum,
+} from './fixtures/auth.fixture.ts';
 import { makeDocsFixture } from './fixtures/docs.fixture.ts';
 import { makeLolfiFixture } from './fixtures/lolfi.fixture.ts';
 import { makeCreateSessionFixture } from './fixtures/session.fixture.ts';
@@ -20,6 +25,7 @@ export const test = base
     return sql;
   })
   .extend('logIn', ({ baseUrl }) => makeLoggedInUserFixture(baseUrl))
+  .extend('impersonate', ({ baseUrl }) => makeImpersonationFixture(baseUrl))
   .extend('admin', ({ logIn }): Promise<TestStepsAdmin> => logIn('ADMIN'))
   .extend('teamMember', ({ logIn }): Promise<TestStepsAdmin> => logIn('TEAM_MEMBER'))
   .extend('member', async ({ logIn }): Promise<TestStepsMember> => logIn('MEMBRE_COMMUN'))

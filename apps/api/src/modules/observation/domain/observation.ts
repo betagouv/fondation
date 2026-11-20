@@ -1,7 +1,18 @@
 import { Id, makeId } from '../../../utils/id';
+import {
+  type Impersonation,
+  personalContentVisibility,
+  type PersonalContentVisibility,
+} from '../../shared/policies/personal-content.policies';
 import { isSecretariat, type RoleEnum } from '../../shared/role.enum';
 
 import { ObservationFollowUp } from './observation-follow-up';
+
+type Commenter = {
+  impersonation: Impersonation | undefined;
+  reporterIds: readonly string[];
+  userId: string;
+};
 
 export class UserNotAllowedToAttachScreenshotsError extends Error {
   constructor() {
@@ -282,16 +293,27 @@ export class Observation {
     this.#messages.push(new ObservationFileRenamed(this.id, command.fileId, command.name));
   }
 
-  // a reporter of the file comments the observation for themselves; the secretariat général edits the observation itself
-  static canComment(reader: { userId: string; reporterIds: readonly string[] }): boolean {
+  /** a reporter of the file comments the observation for themselves; the secretariat général edits the observation itself */
+  static canComment(reader: Commenter): boolean {
+    return Observation.isReporter(reader) && personalContentVisibility(reader) === 'VISIBLE';
+  }
+
+  /** a former reporter's comment stays readable, never to the admin impersonating them */
+  static memberCommentVisibility(
+    reader: Commenter,
+    comment: { exists: boolean },
+  ): PersonalContentVisibility | null {
+    if (personalContentVisibility(reader) === 'PRIVATE')
+      return Observation.isReporter(reader) ? 'PRIVATE' : null;
+
+    return comment.exists ? 'VISIBLE' : null;
+  }
+
+  private static isReporter(reader: Commenter): boolean {
     return reader.reporterIds.includes(reader.userId);
   }
 
-  attachMemberCommentScreenshots(command: {
-    userId: string;
-    reporterIds: readonly string[];
-    files: readonly { id: string }[];
-  }): void {
+  attachMemberCommentScreenshots(command: Commenter & { files: readonly { id: string }[] }): void {
     if (!Observation.canComment(command)) {
       throw new UserNotAllowedToAttachScreenshotsError();
     }
@@ -303,7 +325,7 @@ export class Observation {
     );
   }
 
-  writeMemberComment(command: { userId: string; reporterIds: readonly string[]; comment: string }): void {
+  writeMemberComment(command: Commenter & { comment: string }): void {
     if (!Observation.canComment(command)) {
       throw new UserNotAllowedToWriteCommentError();
     }

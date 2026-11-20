@@ -18,6 +18,7 @@ import { ApiParam, ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { FILE_EXTENSIONS, Multipart, RenameAttachmentDto, UseMultipartBody } from '../../framework/files';
+import type { Impersonation } from '../../shared/policies/personal-content.policies';
 import type { RoleEnum } from '../../shared/role.enum';
 import { AuthedUser, HasRole } from '../../simple-auth';
 
@@ -175,7 +176,7 @@ export class SummaryController {
     type: GeneratedSummaryAttachmentPublicUrlDto,
   })
   generateAttachmentPublicUrl(
-    @AuthedUser() user: { id: string; role: RoleEnum },
+    @AuthedUser() user: { id: string; impersonation: Impersonation | undefined; role: RoleEnum },
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
     @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
     @Param('fileId', ParseUUIDPipe) fileId: string,
@@ -192,11 +193,12 @@ export class SummaryController {
   @HasRole()
   @ZodResponse({ status: HttpStatus.OK, type: DetailedSummaryDto })
   detailSummary(
-    @AuthedUser() user: { id: string; role: RoleEnum },
+    @AuthedUser() user: { id: string; impersonation: Impersonation | undefined; role: RoleEnum },
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
     @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
   ): Promise<DetailedSummaryDto> {
     return this.summaries.detailSummary({
+      impersonation: user.impersonation,
       nominationFileId,
       role: user.role,
       sessionId,

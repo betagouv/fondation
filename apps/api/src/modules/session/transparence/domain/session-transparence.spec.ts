@@ -1273,7 +1273,7 @@ describe('SessionTransparence', () => {
   });
 
   describe('writeNominationFileMemberMemo', () => {
-    const member = { id: 'member-1', role: 'MEMBRE_DU_SIEGE' } as const;
+    const member = { id: 'member-1', impersonation: undefined, role: 'MEMBRE_DU_SIEGE' } as const;
     const session = () =>
       SessionTransparence.from({
         formation: 'SIEGE',
@@ -1341,6 +1341,17 @@ describe('SessionTransparence', () => {
           nominationFileId: 'nomination-file-id-1',
           reporterIds: [member.id],
           user: member,
+        }),
+      ).toThrow(MemberMemoNotAllowed);
+    });
+
+    it('refuses the notes written by the admin impersonating a member', () => {
+      expect(() =>
+        session().writeNominationFileMemberMemo({
+          memo: 'À relire',
+          nominationFileId: 'nomination-file-id-1',
+          reporterIds: ['member-2'],
+          user: { ...member, impersonation: { impersonatorId: 'admin-1' } },
         }),
       ).toThrow(MemberMemoNotAllowed);
     });

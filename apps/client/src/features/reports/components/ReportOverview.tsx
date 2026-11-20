@@ -8,6 +8,7 @@ import { AuditionAnnouncedBanner, AuditionScheduledBanner } from '@/shared/compo
 import { ArchiveBannerPortal } from '@/shared/components/banners';
 import type { ReportStatusEnum } from '@/shared/enums/report-status.enum';
 import { useAttachmentFailureToast } from '@/shared/hooks/useAttachmentFailureToast';
+import { AlertBanner } from '@/shared/ui/alert-banner';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { DetailsPageLayout } from '@/shared/ui/details';
 import { PageContentLayout } from '@/shared/ui/PageContentLayout';
@@ -104,6 +105,16 @@ export function ReportOverview({ id }: { id: string }) {
       <DetailsPageLayout
         alerts={
           <>
+            {retrievedReport.lockedReason === 'IMPERSONATION' && (
+              <AlertBanner
+                fullWidth
+                icon="fr-icon-lock-line"
+                message={
+                  <FormattedMessage defaultMessage="Rapport en lecture seule : il ne peut pas être modifié pendant une usurpation d'identité" />
+                }
+                tone="neutral"
+              />
+            )}
             {!isSg && isAuditionMissing(nominationFile) && <AuditionAnnouncedBanner fullWidth />}
             <AuditionScheduledBanner
               date={nominationFile.auditionDate}
@@ -173,6 +184,7 @@ export function ReportOverview({ id }: { id: string }) {
               isReadOnly={isReadOnly}
               onDelete={onAttachedFileDeleted}
               reportId={id}
+              visibility={retrievedReport.attachmentsVisibility}
             />
           )}
         </ReportAttachmentsCard>

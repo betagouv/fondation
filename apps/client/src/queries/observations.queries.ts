@@ -85,7 +85,7 @@ export function useObservationDetailsQuery(props: {
         },
       });
 
-      if (data?.memberComment) {
+      if (data?.memberComment?.visibility === 'VISIBLE') {
         data.memberComment.comment = withScreenshotUrls(
           data.memberComment.comment,
           data.memberComment.screenshots,

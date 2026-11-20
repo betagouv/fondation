@@ -221,6 +221,46 @@ test.describe('Summary E2E', () => {
     expect(unreachable.response?.status).toBe(404);
   });
 
+  test('should show the admin impersonating a reader that a summary is shared with them, not what it says', async ({
+    agent,
+    expect,
+    impersonate,
+    member,
+    sessions,
+  }) => {
+    const session = await sessions.createOne({
+      candidates: [
+        {
+          firstName: 'HONORINE',
+          lastName: 'VALROSE',
+          position: { function: seed.functions.PR, grade: 'G3', jurisdiction: seed.jurisdictions['CA  LYON'] },
+          targetPosition: { function: seed.functions.PR, grade: 'G3', jurisdiction: seed.jurisdictions['CA  REIMS'] },
+        },
+      ],
+      createdAt: '22/04/2026',
+    });
+    const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+    await agent.summaries.createSummary({ path, throwOnError: true });
+    await agent.summaries.writeSummary({ body: { content: '<p>Synthèse</p>' }, path, throwOnError: true });
+    await agent.summaries.updateSummaryReadersList({
+      body: { readerIds: [member['@user']!.id] },
+      path,
+      throwOnError: true,
+    });
+
+    const impersonator = await impersonate(member['@user']!);
+
+    const file = await impersonator.sessions.detailNominationFile({ path, throwOnError: true });
+    expect(file.data.summary).toEqual({
+      canRead: false,
+      canWrite: false,
+      id: path.nominationFileId,
+      visibility: 'PRIVATE',
+    });
+    const read = await impersonator.summaries.detailSummary({ path });
+    expect(read.response?.status).toBe(404);
+  });
+
   test('should offer as readers the members of the formation and the secretariat but no technical account, the president and the secretary general first', async ({
     admin,
     agent,

@@ -8,12 +8,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ArchivedSessionContext } from '@/shared/context/archived-session';
 import * as $api from '@api/sdk';
 import { authKeys } from '@queries/auth.queries';
+import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 import { MemberMemo } from './MemberMemo';
 
 const MEMBER = { id: 'member-1', firstName: 'Jean', lastName: 'Petit', role: 'MEMBRE_DU_SIEGE' };
 
-function renderMemo(options: { isArchived?: boolean; memo?: { value: string | null } | null } = {}) {
+function renderMemo(options: { isArchived?: boolean; memo?: SessionNominationFile['memo'] } = {}) {
   const client = new QueryClient({
     defaultOptions: { mutations: { retry: false }, queries: { retry: false } },
   });
@@ -34,7 +35,7 @@ function renderMemo(options: { isArchived?: boolean; memo?: { value: string | nu
   return render(
     <Wrapper>
       <MemberMemo
-        memo={options.memo === undefined ? { value: null } : options.memo}
+        memo={options.memo === undefined ? { value: null, visibility: 'VISIBLE' } : options.memo}
         nominationFileId="file-1"
         sessionId="session-1"
       />
@@ -71,10 +72,17 @@ describe('MemberMemo', () => {
   });
 
   it('shows the memo read-only on an archived session', () => {
-    renderMemo({ isArchived: true, memo: { value: 'Note figée' } });
+    renderMemo({ isArchived: true, memo: { value: 'Note figée', visibility: 'VISIBLE' } });
 
     expect(screen.getByText('Note figée')).toBeInTheDocument();
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Valider' })).not.toBeInTheDocument();
+  });
+
+  it('shows the admin impersonating the member that their notes are private', () => {
+    renderMemo({ memo: { visibility: 'PRIVATE' } });
+
+    expect(screen.getByText('Contenu privé')).toBeInTheDocument();
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
   });
 });

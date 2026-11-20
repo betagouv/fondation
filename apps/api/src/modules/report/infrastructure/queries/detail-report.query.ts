@@ -11,9 +11,13 @@ import { Files } from '../../../framework/files';
 import { TransparenceService } from '../../../session/transparence/infrastructure/transparence.service';
 import { prismaReportStateEnumToReportState } from '../../../shared/mappers/rapport-statut.mapper';
 import { prismaReportFileUsageEnumToReportFileUsage } from '../../../shared/mappers/report-file-usage.mapper';
+import {
+  type Impersonation,
+  PERSONAL_CONTENT_VISIBILITIES,
+} from '../../../shared/policies/personal-content.policies';
 import { ReportStateEnum } from '../../../shared/report-state.enum';
 import { isSecretariat, type RoleEnum } from '../../../shared/role.enum';
-import { ReportLockEnum, reportLock } from '../../domain/report-lock';
+import { ReportLockEnum, reportAttachmentsVisibility, reportLock } from '../../domain/report-lock';
 
 @Injectable()
 export class DetailReportQuery {
@@ -27,7 +31,7 @@ export class DetailReportQuery {
   @Transactional()
   async handle(query: {
     reportId: string;
-    user: { id: string; role: RoleEnum };
+    user: { id: string; impersonation: Impersonation | undefined; role: RoleEnum };
   }): Promise<DetailedReportDto> {
     const reporterId = isSecretariat(query.user.role) ? undefined : query.user.id;
 
@@ -91,9 +95,10 @@ export class DetailReportQuery {
         size: f.size,
         usage: f.usage,
       })),
+      attachmentsVisibility: reportAttachmentsVisibility(query.user),
       comment: report.comment,
       id: report.id,
-      lockedReason: reportLock({ isOpen: sessionState === 'OPEN' }),
+      lockedReason: reportLock({ isOpen: sessionState === 'OPEN' }, query.user),
       nominationFileId: report.nominationFileId,
       screenshots: screenshots.map((f) => ({
         id: f.id,
@@ -141,6 +146,10 @@ export class DetailedReportDto extends createZodDto(
       }),
     ),
 
+    attachmentsVisibility: z
+      .enum(PERSONAL_CONTENT_VISIBILITIES)
+      .nullable()
+      .meta({ description: 'null when the user reads the report without opening its attachments' }),
     attachments: z.array(
       z.object({
         usage: z.enum(['ATTACHMENT']),

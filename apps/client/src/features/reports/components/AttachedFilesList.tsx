@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import { FileList, FileListItem } from '@/shared/components/file-list';
+import { PrivateContentNotice } from '@/shared/components/private-content-notice';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { useAttachmentFailureToast } from '@/shared/hooks/useAttachmentFailureToast';
 import { useTab } from '@/shared/hooks/useTab';
@@ -19,6 +20,7 @@ export function AttachedFilesList(props: {
   isReadOnly?: boolean;
   onDelete: (fileId: string) => unknown;
   reportId: string;
+  visibility: 'PRIVATE' | 'VISIBLE' | null;
 }) {
   const { formatMessage } = useIntl();
   const notifyFailure = useAttachmentFailureToast();
@@ -75,20 +77,28 @@ export function AttachedFilesList(props: {
   };
 
   return (
-    <FileList>
-      {props.attachments.map((file) => (
-        <FileListItem
-          addedAt={file.addedAt}
-          addedBy={file.addedBy}
-          disabled={isCreatingUrl || isDownloading}
-          key={file.id}
-          name={file.name}
-          onDelete={props.isReadOnly ? undefined : () => onDelete(file)}
-          onDownload={() => onDownload(file)}
-          onOpen={() => onOpen(file)}
-          size={file.size}
-        />
-      ))}
-    </FileList>
+    <>
+      {props.visibility === 'PRIVATE' && <PrivateContentNotice />}
+      {props.visibility === null && (
+        <p className="fr-mb-0 text-(--text-mention-grey)">
+          <FormattedMessage defaultMessage="Seul le rapporteur peut ouvrir les pièces jointes de son rapport" />
+        </p>
+      )}
+      <FileList>
+        {props.attachments.map((file) => (
+          <FileListItem
+            addedAt={file.addedAt}
+            addedBy={file.addedBy}
+            disabled={props.visibility !== 'VISIBLE' || isCreatingUrl || isDownloading}
+            key={file.id}
+            name={file.name}
+            onDelete={props.isReadOnly ? undefined : () => onDelete(file)}
+            onDownload={() => onDownload(file)}
+            onOpen={() => onOpen(file)}
+            size={file.size}
+          />
+        ))}
+      </FileList>
+    </>
   );
 }

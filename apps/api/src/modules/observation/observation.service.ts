@@ -21,6 +21,7 @@ import type { StoredFile } from '../framework/files/multipart/multipart.types';
 import type { Pagination } from '../framework/pagination';
 import type { SessionStatus } from '../session/transparence/infrastructure/finders/session-statuses.finder';
 import { TransparenceService } from '../session/transparence/infrastructure/transparence.service';
+import type { Impersonation } from '../shared/policies/personal-content.policies';
 import type { RoleEnum } from '../shared/role.enum';
 
 import {
@@ -316,6 +317,7 @@ export class ObservationService {
   }
 
   getObservationDetails(query: {
+    impersonation: Impersonation | undefined;
     nominationFileId: string;
     observationId: string;
     role: RoleEnum;
@@ -327,6 +329,7 @@ export class ObservationService {
 
   async attachMemberCommentScreenshots(command: {
     files: readonly StoredFile[];
+    impersonation: Impersonation | undefined;
     nominationFileId: string;
     observationId: string;
     sessionId: string;
@@ -343,6 +346,7 @@ export class ObservationService {
       try {
         observation.attachMemberCommentScreenshots({
           files: command.files.map((f) => ({ id: f.id })),
+          impersonation: command.impersonation,
           reporterIds,
           userId: command.userId,
         });
@@ -377,6 +381,7 @@ export class ObservationService {
   @Transactional()
   async writeMemberComment(command: {
     comment: string;
+    impersonation: Impersonation | undefined;
     nominationFileId: string;
     observationId: string;
     sessionId: string;
@@ -392,6 +397,7 @@ export class ObservationService {
     try {
       observation.writeMemberComment({
         comment: command.comment,
+        impersonation: command.impersonation,
         reporterIds,
         userId: command.userId,
       });

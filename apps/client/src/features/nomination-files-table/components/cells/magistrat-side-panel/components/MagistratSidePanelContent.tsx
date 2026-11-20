@@ -71,6 +71,7 @@ export function MagistratSidePanelContent(props: {
         hasSummary={!!nominationFile.summary}
         nominationFileId={nominationFile.id}
         sessionId={sessionId}
+        visibility={nominationFile.summary?.visibility ?? null}
         withOpenLink
       />
       {isSgContext && (

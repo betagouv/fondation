@@ -92,6 +92,34 @@ describe('useWriteNominationFileMemberMemoMutation', () => {
     expect(listNominationFiles).toHaveBeenCalledTimes(2);
   });
 
+  it('reloads a file the side panel reads outside the loaded list once its memo is saved', async () => {
+    vi.spyOn($api.members, 'writeNominationFileMemberMemo').mockResolvedValue(
+      {} as Awaited<ReturnType<typeof $api.members.writeNominationFileMemberMemo>>,
+    );
+    const detailNominationFile = vi.fn().mockResolvedValue(null);
+    const client = new QueryClient({
+      defaultOptions: { mutations: { retry: false }, queries: { retry: false } },
+    });
+    const { result } = renderHook(
+      () => ({
+        detail: useQuery({
+          queryFn: detailNominationFile,
+          queryKey: sessionKeys.detailSessionNominationFile({
+            nominationFileId: memo.nominationFileId,
+            sessionId: memo.sessionId,
+          }),
+        }),
+        memo: useWriteNominationFileMemberMemoMutation(),
+      }),
+      { wrapper: (props) => <QueryClientProvider client={client}>{props.children}</QueryClientProvider> },
+    );
+    await waitFor(() => expect(result.current.detail.isSuccess).toBe(true));
+
+    await act(() => result.current.memo.mutateAsync(memo));
+
+    await waitFor(() => expect(detailNominationFile).toHaveBeenCalledTimes(2));
+  });
+
   it('keeps the list loaded once when the memo is saved', async () => {
     vi.spyOn($api.members, 'writeNominationFileMemberMemo').mockResolvedValue(
       {} as Awaited<ReturnType<typeof $api.members.writeNominationFileMemberMemo>>,
