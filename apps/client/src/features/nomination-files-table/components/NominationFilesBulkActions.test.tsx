@@ -46,7 +46,7 @@ const CAMILLE = { firstName: 'Camille', id: 'member-1', lastName: 'COMMUN' };
 const SOPHIE = { firstName: 'Sophie', id: 'member-2', lastName: 'PARQUET' };
 
 function file(props: {
-  canRecuseMembers?: boolean;
+  canUpdate?: boolean;
   id: string;
   nomMagistrat: string;
   nonAffectableMemberIds?: readonly string[];
@@ -57,7 +57,7 @@ function file(props: {
   reporters?: readonly { id: string }[];
 }): SessionNominationFile {
   return {
-    canRecuseMembers: props.canRecuseMembers ?? true,
+    canUpdate: props.canUpdate ?? true,
     content: {
       jurisdictions: { current: null, targeted: null },
       nomMagistrat: props.nomMagistrat,
@@ -265,7 +265,7 @@ describe('NominationFilesBulkActions', () => {
   it('should leave out the recusal when the API keeps it from one of the selected files', () => {
     renderActions([
       file({ id: 'file-1', nomMagistrat: 'BOURDIEU Pierre' }),
-      file({ canRecuseMembers: false, id: 'file-2', nomMagistrat: 'HARENDT Anna' }),
+      file({ canUpdate: false, id: 'file-2', nomMagistrat: 'HARENDT Anna' }),
     ]);
 
     expect(screen.queryByRole('button', { name: /Membres déportés/ })).toBeNull();

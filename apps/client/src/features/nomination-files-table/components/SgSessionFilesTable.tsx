@@ -15,7 +15,6 @@ import { NominationFileLockEnumMessages } from '@/shared/enums/nomination-file-l
 import { rowCell, useSelectionColumn } from '@/shared/ui/data-table';
 import { SIDE_PANEL_DOSSIER_PARAM } from '@/utils/route-path.utils';
 import {
-  isUpdatable,
   useListNominationFilesAsExcelMutation,
   useNominationFilesStatusCountsQuery,
   type SessionNominationFile,
@@ -163,7 +162,7 @@ function SgSessionFilesTableInner(
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const clearSelection = useCallback(() => setRowSelection({}), []);
 
-  const canSelectRow = useCallback((row: Row<SessionNominationFile>) => isUpdatable(row.original), []);
+  const canSelectRow = useCallback((row: Row<SessionNominationFile>) => row.original.canUpdate, []);
 
   const lockedLabel = useCallback(
     (row: Row<SessionNominationFile>) => {
@@ -190,9 +189,7 @@ function SgSessionFilesTableInner(
 
   useEffect(() => {
     setRowSelection((selection) => {
-      const frozenFiles = filesTable.nominationFiles.filter(
-        (file) => selection[file.id] && !isUpdatable(file),
-      );
+      const frozenFiles = filesTable.nominationFiles.filter((file) => selection[file.id] && !file.canUpdate);
       if (!frozenFiles.length) return selection;
 
       const next = { ...selection };

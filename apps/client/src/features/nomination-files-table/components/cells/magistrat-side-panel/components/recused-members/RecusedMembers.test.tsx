@@ -22,7 +22,7 @@ const MEMBER = { firstName: 'Jean', id: 'member', lastName: 'Albert' };
 
 function renderRecusedMembers(
   recusedMembers: RecusedMembersDto['recusedMembers'],
-  file: Partial<Pick<SessionNominationFile, 'canRecuseMembers' | 'nonRecusableMembers'>> = {},
+  file: Partial<Pick<SessionNominationFile, 'canUpdate' | 'nonRecusableMembers'>> = {},
 ) {
   const client = new QueryClient({
     defaultOptions: { mutations: { retry: false }, queries: { retry: false } },
@@ -52,7 +52,7 @@ function renderRecusedMembers(
         >
           <RecusedMembers
             nominationFile={makeSessionNominationFile({
-              canRecuseMembers: true,
+              canUpdate: true,
               nonRecusableMembers: [],
               ...file,
               recusedMembers: members,
@@ -146,7 +146,7 @@ describe('RecusedMembers', () => {
   });
 
   it('no longer changes the recused members once the API locks them', () => {
-    renderRecusedMembers([MEMBER], { canRecuseMembers: false });
+    renderRecusedMembers([MEMBER], { canUpdate: false });
 
     expect(screen.getByRole('button', { name: 'Retirer le déport de Jean ALBERT' })).toBeDisabled();
     expect(field()).toBeDisabled();

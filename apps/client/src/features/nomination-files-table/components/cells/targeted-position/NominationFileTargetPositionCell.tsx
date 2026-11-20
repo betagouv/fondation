@@ -2,7 +2,6 @@ import { colors } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { useIntl } from 'react-intl';
 
-import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { GradeAndPosition } from '@/shared/components/GradeAndPosition';
 import { Tooltip } from '@/shared/ui/tooltip';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
@@ -12,11 +11,10 @@ import { useNominationFileTargetPositionModal } from './NominationFileTargetPosi
 
 const alertColor = colors.decisions.text.default.warning.default;
 
-function useMissingJurisdictionSheet(nominationFile: SessionNominationFile): boolean {
-  const isSg = useIsSg();
+function missesJurisdictionSheet(nominationFile: SessionNominationFile): boolean {
   const { isAlertHidden, posteCible } = nominationFile.content;
 
-  if (!isSg || isAlertHidden || nominationFile.hasJurisdictionSheet) return false;
+  if (!nominationFile.canUpdate || isAlertHidden || nominationFile.hasJurisdictionSheet) return false;
 
   return requiresJurisdictionSheet(posteCible);
 }
@@ -24,7 +22,7 @@ function useMissingJurisdictionSheet(nominationFile: SessionNominationFile): boo
 export function NominationFileTargetPositionCell(props: { nominationFile: SessionNominationFile }) {
   const { formatMessage } = useIntl();
   const { open } = useNominationFileTargetPositionModal();
-  const hasAlert = useMissingJurisdictionSheet(props.nominationFile);
+  const hasAlert = missesJurisdictionSheet(props.nominationFile);
 
   const label = (
     <span className="leading-6">

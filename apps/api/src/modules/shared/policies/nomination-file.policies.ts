@@ -26,7 +26,7 @@ export function canScheduleAudition(
   return !session.isArchived && NominationFileOutcome.allowsAudition(file.outcome);
 }
 
-/** recusing members as adding, renaming or detaching attachments */
+/** any change the secretariat makes to a dossier, from recusing members to managing its attachments */
 export function canUpdateNominationFile(
   file: { lockedReason: NominationFileLockEnum | null },
   user: { role: RoleEnum },

@@ -18,7 +18,6 @@ import type { FormationEnum } from '@/shared/enums/formation.enum';
 import { rowCell } from '@/shared/ui/data-table';
 import { TotalBadge } from '@/shared/ui/total-badge';
 import {
-  isUpdatable,
   useListMissingEvaluationsAsExcelMutation,
   useNominationFilesStatusCountsQuery,
   type SessionNominationFile,
@@ -49,7 +48,7 @@ const reportersCell = rowCell<SessionNominationFile>((file) => (
 const commentCell = rowCell<SessionNominationFile>((file) => (
   <MissingEvaluationCommentCell
     comment={file.missingEvaluationComment}
-    disabled={!isUpdatable(file)}
+    disabled={!file.canUpdate}
     magistrat={file.content.nomMagistrat}
     nominationFileId={file.id}
   />
@@ -61,7 +60,7 @@ function EvaluationStatusCell(props: CellContext<SessionNominationFile, unknown>
 
   return (
     <MissingEvaluationDoneButton
-      disabled={!isUpdatable(file)}
+      disabled={!file.canUpdate}
       magistrat={file.content.nomMagistrat}
       nominationFileId={file.id}
       sessionId={sessionId}

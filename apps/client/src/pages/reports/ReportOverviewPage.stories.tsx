@@ -42,8 +42,8 @@ const NOMINATION_FILE: DetailedNominationFileDto = {
   auditionRequired: true,
   auditionRequirement: 'POSITION',
   auditionTime: { hours: 14, minutes: 30, seconds: 0 },
-  canRecuseMembers: false,
   canScheduleAudition: true,
+  canUpdate: false,
   comment: null,
   commentLastChange: null,
   content: {

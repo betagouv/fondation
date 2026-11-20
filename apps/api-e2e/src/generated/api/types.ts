@@ -425,7 +425,10 @@ export type PaginatedNominationFiles = {
             } | null;
         } | null;
         canScheduleAudition: boolean;
-        canRecuseMembers: boolean;
+        /**
+         * recusing members, defining the outcome, affecting reporters and priorities, updating the missing evaluation or the attachments
+         */
+        canUpdate: boolean;
         auditionDate: {
             year: number;
             month: number;
@@ -778,7 +781,10 @@ export type DetailedNominationFileDto = {
         } | null;
     } | null;
     canScheduleAudition: boolean;
-    canRecuseMembers: boolean;
+    /**
+     * recusing members, defining the outcome, affecting reporters and priorities, updating the missing evaluation or the attachments
+     */
+    canUpdate: boolean;
     auditionDate: {
         year: number;
         month: number;

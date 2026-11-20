@@ -280,7 +280,7 @@ export class ListNominationFilesQuery {
 
       return {
         ...audition,
-        canRecuseMembers: nominationFilesPolicies.canUpdateNominationFile(x, query.user),
+        canUpdate: nominationFilesPolicies.canUpdateNominationFile(x, query.user),
         canScheduleAudition: nominationFilesPolicies.canScheduleAudition(x, { isArchived }),
         comment: x.comment,
         commentLastChange: changeOfComment
@@ -536,7 +536,10 @@ const NominationFileAffectationItemSchema = z.object({
   comment: z.string().nullable(),
   commentLastChange: commentLastChangeSchema.nullable(),
   canScheduleAudition: z.boolean(),
-  canRecuseMembers: z.boolean(),
+  canUpdate: z.boolean().meta({
+    description:
+      'recusing members, defining the outcome, affecting reporters and priorities, updating the missing evaluation or the attachments',
+  }),
   auditionDate: dateOnlyJsonSchema.nullable(),
   auditionRequired: z.boolean(),
   auditionRequirement: z.enum(AUDITION_REQUIREMENTS).nullable(),

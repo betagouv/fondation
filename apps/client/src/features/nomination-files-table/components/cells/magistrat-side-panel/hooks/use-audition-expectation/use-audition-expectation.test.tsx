@@ -88,7 +88,7 @@ describe('useAuditionExpectation', () => {
       renderExpectation({
         ...AUDITIONED,
         canScheduleAudition: false,
-        content: { lockedReason: 'REPORTED' },
+        canUpdate: false,
         reporters: REPORTERS.slice(0, 1),
       }),
     ).toEqual({ auditionAnnounced: false, auditionMissing: false, labels: [], reportersMissing: false });

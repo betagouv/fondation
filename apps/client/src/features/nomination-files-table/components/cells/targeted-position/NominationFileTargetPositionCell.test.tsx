@@ -9,16 +9,13 @@ import {
 
 import { NominationFileTargetPositionCell } from './NominationFileTargetPositionCell';
 
-const isSg = vi.fn();
 const open = vi.fn();
-
-vi.mock('@/features/auth/hooks/roles.hook', () => ({ useIsSg: () => isSg() }));
 
 vi.mock('./NominationFileTargetPositionContext', () => ({
   useNominationFileTargetPositionModal: () => ({ open }),
 }));
 
-const ALERTED_POSITION = { content: { posteCible: 'Procureur de la République TJ GRASSE' } };
+const ALERTED_POSITION = { canUpdate: true, content: { posteCible: 'Procureur de la République TJ GRASSE' } };
 
 function renderCell(overrides: NominationFileOverrides) {
   return render(
@@ -33,7 +30,6 @@ const positionButton = () => screen.queryByRole('button', { name: /Procureur de 
 
 beforeEach(() => {
   vi.clearAllMocks();
-  isSg.mockReturnValue(true);
 });
 
 describe('NominationFileTargetPositionCell', () => {
@@ -61,9 +57,8 @@ describe('NominationFileTargetPositionCell', () => {
     expect(positionButton()).not.toBeInTheDocument();
   });
 
-  it('never asks outside of the secretariat général', () => {
-    isSg.mockReturnValue(false);
-    renderCell(ALERTED_POSITION);
+  it('never asks when the dossier cannot be updated, figé or seen by a member', () => {
+    renderCell({ ...ALERTED_POSITION, canUpdate: false });
 
     expect(positionButton()).not.toBeInTheDocument();
   });
