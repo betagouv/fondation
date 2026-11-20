@@ -851,15 +851,20 @@ export function useNominationFilesAlertMutation(input: { sessionId: string }) {
       $api.sessions.hideNominationFileAlert({
         path: { nominationFileId: mutation.nominationFileId, sessionId: input.sessionId },
       }),
-    onSuccess: (_, { nominationFileId }) =>
+    onSettled: (_data, error, { nominationFileId }) => {
+      const queryKey = sessionKeys.listSessionNominationFiles({ sessionId: input.sessionId });
+      // refused, most likely because the dossier was figé meanwhile: let the listing say it
+      if (error) return queryClient.invalidateQueries({ queryKey });
+
       queryClient.setQueriesData(
-        { queryKey: sessionKeys.listSessionNominationFiles({ sessionId: input.sessionId }) },
+        { queryKey },
         mapCachedNominationFiles((item) =>
           item.id === nominationFileId
             ? { ...item, content: { ...item.content, isAlertHidden: true } }
             : item,
         ),
-      ),
+      );
+    },
   });
 }
 
