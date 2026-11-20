@@ -11,10 +11,13 @@ import {
 import { NominationFileTargetPositionCell } from './NominationFileTargetPositionCell';
 
 const open = vi.fn();
+const isSg = vi.fn();
 
 vi.mock('./NominationFileTargetPositionContext', () => ({
   useNominationFileTargetPositionModal: () => ({ open }),
 }));
+
+vi.mock('@/features/auth/hooks/roles.hook', () => ({ useIsSgNavigation: () => isSg() }));
 
 const POSITION = { content: { posteCible: 'Procureur de la République TJ GRASSE' } };
 
@@ -31,6 +34,7 @@ const positionButton = () => screen.queryByRole('button', { name: /Procureur de 
 
 beforeEach(() => {
   vi.clearAllMocks();
+  isSg.mockReturnValue(true);
 });
 
 describe('NominationFileTargetPositionCell', () => {
@@ -48,5 +52,12 @@ describe('NominationFileTargetPositionCell', () => {
 
     expect(positionButton()).not.toBeInTheDocument();
     expect(screen.getByText(/Procureur de la République TJ GRASSE/)).toBeInTheDocument();
+  });
+
+  it('shows the plain position in the member space, even to an admin the API asks for the sheet', () => {
+    isSg.mockReturnValue(false);
+    renderCell({ ...POSITION, jurisdictionSheetRequired: true });
+
+    expect(positionButton()).not.toBeInTheDocument();
   });
 });
