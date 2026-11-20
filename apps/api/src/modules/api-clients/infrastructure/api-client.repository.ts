@@ -11,6 +11,8 @@ const CLIENT_SELECT = {
   allowedIps: { select: { ip: true } },
   authLimitPerMinute: true,
   id: true,
+  previousSecretExpiresAt: true,
+  previousSecretHash: true,
   revokedAt: true,
   scopes: { select: { limitPerMinute: true, scope: true } },
   secretHash: true,
@@ -109,11 +111,43 @@ export class ApiClientRepository {
     });
   }
 
+  /** @returns whether the secret was replaced: not when another rotation replaced it in the meantime */
+  async saveRotatedSecret(command: {
+    clientId: string;
+    previousSecret: { expiresAt: Date; hash: string };
+    secretHash: string;
+  }): Promise<boolean> {
+    const { count } = await this.db.tx.apiClient.updateMany({
+      where: { id: command.clientId, secretHash: command.previousSecret.hash },
+      data: {
+        previousSecretExpiresAt: command.previousSecret.expiresAt,
+        previousSecretHash: command.previousSecret.hash,
+        secretHash: command.secretHash,
+      },
+    });
+
+    return count === 1;
+  }
+
+  /** The tokens do not tell which secret they were given for: all those of the client go with the replaced secret */
+  @Transactional(Propagation.Mandatory)
+  async endSecretRotation(clientId: string): Promise<void> {
+    await this.db.tx.apiClient.update({
+      where: { id: clientId },
+      data: { previousSecretExpiresAt: null, previousSecretHash: null },
+    });
+    await this.db.tx.apiAccessToken.deleteMany({ where: { clientId } });
+  }
+
   private static toDomain(client: Prisma.ApiClientGetPayload<{ select: typeof CLIENT_SELECT }>): ApiClient {
     return new ApiClient({
       allowedIps: client.allowedIps.map(({ ip }) => ip),
       authLimitPerMinute: client.authLimitPerMinute,
       id: client.id,
+      previousSecret:
+        client.previousSecretHash && client.previousSecretExpiresAt
+          ? { expiresAt: client.previousSecretExpiresAt, hash: client.previousSecretHash }
+          : null,
       revokedAt: client.revokedAt,
       scopes: client.scopes,
       secretHash: client.secretHash,

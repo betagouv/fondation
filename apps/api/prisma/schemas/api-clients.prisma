@@ -1,15 +1,19 @@
 /// A partner system that calls the public API, such as the website of the CSM
 model ApiClient {
   /// How many tokens it may ask for in a minute
-  authLimitPerMinute Int       @map("auth_limit_per_minute")
-  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  authLimitPerMinute      Int       @map("auth_limit_per_minute")
+  createdAt               DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
   /// The `client_id` handed to the partner
-  id                 String    @id @db.Uuid
-  name               String    @db.VarChar
+  id                      String    @id @db.Uuid
+  name                    String    @db.VarChar
+  /// Until when the secret replaced by the last rotation is accepted, so that the partner switches without being cut off.
+  /// A check constraint keeps both columns set or empty together
+  previousSecretExpiresAt DateTime? @map("previous_secret_expires_at") @db.Timestamp(6)
+  previousSecretHash      String?   @map("previous_secret_hash") @db.VarChar
   /// Its tokens stop working at once
-  revokedAt          DateTime? @map("revoked_at") @db.Timestamp(6)
+  revokedAt               DateTime? @map("revoked_at") @db.Timestamp(6)
   /// SHA-256 of a random secret, shown once when the client is created
-  secretHash         String    @map("secret_hash") @db.VarChar
+  secretHash              String    @map("secret_hash") @db.VarChar
 
   accessTokens ApiAccessToken[]
   allowedIps   ApiClientAllowedIp[]

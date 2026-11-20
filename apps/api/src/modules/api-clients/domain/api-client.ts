@@ -30,6 +30,22 @@ export class ApiClientForbidden extends Error {
   }
 }
 
+/** How many days the replaced secret stays valid: unless told otherwise, and at most */
+export const ROTATION_DAYS = { default: 7, max: 30 } as const;
+
+const NOT_ROTATABLE = {
+  days: `the replaced secret stays valid between 1 and ${ROTATION_DAYS.max} days`,
+  revoked: 'the API client is revoked',
+  rotating:
+    'a rotation is still running, and replacing the secret again would cut off a partner still on the replaced one: end the rotation first',
+} as const;
+
+export class ApiClientNotRotatable extends Error {
+  constructor(readonly reason: keyof typeof NOT_ROTATABLE) {
+    super(`The secret cannot be replaced: ${NOT_ROTATABLE[reason]}`);
+  }
+}
+
 export type IssuedAccessToken = { expiresAt: Date; expiresIn: number; hash: string; token: string };
 
 /**
@@ -40,7 +56,6 @@ export type IssuedAccessToken = { expiresAt: Date; expiresIn: number; hash: stri
  */
 export class ApiClient {
   static readonly TOKEN_LIFETIME_MS = 15 * time.MINUTES;
-
   readonly authLimitPerMinute: number;
   readonly id: string;
 
@@ -49,6 +64,8 @@ export class ApiClient {
       allowedIps: readonly string[];
       authLimitPerMinute: number;
       id: string;
+      /** The secret replaced by the last rotation, still accepted until the partner has switched */
+      previousSecret: { expiresAt: Date; hash: string } | null;
       revokedAt: Date | null;
       scopes: readonly { limitPerMinute: number; scope: string }[];
       secretHash: string;
@@ -68,13 +85,17 @@ export class ApiClient {
     return createHash('sha256').update(secretOrToken).digest('hex');
   }
 
+  private static sameHash(given: string, expected: string): boolean {
+    return given.length === expected.length && timingSafeEqual(Buffer.from(given), Buffer.from(expected));
+  }
+
   /** Exchanges the secret for a token: the secret is checked before the IP, so that an IP never learns which identifiers exist */
   authenticate(command: { ip: string; now: Date; secret: string }): IssuedAccessToken {
-    const given = Buffer.from(ApiClient.hash(command.secret));
-    const expected = Buffer.from(this.props.secretHash);
-    if (this.props.revokedAt || given.length !== expected.length || !timingSafeEqual(given, expected)) {
-      throw new ApiClientUnauthenticated();
-    }
+    const { previousSecret, secretHash } = this.props;
+    const given = ApiClient.hash(command.secret);
+    const accepted = this.isRotating(command.now) ? [secretHash, previousSecret!.hash] : [secretHash];
+    const isKnown = accepted.some((hash) => ApiClient.sameHash(given, hash));
+    if (this.props.revokedAt || !isKnown) throw new ApiClientUnauthenticated();
     this.assertAllowedIp(command.ip);
 
     const token = randomBytes(32).toString('base64url');
@@ -85,6 +106,40 @@ export class ApiClient {
       hash: ApiClient.hash(token),
       token,
     };
+  }
+
+  /**
+   * Replaces the secret, the one it replaces staying valid for some days, until the partner has switched: the website
+   * is never cut off.
+   *
+   * Not while a rotation lasts: the replaced secret may be the only one the partner holds yet, and replacing again
+   * would refuse it at once
+   */
+  rotateSecret(command: { days?: number; now: Date }): {
+    previousSecret: { expiresAt: Date; hash: string };
+    secret: string;
+    secretHash: string;
+  } {
+    const days = command.days ?? ROTATION_DAYS.default;
+    if (this.props.revokedAt) throw new ApiClientNotRotatable('revoked');
+    if (this.isRotating(command.now)) throw new ApiClientNotRotatable('rotating');
+    if (days < 1 || days > ROTATION_DAYS.max) throw new ApiClientNotRotatable('days');
+    const { hash: secretHash, secret } = ApiClient.generateSecret();
+
+    return {
+      previousSecret: {
+        expiresAt: new Date(command.now.getTime() + days * time.DAYS),
+        hash: this.props.secretHash,
+      },
+      secret,
+      secretHash,
+    };
+  }
+
+  private isRotating(now: Date): boolean {
+    const { previousSecret } = this.props;
+
+    return previousSecret !== null && now < previousSecret.expiresAt;
   }
 
   /**
