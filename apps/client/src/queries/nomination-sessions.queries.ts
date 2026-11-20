@@ -478,10 +478,15 @@ export const useAddNominationFileAttachmentsMutation = () => {
             : item,
         ),
       ),
-    onSettled: (_data, _error, { nominationFileId, sessionId }) =>
-      queryClient.invalidateQueries({
-        queryKey: sessionKeys.listNominationFileAttachments({ nominationFileId, sessionId }),
-      }),
+    onSettled: (_data, error, { nominationFileId, sessionId }) =>
+      Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: sessionKeys.listNominationFileAttachments({ nominationFileId, sessionId }),
+        }),
+        // refused, most likely because the dossier was figé meanwhile: let the listing say it
+        error &&
+          queryClient.invalidateQueries({ queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) }),
+      ]),
   });
 };
 

@@ -49,6 +49,15 @@ function renderModal() {
   return { ...view, onClose };
 }
 
+function conflict(): Error {
+  try {
+    httpAssert(new Response(null, { status: 409 }));
+  } catch (refusal) {
+    return refusal as Error;
+  }
+  throw new Error('a 409 always throws');
+}
+
 async function importFile(container: HTMLElement, user: ReturnType<typeof userEvent.setup>) {
   const input = container.querySelector('input[type="file"]') as HTMLInputElement;
   await user.upload(input, new File(['data'], 'fiche.pdf', { type: 'application/pdf' }));
@@ -116,19 +125,25 @@ describe('NominationFileTargetPositionModal', () => {
     expect(hideAlert).toHaveBeenCalledWith({ nominationFileId: 'nomination-file-1' }, expect.anything());
   });
 
-  it('tells that the dossier was figé meanwhile and leaves only the way out', () => {
-    try {
-      httpAssert(new Response(null, { status: 409 }));
-    } catch (refusal) {
-      hideAlertError = refusal as Error;
-    }
+  it('tells that the dossier was figé meanwhile when ignoring the alert is refused', () => {
+    hideAlertError = conflict();
     const { onClose } = renderModal();
 
-    expect(
-      screen.getByText('Le dossier a été figé entre-temps : son alerte ne peut plus être ignorée.'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('Le dossier a été figé entre-temps')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Ignorer cette alerte' })).toBeDisabled();
     expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('tells that the dossier was figé meanwhile when the import is refused, without asking to retry', async () => {
+    const user = userEvent.setup();
+    addAttachment.mockRejectedValue(conflict());
+    const { container } = renderModal();
+
+    await importFile(container, user);
+
+    expect(await screen.findByText('Le dossier a été figé entre-temps')).toBeInTheDocument();
+    expect(screen.queryByText('Merci de réessayer.')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Ignorer cette alerte' })).toBeDisabled();
   });
 
   it('keeps the alert when the import fails', async () => {
