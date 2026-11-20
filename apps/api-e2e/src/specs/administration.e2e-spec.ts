@@ -207,6 +207,47 @@ test.describe('Administration', () => {
     expect(changes).toEqual([{ change: 'GRANTED' }]);
   });
 
+  test('should record the technical account once when it is marked twice at the same time', async ({
+    agent,
+    expect,
+    sql,
+    teamMember,
+  }) => {
+    const path = { userId: agent['@user']!.id };
+
+    const responses = await Promise.all([
+      teamMember.administration.markTechnicalAccount({ path }),
+      teamMember.administration.markTechnicalAccount({ path }),
+    ]);
+    expect(responses.map(({ response }) => response?.status)).toEqual([204, 204]);
+
+    const changes = await sql`
+      select is_technical as "isTechnical" from identity_and_access_context.technical_account_changes
+      where user_id = ${path.userId}`;
+    expect(changes).toEqual([{ isTechnical: true }]);
+  });
+
+  test('should record the deactivation once when it is sent twice at the same time', async ({
+    admin,
+    expect,
+    registerUser,
+    sql,
+  }) => {
+    const user = await registerUser('MEMBRE_COMMUN');
+    const path = { userId: user.id };
+
+    const responses = await Promise.all([
+      admin.administration.deactivate({ path }),
+      admin.administration.deactivate({ path }),
+    ]);
+    expect(responses.map(({ response }) => response?.status)).toEqual([204, 204]);
+
+    const changes = await sql`
+      select status from identity_and_access_context.user_status_changes
+      where user_id = ${user.id} order by changed_at`;
+    expect(changes).toEqual([{ status: 'ACTIVE' }, { status: 'DEACTIVATED' }]);
+  });
+
   test('should refuse the role of a member to an admin until their admin right is taken back', async ({
     admin,
     agent,
