@@ -2,29 +2,19 @@ import { colors } from '@codegouvfr/react-dsfr';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { useIntl } from 'react-intl';
 
-import { useIsSg } from '@/features/auth/hooks/roles.hook';
+import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { GradeAndPosition } from '@/shared/components/GradeAndPosition';
 import { Tooltip } from '@/shared/ui/tooltip';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
-import { requiresJurisdictionSheet } from './jurisdiction-sheet-rule';
 import { useNominationFileTargetPositionModal } from './NominationFileTargetPositionContext';
 
 const alertColor = colors.decisions.text.default.warning.default;
 
-function useMissingJurisdictionSheet(nominationFile: SessionNominationFile): boolean {
-  const isSg = useIsSg();
-  const { isAlertHidden, posteCible } = nominationFile.content;
-
-  if (!isSg || isAlertHidden || nominationFile.hasJurisdictionSheet) return false;
-
-  return requiresJurisdictionSheet(posteCible);
-}
-
 export function NominationFileTargetPositionCell(props: { nominationFile: SessionNominationFile }) {
   const { formatMessage } = useIntl();
   const { open } = useNominationFileTargetPositionModal();
-  const hasAlert = useMissingJurisdictionSheet(props.nominationFile);
+  const isSg = useIsSgNavigation();
 
   const label = (
     <span className="leading-6">
@@ -35,7 +25,7 @@ export function NominationFileTargetPositionCell(props: { nominationFile: Sessio
     </span>
   );
 
-  if (!hasAlert) return label;
+  if (!isSg || !props.nominationFile.jurisdictionSheetRequired) return label;
 
   return (
     <Tooltip label={formatMessage({ defaultMessage: 'Fiche de juridiction requise' })}>

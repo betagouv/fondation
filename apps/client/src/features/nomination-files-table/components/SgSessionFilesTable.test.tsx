@@ -28,6 +28,7 @@ function listFiles(lockedReason: SessionNominationFileLockedReason) {
     data: {
       items: [
         makeSessionNominationFile({
+          canUpdate: lockedReason === null,
           content: { lockedReason, nomMagistrat: 'BOURDIEU Pierre' },
           id: 'file-1',
         }),

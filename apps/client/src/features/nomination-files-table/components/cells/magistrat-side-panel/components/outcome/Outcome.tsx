@@ -7,7 +7,6 @@ import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { useNominationFilesTable } from '@/features/nomination-files-table/context/files-table.context';
 import { OutcomeBadge } from '@/shared/components/outcome-badge';
 import {
-  isUpdatable,
   useDefineNominationFileOutcomeMutation,
   type SessionNominationFile,
 } from '@queries/nomination-sessions.queries';
@@ -20,7 +19,7 @@ export function Outcome(props: { nominationFile: SessionNominationFile }) {
   const { recusedMembers } = props.nominationFile;
   const { outcome } = props.nominationFile.content;
 
-  const editable = isSg && isUpdatable(props.nominationFile);
+  const editable = isSg && props.nominationFile.canUpdate;
 
   return (
     <div className="flex flex-col gap-2">

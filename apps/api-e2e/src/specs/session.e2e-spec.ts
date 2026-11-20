@@ -116,7 +116,7 @@ test.describe('Session E2E', () => {
         auditionRequired: true,
         auditionRequirement: 'POSITION',
         auditionTime: null,
-        canRecuseMembers: true,
+        canUpdate: true,
         canScheduleAudition: true,
         comment: null,
         commentLastChange: null,
@@ -131,7 +131,6 @@ test.describe('Session E2E', () => {
           historique:
             '- S RODEZ (2ème grade),Dt 08/07/2003. VPR NICE (1er grade),  17/12/2010 (Ins.03/01/2011). - PR MONTLUCON 06/08/2013 (Ins.06/09/2013). - SGSG RIOM 28/10/2016 (Ins.28/10/2016). - PR NARBONNE 14/08/2020 (Ins.01/09/2020).',
           informationCarrière: null,
-          isAlertHidden: false,
           jurisdictions: {
             current: null,
             targeted: { id: 'TJ  GRASSE', label: 'Tribunal judiciaire de Grasse' },
@@ -149,9 +148,9 @@ test.describe('Session E2E', () => {
         },
         expectedReportersCount: null,
         hasAttachment: false,
-        hasJurisdictionSheet: false,
         id: expect.any(String),
         isArchived: false,
+        jurisdictionSheetRequired: true,
         memo: null,
         missingEvaluation: false,
         missingEvaluationComment: null,
@@ -175,7 +174,7 @@ test.describe('Session E2E', () => {
         auditionRequired: true,
         auditionRequirement: 'POSITION',
         auditionTime: null,
-        canRecuseMembers: true,
+        canUpdate: true,
         canScheduleAudition: true,
         comment: null,
         commentLastChange: null,
@@ -190,7 +189,6 @@ test.describe('Session E2E', () => {
           historique:
             'SM 10 mois. - DESS politiq et gestion de la sécurité. -Chev ONM, 15/11/2018.-  Auditric Just 28 janvier 1999, PF 1er février 1999. - S Chartres, (2ème grade), 31 juillet 2001, (Installat. 31 août 2001). -  MACJ (2ème grade),  à/c 01/09/2004, Dt 13/08/2004. -  VPRP SAINT DENIS DE LA REUNION (1er grade),  27/08/2008 (Ins.01/09/2008).. - PR GAP 21/06/2013 (Ins.02/09/2013). - PR BEZIERS 17/07/2019 (Ins.02/09/2019).',
           informationCarrière: null,
-          isAlertHidden: false,
           jurisdictions: {
             current: null,
             targeted: { id: 'TJ  TOULON', label: 'Tribunal judiciaire de Toulon' },
@@ -208,9 +206,9 @@ test.describe('Session E2E', () => {
         },
         expectedReportersCount: null,
         hasAttachment: false,
-        hasJurisdictionSheet: false,
         id: expect.any(String),
         isArchived: false,
+        jurisdictionSheetRequired: true,
         memo: null,
         missingEvaluation: false,
         missingEvaluationComment: null,
@@ -296,7 +294,7 @@ test.describe('Session E2E', () => {
       const filesAfter = await agent.sessions.listNominationFiles({ path: { sessionId } });
       const updatedFile = filesAfter.data!.items.find((file) => file.id === nominationFileId);
       expect(updatedFile?.hasAttachment).toBe(true);
-      expect(updatedFile?.hasJurisdictionSheet).toBe(true);
+      expect(updatedFile?.jurisdictionSheetRequired).toBe(false);
     });
 
     test('should show a readable page for an attachment the storage lost', async ({ admin, agent, expect, sql }) => {
@@ -353,7 +351,7 @@ test.describe('Session E2E', () => {
       const filesAfter = await agent.sessions.listNominationFiles({ path: { sessionId } });
       const updatedFile = filesAfter.data!.items.find((file) => file.id === nominationFileId);
       expect(updatedFile?.hasAttachment).toBe(true);
-      expect(updatedFile?.hasJurisdictionSheet).toBe(false);
+      expect(updatedFile?.jurisdictionSheetRequired).toBe(true);
     });
 
     test('should rename a session attachment, keeping its extension, behind a new link', async ({

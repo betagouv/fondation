@@ -114,10 +114,6 @@ export type SessionNominationFile = PaginatedNominationFiles['items'][number];
 export type SessionNominationFileStatus = SessionNominationFile['content']['status'];
 export type SessionNominationFileLockedReason = SessionNominationFile['content']['lockedReason'];
 
-export function isUpdatable(file: SessionNominationFile): boolean {
-  return file.content.lockedReason === null;
-}
-
 const SESSION_NOMINATION_FILES_PAGE_SIZE = 100;
 
 /** @warning must stay stable, tanstack only reuses the selection when the function identity does not change */
@@ -478,14 +474,22 @@ export const useAddNominationFileAttachmentsMutation = () => {
         { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
         mapCachedNominationFiles((item) =>
           item.id === nominationFileId
-            ? { ...item, hasJurisdictionSheet: item.hasJurisdictionSheet || type === 'FICHE_DE_JURIDICTION' }
+            ? {
+                ...item,
+                jurisdictionSheetRequired: item.jurisdictionSheetRequired && type !== 'FICHE_DE_JURIDICTION',
+              }
             : item,
         ),
       ),
-    onSettled: (_data, _error, { nominationFileId, sessionId }) =>
-      queryClient.invalidateQueries({
-        queryKey: sessionKeys.listNominationFileAttachments({ nominationFileId, sessionId }),
-      }),
+    onSettled: (_data, error, { nominationFileId, sessionId }) =>
+      Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: sessionKeys.listNominationFileAttachments({ nominationFileId, sessionId }),
+        }),
+        // refused, most likely because the dossier was figé meanwhile: let the listing say it
+        error &&
+          queryClient.invalidateQueries({ queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) }),
+      ]),
   });
 };
 
@@ -502,19 +506,13 @@ export const useRemoveNominationFileAttachmentMutation = () => {
         sessionKeys.listNominationFileAttachments({ nominationFileId, sessionId }),
       );
 
-      const remaining = error ? undefined : attachments?.items.filter((item) => item.id !== fileId);
+      const sheetLeft =
+        !error &&
+        attachments?.items.some((item) => item.id !== fileId && item.type === 'FICHE_DE_JURIDICTION');
 
-      if (remaining) {
-        queryClient.setQueriesData(
-          { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
-          mapCachedNominationFiles((item) =>
-            item.id === nominationFileId
-              ? { ...item, hasJurisdictionSheet: remaining.some((x) => x.type === 'FICHE_DE_JURIDICTION') }
-              : item,
-          ),
-        );
-      } else {
-        // refused, or nothing tells what is left on that file: let the listing say it
+      // refused, nothing tells what is left on that file, or its last sheet gone, which may bring the
+      // alert back: let the listing say it
+      if (!sheetLeft) {
         await queryClient.invalidateQueries({
           queryKey: sessionKeys.listSessionNominationFiles({ sessionId }),
         });
@@ -855,15 +853,18 @@ export function useNominationFilesAlertMutation(input: { sessionId: string }) {
       $api.sessions.hideNominationFileAlert({
         path: { nominationFileId: mutation.nominationFileId, sessionId: input.sessionId },
       }),
-    onSuccess: (_, { nominationFileId }) =>
+    onSettled: (_data, error, { nominationFileId }) => {
+      const queryKey = sessionKeys.listSessionNominationFiles({ sessionId: input.sessionId });
+      // refused, most likely because the dossier was figé meanwhile: let the listing say it
+      if (error) return queryClient.invalidateQueries({ queryKey });
+
       queryClient.setQueriesData(
-        { queryKey: sessionKeys.listSessionNominationFiles({ sessionId: input.sessionId }) },
+        { queryKey },
         mapCachedNominationFiles((item) =>
-          item.id === nominationFileId
-            ? { ...item, content: { ...item.content, isAlertHidden: true } }
-            : item,
+          item.id === nominationFileId ? { ...item, jurisdictionSheetRequired: false } : item,
         ),
-      ),
+      );
+    },
   });
 }
 

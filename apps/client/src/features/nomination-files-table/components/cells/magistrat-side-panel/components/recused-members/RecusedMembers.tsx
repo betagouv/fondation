@@ -33,9 +33,9 @@ export function RecusedMembers(props: {
   return (
     <div className="fr-mb-2v">
       <MemberTagSelect
-        disabled={!nominationFile.canRecuseMembers}
+        disabled={!nominationFile.canUpdate}
         hint={
-          nominationFile.canRecuseMembers && (
+          nominationFile.canUpdate && (
             <FormattedMessage defaultMessage="Un rapporteur ne peut pas se déporter : retirez-le d'abord de l'affectation, puis publiez-la s'il est rapporteur dans la version publiée." />
           )
         }

@@ -14,6 +14,7 @@ import {
   CantUpdateNominationFiles,
   LodamSessionTransparenceFilesCreated,
   MemberMemoNotAllowed,
+  NominationFilesNotFound,
   NonFormationMemberDefinedAsReporter,
   NonFormationMemberRecused,
   PositionAuditionCannotBeDismissed,
@@ -1255,7 +1256,7 @@ describe('SessionTransparence', () => {
     ).toThrow(CantUpdateNominationFiles);
   });
 
-  it('should throw when attaching to a nomination file that does not belong to the session', () => {
+  it('should not find a nomination file of another session rather than consider it locked', () => {
     const session = SessionTransparence.from({
       formation: 'SIEGE',
       id: 'session-id',
@@ -1269,7 +1270,28 @@ describe('SessionTransparence', () => {
         nominationFileId: 'unknown-nomination-file',
         type: 'AUTRE',
       }),
-    ).toThrow(CantUpdateNominationFiles);
+    ).toThrow(NominationFilesNotFound);
+  });
+
+  it('should keep the jurisdiction sheet alert of a locked nomination file', () => {
+    const session = SessionTransparence.from({
+      formation: 'SIEGE',
+      id: 'session-id',
+      nominationFiles: [
+        {
+          auditionRequired: false,
+          id: 'nomination-file-id-1',
+          isReported: true,
+          outcome: 'VALIDATED',
+          positionRequiresAudition: false,
+        },
+      ],
+      version: null,
+    });
+
+    expect(() => session.hideAlert({ nominationFileId: 'nomination-file-id-1' })).toThrow(
+      CantUpdateNominationFiles,
+    );
   });
 
   describe('writeNominationFileMemberMemo', () => {

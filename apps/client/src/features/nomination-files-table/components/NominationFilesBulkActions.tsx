@@ -158,7 +158,7 @@ export function NominationFilesBulkActions(props: {
   const [commentedOutcome, setCommentedOutcome] = useState<NominationFileOutcomeEnum | null>(null);
 
   const hasSelection = props.selectedFiles.length > 0;
-  const canRecuseMembers = hasSelection && props.selectedFiles.every((file) => file.canRecuseMembers);
+  const canUpdateSelection = hasSelection && props.selectedFiles.every((file) => file.canUpdate);
   const isApplying =
     affectReporters.isPending ||
     defineOutcome.isPending ||
@@ -383,7 +383,7 @@ export function NominationFilesBulkActions(props: {
           onClear={clearReporters}
           value={reporterIds}
         />
-        {canRecuseMembers && (
+        {canUpdateSelection && (
           <RecusedMemberSelect
             disabled={isApplying}
             label={<FormattedMessage defaultMessage="Membres déportés" />}

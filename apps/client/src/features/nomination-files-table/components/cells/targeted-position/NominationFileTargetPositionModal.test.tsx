@@ -4,6 +4,7 @@ import { IntlProvider } from 'react-intl';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { makeSessionNominationFile } from '@/test-utils/factories/session-nomination-file.factory';
+import { httpAssert } from '@/utils/http-exception';
 
 import { NominationFileTargetPositionModal } from './NominationFileTargetPositionModal';
 
@@ -11,10 +12,16 @@ const addAttachment = vi.fn();
 const hideAlert = vi.fn();
 const openSidePanel = vi.fn();
 const success = vi.fn();
+let hideAlertError: Error | null = null;
 
 vi.mock('@queries/nomination-sessions.queries', () => ({
   useAddNominationFileAttachmentsMutation: () => ({ mutateAsync: addAttachment, isPending: false }),
-  useNominationFilesAlertMutation: () => ({ mutateAsync: hideAlert, isPending: false }),
+  useNominationFilesAlertMutation: () => ({
+    error: hideAlertError,
+    isPending: false,
+    mutate: hideAlert,
+    reset: vi.fn(),
+  }),
 }));
 
 vi.mock('@/shared/ui/toast', () => ({ useToasts: () => ({ success }) }));
@@ -42,6 +49,15 @@ function renderModal() {
   return { ...view, onClose };
 }
 
+function conflict(): Error {
+  try {
+    httpAssert(new Response(null, { status: 409 }));
+  } catch (refusal) {
+    return refusal as Error;
+  }
+  throw new Error('a 409 always throws');
+}
+
 async function importFile(container: HTMLElement, user: ReturnType<typeof userEvent.setup>) {
   const input = container.querySelector('input[type="file"]') as HTMLInputElement;
   await user.upload(input, new File(['data'], 'fiche.pdf', { type: 'application/pdf' }));
@@ -51,7 +67,8 @@ async function importFile(container: HTMLElement, user: ReturnType<typeof userEv
 beforeEach(() => {
   vi.clearAllMocks();
   addAttachment.mockResolvedValue(undefined);
-  hideAlert.mockResolvedValue(undefined);
+  hideAlert.mockImplementation((_variables, options: { onSuccess: () => void }) => options.onSuccess());
+  hideAlertError = null;
 });
 
 describe('NominationFileTargetPositionModal', () => {
@@ -105,7 +122,28 @@ describe('NominationFileTargetPositionModal', () => {
     await user.click(screen.getByRole('button', { name: 'Ignorer cette alerte' }));
 
     await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
-    expect(hideAlert).toHaveBeenCalledWith({ nominationFileId: 'nomination-file-1' });
+    expect(hideAlert).toHaveBeenCalledWith({ nominationFileId: 'nomination-file-1' }, expect.anything());
+  });
+
+  it('tells that the dossier was figé meanwhile when ignoring the alert is refused', () => {
+    hideAlertError = conflict();
+    const { onClose } = renderModal();
+
+    expect(screen.getByText('Le dossier a été figé entre-temps')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Ignorer cette alerte' })).toBeDisabled();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('tells that the dossier was figé meanwhile when the import is refused, without asking to retry', async () => {
+    const user = userEvent.setup();
+    addAttachment.mockRejectedValue(conflict());
+    const { container } = renderModal();
+
+    await importFile(container, user);
+
+    expect(await screen.findByText('Le dossier a été figé entre-temps')).toBeInTheDocument();
+    expect(screen.queryByText('Merci de réessayer.')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Ignorer cette alerte' })).toBeDisabled();
   });
 
   it('keeps the alert when the import fails', async () => {

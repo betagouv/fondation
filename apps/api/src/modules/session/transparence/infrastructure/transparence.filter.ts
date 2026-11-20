@@ -6,6 +6,7 @@ import {
   ForbiddenException,
   Logger,
   NestInterceptor,
+  NotFoundException,
 } from '@nestjs/common';
 import { catchError, Observable, throwError } from 'rxjs';
 
@@ -17,6 +18,7 @@ import {
   CannotScheduleAuditionOnNominationFile,
   CantUpdateNominationFiles,
   MemberMemoNotAllowed,
+  NominationFilesNotFound,
   NonFormationMemberDefinedAsReporter,
   NonFormationMemberRecused,
   PositionAuditionCannotBeDismissed,
@@ -106,6 +108,8 @@ export class TransparenceExceptionFilter implements NestInterceptor {
               { cause: err },
             );
           }
+
+          if (err instanceof NominationFilesNotFound) return new NotFoundException(undefined, { cause: err });
 
           // a 409 like the observations and the synthèses: the dossier may have been figé after the page loaded
           if (err instanceof CantUpdateNominationFiles) {

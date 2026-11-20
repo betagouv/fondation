@@ -405,7 +405,6 @@ export type PaginatedNominationFiles = {
                 value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'WAITING_DSJ';
                 comment: string | null;
             } | null;
-            isAlertHidden: boolean;
             lockedReason: 'ARCHIVED_SESSION' | 'REPORTED' | null;
             status: {
                 value: 'TO_REPORT' | 'DSJ_PLANNED' | 'DSJ_REPORTED';
@@ -425,7 +424,10 @@ export type PaginatedNominationFiles = {
             } | null;
         } | null;
         canScheduleAudition: boolean;
-        canRecuseMembers: boolean;
+        /**
+         * recusing members, defining the outcome, affecting reporters and priorities, updating the missing evaluation or the attachments, hiding the jurisdiction sheet alert
+         */
+        canUpdate: boolean;
         auditionDate: {
             year: number;
             month: number;
@@ -511,7 +513,10 @@ export type PaginatedNominationFiles = {
             visibility: 'PRIVATE' | 'VISIBLE' | null;
         } | null;
         hasAttachment: boolean;
-        hasJurisdictionSheet: boolean;
+        /**
+         * the secretariat is asked for a jurisdiction sheet: the targeted position requires one, none is attached and the alert is not hidden
+         */
+        jurisdictionSheetRequired: boolean;
     }>;
     totalCount: number;
     currentPageIndex: number;
@@ -758,7 +763,6 @@ export type DetailedNominationFileDto = {
             value: 'VALIDATED' | 'NON_VALIDATED' | 'SUSPENDED' | 'REMOVED' | 'WITHDRAWN' | 'WAITING_DSJ';
             comment: string | null;
         } | null;
-        isAlertHidden: boolean;
         lockedReason: 'ARCHIVED_SESSION' | 'REPORTED' | null;
         status: {
             value: 'TO_REPORT' | 'DSJ_PLANNED' | 'DSJ_REPORTED';
@@ -778,7 +782,10 @@ export type DetailedNominationFileDto = {
         } | null;
     } | null;
     canScheduleAudition: boolean;
-    canRecuseMembers: boolean;
+    /**
+     * recusing members, defining the outcome, affecting reporters and priorities, updating the missing evaluation or the attachments, hiding the jurisdiction sheet alert
+     */
+    canUpdate: boolean;
     auditionDate: {
         year: number;
         month: number;
@@ -864,7 +871,10 @@ export type DetailedNominationFileDto = {
         visibility: 'PRIVATE' | 'VISIBLE' | null;
     } | null;
     hasAttachment: boolean;
-    hasJurisdictionSheet: boolean;
+    /**
+     * the secretariat is asked for a jurisdiction sheet: the targeted position requires one, none is attached and the alert is not hidden
+     */
+    jurisdictionSheetRequired: boolean;
 };
 
 export type DetailedNominationSessionDto = {

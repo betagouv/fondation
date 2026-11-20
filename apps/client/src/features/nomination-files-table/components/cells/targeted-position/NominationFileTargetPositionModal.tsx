@@ -1,10 +1,11 @@
 import Alert from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { useCallback, useState } from 'react';
-import { FormattedMessage, useIntl } from 'react-intl';
+import { defineMessages, FormattedMessage, useIntl } from 'react-intl';
 
 import { useSidePanel } from '../magistrat-side-panel/context/side-panel.context';
 import { revealAttachments } from '@/features/transparence/components/nomination-file-attachments/attachments-section';
+import { failureOf, useRequestFailure } from '@/shared/hooks/useRequestFailure';
 import { Modal } from '@/shared/ui/modal';
 import { useToasts } from '@/shared/ui/toast';
 import { AttachmentFormatsHint, Upload } from '@/shared/ui/upload';
@@ -14,6 +15,15 @@ import {
   useNominationFilesAlertMutation,
   type SessionNominationFile,
 } from '@queries/nomination-sessions.queries';
+
+// see CantUpdateNominationFiles: both mutations then reload the listing, without the alert,
+// while the modal, already open, only lets the user close it
+const FROZEN = defineMessages({
+  description: {
+    defaultMessage: 'Il ne reçoit plus de fiche de juridiction et son alerte ne peut plus être ignorée.',
+  },
+  title: { defaultMessage: 'Le dossier a été figé entre-temps' },
+});
 
 export function NominationFileTargetPositionModal(props: {
   nominationFile: SessionNominationFile;
@@ -28,23 +38,27 @@ export function NominationFileTargetPositionModal(props: {
 
   const [attempt, setAttempt] = useState(0);
   const [files, setFiles] = useState<File[]>([]);
-  const [hasFailed, setHasFailed] = useState(false);
+  const [saveError, setSaveError] = useState<unknown>(null);
 
   const { mutateAsync: addAttachment, isPending: isAddingAttachment } =
     useAddNominationFileAttachmentsMutation();
-  const { mutateAsync: deleteAlert, isPending: isDeletingAlert } = useNominationFilesAlertMutation({
-    sessionId: props.sessionId,
-  });
+  const {
+    error: dismissError,
+    isPending: isDeletingAlert,
+    mutate: deleteAlert,
+    reset: resetDismiss,
+  } = useNominationFilesAlertMutation({ sessionId: props.sessionId });
+  const describeFailure = useRequestFailure();
+  const isFrozen = [dismissError, saveError].some((error) => failureOf(error).reason === 'conflict');
 
   const isPending = isAddingAttachment || isDeletingAlert;
 
-  const dismissAlert = useCallback(async () => {
-    await deleteAlert({ nominationFileId: props.nominationFile.id });
-    props.onClose();
+  const dismissAlert = useCallback(() => {
+    deleteAlert({ nominationFileId: props.nominationFile.id }, { onSuccess: props.onClose });
   }, [deleteAlert, props]);
 
   const onSave = useCallback(async () => {
-    setHasFailed(false);
+    setSaveError(null);
 
     try {
       await addAttachment({
@@ -53,8 +67,8 @@ export function NominationFileTargetPositionModal(props: {
         sessionId: props.sessionId,
         type: 'FICHE_DE_JURIDICTION',
       });
-    } catch {
-      setHasFailed(true);
+    } catch (error) {
+      setSaveError(error);
       setFiles([]);
       setAttempt((current) => current + 1);
       return;
@@ -81,10 +95,10 @@ export function NominationFileTargetPositionModal(props: {
     <Modal
       actions={
         <>
-          <Button disabled={isPending} onClick={dismissAlert} priority="secondary">
+          <Button disabled={isPending || isFrozen} onClick={dismissAlert} priority="secondary">
             <FormattedMessage defaultMessage="Ignorer cette alerte" />
           </Button>
-          <Button disabled={files.length === 0 || isPending} onClick={onSave}>
+          <Button disabled={files.length === 0 || isPending || isFrozen} onClick={onSave}>
             <FormattedMessage defaultMessage="Sauvegarder" />
           </Button>
         </>
@@ -108,7 +122,29 @@ export function NominationFileTargetPositionModal(props: {
         <FormattedMessage defaultMessage="Une fois importé, le fichier sera disponible dans les pièces jointes du magistrat dans le panneau latéral." />
       </p>
 
-      {hasFailed && (
+      {isFrozen && (
+        <Alert
+          className="fr-mb-4v"
+          description={formatMessage(FROZEN.description)}
+          severity="error"
+          small
+          title={formatMessage(FROZEN.title)}
+        />
+      )}
+
+      {!isFrozen && dismissError && (
+        <Alert
+          className="fr-mb-4v"
+          closable
+          description={describeFailure(dismissError)}
+          onClose={resetDismiss}
+          severity="error"
+          small
+          title={formatMessage({ defaultMessage: "L'alerte n'a pas pu être ignorée" })}
+        />
+      )}
+
+      {!isFrozen && saveError !== null && (
         <Alert
           className="fr-mb-4v"
           closable
@@ -122,7 +158,7 @@ export function NominationFileTargetPositionModal(props: {
               </p>
             </>
           }
-          onClose={() => setHasFailed(false)}
+          onClose={() => setSaveError(null)}
           severity="error"
           title={<FormattedMessage defaultMessage="Erreur pendant le téléchargement" />}
         />
@@ -130,7 +166,8 @@ export function NominationFileTargetPositionModal(props: {
 
       <Upload
         accept={ATTACHMENT_FILE_TYPES}
-        hasError={hasFailed}
+        disabled={isFrozen}
+        hasError={saveError !== null}
         hint={<AttachmentFormatsHint />}
         isPending={isPending}
         key={attempt}

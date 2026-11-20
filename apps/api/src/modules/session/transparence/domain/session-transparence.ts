@@ -374,6 +374,12 @@ export class CantUpdateNominationFiles extends Error {
   }
 }
 
+export class NominationFilesNotFound extends Error {
+  constructor(readonly fileIds: Set<string>) {
+    super();
+  }
+}
+
 export class SessionTransparenceIsNotDeletable extends Error {
   constructor(readonly sessionId: string) {
     super();
@@ -903,6 +909,8 @@ export class SessionTransparence {
   }
 
   hideAlert(command: { nominationFileId: string }) {
+    this.assertsCanUpdateFiles(command.nominationFileId);
+
     this.#messages.push(new SessionTransparenceFileAlertHidden(this.id, command.nominationFileId));
   }
 
@@ -982,12 +990,15 @@ export class SessionTransparence {
   }
 
   private assertsCanUpdateFiles(...nominationFileIds: readonly string[]): void {
+    const unknownIds = new Set<string>();
     const nonUpdatableIds = new Set<string>();
     for (const id of nominationFileIds) {
       const file = this.files.get(id);
-      if (!file?.canUpdate) nonUpdatableIds.add(id);
+      if (!file) unknownIds.add(id);
+      else if (!file.canUpdate) nonUpdatableIds.add(id);
     }
 
+    if (unknownIds.size) throw new NominationFilesNotFound(unknownIds);
     if (nonUpdatableIds.size) {
       throw new CantUpdateNominationFiles(nonUpdatableIds);
     }

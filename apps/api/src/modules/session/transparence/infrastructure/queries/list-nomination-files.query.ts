@@ -280,7 +280,7 @@ export class ListNominationFilesQuery {
 
       return {
         ...audition,
-        canRecuseMembers: nominationFilesPolicies.canUpdateNominationFile(x, query.user),
+        canUpdate: nominationFilesPolicies.canUpdateNominationFile(x, query.user),
         canScheduleAudition: nominationFilesPolicies.canScheduleAudition(x, { isArchived }),
         comment: x.comment,
         commentLastChange: changeOfComment
@@ -296,7 +296,6 @@ export class ListNominationFilesQuery {
           gradeCible: x.targetedGrade as GradeEnum,
           historique: x.biography,
           informationCarrière: null,
-          isAlertHidden: x.alertHidden,
           jurisdictions: x.jurisdictions,
           lockedReason: x.lockedReason,
           nomMagistrat: proposedMagistratName(x),
@@ -322,9 +321,9 @@ export class ListNominationFilesQuery {
         },
         expectedReportersCount: expectedReportersCount(auditionedPosition),
         hasAttachment: x.hasAttachment,
-        hasJurisdictionSheet: x.hasJurisdictionSheet,
         id: x.id,
         isArchived,
+        jurisdictionSheetRequired: nominationFilesPolicies.jurisdictionSheetRequired(x, query.user),
         memo: ListNominationFilesQuery.memoOf(
           nominationFilesPolicies.memberMemoVisibility(
             { reporterIds: x.reporters.map(({ user }) => user.id) },
@@ -453,7 +452,6 @@ const NominationFileContentSchema = z.object({
       comment: z.string().nullable(),
     })
     .nullable(),
-  isAlertHidden: z.boolean(),
 
   lockedReason: z.enum(NominationFileLockEnum).nullable(),
   status: z.object({
@@ -536,7 +534,10 @@ const NominationFileAffectationItemSchema = z.object({
   comment: z.string().nullable(),
   commentLastChange: commentLastChangeSchema.nullable(),
   canScheduleAudition: z.boolean(),
-  canRecuseMembers: z.boolean(),
+  canUpdate: z.boolean().meta({
+    description:
+      'recusing members, defining the outcome, affecting reporters and priorities, updating the missing evaluation or the attachments, hiding the jurisdiction sheet alert',
+  }),
   auditionDate: dateOnlyJsonSchema.nullable(),
   auditionRequired: z.boolean(),
   auditionRequirement: z.enum(AUDITION_REQUIREMENTS).nullable(),
@@ -585,7 +586,10 @@ const NominationFileAffectationItemSchema = z.object({
     })
     .nullable(),
   hasAttachment: z.boolean(),
-  hasJurisdictionSheet: z.boolean(),
+  jurisdictionSheetRequired: z.boolean().meta({
+    description:
+      'the secretariat is asked for a jurisdiction sheet: the targeted position requires one, none is attached and the alert is not hidden',
+  }),
 });
 
 export type NominationFileAffectationItem = z.infer<typeof NominationFileAffectationItemSchema>;

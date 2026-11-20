@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import { userEvent } from '@testing-library/user-event';
 import { IntlProvider } from 'react-intl';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -9,16 +10,16 @@ import {
 
 import { NominationFileTargetPositionCell } from './NominationFileTargetPositionCell';
 
-const isSg = vi.fn();
 const open = vi.fn();
-
-vi.mock('@/features/auth/hooks/roles.hook', () => ({ useIsSg: () => isSg() }));
+const isSg = vi.fn();
 
 vi.mock('./NominationFileTargetPositionContext', () => ({
   useNominationFileTargetPositionModal: () => ({ open }),
 }));
 
-const ALERTED_POSITION = { content: { posteCible: 'Procureur de la République TJ GRASSE' } };
+vi.mock('@/features/auth/hooks/roles.hook', () => ({ useIsSgNavigation: () => isSg() }));
+
+const POSITION = { content: { posteCible: 'Procureur de la République TJ GRASSE' } };
 
 function renderCell(overrides: NominationFileOverrides) {
   return render(
@@ -37,33 +38,25 @@ beforeEach(() => {
 });
 
 describe('NominationFileTargetPositionCell', () => {
-  it('asks for a jurisdiction sheet on the positions that need one', () => {
-    renderCell(ALERTED_POSITION);
+  it('asks for the jurisdiction sheet the API requires, through the modal', async () => {
+    const user = userEvent.setup();
+    renderCell({ ...POSITION, jurisdictionSheetRequired: true });
 
-    expect(positionButton()).toBeInTheDocument();
+    await user.click(positionButton()!);
+
+    expect(open).toHaveBeenCalledWith(expect.objectContaining({ jurisdictionSheetRequired: true }));
   });
 
-  it('stops asking once a jurisdiction sheet is attached', () => {
-    renderCell({ ...ALERTED_POSITION, hasJurisdictionSheet: true });
+  it('shows the plain position when no sheet is required', () => {
+    renderCell({ ...POSITION, jurisdictionSheetRequired: false });
 
     expect(positionButton()).not.toBeInTheDocument();
+    expect(screen.getByText(/Procureur de la République TJ GRASSE/)).toBeInTheDocument();
   });
 
-  it('keeps asking when the attached files are of another kind', () => {
-    renderCell({ ...ALERTED_POSITION, hasAttachment: true });
-
-    expect(positionButton()).toBeInTheDocument();
-  });
-
-  it('stops asking once the alert has been explicitly ignored', () => {
-    renderCell({ content: { ...ALERTED_POSITION.content, isAlertHidden: true } });
-
-    expect(positionButton()).not.toBeInTheDocument();
-  });
-
-  it('never asks outside of the secretariat général', () => {
+  it('shows the plain position in the member space, even to an admin the API asks for the sheet', () => {
     isSg.mockReturnValue(false);
-    renderCell(ALERTED_POSITION);
+    renderCell({ ...POSITION, jurisdictionSheetRequired: true });
 
     expect(positionButton()).not.toBeInTheDocument();
   });

@@ -233,7 +233,7 @@ describe('Header edition', () => {
   it('hides the edit button when the file is not updatable', () => {
     renderHeader({
       canManage: true,
-      nominationFile: makeSessionNominationFile({ content: { lockedReason: 'REPORTED' } }),
+      nominationFile: makeSessionNominationFile({ canUpdate: false }),
     });
 
     expect(screen.queryByRole('button', { name: 'Modifier' })).not.toBeInTheDocument();
