@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
 
 import { Prisma } from '../../../../../generated/prisma/client';
+import { lockAgendasRawQuery } from '../../../../../generated/prisma/sql';
 import { assertNever } from '../../../../../utils/assert-never';
 import { Db } from '../../../../framework/database';
 import { DocInvalidation } from '../../../shared/domain/doc-invalidation';
 import { DocsNominationFilesFinder } from '../../../shared/infrastructure/finders/docs-nomination-files.finder';
+import { namedMembersOf } from '../../../shared/infrastructure/named-members';
 import { AgendaRepository } from '../repositories/agenda.repository';
 
 @Injectable()
@@ -18,13 +20,17 @@ export class InvalidateAgendasUseCase {
   async handle(invalidation: DocInvalidation): Promise<void> {
     switch (invalidation.type) {
       case 'SessionAffectationVersionPublished':
-        return this.updateAgendasReporters(invalidation);
+        return this.updateSessionAgendasReporters(invalidation);
+
+      case 'MemberRenamed':
+        return this.followRenamedMember(invalidation);
 
       case 'AgendaDateUpdated':
       case 'AgendaFileBlockEdited':
       case 'AgendaNominationFilesUpdated':
       case 'AgendaValidated':
       case 'NominationFilesOutcomeUpdated':
+      case 'NominationFilesRecusalsUpdated':
       case 'SessionDateUpdated':
         return;
 
@@ -33,13 +39,20 @@ export class InvalidateAgendasUseCase {
     }
   }
 
-  private async updateAgendasReporters(
+  private async updateSessionAgendasReporters(
     invalidation: Extract<DocInvalidation, { type: 'SessionAffectationVersionPublished' }>,
   ): Promise<void> {
     const { sessionId } = invalidation.payload;
 
+    // a draft discarded meanwhile hands back the files of its validated version: they are read after the lock
+    const sessionAgendas = await this.db.tx.agenda.findMany({
+      where: { sessionId },
+      select: { id: true } satisfies Prisma.AgendaSelect,
+    });
+    await this.db.tx.$queryRawTyped(lockAgendasRawQuery(sessionAgendas.map(({ id }) => id)));
+
     const agendas = await this.db.tx.agendaVersion.findMany({
-      where: { agenda: { sessionId: invalidation.payload.sessionId } },
+      where: { agenda: { sessionId } },
       distinct: ['agendaId'],
       orderBy: { version: 'desc' },
       select: {
@@ -48,30 +61,105 @@ export class InvalidateAgendasUseCase {
       } satisfies Prisma.AgendaVersionSelect,
     });
 
-    const allNominationFileIds = new Set(
-      agendas.flatMap((a) =>
-        a.nominationFiles.flatMap(({ nominationFileId }) => (nominationFileId ? [nominationFileId] : [])),
-      ),
-    );
-    const { items: updatedNominationFiles } = await this.docsNominationFilesFinder.find({
-      sessionId,
-      ids: [...allNominationFileIds],
+    await this.updateReporters({ agendas, sessionId });
+  }
+
+  /**
+   * a validated agenda keeps the name it was sent with: only the drafts naming the member follow.
+   * TODO: see InvalidateOfficialReportUseCase.mapMemberRenamed, which finds the reports naming the member
+   */
+  private async followRenamedMember(
+    invalidation: Extract<DocInvalidation, { type: 'MemberRenamed' }>,
+  ): Promise<void> {
+    const member = [{ id: invalidation.payload.userId }];
+
+    // a draft opened meanwhile copies the old name from its validated version: every agenda naming the
+    // member is locked, in one sorted batch, before its drafts are read
+    const namingAgendas = await this.db.tx.agendaVersion.findMany({
+      where: {
+        OR: [
+          { chairmanId: invalidation.payload.userId },
+          { nominationFiles: { some: { reporters: { array_contains: member } } } },
+        ],
+      },
+      distinct: ['agendaId'],
+      select: { agendaId: true } satisfies Prisma.AgendaVersionSelect,
+    });
+    await this.db.tx.$queryRawTyped(lockAgendasRawQuery(namingAgendas.map(({ agendaId }) => agendaId)));
+
+    const files = await this.db.tx.agendaNominationFile.findMany({
+      where: {
+        reporters: { array_contains: member },
+        version: { status: 'DRAFT' },
+      },
+      select: {
+        nominationFileId: true,
+        version: { select: { agenda: { select: { sessionId: true } }, agendaId: true } },
+      } satisfies Prisma.AgendaNominationFileSelect,
     });
 
-    const nominationFilesPerId = new Map(updatedNominationFiles.map((file) => [file.id, file]));
+    const filesPerSession = Map.groupBy(files, ({ version }) => version.agenda.sessionId);
+    for (const [sessionId, sessionFiles] of filesPerSession) {
+      const filesPerAgenda = Map.groupBy(sessionFiles, ({ version }) => version.agendaId);
 
-    for (const { agendaId, nominationFiles } of agendas) {
-      const agenda = await this.agendaRepository.find({ actorId: null, agendaId });
-      agenda.updateFilesReporters({
-        nominationFiles: nominationFiles.flatMap(({ nominationFileId }) => {
-          if (!nominationFileId) return [];
-          const nf = nominationFilesPerId.get(nominationFileId);
-          if (!nf) return [];
-
-          const reporters = nf.reporters.map((r) => r.fullTitledName);
-          return [{ id: nf.id, reporters }];
-        }),
+      await this.updateReporters({
+        agendas: [...filesPerAgenda].map(([agendaId, nominationFiles]) => ({ agendaId, nominationFiles })),
+        sessionId,
       });
+    }
+
+    await this.followRenamedChairman(invalidation.payload);
+  }
+
+  /** a new recusal title sends the same invalidation: only the drafts signed with another name are loaded */
+  private async followRenamedChairman(member: { userId: string }): Promise<void> {
+    const chairman = await this.db.tx.user.findUniqueOrThrow({
+      where: { id: member.userId },
+      select: { firstName: true, id: true, lastName: true } satisfies Prisma.UserSelect,
+    });
+
+    const drafts = await this.db.tx.agendaVersion.findMany({
+      where: {
+        chairmanId: chairman.id,
+        status: 'DRAFT',
+        OR: [
+          { chairmanFirstName: { not: chairman.firstName } },
+          { chairmanLastName: { not: chairman.lastName } },
+        ],
+      },
+      select: { agendaId: true } satisfies Prisma.AgendaVersionSelect,
+    });
+
+    for (const { agendaId } of drafts) {
+      const agenda = await this.agendaRepository.find({ actorId: null, agendaId });
+      agenda.followChairmanName(chairman);
+      await this.agendaRepository.persist(agenda);
+    }
+  }
+
+  private async updateReporters(command: {
+    agendas: readonly { agendaId: string; nominationFiles: readonly { nominationFileId: string | null }[] }[];
+    sessionId: string;
+  }): Promise<void> {
+    const nominationFileIdsOf = (files: readonly { nominationFileId: string | null }[]) =>
+      files.flatMap(({ nominationFileId }) => nominationFileId ?? []);
+
+    const { items } = await this.docsNominationFilesFinder.find({
+      ids: [
+        ...new Set(command.agendas.flatMap(({ nominationFiles }) => nominationFileIdsOf(nominationFiles))),
+      ],
+      sessionId: command.sessionId,
+    });
+    const nominationFilesPerId = new Map(items.map((file) => [file.id, file]));
+
+    for (const { agendaId, nominationFiles: agendaFiles } of command.agendas) {
+      const nominationFiles = nominationFileIdsOf(agendaFiles).flatMap((id) => {
+        const file = nominationFilesPerId.get(id);
+        return file ? [{ id, reporters: namedMembersOf(file.reporters) }] : [];
+      });
+
+      const agenda = await this.agendaRepository.find({ actorId: null, agendaId });
+      agenda.updateFilesReporters({ nominationFiles });
       await this.agendaRepository.persist(agenda);
     }
   }

@@ -5,6 +5,7 @@ import { createContext, useCallback, useContext, useRef, useState, type PropsWit
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import { Modal } from '@/shared/ui/modal';
+import { requiresElision } from '@/utils/string.utils';
 import { useUpdateNominationFileMissingEvaluationCommentMutation } from '@queries/members.queries';
 
 const MISSING_EVALUATION_COMMENT_MAX_LENGTH = 150;
@@ -108,13 +109,17 @@ function MissingEvaluationCommentModal(props: {
       title={<FormattedMessage defaultMessage="Commentaire" />}
     >
       <Input
+        classes={{ label: '[&_.fr-hint-text]:mt-2', nativeInputOrTextArea: 'fr-mt-3v' }}
         hintText={formatMessage(
           { defaultMessage: '{count} caractères maximum' },
           { count: MISSING_EVALUATION_COMMENT_MAX_LENGTH },
         )}
         label={formatMessage(
-          { defaultMessage: 'Suivi de l’évaluation manquante de {magistrat}' },
-          { magistrat: props.edited.magistrat },
+          {
+            defaultMessage:
+              'Suivi de l’évaluation manquante {elided, select, true {d’} other {de }}{magistrat}',
+          },
+          { elided: requiresElision(props.edited.magistrat), magistrat: props.edited.magistrat },
         )}
         nativeTextAreaProps={{
           maxLength: MISSING_EVALUATION_COMMENT_MAX_LENGTH,
@@ -175,8 +180,8 @@ export function MissingEvaluationCommentCell(props: {
         {props.comment.slice(lastSpace + 1)}{' '}
         <button
           aria-label={formatMessage(
-            { defaultMessage: 'Modifier le commentaire de {magistrat}' },
-            { magistrat: props.magistrat },
+            { defaultMessage: 'Modifier le commentaire {elided, select, true {d’} other {de }}{magistrat}' },
+            { elided: requiresElision(props.magistrat), magistrat: props.magistrat },
           )}
           className={clsx(
             'border-0 bg-transparent p-0 align-baseline text-sm/6 font-medium text-(--text-action-high-blue-france)',

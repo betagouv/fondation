@@ -29,8 +29,13 @@ export class JobFileIngestor {
     tag: string;
     schema: z.ZodType<T>;
     mapper: (item: AsyncIterable<{ data: T; success: boolean }>) => AsyncIterable<unknown>;
-    /** Runs once every item is read: when it throws, the file fails */
-    beforeSucceeding?: () => Promise<void>;
+    /**
+     * Runs once every item is read: when it throws, the file fails
+     *
+     * @returns why the next job is to read the file again even unchanged, nothing having failed: the file then ends
+     * failed, out of the files an unchanged one is compared with, and the job goes on
+     */
+    beforeSucceeding?: () => Promise<string | undefined>;
   }): Promise<{ success: boolean }> {
     let start: number;
     const { job, file } = options;
@@ -88,8 +93,11 @@ export class JobFileIngestor {
       );
 
       if (result.success) {
-        await options.beforeSucceeding?.();
-        return this.succeedJobFile({ file, jobId: job.id });
+        const toReadAgain = await options.beforeSucceeding?.();
+        if (!toReadAgain) return this.succeedJobFile({ file, jobId: job.id });
+
+        await this.failJobFile({ file, jobId: job.id, errors: [{ error: toReadAgain }] });
+        return { success: true };
       } else {
         return this.failJobFile({
           file,

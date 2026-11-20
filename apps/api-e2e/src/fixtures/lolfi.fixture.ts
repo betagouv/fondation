@@ -14,16 +14,24 @@ type EndedJob = { id: number; status: 'FAILED' | 'SUCCEEDED' };
 /** sends an archive as lolfi does, then waits for its job to end */
 export interface LolfiFixture {
   ingest(sessions: LolfiArchiveContent['sessions'], options?: { as: 'ADMIN' | 'MACHINE' }): Promise<EndedJob>;
+  /** for an archive sent again byte for byte: generating it twice draws other random fields */
+  send(archive: ArrayBuffer, options?: { as: 'ADMIN' | 'MACHINE' }): Promise<EndedJob>;
 }
 
 export function makeLolfiFixture({ admin, baseUrl }: { admin: TestStepsAdmin; baseUrl: string }): LolfiFixture {
   const machine = createClient(createConfig({ baseUrl, headers: { Authorization: `Bearer ${machineToken}` } }));
 
-  async function ingestArchive(
+  async function ingestSessions(
     sessions: LolfiArchiveContent['sessions'],
+    options?: { as: 'ADMIN' | 'MACHINE' },
+  ): Promise<EndedJob> {
+    return sendArchive(await generateLolfiArchive({ sessions }), options);
+  }
+
+  async function sendArchive(
+    archive: ArrayBuffer,
     options: { as: 'ADMIN' | 'MACHINE' } = { as: 'ADMIN' },
   ): Promise<EndedJob> {
-    const archive = await generateLolfiArchive({ sessions });
     const file = new File([archive], `LOLFI_CSM_${new Date().toISOString()}.zip`, { type: 'application/zip' });
     const client = options.as === 'MACHINE' ? machine : admin['@client'];
     const { id } = await ingest
@@ -42,5 +50,5 @@ export function makeLolfiFixture({ admin, baseUrl }: { admin: TestStepsAdmin; ba
     return { id, status };
   }
 
-  return { ingest: ingestArchive };
+  return { ingest: ingestSessions, send: sendArchive };
 }

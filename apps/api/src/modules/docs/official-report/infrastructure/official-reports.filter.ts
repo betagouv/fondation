@@ -94,7 +94,7 @@ export class OfficialReportsFilter implements NestInterceptor {
 
           if (err instanceof OfficialReportAgendaAlreadyReported) {
             return new BadRequestException({
-              validationError: `L'ODJ fait déjà partie d'un PV de restitution`,
+              validationError: `L'ordre du jour fait déjà partie d'un procès-verbal`,
             });
           }
 

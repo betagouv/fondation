@@ -11,7 +11,7 @@ import type { SessionNominationFile } from '@queries/nomination-sessions.queries
 
 import { useAuditionExpectation } from './use-audition-expectation.hook';
 
-const SG_ROUTE = '/secretariat-general/session/session-1';
+const SG_ROUTE = '/secretariat-general/gds/session/session-1';
 const MEMBER_ROUTE = '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/session-1';
 
 const SCHEDULED = { day: 15, month: 6, year: 2029 };
@@ -88,7 +88,7 @@ describe('useAuditionExpectation', () => {
       renderExpectation({
         ...AUDITIONED,
         canScheduleAudition: false,
-        content: { lockedReason: 'REPORTED' },
+        canUpdate: false,
         reporters: REPORTERS.slice(0, 1),
       }),
     ).toEqual({ auditionAnnounced: false, auditionMissing: false, labels: [], reportersMissing: false });

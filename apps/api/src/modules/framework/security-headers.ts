@@ -9,6 +9,8 @@ class SecurityHeadersMiddleware implements NestMiddleware {
     res.setHeader('Strict-Transport-Security', 'max-age=31536000');
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-Frame-Options', 'DENY');
+    // a route sets its own policy with @Header() or res.set(), which run after this middleware
+    res.setHeader('Cache-Control', 'no-store');
     next();
   }
 }

@@ -1,0 +1,80 @@
+import Alert from '@codegouvfr/react-dsfr/Alert';
+import Button from '@codegouvfr/react-dsfr/Button';
+import { useCallback, useState } from 'react';
+import { FormattedMessage, useIntl } from 'react-intl';
+
+import { useRequestFailure } from '@/shared/hooks/useRequestFailure';
+import { Modal } from '@/shared/ui/modal';
+import { useToasts } from '@/shared/ui/toast';
+import { AttachmentFormatsHint, Upload } from '@/shared/ui/upload';
+import { ATTACHMENT_FILE_TYPES } from '@/shared/ui/upload/file-types';
+import { useAddNominationSessionAttachmentMutation } from '@queries/nomination-sessions.queries';
+
+export function AddSessionAttachmentModal(props: { onClose: () => void; open: boolean; sessionId: string }) {
+  const { formatMessage } = useIntl();
+  const toasts = useToasts();
+  const describeFailure = useRequestFailure();
+
+  const [files, setFiles] = useState<File[]>([]);
+  const [attempt, setAttempt] = useState(0);
+  const [failure, setFailure] = useState<unknown>(null);
+  const { mutate: addAttachments, isPending } = useAddNominationSessionAttachmentMutation();
+
+  const onAdd = useCallback(() => {
+    if (files.length === 0) return;
+
+    setFailure(null);
+    addAttachments(
+      { files, sessionId: props.sessionId },
+      {
+        onError: (error) => {
+          setFiles([]);
+          setAttempt((current) => current + 1);
+          setFailure(error);
+        },
+        onSuccess: () => {
+          toasts.success({ title: formatMessage({ defaultMessage: 'Données actualisées' }) });
+
+          props.onClose();
+        },
+      },
+    );
+  }, [addAttachments, files, formatMessage, props, toasts]);
+
+  return (
+    <Modal
+      actions={
+        <Button disabled={files.length === 0 || isPending} onClick={onAdd}>
+          {isPending ? (
+            <FormattedMessage defaultMessage="Ajout en cours..." />
+          ) : (
+            <FormattedMessage defaultMessage="Ajouter" />
+          )}
+        </Button>
+      }
+      onClose={props.onClose}
+      open={props.open}
+      title={<FormattedMessage defaultMessage="Ajouter des pièces jointes" />}
+    >
+      {failure !== null && (
+        <Alert
+          className="fr-mb-4v"
+          description={describeFailure(failure)}
+          role="alert"
+          severity="error"
+          small
+          title={formatMessage({ defaultMessage: "L'ajout des pièces jointes a échoué" })}
+        />
+      )}
+
+      <Upload
+        accept={ATTACHMENT_FILE_TYPES}
+        hint={<AttachmentFormatsHint />}
+        isPending={isPending}
+        key={attempt}
+        multiple
+        onChange={setFiles}
+      />
+    </Modal>
+  );
+}

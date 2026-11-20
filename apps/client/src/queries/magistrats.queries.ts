@@ -106,7 +106,7 @@ export function useAddMagistratPhoneNumberMutation(props: { magistratId: string 
     mutationFn: (body: { label: string | null; number: string }) =>
       withValidationError(() => $api.magistrats.addMagistratPhoneNumber({ body, path: props })),
     // the auditions show the latest saved number of each magistrat
-    onSuccess: () =>
+    onSettled: () =>
       Promise.all([
         queryClient.invalidateQueries({ queryKey: auditionKeys.all() }),
         queryClient.invalidateQueries({ queryKey: magistratKeys.magistratPhoneNumbers(props) }),
@@ -128,7 +128,7 @@ export function useUpdateMagistratPhoneNumberMutation(props: { magistratId: stri
       withValidationError(() =>
         $api.magistrats.updateMagistratPhoneNumber({ body, path: { ...props, phoneNumberId } }),
       ),
-    onSuccess: () =>
+    onSettled: () =>
       Promise.all([
         queryClient.invalidateQueries({ queryKey: auditionKeys.all() }),
         queryClient.invalidateQueries({ queryKey: magistratKeys.magistratPhoneNumbers(props) }),
@@ -141,7 +141,7 @@ export function useDeleteMagistratPhoneNumberMutation(props: { magistratId: stri
   return useMutation({
     mutationFn: (phoneNumberId: string) =>
       $api.magistrats.deleteMagistratPhoneNumber({ path: { ...props, phoneNumberId } }),
-    onSuccess: () =>
+    onSettled: () =>
       Promise.all([
         queryClient.invalidateQueries({ queryKey: auditionKeys.all() }),
         queryClient.invalidateQueries({ queryKey: magistratKeys.magistratPhoneNumbers(props) }),

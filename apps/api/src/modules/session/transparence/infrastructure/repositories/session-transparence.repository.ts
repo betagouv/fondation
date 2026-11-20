@@ -32,6 +32,7 @@ import {
   SessionTransparenceArchived,
   SessionTransparenceAttachmentAdded,
   SessionTransparenceAttachmentRemoved,
+  SessionTransparenceAttachmentRenamed,
   SessionTransparenceAuditionRequestDefined,
   SessionTransparenceAuditionScheduled,
   SessionTransparenceAuditionsPublished,
@@ -42,7 +43,9 @@ import {
   SessionTransparenceFileAlertHidden,
   SessionTransparenceFileAttachmentAdded,
   SessionTransparenceFileAttachmentRemoved,
+  SessionTransparenceFileAttachmentRenamed,
   SessionTransparenceFileMemberMemoWritten,
+  SessionTransparenceFileMembersRecused,
   SessionTransparenceFileMissingEvaluationCommentUpdated,
   SessionTransparenceFileMissingEvaluationUpdated,
   SessionTransparenceFilePrioritiesUpdated,
@@ -178,10 +181,14 @@ export class SessionTransparenceRepository {
         await this.persistSessionTransparenceAttachmentAdded(message);
       } else if (message instanceof SessionTransparenceAttachmentRemoved) {
         await this.persistSessionTransparenceAttachmentRemoved(message);
+      } else if (message instanceof SessionTransparenceAttachmentRenamed) {
+        await this.persistSessionTransparenceAttachmentRenamed(message);
       } else if (message instanceof SessionTransparenceFileAttachmentAdded) {
         await this.persistSessionTransparenceFileAttachmentAdded(message);
       } else if (message instanceof SessionTransparenceFileAttachmentRemoved) {
         await this.persistSessionTransparenceFileAttachmentRemoved(message);
+      } else if (message instanceof SessionTransparenceFileAttachmentRenamed) {
+        await this.persistSessionTransparenceFileAttachmentRenamed(message);
       } else if (message instanceof SessionTransparenceUpdated) {
         invalidations.push(...(await this.persistSessionTransparenceUpdated(message)));
       } else if (message instanceof SessionTransparenceCommentWritten) {
@@ -198,6 +205,8 @@ export class SessionTransparenceRepository {
         await this.persistSessionTransparenceAuditionUnScheduled(message);
       } else if (message instanceof SessionTransparenceFileMemberMemoWritten) {
         await this.persistSessionTransparenceFileMemberMemoWritten(message);
+      } else if (message instanceof SessionTransparenceFileMembersRecused) {
+        invalidations.push(await this.persistSessionTransparenceFileMembersRecused(message));
       } else if (message instanceof SessionTransparenceFileMissingEvaluationUpdated) {
         await this.persistSessionTransparenceFileMissingEvaluationUpdated(message);
       } else if (message instanceof SessionTransparenceFileMissingEvaluationCommentUpdated) {
@@ -509,6 +518,16 @@ export class SessionTransparenceRepository {
     this.files.delete([{ id: attachment.file.id, path: attachment.file.path }]);
   }
 
+  private async persistSessionTransparenceAttachmentRenamed(message: SessionTransparenceAttachmentRenamed) {
+    const attachment = await this.db.tx.sessionAttachment.findUnique({
+      select: { fileId: true } satisfies Prisma.SessionAttachmentSelect,
+      where: { sessionId_fileId: { fileId: message.fileId, sessionId: message.sessionId } },
+    });
+    if (!attachment) throw new NotFoundException();
+
+    await this.files.rename({ id: message.fileId, name: message.name });
+  }
+
   private async persistSessionTransparenceFileAttachmentAdded(
     message: SessionTransparenceFileAttachmentAdded,
   ) {
@@ -537,6 +556,18 @@ export class SessionTransparenceRepository {
     });
 
     this.files.delete([{ id: attachment.file.id, path: attachment.file.path }]);
+  }
+
+  private async persistSessionTransparenceFileAttachmentRenamed(
+    message: SessionTransparenceFileAttachmentRenamed,
+  ) {
+    const attachment = await this.db.tx.nominationFileAttachment.findUnique({
+      select: { fileId: true } satisfies Prisma.NominationFileAttachmentSelect,
+      where: { primaryKey: { fileId: message.fileId, nominationFileId: message.nominationFileId } },
+    });
+    if (!attachment) throw new NotFoundException();
+
+    await this.files.rename({ id: message.fileId, name: message.name });
   }
 
   private async persistSessionTransparenceUpdated(message: SessionTransparenceUpdated) {
@@ -715,6 +746,53 @@ export class SessionTransparenceRepository {
       update: { memo },
       where: { primaryKey: { nominationFileId, userId } },
     });
+  }
+
+  private async persistSessionTransparenceFileMembersRecused(
+    message: SessionTransparenceFileMembersRecused,
+  ): Promise<SessionDocInvalidation> {
+    await this.db.tx.recusedMember.deleteMany({
+      where: {
+        OR: message.changes.map(({ nominationFileId, removedMemberIds }) => ({
+          nominationFileId,
+          userId: { in: [...removedMemberIds] },
+        })),
+      },
+    });
+    await this.db.tx.recusedMember.createMany({
+      data: message.changes.flatMap(({ addedMemberIds, nominationFileId }) =>
+        addedMemberIds.map((userId) => ({ nominationFileId, userId })),
+      ),
+      skipDuplicates: true,
+    });
+
+    const changedAt = this.clock.now();
+    await this.db.tx.recusedMemberChange.createMany({
+      data: message.changes.flatMap(({ addedMemberIds, nominationFileId, removedMemberIds }) => [
+        ...addedMemberIds.map((userId) => ({
+          action: 'ADDED' as const,
+          changedAt,
+          changedBy: message.authorId,
+          nominationFileId,
+          userId,
+        })),
+        ...removedMemberIds.map((userId) => ({
+          action: 'REMOVED' as const,
+          changedAt,
+          changedBy: message.authorId,
+          nominationFileId,
+          userId,
+        })),
+      ]),
+    });
+
+    return {
+      payload: {
+        nominationFileIds: message.changes.map(({ nominationFileId }) => nominationFileId),
+        sessionId: message.sessionId,
+      },
+      type: 'NominationFilesRecusalsUpdated',
+    };
   }
 
   private async persistSessionTransparenceFileMissingEvaluationUpdated(

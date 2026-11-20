@@ -2,7 +2,7 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { scheduleAuditionSchema } from '../../../../utils/audition-schedule';
-import { ATTACHMENT_MAX_BYTES } from '../../../framework/files';
+import { attachmentFiles } from '../../../framework/files';
 import { ObservationFollowUp } from '../../domain/observation-follow-up';
 
 const linkedObservationsAttachmentsMultipartSchema = z
@@ -11,7 +11,7 @@ const linkedObservationsAttachmentsMultipartSchema = z
 
 export class CreateObservationDto extends createZodDto(
   z.object({
-    files: z.array(z.file().max(ATTACHMENT_MAX_BYTES)).optional(),
+    files: attachmentFiles().optional(),
     form: z.object({
       magistratId: z.uuid(),
       dateReception: z.iso.date(),
@@ -31,7 +31,7 @@ export class ListObservationsQueryDto extends createZodDto(
 
 export class UpdateObservationDto extends createZodDto(
   z.object({
-    files: z.array(z.file().max(ATTACHMENT_MAX_BYTES)).optional(),
+    files: attachmentFiles().optional(),
     form: z.object({
       magistratId: z.uuid(),
       dateReception: z.iso.date(),

@@ -4,6 +4,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { Tooltip } from '@/shared/ui/tooltip';
+import { requiresElision } from '@/utils/string.utils';
 import { useUpdateNominationFileMissingEvaluationMutation } from '@queries/members.queries';
 
 export function MissingEvaluationDoneButton(props: {
@@ -23,8 +24,8 @@ export function MissingEvaluationDoneButton(props: {
         <>
           <p>
             <FormattedMessage
-              defaultMessage="Vous confirmez que la ou les évaluations de {magistrat} sont désormais présentes sur son dossier administratif LOLFI."
-              values={{ magistrat: props.magistrat }}
+              defaultMessage="Vous confirmez que la ou les évaluations {elided, select, true {d’} other {de }}{magistrat} sont désormais présentes sur son dossier administratif LOLFI."
+              values={{ elided: requiresElision(props.magistrat), magistrat: props.magistrat }}
             />
           </p>
           <p>

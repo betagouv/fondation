@@ -7,6 +7,7 @@ import { FormattedMessage } from 'react-intl';
 import { useAffectation } from '../../hooks/use-affectation/use-affectation.hook';
 import { useAuditionExpectation } from '../../hooks/use-audition-expectation/use-audition-expectation.hook';
 import { useUnsavedGuard } from '../../hooks/use-unsaved-guard/use-unsaved-guard.hook';
+import { isNonAffectableOn } from '../recused-members/recused-reporters';
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { ExcludedJurisdictionIcon } from '@/features/nomination-files-table/components/ExcludedJurisdictionIcon';
 import { ExcludedJurisdictionNotice } from '@/features/nomination-files-table/components/ExcludedJurisdictionNotice';
@@ -24,7 +25,7 @@ import type { DropdownHandle } from '@/shared/ui/dropdown';
 import { type FromFilesListState, getGdsReportPath } from '@/utils/route-path.utils';
 import { memberFullName } from '@/utils/user.utils';
 import { useUser } from '@queries/auth.queries';
-import { isUpdatable, type SessionNominationFile } from '@queries/nomination-sessions.queries';
+import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 import { useMyReportQuery } from '@queries/reports.queries';
 
 import { PrioritySelect, ReporterSelect } from './AffectationFields';
@@ -73,7 +74,7 @@ export function Header(props: { nominationFile: SessionNominationFile; sessionId
   const reportersDirty = isEditing && affectation.reportersDirty;
   const showWarning = useUnsavedGuard('magistrat-header', prioritiesDirty || reportersDirty);
 
-  const canEdit = canManage && isUpdatable(nominationFile);
+  const canEdit = canManage && nominationFile.canUpdate;
 
   const excludedJurisdictions = useExcludedJurisdictions();
   const conflicts = excludedJurisdictions.conflictsFor(
@@ -87,7 +88,7 @@ export function Header(props: { nominationFile: SessionNominationFile; sessionId
   const selectedConflicts = conflicts.filter(({ memberId }) => displayedReporterIds.includes(memberId));
 
   const isReporter = !!user && nominationFile.reporters.some((reporter) => reporter.id === user.id);
-  const { data: myReportId } = useMyReportQuery({
+  const { data: myReport } = useMyReportQuery({
     enabled: isReporter,
     nominationFileId: nominationFile.id,
     sessionId,
@@ -161,6 +162,7 @@ export function Header(props: { nominationFile: SessionNominationFile; sessionId
           <ReporterSelect
             available={affectation.availableRapporteurs}
             excludedTitleByRapporteurId={excludedTitleByRapporteurId}
+            isNonAffectable={(memberId) => isNonAffectableOn(nominationFile, memberId)}
             onChange={affectation.setReporterIds}
             ref={reporterSelectRef}
             value={affectation.reporterIds}
@@ -173,15 +175,15 @@ export function Header(props: { nominationFile: SessionNominationFile; sessionId
           <ReporterStatus
             conflicts={selectedConflicts}
             currentUserId={user?.id}
-            reporters={nominationFile.reporters}
+            nominationFile={nominationFile}
           />
-          {myReportId && (
+          {myReport && (
             <Button
               className="btn-compact"
               linkProps={{
                 // nuqs writes the filters to the URL without telling React Router: its location lags behind
                 state: { filesListSearch: window.location.search } satisfies FromFilesListState,
-                to: getGdsReportPath(myReportId),
+                to: getGdsReportPath(myReport.id),
               }}
               priority="secondary"
               size="small"
@@ -191,9 +193,26 @@ export function Header(props: { nominationFile: SessionNominationFile; sessionId
           )}
         </div>
       )}
+      {!isSgContext && <RecusedMembersStatus recusedMembers={nominationFile.recusedMembers} />}
       {isSgContext && reportersMissing && (
         <MissingSecondReporterBanner editable={canEdit && !isEditing} onAffect={affectReporters} />
       )}
+    </div>
+  );
+}
+
+function RecusedMembersStatus(props: { recusedMembers: SessionNominationFile['recusedMembers'] }) {
+  if (props.recusedMembers.length === 0) return null;
+
+  return (
+    <div className="-mt-4 flex flex-wrap items-center gap-1.5 text-base/6 text-(--text-default-grey)">
+      <FormattedMessage
+        defaultMessage="{count, plural, one {Membre déporté} other {Membres déportés}} :"
+        values={{ count: props.recusedMembers.length }}
+      />
+      {props.recusedMembers.map((member) => (
+        <MemberTag key={member.id} member={member} />
+      ))}
     </div>
   );
 }
@@ -206,14 +225,15 @@ function UnsavedWarning() {
   );
 }
 
-type Reporter = { firstName: string; id: string; lastName: string };
+type Member = { firstName: string; id: string; lastName: string };
 
 function ReporterStatus(props: {
   conflicts: readonly ExcludedJurisdictionConflict[];
   currentUserId: string | undefined;
-  reporters: readonly Reporter[];
+  nominationFile: SessionNominationFile;
 }) {
-  const { conflicts, currentUserId, reporters } = props;
+  const { conflicts, currentUserId, nominationFile } = props;
+  const { reporters } = nominationFile;
   const excludedTitleByMemberId = useExcludedJurisdictionTitles(conflicts);
 
   if (reporters.length === 0)
@@ -233,10 +253,10 @@ function ReporterStatus(props: {
           values={{ count: reporters.length }}
         />
         {reporters.map((reporter) => (
-          <ReporterTag
+          <MemberTag
             excludedTitle={excludedTitleByMemberId.get(reporter.id)}
             key={reporter.id}
-            reporter={reporter}
+            member={reporter}
           />
         ))}
       </div>
@@ -252,26 +272,27 @@ function ReporterStatus(props: {
       </span>
       {coReporters.length > 0 && <FormattedMessage defaultMessage="avec" />}
       {coReporters.map((reporter) => (
-        <ReporterTag
+        <MemberTag
           excludedTitle={excludedTitleByMemberId.get(reporter.id)}
           key={reporter.id}
-          reporter={reporter}
+          member={reporter}
         />
       ))}
     </div>
   );
 }
 
-function ReporterTag(props: { excludedTitle?: string; reporter: Reporter }) {
+function MemberTag(props: { excludedTitle?: string; member: Member }) {
   return (
     <Tag
+      as="span"
       className={clsx(
         'gap-1.5 bg-(--background-default-grey)!',
         props.excludedTitle ? 'text-(--text-default-warning)!' : 'text-(--text-action-high-blue-france)!',
       )}
     >
       {props.excludedTitle && <ExcludedJurisdictionIcon title={props.excludedTitle} />}
-      {memberFullName(props.reporter)}
+      {memberFullName(props.member)}
     </Tag>
   );
 }

@@ -2,6 +2,7 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { scheduleAuditionSchema } from '../../../../../utils/audition-schedule';
+import { COMMENT_MAX_LENGTH } from '../../../../../utils/comment';
 import { createSortableDto } from '../../../../framework/sorting';
 import { NominationFileOutcome } from '../../../../shared/nomination-file-outcome.enum';
 import { PriorityEnum } from '../../../../shared/priority.enum';
@@ -75,7 +76,7 @@ export class ListNominationFilesQueryDto extends createSortableDto(
 
 export class UpdateCommentDto extends createZodDto(
   z.object({
-    comment: z.string().max(50000).nullable(),
+    comment: z.string().max(COMMENT_MAX_LENGTH).nullable(),
   }),
 ) {}
 
@@ -94,6 +95,32 @@ export class UpdateMissingEvaluationCommentDto extends createZodDto(
       .nullable()
       .transform((x) => x || null),
   }),
+) {}
+
+// article 65 of the Constitution: 7 magistrates of the formation and the 8 members common to both
+const FORMATION_MEMBERS_COUNT = 15;
+
+const recusedMemberIdsSchema = z.array(z.uuid()).max(FORMATION_MEMBERS_COUNT);
+
+export class RecuseMembersDto extends createZodDto(z.object({ memberIds: recusedMemberIdsSchema })) {}
+
+export class RecuseNominationFilesMembersDto extends createZodDto(
+  z.object({
+    items: z
+      .array(z.object({ memberIds: recusedMemberIdsSchema, nominationFileId: z.uuid() }))
+      .nonempty()
+      .refine(
+        (items) => new Set(items.map(({ nominationFileId }) => nominationFileId)).size === items.length,
+        'Chaque dossier ne peut figurer qu’une fois',
+      ),
+  }),
+) {}
+
+export const RecusedMemberSchema = z.object({ firstName: z.string(), id: z.string(), lastName: z.string() });
+export type RecusedMember = z.infer<typeof RecusedMemberSchema>;
+
+export class RecusedMembersDto extends createZodDto(
+  z.object({ recusedMembers: RecusedMemberSchema.array().meta({ description: 'in protocol order' }) }),
 ) {}
 
 export class UpdateAuditionDateDto extends createZodDto(scheduleAuditionSchema) {}

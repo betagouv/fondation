@@ -15,6 +15,7 @@ import { makeSessionNominationFile } from '@/test-utils/factories/session-nomina
 import { makeSessionOutcomes } from '@/test-utils/factories/session-outcomes.factory';
 import { getGdsReportPath, ROUTE_PATHS } from '@/utils/route-path.utils';
 import * as $api from '@api/sdk';
+import type { FoundNominationFileMembersReportDto } from '@api/types';
 import { authKeys } from '@queries/auth.queries';
 import { memberKeys, type ListMembersOptions } from '@queries/members.queries';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
@@ -34,7 +35,7 @@ function renderHeader(options: {
   canManage?: boolean;
   excludedJurisdictionsOfOtherReporter?: (typeof LYON)[];
   isSg?: boolean;
-  myReportId?: string;
+  myReport?: FoundNominationFileMembersReportDto['report'];
   nominationFile: SessionNominationFile;
 }) {
   const client = new QueryClient({
@@ -44,7 +45,7 @@ function renderHeader(options: {
     formations: ['COMMUN', FormationEnum.SIEGE],
     pagination: { pageIndex: 0, pageSize: 100 },
   };
-  client.setQueryData(authKeys.introspectSession(), CURRENT_USER);
+  client.setQueryData(authKeys.introspectSession(), { ...CURRENT_USER, gender: 'FEMALE' });
   const members = {
     items: [
       { ...CURRENT_USER, excludedJurisdictions: [], status: 'ACTIVE' },
@@ -62,7 +63,7 @@ function renderHeader(options: {
   );
   client.setQueryData(
     reportKeys.myReport({ nominationFileId: options.nominationFile.id }),
-    options.myReportId ?? null,
+    options.myReport ?? null,
   );
 
   return render(
@@ -125,7 +126,7 @@ describe('Header reporter status', () => {
   it('links to the report of the current user when they have one', () => {
     renderHeader({
       isSg: false,
-      myReportId: 'report-1',
+      myReport: { id: 'report-1', state: 'IN_PROGRESS' },
       nominationFile: makeSessionNominationFile({ reporters: [CURRENT_USER] }),
     });
 
@@ -133,6 +134,30 @@ describe('Header reporter status', () => {
       'href',
       getGdsReportPath('report-1'),
     );
+  });
+
+  it('lists the recused members to a member, under the reporters', () => {
+    renderHeader({
+      isSg: false,
+      nominationFile: makeSessionNominationFile({
+        recusedMembers: [OTHER_REPORTER],
+        reporters: [CURRENT_USER],
+      }),
+    });
+
+    expect(screen.getByText('Membre déporté :')).toBeVisible();
+    expect(screen.getByText('Marie LEFEVRE')).toBeVisible();
+  });
+
+  it('leaves the recused members to the outcome section for the secretariat general', () => {
+    renderHeader({
+      nominationFile: makeSessionNominationFile({
+        recusedMembers: [OTHER_REPORTER],
+        reporters: [CURRENT_USER],
+      }),
+    });
+
+    expect(screen.queryByText('Membre déporté :')).not.toBeInTheDocument();
   });
 
   it('hides the report link when the current user has no report', () => {
@@ -208,7 +233,7 @@ describe('Header edition', () => {
   it('hides the edit button when the file is not updatable', () => {
     renderHeader({
       canManage: true,
-      nominationFile: makeSessionNominationFile({ content: { lockedReason: 'REPORTED' } }),
+      nominationFile: makeSessionNominationFile({ canUpdate: false }),
     });
 
     expect(screen.queryByRole('button', { name: 'Modifier' })).not.toBeInTheDocument();
@@ -297,6 +322,24 @@ describe('Header edition', () => {
     expect(await screen.findByRole('button', { name: 'Modifier' })).toBeInTheDocument();
   });
 
+  it('keeps the members the API refuses to affect out of the reporters', async () => {
+    const user = userEvent.setup();
+    renderHeader({
+      canManage: true,
+      nominationFile: makeSessionNominationFile({
+        content: { lockedReason: null },
+        nonAffectableMembers: [{ id: OTHER_REPORTER.id, reason: 'RECUSED' }],
+        reporters: [],
+      }),
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Modifier' }));
+    await user.click(screen.getByRole('button', { name: /Affecter un rapporteur/ }));
+
+    expect(await screen.findByRole('option', { name: 'Marie LEFEVRE (déport)' })).toBeDisabled();
+    expect(screen.getByRole('option', { name: 'Jean PETIT' })).toBeEnabled();
+  });
+
   it('tells the priorities were not saved and stays in edit mode', async () => {
     vi.spyOn($api.sessions, 'updateNominationFilesPriorities').mockRejectedValue(new Error('Bad Gateway'));
     const user = userEvent.setup();
@@ -372,8 +415,11 @@ describe('Header missing second reporter', () => {
 describe('Header accessibility', () => {
   it('passes basic accessibility checks', async () => {
     const { container } = renderHeader({
-      myReportId: 'report-1',
-      nominationFile: makeSessionNominationFile({ reporters: [CURRENT_USER, OTHER_REPORTER] }),
+      myReport: { id: 'report-1', state: 'IN_PROGRESS' },
+      nominationFile: makeSessionNominationFile({
+        recusedMembers: [OTHER_REPORTER],
+        reporters: [CURRENT_USER],
+      }),
     });
 
     expect(await axe(container)).toHaveNoViolations();

@@ -236,7 +236,7 @@ const meta = {
   },
   component: SessionDocumentsTableStory,
   parameters: { layout: 'padded' },
-  title: 'Session/Transparence/SessionDocumentsTable',
+  title: 'Session/GDS/SessionDocumentsTable',
 } satisfies Meta<typeof SessionDocumentsTableStory>;
 
 export default meta;

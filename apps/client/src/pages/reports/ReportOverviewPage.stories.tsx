@@ -4,6 +4,7 @@ import { http, HttpResponse } from 'msw';
 import { PageStory } from '@/shared/storybook/PageStory';
 import { STORY_SESSION } from '@/shared/storybook/story-session';
 import { STORY_AUTHORS, STORY_USERS, STORY_VIEWS, type StoryView } from '@/shared/storybook/story-users';
+import { summaryObservationsHandlers } from '@/shared/storybook/summary.fixtures';
 import { getGdsReportPath, ROUTE_PATHS } from '@/utils/route-path.utils';
 import type {
   DetailedNominationFileDto,
@@ -25,9 +26,11 @@ const REPORT: DetailedReportDto = {
       usage: 'ATTACHMENT',
     },
   ],
+  attachmentsVisibility: 'VISIBLE',
   comment:
     '<p>Magistrate au parcours confirmé, appréciée de ses chefs de juridiction.</p><h2>Points d’attention</h2><p>Mobilité géographique à confirmer.</p>',
   id: 'report-2',
+  lockedReason: null,
   nominationFileId: 'nomination-file-2',
   screenshots: [],
   sessionId: STORY_SESSION.id,
@@ -40,7 +43,9 @@ const NOMINATION_FILE: DetailedNominationFileDto = {
   auditionRequirement: 'POSITION',
   auditionTime: { hours: 14, minutes: 30, seconds: 0 },
   canScheduleAudition: true,
+  canUpdate: false,
   comment: null,
+  commentLastChange: null,
   content: {
     dateDeNaissance: { day: 12, month: 4, year: 1978 },
     dateEchéance: null,
@@ -52,12 +57,11 @@ const NOMINATION_FILE: DetailedNominationFileDto = {
     historique:
       '- Juge au tribunal judiciaire de Lyon (2008) - Vice-présidente au tribunal judiciaire de Lyon (2014) - Conseillère à la cour d’appel de Lyon (2021)',
     informationCarrière: null,
-    isAlertHidden: false,
     jurisdictions: { current: null, targeted: null },
     lockedReason: null,
     nomMagistrat: 'DURAND Camille',
     numeroDeDossier: 12,
-    observants: null,
+    observants: ['BERNARD Paul', 'MARTIN Léa'],
     outcome: null,
     posteActuel: 'Conseillère à la cour d’appel de Lyon',
     posteCible: 'Présidente de chambre à la cour d’appel de Paris',
@@ -67,14 +71,17 @@ const NOMINATION_FILE: DetailedNominationFileDto = {
   },
   expectedReportersCount: 2,
   hasAttachment: false,
-  hasJurisdictionSheet: false,
   id: REPORT.nominationFileId,
   isArchived: false,
+  jurisdictionSheetRequired: false,
   memo: null,
   missingEvaluation: false,
   missingEvaluationComment: null,
+  nonAffectableMembers: [],
+  nonRecusableMembers: [],
   observations: [],
   priorities: ['ETOILE'],
+  recusedMembers: [],
   reporters: [{ firstName: 'Jean', id: STORY_USERS.member.id, lastName: 'Petit' }],
   summary: null,
 };
@@ -102,12 +109,18 @@ const MEMBER_REPORTS: ListedMemberSessionReportsDto = {
   ],
 };
 
-function ReportOverviewPageStory(props: { view: StoryView }) {
+const ACCESS = {
+  impersonated: { attachmentsVisibility: 'PRIVATE', lockedReason: 'IMPERSONATION' },
+  member: { attachmentsVisibility: 'VISIBLE', lockedReason: null },
+  sg: { attachmentsVisibility: null, lockedReason: null },
+} as const;
+
+function ReportOverviewPageStory(props: { isImpersonated: boolean; view: StoryView }) {
   return (
     <PageStory
       location={getGdsReportPath(REPORT.id)}
       path={ROUTE_PATHS.TRANSPARENCES.DETAILS_REPORTS}
-      view={props.view}
+      view={props.isImpersonated ? 'member' : props.view}
     >
       <ReportOverviewPage />
     </PageStory>
@@ -115,11 +128,24 @@ function ReportOverviewPageStory(props: { view: StoryView }) {
 }
 
 const meta = {
-  args: { view: 'member' },
-  argTypes: { view: { control: 'inline-radio', options: STORY_VIEWS } },
-  beforeEach: ({ msw }) => {
+  args: { isImpersonated: false, view: 'member' },
+  argTypes: {
+    isImpersonated: {
+      control: 'boolean',
+      description:
+        'an admin acting as the member, in the member view: the report is read-only and its attachments private',
+    },
+    view: { control: 'inline-radio', options: STORY_VIEWS },
+  },
+  beforeEach: ({ args, msw }) => {
     msw.use(
-      http.get('*/api/reports/v2/:reportId', () => HttpResponse.json<DetailedReportDto>(REPORT)),
+      ...summaryObservationsHandlers,
+      http.get('*/api/reports/v2/:reportId', () =>
+        HttpResponse.json<DetailedReportDto>({
+          ...REPORT,
+          ...ACCESS[args.isImpersonated ? 'impersonated' : args.view],
+        }),
+      ),
       http.get('*/api/sessions/v2/:sessionId', () =>
         HttpResponse.json<DetailedNominationSessionDto>(STORY_SESSION),
       ),

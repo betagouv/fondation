@@ -110,7 +110,7 @@ const meta = {
   },
   component: ArchivedSessionsStory,
   parameters: { layout: 'fullscreen' },
-  title: 'Session/Transparence/ArchivedSessionsTable',
+  title: 'Session/GDS/ArchivedSessionsTable',
 } satisfies Meta<typeof ArchivedSessionsStory>;
 
 export default meta;

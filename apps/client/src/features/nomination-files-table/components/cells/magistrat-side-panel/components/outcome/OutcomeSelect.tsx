@@ -53,6 +53,7 @@ export function OutcomeSelect(props: { nominationFile: SessionNominationFile }) 
 
   return (
     <Dropdown
+      label={<FormattedMessage defaultMessage="Ajouter l'issue" />}
       onSelect={(value) => select(value as NominationFileOutcomeEnum | null)}
       options={options}
       placeholder={<FormattedMessage defaultMessage="Sélectionner" />}

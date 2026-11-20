@@ -2,8 +2,22 @@ import { capitalize } from '../../../../../utils/capitalize';
 import { type Civility } from '../../../../magistrat/domain/magistrat-name';
 import { GenderEnum } from '../../../../shared/gender.enum';
 
+function titledName(member: { gender: GenderEnum; lastName: string }, title: string): string {
+  return `${member.gender === GenderEnum.FEMALE ? 'Mme' : 'M.'}\u00A0${title}\u00A0${member.lastName.toUpperCase()}`;
+}
+
 export function buildMemberName(member: { firstName: string; gender: GenderEnum; lastName: string }): string {
-  return `${member.gender === GenderEnum.FEMALE ? 'Mme' : 'M.'}\u00A0${capitalize(member.firstName.toLowerCase())}\u00A0${member.lastName.toUpperCase()}`;
+  return titledName(member, capitalize(member.firstName.toLowerCase()));
+}
+
+export function buildRecusedMemberName(member: {
+  firstName: string;
+  gender: GenderEnum;
+  lastName: string;
+  recusalTitle: string | null;
+}): string {
+  const title = member.recusalTitle?.trim();
+  return title ? titledName(member, title) : buildMemberName(member);
 }
 
 // the codes seen in production: a code LOLFI adds later falls back to "sans affectation"

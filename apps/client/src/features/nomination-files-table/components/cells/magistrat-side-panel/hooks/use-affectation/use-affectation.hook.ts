@@ -17,14 +17,16 @@ export function useAffectation(props: {
   sessionId: string;
 }) {
   const { nominationFile, onSaved, sessionId } = props;
-  const { formation } = useNominationFilesTable();
+  const { canManage, formation } = useNominationFilesTable();
 
   const [priorities, setPriorities] = useState<PrioriteEnum[]>(() => [...nominationFile.priorities]);
   const [reporterIds, setReporterIds] = useState<string[]>(() =>
     nominationFile.reporters.map((reporter) => reporter.id),
   );
 
+  // the list of members is reserved to the secretariat general: a member opening the panel would get a 403
   const { data } = useMemberListQuery({
+    enabled: canManage,
     formations: ['COMMUN', formation],
     pagination: { pageIndex: 0, pageSize: 100 },
   });

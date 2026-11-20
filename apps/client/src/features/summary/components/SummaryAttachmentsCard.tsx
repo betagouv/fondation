@@ -4,16 +4,19 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { useSummary } from '@/features/summary/context/SummaryContext';
 import { useOpenSummaryAttachment } from '@/features/summary/hooks/useOpenSummaryAttachment';
 import { FileList, FileListItem } from '@/shared/components/file-list';
+import { useRenameAttachmentModal } from '@/shared/components/rename-attachment';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { useAttachmentFailureToast } from '@/shared/hooks/useAttachmentFailureToast';
 import { DetailsCard } from '@/shared/ui/details';
-import { Upload } from '@/shared/ui/upload';
+import { AttachmentFormatsHint, Upload } from '@/shared/ui/upload';
+import { ATTACHMENT_FILE_TYPES } from '@/shared/ui/upload/file-types';
 import type { DetailedSummaryDto } from '@api/types';
 import { useDownloadFileMutation } from '@queries/files.queries';
 import {
   useAttachSummaryFilesMutation,
   useDetachSummaryFilesMutation,
   useGenerateSummaryAttachmentPublicUrlMutation,
+  useRenameSummaryAttachmentMutation,
 } from '@queries/summary.queries';
 
 type SummaryAttachmentDto = DetailedSummaryDto['summary']['attachments'][number];
@@ -65,9 +68,10 @@ function SummaryAttachmentInput() {
   return (
     <div className="fr-mt-6v">
       <Upload
+        accept={ATTACHMENT_FILE_TYPES}
         clearOnChange
         disabled={summary.isArchived}
-        hint={<FormattedMessage defaultMessage="Tout type de fichier supporté" />}
+        hint={<AttachmentFormatsHint />}
         isPending={isPending}
         multiple
         onChange={(files) => files.length > 0 && attach(files)}
@@ -77,7 +81,8 @@ function SummaryAttachmentInput() {
 }
 
 function SummaryAttachment({ attachment }: { attachment: SummaryAttachmentDto }) {
-  const { canWriteSummary, nominationFileId, sessionId } = useSummary();
+  const { nominationFileId, sessionId, summary } = useSummary();
+  const { canManageAttachments } = summary.summary;
   const { formatMessage } = useIntl();
   const notifyFailure = useAttachmentFailureToast();
 
@@ -119,16 +124,24 @@ function SummaryAttachment({ attachment }: { attachment: SummaryAttachmentDto })
     detach({ fileIds: [attachment.id], nominationFileId, sessionId });
   }, [detach, formatMessage, nominationFileId, attachment.id, sessionId, waitForConfirmation]);
 
+  const { mutateAsync: renameAttachment } = useRenameSummaryAttachmentMutation();
+  const renaming = useRenameAttachmentModal((file: SummaryAttachmentDto, name) =>
+    renameAttachment({ fileId: file.id, name, nominationFileId, sessionId }),
+  );
+
   return (
     <FileListItem
       addedAt={attachment.addedAt}
       addedBy={attachment.addedBy}
       disabled={isOpening || isCreatingUrl || isDownloading || isDetaching}
       name={attachment.name}
-      onDelete={canWriteSummary ? onDelete : undefined}
+      onDelete={canManageAttachments ? onDelete : undefined}
       onDownload={onDownload}
       onOpen={onOpen}
+      onRename={canManageAttachments ? () => renaming.open(attachment) : undefined}
       size={attachment.size}
-    />
+    >
+      {renaming.modal}
+    </FileListItem>
   );
 }

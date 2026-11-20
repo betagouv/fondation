@@ -20,9 +20,15 @@ import { ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { DateOnly } from '../../../utils/date-only';
-import { FILE_EXTENSIONS, FILE_MIME_TYPES, Multipart, UseMultipartBody } from '../../framework/files';
-import { ApiOkDiscriminatedByType } from '../../framework/openapi';
+import {
+  FILE_EXTENSIONS,
+  FILE_MIME_TYPES,
+  Multipart,
+  RenameAttachmentDto,
+  UseMultipartBody,
+} from '../../framework/files';
 import { ApiPaginated, Pagination, QueryPagination } from '../../framework/pagination';
+import type { Impersonation } from '../../shared/policies/personal-content.policies';
 import type { RoleEnum } from '../../shared/role.enum';
 import { AuthedUser, AuthedUserId, HasRole } from '../../simple-auth';
 
@@ -31,6 +37,9 @@ import { AutoAffectationDto } from './infrastructure/dtos/auto-affectation.dto';
 import {
   AffectReportersDto,
   ListNominationFilesQueryDto,
+  RecusedMembersDto,
+  RecuseMembersDto,
+  RecuseNominationFilesMembersDto,
   UpdateAuditionDateDto,
   UpdateAuditionRequestDto,
   UpdateCommentDto,
@@ -56,11 +65,6 @@ import {
   UploadSessionAttachmentsDto,
   WriteSessionCommentDto,
 } from './infrastructure/dtos/transparence-session.dto';
-import {
-  FoundAffectationVersion,
-  NoneAffectationVersion,
-  SomeAffectationVersion,
-} from './infrastructure/finders/affectation-version.finder';
 import { LodamXlsxPipe } from './infrastructure/lodam-xlsx.pipe';
 import { NominationFilesStatusCountDto } from './infrastructure/queries/count-nomination-files-by-status.query';
 import { CountedUnaffectedFilesDto } from './infrastructure/queries/count-unaffected-files.query';
@@ -161,7 +165,7 @@ export class SessionController {
     });
   }
 
-  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @HasRole('ADMIN')
   @Post('/lodam')
   @UseMultipartBody({ schema: ImportNominationSessionFromLodamXlsxDto })
   @ZodResponse({
@@ -314,7 +318,7 @@ export class SessionController {
   })
   listNominationFiles(
     @Param('sessionId') sessionId: string,
-    @AuthedUser() user: { id: string; role: RoleEnum },
+    @AuthedUser() user: { id: string; impersonation: Impersonation | undefined; role: RoleEnum },
     @QueryPagination() pagination: Pagination,
     @Query(ZodValidationPipe) query: ListNominationFilesQueryDto,
   ) {
@@ -331,17 +335,6 @@ export class SessionController {
       sessionId,
       sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
       user,
-    });
-  }
-
-  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
-  @Get('/:sessionId/files/reporters/versions/last')
-  @ApiOkDiscriminatedByType(SomeAffectationVersion, NoneAffectationVersion)
-  detailNominationSessionAffectationsVersion(
-    @Param('sessionId') sessionId: string,
-  ): Promise<FoundAffectationVersion> {
-    return this.sessions.detailNominationSessionAffectationsVersion({
-      sessionId,
     });
   }
 
@@ -426,11 +419,14 @@ export class SessionController {
     @Param('sessionId') sessionId: string,
     @Param('nominationFileId') nominationFileId: string,
     @Body() body: UpdateCommentDto,
+    @AuthedUser() user: { id: string; impersonation?: { impersonatorId: string } },
   ): Promise<void> {
     await this.sessions.updateNominationFileComment({
       comment: body.comment,
+      impersonatorId: user.impersonation?.impersonatorId ?? null,
       nominationFileId,
       sessionId,
+      userId: user.id,
     });
   }
 
@@ -464,6 +460,31 @@ export class SessionController {
       nominationFileId,
       sessionId,
     });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Put('/:sessionId/files/:nominationFileId/recused-members')
+  @UsePipes(ZodValidationPipe)
+  @ZodResponse({ status: HttpStatus.OK, type: RecusedMembersDto })
+  recuseMembers(
+    @AuthedUserId() authorId: string,
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
+    @Body() body: RecuseMembersDto,
+  ): Promise<RecusedMembersDto> {
+    return this.sessions.recuseMembers({ authorId, memberIds: body.memberIds, nominationFileId, sessionId });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Put('/:sessionId/files/recused-members')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UsePipes(ZodValidationPipe)
+  async recuseNominationFilesMembers(
+    @AuthedUserId() authorId: string,
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Body() body: RecuseNominationFilesMembersDto,
+  ): Promise<void> {
+    await this.sessions.recuseNominationFilesMembers({ authorId, recusals: body.items, sessionId });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
@@ -589,6 +610,18 @@ export class SessionController {
     });
   }
 
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Patch('/:sessionId/attachments/:fileId')
+  @UsePipes(ZodValidationPipe)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async renameSessionAttachment(
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('fileId', ParseUUIDPipe) fileId: string,
+    @Body() { name }: RenameAttachmentDto,
+  ): Promise<void> {
+    await this.sessions.renameNominationSessionAttachment({ fileId, name, sessionId });
+  }
+
   @HasRole()
   @Get('/:sessionId/attachments')
   @ZodResponse({
@@ -649,6 +682,19 @@ export class SessionController {
     await this.sessions.removeNominationFileAttachment({ fileId, nominationFileId, sessionId });
   }
 
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Patch('/:sessionId/files/:nominationFileId/attachments/:fileId')
+  @UsePipes(ZodValidationPipe)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async renameNominationFileAttachment(
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
+    @Param('fileId', ParseUUIDPipe) fileId: string,
+    @Body() { name }: RenameAttachmentDto,
+  ): Promise<void> {
+    await this.sessions.renameNominationFileAttachment({ fileId, name, nominationFileId, sessionId });
+  }
+
   @HasRole()
   @Get('/:sessionId/files/:nominationFileId/attachments')
   @ZodResponse({
@@ -690,7 +736,7 @@ export class SessionController {
   detailNominationFile(
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
     @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
-    @AuthedUser() user: { id: string; role: RoleEnum },
+    @AuthedUser() user: { id: string; impersonation: Impersonation | undefined; role: RoleEnum },
   ): Promise<DetailedNominationFileDto> {
     return this.sessions.detailNominationFile({ nominationFileId, sessionId, user });
   }

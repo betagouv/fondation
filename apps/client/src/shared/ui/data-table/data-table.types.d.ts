@@ -37,8 +37,10 @@ declare module '@tanstack/react-table' {
     cellBackground?: (row: Row<TData>) => string | undefined;
     cellClassName?: (row: Row<TData>) => string | undefined;
     /** shown in the filter bar of the table, and set on the column filters state under `filterId` */
-    filters?: TableMetaFilter;
+    filters?: TableMetaFilter | TableMetaFilter[];
     headerClassName?: string;
     sticky?: boolean;
+    /** lets a long header take two lines rather than widen its column */
+    wrapHeader?: boolean;
   }
 }

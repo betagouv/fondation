@@ -48,6 +48,7 @@ function OfficialReportPreviewPageStory(props: {
     outdated: props.outdated,
     outdatedPropositions: blocks.filter((block) => block.kind === 'file' && block.outdated).length,
     secretaryId: null,
+    session: { id: STORY_SESSION_ID },
     sessionMeetingDate: { day: 3, month: 3, year: 2026 },
     sessionMeetingEndingTime: { hours: 12, minutes: 0, seconds: 0 },
     sessionMeetingStartingTime: { hours: 9, minutes: 30, seconds: 0 },
@@ -56,7 +57,9 @@ function OfficialReportPreviewPageStory(props: {
   storyMetadata = metadata;
 
   const path =
-    props.mode === 'edit' ? ROUTE_PATHS.SG.OFFICIAL_REPORT_EDIT : ROUTE_PATHS.SG.OFFICIAL_REPORT_PREVIEW;
+    props.mode === 'edit'
+      ? ROUTE_PATHS.SG.GDS.OFFICIAL_REPORT_EDIT
+      : ROUTE_PATHS.SG.GDS.OFFICIAL_REPORT_PREVIEW;
 
   return (
     <PageStory

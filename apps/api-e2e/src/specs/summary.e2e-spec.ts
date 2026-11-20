@@ -80,7 +80,7 @@ test.describe('Summary E2E', () => {
           lastName: 'VALROSE',
           position: { function: seed.functions.PR, grade: 'G3', jurisdiction: seed.jurisdictions['CA  LYON'] },
           targetPosition: {
-            function: seed.functions.PR,
+            function: seed.functions.PG,
             grade: 'G3',
             jurisdiction: seed.jurisdictions['CA  GRENOBLE'],
           },
@@ -96,6 +96,33 @@ test.describe('Summary E2E', () => {
 
     expect(summary.response?.status).toBe(200);
     expect(summary.data).toMatchObject({ auditionRequired: true, canScheduleAudition: true, reportersMissing: true });
+  });
+
+  test('should rename an attachment of a summary, keeping its extension', async ({ agent, expect, sessions }) => {
+    const session = await sessions.createOne({
+      candidates: [
+        {
+          firstName: 'HONORINE',
+          lastName: 'VALROSE',
+          position: { function: seed.functions.PR, grade: 'G3', jurisdiction: seed.jurisdictions['CA  LYON'] },
+          targetPosition: { function: seed.functions.PR, grade: 'G3', jurisdiction: seed.jurisdictions['CA  REIMS'] },
+        },
+      ],
+      createdAt: '22/04/2026',
+    });
+    const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+    await agent.summaries.createSummary({ path, throwOnError: true });
+    await agent.summaries.attachSummaryFiles({ body: { files: [pdf('scan_0042.pdf')] }, path, throwOnError: true });
+    const { data: before } = await agent.summaries.detailSummary({ path, throwOnError: true });
+
+    const renamed = await agent.summaries.renameSummaryAttachment({
+      body: { name: '  Évaluation 2023-2024  ' },
+      path: { ...path, fileId: before.summary.attachments[0]!.id },
+    });
+
+    expect(renamed.response?.status).toBe(204);
+    const { data: after } = await agent.summaries.detailSummary({ path, throwOnError: true });
+    expect(after.summary.attachments.map(({ name }) => name)).toEqual(['Évaluation 2023-2024.pdf']);
   });
 
   test('should detach a file from a summary without touching the files of another one', async ({
@@ -194,13 +221,53 @@ test.describe('Summary E2E', () => {
     expect(unreachable.response?.status).toBe(404);
   });
 
+  test('should show the admin impersonating a reader that a summary is shared with them, not what it says', async ({
+    agent,
+    expect,
+    impersonate,
+    member,
+    sessions,
+  }) => {
+    const session = await sessions.createOne({
+      candidates: [
+        {
+          firstName: 'HONORINE',
+          lastName: 'VALROSE',
+          position: { function: seed.functions.PR, grade: 'G3', jurisdiction: seed.jurisdictions['CA  LYON'] },
+          targetPosition: { function: seed.functions.PR, grade: 'G3', jurisdiction: seed.jurisdictions['CA  REIMS'] },
+        },
+      ],
+      createdAt: '22/04/2026',
+    });
+    const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+    await agent.summaries.createSummary({ path, throwOnError: true });
+    await agent.summaries.writeSummary({ body: { content: '<p>Synthèse</p>' }, path, throwOnError: true });
+    await agent.summaries.updateSummaryReadersList({
+      body: { readerIds: [member['@user']!.id] },
+      path,
+      throwOnError: true,
+    });
+
+    const impersonator = await impersonate(member['@user']!);
+
+    const file = await impersonator.sessions.detailNominationFile({ path, throwOnError: true });
+    expect(file.data.summary).toEqual({
+      canRead: false,
+      canWrite: false,
+      id: path.nominationFileId,
+      visibility: 'PRIVATE',
+    });
+    const read = await impersonator.summaries.detailSummary({ path });
+    expect(read.response?.status).toBe(404);
+  });
+
   test('should offer as readers the members of the formation and the secretariat but no technical account, the president and the secretary general first', async ({
     admin,
     agent,
-    developer,
     expect,
     registerUser,
     sessions,
+    teamMember,
   }) => {
     const session = await sessions.createOne({
       candidates: [
@@ -230,7 +297,7 @@ test.describe('Summary E2E', () => {
     });
     const officer = await registerUser('ADJOINT_SECRETAIRE_GENERAL');
     const otherFormation = await registerUser('MEMBRE_DU_SIEGE');
-    const { data: technical } = await developer.administration.createUser({
+    const { data: technical } = await teamMember.administration.createUser({
       body: {
         email: `technical+${crypto.randomUUID()}@example.fr`,
         firstName: 'Camille',

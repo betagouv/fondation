@@ -54,10 +54,10 @@ export function DropdownFilter({
   const checkboxOptions = options.map((option) => ({
     label: <span className="text-sm">{option.label}</span>,
     nativeInputProps: {
-      name: `checkboxes-${option.value}`,
-      value: option.value,
       checked: selectedValues.includes(option.value),
+      name: `checkboxes-${option.value}`,
       onChange: (e: React.ChangeEvent<HTMLInputElement>) => onChangeHandler(option.value, e.target.checked),
+      value: option.value,
     },
   }));
 
@@ -69,13 +69,13 @@ export function DropdownFilter({
         className={clsx('rounded-full transition-colors duration-200')}
         style={
           {
-            color: 'var(--text-action-high-blue-france)',
-            backgroundColor: 'var(--background-action-low-blue-france)',
-            outline: 'none',
-            boxShadow: 'none',
-            '--idle': 'transparent',
-            '--hover': 'var(--background-action-low-blue-france-hover)',
             '--active': 'var(--background-action-low-blue-france-active)',
+            '--hover': 'var(--background-action-low-blue-france-hover)',
+            '--idle': 'transparent',
+            backgroundColor: 'var(--background-action-low-blue-france)',
+            boxShadow: 'none',
+            color: 'var(--text-action-high-blue-france)',
+            outline: 'none',
           } as React.CSSProperties
         }
         nativeButtonProps={{ 'aria-expanded': isOpen, 'aria-haspopup': 'true' }}
@@ -96,7 +96,7 @@ export function DropdownFilter({
       </Button>
 
       {isOpen && (
-        <div className="animate-in slide-in-from-top-2 fr-mt-2v fr-p-4v absolute top-full left-0 z-50 max-h-[250px] min-w-[230px] overflow-y-auto rounded-lg border border-(--border-default-grey) bg-(--background-default-grey) shadow-lg duration-200">
+        <div className="animate-in slide-in-from-top-2 fr-mt-2v fr-p-4v absolute top-full left-0 z-50 max-h-[250px] w-max max-w-[90vw] min-w-[230px] overflow-y-auto rounded-lg border border-(--border-default-grey) bg-(--background-default-grey) shadow-lg duration-200">
           <Checkbox className="fr-mt-2v fr-mb-0" options={checkboxOptions} small state="default" />
         </div>
       )}

@@ -146,6 +146,28 @@ describe('expectedReportersCount', () => {
     ).toBeNull();
   });
 
+  it('expects two reporters on the public prosecutor of Paris', () => {
+    expect(
+      expectedReportersCount(file({ detectedJurisdictionId: 'TJ  PARIS', detectedTargetedFunctionId: 'PR' })),
+    ).toBe(2);
+  });
+
+  it('expects a single reporter on a public prosecutor outside Paris', () => {
+    expect(
+      expectedReportersCount(
+        file({ detectedJurisdictionId: 'TJ  GRASSE', detectedTargetedFunctionId: 'PR' }),
+      ),
+    ).toBeNull();
+  });
+
+  it.each(['PR F', 'PRACO', 'PRAT'])('expects two reporters on the national prosecutor %s', (functionId) => {
+    expect(
+      expectedReportersCount(
+        file({ detectedJurisdictionId: 'TJ  PARIS', detectedTargetedFunctionId: functionId }),
+      ),
+    ).toBe(2);
+  });
+
   it('expects nothing in particular on a regular position', () => {
     expect(
       expectedReportersCount(file({ targetedPosition: 'Président de chambre CA AIX EN PROVENCE' })),

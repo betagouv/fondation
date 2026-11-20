@@ -4,6 +4,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useDateAndTime } from '@/shared/hooks/useDateAndTime';
 import { formatFileSize, splitFileName } from '@/utils/file.utils';
+import { whoWrote } from '@/utils/user.utils';
 import { useUser } from '@queries/auth.queries';
 
 const CurrentUserIdContext = createContext<string | undefined>(undefined);
@@ -15,7 +16,7 @@ export function FileList(props: { 'aria-labelledby'?: string; children: ReactNod
     <CurrentUserIdContext value={user?.id}>
       <ul
         aria-labelledby={props['aria-labelledby']}
-        className="fr-m-0 fr-p-0 list-none divide-y divide-(--border-default-grey) border-y border-(--border-default-grey)"
+        className="fr-m-0 fr-p-0 list-none divide-y divide-(--border-default-grey)"
       >
         {props.children}
       </ul>
@@ -33,6 +34,7 @@ export function FileListItem(props: {
   onDelete?: () => void;
   onDownload: () => void;
   onOpen: () => void;
+  onRename?: () => void;
   size?: number | null;
 }) {
   const { formatMessage } = useIntl();
@@ -85,7 +87,7 @@ export function FileListItem(props: {
                 values={{
                   author: props.addedBy?.name,
                   ...dateAndTime(props.addedAt),
-                  who: !props.addedBy ? 'nobody' : props.addedBy.id === currentUserId ? 'self' : 'someone',
+                  who: whoWrote({ currentUserId, writer: props.addedBy }),
                 }}
               />
             </span>
@@ -101,6 +103,16 @@ export function FileListItem(props: {
             size="small"
             title={formatMessage({ defaultMessage: 'Télécharger {name}' }, { name: props.name })}
           />
+          {props.onRename && (
+            <Button
+              disabled={props.disabled}
+              iconId="fr-icon-edit-line"
+              onClick={props.onRename}
+              priority="tertiary no outline"
+              size="small"
+              title={formatMessage({ defaultMessage: 'Renommer {name}' }, { name: props.name })}
+            />
+          )}
           {props.onDelete && (
             <Button
               disabled={props.disabled}

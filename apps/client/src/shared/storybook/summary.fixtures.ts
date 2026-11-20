@@ -78,14 +78,23 @@ const SUMMARY_OBSERVATIONS: ListObservationsResponseDto['observations'] = [
     files: [],
     followUp: null,
     id: 'observation-2',
-    magistrat: null,
+    magistrat: {
+      currentPosition: null,
+      firstName: 'Paul',
+      id: 'magistrat-durand',
+      lastName: 'Durand',
+      name: 'DURAND Paul',
+    },
     observantObservationsCount: 1,
   },
 ];
 
 export const summaryObservationsHandlers = [
   http.get('*/api/sessions/v2/:sessionId/files/:nominationFileId/observations', () =>
-    HttpResponse.json<ListObservationsResponseDto>({ observations: SUMMARY_OBSERVATIONS }),
+    HttpResponse.json<ListObservationsResponseDto>({
+      canManageAttachments: false,
+      observations: SUMMARY_OBSERVATIONS,
+    }),
   ),
 ];
 
@@ -123,6 +132,7 @@ export function makeSummary(
     summary: {
       attachments: [],
       author: SUMMARY_AUTHOR,
+      canManageAttachments: true,
       canWrite: true,
       content:
         '<p>Magistrate au parcours confirmé dont la candidature est portée par une expérience solide en juridiction, sur des fonctions civiles comme pénales.</p><h2>Points forts</h2><p>Les observations reçues soulignent une grande rigueur et un sens de l’écoute.</p>',

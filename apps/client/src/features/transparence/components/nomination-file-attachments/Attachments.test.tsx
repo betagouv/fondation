@@ -5,19 +5,21 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { axe } from 'vitest-axe';
 
 import { frFormat } from '@/i18n/formats';
+import { httpAssert } from '@/utils/http-exception';
 import type { ListedNominationFileAttachmentDto } from '@api/types';
 
 import { Attachments } from './Attachments';
 
 const mocks = vi.hoisted(() => ({
   attachments: [] as ListedNominationFileAttachmentDto['items'],
+  canManage: true,
   cancelTab: vi.fn(),
   createUrl: vi.fn(),
   downloadFile: vi.fn(),
-  isSg: vi.fn(() => true),
   open: vi.fn(),
   openAddAttachment: vi.fn(),
   remove: vi.fn(),
+  removeError: null as Error | null,
   settleTab: vi.fn(),
   toastError: vi.fn(),
   user: { id: 'user-2' },
@@ -37,7 +39,6 @@ vi.mock('@/shared/hooks/useTab', () => ({
   }),
 }));
 vi.mock('@/shared/ui/toast', () => ({ useToasts: () => ({ error: mocks.toastError }) }));
-vi.mock('@/features/auth/hooks/roles.hook', () => ({ useIsSgNavigation: () => mocks.isSg() }));
 vi.mock('@queries/auth.queries', () => ({ useUser: () => ({ user: mocks.user }) }));
 vi.mock('@queries/files.queries', () => ({
   useDownloadFileMutation: () => ({
@@ -54,16 +55,22 @@ vi.mock('@queries/nomination-sessions.queries', () => ({
     mutate: mocks.createUrl,
     reset: vi.fn(),
   }),
-  useListNominationFileAttachmentsQuery: () => ({ data: { items: mocks.attachments } }),
+  useListNominationFileAttachmentsQuery: () => ({
+    data: {
+      canManageAttachments: mocks.canManage,
+      items: mocks.attachments,
+    },
+  }),
   useRemoveNominationFileAttachmentMutation: () => ({
-    isError: false,
+    error: mocks.removeError,
     isPending: false,
     mutate: mocks.remove,
     reset: vi.fn(),
   }),
+  useRenameNominationFileAttachmentMutation: () => ({ mutateAsync: vi.fn() }),
 }));
 
-const PROPS = { isUpdatable: true, nominationFileId: 'nf-1', sessionId: 'session-1' };
+const PROPS = { nominationFileId: 'nf-1', sessionId: 'session-1' };
 
 function renderAttachments(overrides: Partial<typeof PROPS> = {}) {
   return render(
@@ -75,7 +82,8 @@ function renderAttachments(overrides: Partial<typeof PROPS> = {}) {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mocks.isSg.mockReturnValue(true);
+  mocks.canManage = true;
+  mocks.removeError = null;
   mocks.user = { id: 'user-2' };
   mocks.attachments = [
     {
@@ -119,16 +127,15 @@ describe('Attachments listing', () => {
     expect(screen.getByText('Ajoutée : le 18/06/2026 à 08h30')).toBeInTheDocument();
   });
 
-  it('renders nothing for a member when there is no attachment', () => {
-    mocks.isSg.mockReturnValue(false);
+  it('renders nothing when there is no attachment and none can be added', () => {
+    mocks.canManage = false;
     mocks.attachments = [];
     const { container } = renderAttachments();
 
     expect(container).toBeEmptyDOMElement();
   });
 
-  it('tells the secretariat that no attachment has been added yet', () => {
-    mocks.isSg.mockReturnValue(true);
+  it('tells that no attachment has been added yet when one can be', () => {
     mocks.attachments = [];
     renderAttachments();
 
@@ -232,6 +239,19 @@ describe('Attachments actions', () => {
     expect(mocks.remove).not.toHaveBeenCalled();
   });
 
+  it('tells the dossier was figé meanwhile when the removal is refused, without advising to retry', () => {
+    try {
+      httpAssert(new Response(null, { status: 409 }));
+    } catch (refusal) {
+      mocks.removeError = refusal as Error;
+    }
+    renderAttachments();
+
+    expect(
+      screen.getByText('Le dossier a été figé entre-temps : ses pièces jointes ne se suppriment plus.'),
+    ).toBeInTheDocument();
+  });
+
   it('opens the add modal on the displayed nomination file', async () => {
     const user = userEvent.setup();
     renderAttachments({ nominationFileId: 'nf-2' });
@@ -246,18 +266,12 @@ describe('Attachments actions', () => {
 });
 
 describe('Attachments permissions', () => {
-  it('hides delete and upload from a member', () => {
-    mocks.isSg.mockReturnValue(false);
+  it('hides delete, rename and upload when the api allows none of them', () => {
+    mocks.canManage = false;
     renderAttachments();
 
     expect(screen.queryByRole('button', { name: /Supprimer/ })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Ajouter' })).not.toBeInTheDocument();
-  });
-
-  it('hides delete and upload on a file that can no longer be updated', () => {
-    renderAttachments({ isUpdatable: false });
-
-    expect(screen.queryByRole('button', { name: /Supprimer/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Renommer/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Ajouter' })).not.toBeInTheDocument();
   });
 });

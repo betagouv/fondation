@@ -26,6 +26,13 @@ export function capitalize(input: string): string {
   return output;
 }
 
+// TODO: see requiresElision in apps/api/src/modules/docs/shared/infrastructure/services/renderers/helpers.ts
+const ELIDING_INITIALS = new Set(['a', 'e', 'h', 'i', 'o', 'u', 'y']);
+export function requiresElision(word: string): boolean {
+  const first = unaccent(word).trim()[0]?.toLowerCase();
+  return !!first && ELIDING_INITIALS.has(first);
+}
+
 // LOLFI stores phone numbers as typed: only ten-digit numbers are grouped, anything else is shown as is
 export function formatPhoneNumber(input: string): string {
   const digits = input.replace(/[\s.-]/g, '');

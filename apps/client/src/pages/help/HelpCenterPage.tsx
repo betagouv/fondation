@@ -3,12 +3,14 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { HelpPageArticle } from '@/features/help/components/HelpPageArticle';
 import { HelpPageUpdate } from '@/features/help/components/HelpPageUpdate';
 import { PinnedHeader } from '@/shared/components/pinned-header';
+import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { DetailsHeader } from '@/shared/ui/details';
 import { useReaderHelpPageQuery } from '@queries/help.queries';
 
 export function HelpCenterPage() {
   const { formatMessage } = useIntl();
+  const breadcrumbRoot = useBreadcrumbRoot();
   const { data, isError } = useReaderHelpPageQuery();
 
   return (
@@ -21,13 +23,14 @@ export function HelpCenterPage() {
                 {data && <HelpPageUpdate helpPage={data} />}
               </div>
             }
+            backThroughHistory
             backTo="/"
             breadcrumb={
               <Breadcrumb
                 ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane du centre d'aide" })}
                 breadcrumb={{
                   currentPageLabel: formatMessage({ defaultMessage: "Centre d'aide" }),
-                  segments: [{ label: formatMessage({ defaultMessage: 'Accueil' }), to: '/' }],
+                  segments: breadcrumbRoot,
                 }}
                 className="fr-mt-0"
                 id="help-center-breadcrumb"

@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Transactional } from '@nestjs-cls/transactional';
+import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
@@ -7,21 +8,30 @@ import { isDefined } from '../../../../utils/is-defined';
 import { writerOf, writerSchema } from '../../../../utils/user.util';
 import { Db } from '../../../framework/database';
 import { Files } from '../../../framework/files';
+import { TransparenceService } from '../../../session/transparence/infrastructure/transparence.service';
 import { prismaReportStateEnumToReportState } from '../../../shared/mappers/rapport-statut.mapper';
 import { prismaReportFileUsageEnumToReportFileUsage } from '../../../shared/mappers/report-file-usage.mapper';
+import {
+  type Impersonation,
+  PERSONAL_CONTENT_VISIBILITIES,
+} from '../../../shared/policies/personal-content.policies';
 import { ReportStateEnum } from '../../../shared/report-state.enum';
 import { isSecretariat, type RoleEnum } from '../../../shared/role.enum';
+import { ReportLockEnum, reportAttachmentsVisibility, reportLock } from '../../domain/report-lock';
 
 @Injectable()
 export class DetailReportQuery {
   constructor(
     private readonly files: Files,
     private readonly db: Db,
+    @Inject(forwardRef(() => TransparenceService))
+    private readonly sessions: TransparenceService,
   ) {}
 
+  @Transactional()
   async handle(query: {
     reportId: string;
-    user: { id: string; role: RoleEnum };
+    user: { id: string; impersonation: Impersonation | undefined; role: RoleEnum };
   }): Promise<DetailedReportDto> {
     const reporterId = isSecretariat(query.user.role) ? undefined : query.user.id;
 
@@ -54,6 +64,8 @@ export class DetailReportQuery {
 
     if (!report) throw new NotFoundException();
 
+    const sessionState = await this.sessions.internalFindSessionState({ sessionId: report.sessionId });
+
     const reportFiles = report.files.map(({ file, usage }) => ({
       addedAt: file.createdAt.toISOString(),
       addedBy: writerOf(file.createdBy),
@@ -83,8 +95,10 @@ export class DetailReportQuery {
         size: f.size,
         usage: f.usage,
       })),
+      attachmentsVisibility: reportAttachmentsVisibility(query.user),
       comment: report.comment,
       id: report.id,
+      lockedReason: reportLock({ isOpen: sessionState === 'OPEN' }, query.user),
       nominationFileId: report.nominationFileId,
       screenshots: screenshots.map((f) => ({
         id: f.id,
@@ -121,6 +135,7 @@ export class DetailedReportDto extends createZodDto(
     nominationFileId: z.string(),
     comment: z.string().nullable(),
     state: z.enum(ReportStateEnum),
+    lockedReason: z.enum(ReportLockEnum).nullable(),
 
     screenshots: z.array(
       z.object({
@@ -131,6 +146,10 @@ export class DetailedReportDto extends createZodDto(
       }),
     ),
 
+    attachmentsVisibility: z
+      .enum(PERSONAL_CONTENT_VISIBILITIES)
+      .nullable()
+      .meta({ description: 'null when the user reads the report without opening its attachments' }),
     attachments: z.array(
       z.object({
         usage: z.enum(['ATTACHMENT']),

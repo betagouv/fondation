@@ -56,18 +56,16 @@ function ObservationCard(props: {
               values={{ date: formatDateOnly(dateOnlyFromIso(props.observation.dateReception)) }}
             />
           </div>
-          {props.observation.magistrat && (
-            <div className="font-medium">
-              <FormattedMessage
-                defaultMessage="Observant : {name}"
-                values={{
-                  name: [props.observation.magistrat.name, props.observation.magistrat.currentPosition]
-                    .filter(Boolean)
-                    .join(' - '),
-                }}
-              />
-            </div>
-          )}
+          <div className="font-medium">
+            <FormattedMessage
+              defaultMessage="Observant : {name}"
+              values={{
+                name: [props.observation.magistrat.name, props.observation.magistrat.currentPosition]
+                  .filter(Boolean)
+                  .join(' - '),
+              }}
+            />
+          </div>
         </div>
         <div className="flex gap-1">
           <Button
@@ -82,14 +80,10 @@ function ObservationCard(props: {
             }}
             priority="tertiary no outline"
             size="small"
-            title={
-              props.observation.magistrat
-                ? intl.formatMessage(
-                    { defaultMessage: "Voir le détail de l'observation par {name}" },
-                    { name: props.observation.magistrat.name },
-                  )
-                : intl.formatMessage({ defaultMessage: "Voir le détail de l'observation" })
-            }
+            title={intl.formatMessage(
+              { defaultMessage: "Voir le détail de l'observation par {name}" },
+              { name: props.observation.magistrat.name },
+            )}
           />
           <Button
             iconId="ri-edit-line"

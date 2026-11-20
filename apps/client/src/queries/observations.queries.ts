@@ -1,12 +1,15 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import type { ObservationBlockTrackingStatusEnum } from '@/shared/enums/observation-block-tracking-status.enum';
 import type { ObservationFollowUpEnum } from '@/shared/enums/observation-follow-up.enum';
-import { HttpException } from '@/utils/http-exception';
 import { multipartJson } from '@/utils/multipart-json';
+import { withValidationError } from '@/utils/validation-error';
 import { withScreenshotUrls } from '@/utils/with-screenshot-urls';
 import * as $api from '@api/sdk';
 import type {
   CreateObservationDto,
+  ListedFollowedUpObservationsDto,
+  ListedSessionObservationsDto,
   ListObservationsResponseDto,
   ScheduleObservantAuditionDto,
   UpdateObservationDto,
@@ -18,8 +21,40 @@ import { mapCachedNominationFiles, sessionKeys } from './nomination-sessions.que
 
 export type Observation = ListObservationsResponseDto['observations'][number];
 export type Observant = NonNullable<Observation['magistrat']>;
+export type SessionObservation = ListedSessionObservationsDto['items'][number];
+
+type SessionObservationsFilters = {
+  followUps: string[];
+  search: string;
+  sortDesc: boolean;
+};
+
+export type FollowedUpObservation = ListedFollowedUpObservationsDto['items'][number];
+export type SessionStatus = FollowedUpObservation['session']['status'];
+export type FollowedUpObservationsSorting = [{ desc: boolean; id: 'dateReception' }];
+
+type FollowedUpObservationsFilters = {
+  followUps: string[];
+  search: string;
+  sessionStatuses: SessionStatus[];
+  sessionYears: string[];
+  sorting: FollowedUpObservationsSorting;
+  trackingStatuses: ObservationBlockTrackingStatusEnum[];
+};
+
+const SESSION_OBSERVATIONS_PAGE_SIZE = 50;
 
 export const observationKeys = {
+  /** the observations tracking table, across sessions: stale once any observation changes */
+  followedUp: () => ['observations', 'followedUp'] as const,
+  followedUpList: (filters: FollowedUpObservationsFilters) =>
+    [...observationKeys.followedUp(), filters] as const,
+  followedUpSessionYears: () => [...observationKeys.followedUp(), 'sessionYears'] as const,
+  /** the list and the count of the observations tab, both stale once an observation of the session changes */
+  session: (props: { sessionId: string }) => ['observations', 'session', props] as const,
+  sessionCount: (props: { sessionId: string }) => [...observationKeys.session(props), 'count'] as const,
+  sessionList: (props: { filters: SessionObservationsFilters; sessionId: string }) =>
+    [...observationKeys.session({ sessionId: props.sessionId }), 'list', props.filters] as const,
   observations: (props?: { sessionId: string; nominationFileId: string | undefined }) =>
     ['observations', props] as const,
   allObservationDetails: () => ['observationDetails'] as const,
@@ -27,8 +62,10 @@ export const observationKeys = {
   observationDetails: (props: { sessionId: string; nominationFileId: string; observationId: string }) =>
     ['observationDetails', props] as const,
   searchMagistrats: (props?: { search?: string }) => ['searchMagistrats', props?.search] as const,
+  /** the files an observation can link, from the other observations of its observant */
+  allObservationAttachments: () => ['observation', 'attachments'] as const,
   observationAttachments: (props?: { magistratId?: string }) =>
-    ['observation', 'attachments', props?.magistratId] as const,
+    [...observationKeys.allObservationAttachments(), props?.magistratId] as const,
 };
 
 export function useObservationDetailsQuery(props: {
@@ -48,7 +85,7 @@ export function useObservationDetailsQuery(props: {
         },
       });
 
-      if (data?.memberComment) {
+      if (data?.memberComment?.visibility === 'VISIBLE') {
         data.memberComment.comment = withScreenshotUrls(
           data.memberComment.comment,
           data.memberComment.screenshots,
@@ -82,15 +119,93 @@ export function useObservationsQuery(props: { sessionId: string; nominationFileI
   return useQuery({
     enabled: !!props.nominationFileId,
     queryKey: observationKeys.observations(props),
-    queryFn: async () => {
-      if (!props.nominationFileId) return { observations: [] as Observation[] };
+    queryFn: async (): Promise<ListObservationsResponseDto> => {
+      const empty = { canManageAttachments: false, observations: [] };
+      if (!props.nominationFileId) return empty;
       const { data } = await $api.observations.listObservations({
         path: { sessionId: props.sessionId, nominationFileId: props.nominationFileId },
       });
-      return data ?? { observations: [] as Observation[] };
+      return data ?? empty;
     },
   });
 }
+
+export const useSessionObservationsCountQuery = (props: { sessionId: string }) =>
+  useQuery({
+    queryFn: async () => {
+      const { data } = await $api.observations.countSessionObservations({ path: props, throwOnError: true });
+      return data;
+    },
+    queryKey: observationKeys.sessionCount(props),
+  });
+
+export const useInfiniteSessionObservationsQuery = (props: {
+  filters: SessionObservationsFilters;
+  sessionId: string;
+}) =>
+  useInfiniteQuery({
+    getNextPageParam: (lastPage: ListedSessionObservationsDto | null) => lastPage?.nextPageIndex,
+    initialPageParam: 1,
+    placeholderData: (previous) => previous,
+    queryFn: async ({ pageParam }) => {
+      const { followUps, search, sortDesc } = props.filters;
+      const { data = null } = await $api.observations.listSessionObservations({
+        path: { sessionId: props.sessionId },
+        query: {
+          followUps: followUps.length ? followUps.join(',') : undefined,
+          limit: SESSION_OBSERVATIONS_PAGE_SIZE,
+          page: pageParam,
+          search: search || undefined,
+          sortBy: 'dateReception',
+          sortDesc: sortDesc ? 'true' : undefined,
+        },
+      });
+      return data;
+    },
+    queryKey: observationKeys.sessionList(props),
+    select: (data) => ({
+      items: data.pages.flatMap((page) => page?.items ?? []),
+      totalCount: data.pages.at(-1)?.totalCount ?? 0,
+    }),
+  });
+
+export const useInfiniteFollowedUpObservationsQuery = (filters: FollowedUpObservationsFilters) =>
+  useInfiniteQuery({
+    getNextPageParam: (lastPage: ListedFollowedUpObservationsDto | null) => lastPage?.nextPageIndex,
+    initialPageParam: 1,
+    placeholderData: (previous) => previous,
+    queryFn: async ({ pageParam }) => {
+      const [sort] = filters.sorting;
+      const { data = null } = await $api.observations.listFollowedUpObservations({
+        query: {
+          followUps: filters.followUps.length ? filters.followUps.join(',') : undefined,
+          limit: SESSION_OBSERVATIONS_PAGE_SIZE,
+          page: pageParam,
+          search: filters.search || undefined,
+          sessionStatuses: filters.sessionStatuses.length ? filters.sessionStatuses.join(',') : undefined,
+          sessionYears: filters.sessionYears.length ? filters.sessionYears.join(',') : undefined,
+          sortBy: sort.id,
+          sortDesc: sort.desc ? 'true' : undefined,
+          trackingStatuses: filters.trackingStatuses.length ? filters.trackingStatuses.join(',') : undefined,
+        },
+      });
+      return data;
+    },
+    queryKey: observationKeys.followedUpList(filters),
+    select: (data) => ({
+      items: data.pages.flatMap((page) => page?.items ?? []),
+      totalCount: data.pages.at(-1)?.totalCount ?? 0,
+    }),
+  });
+
+export const getFollowedUpObservationSessionYearsQueryOptions = () =>
+  ({
+    queryFn: async () => {
+      const { data } = await $api.observations.listFollowedUpObservationSessionYears({ throwOnError: true });
+      return data;
+    },
+    queryKey: observationKeys.followedUpSessionYears(),
+  }) as const;
 
 export function useCreateObservationMutation() {
   const queryClient = useQueryClient();
@@ -106,28 +221,26 @@ export function useCreateObservationMutation() {
       linkedObservationsAttachments: { observationId: string; fileId: string }[];
     }): Promise<{ id: string } | null> => {
       const { files, ...form } = mutation;
-      const { data } = await $api.observations
-        .createObservation({
+      const { data } = await withValidationError(() =>
+        $api.observations.createObservation({
           body: {
             files,
             form: multipartJson(form satisfies CreateObservationDto['form']),
           },
           path: { sessionId: mutation.sessionId, nominationFileId: mutation.nominationFileId },
-        })
-        .catch((err) => {
-          if (err instanceof HttpException && err.statusCode === 409) {
-            throw new Error(`Une autre observation de ce magistrat existe déjà`);
-          }
-
-          throw err;
-        });
+        }),
+      );
       return data ?? null;
     },
-    onSuccess: (_, { sessionId, nominationFileId }) =>
+    onSettled: (_data, _error, { magistratId, sessionId, nominationFileId }) =>
       Promise.allSettled([
+        // its files become linkable from the other observations of the observant
+        queryClient.invalidateQueries({ queryKey: observationKeys.observationAttachments({ magistratId }) }),
         queryClient.invalidateQueries({
           queryKey: observationKeys.observations({ sessionId, nominationFileId }),
         }),
+        queryClient.invalidateQueries({ queryKey: observationKeys.session({ sessionId }) }),
+        queryClient.invalidateQueries({ queryKey: observationKeys.followedUp() }),
         queryClient.invalidateQueries({
           queryKey: sessionKeys.listSessionNominationFiles({ sessionId }),
         }),
@@ -152,12 +265,14 @@ export function useDeleteObservationMutation() {
         },
       });
     },
-    onSuccess: (_, { sessionId, nominationFileId }) =>
+    onSettled: (_data, _error, { sessionId, nominationFileId }) =>
       Promise.allSettled([
         queryClient.invalidateQueries({ queryKey: auditionKeys.all() }),
         queryClient.invalidateQueries({
           queryKey: observationKeys.observations({ sessionId, nominationFileId }),
         }),
+        queryClient.invalidateQueries({ queryKey: observationKeys.session({ sessionId }) }),
+        queryClient.invalidateQueries({ queryKey: observationKeys.followedUp() }),
         queryClient.invalidateQueries({
           queryKey: sessionKeys.listSessionNominationFiles({ sessionId }),
         }),
@@ -203,25 +318,21 @@ export function useUpdateObservationMutation() {
       linkedObservationsAttachments: { observationId: string; fileId: string }[];
     }): Promise<void> => {
       const { files, sessionId, nominationFileId, observationId, ...form } = mutation;
-      await $api.observations
-        .updateObservation({
+      await withValidationError(() =>
+        $api.observations.updateObservation({
           path: { sessionId, nominationFileId, observationId },
           body: {
             files,
             form: multipartJson(form satisfies UpdateObservationDto['form']),
           },
-        })
-        .catch((err) => {
-          if (err instanceof HttpException && err.statusCode === 409) {
-            throw new Error(`Une autre observation de ce magistrat existe déjà`);
-          }
-
-          throw err;
-        });
+        }),
+      );
     },
-    onSuccess: (_, { sessionId, nominationFileId, observationId }) =>
+    onSettled: (_data, _error, { magistratId, sessionId, nominationFileId, observationId }) =>
       Promise.allSettled([
         queryClient.invalidateQueries({ queryKey: auditionKeys.all() }),
+        // files added or detached change what the other observations of the observant can link
+        queryClient.invalidateQueries({ queryKey: observationKeys.observationAttachments({ magistratId }) }),
         queryClient.invalidateQueries({
           queryKey: observationKeys.observationDetails({
             sessionId,
@@ -232,9 +343,37 @@ export function useUpdateObservationMutation() {
         queryClient.invalidateQueries({
           queryKey: observationKeys.observations({ sessionId, nominationFileId }),
         }),
+        queryClient.invalidateQueries({ queryKey: observationKeys.session({ sessionId }) }),
+        queryClient.invalidateQueries({ queryKey: observationKeys.followedUp() }),
         queryClient.invalidateQueries({
           queryKey: sessionKeys.listSessionNominationFiles({ sessionId }),
         }),
+      ]),
+  });
+}
+
+export function useRenameObservationFileMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (mutation: {
+      fileId: string;
+      name: string;
+      nominationFileId: string;
+      observationId: string;
+      sessionId: string;
+    }): Promise<void> => {
+      const { name, ...path } = mutation;
+      await $api.observations.renameObservationFile({ body: { name }, path });
+    },
+    onSettled: (_data, _error, { nominationFileId, observationId, sessionId }) =>
+      Promise.allSettled([
+        queryClient.invalidateQueries({
+          queryKey: observationKeys.observationDetails({ nominationFileId, observationId, sessionId }),
+        }),
+        // the lists of a file and of a session show the names of the files too, as do the files to link
+        queryClient.invalidateQueries({ queryKey: observationKeys.allObservations() }),
+        queryClient.invalidateQueries({ queryKey: observationKeys.allObservationAttachments() }),
       ]),
   });
 }
@@ -284,6 +423,28 @@ export function useWriteObservationMemberCommentMutation() {
   });
 }
 
+// the tracking belongs to the bloc: every row of the observant in the session changes with it
+export function useUpdateObservationBlockTrackingMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (mutation: {
+      comment: string | null;
+      magistratId: string;
+      sessionId: string;
+      status: ObservationBlockTrackingStatusEnum;
+    }) => {
+      const { comment, magistratId, sessionId, status } = mutation;
+      return $api.observations.updateObservationBlockTracking({
+        body: { comment, status },
+        path: { magistratId, sessionId },
+        throwOnError: true,
+      });
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: observationKeys.followedUp() }),
+  });
+}
+
 export function useFollowUpOnObservationMutation() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -301,7 +462,7 @@ export function useFollowUpOnObservationMutation() {
         path: { sessionId, nominationFileId, observationId },
       });
     },
-    onSuccess: (_data, { sessionId, nominationFileId, observationId, followUp, comment }) => {
+    onSuccess: (_data, { sessionId, nominationFileId, observationId, followUp }) =>
       queryClient.setQueriesData(
         { queryKey: sessionKeys.listSessionNominationFiles({ sessionId }) },
         mapCachedNominationFiles((item) =>
@@ -309,23 +470,24 @@ export function useFollowUpOnObservationMutation() {
             ? {
                 ...item,
                 observations: item.observations.map((observation) =>
-                  observation.id === observationId
-                    ? { ...observation, followUp, followUpComment: comment }
-                    : observation,
+                  observation.id === observationId ? { ...observation, followUp } : observation,
                 ),
               }
             : item,
         ),
-      );
-
-      return queryClient.invalidateQueries({
-        queryKey: observationKeys.observationDetails({
-          sessionId,
-          nominationFileId,
-          observationId,
+      ),
+    onSettled: (_data, _error, { sessionId, nominationFileId, observationId }) =>
+      Promise.allSettled([
+        queryClient.invalidateQueries({
+          queryKey: observationKeys.observationDetails({
+            sessionId,
+            nominationFileId,
+            observationId,
+          }),
         }),
-      });
-    },
+        queryClient.invalidateQueries({ queryKey: observationKeys.session({ sessionId }) }),
+        queryClient.invalidateQueries({ queryKey: observationKeys.followedUp() }),
+      ]),
   });
 }
 
@@ -370,7 +532,7 @@ export function useScheduleObservantAuditionMutation() {
         path: { nominationFileId, observationId, sessionId },
       });
     },
-    onSuccess: (_, { sessionId }) =>
+    onSettled: (_data, _error, { sessionId }) =>
       Promise.allSettled([
         queryClient.invalidateQueries({ queryKey: auditionKeys.all() }),
         queryClient.invalidateQueries({ queryKey: observationKeys.allObservationDetails() }),

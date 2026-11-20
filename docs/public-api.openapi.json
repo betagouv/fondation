@@ -1,0 +1,279 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Fondation public API",
+    "version": "1.0.0",
+    "description": "Ask `POST /api/public/v1/auth` for a token, then send it as `Authorization: Bearer <token>`"
+  },
+  "paths": {
+    "/api/public/v1/auth": {
+      "post": {
+        "operationId": "authenticateApiClient",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": { "$ref": "#/components/schemas/AuthenticateApiClientDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/AuthenticatedApiClientDto" } }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthenticateApiClientRefusedDto" }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthenticateApiClientRefusedDto" }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthenticateApiClientRefusedDto" }
+              }
+            }
+          },
+          "429": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthenticateApiClientRefusedDto" }
+              }
+            }
+          }
+        },
+        "tags": ["ApiClients"]
+      }
+    },
+    "/api/public/v1/magistrats/identification": {
+      "post": {
+        "operationId": "identifyMagistrat",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/IdentifyMagistratDto" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/IdentifiedMagistratDto" } }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/InvalidMagistratEmailDto" } }
+            }
+          },
+          "401": {
+            "description": "Missing, unknown or expired token, or revoked client: ask for a new token"
+          },
+          "403": {
+            "description": "The request comes from an IP, or asks for a route, the client is not allowed"
+          },
+          "429": {
+            "description": "Too many calls within the minute",
+            "headers": {
+              "Retry-After": { "description": "Seconds to wait", "schema": { "type": "integer" } }
+            }
+          }
+        },
+        "security": [{ "bearer": [] }],
+        "tags": ["Magistrats"]
+      }
+    },
+    "/api/public/v1/magistrats/{magistratId}/status": {
+      "get": {
+        "operationId": "findMagistratStatus",
+        "parameters": [
+          { "name": "magistratId", "required": true, "in": "path", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/FoundMagistratStatusDto" } }
+            }
+          },
+          "400": { "description": "The identifier is not a UUID" },
+          "401": {
+            "description": "Missing, unknown or expired token, or revoked client: ask for a new token"
+          },
+          "403": {
+            "description": "The request comes from an IP, or asks for a route, the client is not allowed"
+          },
+          "404": { "description": "No _Magistrat_ has this identifier: its status could not be checked" },
+          "429": {
+            "description": "Too many calls within the minute",
+            "headers": {
+              "Retry-After": { "description": "Seconds to wait", "schema": { "type": "integer" } }
+            }
+          }
+        },
+        "security": [{ "bearer": [] }],
+        "tags": ["Magistrats"]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AuthenticateApiClientDto": {
+        "type": "object",
+        "properties": {
+          "client_id": { "type": "string" },
+          "client_secret": { "type": "string" },
+          "grant_type": { "type": "string", "const": "client_credentials" }
+        },
+        "required": ["client_id", "client_secret", "grant_type"]
+      },
+      "AuthenticateApiClientRefusedDto": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "enum": [
+              "invalid_request",
+              "unsupported_grant_type",
+              "invalid_client",
+              "access_denied",
+              "slow_down"
+            ],
+            "description": "- `invalid_request` (400): a parameter is missing\n- `unsupported_grant_type` (400): the grant is not `client_credentials`\n- `invalid_client` (401): unknown or revoked identifier, or wrong secret\n- `access_denied` (403): the request does not come from an allowed IP\n- `slow_down` (429): too many requests within the minute, `Retry-After` tells how many seconds to wait"
+          }
+        },
+        "required": ["error"],
+        "additionalProperties": false
+      },
+      "AuthenticatedApiClientDto": {
+        "type": "object",
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "description": "Sent as `Authorization: Bearer <access_token>`"
+          },
+          "token_type": { "type": "string", "const": "Bearer" },
+          "expires_in": { "type": "number", "description": "Seconds before the token stops working" }
+        },
+        "required": ["access_token", "token_type", "expires_in"],
+        "additionalProperties": false
+      },
+      "FoundMagistratStatusDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["ACTIVE", "INACTIVE"],
+            "description": "- `ACTIVE`: the _Magistrat_ is in the last LOLFI extraction imported successfully\n- `INACTIVE`: it is no longer"
+          }
+        },
+        "required": ["status"],
+        "additionalProperties": false
+      },
+      "IdentifiedMagistratDto": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "const": "ACTIVE",
+                "description": "The address is the professional one of a single active _Magistrat_"
+              },
+              "magistrat": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "description": "The Fondation identifier, to read the status again later"
+                  }
+                },
+                "required": ["id"],
+                "additionalProperties": false
+              }
+            },
+            "required": ["status", "magistrat"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "const": "UNKNOWN",
+                "description": "Unknown address, inactive _Magistrat_ or address held by several of them, never told apart"
+              }
+            },
+            "required": ["status"],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "IdentifyMagistratDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+          }
+        },
+        "required": ["email"]
+      },
+      "InvalidMagistratEmailDto": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string" },
+          "path": { "type": "string" },
+          "statusCode": { "type": "number", "const": 400 },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": { "type": "string", "const": "invalid_format" },
+                "format": { "type": "string", "const": "email" },
+                "message": { "type": "string" },
+                "origin": { "type": "string" },
+                "path": { "type": "array", "items": { "type": "string" } },
+                "pattern": { "type": "string" }
+              },
+              "required": ["code", "format", "message", "origin", "path", "pattern"],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": ["message", "path", "statusCode", "timestamp", "errors"],
+        "additionalProperties": false
+      }
+    },
+    "securitySchemes": {
+      "bearer": { "description": "The `access_token` given by `/auth`", "scheme": "bearer", "type": "http" }
+    }
+  }
+}

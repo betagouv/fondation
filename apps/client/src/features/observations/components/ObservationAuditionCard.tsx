@@ -7,7 +7,6 @@ import type { GetObservationDetailsResponseDto } from '@api/types';
 
 // members read the date in the banner on top of the page: the card is the place where the SG schedules it
 export function ObservationAuditionCard(props: {
-  isArchived: boolean;
   nominationFileId: string;
   observation: GetObservationDetailsResponseDto;
   sessionId: string;
@@ -15,7 +14,7 @@ export function ObservationAuditionCard(props: {
   const isSg = useIsSg();
   const { observant, relatedPropositions } = props.observation;
   const { audition } = observant;
-  const editable = !props.isArchived && observant.auditionScheduling === 'SCHEDULABLE';
+  const editable = props.observation.canEdit && observant.auditionScheduling === 'SCHEDULABLE';
   const isShared = relatedPropositions.length > 0;
 
   if (!isSg) return null;
@@ -44,7 +43,7 @@ export function ObservationAuditionCard(props: {
           {!audition && (
             <p className="fr-mb-0 text-(--text-mention-grey)">
               <UnschedulableAuditionMessage
-                isArchived={props.isArchived}
+                isArchived={props.observation.isArchived}
                 scheduling={observant.auditionScheduling}
               />
             </p>

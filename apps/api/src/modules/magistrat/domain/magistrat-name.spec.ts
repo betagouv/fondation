@@ -1,4 +1,5 @@
 import {
+  magistratDocumentName,
   magistratFullName,
   magistratTitledFullName,
   magistratUsedName,
@@ -27,6 +28,18 @@ describe('magistratTitledFullName', () => {
     ${{ civility: 'Dr', firstName: 'MARIE', lastName: 'SKŁODOWSKA', marriedName: null }}     | ${'SKŁODOWSKA\u00A0Marie'}
   `('should write $expected', ({ magistrat, expected }) => {
     expect(magistratTitledFullName(magistrat)).toBe(expected);
+  });
+});
+
+describe('magistratDocumentName', () => {
+  it.each`
+    magistrat                                                                                | expected
+    ${{ civility: 'M.', firstName: 'JEAN-CHARLES', lastName: 'HENRI', marriedName: null }}   | ${'M. Jean-Charles HENRI'}
+    ${{ civility: 'MME', firstName: 'MARIE', lastName: 'SKŁODOWSKA', marriedName: 'CURIE' }} | ${'Mme Marie SKŁODOWSKA (ép. CURIE)'}
+    ${{ civility: 'MME', firstName: 'Marie', lastName: 'DUPONT', marriedName: ' Dupont ' }}  | ${'Mme Marie DUPONT'}
+    ${{ civility: 'Dr', firstName: 'MARIE', lastName: 'SKŁODOWSKA', marriedName: null }}     | ${'Marie SKŁODOWSKA'}
+  `('should write $expected', ({ magistrat, expected }) => {
+    expect(magistratDocumentName(magistrat)).toBe(expected);
   });
 });
 

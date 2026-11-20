@@ -14,6 +14,8 @@ import {
   officialReportTemplate,
 } from './official-report.html';
 
+const EMPTY_NOTE = { editedAt: null, editedBy: null, generatedHtml: null, html: null, outdatedBy: null };
+
 describe('officialReportTemplate', () => {
   const baseContext = {
     session: { id: makeId('SessionId'), date: DateOnly.fromJson({ day: 22, month: 6, year: 2026 }) },
@@ -90,7 +92,7 @@ describe('officialReportTemplate', () => {
         id: 0n,
         name: 'MME Françoise BARRÉ-SINOUSSI',
         nominationFileId: makeId('NominationFileId', 'nf-0'),
-        note: null,
+        note: EMPTY_NOTE,
         number: 100_0,
         outcome: 'VALIDATED',
         reporters: ['MME Marguerite PEREY'],
@@ -103,7 +105,7 @@ describe('officialReportTemplate', () => {
         id: 1n,
         name: 'MME Jacqueline FERRAND',
         nominationFileId: makeId('NominationFileId', 'nf-1'),
-        note: null,
+        note: EMPTY_NOTE,
         number: 100_1,
         outcome: 'NON_VALIDATED',
         reporters: ['MME Sophie GERMAIN'],
@@ -116,7 +118,7 @@ describe('officialReportTemplate', () => {
         id: 2n,
         name: 'MME Barbara McCLINTOCK',
         nominationFileId: makeId('NominationFileId', 'nf-2'),
-        note: null,
+        note: EMPTY_NOTE,
         number: 100_2,
         outcome: 'NON_VALIDATED',
         reporters: ['MME Marguerite PEREY'],
@@ -129,7 +131,7 @@ describe('officialReportTemplate', () => {
         id: 3n,
         name: 'MME Marthe GAUTIER',
         nominationFileId: makeId('NominationFileId', 'nf-3'),
-        note: null,
+        note: EMPTY_NOTE,
         number: 100_3,
         outcome: 'SUSPENDED',
         reporters: ['MME Irène JOLIOT-CURIE'],
@@ -142,7 +144,7 @@ describe('officialReportTemplate', () => {
         id: 4n,
         name: 'MME Marthe GAUTIER',
         nominationFileId: makeId('NominationFileId', 'nf-4'),
-        note: null,
+        note: EMPTY_NOTE,
         number: 100_4,
         outcome: 'WITHDRAWN',
         reporters: ['MME Sophie GERMAIN'],
@@ -200,6 +202,24 @@ describe('officialReportTemplate', () => {
     expect($('main').text()).toContain(`de l'avis émis par le Conseil sur la proposition figurant`);
   });
 
+  it('names the chairman with their civility in the introduction', () => {
+    const c = baseContext.chairman;
+    const chairman = new OfficialReportChairman(
+      c.id,
+      'rémi',
+      'boureau',
+      'MALE',
+      'Président de chambre honoraire',
+      c.title,
+    );
+
+    const $ = load(officialReportTemplate.render({ ...baseContext, chairman }));
+
+    expect($('main p:contains("Sous la présidence")').text()).toBe(
+      'Sous la présidence de M.\u00A0Rémi\u00A0BOUREAU, président de chambre honoraire, président de la formation, en présence de\u00A0:',
+    );
+  });
+
   it('should include non president members in end-time', () => {
     const c = baseContext.chairman;
     const chairman = new OfficialReportChairman(
@@ -250,11 +270,11 @@ describe('officialReportTemplate', () => {
   });
 
   it('should write the note under the paragraph of its proposition', () => {
-    const note = { editedAt: null, editedBy: null, html: '<p>Une information propre au PV</p>' };
+    const note = { ...EMPTY_NOTE, html: '<p>Une information propre au PV</p>' };
     const $ = load(
       officialReportTemplate.render({
         ...baseContext,
-        files: baseContext.files.map((file, index) => ({ ...file, note: index === 0 ? note : null })),
+        files: baseContext.files.map((file, index) => ({ ...file, note: index === 0 ? note : EMPTY_NOTE })),
       }),
     );
 

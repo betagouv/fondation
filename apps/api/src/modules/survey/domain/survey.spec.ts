@@ -1,0 +1,152 @@
+import { Survey, SurveyAnswered, type SurveyAnswers, type Respondent } from './survey';
+
+const MEMBER: Respondent = {
+  id: 'user-1',
+  isAdmin: false,
+  isImpersonated: false,
+  role: 'MEMBRE_DU_SIEGE',
+};
+const SECRETARIAT: Respondent = {
+  id: 'user-2',
+  isAdmin: false,
+  isImpersonated: false,
+  role: 'ADJOINT_SECRETAIRE_GENERAL',
+};
+
+const ADMIN: Respondent = { ...SECRETARIAT, isAdmin: true };
+const PRODUCTION = { isTest: false };
+const TEST = { isTest: true };
+
+const COMMON_ANSWERS = {
+  comment: null,
+  easeRating: 4,
+  satisfactionRating: 8,
+};
+const MEMBER_ANSWERS: SurveyAnswers = {
+  ...COMMON_ANSWERS,
+  member: {
+    debateContribution: 'FROM_1_TO_5',
+    manualWorkShare: 'FROM_10_TO_25',
+    reviewThoroughness: 'YES',
+  },
+  secretariat: null,
+};
+const SECRETARIAT_ANSWERS: SurveyAnswers = {
+  ...COMMON_ANSWERS,
+  member: null,
+  secretariat: {
+    manualWorkShare: 'LESS_THAN_10',
+    otherToolPurpose: null,
+    otherToolUsage: 'NONE',
+  },
+};
+
+describe('Survey', () => {
+  it.each([
+    { questionnaire: 'SECRETARIAT', role: 'ADJOINT_SECRETAIRE_GENERAL' },
+    { questionnaire: 'MEMBER', role: 'MEMBRE_COMMUN' },
+    { questionnaire: 'MEMBER', role: 'MEMBRE_DU_PARQUET' },
+    { questionnaire: 'MEMBER', role: 'MEMBRE_DU_SIEGE' },
+  ] as const)('gives the $role the questionnaire $questionnaire', ({ questionnaire, role }) => {
+    expect(Survey.questionnaireOf(role)).toBe(questionnaire);
+  });
+
+  it('records the answers of a member', () => {
+    const memberSurvey = new Survey();
+
+    memberSurvey.answer({ answers: MEMBER_ANSWERS, environment: PRODUCTION, respondent: MEMBER });
+
+    expect(memberSurvey.messages).toEqual([new SurveyAnswered('user-1', MEMBER_ANSWERS)]);
+  });
+
+  it('records the answers of the secretariat', () => {
+    const secretariatSurvey = new Survey();
+
+    secretariatSurvey.answer({
+      answers: SECRETARIAT_ANSWERS,
+      environment: PRODUCTION,
+      respondent: SECRETARIAT,
+    });
+
+    expect(secretariatSurvey.messages).toEqual([new SurveyAnswered('user-2', SECRETARIAT_ANSWERS)]);
+  });
+
+  it.each([
+    { answers: SECRETARIAT_ANSWERS, case: 'the questionnaire of another role' },
+    {
+      answers: {
+        ...MEMBER_ANSWERS,
+        secretariat: SECRETARIAT_ANSWERS.secretariat,
+      },
+      case: 'both questionnaires',
+    },
+    {
+      answers: { ...MEMBER_ANSWERS, member: null },
+      case: 'only the common questions',
+    },
+  ])('refuses $case', ({ answers }) => {
+    expect(() => new Survey().answer({ answers, environment: PRODUCTION, respondent: MEMBER })).toThrow(
+      expect.objectContaining({ reason: 'WRONG_QUESTIONNAIRE' }),
+    );
+  });
+
+  it.each([
+    {
+      access: { mode: 'ANSWER', questionnaire: 'MEMBER' },
+      case: 'a member of the parquet',
+      respondent: { ...MEMBER, role: 'MEMBRE_DU_PARQUET' },
+    },
+    {
+      access: { mode: 'PREVIEW', questionnaire: 'MEMBER' },
+      case: 'an admin impersonating a member',
+      respondent: { ...MEMBER, isImpersonated: true },
+    },
+    {
+      access: { mode: 'PREVIEW', questionnaire: 'SECRETARIAT' },
+      case: 'an admin in production',
+      respondent: ADMIN,
+    },
+  ] as const)('lets $case answer or only go through the questionnaire', ({ access, respondent }) => {
+    expect(Survey.accessOf(respondent, PRODUCTION)).toEqual(access);
+  });
+
+  it('lets an admin outside production answer, to test the answers and their export', () => {
+    expect(Survey.accessOf(ADMIN, TEST)).toEqual({ mode: 'TEST', questionnaire: 'SECRETARIAT' });
+  });
+
+  it.each([
+    { answers: MEMBER_ANSWERS, case: 'the questionnaire of the members' },
+    { answers: SECRETARIAT_ANSWERS, case: 'the questionnaire of the secretariat' },
+  ])('records an admin outside production answering $case', ({ answers }) => {
+    const adminSurvey = new Survey();
+
+    adminSurvey.answer({ answers, environment: TEST, respondent: ADMIN });
+
+    expect(adminSurvey.messages).toEqual([new SurveyAnswered('user-2', answers)]);
+  });
+
+  it('refuses an admin outside production answering both questionnaires', () => {
+    const answers = { ...MEMBER_ANSWERS, secretariat: SECRETARIAT_ANSWERS.secretariat };
+
+    expect(() => new Survey().answer({ answers, environment: TEST, respondent: ADMIN })).toThrow(
+      expect.objectContaining({ reason: 'WRONG_QUESTIONNAIRE' }),
+    );
+  });
+
+  it.each([
+    {
+      case: 'the answer of an admin in production',
+      reason: 'NOT_CONCERNED',
+      respondent: ADMIN,
+    },
+    {
+      case: 'an impersonated user',
+      reason: 'IMPERSONATED',
+      respondent: { ...SECRETARIAT, isImpersonated: true },
+    },
+  ] as const)('refuses $case', ({ reason, respondent }) => {
+    expect(() =>
+      new Survey().answer({ answers: SECRETARIAT_ANSWERS, environment: PRODUCTION, respondent }),
+    ).toThrow(expect.objectContaining({ reason }));
+  });
+});

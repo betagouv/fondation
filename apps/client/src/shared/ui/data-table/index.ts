@@ -2,6 +2,7 @@ export { Checkbox } from './Checkbox';
 export { DataTable } from './DataTable';
 export { DataTableCount } from './DataTableCount';
 export { DataTableFilters } from './DataTableFilters';
+export { loadFailureOf } from './load-failure';
 export type { TableMetaFilterAsyncList, TableMetaFilterEnum } from './data-table.types';
 export { parseAsFilters } from './hooks/data-table-parsers';
 export { rowCell } from './rowCell';

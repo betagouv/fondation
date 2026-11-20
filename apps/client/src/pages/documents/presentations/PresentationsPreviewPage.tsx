@@ -27,18 +27,24 @@ export function PresentationPreviewPage() {
   const returnPath: string =
     typeof state?.returnPath === 'string'
       ? state.returnPath
-      : generatePath(ROUTE_PATHS.SG.PRESENTATIONS_READY);
+      : generatePath(ROUTE_PATHS.SG.GDS.PRESENTATIONS_READY);
   const navigate = useNavigate();
   const describeFailure = useDocumentFailure();
 
-  const { data: html, isPending } = useJusticePresentationPlanHtmlQuery({ presentationPlanId: planId });
-  const { data: metadata } = useJusticePresentationPlanMetadataQuery({ presentationPlanId: planId });
-  const validate = useValidatePresentationPlanMutation({
-    onSuccess: () => navigate(generatePath(ROUTE_PATHS.SG.PRESENTATIONS_READY)),
-    planId: planId!,
+  const {
+    data: html,
+    error: htmlError,
+    isPending,
+  } = useJusticePresentationPlanHtmlQuery({ presentationPlanId: planId });
+  const { data: metadata, isFetching: isFetchingMetadata } = useJusticePresentationPlanMetadataQuery({
+    presentationPlanId: planId,
   });
+  const validate = useValidatePresentationPlanMutation({ planId: planId! });
   const isValidating = validate.isPending;
   const title = formatMessage({ defaultMessage: 'Notice de restitution' });
+
+  // the layout answers a deleted notice: only one that fresh metadata still show goes to the error page
+  if (htmlError && metadata && !isFetchingMetadata && !html) throw htmlError;
 
   return (
     <DocumentScreen
@@ -50,14 +56,14 @@ export function PresentationPreviewPage() {
               <>
                 <Button
                   linkProps={{
-                    to: generatePath(ROUTE_PATHS.SG.PRESENTATIONS_UPDATE, { planId: planId! }),
+                    to: generatePath(ROUTE_PATHS.SG.GDS.PRESENTATIONS_UPDATE, { planId: planId! }),
                   }}
                   priority="secondary"
                 >
                   <FormattedMessage defaultMessage="Éditer les métadonnées" />
                 </Button>
                 <Button
-                  linkProps={{ to: generatePath(ROUTE_PATHS.SG.PRESENTATIONS_EDIT, { planId: planId! }) }}
+                  linkProps={{ to: generatePath(ROUTE_PATHS.SG.GDS.PRESENTATIONS_EDIT, { planId: planId! }) }}
                   priority="secondary"
                 >
                   <FormattedMessage defaultMessage="Éditer le texte" />
@@ -65,7 +71,14 @@ export function PresentationPreviewPage() {
               </>
             )}
             {metadata?.canValidate && (
-              <Button disabled={isValidating} onClick={() => validate.mutate()}>
+              <Button
+                disabled={isValidating}
+                onClick={() =>
+                  validate.mutate(undefined, {
+                    onSuccess: () => navigate(generatePath(ROUTE_PATHS.SG.GDS.PRESENTATIONS_READY)),
+                  })
+                }
+              >
                 <FormattedMessage defaultMessage="Valider le document" />
               </Button>
             )}
@@ -99,7 +112,7 @@ export function PresentationPreviewPage() {
               <PresentationDriftBanner
                 editionPath={
                   metadata.canEdit
-                    ? generatePath(ROUTE_PATHS.SG.PRESENTATIONS_UPDATE, { planId: planId! })
+                    ? generatePath(ROUTE_PATHS.SG.GDS.PRESENTATIONS_UPDATE, { planId: planId! })
                     : undefined
                 }
               />

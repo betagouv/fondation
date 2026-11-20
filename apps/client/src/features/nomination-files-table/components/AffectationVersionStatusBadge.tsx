@@ -3,18 +3,16 @@ import { FormattedMessage } from 'react-intl';
 
 import { useDateAndTime } from '@/shared/hooks/useDateAndTime';
 import { Tooltip } from '@/shared/ui/tooltip';
+import { whoWrote } from '@/utils/user.utils';
 import { useUser } from '@queries/auth.queries';
-import {
-  useDetailAffectationHistoryQuery,
-  useDetailedNominationSessionAffectationsVersionQuery,
-} from '@queries/nomination-sessions.queries';
+import { useDetailAffectationHistoryQuery } from '@queries/nomination-sessions.queries';
 
 export function AffectationVersionStatusBadge(props: { sessionId: string }) {
-  const { data: affectationsVersion } = useDetailedNominationSessionAffectationsVersionQuery(props.sessionId);
+  const { data: history } = useDetailAffectationHistoryQuery(props.sessionId);
 
-  const version = affectationsVersion?.version ?? 0;
-  const isPublished =
-    !!affectationsVersion && 'status' in affectationsVersion && affectationsVersion.status === 'PUBLIEE';
+  if (!history) return null;
+  const isPublished = history.status === 'PUBLISHED';
+  const version = (history.pending ?? history.lastPublished)?.version ?? 0;
 
   return (
     <Tooltip focusable label={<AffectationHistory sessionId={props.sessionId} />}>
@@ -46,7 +44,7 @@ function AffectationHistory(props: { sessionId: string }) {
   if (!history) return null;
   const { lastPublished, pending } = history;
 
-  const who = (writer: Writer) => (!writer ? 'nobody' : writer.id === user?.id ? 'self' : 'someone');
+  const who = (writer: Writer) => whoWrote({ currentUserId: user?.id, writer });
   // the number only tells something once a second version exists
   const numbered = Math.max(lastPublished?.version ?? 0, pending?.version ?? 0) > 1 ? 'yes' : 'no';
   const values = (at: string, writer: Writer, version: number) => ({

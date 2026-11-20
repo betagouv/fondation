@@ -2,9 +2,11 @@ import { FormattedMessage, useIntl } from 'react-intl';
 
 import { LolfiLink } from '@/shared/components/lolfi-link';
 import { TitleNameIcons } from '@/shared/components/title-name-icons';
+import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { DetailsHeader } from '@/shared/ui/details';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import { useMemberBreadcrumbRoot } from '@/utils/transparences-breadcrumb.utils';
 import type { DetailedMagistratDto } from '@api/types';
 
 import { MagistratStatusBadge } from './MagistratStatusBadge';
@@ -16,29 +18,12 @@ type MagistratDetailsHeaderProps = {
 
 export function MagistratDetailsHeader({ context, magistrat }: MagistratDetailsHeaderProps) {
   const { formatMessage } = useIntl();
+  const breadcrumbRoot = useBreadcrumbRoot();
 
   const dashboardPath = context === 'sg' ? ROUTE_PATHS.SG.DASHBOARD : ROUTE_PATHS.TRANSPARENCES.DASHBOARD;
 
-  const segments =
-    context === 'sg'
-      ? [
-          {
-            label: formatMessage({ defaultMessage: 'Secrétariat général' }),
-            to: ROUTE_PATHS.SG.DASHBOARD,
-          },
-        ]
-      : [
-          {
-            label: formatMessage({ defaultMessage: 'Transparences' }),
-            to: ROUTE_PATHS.TRANSPARENCES.DASHBOARD,
-          },
-          {
-            label: formatMessage({
-              defaultMessage: 'Pouvoir de proposition du garde des Sceaux',
-            }),
-            to: ROUTE_PATHS.TRANSPARENCES.DASHBOARD,
-          },
-        ];
+  const memberRoot = useMemberBreadcrumbRoot();
+  const segments = context === 'sg' ? breadcrumbRoot : memberRoot;
 
   return (
     <DetailsHeader

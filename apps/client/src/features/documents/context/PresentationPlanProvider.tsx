@@ -1,4 +1,3 @@
-import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useState, type PropsWithChildren } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
@@ -6,7 +5,6 @@ import { generatePath, useNavigate, useParams } from 'react-router';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
-  presentationPlanKeys,
   useCreateJusticePresentationPlanMutation,
   useJusticePresentationPlanMetadataQuery,
   useUpdateJusticePresentationPlanMutation,
@@ -20,7 +18,11 @@ const MANDATORY_METADATA = ['chairmanId', 'date', 'justiceContactId', 'secretary
 export function PresentationPlanProvider(props: PropsWithChildren) {
   const { planId = null } = useParams<{ planId: string }>();
 
-  const { data: metadata, isFetching: isFetchingMeta } = useJusticePresentationPlanMetadataQuery({
+  const {
+    data: metadata,
+    error: metadataError,
+    isFetching: isFetchingMeta,
+  } = useJusticePresentationPlanMetadataQuery({
     presentationPlanId: planId,
   });
 
@@ -38,7 +40,6 @@ export function PresentationPlanProvider(props: PropsWithChildren) {
   } = useUpdateJusticePresentationPlanMutation();
 
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const { formatMessage } = useIntl();
   const { waitForConfirmation } = useConfirmModal();
   const [state, setState] = useState<PresentationPlanContextType['state']>({
@@ -98,7 +99,7 @@ export function PresentationPlanProvider(props: PropsWithChildren) {
         secretaryId: null,
         time: null,
       }));
-      navigate(generatePath(ROUTE_PATHS.SG.PRESENTATIONS_NEW));
+      navigate(generatePath(ROUTE_PATHS.SG.GDS.PRESENTATIONS_NEW));
     },
     [navigate, setState],
   );
@@ -138,7 +139,7 @@ export function PresentationPlanProvider(props: PropsWithChildren) {
           onSuccess: ({ data }) => {
             if (!data) return;
 
-            navigate(generatePath(ROUTE_PATHS.SG.PRESENTATIONS_UPDATE, { planId: data.id }), {
+            navigate(generatePath(ROUTE_PATHS.SG.GDS.PRESENTATIONS_UPDATE, { planId: data.id }), {
               replace: true,
             });
           },
@@ -241,10 +242,9 @@ export function PresentationPlanProvider(props: PropsWithChildren) {
       };
 
       function onSuccess(id: string) {
-        queryClient.invalidateQueries({ queryKey: presentationPlanKeys.planHtml({ id }) });
         resetCreation();
         resetUpdate();
-        navigate(generatePath(ROUTE_PATHS.SG.PRESENTATIONS_PREVIEW, { planId: id }));
+        navigate(generatePath(ROUTE_PATHS.SG.GDS.PRESENTATIONS_PREVIEW, { planId: id }));
       }
 
       if (planId) {
@@ -265,7 +265,6 @@ export function PresentationPlanProvider(props: PropsWithChildren) {
       create,
       missingMetadata,
       navigate,
-      queryClient,
       waitForConfirmation,
       formatMessage,
       hasSomethingToLose,
@@ -298,7 +297,8 @@ export function PresentationPlanProvider(props: PropsWithChildren) {
         state,
       }}
     >
-      {planId ? state.formation && props.children : props.children}
+      {/* a notice that failed to load never gets its formation: its pages answer the failure */}
+      {planId && !metadataError ? state.formation && props.children : props.children}
     </PresentationPlanContext>
   );
 }

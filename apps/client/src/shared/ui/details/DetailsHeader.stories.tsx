@@ -22,7 +22,7 @@ const BREADCRUMBS = {
       ariaLabel="Fil d'Ariane de la fiche magistrat"
       breadcrumb={{
         currentPageLabel: 'Fiche magistrat',
-        segments: [{ label: 'Secrétariat général', to: '/secretariat-general' }],
+        segments: [{ label: 'Accueil', to: '/secretariat-general' }],
       }}
       className="fr-mt-0"
       id="details-header-breadcrumb"

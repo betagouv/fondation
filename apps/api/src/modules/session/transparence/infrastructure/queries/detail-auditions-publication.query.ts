@@ -4,9 +4,9 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { writerOf, writerSchema } from '../../../../../utils/user.util';
+import { PUBLICATION_STATUSES } from '../../../../shared/publication-status.enum';
+import { publicationStatusOf } from '../../domain/publication';
 import { AuditionPublicationFinder } from '../finders/audition-publication.finder';
-
-const PUBLICATION_STATUSES = ['NEVER_PUBLISHED', 'PUBLISHED', 'UNPUBLISHED_CHANGES'] as const;
 
 @Injectable()
 export class DetailAuditionsPublicationQuery {
@@ -15,15 +15,11 @@ export class DetailAuditionsPublicationQuery {
   @Transactional()
   async handle(query: { sessionId: string }): Promise<DetailedAuditionsPublicationDto> {
     const last = await this.auditionPublications.last(query);
-    if (!last) return { lastPublished: null, status: 'NEVER_PUBLISHED' };
-
     const current = await this.auditionPublications.current(query);
+
     return {
-      lastPublished: {
-        at: last.publishedAt.toISOString(),
-        by: writerOf(last.publisher),
-      },
-      status: last.auditions.equals(current) ? 'PUBLISHED' : 'UNPUBLISHED_CHANGES',
+      lastPublished: last ? { at: last.publishedAt.toISOString(), by: writerOf(last.publisher) } : null,
+      status: publicationStatusOf({ current, published: last?.auditions ?? null }),
     };
   }
 }

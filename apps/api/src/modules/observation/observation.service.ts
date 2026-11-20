@@ -18,7 +18,10 @@ import type { TimeOnly } from '../../utils/time-only';
 import { Db } from '../framework/database';
 import { Files } from '../framework/files';
 import type { StoredFile } from '../framework/files/multipart/multipart.types';
+import type { Pagination } from '../framework/pagination';
+import type { SessionStatus } from '../session/transparence/infrastructure/finders/session-statuses.finder';
 import { TransparenceService } from '../session/transparence/infrastructure/transparence.service';
+import type { Impersonation } from '../shared/policies/personal-content.policies';
 import type { RoleEnum } from '../shared/role.enum';
 
 import {
@@ -26,7 +29,17 @@ import {
   UserNotAllowedToAttachScreenshotsError,
   UserNotAllowedToWriteCommentError,
 } from './domain/observation';
+import type { ObservationBlockTrackingStatus } from './domain/observation-block';
+import type { ObservationFollowUpEnum } from './domain/observation-follow-up';
+import type {
+  ListedFollowedUpObservationSessionYearsDto,
+  ListedFollowedUpObservationsDto,
+} from './infrastructure/dtos/followed-up-observation.dto';
 import { AttachedMemberCommentScreenshotsDto } from './infrastructure/dtos/observation-member-comment.dto';
+import type {
+  CountedSessionObservationsDto,
+  ListedSessionObservationsDto,
+} from './infrastructure/dtos/session-observation.dto';
 import {
   type NominationFileObservation,
   NominationFileObservationsFinder,
@@ -36,6 +49,7 @@ import {
   type ObservantAuditionWithObservations,
 } from './infrastructure/finders/observant-auditions.finder';
 import { ObservationFinder } from './infrastructure/finders/observation.finder';
+import { CountSessionObservationsQuery } from './infrastructure/queries/count-session-observations.query';
 import {
   GetObservationDetailsQuery,
   GetObservationDetailsResponseDto,
@@ -44,6 +58,8 @@ import {
   GetObservationFileUrlQuery,
   GetObservationFileUrlResponseDto,
 } from './infrastructure/queries/get-observation-file-url.query';
+import { ListFollowedUpObservationSessionYearsQuery } from './infrastructure/queries/list-followed-up-observation-session-years.query';
+import { ListFollowedUpObservationsQuery } from './infrastructure/queries/list-followed-up-observations.query';
 import {
   ListedObservationsAttachmentsDto,
   ListObservationsAttachmentsQuery,
@@ -52,7 +68,9 @@ import {
   ListObservationsQuery,
   ListObservationsResponseDto,
 } from './infrastructure/queries/list-observations.query';
+import { ListSessionObservationsQuery } from './infrastructure/queries/list-session-observations.query';
 import { ObservantAuditionRepository } from './infrastructure/repositories/observant-audition.repository';
+import { ObservationBlockRepository } from './infrastructure/repositories/observation-block.repository';
 import { ObservationRepository } from './infrastructure/repositories/observation.repository';
 
 @Injectable()
@@ -71,6 +89,11 @@ export class ObservationService {
     private readonly nominationFileObservationsFinder: NominationFileObservationsFinder,
     private readonly observantAuditionRepository: ObservantAuditionRepository,
     private readonly observantAuditions: ObservantAuditionsFinder,
+    private readonly listSessionObservationsQuery: ListSessionObservationsQuery,
+    private readonly countSessionObservationsQuery: CountSessionObservationsQuery,
+    private readonly listFollowedUpObservationsQuery: ListFollowedUpObservationsQuery,
+    private readonly listFollowedUpObservationSessionYearsQuery: ListFollowedUpObservationSessionYearsQuery,
+    private readonly observationBlockRepository: ObservationBlockRepository,
 
     @Inject(forwardRef(() => TransparenceService))
     private readonly transparences: TransparenceService,
@@ -189,9 +212,28 @@ export class ObservationService {
       userId: command.userId,
     });
     observation.attachFiles({ files: command.filesToAttach });
-    observation.detachFiles({ fileIds: command.fileIdsToDetach });
+    observation.detachFiles({
+      fileIds: command.fileIdsToDetach,
+      isNominationFileLocked: await this.transparences.internalIsNominationFileLocked(command),
+    });
     observation.linkFiles({ files: command.linkedFiles });
 
+    await this.observationRepository.persist(observation);
+  }
+
+  @Transactional()
+  async renameObservationFile(command: {
+    fileId: string;
+    name: string;
+    nominationFileId: string;
+    observationId: string;
+    sessionId: string;
+  }): Promise<void> {
+    const observation = await this.observationRepository.findById(command);
+    observation.renameFile({
+      ...command,
+      isNominationFileLocked: await this.transparences.internalIsNominationFileLocked(command),
+    });
     await this.observationRepository.persist(observation);
   }
 
@@ -275,6 +317,7 @@ export class ObservationService {
   }
 
   getObservationDetails(query: {
+    impersonation: Impersonation | undefined;
     nominationFileId: string;
     observationId: string;
     role: RoleEnum;
@@ -286,6 +329,7 @@ export class ObservationService {
 
   async attachMemberCommentScreenshots(command: {
     files: readonly StoredFile[];
+    impersonation: Impersonation | undefined;
     nominationFileId: string;
     observationId: string;
     sessionId: string;
@@ -302,6 +346,7 @@ export class ObservationService {
       try {
         observation.attachMemberCommentScreenshots({
           files: command.files.map((f) => ({ id: f.id })),
+          impersonation: command.impersonation,
           reporterIds,
           userId: command.userId,
         });
@@ -336,6 +381,7 @@ export class ObservationService {
   @Transactional()
   async writeMemberComment(command: {
     comment: string;
+    impersonation: Impersonation | undefined;
     nominationFileId: string;
     observationId: string;
     sessionId: string;
@@ -351,6 +397,7 @@ export class ObservationService {
     try {
       observation.writeMemberComment({
         comment: command.comment,
+        impersonation: command.impersonation,
         reporterIds,
         userId: command.userId,
       });
@@ -378,11 +425,60 @@ export class ObservationService {
     await this.observationRepository.persist(observation);
   }
 
+  @Transactional()
+  async trackObservationBlock(command: {
+    comment: string | null;
+    magistratId: string;
+    sessionId: string;
+    status: ObservationBlockTrackingStatus;
+  }): Promise<void> {
+    const block = await this.observationBlockRepository.find(command);
+    block.track(command);
+    await this.observationBlockRepository.persist(block);
+  }
+
   listObservationsAttachments(query: {
     excludeObservationId: string | undefined;
     magistratId: string | undefined;
     sessionId: string;
   }): Promise<ListedObservationsAttachmentsDto> {
     return this.listObservationsAttachmentsQuery.handle(query);
+  }
+
+  listSessionObservations(query: {
+    filters: { followUps: readonly (ObservationFollowUpEnum | null)[]; search: string | null };
+    pagination: Pagination;
+    role: RoleEnum;
+    sessionId: string;
+    sortBy: 'dateReception' | null;
+    sortDesc: boolean;
+  }): Promise<ListedSessionObservationsDto> {
+    return this.listSessionObservationsQuery.handle(query);
+  }
+
+  listFollowedUpObservations(query: {
+    filters: {
+      followUps: readonly (ObservationFollowUpEnum | null)[];
+      search: string | null;
+      sessionStatuses: readonly SessionStatus[];
+      sessionYears: readonly number[];
+      trackingStatuses: readonly ObservationBlockTrackingStatus[];
+    };
+    pagination: Pagination;
+    sortBy: 'dateReception' | null;
+    sortDesc: boolean;
+  }): Promise<ListedFollowedUpObservationsDto> {
+    return this.listFollowedUpObservationsQuery.handle(query);
+  }
+
+  listFollowedUpObservationSessionYears(): Promise<ListedFollowedUpObservationSessionYearsDto> {
+    return this.listFollowedUpObservationSessionYearsQuery.handle();
+  }
+
+  countSessionObservations(query: {
+    role: RoleEnum;
+    sessionId: string;
+  }): Promise<CountedSessionObservationsDto> {
+    return this.countSessionObservationsQuery.handle(query);
   }
 }

@@ -19,6 +19,10 @@ const MEMBER_FORMATION_BY_ROLE = {
 
 export const MemberFormationSchema = z.object({ id: z.enum(MEMBER_FORMATIONS), label: z.string() });
 
+export const ExcludedJurisdictionsSchema = z.array(
+  z.object({ id: z.string(), label: z.string().nullable() }),
+);
+
 export function memberFormationOf(role: MemberRole): z.infer<typeof MemberFormationSchema> {
   return MEMBER_FORMATION_BY_ROLE[role];
 }

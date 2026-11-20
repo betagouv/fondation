@@ -38,12 +38,13 @@ function AgendaPreviewPageStory(props: {
     isManuallyEdited: blocks.some((block) => block.edited),
     outdated: props.outdated,
     outdatedPropositions: blocks.filter((block) => block.outdated).length,
+    session: { id: STORY_SESSION_ID },
     sessionMeetingDate: { day: 3, month: 3, year: 2026 },
   };
   storyBlocks = { blocks };
   storyMetadata = metadata;
 
-  const path = props.mode === 'edit' ? ROUTE_PATHS.SG.AGENDA_EDIT : ROUTE_PATHS.SG.AGENDA_PREVIEW;
+  const path = props.mode === 'edit' ? ROUTE_PATHS.SG.GDS.AGENDA_EDIT : ROUTE_PATHS.SG.GDS.AGENDA_PREVIEW;
 
   return (
     <PageStory

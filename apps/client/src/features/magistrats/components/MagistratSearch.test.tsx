@@ -62,26 +62,23 @@ describe('MagistratSearch', () => {
     endOfListObservers.length = 0;
   });
 
-  it('leads back to the secretariat general from its breadcrumb', () => {
+  it('leads back to the home from its breadcrumb', () => {
     renderSearch();
 
     const breadcrumb = screen.getByRole('navigation', {
       name: "Fil d'Ariane de la recherche d'un magistrat",
     });
-    expect(within(breadcrumb).getByRole('link', { name: 'Secrétariat général' })).toHaveAttribute(
-      'href',
-      '/secretariat-general',
-    );
+    expect(within(breadcrumb).getByRole('link', { name: 'Accueil' })).toHaveAttribute('href', '/');
     expect(within(breadcrumb).getByText('Rechercher un magistrat')).toHaveAttribute('aria-current', 'page');
   });
 
-  it('leads a member back to the transparences from the breadcrumb', () => {
+  it('leads a member back to their home from the breadcrumb', () => {
     renderSearch({ path: '/magistrats' });
 
     const breadcrumb = screen.getByRole('navigation', {
       name: "Fil d'Ariane de la recherche d'un magistrat",
     });
-    expect(within(breadcrumb).getByRole('link', { name: 'Transparences' })).toHaveAttribute(
+    expect(within(breadcrumb).getByRole('link', { name: 'Accueil' })).toHaveAttribute(
       'href',
       '/transparences',
     );

@@ -1,10 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { http, HttpResponse } from 'msw';
-import { generatePath, Route, Routes } from 'react-router';
+import { Route, Routes } from 'react-router';
 
 import { ArchivedSessionContext } from '@/shared/context/archived-session';
-import type { RoleEnum } from '@/shared/enums/role.enum';
-import { STORY_SESSION_ID } from '@/shared/storybook/story-session';
 import { STORY_USERS } from '@/shared/storybook/story-users';
 import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
@@ -13,43 +11,30 @@ import { authKeys, type SessionUser } from '@queries/auth.queries';
 import { AppHeader } from './Header';
 
 const USERS = {
-  ADJOINT_SECRETAIRE_GENERAL: STORY_USERS.sg,
-  ADMIN: { ...STORY_USERS.sg, isAdmin: true },
-  MEMBRE_DU_SIEGE: STORY_USERS.member,
-} satisfies Partial<Record<'ADMIN' | RoleEnum, SessionUser>>;
+  admin: { ...STORY_USERS.sg, isAdmin: true },
+  member: STORY_USERS.member,
+  secretariat: STORY_USERS.sg,
+} satisfies Record<string, SessionUser>;
 type Role = keyof typeof USERS;
 
-const PAGES = ['home', 'archives', 'archivedSession', 'magistratSearch'] as const;
-type Page = (typeof PAGES)[number];
-
 const SG_LOCATIONS = {
-  archivedSession: generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId: STORY_SESSION_ID }),
-  archives: ROUTE_PATHS.SG.ARCHIVED_SESSIONS,
-  home: ROUTE_PATHS.SG.DASHBOARD,
-  magistratSearch: ROUTE_PATHS.SG.MAGISTRAT_SEARCH,
-} satisfies Record<Page, string>;
+  CSM: ROUTE_PATHS.SG.CSM.VEILLE_DES_POSTES_COURTS_OF_APPEAL,
+  GDS: ROUTE_PATHS.SG.GDS.MANAGE_SESSION,
+  none: ROUTE_PATHS.SG.DASHBOARD,
+};
+type Pouvoir = keyof typeof SG_LOCATIONS;
 
-const MEMBER_LOCATIONS = {
-  archivedSession: generatePath(ROUTE_PATHS.TRANSPARENCES.DETAIL_SESSION_GDS, {
-    sessionId: STORY_SESSION_ID,
-  }),
-  archives: ROUTE_PATHS.TRANSPARENCES.ARCHIVED_SESSIONS,
-  home: ROUTE_PATHS.TRANSPARENCES.DASHBOARD,
-  magistratSearch: ROUTE_PATHS.MEMBER.MAGISTRAT_SEARCH,
-} satisfies Record<Page, string>;
-
-function AppHeaderStory(props: { page: Page; role: Role }) {
-  const locations = props.role === 'MEMBRE_DU_SIEGE' ? MEMBER_LOCATIONS : SG_LOCATIONS;
+function AppHeaderStory(props: { pouvoir: Pouvoir; role: Role }) {
+  const location =
+    props.role === 'member' ? ROUTE_PATHS.TRANSPARENCES.DASHBOARD : SG_LOCATIONS[props.pouvoir];
 
   return (
     <StoryQueryClient
       key={props.role}
       seed={(client) => client.setQueryData(authKeys.introspectSession(), USERS[props.role])}
     >
-      <ArchivedSessionContext
-        value={{ isArchived: props.page === 'archivedSession', setIsArchived: () => {} }}
-      >
-        <Routes location={locations[props.page]}>
+      <ArchivedSessionContext value={{ isArchived: false, setIsArchived: () => {} }}>
+        <Routes location={location}>
           <Route element={<AppHeader />} path="*" />
         </Routes>
       </ArchivedSessionContext>
@@ -58,9 +43,13 @@ function AppHeaderStory(props: { page: Page; role: Role }) {
 }
 
 const meta = {
-  args: { page: 'home', role: 'MEMBRE_DU_SIEGE' },
+  args: { pouvoir: 'GDS', role: 'secretariat' },
   argTypes: {
-    page: { control: 'inline-radio', options: PAGES },
+    pouvoir: {
+      control: 'inline-radio',
+      if: { arg: 'role', neq: 'member' },
+      options: Object.keys(SG_LOCATIONS),
+    },
     role: { control: 'inline-radio', options: Object.keys(USERS) },
   },
   beforeEach: ({ msw }) => {
@@ -71,7 +60,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'En-tête de l\'application. Un membre a une navigation avec "Accueil" (la liste de ses sessions), "Archives" (les sessions archivées de sa formation) et "Rechercher un magistrat". Le secrétariat général a la sienne, avec une pastille sur "Gérer une session" quand de nouvelles sessions sont arrivées et "Rechercher un magistrat" après "Archives". Une page d\'une session archivée met "Archives" en avant, quel que soit son chemin. Un administrateur a en plus le menu "Administration". En haut à droite, LOLFI, le centre d\'aide, l\'avis et le compte apparaissent pour tout le monde.',
+          'En-tête de l\'application. Un membre a une navigation avec "Accueil" (la liste de ses sessions), "Archives" (les sessions archivées de sa formation) et "Rechercher un magistrat". Le secrétariat général a la sienne, sans "Accueil" puisque le logo y mène, et qui suit le pouvoir où il travaille. Hors d\'un pouvoir, elle se réduit à "Rechercher un magistrat". Dans le GDS, elle ajoute ses rubriques, avec une pastille sur "Gérer une session" quand de nouvelles sessions sont arrivées. Dans le CSM, elle ajoute "Veille des postes". "Rechercher un magistrat" est toujours seul à droite de la navigation. Un administrateur a en plus le menu "Administration". En haut à droite, LOLFI, le centre d\'aide, l\'avis et le compte apparaissent pour tout le monde.',
       },
     },
     layout: 'fullscreen',

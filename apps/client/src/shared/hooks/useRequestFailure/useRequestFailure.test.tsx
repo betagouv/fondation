@@ -3,21 +3,13 @@ import type { ReactNode } from 'react';
 import { defineMessages, IntlProvider, type MessageDescriptor } from 'react-intl';
 import { describe, expect, it } from 'vitest';
 
-import { httpAssert } from '@/utils/http-exception';
+import { failureWith } from '@/test-utils/http-failure';
 
 import { type FailureReason, useRequestFailure } from './useRequestFailure';
 
 const REASONS = defineMessages({
   refused: { defaultMessage: 'Une image pèse 5 Mo au plus.' },
 });
-
-function failureWith(status: number): unknown {
-  try {
-    httpAssert(new Response(null, { status }));
-  } catch (exception) {
-    return exception;
-  }
-}
 
 function renderUseRequestFailure(reasons: Readonly<Partial<Record<FailureReason, MessageDescriptor>>>) {
   return renderHook(() => useRequestFailure(reasons), {
@@ -44,6 +36,15 @@ describe('useRequestFailure', () => {
   it('suggests to retry a refusal the caller cannot explain', () => {
     expect(renderUseRequestFailure({})(failureWith(400))).toBe(
       'Réessayez et prévenez le support si cela persiste (code 400).',
+    );
+    expect(renderUseRequestFailure({})(failureWith(409))).toBe(
+      'Réessayez et prévenez le support si cela persiste (code 409).',
+    );
+  });
+
+  it('explains a conflict the caller knows, retrying being of no use', () => {
+    expect(renderUseRequestFailure({ conflict: REASONS.refused })(failureWith(409))).toBe(
+      'Une image pèse 5 Mo au plus.',
     );
   });
 

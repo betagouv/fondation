@@ -5,10 +5,17 @@ import { GenderEnum } from '../../../shared/gender.enum';
 import { UserTitleEnum } from '../../../shared/user-title.enum';
 import { type DocSystemUpdateCause } from '../../shared/domain/doc-system-update-cause';
 import { canDiscardDraft, canValidateDocument } from '../../shared/domain/document.policies';
-import { type DraftChangesBy } from '../../shared/domain/draft-changes-by';
+import { type DraftChanges } from '../../shared/domain/draft-changes-by';
+import { type CurrentNames, type NamedMember, NO_CURRENT_NAMES } from '../../shared/domain/named-member';
 
 import { AgendaNominationFile } from './agenda-nomination-file';
-import { AgendaFilesDiff, AgendaMetadataDiff, AgendaSnapshot } from './agenda-snapshot';
+import {
+  type AgendaChairmanName,
+  AgendaFilesDiff,
+  AgendaFilesReportersDiff,
+  AgendaMetadataDiff,
+  AgendaSnapshot,
+} from './agenda-snapshot';
 
 export type AgendaChairman = {
   displayTitle: string | null;
@@ -96,10 +103,22 @@ export class AgendaFilesReportersUpdated {
   constructor(
     readonly agendaId: Id<'AgendaId'>,
     readonly files: readonly {
+      /** the block written by hand keeps its text but no longer names who reports */
       isOutdated: boolean;
       nominationFileId: string;
-      reporters: readonly string[];
+      reporters: readonly NamedMember[];
     }[],
+    /** the stored document reads differently and is rendered again */
+    readonly changesDocument: boolean,
+  ) {}
+}
+
+/** the signature reads the chairman's name of today: the document is rendered again */
+export class AgendaChairmanRenamed {
+  constructor(
+    readonly agendaId: Id<'AgendaId'>,
+    readonly firstName: string,
+    readonly lastName: string,
   ) {}
 }
 
@@ -132,7 +151,8 @@ export type AgendaEvent =
   | AgendaDraftDiscarded
   | AgendaFileBlockEdited
   | AgendaFileBlockReset
-  | AgendaFilesReportersUpdated;
+  | AgendaFilesReportersUpdated
+  | AgendaChairmanRenamed;
 
 export class EmptyAgenda extends Error {}
 
@@ -150,6 +170,20 @@ export class AgendaFilesAlreadyReported extends Error {
   }
 }
 
+export class AgendaFilesOutsideSession extends Error {
+  constructor(readonly fileIds: readonly string[]) {
+    super();
+  }
+}
+
+/**
+ * false when only the names behind a block written by hand changed: the agenda reads the same.
+ * TODO: see changesDocument in OfficialReport, which tells a renaming apart the same way
+ */
+function changesDocument(diff: Extract<AgendaFilesReportersDiff, { hasAny: true }>): boolean {
+  return diff.updated.some((file) => file.whoChanged || !file.isManuallyEdited);
+}
+
 export class Agenda {
   readonly #messages: AgendaEvent[] = [];
   #actorId: string | null;
@@ -164,6 +198,8 @@ export class Agenda {
     isDocumentStored: boolean,
     isValidated: boolean,
     private readonly snapshot?: AgendaSnapshot,
+    private readonly currentNames: CurrentNames = NO_CURRENT_NAMES,
+    private readonly currentChairman: AgendaChairmanName | null = null,
   ) {
     this.#actorId = actorId;
     this.#isDocumentStored = isDocumentStored;
@@ -177,6 +213,13 @@ export class Agenda {
   static from(props: {
     /** whoever is acting on the agenda: the draft a change opens is theirs, not the previous author's */
     actorId?: string | null;
+    /**
+     * how its chairman is named today, for a draft opened on the validated agenda to sign with it.
+     * TODO: see FON-805, for the official report to follow its chairman's name the same way
+     */
+    currentChairman?: AgendaChairmanName | null;
+    /** how its reporters are printed today: a draft opened on the validated agenda starts from these names */
+    currentNames?: CurrentNames;
     id: Id<'AgendaId'>;
     isDocumentStored?: boolean;
     isValidated?: boolean;
@@ -192,6 +235,8 @@ export class Agenda {
       props.isDocumentStored ?? false,
       props.isValidated ?? false,
       props.snapshot,
+      props.currentNames,
+      props.currentChairman,
     );
   }
 
@@ -200,6 +245,7 @@ export class Agenda {
     if (this.#isValidated) {
       this.#messages.push(new AgendaDraftOpened(this.id, this.#actorId));
       this.#isValidated = false;
+      this.followCurrentNames();
     } else if (this.#actorId) {
       this.#messages.push(new AgendaDraftEdited(this.id, this.#actorId));
     }
@@ -218,7 +264,7 @@ export class Agenda {
     this.#isValidated = true;
   }
 
-  discardDraft(command: { changesBy: DraftChangesBy | null; hasValidatedVersion: boolean }): void {
+  discardDraft(command: DraftChanges & { hasValidatedVersion: boolean }): void {
     if (this.#isValidated) return;
     if (!command.hasValidatedVersion) throw new AgendaWithoutValidatedVersion();
     if (!canDiscardDraft(command)) throw new AgendaDraftChangedByTheApplication();
@@ -248,6 +294,8 @@ export class Agenda {
     actedNominationFileIds: ReadonlySet<string>;
     authorId: string;
     nominationFileIds: Set<string>;
+    /** the requested files the agenda's session holds: a file kept from before may have left it since */
+    sessionNominationFileIds: ReadonlySet<string>;
   }): AgendaFilesDiff {
     if (command.nominationFileIds.size === 0) throw new EmptyAgenda();
 
@@ -256,6 +304,9 @@ export class Agenda {
     });
 
     if (!diff.hasAny) return diff;
+
+    const outsideSession = diff.added.filter((id) => !command.sessionNominationFileIds.has(id));
+    if (outsideSession.length > 0) throw new AgendaFilesOutsideSession(outsideSession);
 
     const alreadyPresented = diff.added.filter((nominationFileId) =>
       command.actedNominationFileIds.has(nominationFileId),
@@ -270,16 +321,58 @@ export class Agenda {
     return diff;
   }
 
+  /**
+   * a validated agenda was sent as it reads: only a change of who reports opens a draft. In a draft, a
+   * new name tells the reader only when a block shows it, so a draft changed out of sight stays theirs.
+   */
   updateFilesReporters(command: {
-    nominationFiles: readonly { id: string; reporters: readonly string[] }[];
+    nominationFiles: readonly { id: string; reporters: readonly NamedMember[] }[];
   }): void {
-    if (command.nominationFiles.length === 0) throw new EmptyAgenda();
-
     const diff = assertIsDefined(this.snapshot).diffReporters(command);
-    if (diff.hasAny) {
-      this.openDraft('REPORTERS');
-      this.#messages.push(new AgendaFilesReportersUpdated(this.id, diff.updated));
-    }
+    if (!diff.hasAny) return;
+
+    const whoChanged = diff.updated.some((file) => file.whoChanged);
+    if (this.#isValidated && !whoChanged) return;
+
+    if (whoChanged) this.openDraft('REPORTERS');
+    else if (changesDocument(diff)) this.openDraft('DESIGNATION');
+
+    this.pushReportersUpdated(diff);
+  }
+
+  /** a validated agenda keeps the name it was sent with: only a draft signs with the chairman's new name */
+  followChairmanName(chairman: AgendaChairmanName): void {
+    if (this.#isValidated || !assertIsDefined(this.snapshot).isChairmanRenamed(chairman)) return;
+
+    this.openDraft('DESIGNATION');
+    this.pushChairmanRenamed(chairman);
+  }
+
+  /** a draft opened on the validated agenda names its members as they are today, a change nobody made */
+  private followCurrentNames(): void {
+    const diff = this.snapshot?.diffNames(this.currentNames);
+    if (diff?.hasAny) this.pushReportersUpdated(diff);
+
+    const chairman = this.currentChairman;
+    if (chairman && this.snapshot?.isChairmanRenamed(chairman)) this.pushChairmanRenamed(chairman);
+  }
+
+  private pushChairmanRenamed(chairman: AgendaChairmanName): void {
+    this.#messages.push(new AgendaChairmanRenamed(this.id, chairman.firstName, chairman.lastName));
+  }
+
+  private pushReportersUpdated(diff: Extract<AgendaFilesReportersDiff, { hasAny: true }>): void {
+    this.#messages.push(
+      new AgendaFilesReportersUpdated(
+        this.id,
+        diff.updated.map(({ isManuallyEdited, nominationFileId, reporters, whoChanged }) => ({
+          isOutdated: isManuallyEdited && whoChanged,
+          nominationFileId,
+          reporters,
+        })),
+        changesDocument(diff),
+      ),
+    );
   }
 
   delete(): void {
@@ -321,10 +414,18 @@ export class Agenda {
       title: UserTitleEnum | null;
     };
     date: DateOnly;
+    /** the requested files: nominationFiles holds only those of the session */
+    nominationFileIds: ReadonlySet<string>;
     nominationFiles: readonly AgendaNominationFile[];
     sessionId: string;
     sessionMeetingDate: DateOnly;
+    sessionNominationFileIds: ReadonlySet<string>;
   }): Agenda {
+    const outsideSession = [...props.nominationFileIds].filter(
+      (id) => !props.sessionNominationFileIds.has(id),
+    );
+    if (outsideSession.length > 0) throw new AgendaFilesOutsideSession(outsideSession);
+
     if (props.nominationFiles.length === 0) throw new EmptyAgenda();
 
     const alreadyPresented = props.nominationFiles.flatMap(({ id }) =>

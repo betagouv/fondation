@@ -310,7 +310,7 @@ export class ManageSingleSessionPage {
 
   async goToDocumentsTab(): Promise<void> {
     await this.documentsTab.click();
-    await this.app.page.waitForURL(/secretariat-general\/session\/[^/]+\/documents/);
+    await this.app.page.waitForURL(/secretariat-general\/gds\/session\/[^/]+\/documents/);
     await this.unfoldPinnedHeader();
   }
 
@@ -334,7 +334,7 @@ export class ManageSingleSessionPage {
 
   async goToMissingEvaluationsTab(): Promise<void> {
     await this.missingEvaluationsTab.click();
-    await this.app.page.waitForURL(/secretariat-general\/session\/[^/]+\/evaluations-manquantes/);
+    await this.app.page.waitForURL(/secretariat-general\/gds\/session\/[^/]+\/evaluations-manquantes/);
   }
 
   async commentMissingEvaluation(magistrat: string, comment: string): Promise<void> {

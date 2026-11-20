@@ -1,6 +1,6 @@
 import { GenderEnum } from '../../../../shared/gender.enum';
 
-import { buildMemberName, buildPosition } from './magistrat.helper';
+import { buildMemberName, buildPosition, buildRecusedMemberName } from './magistrat.helper';
 
 describe('magistrat helpers', () => {
   describe('buildMemberName', () => {
@@ -11,6 +11,22 @@ describe('magistrat helpers', () => {
     `(`should render as $expected`, ({ magistrat, expected }) => {
       expect(buildMemberName(magistrat)).toBe(expected);
     });
+  });
+
+  describe('buildRecusedMemberName', () => {
+    it.each`
+      recusalTitle         | expected
+      ${'le Bâtonnier'}    | ${'M. le Bâtonnier FORGET'}
+      ${' le Bâtonnier  '} | ${'M. le Bâtonnier FORGET'}
+      ${null}              | ${'M. Paul FORGET'}
+      ${'  '}              | ${'M. Paul FORGET'}
+    `(
+      `should name a member whose recusal title is "$recusalTitle" as $expected`,
+      ({ recusalTitle, expected }) => {
+        const member = { firstName: 'PAUL', gender: GenderEnum.MALE, lastName: 'Forget', recusalTitle };
+        expect(buildRecusedMemberName(member)).toBe(expected);
+      },
+    );
   });
 
   describe('buildPosition', () => {

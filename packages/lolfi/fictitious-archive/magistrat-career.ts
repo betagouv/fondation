@@ -20,10 +20,11 @@ export type MagistratCareer = {
   nominationDate: string | undefined;
 };
 
+export const FULL_TIME = 'PT';
 export const REFERENCE_DATE = new Date(2026, 9, 1);
 
 /* Measured on the magistrats held by staging on 2026-10-07, in years */
-const AGE: Record<LolfiGradeEnum, Deciles> = {
+export const AGE: Record<LolfiGradeEnum, Deciles> = {
   G1: [28, 35, 48],
   G2: [38, 49, 61],
   G3: [50, 59, 65],
@@ -77,13 +78,20 @@ export function drawMagistratCareer(
   referential: LolfiReferential,
   magistrat: {
     administrativePosition: LolfiAdministrativePosition;
+    age?: number;
     civilite: Civilite;
+    dated?: boolean;
     grade: LolfiGradeEnum;
     position: LolfiPosition;
+    yearsOnPosition?: number;
   },
 ): MagistratCareer {
   const { civilite, grade, position } = magistrat;
-  const age = Math.round(Math.min(67, Math.max(27, random.followingDeciles(AGE[grade]))));
+  const youngest = 27 + MINIMUM_YEARS_OF_CAREER[grade];
+  const age = Math.max(
+    youngest,
+    magistrat.age ?? Math.round(Math.min(67, random.followingDeciles(AGE[grade]))),
+  );
   const birth = subDays(subYears(REFERENCE_DATE, age), random.int(0, 364));
 
   const latestStartAge = age - 1 - MINIMUM_YEARS_OF_CAREER[grade];
@@ -111,7 +119,10 @@ export function drawMagistratCareer(
           latest,
         );
   const installation = clamp(
-    subDays(REFERENCE_DATE, random.followingDeciles(YEARS_ON_POSITION[grade]) * 365),
+    subDays(
+      REFERENCE_DATE,
+      (magistrat.yearsOnPosition ?? random.followingDeciles(YEARS_ON_POSITION[grade])) * 365,
+    ),
     firstPosition,
     latest,
   );
@@ -152,13 +163,14 @@ export function drawMagistratCareer(
       `- ${detached} auprès ${random.pick(DETACHMENTS)} pour une durée de ${duration} ans ${toLolfiDate(installation)}.`,
     );
   } else if (position.jurisdiction.id === referential.noAssignment.id) {
-    steps.push(`- ${magistrat.administrativePosition.label} ${toLolfiDate(installation)}.`);
+    if (magistrat.administrativePosition.id !== FULL_TIME)
+      steps.push(`- ${magistrat.administrativePosition.label} ${toLolfiDate(installation)}.`);
   } else {
     const title = `${position.function!.id} ${cityOf(position.jurisdiction.id) ?? position.jurisdiction.id}`;
     steps.push(biographyStep(title, gradeMention(installation), nomination, installation));
   }
 
-  const dated = random.chance(GRADE_AND_INSTALLATION_DATED_SHARE);
+  const dated = magistrat.dated ?? random.chance(GRADE_AND_INSTALLATION_DATED_SHARE);
   return {
     birthDate: toLolfiDate(birth),
     careerHistory: steps.join(' '),

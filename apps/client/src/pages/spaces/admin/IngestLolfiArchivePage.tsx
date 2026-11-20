@@ -7,6 +7,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, useNavigate } from 'react-router';
 import { z } from 'zod';
 
+import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { RequiredLabel } from '@/shared/ui/required-label';
 import { Upload } from '@/shared/ui/upload';
@@ -41,6 +42,7 @@ function useIngestLolfiArchiveSchema() {
 
 export function IngestLolfiArchivePage() {
   const { formatMessage } = useIntl();
+  const breadcrumbRoot = useBreadcrumbRoot();
   const navigate = useNavigate();
   const schema = useIngestLolfiArchiveSchema();
   const [asyncErrors, setAsyncErrors] = useState<string[] | null>(null);
@@ -101,7 +103,7 @@ export function IngestLolfiArchivePage() {
         ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane pour l'Administration" })}
         breadcrumb={{
           currentPageLabel: formatMessage({ defaultMessage: 'Importer une archive LOLFI' }),
-          segments: [{ label: formatMessage({ defaultMessage: 'Administration' }), to: {} }],
+          segments: breadcrumbRoot,
         }}
         id="administration-breadcrumb"
       />

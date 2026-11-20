@@ -1,0 +1,399 @@
+import { createColumnHelper, getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import clsx from 'clsx';
+import { useCallback, useMemo, useState, type MouseEvent } from 'react';
+import { createPortal } from 'react-dom';
+import { useIntl } from 'react-intl';
+
+import { useEditedPosition } from '../hooks/useEditedPosition';
+import { KNOWN_ALERTS, KNOWN_DEADLINES, KNOWN_STATUSES } from '../utils/known-values.utils';
+import { rowsInsideRessortGroups } from '../utils/ressort-groups.utils';
+import {
+  NO_STATUS_AND_ALERT_COUNTS,
+  type StatusAndAlertCounts,
+  statusAndAlertFilters,
+} from '../utils/status-and-alert-filters.utils';
+import { VEILLE_ROW_CLASS } from '../utils/veille-row.utils';
+import { useRowRevealedOnReturn } from '@/shared/hooks/useRowRevealedOnReturn';
+import {
+  DataTable,
+  DataTableCount,
+  DataTableFilters,
+  loadFailureOf,
+  useDataTableSearch,
+  useDataTableUrlState,
+} from '@/shared/ui/data-table';
+import { SearchInput } from '@/shared/ui/search-input';
+import { formatDateOnly } from '@/utils/date-only.util';
+import { knownValues, stringValues } from '@/utils/known-values.utils';
+import {
+  type AlertDeadline,
+  type JudicialCourtPresident,
+  type JudicialCourtPresidentsSorting,
+  type PositionAlert,
+  type PositionStatus,
+  type RessortCount,
+  JUDICIAL_COURT_PRESIDENTS_DEFAULT_SORTING,
+  JUDICIAL_COURT_PRESIDENTS_PAGE_SIZE,
+  useJudicialCourtPresidentsQuery,
+} from '@queries/veille-des-postes.queries';
+
+import { CenteredRessortLabel } from './CenteredRessortLabel';
+import { CommentPreviewIcon, MagistratLink } from './MagistratLink';
+import { PositionStatusCell } from './PositionStatusCell';
+import { type EditedPosition, PositionVacancySidePanel } from './PositionVacancySidePanel';
+
+const SORTABLE_COLUMNS = new Set<string>([
+  'court',
+  'installationDate',
+  'name',
+  'ressort',
+  'status',
+] satisfies JudicialCourtPresidentsSorting[number]['id'][]);
+
+const NO_RESSORTS: RessortCount[] = [];
+
+const COLUMNS_BESIDE_SIDE_PANEL = { candidates: false, installationDate: false, status: false };
+
+const h = createColumnHelper<JudicialCourtPresident>();
+
+function editedPositionOf(row: JudicialCourtPresident): EditedPosition {
+  return {
+    alerts: row.alerts,
+    commented: { courtId: row.court.id },
+    courtLabel: row.court.label,
+    id: rowIdOf(row),
+    installationDate: row.installationDate,
+    magistrat: row.magistrat,
+    status: row.status,
+  };
+}
+
+/** a magistrat holds one position only, and a court without one is listed once */
+function rowIdOf(president: JudicialCourtPresident): string {
+  return president.magistrat?.id ?? president.court.id;
+}
+
+function useJudicialCourtPresidentsColumns(props: {
+  groupedRows: Set<string> | null;
+  /** the ressort of the highlighted row: its merged cell is highlighted whole */
+  highlightedRessortId: string | undefined;
+  onMagistratOpened: (event: MouseEvent, magistratId: string) => void;
+  onPositionEdited: (row: JudicialCourtPresident) => void;
+  ressorts: RessortCount[];
+  statusAndAlertCounts: StatusAndAlertCounts;
+}) {
+  const { formatMessage } = useIntl();
+  const {
+    groupedRows,
+    highlightedRessortId,
+    onMagistratOpened,
+    onPositionEdited,
+    ressorts,
+    statusAndAlertCounts,
+  } = props;
+
+  return useMemo(() => {
+    const counted = (values: { count: number; id: string; label: string }[]) =>
+      values.map(({ count, id, label }) => ({
+        id,
+        label: formatMessage({ defaultMessage: '{label} ({count})' }, { count, label }),
+      }));
+
+    return [
+      h.accessor('ressort.label', {
+        cell: ({ getValue, row }) =>
+          groupedRows ? (
+            <CenteredRessortLabel groupId={row.original.ressort.id} label={getValue()} />
+          ) : (
+            <span className="font-medium">{getValue()}</span>
+          ),
+        header: formatMessage({ defaultMessage: 'Ressort' }),
+        id: 'ressort',
+        meta: {
+          cellBackground: (row) =>
+            groupedRows && row.original.ressort.id === highlightedRessortId
+              ? 'bg-(--background-alt-blue-france)'
+              : undefined,
+          // one cell for the courts of a ressort, without line inside it
+          cellClassName: (row) =>
+            clsx(
+              'relative border-r border-(--border-default-grey)',
+              groupedRows?.has(row.id) &&
+                "overflow-visible! after:absolute after:inset-x-0 after:-bottom-px after:h-px after:content-['']",
+              groupedRows?.has(row.id) &&
+                (row.original.ressort.id === highlightedRessortId
+                  ? 'after:bg-(--background-alt-blue-france)'
+                  : 'after:bg-(--background-default-grey)'),
+            ),
+          filters: {
+            filterId: 'ressort',
+            label: formatMessage({ defaultMessage: 'Ressort' }),
+            type: 'enum',
+            values: counted(ressorts),
+          },
+        },
+        size: 200,
+        sortDescFirst: false,
+      }),
+      h.accessor('court.label', {
+        header: formatMessage({ defaultMessage: 'Juridiction' }),
+        id: 'court',
+        size: 220,
+        sortDescFirst: false,
+      }),
+      h.accessor('magistrat', {
+        cell: ({ getValue, row }) => {
+          const magistrat = getValue();
+          if (!magistrat) {
+            return row.original.commentPreview === null ? (
+              '-'
+            ) : (
+              <CommentPreviewIcon commentPreview={row.original.commentPreview} />
+            );
+          }
+          return (
+            <MagistratLink
+              commentPreview={row.original.commentPreview}
+              isFormerHolder={row.original.status.id === 'VACANT'}
+              magistrat={magistrat}
+              onClick={onMagistratOpened}
+            />
+          );
+        },
+        header: formatMessage({ defaultMessage: 'Magistrat' }),
+        id: 'name',
+        size: 220,
+        sortDescFirst: false,
+      }),
+      h.accessor('installationDate', {
+        cell: ({ getValue }) => {
+          const installationDate = getValue();
+          return installationDate ? formatDateOnly(installationDate) : '-';
+        },
+        header: formatMessage({ defaultMessage: "Date d'installation" }),
+        id: 'installationDate',
+        size: 180,
+        sortDescFirst: false,
+      }),
+      h.accessor('status', {
+        cell: ({ getValue, row }) => (
+          <PositionStatusCell
+            alerts={row.original.alerts}
+            edit={{
+              label: row.original.magistrat
+                ? formatMessage({ defaultMessage: 'Modifier le statut' })
+                : formatMessage({ defaultMessage: 'Commenter le poste' }),
+              onClick: () => onPositionEdited(row.original),
+            }}
+            status={getValue()}
+          />
+        ),
+        header: formatMessage({ defaultMessage: 'Alerte / statut' }),
+        id: 'status',
+        meta: { filters: statusAndAlertFilters(formatMessage, statusAndAlertCounts) },
+        size: 200,
+        sortDescFirst: false,
+      }),
+      h.display({
+        cell: () => '-',
+        header: formatMessage({ defaultMessage: 'Candidats' }),
+        id: 'candidates',
+        size: 160,
+      }),
+    ];
+  }, [
+    formatMessage,
+    groupedRows,
+    highlightedRessortId,
+    onMagistratOpened,
+    onPositionEdited,
+    ressorts,
+    statusAndAlertCounts,
+  ]);
+}
+
+export function JudicialCourtPresidentsTable(props: {
+  filtersSlot: HTMLDivElement | null;
+  onSidePanelToggle: (open: boolean) => void;
+  titleSlot: HTMLSpanElement | null;
+}) {
+  const { formatMessage } = useIntl();
+  // rounded to a page, so that scrolling within a page renders nothing new
+  const [seenRows, setSeenRows] = useState(0);
+  const onSeenRowsChange = useCallback(
+    (rows: number) =>
+      setSeenRows(
+        Math.ceil(rows / JUDICIAL_COURT_PRESIDENTS_PAGE_SIZE) * JUDICIAL_COURT_PRESIDENTS_PAGE_SIZE,
+      ),
+    [],
+  );
+  const { remember, revealedRowId } = useRowRevealedOnReturn();
+
+  const { onColumnFiltersChange, onSortingChange, setTableState, tableState } = useDataTableUrlState({
+    columnFilters: [] as (
+      | { id: 'alert'; value: PositionAlert[] }
+      | { id: 'deadline'; value: AlertDeadline[] }
+      | { id: 'ressort'; value: string[] }
+      | { id: 'status'; value: PositionStatus[] }
+    )[],
+    globalFilter: '',
+    sorting: JUDICIAL_COURT_PRESIDENTS_DEFAULT_SORTING,
+  });
+
+  // a saved link can carry a sort the API no longer accepts
+  const [sort] = tableState.sorting;
+  const sorting =
+    sort && SORTABLE_COLUMNS.has(sort.id) ? tableState.sorting : JUDICIAL_COURT_PRESIDENTS_DEFAULT_SORTING;
+
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isError,
+    isFetching,
+    isFetchingNextPage,
+    isFetchNextPageError,
+    isLoading,
+    refetch,
+  } = useJudicialCourtPresidentsQuery({
+    alerts: knownValues(
+      tableState.columnFilters.find((filter) => filter.id === 'alert')?.value,
+      KNOWN_ALERTS,
+    ),
+    deadlines: knownValues(
+      tableState.columnFilters.find((filter) => filter.id === 'deadline')?.value,
+      KNOWN_DEADLINES,
+    ),
+    ressorts: stringValues(tableState.columnFilters.find((filter) => filter.id === 'ressort')?.value),
+    search: tableState.globalFilter,
+    sorting,
+    statuses: knownValues(
+      tableState.columnFilters.find((filter) => filter.id === 'status')?.value,
+      KNOWN_STATUSES,
+    ),
+  });
+
+  const search = useDataTableSearch(tableState.globalFilter, (globalFilter) =>
+    setTableState((state) => ({ ...state, globalFilter })),
+  );
+
+  const fetchMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage && !isFetchNextPageError) void fetchNextPage();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage, isFetchNextPageError]);
+
+  const presidents = useMemo(() => data?.items ?? [], [data]);
+  const statusAndAlertCounts = useMemo(
+    () =>
+      data
+        ? { alerts: data.alerts, deadlines: data.deadlines, statuses: data.statuses }
+        : NO_STATUS_AND_ALERT_COUNTS,
+    [data],
+  );
+  // the courts of a ressort only follow each other when sorted by ressort
+  const groupedRows = useMemo(
+    () =>
+      sorting[0]?.id === 'ressort'
+        ? rowsInsideRessortGroups(
+            presidents.map((president) => ({
+              id: rowIdOf(president),
+              ressortId: president.ressort.id,
+            })),
+          )
+        : null,
+    [presidents, sorting],
+  );
+  const editing = useEditedPosition(presidents, editedPositionOf, props.onSidePanelToggle);
+  // the row of the side panel or the one left for a magistrat's page
+  const highlightedRowId = editing.edited?.id ?? revealedRowId;
+  const table = useReactTable({
+    columns: useJudicialCourtPresidentsColumns({
+      groupedRows,
+      highlightedRessortId: presidents.find((president) => rowIdOf(president) === highlightedRowId)?.ressort
+        .id,
+      onMagistratOpened: remember,
+      onPositionEdited: editing.open,
+      ressorts: data?.ressorts ?? NO_RESSORTS,
+      statusAndAlertCounts,
+    }),
+    data: presidents,
+    enableSortingRemoval: false,
+    getCoreRowModel: getCoreRowModel(),
+    getRowId: rowIdOf,
+    manualFiltering: true,
+    manualSorting: true,
+    onColumnFiltersChange,
+    onSortingChange,
+    state: {
+      columnFilters: tableState.columnFilters,
+      columnVisibility: editing.edited ? COLUMNS_BESIDE_SIDE_PANEL : {},
+      globalFilter: tableState.globalFilter,
+      sorting,
+    },
+  });
+
+  return (
+    <>
+      {props.titleSlot &&
+        data &&
+        createPortal(<DataTableCount loaded={seenRows} total={data.totalCount} />, props.titleSlot)}
+      {props.filtersSlot &&
+        createPortal(
+          <div className="flex items-center justify-between gap-4">
+            <DataTableFilters table={table} />
+            <SearchInput
+              className="w-128"
+              onChange={search.onChange}
+              onClear={search.clear}
+              placeholder={formatMessage({
+                defaultMessage: 'Rechercher un ressort, une juridiction ou un magistrat',
+              })}
+              value={search.value}
+            />
+          </div>,
+          props.filtersSlot,
+        )}
+      <div
+        className={clsx('w-full transition-[width] duration-300 ease-out', editing.edited && 'md:w-[52%]')}
+      >
+        <DataTable
+          ariaLabel={formatMessage({
+            defaultMessage: 'Présidents de tribunaux judiciaires et de première instance',
+          })}
+          emptyLabel={
+            tableState.globalFilter || tableState.columnFilters.length
+              ? formatMessage({
+                  defaultMessage: 'Aucune juridiction ne correspond aux filtres fournis',
+                })
+              : formatMessage({ defaultMessage: 'Aucune juridiction' })
+          }
+          fluid
+          isLoading={!isError && isLoading}
+          loadError={loadFailureOf({ fetchNextPage, isError, isFetching, isFetchNextPageError, refetch })}
+          onEndReached={fetchMore}
+          onSeenRowsChange={onSeenRowsChange}
+          revealedRowId={highlightedRowId}
+          rowTint={(row) =>
+            clsx(
+              VEILLE_ROW_CLASS,
+              row.id === highlightedRowId && 'bg-(--background-alt-blue-france)',
+              sorting[0]?.id === 'ressort' &&
+                row.index > 0 &&
+                presidents[row.index - 1]?.ressort.id !== row.original.ressort.id &&
+                'border-t border-t-(--border-plain-blue-france)',
+            )
+          }
+          scrollsWithPage
+          table={table}
+        />
+      </div>
+      <PositionVacancySidePanel
+        edited={editing.edited}
+        isLeaveBlocked={editing.isLeaveBlocked}
+        onClose={editing.close}
+        onLeaveBlockedChange={editing.setLeaveBlocked}
+        onNext={editing.next}
+        onPrevious={editing.previous}
+      />
+    </>
+  );
+}

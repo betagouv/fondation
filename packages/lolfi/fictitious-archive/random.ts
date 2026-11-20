@@ -18,6 +18,10 @@ export class Random {
     return this.faker.helpers.arrayElement(items);
   }
 
+  shuffle<T>(items: readonly T[]): T[] {
+    return this.faker.helpers.shuffle([...items]);
+  }
+
   pickWeighted<T>(weights: ReadonlyMap<T, number>): T {
     return this.faker.helpers.weightedArrayElement(
       [...weights].map(([value, weight]) => ({ value, weight })),

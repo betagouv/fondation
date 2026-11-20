@@ -10,7 +10,7 @@ import { ArchiveBannerPortal } from '@/shared/components/banners';
 import { PinnedHeader } from '@/shared/components/pinned-header';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { Collapse } from '@/shared/ui/collapse';
-import { HttpException } from '@/utils/http-exception';
+import { isNotFound } from '@/utils/http-exception';
 import { TransparencesCurrentPage, useTransparencesBreadCrumb } from '@/utils/transparences-breadcrumb.utils';
 import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
 
@@ -26,17 +26,15 @@ export function MemberSessionLayout() {
   const { data: session, error, isPending } = useDetailedNominationSessionQuery({ sessionId });
 
   if (isPending) return null;
-  if (error && !(error instanceof HttpException && error.statusCode === 404)) throw error;
-  if (!session) return <SessionNotFound />;
+  // a failed reload keeps the data loaded before: the page stays rather than the error page
+  if (error && !isNotFound(error) && !session) throw error;
+  if (isNotFound(error) || !session) return <SessionNotFound context="membre" />;
 
   return (
     <ArchiveBannerPortal isArchived={session.isArchived}>
       <Breadcrumb
         ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane des rapports" })}
-        breadcrumb={breadCrumbOf({
-          formation: session.formation,
-          name: TransparencesCurrentPage.perGdsTransparencyReports,
-        })}
+        breadcrumb={breadCrumbOf({ name: TransparencesCurrentPage.perGdsTransparencyReports, session })}
         className="fr-mb-0"
         id="reports-breadcrumb"
       />

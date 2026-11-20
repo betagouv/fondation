@@ -30,6 +30,14 @@ export class DetachedFilesFromSummary {
   ) {}
 }
 
+export class RenamedSummaryFile {
+  constructor(
+    readonly id: Id<'SummaryId'>,
+    readonly fileId: string,
+    readonly name: string,
+  ) {}
+}
+
 export class IncludedFilesInSummaryContent {
   constructor(
     readonly id: Id<'SummaryId'>,
@@ -56,6 +64,7 @@ type SummaryMessage =
   | SummaryCreated
   | AttachedFilesToSummary
   | DetachedFilesFromSummary
+  | RenamedSummaryFile
   | IncludedFilesInSummaryContent
   | SummaryContentWritten
   | UpdatedSummaryReaderList;
@@ -77,6 +86,11 @@ export class Summary {
     if (props.sessionIsArchived) throw new SummarySessionIsArchived(props.sessionId);
 
     return new Summary(makeId('SummaryId', props.id), props.authorId, new Set(props.readerIds));
+  }
+
+  /** files are still added to the synthèse of a figé dossier, but those it holds stay as they are */
+  static canManageAttachments(props: { canWrite: boolean; isNominationFileLocked: boolean }): boolean {
+    return props.canWrite && !props.isNominationFileLocked;
   }
 
   static create(props: { nominationFileId: string; sessionId: string; sessionIsArchived: boolean }): Summary {
@@ -103,19 +117,42 @@ export class Summary {
     );
   }
 
-  attachFiles(command: { fileIds: readonly string[] }): void {
+  attachFiles(command: { fileIds: readonly string[]; user: { id: string; role: RoleEnum } }): void {
+    this.assertsCanWrite(command.user);
     if (command.fileIds.length === 0) return;
 
     this.#messages.push(new AttachedFilesToSummary(this.id, command.fileIds));
   }
 
-  detachFiles(command: { fileIds: readonly string[] }): void {
+  detachFiles(command: {
+    fileIds: readonly string[];
+    isNominationFileLocked: boolean;
+    user: { id: string; role: RoleEnum };
+  }): void {
+    this.assertsCanWrite(command.user);
     if (command.fileIds.length === 0) return;
+    this.assertsAttachmentsUnlocked(command);
 
     this.#messages.push(new DetachedFilesFromSummary(this.id, command.fileIds));
   }
 
-  includeFilesIntoContent(command: { fileIds: readonly string[] }): void {
+  renameFile(command: {
+    fileId: string;
+    isNominationFileLocked: boolean;
+    name: string;
+    user: { id: string; role: RoleEnum };
+  }): void {
+    this.assertsCanWrite(command.user);
+    this.assertsAttachmentsUnlocked(command);
+
+    this.#messages.push(new RenamedSummaryFile(this.id, command.fileId, command.name));
+  }
+
+  includeFilesIntoContent(command: {
+    fileIds: readonly string[];
+    user: { id: string; role: RoleEnum };
+  }): void {
+    this.assertsCanWrite(command.user);
     if (command.fileIds.length === 0) return;
 
     this.#messages.push(new IncludedFilesInSummaryContent(this.id, command.fileIds));
@@ -138,17 +175,29 @@ export class Summary {
   }
 
   writeContent(command: { content: string; user: { id: string; role: RoleEnum } }): void {
-    if (!canWriteSummary(this, command.user)) {
-      throw new OnlyAuthorCanWriteSummary(this.id, this.authorId, command.user.id);
-    }
+    this.assertsCanWrite(command.user);
 
     const newAuthorId = this.authorId ? null : command.user.id;
     this.#messages.push(new SummaryContentWritten(this.id, command.content, newAuthorId));
   }
 
+  private assertsCanWrite(user: { id: string; role: RoleEnum }): void {
+    if (!canWriteSummary(this, user)) throw new OnlyAuthorCanWriteSummary(this.id, this.authorId, user.id);
+  }
+
+  private assertsAttachmentsUnlocked(command: { isNominationFileLocked: boolean }): void {
+    if (command.isNominationFileLocked) throw new SummaryAttachmentsLocked(this.id);
+  }
+
   readonly #messages: SummaryMessage[] = [];
   get messages(): readonly SummaryMessage[] {
     return this.#messages;
+  }
+}
+
+export class SummaryAttachmentsLocked extends Error {
+  constructor(readonly id: Id<'SummaryId'>) {
+    super();
   }
 }
 

@@ -5,7 +5,7 @@ packages:
 catalog:
   'zod': 4.4.3
   '@faker-js/faker': 10.6.0
-  'oxlint': 1.87.0
+  'oxlint': 1.90.0
   'oxlint-tsgolint': 0.25.0
   # TypeScript 7 has no compiler API yet: `typescript` stays on 6 for the tools that import it
   # (@hey-api/openapi-ts, prisma-selects.spec.ts) while `tsc` comes from 7.
@@ -39,8 +39,8 @@ overrides:
   # Security update: prisma pins the vulnerable version exactly
   prisma>mysql2: 3.24.6
   prosemirror-model: 1.25.12
-  prosemirror-view: 1.42.6
-  qs: 6.16.1
+  prosemirror-view: 1.42.9
+  qs: 6.17.1
 
 # jest-dom augments `vitest` without depending on it, so pnpm resolves its
 # augmentation against the api's vitest instead of the client's. Declaring the

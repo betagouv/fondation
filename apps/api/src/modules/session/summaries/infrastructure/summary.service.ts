@@ -5,6 +5,7 @@ import { isDefined } from '../../../../utils/is-defined';
 import { Db } from '../../../framework/database';
 import { Files } from '../../../framework/files';
 import { FILE_MIME_TYPES, filenameToMimeType } from '../../../framework/files/mime-type';
+import type { Impersonation } from '../../../shared/policies/personal-content.policies';
 import type { RoleEnum } from '../../../shared/role.enum';
 import { Summary } from '../domain/summary';
 
@@ -43,6 +44,7 @@ export class SummaryService {
     fileIds: readonly string[];
     nominationFileId: string;
     sessionId: string;
+    user: { id: string; role: RoleEnum };
   }): Promise<void> {
     const summary = await this.summaryRepository.find(command);
     summary.attachFiles(command);
@@ -54,9 +56,29 @@ export class SummaryService {
     fileIds: readonly string[];
     nominationFileId: string;
     sessionId: string;
+    user: { id: string; role: RoleEnum };
   }): Promise<void> {
     const summary = await this.summaryRepository.find(command);
-    summary.detachFiles(command);
+    summary.detachFiles({
+      ...command,
+      isNominationFileLocked: await this.summaryRepository.isNominationFileLocked(command),
+    });
+    await this.summaryRepository.persist(summary);
+  }
+
+  @Transactional()
+  async renameFile(command: {
+    fileId: string;
+    name: string;
+    nominationFileId: string;
+    sessionId: string;
+    user: { id: string; role: RoleEnum };
+  }): Promise<void> {
+    const summary = await this.summaryRepository.find(command);
+    summary.renameFile({
+      ...command,
+      isNominationFileLocked: await this.summaryRepository.isNominationFileLocked(command),
+    });
     await this.summaryRepository.persist(summary);
   }
 
@@ -64,11 +86,13 @@ export class SummaryService {
     files: readonly { id: string; name: string }[];
     nominationFileId: string;
     sessionId: string;
+    user: { id: string; role: RoleEnum };
   }): Promise<IncludedFilesInSummaryContentDto> {
     await this.db.withTransaction(async () => {
       const summary = await this.summaryRepository.find(command);
       summary.includeFilesIntoContent({
         fileIds: command.files.map(({ id }) => id),
+        user: command.user,
       });
       await this.summaryRepository.persist(summary);
     });
@@ -122,6 +146,7 @@ export class SummaryService {
 
   @Transactional()
   detailSummary(query: {
+    impersonation: Impersonation | undefined;
     nominationFileId: string;
     role: RoleEnum;
     sessionId: string;
@@ -134,7 +159,7 @@ export class SummaryService {
     fileId: string;
     nominationFileId: string;
     sessionId: string;
-    user: { id: string; role: RoleEnum };
+    user: { id: string; impersonation: Impersonation | undefined; role: RoleEnum };
   }): Promise<GeneratedSummaryAttachmentPublicUrlDto> {
     return this.generateAttachmentPublicUrlQuery.handle(query);
   }

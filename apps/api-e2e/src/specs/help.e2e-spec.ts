@@ -94,6 +94,7 @@ test.describe('Help E2E', () => {
     expect(response.status).toBe(206);
     expect(response.headers.get('accept-ranges')).toBe('bytes');
     expect(response.headers.get('content-range')).toBe(`bytes 0-3/${video.size}`);
+    expect(response.headers.get('cache-control')).toBe('private');
     expect((data as ArrayBuffer).byteLength).toBe(4);
   });
 });

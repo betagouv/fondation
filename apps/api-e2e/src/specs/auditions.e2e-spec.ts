@@ -157,6 +157,19 @@ test.describe('Auditions E2E', () => {
       },
     ]);
   });
+  test('should have nothing to publish while no audition date waits for the members', async ({
+    agent,
+    expect,
+    session,
+  }) => {
+    const publication = await agent.sessions.detailLastSessionAuditionsPublication({
+      path: { sessionId: session.id },
+      throwOnError: true,
+    });
+
+    expect(publication.data).toEqual({ lastPublished: null, status: 'NOTHING_TO_PUBLISH' });
+  });
+
   test('should publish the auditions to the members', async ({ agent, expect, session }) => {
     await agent.sessions.publishSessionAuditions({ path: { sessionId: session.id }, throwOnError: true });
 

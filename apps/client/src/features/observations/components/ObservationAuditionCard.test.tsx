@@ -16,6 +16,7 @@ vi.mock(
 );
 
 const SHARED_OBSERVATION = {
+  canEdit: true,
   id: 'observation-1',
   observant: { audition: null, auditionScheduling: 'SCHEDULABLE' },
   observedMagistrat: { name: 'Honorine VALROSE', proposedPosition: 'Procureur général CA MONTPELLIER' },
@@ -33,7 +34,6 @@ describe('ObservationAuditionCard', () => {
     render(
       <IntlProvider defaultLocale="fr" locale="fr">
         <ObservationAuditionCard
-          isArchived={false}
           nominationFileId="file-1"
           observation={SHARED_OBSERVATION}
           sessionId="session-1"

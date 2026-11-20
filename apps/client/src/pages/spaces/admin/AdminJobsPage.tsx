@@ -10,6 +10,7 @@ import { SelectedJobProvider } from '@/features/jobs/context';
 import { formatJobDuration } from '@/features/jobs/utils/format-job-duration.utils';
 import { PinnedHeader } from '@/shared/components/pinned-header';
 import { JobStatusEnum, JobStatusEnumMessages } from '@/shared/enums/job-status.enum';
+import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { useDateAndTime } from '@/shared/hooks/useDateAndTime';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import {
@@ -94,6 +95,7 @@ function useJobColumns() {
 
 export function AdminJobsPage() {
   const { formatMessage } = useIntl();
+  const breadcrumbRoot = useBreadcrumbRoot();
   const navigate = useNavigate();
   const { jobId } = useParams();
   const { onColumnFiltersChange, tableState } = useDataTableUrlState({
@@ -163,7 +165,7 @@ export function AdminJobsPage() {
         ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane pour l'Administration" })}
         breadcrumb={{
           currentPageLabel: formatMessage({ defaultMessage: 'Suivre les ingestions' }),
-          segments: [{ label: formatMessage({ defaultMessage: 'Administration' }), to: {} }],
+          segments: breadcrumbRoot,
         }}
         id="administration-breadcrumb"
       />

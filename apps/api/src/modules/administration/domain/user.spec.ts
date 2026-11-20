@@ -46,7 +46,7 @@ describe('User', () => {
       now: new Date('2026-10-20T09:00:00Z'),
       registrar: User.from({ ...baseProps, id: 'admin-1', isAdmin: true }),
     } as const;
-    const developer = User.from({ ...baseProps, id: 'developer-1', isAdmin: true, isTechnical: true });
+    const teamMember = User.from({ ...baseProps, id: 'team-member-1', isAdmin: true, isTechnical: true });
 
     it('should give a new officer their whole role, duty included', () => {
       const role = AdminUserRole.ofNewAccount('OFFICER');
@@ -108,16 +108,16 @@ describe('User', () => {
       ).toThrow(CantGiveTechnicalAccountThisRole);
     });
 
-    it('should let a developer register a technical account', () => {
+    it('should let a member of the Fondation team register a technical account', () => {
       const user = User.register({
         ...registration,
         isTechnical: true,
-        registrar: developer,
+        registrar: teamMember,
         role: AdminUserRole.ofNewAccount('OFFICER'),
       });
 
       expect(user.messages).toContainEqual(
-        expect.objectContaining({ isTechnical: true, registeredBy: 'developer-1' }),
+        expect.objectContaining({ isTechnical: true, registeredBy: 'team-member-1' }),
       );
     });
 
@@ -134,7 +134,7 @@ describe('User', () => {
       );
     });
 
-    it('should refuse a technical account to an admin who is no developer', () => {
+    it('should refuse a technical account to an admin outside the Fondation team', () => {
       expect(() =>
         User.register({ ...registration, isTechnical: true, role: AdminUserRole.ofNewAccount('OFFICER') }),
       ).toThrow(CantManageTechnicalAccounts);
@@ -145,7 +145,7 @@ describe('User', () => {
         User.register({
           ...registration,
           isTechnical: true,
-          registrar: developer,
+          registrar: teamMember,
           role: AdminUserRole.ofNewAccount('FIRST_SECRETARY'),
         }),
       ).toThrow(CantGiveTechnicalAccountThisRole);
@@ -166,30 +166,30 @@ describe('User', () => {
 
   describe('technical account', () => {
     const now = new Date('2026-10-30T09:00:00Z');
-    const developer = User.from({ ...baseProps, id: 'developer-1', isAdmin: true, isTechnical: true });
+    const teamMember = User.from({ ...baseProps, id: 'team-member-1', isAdmin: true, isTechnical: true });
 
-    it('should let a developer mark an agent as a technical account', () => {
+    it('should let a member of the Fondation team mark an agent as a technical account', () => {
       const user = User.from(baseProps);
-      user.updateTechnicalAccount({ actor: developer, isTechnical: true, now });
+      user.updateTechnicalAccount({ actor: teamMember, isTechnical: true, now });
 
-      expect(user.messages).toEqual([new UserTechnicalAccountUpdated(user.id, true, now, 'developer-1')]);
+      expect(user.messages).toEqual([new UserTechnicalAccountUpdated(user.id, true, now, 'team-member-1')]);
     });
 
-    it('should let a developer unmark a technical account', () => {
+    it('should let a member of the Fondation team unmark a technical account', () => {
       const user = User.from({ ...baseProps, isTechnical: true });
-      user.updateTechnicalAccount({ actor: developer, isTechnical: false, now });
+      user.updateTechnicalAccount({ actor: teamMember, isTechnical: false, now });
 
-      expect(user.messages).toEqual([new UserTechnicalAccountUpdated(user.id, false, now, 'developer-1')]);
+      expect(user.messages).toEqual([new UserTechnicalAccountUpdated(user.id, false, now, 'team-member-1')]);
     });
 
     it('should leave a technical account as is when marked again', () => {
       const user = User.from({ ...baseProps, isTechnical: true });
-      user.updateTechnicalAccount({ actor: developer, isTechnical: true, now });
+      user.updateTechnicalAccount({ actor: teamMember, isTechnical: true, now });
 
       expect(user.messages).toEqual([]);
     });
 
-    it('should refuse to an admin who is no developer to mark an account', () => {
+    it('should refuse to an admin outside the Fondation team to mark an account', () => {
       const user = User.from(baseProps);
       const admin = User.from({ ...baseProps, id: 'admin-1', isAdmin: true });
 
@@ -208,7 +208,7 @@ describe('User', () => {
         }),
       });
 
-      expect(() => user.updateTechnicalAccount({ actor: developer, isTechnical: true, now })).toThrow(
+      expect(() => user.updateTechnicalAccount({ actor: teamMember, isTechnical: true, now })).toThrow(
         CantGiveTechnicalAccountThisRole,
       );
     });
@@ -219,7 +219,7 @@ describe('User', () => {
         role: AdminUserRole.from({ duty: null, role: 'MEMBRE_COMMUN', title: null }),
       });
 
-      expect(() => user.updateTechnicalAccount({ actor: developer, isTechnical: true, now })).toThrow(
+      expect(() => user.updateTechnicalAccount({ actor: teamMember, isTechnical: true, now })).toThrow(
         CantGiveTechnicalAccountThisRole,
       );
     });

@@ -1,12 +1,20 @@
+import type { Writer } from '../../../utils/user.util';
 import { NominationFileLockEnum } from '../nomination-file-lock.enum';
 import { NominationFileOutcome, NominationFileOutcomeEnum } from '../nomination-file-outcome.enum';
 import { isSecretariat, type RoleEnum } from '../role.enum';
 
+import { isJurisdictionSheetExpected } from './jurisdiction-sheet.policy';
+import {
+  type Impersonation,
+  personalContentVisibility,
+  type PersonalContentVisibility,
+} from './personal-content.policies';
+
 export function nominationFileLock(
   file: { isReported: boolean },
-  session: { archivedAt: Date | null | undefined },
+  session: { isArchived: boolean },
 ): NominationFileLockEnum | null {
-  if (session.archivedAt) return 'ARCHIVED_SESSION';
+  if (session.isArchived) return 'ARCHIVED_SESSION';
   if (file.isReported) return 'REPORTED';
 
   return null;
@@ -14,14 +22,50 @@ export function nominationFileLock(
 
 export function canScheduleAudition(
   file: { outcome: NominationFileOutcomeEnum | null },
-  session: { archivedAt: Date | null | undefined },
+  session: { isArchived: boolean },
 ): boolean {
-  return !session.archivedAt && NominationFileOutcome.allowsAudition(file.outcome);
+  return !session.isArchived && NominationFileOutcome.allowsAudition(file.outcome);
 }
 
-export function canKeepMemberMemo(
-  file: { reporterIds: readonly string[] },
-  user: { id: string; role: RoleEnum },
+/** any change the secretariat makes to a dossier, from recusing members to managing its attachments */
+export function canUpdateNominationFile(
+  file: { lockedReason: NominationFileLockEnum | null },
+  user: { role: RoleEnum },
 ): boolean {
-  return !isSecretariat(user.role) && !file.reporterIds.includes(user.id);
+  return isSecretariat(user.role) && !file.lockedReason;
+}
+
+/** the secretariat is asked for a jurisdiction sheet until it attaches one or hides the alert */
+export function jurisdictionSheetRequired(
+  file: {
+    alertHidden: boolean;
+    hasJurisdictionSheet: boolean;
+    lockedReason: NominationFileLockEnum | null;
+    targetedPosition: string | null;
+  },
+  user: { role: RoleEnum },
+): boolean {
+  return (
+    canUpdateNominationFile(file, user) &&
+    !file.alertHidden &&
+    !file.hasJurisdictionSheet &&
+    isJurisdictionSheetExpected(file.targetedPosition)
+  );
+}
+
+export function memberMemoVisibility(
+  file: { reporterIds: readonly string[] },
+  user: { id: string; impersonation: Impersonation | undefined; role: RoleEnum },
+): PersonalContentVisibility | null {
+  if (isSecretariat(user.role) || file.reporterIds.includes(user.id)) return null;
+
+  return personalContentVisibility(user);
+}
+
+/** the members read the SG complement as the secretariat's: they see when it changed, not who changed it */
+export function sgCommentChangeSeenBy(
+  change: { at: string; by: Writer },
+  user: { role: RoleEnum },
+): { at: string; by: Writer } {
+  return isSecretariat(user.role) ? change : { ...change, by: null };
 }

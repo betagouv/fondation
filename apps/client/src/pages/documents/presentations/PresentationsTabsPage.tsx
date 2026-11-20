@@ -4,6 +4,7 @@ import { memo, useCallback, type ReactNode } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, Outlet, useMatch, useNavigate } from 'react-router';
 
+import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
@@ -13,25 +14,21 @@ import {
 } from '@queries/agenda.queries';
 
 const TAB_PATHS = {
-  agendas: ROUTE_PATHS.SG.PRESENTATIONS_AGENDAS,
-  past: ROUTE_PATHS.SG.PRESENTATIONS_PAST,
-  ready: ROUTE_PATHS.SG.PRESENTATIONS_READY,
+  agendas: ROUTE_PATHS.SG.GDS.PRESENTATIONS_AGENDAS,
+  past: ROUTE_PATHS.SG.GDS.PRESENTATIONS_PAST,
+  ready: ROUTE_PATHS.SG.GDS.PRESENTATIONS_READY,
 };
 
 const PresentationsBreadcrumb = memo(function PresentationsBreadcrumb() {
   const { formatMessage } = useIntl();
+  const breadcrumbRoot = useBreadcrumbRoot();
 
   return (
     <Breadcrumb
       ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane des restitutions DSJ" })}
       breadcrumb={{
         currentPageLabel: formatMessage({ defaultMessage: `Restitutions` }),
-        segments: [
-          {
-            label: formatMessage({ defaultMessage: 'Secrétariat général' }),
-            to: generatePath(ROUTE_PATHS.SG.DASHBOARD),
-          },
-        ],
+        segments: breadcrumbRoot,
       }}
       id="presentations-breadcrumb"
     />
@@ -42,8 +39,8 @@ export function PresentationsTabsPage() {
   const navigate = useNavigate();
   const { formatMessage } = useIntl();
 
-  const agendasPathMatch = useMatch(ROUTE_PATHS.SG.PRESENTATIONS_AGENDAS);
-  const pastPathMatch = useMatch(ROUTE_PATHS.SG.PRESENTATIONS_PAST);
+  const agendasPathMatch = useMatch(ROUTE_PATHS.SG.GDS.PRESENTATIONS_AGENDAS);
+  const pastPathMatch = useMatch(ROUTE_PATHS.SG.GDS.PRESENTATIONS_PAST);
 
   const { data: agendas } = useListPresentationPlansAgendasQuery();
   const { data: plans } = useListNonPresentedPlansQuery();

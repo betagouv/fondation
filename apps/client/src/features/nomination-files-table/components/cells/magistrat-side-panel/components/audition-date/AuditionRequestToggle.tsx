@@ -1,7 +1,7 @@
-import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useConfirmModal } from '@/shared/context/confirm-modal';
+import { ToggleSwitch } from '@/shared/ui/toggle-switch';
 import { Tooltip } from '@/shared/ui/tooltip';
 import { toScheduledDate } from '@/utils/time-only.util';
 import { useUpdateNominationFileAuditionRequestMutation } from '@queries/members.queries';

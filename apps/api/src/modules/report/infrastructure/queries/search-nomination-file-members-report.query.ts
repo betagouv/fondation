@@ -4,6 +4,8 @@ import z from 'zod';
 
 import { Prisma } from '../../../../generated/prisma/client';
 import { Db } from '../../../framework/database';
+import { prismaReportStateEnumToReportState } from '../../../shared/mappers/rapport-statut.mapper';
+import { MemberReportSchema } from '../dtos/report.dto';
 
 @Injectable()
 export class SearchNominationFileMembersReportQuery {
@@ -22,13 +24,14 @@ export class SearchNominationFileMembersReportQuery {
         sessionId: query.sessionId,
       },
       orderBy: { createdAt: 'desc' },
-      select: { id: true } satisfies Prisma.ReportSelect,
+      select: { id: true, state: true } satisfies Prisma.ReportSelect,
     });
+    if (!report) return { report: null };
 
-    return { reportId: report?.id ?? null };
+    return { report: { id: report.id, state: prismaReportStateEnumToReportState(report.state) } };
   }
 }
 
 export class FoundNominationFileMembersReportDto extends createZodDto(
-  z.object({ reportId: z.uuid().nullable() }),
+  z.object({ report: MemberReportSchema.nullable() }),
 ) {}

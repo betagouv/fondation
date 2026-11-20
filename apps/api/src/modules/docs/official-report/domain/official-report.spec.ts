@@ -1,4 +1,5 @@
 import { makeId } from '../../../../utils/id';
+import type { CurrentNames } from '../../shared/domain/named-member';
 
 import {
   OfficialReport,
@@ -11,6 +12,7 @@ import {
   OfficialReportDraftUpdatedBySystem,
   OfficialReportFileNoteDeleted,
   OfficialReportFileNoteEdited,
+  OfficialReportFileNoteReset,
   OfficialReportFileNotHeld,
   OfficialReportFileReset,
   OfficialReportIntroEdited,
@@ -25,7 +27,10 @@ import {
   OfficialReportSnapshot,
   type PlainOfficialReportSnapshot,
 } from './snapshot/official-report-snapshot';
-import { OfficialReportSnapshotFile } from './snapshot/official-report-snapshot-file';
+import {
+  OfficialReportSnapshotFile,
+  type PlainOfficialReportSnapshotFile,
+} from './snapshot/official-report-snapshot-file';
 
 const AUTHOR = 'author-1';
 const VALIDATED_AT = new Date('2026-06-08T09:00:00.000Z');
@@ -33,6 +38,7 @@ const VALIDATED_AT = new Date('2026-06-08T09:00:00.000Z');
 function makeReport(
   state: {
     actorId?: string | null;
+    currentNames?: CurrentNames;
     isDocumentStored?: boolean;
     isValidated?: boolean;
     snapshot?: Partial<PlainOfficialReportSnapshot>;
@@ -40,6 +46,7 @@ function makeReport(
 ): OfficialReport {
   return OfficialReport.from({
     actorId: state.actorId === undefined ? AUTHOR : state.actorId,
+    currentNames: state.currentNames,
     id: makeId('OfficialReportId'),
     isDocumentStored: state.isDocumentStored ?? true,
     isValidated: state.isValidated ?? false,
@@ -58,7 +65,8 @@ function sameMetadataOf(report: OfficialReport): UpdateOfficialReportCommand['of
       {
         nominationFileId: 'file-1',
         outcome: { comment: null, value: 'VALIDATED' },
-        reporters: ['M. John DOE'],
+        recusedMembers: [],
+        reporters: [helpers.JOHN_DOE],
       },
     ],
     hasRenunciation: meta.hasRenunciation,
@@ -169,7 +177,10 @@ describe('OfficialReport', () => {
   });
 
   describe('a note under a proposition', () => {
-    const withNote = (state: { isValidated?: boolean } = {}) =>
+    const withFile = (
+      state: { actorId?: string | null; currentNames?: CurrentNames; isValidated?: boolean },
+      file: Pick<PlainOfficialReportSnapshotFile, 'note' | 'recusedMembers'>,
+    ) =>
       makeReport({
         ...state,
         snapshot: {
@@ -177,15 +188,25 @@ describe('OfficialReport', () => {
             [
               'file-1',
               OfficialReportSnapshotFile.from({
+                ...file,
                 hasManuallyEditedHtml: false,
                 nominationFileId: 'file-1',
-                note: '<p>note</p>',
                 outcome: { comment: null, value: 'VALIDATED' },
-                reporters: ['M. John DOE'],
+                reporters: [helpers.JOHN_DOE],
               }),
             ],
           ]),
         },
+      });
+    const withNote = (state: { isValidated?: boolean } = {}) =>
+      withFile(state, {
+        note: { html: '<p>note</p>', outdatedBy: null, status: 'EDITED' },
+        recusedMembers: [],
+      });
+    const withRecusal = (state: { actorId?: string | null; isValidated?: boolean } = {}) =>
+      withFile(state, {
+        note: { html: null, outdatedBy: null, status: 'GENERATED' },
+        recusedMembers: [{ id: 'member-forget', name: 'M. Paul FORGET' }],
       });
 
     it('should be written by the person who edits the report', () => {
@@ -214,8 +235,170 @@ describe('OfficialReport', () => {
 
       expect(report.messages).toEqual([
         new OfficialReportDraftEdited(report.id, AUTHOR),
-        new OfficialReportFileNoteDeleted(report.id, 'file-1'),
+        new OfficialReportFileNoteDeleted(report.id, 'file-1', 'GENERATED'),
       ]);
+    });
+
+    it('should remove the recusal mention from the report only', () => {
+      const report = withRecusal();
+
+      report.deleteFileNote({ nominationFileId: 'file-1' });
+
+      expect(report.messages).toEqual([
+        new OfficialReportDraftEdited(report.id, AUTHOR),
+        new OfficialReportFileNoteDeleted(report.id, 'file-1', 'REMOVED'),
+      ]);
+    });
+
+    it('should give the slot back to the recusal sentence', () => {
+      const report = withNote();
+
+      report.resetFileNote({ nominationFileId: 'file-1' });
+
+      expect(report.messages).toEqual([
+        new OfficialReportDraftEdited(report.id, AUTHOR),
+        new OfficialReportFileNoteReset(report.id, 'file-1'),
+      ]);
+    });
+
+    it('should leave a slot that already follows the recusal as it is', () => {
+      const report = withRecusal({ isValidated: true });
+
+      report.resetFileNote({ nominationFileId: 'file-1' });
+
+      expect(report.messages).toEqual([]);
+    });
+
+    it('should keep the recusal it reports once validated and only say it changed', () => {
+      const report = withRecusal({ actorId: null, isValidated: true });
+
+      report.invalidate({
+        id: report.id,
+        payload: { files: [{ nominationFileId: 'file-1', recusedMembers: [] }] },
+        type: 'NominationFilesRecusalsUpdated',
+      });
+
+      expect(report.messages).toEqual([new OfficialReportUpdateSkipped(report.id, 'RECUSAL')]);
+    });
+
+    describe('when a member is renamed', () => {
+      const renamed = (report: OfficialReport) =>
+        report.invalidate({
+          id: report.id,
+          payload: {
+            files: [
+              {
+                nominationFileId: 'file-1',
+                recusedMembers: [{ id: 'member-forget', name: 'M. le Bâtonnier FORGET' }],
+                reporters: [helpers.JOHN_DOE],
+              },
+            ],
+          },
+          type: 'MemberRenamed',
+        });
+
+      it('should follow the new designation in a draft, saying why', () => {
+        const report = withRecusal({ actorId: null });
+
+        renamed(report);
+
+        expect(report.messages).toEqual([
+          new OfficialReportDraftUpdatedBySystem(report.id, 'DESIGNATION'),
+          expect.objectContaining({
+            diff: expect.objectContaining({
+              files: [expect.objectContaining({ action: 'recuse', note: 'follow' })],
+            }),
+          }),
+        ]);
+      });
+
+      it('should let the names behind a removed mention follow, without telling the draft changed', () => {
+        const report = withFile(
+          { actorId: null },
+          {
+            note: { html: null, outdatedBy: null, status: 'REMOVED' },
+            recusedMembers: [{ id: 'member-forget', name: 'M. Paul FORGET' }],
+          },
+        );
+
+        renamed(report);
+
+        expect(report.messages).toEqual([
+          expect.objectContaining({
+            changesDocument: false,
+            diff: expect.objectContaining({
+              files: [expect.objectContaining({ action: 'recuse', note: 'keep' })],
+            }),
+          }),
+        ]);
+      });
+
+      it('should only rename in a draft, leaving who reports or is recused to the update that tells it', () => {
+        const report = withRecusal({ actorId: null });
+        const other = { id: 'member-other', name: 'Mme Anne AUTRE' };
+
+        report.invalidate({
+          id: report.id,
+          payload: {
+            files: [
+              {
+                nominationFileId: 'file-1',
+                recusedMembers: [{ id: 'member-forget', name: 'M. Paul FORGET' }, other],
+                reporters: [other],
+              },
+            ],
+          },
+          type: 'MemberRenamed',
+        });
+
+        expect(report.messages).toEqual([]);
+      });
+
+      it('should leave a validated report as the meeting was held, without saying the designation changed', () => {
+        const report = withRecusal({ actorId: null, isValidated: true });
+
+        renamed(report);
+
+        expect(report.messages).toEqual([]);
+      });
+
+      it('should name the members as they are today in a draft someone opens, flagging a note written by hand', () => {
+        const report = withFile(
+          {
+            currentNames: {
+              recusedMembers: new Map([['member-forget', 'M. le Bâtonnier FORGET']]),
+              reporters: new Map(),
+            },
+            isValidated: true,
+          },
+          {
+            note: { html: '<p>M. Paul FORGET se déporte</p>', outdatedBy: null, status: 'EDITED' },
+            recusedMembers: [{ id: 'member-forget', name: 'M. Paul FORGET' }],
+          },
+        );
+
+        report.editIntro({ html: '<p>intro</p>', outdated: false });
+
+        expect(report.messages.slice(0, 2)).toEqual([
+          new OfficialReportDraftOpened(report.id, AUTHOR),
+          expect.objectContaining({
+            changesDocument: true,
+            diff: expect.objectContaining({
+              files: [
+                expect.objectContaining({
+                  action: 'recuse',
+                  note: 'outdate',
+                  outdatedBy: 'DESIGNATION',
+                  recusedMembers: [{ id: 'member-forget', name: 'M. le Bâtonnier FORGET' }],
+                }),
+              ],
+            }),
+          }),
+        ]);
+        expect(report.messages.some((message) => message instanceof OfficialReportDraftUpdatedBySystem)).toBe(
+          false,
+        );
+      });
     });
 
     it('should leave a validated report as it is when there is no note to delete', () => {
@@ -290,9 +473,10 @@ describe('OfficialReport', () => {
               OfficialReportSnapshotFile.from({
                 hasManuallyEditedHtml: false,
                 nominationFileId: 'file-1',
-                note: null,
+                note: { html: null, outdatedBy: null, status: 'GENERATED' },
                 outcome: { comment: null, value: 'SUSPENDED' },
-                reporters: ['M. John DOE'],
+                recusedMembers: [],
+                reporters: [helpers.JOHN_DOE],
               }),
             ],
           ]),
@@ -313,7 +497,7 @@ describe('OfficialReport', () => {
     it('should have nothing to discard', () => {
       const report = validated();
 
-      report.discardDraft({ changesBy: 'PERSON', hasValidatedVersion: true });
+      report.discardDraft({ changesBy: 'PERSON', hasValidatedVersion: true, systemCauses: [] });
 
       expect(report.messages).toEqual([]);
     });
@@ -375,7 +559,7 @@ describe('OfficialReport', () => {
     it('should be discarded when a validated version remains underneath', () => {
       const report = makeReport();
 
-      report.discardDraft({ changesBy: 'PERSON', hasValidatedVersion: true });
+      report.discardDraft({ changesBy: 'PERSON', hasValidatedVersion: true, systemCauses: [] });
 
       expect(report.messages).toEqual([new OfficialReportDraftDiscarded(report.id)]);
     });
@@ -383,9 +567,9 @@ describe('OfficialReport', () => {
     it('should refuse to be discarded when nothing was ever validated', () => {
       const report = makeReport();
 
-      expect(() => report.discardDraft({ changesBy: 'PERSON', hasValidatedVersion: false })).toThrow(
-        OfficialReportWithoutValidatedVersion,
-      );
+      expect(() =>
+        report.discardDraft({ changesBy: 'PERSON', hasValidatedVersion: false, systemCauses: [] }),
+      ).toThrow(OfficialReportWithoutValidatedVersion);
       expect(report.messages).toEqual([]);
     });
 
@@ -394,9 +578,9 @@ describe('OfficialReport', () => {
       (changesBy) => {
         const report = makeReport();
 
-        expect(() => report.discardDraft({ changesBy, hasValidatedVersion: true })).toThrow(
-          OfficialReportDraftChangedByTheApplication,
-        );
+        expect(() =>
+          report.discardDraft({ changesBy, hasValidatedVersion: true, systemCauses: ['REPORTERS'] }),
+        ).toThrow(OfficialReportDraftChangedByTheApplication);
         expect(report.messages).toEqual([]);
       },
     );

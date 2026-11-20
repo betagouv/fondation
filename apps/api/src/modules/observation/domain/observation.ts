@@ -1,6 +1,18 @@
 import { Id, makeId } from '../../../utils/id';
+import {
+  type Impersonation,
+  personalContentVisibility,
+  type PersonalContentVisibility,
+} from '../../shared/policies/personal-content.policies';
+import { isSecretariat, type RoleEnum } from '../../shared/role.enum';
 
 import { ObservationFollowUp } from './observation-follow-up';
+
+type Commenter = {
+  impersonation: Impersonation | undefined;
+  reporterIds: readonly string[];
+  userId: string;
+};
 
 export class UserNotAllowedToAttachScreenshotsError extends Error {
   constructor() {
@@ -10,6 +22,12 @@ export class UserNotAllowedToAttachScreenshotsError extends Error {
 
 export class UserNotAllowedToWriteCommentError extends Error {
   constructor() {
+    super();
+  }
+}
+
+export class ObservationAttachmentsLocked extends Error {
+  constructor(readonly nominationFileId: string) {
     super();
   }
 }
@@ -53,13 +71,23 @@ export class ObservationDeleted {
   constructor(readonly id: string) {}
 }
 
-// an observant is heard once per session for all their observations: without any left, the audition has no subject
-export class ObservantAuditionDropped {
+// the bloc d'observations of an observant in a session has no observation left: their audition and the
+// tracking of the bloc, which exist once per bloc, have no subject anymore
+export class ObservationBlockEmptied {
   constructor(
     readonly sessionId: string,
     readonly magistratId: string,
     readonly userId: string,
     readonly impersonatorId: string | null,
+  ) {}
+}
+
+// an observation joins the bloc d'observations of an observant in a session: the bloc needs handling again,
+// so its tracking goes back in progress and keeps its comment
+export class ObservationBlockReopened {
+  constructor(
+    readonly sessionId: string,
+    readonly magistratId: string,
   ) {}
 }
 
@@ -78,6 +106,15 @@ export class ObservationFilesDetached {
   constructor(
     readonly observationId: string,
     readonly fileIds: readonly string[],
+  ) {}
+}
+
+// a file linked from another observation is a copy of its own: renaming one leaves the other as it is
+export class ObservationFileRenamed {
+  constructor(
+    readonly observationId: string,
+    readonly fileId: string,
+    readonly name: string,
   ) {}
 }
 
@@ -111,11 +148,13 @@ type ObservationEvent =
   | ObservationDeleted
   | ObservationUpdated
   | ObservationFilesDetached
+  | ObservationFileRenamed
   | ObservationMemberCommentWritten
   | ObservationMemberCommentScreenshotsAttached
   | ObservationFollowedUp
   | ObservationFileLinked
-  | ObservantAuditionDropped;
+  | ObservationBlockEmptied
+  | ObservationBlockReopened;
 
 export class Observation {
   private constructor(
@@ -160,6 +199,7 @@ export class Observation {
         command.createdByUserId,
         (command.description || '').trim(),
       ),
+      new ObservationBlockReopened(command.sessionId, command.magistratId),
     );
 
     observation.attachFiles({ files: command.files });
@@ -184,6 +224,15 @@ export class Observation {
     );
   }
 
+  static canEdit(props: { isArchived: boolean; role: RoleEnum }): boolean {
+    return !props.isArchived && isSecretariat(props.role);
+  }
+
+  /** files are still added to a figé dossier, but those it holds stay as they are */
+  static canManageAttachments(props: { canEdit: boolean; isNominationFileLocked: boolean }): boolean {
+    return props.canEdit && !props.isNominationFileLocked;
+  }
+
   attachFiles(command: { files: readonly { id: string }[] }): void {
     if (command.files.length === 0) return;
 
@@ -200,12 +249,12 @@ export class Observation {
 
   delete(command: { impersonatorId: string | null; isLastOfObservant: boolean; userId: string }): void {
     this.#messages.push(new ObservationDeleted(this.id));
-    if (command.isLastOfObservant) this.dropObservantAudition(command);
+    if (command.isLastOfObservant) this.emptyBlock(command);
   }
 
-  private dropObservantAudition(command: { impersonatorId: string | null; userId: string }): void {
+  private emptyBlock(command: { impersonatorId: string | null; userId: string }): void {
     this.#messages.push(
-      new ObservantAuditionDropped(this.sessionId, this.magistratId, command.userId, command.impersonatorId),
+      new ObservationBlockEmptied(this.sessionId, this.magistratId, command.userId, command.impersonatorId),
     );
   }
 
@@ -225,22 +274,47 @@ export class Observation {
         magistratId: command.magistratId,
       }),
     );
-    if (command.magistratId !== this.magistratId && command.isLastOfObservant)
-      this.dropObservantAudition(command);
+    if (command.magistratId === this.magistratId) return;
+
+    if (command.isLastOfObservant) this.emptyBlock(command);
+    this.#messages.push(new ObservationBlockReopened(this.sessionId, command.magistratId));
   }
 
-  detachFiles(command: { fileIds: readonly string[] }): void {
+  detachFiles(command: { fileIds: readonly string[]; isNominationFileLocked: boolean }): void {
     if (command.fileIds.length === 0) return;
+    this.assertsAttachmentsUnlocked(command);
 
     this.#messages.push(new ObservationFilesDetached(this.id, command.fileIds));
   }
 
-  attachMemberCommentScreenshots(command: {
-    userId: string;
-    reporterIds: readonly string[];
-    files: readonly { id: string }[];
-  }): void {
-    if (!command.reporterIds.includes(command.userId)) {
+  renameFile(command: { fileId: string; isNominationFileLocked: boolean; name: string }): void {
+    this.assertsAttachmentsUnlocked(command);
+
+    this.#messages.push(new ObservationFileRenamed(this.id, command.fileId, command.name));
+  }
+
+  /** a reporter of the file comments the observation for themselves; the secretariat général edits the observation itself */
+  static canComment(reader: Commenter): boolean {
+    return Observation.isReporter(reader) && personalContentVisibility(reader) === 'VISIBLE';
+  }
+
+  /** a former reporter's comment stays readable, never to the admin impersonating them */
+  static memberCommentVisibility(
+    reader: Commenter,
+    comment: { exists: boolean },
+  ): PersonalContentVisibility | null {
+    if (personalContentVisibility(reader) === 'PRIVATE')
+      return Observation.isReporter(reader) ? 'PRIVATE' : null;
+
+    return comment.exists ? 'VISIBLE' : null;
+  }
+
+  private static isReporter(reader: Commenter): boolean {
+    return reader.reporterIds.includes(reader.userId);
+  }
+
+  attachMemberCommentScreenshots(command: Commenter & { files: readonly { id: string }[] }): void {
+    if (!Observation.canComment(command)) {
       throw new UserNotAllowedToAttachScreenshotsError();
     }
 
@@ -251,8 +325,8 @@ export class Observation {
     );
   }
 
-  writeMemberComment(command: { userId: string; reporterIds: readonly string[]; comment: string }): void {
-    if (!command.reporterIds.includes(command.userId)) {
+  writeMemberComment(command: Commenter & { comment: string }): void {
+    if (!Observation.canComment(command)) {
       throw new UserNotAllowedToWriteCommentError();
     }
 
@@ -270,6 +344,10 @@ export class Observation {
       comment: command.comment,
     });
     this.#messages.push(new ObservationFollowedUp(this.id, followUp, command.userId));
+  }
+
+  private assertsAttachmentsUnlocked(command: { isNominationFileLocked: boolean }): void {
+    if (command.isNominationFileLocked) throw new ObservationAttachmentsLocked(this.nominationFileId);
   }
 
   private static assertNominationFileIsObservable(

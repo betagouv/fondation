@@ -13,7 +13,6 @@ export type NominationFileObservation = {
   dateReception: Date;
   description: string;
   followUp: ObservationFollowUpEnum | null;
-  followUpComment: string | null;
   /** whether the member asking wrote a comment on it */
   hasUserComment: boolean;
   id: string;
@@ -36,7 +35,6 @@ export class NominationFileObservationsFinder {
         dateReception: true,
         description: true,
         followUp: true,
-        followUpComment: true,
         id: true,
         magistrat: { select: { firstName: true, id: true, lastName: true, marriedName: true } },
         memberComments: { select: { comment: true }, where: { userId: query.userId } },

@@ -5,17 +5,15 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { Link } from 'react-router';
 
 import { ObservantAuditionIcon } from '../ObservantAuditionIcon';
+import { ObservationFollowUpTag } from '../ObservationFollowUpTag';
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import {
   useObservationsModal,
   type ActiveFile,
 } from '@/features/observations/context/ObservationsModalContext';
+import { useObservationFileActions } from '@/features/observations/hooks/useObservationFileActions';
 import { splitLodamObservers } from '@/features/observations/utils/split-lodam-observers';
 import { FileList, FileListItem } from '@/shared/components/file-list';
-import {
-  ObservationFollowUpEnumMessages,
-  type ObservationFollowUpEnum,
-} from '@/shared/enums/observation-follow-up.enum';
 import { useAttachmentFailureToast } from '@/shared/hooks/useAttachmentFailureToast';
 import { useTab } from '@/shared/hooks/useTab';
 import { dateOnlyFromIso, formatDateOnly } from '@/utils/date-only.util';
@@ -27,21 +25,17 @@ import {
   type Observation,
 } from '@queries/observations.queries';
 
-const FOLLOW_UP_TAG_CLASS: Record<ObservationFollowUpEnum, string> = {
-  ALERT: 'bg-(--background-contrast-error)! text-(--text-default-error)!',
-  INTERESTING: 'bg-(--background-contrast-info)! text-(--text-default-info)!',
-  REFERENCE: 'bg-(--background-contrast-success)! text-(--text-default-success)!',
-};
-
 const VISIBLE_OBSERVATIONS = 3;
 
 function ObservationCard({
   canManage,
+  canManageAttachments,
   context,
   file,
   observation,
 }: {
   canManage: boolean;
+  canManageAttachments: boolean;
   context: 'sg' | 'membre';
   file: ActiveFile;
   observation: Observation;
@@ -52,7 +46,19 @@ function ObservationCard({
   const tab = useTab();
   const { isPending: isDownloading, mutate: download } = useDownloadFileMutation();
   const { isPending: isLoadingUrl, mutate: getFileUrl } = useGetObservationFileUrlMutation();
-  const isLoadingFile = isDownloading || isLoadingUrl;
+  const {
+    detach,
+    isPending: isUpdating,
+    renaming,
+  } = useObservationFileActions({
+    description: observation.description,
+    id: observation.id,
+    magistratId: observation.magistrat.id,
+    nominationFileId: file.id,
+    receptionDate: dateOnlyFromIso(observation.dateReception),
+    sessionId: file.sessionId,
+  });
+  const isLoadingFile = isDownloading || isLoadingUrl || isUpdating;
   const [expanded, setExpanded] = useState(false);
 
   const fileCount = observation.files.length;
@@ -79,10 +85,6 @@ function ObservationCard({
             },
             { count: fileCount },
           );
-
-  const magistratName = observation.magistrat
-    ? observation.magistrat.name
-    : intl.formatMessage({ defaultMessage: 'Magistrat inconnu' });
 
   const handleFileOpen = (attachment: { id: string; name: string }) => {
     const attachmentTab = tab.openDeferred({
@@ -137,6 +139,7 @@ function ObservationCard({
 
   return (
     <li className="border border-(--border-default-grey) bg-(--background-default-grey)">
+      {renaming.modal}
       <div className="flex flex-col gap-1.5 p-6">
         <div className="flex items-start justify-between gap-2">
           <div className="flex min-w-0 flex-col gap-1.5">
@@ -146,19 +149,12 @@ function ObservationCard({
                 title={detailTitle}
                 to={detailPath}
               >
-                {magistratName}
+                {observation.magistrat.name}
               </Link>
               <ObservantAuditionIcon audition={observation.audition} />
-              {observation.followUp && (
-                <Tag
-                  className={`min-h-5! rounded-sm! px-1.5! py-0.5! text-[0.625rem]! leading-none! font-semibold! uppercase ${FOLLOW_UP_TAG_CLASS[observation.followUp]}`}
-                  small
-                >
-                  {intl.formatMessage(ObservationFollowUpEnumMessages[observation.followUp])}
-                </Tag>
-              )}
+              {observation.followUp && <ObservationFollowUpTag followUp={observation.followUp} />}
             </div>
-            {observation.magistrat?.currentPosition && (
+            {observation.magistrat.currentPosition && (
               <div className="fr-mt-1v text-xs text-(--text-mention-grey)">
                 {observation.magistrat.currentPosition}
               </div>
@@ -239,8 +235,10 @@ function ObservationCard({
                       disabled={isLoadingFile}
                       key={attachment.id}
                       name={attachment.name}
+                      onDelete={canManageAttachments ? () => detach(attachment) : undefined}
                       onDownload={() => handleFileDownload(attachment)}
                       onOpen={() => handleFileOpen(attachment)}
+                      onRename={canManageAttachments ? () => renaming.open(attachment) : undefined}
                       size={attachment.size}
                     />
                   ))}
@@ -334,6 +332,7 @@ export function Observations(props: {
           {visibleObservations.map((observation) => (
             <ObservationCard
               canManage={canManage}
+              canManageAttachments={canManage && !!data?.canManageAttachments}
               context={context}
               file={file}
               key={observation.id}

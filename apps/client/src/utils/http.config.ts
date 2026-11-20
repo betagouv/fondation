@@ -68,7 +68,12 @@ export const createClientConfig: CreateClientConfig = (config) => ({
     const impersonationId = tabImpersonation.id;
     if (impersonationId) request.headers.set(IMPERSONATION_HEADER, impersonationId);
 
-    const response = await globalThis.fetch(request, { signal: AbortSignal.timeout(timeoutFor(request)) });
+    const response = await globalThis
+      .fetch(request, { signal: AbortSignal.timeout(timeoutFor(request)) })
+      .catch((error: unknown) => {
+        // fetch rejects a dropped connection as a TypeError, which nothing tells apart from a bug downstream
+        throw error instanceof TypeError ? new DOMException(error.message, 'NetworkError') : error;
+      });
     if (impersonationId && response.status === 401) tabImpersonation.end();
     appVersion.observe(response);
     return httpAssert(response);

@@ -11,11 +11,10 @@ export class ReportFilesAttached {
   ) {}
 }
 
-export class ReportFilesDetached {
+export class ReportAttachmentDetached {
   constructor(
     readonly id: string,
-    readonly reporterId: string,
-    readonly fileNames: readonly string[],
+    readonly fileId: string,
   ) {}
 }
 
@@ -37,7 +36,11 @@ export class ReportRuleValidationUpdated {
   ) {}
 }
 
-type ReportEvent = ReportFilesAttached | ReportFilesDetached | ReportUpdated | ReportRuleValidationUpdated;
+type ReportEvent =
+  | ReportFilesAttached
+  | ReportAttachmentDetached
+  | ReportUpdated
+  | ReportRuleValidationUpdated;
 
 export class Report {
   private constructor(readonly id: Id<'ReportId'>) {}
@@ -58,10 +61,9 @@ export class Report {
     );
   }
 
-  detachFiles(command: { reporterId: string; fileNames: readonly string[] }) {
-    if (command.fileNames.length === 0) return;
-
-    this.#messages.push(new ReportFilesDetached(this.id, command.reporterId, command.fileNames));
+  /** by its id, two attachments of a report may share a name */
+  detachAttachment(command: { fileId: string }) {
+    this.#messages.push(new ReportAttachmentDetached(this.id, command.fileId));
   }
 
   update(command: {

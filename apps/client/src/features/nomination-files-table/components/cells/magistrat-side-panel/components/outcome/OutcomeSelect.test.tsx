@@ -55,7 +55,7 @@ describe('OutcomeSelect', () => {
     const user = userEvent.setup();
     renderSelect({ content: { outcome: { value: 'VALIDATED', comment: null } } });
 
-    await user.click(screen.getByRole('button', { name: 'CONFORME' }));
+    await user.click(screen.getByRole('button', { name: "Ajouter l'issue CONFORME" }));
     await user.click(await screen.findByRole('option', { name: 'CONFORME' }));
 
     expect(mocks.waitForOutcomeComment).not.toHaveBeenCalled();
@@ -66,7 +66,7 @@ describe('OutcomeSelect', () => {
     const user = userEvent.setup();
     renderSelect();
 
-    await user.click(screen.getByRole('button', { name: 'Sélectionner' }));
+    await user.click(screen.getByRole('button', { name: "Ajouter l'issue Sélectionner" }));
     await user.click(await screen.findByRole('option', { name: 'CONFORME' }));
 
     await waitFor(() => expect(mocks.mutate).toHaveBeenCalledTimes(1));
@@ -80,7 +80,7 @@ describe('OutcomeSelect', () => {
     const user = userEvent.setup();
     renderSelect();
 
-    await user.click(screen.getByRole('button', { name: 'Sélectionner' }));
+    await user.click(screen.getByRole('button', { name: "Ajouter l'issue Sélectionner" }));
     await user.click(await screen.findByRole('option', { name: 'NON CONFORME' }));
 
     await waitFor(() => expect(mocks.mutate).toHaveBeenCalledTimes(1));
@@ -99,7 +99,7 @@ describe('OutcomeSelect', () => {
     const user = userEvent.setup();
     renderSelect({ content: { outcome: { value: 'NON_VALIDATED', comment: 'Déjà écrit' } } });
 
-    await user.click(screen.getByRole('button', { name: 'NON CONFORME' }));
+    await user.click(screen.getByRole('button', { name: "Ajouter l'issue NON CONFORME" }));
     await user.click(await screen.findByRole('option', { name: 'CONFORME' }));
 
     await waitFor(() => expect(mocks.mutate).toHaveBeenCalledTimes(1));
@@ -114,7 +114,7 @@ describe('OutcomeSelect', () => {
     const user = userEvent.setup();
     renderSelect({ content: { outcome: { value: 'VALIDATED', comment: 'Déjà écrit' } } });
 
-    await user.click(screen.getByRole('button', { name: 'CONFORME' }));
+    await user.click(screen.getByRole('button', { name: "Ajouter l'issue CONFORME" }));
     await user.click(await screen.findByRole('option', { name: 'NON CONFORME' }));
 
     await waitFor(() => expect(mocks.mutate).toHaveBeenCalledTimes(1));
@@ -129,7 +129,7 @@ describe('OutcomeSelect', () => {
     const user = userEvent.setup();
     renderSelect();
 
-    await user.click(screen.getByRole('button', { name: 'Sélectionner' }));
+    await user.click(screen.getByRole('button', { name: "Ajouter l'issue Sélectionner" }));
     await user.click(await screen.findByRole('option', { name: 'NON CONFORME' }));
 
     await waitFor(() => expect(mocks.reset).toHaveBeenCalledTimes(1));

@@ -32,14 +32,13 @@ export function AgendaPreviewPage() {
   const returnPath: string =
     typeof state?.returnPath === 'string'
       ? state.returnPath
-      : generatePath(ROUTE_PATHS.SG.SESSION_ID_DOCUMENTS, { sessionId: sessionId! });
+      : generatePath(ROUTE_PATHS.SG.GDS.SESSION_ID_DOCUMENTS, { sessionId: sessionId! });
 
-  const { data: html, isPending } = useAgendaHtmlQuery({ id: agendaId });
-  const { data: metadata } = useDetailsAgendaMetadataQuery({ agendaId });
+  const { data: html, error: htmlError, isPending } = useAgendaHtmlQuery({ id: agendaId });
+  const { data: metadata, isFetching: isFetchingMetadata } = useDetailsAgendaMetadataQuery({ agendaId });
 
   const validate = useValidateAgendaMutation({
     agendaId: agendaId!,
-    onSuccess: () => navigate(returnPath),
     sessionId: sessionId!,
   });
 
@@ -75,13 +74,16 @@ export function AgendaPreviewPage() {
 
   const isBusy = validate.isPending || discardDraft.isPending;
 
+  // the layout answers a deleted agenda: only one that fresh metadata still show goes to the error page
+  if (htmlError && metadata && !isFetchingMetadata && !html) throw htmlError;
+
   return (
     <DocumentScreen
       actions={
         <>
           <Button
             linkProps={{
-              to: generatePath(ROUTE_PATHS.SG.AGENDA_UPDATE_METADATA, {
+              to: generatePath(ROUTE_PATHS.SG.GDS.AGENDA_UPDATE_METADATA, {
                 agendaId: agendaId!,
                 sessionId: sessionId!,
               }),
@@ -92,7 +94,7 @@ export function AgendaPreviewPage() {
           </Button>
           <Button
             linkProps={{
-              to: generatePath(ROUTE_PATHS.SG.AGENDA_UPDATE_FILES, {
+              to: generatePath(ROUTE_PATHS.SG.GDS.AGENDA_UPDATE_FILES, {
                 agendaId: agendaId!,
                 sessionId: sessionId!,
               }),
@@ -103,7 +105,7 @@ export function AgendaPreviewPage() {
           </Button>
           <Button
             linkProps={{
-              to: generatePath(ROUTE_PATHS.SG.AGENDA_EDIT, {
+              to: generatePath(ROUTE_PATHS.SG.GDS.AGENDA_EDIT, {
                 agendaId: agendaId!,
                 sessionId: sessionId!,
               }),
@@ -118,7 +120,10 @@ export function AgendaPreviewPage() {
             </Button>
           )}
           {metadata?.canValidate && (
-            <Button disabled={isBusy} onClick={() => validate.mutate()}>
+            <Button
+              disabled={isBusy}
+              onClick={() => validate.mutate(undefined, { onSuccess: () => navigate(returnPath) })}
+            >
               {validate.isPending ? (
                 <FormattedMessage defaultMessage="Validation en cours..." />
               ) : (
@@ -151,7 +156,7 @@ export function AgendaPreviewPage() {
             )}
             {metadata?.outdated && (
               <AgendaReportersChangedBanner
-                editionPath={generatePath(ROUTE_PATHS.SG.AGENDA_EDIT, {
+                editionPath={generatePath(ROUTE_PATHS.SG.GDS.AGENDA_EDIT, {
                   agendaId: agendaId!,
                   sessionId: sessionId!,
                 })}

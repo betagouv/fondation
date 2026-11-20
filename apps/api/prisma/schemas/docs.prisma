@@ -35,11 +35,33 @@ enum PrismaDocSystemUpdateCauseEnum {
   AGENDA_DATE
   AGENDA_PROPOSITIONS
   AGENDA_TEXT
+  DESIGNATION
   OUTCOME
+  RECUSAL
   REPORTERS
   SESSION_DATE
 
   @@map("doc_system_update_cause_enum")
+  @@schema("docs")
+}
+
+/// what the slot under a proposition prints: the recusal sentence, a text written in the PV, or nothing
+enum PrismaOfficialReportNoteStatusEnum {
+  GENERATED
+  EDITED
+  REMOVED
+
+  @@map("official_report_note_status_enum")
+  @@schema("docs")
+}
+
+/// what changed since the slot under a proposition was written or emptied by hand: who is recused, or
+/// only how a recused member is named
+enum PrismaOfficialReportNoteOutdatedByEnum {
+  RECUSAL
+  DESIGNATION
+
+  @@map("official_report_note_outdated_by_enum")
   @@schema("docs")
 }
 
@@ -124,7 +146,8 @@ model AgendaNominationFile {
   targetedGrade    String                     @map("targeted_grade")
   outcome          PrismaDocsFileOutcomeEnum?
   outcomeComment   String?                    @map("outcome_comment")
-  reporters        String[]
+  // `{ id, name }[]`, like the official report's
+  reporters        Json                       @db.JsonB
 
   htmlEdited   String?   @map("html_edited")
   htmlOutdated Boolean   @default(false) @map("html_outdated")
@@ -213,14 +236,14 @@ model OfficialReportVersion {
   nominationFiles          OfficialReportNominationFile[]
   sectionTitles            OfficialReportSectionTitle[]
   sectionIntros            OfficialReportSectionIntro[]
-  officialReport           OfficialReport                      @relation(fields: [officialReportId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  chairman                 User?                               @relation(fields: [chairmanId], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_report_version_chairman")
-  secretary                User?                               @relation(fields: [secretaryId], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_report_version_secretary")
-  author                   User?                               @relation(fields: [createdBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_report_version_author")
-  validator                User?                               @relation(fields: [validatedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_report_version_validator")
-  editor                   User?                               @relation(fields: [updatedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_report_version_editor")
-  justiceDepartmentContact JusticeDepartmentContact?           @relation(fields: [justiceDepartmentContactId], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  pdf                      File?                               @relation(fields: [pdfId], references: [id], onDelete: Restrict, onUpdate: NoAction, name: "official_report_pdf_file")
+  officialReport           OfficialReport                       @relation(fields: [officialReportId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  chairman                 User?                                @relation(fields: [chairmanId], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_report_version_chairman")
+  secretary                User?                                @relation(fields: [secretaryId], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_report_version_secretary")
+  author                   User?                                @relation(fields: [createdBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_report_version_author")
+  validator                User?                                @relation(fields: [validatedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_report_version_validator")
+  editor                   User?                                @relation(fields: [updatedBy], references: [id], onDelete: SetNull, onUpdate: NoAction, name: "official_report_version_editor")
+  justiceDepartmentContact JusticeDepartmentContact?            @relation(fields: [justiceDepartmentContactId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  pdf                      File?                                @relation(fields: [pdfId], references: [id], onDelete: Restrict, onUpdate: NoAction, name: "official_report_pdf_file")
   systemUpdates            OfficialReportVersionSystemUpdate[]
   skippedUpdates           OfficialReportVersionSkippedUpdate[]
 
@@ -262,7 +285,8 @@ model OfficialReportNominationFile {
   targetedGrade    String                    @map("targeted_grade")
   outcome          PrismaDocsFileOutcomeEnum
   outcomeComment   String?                   @map("outcome_comment")
-  reporters        String[]
+  // `{ id, name }[]`, like `recusedMembers`
+  reporters        Json                      @db.JsonB
 
   htmlEdited     String?   @map("html_edited")
   htmlOutdated   Boolean   @default(false) @map("html_outdated")
@@ -272,9 +296,15 @@ model OfficialReportNominationFile {
   htmlFromAgenda Boolean   @default(false) @map("html_from_agenda")
   htmlEditedBy   String?   @map("html_edited_by") @db.Uuid
 
-  note         String?
-  noteEditedAt DateTime? @map("note_edited_at")
-  noteEditedBy String?   @map("note_edited_by") @db.Uuid
+  // `{ id, name }[]`: the members as the recusal named them when it was last read, printed in
+  // protocol order. A row written before the ids were kept has `id: null` until the next refresh
+  recusedMembers Json                                    @default("[]") @map("recused_members") @db.JsonB
+  note           String?
+  noteStatus     PrismaOfficialReportNoteStatusEnum      @default(GENERATED) @map("note_status")
+  // what changed since the slot was written or emptied by hand, null when nothing did
+  noteOutdatedBy PrismaOfficialReportNoteOutdatedByEnum? @map("note_outdated_by")
+  noteEditedAt   DateTime?                               @map("note_edited_at")
+  noteEditedBy   String?                                 @map("note_edited_by") @db.Uuid
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

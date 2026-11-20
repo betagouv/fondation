@@ -51,7 +51,7 @@ const meta = {
       initialEntries: ['/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/with-reports'],
     },
   },
-  title: 'Session/Transparence/MemberSessionFilesTable',
+  title: 'Session/GDS/MemberSessionFilesTable',
 } satisfies Meta<typeof MemberSessionFilesTableStory>;
 
 export default meta;

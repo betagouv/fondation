@@ -29,6 +29,8 @@ import type {
   ListedObservationsAttachmentsDto,
   ListObservationsResponseDto,
   PaginatedMemberListItemDto,
+  RecusedMembersDto,
+  RecuseMembersDto,
   SearchMagistratsResponseDto,
   UpdateObservationDto,
 } from '@api/types';
@@ -42,7 +44,7 @@ const SESSION_ID = 'session-1';
 
 const PATHS = {
   member: ROUTE_PATHS.TRANSPARENCES.DETAIL_SESSION_GDS,
-  sg: ROUTE_PATHS.SG.SESSION_ID,
+  sg: ROUTE_PATHS.SG.GDS.SESSION_ID,
 } satisfies Record<StoryView, string>;
 
 const NONE = 'none';
@@ -50,13 +52,15 @@ const NONE = 'none';
 const LOCKED_REASONS = [NONE, ...Object.values(NominationFileLockEnum)] as const;
 const AUDITIONS = [NONE, 'missing', 'scheduled'] as const;
 const OUTCOMES = [NONE, ...Object.values(NominationFileOutcomeEnum)] as const;
-const SUMMARIES = [NONE, 'readable'] as const;
+const SUMMARIES = [NONE, 'readable', 'unavailable'] as const;
 
 type SidePanelArgs = {
   audition: (typeof AUDITIONS)[number];
   hasAnnouncedObservers: boolean;
   hasAttachments: boolean;
   hasObservations: boolean;
+  hasRecusedMembers: boolean;
+  isImpersonated: boolean;
   lockedReason: (typeof LOCKED_REASONS)[number];
   missingEvaluation: boolean;
   outcome: (typeof OUTCOMES)[number];
@@ -182,8 +186,24 @@ const OBSERVATIONS = [
   makeObservation({ description: '', files: [], followUp: null, id: 'observation-2', magistrat: BENALI }),
 ];
 
+const PERSONAL_CONTENT = {
+  impersonated: {
+    memo: { visibility: 'PRIVATE' },
+    summary: { canRead: false, visibility: 'PRIVATE' },
+  },
+  member: {
+    memo: { value: null, visibility: 'VISIBLE' },
+    summary: { canRead: true, visibility: 'VISIBLE' },
+  },
+  sg: {
+    memo: null,
+    summary: { canRead: true, visibility: null },
+  },
+} as const;
+
 function makeNominationFile(args: SidePanelArgs): SessionNominationFile {
   const isSg = args.view === 'sg';
+  const personalContent = PERSONAL_CONTENT[args.isImpersonated ? 'impersonated' : args.view];
   const lockedReason = args.lockedReason === NONE ? null : args.lockedReason;
   const isReported = lockedReason === 'REPORTED';
 
@@ -195,6 +215,7 @@ function makeNominationFile(args: SidePanelArgs): SessionNominationFile {
   const id = ['dossier', ...Object.values(args)].join('-');
 
   const isAuditionedPosition = args.audition !== NONE;
+  const canUpdate = isSg && lockedReason === null;
 
   return makeSessionNominationFile({
     auditionDate: args.audition === 'scheduled' ? { day: 17, month: 11, year: 2026 } : null,
@@ -204,6 +225,7 @@ function makeNominationFile(args: SidePanelArgs): SessionNominationFile {
     auditionTime: args.audition === 'scheduled' ? { hours: 14, minutes: 30, seconds: 0 } : null,
     canScheduleAudition:
       lockedReason !== 'ARCHIVED_SESSION' && (outcome === null || PENDING_OUTCOMES.has(outcome)),
+    canUpdate,
     comment: 'Candidature soutenue par la cheffe de cour, à rapprocher du profil attendu.',
     content: {
       datePriseDeFonctionPosteActuel: { day: 1, month: 9, year: 2021 },
@@ -234,17 +256,18 @@ function makeNominationFile(args: SidePanelArgs): SessionNominationFile {
     },
     expectedReportersCount: isAuditionedPosition ? 2 : null,
     hasAttachment: args.hasAttachments,
-    hasJurisdictionSheet: args.hasAttachments,
     id,
     isArchived: lockedReason === 'ARCHIVED_SESSION',
-    memo: isSg ? null : { value: null },
+    jurisdictionSheetRequired: false,
+    memo: personalContent.memo,
     missingEvaluation: args.missingEvaluation,
+    nonAffectableMembers: args.hasRecusedMembers ? [{ id: READER.id, reason: 'RECUSED' }] : [],
+    nonRecusableMembers: canUpdate ? REPORTERS.map(({ id }) => ({ id, reason: 'REPORTER' })) : [],
     observations: args.hasObservations
       ? OBSERVATIONS.map(({ description, followUp, id, magistrat }) => ({
           audition: null,
           date: RECEIVED_ON,
           followUp,
-          followUpComment: null,
           hasDescription: !!description,
           hasUserComment: false,
           id,
@@ -252,14 +275,16 @@ function makeNominationFile(args: SidePanelArgs): SessionNominationFile {
         }))
       : [],
     priorities: ['ETOILE'],
+    recusedMembers: args.hasRecusedMembers ? [READER] : [],
     reporters: REPORTERS,
-    summary: args.summary === 'readable' ? { canRead: true, canWrite: isSg, id } : null,
+    summary: args.summary === NONE ? null : { ...personalContent.summary, canWrite: isSg, id },
   });
 }
 
 // msw handlers are set once while the data changes with the controls: the story fills these stores,
 // keyed by nomination file, before the panel asks for them
 const attachmentsByFile = new Map<string, ListedNominationFileAttachmentDto['items']>();
+const canManageAttachmentsByFile = new Map<string, boolean>();
 const observationsByFile = new Map<string, Observation[]>();
 
 async function readObservationForm(request: Request) {
@@ -292,6 +317,19 @@ const handlers = [
     }),
   ),
   http.post('*/api/sessions/v2/:sessionId/files/reporters', noContent),
+  http.put('*/api/sessions/v2/:sessionId/files/:nominationFileId/recused-members', async ({ request }) => {
+    const { memberIds } = (await request.json()) as RecuseMembersDto;
+
+    return HttpResponse.json<RecusedMembersDto>({
+      recusedMembers: MEMBERS.filter(({ id }) => memberIds.includes(id)).map(
+        ({ firstName, id, lastName }) => ({
+          firstName,
+          id,
+          lastName,
+        }),
+      ),
+    });
+  }),
   http.put('*/api/sessions/v2/:sessionId/files/priorities', noContent),
 
   http.get('*/api/sessions/v2/:sessionId/files/:nominationFileId/summary/readers', () =>
@@ -306,11 +344,12 @@ const handlers = [
   ),
   http.put('*/api/sessions/v2/:sessionId/files/:nominationFileId/summary/readers', noContent),
 
-  http.get('*/api/sessions/v2/:sessionId/files/:nominationFileId/attachments', ({ params }) =>
-    HttpResponse.json<ListedNominationFileAttachmentDto>({
+  http.get('*/api/sessions/v2/:sessionId/files/:nominationFileId/attachments', ({ params }) => {
+    return HttpResponse.json<ListedNominationFileAttachmentDto>({
+      canManageAttachments: !!canManageAttachmentsByFile.get(String(params.nominationFileId)),
       items: attachmentsByFile.get(String(params.nominationFileId)) ?? [],
-    }),
-  ),
+    });
+  }),
   http.put(
     '*/api/sessions/v2/:sessionId/files/:nominationFileId/attachments',
     async ({ params, request }) => {
@@ -360,6 +399,7 @@ const handlers = [
   ),
   http.get('*/api/sessions/v2/:sessionId/files/:nominationFileId/observations', ({ params }) =>
     HttpResponse.json<ListObservationsResponseDto>({
+      canManageAttachments: !!canManageAttachmentsByFile.get(String(params.nominationFileId)),
       observations: observationsByFile.get(String(params.nominationFileId)) ?? [],
     }),
   ),
@@ -457,12 +497,17 @@ function SeededSidePanel(props: { nominationFile: SessionNominationFile }) {
   );
 }
 
-function MagistratSidePanelStory(args: SidePanelArgs) {
+function MagistratSidePanelStory(controls: SidePanelArgs) {
+  const args: SidePanelArgs = controls.isImpersonated ? { ...controls, view: 'member' } : controls;
   const nominationFile = makeNominationFile(args);
   const isArchived = nominationFile.isArchived;
 
   if (!attachmentsByFile.has(nominationFile.id))
     attachmentsByFile.set(nominationFile.id, args.hasAttachments ? [...ATTACHMENTS] : []);
+  canManageAttachmentsByFile.set(
+    nominationFile.id,
+    args.view === 'sg' && !nominationFile.content.lockedReason,
+  );
   if (!observationsByFile.has(nominationFile.id))
     observationsByFile.set(nominationFile.id, args.hasObservations ? [...OBSERVATIONS] : []);
 
@@ -503,6 +548,8 @@ const meta = {
     hasAnnouncedObservers: false,
     hasAttachments: true,
     hasObservations: true,
+    hasRecusedMembers: true,
+    isImpersonated: false,
     lockedReason: NONE,
     missingEvaluation: false,
     outcome: NONE,
@@ -518,6 +565,15 @@ const meta = {
     hasAnnouncedObservers: { control: 'boolean' },
     hasAttachments: { control: 'boolean' },
     hasObservations: { control: 'boolean' },
+    hasRecusedMembers: {
+      control: 'boolean',
+      description: 'edited by the SG beside the outcome, listed to a member under the reporters',
+    },
+    isImpersonated: {
+      control: 'boolean',
+      description:
+        'an admin acting as the member, in the member view: the notes and the shared summary stay private',
+    },
     lockedReason: {
       control: 'inline-radio',
       description:
@@ -532,7 +588,7 @@ const meta = {
     },
     summary: {
       control: 'inline-radio',
-      description: 'written by the SG and shared with the member',
+      description: 'written by the SG and shared with the member, unavailable when its loading fails',
       options: SUMMARIES,
     },
     view: { control: 'inline-radio', options: STORY_VIEWS },
@@ -541,14 +597,16 @@ const meta = {
     msw.use(
       ...handlers,
       http.get('*/api/sessions/v2/:sessionId/files/:nominationFileId/summary', () =>
-        HttpResponse.json<DetailedSummaryDto>(
-          makeSummary({
-            name: 'DURAND Camille',
-            position: 'Vice-présidente au tribunal judiciaire de LYON',
-            summary: { canWrite: args.view === 'sg', readers: [READER] },
-            targetedPosition: 'Conseillère à la cour d’appel de PARIS',
-          }),
-        ),
+        args.summary === 'unavailable'
+          ? new HttpResponse(null, { status: 503 })
+          : HttpResponse.json<DetailedSummaryDto>(
+              makeSummary({
+                name: 'DURAND Camille',
+                position: 'Vice-présidente au tribunal judiciaire de LYON',
+                summary: { canWrite: args.view === 'sg', readers: [READER] },
+                targetedPosition: 'Conseillère à la cour d’appel de PARIS',
+              }),
+            ),
       ),
     );
   },

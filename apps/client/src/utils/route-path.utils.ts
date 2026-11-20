@@ -7,16 +7,16 @@ export const ROUTE_PATHS = {
   ACCOUNT: '/mon-compte',
   ADMIN: {
     DETAILS_JOB: '/admin/ingestions/:jobId',
-    FEEDBACKS: '/admin/avis',
+    FEEDBACKS: '/admin/retours',
+    FEEDBACKS_STATUS: '/admin/retours/:status',
     HELP: '/admin/aide',
     INGEST_LOLFI: '/admin/lolfi',
     LIST_JOBS: '/admin/ingestions',
-    REMARKS: '/admin/remarques',
     ROOT: '/admin',
+    SURVEYS: '/admin/avis',
     USERS: '/admin/utilisateurs',
     USER_DETAIL: '/admin/utilisateurs/:userId',
   },
-  FEEDBACK: '/avis',
   HELP: '/aide',
   LOGIN: '/login',
   MEMBER: {
@@ -25,42 +25,62 @@ export const ROUTE_PATHS = {
   },
   REDIRECT_MAGISTRAT_LOLFI: '/session/:sessionId/dossier/:fileId/lolfi-magistrat',
   SG: {
-    AGENDA_EDIT: '/secretariat-general/session/:sessionId/docs/ordre-du-jour/:agendaId/validation/edition',
-    AGENDA_NEW: '/secretariat-general/session/:sessionId/docs/ordre-du-jour',
-    AGENDA_PREVIEW: '/secretariat-general/session/:sessionId/docs/ordre-du-jour/:agendaId/validation',
-    AGENDA_UPDATE_FILES: '/secretariat-general/session/:sessionId/docs/ordre-du-jour/:agendaId/dossiers',
-    AGENDA_UPDATE_METADATA:
-      '/secretariat-general/session/:sessionId/docs/ordre-du-jour/:agendaId/metadonnees',
-    ARCHIVED_SESSIONS: '/secretariat-general/archives/sessions',
+    CSM: {
+      CALLS_FOR_APPLICATIONS: '/secretariat-general/csm/appels-a-candidature',
+      MEMBERS: '/secretariat-general/csm/membres',
+      ROOT: '/secretariat-general/csm',
+      SELECTION_PROCESS: '/secretariat-general/csm/processus-de-selection',
+      VEILLE_DES_POSTES: '/secretariat-general/csm/veille-des-postes',
+      VEILLE_DES_POSTES_COURTS_OF_APPEAL: '/secretariat-general/csm/veille-des-postes/cours-d-appel',
+      VEILLE_DES_POSTES_COURT_OF_CASSATION: '/secretariat-general/csm/veille-des-postes/cour-de-cassation',
+      VEILLE_DES_POSTES_COURT_OF_CASSATION_POSITION:
+        '/secretariat-general/csm/veille-des-postes/cour-de-cassation/:position',
+      VEILLE_DES_POSTES_JUDICIAL_COURTS: '/secretariat-general/csm/veille-des-postes/tribunaux-judiciaires',
+    },
     DASHBOARD: '/secretariat-general',
+    GDS: {
+      AGENDA_EDIT:
+        '/secretariat-general/gds/session/:sessionId/docs/ordre-du-jour/:agendaId/validation/edition',
+      AGENDA_NEW: '/secretariat-general/gds/session/:sessionId/docs/ordre-du-jour',
+      AGENDA_PREVIEW: '/secretariat-general/gds/session/:sessionId/docs/ordre-du-jour/:agendaId/validation',
+      AGENDA_UPDATE_FILES:
+        '/secretariat-general/gds/session/:sessionId/docs/ordre-du-jour/:agendaId/dossiers',
+      AGENDA_UPDATE_METADATA:
+        '/secretariat-general/gds/session/:sessionId/docs/ordre-du-jour/:agendaId/metadonnees',
+      ARCHIVED_SESSIONS: '/secretariat-general/gds/archives/sessions',
+      FOLLOWED_UP_OBSERVATIONS: '/secretariat-general/gds/suivi-des-observations',
+      MANAGE_MEMBERS: '/secretariat-general/gds/membres',
+      MANAGE_SESSION: '/secretariat-general/gds/sessions',
+      MANAGE_SINGLE_MEMBER: '/secretariat-general/gds/membres/:userId',
+      OBSERVATION_DETAILS:
+        '/secretariat-general/gds/session/:sessionId/dossiers/:nominationFileId/observations/:observationId',
+      OFFICIAL_REPORT_EDIT:
+        '/secretariat-general/gds/session/:sessionId/docs/pv/:officialReportId/validation/edition',
+      OFFICIAL_REPORT_NEW: '/secretariat-general/gds/session/:sessionId/docs/pv',
+      OFFICIAL_REPORT_PREVIEW:
+        '/secretariat-general/gds/session/:sessionId/docs/pv/:officialReportId/validation',
+      OFFICIAL_REPORT_UPDATE: '/secretariat-general/gds/session/:sessionId/docs/pv/:officialReportId',
+      PRESENTATIONS_AGENDAS: '/secretariat-general/gds/restitutions/ordres-du-jour',
+      PRESENTATIONS_EDIT: '/secretariat-general/gds/restitutions/:planId/validation/edition',
+      PRESENTATIONS_NEW: '/secretariat-general/gds/restitutions/nouvelle-notice',
+      PRESENTATIONS_PAST: '/secretariat-general/gds/restitutions/restituees',
+      PRESENTATIONS_PREVIEW: '/secretariat-general/gds/restitutions/:planId/validation',
+      PRESENTATIONS_READY: '/secretariat-general/gds/restitutions/a-restituer',
+      PRESENTATIONS_UPDATE: '/secretariat-general/gds/restitutions/:planId',
+      ROOT: '/secretariat-general/gds',
+      SESSION_ID: '/secretariat-general/gds/session/:sessionId',
+      SESSION_ID_ATTACHMENTS: '/secretariat-general/gds/session/:sessionId/pieces-jointes',
+      SESSION_ID_AUDITIONS: '/secretariat-general/gds/session/:sessionId/auditions',
+      SESSION_ID_COMMENT: '/secretariat-general/gds/session/:sessionId/commentaire',
+      SESSION_ID_DOCUMENTS: '/secretariat-general/gds/session/:sessionId/documents',
+      SESSION_ID_MISSING_EVALUATIONS: '/secretariat-general/gds/session/:sessionId/evaluations-manquantes',
+      SESSION_ID_OBSERVATIONS: '/secretariat-general/gds/session/:sessionId/observations',
+    },
     MAGISTRAT_DETAILS: '/secretariat-general/magistrats/:magistratId',
     MAGISTRAT_SEARCH: '/secretariat-general/magistrats',
-    MANAGE_MEMBERS: '/secretariat-general/membres',
-    MANAGE_SESSION: '/secretariat-general/sessions',
-    MANAGE_SINGLE_MEMBER: '/secretariat-general/membres/:userId',
-    NEW_TRANSPARENCE: '/secretariat-general/nouvelle-transparence',
-    OBSERVATION_DETAILS:
-      '/secretariat-general/session/:sessionId/dossiers/:nominationFileId/observations/:observationId',
-    OFFICIAL_REPORT_EDIT:
-      '/secretariat-general/session/:sessionId/docs/pv/:officialReportId/validation/edition',
-    OFFICIAL_REPORT_NEW: '/secretariat-general/session/:sessionId/docs/pv',
-    OFFICIAL_REPORT_PREVIEW: '/secretariat-general/session/:sessionId/docs/pv/:officialReportId/validation',
-    OFFICIAL_REPORT_UPDATE: '/secretariat-general/session/:sessionId/docs/pv/:officialReportId',
-    PRESENTATIONS_AGENDAS: '/secretariat-general/restitutions/ordres-du-jour',
-    PRESENTATIONS_EDIT: '/secretariat-general/restitutions/:planId/validation/edition',
-    PRESENTATIONS_NEW: '/secretariat-general/restitutions/nouvelle-notice',
-    PRESENTATIONS_PAST: '/secretariat-general/restitutions/restituees',
-    PRESENTATIONS_PREVIEW: '/secretariat-general/restitutions/:planId/validation',
-    PRESENTATIONS_READY: '/secretariat-general/restitutions/a-restituer',
-    PRESENTATIONS_UPDATE: '/secretariat-general/restitutions/:planId',
-    SESSION_ID: '/secretariat-general/session/:sessionId',
-    SESSION_ID_ATTACHMENTS: '/secretariat-general/session/:sessionId/pieces-jointes',
-    SESSION_ID_AUDITIONS: '/secretariat-general/session/:sessionId/auditions',
-    SESSION_ID_COMMENT: '/secretariat-general/session/:sessionId/commentaire',
-    SESSION_ID_DOCUMENTS: '/secretariat-general/session/:sessionId/documents',
-    SESSION_ID_MISSING_EVALUATIONS: '/secretariat-general/session/:sessionId/evaluations-manquantes',
   },
   SUMMARY: '/session/:sessionId/dossier/:fileId/synthese',
+  SURVEY: '/avis',
   TRANSPARENCES: {
     ARCHIVED_SESSIONS: '/transparences/archives/sessions',
     DASHBOARD: '/transparences',
@@ -79,7 +99,7 @@ type RoutePath = typeof ROUTE_PATHS;
 export type FondationPath<Node = RoutePath> = Node extends string ? Node : FondationPath<Node[keyof Node]>;
 
 export const getNewAgendaPath = (sessionId: string): string =>
-  generatePath(ROUTE_PATHS.SG.AGENDA_NEW, { sessionId });
+  generatePath(ROUTE_PATHS.SG.GDS.AGENDA_NEW, { sessionId });
 
 export function getDetailSessionGdsPath(props: { sessionId: string }): string {
   return generatePath(ROUTE_PATHS.TRANSPARENCES.DETAIL_SESSION_GDS, { sessionId: props.sessionId });
@@ -120,7 +140,7 @@ export const getObservationDetailsPath = (props: {
     });
   }
 
-  return generatePath(ROUTE_PATHS.SG.OBSERVATION_DETAILS, {
+  return generatePath(ROUTE_PATHS.SG.GDS.OBSERVATION_DETAILS, {
     nominationFileId,
     observationId,
     sessionId,
@@ -137,4 +157,22 @@ export const getMagistratDetailsPath = (props: { context: 'sg' | 'membre'; magis
   }
 
   return generatePath(ROUTE_PATHS.SG.MAGISTRAT_DETAILS, { magistratId: props.magistratId });
+};
+
+/**
+ * the GDS pages lived right under the secretariat's space before the home offered both pouvoirs de proposition
+ * TODO: remove once these URLs have faded from bookmarks and mails
+ */
+export const LEGACY_GDS_PATHS = [
+  '/secretariat-general/archives/*',
+  '/secretariat-general/membres/*',
+  '/secretariat-general/restitutions/*',
+  '/secretariat-general/session/*',
+  '/secretariat-general/sessions',
+  '/secretariat-general/suivi-des-observations',
+] as const;
+
+export const redirectToGdsPath = ({ request }: { request: Request }) => {
+  const { pathname, search } = new URL(request.url);
+  return redirect(`${ROUTE_PATHS.SG.GDS.ROOT}${pathname.slice(ROUTE_PATHS.SG.DASHBOARD.length)}${search}`);
 };

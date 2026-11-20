@@ -84,7 +84,7 @@ export class SessionAuditionsFinder {
       const audition = auditionDate && auditionTime ? { date: auditionDate, time: auditionTime } : null;
       const listed = audition
         ? !isPastAudition(audition, now)
-        : auditionRequired && canScheduleAudition(file, session);
+        : auditionRequired && canScheduleAudition(file, { isArchived: !!session.archivedAt });
 
       return listed ? [{ ...file, audition }] : [];
     });

@@ -11,7 +11,7 @@ import { catchError, Observable, throwError } from 'rxjs';
 
 import { assertNever } from '../../../utils/assert-never';
 import { CannotScheduleObservantAudition, type UnschedulableReason } from '../domain/observant-audition';
-import { ObservationAlreadyExist } from '../domain/observation';
+import { ObservationAlreadyExist, ObservationAttachmentsLocked } from '../domain/observation';
 
 @Injectable()
 export class ObservationsFilter implements NestInterceptor {
@@ -31,6 +31,13 @@ export class ObservationsFilter implements NestInterceptor {
             });
           }
 
+          // the dossier got figé after the page loaded: the client reloads what it shows
+          if (err instanceof ObservationAttachmentsLocked) {
+            return new ConflictException({
+              validationError: `Le dossier a été figé entre-temps : ses pièces jointes ne se renomment ni ne se retirent plus.`,
+            });
+          }
+
           if (err instanceof CannotScheduleObservantAudition) {
             return new BadRequestException({ validationErrors: [unschedulableAuditionMessage(err.reason)] });
           }
@@ -47,7 +54,7 @@ function unschedulableAuditionMessage(reason: UnschedulableReason): string {
     case 'FINAL_OUTCOME':
       return `impossible de programmer l'audition : tous les dossiers observés ont une issue considérée comme étant définitive`;
     case 'LOCKED':
-      return `impossible de programmer l'audition : les dossiers observés ont déjà été associés à de la documentation`;
+      return `impossible de programmer l'audition : les dossiers observés ne sont plus modifiables`;
     case 'NOT_IN_PROGRESS':
       return `impossible de programmer l'audition : aucun dossier observé n'est encore en traitement`;
     default:

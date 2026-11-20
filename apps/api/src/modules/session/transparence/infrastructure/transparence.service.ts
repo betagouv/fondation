@@ -3,11 +3,13 @@ import { forwardRef, Inject, Injectable, Logger, NotFoundException, StreamableFi
 import * as Sentry from '@sentry/node';
 
 import { Prisma } from '../../../../generated/prisma/client';
+import { lockSessionRawQuery } from '../../../../generated/prisma/sql';
 import type { AuditionSchedule } from '../../../../utils/audition-schedule';
 import { DateOnly } from '../../../../utils/date-only';
 import { isDefined } from '../../../../utils/is-defined';
 import { TimeOnly } from '../../../../utils/time-only';
 import { DocsService } from '../../../docs/docs.service';
+import { Clock } from '../../../framework/clock';
 import { Db } from '../../../framework/database';
 import { Pagination } from '../../../framework/pagination';
 import { Sortable } from '../../../framework/sorting';
@@ -19,24 +21,22 @@ import {
   NominationFileOutcomeEnum,
 } from '../../../shared/nomination-file-outcome.enum';
 import * as policies from '../../../shared/policies/nomination-file.policies';
+import type { Impersonation } from '../../../shared/policies/personal-content.policies';
 import { canReadSession } from '../../../shared/policies/session.policies';
 import { PriorityEnum } from '../../../shared/priority.enum';
+import type { PublicationStatus } from '../../../shared/publication-status.enum';
 import { roleToFormation, type RoleEnum } from '../../../shared/role.enum';
 import { TypeDeSaisineEnum } from '../../../shared/type-de-saisine.enum';
 import { SessionTransparence } from '../domain/session-transparence';
 import { LodamTransparenceFile } from '../domain/transparence-file';
 
-import { ListNominationFilesQueryDto } from './dtos/nomination-file.dto';
+import { ListNominationFilesQueryDto, type RecusedMembersDto } from './dtos/nomination-file.dto';
 import { CountedSessionAuditionsDto, ListedSessionAuditionsDto } from './dtos/session-audition.dto';
 import {
   ListArchivedSessionsQueryDto,
   ListGdsNominationSessionsQueryDto,
 } from './dtos/transparence-session.dto';
-import {
-  AffectationVersionFinder,
-  FoundAffectationVersion,
-  OptionalAffectationVersion,
-} from './finders/affectation-version.finder';
+import { AffectationVersionFinder, OptionalAffectationVersion } from './finders/affectation-version.finder';
 import { AuditionPublicationFinder } from './finders/audition-publication.finder';
 import { AuditionsSeenFinder, type SeenAudition } from './finders/auditions-seen.finder';
 import { AutoAffectationsFinder } from './finders/auto-affectations.finder';
@@ -44,6 +44,7 @@ import {
   type HydratedNominationFile,
   type FoundNominationFile,
   HydratedNominationFilesFinder,
+  type MagistratProposition,
 } from './finders/hydrated-nomination-files.finder';
 import { LolfiNominationSessionFinder } from './finders/lolfi-nomination-session.finder';
 import { NominationFileOutcomesFinder } from './finders/nomination-file-outcomes.finder';
@@ -51,8 +52,11 @@ import {
   type NominationFileProgress,
   NominationFilesProgressFinder,
 } from './finders/nomination-files-progress.finder';
+import { RecusedMembersFinder } from './finders/recused-members.finder';
 import { ReportedSessionsFinder } from './finders/reported-sessions.finder';
 import { ReportersAffectationFinder } from './finders/reporters-affectation.finder';
+import { SessionReportedFilesFinder } from './finders/session-reported-files.finder';
+import { type SessionStatus, SessionStatusesFinder } from './finders/session-statuses.finder';
 import { SynchronisedLolfiSessionsFinder } from './finders/synchronised-lolfi-sessions.finder';
 import { TransparenceFilesFinder } from './finders/transparence-files.finder';
 import {
@@ -86,7 +90,6 @@ import {
   DetailedNominationFileAuditionHistoryDto,
   DetailNominationFileAuditionHistoryQuery,
 } from './queries/detail-nomination-file-audition-history.query';
-import { DetailNominationSessionAffectationVersionQuery } from './queries/detail-nomination-session-affectation-version.query';
 import {
   type DetailedNominationSessionAttachmentDto,
   DetailNominationSessionAttachmentQuery,
@@ -149,7 +152,6 @@ export class TransparenceService {
     private readonly detailNominationFileAuditionHistoryQuery: DetailNominationFileAuditionHistoryQuery,
     private readonly detailNominationFileAttachmentQuery: DetailNominationFileAttachmentQuery,
     private readonly detailAffectationHistoryQuery: DetailAffectationHistoryQuery,
-    private readonly detailNominationSessionAffectationVersionQuery: DetailNominationSessionAffectationVersionQuery,
     private readonly detailNominationSessionAttachmentQuery: DetailNominationSessionAttachmentQuery,
     private readonly detailNominationSessionQuery: DetailNominationSessionQuery,
     private readonly detailSessionCommentQuery: DetailSessionCommentQuery,
@@ -165,6 +167,7 @@ export class TransparenceService {
     private readonly listArchivedNominationSessionsQuery: ListArchivedNominationSessionsQuery,
     private readonly nominationSessionFileFinder: TransparenceFilesFinder,
     private readonly nominationSessionRepository: SessionTransparenceRepository,
+    private readonly recusedMembersFinder: RecusedMembersFinder,
     private readonly listCurrentlyAffectedReportersQuery: ListCurrentlyAffectedReportersQuery,
     private readonly countUnaffectedFilesQuery: CountUnaffectedFilesQuery,
     private readonly countNominationFilesByStatusQuery: CountNominationFilesByStatusQuery,
@@ -175,14 +178,17 @@ export class TransparenceService {
     private readonly listSessionAuditionsQuery: ListSessionAuditionsQuery,
     private readonly listNominationFilesAsExcelQuery: ListNominationFilesAsExcelQuery,
     private readonly lolfiNominationSessionFinder: LolfiNominationSessionFinder,
+    private readonly clock: Clock,
     private readonly db: Db,
     private readonly versions: AffectationVersionFinder,
     private readonly sessionsFinder: NominationSessionFinder,
     private readonly nominationFileOutcomesFinder: NominationFileOutcomesFinder,
     private readonly nominationFilesProgressFinder: NominationFilesProgressFinder,
     private readonly synchronisedLolfiSessionsFinder: SynchronisedLolfiSessionsFinder,
+    private readonly reportedFiles: SessionReportedFilesFinder,
     private readonly reportedSessionsFinder: ReportedSessionsFinder,
     private readonly reportersAffectation: ReportersAffectationFinder,
+    private readonly sessionStatuses: SessionStatusesFinder,
 
     @Inject(forwardRef(() => DocsService))
     private readonly docs: DocsService,
@@ -217,10 +223,20 @@ export class TransparenceService {
       .findSnapshots({ nominationFileIds: new Set(query.nominationFileIds), sessionId: query.sessionId })
       .then((files) =>
         files.map((file) => ({
-          allowsAudition: policies.canScheduleAudition(file, { archivedAt: null }),
-          isLocked: !!policies.nominationFileLock(file, { archivedAt: null }),
+          allowsAudition: policies.canScheduleAudition(file, { isArchived: false }),
+          isLocked: !!policies.nominationFileLock(file, { isArchived: false }),
         })),
       );
+  }
+
+  /** @internal a figé dossier keeps the attachments of its observations and of its synthèse as they are */
+  async internalIsNominationFileLocked(query: { nominationFileId: string }): Promise<boolean> {
+    const reported = await this.reportedFiles.find({ nominationFileIds: new Set([query.nominationFileId]) });
+
+    return !!policies.nominationFileLock(
+      { isReported: reported.has(query.nominationFileId) },
+      { isArchived: false },
+    );
   }
 
   /** @internal */
@@ -257,6 +273,7 @@ export class TransparenceService {
     authorId: string;
     sessionId: string;
   }): Promise<void> {
+    await this.lockReportersAndRecusals(command.sessionId);
     const session = await this.nominationSessionRepository.find(command.sessionId, {
       nominationFileIds: new Set(command.affectations.map(({ nominationFileId }) => nominationFileId)),
     });
@@ -269,12 +286,19 @@ export class TransparenceService {
       .findMembers({ formation: session.formation, ids: memberIds })
       .then((ids) => new Set(ids));
 
+    const nominationFileIds = new Set(command.affectations.map(({ nominationFileId }) => nominationFileId));
     const assignedReporterIds = await this.reportersAffectation.findAssigned({
-      nominationFileIds: command.affectations.map(({ nominationFileId }) => nominationFileId),
+      nominationFileIds: [...nominationFileIds],
       sessionId: command.sessionId,
     });
+    const recusedMemberIdsByFile = await this.recusedMembersFinder.findIds({ nominationFileIds });
 
-    session.affectNominationFileReporters({ ...command, assignedReporterIds, formationMemberIds });
+    session.affectNominationFileReporters({
+      ...command,
+      assignedReporterIds,
+      formationMemberIds,
+      recusedMemberIdsByFile,
+    });
 
     await this.nominationSessionRepository.persist(session);
   }
@@ -305,7 +329,7 @@ export class TransparenceService {
     pagination: Pagination;
     sessionId: string;
     sorting: Sortable<ListNominationFilesQueryDto>;
-    user: { id: string; role: RoleEnum };
+    user: { id: string; impersonation: Impersonation | undefined; role: RoleEnum };
   }): Promise<PaginatedNominationFiles> {
     return this.listNominationFilesQuery.handle(query);
   }
@@ -313,7 +337,7 @@ export class TransparenceService {
   async detailNominationFile(query: {
     nominationFileId: string;
     sessionId: string;
-    user: { id: string; role: RoleEnum };
+    user: { id: string; impersonation: Impersonation | undefined; role: RoleEnum };
   }): Promise<DetailedNominationFileDto> {
     const file = await this.listNominationFilesQuery.detail(query);
     if (!file) throw new NotFoundException();
@@ -323,10 +347,6 @@ export class TransparenceService {
 
   detailAffectationHistory(query: { sessionId: string }): Promise<DetailedAffectationHistoryDto> {
     return this.detailAffectationHistoryQuery.handle(query);
-  }
-
-  detailNominationSessionAffectationsVersion(query: { sessionId: string }): Promise<FoundAffectationVersion> {
-    return this.detailNominationSessionAffectationVersionQuery.handle(query);
   }
 
   @Transactional()
@@ -346,6 +366,7 @@ export class TransparenceService {
     nominationFileIds: readonly string[] | undefined;
     sessionId: string;
   }): Promise<void> {
+    await this.lockReportersAndRecusals(command.sessionId);
     const session = await this.nominationSessionRepository.find(command.sessionId, {
       nominationFileIds: new Set(command.nominationFileIds),
     });
@@ -368,16 +389,29 @@ export class TransparenceService {
     await this.nominationSessionRepository.persist(session);
   }
 
+  @Transactional()
   async updateNominationFileComment(command: {
     comment: string | null;
+    impersonatorId: string | null;
     nominationFileId: string;
     sessionId: string;
+    userId: string;
   }): Promise<void> {
     await this.db.tx.dossierDeNomination.update({
       data: { comment: command.comment },
       where: {
         id: command.nominationFileId,
         sessionId: command.sessionId,
+      },
+    });
+
+    await this.db.tx.nominationFileCommentVersion.create({
+      data: {
+        comment: command.comment,
+        impersonatorId: command.impersonatorId,
+        nominationFileId: command.nominationFileId,
+        writtenAt: this.clock.now(),
+        writtenBy: command.userId,
       },
     });
   }
@@ -416,6 +450,54 @@ export class TransparenceService {
     });
 
     await this.nominationSessionRepository.persist(session);
+  }
+
+  @Transactional()
+  async recuseNominationFilesMembers(command: {
+    authorId: string;
+    recusals: readonly { memberIds: readonly string[]; nominationFileId: string }[];
+    sessionId: string;
+  }): Promise<void> {
+    await this.lockReportersAndRecusals(command.sessionId);
+    const nominationFileIds = new Set(command.recusals.map(({ nominationFileId }) => nominationFileId));
+    const session = await this.nominationSessionRepository.find(command.sessionId, { nominationFileIds });
+
+    const recusedMemberIdsByFile = await this.recusedMembersFinder.findIds({ nominationFileIds });
+    const formationMemberIds = await this.members
+      .findMembers({
+        formation: session.formation,
+        ids: [...new Set(command.recusals.flatMap(({ memberIds }) => memberIds))],
+      })
+      .then((ids) => new Set(ids));
+
+    session.recuseMembers({
+      authorId: command.authorId,
+      formationMemberIds,
+      recusals: command.recusals,
+      recusedMemberIdsByFile,
+      reportersByFile: await this.versions.findPublishedAndLatestReporters({
+        nominationFileIds: [...nominationFileIds],
+      }),
+    });
+    await this.docs.internalInvalidateDocs(await this.nominationSessionRepository.persist(session));
+  }
+
+  @Transactional()
+  async recuseMembers(command: {
+    authorId: string;
+    memberIds: readonly string[];
+    nominationFileId: string;
+    sessionId: string;
+  }): Promise<RecusedMembersDto> {
+    const { authorId, memberIds, nominationFileId, sessionId } = command;
+    await this.recuseNominationFilesMembers({
+      authorId,
+      recusals: [{ memberIds, nominationFileId }],
+      sessionId,
+    });
+
+    const recusals = await this.recusedMembersFinder.find({ nominationFileIds: new Set([nominationFileId]) });
+    return { recusedMembers: recusals.get(nominationFileId) ?? [] };
   }
 
   @Transactional()
@@ -544,6 +626,18 @@ export class TransparenceService {
   }
 
   @Transactional()
+  async renameNominationSessionAttachment(command: {
+    fileId: string;
+    name: string;
+    sessionId: string;
+  }): Promise<void> {
+    const session = await this.nominationSessionRepository.find(command.sessionId);
+
+    session.renameAttachment(command);
+    await this.nominationSessionRepository.persist(session);
+  }
+
+  @Transactional()
   async addNominationFileAttachments(command: {
     files: { id: string }[];
     nominationFileId: string;
@@ -572,6 +666,21 @@ export class TransparenceService {
       fileId: command.fileId,
       nominationFileId: command.nominationFileId,
     });
+    await this.nominationSessionRepository.persist(session);
+  }
+
+  @Transactional()
+  async renameNominationFileAttachment(command: {
+    fileId: string;
+    name: string;
+    nominationFileId: string;
+    sessionId: string;
+  }): Promise<void> {
+    const session = await this.nominationSessionRepository.find(command.sessionId, {
+      nominationFileIds: new Set([command.nominationFileId]),
+    });
+
+    session.renameNominationFileAttachment(command);
     await this.nominationSessionRepository.persist(session);
   }
 
@@ -709,7 +818,7 @@ export class TransparenceService {
     memo: string;
     nominationFileId: string;
     sessionId: string;
-    user: { id: string; role: RoleEnum };
+    user: { id: string; impersonation: Impersonation | undefined; role: RoleEnum };
   }) {
     const { memo, nominationFileId, user } = command;
     const session = await this.nominationSessionRepository.find(command.sessionId, {
@@ -841,6 +950,14 @@ export class TransparenceService {
     );
   }
 
+  /** @internal the given files the session holds, whether their magistrat is identified or not */
+  internalFindSessionNominationFileIds(query: {
+    ids: readonly string[];
+    sessionId: string;
+  }): Promise<Set<string>> {
+    return this.nominationSessionFileFinder.idsInSession(query);
+  }
+
   /** @internal */
   internalGetSessionFormation(query: { sessionId: string }): Promise<FormationEnum> {
     return this.sessionsFinder.formation(query);
@@ -884,6 +1001,11 @@ export class TransparenceService {
   }
 
   /** @internal */
+  internalFindSessionStatuses(query: { sessionIds: readonly string[] }): Promise<Map<string, SessionStatus>> {
+    return this.sessionStatuses.find(query);
+  }
+
+  /** @internal */
   async internalGetSession(query: { sessionId: string }): Promise<FoundNominationSession> {
     const sessions = await this.sessionsFinder.find({ sessionIds: [query.sessionId] });
     const session = sessions.get(query.sessionId);
@@ -917,6 +1039,14 @@ export class TransparenceService {
   }
 
   /** @internal */
+  internalFindAffectationsPublicationStatus(query: {
+    draftVersionId: string | null;
+    publishedVersionId: string | null;
+  }): Promise<PublicationStatus> {
+    return this.versions.publicationStatus(query);
+  }
+
+  /** @internal */
   internalFindLastPublishedAffectationVersion(query: {
     sessionId: string;
   }): Promise<OptionalAffectationVersion> {
@@ -937,8 +1067,21 @@ export class TransparenceService {
     return this.hydratedNominationFiles.byIds(query);
   }
 
+  /** @internal oldest session first, then by file number */
+  internalFindMagistratsPropositions(query: {
+    magistratIds: readonly string[];
+  }): Promise<Map<string, MagistratProposition[]>> {
+    return this.hydratedNominationFiles.byProposedMagistrats(query);
+  }
+
   /** @internal */
-  /** most recent session first, then by file number */
+  internalFindReportedNominationFiles(query: {
+    nominationFileIds: ReadonlySet<string>;
+  }): Promise<Set<string>> {
+    return this.reportedFiles.find(query);
+  }
+
+  /** @internal most recent session first, then by file number */
   internalSortNominationFiles(query: { nominationFileIds: readonly string[] }): Promise<string[]> {
     return this.hydratedNominationFiles.sort(query);
   }
@@ -982,5 +1125,10 @@ export class TransparenceService {
     });
 
     await this.nominationSessionRepository.persist(session);
+  }
+
+  /** an affectation and a recusal sent together wait for each other, so each one sees the other's members */
+  private async lockReportersAndRecusals(sessionId: string): Promise<void> {
+    await this.db.tx.$queryRawTyped(lockSessionRawQuery(sessionId));
   }
 }

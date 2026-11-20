@@ -9,7 +9,8 @@ Le projet est un workspace [pnpm](https://pnpm.io) composé de :
 - [apps/api](./apps/api) : le back-end Nest.js + Prisma
 - [apps/client](./apps/client) : le front-end React + Vite
 - [apps/api-e2e](./apps/api-e2e) : les tests bout-en-bout de l'api
-- [packages/lolfi](./packages/lolfi) : générateur d'archives LOLFI, utilisé par les tests bout-en-bout de l'api et par ceux de Playwright
+- [packages/lolfi](./packages/lolfi) : le générateur d'archives LOLFI des tests bout-en-bout et des données fictives du local et de staging
+- [packages/documents-assets](./packages/documents-assets) : logo et polices des documents officiels partagés par l'api et le front-end ainsi que les [modèles Word et PDF vierges](./packages/documents-assets/blank-templates) remis au métier
 
 ## Architecture
 
@@ -46,7 +47,7 @@ flowchart LR
   back -- s3/https --> storage
 ```
 
-LOLFI est le SIRH du ministère de la Justice qui suit les carrières des magistrats : ses
+LOLFI est le SIRH du ministère de la Justice qui suit les carrières des magistrats. Ses
 extractions XML sont la source des données de nomination. Le RIE n'étant pas connecté à
 Internet, un serveur relais fourni par le prestataire SDV, raccordé aux deux réseaux,
 transmet ces fichiers chiffrés à l'api.
@@ -58,7 +59,8 @@ propre application Scalingo `fondation-gotenberg`.
 
 Le stockage objet, hébergé chez Scaleway et compatible S3, contient les pièces jointes ainsi
 que les PDF générés, qui y sont mis en cache pour éviter de les reconstruire à chaque
-consultation. En local, il est émulé par MinIO (voir l'installation).
+consultation. En local, il est émulé par [Versity S3 Gateway](https://github.com/versity/versitygw)
+(voir l'installation).
 
 ## Installation et lancement
 
@@ -84,7 +86,7 @@ déjà présent sur la machine.
 3. Démarrer les services et la base de données
 
 ```bash
-docker compose --file apps/api/test/docker-compose-test.yaml up -d   # Postgres :5435 + MinIO/S3 :9000 + Gotenberg :9091
+docker compose --file apps/api/test/docker-compose-test.yaml up -d   # Postgres :5435 + S3 :9000 + Gotenberg :9091
 pnpm --filter api prisma migrate deploy
 ```
 
@@ -100,15 +102,8 @@ pnpm --filter api exec dotenvx run -f .env.e2e -f .env -- prisma migrate deploy
 > avant `.env` pour cibler la base de test.
 
 > [!NOTE]
-> Postgres suit la version majeure de la production (17). Chaque version majeure a son
-> propre volume (`fondation_postgres-17`) : après un changement de version, la base repart
-> vide et il faut réappliquer les migrations de la base locale et de la base de test. Pour
-> garder ses données, les sauvegarder avant de changer d'image puis les restaurer :
->
-> ```bash
-> docker exec postgres-test pg_dumpall -U fondation > ~/fondation.sql      # avant
-> docker exec -i postgres-test psql -U fondation -d postgres < ~/fondation.sql   # après
-> ```
+> Postgres suit la version majeure de la production (17). Un changement de version repart d'une base
+> vide, voir [docs/montee-de-version-postgres.md](./docs/montee-de-version-postgres.md).
 
 4. Générer le code
 
@@ -117,7 +112,7 @@ pnpm --filter api prisma:generate   # client Prisma + requêtes TypedSQL
 ```
 
 > [!IMPORTANT]
-> `prisma generate --sql` se connecte à la base pour typer les requêtes de `prisma/sql/` :
+> `prisma generate --sql` se connecte à la base pour typer les requêtes de `prisma/sql/`.
 > Postgres doit donc tourner et les migrations être appliquées (étape 3). Ce code n'est pas
 > versionné, à relancer après chaque `pnpm install`.
 
@@ -125,6 +120,14 @@ pnpm --filter api prisma:generate   # client Prisma + requêtes TypedSQL
 
 ```bash
 node apps/api/scripts/init-buckets.js
+```
+
+Pour parcourir les fichiers stockés, avec l'[AWS CLI](https://docs.aws.amazon.com/cli/) :
+
+```bash
+AWS_ACCESS_KEY_ID=fondation AWS_SECRET_ACCESS_KEY=fondation-secret \
+  aws --endpoint-url http://localhost:9000 --region eu-west-2 \
+  s3 ls --recursive s3://sandbox-csm-fondation-reports-context
 ```
 
 6. Lancement de l'application
@@ -143,95 +146,44 @@ pnpm --filter api exec node --env-file .env dist/cli user register \
   --firstname Jean \
   --lastname Moulin \
   --gender MALE \
-  --role MEMBRE_DU_PARQUET
+  --role ADJOINT_SECRETAIRE_GENERAL --admin --technical
 ```
 
-Le CLI est interactif et demandera les informations manquantes si nécessaire, à commencer
-par le mot de passe :
+Le CLI demande ensuite le mot de passe. `--admin` donne le droit administrateur et `--technical` fait du
+compte celui d'un membre de l'équipe Fondation. Les autres comptes se créent ensuite depuis l'écran
+d'administration.
 
-```
-password: *****
-repeat password: *****
-```
+8. Charger les données fictives
 
-Rôles disponibles : `MEMBRE_DU_SIEGE`, `MEMBRE_DU_PARQUET`, `MEMBRE_COMMUN`,
-`ADJOINT_SECRETAIRE_GENERAL` (enum `PrismaRoleEnum` dans
-[apps/api/prisma/schemas/identity.prisma](./apps/api/prisma/schemas/identity.prisma)).
-Le droit administrateur s'ajoute au rôle `ADJOINT_SECRETAIRE_GENERAL` avec l'option `--admin`.
-L'option `--technical` en fait le compte d'un développeur : il n'est proposé dans aucune liste du CSM
-et lui seul crée ou marque d'autres comptes techniques.
+L'application reste vide tant que l'archive LOLFI fictive n'est pas ingérée. La marche à suivre est
+décrite dans la section [Données fictives](#données-fictives).
 
-Il est recommandé de créer ainsi son propre compte, avec `--role ADJOINT_SECRETAIRE_GENERAL --admin --technical`,
-puis les autres depuis l'écran d'administration de l'application.
-
-8. Accès à l'application : [http://localhost:5173](http://localhost:5173)
+9. Accéder à l'application sur [http://localhost:5173](http://localhost:5173)
 
 ## Données fictives
 
-Le local et staging ne contiennent aucune donnée réelle. On y ingère une archive LOLFI fictive :
-9 transparences, toujours les mêmes, avec de vraies juridictions et fonctions mais des magistrats
-inventés. Les cas rares que l'application traite à part (audition, fiche de juridiction, détachement,
-outre-mer) y sont garantis.
+Le local et staging ne contiennent aucune personne réelle. On y ingère une archive LOLFI fictive dont les
+volumes sont calqués sur la prod. Elle se génère depuis la racine.
 
 ```bash
-pnpm --filter lolfi generate:fictitious-archive   # => packages/lolfi/LOLFI_CSM_fictitious.zip
+pnpm --filter lolfi generate:fictitious-archive
 ```
 
-L'archive s'envoie avec un compte administrateur : menu "Administration", puis "Importer une archive LOLFI"
-([/admin/lolfi](http://localhost:5173/admin/lolfi) en local). Le suivi est sur `/admin/ingestions`.
+La commande écrit deux archives dans `packages/lolfi`. Elles s'envoient avec un compte administrateur sur
+[/admin/lolfi](http://localhost:5173/admin/lolfi), dans cet ordre.
 
-### Remettre à zéro
+1. Envoyer `LOLFI_CSM_fictitious.zip`
+2. Attendre la fin de son ingestion sur [/admin/ingestions](http://localhost:5173/admin/ingestions)
+3. Envoyer `LOLFI_CSM_fictitious_departures.zip` (qui rend inactifs les magistrats partis comme dans la prod,
+   à condition d'avoir `LOLFI_MAX_DEACTIVATION_RATIO=0.05` dans `apps/api/.env`)
 
-Le script [empty-local-or-staging-except-accounts.mjs](./apps/api/scripts/empty-local-or-staging-except-accounts.mjs)
-vide la base et le bucket, sauf les comptes de connexion. Il refuse toute autre base que celle du
-local ou de staging. Il n'efface rien sans `--confirm` suivi du nom de la base. Il ne se lance
-jamais pendant une ingestion.
-
-En local :
-
-```bash
-pnpm --filter api local:empty-except-accounts                      # affiche ce qui serait effacé
-pnpm --filter api local:empty-except-accounts --confirm fondation  # efface
-```
-
-Puis on réingère l'archive.
-
-Sur staging, le script se lance depuis un poste : il n'est pas livré sur Scalingo. Dans un premier
-terminal, ouvrir un tunnel vers la base (avec la clé SSH déclarée sur Scalingo) :
-
-```bash
-scalingo --region osc-secnum-fr1 --app fondation-api-staging db-tunnel -i ~/.ssh/<clé> --port 10055 SCALINGO_POSTGRESQL_URL
-```
-
-Dans un second terminal, depuis la racine du dépôt :
-
-```bash
-staging() { scalingo --region osc-secnum-fr1 --app fondation-api-staging "$@"; }
-
-# 1. Sauvegarder la base (l'identifiant de l'addon est donné par `staging addons`)
-staging --addon <addon> backups-create
-
-# 2. Pointer le script sur staging, à travers le tunnel
-export DATABASE_URL=$(staging env-get SCALINGO_POSTGRESQL_URL | sed -E 's#@[^/]+/#@127.0.0.1:10055/#; s#\?.*##')
-export S3_BUCKET=$(staging env-get S3_BUCKET)
-export S3_ACCESS_KEY=$(staging env-get S3_ACCESS_KEY)
-export S3_SECRET_KEY=$(staging env-get S3_SECRET_KEY)
-
-# 3. Copier les comptes hors du dépôt, pour pouvoir les remettre en cas de problème
-pg_dump "$DATABASE_URL" --data-only --column-inserts -t identity_and_access_context.users > ~/comptes-staging.sql
-
-# 4. Vérifier ce qui serait effacé, puis effacer
-node apps/api/scripts/empty-local-or-staging-except-accounts.mjs
-node apps/api/scripts/empty-local-or-staging-except-accounts.mjs --confirm fondation_a_3234
-```
-
-Enfin, envoyer l'archive par la page "Import LOLFI manuel" de staging. Supprimer
-`~/comptes-staging.sql`, qui contient les empreintes des mots de passe, puis fermer les deux terminaux.
+L'envoi sur staging, la remise à zéro et la manière de remesurer la prod sont décrits dans
+[docs/donnees-fictives.md](./docs/donnees-fictives.md).
 
 ## Mesure d'audience
 
 Le client envoie ses vues de page au Matomo mutualisé de beta.gouv, site `273`. Les URL sont
-anonymisées avant l'envoi : les identifiants sont remplacés par le nom du paramètre de route
+anonymisées avant l'envoi. Leurs identifiants sont remplacés par le nom du paramètre de route
 (`/magistrats/:magistratId`), voir [apps/client/src/utils/matomo.ts](./apps/client/src/utils/matomo.ts).
 
 Sans les variables `VITE_MATOMO_*`, la mesure est désactivée. Elles ne sont renseignées que dans
@@ -246,8 +198,8 @@ pnpm --filter api test
 pnpm --filter client test
 ```
 
-Les tests bout-en-bout de l'api ([apps/api-e2e](./apps/api-e2e)) démarrent l'api eux-mêmes :
-ils ont seulement besoin des services de l'étape 3 et de la base de test migrée.
+Les tests bout-en-bout de l'api ([apps/api-e2e](./apps/api-e2e)) démarrent l'api eux-mêmes. Ils
+ont seulement besoin des services de l'étape 3 et de la base de test migrée.
 
 ```bash
 pnpm --filter api-e2e test
@@ -255,65 +207,29 @@ pnpm --filter api-e2e test
 
 ### Playwright
 
-Les tests Playwright exécutent l'application dans un mode particulier pour faciliter les tests, sans trop s'éloigner du comportement de production.
-
-Il faut déjà démarrer l'application back des tests. Playwright est capable de l'exécuter lui-même. S'il y a un bug, les logs seront cependant plus lisibles dans un processus séparé.
+Playwright teste le front contre un back lancé en mode test. Il sait démarrer ce back lui-même. Ses logs
+sont cependant plus lisibles dans un terminal à part.
 
 ```bash
 pnpm --filter api start:e2e
-```
-
-Démarrer l'appli front
-
-```bash
 pnpm --filter client dev
-```
-
-Ensuite démarrer Playwright
-
-```bash
 pnpm --filter client playwright test --ui   # ou `test:e2e` pour un lancement sans interface
 ```
 
 ## Génération du SDK front
 
-Pour générer le code du contrat d'interface entre le front et le back, on utilise
-[OpenAPI](https://swagger.io/specification/) dans un mode _code-first_.
-
-La spécification est générée directement depuis nos contrôleurs Nest, grâce à
-
-- [@nestjs/swagger](https://docs.nestjs.com/openapi/introduction)
-- [nestjs-zod](https://www.npmjs.com/package/nestjs-zod/v/5.0.1)
-
-Swagger UI est exposé par défaut sur [/openapi](http://localhost:3000/openapi).
-
-Le SDK front est généré avec [@hey-api/openapi-ts](https://heyapi.dev/openapi-ts) et ces plugins :
-
-- [typescript](https://heyapi.dev/openapi-ts/plugins/typescript)
-- [sdk](https://heyapi.dev/openapi-ts/plugins/sdk)
-- [client-fetch](https://heyapi.dev/openapi-ts/clients/fetch)
-
-On ne génère _volontairement pas_ le client @tanstack/react-query puisque ce dernier n'offre
-pas la fonctionnalité de _namespacing_ disponible dans le sdk directement.
-
-La configuration de l'outil est disponible dans [apps/client/openapi-ts.config.ts](./apps/client/openapi-ts.config.ts).
-
-### Générer le client
-
-openapi-ts utilise directement la spécification exposée par Nest : le back doit donc tourner
-(étape 6) avant de lancer la génération depuis la racine.
+Les contrôleurs Nest produisent une spécification [OpenAPI](https://swagger.io/specification/), consultable
+sur [/openapi](http://localhost:3000/openapi). [@hey-api/openapi-ts](https://heyapi.dev/openapi-ts) en tire
+le SDK du front et celui des tests bout-en-bout. Le back doit tourner (étape 6) avant de lancer la
+génération depuis la racine.
 
 ```bash
 pnpm run openapi:generate
 ```
 
-> [!NOTE]
-> Le code généré est directement embarqué dans le dépôt de code pour faciliter les choses.
-
-L'api est exploitée dans des hooks custom qui retournent la `Query` ou la `Mutation`
-de @tanstack/react-query dans le dossier [apps/client/src/queries](./apps/client/src/queries).
-Les types générés sont importables depuis `@api/types` et les conventions d'écriture de ces
-hooks sont décrites dans [apps/client/CLAUDE.md](./apps/client/CLAUDE.md).
+Le code généré est versionné et ne se modifie jamais à la main. Le front l'appelle depuis ses propres
+hooks TanStack Query, dans [apps/client/src/queries](./apps/client/src/queries), selon les conventions de
+[apps/client/CLAUDE.md](./apps/client/CLAUDE.md).
 
 ## Storybook
 
@@ -333,54 +249,31 @@ d'utilisation à destination du métier est intégré au Storybook (page "Guide 
 
 > [!NOTE]
 > Les fichiers `CLAUDE.md` contiennent de nombreuses informations relatives au style utilisé dans
-> le projet : [CLAUDE.md](./CLAUDE.md) pour le transverse, [apps/api/CLAUDE.md](./apps/api/CLAUDE.md)
-> pour le back-end et la base de données, [apps/client/CLAUDE.md](./apps/client/CLAUDE.md) pour le
-> front-end. Ils s'adressent aux LLMs mais servent aussi de référence aux développeurs.
->
-> Autrement, ne pas hésiter à se référer à ce document :
-> [https://github.com/zakirullin/cognitive-load/blob/main/README.md](https://github.com/zakirullin/cognitive-load/blob/main/README.md)
+> le projet. [CLAUDE.md](./CLAUDE.md) couvre le transverse, [apps/api/CLAUDE.md](./apps/api/CLAUDE.md)
+> le back-end et la base de données, [apps/client/CLAUDE.md](./apps/client/CLAUDE.md) le front-end. Ils
+> s'adressent aux LLMs mais servent aussi de référence aux développeurs. Le projet suit aussi les principes
+> de [cognitive-load](https://github.com/zakirullin/cognitive-load/blob/main/README.md).
 
-Les projets front et back utilisent des conventions légèrement différentes. Pour les expliciter,
-[oxlint](https://oxc.rs/docs/guide/usage/linter) et [oxfmt](https://oxc.rs/docs/guide/usage/formatter)
-ont chacun une configuration définie dans chaque projet (`.oxlintrc.json`, `.oxfmtrc.json`).
-
-Pour chaque pull request, on vérifie que le code proposé respecte ces conventions. Pour éviter des
-cycles de CI inutiles, on peut lancer les mêmes vérifications en local depuis la racine :
+Le front et le back ont chacun leur configuration [oxlint](https://oxc.rs/docs/guide/usage/linter) et
+[oxfmt](https://oxc.rs/docs/guide/usage/formatter) (`.oxlintrc.json`, `.oxfmtrc.json`). La CI les vérifie
+sur chaque pull request. La même vérification se lance en local depuis la racine.
 
 ```bash
 pnpm run prepush
 ```
 
-Le hook [husky](https://typicode.github.io/husky) `prepush` peut automatiser ce lancement avant
-chaque push (installation avec `npx husky`).
-
-Globalement, configurer son IDE pour utiliser ces configurations est le mieux. Le workspace PNPM
-peut cependant parfois provoquer des conflits.
+Le hook [husky](https://typicode.github.io/husky) `pre-push` la lance avant chaque push. Il s'installe avec
+`pnpm install` et `git push --no-verify` le saute au besoin.
 
 Une fois la pull request fusionnée dans `develop`, on déploie staging avec `bin/deploy-staging.sh`.
 
 ## Sécurité des dépendances
 
-PNPM est configuré par défaut avec les options suivantes dans le fichier [pnpm-workspace.yaml](./pnpm-workspace.yaml) :
-
-```yaml
-preferFrozenLockfile: true # n'installe que les dépendances du lockfile
-minimumReleaseAge: 10080 # attend au moins 7 jours avant de proposer une dépendance
-allowBuilds: # liste blanche des paquets autorisés à exécuter un script d'install
-  '@nestjs/core': true
-  '@prisma/client': false
-  '@swc/core': true # compilation native nécessaire
-  '@prisma/engines': false
-  '@scarf/scarf': false
-  '@sentry/cli': false
-  bcrypt: true # compilation native nécessaire
-  prisma: false # généré manuellement (voir installation) car requiert une base lancée
-```
-
-Tout paquet absent de `allowBuilds` est empêché d'exécuter ses scripts d'installation
-(`postinstall`, etc.), pour se protéger des attaques par supply chain
-(cf. [SHAI-HULUD 2](https://www.cert.ssi.gouv.fr/actualite/CERTFR-2025-ACT-051/)). On n'autorise
-que le strict nécessaire : `bcrypt`, `@nestjs/core` et `@swc/core` pour leur compilation native.
+[pnpm-workspace.yaml](./pnpm-workspace.yaml) protège l'installation des attaques par supply chain
+(cf. [SHAI-HULUD 2](https://www.cert.ssi.gouv.fr/actualite/CERTFR-2025-ACT-051/)). PNPM n'installe que
+les versions du lockfile et attend 7 jours avant de proposer une nouvelle version. Seuls les paquets dont
+la compilation ou le binaire natif l'exige exécutent leurs scripts d'installation (`postinstall`, etc.).
+Ils sont listés dans `allowBuilds`.
 
 > [!WARNING]
 > Ces mesures n'empêchent pas la plus grande vigilance avant d'installer une dépendance.

@@ -369,7 +369,7 @@ test.describe('Magistrat E2E', () => {
       canScheduleAudition: true,
       id: valrose.nominationFile.id,
       outcome: null,
-      session: { id: valrose.session.id, status: 'ONGOING' },
+      session: { id: valrose.session.id, status: 'TO_VALIDATE' },
       targetedGrade: 'G3',
     });
 
@@ -571,7 +571,7 @@ test.describe('Magistrat E2E', () => {
         auditionRequired: true,
         id: valrose.nominationFile.id,
         name: expect.stringMatching(/valrose/i),
-        session: { id: valrose.session.id, status: 'ONGOING' },
+        session: { id: valrose.session.id, status: 'TO_VALIDATE' },
       },
     });
   });
@@ -600,7 +600,6 @@ test.describe('Magistrat E2E', () => {
       expect.objectContaining({
         date: { day: 2, month: 5, year: 2026 },
         followUp: null,
-        followUpComment: null,
         hasDescription: true,
         hasUserComment: false,
         magistrat: expect.objectContaining({ id: valrose.magistratId }),

@@ -1,0 +1,75 @@
+/// A partner system that calls the public API, such as the website of the CSM
+model ApiClient {
+  /// How many tokens it may ask for in a minute
+  authLimitPerMinute      Int       @map("auth_limit_per_minute")
+  createdAt               DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  /// The `client_id` handed to the partner
+  id                      String    @id @db.Uuid
+  name                    String    @db.VarChar
+  /// Until when the secret replaced by the last rotation is accepted, so that the partner switches without being cut off.
+  /// A check constraint keeps both columns set or empty together
+  previousSecretExpiresAt DateTime? @map("previous_secret_expires_at") @db.Timestamp(6)
+  previousSecretHash      String?   @map("previous_secret_hash") @db.VarChar
+  /// Its tokens stop working at once
+  revokedAt               DateTime? @map("revoked_at") @db.Timestamp(6)
+  /// SHA-256 of a random secret, shown once when the client is created
+  secretHash              String    @map("secret_hash") @db.VarChar
+
+  accessTokens ApiAccessToken[]
+  allowedIps   ApiClientAllowedIp[]
+  scopes       ApiClientScope[]
+
+  @@map("api_clients")
+  @@schema("identity_and_access_context")
+}
+
+model ApiClientAllowedIp {
+  clientId String @map("client_id") @db.Uuid
+  ip       String @db.VarChar
+
+  client ApiClient @relation(fields: [clientId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([clientId, ip], name: "primaryKey")
+  @@map("api_client_allowed_ips")
+  @@schema("identity_and_access_context")
+}
+
+/// A route of the public API that the client may call, and how many times in a minute
+model ApiClientScope {
+  clientId       String @map("client_id") @db.Uuid
+  limitPerMinute Int    @map("limit_per_minute")
+  scope          String @db.VarChar
+
+  client ApiClient @relation(fields: [clientId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([clientId, scope], name: "primaryKey")
+  @@map("api_client_scopes")
+  @@schema("identity_and_access_context")
+}
+
+/// The calls of one minute, counted in the database so that the limit holds whatever the number of containers.
+/// No relation: the caller is a client (`client:<id>`) or, for the refused calls, an IP (`ip:<ip>`).
+/// The past minutes are purged every minute
+model ApiRateCounter {
+  caller String   @db.VarChar
+  count  Int
+  minute DateTime @db.Timestamp(0)
+  route  String   @db.VarChar
+
+  @@id([caller, route, minute], name: "primaryKey")
+  @@map("api_rate_counters")
+  @@schema("identity_and_access_context")
+}
+
+/// No index on the client: a client holds a handful of tokens, the expired ones are purged every minute
+model ApiAccessToken {
+  clientId  String   @map("client_id") @db.Uuid
+  expiresAt DateTime @map("expires_at") @db.Timestamp(6)
+  /// SHA-256 of the token, which only the response of the authentication route shows
+  hash      String   @id @db.VarChar
+
+  client ApiClient @relation(fields: [clientId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@map("api_access_tokens")
+  @@schema("identity_and_access_context")
+}

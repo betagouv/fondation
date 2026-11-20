@@ -1,7 +1,8 @@
 import { Transactional } from '@nestjs-cls/transactional';
 import { forwardRef, Inject, Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
 
-import { lockOfficialReportRawQuery } from '../../../generated/prisma/sql';
+import { Prisma } from '../../../generated/prisma/client';
+import { lockAgendasRawQuery, lockOfficialReportsRawQuery } from '../../../generated/prisma/sql';
 import { DateOnly, DateOnlyJson } from '../../../utils/date-only';
 import { isDefined } from '../../../utils/is-defined';
 import { Clock } from '../../framework/clock';
@@ -12,6 +13,7 @@ import { SimpleAuthService } from '../../simple-auth';
 import { DocNominationFileOutcomeEnum } from '../shared/domain/doc-nomination-file-outcome';
 import { AgendaFinder, FoundAgendasDto } from '../shared/infrastructure/finders/agenda.finder';
 import { DocsNominationFilesFinder } from '../shared/infrastructure/finders/docs-nomination-files.finder';
+import { namedMembersOf } from '../shared/infrastructure/named-members';
 
 import { OfficialReport } from './domain/official-report';
 import { OfficialReportChairman } from './domain/official-report-chairman';
@@ -66,6 +68,7 @@ export class OfficialReportsService {
 
   detailsSessionOfficialReport(query: {
     officialReportId: string;
+    sessionId: string;
   }): Promise<DetailedSessionOfficialReportDto> {
     return this.detailsSessionOfficialReportQuery.handle(query);
   }
@@ -162,6 +165,8 @@ export class OfficialReportsService {
     secretaryId: string;
     absentMemberIds: readonly string[];
   }): Promise<void> {
+    await this.lockOfficialReport(command.id);
+
     const report = await this.officialReportRepository.find({ actorId: command.authorId, id: command.id });
 
     const secretary = await this.auth.detailsUser({
@@ -223,7 +228,8 @@ export class OfficialReportsService {
                 {
                   nominationFileId: file.id,
                   outcome: file.outcome,
-                  reporters: file.reporters.map(({ fullTitledName }) => fullTitledName),
+                  recusedMembers: namedMembersOf(file.recusedMembers),
+                  reporters: namedMembersOf(file.reporters),
                 },
               ]
             : [],
@@ -252,8 +258,16 @@ export class OfficialReportsService {
     return this.detailsOfficialReportDocumentQuery.handle(query);
   }
 
-  deleteOfficialReport(command: { id: string }): Promise<void> {
-    return this.withOfficialReport({ actorId: null, id: command.id }, (report) => report.delete());
+  @Transactional()
+  async deleteOfficialReport(command: { id: string }): Promise<void> {
+    // the deletion unlinks the agenda before the report goes: the agenda is locked first, as everywhere else
+    const agendas = await this.db.tx.agenda.findMany({
+      where: { officialReportId: command.id },
+      select: { id: true } satisfies Prisma.AgendaSelect,
+    });
+    await this.db.tx.$queryRawTyped(lockAgendasRawQuery(agendas.map(({ id }) => id)));
+
+    await this.withOfficialReport({ actorId: null, id: command.id }, (report) => report.delete());
   }
 
   async validateOfficialReport(command: { id: string; authorId: string }): Promise<void> {
@@ -261,9 +275,7 @@ export class OfficialReportsService {
     await this.findOfficialReportDocumentPdfQuery.ensure({ id: command.id });
 
     await this.db.withTransaction(async () => {
-      // a validation sent twice waits for the first one, then finds the official report validated
-      await this.db.tx.$queryRawTyped(lockOfficialReportRawQuery(command.id));
-
+      // withOfficialReport locks the report: a validation sent twice waits for the first one, then finds it validated
       await this.withOfficialReport({ actorId: command.authorId, id: command.id }, (report) =>
         report.validate({ at: this.clock.now(), authorId: command.authorId }),
       );
@@ -272,11 +284,14 @@ export class OfficialReportsService {
 
   @Transactional()
   async discardOfficialReportDraft(command: { id: string }): Promise<void> {
+    // an update the application makes to the draft lands either before, and the draft changes show it, or after
+    await this.lockOfficialReport(command.id);
+
     const publishedId = await this.officialReportVersionFinder.published({ officialReportId: command.id });
-    const changesBy = await this.officialReportVersionFinder.draftChangesBy({ officialReportId: command.id });
+    const changes = await this.officialReportVersionFinder.draftChanges({ officialReportId: command.id });
 
     await this.withOfficialReport({ actorId: null, id: command.id }, (report) =>
-      report.discardDraft({ changesBy, hasValidatedVersion: isDefined(publishedId) }),
+      report.discardDraft({ ...changes, hasValidatedVersion: isDefined(publishedId) }),
     );
   }
 
@@ -351,6 +366,16 @@ export class OfficialReportsService {
     );
   }
 
+  resetOfficialReportFileNote(command: {
+    authorId: string;
+    id: string;
+    nominationFileId: string;
+  }): Promise<void> {
+    return this.withOfficialReport({ actorId: command.authorId, id: command.id }, (report) =>
+      report.resetFileNote({ nominationFileId: command.nominationFileId }),
+    );
+  }
+
   editOfficialReportSectionTitle(command: {
     authorId: string;
     id: string;
@@ -398,10 +423,17 @@ export class OfficialReportsService {
     query: { actorId: string | null; id: string },
     mutation: (report: OfficialReport) => void,
   ): Promise<void> {
+    await this.lockOfficialReport(query.id);
+
     const report = await this.officialReportRepository.find(query);
 
     mutation(report);
 
     await this.officialReportRepository.persist(report);
+  }
+
+  /** a validation or a discard of the draft lands before a change, which then opens a new draft, or after it */
+  private async lockOfficialReport(id: string): Promise<void> {
+    await this.db.tx.$queryRawTyped(lockOfficialReportsRawQuery([id]));
   }
 }

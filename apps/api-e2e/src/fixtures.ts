@@ -1,7 +1,13 @@
 import postgres from 'postgres';
 import { test as base, inject } from 'vitest';
 
-import { makeLoggedInUserFixture, registerUser, type RoleEnum } from './fixtures/auth.fixture.ts';
+import { makeApiClientFixture } from './fixtures/api-client.fixture.ts';
+import {
+  makeImpersonationFixture,
+  makeLoggedInUserFixture,
+  registerUser,
+  type RoleEnum,
+} from './fixtures/auth.fixture.ts';
 import { makeDocsFixture } from './fixtures/docs.fixture.ts';
 import { makeLolfiFixture } from './fixtures/lolfi.fixture.ts';
 import { makeCreateSessionFixture } from './fixtures/session.fixture.ts';
@@ -19,8 +25,9 @@ export const test = base
     return sql;
   })
   .extend('logIn', ({ baseUrl }) => makeLoggedInUserFixture(baseUrl))
+  .extend('impersonate', ({ baseUrl }) => makeImpersonationFixture(baseUrl))
   .extend('admin', ({ logIn }): Promise<TestStepsAdmin> => logIn('ADMIN'))
-  .extend('developer', ({ logIn }): Promise<TestStepsAdmin> => logIn('DEVELOPER'))
+  .extend('teamMember', ({ logIn }): Promise<TestStepsAdmin> => logIn('TEAM_MEMBER'))
   .extend('member', async ({ logIn }): Promise<TestStepsMember> => logIn('MEMBRE_COMMUN'))
   .extend('agent', async ({ logIn }): Promise<TestStepsAgent> => logIn('ADJOINT_SECRETAIRE_GENERAL'))
 
@@ -39,6 +46,9 @@ export const test = base
       return registerUser({ client, user });
     };
   })
+  .extend('apiClients', ({ baseUrl, sql }) =>
+    makeApiClientFixture({ baseUrl, databaseUrl: inject('databaseUrl'), sql }),
+  )
   .extend('lolfi', ({ admin, baseUrl }) => makeLolfiFixture({ admin, baseUrl }))
   .extend('sessions', ({ admin, lolfi }) => makeCreateSessionFixture(admin, lolfi))
   .extend('docs', ({ admin, agent, registerUser, sessions }) =>

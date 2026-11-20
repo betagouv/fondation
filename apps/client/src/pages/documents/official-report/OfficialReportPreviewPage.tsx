@@ -30,12 +30,13 @@ export function OfficialReportPreviewPage() {
 
   const { officialReportId, sessionId } = useParams<{ officialReportId: string; sessionId: string }>();
 
-  const { data: html, isPending } = useOfficialReportHtmlQuery({ id: officialReportId });
-  const { data: metadata } = useDetailsOfficialReportQuery({ officialReportId });
+  const { data: html, error: htmlError, isPending } = useOfficialReportHtmlQuery({ id: officialReportId });
+  const { data: metadata, isFetching: isFetchingMetadata } = useDetailsOfficialReportQuery({
+    officialReportId,
+  });
 
   const validate = useValidateOfficialReportMutation({
     officialReportId: officialReportId!,
-    onSuccess: () => navigate(generatePath(ROUTE_PATHS.SG.SESSION_ID_DOCUMENTS, { sessionId: sessionId! })),
     sessionId: sessionId!,
   });
 
@@ -44,7 +45,7 @@ export function OfficialReportPreviewPage() {
     sessionId: sessionId!,
   });
 
-  const title = formatMessage({ defaultMessage: 'PV de restitution' });
+  const title = formatMessage({ defaultMessage: 'Procès-verbal' });
   const isDraft = metadata?.status === 'DRAFT';
   const confirmation = useConfirmModal();
   const dateAndTime = useDateAndTime();
@@ -71,13 +72,16 @@ export function OfficialReportPreviewPage() {
 
   const isBusy = validate.isPending || discardDraft.isPending;
 
+  // the layout answers a deleted official report: only one that fresh metadata still show goes to the error page
+  if (htmlError && metadata && !isFetchingMetadata && !html) throw htmlError;
+
   return (
     <DocumentScreen
       actions={
         <>
           <Button
             linkProps={{
-              to: generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_UPDATE, {
+              to: generatePath(ROUTE_PATHS.SG.GDS.OFFICIAL_REPORT_UPDATE, {
                 officialReportId: officialReportId!,
                 sessionId: sessionId!,
               }),
@@ -88,7 +92,7 @@ export function OfficialReportPreviewPage() {
           </Button>
           <Button
             linkProps={{
-              to: generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_EDIT, {
+              to: generatePath(ROUTE_PATHS.SG.GDS.OFFICIAL_REPORT_EDIT, {
                 officialReportId: officialReportId!,
                 sessionId: sessionId!,
               }),
@@ -103,7 +107,17 @@ export function OfficialReportPreviewPage() {
             </Button>
           )}
           {metadata?.canValidate && (
-            <Button disabled={isBusy} onClick={() => validate.mutate()}>
+            <Button
+              disabled={isBusy}
+              onClick={() =>
+                validate.mutate(undefined, {
+                  onSuccess: () =>
+                    navigate(
+                      generatePath(ROUTE_PATHS.SG.GDS.SESSION_ID_DOCUMENTS, { sessionId: sessionId! }),
+                    ),
+                })
+              }
+            >
               {validate.isPending ? (
                 <FormattedMessage defaultMessage="Validation en cours..." />
               ) : (
@@ -116,7 +130,7 @@ export function OfficialReportPreviewPage() {
       backLink={
         <Link
           className="fr-link fr-link--icon-left fr-icon-arrow-left-line"
-          to={generatePath(ROUTE_PATHS.SG.SESSION_ID_DOCUMENTS, { sessionId: sessionId! })}
+          to={generatePath(ROUTE_PATHS.SG.GDS.SESSION_ID_DOCUMENTS, { sessionId: sessionId! })}
         >
           <FormattedMessage defaultMessage="Fermer" />
         </Link>
@@ -142,7 +156,7 @@ export function OfficialReportPreviewPage() {
             )}
             {metadata?.outdated && (
               <DocumentDriftBanner
-                editionPath={generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_EDIT, {
+                editionPath={generatePath(ROUTE_PATHS.SG.GDS.OFFICIAL_REPORT_EDIT, {
                   officialReportId: officialReportId!,
                   sessionId: sessionId!,
                 })}

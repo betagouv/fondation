@@ -13,6 +13,7 @@ export class AutoAffectationNominationFile {
     readonly formation: FormationEnum,
     readonly targetedGrade: GradeEnum,
     readonly workload: AutoAffectationWorkload,
+    readonly recusedMemberIds: ReadonlySet<string>,
   ) {}
 
   static from(props: {
@@ -21,6 +22,7 @@ export class AutoAffectationNominationFile {
     currentJurisdiction: string | null;
     targetedJurisdiction: string | null;
     targetedGrade: GradeEnum;
+    recusedMemberIds?: ReadonlySet<string>;
     session: { formation: FormationEnum; date: DateOnly };
   }): AutoAffectationNominationFile {
     return new AutoAffectationNominationFile(
@@ -34,6 +36,7 @@ export class AutoAffectationNominationFile {
         sessionDate: props.session.date,
         grade: props.targetedGrade,
       }),
+      props.recusedMemberIds ?? new Set(),
     );
   }
 

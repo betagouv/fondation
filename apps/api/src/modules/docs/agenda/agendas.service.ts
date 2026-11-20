@@ -1,5 +1,5 @@
 import { Transactional } from '@nestjs-cls/transactional';
-import { Injectable, StreamableFile } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, StreamableFile } from '@nestjs/common';
 
 import { Prisma } from '../../../generated/prisma/client';
 import { lockAgendasRawQuery } from '../../../generated/prisma/sql';
@@ -8,9 +8,11 @@ import { isDefined } from '../../../utils/is-defined';
 import { Clock } from '../../framework/clock';
 import { Db } from '../../framework/database';
 import { MembersService } from '../../members';
+import { TransparenceService } from '../../session/transparence/infrastructure/transparence.service';
 import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../shared/infrastructure/agenda-content';
 import { ActedNominationFilesFinder } from '../shared/infrastructure/finders/acted-nomination-files.finder';
 import { DocsNominationFilesFinder } from '../shared/infrastructure/finders/docs-nomination-files.finder';
+import { namedMembersOf } from '../shared/infrastructure/named-members';
 import { InvalidateDocsUseCase } from '../shared/infrastructure/use-cases/invalidate-docs.use-case';
 
 import { Agenda } from './domain/agenda';
@@ -54,6 +56,8 @@ export class AgendasService {
     private readonly db: Db,
 
     private readonly members: MembersService,
+    @Inject(forwardRef(() => TransparenceService))
+    private readonly sessions: TransparenceService,
   ) {}
 
   @Transactional()
@@ -69,6 +73,10 @@ export class AgendasService {
       id: command.chairmanId,
     });
 
+    const sessionNominationFileIds = await this.sessions.internalFindSessionNominationFileIds({
+      ids: command.nominationFileIds,
+      sessionId: command.sessionId,
+    });
     const { items: nominationFiles } = await this.docsNominationFilesFinder.find({
       ids: command.nominationFileIds,
       sessionId: command.sessionId,
@@ -83,6 +91,7 @@ export class AgendasService {
       authorId: command.authorId,
       chairman,
       date: DateOnly.fromJson(command.date),
+      nominationFileIds: new Set(command.nominationFileIds),
       nominationFiles: nominationFiles.map((f) => ({
         currentPosition: f.magistrat.position.label,
         grade: f.magistrat.position.grade,
@@ -90,12 +99,13 @@ export class AgendasService {
         name: f.magistrat.name,
         number: f.number,
         outcome: f.outcome,
-        reporters: f.reporters.map((r) => r.fullTitledName),
+        reporters: namedMembersOf(f.reporters),
         targetedGrade: f.targetPosition.grade,
         targetedPosition: f.targetPosition.label,
       })),
       sessionId: command.sessionId,
       sessionMeetingDate: DateOnly.fromJson(command.sessionMeetingDate),
+      sessionNominationFileIds,
     });
 
     await this.agendaRepository.persist(agenda);
@@ -111,6 +121,8 @@ export class AgendasService {
     date: DateOnlyJson;
     sessionMeetingDate: DateOnlyJson;
   }): Promise<void> {
+    await this.lockAgenda(command.agendaId);
+
     const agenda = await this.agendaRepository.find({
       actorId: command.authorId,
       agendaId: command.agendaId,
@@ -133,6 +145,8 @@ export class AgendasService {
     authorId: string;
     nominationFileIds: readonly string[];
   }): Promise<void> {
+    await this.lockAgenda(command.agendaId);
+
     const agenda = await this.agendaRepository.find({
       actorId: command.authorId,
       agendaId: command.agendaId,
@@ -141,11 +155,16 @@ export class AgendasService {
     const actedNominationFileIds = await this.actedNominationFilesFinder.find({
       fileIds: nominationFileIds,
     });
+    const sessionNominationFileIds = await this.sessions.internalFindSessionNominationFileIds({
+      ids: command.nominationFileIds,
+      sessionId: agenda.sessionId,
+    });
 
     const diff = agenda.updateFiles({
       actedNominationFileIds,
       authorId: command.authorId,
       nominationFileIds,
+      sessionNominationFileIds,
     });
 
     await this.agendaRepository.persist(agenda);
@@ -155,6 +174,9 @@ export class AgendasService {
 
   @Transactional()
   async deleteAgenda(command: { agendaId: string }): Promise<void> {
+    // the deletion reaches the official report before the agenda: the agenda is locked first, as everywhere else
+    await this.lockAgenda(command.agendaId);
+
     const agenda = await this.agendaRepository.find({ actorId: null, agendaId: command.agendaId });
     agenda.delete();
     await this.agendaRepository.persist(agenda);
@@ -182,7 +204,7 @@ export class AgendasService {
 
     await this.db.withTransaction(async () => {
       // a validation sent twice waits for the first one, then finds the agenda validated
-      await this.db.tx.$queryRawTyped(lockAgendasRawQuery([command.agendaId]));
+      await this.lockAgenda(command.agendaId);
 
       await this.announcingSentenceChanges(command.agendaId, async () => {
         const agenda = await this.agendaRepository.find({
@@ -201,12 +223,15 @@ export class AgendasService {
 
   @Transactional()
   async discardAgendaDraft(command: { agendaId: string }): Promise<void> {
+    // an update the application makes to the draft lands either before, and the draft changes show it, or after
+    await this.lockAgenda(command.agendaId);
+
     await this.announcingSentenceChanges(command.agendaId, async () => {
       const hasValidatedVersion = await this.agendaVersionFinder.published({ agendaId: command.agendaId });
-      const changesBy = await this.agendaVersionFinder.draftChangesBy({ agendaId: command.agendaId });
+      const changes = await this.agendaVersionFinder.draftChanges({ agendaId: command.agendaId });
 
       const agenda = await this.agendaRepository.find({ actorId: null, agendaId: command.agendaId });
-      agenda.discardDraft({ changesBy, hasValidatedVersion: isDefined(hasValidatedVersion) });
+      agenda.discardDraft({ ...changes, hasValidatedVersion: isDefined(hasValidatedVersion) });
       await this.agendaRepository.persist(agenda);
     });
   }
@@ -219,6 +244,8 @@ export class AgendasService {
     html: string;
     outdated: boolean;
   }): Promise<void> {
+    await this.lockAgenda(command.agendaId);
+
     await this.announcingSentenceChanges(command.agendaId, async () => {
       const agenda = await this.agendaRepository.find({
         actorId: command.authorId,
@@ -236,6 +263,8 @@ export class AgendasService {
 
   @Transactional()
   async resetAgendaFileBlock(command: { agendaId: string; authorId: string; fileId: bigint }): Promise<void> {
+    await this.lockAgenda(command.agendaId);
+
     await this.announcingSentenceChanges(command.agendaId, async () => {
       const agenda = await this.agendaRepository.find({
         actorId: command.authorId,
@@ -244,6 +273,11 @@ export class AgendasService {
       agenda.resetFileBlock({ fileId: command.fileId });
       await this.agendaRepository.persist(agenda);
     });
+  }
+
+  /** a validation or a discard of the draft lands before a change, which then opens a new draft, or after it */
+  private async lockAgenda(agendaId: string): Promise<void> {
+    await this.db.tx.$queryRawTyped(lockAgendasRawQuery([agendaId]));
   }
 
   /**

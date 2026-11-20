@@ -2,7 +2,7 @@ import { useIntl } from 'react-intl';
 
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { areReportersMissing, isAuditionMissing } from '@/utils/audition-expectation.util';
-import { isUpdatable, type SessionNominationFile } from '@queries/nomination-sessions.queries';
+import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
 type AuditionExpectation = {
   /** the members hear about an audition to schedule, the secretariat is asked to schedule it */
@@ -22,7 +22,7 @@ export function useAuditionExpectation(
   const auditionMissing = isAuditionMissing(nominationFile);
   const reportersMissing = areReportersMissing(
     {
-      canAffectReporters: isUpdatable(nominationFile),
+      canAffectReporters: nominationFile.canUpdate,
       expectedReportersCount: nominationFile.expectedReportersCount,
     },
     options.selectedReportersCount ?? nominationFile.reporters.length,

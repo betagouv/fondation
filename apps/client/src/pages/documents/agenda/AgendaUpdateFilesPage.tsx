@@ -6,7 +6,11 @@ import { AgendaFilesSelectionTable } from '@/features/documents/components/agend
 import { AgendaWorkScreen } from '@/features/documents/components/agenda/AgendaWorkScreen';
 import { HttpException } from '@/utils/http-exception';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import { useDetailsAgendaFilesQuery, useUpdateAgendaFilesMutation } from '@queries/agenda.queries';
+import {
+  useDetailsAgendaFilesQuery,
+  useDetailsAgendaMetadataQuery,
+  useUpdateAgendaFilesMutation,
+} from '@queries/agenda.queries';
 import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
 
 export function AgendaUpdateFilesPage() {
@@ -18,7 +22,8 @@ export function AgendaUpdateFilesPage() {
   const [actionsSlot, setActionsSlot] = useState<HTMLDivElement | null>(null);
 
   const { data: session } = useDetailedNominationSessionQuery({ sessionId });
-  const { data: files, isFetching } = useDetailsAgendaFilesQuery({ agendaId });
+  const { data: files, error: filesError, isFetching } = useDetailsAgendaFilesQuery({ agendaId });
+  const { data: metadata, isFetching: isFetchingMetadata } = useDetailsAgendaMetadataQuery({ agendaId });
   const update = useUpdateAgendaFilesMutation(sessionId, agendaId);
 
   const onSubmit = useCallback(
@@ -37,7 +42,7 @@ export function AgendaUpdateFilesPage() {
               setError(defaultError);
             }
           },
-          onSuccess: () => navigate(generatePath(ROUTE_PATHS.SG.AGENDA_PREVIEW, { agendaId, sessionId })),
+          onSuccess: () => navigate(generatePath(ROUTE_PATHS.SG.GDS.AGENDA_PREVIEW, { agendaId, sessionId })),
         },
       );
     },
@@ -45,9 +50,12 @@ export function AgendaUpdateFilesPage() {
   );
 
   const onCancel = useCallback(
-    () => navigate(generatePath(ROUTE_PATHS.SG.AGENDA_PREVIEW, { agendaId, sessionId })),
+    () => navigate(generatePath(ROUTE_PATHS.SG.GDS.AGENDA_PREVIEW, { agendaId, sessionId })),
     [agendaId, navigate, sessionId],
   );
+
+  // the layout answers a deleted agenda: only one that fresh metadata still show goes to the error page
+  if (filesError && metadata && !isFetchingMetadata && !files) throw filesError;
 
   return (
     <AgendaWorkScreen

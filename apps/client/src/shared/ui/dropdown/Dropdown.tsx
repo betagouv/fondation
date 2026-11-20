@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import { useEffect, useId, useImperativeHandle, useRef, useState, type ReactNode, type Ref } from 'react';
 import { FormattedMessage } from 'react-intl';
 
-export type DropdownOption = { label: ReactNode; value: string };
+export type DropdownOption = { disabled?: boolean; label: ReactNode; value: string };
 
 export type DropdownHandle = { focusTrigger: () => void };
 
@@ -11,6 +11,7 @@ export type DropdownHandle = { focusTrigger: () => void };
 const FORCED_FOCUS_RING = '[&[data-forced-focus]:focus]:[outline-style:solid]';
 
 type DropdownProps = {
+  'aria-describedby'?: string;
   className?: string;
   disabled?: boolean;
   label?: ReactNode;
@@ -96,12 +97,19 @@ export function Dropdown(props: DropdownProps) {
       <span className="text-(--text-mention-grey)">{props.placeholder}</span>
     );
 
+  // the label alone would hide the chosen value: a single selection appends the trigger's own content
+  const labelledBy = clsx(
+    props.label != null && labelId,
+    props.multiple ? selectionId : props.label != null && triggerId,
+  );
+
   const trigger = (
     <button
       aria-controls={open ? listboxId : undefined}
+      aria-describedby={props['aria-describedby']}
       aria-expanded={open}
       aria-haspopup="listbox"
-      aria-labelledby={clsx(props.label != null && labelId, props.multiple && selectionId) || undefined}
+      aria-labelledby={labelledBy || undefined}
       className={clsx(
         'text-left font-[inherit]',
         props.disabled ? 'cursor-not-allowed' : 'cursor-pointer',
@@ -193,8 +201,8 @@ export function Dropdown(props: DropdownProps) {
             <li key={option.value} role="presentation">
               <button
                 aria-selected={isSelected(option.value)}
-                className="fr-px-2v fr-py-2v flex w-full items-center justify-between gap-2 text-left hover:bg-(--background-default-grey-hover)"
-                disabled={props.disabled}
+                className="fr-px-2v fr-py-2v flex w-full items-center justify-between gap-2 text-left hover:bg-(--background-default-grey-hover) disabled:cursor-not-allowed"
+                disabled={props.disabled || option.disabled}
                 onClick={() => select(option.value)}
                 role="option"
                 type="button"

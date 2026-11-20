@@ -5,6 +5,13 @@ import { LolfiFunction, LolfiJurisdiction } from 'lolfi';
  */
 
 export const functions = {
+  C: {
+    formation: 'SIEGE',
+    id: 'C',
+    label: 'Conseiller',
+    labelOneFemale: 'conseillère',
+    labelOneMale: 'conseiller',
+  },
   P: {
     addition: 'du {codejur}',
     formation: 'SIEGE',
@@ -13,12 +20,26 @@ export const functions = {
     labelOneFemale: 'présidente',
     labelOneMale: 'président',
   },
+  PC: {
+    formation: 'SIEGE',
+    id: 'PC',
+    label: 'Président de Chambre',
+    labelOneFemale: 'présidente de chambre',
+    labelOneMale: 'président de chambre',
+  },
   PG: {
     formation: 'PARQUET',
     id: 'PG',
     label: 'Procureur Général',
     labelOneFemale: 'procureure générale',
     labelOneMale: 'procureur général',
+  },
+  PP: {
+    formation: 'SIEGE',
+    id: 'PP',
+    label: 'Premier Président',
+    labelOneFemale: 'première présidente',
+    labelOneMale: 'premier président',
   },
   PR: {
     formation: 'PARQUET',
@@ -36,6 +57,8 @@ export const jurisdictions = {
   'CA  LYON': { id: 'CA  LYON', label: "Cour d'appel de Lyon" },
   'CA  MONTPELLIER': { id: 'CA  MONTPELLIER', label: "Cour d'appel de Montpellier" },
   'CA  REIMS': { id: 'CA  REIMS', label: "Cour d'appel de Reims" },
+  'CA  TOULOUSE': { id: 'CA  TOULOUSE', label: "Cour d'appel de Toulouse" },
+  'CC  PARIS': { id: 'CC  PARIS', label: 'Cour de Cassation' },
   'TJ  BEZIERS': {
     id: 'TJ  BEZIERS',
     label: 'Tribunal judiciaire de Béziers',
@@ -57,10 +80,20 @@ export const jurisdictions = {
     label: 'Tribunal judiciaire de Toulon',
     ressort: 'CA  AIX EN PROVENCE',
   },
+  'TJ  TOULOUSE': { id: 'TJ  TOULOUSE', label: 'Tribunal judiciaire de Toulouse', ressort: 'CA  TOULOUSE' },
+  'TPI SAINT PIERRE ET MIQUELON': {
+    id: 'TPI SAINT PIERRE ET MIQUELON',
+    label: 'Tribunal de première instance de Saint-Pierre et Miquelon',
+    ressort: 'TSA SAINT PIERRE ET MIQUELON',
+  },
   'TPR CANNES': {
     arrondissement: 'TJ  GRASSE',
     id: 'TPR CANNES',
     label: 'Tribunal de proximité de Cannes',
     ressort: 'CA  AIX EN PROVENCE',
+  },
+  'TSA SAINT PIERRE ET MIQUELON': {
+    id: 'TSA SAINT PIERRE ET MIQUELON',
+    label: "Tribunal supérieur d'appel de Saint-Pierre et Miquelon",
   },
 } as const satisfies Record<string, LolfiJurisdiction>;

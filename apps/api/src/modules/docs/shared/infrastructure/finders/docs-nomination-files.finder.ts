@@ -44,19 +44,34 @@ export class DocsNominationFilesFinder {
     return { items: await this.withDocsOutcomes(found, query) };
   }
 
+  /** the name each document prints today for the magistrat of a nomination file, by nomination file id */
+  async magistratNames(query: {
+    ids: readonly string[];
+    sessionId: string;
+  }): Promise<ReadonlyMap<string, string>> {
+    if (query.ids.length === 0) return new Map();
+
+    const { items } = await this.sessions.internalFindNominationFiles(query);
+    return new Map(items.map((file) => [file.id, file.magistrat.name]));
+  }
+
   @Transactional()
   async findForAgenda(query: { sessionId: string }): Promise<FoundAgendaNominationFiles> {
     const found = await this.sessions.internalFindNominationFiles({ sessionId: query.sessionId });
-    const sessionNominationFiles = await this.withDocsOutcomes(found, query);
 
     const actedNominationFiles = await this.actedNominationFilesFinder.find({
-      fileIds: new Set(sessionNominationFiles.map(({ id }) => id)),
+      fileIds: new Set(found.items.map(({ id }) => id)),
     });
 
     return {
-      items: sessionNominationFiles,
+      items: found.items.map(({ id, magistrat, number, reporters }) => ({
+        id,
+        magistrat: { name: magistrat.fullName },
+        number,
+        reporters: reporters.map((reporter) => ({ id: reporter.id })),
+      })),
       ineligible: [
-        ...sessionNominationFiles.flatMap(({ id }) =>
+        ...found.items.flatMap(({ id }) =>
           actedNominationFiles.has(id) ? [{ id, reason: 'REPORTED' as const }] : [],
         ),
         ...found.unidentifiedIds.map((id) => ({ id, reason: 'UNIDENTIFIED' as const })),
@@ -141,6 +156,8 @@ export class FoundDocsNominationFiles extends createZodDto(
             fullTitledName: z.string(),
           }),
         ),
+        /** in protocol order */
+        recusedMembers: z.array(z.object({ id: z.string(), fullTitledName: z.string() })),
 
         outcome: z
           .object({
@@ -175,8 +192,18 @@ export class FoundDocsNominationFiles extends createZodDto(
 
 export const AGENDA_INELIGIBILITY_REASONS = ['REPORTED', 'UNIDENTIFIED'] as const;
 
+/** what the agenda files selection shows, not what the documents print */
 export class FoundAgendaNominationFiles extends createZodDto(
-  FoundDocsNominationFiles.schema.extend({
+  z.object({
+    items: z.array(
+      z.object({
+        id: z.string(),
+        number: z.number(),
+        magistrat: z.object({ name: z.string() }),
+        /** the published reporters: the agenda prints none without a publication */
+        reporters: z.array(z.object({ id: z.string() })),
+      }),
+    ),
     ineligible: z.array(
       z.object({
         id: z.uuid(),

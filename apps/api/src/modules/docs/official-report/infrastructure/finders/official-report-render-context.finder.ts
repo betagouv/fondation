@@ -14,11 +14,13 @@ import { prismaGenderEnumToGenderEnum } from '../../../../shared/mappers/gender-
 import { prismaRoleEnumToRoleEnum } from '../../../../shared/mappers/role-enum.mapper';
 import { DocNominationFileOutcomeEnum } from '../../../shared/domain/doc-nomination-file-outcome';
 import { agendaContentOf } from '../../../shared/infrastructure/agenda-content';
+import { parseNamedMembers } from '../../../shared/infrastructure/named-members';
 import { OfficialReportChairman } from '../../domain/official-report-chairman';
 import { OfficialReportMember } from '../../domain/official-report-member';
 import { OfficialReportMembersList } from '../../domain/official-report-member-list';
 import { OfficialReportSecretary } from '../../domain/official-report-secretary';
 import { OfficialReportSessionMeeting } from '../../domain/official-report-session-meeting';
+import { officialReportFileNote } from '../services/renderers/official-report-note.html';
 import type { OfficialReportRenderContext } from '../services/renderers/official-report.renderer';
 
 import { OfficialReportVersionFinder } from './official-report-version.finder';
@@ -82,9 +84,12 @@ export class OfficialReportRenderContextFinder {
             note: true,
             noteEditedAt: true,
             noteEditor: { select: { firstName: true, id: true, lastName: true } },
+            noteOutdatedBy: true,
+            noteStatus: true,
             number: true,
             outcome: true,
             position: true,
+            recusedMembers: true,
             reporters: true,
             targetedGrade: true,
             targetedPosition: true,
@@ -288,10 +293,10 @@ export class OfficialReportRenderContextFinder {
         nominationFileId: isDefined(f.nominationFileId)
           ? makeId('NominationFileId', f.nominationFileId)
           : null,
-        note: f.note ? { editedAt: f.noteEditedAt, editedBy: writerOf(f.noteEditor), html: f.note } : null,
+        note: officialReportFileNote(f),
         number: f.number,
         outcome: f.outcome,
-        reporters: f.reporters,
+        reporters: parseNamedMembers(f.reporters).map(({ name }) => name),
         targetedGrade: f.targetedGrade,
         targetedPosition: f.targetedPosition ?? '',
       })),

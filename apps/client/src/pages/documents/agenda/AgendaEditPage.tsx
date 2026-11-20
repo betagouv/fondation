@@ -40,8 +40,16 @@ export function AgendaEditPage() {
   const officialReportPath: string | null =
     typeof state?.officialReportPath === 'string' ? state.officialReportPath : null;
 
-  const { data: document, isFetchedAfterMount } = useAgendaDocumentBlocksQuery({ id: agendaId });
-  const { data: metadata, refetch: refetchMetadata } = useDetailsAgendaMetadataQuery({ agendaId });
+  const {
+    data: document,
+    error: documentError,
+    isFetchedAfterMount,
+  } = useAgendaDocumentBlocksQuery({ id: agendaId });
+  const {
+    data: metadata,
+    isFetching: isFetchingMetadata,
+    refetch: refetchMetadata,
+  } = useDetailsAgendaMetadataQuery({ agendaId });
 
   const [pendingRevalidations, setPendingRevalidations] = useState({ others: 0, propositions: 0 });
   const [isSaving, setIsSaving] = useState(false);
@@ -110,7 +118,7 @@ export function AgendaEditPage() {
               label: formatMessage({ defaultMessage: "Voir l'aperçu" }),
               onClick: () =>
                 navigate(
-                  generatePath(ROUTE_PATHS.SG.AGENDA_PREVIEW, {
+                  generatePath(ROUTE_PATHS.SG.GDS.AGENDA_PREVIEW, {
                     agendaId: agendaId!,
                     sessionId: sessionId!,
                   }),
@@ -152,6 +160,9 @@ export function AgendaEditPage() {
     setSaveError(null);
     rebuildEditorOnStoredBlocks();
   };
+
+  // the layout answers a deleted agenda: only one that fresh metadata still show goes to the error page
+  if (documentError && metadata && !isFetchingMetadata && !document) throw documentError;
 
   return (
     <DocumentScreen

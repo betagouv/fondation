@@ -13,6 +13,7 @@ export type SessionUser = Pick<
   | 'email'
   | 'firstName'
   | 'formation'
+  | 'gender'
   | 'isAdmin'
   | 'isImpersonated'
   | 'lastName'
@@ -38,6 +39,7 @@ function introspectSession(): Promise<SessionUser | null> {
             email: data.email,
             firstName: data.firstName,
             formation: data.formation,
+            gender: data.gender,
             id: data.userId,
             isAdmin: data.isAdmin,
             isImpersonated: data.isImpersonated,
@@ -89,7 +91,7 @@ export function usePasswordLogin() {
       const authorization = btoa(String.fromCharCode(...credentials));
       return $api.auth.login({ headers: { authorization: `Basic ${authorization}` } });
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: authKeys.introspectSession() }),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: authKeys.introspectSession() }),
   });
 }
 

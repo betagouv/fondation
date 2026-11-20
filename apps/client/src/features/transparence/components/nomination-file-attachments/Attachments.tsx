@@ -1,32 +1,35 @@
 import { Alert } from '@codegouvfr/react-dsfr/Alert';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { useCallback } from 'react';
-import { FormattedMessage, useIntl } from 'react-intl';
+import { defineMessages, FormattedMessage, useIntl } from 'react-intl';
 
-import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import type { NominationFileAttachmentTypeEnum } from '@/features/transparence/components/nomination-file-attachments/nomination-file-attachment-type';
 import { FileList, FileListItem } from '@/shared/components/file-list';
+import { useRenameAttachmentModal } from '@/shared/components/rename-attachment';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { useAttachmentFailureToast } from '@/shared/hooks/useAttachmentFailureToast';
+import { useRequestFailure } from '@/shared/hooks/useRequestFailure';
 import { useTab } from '@/shared/hooks/useTab';
 import { useDownloadFileMutation } from '@queries/files.queries';
 import {
   useCreateNominationFileAttachmentUrlMutation,
   useListNominationFileAttachmentsQuery,
   useRemoveNominationFileAttachmentMutation,
+  useRenameNominationFileAttachmentMutation,
 } from '@queries/nomination-sessions.queries';
 
 import { attachmentsSectionId } from './attachments-section';
 import { useAddNominationFileAttachmentModal } from './context/AddNominationFileAttachmentModalContext';
 import { NominationFileAttachmentTypeTag } from './NominationFileAttachmentTypeTag';
 
-export function Attachments(props: {
-  headingLevel?: 2;
-  isUpdatable: boolean;
-  nominationFileId: string;
-  sessionId: string;
-}) {
-  const isSg = useIsSgNavigation();
+// see CantUpdateNominationFiles: the mutation then reloads the attachments, without their actions
+const REMOVE_FAILURES = defineMessages({
+  conflict: {
+    defaultMessage: 'Le dossier a été figé entre-temps : ses pièces jointes ne se suppriment plus.',
+  },
+});
+
+export function Attachments(props: { headingLevel?: 2; nominationFileId: string; sessionId: string }) {
   const { open: openAddAttachment } = useAddNominationFileAttachmentModal();
   const { data } = useListNominationFileAttachmentsQuery({
     nominationFileId: props.nominationFileId,
@@ -34,7 +37,7 @@ export function Attachments(props: {
   });
 
   const attachments = data?.items ?? [];
-  const canManage = isSg && props.isUpdatable;
+  const canManage = !!data?.canManageAttachments;
   const labelId = `attachments-${props.nominationFileId}`;
   const Heading = props.headingLevel === 2 ? 'h2' : 'p';
   const headingClass = props.headingLevel === 2 ? 'fr-h6 fr-mb-0' : 'fr-mb-0 text-xl font-semibold';
@@ -52,6 +55,7 @@ export function Attachments(props: {
         </Heading>
         {canManage && (
           <Button
+            className="btn-compact"
             onClick={() =>
               openAddAttachment({
                 nominationFileId: props.nominationFileId,
@@ -72,7 +76,7 @@ export function Attachments(props: {
             <AttachmentItem
               addedAt={file.addedAt}
               addedBy={file.addedBy}
-              canDelete={canManage}
+              canManage={canManage}
               fileId={file.id}
               key={file.id}
               name={file.name}
@@ -95,7 +99,7 @@ export function Attachments(props: {
 function AttachmentItem(props: {
   addedAt: string;
   addedBy: { id: string; name: string } | null;
-  canDelete: boolean;
+  canManage: boolean;
   fileId: string;
   name: string;
   nominationFileId: string;
@@ -108,17 +112,23 @@ function AttachmentItem(props: {
   const notifyFailure = useAttachmentFailureToast();
   const { isPending: isUrlPending, mutate: createUrl } = useCreateNominationFileAttachmentUrlMutation();
   const { isPending: isDownloadPending, mutate: download } = useDownloadFileMutation();
+  const describeFailure = useRequestFailure(REMOVE_FAILURES);
   const {
-    isError: isRemoveError,
+    error: removeError,
     isPending: isRemovePending,
     mutate: remove,
     reset: resetRemove,
   } = useRemoveNominationFileAttachmentMutation();
   const { waitForConfirmation } = useConfirmModal();
-
-  const error = isRemoveError
-    ? formatMessage({ defaultMessage: 'La suppression du fichier a échoué. Veuillez réessayer.' })
-    : null;
+  const { mutateAsync: renameAttachment } = useRenameNominationFileAttachmentMutation();
+  const renaming = useRenameAttachmentModal((file: { id: string; name: string }, name) =>
+    renameAttachment({
+      fileId: file.id,
+      name,
+      nominationFileId: props.nominationFileId,
+      sessionId: props.sessionId,
+    }),
+  );
 
   const onPreview = useCallback(() => {
     const attachmentTab = tab.openDeferred({
@@ -201,19 +211,22 @@ function AttachmentItem(props: {
       disabled={isUrlPending || isDownloadPending || isRemovePending}
       header={<NominationFileAttachmentTypeTag type={props.type} />}
       name={props.name}
-      onDelete={props.canDelete ? onDelete : undefined}
+      onDelete={props.canManage ? onDelete : undefined}
       onDownload={onDownload}
       onOpen={onPreview}
+      onRename={props.canManage ? () => renaming.open({ id: props.fileId, name: props.name }) : undefined}
       size={props.size}
     >
-      {error && (
+      {renaming.modal}
+      {removeError && (
         <Alert
           className="fr-mt-2v"
           closable
-          description={error}
+          description={describeFailure(removeError)}
           onClose={resetRemove}
           severity="error"
           small
+          title={formatMessage({ defaultMessage: 'La suppression de la pièce jointe a échoué' })}
         />
       )}
     </FileListItem>

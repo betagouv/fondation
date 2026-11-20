@@ -1,10 +1,17 @@
 import { NominationFileOutcome } from '../nomination-file-outcome.enum';
 
-import { canKeepMemberMemo, canScheduleAudition, nominationFileLock } from './nomination-file.policies';
+import {
+  canScheduleAudition,
+  canUpdateNominationFile,
+  jurisdictionSheetRequired,
+  memberMemoVisibility,
+  nominationFileLock,
+  sgCommentChangeSeenBy,
+} from './nomination-file.policies';
 
 describe('nominationFileLock', () => {
   describe('given a non-archived session', () => {
-    const session = { archivedAt: null };
+    const session = { isArchived: false };
 
     it('leaves a file open while it has not been reported', () => {
       expect(nominationFileLock({ isReported: false }, session)).toBeNull();
@@ -16,7 +23,7 @@ describe('nominationFileLock', () => {
   });
 
   describe('given an archived session', () => {
-    const session = { archivedAt: new Date() };
+    const session = { isArchived: true };
 
     it('locks a file that was never reported', () => {
       expect(nominationFileLock({ isReported: false }, session)).toBe('ARCHIVED_SESSION');
@@ -30,7 +37,7 @@ describe('nominationFileLock', () => {
 
 describe('canScheduleAudition', () => {
   describe('given a non-archived session', () => {
-    const session = { archivedAt: null };
+    const session = { isArchived: false };
 
     it('allows an audition when no outcome is defined yet', () => {
       expect(canScheduleAudition({ outcome: null }, session)).toBe(true);
@@ -52,25 +59,100 @@ describe('canScheduleAudition', () => {
   });
 
   describe('given an archived session', () => {
-    const session = { archivedAt: new Date() };
+    const session = { isArchived: true };
     it.each(NominationFileOutcome.enum)(`prevents to schedule an audition with outcome: %s`, (outcome) => {
       expect(canScheduleAudition({ outcome }, session)).toBe(false);
     });
   });
 });
 
-describe('canKeepMemberMemo', () => {
-  const member = { id: 'member-1', role: 'MEMBRE_DU_SIEGE' } as const;
+describe('memberMemoVisibility', () => {
+  const member = { id: 'member-1', impersonation: undefined, role: 'MEMBRE_DU_SIEGE' } as const;
 
   it('lets a member keep notes on a file reported by others', () => {
-    expect(canKeepMemberMemo({ reporterIds: ['member-2'] }, member)).toBe(true);
+    expect(memberMemoVisibility({ reporterIds: ['member-2'] }, member)).toBe('VISIBLE');
+  });
+
+  it('keeps the notes of a member private from the admin impersonating them', () => {
+    const impersonated = { ...member, impersonation: { impersonatorId: 'admin-1' } };
+
+    expect(memberMemoVisibility({ reporterIds: ['member-2'] }, impersonated)).toBe('PRIVATE');
   });
 
   it('keeps a reporter from taking notes on a file in their charge', () => {
-    expect(canKeepMemberMemo({ reporterIds: ['member-2', member.id] }, member)).toBe(false);
+    expect(memberMemoVisibility({ reporterIds: ['member-2', member.id] }, member)).toBeNull();
   });
 
   it.each(['ADJOINT_SECRETAIRE_GENERAL'] as const)('keeps the secretariat (%s) from taking notes', (role) => {
-    expect(canKeepMemberMemo({ reporterIds: [] }, { id: 'sg-1', role })).toBe(false);
+    expect(
+      memberMemoVisibility({ reporterIds: [] }, { id: 'sg-1', impersonation: undefined, role }),
+    ).toBeNull();
   });
+});
+
+describe('canUpdateNominationFile', () => {
+  const secretariat = { role: 'ADJOINT_SECRETAIRE_GENERAL' } as const;
+
+  it('lets the secretariat update an open file', () => {
+    expect(canUpdateNominationFile({ lockedReason: null }, secretariat)).toBe(true);
+  });
+
+  it.each(['ARCHIVED_SESSION', 'REPORTED'] as const)('freezes a locked file (%s)', (lockedReason) => {
+    expect(canUpdateNominationFile({ lockedReason }, secretariat)).toBe(false);
+  });
+
+  it.each(['MEMBRE_COMMUN', 'MEMBRE_DU_PARQUET', 'MEMBRE_DU_SIEGE'] as const)(
+    'never lets a member (%s) update it',
+    (role) => {
+      expect(canUpdateNominationFile({ lockedReason: null }, { role })).toBe(false);
+    },
+  );
+});
+
+describe('jurisdictionSheetRequired', () => {
+  const secretariat = { role: 'ADJOINT_SECRETAIRE_GENERAL' } as const;
+  const awaited = {
+    alertHidden: false,
+    hasJurisdictionSheet: false,
+    lockedReason: null,
+    targetedPosition: 'Procureur de la République TJ GRASSE',
+  };
+
+  it('asks the secretariat for the sheet of a position that requires one', () => {
+    expect(jurisdictionSheetRequired(awaited, secretariat)).toBe(true);
+  });
+
+  it('stops asking once the sheet is attached or the alert hidden', () => {
+    expect(jurisdictionSheetRequired({ ...awaited, hasJurisdictionSheet: true }, secretariat)).toBe(false);
+    expect(jurisdictionSheetRequired({ ...awaited, alertHidden: true }, secretariat)).toBe(false);
+  });
+
+  it('asks nothing of a position without a sheet', () => {
+    expect(
+      jurisdictionSheetRequired(
+        { ...awaited, targetedPosition: 'Premier vice-procureur TJ LYON' },
+        secretariat,
+      ),
+    ).toBe(false);
+  });
+
+  it('asks nothing of whoever cannot update the dossier', () => {
+    expect(jurisdictionSheetRequired({ ...awaited, lockedReason: 'REPORTED' }, secretariat)).toBe(false);
+    expect(jurisdictionSheetRequired(awaited, { role: 'MEMBRE_COMMUN' })).toBe(false);
+  });
+});
+
+describe('sgCommentChangeSeenBy', () => {
+  const change = { at: '2026-11-18T09:42:00.000Z', by: { id: 'sg-1', name: 'Anne\u00A0ROY' } };
+
+  it('names the author to the secretariat', () => {
+    expect(sgCommentChangeSeenBy(change, { role: 'ADJOINT_SECRETAIRE_GENERAL' })).toEqual(change);
+  });
+
+  it.each(['MEMBRE_COMMUN', 'MEMBRE_DU_PARQUET', 'MEMBRE_DU_SIEGE'] as const)(
+    'gives the date without the author to a %s',
+    (role) => {
+      expect(sgCommentChangeSeenBy(change, { role })).toEqual({ at: change.at, by: null });
+    },
+  );
 });

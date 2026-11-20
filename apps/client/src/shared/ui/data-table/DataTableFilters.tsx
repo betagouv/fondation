@@ -41,7 +41,8 @@ function DataTableEnumFilter<Data extends RowData>(props: {
     <DropdownFilter
       onSelectionChange={onSelectionChange}
       options={options}
-      selectedValues={currentFilter.value}
+      // the URL holds anything once edited by hand
+      selectedValues={Array.isArray(currentFilter.value) ? currentFilter.value : []}
       tagName={props.filter.label}
     />
   );
@@ -54,25 +55,13 @@ export function DataTableFilters<Data extends RowData>(props: { table: Table<Dat
         <FormattedMessage defaultMessage="Filtrer par" />
       </span>
       {props.table.options.columns
-        .filter((col) => !!col.meta?.filters)
-        .map((col) => {
-          switch (col.meta?.filters?.type) {
+        .flatMap((col) => col.meta?.filters ?? [])
+        .map((filter) => {
+          switch (filter.type) {
             case 'enum':
-              return (
-                <DataTableEnumFilter
-                  filter={col.meta.filters}
-                  key={col.meta.filters.filterId}
-                  table={props.table}
-                />
-              );
+              return <DataTableEnumFilter filter={filter} key={filter.filterId} table={props.table} />;
             case 'asyncList':
-              return (
-                <DataTableAsyncListFilter
-                  filter={col.meta.filters}
-                  key={col.meta.filters.filterId}
-                  table={props.table}
-                />
-              );
+              return <DataTableAsyncListFilter filter={filter} key={filter.filterId} table={props.table} />;
             default:
               return null;
           }

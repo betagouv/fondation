@@ -1,14 +1,14 @@
 # Droits par rôle
 
-Ce document liste ce que chaque rôle peut voir et faire dans Fondation : les vues du client, puis les actions de l'API, puis les accès sans utilisateur. Il décrit les droits voulus. Deux tests le confrontent au code à chaque pull request : une ligne manquante, en trop ou dont les rôles diffèrent de ceux du code les fait échouer. Un changement de droit apparaît donc toujours dans le listing.
+Ce document liste ce que chaque rôle peut voir et faire dans Fondation (les vues du client, les actions de l'API, puis les accès sans utilisateur). Deux tests le confrontent au code à chaque pull request. Une ligne manquante, en trop ou aux rôles différents les fait échouer.
 
 ## Lecture
 
 **Rôles**
 
-- **Membre** : Membre du siège, Membre du parquet ou Membre commun. Un Membre du siège ou du parquet ne voit que les sessions de sa formation, un Membre commun voit les deux.
+- **Membre** : du siège, du parquet ou commun. Les deux premiers ne voient que les sessions de leur formation, le Membre commun voit les deux.
 - **Secrétariat général**.
-- **Administrateur** : personne du Secrétariat général qui détient en plus le droit d'administrateur. Elle passe toutes les gardes de rôle, côté API comme côté client, et peut se connecter à la place d'un autre utilisateur. Le domaine lui refuse ce qu'il refuse au Secrétariat général.
+- **Administrateur** : personne du Secrétariat général avec le droit d'administrateur. Elle passe toutes les gardes de rôle (API et client) et peut se connecter à la place d'un autre utilisateur. Le domaine lui refuse ce qu'il refuse au Secrétariat général.
 
 **Cases**
 
@@ -27,7 +27,7 @@ Les tests vérifient les rôles : une case `✓ si …` compte comme `✓`. Les 
 
 ## Vues
 
-Après la connexion, un Membre arrive sur `/transparences`, le Secrétariat général sur `/secretariat-general`. Le Secrétariat général n'ouvre pas les URL de l'espace membre, et un Membre n'ouvre pas celles du Secrétariat général. Les URL qui ne font que rediriger vers une autre ne sont pas des vues et ne figurent pas ici.
+Après la connexion, un Membre arrive sur `/transparences`, le Secrétariat général sur `/secretariat-general`. Aucun des deux n'ouvre les URL de l'espace de l'autre. Les URL qui ne font que rediriger ne figurent pas ici.
 
 ### Pages publiques
 
@@ -53,57 +53,65 @@ L'administrateur voit le questionnaire de satisfaction en aperçu : sa réponse 
 
 Le menu propose Accueil, Archives et Magistrats.
 
-| URL                                                                                                                                    | Vue                                    | Membre                                 | Secrétariat général | Administrateur |
-| -------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- | -------------------------------------- | ------------------- | -------------- |
-| `/transparences`                                                                                                                       | Mes sessions en cours                  | ✓ si sa formation, affectation publiée | —                   | ✓              |
-| `/transparences/archives/sessions`                                                                                                     | Sessions archivées                     | ✓ si sa formation, affectation publiée | —                   | ✓              |
-| `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/:sessionId`                                                        | Session : dossiers et mes rapports     | ✓ si sa formation                      | —                   | ✓              |
-| `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/:sessionId/auditions`                                              | Session, onglet Auditions              | ✓ si sa formation                      | —                   | ✓              |
-| `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/:sessionId/pieces-jointes`                                         | Session, onglet Pièces jointes         | ✓ si sa formation                      | —                   | ✓              |
-| `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/rapports/:id`                                                               | Rapport sur un dossier                 | ✓ si rapporteur du dossier             | —                   | ✓              |
-| `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/:sessionId/dossiers/:nominationFileId/observations/:observationId` | Détail d'une observation               | ✓ si sa formation                      | —                   | ✓              |
-| `/magistrats`                                                                                                                          | Recherche de magistrats                | ✓                                      | —                   | ✓              |
-| `/magistrats/:magistratId`                                                                                                             | Fiche d'un magistrat et son historique | ✓                                      | —                   | ✓              |
+| URL                                                                                                                                    | Vue                                                  | Membre                                 | Secrétariat général | Administrateur |
+| -------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- | -------------------------------------- | ------------------- | -------------- |
+| `/transparences`                                                                                                                       | Accueil : sessions en cours et mes dossiers par état | ✓ si sa formation, affectation publiée | —                   | ✓              |
+| `/transparences/archives/sessions`                                                                                                     | Sessions archivées                                   | ✓ si sa formation, affectation publiée | —                   | ✓              |
+| `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/:sessionId`                                                        | Session : dossiers et mes rapports                   | ✓ si sa formation                      | —                   | ✓              |
+| `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/:sessionId/auditions`                                              | Session, onglet Auditions                            | ✓ si sa formation                      | —                   | ✓              |
+| `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/:sessionId/pieces-jointes`                                         | Session, onglet Pièces jointes                       | ✓ si sa formation                      | —                   | ✓              |
+| `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/rapports/:id`                                                               | Rapport sur un dossier                               | ✓ si rapporteur du dossier             | —                   | ✓              |
+| `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/:sessionId/dossiers/:nominationFileId/observations/:observationId` | Détail d'une observation                             | ✓ si sa formation                      | —                   | ✓              |
+| `/magistrats`                                                                                                                          | Recherche de magistrats                              | ✓                                      | —                   | ✓              |
+| `/magistrats/:magistratId`                                                                                                             | Fiche d'un magistrat et son historique               | ✓                                      | —                   | ✓              |
 
 Un Membre ne voit les auditions d'une session qu'une fois publiées.
 
 ### Espace Secrétariat général
 
-Le menu propose Accueil, Créer une session, Gérer les sessions, Restitutions, Gérer les membres, Archives et Magistrats. L'Administrateur y voit en plus un sous-menu Administration.
+L'accueil propose les deux pouvoirs de proposition et le logo y ramène. Le menu garde partout Rechercher un magistrat. Le GDS y ajoute Gérer une session, Restitutions, Suivi des observations, Gérer les membres et Archives. Le CSM y ajoute Veille des postes. L'Administrateur a en plus un sous-menu Administration et peut créer une session depuis une extraction Lodam.
 
-| URL                                                                                              | Vue                                                             | Membre | Secrétariat général | Administrateur |
-| ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------- | ------ | ------------------- | -------------- |
-| `/secretariat-general`                                                                           | Tableau de bord                                                 | —      | ✓                   | ✓              |
-| `/secretariat-general/nouvelle-transparence`                                                     | Créer une session à partir d'un fichier Lodam                   | —      | ✓                   | ✓              |
-| `/secretariat-general/sessions`                                                                  | Gérer les sessions                                              | —      | ✓                   | ✓              |
-| `/secretariat-general/archives/sessions`                                                         | Sessions archivées                                              | —      | ✓                   | ✓              |
-| `/secretariat-general/session/:sessionId`                                                        | Session, onglet Propositions : dossiers, affectation, décisions | —      | ✓                   | ✓              |
-| `/secretariat-general/session/:sessionId/auditions`                                              | Session, onglet Auditions                                       | —      | ✓                   | ✓              |
-| `/secretariat-general/session/:sessionId/evaluations-manquantes`                                 | Session, onglet Évaluations manquantes                          | —      | ✓                   | ✓              |
-| `/secretariat-general/session/:sessionId/documents`                                              | Session, onglet Documents : ordres du jour, procès-verbaux      | —      | ✓                   | ✓              |
-| `/secretariat-general/session/:sessionId/pieces-jointes`                                         | Session, onglet Pièces jointes                                  | —      | ✓                   | ✓              |
-| `/secretariat-general/session/:sessionId/commentaire`                                            | Commentaire de session                                          | —      | ✓                   | ✓              |
-| `/secretariat-general/session/:sessionId/dossiers/:nominationFileId/observations/:observationId` | Détail d'une observation                                        | —      | ✓                   | ✓              |
-| `/secretariat-general/magistrats`                                                                | Recherche de magistrats                                         | —      | ✓                   | ✓              |
-| `/secretariat-general/magistrats/:magistratId`                                                   | Fiche d'un magistrat, avec ses numéros de téléphone             | —      | ✓                   | ✓              |
-| `/secretariat-general/membres`                                                                   | Liste des membres                                               | —      | ✓                   | ✓              |
-| `/secretariat-general/membres/:userId`                                                           | Fiche d'un membre : titre, juridictions exclues                 | —      | ✓                   | ✓              |
-| `/secretariat-general/session/:sessionId/docs/ordre-du-jour`                                     | Nouvel ordre du jour                                            | —      | ✓                   | ✓              |
-| `/secretariat-general/session/:sessionId/docs/ordre-du-jour/:agendaId/metadonnees`               | Ordre du jour : métadonnées                                     | —      | ✓                   | ✓              |
-| `/secretariat-general/session/:sessionId/docs/ordre-du-jour/:agendaId/dossiers`                  | Ordre du jour : dossiers                                        | —      | ✓                   | ✓              |
-| `/secretariat-general/session/:sessionId/docs/ordre-du-jour/:agendaId/validation`                | Ordre du jour : aperçu et validation                            | —      | ✓                   | ✓              |
-| `/secretariat-general/session/:sessionId/docs/ordre-du-jour/:agendaId/validation/edition`        | Ordre du jour : retouche du document                            | —      | ✓                   | ✓              |
-| `/secretariat-general/session/:sessionId/docs/pv`                                                | Nouveau procès-verbal                                           | —      | ✓                   | ✓              |
-| `/secretariat-general/session/:sessionId/docs/pv/:officialReportId`                              | Procès-verbal : saisie                                          | —      | ✓                   | ✓              |
-| `/secretariat-general/session/:sessionId/docs/pv/:officialReportId/validation`                   | Procès-verbal : aperçu et validation                            | —      | ✓                   | ✓              |
-| `/secretariat-general/session/:sessionId/docs/pv/:officialReportId/validation/edition`           | Procès-verbal : retouche du document                            | —      | ✓                   | ✓              |
-| `/secretariat-general/restitutions/ordres-du-jour`                                               | Restitutions, onglet Ordres du jour                             | —      | ✓                   | ✓              |
-| `/secretariat-general/restitutions/a-restituer`                                                  | Restitutions, onglet À restituer                                | —      | ✓                   | ✓              |
-| `/secretariat-general/restitutions/restituees`                                                   | Restitutions, onglet Restituées                                 | —      | ✓                   | ✓              |
-| `/secretariat-general/restitutions/nouvelle-notice`                                              | Nouvelle notice de restitution                                  | —      | ✓                   | ✓              |
-| `/secretariat-general/restitutions/:planId`                                                      | Notice de restitution : saisie                                  | —      | ✓                   | ✓              |
-| `/secretariat-general/restitutions/:planId/validation`                                           | Notice : aperçu et validation                                   | —      | ✓                   | ✓              |
-| `/secretariat-general/restitutions/:planId/validation/edition`                                   | Notice : retouche du document                                   | —      | ✓                   | ✓              |
+| URL                                                                                                  | Vue                                                                | Membre | Secrétariat général | Administrateur |
+| ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ------ | ------------------- | -------------- |
+| `/secretariat-general`                                                                               | Accueil : choix du pouvoir de proposition                          | —      | ✓                   | ✓              |
+| `/secretariat-general/csm/veille-des-postes`                                                         | Veille des postes : les trois tableaux de postes                   | —      | ✓                   | ✓              |
+| `/secretariat-general/csm/veille-des-postes/cours-d-appel`                                           | Veille des postes, premiers présidents de cour d'appel             | —      | ✓                   | ✓              |
+| `/secretariat-general/csm/veille-des-postes/tribunaux-judiciaires`                                   | Veille des postes, présidents de tribunaux judiciaires             | —      | ✓                   | ✓              |
+| `/secretariat-general/csm/veille-des-postes/cour-de-cassation/:position`                             | Veille des postes, magistrats du siège de la Cour de cassation     | —      | ✓                   | ✓              |
+| `/secretariat-general/csm/appels-a-candidature`                                                      | Appels à candidature (à venir)                                     | —      | ✓                   | ✓              |
+| `/secretariat-general/csm/processus-de-selection`                                                    | Processus de sélection (à venir)                                   | —      | ✓                   | ✓              |
+| `/secretariat-general/csm/membres`                                                                   | Membres du pouvoir CSM (à venir)                                   | —      | ✓                   | ✓              |
+| `/secretariat-general/gds/sessions`                                                                  | Gérer les sessions                                                 | —      | ✓                   | ✓              |
+| `/secretariat-general/gds/archives/sessions`                                                         | Sessions archivées                                                 | —      | ✓                   | ✓              |
+| `/secretariat-general/gds/session/:sessionId`                                                        | Session, onglet Propositions : dossiers, affectation, décisions    | —      | ✓                   | ✓              |
+| `/secretariat-general/gds/session/:sessionId/observations`                                           | Session, onglet Observations                                       | —      | ✓                   | ✓              |
+| `/secretariat-general/gds/session/:sessionId/auditions`                                              | Session, onglet Auditions                                          | —      | ✓                   | ✓              |
+| `/secretariat-general/gds/session/:sessionId/evaluations-manquantes`                                 | Session, onglet Évaluations manquantes                             | —      | ✓                   | ✓              |
+| `/secretariat-general/gds/session/:sessionId/documents`                                              | Session, onglet Documents : ordres du jour, procès-verbaux         | —      | ✓                   | ✓              |
+| `/secretariat-general/gds/session/:sessionId/pieces-jointes`                                         | Session, onglet Pièces jointes                                     | —      | ✓                   | ✓              |
+| `/secretariat-general/gds/session/:sessionId/commentaire`                                            | Commentaire de session                                             | —      | ✓                   | ✓              |
+| `/secretariat-general/gds/session/:sessionId/dossiers/:nominationFileId/observations/:observationId` | Détail d'une observation                                           | —      | ✓                   | ✓              |
+| `/secretariat-general/magistrats`                                                                    | Recherche de magistrats                                            | —      | ✓                   | ✓              |
+| `/secretariat-general/magistrats/:magistratId`                                                       | Fiche d'un magistrat, avec ses numéros de téléphone                | —      | ✓                   | ✓              |
+| `/secretariat-general/gds/membres`                                                                   | Liste des membres                                                  | —      | ✓                   | ✓              |
+| `/secretariat-general/gds/membres/:userId`                                                           | Fiche d'un membre : titre, juridictions exclues                    | —      | ✓                   | ✓              |
+| `/secretariat-general/gds/session/:sessionId/docs/ordre-du-jour`                                     | Nouvel ordre du jour                                               | —      | ✓                   | ✓              |
+| `/secretariat-general/gds/session/:sessionId/docs/ordre-du-jour/:agendaId/metadonnees`               | Ordre du jour : métadonnées                                        | —      | ✓                   | ✓              |
+| `/secretariat-general/gds/session/:sessionId/docs/ordre-du-jour/:agendaId/dossiers`                  | Ordre du jour : dossiers                                           | —      | ✓                   | ✓              |
+| `/secretariat-general/gds/session/:sessionId/docs/ordre-du-jour/:agendaId/validation`                | Ordre du jour : aperçu et validation                               | —      | ✓                   | ✓              |
+| `/secretariat-general/gds/session/:sessionId/docs/ordre-du-jour/:agendaId/validation/edition`        | Ordre du jour : retouche du document                               | —      | ✓                   | ✓              |
+| `/secretariat-general/gds/session/:sessionId/docs/pv`                                                | Nouveau procès-verbal                                              | —      | ✓                   | ✓              |
+| `/secretariat-general/gds/session/:sessionId/docs/pv/:officialReportId`                              | Procès-verbal : saisie                                             | —      | ✓                   | ✓              |
+| `/secretariat-general/gds/session/:sessionId/docs/pv/:officialReportId/validation`                   | Procès-verbal : aperçu et validation                               | —      | ✓                   | ✓              |
+| `/secretariat-general/gds/session/:sessionId/docs/pv/:officialReportId/validation/edition`           | Procès-verbal : retouche du document                               | —      | ✓                   | ✓              |
+| `/secretariat-general/gds/restitutions/ordres-du-jour`                                               | Restitutions, onglet Ordres du jour                                | —      | ✓                   | ✓              |
+| `/secretariat-general/gds/restitutions/a-restituer`                                                  | Restitutions, onglet À restituer                                   | —      | ✓                   | ✓              |
+| `/secretariat-general/gds/restitutions/restituees`                                                   | Restitutions, onglet Restituées                                    | —      | ✓                   | ✓              |
+| `/secretariat-general/gds/restitutions/nouvelle-notice`                                              | Nouvelle notice de restitution                                     | —      | ✓                   | ✓              |
+| `/secretariat-general/gds/restitutions/:planId`                                                      | Notice de restitution : saisie                                     | —      | ✓                   | ✓              |
+| `/secretariat-general/gds/restitutions/:planId/validation`                                           | Notice : aperçu et validation                                      | —      | ✓                   | ✓              |
+| `/secretariat-general/gds/restitutions/:planId/validation/edition`                                   | Notice : retouche du document                                      | —      | ✓                   | ✓              |
+| `/secretariat-general/gds/suivi-des-observations`                                                    | Suivi des observations : celles qui ont une suite, toutes sessions | —      | ✓                   | ✓              |
 
 ### Espace administration
 
@@ -113,7 +121,7 @@ Le menu propose Accueil, Créer une session, Gérer les sessions, Restitutions, 
 | `/admin/ingestions`           | Liste des traitements en arrière-plan                                                                                                | —      | —                   | ✓              |
 | `/admin/ingestions/:jobId`    | Détail d'un traitement                                                                                                               | —      | —                   | ✓              |
 | `/admin/avis`                 | Export des réponses au questionnaire                                                                                                 | —      | —                   | ✓              |
-| `/admin/remarques`            | Liste des remarques et suivi de leur statut                                                                                          | —      | —                   | ✓              |
+| `/admin/retours/:status`      | Retours d'un statut (nouveaux, pris en compte, traités ou écartés) et suivi de ce statut                                             | —      | —                   | ✓              |
 | `/admin/aide`                 | Édition des pages d'aide                                                                                                             | —      | —                   | ✓              |
 | `/admin/utilisateurs`         | Liste des utilisateurs                                                                                                               | —      | —                   | ✓              |
 | `/admin/utilisateurs/:userId` | Fiche d'un utilisateur : nom, prénom, e-mail, mot de passe, rôle, titre, droit d'administrateur, désactivation, connexion à sa place | —      | —                   | ✓              |
@@ -130,15 +138,24 @@ Le préfixe `/api` est omis.
 | Se déconnecter                                 | `POST /auth/v2/logout`                       | ✓                        | ✓                        | ✓                        |
 | Changer son mot de passe                       | `PUT /auth/v2/password`                      | ✓                        | ✓                        | ✓                        |
 | Se connecter à la place d'un utilisateur       | `POST /auth/v2/users/:userId/impersonations` | —                        | —                        | ✓                        |
-| Répondre au questionnaire de satisfaction      | `POST /feedbacks/v1/answer`                  | ✓                        | ✓                        | —                        |
-| Voir sa dernière réponse au questionnaire      | `GET /feedbacks/v1/mine`                     | ✓ si ses propres données | ✓ si ses propres données | ✓ si ses propres données |
-| Exporter les réponses au questionnaire (Excel) | `GET /feedbacks/v1/answers.xlsx`             | —                        | —                        | ✓                        |
-| Envoyer une remarque                           | `POST /remarks/v1`                           | ✓                        | ✓                        | ✓                        |
-| Lister les remarques                           | `GET /remarks/v1`                            | —                        | —                        | ✓                        |
-| Changer le statut d'une remarque               | `PUT /remarks/v1/:remarkId/status`           | —                        | —                        | ✓                        |
+| Répondre au questionnaire de satisfaction      | `POST /surveys/v1/answer`                    | ✓                        | ✓                        | —                        |
+| Voir sa dernière réponse au questionnaire      | `GET /surveys/v1/mine`                       | ✓ si ses propres données | ✓ si ses propres données | ✓ si ses propres données |
+| Exporter les réponses au questionnaire (Excel) | `GET /surveys/v1/answers.xlsx`               | —                        | —                        | ✓                        |
+| Envoyer un retour                              | `POST /feedbacks/v1`                         | ✓                        | ✓                        | ✓                        |
+| Lister les retours                             | `GET /feedbacks/v1`                          | —                        | —                        | ✓                        |
+| Changer le statut d'un retour                  | `PUT /feedbacks/v1/:feedbackId/status`       | —                        | —                        | ✓                        |
 | Télécharger un fichier par son lien temporaire | `GET /files/v1/:fileUrlId`                   | ✓                        | ✓                        | ✓                        |
 
-Quiconque détient un lien de téléchargement temporaire télécharge le fichier. Connecté à la place d'un utilisateur, l'administrateur n'enregistre ni réponse au questionnaire ni changement de mot de passe et envoie ses remarques à son propre nom. Cette connexion ne vaut que pour l'onglet ouvert pour elle et ceux ouverts depuis lui.
+Quiconque détient un lien de téléchargement temporaire télécharge le fichier.
+
+Connecté à la place d'un utilisateur, l'administrateur :
+
+- n'enregistre ni réponse au questionnaire ni changement de mot de passe
+- envoie ses retours à son propre nom
+- ne voit ni ne modifie ses notes, ses commentaires d'observation et les synthèses partagées avec lui
+- lit son rapport sans le modifier ni en ouvrir les pièces jointes
+
+Cette connexion ne vaut que pour l'onglet ouvert pour elle et ceux ouverts depuis lui.
 
 ### Sessions
 
@@ -149,7 +166,7 @@ Quiconque détient un lien de téléchargement temporaire télécharge le fichie
 | Lister les sessions (gestion)                 | `GET /sessions/v2/garde-des-sceaux`                              | —                                                                                 | ✓                        | ✓                        |
 | Compter les nouvelles sessions                | `GET /sessions/v2/new/count`                                     | —                                                                                 | ✓                        | ✓                        |
 | Voir le détail d'une session                  | `GET /sessions/v2/:sessionId`                                    | ✓ si sa formation                                                                 | ✓                        | ✓                        |
-| Créer une session à partir d'un fichier Lodam | `POST /sessions/v2/lodam`                                        | —                                                                                 | ✓                        | ✓                        |
+| Créer une session à partir d'un fichier Lodam | `POST /sessions/v2/lodam`                                        | —                                                                                 | —                        | ✓                        |
 | Modifier les observateurs d'une session       | `POST /sessions/v2/lodam/:sessionId/observers`                   | —                                                                                 | ✓                        | ✓                        |
 | Modifier une session                          | `PUT /sessions/v2/:sessionId`                                    | —                                                                                 | ✓                        | ✓                        |
 | Valider une session                           | `POST /sessions/v2/:sessionId/validation`                        | —                                                                                 | ✓                        | ✓                        |
@@ -161,46 +178,51 @@ Quiconque détient un lien de téléchargement temporaire télécharge le fichie
 | Télécharger une pièce jointe de la session    | `GET /sessions/v2/:sessionId/attachments/:fileId`                | ✓ si sa formation                                                                 | ✓                        | ✓                        |
 | Ajouter des pièces jointes à la session       | `PUT /sessions/v2/:sessionId/multiattachments`                   | —                                                                                 | ✓                        | ✓                        |
 | Retirer une pièce jointe de la session        | `DELETE /sessions/v2/:sessionId/attachments/:fileId`             | —                                                                                 | ✓                        | ✓                        |
+| Renommer une pièce jointe de la session       | `PATCH /sessions/v2/:sessionId/attachments/:fileId`              | —                                                                                 | ✓                        | ✓                        |
 | Lister les pièces jointes des observations    | `GET /sessions/v2/:sessionId/observations/attachments`           | —                                                                                 | ✓                        | ✓                        |
+| Lister les observations de la session         | `GET /sessions/v2/:sessionId/observations`                       | —                                                                                 | ✓                        | ✓                        |
+| Compter les observations de la session        | `GET /sessions/v2/:sessionId/observations/count`                 | —                                                                                 | ✓                        | ✓                        |
 
 Le Secrétariat général n'a pas de sessions en cours à lui : la liste lui revient vide.
 
 ### Dossiers
 
-| Action                                      | Endpoint                                                                                                 | Membre                                                       | Secrétariat général | Administrateur |
-| ------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ | ------------------- | -------------- |
-| Lister les dossiers d'une session           | `GET /sessions/v2/:sessionId/files`                                                                      | ✓ si sa formation, affectation publiée                       | ✓                   | ✓              |
-| Voir un dossier                             | `GET /sessions/v2/:sessionId/files/:nominationFileId`                                                    | ✓ si sa formation, affectation publiée                       | ✓                   | ✓              |
-| Exporter les dossiers (Excel)               | `GET /sessions/v2/:sessionId/files.xlsx`                                                                 | —                                                            | ✓                   | ✓              |
-| Compter les dossiers par statut             | `GET /sessions/v2/:sessionId/files/status-counts`                                                        | —                                                            | ✓                   | ✓              |
-| Lister les pièces jointes d'un dossier      | `GET /sessions/v2/:sessionId/files/:nominationFileId/attachments`                                        | ✓ si sa formation                                            | ✓                   | ✓              |
-| Télécharger une pièce jointe d'un dossier   | `GET /sessions/v2/:sessionId/files/:nominationFileId/attachments/:fileId`                                | ✓ si sa formation                                            | ✓                   | ✓              |
-| Ajouter des pièces jointes à un dossier     | `PUT /sessions/v2/:sessionId/files/:nominationFileId/attachments`                                        | —                                                            | ✓                   | ✓              |
-| Retirer une pièce jointe d'un dossier       | `DELETE /sessions/v2/:sessionId/files/:nominationFileId/attachments/:fileId`                             | —                                                            | ✓                   | ✓              |
-| Obtenir le lien Lolfi du magistrat proposé  | `GET /sessions/v2/:sessionId/files/:nominationFileId/lolfi-url`                                          | ✓ si sa formation                                            | ✓                   | ✓              |
-| Commenter un dossier                        | `PATCH /sessions/v2/:sessionId/files/:nominationFileId/comment`                                          | —                                                            | ✓                   | ✓              |
-| Masquer l'alerte d'un dossier               | `DELETE /sessions/v2/:sessionId/file/:nominationFileId/alert`                                            | —                                                            | ✓                   | ✓              |
-| Modifier les priorités des dossiers         | `PUT /sessions/v2/:sessionId/files/priorities`                                                           | —                                                            | ✓                   | ✓              |
-| Saisir la décision sur un dossier           | `PUT /sessions/v2/:sessionId/files/:nominationFileId/outcome`                                            | —                                                            | ✓                   | ✓              |
-| Saisir la décision sur plusieurs dossiers   | `PUT /sessions/v2/:sessionId/files/outcome`                                                              | —                                                            | ✓                   | ✓              |
-| Signaler une évaluation manquante           | `PUT /sessions/v2/:sessionId/files/:nominationFileId/missing-evaluation`                                 | —                                                            | ✓                   | ✓              |
-| Commenter une évaluation manquante          | `PATCH /sessions/v2/:sessionId/files/:nominationFileId/missing-evaluation/comment`                       | —                                                            | ✓                   | ✓              |
-| Exporter les évaluations manquantes (Excel) | `GET /sessions/v2/:sessionId/files/missing-evaluations.xlsx`                                             | —                                                            | ✓                   | ✓              |
-| Écrire son mémo personnel sur un dossier    | `PUT /members/v1/:userId/sessions/transparence/garde-des-sceaux/:sessionId/files/:nominationFileId/memo` | ✓ si ses propres données, sa formation, session non archivée | —                   | —              |
+| Action                                            | Endpoint                                                                                                 | Membre                                                       | Secrétariat général | Administrateur |
+| ------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ | ------------------- | -------------- |
+| Lister les dossiers d'une session                 | `GET /sessions/v2/:sessionId/files`                                                                      | ✓ si sa formation, affectation publiée                       | ✓                   | ✓              |
+| Voir un dossier                                   | `GET /sessions/v2/:sessionId/files/:nominationFileId`                                                    | ✓ si sa formation, affectation publiée                       | ✓                   | ✓              |
+| Exporter les dossiers (Excel)                     | `GET /sessions/v2/:sessionId/files.xlsx`                                                                 | —                                                            | ✓                   | ✓              |
+| Compter les dossiers par statut                   | `GET /sessions/v2/:sessionId/files/status-counts`                                                        | —                                                            | ✓                   | ✓              |
+| Lister les pièces jointes d'un dossier            | `GET /sessions/v2/:sessionId/files/:nominationFileId/attachments`                                        | ✓ si sa formation                                            | ✓                   | ✓              |
+| Télécharger une pièce jointe d'un dossier         | `GET /sessions/v2/:sessionId/files/:nominationFileId/attachments/:fileId`                                | ✓ si sa formation                                            | ✓                   | ✓              |
+| Ajouter des pièces jointes à un dossier           | `PUT /sessions/v2/:sessionId/files/:nominationFileId/attachments`                                        | —                                                            | ✓                   | ✓              |
+| Retirer une pièce jointe d'un dossier             | `DELETE /sessions/v2/:sessionId/files/:nominationFileId/attachments/:fileId`                             | —                                                            | ✓                   | ✓              |
+| Renommer une pièce jointe d'un dossier            | `PATCH /sessions/v2/:sessionId/files/:nominationFileId/attachments/:fileId`                              | —                                                            | ✓                   | ✓              |
+| Obtenir le lien Lolfi du magistrat proposé        | `GET /sessions/v2/:sessionId/files/:nominationFileId/lolfi-url`                                          | ✓ si sa formation                                            | ✓                   | ✓              |
+| Commenter un dossier                              | `PATCH /sessions/v2/:sessionId/files/:nominationFileId/comment`                                          | —                                                            | ✓                   | ✓              |
+| Masquer l'alerte d'un dossier                     | `DELETE /sessions/v2/:sessionId/file/:nominationFileId/alert`                                            | —                                                            | ✓                   | ✓              |
+| Modifier les priorités des dossiers               | `PUT /sessions/v2/:sessionId/files/priorities`                                                           | —                                                            | ✓                   | ✓              |
+| Saisir la décision sur un dossier                 | `PUT /sessions/v2/:sessionId/files/:nominationFileId/outcome`                                            | —                                                            | ✓                   | ✓              |
+| Saisir la décision sur plusieurs dossiers         | `PUT /sessions/v2/:sessionId/files/outcome`                                                              | —                                                            | ✓                   | ✓              |
+| Signaler une évaluation manquante                 | `PUT /sessions/v2/:sessionId/files/:nominationFileId/missing-evaluation`                                 | —                                                            | ✓                   | ✓              |
+| Commenter une évaluation manquante                | `PATCH /sessions/v2/:sessionId/files/:nominationFileId/missing-evaluation/comment`                       | —                                                            | ✓                   | ✓              |
+| Saisir les membres déportés d'un dossier          | `PUT /sessions/v2/:sessionId/files/:nominationFileId/recused-members`                                    | —                                                            | ✓                   | ✓              |
+| Saisir les membres déportés de plusieurs dossiers | `PUT /sessions/v2/:sessionId/files/recused-members`                                                      | —                                                            | ✓                   | ✓              |
+| Exporter les évaluations manquantes (Excel)       | `GET /sessions/v2/:sessionId/files/missing-evaluations.xlsx`                                             | —                                                            | ✓                   | ✓              |
+| Écrire son mémo personnel sur un dossier          | `PUT /members/v1/:userId/sessions/transparence/garde-des-sceaux/:sessionId/files/:nominationFileId/memo` | ✓ si ses propres données, sa formation, session non archivée | —                   | —              |
 
-Un Membre ne voit pas le commentaire de décision d'un dossier. Un rapporteur du dossier n'a pas de mémo : il rédige le rapport.
+Un Membre ne voit pas le commentaire de décision d'un dossier. Un rapporteur du dossier n'a pas de mémo : il rédige le rapport. Un membre déporté garde l'accès à tout le dossier, sans pouvoir y être affecté comme rapporteur.
 
 ### Affectation
 
-| Action                                    | Endpoint                                                                     | Membre                                 | Secrétariat général | Administrateur |
-| ----------------------------------------- | ---------------------------------------------------------------------------- | -------------------------------------- | ------------------- | -------------- |
-| Lister les rapporteurs affectés           | `GET /sessions/v2/:sessionId/files/reporters/versions/last/members`          | ✓ si sa formation, affectation publiée | ✓                   | ✓              |
-| Affecter des rapporteurs                  | `POST /sessions/v2/:sessionId/files/reporters`                               | —                                      | ✓                   | ✓              |
-| Affecter automatiquement                  | `POST /sessions/v2/:sessionId/auto-affectation`                              | —                                      | ✓                   | ✓              |
-| Publier l'affectation                     | `POST /sessions/v2/:sessionId/files/reporters/versions`                      | —                                      | ✓                   | ✓              |
-| Voir la dernière version de l'affectation | `GET /sessions/v2/:sessionId/files/reporters/versions/last`                  | —                                      | ✓                   | ✓              |
-| Voir l'historique de l'affectation        | `GET /sessions/v2/:sessionId/files/reporters/versions/history`               | —                                      | ✓                   | ✓              |
-| Compter les dossiers non affectés         | `GET /sessions/v2/:sessionId/files/reporters/versions/last/unaffected-count` | —                                      | ✓                   | ✓              |
+| Action                             | Endpoint                                                                     | Membre                                 | Secrétariat général | Administrateur |
+| ---------------------------------- | ---------------------------------------------------------------------------- | -------------------------------------- | ------------------- | -------------- |
+| Lister les rapporteurs affectés    | `GET /sessions/v2/:sessionId/files/reporters/versions/last/members`          | ✓ si sa formation, affectation publiée | ✓                   | ✓              |
+| Affecter des rapporteurs           | `POST /sessions/v2/:sessionId/files/reporters`                               | —                                      | ✓                   | ✓              |
+| Affecter automatiquement           | `POST /sessions/v2/:sessionId/auto-affectation`                              | —                                      | ✓                   | ✓              |
+| Publier l'affectation              | `POST /sessions/v2/:sessionId/files/reporters/versions`                      | —                                      | ✓                   | ✓              |
+| Voir l'historique de l'affectation | `GET /sessions/v2/:sessionId/files/reporters/versions/history`               | —                                      | ✓                   | ✓              |
+| Compter les dossiers non affectés  | `GET /sessions/v2/:sessionId/files/reporters/versions/last/unaffected-count` | —                                      | ✓                   | ✓              |
 
 ### Rapports
 
@@ -212,9 +234,9 @@ Un Membre ne voit pas le commentaire de décision d'un dossier. Un rapporteur du
 | Rédiger un rapport                      | `PATCH /reports/v2/:reportId`                                                                               | ✓ si rapporteur du dossier, session non archivée | —                        | —                        |
 | Valider une règle statutaire du rapport | `PUT /reports/v2/:reportId/rules/:ruleId`                                                                   | ✓ si rapporteur du dossier, session non archivée | —                        | —                        |
 | Joindre des fichiers au rapport         | `POST /reports/v2/:reportId/files`                                                                          | ✓ si rapporteur du dossier, session non archivée | —                        | —                        |
-| Retirer des fichiers du rapport         | `DELETE /reports/v2/:reportId/files`                                                                        | ✓ si rapporteur du dossier, session non archivée | —                        | —                        |
+| Retirer une pièce jointe du rapport     | `DELETE /reports/v2/:reportId/files/:fileId`                                                                | ✓ si rapporteur du dossier, session non archivée | —                        | —                        |
 | Coller des captures dans le rapport     | `POST /reports/v2/:reportId/screenshots`                                                                    | ✓ si rapporteur du dossier, session non archivée | —                        | —                        |
-| Télécharger les fichiers du rapport     | `GET /reports/v2/:reportId/files/url`                                                                       | ✓ si rapporteur du dossier                       | —                        | —                        |
+| Ouvrir une pièce jointe du rapport      | `GET /reports/v2/:reportId/files/:fileId/url`                                                               | ✓ si rapporteur du dossier                       | —                        | —                        |
 
 ### Synthèses
 
@@ -224,26 +246,31 @@ Un Membre ne voit pas le commentaire de décision d'un dossier. Un rapporteur du
 | Télécharger une pièce jointe de la synthèse | `GET /sessions/v2/:sessionId/files/:nominationFileId/summary/attachments/:fileId/url` | ✓ si lecteur de la synthèse | ✓ si lecteur de la synthèse | ✓ si lecteur de la synthèse |
 | Créer une synthèse                          | `POST /sessions/v2/:sessionId/files/:nominationFileId/summary`                        | —                           | ✓                           | ✓                           |
 | Rédiger une synthèse                        | `PUT /sessions/v2/:sessionId/files/:nominationFileId/summary/content`                 | —                           | ✓ si auteur de la synthèse  | ✓ si auteur de la synthèse  |
-| Coller des captures dans la synthèse        | `POST /sessions/v2/:sessionId/files/:nominationFileId/summary/screenshots`            | —                           | ✓                           | ✓                           |
-| Joindre des fichiers à la synthèse          | `POST /sessions/v2/:sessionId/files/:nominationFileId/summary/attachments`            | —                           | ✓                           | ✓                           |
-| Retirer des fichiers de la synthèse         | `DELETE /sessions/v2/:sessionId/files/:nominationFileId/summary/attachments`          | —                           | ✓                           | ✓                           |
+| Coller des captures dans la synthèse        | `POST /sessions/v2/:sessionId/files/:nominationFileId/summary/screenshots`            | —                           | ✓ si auteur de la synthèse  | ✓ si auteur de la synthèse  |
+| Joindre des fichiers à la synthèse          | `POST /sessions/v2/:sessionId/files/:nominationFileId/summary/attachments`            | —                           | ✓ si auteur de la synthèse  | ✓ si auteur de la synthèse  |
+| Retirer des fichiers de la synthèse         | `DELETE /sessions/v2/:sessionId/files/:nominationFileId/summary/attachments`          | —                           | ✓ si auteur de la synthèse  | ✓ si auteur de la synthèse  |
+| Renommer un fichier de la synthèse          | `PATCH /sessions/v2/:sessionId/files/:nominationFileId/summary/attachments/:fileId`   | —                           | ✓ si auteur de la synthèse  | ✓ si auteur de la synthèse  |
 | Rechercher des lecteurs possibles           | `GET /sessions/v2/:sessionId/files/:nominationFileId/summary/readers`                 | —                           | ✓                           | ✓                           |
 | Choisir les lecteurs                        | `PUT /sessions/v2/:sessionId/files/:nominationFileId/summary/readers`                 | —                           | ✓                           | ✓                           |
 
 ### Observations
 
-| Action                                   | Endpoint                                                                                                       | Membre                                           | Secrétariat général | Administrateur |
-| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ | ------------------- | -------------- |
-| Lister les observations d'un dossier     | `GET /sessions/v2/:sessionId/files/:nominationFileId/observations`                                             | ✓ si sa formation                                | ✓                   | ✓              |
-| Voir une observation                     | `GET /sessions/v2/:sessionId/files/:nominationFileId/observations/:observationId`                              | ✓ si sa formation                                | ✓                   | ✓              |
-| Télécharger une pièce d'une observation  | `GET /sessions/v2/:sessionId/files/:nominationFileId/observations/:observationId/files/:fileId/url`            | ✓ si sa formation                                | ✓                   | ✓              |
-| Commenter une observation                | `PUT /sessions/v2/:sessionId/files/:nominationFileId/observations/:observationId/member-comments`              | ✓ si rapporteur du dossier, session non archivée | —                   | —              |
-| Coller des captures dans son commentaire | `POST /sessions/v2/:sessionId/files/:nominationFileId/observations/:observationId/member-comments/screenshots` | ✓ si rapporteur du dossier, session non archivée | —                   | —              |
-| Enregistrer une observation              | `POST /sessions/v2/:sessionId/files/:nominationFileId/observations`                                            | —                                                | ✓                   | ✓              |
-| Modifier une observation                 | `PATCH /sessions/v2/:sessionId/files/:nominationFileId/observations/:observationId`                            | —                                                | ✓                   | ✓              |
-| Supprimer une observation                | `DELETE /sessions/v2/:sessionId/files/:nominationFileId/observations/:observationId`                           | —                                                | ✓                   | ✓              |
-| Donner une suite à une observation       | `PUT /sessions/v2/:sessionId/files/:nominationFileId/observations/:observationId/follow-up`                    | —                                                | ✓                   | ✓              |
-| Programmer l'audition d'un observant     | `PUT /sessions/v2/:sessionId/files/:nominationFileId/observations/:observationId/audition/schedule`            | —                                                | ✓                   | ✓              |
+| Action                                    | Endpoint                                                                                                       | Membre                                           | Secrétariat général          | Administrateur |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ | ---------------------------- | -------------- |
+| Lister les observations d'un dossier      | `GET /sessions/v2/:sessionId/files/:nominationFileId/observations`                                             | ✓ si sa formation                                | ✓                            | ✓              |
+| Voir une observation                      | `GET /sessions/v2/:sessionId/files/:nominationFileId/observations/:observationId`                              | ✓ si sa formation                                | ✓                            | ✓              |
+| Télécharger une pièce d'une observation   | `GET /sessions/v2/:sessionId/files/:nominationFileId/observations/:observationId/files/:fileId/url`            | ✓ si sa formation                                | ✓                            | ✓              |
+| Commenter une observation                 | `PUT /sessions/v2/:sessionId/files/:nominationFileId/observations/:observationId/member-comments`              | ✓ si rapporteur du dossier, session non archivée | —                            | —              |
+| Coller des captures dans son commentaire  | `POST /sessions/v2/:sessionId/files/:nominationFileId/observations/:observationId/member-comments/screenshots` | ✓ si rapporteur du dossier, session non archivée | —                            | —              |
+| Enregistrer une observation               | `POST /sessions/v2/:sessionId/files/:nominationFileId/observations`                                            | —                                                | ✓                            | ✓              |
+| Modifier une observation                  | `PATCH /sessions/v2/:sessionId/files/:nominationFileId/observations/:observationId`                            | —                                                | ✓                            | ✓              |
+| Supprimer une observation                 | `DELETE /sessions/v2/:sessionId/files/:nominationFileId/observations/:observationId`                           | —                                                | ✓                            | ✓              |
+| Renommer une pièce d'une observation      | `PATCH /sessions/v2/:sessionId/files/:nominationFileId/observations/:observationId/files/:fileId`              | —                                                | ✓                            | ✓              |
+| Donner une suite à une observation        | `PUT /sessions/v2/:sessionId/files/:nominationFileId/observations/:observationId/follow-up`                    | —                                                | ✓                            | ✓              |
+| Programmer l'audition d'un observant      | `PUT /sessions/v2/:sessionId/files/:nominationFileId/observations/:observationId/audition/schedule`            | —                                                | ✓                            | ✓              |
+| Lister les observations qui ont une suite | `GET /observations/v1`                                                                                         | —                                                | ✓                            | ✓              |
+| Lister les années de leurs sessions       | `GET /observations/v1/session-years`                                                                           | —                                                | ✓                            | ✓              |
+| Suivre un bloc d'observations             | `PUT /sessions/v2/:sessionId/observation-blocks/:magistratId/tracking`                                         | —                                                | ✓, session archivée comprise | ✓              |
 
 Dans le détail d'une observation, un Membre ne voit que son propre commentaire.
 
@@ -260,7 +287,7 @@ Dans le détail d'une observation, un Membre ne voit que son propre commentaire.
 | Programmer l'audition d'un candidat          | `PUT /sessions/v2/:sessionId/files/:nominationFileId/audition/schedule` | —                 | ✓                   | ✓              |
 | Voir l'historique des auditions d'un dossier | `GET /sessions/v2/:sessionId/files/:nominationFileId/audition/history`  | —                 | ✓                   | ✓              |
 
-Un Membre ne voit les auditions qu'une fois publiées, et sans les coordonnées des candidats.
+Un Membre ne voit les auditions qu'une fois publiées et sans les coordonnées des candidats.
 
 ### Magistrats
 
@@ -285,7 +312,26 @@ Dans les dossiers d'un magistrat, un Membre ne voit que l'affectation et les aud
 | Lister les membres                                    | `GET /members/v1`                                | —      | ✓                   | ✓              |
 | Voir un membre                                        | `GET /members/v1/:userId`                        | —      | ✓                   | ✓              |
 | Modifier le titre affiché d'un membre                 | `PUT /members/v1/:userId/display-title`          | —      | ✓                   | ✓              |
+| Modifier le titre déport d'un membre                  | `PUT /members/v1/:userId/recusal-title`          | —      | ✓                   | ✓              |
 | Exclure des juridictions de l'affectation d'un membre | `PUT /members/v1/:userId/excluded-jurisdictions` | —      | ✓                   | ✓              |
+
+### Veille des postes
+
+| Action                                                 | Endpoint                                                                              | Membre | Secrétariat général | Administrateur |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------- | ------ | ------------------- | -------------- |
+| Lister les cours d'appel et leur premier président     | `GET /veille-des-postes/v1/cours-d-appel`                                             | —      | ✓                   | ✓              |
+| Lister les magistrats du siège de la Cour de cassation | `GET /veille-des-postes/v1/cour-de-cassation`                                         | —      | ✓                   | ✓              |
+| Lister les tribunaux judiciaires et leur président     | `GET /veille-des-postes/v1/tribunaux-judiciaires`                                     | —      | ✓                   | ✓              |
+| Consulter le commentaire d'une juridiction             | `GET /veille-des-postes/v1/juridictions/:courtId/commentaire`                         | —      | ✓                   | ✓              |
+| Écrire le commentaire d'une juridiction                | `PUT /veille-des-postes/v1/juridictions/:courtId/commentaire`                         | —      | ✓                   | ✓              |
+| Consulter le commentaire d'un poste                    | `GET /veille-des-postes/v1/titulaires/:magistratId/commentaire`                       | —      | ✓                   | ✓              |
+| Écrire le commentaire d'un poste                       | `PUT /veille-des-postes/v1/titulaires/:magistratId/commentaire`                       | —      | ✓                   | ✓              |
+| Consulter la vacance déclarée d'un poste               | `GET /veille-des-postes/v1/titulaires/:magistratId/vacance`                           | —      | ✓                   | ✓              |
+| Déclarer la vacance d'un poste                         | `PUT /veille-des-postes/v1/titulaires/:magistratId/vacance`                           | —      | ✓                   | ✓              |
+| Revenir au statut calculé d'un poste                   | `DELETE /veille-des-postes/v1/titulaires/:magistratId/vacance`                        | —      | ✓                   | ✓              |
+| Ouvrir une pièce jointe de la vacance                  | `GET /veille-des-postes/v1/titulaires/:magistratId/vacance/pieces-jointes/:fileId`    | —      | ✓                   | ✓              |
+| Renommer une pièce jointe de la vacance                | `PATCH /veille-des-postes/v1/titulaires/:magistratId/vacance/pieces-jointes/:fileId`  | —      | ✓                   | ✓              |
+| Supprimer une pièce jointe de la vacance               | `DELETE /veille-des-postes/v1/titulaires/:magistratId/vacance/pieces-jointes/:fileId` | —      | ✓                   | ✓              |
 
 ### Documents de séance : préparation
 
@@ -320,30 +366,31 @@ Dans les dossiers d'un magistrat, un Membre ne voit que l'affectation et les aud
 
 ### Procès-verbaux
 
-| Action                                                      | Endpoint                                                                                 | Membre | Secrétariat général | Administrateur |
-| ----------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------ | ------------------- | -------------- |
-| Lister les ordres du jour utilisables pour un procès-verbal | `GET /docs/v1/sessions/:sessionId/new-official-reports/agendas`                          | —      | ✓                   | ✓              |
-| Créer un procès-verbal                                      | `POST /docs/v1/sessions/:sessionId/official-reports`                                     | —      | ✓                   | ✓              |
-| Voir le procès-verbal d'une session                         | `GET /docs/v1/sessions/:sessionId/official-reports/:officialReportId`                    | —      | ✓                   | ✓              |
-| Voir un procès-verbal                                       | `GET /docs/v1/official-reports/:officialReportId`                                        | —      | ✓                   | ✓              |
-| Modifier un procès-verbal                                   | `PUT /docs/v1/official-reports/:officialReportId`                                        | —      | ✓                   | ✓              |
-| Voir les blocs du document                                  | `GET /docs/v1/official-reports/:officialReportId/blocks`                                 | —      | ✓                   | ✓              |
-| Retoucher l'introduction                                    | `PATCH /docs/v1/official-reports/:officialReportId/blocks/intro`                         | —      | ✓                   | ✓              |
-| Rétablir l'introduction                                     | `DELETE /docs/v1/official-reports/:officialReportId/blocks/intro`                        | —      | ✓                   | ✓              |
-| Retoucher la conclusion                                     | `PATCH /docs/v1/official-reports/:officialReportId/blocks/conclusion`                    | —      | ✓                   | ✓              |
-| Rétablir la conclusion                                      | `DELETE /docs/v1/official-reports/:officialReportId/blocks/conclusion`                   | —      | ✓                   | ✓              |
-| Retoucher le titre d'une section                            | `PATCH /docs/v1/official-reports/:officialReportId/blocks/:outcome/title`                | —      | ✓                   | ✓              |
-| Rétablir le titre d'une section                             | `DELETE /docs/v1/official-reports/:officialReportId/blocks/:outcome/title`               | —      | ✓                   | ✓              |
-| Retoucher l'introduction d'une section                      | `PATCH /docs/v1/official-reports/:officialReportId/blocks/:outcome/intro`                | —      | ✓                   | ✓              |
-| Rétablir l'introduction d'une section                       | `DELETE /docs/v1/official-reports/:officialReportId/blocks/:outcome/intro`               | —      | ✓                   | ✓              |
-| Rétablir le bloc d'un dossier                               | `DELETE /docs/v1/official-reports/:officialReportId/blocks/files/:nominationFileId`      | —      | ✓                   | ✓              |
-| Écrire la note sous une proposition                         | `PATCH /docs/v1/official-reports/:officialReportId/blocks/files/:nominationFileId/note`  | —      | ✓                   | ✓              |
-| Retirer la note sous une proposition                        | `DELETE /docs/v1/official-reports/:officialReportId/blocks/files/:nominationFileId/note` | —      | ✓                   | ✓              |
-| Abandonner le brouillon                                     | `DELETE /docs/v1/official-reports/:officialReportId/draft`                               | —      | ✓                   | ✓              |
-| Valider                                                     | `POST /docs/v1/official-reports/:officialReportId/validation`                            | —      | ✓                   | ✓              |
-| Générer le HTML                                             | `GET /docs/v1/official-reports/:officialReportId.html`                                   | —      | ✓                   | ✓              |
-| Générer le PDF                                              | `GET /docs/v1/official-reports/:officialReportId.pdf`                                    | —      | ✓                   | ✓              |
-| Supprimer                                                   | `DELETE /docs/v1/official-reports/:officialReportId`                                     | —      | ✓                   | ✓              |
+| Action                                                      | Endpoint                                                                                         | Membre | Secrétariat général | Administrateur |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ------ | ------------------- | -------------- |
+| Lister les ordres du jour utilisables pour un procès-verbal | `GET /docs/v1/sessions/:sessionId/new-official-reports/agendas`                                  | —      | ✓                   | ✓              |
+| Créer un procès-verbal                                      | `POST /docs/v1/sessions/:sessionId/official-reports`                                             | —      | ✓                   | ✓              |
+| Voir le procès-verbal d'une session                         | `GET /docs/v1/sessions/:sessionId/official-reports/:officialReportId`                            | —      | ✓                   | ✓              |
+| Voir un procès-verbal                                       | `GET /docs/v1/official-reports/:officialReportId`                                                | —      | ✓                   | ✓              |
+| Modifier un procès-verbal                                   | `PUT /docs/v1/official-reports/:officialReportId`                                                | —      | ✓                   | ✓              |
+| Voir les blocs du document                                  | `GET /docs/v1/official-reports/:officialReportId/blocks`                                         | —      | ✓                   | ✓              |
+| Retoucher l'introduction                                    | `PATCH /docs/v1/official-reports/:officialReportId/blocks/intro`                                 | —      | ✓                   | ✓              |
+| Rétablir l'introduction                                     | `DELETE /docs/v1/official-reports/:officialReportId/blocks/intro`                                | —      | ✓                   | ✓              |
+| Retoucher la conclusion                                     | `PATCH /docs/v1/official-reports/:officialReportId/blocks/conclusion`                            | —      | ✓                   | ✓              |
+| Rétablir la conclusion                                      | `DELETE /docs/v1/official-reports/:officialReportId/blocks/conclusion`                           | —      | ✓                   | ✓              |
+| Retoucher le titre d'une section                            | `PATCH /docs/v1/official-reports/:officialReportId/blocks/:outcome/title`                        | —      | ✓                   | ✓              |
+| Rétablir le titre d'une section                             | `DELETE /docs/v1/official-reports/:officialReportId/blocks/:outcome/title`                       | —      | ✓                   | ✓              |
+| Retoucher l'introduction d'une section                      | `PATCH /docs/v1/official-reports/:officialReportId/blocks/:outcome/intro`                        | —      | ✓                   | ✓              |
+| Rétablir l'introduction d'une section                       | `DELETE /docs/v1/official-reports/:officialReportId/blocks/:outcome/intro`                       | —      | ✓                   | ✓              |
+| Rétablir le bloc d'un dossier                               | `DELETE /docs/v1/official-reports/:officialReportId/blocks/files/:nominationFileId`              | —      | ✓                   | ✓              |
+| Écrire la note sous une proposition                         | `PATCH /docs/v1/official-reports/:officialReportId/blocks/files/:nominationFileId/note`          | —      | ✓                   | ✓              |
+| Retirer la note sous une proposition                        | `DELETE /docs/v1/official-reports/:officialReportId/blocks/files/:nominationFileId/note`         | —      | ✓                   | ✓              |
+| Rétablir la mention du déport sous une proposition          | `DELETE /docs/v1/official-reports/:officialReportId/blocks/files/:nominationFileId/note/edition` | —      | ✓                   | ✓              |
+| Abandonner le brouillon                                     | `DELETE /docs/v1/official-reports/:officialReportId/draft`                                       | —      | ✓                   | ✓              |
+| Valider                                                     | `POST /docs/v1/official-reports/:officialReportId/validation`                                    | —      | ✓                   | ✓              |
+| Générer le HTML                                             | `GET /docs/v1/official-reports/:officialReportId.html`                                           | —      | ✓                   | ✓              |
+| Générer le PDF                                              | `GET /docs/v1/official-reports/:officialReportId.pdf`                                            | —      | ✓                   | ✓              |
+| Supprimer                                                   | `DELETE /docs/v1/official-reports/:officialReportId`                                             | —      | ✓                   | ✓              |
 
 ### Notices de restitution
 
@@ -387,6 +434,7 @@ Dans les dossiers d'un magistrat, un Membre ne voit que l'affectation et les aud
 | Modifier le mot de passe          | `PUT /administration/v1/users/:userId/password`             | —      | —                   | ✓              |
 | Modifier le rôle                  | `PUT /administration/v1/users/:userId/role`                 | —      | —                   | ✓              |
 | Modifier le titre affiché         | `PUT /administration/v1/users/:userId/display-title`        | —      | —                   | ✓              |
+| Modifier le titre déport          | `PUT /administration/v1/users/:userId/recusal-title`        | —      | —                   | ✓              |
 | Donner le droit d'administrateur  | `PUT /administration/v1/users/:userId/promotion`            | —      | —                   | ✓              |
 | Retirer le droit d'administrateur | `DELETE /administration/v1/users/:userId/promotion`         | —      | —                   | ✓              |
 | Marquer un compte technique       | `PUT /administration/v1/users/:userId/technical-account`    | —      | —                   | ✓              |
@@ -396,22 +444,23 @@ Dans les dossiers d'un magistrat, un Membre ne voit que l'affectation et les aud
 | Lister les traitements            | `GET /jobs/v1`                                              | —      | —                   | ✓              |
 | Voir un traitement                | `GET /jobs/v1/:jobId`                                       | —      | —                   | ✓              |
 
-Le droit d'administrateur ne se donne qu'à une personne du Secrétariat général.
-
-Seul un compte technique, celui d'un développeur de Fondation, marque ou démarque un compte technique. Un compte technique a un rôle du Secrétariat général et n'est proposé dans aucune liste du CSM.
+Le droit d'administrateur ne se donne qu'à une personne du Secrétariat général. Seul un compte technique peut en rendre un autre technique.
 
 ## Accès sans utilisateur
 
 Ces endpoints ne passent par aucun rôle : ils sont publics ou réservés à d'autres systèmes. Le préfixe `/api` est omis.
 
-| Accès                                             | Endpoint                                  | Qui                       | Raison                                                    |
-| ------------------------------------------------- | ----------------------------------------- | ------------------------- | --------------------------------------------------------- |
-| Se connecter                                      | `POST /auth/v2/login`                     | public                    | Connexion par e-mail et mot de passe                      |
-| Lister les fournisseurs OpenID                    | `GET /auth/v2/openid/providers`           | public                    | Connexion OpenID                                          |
-| Préparer une connexion OpenID                     | `POST /auth/v2/openid/:provider/requests` | public                    | Connexion OpenID                                          |
-| Retour du fournisseur OpenID                      | `GET /auth/v2/openid/:provider/callback`  | public                    | Connexion OpenID                                          |
-| Vérifier les droits d'un magistrat (API publique) | `POST /public/v1/magistrats/role`         | machine                   | Service partenaire, authentifié par jeton                 |
-| Importer une archive Lolfi                        | `POST /ingest/v1/lolfi`                   | machine ou Administrateur | Dépôt automatique des archives Lolfi, ou import à la main |
+| Accès                                             | Endpoint                                        | Qui                       | Raison                                                    |
+| ------------------------------------------------- | ----------------------------------------------- | ------------------------- | --------------------------------------------------------- |
+| Se connecter                                      | `POST /auth/v2/login`                           | public                    | Connexion par e-mail et mot de passe                      |
+| Lister les fournisseurs OpenID                    | `GET /auth/v2/openid/providers`                 | public                    | Connexion OpenID                                          |
+| Préparer une connexion OpenID                     | `POST /auth/v2/openid/:provider/requests`       | public                    | Connexion OpenID                                          |
+| Retour du fournisseur OpenID                      | `GET /auth/v2/openid/:provider/callback`        | public                    | Connexion OpenID                                          |
+| Vérifier les droits d'un magistrat (API publique) | `POST /public/v1/magistrats/role`               | machine                   | Service partenaire, authentifié par jeton                 |
+| Obtenir un jeton de client API (API publique)     | `POST /public/v1/auth`                          | public                    | Jeton de 15 minutes contre un identifiant et un secret    |
+| Identifier un magistrat actif (API publique)      | `POST /public/v1/magistrats/identification`     | client API                | Site du CSM, première connexion d'un magistrat            |
+| Relire le statut d'un magistrat (API publique)    | `GET /public/v1/magistrats/:magistratId/status` | client API                | Site du CSM, une fois par jour au plus pour un magistrat  |
+| Importer une archive Lolfi                        | `POST /ingest/v1/lolfi`                         | machine ou Administrateur | Dépôt automatique des archives Lolfi, ou import à la main |
 
 ### Hors spécification OpenAPI
 

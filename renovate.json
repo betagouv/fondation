@@ -6,11 +6,14 @@
   "semanticCommitScope": "FON-000",
   "commitMessageLowerCase": "never",
   "commitMessageAction": "update",
-  "dependencyDashboard": true,
+  "dependencyDashboard": {
+    "enabled": true
+  },
   "schedule": ["after 6am and before 8pm on Sunday"],
   "pinDigests": true,
   "minimumReleaseAge": "15 days",
-  "prConcurrentLimit": 5,
+  "prHourlyLimit": 0,
+  "prConcurrentLimit": 10,
   "toolSettings": {
     "nodeMaxMemory": 2048
   },
@@ -30,6 +33,11 @@
       "allowedVersions": "<4.5.0"
     },
     {
+      "allowedVersions": "<9",
+      "description": "nest-commander 3 brings inquirer 8, which ships no types, and requires @types/inquirer 8: version 9 types inquirer 9 and version 10 is an empty stub",
+      "matchPackageNames": ["@types/inquirer"]
+    },
+    {
       "matchFileNames": ["apps/api/package.json", "apps/api-e2e/package.json"],
       "groupName": "api",
       "additionalBranchPrefix": "api/"
@@ -45,6 +53,12 @@
       "additionalBranchPrefix": "packages/"
     },
     {
+      "description": "The tools, the catalog and the overrides shared by the whole repository, updated every week in one PR",
+      "matchFileNames": ["package.json", "pnpm-workspace.yaml"],
+      "groupName": "workspace",
+      "additionalBranchPrefix": "workspace/"
+    },
+    {
       "matchManagers": ["docker-compose"],
       "groupName": "docker",
       "additionalBranchPrefix": "docker/"
@@ -55,10 +69,46 @@
       "additionalBranchPrefix": "github/"
     },
     {
+      "description": "pnpm is pinned both in `packageManager` and in the CI: both move together",
+      "matchPackageNames": ["pnpm"],
+      "groupName": "pnpm",
+      "additionalBranchPrefix": ""
+    },
+    {
+      "description": "The S3 server is pinned both in the test compose and in the CI services: both move together",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["versity/versitygw"],
+      "groupName": "versitygw",
+      "additionalBranchPrefix": ""
+    },
+    {
       "allowedVersions": "<18",
       "description": "PostgreSQL follows the major version of the Scalingo production database",
       "matchDatasources": ["docker"],
       "matchPackageNames": ["postgres"]
+    },
+    {
+      "description": "The application groups go before the tooling updates, which used to take every slot",
+      "matchFileNames": [
+        "apps/api/package.json",
+        "apps/api-e2e/package.json",
+        "apps/client/package.json",
+        "packages/**/package.json"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "prPriority": 1
+    },
+    {
+      "description": "A major update always needs work: it opens only once ticked in the Dependency Dashboard",
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true
+    },
+    {
+      "description": "The workspace has a single pnpm-lock.yaml: one branch refreshes it instead of one per group",
+      "matchUpdateTypes": ["lockFileMaintenance"],
+      "groupName": "all",
+      "additionalBranchPrefix": "",
+      "prPriority": 1
     }
   ]
 }

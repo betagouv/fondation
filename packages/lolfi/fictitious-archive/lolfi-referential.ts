@@ -6,6 +6,7 @@ import {
   type LolfiJurisdiction,
   type LolfiJurisdictionType,
 } from '../src';
+import { cityOf } from '../src/generate-lolfi-files';
 
 import administrativePositions from './referential/administrative-positions.json';
 import functions from './referential/functions.json';
@@ -14,16 +15,21 @@ import jurisdictions from './referential/jurisdictions.json';
 import positionKinds from './referential/position-kinds.json';
 
 /* Exported from staging on 2026-10-07. It holds no personal data: the referential is institutional,
-   and the position kinds only count which function exists in which jurisdiction type at which grade */
+   and the position kinds only count which function exists in which jurisdiction type at which grade.
+   Their holders, the active magistrats on such a position, were counted on production on 2026-11-12 */
 
 export type PositionKind = {
   count: number;
   functionId: string;
   grade: LolfiGradeEnum;
+  holders: number;
   jurisdictionType: string;
 };
 
 const NOT_A_COURT = ['DET', 'SAB', '_NR'];
+/* Keep them equal to the OUTRE_MER priority in apps/api/prisma/sql/detailLolfiSessionRawQuery.sql */
+const OVERSEAS_POSTAL_CODE = /^9[78]\d{3}/;
+const OVERSEAS_CITIES = ['CAYENNE', 'MAMOUDZOU', 'SAINT MARTIN', 'SAINT LAURENT DU MARONI'];
 
 export class LolfiReferential {
   readonly administrativePositions = administrativePositions as readonly LolfiAdministrativePosition[];
@@ -35,6 +41,7 @@ export class LolfiReferential {
   readonly noAssignment = this.jurisdiction('SANS AFFECTATION');
 
   readonly #functions = new Map(this.functions.map((f) => [f.id, f]));
+  readonly #jurisdictionsBySide = new Map<string, readonly LolfiJurisdiction[]>();
   readonly #jurisdictionsByType = Map.groupBy(this.jurisdictions, (j) => j.jurisdictionType);
   readonly #positionKinds = (positionKinds as readonly PositionKind[]).filter(
     (k) => !NOT_A_COURT.includes(k.jurisdictionType),
@@ -62,16 +69,59 @@ export class LolfiReferential {
     return this.#jurisdictionsByType.get(type) ?? [];
   }
 
+  isOverseas(jurisdiction: LolfiJurisdiction): boolean {
+    return (
+      OVERSEAS_POSTAL_CODE.test(jurisdiction.postalCode ?? '') ||
+      OVERSEAS_CITIES.includes(cityOf(jurisdiction.id) ?? '')
+    );
+  }
+
+  jurisdictionsOfSide(type: string, overseas: boolean): readonly LolfiJurisdiction[] {
+    const key = `${type}+${overseas}`;
+    const known = this.#jurisdictionsBySide.get(key);
+    if (known) return known;
+
+    const side = this.jurisdictionsOf(type).filter((j) => this.isOverseas(j) === overseas);
+    this.#jurisdictionsBySide.set(key, side);
+    return side;
+  }
+
+  positionKindsOf(functionId: string): readonly PositionKind[] {
+    return this.#positionKinds.filter(
+      (kind) => kind.functionId === functionId && this.jurisdictionsOf(kind.jurisdictionType).length > 0,
+    );
+  }
+
+  positionKindsOfJurisdictionType(jurisdictionType: string): readonly PositionKind[] {
+    return this.#positionKinds.filter((kind) => kind.jurisdictionType === jurisdictionType);
+  }
+
   positionKindsWeightedByCount(filter: {
     formation: LolfiFormationEnum;
     grade?: LolfiGradeEnum;
   }): ReadonlyMap<PositionKind, number> {
+    return new Map(this.#positionKindsOf(filter).map((k) => [k, k.count]));
+  }
+
+  positionKindsWeightedByHolders(filter: {
+    formation: LolfiFormationEnum;
+    grade?: LolfiGradeEnum;
+  }): ReadonlyMap<PositionKind, number> {
     return new Map(
-      this.#positionKinds
-        .filter((k) => this.function(k.functionId).formation === filter.formation)
-        .filter((k) => !filter.grade || k.grade === filter.grade)
-        .filter((k) => this.jurisdictionsOf(k.jurisdictionType).length > 0)
-        .map((k) => [k, k.count]),
+      this.#positionKindsOf(filter)
+        .filter((k) => k.holders > 0)
+        .map((k) => [k, k.holders]),
     );
+  }
+
+  positionKindsWhere(predicate: (kind: PositionKind) => boolean): readonly PositionKind[] {
+    return this.#positionKinds.filter(predicate);
+  }
+
+  #positionKindsOf(filter: { formation: LolfiFormationEnum; grade?: LolfiGradeEnum }): PositionKind[] {
+    return this.#positionKinds
+      .filter((k) => this.function(k.functionId).formation === filter.formation)
+      .filter((k) => !filter.grade || k.grade === filter.grade)
+      .filter((k) => this.jurisdictionsOf(k.jurisdictionType).length > 0);
   }
 }

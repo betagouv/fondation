@@ -1,15 +1,14 @@
 import clsx from 'clsx';
-import type { Ref } from 'react';
+import { useId, type Ref } from 'react';
 import { FormattedMessage } from 'react-intl';
 
+import { MEMBER_TAG } from '../member-tag';
 import { PriorityBadge } from '@/shared/components/priority-badge';
 import { PrioriteEnum } from '@/shared/enums/priorite.enum';
 import { Dropdown, type DropdownHandle } from '@/shared/ui/dropdown';
 import { memberFullName } from '@/utils/user.utils';
 
 const PRIORITY_ITEMS = Object.values(PrioriteEnum);
-
-const REPORTER_TAG = 'fr-tag font-normal! gap-1.5 bg-(--background-default-grey)!';
 
 const NO_EXCLUSION: ReadonlyMap<string, string> = new Map();
 
@@ -44,29 +43,58 @@ export function ReporterSelect(props: {
   available: readonly Reporter[];
   disabled?: boolean;
   excludedTitleByRapporteurId?: ReadonlyMap<string, string>;
+  /** a member recused from the file, who cannot become its reporter */
+  isNonAffectable?: (memberId: string) => boolean;
   onChange: (ids: string[]) => void;
   onClear?: () => void;
   ref?: Ref<DropdownHandle>;
   value: readonly string[];
 }) {
-  const { available, excludedTitleByRapporteurId = NO_EXCLUSION, onChange, onClear, ref, value } = props;
+  const {
+    available,
+    excludedTitleByRapporteurId = NO_EXCLUSION,
+    isNonAffectable,
+    onChange,
+    onClear,
+    ref,
+    value,
+  } = props;
+  const hintId = useId();
 
   const reporterOptions = [...available]
     .sort((a, b) => a.lastName.localeCompare(b.lastName))
     .map((reporter) => {
-      const excludedTitle = excludedTitleByRapporteurId.get(reporter.userId);
+      const title = excludedTitleByRapporteurId.get(reporter.userId);
+      const nonAffectable = !!isNonAffectable?.(reporter.userId);
 
       return {
+        disabled: nonAffectable,
         label: (
           <span
             className={clsx(
-              REPORTER_TAG,
-              excludedTitle ? 'text-(--text-default-warning)!' : 'text-(--text-action-high-blue-france)!',
+              MEMBER_TAG,
+              nonAffectable
+                ? 'text-(--text-disabled-grey)!'
+                : title
+                  ? 'text-(--text-default-warning)!'
+                  : 'text-(--text-action-high-blue-france)!',
             )}
-            title={excludedTitle}
+            title={title}
           >
-            {memberFullName(reporter)}
-            {excludedTitle && <span className="fr-sr-only">{excludedTitle}</span>}
+            {nonAffectable ? (
+              <FormattedMessage
+                defaultMessage="{member} (déport)"
+                values={{ member: memberFullName(reporter) }}
+              />
+            ) : (
+              memberFullName(reporter)
+            )}
+            {title && (
+              <>
+                {/* keeps the warning apart from the member name in the accessible name of an option */}{' '}
+                <span className="fr-sr-only">{title}</span>
+              </>
+            )}
           </span>
         ),
         value: reporter.userId,
@@ -79,7 +107,7 @@ export function ReporterSelect(props: {
           label: (
             <span
               className={clsx(
-                REPORTER_TAG,
+                MEMBER_TAG,
                 'fr-tag--icon-left fr-icon-close-circle-line text-(--text-action-high-blue-france)!',
               )}
             >
@@ -91,20 +119,29 @@ export function ReporterSelect(props: {
         ...reporterOptions,
       ]
     : reporterOptions;
+  const hasNonAffectable = reporterOptions.some(({ disabled }) => disabled);
 
   return (
-    <Dropdown
-      disabled={props.disabled}
-      label={<FormattedMessage defaultMessage="Affecter un rapporteur" />}
-      multiple
-      onSelect={(ids) => {
-        if (ids.includes(NO_REPORTER)) onClear?.();
-        else onChange(ids);
-      }}
-      options={options}
-      placeholder={<FormattedMessage defaultMessage="Sélectionner" />}
-      ref={ref}
-      selected={value}
-    />
+    <>
+      <Dropdown
+        aria-describedby={hasNonAffectable ? hintId : undefined}
+        disabled={props.disabled}
+        label={<FormattedMessage defaultMessage="Affecter un rapporteur" />}
+        multiple
+        onSelect={(ids) => {
+          if (ids.includes(NO_REPORTER)) onClear?.();
+          else onChange(ids);
+        }}
+        options={options}
+        placeholder={<FormattedMessage defaultMessage="Sélectionner" />}
+        ref={ref}
+        selected={value}
+      />
+      {hasNonAffectable && (
+        <p className="fr-hint-text fr-mb-0" id={hintId}>
+          <FormattedMessage defaultMessage="Un membre déporté de ce dossier ne peut pas être affecté : retirez d'abord son déport." />
+        </p>
+      )}
+    </>
   );
 }

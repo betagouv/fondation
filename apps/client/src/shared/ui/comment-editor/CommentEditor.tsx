@@ -8,6 +8,7 @@ export function CommentEditor(props: {
   ariaLabel: string;
   emptyLabel: ReactNode;
   initialValue: string | null;
+  maxLength?: number;
   onDirtyChange?: (isDirty: boolean) => void;
   onSave: (value: string | null) => Promise<void>;
   placeholder?: string;
@@ -78,9 +79,12 @@ export function CommentEditor(props: {
       onFocus={() => setIsFocused(true)}
     >
       <Input
+        // the DSFR leaves 16px above the message: it reads as detached from its field
+        className="fr-mb-0 [&_.fr-message]:mt-2"
         label=""
         nativeTextAreaProps={{
           'aria-label': props.ariaLabel,
+          maxLength: props.maxLength,
           onChange: (event) => change(event.target.value),
           placeholder: props.placeholder,
           rows: 4,
@@ -90,34 +94,29 @@ export function CommentEditor(props: {
         stateRelatedMessage={errorMessage}
         textArea
       />
-      <div
-        aria-hidden={!showActions}
-        className={clsx(
-          'grid transition-all duration-200 ease-out',
-          showActions ? 'mt-2 grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0',
-        )}
-      >
-        <div className="overflow-hidden">
-          <div className="flex justify-end gap-2">
-            <Button
-              className="btn-compact"
-              disabled={!isDirty || isPending}
-              onClick={cancel}
-              priority="secondary"
-              size="small"
-            >
-              <FormattedMessage defaultMessage="Annuler" />
-            </Button>
-            <Button
-              className="btn-compact"
-              disabled={!isDirty || isPending}
-              onClick={save}
-              priority="primary"
-              size="small"
-            >
-              <FormattedMessage defaultMessage="Valider" />
-            </Button>
-          </div>
+      <div className="mt-3 flex items-center gap-4">
+        <div
+          aria-hidden={!showActions}
+          className={clsx('ml-auto flex shrink-0 gap-2', !showActions && 'invisible')}
+        >
+          <Button
+            className="btn-compact"
+            disabled={!isDirty || isPending}
+            onClick={cancel}
+            priority="secondary"
+            size="small"
+          >
+            <FormattedMessage defaultMessage="Annuler" />
+          </Button>
+          <Button
+            className="btn-compact"
+            disabled={!isDirty || isPending}
+            onClick={save}
+            priority="primary"
+            size="small"
+          >
+            <FormattedMessage defaultMessage="Valider" />
+          </Button>
         </div>
       </div>
     </div>

@@ -186,7 +186,7 @@ export function AdminUserCreationModal(props: {
             options={[
               {
                 hintText: formatMessage({
-                  defaultMessage: 'Pour un développeur de Fondation',
+                  defaultMessage: "Pour un membre de l'équipe Fondation (développement, design ou produit)",
                 }),
                 label: formatMessage({ defaultMessage: 'Compte technique' }),
                 nativeInputProps: {

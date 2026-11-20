@@ -10,6 +10,7 @@ import {
   NominationFileOutcomeEnum,
 } from '../../../shared/nomination-file-outcome.enum';
 import * as policies from '../../../shared/policies/nomination-file.policies';
+import type { Impersonation } from '../../../shared/policies/personal-content.policies';
 import { PriorityEnum } from '../../../shared/priority.enum';
 import type { RoleEnum } from '../../../shared/role.enum';
 import { TypeDeSaisineEnum } from '../../../shared/type-de-saisine.enum';
@@ -17,6 +18,7 @@ import { UserStatus } from '../../../shared/user-status.enum';
 
 import type { PublishableAuditions } from './audition-publication';
 import { AutoAffectations } from './auto-affectation';
+import { type FileReporters, nonAffectableMembers, nonRecusableMembers } from './member-recusal';
 import { NominationFileSnapshot } from './nomination-file-snapshot';
 import {
   LodamTransparenceFile,
@@ -112,6 +114,14 @@ export class SessionTransparenceAttachmentRemoved {
   ) {}
 }
 
+export class SessionTransparenceAttachmentRenamed {
+  constructor(
+    readonly sessionId: string,
+    readonly fileId: string,
+    readonly name: string,
+  ) {}
+}
+
 export class SessionTransparenceFileAttachmentAdded {
   constructor(
     readonly nominationFileId: string,
@@ -124,6 +134,14 @@ export class SessionTransparenceFileAttachmentRemoved {
   constructor(
     readonly nominationFileId: string,
     readonly fileId: string,
+  ) {}
+}
+
+export class SessionTransparenceFileAttachmentRenamed {
+  constructor(
+    readonly nominationFileId: string,
+    readonly fileId: string,
+    readonly name: string,
   ) {}
 }
 
@@ -204,6 +222,18 @@ export class SessionTransparenceFileMemberMemoWritten {
   ) {}
 }
 
+export class SessionTransparenceFileMembersRecused {
+  constructor(
+    readonly sessionId: string,
+    readonly changes: readonly {
+      addedMemberIds: readonly string[];
+      nominationFileId: string;
+      removedMemberIds: readonly string[];
+    }[],
+    readonly authorId: string,
+  ) {}
+}
+
 export class SessionTransparenceFileAlertHidden {
   constructor(
     readonly sessionId: string,
@@ -257,6 +287,7 @@ type NominationSessionEvent =
   | SessionTransparenceAuditionUnScheduled
   | SessionTransparenceCommentWritten
   | SessionTransparenceFileMemberMemoWritten
+  | SessionTransparenceFileMembersRecused
   | SessionTransparenceFileMissingEvaluationUpdated
   | SessionTransparenceFileMissingEvaluationCommentUpdated
   | SessionTransparenceOutcomeDefined
@@ -265,8 +296,10 @@ type NominationSessionEvent =
   | SessionTransparenceAffectationVersionPublished
   | SessionTransparenceAttachmentAdded
   | SessionTransparenceAttachmentRemoved
+  | SessionTransparenceAttachmentRenamed
   | SessionTransparenceFileAttachmentAdded
   | SessionTransparenceFileAttachmentRemoved
+  | SessionTransparenceFileAttachmentRenamed
   | SessionTransparenceCreated
   | SessionTransparenceFilePrioritiesUpdated
   | SessionTransparenceFileReportersAffected
@@ -288,6 +321,35 @@ export class NonFormationMemberDefinedAsReporter extends Error {
   }
 }
 
+export class NonFormationMemberRecused extends Error {
+  constructor() {
+    super(`Seul un membre actif de la formation du dossier peut se déporter`);
+  }
+}
+
+export class ReporterRecused extends Error {
+  constructor() {
+    super(
+      `Un rapporteur ne peut pas se déporter : retirez-le d'abord de l'affectation, puis publiez-la s'il est rapporteur dans la version publiée`,
+    );
+  }
+}
+
+export class RecusedMemberAffected extends Error {
+  constructor() {
+    super(`Un membre déporté d'un dossier ne peut pas y être affecté : retirez d'abord son déport`);
+  }
+}
+
+/** a member deactivated since keeps their place on a file, without being offered for other ones */
+function isFormationMemberOrKept(
+  memberId: string,
+  formationMemberIds: ReadonlySet<string>,
+  fileMemberIds: ReadonlySet<string> | undefined,
+): boolean {
+  return formationMemberIds.has(memberId) || !!fileMemberIds?.has(memberId);
+}
+
 export class SessionTransparenceAffectationHasUnassignableReporters extends Error {
   constructor(
     readonly errors: readonly {
@@ -307,6 +369,12 @@ export class UnknownNominationFiles extends Error {
 }
 
 export class CantUpdateNominationFiles extends Error {
+  constructor(readonly fileIds: Set<string>) {
+    super();
+  }
+}
+
+export class NominationFilesNotFound extends Error {
   constructor(readonly fileIds: Set<string>) {
     super();
   }
@@ -383,8 +451,8 @@ export class SessionTransparence {
             file.id,
             {
               auditionRequired: file.auditionRequired,
-              canScheduleAudition: policies.canScheduleAudition(file, { archivedAt: null }),
-              canUpdate: !policies.nominationFileLock(file, { archivedAt: null }),
+              canScheduleAudition: policies.canScheduleAudition(file, { isArchived: false }),
+              canUpdate: !policies.nominationFileLock(file, { isArchived: false }),
               positionRequiresAudition: file.positionRequiresAudition,
             },
           ] as const,
@@ -505,6 +573,8 @@ export class SessionTransparence {
         affectations,
         authorId: null,
         formationMemberIds: new Set(command.formationMembers.map(({ id }) => id)),
+        // nobody can be recused from a session that does not exist yet
+        recusedMemberIdsByFile: new Map(),
       });
     }
 
@@ -524,16 +594,17 @@ export class SessionTransparence {
   }
 
   affectNominationFileReporters(command: {
-    authorId: string | null;
-    formationMemberIds: Set<string>;
-    // a reporter deactivated since stays on the files they already have, without being offered for new ones
-    assignedReporterIds?: ReadonlyMap<string, ReadonlySet<string>>;
     affectations: readonly {
       nominationFileId: string;
       reporterIds: readonly string[];
     }[];
+    assignedReporterIds?: ReadonlyMap<string, ReadonlySet<string>>;
+    authorId: string | null;
+    formationMemberIds: Set<string>;
+    recusedMemberIdsByFile: ReadonlyMap<string, ReadonlySet<string>>;
   }) {
     this.assertsCanUpdateFiles(...command.affectations.map(({ nominationFileId }) => nominationFileId));
+    this.assertsNoRecusedMemberAffected(command);
 
     let versionId = this.version?.id;
 
@@ -549,10 +620,12 @@ export class SessionTransparence {
     }
 
     const allReportersAreFormationMembers = command.affectations.every(({ nominationFileId, reporterIds }) =>
-      reporterIds.every(
-        (reporterId) =>
-          command.formationMemberIds.has(reporterId) ||
-          !!command.assignedReporterIds?.get(nominationFileId)?.has(reporterId),
+      reporterIds.every((reporterId) =>
+        isFormationMemberOrKept(
+          reporterId,
+          command.formationMemberIds,
+          command.assignedReporterIds?.get(nominationFileId),
+        ),
       ),
     );
 
@@ -583,6 +656,7 @@ export class SessionTransparence {
       affectations,
       authorId: command.authorId,
       formationMemberIds: command.formationMemberIds,
+      recusedMemberIdsByFile: command.autoAffectations.recusedMemberIdsByFile,
     });
   }
 
@@ -620,6 +694,10 @@ export class SessionTransparence {
 
   removeAttachment(command: { fileId: string }) {
     this.#messages.push(new SessionTransparenceAttachmentRemoved(this.id, command.fileId));
+  }
+
+  renameAttachment(command: { fileId: string; name: string }) {
+    this.#messages.push(new SessionTransparenceAttachmentRenamed(this.id, command.fileId, command.name));
   }
 
   update(command: {
@@ -733,9 +811,12 @@ export class SessionTransparence {
     memo: string;
     nominationFileId: string;
     reporterIds: readonly string[];
-    user: { id: string; role: RoleEnum };
+    user: { id: string; impersonation: Impersonation | undefined; role: RoleEnum };
   }) {
-    if (!this.files.has(command.nominationFileId) || !policies.canKeepMemberMemo(command, command.user)) {
+    if (
+      !this.files.has(command.nominationFileId) ||
+      policies.memberMemoVisibility(command, command.user) !== 'VISIBLE'
+    ) {
       throw new MemberMemoNotAllowed(command.nominationFileId);
     }
 
@@ -779,7 +860,57 @@ export class SessionTransparence {
     );
   }
 
+  recuseMembers(command: {
+    authorId: string;
+    formationMemberIds: ReadonlySet<string>;
+    recusals: readonly { memberIds: readonly string[]; nominationFileId: string }[];
+    recusedMemberIdsByFile: ReadonlyMap<string, ReadonlySet<string>>;
+    reportersByFile: ReadonlyMap<string, FileReporters>;
+  }) {
+    this.assertsCanUpdateFiles(...command.recusals.map(({ nominationFileId }) => nominationFileId));
+
+    const recusals = command.recusals.map(({ memberIds, nominationFileId }) => ({
+      memberIds: [...new Set(memberIds)],
+      nominationFileId,
+    }));
+    const allRecusedAreFormationMembers = recusals.every(({ memberIds, nominationFileId }) =>
+      memberIds.every((id) =>
+        isFormationMemberOrKept(
+          id,
+          command.formationMemberIds,
+          command.recusedMemberIdsByFile.get(nominationFileId),
+        ),
+      ),
+    );
+    if (!allRecusedAreFormationMembers) throw new NonFormationMemberRecused();
+
+    const changes = recusals
+      .map(({ memberIds, nominationFileId }) => {
+        const formerMemberIds = command.recusedMemberIdsByFile.get(nominationFileId) ?? new Set<string>();
+        return {
+          addedMemberIds: memberIds.filter((id) => !formerMemberIds.has(id)),
+          nominationFileId,
+          removedMemberIds: [...formerMemberIds.difference(new Set(memberIds))],
+        };
+      })
+      .filter(
+        ({ addedMemberIds, removedMemberIds }) => addedMemberIds.length > 0 || removedMemberIds.length > 0,
+      );
+    const addsAReporter = changes.some(({ addedMemberIds, nominationFileId }) => {
+      const reporters = command.reportersByFile.get(nominationFileId);
+      if (!reporters) return false;
+      const nonRecusableIds = new Set(nonRecusableMembers(reporters).map(({ id }) => id));
+      return addedMemberIds.some((id) => nonRecusableIds.has(id));
+    });
+    if (addsAReporter) throw new ReporterRecused();
+    if (changes.length === 0) return;
+
+    this.#messages.push(new SessionTransparenceFileMembersRecused(this.id, changes, command.authorId));
+  }
+
   hideAlert(command: { nominationFileId: string }) {
+    this.assertsCanUpdateFiles(command.nominationFileId);
+
     this.#messages.push(new SessionTransparenceFileAlertHidden(this.id, command.nominationFileId));
   }
 
@@ -802,6 +933,14 @@ export class SessionTransparence {
 
     this.#messages.push(
       new SessionTransparenceFileAttachmentRemoved(command.nominationFileId, command.fileId),
+    );
+  }
+
+  renameNominationFileAttachment(command: { fileId: string; name: string; nominationFileId: string }) {
+    this.assertsCanUpdateFiles(command.nominationFileId);
+
+    this.#messages.push(
+      new SessionTransparenceFileAttachmentRenamed(command.nominationFileId, command.fileId, command.name),
     );
   }
 
@@ -837,13 +976,29 @@ export class SessionTransparence {
     }
   }
 
+  private assertsNoRecusedMemberAffected(command: {
+    affectations: readonly { nominationFileId: string; reporterIds: readonly string[] }[];
+    recusedMemberIdsByFile: ReadonlyMap<string, ReadonlySet<string>>;
+  }): void {
+    const affectsARecusedMember = command.affectations.some(({ nominationFileId, reporterIds }) => {
+      const recusedIds = command.recusedMemberIdsByFile.get(nominationFileId);
+      if (!recusedIds) return false;
+      const nonAffectableIds = new Set(nonAffectableMembers(recusedIds).map(({ id }) => id));
+      return reporterIds.some((id) => nonAffectableIds.has(id));
+    });
+    if (affectsARecusedMember) throw new RecusedMemberAffected();
+  }
+
   private assertsCanUpdateFiles(...nominationFileIds: readonly string[]): void {
+    const unknownIds = new Set<string>();
     const nonUpdatableIds = new Set<string>();
     for (const id of nominationFileIds) {
       const file = this.files.get(id);
-      if (!file?.canUpdate) nonUpdatableIds.add(id);
+      if (!file) unknownIds.add(id);
+      else if (!file.canUpdate) nonUpdatableIds.add(id);
     }
 
+    if (unknownIds.size) throw new NominationFilesNotFound(unknownIds);
     if (nonUpdatableIds.size) {
       throw new CantUpdateNominationFiles(nonUpdatableIds);
     }

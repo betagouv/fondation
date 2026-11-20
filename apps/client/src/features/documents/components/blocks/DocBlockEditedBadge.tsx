@@ -5,6 +5,7 @@ import type { ReactNode } from 'react';
 import { FormattedMessage } from 'react-intl';
 
 import { useDateAndTime } from '@/shared/hooks/useDateAndTime';
+import { whoWrote } from '@/utils/user.utils';
 import { useUser } from '@queries/auth.queries';
 
 type Writer = { id: string; name: string } | null;
@@ -67,7 +68,7 @@ export function DocBlockEditedLine(props: {
   const { user } = useUser();
   const { at, label, tone, writer } = props;
 
-  const who = !writer ? 'nobody' : writer.id === user?.id ? 'self' : 'someone';
+  const who = whoWrote({ currentUserId: user?.id, writer });
 
   return (
     <span className="flex flex-wrap items-center gap-x-2 gap-y-1">

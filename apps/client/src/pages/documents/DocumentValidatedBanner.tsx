@@ -5,6 +5,7 @@ import { useDateAndTime } from '@/shared/hooks/useDateAndTime';
 import { AlertBanner } from '@/shared/ui/alert-banner';
 import type { PlainDateOnly } from '@/utils/date-only.util';
 import type { PlainTimeOnly } from '@/utils/time-only.util';
+import { whoWrote } from '@/utils/user.utils';
 import { useUser } from '@queries/auth.queries';
 
 type Writer = { id: string; name: string } | null;
@@ -22,7 +23,7 @@ export function DocumentValidatedBanner(props: {
 
   const authorship = (by: Writer) => ({
     kind,
-    who: !by ? 'nobody' : by.id === user?.id ? 'self' : 'someone',
+    who: whoWrote({ currentUserId: user?.id, writer: by }),
     writer: by?.name,
   });
 

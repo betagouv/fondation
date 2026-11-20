@@ -17,7 +17,7 @@ import {
   traceOf,
   traceSchema,
 } from '../../../shared/infrastructure/document-trace';
-import { draftChangesBy, draftChangesBySchema } from '../../../shared/infrastructure/draft-changes-by';
+import { draftChanges, draftChangesBySchema } from '../../../shared/infrastructure/draft-changes-by';
 import { AgendaVersionFinder } from '../finders/agenda-version.finder';
 
 @Injectable()
@@ -36,6 +36,7 @@ export class DetailsAgendaMetadataQuery {
       select: {
         ...DRAFT_TRACE_SELECT,
         _count: { select: { nominationFiles: { where: { htmlOutdated: true } } } },
+        agenda: { select: { sessionId: true } },
         agendaId: true,
         chairmanId: true,
         createdBy: true,
@@ -58,18 +59,19 @@ export class DetailsAgendaMetadataQuery {
         })
       : null;
 
-    const changesBy = draftChangesBy(version);
+    const changes = draftChanges(version);
     const hasValidatedVersion = isDefined(publishedId);
 
     return {
       id: version.agendaId,
+      session: { id: version.agenda.sessionId },
       status: version.status,
       outdated: version.outdated,
       outdatedPropositions: version._count.nominationFiles,
       hasValidatedVersion,
-      canDiscardDraft: canDiscardDraft({ changesBy, hasValidatedVersion }),
+      canDiscardDraft: canDiscardDraft({ ...changes, hasValidatedVersion }),
       canValidate: canValidateDocument({ isValidated: version.status === 'VALIDATED' }),
-      draftChangesBy: changesBy,
+      draftChangesBy: changes.changesBy,
       draft: draftTrace(version),
       validation: traceOf(published?.validatedAt, published?.validator),
       chairmanId: version.chairmanId,
@@ -83,6 +85,7 @@ export class DetailsAgendaMetadataQuery {
 export class DetailedAgendaMetadata extends createZodDto(
   z.object({
     id: z.string(),
+    session: z.object({ id: z.string() }),
     status: z.enum(['DRAFT', 'VALIDATED']),
     /** another text is proposed for at least one of its blocks, and waits for the reader's call */
     outdated: z.boolean(),

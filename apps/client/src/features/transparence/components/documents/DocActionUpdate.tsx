@@ -18,13 +18,13 @@ export function DocActionUpdate(props: {
 
   const to = useMemo(() => {
     if (doc.type === 'agenda') {
-      return generatePath(ROUTE_PATHS.SG.AGENDA_PREVIEW, {
+      return generatePath(ROUTE_PATHS.SG.GDS.AGENDA_PREVIEW, {
         agendaId: doc.id,
         sessionId,
       });
     }
 
-    return generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_PREVIEW, {
+    return generatePath(ROUTE_PATHS.SG.GDS.OFFICIAL_REPORT_PREVIEW, {
       officialReportId: doc.id,
       sessionId,
     });

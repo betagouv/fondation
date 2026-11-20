@@ -19,6 +19,7 @@ import {
   UserPasswordUpdated,
   UserPromotedToAdmin,
   UserReactivated,
+  UserRecusalTitleUpdated,
   UserRegistered,
   UserRoleUpdated,
   UserTechnicalAccountUpdated,
@@ -130,6 +131,7 @@ export class UserRepository {
       else if (message instanceof UserPasswordUpdated) await this.persistPasswordUpdated(message);
       else if (message instanceof UserRoleUpdated) await this.persistRoleUpdated(message);
       else if (message instanceof UserDisplayTitleUpdated) await this.persistDisplayTitleUpdated(message);
+      else if (message instanceof UserRecusalTitleUpdated) await this.persistRecusalTitleUpdated(message);
       else if (message instanceof UsersUntitled) await this.persistUsersUntitled(message);
       else if (message instanceof UserPromotedToAdmin) await this.persistUserPromotedToAdmin(message);
       else if (message instanceof UserDemotedFromAdmin) await this.persistUserDemotedFromAdmin(message);
@@ -240,6 +242,13 @@ export class UserRepository {
   private persistDisplayTitleUpdated(message: UserDisplayTitleUpdated) {
     return this.db.tx.user.update({
       data: { displayTitle: message.displayTitle },
+      where: { id: message.userId },
+    });
+  }
+
+  private persistRecusalTitleUpdated(message: UserRecusalTitleUpdated) {
+    return this.db.tx.user.update({
+      data: { recusalTitle: message.recusalTitle },
       where: { id: message.userId },
     });
   }

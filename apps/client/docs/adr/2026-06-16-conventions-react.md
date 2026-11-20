@@ -29,7 +29,7 @@ que de déclarer une lambda.
 // Les hooks utilisent `function`
 function useUpdateMovieRatingMutation() {
   const queryClient = useQueryClient();
-  return useMutation({..., onSuccess: () => queryClient.invalidateQueries() });
+  return useMutation({..., onSettled: () => queryClient.invalidateQueries() });
 }
 
 // Les hooks TanStack Query sont plus lisibles comme lambda

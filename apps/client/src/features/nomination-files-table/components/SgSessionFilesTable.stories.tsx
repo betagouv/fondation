@@ -13,24 +13,46 @@ import { makeSessionOutcomes } from '@/test-utils/factories/session-outcomes.fac
 
 import { SgSessionFilesTable } from './SgSessionFilesTable';
 
+// a member recused from an unaffected file, which the bulk affectation skips
+const RECUSALS = new Map([
+  ['dossier-5', sessionMembers.map(({ firstName, id, lastName }) => ({ firstName, id, lastName }))],
+]);
+
+// as the API serves them to the Secrétariat général: a file editable until it is locked,
+// never a reporter recused nor a recused member affected
+const sgSessionFiles = sessionFiles.map((file) => {
+  const canUpdate = file.content.lockedReason === null;
+  const recusedMembers = RECUSALS.get(file.id) ?? file.recusedMembers;
+  return {
+    ...file,
+    canUpdate,
+    nonAffectableMembers: recusedMembers.map(({ id }) => ({ id, reason: 'RECUSED' as const })),
+    nonRecusableMembers: canUpdate
+      ? file.reporters.map(({ id }) => ({ id, reason: 'REPORTER' as const }))
+      : [],
+    recusedMembers,
+  };
+});
+
 const sessions: Record<string, SessionDataset> = {
   draft: {
     agendaEligibleFileIds: sessionFiles
       .filter(({ content }) => content.status.value !== 'DSJ_REPORTED')
       .map(({ id }) => id),
-    files: sessionFiles,
+    files: sgSessionFiles,
     members: sessionMembers,
   },
   published: {
-    affectationsVersion: {
-      '@type': 'fr.csm.fondation.affectations.version.some',
-      author: { firstName: 'Claire', id: 'user-sg', lastName: 'Mercier' },
-      id: 'affectations-version-2',
-      publicationDate: '2026-06-02T09:00:00.000Z',
-      status: 'PUBLIEE',
-      version: 2,
+    affectationHistory: {
+      lastPublished: {
+        at: '2026-06-02T09:00:00.000Z',
+        by: { id: 'user-sg', name: 'Claire Mercier' },
+        version: 2,
+      },
+      pending: null,
+      status: 'PUBLISHED',
     },
-    files: sessionFiles,
+    files: sgSessionFiles,
     members: sessionMembers,
   },
   empty: { files: [] },
@@ -40,6 +62,10 @@ const bulkActionHandlers = [
   http.post('*/api/sessions/v2/:sessionId/files/reporters', () => new HttpResponse(null, { status: 204 })),
   http.put('*/api/sessions/v2/:sessionId/files/outcome', () => new HttpResponse(null, { status: 204 })),
   http.put('*/api/sessions/v2/:sessionId/files/priorities', () => new HttpResponse(null, { status: 204 })),
+  http.put(
+    '*/api/sessions/v2/:sessionId/files/recused-members',
+    () => new HttpResponse(null, { status: 204 }),
+  ),
 ];
 
 function SgSessionFilesTableStory(props: {
@@ -48,6 +74,7 @@ function SgSessionFilesTableStory(props: {
   sessionId: string;
 }) {
   const [filtersSlot, setFiltersSlot] = useState<HTMLDivElement | null>(null);
+  const [headerSlot, setHeaderSlot] = useState<HTMLDivElement | null>(null);
   const [toolbarSlot, setToolbarSlot] = useState<HTMLDivElement | null>(null);
 
   return (
@@ -55,6 +82,7 @@ function SgSessionFilesTableStory(props: {
       <ToastProvider>
         <ConfirmModalProvider>
           <div className="fr-container fr-py-4v">
+            <div className="fr-mb-4v" ref={setHeaderSlot} />
             <div className="fr-mb-4v min-h-10" ref={setFiltersSlot} />
             <div className="fr-mb-4v min-h-10" ref={setToolbarSlot} />
 
@@ -62,6 +90,7 @@ function SgSessionFilesTableStory(props: {
               canManage={props.canManage}
               filtersSlot={filtersSlot}
               formation={props.formation}
+              headerSlot={headerSlot}
               outcomes={makeSessionOutcomes(props.formation)}
               sessionId={props.sessionId}
               toolbarSlot={toolbarSlot}
@@ -85,9 +114,9 @@ const meta = {
   component: SgSessionFilesTableStory,
   parameters: {
     layout: 'fullscreen',
-    router: { initialEntries: ['/secretariat-general/session/draft'] },
+    router: { initialEntries: ['/secretariat-general/gds/session/draft'] },
   },
-  title: 'Session/Transparence/SgSessionFilesTable',
+  title: 'Session/GDS/SgSessionFilesTable',
 } satisfies Meta<typeof SgSessionFilesTableStory>;
 
 export default meta;

@@ -5,16 +5,18 @@ import { isDefined } from '../../utils/is-defined';
 import { Files } from '../framework/files';
 import { StoredFile } from '../framework/files/multipart/multipart.types';
 import { FormationEnum } from '../shared/formation.enum';
+import type { Impersonation } from '../shared/policies/personal-content.policies';
 import { ReportFileUsageEnum } from '../shared/report-file-usage.enum';
-import { ReportStateEnum } from '../shared/report-state.enum';
+import { ReportStateEnum, type ReportStateCounts } from '../shared/report-state.enum';
 import type { RoleEnum } from '../shared/role.enum';
 
 import { AttachedScreenshotsDto } from './infrastructure/dtos/report.dto';
+import { MemberReportStatesFinder } from './infrastructure/finders/member-report-states.finder';
 import { type DetailedReportDto, DetailReportQuery } from './infrastructure/queries/detail-report.query';
 import {
-  GetReportFileUrlsQuery,
-  type GetReportFileUrlsResponseDto,
-} from './infrastructure/queries/get-report-file-urls.query';
+  type GeneratedReportAttachmentUrlDto,
+  GetReportAttachmentUrlQuery,
+} from './infrastructure/queries/get-report-attachment-url.query';
 import {
   type ListedMemberSessionReportsDto,
   ListMemberSessionReportsQuery,
@@ -31,22 +33,25 @@ export class ReportService {
   constructor(
     private readonly reportRepository: ReportRepository,
     private readonly sessionReportsRepository: SessionReportsRepository,
-    private readonly getReportFileUrlsQuery: GetReportFileUrlsQuery,
+    private readonly getReportAttachmentUrlQuery: GetReportAttachmentUrlQuery,
     private readonly detailReportQuery: DetailReportQuery,
     private readonly listMemberSessionReportsQuery: ListMemberSessionReportsQuery,
+    private readonly memberReportStatesFinder: MemberReportStatesFinder,
     private readonly searchNominationFileMembersReportQuery: SearchNominationFileMembersReportQuery,
     private readonly files: Files,
   ) {}
 
   @Transactional()
   async attachFiles(command: {
-    userId: string;
     fileUsage: ReportFileUsageEnum | undefined;
-    reportId: string;
     files: readonly { id: string }[];
+    impersonation: Impersonation | undefined;
+    reportId: string;
+    userId: string;
   }): Promise<void> {
     const report = await this.reportRepository.find({
       id: command.reportId,
+      impersonation: command.impersonation,
       reporterId: command.userId,
     });
     report.attachFiles({
@@ -58,32 +63,33 @@ export class ReportService {
   }
 
   @Transactional()
-  async detachFiles(command: {
-    userId: string;
+  async detachAttachment(command: {
+    fileId: string;
+    impersonation: Impersonation | undefined;
     reportId: string;
-    fileNames: readonly string[];
+    userId: string;
   }): Promise<void> {
     const report = await this.reportRepository.find({
       id: command.reportId,
+      impersonation: command.impersonation,
       reporterId: command.userId,
     });
-    report.detachFiles({
-      fileNames: command.fileNames,
-      reporterId: command.userId,
-    });
+    report.detachAttachment({ fileId: command.fileId });
     await this.reportRepository.persist(report);
   }
 
   async attachScreenshots(command: {
     files: readonly StoredFile[];
+    impersonation: Impersonation | undefined;
     reportId: string;
     userId: string;
   }): Promise<AttachedScreenshotsDto> {
     await this.attachFiles({
-      userId: command.userId,
-      reportId: command.reportId,
-      files: command.files,
       fileUsage: 'EMBEDDED_SCREENSHOT',
+      files: command.files,
+      impersonation: command.impersonation,
+      reportId: command.reportId,
+      userId: command.userId,
     });
 
     const urls = await this.files.getPublicUrls(command.files.map((file) => file.id));
@@ -104,17 +110,17 @@ export class ReportService {
     };
   }
 
-  getReportFileUrls(query: {
-    userId: string;
+  getAttachmentUrl(query: {
+    fileId: string;
     reportId: string;
-    fileNames: readonly string[];
-  }): Promise<GetReportFileUrlsResponseDto> {
-    return this.getReportFileUrlsQuery.handle(query);
+    user: { id: string; impersonation: Impersonation | undefined; role: RoleEnum };
+  }): Promise<GeneratedReportAttachmentUrlDto> {
+    return this.getReportAttachmentUrlQuery.handle(query);
   }
 
   detailReport(query: {
-    user: { id: string; role: RoleEnum };
     reportId: string;
+    user: { id: string; impersonation: Impersonation | undefined; role: RoleEnum };
   }): Promise<DetailedReportDto> {
     return this.detailReportQuery.handle(query);
   }
@@ -129,6 +135,13 @@ export class ReportService {
     const sessionReports = await this.sessionReportsRepository.find(command);
     sessionReports.syncWith(command);
     await this.sessionReportsRepository.persist(sessionReports);
+  }
+
+  internalCountMemberReportStates(query: {
+    reporterId: string;
+    sessionIds: readonly string[];
+  }): Promise<Map<string, ReportStateCounts>> {
+    return this.memberReportStatesFinder.find(query);
   }
 
   listMemberSessionReports(query: {
@@ -148,15 +161,17 @@ export class ReportService {
 
   @Transactional()
   async updateReport(command: {
-    reportId: string;
-    reporterId: string;
     data: {
       status: ReportStateEnum | undefined;
       comment: string | undefined;
     };
+    impersonation: Impersonation | undefined;
+    reportId: string;
+    reporterId: string;
   }) {
     const report = await this.reportRepository.find({
       id: command.reportId,
+      impersonation: command.impersonation,
       reporterId: command.reporterId,
     });
     report.update({ data: command.data });
@@ -166,13 +181,15 @@ export class ReportService {
 
   @Transactional()
   async updateRuleValidation(command: {
+    impersonation: Impersonation | undefined;
+    isValidated: boolean;
     reportId: string;
     reporterId: string;
     ruleId: string;
-    isValidated: boolean;
   }) {
     const report = await this.reportRepository.find({
       id: command.reportId,
+      impersonation: command.impersonation,
       reporterId: command.reporterId,
     });
     report.updateRuleValidation({

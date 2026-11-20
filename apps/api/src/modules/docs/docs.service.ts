@@ -111,6 +111,15 @@ export class DocsService {
     return this.invalidateDocsUseCase.handle(invalidations);
   }
 
+  /**
+   * a draft official report or agenda prints the member's new name, or recusal title, at once; a validated one
+   * keeps the one it was sent with. The presentation plan still keeps the name it was given.
+   */
+  @Transactional(Propagation.Mandatory)
+  internalFollowRenamedMember(command: { userId: string }): Promise<void> {
+    return this.invalidateDocsUseCase.handle([{ payload: command, type: 'MemberRenamed' }]);
+  }
+
   internalFindReportedNominationFiles(query: { nominationFileIds: Set<string> }): Promise<Set<string>> {
     return this.reportedNominationFilesFinder.find({ fileIds: query.nominationFileIds });
   }

@@ -1,7 +1,9 @@
-import { defineMessages, FormattedMessage, type MessageDescriptor } from 'react-intl';
+import { defineMessages, FormattedMessage, type MessageDescriptor, useIntl } from 'react-intl';
 
 import { ChangePasswordForm } from '@/features/auth/components/ChangePasswordForm';
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
+import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
+import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { DetailsCard, DetailsHeader, DetailsPageLayout } from '@/shared/ui/details';
 import { capitalize } from '@/utils/string.utils';
 import { memberFullName } from '@/utils/user.utils';
@@ -12,6 +14,8 @@ const PASSWORD_CHANGE_REFUSALS = defineMessages({
 } satisfies Record<Exclude<SessionUser['passwordChange'], 'ALLOWED'>, MessageDescriptor>);
 
 export function AccountPage() {
+  const { formatMessage } = useIntl();
+  const breadcrumbRoot = useBreadcrumbRoot();
   const { user } = useUser();
   const isSg = useIsSg();
 
@@ -24,6 +28,17 @@ export function AccountPage() {
         <DetailsHeader
           backThroughHistory
           backTo="/"
+          breadcrumb={
+            <Breadcrumb
+              ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane de mon compte" })}
+              breadcrumb={{
+                currentPageLabel: formatMessage({ defaultMessage: 'Mon compte' }),
+                segments: breadcrumbRoot,
+              }}
+              className="fr-mt-0"
+              id="account-breadcrumb"
+            />
+          }
           overline={<FormattedMessage defaultMessage="Mon compte" />}
           title={memberFullName(user)}
         />

@@ -13,6 +13,7 @@ model File {
   attachedToNominationFiles           NominationFileAttachment[]
   attachedToObservationMemberComments ObservationMemberCommentScreenshot[]
   attachedToObservations              ObservationFile[]
+  attachedToPositionVacancies         PositionVacancyAttachment[]
   attachedToReports                   ReportFile[]
   attachedToSessions                  SessionAttachment[]
   attachedToSummaries                 SummaryAttachment[]

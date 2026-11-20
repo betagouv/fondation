@@ -85,6 +85,13 @@ export class UserDisplayTitleUpdated {
   ) {}
 }
 
+export class UserRecusalTitleUpdated {
+  constructor(
+    readonly userId: string,
+    readonly recusalTitle: string | null,
+  ) {}
+}
+
 export class UsersUntitled {
   constructor(
     readonly userId: string,
@@ -142,6 +149,7 @@ export type UserEvent =
   | UserRoleUpdated
   | UsersUntitled
   | UserDisplayTitleUpdated
+  | UserRecusalTitleUpdated
   | UserPromotedToAdmin
   | UserDemotedFromAdmin
   | UserTechnicalAccountUpdated
@@ -251,7 +259,11 @@ export class User {
     return isSecretariat(this.role.role);
   }
 
-  /** only a developer marks the accounts of the developers, for no agent of the CSM to drop out of its lists by mistake */
+  isMember(): boolean {
+    return !isSecretariat(this.role.role);
+  }
+
+  /** only a member of the Fondation team marks the accounts of the team, for no agent of the CSM to drop out of its lists by mistake */
   static canManageTechnicalAccounts(actor: { isTechnical: boolean }): boolean {
     return actor.isTechnical;
   }
@@ -314,6 +326,10 @@ export class User {
 
   updateDisplayTitle(displayTitle: string | null): void {
     this.#messages.push(new UserDisplayTitleUpdated(this.id, displayTitle));
+  }
+
+  updateRecusalTitle(recusalTitle: string | null): void {
+    this.#messages.push(new UserRecusalTitleUpdated(this.id, recusalTitle));
   }
 
   promoteAdmin(command: { actorId: string; now: Date }): void {

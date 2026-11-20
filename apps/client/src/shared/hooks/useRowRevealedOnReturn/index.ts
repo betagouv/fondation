@@ -1,0 +1,1 @@
+export { useRowRevealedOnReturn } from './useRowRevealedOnReturn';

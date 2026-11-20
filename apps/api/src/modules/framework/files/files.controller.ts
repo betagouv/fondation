@@ -38,6 +38,8 @@ export class FilesController {
       range,
     });
     res.set('Accept-Ranges', 'bytes');
+    // the browser keeps the file until its URL expires, a shared cache never keeps it
+    res.set('Cache-Control', 'private');
     res.set('Expires', expiresAt.toUTCString() /* RFC5322 */);
     if (contentRange) res.status(HttpStatus.PARTIAL_CONTENT).set('Content-Range', contentRange);
 

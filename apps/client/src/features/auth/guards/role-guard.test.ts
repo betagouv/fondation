@@ -41,6 +41,7 @@ describe('roleGuard', () => {
     email: 'ada.lovelace@justice.fr',
     firstName: 'Ada',
     formation: 'SIEGE' as const,
+    gender: 'FEMALE' as const,
     id: '5f6478c1-46a1-4b64-8cbd-4a0d67101d7e',
     isAdmin: false,
     isImpersonated: false,

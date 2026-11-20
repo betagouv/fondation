@@ -129,7 +129,7 @@ export function OfficialReportDocumentEditor(props: {
   const onPreview = useCallback(
     async () =>
       navigate(
-        generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_PREVIEW, {
+        generatePath(ROUTE_PATHS.SG.GDS.OFFICIAL_REPORT_PREVIEW, {
           officialReportId: model.officialReportId,
           sessionId,
         }),

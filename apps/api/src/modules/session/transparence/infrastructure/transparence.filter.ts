@@ -1,10 +1,12 @@
 import {
   BadRequestException,
   CallHandler,
+  ConflictException,
   ExecutionContext,
   ForbiddenException,
   Logger,
   NestInterceptor,
+  NotFoundException,
 } from '@nestjs/common';
 import { catchError, Observable, throwError } from 'rxjs';
 
@@ -16,8 +18,12 @@ import {
   CannotScheduleAuditionOnNominationFile,
   CantUpdateNominationFiles,
   MemberMemoNotAllowed,
+  NominationFilesNotFound,
   NonFormationMemberDefinedAsReporter,
+  NonFormationMemberRecused,
   PositionAuditionCannotBeDismissed,
+  RecusedMemberAffected,
+  ReporterRecused,
   SessionTransparenceAffectationHasUnassignableReporters,
   SessionTransparenceIsArchived,
   SessionTransparenceIsNotArchivable,
@@ -32,7 +38,10 @@ export class TransparenceExceptionFilter implements NestInterceptor {
     return next.handle().pipe(
       catchError((err) => {
         return throwError(() => {
-          if (err instanceof NonFormationMemberDefinedAsReporter) {
+          if (
+            err instanceof NonFormationMemberDefinedAsReporter ||
+            err instanceof NonFormationMemberRecused
+          ) {
             return new BadRequestException({ message: err.message }, { cause: err });
           }
 
@@ -69,6 +78,10 @@ export class TransparenceExceptionFilter implements NestInterceptor {
             );
           }
 
+          if (err instanceof ReporterRecused || err instanceof RecusedMemberAffected) {
+            return new BadRequestException({ validationErrors: [err.message] }, { cause: err });
+          }
+
           if (err instanceof UnknownNominationFiles) {
             return new BadRequestException(
               {
@@ -96,13 +109,16 @@ export class TransparenceExceptionFilter implements NestInterceptor {
             );
           }
 
+          if (err instanceof NominationFilesNotFound) return new NotFoundException(undefined, { cause: err });
+
+          // a 409 like the observations and the synthèses: the dossier may have been figé after the page loaded
           if (err instanceof CantUpdateNominationFiles) {
-            return new BadRequestException(
+            return new ConflictException(
               {
                 validationErrors: [
                   err.fileIds.size === 1
-                    ? `Le dossier a déjà été associé à de la documentation`
-                    : `${err.fileIds.size} dossiers ont déjà été associés à de la documentation`,
+                    ? `Un dossier n'est plus modifiable`
+                    : `${err.fileIds.size} dossiers ne sont plus modifiables`,
                 ],
               },
               { cause: err },

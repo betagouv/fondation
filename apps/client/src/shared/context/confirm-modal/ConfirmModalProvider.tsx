@@ -22,9 +22,11 @@ export function ConfirmModalProvider({ children }: PropsWithChildren) {
               <Button onClick={cancel} priority="secondary">
                 {state.question.i18n?.cancel ?? formatMessage({ defaultMessage: 'Ne rien faire' })}
               </Button>
-              <Button onClick={() => answer(true)}>
-                {state.question.i18n?.confirm ?? formatMessage({ defaultMessage: 'Confirmer' })}
-              </Button>
+              {state.question.i18n?.confirm !== null && (
+                <Button onClick={() => answer(true)}>
+                  {state.question.i18n?.confirm ?? formatMessage({ defaultMessage: 'Confirmer' })}
+                </Button>
+              )}
             </>
           }
           closeOnBackdrop={false}

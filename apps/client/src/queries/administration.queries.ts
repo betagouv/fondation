@@ -119,7 +119,7 @@ export function useCreateUserMutation() {
       withValidationError(() => $api.administration.createUser({ body, throwOnError: true })).then(
         ({ data }) => data,
       ),
-    onSuccess: () => invalidateUserAccess(queryClient),
+    onSettled: () => invalidateUserAccess(queryClient),
   });
 }
 
@@ -142,14 +142,19 @@ export function useUpdateUserNameMutation(userId: string) {
   return useMutation({
     mutationFn: (body: { firstName?: string; lastName?: string }) =>
       $api.administration.updateName({ body, path: { userId } }),
-    onSuccess: (_, body) => {
-      updateUser(queryClient, userId, body);
+    onSuccess: (_, body) => updateUser(queryClient, userId, body),
+    onSettled: () => {
       invalidateUserAccess(queryClient);
-      if (queryClient.getQueryData(sessionQueryOptions.queryKey)?.id === userId) {
-        queryClient.invalidateQueries({ queryKey: sessionQueryOptions.queryKey });
-      }
+      invalidateOwnSession(queryClient, userId);
     },
   });
+}
+
+/** the header and the rights shown come from the session, refreshed when the user changed is the one logged in */
+function invalidateOwnSession(queryClient: QueryClient, userId: string) {
+  if (queryClient.getQueryData(sessionQueryOptions.queryKey)?.id === userId) {
+    queryClient.invalidateQueries({ queryKey: sessionQueryOptions.queryKey });
+  }
 }
 
 export function useUpdateUserEmailMutation(userId: string) {
@@ -172,16 +177,25 @@ export function useUpdateUserRoleMutation(userId: string) {
   return useMutation({
     mutationFn: (body: { role: AdminUserRoleEnum }) =>
       $api.administration.updateRole({ body, path: { userId } }),
-    onSuccess: () => invalidateUserAccess(queryClient),
+    onSettled: () => invalidateUserAccess(queryClient),
   });
 }
 
 export function useUpdateUserDisplayTitleMutation(userId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (body: { displayTitle: string | null }) =>
-      $api.administration.updateDisplayTitle({ body, path: { userId } }),
-    onSuccess: (_, { displayTitle }) => updateUser(queryClient, userId, { displayTitle }),
+    mutationFn: (displayTitle: string | null) =>
+      $api.administration.updateDisplayTitle({ body: { displayTitle }, path: { userId } }),
+    onSuccess: (_, displayTitle) => updateUser(queryClient, userId, { displayTitle }),
+  });
+}
+
+export function useUpdateUserRecusalTitleMutation(userId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (recusalTitle: string | null) =>
+      $api.administration.updateRecusalTitle({ body: { recusalTitle }, path: { userId } }),
+    onSuccess: (_, recusalTitle) => updateUser(queryClient, userId, { recusalTitle }),
   });
 }
 
@@ -190,7 +204,8 @@ export function usePromoteUserToAdmin(userId: string) {
 
   return useMutation({
     mutationFn: () => $api.administration.promoteToAdmin({ path: { userId } }),
-    onSuccess: () => updateAdminRight(queryClient, userId, true),
+    onSuccess: () => updateUser(queryClient, userId, { isAdmin: true }),
+    onSettled: () => invalidateAdminRight(queryClient, userId),
   });
 }
 
@@ -199,16 +214,17 @@ export function useDemoteUserFromAdmin(userId: string) {
 
   return useMutation({
     mutationFn: () => $api.administration.demoteFromAdmin({ path: { userId } }),
-    onSuccess: () => updateAdminRight(queryClient, userId, false),
+    onSuccess: () => updateUser(queryClient, userId, { isAdmin: false }),
+    onSettled: () => invalidateAdminRight(queryClient, userId),
   });
 }
 
-/** the toggle flips at once, while the refetch brings the roles the user may take and the icon of the list */
-function updateAdminRight(queryClient: QueryClient, userId: string, isAdmin: boolean) {
-  updateUser(queryClient, userId, { isAdmin });
+/** brings the roles the user may take, the icon of the list, and the own session of an admin changing their right */
+function invalidateAdminRight(queryClient: QueryClient, userId: string) {
   queryClient.invalidateQueries({ queryKey: adminKeys.user(userId) });
   queryClient.invalidateQueries({ queryKey: adminKeys.allUsers() });
   queryClient.invalidateQueries({ queryKey: docsKeys.members() });
+  invalidateOwnSession(queryClient, userId);
 }
 
 export function useMarkTechnicalAccount(userId: string) {
@@ -216,7 +232,8 @@ export function useMarkTechnicalAccount(userId: string) {
 
   return useMutation({
     mutationFn: () => $api.administration.markTechnicalAccount({ path: { userId } }),
-    onSuccess: () => updateTechnicalAccount(queryClient, userId, true),
+    onSuccess: () => updateUser(queryClient, userId, { isTechnical: true }),
+    onSettled: () => invalidateTechnicalAccount(queryClient, userId),
   });
 }
 
@@ -225,12 +242,12 @@ export function useUnmarkTechnicalAccount(userId: string) {
 
   return useMutation({
     mutationFn: () => $api.administration.unmarkTechnicalAccount({ path: { userId } }),
-    onSuccess: () => updateTechnicalAccount(queryClient, userId, false),
+    onSuccess: () => updateUser(queryClient, userId, { isTechnical: false }),
+    onSettled: () => invalidateTechnicalAccount(queryClient, userId),
   });
 }
 
-function updateTechnicalAccount(queryClient: QueryClient, userId: string, isTechnical: boolean) {
-  updateUser(queryClient, userId, { isTechnical });
+function invalidateTechnicalAccount(queryClient: QueryClient, userId: string) {
   queryClient.invalidateQueries({ queryKey: adminKeys.user(userId) });
   queryClient.invalidateQueries({ queryKey: adminKeys.allUsers() });
   queryClient.invalidateQueries({ queryKey: officialReportKeys.listSecretaries() });
@@ -241,7 +258,7 @@ export function useDeactivateUserMutation(userId: string) {
 
   return useMutation({
     mutationFn: () => $api.administration.deactivate({ path: { userId } }),
-    onSuccess: () => invalidateUserAccess(queryClient),
+    onSettled: () => invalidateUserAccess(queryClient),
   });
 }
 
@@ -250,6 +267,6 @@ export function useReactivateUserMutation(userId: string) {
 
   return useMutation({
     mutationFn: () => $api.administration.reactivate({ path: { userId } }),
-    onSuccess: () => invalidateUserAccess(queryClient),
+    onSettled: () => invalidateUserAccess(queryClient),
   });
 }

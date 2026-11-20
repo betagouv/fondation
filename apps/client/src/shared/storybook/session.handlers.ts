@@ -11,7 +11,6 @@ import type {
   NominationFilesStatusCountDto,
   PaginatedMemberListItemDto,
   PaginatedNominationFiles,
-  SomeAffectationVersion,
 } from '@api/types';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
@@ -20,7 +19,7 @@ type ListedMember = PaginatedMemberListItemDto['items'][number];
 type AgendaIneligibleFile = FoundAgendaNominationFiles['ineligible'][number];
 
 export type SessionDataset = {
-  affectationsVersion?: SomeAffectationVersion;
+  affectationHistory?: DetailedAffectationHistoryDto;
   agendaEligibleFileIds?: readonly string[];
   agendaIneligibleFiles?: readonly AgendaIneligibleFile[];
   files: readonly SessionNominationFile[];
@@ -80,6 +79,7 @@ function matchesFilters(file: SessionNominationFile, query: URLSearchParams) {
   const fileReporterIds = file.reporters.map(({ id }) => id);
 
   if (nominationFileIds.length && !nominationFileIds.includes(file.id)) return false;
+  if (query.get('missingEvaluation') === 'true' && !file.missingEvaluation) return false;
   if (search && !matchesSearch(file, search)) return false;
   if (priorities.length && !matchesAny(file.priorities, priorities)) return false;
   if (reporterIds.length && !matchesAny(fileReporterIds, reporterIds)) return false;
@@ -87,15 +87,6 @@ function matchesFilters(file: SessionNominationFile, query: URLSearchParams) {
 
   return true;
 }
-
-const draftAffectationsVersion: SomeAffectationVersion = {
-  '@type': 'fr.csm.fondation.affectations.version.some',
-  author: null,
-  id: 'affectations-version-1',
-  publicationDate: null,
-  status: 'BROUILLON',
-  version: 1,
-};
 
 /**
  * Serves the whole session screen from in-memory datasets keyed by session id: the paginated list applies
@@ -157,22 +148,16 @@ export function makeSessionHandlers(sessions: Record<string, SessionDataset>) {
       });
     }),
 
-    http.get('*/api/sessions/v2/:sessionId/files/reporters/versions/last', ({ params }) =>
-      HttpResponse.json<SomeAffectationVersion>(
-        datasetOf(params.sessionId).affectationsVersion ?? draftAffectationsVersion,
-      ),
-    ),
-
     http.get('*/api/sessions/v2/:sessionId/files/reporters/versions/history', ({ params }) => {
-      const { publicationDate, status, version } =
-        datasetOf(params.sessionId).affectationsVersion ?? draftAffectationsVersion;
+      const { affectationHistory } = datasetOf(params.sessionId);
 
-      return HttpResponse.json<DetailedAffectationHistoryDto>({
-        lastPublished:
-          status === 'PUBLIEE' && publicationDate ? { at: publicationDate, by: null, version } : null,
-        pending:
-          status === 'BROUILLON' ? { openedAt: '2026-09-24T08:00:00.000Z', openedBy: null, version } : null,
-      });
+      return HttpResponse.json<DetailedAffectationHistoryDto>(
+        affectationHistory ?? {
+          lastPublished: null,
+          pending: { openedAt: '2026-09-24T08:00:00.000Z', openedBy: null, version: 1 },
+          status: 'NEVER_PUBLISHED',
+        },
+      );
     }),
 
     http.get('*/api/sessions/v2/:sessionId/files/reporters/versions/last/unaffected-count', ({ params }) =>
@@ -214,18 +199,25 @@ export function makeSessionHandlers(sessions: Record<string, SessionDataset>) {
             id,
             reason: content.status.value === 'DSJ_REPORTED' ? 'REPORTED' : 'UNIDENTIFIED',
           }));
-      const ineligibleIds = new Set(ineligible.map(({ id }) => id));
+      const unidentifiedIds = new Set(
+        ineligible.flatMap(({ id, reason }) => (reason === 'UNIDENTIFIED' ? [id] : [])),
+      );
 
-      return HttpResponse.json({
-        ineligible,
-        items: files
-          .filter(({ id }) => !ineligibleIds.has(id))
-          .map((file) => ({
-            id: file.id,
-            number: file.content.numeroDeDossier,
-            outcome: file.content.outcome,
-            reporters: file.reporters,
-          })),
+      return HttpResponse.json<FoundAgendaNominationFiles>({
+        ineligible: [...ineligible],
+        // like the API, an unidentified file is never an item, a reported one stays one
+        items: files.flatMap(({ content, id, reporters }) =>
+          unidentifiedIds.has(id) || !content.detectedMagistratId || content.numeroDeDossier === null
+            ? []
+            : [
+                {
+                  id,
+                  magistrat: { name: content.nomMagistrat },
+                  number: content.numeroDeDossier,
+                  reporters: reporters.map((reporter) => ({ id: reporter.id })),
+                },
+              ],
+        ),
       });
     }),
 

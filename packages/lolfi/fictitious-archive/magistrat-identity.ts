@@ -124,6 +124,7 @@ function toEmailPart(name: string): string {
   return name
     .normalize('NFD')
     .replace(/\p{Diacritic}/gu, '')
+    .replaceAll("'", '')
     .replaceAll(' ', '-')
     .toUpperCase();
 }

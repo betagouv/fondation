@@ -15,7 +15,7 @@ export function NominationFileStatusCell(props: { status: SessionNominationFileS
   const doc =
     props.status.value === 'DSJ_PLANNED'
       ? { acronym: 'ODJ', label: formatMessage({ defaultMessage: 'Ordre du jour' }) }
-      : { acronym: 'PV', label: formatMessage({ defaultMessage: 'PV de restitution' }) };
+      : { acronym: 'PV', label: formatMessage({ defaultMessage: 'Procès-verbal' }) };
 
   return (
     <span className="flex flex-col items-center">

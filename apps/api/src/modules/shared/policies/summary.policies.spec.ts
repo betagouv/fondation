@@ -1,8 +1,9 @@
-import { canReadSummary, canWriteSummary } from './summary.policies';
+import { canReadSummary, canWriteSummary, summaryVisibility } from './summary.policies';
 
-const secretariat = { id: 'sg-1', role: 'ADJOINT_SECRETAIRE_GENERAL' } as const;
-const reader = { id: 'member-1', role: 'MEMBRE_DU_SIEGE' } as const;
-const member = { id: 'member-2', role: 'MEMBRE_DU_PARQUET' } as const;
+const secretariat = { id: 'sg-1', impersonation: undefined, role: 'ADJOINT_SECRETAIRE_GENERAL' } as const;
+const reader = { id: 'member-1', impersonation: undefined, role: 'MEMBRE_DU_SIEGE' } as const;
+const impersonatedReader = { ...reader, impersonation: { impersonatorId: 'admin-1' } };
+const member = { id: 'member-2', impersonation: undefined, role: 'MEMBRE_DU_PARQUET' } as const;
 
 describe('canReadSummary', () => {
   describe('given a summary without author', () => {
@@ -25,16 +26,38 @@ describe('canReadSummary', () => {
     const summary = { authorId: 'sg-2', readerIds: [reader.id] };
 
     it('lets its author read it', () => {
-      expect(canReadSummary(summary, { id: 'sg-2', role: 'ADJOINT_SECRETAIRE_GENERAL' })).toBe(true);
+      expect(
+        canReadSummary(summary, { id: 'sg-2', impersonation: undefined, role: 'ADJOINT_SECRETAIRE_GENERAL' }),
+      ).toBe(true);
     });
 
     it('lets its readers read it', () => {
       expect(canReadSummary(summary, reader)).toBe(true);
     });
 
+    it('hides it from the admin impersonating one of its readers', () => {
+      expect(canReadSummary(summary, impersonatedReader)).toBe(false);
+    });
+
     it('hides it from the rest of the secretariat', () => {
       expect(canReadSummary(summary, secretariat)).toBe(false);
     });
+  });
+});
+
+describe('summaryVisibility', () => {
+  const summary = { readerIds: [reader.id] };
+
+  it('shows a summary to the members it is shared with', () => {
+    expect(summaryVisibility(summary, reader)).toBe('VISIBLE');
+  });
+
+  it('keeps it private from the admin impersonating one of them', () => {
+    expect(summaryVisibility(summary, impersonatedReader)).toBe('PRIVATE');
+  });
+
+  it('says nothing to a member it is not shared with', () => {
+    expect(summaryVisibility(summary, member)).toBeNull();
   });
 });
 

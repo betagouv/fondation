@@ -42,6 +42,37 @@ test.describe('Session Affectations E2E', () => {
     expect(memberSessions.data!.items).not.toContainEqual(expect.objectContaining({ id: sessionId }));
   });
 
+  test("counts the member's files of a session by the state of their report", async ({ agent, expect, member }) => {
+    await agent.sessions.affectReporters({
+      body: { items: [{ nominationFileId, reporterIds: [memberId] }] },
+      path: { sessionId },
+      throwOnError: true,
+    });
+    await agent.sessions.publishNominationSessionAffectationsVersion({ path: { sessionId }, throwOnError: true });
+
+    const { data: memberReports } = await member.members.listMemberSessionReports({
+      path: { sessionId, userId: memberId },
+      throwOnError: true,
+    });
+    await member.reports.updateReport({
+      body: { status: 'IN_PROGRESS' },
+      path: { reportId: memberReports.items[0]!.report.id },
+      throwOnError: true,
+    });
+
+    const { data } = await member.members.listMemberSessions({ path: { userId: memberId }, throwOnError: true });
+    expect(data.items).toContainEqual(
+      expect.objectContaining({
+        date: { day: 22, month: 4, year: 2026 },
+        fileCount: 1,
+        id: sessionId,
+        isAffected: true,
+        propositionCount: 1,
+        reportCounts: { IN_PROGRESS: 1, NEW: 0, READY_TO_SUPPORT: 0, SUPPORTED: 0 },
+      }),
+    );
+  });
+
   test('shows a member no reporter while the affectation is only a draft', async ({ agent, expect, member }) => {
     await agent.sessions.affectReporters({
       body: { items: [{ nominationFileId, reporterIds: [memberId] }] },
@@ -69,6 +100,32 @@ test.describe('Session Affectations E2E', () => {
     for (let page = 1; ; page++) {
       const members = await agent.members.listMembers({ query: { formations: [], limit: 200, page } });
       otherMemberIds.push(...members.data!.items.map(({ id }) => id).filter((id) => id !== excluding.id));
+      if (members.data!.items.length < 200) break;
+    }
+
+    const affected = await agent.sessions.autoAffectation({
+      body: { excludedMemberIds: otherMemberIds, nominationFileIds: [nominationFileId] },
+      path: { sessionId },
+    });
+    expect(affected.response?.status).toBe(204);
+
+    const files = await agent.sessions.listNominationFiles({ path: { sessionId } });
+    expect(files.data!.items[0]!.reporters).toEqual([]);
+  });
+
+  test('never auto-affects a member a file they recused from', async ({ agent, expect, registerUser }) => {
+    const recused = await registerUser('MEMBRE_COMMUN');
+    await agent.sessions.recuseMembers({
+      body: { memberIds: [recused.id] },
+      path: { nominationFileId, sessionId },
+      throwOnError: true,
+    });
+
+    // every other member of the test database stays out, for the recused one to be the only candidate
+    const otherMemberIds: string[] = [];
+    for (let page = 1; ; page++) {
+      const members = await agent.members.listMembers({ query: { formations: [], limit: 200, page } });
+      otherMemberIds.push(...members.data!.items.map(({ id }) => id).filter((id) => id !== recused.id));
       if (members.data!.items.length < 200) break;
     }
 
@@ -237,6 +294,29 @@ test.describe('Session Affectations E2E', () => {
       path: { reportId: reaffected!.items[0]!.report.id },
     });
     expect(restoredReport.data!.state).toBe('IN_PROGRESS');
+  });
+
+  test('waits for a first publication even without a reporter', async ({ agent, expect }) => {
+    const history = await agent.sessions.detailAffectationHistory({ path: { sessionId } });
+
+    expect(history.data!.status).toBe('NEVER_PUBLISHED');
+  });
+
+  test('stays published once the draft comes back to the published reporters', async ({ agent, expect }) => {
+    const affect = (reporterIds: string[]) =>
+      agent.sessions.affectReporters({
+        body: { items: [{ nominationFileId, reporterIds }] },
+        path: { sessionId },
+        throwOnError: true,
+      });
+    await affect([memberId]);
+    await agent.sessions.publishNominationSessionAffectationsVersion({ path: { sessionId }, throwOnError: true });
+
+    await affect([]);
+    await affect([memberId]);
+
+    const history = await agent.sessions.detailAffectationHistory({ path: { sessionId } });
+    expect(history.data).toMatchObject({ lastPublished: { version: 1 }, pending: null, status: 'PUBLISHED' });
   });
 
   test('updating the priorities after a publication leaves the affectations published', async ({ agent, expect }) => {

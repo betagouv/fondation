@@ -4,6 +4,7 @@ import { faker } from '@faker-js/faker';
 import { describe, expect, it } from 'vitest';
 
 import { generateLolfiFiles } from '../src/generate-lolfi-files';
+import { type LolfiPosition } from '../src/types';
 
 describe('lolfi', () => {
   it('should create LOLFI files', async () => {
@@ -135,9 +136,44 @@ describe('lolfi', () => {
     );
     assert.match(
       jurisdictions!,
-      /<codejur>TPR CANNES<\/codejur>[\s\S]*?<arrondissement>TJ {2}GRASSE<\/arrondissement>\n<codepos>06400<\/codepos>[\s\S]*?<ressort>CA {2}AIX EN PROVENCE<\/ressort>/,
+      /<arrondissement>TJ {2}GRASSE<\/arrondissement>\n<codejur>TPR CANNES<\/codejur>\n<codepos>06400<\/codepos>[\s\S]*?<ressort>CA {2}AIX EN PROVENCE<\/ressort>/,
     );
     assert.doesNotMatch(jurisdictions!, /CA {2}(CANNES|AJACCIO)/);
+  });
+
+  it('should write apart the posts of a function in a jurisdiction that differ by grade, profile or seat', async () => {
+    const judge = { formation: 'SIEGE', id: 'J', label: 'Juge' } as const;
+    const lyon = { id: 'TJ  LYON' };
+    const candidate = (targetPosition: Omit<LolfiPosition, 'function' | 'jurisdiction'>) => ({
+      firstName: 'AMINATA',
+      lastName: 'DIALLO',
+      position: { function: judge, grade: 'G1', jurisdiction: { id: 'TJ  LILLE' } } as const,
+      targetPosition: { ...targetPosition, function: judge, jurisdiction: lyon },
+    });
+    let positions = '';
+
+    for await (const file of generateLolfiFiles(
+      {
+        sessions: [
+          {
+            candidates: [
+              candidate({ grade: 'G1' }),
+              candidate({ grade: 'G1' }),
+              candidate({ grade: 'G2' }),
+              candidate({ grade: 'G1', profile: 'Profil civil' }),
+              candidate({ grade: 'G1', seat: 2 }),
+            ],
+            createdAt: '22/04/2026',
+          },
+        ],
+      },
+      faker,
+    )) {
+      if (file.filename === 'POSTES_2.xml') positions = file.buffer;
+    }
+
+    assert.strictEqual(positions.match(/<codejur>TJ {2}LYON<\/codejur>/g)?.length, 4);
+    assert.match(positions, /<profil>Profil civil<\/profil>/);
   });
 
   it('should keep a ressort declared after the jurisdictions it covers', async () => {

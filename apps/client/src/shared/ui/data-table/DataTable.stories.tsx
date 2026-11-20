@@ -1,13 +1,24 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import type { ComponentProps } from 'react';
+import { fn } from 'storybook/test';
 
 import { DemoTable, InfiniteDemoTable } from './DataTable.fixtures';
 
 function DataTableStory({
   infiniteScroll,
+  loadFails,
   ...props
-}: ComponentProps<typeof DemoTable> & { infiniteScroll: boolean }) {
-  return infiniteScroll ? <InfiniteDemoTable height={props.height} /> : <DemoTable {...props} />;
+}: ComponentProps<typeof DemoTable> & { infiniteScroll: boolean; loadFails: boolean }) {
+  return infiniteScroll ? (
+    <InfiniteDemoTable height={props.height} />
+  ) : (
+    <DemoTable
+      {...props}
+      loadError={
+        loadFails ? { isNextPage: (props.rowCount ?? 0) > 0, isRetrying: false, onRetry: fn() } : undefined
+      }
+    />
+  );
 }
 
 const WITHOUT_INFINITE_SCROLL = { arg: 'infiniteScroll', truthy: false } as const;
@@ -26,6 +37,13 @@ const meta = {
     infiniteScroll: {
       control: 'boolean',
       description: '1 000 lignes chargées par pages de 50 en atteignant le bas du tableau (onEndReached).',
+    },
+    loadError: { table: { disable: true } },
+    loadFails: {
+      control: 'boolean',
+      description:
+        'Le chargement a échoué. Un message et un bouton Réessayer remplacent le message vide ou suivent les lignes déjà chargées.',
+      if: WITHOUT_INFINITE_SCROLL,
     },
     lockedRowIds: {
       control: 'object',
@@ -55,6 +73,7 @@ const meta = {
     enableSorting: false,
     height: 480,
     infiniteScroll: false,
+    loadFails: false,
     rowCount: 100,
     rowTint: undefined,
     withSelection: false,

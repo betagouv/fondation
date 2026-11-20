@@ -1,6 +1,11 @@
+import * as assert from 'node:assert/strict';
+import { randomInt } from 'node:crypto';
+
 import type { LolfiArchiveContent } from 'lolfi';
 
 import { test } from '../fixtures.ts';
+import type { makeCreateSessionFixture } from '../fixtures/session.fixture.ts';
+import type { TestStepsAgent } from '../steps.ts';
 import { makeFile } from '../utils/files.ts';
 import { observationForm } from '../utils/observation.ts';
 import * as seed from '../utils/seed.ts';
@@ -96,6 +101,54 @@ test.describe('Observation', () => {
     expect(taken.response?.status).toBe(409);
   });
 
+  test('should rename a file of an observation and leave its copy linked to another one as it is', async ({
+    agent,
+    expect,
+    sessions,
+  }) => {
+    const session = await sessions.createOne(SESSION);
+    const observant = session.files[0]!.magistratId;
+    // an observant's letter is linked from their observation on one file to the one on another
+    const [originalPath, linkingPath] = session.files.map(({ id }) => ({
+      nominationFileId: id,
+      sessionId: session.id,
+    }));
+
+    const { data: original } = await agent.observations.createObservation({
+      body: {
+        files: [pdf('scan_0042.pdf')],
+        form: observationForm({ dateReception: '2026-05-02', magistratId: observant }),
+      },
+      path: originalPath!,
+      throwOnError: true,
+    });
+    const filesOf = async (path: { nominationFileId: string; sessionId: string }) => {
+      const { data } = await agent.observations.listObservations({ path, throwOnError: true });
+      return data.observations.flatMap(({ files }) => files);
+    };
+    const [originalFile] = await filesOf(originalPath!);
+    await agent.observations.createObservation({
+      body: {
+        form: observationForm({
+          dateReception: '2026-05-02',
+          linkedObservationsAttachments: [{ fileId: originalFile!.id, observationId: original.id }],
+          magistratId: observant,
+        }),
+      },
+      path: linkingPath!,
+      throwOnError: true,
+    });
+
+    const renamed = await agent.observations.renameObservationFile({
+      body: { name: 'Courrier du chef de cour' },
+      path: { ...originalPath!, fileId: originalFile!.id, observationId: original.id },
+    });
+
+    expect(renamed.response?.status).toBe(204);
+    expect((await filesOf(originalPath!)).map(({ name }) => name)).toEqual(['Courrier du chef de cour.pdf']);
+    expect((await filesOf(linkingPath!)).map(({ name }) => name)).toEqual(['scan_0042.pdf']);
+  });
+
   test('should detach a file from an observation without touching the files of another one', async ({
     agent,
     expect,
@@ -135,6 +188,48 @@ test.describe('Observation', () => {
     expect(data.observations[0]!.files.map(({ id }) => id)).toEqual(keptObservation.files);
   });
 
+  test('should let the secretariat rename the files of an observation until its dossier is figé', async ({
+    agent,
+    docs,
+    expect,
+    member,
+  }) => {
+    const session = await docs.session({
+      outcome: { comment: null, value: 'VALIDATED' },
+      reporters: [member['@user']!],
+    });
+    const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+    const { data: created } = await agent.observations.createObservation({
+      body: {
+        files: [pdf('courrier.pdf')],
+        form: observationForm({ dateReception: '2026-05-02', magistratId: session.files[0]!.magistratId }),
+      },
+      path,
+      throwOnError: true,
+    });
+    const observationPath = { ...path, observationId: created.id };
+    const capabilities = async () => {
+      const { data: listed } = await agent.observations.listObservations({ path, throwOnError: true });
+      const { data: detailed } = await agent.observations.getObservationDetails({
+        path: observationPath,
+        throwOnError: true,
+      });
+      return { detailed: detailed.canManageAttachments, listed: listed.canManageAttachments };
+    };
+
+    expect(await capabilities()).toEqual({ detailed: true, listed: true });
+
+    await docs.officialReport(await docs.agenda(session), { status: 'VALIDATED' });
+
+    expect(await capabilities()).toEqual({ detailed: false, listed: false });
+    const { data } = await agent.observations.listObservations({ path, throwOnError: true });
+    const renamed = await agent.observations.renameObservationFile({
+      body: { name: 'Courrier du chef de cour' },
+      path: { ...observationPath, fileId: data.observations[0]!.files[0]!.id },
+    });
+    expect(renamed.response?.status).toBe(409);
+  });
+
   test('should keep the comment of a reporter on an observation to its author', async ({
     agent,
     expect,
@@ -168,10 +263,114 @@ test.describe('Observation', () => {
     expect(read.data!.memberComment).toEqual({
       comment: '<p>À rapprocher du dossier de 2024<img></p>',
       screenshots: [expect.objectContaining({ name: 'capture.png', url: expect.any(String) })],
+      visibility: 'VISIBLE',
     });
 
     const readByOther = await otherReporter.observations.getObservationDetails({ path: observationPath });
     expect(readByOther.data!.memberComment).toBeNull();
+  });
+
+  test('should keep the comment of a reporter private from the admin impersonating them', async ({
+    agent,
+    expect,
+    impersonate,
+    member,
+    sessions,
+  }) => {
+    const session = await sessions.createOne(SESSION, { reporters: [member['@user']!] });
+    const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+    const { data } = await agent.observations.createObservation({
+      body: { form: observationForm({ dateReception: '2026-05-02', magistratId: session.files[1]!.magistratId }) },
+      path,
+      throwOnError: true,
+    });
+    const observationPath = { ...path, observationId: data.id };
+    await member.observations.writeMemberComment({
+      body: { comment: '<p>À rapprocher du dossier de 2024</p>' },
+      path: observationPath,
+      throwOnError: true,
+    });
+
+    const impersonator = await impersonate(member['@user']!);
+
+    const read = await impersonator.observations.getObservationDetails({ path: observationPath, throwOnError: true });
+    expect(read.data).toMatchObject({ canComment: false, memberComment: { visibility: 'PRIVATE' } });
+    const file = await impersonator.sessions.detailNominationFile({ path, throwOnError: true });
+    expect(file.data.observations.map(({ hasUserComment }) => hasUserComment)).toEqual([false]);
+    const refused = await impersonator.observations.writeMemberComment({
+      body: { comment: '' },
+      path: observationPath,
+    });
+    expect(refused.response?.status).toBe(403);
+    const refusedScreenshots = await impersonator.observations.attachMemberCommentScreenshots({
+      body: { files: [makeFile({ name: 'capture.png', type: 'image/png' })] },
+      path: observationPath,
+    });
+    expect(refusedScreenshots.response?.status).toBe(403);
+  });
+
+  test('should let the secretariat edit an observation and a reporter only comment it', async ({
+    agent,
+    expect,
+    logIn,
+    member,
+    sessions,
+  }) => {
+    const notReporter = await logIn('MEMBRE_COMMUN');
+    const session = await sessions.createOne(SESSION, { reporters: [member['@user']!] });
+    const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+    const { data } = await agent.observations.createObservation({
+      body: { form: observationForm({ dateReception: '2026-05-02', magistratId: session.files[1]!.magistratId }) },
+      path,
+      throwOnError: true,
+    });
+    const observationPath = { ...path, observationId: data.id };
+
+    const capabilities = await Promise.all(
+      [agent, member, notReporter].map(async (user) => {
+        const read = await user.observations.getObservationDetails({ path: observationPath, throwOnError: true });
+        return { canComment: read.data.canComment, canEdit: read.data.canEdit };
+      }),
+    );
+
+    expect(capabilities).toEqual([
+      { canComment: false, canEdit: true },
+      { canComment: true, canEdit: false },
+      { canComment: false, canEdit: false },
+    ]);
+  });
+
+  test('should show the comment of a suite to the secretariat only, its suite to everyone', async ({
+    agent,
+    expect,
+    member,
+    sessions,
+  }) => {
+    const session = await sessions.createOne(SESSION, { reporters: [member['@user']!] });
+    const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+    const { data } = await agent.observations.createObservation({
+      body: { form: observationForm({ dateReception: '2026-05-02', magistratId: session.files[1]!.magistratId }) },
+      path,
+      throwOnError: true,
+    });
+    const observationPath = { ...path, observationId: data.id };
+    await agent.observations.followUpOnObservation({
+      body: { comment: 'Demande une mutation à Lyon', followUp: 'INTERESTING' },
+      path: observationPath,
+      throwOnError: true,
+    });
+
+    const followUps = await Promise.all(
+      [agent, member].map(async (user) => {
+        const read = await user.observations.getObservationDetails({ path: observationPath, throwOnError: true });
+        return { followUp: read.data.followUp, followUpComment: read.data.followUpComment };
+      }),
+    );
+
+    expect(followUps).toEqual([
+      { followUp: 'INTERESTING', followUpComment: 'Demande une mutation à Lyon' },
+      { followUp: 'INTERESTING', followUpComment: null },
+    ]);
   });
 
   test('should set aside the screenshots an observation comment no longer embeds', async ({
@@ -198,7 +397,8 @@ test.describe('Observation', () => {
     const comment = `<p>Avis</p><img data-file-id="${kept!.id}" src="${kept!.url}">`;
     await member.observations.writeMemberComment({ body: { comment }, path: observationPath, throwOnError: true });
     const read = await member.observations.getObservationDetails({ path: observationPath, throwOnError: true });
-    expect(read.data.memberComment!.screenshots.map(({ id }) => id)).toEqual([kept!.id]);
+    assert.ok(read.data.memberComment?.visibility === 'VISIBLE');
+    expect(read.data.memberComment.screenshots.map(({ id }) => id)).toEqual([kept!.id]);
 
     const restored = `${comment}<img data-file-id="${removed!.id}" src="${removed!.url}">`;
     await member.observations.writeMemberComment({
@@ -207,7 +407,8 @@ test.describe('Observation', () => {
       throwOnError: true,
     });
     const reread = await member.observations.getObservationDetails({ path: observationPath, throwOnError: true });
-    expect(reread.data.memberComment!.screenshots.map(({ id }) => id).sort()).toEqual([kept!.id, removed!.id].sort());
+    assert.ok(reread.data.memberComment?.visibility === 'VISIBLE');
+    expect(reread.data.memberComment.screenshots.map(({ id }) => id).sort()).toEqual([kept!.id, removed!.id].sort());
   });
 
   test('should not let a reporter comment an observation of another nomination file', async ({
@@ -297,4 +498,304 @@ test.describe('Observation', () => {
     ]);
     expect(hidden.map(({ response }) => response?.status)).toEqual([404, 404, 404]);
   });
+
+  test('should list the observations of a session by bloc of observant, filtered by follow-up', async ({
+    agent,
+    expect,
+    sessions,
+  }) => {
+    const session = await sessions.createOne(SESSION);
+    const [first, second] = session.files;
+    const observe = async (file: { id: string }, magistratId: string, dateReception: string) => {
+      const { data } = await agent.observations.createObservation({
+        body: { form: observationForm({ dateReception, magistratId }) },
+        path: { nominationFileId: file.id, sessionId: session.id },
+        throwOnError: true,
+      });
+      return data.id;
+    };
+    // LOLFI numbers the files in no fixed order: read the numbers rather than assume the candidates' order
+    const { data: files } = await agent.sessions.listNominationFiles({
+      path: { sessionId: session.id },
+      throwOnError: true,
+    });
+    const numberOf = (file: { id: string }) =>
+      files.items.find(({ id }) => id === file.id)?.content.numeroDeDossier ?? Infinity;
+    const [lowFile, highFile] = [first!, second!].toSorted((a, b) => numberOf(a) - numberOf(b));
+    // the first observant wrote the two earliest observations, the second one the latest; inside the bloc,
+    // the rows follow their reception date in the requested order, against the order of the file numbers
+    const onHighFile = await observe(highFile!, first!.magistratId, '2026-05-01');
+    const onLowFile = await observe(lowFile!, first!.magistratId, '2026-05-03');
+    const latest = await observe(first!, second!.magistratId, '2026-05-05');
+    await agent.observations.followUpOnObservation({
+      body: { comment: null, followUp: 'ALERT' },
+      path: { nominationFileId: first!.id, observationId: latest, sessionId: session.id },
+      throwOnError: true,
+    });
+
+    const list = async (query?: { followUps?: string; sortBy?: 'dateReception'; sortDesc?: string }) => {
+      const { data } = await agent.observations.listSessionObservations({
+        path: { sessionId: session.id },
+        query,
+        throwOnError: true,
+      });
+      return data;
+    };
+
+    const byDefault = await list();
+    expect(byDefault.items.map(({ id }) => id)).toEqual([latest, onLowFile, onHighFile]);
+    expect(byDefault.items[0]).toMatchObject({
+      dateReception: { day: 5, month: 5, year: 2026 },
+      followUp: 'ALERT',
+      nominationFile: { id: first!.id, magistrat: { id: first!.magistratId, name: 'CORVISART Blanche' } },
+      observant: { id: second!.magistratId, name: 'DAUBENTON Lucien' },
+    });
+    const ascending = await list({ sortBy: 'dateReception', sortDesc: 'false' });
+    expect(ascending.items.map(({ id }) => id)).toEqual([onHighFile, onLowFile, latest]);
+    const withoutFollowUp = await list({ followUps: 'null' });
+    expect(withoutFollowUp.items.map(({ id }) => id)).toEqual([onLowFile, onHighFile]);
+
+    const { data: count } = await agent.observations.countSessionObservations({
+      path: { sessionId: session.id },
+      throwOnError: true,
+    });
+    expect(count.total).toBe(3);
+  });
+
+  test('should list the observations with a suite of every session, by session then bloc of observant', async ({
+    agent,
+    expect,
+    sessions,
+  }) => {
+    const [march, june] = await sessions.createMany([
+      { ...SESSION, createdAt: '02/03/2026', name: 'Transparence de mars' },
+      { ...SESSION, createdAt: '01/06/2026', name: 'Transparence de juin' },
+    ]);
+    const [marchObservant] = march!.files.map(({ magistratId }) => magistratId);
+    const [juneObservant] = june!.files.map(({ magistratId }) => magistratId);
+    const observe = async (
+      session: { id: string },
+      file: { id: string },
+      magistratId: string,
+      dateReception: string,
+      followUp: 'ALERT' | 'REFERENCE' | null,
+    ) => {
+      const path = { nominationFileId: file.id, sessionId: session.id };
+      const { data } = await agent.observations.createObservation({
+        body: { form: observationForm({ dateReception, magistratId }) },
+        path,
+        throwOnError: true,
+      });
+      if (followUp) {
+        await agent.observations.followUpOnObservation({
+          body: { comment: null, followUp },
+          path: { ...path, observationId: data.id },
+          throwOnError: true,
+        });
+      }
+      return data.id;
+    };
+    // the same observant writes in both sessions: two blocs
+    const inMarch = await observe(march!, march!.files[1]!, marchObservant!, '2026-03-10', 'ALERT');
+    const inJune = await observe(june!, june!.files[0]!, marchObservant!, '2026-06-05', 'ALERT');
+    const latest = await observe(june!, june!.files[1]!, juneObservant!, '2026-06-10', 'REFERENCE');
+    await observe(june!, june!.files[0]!, juneObservant!, '2026-06-01', null);
+
+    // other scenarios add their own observations to the same database
+    const ours = new Set([march!.id, june!.id]);
+    const list = async (query?: { sessionStatuses?: string; sortBy?: 'dateReception'; sortDesc?: string }) => {
+      const { data } = await agent.observations.listFollowedUpObservations({
+        query: { limit: 200, ...query },
+        throwOnError: true,
+      });
+      return data.items.filter(({ session }) => ours.has(session.id));
+    };
+    const ids = (items: { observation: { id: string } }[]) => items.map(({ observation }) => observation.id);
+
+    const bySession = await list();
+    expect(ids(bySession)).toEqual([latest, inJune, inMarch]);
+    expect(bySession[2]).toMatchObject({
+      observation: { followUp: 'ALERT', observant: { id: marchObservant } },
+      // a session created from LOLFI is new until its data is validated
+      session: { date: { day: 2, month: 3, year: 2026 }, id: march!.id, status: 'TO_VALIDATE' },
+    });
+    // the sessions never move: only the blocs inside each one follow the reception date
+    expect(ids(await list({ sortBy: 'dateReception', sortDesc: 'false' }))).toEqual([inJune, latest, inMarch]);
+    expect(ids(await list({ sessionStatuses: 'TO_VALIDATE' }))).toEqual([latest, inJune, inMarch]);
+    expect(await list({ sessionStatuses: 'ARCHIVED' })).toEqual([]);
+  });
+
+  test('should filter the observations with a suite by the year of their session', async ({
+    agent,
+    expect,
+    sessions,
+  }) => {
+    // no other scenario gives a suite to an observation of a session before 2026
+    const [of2023, of2024, of2025] = await sessions.createMany([
+      { ...SESSION, createdAt: '10/01/2023', name: 'Transparence de 2023' },
+      { ...SESSION, createdAt: '10/01/2024', name: 'Transparence de 2024' },
+      { ...SESSION, createdAt: '10/01/2025', name: 'Transparence de 2025' },
+    ]);
+    const observeIn = (session: typeof of2023) => ({
+      magistratId: session!.files[1]!.magistratId,
+      path: { nominationFileId: session!.files[0]!.id, sessionId: session!.id },
+    });
+    await agent.observations.createObservation({
+      body: { form: observationForm({ dateReception: '2023-01-15', magistratId: observeIn(of2023).magistratId }) },
+      path: observeIn(of2023).path,
+      throwOnError: true,
+    });
+    for (const [session, dateReception] of [
+      [of2024, '2024-01-15'],
+      [of2025, '2025-01-15'],
+    ] as const) {
+      const { magistratId, path } = observeIn(session);
+      await observeWithSuite(agent, path, { dateReception, magistratId });
+    }
+
+    const { data: years } = await agent.observations.listFollowedUpObservationSessionYears({ throwOnError: true });
+    expect(years.items.filter(({ year }) => year < 2026)).toEqual([{ year: 2025 }, { year: 2024 }]);
+
+    const { data } = await agent.observations.listFollowedUpObservations({
+      query: { limit: 200, sessionYears: '2024,2025' },
+      throwOnError: true,
+    });
+    const ours = new Set([of2023!.id, of2024!.id, of2025!.id]);
+    expect(data.items.map(({ session }) => session.id).filter((id) => ours.has(id))).toEqual([of2025!.id, of2024!.id]);
+  });
+
+  test('should track a bloc of observations', async ({ agent, expect, sessions }) => {
+    const { observant, session } = await sessionWithOwnObservant(sessions);
+    const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+    const observation = await observeWithSuite(agent, path, {
+      dateReception: '2026-05-01',
+      magistratId: observant.id,
+    });
+
+    await agent.observations.updateObservationBlockTracking({
+      body: { comment: 'Signalement transmis', status: 'DONE' },
+      path: { magistratId: observant.id, sessionId: session.id },
+      throwOnError: true,
+    });
+
+    expect(await listOf(agent, observant)).toMatchObject([
+      { observation: { id: observation }, tracking: { comment: 'Signalement transmis', status: 'DONE' } },
+    ]);
+    expect(await listOf(agent, observant, { trackingStatuses: 'IN_PROGRESS' })).toEqual([]);
+  });
+
+  test('should reopen a tracked bloc that a new observation joins', async ({ agent, expect, sessions }) => {
+    const { observant, session } = await sessionWithOwnObservant(sessions);
+    const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+    await observeWithSuite(agent, path, { dateReception: '2026-05-01', magistratId: observant.id });
+    await agent.observations.updateObservationBlockTracking({
+      body: { comment: 'Signalement transmis', status: 'DONE' },
+      path: { magistratId: observant.id, sessionId: session.id },
+      throwOnError: true,
+    });
+
+    await observeWithSuite(
+      agent,
+      { nominationFileId: session.files[2]!.id, sessionId: session.id },
+      { dateReception: '2026-05-20', magistratId: observant.id },
+    );
+
+    const [listed] = await listOf(agent, observant);
+    expect(listed?.tracking).toEqual({ comment: 'Signalement transmis', status: 'IN_PROGRESS' });
+  });
+
+  test('should list the later propositions of an observant', async ({ agent, expect, sessions }) => {
+    // the same LOLFI id makes Daubenton one magistrat in both sessions, ingested one after the other since
+    // an archive keeps one candidacy per magistrat: he observes in March, then is proposed again in June
+    const daubenton = { ...ownCandidate(), id: randomInt(1_000_000, 1_000_000_000) };
+    const candidates = [SESSION.candidates[0]!, daubenton];
+    const march = await sessions.createOne({
+      ...SESSION,
+      candidates,
+      createdAt: '02/03/2026',
+      name: 'Transparence de mars',
+    });
+    const june = await sessions.createOne({
+      ...SESSION,
+      candidates,
+      createdAt: '01/06/2026',
+      name: 'Transparence de juin',
+    });
+    const observant = { id: march!.files[1]!.magistratId, lastName: daubenton.lastName };
+
+    await observeWithSuite(
+      agent,
+      { nominationFileId: march!.files[0]!.id, sessionId: march!.id },
+      { dateReception: '2026-03-10', magistratId: observant.id },
+    );
+
+    expect(await listOf(agent, observant)).toMatchObject([
+      {
+        laterPropositions: [
+          { id: june!.files[1]!.id, session: { date: { day: 1, month: 6, year: 2026 }, id: june!.id } },
+        ],
+      },
+    ]);
+  });
+
+  test('should drop the tracking of a bloc with its last observation', async ({ agent, expect, sessions }) => {
+    const { observant, session } = await sessionWithOwnObservant(sessions);
+    const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+    const deleted = await observeWithSuite(agent, path, { dateReception: '2026-05-01', magistratId: observant.id });
+    await agent.observations.updateObservationBlockTracking({
+      body: { comment: 'Signalement transmis', status: 'DONE' },
+      path: { magistratId: observant.id, sessionId: session.id },
+      throwOnError: true,
+    });
+
+    await agent.observations.deleteObservation({ path: { ...path, observationId: deleted }, throwOnError: true });
+    // a reopened bloc would keep its comment: only a dropped tracking loses it
+    await observeWithSuite(agent, path, { dateReception: '2026-05-20', magistratId: observant.id });
+
+    const [listed] = await listOf(agent, observant);
+    expect(listed?.tracking).toEqual({ comment: null, status: 'IN_PROGRESS' });
+  });
 });
+
+// a name of its own lets the search find this observant among the observations of the other scenarios
+function ownCandidate() {
+  return { ...SESSION.candidates[1]!, lastName: `DAUBENTON${randomInt(1_000_000, 1_000_000_000)}` };
+}
+
+// the observant is the second candidate: the first and the third files are open to their observations
+async function sessionWithOwnObservant(sessions: ReturnType<typeof makeCreateSessionFixture>) {
+  const candidate = ownCandidate();
+  const third = { ...SESSION.candidates[0]!, firstName: 'ANTOINE', lastName: 'FOURCROY' };
+  const session = await sessions.createOne({ ...SESSION, candidates: [SESSION.candidates[0]!, candidate, third] });
+  return { observant: { id: session.files[1]!.magistratId, lastName: candidate.lastName }, session };
+}
+
+async function observeWithSuite(
+  agent: TestStepsAgent,
+  path: { nominationFileId: string; sessionId: string },
+  observation: { dateReception: string; magistratId: string },
+) {
+  const { data } = await agent.observations.createObservation({
+    body: { form: observationForm(observation) },
+    path,
+    throwOnError: true,
+  });
+  await agent.observations.followUpOnObservation({
+    body: { comment: null, followUp: 'ALERT' },
+    path: { ...path, observationId: data.id },
+    throwOnError: true,
+  });
+  return data.id;
+}
+
+async function listOf(
+  agent: TestStepsAgent,
+  observant: { id: string; lastName: string },
+  query?: { trackingStatuses?: string },
+) {
+  const { data } = await agent.observations.listFollowedUpObservations({
+    query: { search: observant.lastName, ...query },
+    throwOnError: true,
+  });
+  return data.items.filter((item) => item.observation.observant.id === observant.id);
+}

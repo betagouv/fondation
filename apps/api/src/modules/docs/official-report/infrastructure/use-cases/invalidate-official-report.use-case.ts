@@ -1,13 +1,18 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { Prisma } from '../../../../../generated/prisma/client';
+import { lockOfficialReportsRawQuery } from '../../../../../generated/prisma/sql';
 import { assertNever } from '../../../../../utils/assert-never';
 import { isDefined } from '../../../../../utils/is-defined';
 import { Db } from '../../../../framework/database';
 import { DocInvalidation } from '../../../shared/domain/doc-invalidation';
 import { nominationFileOutcomeToDocNominationFileOutcome } from '../../../shared/domain/doc-nomination-file-outcome';
 import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../../../shared/infrastructure/agenda-content';
-import { DocsNominationFilesFinder } from '../../../shared/infrastructure/finders/docs-nomination-files.finder';
+import {
+  DocsNominationFilesFinder,
+  type FoundDocsNominationFiles,
+} from '../../../shared/infrastructure/finders/docs-nomination-files.finder';
+import { namedMembersOf } from '../../../shared/infrastructure/named-members';
 import { readsTheSame } from '../../../shared/infrastructure/services/renderers/helpers';
 import { InvalidateOfficialReportCommand } from '../../domain/official-report-types';
 import { OfficialReportVersionFinder } from '../finders/official-report-version.finder';
@@ -42,6 +47,12 @@ export class InvalidateOfficialReportUseCase {
       case 'NominationFilesOutcomeUpdated':
         return this.invalidate(await this.mapNominationFilesOutcomeUpdated({ invalidation }));
 
+      case 'NominationFilesRecusalsUpdated':
+        return this.invalidate(await this.mapNominationFilesRecusalsUpdated({ invalidation }));
+
+      case 'MemberRenamed':
+        return this.invalidate(await this.mapMemberRenamed({ invalidation }));
+
       // the report already answered when the draft was opened, and its own draft carries the answer
       case 'AgendaValidated':
         return;
@@ -52,10 +63,18 @@ export class InvalidateOfficialReportUseCase {
   }
 
   private async invalidate(commands: readonly InvalidateOfficialReportCommand[]): Promise<void> {
+    if (commands.length === 0) return;
+
+    // a discard of the draft either sees this update or is followed by it, never in between
+    await this.db.tx.$queryRawTyped(lockOfficialReportsRawQuery(commands.map(({ id }) => id)));
+
     for (const command of commands) {
       const officialReport = await this.officialReportRepository
         .find({ actorId: null, id: command.id })
-        .catch(() => null);
+        .catch((error: unknown) => {
+          if (error instanceof NotFoundException) return null;
+          throw error;
+        });
 
       if (!officialReport) continue;
 
@@ -101,6 +120,104 @@ export class InvalidateOfficialReportUseCase {
     }));
   }
 
+  private async mapNominationFilesRecusalsUpdated(query: {
+    invalidation: Extract<DocInvalidation, { type: 'NominationFilesRecusalsUpdated' }>;
+  }): Promise<InvalidateOfficialReportCommand[]> {
+    const reportFiles = await this.db.tx.officialReportNominationFile.findMany({
+      where: { nominationFileId: { in: [...query.invalidation.payload.nominationFileIds] } },
+      select: {
+        nominationFileId: true,
+        version: { select: { officialReportId: true } },
+      } satisfies Prisma.OfficialReportNominationFileSelect,
+    });
+    if (reportFiles.length === 0) return [];
+
+    const { items } = await this.docsNominationFilesFinder.find({
+      ids: [...new Set(reportFiles.flatMap(({ nominationFileId }) => nominationFileId ?? []))],
+      sessionId: query.invalidation.payload.sessionId,
+    });
+
+    // a report holding a draft carries a file twice, and it is invalidated once
+    const nominationFileIdsPerReport = Map.groupBy(reportFiles, ({ version }) => version.officialReportId)
+      .entries()
+      .map(
+        ([officialReportId, files]) =>
+          [officialReportId, new Set(files.map((f) => f.nominationFileId))] as const,
+      );
+
+    return [...nominationFileIdsPerReport].map(([officialReportId, nominationFileIds]) => ({
+      type: 'NominationFilesRecusalsUpdated',
+      id: officialReportId,
+      payload: {
+        files: items
+          .filter(({ id }) => nominationFileIds.has(id))
+          .map((file) => ({
+            nominationFileId: file.id,
+            recusedMembers: namedMembersOf(file.recusedMembers),
+          })),
+      },
+    }));
+  }
+
+  /** a row whose name the migration could not tie to a member keeps a null id: a rename does not reach it */
+  private async mapMemberRenamed(query: {
+    invalidation: Extract<DocInvalidation, { type: 'MemberRenamed' }>;
+  }): Promise<InvalidateOfficialReportCommand[]> {
+    const member = [{ id: query.invalidation.payload.userId }];
+    const reportFiles = await this.db.tx.officialReportNominationFile.findMany({
+      where: {
+        OR: [{ recusedMembers: { array_contains: member } }, { reporters: { array_contains: member } }],
+      },
+      select: {
+        nominationFileId: true,
+        version: {
+          select: { officialReport: { select: { agenda: { select: { sessionId: true } }, id: true } } },
+        },
+      } satisfies Prisma.OfficialReportNominationFileSelect,
+    });
+
+    // a report holding a draft carries a file twice, and it is invalidated once
+    const reports = new Map<string, { nominationFileIds: Set<string>; sessionId: string }>();
+    for (const { nominationFileId, version } of reportFiles) {
+      const sessionId = version.officialReport.agenda?.sessionId;
+      if (!nominationFileId || !sessionId) continue;
+
+      const report = reports.get(version.officialReport.id) ?? { nominationFileIds: new Set(), sessionId };
+      reports.set(version.officialReport.id, {
+        ...report,
+        nominationFileIds: report.nominationFileIds.add(nominationFileId),
+      });
+    }
+
+    const files = new Map<string, FoundDocsNominationFiles['items'][number]>();
+    for (const [sessionId, sessionReports] of Map.groupBy(reports.values(), ({ sessionId }) => sessionId)) {
+      const { items } = await this.docsNominationFilesFinder.find({
+        ids: [...new Set(sessionReports.flatMap(({ nominationFileIds }) => [...nominationFileIds]))],
+        sessionId,
+      });
+      for (const item of items) files.set(item.id, item);
+    }
+
+    return [...reports].map(([officialReportId, { nominationFileIds }]) => ({
+      type: 'MemberRenamed',
+      id: officialReportId,
+      payload: {
+        files: [...nominationFileIds].flatMap((nominationFileId) => {
+          const file = files.get(nominationFileId);
+          if (!file) return [];
+
+          return [
+            {
+              nominationFileId,
+              recusedMembers: namedMembersOf(file.recusedMembers),
+              reporters: namedMembersOf(file.reporters),
+            },
+          ];
+        }),
+      },
+    }));
+  }
+
   /**
    * the two documents write the very same sentence for a file: which one the report carries once
    * they part ways is the reader's call, and the block waits for it.
@@ -125,6 +242,9 @@ export class InvalidateOfficialReportUseCase {
     });
 
     if (!agenda?.officialReportId) return [];
+
+    // the sentence compared is the one the report keeps once a discard of its draft is done
+    await this.db.tx.$queryRawTyped(lockOfficialReportsRawQuery([agenda.officialReportId]));
 
     const agendaHtml = agendaContentOf(agenda.versions)?.nominationFiles[0]?.htmlEdited ?? null;
     const reportVersionId = await this.officialReportVersionFinder.latest({
@@ -186,7 +306,8 @@ export class InvalidateOfficialReportUseCase {
             .map((file) => ({
               outcome: file.outcome,
               nominationFileId: file.id,
-              reporters: file.reporters.map(({ fullTitledName }) => fullTitledName),
+              recusedMembers: namedMembersOf(file.recusedMembers),
+              reporters: namedMembersOf(file.reporters),
             })),
         },
       },
@@ -281,7 +402,7 @@ export class InvalidateOfficialReportUseCase {
         payload: {
           files: items.map((file) => ({
             nominationFileId: file.id,
-            reporters: file.reporters.map(({ fullTitledName }) => fullTitledName),
+            reporters: namedMembersOf(file.reporters),
           })),
         },
       });

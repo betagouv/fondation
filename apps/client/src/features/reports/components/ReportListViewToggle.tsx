@@ -1,8 +1,8 @@
-import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 import { useQueryState } from 'nuqs';
 import { FormattedMessage } from 'react-intl';
 
 import { useMyFilesFilter } from '@/features/reports/hooks/useMyFilesFilter';
+import { ToggleSwitch } from '@/shared/ui/toggle-switch';
 import { SIDE_PANEL_DOSSIER_PARAM } from '@/utils/route-path.utils';
 import { useUser } from '@queries/auth.queries';
 

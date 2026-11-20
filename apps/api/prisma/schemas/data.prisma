@@ -11,6 +11,7 @@ model Jurisdiction {
   ville_jur       String?
   ville           String?
 
+  comments                  CourtComment[]
   excludedByUserIds         ExcludedJurisdiction[]
   positions                 Position[]
   detectedInNominationFiles DossierDeNomination[]
@@ -95,7 +96,9 @@ model Position {
   candidateWishes           CandidateWish[]
   nominationsTargeting      Nomination[]          @relation("targetPositionFk")
   nominationsCurrent        Nomination[]          @relation("currentPositionFk")
+  comments                  PositionComment[]
   detectedInNominationFiles DossierDeNomination[]
+  vacancies                 PositionVacancy[]
 
   @@map("position")
   @@schema("data_administration_context")
@@ -223,14 +226,17 @@ model Magistrat {
 
   status PrismaMagistratStatusEnum @default(ACTIVE)
 
-  observations              Observation[]
-  observantAuditions        ObservantAudition[]
-  observantAuditionVersions ObservantAuditionVersion[]
+  observations                Observation[]
+  observantAuditions          ObservantAudition[]
+  observantAuditionVersions   ObservantAuditionVersion[]
+  observationBlockTrackings   ObservationBlockTracking[]
   publishedObservantAuditions PublishedObservantAudition[]
-  candidacies               Candidate[]
-  nominations               Nomination[]
-  detectedInNominationFiles DossierDeNomination[]
-  phoneNumbers              MagistratPhoneNumber[]
+  candidacies                 Candidate[]
+  nominations                 Nomination[]
+  detectedInNominationFiles   DossierDeNomination[]
+  phoneNumbers                MagistratPhoneNumber[]
+  positionComments            PositionComment[]
+  positionVacancies           PositionVacancy[]
 
   search Unsupported("tsvector")? @default(dbgenerated("((((setweight(to_tsvector('unaccent_simple'::regconfig, lower(COALESCE(first_name, ''::text))), 'A'::\"char\") || setweight(to_tsvector('unaccent_simple'::regconfig, lower(COALESCE(used_name, ''::text))), 'A'::\"char\")) || setweight(to_tsvector('unaccent_simple'::regconfig, lower(COALESCE(last_name, ''::text))), 'B'::\"char\")) || setweight(to_tsvector('unaccent_simple'::regconfig, lower(COALESCE(married_name, ''::text))), 'B'::\"char\")) || setweight(to_tsvector('unaccent_simple'::regconfig, lower(COALESCE(professional_email, ''::text))), 'C'::\"char\"))"))
 

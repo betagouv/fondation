@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Put,
@@ -16,21 +17,20 @@ import { ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { FILE_EXTENSIONS, UseMultipartBody, type Multipart } from '../framework/files';
+import type { Impersonation } from '../shared/policies/personal-content.policies';
 import { MEMBER_ROLES, type RoleEnum } from '../shared/role.enum';
-import { AuthedUser, AuthedUserId, HasRole } from '../simple-auth';
+import { AuthedUser, HasRole } from '../simple-auth';
 
 import {
   AttachedScreenshotsDto,
   AttachReportFileDto,
   AttachReportFileQueryDto,
   AttachScreenshotsDto,
-  DetachReportFilesQueryDto,
-  GetReportFileUrlsQueryDto,
   UpdateReportDto,
   UpdateReportRuleValidationDto,
 } from './infrastructure/dtos/report.dto';
 import { DetailedReportDto } from './infrastructure/queries/detail-report.query';
-import { GetReportFileUrlsResponseDto } from './infrastructure/queries/get-report-file-urls.query';
+import { GeneratedReportAttachmentUrlDto } from './infrastructure/queries/get-report-attachment-url.query';
 import { ReportService } from './report.service';
 
 @ApiTags('Reports')
@@ -50,29 +50,30 @@ export class ReportController {
     @Param('reportId') reportId: string,
     @Query(ZodValidationPipe) query: AttachReportFileQueryDto,
     @Body() { files }: Multipart<typeof AttachReportFileDto>,
-    @AuthedUserId() userId: string,
+    @AuthedUser() user: { id: string; impersonation: Impersonation | undefined },
   ): Promise<void> {
     return this.reports.attachFiles({
-      reportId,
-      userId,
       fileUsage: query.usage,
       files,
+      impersonation: user.impersonation,
+      reportId,
+      userId: user.id,
     });
   }
 
-  @Delete('/:reportId/files')
+  @Delete('/:reportId/files/:fileId')
   @HasRole(...MEMBER_ROLES)
   @HttpCode(HttpStatus.NO_CONTENT)
-  @UsePipes(ZodValidationPipe)
-  async detachFiles(
-    @Param('reportId') reportId: string,
-    @Query() query: DetachReportFilesQueryDto,
-    @AuthedUserId() userId: string,
-  ) {
-    await this.reports.detachFiles({
-      userId,
+  async detachAttachment(
+    @Param('reportId', ParseUUIDPipe) reportId: string,
+    @Param('fileId', ParseUUIDPipe) fileId: string,
+    @AuthedUser() user: { id: string; impersonation: Impersonation | undefined },
+  ): Promise<void> {
+    await this.reports.detachAttachment({
+      fileId,
+      impersonation: user.impersonation,
       reportId,
-      fileNames: query.fileNames,
+      userId: user.id,
     });
   }
 
@@ -87,29 +88,25 @@ export class ReportController {
   async attachScreenshots(
     @Param('reportId') reportId: string,
     @Body() { files }: Multipart<typeof AttachScreenshotsDto>,
-    @AuthedUser() user: { id: string },
+    @AuthedUser() user: { id: string; impersonation: Impersonation | undefined },
   ): Promise<AttachedScreenshotsDto> {
     return this.reports.attachScreenshots({
       files,
+      impersonation: user.impersonation,
       reportId,
       userId: user.id,
     });
   }
 
-  @Get('/:reportId/files/url')
+  @Get('/:reportId/files/:fileId/url')
   @HasRole(...MEMBER_ROLES)
-  @UsePipes(ZodValidationPipe)
-  @ZodResponse({ type: GetReportFileUrlsResponseDto, status: HttpStatus.OK })
-  async getReportFilesUrl(
-    @AuthedUserId() userId: string,
-    @Param('reportId') reportId: string,
-    @Query() query: GetReportFileUrlsQueryDto,
-  ) {
-    return this.reports.getReportFileUrls({
-      userId,
-      reportId,
-      fileNames: query.fileNames,
-    });
+  @ZodResponse({ type: GeneratedReportAttachmentUrlDto, status: HttpStatus.OK })
+  getAttachmentUrl(
+    @AuthedUser() user: { id: string; impersonation: Impersonation | undefined; role: RoleEnum },
+    @Param('reportId', ParseUUIDPipe) reportId: string,
+    @Param('fileId', ParseUUIDPipe) fileId: string,
+  ): Promise<GeneratedReportAttachmentUrlDto> {
+    return this.reports.getAttachmentUrl({ fileId, reportId, user });
   }
 
   @Get('/:reportId')
@@ -117,7 +114,7 @@ export class ReportController {
   @ZodResponse({ type: DetailedReportDto, status: HttpStatus.OK })
   async detailReport(
     @Param('reportId') reportId: string,
-    @AuthedUser() user: { id: string; role: RoleEnum },
+    @AuthedUser() user: { id: string; impersonation: Impersonation | undefined; role: RoleEnum },
   ): Promise<DetailedReportDto> {
     return this.reports.detailReport({ user, reportId });
   }
@@ -128,13 +125,14 @@ export class ReportController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async updateReport(
     @Param('reportId') reportId: string,
-    @AuthedUserId() reporterId: string,
+    @AuthedUser() user: { id: string; impersonation: Impersonation | undefined },
     @Body() { comment, status }: UpdateReportDto,
   ) {
     await this.reports.updateReport({
-      reportId,
-      reporterId,
       data: { comment, status },
+      impersonation: user.impersonation,
+      reportId,
+      reporterId: user.id,
     });
   }
 
@@ -143,16 +141,17 @@ export class ReportController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
   async updateReportRuleValidation(
-    @AuthedUserId() reporterId: string,
+    @AuthedUser() user: { id: string; impersonation: Impersonation | undefined },
     @Param('reportId') reportId: string,
     @Param('ruleId') ruleId: string,
     @Body() { isValidated }: UpdateReportRuleValidationDto,
   ) {
     await this.reports.updateRuleValidation({
-      ruleId,
-      reportId,
-      reporterId,
+      impersonation: user.impersonation,
       isValidated,
+      reportId,
+      reporterId: user.id,
+      ruleId,
     });
   }
 }

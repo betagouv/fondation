@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useIntl } from 'react-intl';
 
+import type { CommentChange } from '@/shared/components/comment-last-change';
 import { useToasts } from '@/shared/ui/toast';
 import { useSessionCommentQuery, useWriteSessionCommentMutation } from '@queries/nomination-sessions.queries';
 
@@ -11,7 +12,7 @@ export type SessionCommentDraft = {
   isPending: boolean;
   isWarned: boolean;
   /** null for a comment written before its author and date were kept */
-  lastChange: { at: string; by: string | null } | null;
+  lastChange: CommentChange | null;
   onChange: (value: string) => void;
   save: () => Promise<void>;
   /** false, and warns about the unsaved changes, when leaving would lose them */
@@ -38,7 +39,7 @@ export function useSessionCommentDraft(props: { sessionId: string }): SessionCom
     isError,
     isPending,
     isWarned: isWarned && draft !== null,
-    lastChange: data?.writtenAt ? { at: data.writtenAt, by: data.writtenBy?.name ?? null } : null,
+    lastChange: data?.lastChange ?? null,
     onChange: setDraft,
     save: async () => {
       await mutateAsync({ comment: draft ?? '' });

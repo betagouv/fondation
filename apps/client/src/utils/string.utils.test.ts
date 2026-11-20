@@ -1,4 +1,16 @@
-import { formatPhoneNumber } from './string.utils';
+import { formatPhoneNumber, requiresElision } from './string.utils';
+
+describe('requiresElision', () => {
+  it.each([
+    ['AUBRY Gaspard', true],
+    ['ÉLIE Marc', true],
+    ['HUGO Anne', true],
+    ['KOFFI Aminata', false],
+    ['', false],
+  ])('returns %s for "%s"', (word, expected) => {
+    expect(requiresElision(word)).toBe(expected);
+  });
+});
 
 describe('formatPhoneNumber', () => {
   it.each([

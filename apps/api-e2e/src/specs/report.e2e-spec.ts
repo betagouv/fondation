@@ -2,6 +2,21 @@ import { test } from '../fixtures.ts';
 import { makeFile } from '../utils/files.ts';
 import * as seed from '../utils/seed.ts';
 
+const CANDIDATE = {
+  firstName: 'ETIENNE',
+  lastName: 'TREVOUX',
+  position: {
+    function: seed.functions.PR,
+    grade: 'G3' as const,
+    jurisdiction: seed.jurisdictions['CA  LYON'],
+  },
+  targetPosition: {
+    function: seed.functions.PR,
+    grade: 'G3' as const,
+    jurisdiction: seed.jurisdictions['CA  GRENOBLE'],
+  },
+};
+
 test.describe('Report E2E', () => {
   let nominationFileId: string;
   let reportId: string;
@@ -10,26 +25,7 @@ test.describe('Report E2E', () => {
   test.beforeEach(async ({ sessions, member }) => {
     // the member is affected so that a report is created for them
     const session = await sessions.createOne(
-      {
-        candidates: [
-          {
-            firstName: 'ETIENNE',
-            lastName: 'TREVOUX',
-            position: {
-              function: seed.functions.PR,
-              grade: 'G3',
-              jurisdiction: seed.jurisdictions['CA  LYON'],
-            },
-            targetPosition: {
-              function: seed.functions.PR,
-              grade: 'G3',
-              jurisdiction: seed.jurisdictions['CA  GRENOBLE'],
-            },
-          },
-        ],
-        createdAt: '22/04/2026',
-        name: 'Transparence rapport',
-      },
+      { candidates: [CANDIDATE], createdAt: '22/04/2026', name: 'Transparence rapport' },
       { reporters: [member['@user']!] },
     );
 
@@ -49,14 +45,14 @@ test.describe('Report E2E', () => {
       path: { nominationFileId, sessionId, userId: member['@user']!.id },
     });
     expect(memberRes.response?.status).toBe(200);
-    expect(memberRes.data?.reportId).toBe(reportId);
+    expect(memberRes.data?.report).toEqual({ id: reportId, state: 'NEW' });
 
     const memberWithoutReport = await logIn('MEMBRE_COMMUN');
     const withoutReportRes = await memberWithoutReport.members.searchNominationFileMembersReport({
       path: { nominationFileId, sessionId, userId: memberWithoutReport['@user']!.id },
     });
     expect(withoutReportRes.response?.status).toBe(200);
-    expect(withoutReportRes.data?.reportId).toBeNull();
+    expect(withoutReportRes.data?.report).toBeNull();
 
     const otherMemberRes = await member.members.searchNominationFileMembersReport({
       path: { nominationFileId, sessionId, userId: memberWithoutReport['@user']!.id },
@@ -192,31 +188,74 @@ test.describe('Report E2E', () => {
     expect(responseBody.data?.attachments.map(({ name }) => name)).toContain(file.name);
   });
 
-  test('should detach files from a report', async ({ member, expect }) => {
-    const [file1, file2] = [null, null].map((_, i) =>
-      makeFile({ name: `image_${i + 1}_${crypto.randomUUID()}.png`, type: 'image/png' }),
-    ) as [File, File];
-
-    const attachmentRes = await member.reports.attachFiles({
-      body: { files: [file1, file2] },
+  test('should let the admin impersonating a reporter read their report without changing it nor opening its attachments', async ({
+    expect,
+    impersonate,
+    member,
+  }) => {
+    const name = `evaluation_${crypto.randomUUID()}.png`;
+    await member.reports.attachFiles({
+      body: { files: [makeFile({ name, type: 'image/png' })] },
       path: { reportId },
       query: { usage: 'ATTACHMENT' },
+      throwOnError: true,
     });
-    expect(attachmentRes.response?.status).toBe(204);
+    await member.reports.updateReport({ body: { comment: '<p>Avis</p>' }, path: { reportId }, throwOnError: true });
 
-    const reportResBefore = await member.reports.detailReport({ path: { reportId } });
-    expect(reportResBefore.data?.attachments).toHaveLength(2);
+    const impersonator = await impersonate(member['@user']!);
 
-    const deleteAttachmentRes = await member.reports.detachFiles({
+    const read = await impersonator.reports.detailReport({ path: { reportId }, throwOnError: true });
+    expect(read.data).toMatchObject({
+      attachmentsVisibility: 'PRIVATE',
+      comment: '<p>Avis</p>',
+      lockedReason: 'IMPERSONATION',
+    });
+    const opened = await impersonator.reports.getAttachmentUrl({
+      path: { fileId: read.data.attachments[0]!.id, reportId },
+    });
+    expect(opened.response?.status).toBe(403);
+    const updated = await impersonator.reports.updateReport({ body: { comment: '' }, path: { reportId } });
+    expect(updated.response?.status).toBe(403);
+  });
+
+  test('should detach one of two attachments of the same name, the other still opening', async ({ member, expect }) => {
+    const name = `evaluation_${crypto.randomUUID()}.png`;
+    await member.reports.attachFiles({
+      body: { files: [makeFile({ name, type: 'image/png' }), makeFile({ name, type: 'image/png' })] },
       path: { reportId },
-      query: { fileNames: file1.name },
+      query: { usage: 'ATTACHMENT' },
+      throwOnError: true,
     });
-    expect(deleteAttachmentRes.response?.status).toBe(204);
+    const before = await member.reports.detailReport({ path: { reportId }, throwOnError: true });
+    const [detached, kept] = before.data.attachments;
 
-    const reportResAfter = await member.reports.detailReport({ path: { reportId } });
-    expect(reportResAfter.data?.attachments).toHaveLength(1);
+    await member.reports.detachAttachment({ path: { fileId: detached!.id, reportId }, throwOnError: true });
 
-    expect(reportResAfter.data?.attachments.map(({ name }) => name)).not.toContain(file1.name);
-    expect(reportResAfter.data?.attachments.map(({ name }) => name)).toContain(file2.name);
+    const after = await member.reports.detailReport({ path: { reportId }, throwOnError: true });
+    expect(after.data.attachments.map(({ id }) => id)).toEqual([kept!.id]);
+    const opened = await member.reports.getAttachmentUrl({
+      path: { fileId: kept!.id, reportId },
+      throwOnError: true,
+    });
+    expect(opened.data.id).toBe(kept!.id);
+  });
+
+  test('should leave a pasted screenshot in place when detaching it as an attachment', async ({ member, expect }) => {
+    const attached = await member.reports.attachScreenshots({
+      body: { files: [makeFile({ name: 'evaluation.png', type: 'image/png' })] },
+      path: { reportId },
+      throwOnError: true,
+    });
+    const [screenshot] = attached.data.items;
+    await member.reports.updateReport({
+      body: { comment: `<p>Avis</p><img data-file-id="${screenshot!.id}" src="${screenshot!.url}">` },
+      path: { reportId },
+      throwOnError: true,
+    });
+
+    await member.reports.detachAttachment({ path: { fileId: screenshot!.id, reportId }, throwOnError: true });
+
+    const { data } = await member.reports.detailReport({ path: { reportId }, throwOnError: true });
+    expect(data.screenshots.map(({ id }) => id)).toEqual([screenshot!.id]);
   });
 });

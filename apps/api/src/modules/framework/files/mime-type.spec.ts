@@ -1,4 +1,23 @@
-import { FILE_EXTENSIONS, filenameToMimeType } from './mime-type';
+import { FILE_EXTENSIONS, filenameToMimeType, resolveMimeType } from './mime-type';
+
+describe('resolveMimeType', () => {
+  it.each(['', 'application/octet-stream', 'application/zip'])(
+    'reads the extension when the browser declares %j',
+    (mimetype) => {
+      expect(resolveMimeType({ mimetype, originalname: 'note.docx' })).toBe(
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      );
+    },
+  );
+
+  it('keeps the type the browser declares for a file without a known extension', () => {
+    expect(resolveMimeType({ mimetype: 'application/pdf', originalname: 'scan' })).toBe('application/pdf');
+  });
+
+  it('falls back to the generic type when neither the browser nor the extension tells', () => {
+    expect(resolveMimeType({ mimetype: '', originalname: 'archive.rar' })).toBe('application/octet-stream');
+  });
+});
 
 describe('filenameToMimeType', () => {
   it.each([
@@ -8,6 +27,9 @@ describe('filenameToMimeType', () => {
     ['rapport.PDF', 'application/pdf'],
     ['note.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
     ['agenda.pdf-2026', 'application/pdf'],
+    ['courriel.MSG', 'application/vnd.ms-outlook'],
+    ['courriel.eml', 'message/rfc822'],
+    ['lettre.wpd', 'application/vnd.wordperfect'],
   ])('reads %s as %s', (filename, expected) => {
     expect(filenameToMimeType(filename)).toBe(expected);
   });

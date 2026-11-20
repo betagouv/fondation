@@ -1,7 +1,6 @@
 name: 'Deploy staging'
 permissions:
   contents: read
-  packages: read
 
 on:
   push:

@@ -36,7 +36,29 @@ export function useAttachSummaryFilesMutation() {
         path: { nominationFileId, sessionId },
       });
     },
-    onSuccess: (_, { nominationFileId, sessionId }) =>
+    onSettled: (_data, _error, { nominationFileId, sessionId }) =>
+      queryClient.invalidateQueries({
+        queryKey: summaryKeys.detailsSummary({ nominationFileId, sessionId }),
+      }),
+  });
+}
+
+export function useRenameSummaryAttachmentMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (mutation: {
+      fileId: string;
+      name: string;
+      nominationFileId: string;
+      sessionId: string;
+    }) => {
+      const { fileId, name, nominationFileId, sessionId } = mutation;
+      await $api.summaries.renameSummaryAttachment({
+        body: { name },
+        path: { fileId, nominationFileId, sessionId },
+      });
+    },
+    onSettled: (_data, _error, { nominationFileId, sessionId }) =>
       queryClient.invalidateQueries({
         queryKey: summaryKeys.detailsSummary({ nominationFileId, sessionId }),
       }),
@@ -178,7 +200,7 @@ export function useUpdateSummaryReadersMutation() {
       });
     },
 
-    onSuccess: (_, { nominationFileId, sessionId }) =>
+    onSettled: (_data, _error, { nominationFileId, sessionId }) =>
       Promise.all([
         queryClient.invalidateQueries({
           queryKey: summaryKeys.detailsSummary({ nominationFileId, sessionId }),

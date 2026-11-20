@@ -12,6 +12,7 @@ import {
   AttachedFilesToSummary,
   DetachedFilesFromSummary,
   IncludedFilesInSummaryContent,
+  RenamedSummaryFile,
   Summary,
   SummaryContentWritten,
   SummaryCreated,
@@ -33,6 +34,10 @@ export class SummaryRepository {
     if (state === 'DELETED') throw new NotFoundException();
 
     return state === 'ARCHIVED';
+  }
+
+  isNominationFileLocked(query: { nominationFileId: string }): Promise<boolean> {
+    return this.sessions.internalIsNominationFileLocked(query);
   }
 
   async find(query: { sessionId: string; nominationFileId: string }) {
@@ -63,6 +68,7 @@ export class SummaryRepository {
       else if (message instanceof AttachedFilesToSummary) await this.persistAttachedFilesToSummary(message);
       else if (message instanceof DetachedFilesFromSummary)
         await this.persistDetachedFilesFromSummary(message);
+      else if (message instanceof RenamedSummaryFile) await this.persistRenamedSummaryFile(message);
       else if (message instanceof IncludedFilesInSummaryContent)
         await this.persistIncludedFilesInSummaryContent(message);
       else if (message instanceof SummaryContentWritten) await this.persistSummaryContentWritten(message);
@@ -103,6 +109,16 @@ export class SummaryRepository {
     await this.db.tx.summaryAttachment.deleteMany({ where });
 
     this.files.delete(attachments.map(({ file }) => file));
+  }
+
+  private async persistRenamedSummaryFile(message: RenamedSummaryFile) {
+    const attachment = await this.db.tx.summaryAttachment.findFirst({
+      select: { fileId: true } satisfies Prisma.SummaryAttachmentSelect,
+      where: { fileId: message.fileId, summaryId: message.id },
+    });
+    if (!attachment) throw new NotFoundException();
+
+    await this.files.rename({ id: message.fileId, name: message.name });
   }
 
   private persistIncludedFilesInSummaryContent(message: IncludedFilesInSummaryContent) {

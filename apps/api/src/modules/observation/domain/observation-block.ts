@@ -1,0 +1,113 @@
+import type { DateOnly } from '../../../utils/date-only';
+
+type BlockedObservation = {
+  dateReception: Date;
+  fileRank: number;
+  observantId: string;
+  observantName: string;
+  sessionId: string;
+};
+
+// a bloc gathers the observations of one observant in one session. It is placed by the reception
+// date that comes first in the requested order: its most recent one when descending, its oldest
+// when ascending. Inside a bloc, rows follow their own reception date in the same order, then the
+// nomination file order of the session
+export function sortByObservationBlock<T extends BlockedObservation>(
+  observations: readonly T[],
+  order: 'asc' | 'desc',
+): T[] {
+  const direction = order === 'asc' ? 1 : -1;
+  const blockKey = ({ observantId, sessionId }: T) => `${sessionId}:${observantId}`;
+  const blockTimes = new Map(
+    Map.groupBy(observations, blockKey)
+      .entries()
+      .map(([key, rows]) => {
+        const times = rows.map(({ dateReception }) => dateReception.getTime());
+        return [key, order === 'asc' ? Math.min(...times) : Math.max(...times)];
+      }),
+  );
+  const blockTime = (observation: T) => blockTimes.get(blockKey(observation)) ?? 0;
+
+  return observations.toSorted(
+    (a, b) =>
+      direction * (blockTime(a) - blockTime(b)) ||
+      a.observantName.localeCompare(b.observantName, 'fr', { sensitivity: 'base' }) ||
+      // two homonymous observants, or one observant in two sessions, stay in separate blocs,
+      // in the same order on every page
+      a.observantId.localeCompare(b.observantId) ||
+      a.sessionId.localeCompare(b.sessionId) ||
+      direction * (a.dateReception.getTime() - b.dateReception.getTime()) ||
+      a.fileRank - b.fileRank,
+  );
+}
+
+// the observant is proposed again after their observations: in another session published after the most
+// recent reception date of the bloc, observations without a suite included
+export function laterPropositions<T extends { session: { date: DateOnly; id: string } }>(
+  block: { lastReception: Date; sessionId: string },
+  propositions: readonly T[],
+): T[] {
+  return propositions.filter(
+    ({ session }) =>
+      session.id !== block.sessionId && session.date.toDate().getTime() > block.lastReception.getTime(),
+  );
+}
+
+// sessions never move: the most recently published comes first, whatever the order, so that a bloc never
+// leaves its session. The order only applies to the blocs inside each session
+export function sortBySessionThenObservationBlock<T extends BlockedObservation & { sessionDate: Date }>(
+  observations: readonly T[],
+  order: 'asc' | 'desc',
+): T[] {
+  // a stable sort keeps the bloc order inside each session
+  return sortByObservationBlock(observations, order).toSorted(
+    (a, b) => b.sessionDate.getTime() - a.sessionDate.getTime() || a.sessionId.localeCompare(b.sessionId),
+  );
+}
+
+// the tracking table files an observation under the year of its session date
+export const sessionYear = (session: { date: DateOnly }): number => session.date.toJson().year;
+
+export const OBSERVATION_BLOCK_TRACKING_STATUSES = ['IN_PROGRESS', 'DONE'] as const;
+export type ObservationBlockTrackingStatus = (typeof OBSERVATION_BLOCK_TRACKING_STATUSES)[number];
+
+// a bloc without any tracking yet reads as in progress
+export const UNTRACKED_BLOCK = { comment: null, status: 'IN_PROGRESS' } as const;
+
+export class ObservationBlockTracked {
+  constructor(
+    readonly sessionId: string,
+    readonly magistratId: string,
+    readonly status: ObservationBlockTrackingStatus,
+    readonly comment: string | null,
+  ) {}
+}
+
+// the observations of one observant in one session share one tracking, kept once the session is archived
+export class ObservationBlock {
+  readonly #messages: ObservationBlockTracked[] = [];
+
+  private constructor(
+    readonly sessionId: string,
+    readonly magistratId: string,
+  ) {}
+
+  get messages(): readonly ObservationBlockTracked[] {
+    return this.#messages;
+  }
+
+  static from(props: { magistratId: string; sessionId: string }): ObservationBlock {
+    return new ObservationBlock(props.sessionId, props.magistratId);
+  }
+
+  track(command: { comment: string | null; status: ObservationBlockTrackingStatus }): void {
+    this.#messages.push(
+      new ObservationBlockTracked(
+        this.sessionId,
+        this.magistratId,
+        command.status,
+        command.comment?.trim() || null,
+      ),
+    );
+  }
+}

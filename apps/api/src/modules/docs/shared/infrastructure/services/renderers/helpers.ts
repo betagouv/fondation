@@ -33,7 +33,8 @@ export function displayTitled(props: {
   lastName: string;
 }): string {
   const title = props.displayTitle?.trim() || null;
-  const output = props.gender === GenderEnum.MALE ? `M. ${fullname(props)}` : `Mme ${fullname(props)}`;
+  const civility = props.gender === GenderEnum.MALE ? 'M.' : 'Mme';
+  const output = `${civility}\u00A0${fullname(props)}`;
 
   if (!title) return output;
   return `${output}, ${lowerFirst(title)}`;

@@ -1,5 +1,9 @@
 import {
+  AttachedFilesToSummary,
+  OnlyAuthorCanWriteSummary,
+  RenamedSummaryFile,
   Summary,
+  SummaryAttachmentsLocked,
   SummaryCreated,
   SummarySessionIsArchived,
   UnknownReader,
@@ -62,6 +66,63 @@ describe('Summary', () => {
       expect(() =>
         summary().updateReadersList({ availableUserIds: new Set(), readerIds: ['another-deactivated'] }),
       ).toThrow(UnknownReader);
+    });
+  });
+
+  describe('attachments', () => {
+    const writtenBy = (authorId: string | null) =>
+      Summary.from({
+        authorId,
+        id: 'file-1',
+        readerIds: [],
+        sessionId: 'session-1',
+        sessionIsArchived: false,
+      });
+
+    it('should let its author rename an attachment', () => {
+      const summary = writtenBy('author');
+
+      summary.renameFile({
+        fileId: 'f-1',
+        isNominationFileLocked: false,
+        name: 'Avis',
+        user: { id: 'author', role: 'ADJOINT_SECRETAIRE_GENERAL' },
+      });
+
+      expect(summary.messages).toEqual([new RenamedSummaryFile(summary.id, 'f-1', 'Avis')]);
+    });
+
+    it('should keep the attachments to its author once someone wrote it', () => {
+      const summary = writtenBy('author');
+      const user = { id: 'colleague', role: 'ADJOINT_SECRETAIRE_GENERAL' } as const;
+      const isNominationFileLocked = false;
+
+      expect(() => summary.attachFiles({ fileIds: ['f-2'], user })).toThrow(OnlyAuthorCanWriteSummary);
+      expect(() => summary.detachFiles({ fileIds: ['f-1'], isNominationFileLocked, user })).toThrow(
+        OnlyAuthorCanWriteSummary,
+      );
+      expect(() => summary.renameFile({ fileId: 'f-1', isNominationFileLocked, name: 'Avis', user })).toThrow(
+        OnlyAuthorCanWriteSummary,
+      );
+      expect(() => summary.includeFilesIntoContent({ fileIds: ['f-3'], user })).toThrow(
+        OnlyAuthorCanWriteSummary,
+      );
+    });
+
+    it('should keep the attachments of a figé dossier as they are, while still adding some', () => {
+      const summary = writtenBy('author');
+      const user = { id: 'author', role: 'ADJOINT_SECRETAIRE_GENERAL' } as const;
+      const isNominationFileLocked = true;
+
+      expect(() => summary.detachFiles({ fileIds: ['f-1'], isNominationFileLocked, user })).toThrow(
+        SummaryAttachmentsLocked,
+      );
+      expect(() => summary.renameFile({ fileId: 'f-1', isNominationFileLocked, name: 'Avis', user })).toThrow(
+        SummaryAttachmentsLocked,
+      );
+      summary.attachFiles({ fileIds: ['f-2'], user });
+
+      expect(summary.messages).toEqual([new AttachedFilesToSummary(summary.id, ['f-2'])]);
     });
   });
 

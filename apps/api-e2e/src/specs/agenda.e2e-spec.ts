@@ -169,6 +169,24 @@ test.describe('Agenda', () => {
     expect(foundFiles.data!.items.map(({ reporters }) => reporters)).toEqual([[], []]);
   });
 
+  test('should name the magistrats of the files to select as the session files list does', async ({
+    agent,
+    docs,
+    expect,
+  }) => {
+    const { id: sessionId } = await docs.session();
+
+    const { items: foundFiles } = (await agent.docs.findAgendaNominationFiles({ path: { sessionId } })).data!;
+    const listedFiles = await agent.sessions.listNominationFiles({
+      path: { sessionId },
+      query: { limit: 200, nominationFileIds: foundFiles.map(({ id }) => id) },
+    });
+
+    expect(Object.fromEntries(foundFiles.map(({ id, magistrat }) => [id, magistrat.name]))).toEqual(
+      Object.fromEntries(listedFiles.data!.items.map(({ content, id }) => [id, content.nomMagistrat])),
+    );
+  });
+
   test('should forget a reporter removed since the last publication', async ({ agent, docs, expect, member }) => {
     const session = await docs.session();
     const sessionId = session.id;
@@ -186,6 +204,175 @@ test.describe('Agenda', () => {
 
     const readiness = await agent.docs.isSessionReadyForDocGeneration({ path: { sessionId } });
     expect(readiness.data).toMatchObject({ agendaBlocker: 'NO_AFFECTATION', canCreateAgenda: false });
+  });
+
+  test('should follow in a draft the new name an admin gives a reporter, without flagging a block written by hand', async ({
+    admin,
+    agent,
+    docs,
+    expect,
+    member,
+  }) => {
+    const { id: agendaId } = await docs.agenda(await docs.session({ reporters: [member['@user']!] }));
+    const before = await agent.docs.detailsAgendaDocumentBlocks({ path: { agendaId } });
+    const [writtenBlock, generatedBlock] = before.data!.blocks;
+    await agent.docs.editAgendaFileBlock({
+      body: { html: '<p>Une phrase écrite à la main</p>', outdated: false },
+      path: { agendaId, fileId: writtenBlock!.id },
+      throwOnError: true,
+    });
+
+    await admin.administration.updateName({
+      body: { lastName: 'Renommé' },
+      path: { userId: member['@user']!.id },
+      throwOnError: true,
+    });
+
+    const after = await agent.docs.detailsAgendaDocumentBlocks({ path: { agendaId } });
+    const byId = new Map(after.data!.blocks.map((block) => [block.nominationFileId, block]));
+    expect(byId.get(generatedBlock!.nominationFileId)?.html).toContain('RENOMMÉ');
+    expect(byId.get(writtenBlock!.nominationFileId)).toMatchObject({
+      html: '<p>Une phrase écrite à la main</p>',
+      outdated: false,
+    });
+  });
+
+  test('should keep the name a validated agenda was sent with, and give the new one to the draft opened on it', async ({
+    admin,
+    agent,
+    docs,
+    expect,
+    member,
+  }) => {
+    const { id: agendaId } = await docs.agenda(await docs.session({ reporters: [member['@user']!] }), {
+      status: 'VALIDATED',
+    });
+    await admin.administration.updateName({
+      body: { lastName: 'Renommé' },
+      path: { userId: member['@user']!.id },
+      throwOnError: true,
+    });
+
+    const validated = await agent.docs.detailsAgendaDocumentBlocks({ path: { agendaId } });
+    const [writtenBlock, generatedBlock] = validated.data!.blocks;
+    expect(generatedBlock!.html).not.toContain('RENOMMÉ');
+
+    await agent.docs.editAgendaFileBlock({
+      body: { html: '<p>Une phrase écrite à la main</p>', outdated: false },
+      path: { agendaId, fileId: writtenBlock!.id },
+      throwOnError: true,
+    });
+
+    const draft = await agent.docs.detailsAgendaDocumentBlocks({ path: { agendaId } });
+    const byId = new Map(draft.data!.blocks.map((block) => [block.nominationFileId, block]));
+    expect(byId.get(generatedBlock!.nominationFileId)?.html).toContain('RENOMMÉ');
+    const metadata = await agent.docs.detailsAgendaMetadata({ path: { agendaId } });
+    expect(metadata.data).toMatchObject({ canDiscardDraft: true, status: 'DRAFT' });
+  });
+
+  test('should name a magistrat first name first, as Lolfi names them today, in the draft opened on a validated agenda', async ({
+    agent,
+    docs,
+    expect,
+    member,
+    sql,
+  }) => {
+    const session = await docs.session({ reporters: [member['@user']!] });
+    const { id: agendaId } = await docs.agenda(session, { status: 'VALIDATED' });
+    const validated = await agent.docs.detailsAgendaDocumentBlocks({ path: { agendaId } });
+    const [writtenBlock, generatedBlock] = validated.data!.blocks;
+    const magistratId = session.files.find(({ id }) => id === generatedBlock!.nominationFileId)!.magistratId;
+    await sql`
+      UPDATE data_administration_context.magistrat
+      SET first_name = 'JEANNE', last_name = 'Renommée', married_name = NULL
+      WHERE id = ${magistratId}
+    `;
+
+    await agent.docs.editAgendaFileBlock({
+      body: { html: '<p>Une phrase écrite à la main</p>', outdated: false },
+      path: { agendaId, fileId: writtenBlock!.id },
+      throwOnError: true,
+    });
+
+    const draft = await agent.docs.detailsAgendaDocumentBlocks({ path: { agendaId } });
+    const byId = new Map(draft.data!.blocks.map((block) => [block.nominationFileId, block]));
+    expect(byId.get(writtenBlock!.nominationFileId)?.html).toBe('<p>Une phrase écrite à la main</p>');
+    expect(byId.get(generatedBlock!.nominationFileId)?.html).toContain('Jeanne RENOMMÉE');
+  });
+
+  test('should sign a draft with the new name an admin gives its chairman', async ({
+    admin,
+    agent,
+    docs,
+    expect,
+    member,
+  }) => {
+    const { id: agendaId } = await docs.agenda(await docs.session({ reporters: [member['@user']!] }));
+    await agent.docs.generateAgendaHtml({ path: { agendaId }, throwOnError: true });
+
+    await admin.administration.updateName({
+      body: { lastName: 'Renommé' },
+      path: { userId: docs.chairman.id },
+      throwOnError: true,
+    });
+
+    const { data: html } = await agent.docs.generateAgendaHtml({ parseAs: 'text', path: { agendaId } });
+    expect(html).toContain('RENOMMÉ');
+  });
+
+  test('should keep the name a validated agenda was signed with, and sign the draft opened on it with the new one', async ({
+    admin,
+    agent,
+    docs,
+    expect,
+  }) => {
+    const { id: agendaId } = await docs.agenda(await docs.session(), { status: 'VALIDATED' });
+    await admin.administration.updateName({
+      body: { lastName: 'Renommé' },
+      path: { userId: docs.chairman.id },
+      throwOnError: true,
+    });
+
+    const validated = await agent.docs.generateAgendaHtml({ parseAs: 'text', path: { agendaId } });
+    expect(validated.data).not.toContain('RENOMMÉ');
+
+    const { data } = await agent.docs.detailsAgendaDocumentBlocks({ path: { agendaId } });
+    await agent.docs.editAgendaFileBlock({
+      body: { html: '<p>Une phrase écrite à la main</p>', outdated: false },
+      path: { agendaId, fileId: data!.blocks[0]!.id },
+      throwOnError: true,
+    });
+
+    const draft = await agent.docs.generateAgendaHtml({ parseAs: 'text', path: { agendaId } });
+    expect(draft.data).toContain('RENOMMÉ');
+  });
+
+  test('should discard a draft the application only changed to follow the new name of its chairman', async ({
+    admin,
+    agent,
+    docs,
+    expect,
+  }) => {
+    const { id: agendaId } = await docs.agenda(await docs.session(), { status: 'VALIDATED' });
+    const { data } = await agent.docs.detailsAgendaDocumentBlocks({ path: { agendaId } });
+    await agent.docs.editAgendaFileBlock({
+      body: { html: '<p>Une phrase écrite à la main</p>', outdated: false },
+      path: { agendaId, fileId: data!.blocks[0]!.id },
+      throwOnError: true,
+    });
+    await admin.administration.updateName({
+      body: { lastName: 'Renommé' },
+      path: { userId: docs.chairman.id },
+      throwOnError: true,
+    });
+
+    const metadata = await agent.docs.detailsAgendaMetadata({ path: { agendaId } });
+    expect(metadata.data).toMatchObject({ canDiscardDraft: true, draftChangesBy: 'PERSON_AND_SYSTEM' });
+
+    const discarded = await agent.docs.discardAgendaDraft({ path: { agendaId } });
+    expect(discarded.response?.status).toBe(204);
+    const validated = await agent.docs.generateAgendaHtml({ parseAs: 'text', path: { agendaId } });
+    expect(validated.data).not.toContain('RENOMMÉ');
   });
 
   test('should keep an edition made after a validation, and undo it when the draft is discarded', async ({
@@ -446,5 +633,35 @@ test.describe('Agenda', () => {
       draftChangesBy: 'PERSON',
       presentation: { date: MEETING_DATE, endTime: { hours: 11, minutes: 0, seconds: 0 }, status: 'PRESENTED' },
     });
+  });
+
+  test('should refuse to create an agenda with a file of another session', async ({ agent, docs, expect }) => {
+    const session = await docs.session();
+    const [otherFile] = (await docs.session()).files;
+
+    const created = await agent.docs.createAgenda({
+      body: {
+        chairmanId: docs.chairman.id,
+        date: { day: 1, month: 2, year: 2026 },
+        nominationFileIds: [session.files[0]!.id, otherFile!.id],
+        sessionMeetingDate: MEETING_DATE,
+      },
+      path: { sessionId: session.id },
+    });
+
+    expect(created.response?.status).toBe(400);
+  });
+
+  test('should refuse to add to an agenda a file of another session', async ({ agent, docs, expect }) => {
+    const session = await docs.session();
+    const [otherFile] = (await docs.session()).files;
+    const { id: agendaId } = await docs.agenda(session, { files: [session.files[0]!] });
+
+    const updated = await agent.docs.updateAgendaFiles({
+      body: { nominationFileIds: [session.files[0]!.id, otherFile!.id] },
+      path: { agendaId },
+    });
+
+    expect(updated.response?.status).toBe(400);
   });
 });

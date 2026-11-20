@@ -1,6 +1,7 @@
 import { assertNever } from '../../../../../utils/assert-never';
 import { DateOnly } from '../../../../../utils/date-only';
 import { DocNominationFileOutcomeEnum } from '../../../shared/domain/doc-nomination-file-outcome';
+import { type CurrentNames, NamedMember, namesOf } from '../../../shared/domain/named-member';
 import { OfficialReportAgenda } from '../official-report-agenda';
 import { OfficialReportChairman } from '../official-report-chairman';
 import { OfficialReportMembersList } from '../official-report-member-list';
@@ -43,8 +44,8 @@ export class OfficialReportSnapshot {
     return this.filesSnapshot.files.has(nominationFileId);
   }
 
-  noteOf(nominationFileId: string): string | null {
-    return this.filesSnapshot.files.get(nominationFileId)?.note ?? null;
+  fileOf(nominationFileId: string): OfficialReportSnapshotFile | undefined {
+    return this.filesSnapshot.files.get(nominationFileId);
   }
 
   /** a suspension decided since then leaves the files as they are, yet it did happen */
@@ -73,8 +74,25 @@ export class OfficialReportSnapshot {
           !this.meta.agenda.date.equals(DateOnly.fromJson(command.payload.previousDate)),
         );
 
+      // a recusal or a renaming never brings a proposition into the report, the agenda does
+      case 'NominationFilesRecusalsUpdated':
+        return this.invalidateFiles(
+          command.payload.files.flatMap((file) => this.fileOf(file.nominationFileId)?.diff(file) ?? []),
+        );
+
+      // a renaming only renames: who reports or is recused today waits for the update that tells it
+      case 'MemberRenamed':
+        return this.invalidateFiles(
+          command.payload.files.flatMap(
+            (file) =>
+              this.fileOf(file.nominationFileId)?.diffNames(file.nominationFileId, namesOf(file)) ?? [],
+          ),
+        );
+
       case 'NominationFilesOutcomeUpdated':
-        return this.invalidateFiles(command.payload.files.map((file) => this.filesSnapshot.diffFile(file)));
+        return this.invalidateFiles(
+          command.payload.files.flatMap((file) => this.filesSnapshot.diffFile(file)),
+        );
 
       case 'NominationFilesReportersUpdated':
       case 'AgendaNominationFilesUpdated':
@@ -83,6 +101,15 @@ export class OfficialReportSnapshot {
       default:
         return assertNever(command);
     }
+  }
+
+  /** the files whose members bear another name today, told as a renaming tells them */
+  diffNames(names: CurrentNames): OfficialReportSnapshotDiff {
+    return this.invalidateFiles(
+      [...this.filesSnapshot.files].flatMap(([nominationFileId, file]) =>
+        file.diffNames(nominationFileId, names),
+      ),
+    );
   }
 
   private invalidateFiles(files: OfficialReportSnapshotDiff['files']): OfficialReportSnapshotDiff {
@@ -129,15 +156,11 @@ class OfficialReportSnapshotFilesCollection {
   diffFile(next: {
     nominationFileId: string;
     outcome?: { comment: string | null; value: DocNominationFileOutcomeEnum };
-    reporters?: readonly string[];
-  }): OfficialReportSnapshotDiff['files'][number] {
+    recusedMembers?: readonly NamedMember[];
+    reporters?: readonly NamedMember[];
+  }): OfficialReportSnapshotDiff['files'] {
     const file = this.files.get(next.nominationFileId);
-    if (!file) {
-      return {
-        action: 'create',
-        nominationFileId: next.nominationFileId,
-      };
-    }
+    if (!file) return [{ action: 'create', nominationFileId: next.nominationFileId }];
 
     return file.diff(next);
   }
@@ -155,7 +178,8 @@ class OfficialReportSnapshotFilesCollection {
     files: readonly {
       nominationFileId: string;
       outcome?: { comment: string | null; value: DocNominationFileOutcomeEnum };
-      reporters?: readonly string[];
+      recusedMembers?: readonly NamedMember[];
+      reporters?: readonly NamedMember[];
     }[];
   }): OfficialReportSnapshotDiff['files'] {
     return this.deletedFiles(next.files).concat(next.files.flatMap((file) => this.diffFile(file)));

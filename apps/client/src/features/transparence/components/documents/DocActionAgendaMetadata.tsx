@@ -19,7 +19,7 @@ export function DocActionAgendaMetadata(props: {
       iconId={ACTION_ICONS.agendaMetadata}
       label={formatMessage({ defaultMessage: 'Éditer les métadonnées de {name}' }, { name: props.name })}
       small
-      to={generatePath(ROUTE_PATHS.SG.AGENDA_UPDATE_METADATA, {
+      to={generatePath(ROUTE_PATHS.SG.GDS.AGENDA_UPDATE_METADATA, {
         agendaId: props.agendaId,
         sessionId: props.sessionId,
       })}

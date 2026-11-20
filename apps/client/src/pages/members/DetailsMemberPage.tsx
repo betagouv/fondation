@@ -1,13 +1,14 @@
 import { FormattedMessage } from 'react-intl';
-import { Navigate, useParams } from 'react-router';
+import { useParams } from 'react-router';
 
 import { DetailsMember } from '@/features/members/components/DetailsMember';
-import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import { MemberNotFound } from '@/features/members/components/MemberNotFound';
+import { isNotFound } from '@/utils/http-exception';
 import { useDetailedMember } from '@queries/members.queries';
 
 export function DetailsMemberPage() {
   const { userId } = useParams();
-  const { data: member, isLoading, isError } = useDetailedMember({ userId });
+  const { data: member, error, isLoading } = useDetailedMember({ userId });
 
   if (isLoading) {
     return (
@@ -19,9 +20,9 @@ export function DetailsMemberPage() {
     );
   }
 
-  if (!userId || isError || !member) {
-    return <Navigate replace to={ROUTE_PATHS.SG.MANAGE_MEMBERS} />;
-  }
+  // a failed reload keeps the data loaded before: the page stays rather than the error page
+  if (error && !isNotFound(error) && !member) throw error;
+  if (!member) return <MemberNotFound />;
 
   return <DetailsMember member={member} />;
 }

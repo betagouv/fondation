@@ -1,0 +1,77 @@
+// a free comment on the head of a court: it stays when its holder changes and is written on a vacant court too
+model CourtComment {
+  authorId  String?  @map("author_id") @db.Uuid
+  comment   String
+  courtId   String   @id @map("court_id")
+  updatedAt DateTime @map("updated_at") @db.Timestamp(3)
+
+  author User?        @relation(fields: [authorId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  court  Jurisdiction @relation(fields: [courtId], references: [codejur], onDelete: Cascade, onUpdate: NoAction)
+
+  @@map("court_comment")
+  @@schema("nominations_context")
+}
+
+// a free comment on a holder of the Cour de cassation, where holders share a position: it lapses like their
+// declared vacancy once LOLFI moves the magistrat
+model PositionComment {
+  authorId    String?  @map("author_id") @db.Uuid
+  comment     String
+  magistratId String   @map("magistrat_id") @db.Uuid
+  positionId  Int      @map("position_id")
+  updatedAt   DateTime @map("updated_at") @db.Timestamp(3)
+
+  author    User?     @relation(fields: [authorId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  magistrat Magistrat @relation(fields: [magistratId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  position  Position  @relation(fields: [positionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([magistratId, positionId], name: "primaryKey")
+  @@map("position_comment")
+  @@schema("nominations_context")
+}
+
+// a vacancy declared by an agent: it lapses once LOLFI moves the magistrat and a new holder starts from the
+// computed status
+model PositionVacancy {
+  authorId     String?                         @map("author_id") @db.Uuid
+  magistratId  String                          @map("magistrat_id") @db.Uuid
+  positionId   Int                             @map("position_id")
+  reason       PrismaPositionVacancyReasonEnum
+  reasonDetail String?                         @map("reason_detail")
+  startDate    DateTime                        @map("start_date") @db.Date
+  updatedAt    DateTime                        @map("updated_at") @db.Timestamp(3)
+
+  attachments PositionVacancyAttachment[]
+  author      User?                       @relation(fields: [authorId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  magistrat   Magistrat                   @relation(fields: [magistratId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  position    Position                    @relation(fields: [positionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([magistratId, positionId], name: "primaryKey")
+  @@map("position_vacancy")
+  @@schema("nominations_context")
+}
+
+model PositionVacancyAttachment {
+  fileId      String @map("file_id") @db.Uuid
+  magistratId String @map("magistrat_id") @db.Uuid
+  positionId  Int    @map("position_id")
+
+  file    File            @relation(fields: [fileId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  vacancy PositionVacancy @relation(fields: [magistratId, positionId], references: [magistratId, positionId], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([magistratId, positionId, fileId], name: "primaryKey")
+  @@map("position_vacancy_attachment")
+  @@schema("nominations_context")
+}
+
+enum PrismaPositionVacancyReasonEnum {
+  DEATH
+  DISCHARGE
+  DISCIPLINARY_DISMISSAL
+  OTHER
+  RETIREMENT
+  STRIKING_OFF
+
+  @@map("position_vacancy_reason_enum")
+  @@schema("nominations_context")
+}

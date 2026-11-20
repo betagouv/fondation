@@ -9,12 +9,9 @@ import type { Sql } from 'postgres';
 import { test } from '../fixtures.ts';
 import { strongPassword } from '../fixtures/auth.fixture.ts';
 import * as api from '../generated/api/sdk.ts';
-import type {
-  ImportNominationSessionFromLodamXlsxDto,
-  PaginatedNominationFiles,
-  UploadNominationFileAttachmentsDto,
-} from '../generated/api/types.ts';
+import type { ImportNominationSessionFromLodamXlsxDto, PaginatedNominationFiles } from '../generated/api/types.ts';
 import { makeFile } from '../utils/files.ts';
+import { attachmentForm } from '../utils/nomination-file-attachment.ts';
 import * as seed from '../utils/seed.ts';
 
 const LODAM_FILE_PATH = fileURLToPath(new URL('../../assets/lodam/lodam_transparence.xlsx', import.meta.url));
@@ -49,10 +46,6 @@ function isoDate(date: { day: number; month: number; year: number }): string {
 // the e2e reach the database, not the storage: a path nothing was stored at stands for a lost object
 async function loseFromStorage(sql: Sql, fileId: string): Promise<void> {
   await sql`update files_context.files set path = array['lost', ${fileId}] where id = ${fileId}`;
-}
-
-function attachmentForm(form: UploadNominationFileAttachmentsDto['form']): UploadNominationFileAttachmentsDto['form'] {
-  return new Blob([JSON.stringify(form)], { type: 'application/json' }) as any;
 }
 
 const TREVOUX_SESSION: LolfiArchiveContent['sessions'][number] = {
@@ -99,8 +92,8 @@ test.describe('Session E2E', () => {
       });
     });
 
-    test('should import a session tree from a LODAM file', async ({ agent, expect }) => {
-      const response = await agent.sessions.createSessionFromLodam({
+    test('should import a session tree from a LODAM file', async ({ admin, agent, expect }) => {
+      const response = await admin.sessions.createSessionFromLodam({
         body: {
           file: await lodamFile(),
           form: lodamForm(),
@@ -116,14 +109,6 @@ test.describe('Session E2E', () => {
       const sessionId = response.data!.id;
       expect(sessionId).toBeDefined();
 
-      const lastAffectationVersionMeta = await agent.sessions.detailNominationSessionAffectationsVersion({
-        path: { sessionId },
-      });
-      expect(lastAffectationVersionMeta.data).toMatchObject({
-        status: 'BROUILLON',
-        version: 1,
-      });
-
       const nominationFiles = await agent.sessions.listNominationFiles({ path: { sessionId } });
 
       expect(nominationFiles.data!.items).toContainEqual({
@@ -131,8 +116,10 @@ test.describe('Session E2E', () => {
         auditionRequired: true,
         auditionRequirement: 'POSITION',
         auditionTime: null,
+        canUpdate: true,
         canScheduleAudition: true,
         comment: null,
+        commentLastChange: null,
         content: {
           dateDeNaissance: { day: 9, month: 4, year: 1968 },
           dateEchéance: null,
@@ -144,7 +131,6 @@ test.describe('Session E2E', () => {
           historique:
             '- S RODEZ (2ème grade),Dt 08/07/2003. VPR NICE (1er grade),  17/12/2010 (Ins.03/01/2011). - PR MONTLUCON 06/08/2013 (Ins.06/09/2013). - SGSG RIOM 28/10/2016 (Ins.28/10/2016). - PR NARBONNE 14/08/2020 (Ins.01/09/2020).',
           informationCarrière: null,
-          isAlertHidden: false,
           jurisdictions: {
             current: null,
             targeted: { id: 'TJ  GRASSE', label: 'Tribunal judiciaire de Grasse' },
@@ -160,16 +146,19 @@ test.describe('Session E2E', () => {
           status: { dates: [], value: 'TO_REPORT' },
           version: 2,
         },
-        expectedReportersCount: 2,
+        expectedReportersCount: null,
         hasAttachment: false,
-        hasJurisdictionSheet: false,
         id: expect.any(String),
         isArchived: false,
+        jurisdictionSheetRequired: true,
         memo: null,
         missingEvaluation: false,
         missingEvaluationComment: null,
+        nonAffectableMembers: [],
+        nonRecusableMembers: [{ id: expect.any(String), reason: 'REPORTER' }],
         observations: [],
         priorities: [],
+        recusedMembers: [],
         reporters: [
           expect.objectContaining({
             firstName: 'côme',
@@ -185,8 +174,10 @@ test.describe('Session E2E', () => {
         auditionRequired: true,
         auditionRequirement: 'POSITION',
         auditionTime: null,
+        canUpdate: true,
         canScheduleAudition: true,
         comment: null,
+        commentLastChange: null,
         content: {
           dateDeNaissance: { day: 20, month: 5, year: 1972 },
           dateEchéance: null,
@@ -198,7 +189,6 @@ test.describe('Session E2E', () => {
           historique:
             'SM 10 mois. - DESS politiq et gestion de la sécurité. -Chev ONM, 15/11/2018.-  Auditric Just 28 janvier 1999, PF 1er février 1999. - S Chartres, (2ème grade), 31 juillet 2001, (Installat. 31 août 2001). -  MACJ (2ème grade),  à/c 01/09/2004, Dt 13/08/2004. -  VPRP SAINT DENIS DE LA REUNION (1er grade),  27/08/2008 (Ins.01/09/2008).. - PR GAP 21/06/2013 (Ins.02/09/2013). - PR BEZIERS 17/07/2019 (Ins.02/09/2019).',
           informationCarrière: null,
-          isAlertHidden: false,
           jurisdictions: {
             current: null,
             targeted: { id: 'TJ  TOULON', label: 'Tribunal judiciaire de Toulon' },
@@ -214,16 +204,22 @@ test.describe('Session E2E', () => {
           status: { dates: [], value: 'TO_REPORT' },
           version: 2,
         },
-        expectedReportersCount: 2,
+        expectedReportersCount: null,
         hasAttachment: false,
-        hasJurisdictionSheet: false,
         id: expect.any(String),
         isArchived: false,
+        jurisdictionSheetRequired: true,
         memo: null,
         missingEvaluation: false,
         missingEvaluationComment: null,
+        nonAffectableMembers: [],
+        nonRecusableMembers: [
+          { id: expect.any(String), reason: 'REPORTER' },
+          { id: expect.any(String), reason: 'REPORTER' },
+        ],
         observations: [],
         priorities: [],
+        recusedMembers: [],
         reporters: expect.arrayContaining([
           expect.objectContaining({
             firstName: 'charles',
@@ -241,11 +237,12 @@ test.describe('Session E2E', () => {
     });
 
     test('should update the observers from a LODAM file, keeping no copy of the imported files', async ({
+      admin,
       agent,
       expect,
       sql,
     }) => {
-      const importResponse = await agent.sessions.createSessionFromLodam({
+      const importResponse = await admin.sessions.createSessionFromLodam({
         body: { file: await lodamFile(), form: lodamForm() },
       });
       const sessionId = importResponse.data!.id;
@@ -262,8 +259,8 @@ test.describe('Session E2E', () => {
       expect(copies?.count).toBe(0);
     });
 
-    test('should attach a file to a nomination file and list it', async ({ agent, expect }) => {
-      const importResponse = await agent.sessions.createSessionFromLodam({
+    test('should attach a file to a nomination file and list it', async ({ admin, agent, expect }) => {
+      const importResponse = await admin.sessions.createSessionFromLodam({
         body: { file: await lodamFile(), form: lodamForm() },
       });
       const sessionId = importResponse.data!.id;
@@ -297,11 +294,11 @@ test.describe('Session E2E', () => {
       const filesAfter = await agent.sessions.listNominationFiles({ path: { sessionId } });
       const updatedFile = filesAfter.data!.items.find((file) => file.id === nominationFileId);
       expect(updatedFile?.hasAttachment).toBe(true);
-      expect(updatedFile?.hasJurisdictionSheet).toBe(true);
+      expect(updatedFile?.jurisdictionSheetRequired).toBe(false);
     });
 
-    test('should show a readable page for an attachment the storage lost', async ({ agent, expect, sql }) => {
-      const importResponse = await agent.sessions.createSessionFromLodam({
+    test('should show a readable page for an attachment the storage lost', async ({ admin, agent, expect, sql }) => {
+      const importResponse = await admin.sessions.createSessionFromLodam({
         body: { file: await lodamFile(), form: lodamForm() },
       });
       const sessionId = importResponse.data!.id;
@@ -333,8 +330,8 @@ test.describe('Session E2E', () => {
       expect(error).toContain('Cette pièce jointe est introuvable. Prévenez le support.');
     });
 
-    test('should only flag a jurisdiction sheet for that very type', async ({ agent, expect }) => {
-      const importResponse = await agent.sessions.createSessionFromLodam({
+    test('should only flag a jurisdiction sheet for that very type', async ({ admin, agent, expect }) => {
+      const importResponse = await admin.sessions.createSessionFromLodam({
         body: { file: await lodamFile(), form: lodamForm() },
       });
       const sessionId = importResponse.data!.id;
@@ -354,7 +351,65 @@ test.describe('Session E2E', () => {
       const filesAfter = await agent.sessions.listNominationFiles({ path: { sessionId } });
       const updatedFile = filesAfter.data!.items.find((file) => file.id === nominationFileId);
       expect(updatedFile?.hasAttachment).toBe(true);
-      expect(updatedFile?.hasJurisdictionSheet).toBe(false);
+      expect(updatedFile?.jurisdictionSheetRequired).toBe(true);
+    });
+
+    test('should rename a session attachment, keeping its extension, behind a new link', async ({
+      agent,
+      expect,
+      sessions,
+    }) => {
+      const { id: sessionId } = await sessions.createOne(TREVOUX_SESSION);
+      await agent.sessions.uploadSessionAttachments({
+        body: { files: [makeFile({ name: 'scan_0042.pdf', type: 'application/pdf' })] },
+        path: { sessionId },
+        throwOnError: true,
+      });
+      const { data: before } = await agent.sessions.listNominationSessionAttachments({
+        path: { sessionId },
+        throwOnError: true,
+      });
+      const path = { fileId: before.items[0]!.id, sessionId };
+      const { data: formerLink } = await agent.sessions.createNominationSessionAttachmentUrl({
+        path,
+        throwOnError: true,
+      });
+
+      const renamed = await agent.sessions.renameSessionAttachment({ body: { name: 'Circulaire' }, path });
+
+      expect(renamed.response?.status).toBe(204);
+      const { data: after } = await agent.sessions.listNominationSessionAttachments({
+        path: { sessionId },
+        throwOnError: true,
+      });
+      expect(after.items.map(({ name }) => name)).toEqual(['Circulaire.pdf']);
+      // the browser caches the file under the link it opened, with its former name
+      const { data: link } = await agent.sessions.createNominationSessionAttachmentUrl({ path, throwOnError: true });
+      expect(link.url).not.toBe(formerLink.url);
+    });
+
+    test('should rename an attachment of a nomination file', async ({ agent, expect, sessions }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+      const listed = await agent.sessions.listNominationFiles({ path: { sessionId: session.id } });
+      const path = { nominationFileId: listed.data!.items[0]!.id, sessionId: session.id };
+      await agent.sessions.uploadNominationFileAttachments({
+        body: {
+          files: [makeFile({ name: 'scan_0042.pdf', type: 'application/pdf' })],
+          form: attachmentForm({ type: 'FICHE_DE_JURIDICTION' }),
+        },
+        path,
+        throwOnError: true,
+      });
+      const { data: before } = await agent.sessions.listNominationFileAttachments({ path, throwOnError: true });
+
+      const renamed = await agent.sessions.renameNominationFileAttachment({
+        body: { name: 'Fiche de juridiction' },
+        path: { ...path, fileId: before.items[0]!.id },
+      });
+
+      expect(renamed.response?.status).toBe(204);
+      const { data: after } = await agent.sessions.listNominationFileAttachments({ path, throwOnError: true });
+      expect(after.items.map(({ name }) => name)).toEqual(['Fiche de juridiction.pdf']);
     });
 
     test('should refuse a session attachment heavier than fifty mebibytes', async ({ agent, expect, sessions }) => {
@@ -389,6 +444,23 @@ test.describe('Session E2E', () => {
       expect(response?.status).toBe(204);
       const attachments = await agent.sessions.listNominationFileAttachments({ path });
       expect(attachments.data!.items).toHaveLength(20);
+    });
+
+    test('should take an Outlook message the browser declares no type for', async ({ agent, expect, sessions }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+      const listed = await agent.sessions.listNominationFiles({ path: { sessionId: session.id } });
+      const path = { nominationFileId: listed.data!.items[0]!.id, sessionId: session.id };
+      // a browser outside Windows has no type for a .msg
+      const message = new File([new Uint8Array(8)], 'courriel.msg');
+
+      const { response } = await agent.sessions.uploadNominationFileAttachments({
+        body: { files: [message], form: attachmentForm({ type: 'AUTRE' }) },
+        path,
+      });
+
+      expect(response?.status).toBe(204);
+      const attachments = await agent.sessions.listNominationFileAttachments({ path });
+      expect(attachments.data!.items.map(({ name }) => name)).toEqual(['courriel.msg']);
     });
 
     test('should refuse more than twenty attachments in one upload', async ({ agent, expect, sessions }) => {
@@ -670,8 +742,88 @@ test.describe('Session E2E', () => {
       const { data } = await agent.sessions.detailSessionComment({ path: { sessionId: session.id } });
       expect(data).toEqual({
         comment: 'Une note pour la notice',
-        writtenAt: expect.any(String),
-        writtenBy: { id: me!.userId, name: expect.any(String) },
+        lastChange: { at: expect.any(String), by: { id: me!.userId, name: expect.any(String) } },
+      });
+    });
+
+    test('should give no date nor author for an erased session comment', async ({ agent, sessions, expect }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+      const path = { sessionId: session.id };
+      await agent.sessions.writeSessionComment({ body: { comment: 'Une note pour la notice' }, path });
+
+      await agent.sessions.writeSessionComment({ body: { comment: '' }, path });
+
+      const { data } = await agent.sessions.detailSessionComment({ path });
+      expect(data).toEqual({ comment: null, lastChange: null });
+    });
+
+    test('should write then read back the comment of the secretariat on a nomination file', async ({
+      agent,
+      sessions,
+      expect,
+    }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+      const nominationFileId = session.files[0]!.id;
+      const { data: me } = await agent.auth.introspectSession();
+
+      await agent.sessions.updateNominationFileComment({
+        body: { comment: 'Voir avec le président' },
+        path: { nominationFileId, sessionId: session.id },
+        throwOnError: true,
+      });
+
+      const { data } = await agent.sessions.listNominationFiles({
+        path: { sessionId: session.id },
+        throwOnError: true,
+      });
+      expect(data.items.find(({ id }) => id === nominationFileId)).toMatchObject({
+        comment: 'Voir avec le président',
+        commentLastChange: { at: expect.any(String), by: { id: me!.userId, name: expect.any(String) } },
+      });
+    });
+
+    test('should date the comment of the secretariat without its author for a member', async ({
+      agent,
+      logIn,
+      sessions,
+      expect,
+    }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+      const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+      await agent.sessions.updateNominationFileComment({
+        body: { comment: 'Voir avec le président' },
+        path,
+        throwOnError: true,
+      });
+      const member = await logIn('MEMBRE_COMMUN');
+
+      const { data } = await member.sessions.detailNominationFile({ path, throwOnError: true });
+      expect(data.commentLastChange).toEqual({ at: expect.any(String), by: null });
+    });
+
+    test('should give no date nor author for an erased comment of the secretariat', async ({
+      agent,
+      sessions,
+      expect,
+    }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+      const nominationFileId = session.files[0]!.id;
+      const path = { nominationFileId, sessionId: session.id };
+      await agent.sessions.updateNominationFileComment({
+        body: { comment: 'Voir avec le président' },
+        path,
+        throwOnError: true,
+      });
+
+      await agent.sessions.updateNominationFileComment({ body: { comment: null }, path, throwOnError: true });
+
+      const { data } = await agent.sessions.listNominationFiles({
+        path: { sessionId: session.id },
+        throwOnError: true,
+      });
+      expect(data.items.find(({ id }) => id === nominationFileId)).toMatchObject({
+        comment: null,
+        commentLastChange: null,
       });
     });
 
@@ -699,6 +851,220 @@ test.describe('Session E2E', () => {
       });
       expect(clearRes.response?.status).toBe(204);
       expect(await missingEvaluationOf(nominationFileId)).toBe(false);
+    });
+
+    test('should list a recused member to the members until the secretariat withdraws them', async ({
+      agent,
+      logIn,
+      sessions,
+      expect,
+    }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+      const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+      const member = await logIn('MEMBRE_COMMUN');
+      const memberId = member['@user']!.id;
+
+      const recused = await agent.sessions.recuseMembers({ body: { memberIds: [memberId] }, path });
+      expect(recused.data?.recusedMembers.map(({ id }) => id)).toEqual([memberId]);
+      const file = await member.sessions.detailNominationFile({ path });
+      expect(file.data?.recusedMembers).toEqual(recused.data?.recusedMembers);
+
+      const withdrawn = await agent.sessions.recuseMembers({ body: { memberIds: [] }, path });
+      expect(withdrawn.data?.recusedMembers).toEqual([]);
+    });
+
+    test('should record the recusals of several nomination files at once', async ({
+      agent,
+      member,
+      sessions,
+      expect,
+    }) => {
+      const [trevoux] = TREVOUX_SESSION.candidates;
+      const session = await sessions.createOne({
+        ...TREVOUX_SESSION,
+        candidates: [trevoux!, { ...trevoux!, firstName: 'CAMILLE', lastName: 'BERNARD' }],
+      });
+      const [keptFileId, withdrawnFileId] = session.files.map(({ id }) => id);
+      const memberId = member['@user']!.id;
+      const recuse = (items: { memberIds: string[]; nominationFileId: string }[]) =>
+        agent.sessions.recuseNominationFilesMembers({ body: { items }, path: { sessionId: session.id } });
+      const recusedIdsByFile = async () => {
+        const { data } = await agent.sessions.listNominationFiles({ path: { sessionId: session.id } });
+        return new Map(data!.items.map((file) => [file.id, file.recusedMembers!.map(({ id }) => id)]));
+      };
+
+      const recused = await recuse([
+        { memberIds: [memberId], nominationFileId: keptFileId! },
+        { memberIds: [memberId], nominationFileId: withdrawnFileId! },
+      ]);
+      expect(recused.response?.status).toBe(204);
+      expect(await recusedIdsByFile()).toEqual(
+        new Map([
+          [keptFileId, [memberId]],
+          [withdrawnFileId, [memberId]],
+        ]),
+      );
+
+      await recuse([
+        { memberIds: [memberId], nominationFileId: keptFileId! },
+        { memberIds: [], nominationFileId: withdrawnFileId! },
+      ]);
+      expect(await recusedIdsByFile()).toEqual(
+        new Map([
+          [keptFileId, [memberId]],
+          [withdrawnFileId, []],
+        ]),
+      );
+    });
+
+    test('should record the recusal once when it is sent twice at the same time', async ({
+      agent,
+      member,
+      sessions,
+      sql,
+      expect,
+    }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+      const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+      const memberId = member['@user']!.id;
+
+      const responses = await Promise.all([
+        agent.sessions.recuseMembers({ body: { memberIds: [memberId] }, path }),
+        agent.sessions.recuseMembers({ body: { memberIds: [memberId] }, path }),
+      ]);
+      expect(responses.map(({ response }) => response?.status)).toEqual([200, 200]);
+
+      const changes = await sql`
+        select action from nominations_context.recused_member_change
+        where nomination_file_id = ${path.nominationFileId}`;
+      expect(changes).toEqual([{ action: 'ADDED' }]);
+    });
+
+    test('should serve a reporter of the unpublished affectation as a member who cannot recuse themselves', async ({
+      agent,
+      member,
+      sessions,
+      expect,
+    }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+      const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+      const memberId = member['@user']!.id;
+      await agent.sessions.affectReporters({
+        body: { items: [{ nominationFileId: path.nominationFileId, reporterIds: [memberId] }] },
+        path: { sessionId: session.id },
+        throwOnError: true,
+      });
+
+      const file = await agent.sessions.detailNominationFile({ path, throwOnError: true });
+      expect(file.data.nonRecusableMembers).toEqual([{ id: memberId, reason: 'REPORTER' }]);
+    });
+
+    test('should refuse to recuse a reporter of the unpublished affectation', async ({
+      agent,
+      member,
+      sessions,
+      expect,
+    }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+      const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+      const memberId = member['@user']!.id;
+      await agent.sessions.affectReporters({
+        body: { items: [{ nominationFileId: path.nominationFileId, reporterIds: [memberId] }] },
+        path: { sessionId: session.id },
+        throwOnError: true,
+      });
+
+      const refused = await agent.sessions.recuseMembers({ body: { memberIds: [memberId] }, path });
+      expect(refused.response?.status).toBe(400);
+      expect(refused.error).toMatchObject({
+        validationErrors: [
+          "Un rapporteur ne peut pas se déporter : retirez-le d'abord de l'affectation, puis publiez-la s'il est rapporteur dans la version publiée",
+        ],
+      });
+    });
+
+    test('should refuse to recuse a published reporter removed from a version not published yet', async ({
+      agent,
+      member,
+      sessions,
+      expect,
+    }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+      const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+      const memberId = member['@user']!.id;
+      const affect = (reporterIds: string[]) =>
+        agent.sessions.affectReporters({
+          body: { items: [{ nominationFileId: path.nominationFileId, reporterIds }] },
+          path: { sessionId: session.id },
+          throwOnError: true,
+        });
+      await affect([memberId]);
+      await agent.sessions.publishNominationSessionAffectationsVersion({
+        path: { sessionId: session.id },
+        throwOnError: true,
+      });
+      await affect([]);
+
+      const refused = await agent.sessions.recuseMembers({ body: { memberIds: [memberId] }, path });
+      expect(refused.response?.status).toBe(400);
+    });
+
+    test('should recuse a published reporter once a version without them is published', async ({
+      agent,
+      member,
+      sessions,
+      expect,
+    }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+      const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+      const memberId = member['@user']!.id;
+      const affectAndPublish = async (reporterIds: string[]) => {
+        await agent.sessions.affectReporters({
+          body: { items: [{ nominationFileId: path.nominationFileId, reporterIds }] },
+          path: { sessionId: session.id },
+          throwOnError: true,
+        });
+        await agent.sessions.publishNominationSessionAffectationsVersion({
+          path: { sessionId: session.id },
+          throwOnError: true,
+        });
+      };
+      await affectAndPublish([memberId]);
+      await affectAndPublish([]);
+
+      const recused = await agent.sessions.recuseMembers({ body: { memberIds: [memberId] }, path });
+      expect(recused.data?.recusedMembers.map(({ id }) => id)).toEqual([memberId]);
+    });
+
+    test('should serve a recused member as a member who cannot be affected', async ({
+      agent,
+      member,
+      sessions,
+      expect,
+    }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+      const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+      const memberId = member['@user']!.id;
+      await agent.sessions.recuseMembers({ body: { memberIds: [memberId] }, path, throwOnError: true });
+
+      const file = await agent.sessions.detailNominationFile({ path, throwOnError: true });
+      expect(file.data.nonAffectableMembers).toEqual([{ id: memberId, reason: 'RECUSED' }]);
+    });
+
+    test('should refuse to affect a recused member', async ({ agent, member, sessions, expect }) => {
+      const session = await sessions.createOne(TREVOUX_SESSION);
+      const path = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+      const memberId = member['@user']!.id;
+      await agent.sessions.recuseMembers({ body: { memberIds: [memberId] }, path, throwOnError: true });
+
+      const refused = await agent.sessions.affectReporters({
+        body: { items: [{ nominationFileId: path.nominationFileId, reporterIds: [memberId] }] },
+        path: { sessionId: session.id },
+      });
+      expect(refused.response?.status).toBe(400);
+      expect(refused.error).toMatchObject({
+        validationErrors: ["Un membre déporté d'un dossier ne peut pas y être affecté : retirez d'abord son déport"],
+      });
     });
 
     test('should only list the nomination files with a missing evaluation', async ({ agent, sessions, expect }) => {
@@ -840,6 +1206,7 @@ test.describe('Session E2E', () => {
         canRead: true,
         canWrite: true,
         id: nominationFileId,
+        visibility: null,
       });
     }, 10_000);
 

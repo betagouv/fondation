@@ -1,10 +1,8 @@
-import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useState, type PropsWithChildren } from 'react';
 import { generatePath, useNavigate, useParams } from 'react-router';
 
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import {
-  officialReportKeys,
   useCreateOfficialReportMutation,
   useDetailsOfficialReportQuery,
   useUpdateOfficialReportMutation,
@@ -20,7 +18,6 @@ export function OfficialReportProvider(props: PropsWithChildren) {
     officialReportId?: string;
   }>();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
 
   const createOfficialReport = useCreateOfficialReportMutation();
   const updateOfficialReport = useUpdateOfficialReportMutation(sessionId);
@@ -41,7 +38,7 @@ export function OfficialReportProvider(props: PropsWithChildren) {
 
     setState((s) => ({
       ...s,
-      agendaId: officialReportMetadata.agendaId ?? '',
+      agendaId: officialReportMetadata.agendaId,
       sessionMeetingDate: officialReportMetadata.sessionMeetingDate,
       sessionMeetingStartingTime: officialReportMetadata.sessionMeetingStartingTime,
       sessionMeetingEndingTime: officialReportMetadata.sessionMeetingEndingTime,
@@ -78,8 +75,8 @@ export function OfficialReportProvider(props: PropsWithChildren) {
     () =>
       navigate(
         officialReportId
-          ? generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_PREVIEW, { officialReportId, sessionId })
-          : generatePath(ROUTE_PATHS.SG.SESSION_ID, { sessionId }),
+          ? generatePath(ROUTE_PATHS.SG.GDS.OFFICIAL_REPORT_PREVIEW, { officialReportId, sessionId })
+          : generatePath(ROUTE_PATHS.SG.GDS.SESSION_ID, { sessionId }),
       ),
     [navigate, officialReportId, sessionId],
   );
@@ -98,13 +95,11 @@ export function OfficialReportProvider(props: PropsWithChildren) {
         members: metadata.memberIds,
       };
 
-      async function onSuccess(result: { id: string } | undefined) {
+      function onSuccess(result: { id: string } | undefined) {
         const id = result?.id || officialReportId;
         if (id) {
-          await queryClient.invalidateQueries({ queryKey: officialReportKeys.document(id) });
-          await queryClient.invalidateQueries({ queryKey: officialReportKeys.html(id) });
-          return navigate(
-            generatePath(ROUTE_PATHS.SG.OFFICIAL_REPORT_PREVIEW, {
+          navigate(
+            generatePath(ROUTE_PATHS.SG.GDS.OFFICIAL_REPORT_PREVIEW, {
               sessionId,
               officialReportId: id,
             }),
@@ -118,7 +113,7 @@ export function OfficialReportProvider(props: PropsWithChildren) {
         createOfficialReport.mutate({ ...payload, sessionId }, { onSuccess });
       }
     },
-    [officialReportId, createOfficialReport, updateOfficialReport, sessionId, navigate, queryClient],
+    [officialReportId, createOfficialReport, updateOfficialReport, sessionId, navigate],
   );
 
   return (

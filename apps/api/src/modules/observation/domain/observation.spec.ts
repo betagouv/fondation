@@ -1,5 +1,7 @@
 import {
-  ObservantAuditionDropped,
+  ObservationAttachmentsLocked,
+  ObservationBlockEmptied,
+  ObservationBlockReopened,
   Observation,
   ObservationDeleted,
   ObservationFollowedUp,
@@ -76,7 +78,7 @@ describe('Observation', () => {
 
       expect(deleted.messages).toEqual([
         new ObservationDeleted('obs-1'),
-        new ObservantAuditionDropped('session-1', 'magistrat-1', 'user-1', null),
+        new ObservationBlockEmptied('session-1', 'magistrat-1', 'user-1', null),
       ]);
     });
 
@@ -100,7 +102,7 @@ describe('Observation', () => {
       });
 
       expect(updated.messages).toContainEqual(
-        new ObservantAuditionDropped('session-1', 'magistrat-1', 'user-1', null),
+        new ObservationBlockEmptied('session-1', 'magistrat-1', 'user-1', null),
       );
     });
 
@@ -119,6 +121,65 @@ describe('Observation', () => {
     });
   });
 
+  describe('the tracking of the bloc', () => {
+    it('reopens the bloc a new observation joins', () => {
+      const created = Observation.create({
+        createdByUserId: 'user-1',
+        dateReception: new Date(2026, 4, 2),
+        description: null,
+        files: [],
+        linkedFiles: [],
+        magistratId: 'magistrat-1',
+        nominationFile: { id: 'file-1', observations: [] },
+        sessionId: 'session-1',
+      });
+
+      expect(created.messages).toContainEqual(new ObservationBlockReopened('session-1', 'magistrat-1'));
+    });
+
+    it('reopens the bloc of the observant an observation moves to', () => {
+      const updated = Observation.from({
+        dateReception: new Date(2026, 4, 2),
+        id: 'obs-1',
+        magistratId: 'magistrat-1',
+        nominationFileId: 'file-1',
+        sessionId: 'session-1',
+      });
+
+      updated.update({
+        dateReception: new Date(2026, 4, 2),
+        description: '',
+        impersonatorId: null,
+        isLastOfObservant: false,
+        magistratId: 'magistrat-2',
+        userId: 'user-1',
+      });
+
+      expect(updated.messages).toContainEqual(new ObservationBlockReopened('session-1', 'magistrat-2'));
+    });
+  });
+
+  it('keeps the attachments of a figé dossier as they are', () => {
+    const observation = Observation.from({
+      dateReception: new Date(2026, 4, 2),
+      id: 'obs-1',
+      magistratId: 'magistrat-1',
+      nominationFileId: 'file-1',
+      sessionId: 'session-1',
+    });
+    const isNominationFileLocked = true;
+
+    expect(() => observation.detachFiles({ fileIds: ['f-1'], isNominationFileLocked })).toThrow(
+      ObservationAttachmentsLocked,
+    );
+    expect(() => observation.renameFile({ fileId: 'f-1', isNominationFileLocked, name: 'Avis' })).toThrow(
+      ObservationAttachmentsLocked,
+    );
+    // an update that detaches nothing goes through
+    observation.detachFiles({ fileIds: [], isNominationFileLocked });
+    expect(observation.messages).toEqual([]);
+  });
+
   describe('the comment of a member', () => {
     const observation = () =>
       Observation.from({
@@ -129,10 +190,17 @@ describe('Observation', () => {
         sessionId: 'session-1',
       });
 
+    const impersonation = { impersonatorId: 'admin-1' };
+
     it('lets a reporter of the nomination file comment', () => {
       const commented = observation();
 
-      commented.writeMemberComment({ comment: 'À vérifier', reporterIds: ['user-1'], userId: 'user-1' });
+      commented.writeMemberComment({
+        comment: 'À vérifier',
+        impersonation: undefined,
+        reporterIds: ['user-1'],
+        userId: 'user-1',
+      });
 
       expect(commented.messages).toEqual([
         new ObservationMemberCommentWritten('obs-1', 'user-1', 'À vérifier'),
@@ -143,7 +211,19 @@ describe('Observation', () => {
       expect(() =>
         observation().writeMemberComment({
           comment: 'À vérifier',
+          impersonation: undefined,
           reporterIds: ['user-2'],
+          userId: 'user-1',
+        }),
+      ).toThrow(UserNotAllowedToWriteCommentError);
+    });
+
+    it('refuses the comment written by the admin impersonating a reporter', () => {
+      expect(() =>
+        observation().writeMemberComment({
+          comment: 'À vérifier',
+          impersonation,
+          reporterIds: ['user-1'],
           userId: 'user-1',
         }),
       ).toThrow(UserNotAllowedToWriteCommentError);
@@ -153,10 +233,57 @@ describe('Observation', () => {
       expect(() =>
         observation().attachMemberCommentScreenshots({
           files: [{ id: 'file-1' }],
+          impersonation: undefined,
           reporterIds: ['user-2'],
           userId: 'user-1',
         }),
       ).toThrow(UserNotAllowedToAttachScreenshotsError);
     });
+
+    it('shows a member the comment they wrote', () => {
+      const reader = { impersonation: undefined, reporterIds: ['user-1'], userId: 'user-1' };
+
+      expect(Observation.memberCommentVisibility(reader, { exists: true })).toBe('VISIBLE');
+    });
+
+    it('keeps the comment of a former reporter readable to them', () => {
+      const reader = { impersonation: undefined, reporterIds: ['user-2'], userId: 'user-1' };
+
+      expect(Observation.memberCommentVisibility(reader, { exists: true })).toBe('VISIBLE');
+    });
+
+    it('keeps the comment of a reporter private from the admin impersonating them, written or not', () => {
+      const reader = { impersonation, reporterIds: ['user-1'], userId: 'user-1' };
+
+      expect(Observation.memberCommentVisibility(reader, { exists: false })).toBe('PRIVATE');
+    });
+
+    it('hides the comment of a former reporter from the admin impersonating them', () => {
+      const reader = { impersonation, reporterIds: ['user-2'], userId: 'user-1' };
+
+      expect(Observation.memberCommentVisibility(reader, { exists: true })).toBeNull();
+    });
+
+    it('refuses the screenshots attached by the admin impersonating a reporter', () => {
+      expect(() =>
+        observation().attachMemberCommentScreenshots({
+          files: [{ id: 'file-1' }],
+          impersonation,
+          reporterIds: ['user-1'],
+          userId: 'user-1',
+        }),
+      ).toThrow(UserNotAllowedToAttachScreenshotsError);
+    });
   });
+
+  it.each([
+    { canEdit: true, isArchived: false, role: 'ADJOINT_SECRETAIRE_GENERAL' },
+    { canEdit: false, isArchived: true, role: 'ADJOINT_SECRETAIRE_GENERAL' },
+    { canEdit: false, isArchived: false, role: 'MEMBRE_COMMUN' },
+  ] as const)(
+    'lets only the secretariat edit, in a session not archived: $role, archived $isArchived',
+    (row) => {
+      expect(Observation.canEdit(row)).toBe(row.canEdit);
+    },
+  );
 });

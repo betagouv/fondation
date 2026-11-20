@@ -7,8 +7,8 @@ import { Prisma } from '../../../../generated/prisma/client';
 import { Db } from '../../../framework/database';
 import { TransparenceService } from '../../../session/transparence/infrastructure/transparence.service';
 import { prismaReportStateEnumToReportState } from '../../../shared/mappers/rapport-statut.mapper';
-import { ReportStateEnum } from '../../../shared/report-state.enum';
 import type { RoleEnum } from '../../../shared/role.enum';
+import { MemberReportSchema } from '../dtos/report.dto';
 
 @Injectable()
 export class ListMemberSessionReportsQuery {
@@ -33,9 +33,8 @@ export class ListMemberSessionReportsQuery {
       select: { id: true, nominationFileId: true, state: true } satisfies Prisma.ReportSelect,
       where: { isDeleted: false, reporterId: query.user.id, sessionId: query.sessionId },
     });
-    const files = await this.sessions.internalFindNominationFilesByIds({
-      nominationFileIds: reports.map(({ nominationFileId }) => nominationFileId),
-    });
+    const nominationFileIds = reports.map(({ nominationFileId }) => nominationFileId);
+    const files = await this.sessions.internalFindNominationFilesByIds({ nominationFileIds });
 
     const items = reports.flatMap((report) => {
       const file = files.get(report.nominationFileId);
@@ -69,7 +68,7 @@ export class ListedMemberSessionReportsDto extends createZodDto(
         name: z.string(),
         nominationFileId: z.uuid(),
         number: z.number().int().nullable(),
-        report: z.object({ id: z.uuid(), state: z.enum(ReportStateEnum) }),
+        report: MemberReportSchema,
       }),
     ),
   }),

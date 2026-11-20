@@ -18,7 +18,7 @@ import {
   traceOf,
   traceSchema,
 } from '../../../shared/infrastructure/document-trace';
-import { draftChangesBy, draftChangesBySchema } from '../../../shared/infrastructure/draft-changes-by';
+import { draftChanges, draftChangesBySchema } from '../../../shared/infrastructure/draft-changes-by';
 import { OfficialReportVersionFinder } from '../finders/official-report-version.finder';
 
 @Injectable()
@@ -36,14 +36,18 @@ export class DetailsOfficialReportQuery {
     const version = await this.db.tx.officialReportVersion.findUnique({
       select: {
         ...DRAFT_TRACE_SELECT,
-        _count: { select: { nominationFiles: { where: { htmlOutdated: true } } } },
+        _count: {
+          select: {
+            nominationFiles: { where: { OR: [{ htmlOutdated: true }, { noteOutdatedBy: { not: null } }] } },
+          },
+        },
         chairmanId: true,
         createdBy: true,
         hasRenunciation: true,
         isManuallyEdited: true,
         justiceDepartmentContactId: true,
         members: { select: { isAbsent: true, memberId: true } },
-        officialReport: { select: { agenda: { select: { id: true } }, id: true } },
+        officialReport: { select: { agenda: { select: { id: true, sessionId: true } }, id: true } },
         outdated: true,
         secretaryId: true,
         sessionMeetingDate: true,
@@ -55,7 +59,9 @@ export class DetailsOfficialReportQuery {
       where: { id: versionId },
     });
 
-    if (!version) throw new NotFoundException();
+    // an official report belongs to the session of its agenda: without one, no session shows it
+    const agenda = version?.officialReport.agenda;
+    if (!version || !agenda) throw new NotFoundException();
     const report = { ...version, ...version.officialReport };
     const publishedId = await this.officialReportVersionFinder.published({
       officialReportId: query.officialReportId,
@@ -71,7 +77,7 @@ export class DetailsOfficialReportQuery {
         })
       : null;
 
-    const changesBy = draftChangesBy(version);
+    const changes = draftChanges(version);
     const hasValidatedVersion = isDefined(publishedId);
 
     return {
@@ -79,7 +85,8 @@ export class DetailsOfficialReportQuery {
       outdated: version.outdated,
       outdatedPropositions: version._count.nominationFiles,
       hasRenunciation: report.hasRenunciation,
-      agendaId: report.agenda?.id ?? null,
+      agendaId: agenda.id,
+      session: { id: agenda.sessionId },
       absentMembers: report.members.flatMap((member) =>
         member.isAbsent && member.memberId ? [member.memberId] : [],
       ),
@@ -89,9 +96,9 @@ export class DetailsOfficialReportQuery {
       justiceDepartmentContactId: report.justiceDepartmentContactId?.toString() ?? null,
       isManuallyEdited: report.isManuallyEdited,
       hasValidatedVersion,
-      canDiscardDraft: canDiscardDraft({ changesBy, hasValidatedVersion }),
+      canDiscardDraft: canDiscardDraft({ ...changes, hasValidatedVersion }),
       canValidate: canValidateDocument({ isValidated: version.status === 'VALIDATED' }),
-      draftChangesBy: changesBy,
+      draftChangesBy: changes.changesBy,
       draft: draftTrace(version),
       changedSinceValidation: published?.skippedUpdates.map(({ cause }) => cause) ?? [],
       validation: traceOf(published?.validatedAt, published?.validator),
@@ -109,7 +116,8 @@ export class DetailedOfficialReportMetadataDto extends createZodDto(
     hasRenunciation: z.boolean(),
     absentMembers: z.array(z.string()),
     recordedMembers: z.array(z.string()),
-    agendaId: z.uuid().nullable(),
+    agendaId: z.uuid(),
+    session: z.object({ id: z.string() }),
     sessionMeetingDate: dateOnlyJsonSchema,
     sessionMeetingStartingTime: timeOnlySchema,
     sessionMeetingEndingTime: timeOnlySchema,

@@ -11,9 +11,11 @@ import {
   listNominationFilesRawQuery,
 } from '../../../../../generated/prisma/sql';
 import { auditionScheduleSchema } from '../../../../../utils/audition-schedule';
+import { commentLastChangeSchema } from '../../../../../utils/comment';
 import { DateOnly, dateOnlyJsonSchema } from '../../../../../utils/date-only';
 import { toFullTextQuery } from '../../../../../utils/fulltext-search';
 import { partition } from '../../../../../utils/iterables';
+import { privateContentSchema } from '../../../../../utils/personal-content';
 import { timeOnlySchema } from '../../../../../utils/time-only';
 import { DocsService } from '../../../../docs/docs.service';
 import { Db } from '../../../../framework/database';
@@ -37,27 +39,48 @@ import {
   expectedReportersCount,
 } from '../../../../shared/policies/auditioned-position.policy';
 import * as nominationFilesPolicies from '../../../../shared/policies/nomination-file.policies';
+import {
+  type Impersonation,
+  PERSONAL_CONTENT_VISIBILITIES,
+  personalContentVisibility,
+  type PersonalContentVisibility,
+} from '../../../../shared/policies/personal-content.policies';
 import { canReadSession } from '../../../../shared/policies/session.policies';
-import { canReadSummary, canWriteSummary } from '../../../../shared/policies/summary.policies';
+import {
+  canReadSummary,
+  canWriteSummary,
+  summaryVisibility,
+} from '../../../../shared/policies/summary.policies';
 import { PriorityEnum } from '../../../../shared/priority.enum';
 import { isSecretariat, type RoleEnum } from '../../../../shared/role.enum';
+import {
+  type FileReporters,
+  NON_AFFECTABLE_REASONS,
+  NON_RECUSABLE_REASONS,
+  nonAffectableMembers,
+  nonRecusableMembers,
+} from '../../domain/member-recusal';
 import {
   NOMINATION_SESSION_FILE_STATUSES,
   transparenceFileStatus,
 } from '../../domain/session-transparence-file-status';
-import { ListNominationFilesQueryDto } from '../dtos/nomination-file.dto';
+import { ListNominationFilesQueryDto, RecusedMemberSchema } from '../dtos/nomination-file.dto';
 import { AffectationVersionFinder, OptionalAffectationVersion } from '../finders/affectation-version.finder';
 import { AuditionsSeenFinder } from '../finders/auditions-seen.finder';
+import { NominationFileCommentChangesFinder } from '../finders/nomination-file-comment-changes.finder';
 import { NominationFileJurisdictionsFinder } from '../finders/nomination-file-jurisdictions.finder';
+import { RecusedMembersFinder } from '../finders/recused-members.finder';
 import { SessionReportedFilesFinder } from '../finders/session-reported-files.finder';
 
 @Injectable()
 export class ListNominationFilesQuery {
   constructor(
     private readonly auditionsSeen: AuditionsSeenFinder,
+    private readonly commentChanges: NominationFileCommentChangesFinder,
     private readonly db: Db,
     private readonly versionFinder: AffectationVersionFinder,
     private readonly jurisdictionsFinder: NominationFileJurisdictionsFinder,
+    private readonly recusedMembersFinder: RecusedMembersFinder,
 
     @Inject(forwardRef(() => DocsService))
     private readonly docs: DocsService,
@@ -70,7 +93,7 @@ export class ListNominationFilesQuery {
     pagination: Pagination;
     sessionId: string;
     sorting: Sortable<ListNominationFilesQueryDto>;
-    user: { id: string; role: RoleEnum };
+    user: { id: string; impersonation: Impersonation | undefined; role: RoleEnum };
     filters: {
       missingEvaluation: boolean | undefined;
       nominationFileIds: readonly string[] | undefined;
@@ -128,7 +151,7 @@ export class ListNominationFilesQuery {
   async detail(query: {
     nominationFileId: string;
     sessionId: string;
-    user: { id: string; role: RoleEnum };
+    user: { id: string; impersonation: Impersonation | undefined; role: RoleEnum };
   }): Promise<NominationFileAffectationItem | null> {
     const [file] = await this.db.withTransaction(async () => {
       const session = await this.findVisibleSession(query);
@@ -172,7 +195,7 @@ export class ListNominationFilesQuery {
     session: { archivedAt: Date | null };
     sessionId: string;
     sorting: Sortable<ListNominationFilesQueryDto>;
-    user: { id: string; role: RoleEnum };
+    user: { id: string; impersonation: Impersonation | undefined; role: RoleEnum };
     where: NominationFilesWhere;
   }): Promise<NominationFileAffectationItem[]> {
     const { where } = query;
@@ -222,16 +245,22 @@ export class ListNominationFilesQuery {
     const jurisdictions = await this.jurisdictionsFinder.find({
       nominationFileIds: [...nominationFileIds],
     });
+    const recusedMembers = await this.recusedMembersFinder.find({ nominationFileIds });
+    const commentChanges = await this.commentChanges.findLast({ nominationFileIds: [...nominationFileIds] });
+    const reporters = isSecretariat(query.user.role)
+      ? await this.versionFinder.findPublishedAndLatestReporters({
+          nominationFileIds: [...nominationFileIds],
+        })
+      : new Map<string, FileReporters>();
 
-    const sessionArchivedAt = query.session.archivedAt;
-    const isArchived = !!sessionArchivedAt;
+    const isArchived = !!query.session.archivedAt;
 
     const files = txFiles.map((file) => ({
       ...file,
       jurisdictions: jurisdictions.get(file.id) ?? { current: null, targeted: null },
       lockedReason: nominationFilesPolicies.nominationFileLock(
         { isReported: reportedFileIds.has(file.id) },
-        { archivedAt: sessionArchivedAt },
+        { isArchived },
       ),
       status: transparenceFileStatus({ docs: linkedDocs.get(file.id) ?? [] }),
     }));
@@ -246,13 +275,17 @@ export class ListNominationFilesQuery {
 
       const audition = auditions.get(x.id);
       assert.ok(audition, `no audition seen for the nomination file ${x.id}`);
+      // an erased complement no longer exists: there is no change left to date
+      const changeOfComment = x.comment ? commentChanges.get(x.id) : undefined;
 
       return {
         ...audition,
-        canScheduleAudition: nominationFilesPolicies.canScheduleAudition(x, {
-          archivedAt: sessionArchivedAt,
-        }),
+        canUpdate: nominationFilesPolicies.canUpdateNominationFile(x, query.user),
+        canScheduleAudition: nominationFilesPolicies.canScheduleAudition(x, { isArchived }),
         comment: x.comment,
+        commentLastChange: changeOfComment
+          ? nominationFilesPolicies.sgCommentChangeSeenBy(changeOfComment, query.user)
+          : null,
         content: {
           dateDeNaissance: DateOnly.fromOptionalUtcDate(x.birthDate)?.toJson() ?? null,
           dateEchéance: DateOnly.fromOptionalUtcDate(x.dueDate)?.toJson() ?? null,
@@ -263,7 +296,6 @@ export class ListNominationFilesQuery {
           gradeCible: x.targetedGrade as GradeEnum,
           historique: x.biography,
           informationCarrière: null,
-          isAlertHidden: x.alertHidden,
           jurisdictions: x.jurisdictions,
           lockedReason: x.lockedReason,
           nomMagistrat: proposedMagistratName(x),
@@ -289,28 +321,33 @@ export class ListNominationFilesQuery {
         },
         expectedReportersCount: expectedReportersCount(auditionedPosition),
         hasAttachment: x.hasAttachment,
-        hasJurisdictionSheet: x.hasJurisdictionSheet,
         id: x.id,
         isArchived,
-        memo: nominationFilesPolicies.canKeepMemberMemo(
-          { reporterIds: x.reporters.map(({ user }) => user.id) },
-          query.user,
-        )
-          ? { value: x.memberMemo || null }
-          : null,
+        jurisdictionSheetRequired: nominationFilesPolicies.jurisdictionSheetRequired(x, query.user),
+        memo: ListNominationFilesQuery.memoOf(
+          nominationFilesPolicies.memberMemoVisibility(
+            { reporterIds: x.reporters.map(({ user }) => user.id) },
+            query.user,
+          ),
+          x.memberMemo,
+        ),
         missingEvaluation: x.missingEvaluation,
         missingEvaluationComment: x.missingEvaluationComment,
+        nonAffectableMembers: nonAffectableMembers(new Set(recusedMembers.get(x.id)?.map(({ id }) => id))),
+        nonRecusableMembers: nominationFilesPolicies.canUpdateNominationFile(x, query.user)
+          ? nonRecusableMembers(reporters.get(x.id) ?? { latestIds: new Set(), publishedIds: new Set() })
+          : [],
         observations: (observations.get(x.id) ?? []).map((obs) => ({
           audition: observantAuditions.get(obs.magistrat.id) ?? null,
           date: DateOnly.fromUtcDate(obs.dateReception).toJson(),
           followUp: obs.followUp,
-          followUpComment: obs.followUp ? obs.followUpComment : null,
           hasDescription: !!obs.description.trim(),
-          hasUserComment: obs.hasUserComment,
+          hasUserComment: personalContentVisibility(query.user) === 'VISIBLE' && obs.hasUserComment,
           id: obs.id,
           magistrat: obs.magistrat,
         })),
         priorities: x.priorities.map(prismaPrioriteEnumToPriorityEnum),
+        recusedMembers: recusedMembers.get(x.id) ?? [],
         reporters: x.reporters.map(({ user: { id, firstName, lastName } }) => ({
           firstName,
           id,
@@ -324,10 +361,25 @@ export class ListNominationFilesQuery {
               ),
               canWrite: canWriteSummary(x.summary, query.user),
               id: x.id,
+              visibility: summaryVisibility({ readerIds: x.summary.readers }, query.user),
             }
           : null,
       };
     });
+  }
+
+  private static memoOf(
+    visibility: PersonalContentVisibility | null,
+    memo: string | null,
+  ): z.infer<typeof MemoSchema> | null {
+    switch (visibility) {
+      case null:
+        return null;
+      case 'PRIVATE':
+        return { visibility };
+      case 'VISIBLE':
+        return { value: memo || null, visibility };
+    }
   }
 
   private static filtersToPrismaWhere(
@@ -400,7 +452,6 @@ const NominationFileContentSchema = z.object({
       comment: z.string().nullable(),
     })
     .nullable(),
-  isAlertHidden: z.boolean(),
 
   lockedReason: z.enum(NominationFileLockEnum).nullable(),
   status: z.object({
@@ -470,13 +521,23 @@ const RawListedNominationFiles = z.array(
   }),
 );
 
+const MemoSchema = z.discriminatedUnion('visibility', [
+  privateContentSchema,
+  z.object({ visibility: z.literal('VISIBLE'), value: z.string().nullable() }),
+]);
+
 const NominationFileAffectationItemSchema = z.object({
   id: z.string(),
   isArchived: z.boolean(),
   priorities: z.array(z.enum(PriorityEnum)),
   content: NominationFileContentSchema,
   comment: z.string().nullable(),
+  commentLastChange: commentLastChangeSchema.nullable(),
   canScheduleAudition: z.boolean(),
+  canUpdate: z.boolean().meta({
+    description:
+      'recusing members, defining the outcome, affecting reporters and priorities, updating the missing evaluation or the attachments, hiding the jurisdiction sheet alert',
+  }),
   auditionDate: dateOnlyJsonSchema.nullable(),
   auditionRequired: z.boolean(),
   auditionRequirement: z.enum(AUDITION_REQUIREMENTS).nullable(),
@@ -484,6 +545,10 @@ const NominationFileAffectationItemSchema = z.object({
   expectedReportersCount: z.number().nullable(),
   missingEvaluation: z.boolean(),
   missingEvaluationComment: z.string().nullable(),
+  nonAffectableMembers: z.array(z.object({ id: z.string(), reason: z.enum(NON_AFFECTABLE_REASONS) })),
+  nonRecusableMembers: z
+    .array(z.object({ id: z.string(), reason: z.enum(NON_RECUSABLE_REASONS) }))
+    .meta({ description: 'empty when the user cannot recuse members on this file' }),
   reporters: z.array(
     z.object({
       id: z.string(),
@@ -491,13 +556,13 @@ const NominationFileAffectationItemSchema = z.object({
       lastName: z.string(),
     }),
   ),
+  recusedMembers: RecusedMemberSchema.array().meta({ description: 'in protocol order' }),
   observations: z.array(
     z.object({
       id: z.string(),
       audition: auditionScheduleSchema.nullable(),
       date: dateOnlyJsonSchema,
       followUp: z.enum(ObservationFollowUp.enum).nullable(),
-      followUpComment: z.string().nullable(),
       hasDescription: z.boolean(),
       hasUserComment: z.boolean(),
       magistrat: z.object({
@@ -506,13 +571,25 @@ const NominationFileAffectationItemSchema = z.object({
       }),
     }),
   ),
-  memo: z
-    .object({ value: z.string().nullable() })
-    .nullable()
-    .meta({ description: 'null when the user keeps no personal notes on this file' }),
-  summary: z.object({ id: z.string(), canRead: z.boolean(), canWrite: z.boolean() }).nullable(),
+  memo: MemoSchema.nullable().meta({
+    description: 'null when the user keeps no personal notes on this file',
+  }),
+  summary: z
+    .object({
+      id: z.string(),
+      canRead: z.boolean(),
+      canWrite: z.boolean(),
+      visibility: z
+        .enum(PERSONAL_CONTENT_VISIBILITIES)
+        .nullable()
+        .meta({ description: 'null when the summary is not shared with the user' }),
+    })
+    .nullable(),
   hasAttachment: z.boolean(),
-  hasJurisdictionSheet: z.boolean(),
+  jurisdictionSheetRequired: z.boolean().meta({
+    description:
+      'the secretariat is asked for a jurisdiction sheet: the targeted position requires one, none is attached and the alert is not hidden',
+  }),
 });
 
 export type NominationFileAffectationItem = z.infer<typeof NominationFileAffectationItemSchema>;

@@ -48,7 +48,7 @@ export const Avatar: FC = () => {
           <MenuItem
             className="px-4! py-3!"
             iconId="fr-icon-account-circle-line"
-            linkProps={{ to: ROUTE_PATHS.ACCOUNT }}
+            linkProps={{ to: ROUTE_PATHS.ACCOUNT, viewTransition: true }}
             size="small"
           >
             <FormattedMessage defaultMessage="Mon compte" />

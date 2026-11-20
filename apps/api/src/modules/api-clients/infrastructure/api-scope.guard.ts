@@ -1,0 +1,82 @@
+import {
+  applyDecorators,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  Injectable,
+  SetMetadata,
+  UnauthorizedException,
+  UseGuards,
+} from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import {
+  ApiBearerAuth,
+  ApiExtension,
+  ApiForbiddenResponse,
+  ApiTooManyRequestsResponse,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
+import { Request as ExpressRequest, Response as ExpressResponse } from 'express';
+
+import { ApiClientsService } from '../api-clients.service';
+import { ApiClientForbidden, ApiClientUnauthenticated, ApiScope } from '../domain/api-client';
+import { ApiClientRateLimited } from '../domain/rate-window';
+
+import { tooManyRequests } from './too-many-requests';
+
+const META_SCOPE = Symbol();
+
+@Injectable()
+export class ApiScopeGuard implements CanActivate {
+  constructor(
+    private readonly apiClients: ApiClientsService,
+    private readonly reflector: Reflector,
+  ) {}
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const request = context.switchToHttp().getRequest<ExpressRequest>();
+
+    try {
+      await this.apiClients.authorize({
+        ip: request.ip ?? 'unknown',
+        scope: this.reflector.get<ApiScope>(META_SCOPE, context.getHandler()),
+        // TODO: see SimpleAuthMiddleware.getBearer, which reads the same header for the fixed machine tokens
+        token: /^Bearer +(\S+)$/i.exec(request.get('authorization') ?? '')?.[1],
+      });
+    } catch (error) {
+      if (error instanceof ApiClientUnauthenticated) throw new UnauthorizedException();
+      if (error instanceof ApiClientForbidden) throw new ForbiddenException();
+      if (error instanceof ApiClientRateLimited) {
+        throw tooManyRequests(context.switchToHttp().getResponse<ExpressResponse>(), error);
+      }
+      throw error;
+    }
+
+    return true;
+  }
+}
+
+/**
+ * Opens a route of the public API to the API clients registered with this scope, and to nobody else
+ *
+ * @remarks the module of the controller imports `ApiClientsModule`. `x-roles` lets docs/droits-par-role.md be checked
+ * against the API
+ */
+export function HasApiScope(scope: ApiScope): MethodDecorator {
+  return applyDecorators(
+    SetMetadata(META_SCOPE, scope),
+    UseGuards(ApiScopeGuard),
+    ApiBearerAuth(),
+    ApiExtension('x-roles', ['API_CLIENT']),
+    ApiUnauthorizedResponse({
+      description: 'Missing, unknown or expired token, or revoked client: ask for a new token',
+    }),
+    ApiForbiddenResponse({
+      description: 'The request comes from an IP, or asks for a route, the client is not allowed',
+    }),
+    ApiTooManyRequestsResponse({
+      description: 'Too many calls within the minute',
+      headers: { 'Retry-After': { description: 'Seconds to wait', schema: { type: 'integer' } } },
+    }),
+  );
+}

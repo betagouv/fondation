@@ -2,6 +2,8 @@ import type { Sql } from 'postgres';
 
 import { test } from '../fixtures.ts';
 import { MEETING_DATE } from '../fixtures/docs.fixture.ts';
+import { makeFile } from '../utils/files.ts';
+import { attachmentForm } from '../utils/nomination-file-attachment.ts';
 
 async function filesOfValidatedVersionsReading(sql: Sql, html: string): Promise<number> {
   const [row] = await sql<{ count: bigint }[]>`
@@ -123,6 +125,16 @@ test.describe('Official report', () => {
       lockedReasons: ['REPORTED', 'REPORTED'],
       status: 'REPORTED',
     });
+
+    // a 409, not a 400: a page loaded before the validation explains that the dossier got figé
+    const attached = await agent.sessions.uploadNominationFileAttachments({
+      body: {
+        files: [makeFile({ name: 'note.pdf', type: 'application/pdf' })],
+        form: attachmentForm({ type: 'FICHE_DE_JURIDICTION' }),
+      },
+      path: { nominationFileId: session.files[0]!.id, sessionId },
+    });
+    expect(attached.response?.status).toBe(409);
 
     await agent.docs.validateAgenda({ path: { agendaId: agenda.id } });
     await docs.notice([agenda], { status: 'PRESENTED' });
@@ -504,7 +516,9 @@ test.describe('Official report', () => {
     expect(edited.data).toEqual({
       editedAt: expect.any(String),
       editedBy: expect.any(Object),
+      generatedHtml: null,
       html: '<p>Information du PV</p>',
+      outdatedBy: null,
     });
 
     const metadata = await agent.docs.detailsOfficialReport({ path: { officialReportId } });
@@ -513,7 +527,294 @@ test.describe('Official report', () => {
 
     await agent.docs.deleteOfficialReportFileNote({ path });
 
-    expect(await fileOf()).toMatchObject({ note: null });
+    expect(await fileOf()).toMatchObject({ note: { editedAt: null, html: null } });
+  });
+
+  test('should mention the members recused from a proposition, until the mention is removed from the report only', async ({
+    agent,
+    docs,
+    expect,
+    logIn,
+    member,
+  }) => {
+    const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
+    const { id: officialReportId } = await docs.officialReport(await docs.agenda(session));
+    const nominationFileId = session.files[0]!.id;
+    const filePath = { nominationFileId, sessionId: session.id };
+    const noteOf = async () => {
+      const document = await agent.docs.detailsOfficialReportDocument({ path: { officialReportId } });
+      const block = document.data!.blocks.find((b) => b.kind === 'file' && b.nominationFileId === nominationFileId);
+      return block?.kind === 'file' ? block.note : undefined;
+    };
+    const colleague = await logIn('MEMBRE_COMMUN');
+
+    const { data } = await agent.sessions.recuseMembers({
+      body: { memberIds: [colleague['@user']!.id] },
+      path: filePath,
+    });
+    const [recused] = data!.recusedMembers;
+
+    const mentioned = await noteOf();
+    expect(mentioned).toMatchObject({ editedAt: null, outdatedBy: null });
+    // Faker may draw a name like O'Hara, whose apostrophe the mention escapes
+    const lastName = recused!.lastName.toUpperCase().replaceAll("'", '&#39;');
+    expect(mentioned?.html).toContain(`${lastName} n'a pas délibéré`);
+    expect(mentioned?.html).toBe(mentioned?.generatedHtml);
+
+    await agent.docs.deleteOfficialReportFileNote({ path: { nominationFileId, officialReportId } });
+
+    expect(await noteOf()).toMatchObject({ generatedHtml: mentioned?.generatedHtml, html: null, outdatedBy: null });
+    const file = await agent.sessions.detailNominationFile({ path: filePath });
+    expect(file.data?.recusedMembers).toEqual(data!.recusedMembers);
+  });
+
+  test('should mention a recused member under the recusal title an admin gave them', async ({
+    admin,
+    agent,
+    docs,
+    expect,
+    logIn,
+    member,
+  }) => {
+    const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
+    const { id: officialReportId } = await docs.officialReport(await docs.agenda(session));
+    const nominationFileId = session.files[0]!.id;
+    const userId = (await logIn('MEMBRE_COMMUN'))['@user']!.id;
+
+    await admin.administration.updateRecusalTitle({
+      body: { recusalTitle: 'le Bâtonnier' },
+      path: { userId },
+      throwOnError: true,
+    });
+    const { data } = await agent.sessions.recuseMembers({
+      body: { memberIds: [userId] },
+      path: { nominationFileId, sessionId: session.id },
+      throwOnError: true,
+    });
+    const [recused] = data.recusedMembers;
+
+    const document = await agent.docs.detailsOfficialReportDocument({ path: { officialReportId } });
+    const block = document.data!.blocks.find((b) => b.kind === 'file' && b.nominationFileId === nominationFileId);
+    expect(block?.kind === 'file' && block.note.html).toContain(
+      `le Bâtonnier\u00A0${recused!.lastName.toUpperCase().replaceAll("'", '&#39;')} n'a pas délibéré`,
+    );
+  });
+
+  test('should mention a recused member under the recusal title the secretariat gave them', async ({
+    agent,
+    docs,
+    expect,
+    logIn,
+    member,
+  }) => {
+    const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
+    const { id: officialReportId } = await docs.officialReport(await docs.agenda(session));
+    const nominationFileId = session.files[0]!.id;
+    const userId = (await logIn('MEMBRE_COMMUN'))['@user']!.id;
+
+    await agent.members.updateRecusalTitle({
+      body: { recusalTitle: 'le Bâtonnier' },
+      path: { userId },
+      throwOnError: true,
+    });
+    const { data } = await agent.sessions.recuseMembers({
+      body: { memberIds: [userId] },
+      path: { nominationFileId, sessionId: session.id },
+      throwOnError: true,
+    });
+    const [recused] = data.recusedMembers;
+
+    const document = await agent.docs.detailsOfficialReportDocument({ path: { officialReportId } });
+    const block = document.data!.blocks.find((b) => b.kind === 'file' && b.nominationFileId === nominationFileId);
+    expect(block?.kind === 'file' && block.note.html).toContain(
+      `le Bâtonnier ${recused!.lastName.toUpperCase().replaceAll("'", '&#39;')} n'a pas délibéré`,
+    );
+  });
+
+  test('should follow in a draft the new name an admin gives a reporter', async ({
+    admin,
+    agent,
+    docs,
+    expect,
+    member,
+  }) => {
+    const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
+    const { id: officialReportId } = await docs.officialReport(await docs.agenda(session));
+    const nominationFileId = session.files[0]!.id;
+
+    await admin.administration.updateName({
+      body: { lastName: 'Renommé' },
+      path: { userId: member['@user']!.id },
+      throwOnError: true,
+    });
+
+    const document = await agent.docs.detailsOfficialReportDocument({ path: { officialReportId } });
+    const block = document.data!.blocks.find((b) => b.kind === 'file' && b.nominationFileId === nominationFileId);
+    expect(block?.kind === 'file' && block.html).toContain('RENOMMÉ');
+  });
+
+  test('should keep the name a validated report was sent with, and give the new one to the draft opened on it', async ({
+    admin,
+    agent,
+    docs,
+    expect,
+    member,
+  }) => {
+    const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
+    const { id: officialReportId } = await docs.officialReport(await docs.agenda(session), { status: 'VALIDATED' });
+    const nominationFileId = session.files[0]!.id;
+    const fileHtml = async () => {
+      const document = await agent.docs.detailsOfficialReportDocument({ path: { officialReportId } });
+      const block = document.data!.blocks.find((b) => b.kind === 'file' && b.nominationFileId === nominationFileId);
+      return block?.kind === 'file' ? block.html : undefined;
+    };
+    await admin.administration.updateName({
+      body: { lastName: 'Renommé' },
+      path: { userId: member['@user']!.id },
+      throwOnError: true,
+    });
+
+    expect(await fileHtml()).not.toContain('RENOMMÉ');
+
+    await agent.docs.editOfficialReportIntro({
+      body: { html: '<p>Une introduction écrite à la main</p>', outdated: false },
+      path: { officialReportId },
+      throwOnError: true,
+    });
+
+    expect(await fileHtml()).toContain('RENOMMÉ');
+    const details = await agent.docs.detailsOfficialReport({ path: { officialReportId } });
+    expect(details.data).toMatchObject({ canDiscardDraft: true, status: 'DRAFT' });
+  });
+
+  test('should discard a draft the application only changed to follow the new name of a reporter', async ({
+    admin,
+    agent,
+    docs,
+    expect,
+    member,
+  }) => {
+    const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
+    const { id: officialReportId } = await docs.officialReport(await docs.agenda(session), { status: 'VALIDATED' });
+    const nominationFileId = session.files[0]!.id;
+    await agent.docs.editOfficialReportIntro({
+      body: { html: '<p>Une introduction écrite à la main</p>', outdated: false },
+      path: { officialReportId },
+      throwOnError: true,
+    });
+    await admin.administration.updateName({
+      body: { lastName: 'Renommé' },
+      path: { userId: member['@user']!.id },
+      throwOnError: true,
+    });
+
+    const details = await agent.docs.detailsOfficialReport({ path: { officialReportId } });
+    expect(details.data).toMatchObject({ canDiscardDraft: true, draftChangesBy: 'PERSON_AND_SYSTEM' });
+
+    const discarded = await agent.docs.discardOfficialReportDraft({ path: { officialReportId } });
+    expect(discarded.response?.status).toBe(204);
+    const document = await agent.docs.detailsOfficialReportDocument({ path: { officialReportId } });
+    const block = document.data!.blocks.find((b) => b.kind === 'file' && b.nominationFileId === nominationFileId);
+    expect(block?.kind === 'file' && block.html).not.toContain('RENOMMÉ');
+  });
+
+  test('should name a magistrat first name first, as Lolfi names them today, in the draft opened on a validated report', async ({
+    agent,
+    docs,
+    expect,
+    member,
+    sql,
+  }) => {
+    const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
+    const { id: officialReportId } = await docs.officialReport(await docs.agenda(session), { status: 'VALIDATED' });
+    const [file] = session.files;
+    await sql`
+      UPDATE data_administration_context.magistrat
+      SET first_name = 'JEANNE', last_name = 'Renommée', married_name = NULL
+      WHERE id = ${file!.magistratId}
+    `;
+
+    await agent.docs.editOfficialReportIntro({
+      body: { html: '<p>Une introduction écrite à la main</p>', outdated: false },
+      path: { officialReportId },
+      throwOnError: true,
+    });
+
+    const document = await agent.docs.detailsOfficialReportDocument({ path: { officialReportId } });
+    const block = document.data!.blocks.find((b) => b.kind === 'file' && b.nominationFileId === file!.id);
+    expect(block?.kind === 'file' && block.html).toContain('Jeanne RENOMMÉE');
+  });
+
+  test('should follow in a draft the recusal title the secretariat gives a member already recused', async ({
+    agent,
+    docs,
+    expect,
+    logIn,
+    member,
+  }) => {
+    const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
+    const { id: officialReportId } = await docs.officialReport(await docs.agenda(session));
+    const nominationFileId = session.files[0]!.id;
+    const userId = (await logIn('MEMBRE_COMMUN'))['@user']!.id;
+
+    const { data } = await agent.sessions.recuseMembers({
+      body: { memberIds: [userId] },
+      path: { nominationFileId, sessionId: session.id },
+      throwOnError: true,
+    });
+    const [recused] = data.recusedMembers;
+    await agent.members.updateRecusalTitle({
+      body: { recusalTitle: 'le Bâtonnier' },
+      path: { userId },
+      throwOnError: true,
+    });
+
+    const document = await agent.docs.detailsOfficialReportDocument({ path: { officialReportId } });
+    const block = document.data!.blocks.find((b) => b.kind === 'file' && b.nominationFileId === nominationFileId);
+    const note = block?.kind === 'file' ? block.note : undefined;
+    expect(note?.outdatedBy).toBeNull();
+    expect(note?.html).toContain(
+      `le Bâtonnier\u00A0${recused!.lastName.toUpperCase().replaceAll("'", '&#39;')} n'a pas délibéré`,
+    );
+  });
+
+  test('should flag a text written under a proposition once its recusal changes, until the mention is given back', async ({
+    agent,
+    docs,
+    expect,
+    logIn,
+    member,
+  }) => {
+    const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
+    const { id: officialReportId } = await docs.officialReport(await docs.agenda(session));
+    const nominationFileId = session.files[0]!.id;
+    const path = { nominationFileId, officialReportId };
+    const noteOf = async () => {
+      const document = await agent.docs.detailsOfficialReportDocument({ path: { officialReportId } });
+      const block = document.data!.blocks.find((b) => b.kind === 'file' && b.nominationFileId === nominationFileId);
+      return block?.kind === 'file' ? block.note : undefined;
+    };
+    const isOutdated = async () =>
+      (await agent.docs.detailsOfficialReport({ path: { officialReportId } })).data?.outdated;
+
+    const colleague = await logIn('MEMBRE_COMMUN');
+
+    await agent.docs.editOfficialReportFileNote({ body: { html: '<p>Information du PV</p>' }, path });
+    await agent.sessions.recuseMembers({
+      body: { memberIds: [colleague['@user']!.id] },
+      path: { nominationFileId, sessionId: session.id },
+    });
+
+    expect(await noteOf()).toMatchObject({ html: '<p>Information du PV</p>', outdatedBy: 'RECUSAL' });
+    expect(await isOutdated()).toBe(true);
+
+    const reset = await agent.docs.resetOfficialReportFileNote({ path });
+    expect(reset.response?.status).toBe(204);
+
+    const given = await noteOf();
+    expect(given).toMatchObject({ editedAt: null, outdatedBy: null });
+    expect(given?.html).toBe(given?.generatedHtml);
+    expect(await isOutdated()).toBe(false);
   });
 
   test('should refuse a second official report of an agenda', async ({ agent, docs, expect, member }) => {
@@ -769,5 +1070,26 @@ test.describe('Official report', () => {
     });
     expect(rendered.data).toContain(secondContact.data!.name);
     expect(rendered.data).not.toContain(docs.justiceContact.name);
+  });
+
+  test('should find a validated official report under the session of its agenda only', async ({
+    agent,
+    docs,
+    expect,
+    member,
+  }) => {
+    const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
+    const otherSession = await docs.session();
+    const { id: officialReportId } = await docs.officialReport(await docs.agenda(session), { status: 'VALIDATED' });
+
+    const underItsSession = await agent.docs.detailsSessionOfficialReport({
+      path: { officialReportId, sessionId: session.id },
+    });
+    const underAnotherSession = await agent.docs.detailsSessionOfficialReport({
+      path: { officialReportId, sessionId: otherSession.id },
+    });
+
+    expect(underItsSession.response?.status).toBe(200);
+    expect(underAnotherSession.response?.status).toBe(404);
   });
 });

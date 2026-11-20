@@ -2,33 +2,17 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { richTextHtml } from '../../../../utils/rich-text-html';
-import { ATTACHMENT_MAX_BYTES, FILE_MIME_TYPES } from '../../../framework/files';
+import { attachmentFiles, FILE_MIME_TYPES } from '../../../framework/files';
 import { ReportFileUsageEnum } from '../../../shared/report-file-usage.enum';
 import { ReportStateEnum } from '../../../shared/report-state.enum';
 
-export class AttachReportFileDto extends createZodDto(
-  z.object({ files: z.array(z.file().max(ATTACHMENT_MAX_BYTES)) }),
-) {}
+/** a report as its reporter sees it */
+export const MemberReportSchema = z.object({ id: z.uuid(), state: z.enum(ReportStateEnum) });
+
+export class AttachReportFileDto extends createZodDto(z.object({ files: attachmentFiles() })) {}
 
 export class AttachReportFileQueryDto extends createZodDto(
   z.object({ usage: z.enum(ReportFileUsageEnum) }),
-) {}
-
-export class DetachReportFilesQueryDto extends createZodDto(
-  z.object({
-    fileNames: z.union([z.string(), z.array(z.string())]).transform((x) => ([] as string[]).concat(x)),
-  }),
-) {}
-
-export class GetReportFileUrlsQueryDto extends createZodDto(
-  z.object({
-    fileNames: z
-      .union([
-        z.string(),
-        z.array(z.string()).max(30, { error: `Impossible d'afficher plus de 30 fichiers` }),
-      ])
-      .transform((x) => ([] as string[]).concat(x)),
-  }),
 ) {}
 
 export class UpdateReportDto extends createZodDto(

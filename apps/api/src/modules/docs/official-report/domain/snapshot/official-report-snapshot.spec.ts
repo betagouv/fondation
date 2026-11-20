@@ -20,7 +20,7 @@ describe('OfficialReportSnapshot', () => {
     expect(diff.hasAny).toBe(false);
     expect(diff.intro).toBe('NOOP');
     expect(diff.conclusion).toBe('NOOP');
-    expect(diff.files.map((f) => f.action)).toEqual(['noop']);
+    expect(diff.files).toEqual([]);
   });
 
   it('should tell a change even when no rendered part falls behind', () => {
@@ -72,7 +72,7 @@ describe('OfficialReportSnapshot', () => {
     expect(diff.hasAny).toBe(true);
     expect(diff.intro).toBe('OUTDATED');
     expect(diff.conclusion).toBe('OUTDATED');
-    expect(diff.files.map((f) => f.action)).toEqual(['noop']);
+    expect(diff.files).toEqual([]);
   });
 
   it('should detect the secretary difference', () => {
@@ -89,7 +89,7 @@ describe('OfficialReportSnapshot', () => {
     expect(diff.hasAny).toBe(true);
     expect(diff.intro).toBe('OUTDATED');
     expect(diff.conclusion).toBe('OUTDATED');
-    expect(diff.files.map((f) => f.action)).toEqual(['noop']);
+    expect(diff.files).toEqual([]);
   });
 
   it('should detect the hasRenunciation difference', () => {
@@ -106,7 +106,7 @@ describe('OfficialReportSnapshot', () => {
     expect(diff.hasAny).toBe(true);
     expect(diff.intro).toBe('OUTDATED');
     expect(diff.conclusion).toBe('NOOP');
-    expect(diff.files.map((f) => f.action)).toEqual(['noop']);
+    expect(diff.files).toEqual([]);
   });
 
   it('should detect the justiceDepartmentContactId difference', () => {
@@ -122,7 +122,7 @@ describe('OfficialReportSnapshot', () => {
     expect(diff.hasAny).toBe(true);
     expect(diff.intro).toBe('OUTDATED');
     expect(diff.conclusion).toBe('NOOP');
-    expect(diff.files.map((f) => f.action)).toEqual(['noop']);
+    expect(diff.files).toEqual([]);
   });
 
   it('should detect the members difference', () => {
@@ -145,7 +145,7 @@ describe('OfficialReportSnapshot', () => {
     expect(diff.hasAny).toBe(true);
     expect(diff.intro).toBe('OUTDATED');
     expect(diff.conclusion).toBe('NOOP');
-    expect(diff.files.map((f) => f.action)).toEqual(['noop']);
+    expect(diff.files).toEqual([]);
   });
 
   it('should detect the sessionMeeting difference', () => {
@@ -173,7 +173,7 @@ describe('OfficialReportSnapshot', () => {
     expect(diff.hasAny).toBe(true);
     expect(diff.intro).toBe('OUTDATED');
     expect(diff.conclusion).toBe('NOOP');
-    expect(diff.files.map((f) => f.action)).toEqual(['noop']);
+    expect(diff.files).toEqual([]);
   });
 
   it('should detect the files difference', () => {
@@ -294,9 +294,10 @@ describe('OfficialReportSnapshot', () => {
             OfficialReportSnapshotFile.from({
               hasManuallyEditedHtml: true,
               nominationFileId: 'file-1',
-              note: null,
+              note: { html: null, outdatedBy: null, status: 'GENERATED' },
+              recusedMembers: [],
               outcome: { value: 'VALIDATED', comment: null },
-              reporters: ['M. John DOE'],
+              reporters: [helpers.JOHN_DOE],
             }),
           ],
         ]),
@@ -310,12 +311,14 @@ describe('OfficialReportSnapshot', () => {
             {
               nominationFileId: `file-1`,
               outcome: { value: 'VALIDATED', comment: null },
-              reporters: ['M. John DOE'],
+              recusedMembers: [],
+              reporters: [helpers.JOHN_DOE],
             },
             {
               nominationFileId: `file-2`,
               outcome: { value: 'VALIDATED', comment: null },
-              reporters: ['M. John DOE'],
+              recusedMembers: [],
+              reporters: [helpers.JOHN_DOE],
             },
           ],
         },
@@ -335,7 +338,12 @@ describe('OfficialReportSnapshot', () => {
         type: 'AgendaNominationFilesUpdated',
         payload: {
           files: [
-            { nominationFileId: file.nominationFileId, outcome: file.outcome, reporters: file.reporters },
+            {
+              nominationFileId: file.nominationFileId,
+              outcome: file.outcome,
+              recusedMembers: file.recusedMembers,
+              reporters: file.reporters,
+            },
           ],
         },
       });
@@ -352,7 +360,7 @@ describe('OfficialReportSnapshot', () => {
       });
 
       const fileToUpdate = diff.files.find(
-        (f): f is Extract<typeof f, { action: 'outdate' | 'update' }> => f.action === 'update',
+        (f): f is Extract<typeof f, { outcome: unknown }> => f.action === 'update',
       );
       expect(fileToUpdate?.outcome).toBe('WITHDRAWN');
       expect(fileToUpdate?.outcomeComment).toBeNull();
@@ -368,9 +376,10 @@ describe('OfficialReportSnapshot', () => {
             OfficialReportSnapshotFile.from({
               nominationFileId,
               hasManuallyEditedHtml: false,
-              note: null,
+              note: { html: null, outdatedBy: null, status: 'GENERATED' },
+              recusedMembers: [],
               outcome: { value: 'VALIDATED', comment: null },
-              reporters: ['M. John DOE'],
+              reporters: [helpers.JOHN_DOE],
             }),
           ]),
         ),
@@ -393,8 +402,9 @@ describe('OfficialReportSnapshot', () => {
             OfficialReportSnapshotFile.from({
               nominationFileId: 'file-1',
               hasManuallyEditedHtml: true,
-              note: null,
-              reporters: ['M. John DOE'],
+              note: { html: null, outdatedBy: null, status: 'GENERATED' },
+              recusedMembers: [],
+              reporters: [helpers.JOHN_DOE],
               outcome: { value: 'VALIDATED', comment: null },
             }),
           ],
@@ -410,7 +420,7 @@ describe('OfficialReportSnapshot', () => {
       });
 
       const fileToOutdate = diff.files.find(
-        (file): file is Extract<typeof file, { action: 'outdate' | 'update' }> => file.action === 'outdate',
+        (file): file is Extract<typeof file, { outcome: unknown }> => file.action === 'outdate',
       );
       expect(fileToOutdate?.outcome).toBe('WITHDRAWN');
       expect(fileToOutdate?.outcomeComment).toBeNull();
@@ -425,12 +435,37 @@ describe('OfficialReportSnapshot', () => {
         type: 'AgendaNominationFilesUpdated',
         payload: {
           files: [
-            { nominationFileId: 'file-2', outcome: { value: 'VALIDATED', comment: null }, reporters: [] },
+            {
+              nominationFileId: 'file-2',
+              outcome: { value: 'VALIDATED', comment: null },
+              recusedMembers: [],
+              reporters: [],
+            },
           ],
         },
       });
 
       expect(diff.files).toContainEqual({ action: 'delete', nominationFileId: 'file-1' });
+    });
+
+    it('follows the recusal of the files it holds only', () => {
+      const FORGET = { id: 'member-forget', name: 'M. Paul FORGET' };
+      const { snapshot } = makeSnapshot();
+
+      const diff = snapshot.invalidate({
+        id: 'or-1',
+        type: 'NominationFilesRecusalsUpdated',
+        payload: {
+          files: [
+            { nominationFileId: 'file-1', recusedMembers: [FORGET] },
+            { nominationFileId: 'file-2', recusedMembers: [FORGET] },
+          ],
+        },
+      });
+
+      expect(diff.files).toEqual([
+        { action: 'recuse', nominationFileId: 'file-1', note: 'follow', recusedMembers: [FORGET] },
+      ]);
     });
   });
 });
@@ -439,9 +474,10 @@ function makeSnapshot(props: Partial<PlainOfficialReportSnapshot> = {}) {
   const file = {
     nominationFileId: 'file-1',
     hasManuallyEditedHtml: false,
-    note: null,
+    note: { html: null, outdatedBy: null, status: 'GENERATED' },
     outcome: { value: 'VALIDATED', comment: null },
-    reporters: ['M. John DOE'],
+    recusedMembers: [],
+    reporters: [helpers.JOHN_DOE],
   } as const satisfies PlainOfficialReportSnapshotFile;
 
   const snapshot = OfficialReportSnapshot.from(

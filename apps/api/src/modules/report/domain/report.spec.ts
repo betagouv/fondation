@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 
-import { Report, ReportFilesAttached, ReportFilesDetached } from './report';
+import { Report, ReportAttachmentDetached, ReportFilesAttached } from './report';
 
 describe('Report', () => {
   it('should attach a file to a report', () => {
@@ -40,31 +40,13 @@ describe('Report', () => {
     expect(report.messages).toHaveLength(0);
   });
 
-  it('should detach files from report', () => {
+  it('should detach an attachment from report by its id', () => {
     const reportId = randomUUID();
-    const report = Report.from({
-      id: reportId,
-    });
+    const fileId = randomUUID();
+    const report = Report.from({ id: reportId });
 
-    const reporterId = randomUUID();
-    report.detachFiles({ reporterId, fileNames: ['file to detach.pdf'] });
+    report.detachAttachment({ fileId });
 
-    const [filesDetached] = report.messages;
-
-    expect(filesDetached).toBeInstanceOf(ReportFilesDetached);
-    expect(filesDetached).toMatchObject({
-      id: reportId,
-      reporterId,
-      fileNames: [`file to detach.pdf`],
-    });
-  });
-
-  it('should ignore an empty list of file ids to detach', () => {
-    const report = Report.from({
-      id: randomUUID(),
-    });
-
-    report.detachFiles({ reporterId: randomUUID(), fileNames: [] });
-    expect(report.messages).toHaveLength(0);
+    expect(report.messages).toEqual([new ReportAttachmentDetached(reportId, fileId)]);
   });
 });

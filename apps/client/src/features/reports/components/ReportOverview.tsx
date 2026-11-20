@@ -3,10 +3,12 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { Navigate } from 'react-router';
 
 import { useIsSg } from '@/features/auth/hooks/roles.hook';
+import { ObservationsCard } from '@/features/observations/components/ObservationsCard';
 import { AuditionAnnouncedBanner, AuditionScheduledBanner } from '@/shared/components/audition-banner';
 import { ArchiveBannerPortal } from '@/shared/components/banners';
 import type { ReportStatusEnum } from '@/shared/enums/report-status.enum';
 import { useAttachmentFailureToast } from '@/shared/hooks/useAttachmentFailureToast';
+import { AlertBanner } from '@/shared/ui/alert-banner';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { DetailsPageLayout } from '@/shared/ui/details';
 import { PageContentLayout } from '@/shared/ui/PageContentLayout';
@@ -20,7 +22,7 @@ import {
 } from '@queries/nomination-sessions.queries';
 import {
   useAttachReportFilesMutation,
-  useDetachReportFilesMutation,
+  useDetachReportAttachmentMutation,
   useReportQuery,
   useUpdateReportMutation,
 } from '@queries/reports.queries';
@@ -46,7 +48,7 @@ export function ReportOverview({ id }: { id: string }) {
   });
   const sessionQuery = useDetailedNominationSessionQuery({ sessionId: retrievedReport?.sessionId });
   const { mutate: attachReportFiles } = useAttachReportFilesMutation();
-  const { mutate: detachReportFiles } = useDetachReportFilesMutation();
+  const { mutate: detachReportAttachment } = useDetachReportAttachmentMutation();
   const { mutate: updateReport } = useUpdateReportMutation();
   const notifyFailure = useAttachmentFailureToast();
 
@@ -84,7 +86,7 @@ export function ReportOverview({ id }: { id: string }) {
     nominationFileName: nominationFile.content.nomMagistrat,
     session,
   });
-  const isArchived = nominationFile.isArchived;
+  const isReadOnly = !!retrievedReport.lockedReason;
 
   const onUpdateContent = (comment: string) => updateReport({ data: { comment }, reportId: id });
   const onUpdateState = (status: ReportStatusEnum) => updateReport({ data: { status }, reportId: id });
@@ -96,18 +98,23 @@ export function ReportOverview({ id }: { id: string }) {
     );
   };
 
-  const onAttachedFileDeleted = async (fileName: string) => {
-    detachReportFiles({
-      fileNames: [fileName],
-      reportId: id,
-    });
-  };
+  const onAttachedFileDeleted = (fileId: string) => detachReportAttachment({ fileId, reportId: id });
 
   return (
-    <ArchiveBannerPortal isArchived={isArchived}>
+    <ArchiveBannerPortal isArchived={nominationFile.isArchived}>
       <DetailsPageLayout
         alerts={
           <>
+            {retrievedReport.lockedReason === 'IMPERSONATION' && (
+              <AlertBanner
+                fullWidth
+                icon="fr-icon-lock-line"
+                message={
+                  <FormattedMessage defaultMessage="Rapport en lecture seule : il ne peut pas être modifié pendant une usurpation d'identité" />
+                }
+                tone="neutral"
+              />
+            )}
             {!isSg && isAuditionMissing(nominationFile) && <AuditionAnnouncedBanner fullWidth />}
             <AuditionScheduledBanner
               date={nominationFile.auditionDate}
@@ -128,7 +135,7 @@ export function ReportOverview({ id }: { id: string }) {
               />
             }
             detectedMagistratId={nominationFile.content.detectedMagistratId}
-            isReadOnly={isArchived}
+            isReadOnly={isReadOnly}
             name={nominationFile.content.nomMagistrat}
             nominationFileId={retrievedReport.nominationFileId}
             onUpdateState={onUpdateState}
@@ -138,32 +145,46 @@ export function ReportOverview({ id }: { id: string }) {
           />
         }
         identity={
-          <ReportMagistratCard
-            report={{
-              biography: nominationFile.content.historique,
-              birthDate: nominationFile.content.dateDeNaissance,
-              currentPosition: nominationFile.content.posteActuel,
-              grade: nominationFile.content.grade,
-              missingEvaluation: nominationFile.missingEvaluation,
-              positionStartDate: nominationFile.content.datePriseDeFonctionPosteActuel,
-              rank: nominationFile.content.rang,
-              targetedGrade: nominationFile.content.gradeCible,
-              targetedPosition: nominationFile.content.posteCible,
-            }}
-          />
+          <>
+            <ReportMagistratCard
+              report={{
+                biography: nominationFile.content.historique,
+                birthDate: nominationFile.content.dateDeNaissance,
+                currentPosition: nominationFile.content.posteActuel,
+                grade: nominationFile.content.grade,
+                missingEvaluation: nominationFile.missingEvaluation,
+                positionStartDate: nominationFile.content.datePriseDeFonctionPosteActuel,
+                rank: nominationFile.content.rang,
+                targetedGrade: nominationFile.content.gradeCible,
+                targetedPosition: nominationFile.content.posteCible,
+              }}
+            />
+            <ObservationsCard
+              magistratName={nominationFile.content.nomMagistrat}
+              nominationFileId={retrievedReport.nominationFileId}
+              observers={nominationFile.content.observants}
+              sessionId={retrievedReport.sessionId}
+            />
+          </>
         }
         navigation={<ReportNavigation reportId={id} sessionId={retrievedReport.sessionId} />}
         wideIdentity
       >
         <AutoSaveNotice />
-        <ReportEditor comment={retrievedReport.comment} onUpdate={onUpdateContent} reportId={id} />
-        <ReportAttachmentsCard isReadOnly={isArchived} onFilesAttached={onFilesAttached}>
+        <ReportEditor
+          comment={retrievedReport.comment}
+          isReadOnly={isReadOnly}
+          onUpdate={onUpdateContent}
+          reportId={id}
+        />
+        <ReportAttachmentsCard isReadOnly={isReadOnly} onFilesAttached={onFilesAttached}>
           {retrievedReport.attachments.length > 0 && (
             <AttachedFilesList
               attachments={retrievedReport.attachments}
-              isReadOnly={isArchived}
+              isReadOnly={isReadOnly}
               onDelete={onAttachedFileDeleted}
               reportId={id}
+              visibility={retrievedReport.attachmentsVisibility}
             />
           )}
         </ReportAttachmentsCard>

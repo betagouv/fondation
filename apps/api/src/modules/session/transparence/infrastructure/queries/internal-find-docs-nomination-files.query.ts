@@ -7,12 +7,17 @@ import { Prisma } from '../../../../../generated/prisma/client';
 import { findAgendaNominationFilesRawQuery } from '../../../../../generated/prisma/sql';
 import { assertPgParams } from '../../../../../utils/assert-pg-params';
 import { Db } from '../../../../framework/database';
-import { CIVILITIES, magistratTitledFullName } from '../../../../magistrat/domain/magistrat-name';
+import {
+  CIVILITIES,
+  magistratDocumentName,
+  magistratFullName,
+} from '../../../../magistrat/domain/magistrat-name';
 import { GenderEnum } from '../../../../shared/gender.enum';
 import { GradeEnum } from '../../../../shared/grade.enum';
 import { NominationFileOutcome } from '../../../../shared/nomination-file-outcome.enum';
+import { byProtocolOrder } from '../../../../shared/protocol-order';
 import { AffectationVersionFinder } from '../finders/affectation-version.finder';
-import { buildMemberName, buildPosition } from '../helpers/magistrat.helper';
+import { buildMemberName, buildPosition, buildRecusedMemberName } from '../helpers/magistrat.helper';
 
 @Injectable()
 export class InternalFindDocsNominationFilesQuery {
@@ -104,6 +109,19 @@ const SqlNominationFilesSchema = z
         }),
       ),
     ),
+    recusedMembers: z.preprocess(
+      (x) => x ?? [],
+      z.array(
+        z.object({
+          firstName: z.string().trim().nonempty(),
+          gender: z.enum(GenderEnum),
+          id: z.uuid(),
+          lastName: z.string().trim().nonempty(),
+          recusalTitle: z.string().nullable(),
+          sort: z.number().int(),
+        }),
+      ),
+    ),
     targetPosition: z.object({
       arrondissement: SqlJurisdictionSchema.nullable(),
       function: SqlFunctionSchema,
@@ -142,12 +160,17 @@ const SqlNominationFilesSchema = z
       lastName: u.lastName,
     }));
 
+    const recusedMembers = item.recusedMembers
+      .sort(byProtocolOrder)
+      .map((u) => ({ fullTitledName: buildRecusedMemberName(u), id: u.id }));
+
     return {
       id: item.id,
       magistrat: {
         externalId: item.magistrat.externalId,
+        fullName: magistratFullName(item.magistrat),
         id: item.magistrat.id,
-        name: magistratTitledFullName(item.magistrat),
+        name: magistratDocumentName(item.magistrat),
         position: {
           functionId: item.magistrat.position.function?.id ?? null,
           grade: item.magistrat.position.grade,
@@ -162,6 +185,7 @@ const SqlNominationFilesSchema = z
             value: nominationFileOutcome.outcome,
           }
         : null,
+      recusedMembers,
       reporters,
       targetPosition: {
         functionId: item.targetPosition.function?.id ?? null,
@@ -182,6 +206,9 @@ export class InternalFoundAgendaNominationFiles extends createZodDto(
         magistrat: z.object({
           id: z.string(),
           externalId: z.number().int().gt(0),
+          /** the full name, shown on screen */
+          fullName: z.string(),
+          /** the name printed in the session documents */
           name: z.string(),
           position: z.object({
             label: z.string().nullable(),
@@ -207,6 +234,7 @@ export class InternalFoundAgendaNominationFiles extends createZodDto(
             fullTitledName: z.string().trim().nonempty(),
           }),
         ),
+        recusedMembers: z.array(z.object({ id: z.string(), fullTitledName: z.string().trim().nonempty() })),
         outcome: z
           .object({
             value: z.enum(NominationFileOutcome.enum),

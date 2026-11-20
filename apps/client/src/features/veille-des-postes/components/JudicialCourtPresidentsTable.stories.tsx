@@ -1,0 +1,201 @@
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { http, HttpResponse } from 'msw';
+import { useState } from 'react';
+
+import { PinnedHeader } from '@/shared/components/pinned-header';
+import { ConfirmModalProvider } from '@/shared/context/confirm-modal';
+import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
+import { ToastProvider } from '@/shared/ui/toast';
+import type { ListedJudicialCourtPresidentsDto } from '@api/types';
+
+import { JudicialCourtPresidentsTable } from './JudicialCourtPresidentsTable';
+import {
+  positionVacancyHandlers,
+  storyCountOf,
+  storyCounts,
+  storyHolderOf,
+} from './veille-des-postes.story-fixtures';
+
+type JudicialCourt = ListedJudicialCourtPresidentsDto['items'][number];
+
+const RESSORTS: [string, string[]][] = [
+  [
+    "Cour d'appel d'Agen",
+    ["Tribunal judiciaire d'Agen", "Tribunal judiciaire d'Auch", 'Tribunal judiciaire de Cahors'],
+  ],
+  [
+    "Cour d'appel d'Aix en Provence",
+    [
+      "Tribunal judiciaire d'Aix-en-Provence",
+      'Tribunal judiciaire de Digne-les-Bains',
+      'Tribunal judiciaire de Draguignan',
+      'Tribunal judiciaire de Grasse',
+      'Tribunal judiciaire de Marseille',
+      'Tribunal judiciaire de Nice',
+      'Tribunal judiciaire de Tarascon',
+      'Tribunal judiciaire de Toulon',
+    ],
+  ],
+  [
+    "Cour d'appel de Lyon",
+    [
+      'Tribunal judiciaire de Bourg-en-Bresse',
+      'Tribunal judiciaire de Lyon',
+      'Tribunal judiciaire de Roanne',
+      'Tribunal judiciaire de Saint-Étienne',
+      'Tribunal judiciaire de Villefranche-sur-Saône',
+    ],
+  ],
+  [
+    "Cour d'appel de Paris",
+    [
+      "Tribunal judiciaire d'Auxerre",
+      'Tribunal judiciaire de Bobigny',
+      'Tribunal judiciaire de Créteil',
+      "Tribunal judiciaire d'Évry",
+      'Tribunal judiciaire de Fontainebleau',
+      'Tribunal judiciaire de Meaux',
+      'Tribunal judiciaire de Melun',
+      'Tribunal judiciaire de Paris',
+      'Tribunal judiciaire de Sens',
+    ],
+  ],
+  [
+    "Cour d'appel de Rennes",
+    [
+      'Tribunal judiciaire de Brest',
+      'Tribunal judiciaire de Lorient',
+      'Tribunal judiciaire de Nantes',
+      'Tribunal judiciaire de Quimper',
+      'Tribunal judiciaire de Rennes',
+      'Tribunal judiciaire de Saint-Brieuc',
+      'Tribunal judiciaire de Saint-Malo',
+      'Tribunal judiciaire de Saint-Nazaire',
+      'Tribunal judiciaire de Vannes',
+    ],
+  ],
+];
+const LAST_NAMES = [
+  'AUBERT',
+  'BENALI',
+  'CARON',
+  'DIALLO',
+  'FONTAINE',
+  'HOARAU',
+  'LACROIX',
+  'NGUYEN',
+  'VIDAL',
+];
+const FIRST_NAMES = ['Claire', 'Karim', 'Hélène', 'Mamadou', 'Pierre', 'Léa', 'Sophie'];
+
+const VACANT_COURTS = new Set([4, 17]);
+
+const JUDICIAL_COURTS: JudicialCourt[] = RESSORTS.flatMap(([ressort, courts], ressortIndex) =>
+  courts.map((label) => ({ label, ressort: { id: `ressort-${ressortIndex}`, label: ressort } })),
+).map(({ label, ressort }, index) =>
+  VACANT_COURTS.has(index)
+    ? {
+        ...storyHolderOf(index, { held: false, movesAfterSevenYears: true }),
+        commentPreview: index === 17 ? 'Intérim assuré par le premier vice-président' : null,
+        court: { id: `${index}`, label },
+        installationDate: null,
+        magistrat: null,
+        ressort,
+      }
+    : {
+        ...storyHolderOf(index, { held: true, movesAfterSevenYears: true }),
+        commentPreview: index % 5 === 1 ? 'Souhaite partir en 2027' : null,
+        court: { id: `${index}`, label },
+        installationDate:
+          index % 11 === 4
+            ? null
+            : { day: 1 + (index % 27), month: 1 + (index % 12), year: 2019 + (index % 7) },
+        magistrat: {
+          id: `magistrat-${index}`,
+          name: `${LAST_NAMES[index % LAST_NAMES.length]} ${FIRST_NAMES[index % FIRST_NAMES.length]}`,
+          title: `Président du ${label.charAt(0).toLowerCase()}${label.slice(1)}`,
+        },
+        ressort,
+      },
+);
+
+const courtsHandler = http.get('*/api/veille-des-postes/v1/tribunaux-judiciaires', ({ request }) => {
+  const params = new URL(request.url).searchParams;
+  const search = params.get('search')?.toLowerCase();
+  const page = Number(params.get('page') ?? 1);
+  const limit = Number(params.get('limit') ?? 20);
+
+  const searched = JUDICIAL_COURTS.filter(
+    (court) =>
+      !search ||
+      `${court.ressort.label} ${court.court.label} ${court.magistrat?.name}`.toLowerCase().includes(search),
+  );
+  const counts = storyCounts(searched);
+
+  return HttpResponse.json<ListedJudicialCourtPresidentsDto>({
+    ...counts,
+    currentPageIndex: page,
+    items: searched.slice((page - 1) * limit, page * limit),
+    nextPageIndex: page * limit < searched.length ? page + 1 : undefined,
+    ressorts: RESSORTS.map(([label], index) => ({
+      count: storyCountOf(searched, (court) => [court.ressort.id], `ressort-${index}`),
+      id: `ressort-${index}`,
+      label,
+    })),
+    totalCount: searched.length,
+  });
+});
+
+function JudicialCourtPresidentsStory() {
+  const [filtersSlot, setFiltersSlot] = useState<HTMLDivElement | null>(null);
+  const [titleSlot, setTitleSlot] = useState<HTMLSpanElement | null>(null);
+
+  return (
+    <StoryQueryClient>
+      <ToastProvider>
+        <ConfirmModalProvider>
+          <PinnedHeader
+            bar={(isPinned) => (
+              <div className="fr-container flex flex-col gap-y-4">
+                <h1 className="fr-h3 fr-mb-0">
+                  Veille des postes
+                  {isPinned && <span ref={setTitleSlot} />}
+                </h1>
+                <div className="min-h-10" ref={setFiltersSlot} />
+              </div>
+            )}
+            barClassName="fr-pt-6v"
+            contentClassName="fr-container fr-mt-6v fr-mb-8v"
+          >
+            <JudicialCourtPresidentsTable
+              filtersSlot={filtersSlot}
+              onSidePanelToggle={() => {}}
+              titleSlot={titleSlot}
+            />
+          </PinnedHeader>
+        </ConfirmModalProvider>
+      </ToastProvider>
+    </StoryQueryClient>
+  );
+}
+
+const meta = {
+  beforeEach: ({ msw }) => {
+    msw.use(courtsHandler, ...positionVacancyHandlers(JUDICIAL_COURTS));
+  },
+  component: JudicialCourtPresidentsStory,
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'Une ligne par tribunal judiciaire ou de première instance, par ressort puis par juridiction, avec son président. Le ressort n\'est écrit qu\'une fois, au milieu de ses tribunaux, et un trait bleu marque le passage à un autre ressort. Un tribunal sans président est "Vacant". La recherche porte sur le ressort, la juridiction et le magistrat. Les filtres "Ressort" et "Alerte / statut" donnent le nombre de tribunaux de chaque valeur. La story ne filtre pas, c\'est l\'API qui le fait. En défilant, l\'en-tête se colle en haut et le compteur des lignes vues apparaît à côté du titre, par pages de 20. Les candidats arriveront avec leur ticket.',
+      },
+    },
+    layout: 'fullscreen',
+  },
+  title: 'Session/CSM/JudicialCourtPresidentsTable',
+} satisfies Meta<typeof JudicialCourtPresidentsStory>;
+
+export default meta;
+
+export const Playground: StoryObj<typeof meta> = {};

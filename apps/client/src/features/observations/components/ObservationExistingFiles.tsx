@@ -5,7 +5,7 @@ import type { Observation } from '@queries/observations.queries';
 export function ObservationExistingFiles(props: {
   files: Observation['files'];
   detachedFiles: Observation['files'];
-  onRemove: (fileId: string) => void;
+  onRemove?: (fileId: string) => void;
 }) {
   const intl = useIntl();
 
@@ -29,14 +29,16 @@ export function ObservationExistingFiles(props: {
           >
             <i className="ri-file-line" />
             <span className="text-sm">{file.name}</span>
-            <button
-              className="fr-ml-2v text-(--text-default-error) hover:text-(--text-default-error)"
-              onClick={() => props.onRemove(file.id)}
-              title={intl.formatMessage({ defaultMessage: 'Supprimer {name}' }, { name: file.name })}
-              type="button"
-            >
-              <i className="ri-close-line" />
-            </button>
+            {props.onRemove && (
+              <button
+                className="fr-ml-2v text-(--text-default-error) hover:text-(--text-default-error)"
+                onClick={() => props.onRemove?.(file.id)}
+                title={intl.formatMessage({ defaultMessage: 'Supprimer {name}' }, { name: file.name })}
+                type="button"
+              >
+                <i className="ri-close-line" />
+              </button>
+            )}
           </div>
         ))}
       </div>

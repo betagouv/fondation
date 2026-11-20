@@ -23,11 +23,15 @@ l'écran et le document officiel.
 - Le nom marital est omis lorsqu'il est égal au nom de naissance, sans tenir compte de la casse ni des
   espaces en trop. `ép.` vaut pour une épouse comme pour un époux.
 - **L'API construit le nom complet en un seul endroit** : les fonctions du domaine magistrat, dont une
-  variante précédée de la civilité (`Mme`, `M.`) pour les documents et la fiche magistrat. Une requête qui
+  variante précédée de la civilité (`Mme`, `M.`) pour la fiche magistrat. Une requête qui
   joint déjà le magistrat appelle directement ces fonctions pures plutôt que d'ajouter une lecture par le
   `MagistratService` : elles ne lisent aucune donnée, elles ne font qu'écrire le nom. Le client l'affiche
   tel qu'il le reçoit, conformément à
   [l'ADR sur les libellés métier](../../apps/client/docs/adr/2026-07-13-libelles-metier-servis-par-l-api.md).
+- **Les documents de séance font exception** (amendement du 2026-11-17, FON-772) : l'ordre du jour, le
+  procès-verbal et la notice de restitution impriment le prénom avant le nom, `Mme Isabelle GAUTHIER (ép.
+  ROBERT)`, à la demande du Secrétariat général. Une fonction du même domaine écrit ce nom en séance avec
+  les mêmes règles de casse et de nom marital. Un document validé garde le nom avec lequel il a été envoyé.
 
 ## Conséquences
 

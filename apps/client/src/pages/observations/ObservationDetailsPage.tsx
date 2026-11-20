@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
-import { Navigate, useParams, useSearchParams } from 'react-router';
+import { generatePath, Navigate, useParams, useSearchParams } from 'react-router';
 
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { ObservationDetailsContent } from '@/features/observations/components/ObservationDetailsContent';
@@ -81,7 +81,7 @@ export function ObservationDetailsPage() {
   }
 
   const fallbackPath = isSgContext
-    ? `/secretariat-general/session/${sessionId}`
+    ? generatePath(ROUTE_PATHS.SG.GDS.SESSION_ID, { sessionId: sessionId ?? '' })
     : getDetailSessionGdsPath({ sessionId: sessionId ?? '' });
 
   if (!observationId || !sessionId || !nominationFileId || isError || !observation) {
@@ -132,7 +132,7 @@ export function ObservationDetailsPage() {
   const openedSidePanel = openedDossierSearch(nominationFileId);
 
   const backTo = isSgContext
-    ? `/secretariat-general/session/${sessionId}${openedSidePanel}`
+    ? `${generatePath(ROUTE_PATHS.SG.GDS.SESSION_ID, { sessionId })}${openedSidePanel}`
     : reportId
       ? ROUTE_PATHS.TRANSPARENCES.DETAILS_REPORTS.replace(':id', reportId)
       : `${getDetailSessionGdsPath({ sessionId })}${openedSidePanel}`;
@@ -143,7 +143,6 @@ export function ObservationDetailsPage() {
         <ObservationDetailsContent
           backTo={backTo}
           context={context}
-          isArchived={observation.isArchived}
           nominationFileId={nominationFileId}
           observation={observation}
           observationId={observationId}

@@ -67,4 +67,25 @@ describe('ReporterSelect', () => {
 
     expect(onChange).toHaveBeenCalledWith(['a']);
   });
+
+  it('greys out a member recused from the file and tells how to affect them', async () => {
+    const user = userEvent.setup();
+    renderWithIntl(
+      <ReporterSelect
+        available={REPORTERS}
+        isNonAffectable={(memberId) => memberId === 'a'}
+        onChange={vi.fn()}
+        value={[]}
+      />,
+    );
+
+    const trigger = screen.getByRole('button', { name: 'Affecter un rapporteur' });
+    await user.click(trigger);
+
+    expect(await screen.findByRole('option', { name: 'Jean ALBERT (déport)' })).toBeDisabled();
+    expect(screen.getByRole('option', { name: 'Marie ZOLA' })).toBeEnabled();
+    expect(trigger).toHaveAccessibleDescription(
+      "Un membre déporté de ce dossier ne peut pas être affecté : retirez d'abord son déport.",
+    );
+  });
 });

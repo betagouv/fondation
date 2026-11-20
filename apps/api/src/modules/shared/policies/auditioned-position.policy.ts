@@ -88,8 +88,14 @@ export function isAuditionRequired(
 
 const AUDITIONED_REPORTERS = 2;
 
+// a public prosecutor gets two reporters at Paris only, the national prosecutors having their own function code
 function hasSingleReporter(file: AuditionedPosition): boolean {
-  return file.detectedTargetedFunctionId === 'AGR' && file.detectedJurisdictionId === 'CC  PARIS';
+  const { detectedJurisdictionId: jurisdictionId, detectedTargetedFunctionId: functionId } = file;
+
+  return (
+    (functionId === 'AGR' && jurisdictionId === 'CC  PARIS') ||
+    (functionId === 'PR' && jurisdictionId !== 'TJ  PARIS')
+  );
 }
 
 /**

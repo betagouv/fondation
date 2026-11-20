@@ -41,6 +41,7 @@ import { API_CONFIG_TOKEN, type ApiConfig } from '../config';
 import { afterCommit, Db } from '../database';
 
 import { contentDisposition } from './content-disposition';
+import { renamedFileName } from './file-name';
 import { type FondationFile } from './files.types';
 import { filenameToMimeType } from './mime-type';
 import { FileMissingFromStorage, isMissingFromStorage } from './missing-from-storage';
@@ -284,6 +285,24 @@ export class Files implements OnApplicationBootstrap {
       ignoreAsync(() => this._delete(fulfilled.map((file) => file.path)));
       throw new InternalServerErrorException(`Failed uploading ${fulfilled.length} files`);
     }
+  }
+
+  /**
+   * in the caller's transaction, once it has checked the file is its own; the public urls go, since the browser
+   * caches what they served under the former name
+   */
+  @Transactional(Propagation.Mandatory)
+  async rename(command: { id: string; name: string }): Promise<void> {
+    const file = await this.db.tx.file.findUniqueOrThrow({
+      select: { name: true } satisfies Prisma.FileSelect,
+      where: { id: command.id },
+    });
+
+    await this.db.tx.file.update({
+      data: { name: renamedFileName(file.name, command.name) },
+      where: { id: command.id },
+    });
+    await this.db.tx.filePublicUrl.deleteMany({ where: { fileId: command.id } });
   }
 
   async create(files: readonly FondationFile[]): Promise<string[]> {

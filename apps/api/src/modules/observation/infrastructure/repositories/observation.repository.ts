@@ -18,11 +18,13 @@ import { Db } from '../../../framework/database';
 import { Files } from '../../../framework/files/files';
 import { TransparenceService } from '../../../session/transparence/infrastructure/transparence.service';
 import {
-  ObservantAuditionDropped,
+  ObservationBlockEmptied,
+  ObservationBlockReopened,
   Observation,
   ObservationCreated,
   ObservationDeleted,
   ObservationFileLinked,
+  ObservationFileRenamed,
   ObservationFilesAttached,
   ObservationFilesDetached,
   ObservationFollowedUp,
@@ -104,6 +106,8 @@ export class ObservationRepository {
         await this.persistObservationUpdated(message);
       } else if (message instanceof ObservationFilesDetached) {
         await this.persistObservationFilesDetached(message);
+      } else if (message instanceof ObservationFileRenamed) {
+        await this.persistObservationFileRenamed(message);
       } else if (message instanceof ObservationMemberCommentWritten) {
         await this.persistObservationMemberCommentWritten(message);
       } else if (message instanceof ObservationMemberCommentScreenshotsAttached) {
@@ -112,8 +116,10 @@ export class ObservationRepository {
         await this.persistObservationFollowedUp(message);
       } else if (message instanceof ObservationFileLinked) {
         await this.persistObservationFileLinked(message);
-      } else if (message instanceof ObservantAuditionDropped) {
-        await this.persistObservantAuditionDropped(message);
+      } else if (message instanceof ObservationBlockEmptied) {
+        await this.persistObservationBlockEmptied(message);
+      } else if (message instanceof ObservationBlockReopened) {
+        await this.persistObservationBlockReopened(message);
       } else {
         assertNever(message);
       }
@@ -153,7 +159,11 @@ export class ObservationRepository {
     this.files.delete(files.map(({ file }) => file));
   }
 
-  private async persistObservantAuditionDropped(message: ObservantAuditionDropped) {
+  private async persistObservationBlockEmptied(message: ObservationBlockEmptied) {
+    await this.db.tx.observationBlockTracking.deleteMany({
+      where: { magistratId: message.magistratId, sessionId: message.sessionId },
+    });
+
     const { count } = await this.db.tx.observantAudition.deleteMany({
       where: { magistratId: message.magistratId, sessionId: message.sessionId },
     });
@@ -169,6 +179,13 @@ export class ObservationRepository {
         writtenAt: this.clock.now(),
         writtenBy: message.userId,
       },
+    });
+  }
+
+  private persistObservationBlockReopened(message: ObservationBlockReopened) {
+    return this.db.tx.observationBlockTracking.updateMany({
+      data: { status: 'IN_PROGRESS' },
+      where: { magistratId: message.magistratId, sessionId: message.sessionId },
     });
   }
 
@@ -194,6 +211,16 @@ export class ObservationRepository {
     });
 
     this.files.delete(detached.map(({ file }) => file));
+  }
+
+  private async persistObservationFileRenamed(message: ObservationFileRenamed) {
+    const file = await this.db.tx.observationFile.findFirst({
+      select: { fileId: true } satisfies Prisma.ObservationFileSelect,
+      where: { fileId: message.fileId, observationId: message.observationId },
+    });
+    if (!file) throw new NotFoundException();
+
+    await this.files.rename({ id: message.fileId, name: message.name });
   }
 
   private async persistObservationMemberCommentWritten(message: ObservationMemberCommentWritten) {

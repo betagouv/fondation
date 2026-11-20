@@ -8,11 +8,13 @@ import { z } from 'zod';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { useRequestFailure } from '@/shared/hooks/useRequestFailure';
 import { RequiredLabel } from '@/shared/ui/required-label';
-import { Upload } from '@/shared/ui/upload';
-import { DOCUMENT_FILE_TYPES } from '@/shared/ui/upload/file-types';
+import { AttachmentFormatsHint, Upload } from '@/shared/ui/upload';
+import { ATTACHMENT_FILE_TYPES } from '@/shared/ui/upload/file-types';
+import { ValidationError } from '@/utils/validation-error';
 import {
   useCreateObservationMutation,
   useListObservationsAttachments,
+  useObservationsQuery,
   useUpdateObservationMutation,
   type Observant,
   type Observation,
@@ -65,7 +67,7 @@ export function ObservationForm({
   } = useForm<FormSchema>({
     resolver: zodResolver(observationFormSchema),
     defaultValues: {
-      magistratId: observation?.magistrat?.id ?? '',
+      magistratId: observation?.magistrat.id ?? '',
       dateReception: observation?.dateReception?.split('T')[0] ?? '',
       description: observation?.description,
       files: [],
@@ -81,6 +83,7 @@ export function ObservationForm({
   const attachedFiles = observation?.files ?? [];
   const existingFiles = attachedFiles.filter(({ id }) => keptFileIds.includes(id));
   const filesToDetach = attachedFiles.filter(({ id }) => !keptFileIds.includes(id));
+  const { data: listed } = useObservationsQuery({ nominationFileId, sessionId });
 
   const { data: observationsAttachments } = useListObservationsAttachments({
     sessionId,
@@ -103,9 +106,7 @@ export function ObservationForm({
   const files = watch('files') ?? [];
 
   useEffect(() => {
-    if (observation?.magistrat) {
-      setSelectedMagistrat(observation.magistrat);
-    }
+    if (observation) setSelectedMagistrat(observation.magistrat);
   }, [observation]);
 
   useEffect(() => {
@@ -139,7 +140,7 @@ export function ObservationForm({
     const removesAudition =
       !!observation?.audition &&
       observation.observantObservationsCount === 1 &&
-      observation.magistrat?.id !== magistratId;
+      observation.magistrat.id !== magistratId;
     if (!removesAudition) return true;
 
     const { isConfirmed } = await waitForConfirmation({
@@ -233,7 +234,8 @@ export function ObservationForm({
           ) : (
             <FormattedMessage defaultMessage="Erreur à la création." />
           )}{' '}
-          {describeFailure(createError ?? updateError)}
+          {ValidationError.messageOf(createError ?? updateError) ??
+            describeFailure(createError ?? updateError)}
         </p>
       ) : null}
       <MagistratCombobox
@@ -269,7 +271,7 @@ export function ObservationForm({
         <ObservationExistingFiles
           detachedFiles={filesToDetach}
           files={existingFiles}
-          onRemove={handleRemoveExistingFile}
+          onRemove={listed?.canManageAttachments ? handleRemoveExistingFile : undefined}
         />
       )}
 
@@ -303,8 +305,8 @@ export function ObservationForm({
               )}
             </p>
             <Upload
-              accept={DOCUMENT_FILE_TYPES}
-              hint={<FormattedMessage defaultMessage="Formats supportés : png, jpeg, pdf, doc et docx" />}
+              accept={ATTACHMENT_FILE_TYPES}
+              hint={<AttachmentFormatsHint />}
               key={uploadKey}
               multiple
               onChange={field.onChange}

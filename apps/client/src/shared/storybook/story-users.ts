@@ -6,11 +6,12 @@ export type StoryView = (typeof STORY_VIEWS)[number];
 export const STORY_USERS = {
   member: {
     canManageTechnicalAccounts: false,
-    civility: 'Monsieur PETIT',
+    civility: 'Madame PETIT',
     displayedRole: { group: 'MEMBER', id: 'MEMBRE_SIEGE', label: 'Membre du siège' },
     email: 'jean.petit@justice.fr',
     firstName: 'Jean',
     formation: 'SIEGE',
+    gender: 'MALE',
     id: 'member-1',
     isAdmin: false,
     isImpersonated: false,
@@ -25,6 +26,7 @@ export const STORY_USERS = {
     email: 'sophie.bernard@justice.fr',
     firstName: 'Sophie',
     formation: null,
+    gender: 'FEMALE',
     id: 'sg-1',
     isAdmin: false,
     isImpersonated: false,

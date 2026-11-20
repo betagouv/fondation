@@ -277,6 +277,41 @@ describe('automated affectation', () => {
     ]);
   });
 
+  it('should exchange files between members when the first member is recused from a file', () => {
+    const members = [
+      AutoAffectationMember.from({
+        session,
+        id: 'memberId1',
+        excludedJurisdictions: new Set([]),
+        affectationCountPerGrade: new Map(),
+      }),
+      AutoAffectationMember.from({
+        session,
+        id: 'memberId2',
+        excludedJurisdictions: new Set([]),
+        affectationCountPerGrade: new Map(),
+      }),
+    ];
+
+    // oxfmt-ignore
+    const files: AutoAffectationNominationFile[] = [
+      AutoAffectationNominationFile.from({ id: 'file-1', targetedGrade: 'G3', targetedJurisdiction: 'CA  LYON', currentJurisdiction: 'CA  RENNES', number: 1, session }),
+      AutoAffectationNominationFile.from({ id: 'file-2', recusedMemberIds: new Set(['memberId1']), targetedGrade: 'G3', targetedJurisdiction: 'CA  LYON', currentJurisdiction: 'CA  RENNES', number: 2, session }),
+      AutoAffectationNominationFile.from({ id: 'file-3', targetedGrade: 'G3', targetedJurisdiction: 'CA  LYON', currentJurisdiction: 'CA  RENNES', number: 3, session }),
+      AutoAffectationNominationFile.from({ id: 'file-4', targetedGrade: 'G3', targetedJurisdiction: 'CA  LYON', currentJurisdiction: 'CA  RENNES', number: 4, session }),
+    ];
+
+    const autoAffectations = AutoAffectations.from({ members, files });
+    const result = autoAffectations.distribute();
+
+    expect(result).toEqual([
+      { nominationFileId: 'file-3', reporterIds: ['memberId1'] },
+      { nominationFileId: 'file-4', reporterIds: ['memberId1'] },
+      { nominationFileId: 'file-1', reporterIds: ['memberId2'] },
+      { nominationFileId: 'file-2', reporterIds: ['memberId2'] },
+    ]);
+  });
+
   it('should handle large affectations', () => {
     const members = Array.from({ length: 18 }).map((_, i) =>
       AutoAffectationMember.from({

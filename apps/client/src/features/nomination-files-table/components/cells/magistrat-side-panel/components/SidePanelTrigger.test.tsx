@@ -13,7 +13,7 @@ import {
 
 import { SidePanelTrigger } from './SidePanelTrigger';
 
-const SG_ROUTE = '/secretariat-general/session/session-1';
+const SG_ROUTE = '/secretariat-general/gds/session/session-1';
 const MEMBER_ROUTE = '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/session-1';
 
 function renderTrigger(overrides: NominationFileOverrides, route = SG_ROUTE) {
@@ -40,6 +40,17 @@ function renderTrigger(overrides: NominationFileOverrides, route = SG_ROUTE) {
 }
 
 describe('SidePanelTrigger', () => {
+  it.each([
+    ['Voir avec le président', true],
+    ['   ', false],
+  ])('should count the comment %j among the annotations: %s', (comment, counted) => {
+    renderTrigger({ comment });
+
+    expect(screen.queryByRole('img', { name: 'Ce dossier a des annotations (commentaire)' }) !== null).toBe(
+      counted,
+    );
+  });
+
   it('should display the full magistrat name', () => {
     const { container } = renderTrigger({ content: { nomMagistrat: 'DUPONT DE LA TOUR Anne-Charlotte' } });
 
@@ -50,7 +61,7 @@ describe('SidePanelTrigger', () => {
     renderTrigger({
       auditionDate: { day: 12, month: 4, year: 2099 },
       content: { nomMagistrat: 'DUPONT DE LA TOUR Anne-Charlotte' },
-      memo: { value: 'un mémo' },
+      memo: { value: 'un mémo', visibility: 'VISIBLE' },
     });
 
     const nowrapGroup = screen

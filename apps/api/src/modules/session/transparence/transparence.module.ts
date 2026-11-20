@@ -16,13 +16,16 @@ import { AutoAffectationsFinder } from './infrastructure/finders/auto-affectatio
 import { HydratedNominationFilesFinder } from './infrastructure/finders/hydrated-nomination-files.finder';
 import { LolfiTransparenceFilesFinder } from './infrastructure/finders/lolfi-nomination-files.finder';
 import { LolfiNominationSessionFinder } from './infrastructure/finders/lolfi-nomination-session.finder';
+import { NominationFileCommentChangesFinder } from './infrastructure/finders/nomination-file-comment-changes.finder';
 import { NominationFileJurisdictionsFinder } from './infrastructure/finders/nomination-file-jurisdictions.finder';
 import { NominationFileOutcomesFinder } from './infrastructure/finders/nomination-file-outcomes.finder';
 import { NominationFilesProgressFinder } from './infrastructure/finders/nomination-files-progress.finder';
+import { RecusedMembersFinder } from './infrastructure/finders/recused-members.finder';
 import { ReportedSessionsFinder } from './infrastructure/finders/reported-sessions.finder';
 import { ReportersAffectationFinder } from './infrastructure/finders/reporters-affectation.finder';
 import { SessionAuditionsFinder } from './infrastructure/finders/session-auditions.finder';
 import { SessionReportedFilesFinder } from './infrastructure/finders/session-reported-files.finder';
+import { SessionStatusesFinder } from './infrastructure/finders/session-statuses.finder';
 import { SynchronisedLolfiSessionsFinder } from './infrastructure/finders/synchronised-lolfi-sessions.finder';
 import { TransparenceFilesFinder } from './infrastructure/finders/transparence-files.finder';
 import { NominationSessionFinder } from './infrastructure/finders/transparence-session.finder';
@@ -35,7 +38,6 @@ import { DetailAffectationHistoryQuery } from './infrastructure/queries/detail-a
 import { DetailAuditionsPublicationQuery } from './infrastructure/queries/detail-auditions-publication.query';
 import { DetailNominationFileAttachmentQuery } from './infrastructure/queries/detail-nomination-file-attachment.query';
 import { DetailNominationFileAuditionHistoryQuery } from './infrastructure/queries/detail-nomination-file-audition-history.query';
-import { DetailNominationSessionAffectationVersionQuery } from './infrastructure/queries/detail-nomination-session-affectation-version.query';
 import { DetailNominationSessionAttachmentQuery } from './infrastructure/queries/detail-nomination-session-attachment.query';
 import { DetailNominationSessionQuery } from './infrastructure/queries/detail-nomination-session.query';
 import { DetailSessionCommentQuery } from './infrastructure/queries/detail-session-comment.query';
@@ -83,7 +85,6 @@ import { SessionController } from './transparence.controller';
     DetailAffectationHistoryQuery,
     DetailAuditionsPublicationQuery,
     DetailNominationFileAuditionHistoryQuery,
-    DetailNominationSessionAffectationVersionQuery,
     DetailNominationSessionAttachmentQuery,
     DetailNominationSessionQuery,
     DetailSessionCommentQuery,
@@ -103,13 +104,16 @@ import { SessionController } from './transparence.controller';
     ListNominationSessionsQuery,
     LolfiNominationSessionFinder,
     LolfiTransparenceFilesFinder,
+    NominationFileCommentChangesFinder,
     NominationFileJurisdictionsFinder,
     ListArchivedNominationSessionsQuery,
     NominationFileOutcomesFinder,
     NominationFilesProgressFinder,
     NominationSessionFinder,
+    RecusedMembersFinder,
     ReportedSessionsFinder,
     SessionReportedFilesFinder,
+    SessionStatusesFinder,
     ReportersAffectationFinder,
     SessionAuditionsFinder,
     SessionTransparenceRepository,

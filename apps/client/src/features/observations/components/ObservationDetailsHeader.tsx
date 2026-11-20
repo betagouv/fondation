@@ -3,49 +3,49 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { DetailsLink } from '@/shared/components/details-link';
 import { LolfiLink } from '@/shared/components/lolfi-link';
 import { TitleNameIcons } from '@/shared/components/title-name-icons';
+import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { DetailsHeader } from '@/shared/ui/details';
-import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import { useMemberBreadcrumbRoot } from '@/utils/transparences-breadcrumb.utils';
 import type { GetObservationDetailsResponseDto } from '@api/types';
 
 import { ObservationFollowUpSelector } from './ObservationFollowUpSelector';
+import { ObservationFollowUpTag } from './ObservationFollowUpTag';
 
 export function ObservationDetailsHeader(props: {
   backTo: string;
   context: 'sg' | 'membre';
-  isArchived: boolean;
   nominationFileId: string;
   observation: GetObservationDetailsResponseDto;
   sessionId: string;
 }) {
   const { formatMessage } = useIntl();
-  const { observant } = props.observation;
+  const breadcrumbRoot = useBreadcrumbRoot();
+  const { canEdit, followUp, followUpComment, observant } = props.observation;
 
-  const segments =
-    props.context === 'sg'
-      ? [{ label: formatMessage({ defaultMessage: 'Secrétariat général' }), to: ROUTE_PATHS.SG.DASHBOARD }]
-      : [
-          {
-            label: formatMessage({ defaultMessage: 'Transparences' }),
-            to: ROUTE_PATHS.TRANSPARENCES.DASHBOARD,
-          },
-          {
-            label: formatMessage({ defaultMessage: 'Pouvoir de proposition du garde des Sceaux' }),
-            to: ROUTE_PATHS.TRANSPARENCES.DASHBOARD,
-          },
-        ];
+  const memberRoot = useMemberBreadcrumbRoot();
+  const segments = props.context === 'sg' ? breadcrumbRoot : memberRoot;
 
   return (
     <DetailsHeader
       action={
-        <ObservationFollowUpSelector
-          comment={props.observation.followUpComment}
-          followUp={props.observation.followUp}
-          isArchived={props.isArchived}
-          nominationFileId={props.nominationFileId}
-          observationId={props.observation.id}
-          sessionId={props.sessionId}
-        />
+        (canEdit || followUp) && (
+          <div>
+            {canEdit ? (
+              <ObservationFollowUpSelector
+                followUp={followUp}
+                nominationFileId={props.nominationFileId}
+                observationId={props.observation.id}
+                sessionId={props.sessionId}
+              />
+            ) : (
+              followUp && <ObservationFollowUpTag followUp={followUp} />
+            )}
+            {followUpComment && (
+              <p className="fr-mt-2v fr-mb-0 fr-p-0 text-sm font-normal italic">{followUpComment}</p>
+            )}
+          </div>
+        )
       }
       backTo={props.backTo}
       backThroughHistory
