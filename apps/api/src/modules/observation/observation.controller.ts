@@ -18,6 +18,7 @@ import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { DateOnly } from '../../utils/date-only';
 import { FILE_EXTENSIONS, RenameAttachmentDto, UseMultipartBody, type Multipart } from '../framework/files';
+import type { Impersonation } from '../shared/policies/personal-content.policies';
 import { MEMBER_ROLES, type RoleEnum } from '../shared/role.enum';
 import { AuthedUser, AuthedUserId, HasRole } from '../simple-auth';
 
@@ -102,12 +103,13 @@ export class ObservationController {
     type: GetObservationDetailsResponseDto,
   })
   async getObservationDetails(
-    @AuthedUser() user: { id: string; role: RoleEnum },
+    @AuthedUser() user: { id: string; impersonation: Impersonation | undefined; role: RoleEnum },
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
     @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
     @Param('observationId', ParseUUIDPipe) observationId: string,
   ): Promise<GetObservationDetailsResponseDto> {
     return this.observations.getObservationDetails({
+      impersonation: user.impersonation,
       nominationFileId,
       observationId,
       role: user.role,
@@ -220,7 +222,7 @@ export class ObservationController {
     type: AttachedMemberCommentScreenshotsDto,
   })
   async attachMemberCommentScreenshots(
-    @AuthedUserId() userId: string,
+    @AuthedUser() user: { id: string; impersonation: Impersonation | undefined },
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
     @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
     @Param('observationId', ParseUUIDPipe) observationId: string,
@@ -228,10 +230,11 @@ export class ObservationController {
   ): Promise<AttachedMemberCommentScreenshotsDto> {
     return this.observations.attachMemberCommentScreenshots({
       files,
+      impersonation: user.impersonation,
       nominationFileId,
       observationId,
       sessionId,
-      userId,
+      userId: user.id,
     });
   }
 
@@ -240,7 +243,7 @@ export class ObservationController {
   @UsePipes(ZodValidationPipe)
   @HttpCode(HttpStatus.NO_CONTENT)
   async writeMemberComment(
-    @AuthedUserId() userId: string,
+    @AuthedUser() user: { id: string; impersonation: Impersonation | undefined },
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
     @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
     @Param('observationId', ParseUUIDPipe) observationId: string,
@@ -248,10 +251,11 @@ export class ObservationController {
   ): Promise<void> {
     await this.observations.writeMemberComment({
       comment,
+      impersonation: user.impersonation,
       nominationFileId,
       observationId,
       sessionId,
-      userId,
+      userId: user.id,
     });
   }
 

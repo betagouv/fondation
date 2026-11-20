@@ -127,11 +127,52 @@ test.describe('Members E2E', () => {
 
       await member.members.writeNominationFileMemberMemo({ body: { memo: 'À relire' }, path, throwOnError: true });
       const written = await member.sessions.detailNominationFile({ path: file });
-      expect(written.data!.memo).toEqual({ value: 'À relire' });
+      expect(written.data!.memo).toEqual({ value: 'À relire', visibility: 'VISIBLE' });
 
       await member.members.writeNominationFileMemberMemo({ body: { memo: '' }, path, throwOnError: true });
       const erased = await member.sessions.detailNominationFile({ path: file });
-      expect(erased.data!.memo).toEqual({ value: null });
+      expect(erased.data!.memo).toEqual({ value: null, visibility: 'VISIBLE' });
+    });
+
+    test('keeps their notes private from the admin impersonating them', async ({
+      expect,
+      impersonate,
+      logIn,
+      sessions,
+    }) => {
+      const session = await sessions.createOne({
+        candidates: [
+          {
+            firstName: 'ETIENNE',
+            lastName: 'TREVOUX',
+            position: {
+              function: seed.functions.PR,
+              grade: 'G3',
+              jurisdiction: seed.jurisdictions['CA  LYON'],
+            },
+            targetPosition: {
+              function: seed.functions.PR,
+              grade: 'G3',
+              jurisdiction: seed.jurisdictions['CA  GRENOBLE'],
+            },
+          },
+        ],
+        createdAt: '22/04/2026',
+        name: `Notes (${randomUUID()})`,
+      });
+      const member = await logIn('MEMBRE_COMMUN');
+      const file = { nominationFileId: session.files[0]!.id, sessionId: session.id };
+      const path = { ...file, userId: member['@user']!.id };
+      await member.members.writeNominationFileMemberMemo({ body: { memo: 'À relire' }, path, throwOnError: true });
+
+      const impersonator = await impersonate(member['@user']!);
+
+      const read = await impersonator.sessions.detailNominationFile({ path: file });
+      expect(read.data!.memo).toEqual({ visibility: 'PRIVATE' });
+      const refused = await impersonator.members.writeNominationFileMemberMemo({ body: { memo: '' }, path });
+      expect(refused.response?.status).toBe(403);
+      const kept = await member.sessions.detailNominationFile({ path: file });
+      expect(kept.data!.memo).toEqual({ value: 'À relire', visibility: 'VISIBLE' });
     });
   });
 

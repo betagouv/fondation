@@ -7,6 +7,7 @@ import { useIsSg } from '@/features/auth/hooks/roles.hook';
 import { SummaryReaderSelector } from '@/features/summary/components/SummaryReaderSelector';
 import { SummaryContext } from '@/features/summary/context/SummaryContext';
 import { useOpenSummaryAttachment } from '@/features/summary/hooks/useOpenSummaryAttachment';
+import { PrivateContentNotice } from '@/shared/components/private-content-notice';
 import { useArchivedSession } from '@/shared/context/archived-session';
 import { ExpandableText } from '@/shared/ui/expandable-text';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
@@ -21,6 +22,7 @@ type SummaryTarget = {
   headingLevel?: 2 | 3;
   nominationFileId: string;
   sessionId: string;
+  visibility: 'PRIVATE' | 'VISIBLE' | null;
   withOpenLink?: boolean;
 };
 
@@ -45,6 +47,14 @@ function SummaryContent(props: SummaryTarget) {
   const { isArchived } = useArchivedSession();
 
   if (props.canRead) return <ReadableSummary {...props} />;
+
+  if (props.visibility === 'PRIVATE') {
+    return (
+      <SummarySectionLayout headingLevel={props.headingLevel}>
+        <PrivateContentNotice />
+      </SummarySectionLayout>
+    );
+  }
 
   const canCreate = !isArchived && !props.hasSummary && isSg;
   if (!canCreate) return null;

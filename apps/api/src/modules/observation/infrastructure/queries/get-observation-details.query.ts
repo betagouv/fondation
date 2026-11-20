@@ -7,11 +7,13 @@ import { auditionScheduleSchema } from '../../../../utils/audition-schedule';
 import { buildMagistratLolfiUrl } from '../../../../utils/build-magistrat-lolfi-url';
 import { DateOnly, dateOnlyJsonSchema } from '../../../../utils/date-only';
 import { isDefined } from '../../../../utils/is-defined';
+import { privateContentSchema } from '../../../../utils/personal-content';
 import { writerOf, writerSchema } from '../../../../utils/user.util';
 import { Db } from '../../../framework/database';
 import { Files } from '../../../framework/files';
 import { magistratFullName } from '../../../magistrat/domain/magistrat-name';
 import { TransparenceService } from '../../../session/transparence/infrastructure/transparence.service';
+import type { Impersonation } from '../../../shared/policies/personal-content.policies';
 import type { RoleEnum } from '../../../shared/role.enum';
 import { ObservantAudition, UNSCHEDULABLE_REASONS } from '../../domain/observant-audition';
 import { Observation } from '../../domain/observation';
@@ -28,6 +30,7 @@ export class GetObservationDetailsQuery {
   ) {}
 
   async handle(query: {
+    impersonation: Impersonation | undefined;
     nominationFileId: string;
     observationId: string;
     role: RoleEnum;
@@ -133,7 +136,9 @@ export class GetObservationDetailsQuery {
 
       return {
         // mutations refuse a session that is not open: ObservationRepository.findById, ObservationFinder
-        canComment: !session.isArchived && Observation.canComment({ reporterIds, userId: query.userId }),
+        canComment:
+          !session.isArchived &&
+          Observation.canComment({ impersonation: query.impersonation, reporterIds, userId: query.userId }),
         canEdit,
         canManageAttachments: Observation.canManageAttachments({ canEdit, isNominationFileLocked }),
         description: observation.description,
@@ -151,14 +156,11 @@ export class GetObservationDetailsQuery {
         }),
         id: observation.id,
         isArchived: session.isArchived,
-        memberComment: observation.memberComments[0]
-          ? {
-              comment: observation.memberComments[0].comment,
-              screenshots: await this.withUrls(
-                observation.memberComments[0].screenshots.map(({ file }) => file),
-              ),
-            }
-          : null,
+        memberComment: await this.memberCommentOf(observation.memberComments, {
+          impersonation: query.impersonation,
+          reporterIds,
+          userId: query.userId,
+        }),
         observant: {
           audition: auditions.get(observation.magistrat.id) ?? null,
           auditionScheduling: ObservantAudition.unschedulableReason(observedNominationFiles) ?? 'SCHEDULABLE',
@@ -192,6 +194,26 @@ export class GetObservationDetailsQuery {
     });
   }
 
+  private async memberCommentOf(
+    comments: readonly { comment: string; screenshots: readonly { file: { id: string; name: string } }[] }[],
+    reader: {
+      impersonation: Impersonation | undefined;
+      reporterIds: readonly string[];
+      userId: string;
+    },
+  ): Promise<z.infer<typeof MemberCommentSchema> | null> {
+    const [comment] = comments;
+    const visibility = Observation.memberCommentVisibility(reader, { exists: !!comment });
+    if (visibility === 'PRIVATE') return { visibility };
+    if (!visibility || !comment) return null;
+
+    return {
+      comment: comment.comment,
+      screenshots: await this.withUrls(comment.screenshots.map(({ file }) => file)),
+      visibility: 'VISIBLE',
+    };
+  }
+
   private async withUrls<T extends { id: string }>(files: readonly T[]): Promise<(T & { url: string })[]> {
     const byId = new Map(files.map((file) => [file.id, file] as const));
     const ids = Array.from(byId.keys());
@@ -220,6 +242,15 @@ const ObservationFileSchema = z.object({
   id: z.string(),
   name: z.string(),
 });
+
+const MemberCommentSchema = z.discriminatedUnion('visibility', [
+  privateContentSchema,
+  z.object({
+    visibility: z.literal('VISIBLE'),
+    comment: z.string(),
+    screenshots: z.array(ObservationFileSchema.safeExtend({ url: z.url() })),
+  }),
+]);
 
 const RelatedPropositionSchema = z.object({
   observationId: z.string(),
@@ -256,11 +287,6 @@ export class GetObservationDetailsResponseDto extends createZodDto(
     followUpComment: z.string().nullable(),
     files: z.array(ObservationAttachmentSchema),
     relatedPropositions: z.array(RelatedPropositionSchema),
-    memberComment: z
-      .object({
-        comment: z.string(),
-        screenshots: z.array(ObservationFileSchema.safeExtend({ url: z.url() })),
-      })
-      .nullable(),
+    memberComment: MemberCommentSchema.nullable(),
   }),
 ) {}

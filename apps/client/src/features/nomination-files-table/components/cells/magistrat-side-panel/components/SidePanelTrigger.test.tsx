@@ -61,7 +61,7 @@ describe('SidePanelTrigger', () => {
     renderTrigger({
       auditionDate: { day: 12, month: 4, year: 2099 },
       content: { nomMagistrat: 'DUPONT DE LA TOUR Anne-Charlotte' },
-      memo: { value: 'un mémo' },
+      memo: { value: 'un mémo', visibility: 'VISIBLE' },
     });
 
     const nowrapGroup = screen

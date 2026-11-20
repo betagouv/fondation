@@ -28,7 +28,11 @@ const OBSERVATION: GetObservationDetailsResponseDto = {
   followUpComment: 'À rapprocher du dossier n°14.',
   id: 'observation-1',
   isArchived: false,
-  memberComment: { comment: '<p>Argument recevable, à vérifier avec la DSJ.</p>', screenshots: [] },
+  memberComment: {
+    comment: '<p>Argument recevable, à vérifier avec la DSJ.</p>',
+    screenshots: [],
+    visibility: 'VISIBLE',
+  },
   observant: {
     audition: null,
     auditionScheduling: 'SCHEDULABLE',
@@ -56,22 +60,30 @@ const OBSERVATION: GetObservationDetailsResponseDto = {
   ],
 };
 
+const IMPERSONATED = { canComment: false, memberComment: { visibility: 'PRIVATE' } } as const;
+
 const PATHS = {
   member: ROUTE_PATHS.TRANSPARENCES.OBSERVATION_DETAILS,
   sg: ROUTE_PATHS.SG.GDS.OBSERVATION_DETAILS,
 } satisfies Record<StoryView, string>;
 
-function ObservationDetailsPageStory(props: { followUp: ObservationFollowUpEnum | null; view: StoryView }) {
+function ObservationDetailsPageStory(props: {
+  followUp: ObservationFollowUpEnum | null;
+  isImpersonated: boolean;
+  view: StoryView;
+}) {
+  const view = props.isImpersonated ? 'member' : props.view;
+
   return (
     <PageStory
       location={getObservationDetailsPath({
-        context: props.view === 'sg' ? 'sg' : 'membre',
+        context: view === 'sg' ? 'sg' : 'membre',
         nominationFileId: 'nomination-file-1',
         observationId: OBSERVATION.id,
         sessionId: 'session-1',
       })}
-      path={PATHS[props.view]}
-      view={props.view}
+      path={PATHS[view]}
+      view={view}
     >
       <ObservationDetailsPage />
     </PageStory>
@@ -79,25 +91,32 @@ function ObservationDetailsPageStory(props: { followUp: ObservationFollowUpEnum 
 }
 
 const meta = {
-  args: { followUp: OBSERVATION.followUp, view: 'sg' },
+  args: { followUp: OBSERVATION.followUp, isImpersonated: false, view: 'sg' },
   argTypes: {
     followUp: {
       control: 'inline-radio',
       mapping: { aucune: null },
       options: ['aucune', ...Object.values(ObservationFollowUpEnum)],
     },
+    isImpersonated: {
+      control: 'boolean',
+      description:
+        'an admin acting as the member, in the member view: the comment of the member stays private',
+    },
     view: { control: 'inline-radio', options: STORY_VIEWS },
   },
   beforeEach: ({ args, msw }) => {
+    const view = args.isImpersonated ? 'member' : args.view;
     msw.use(
       http.get('*/api/sessions/v2/:sessionId/files/:nominationFileId/observations/:observationId', () =>
         HttpResponse.json<GetObservationDetailsResponseDto>({
           ...OBSERVATION,
-          canComment: args.view !== 'sg',
-          canEdit: args.view === 'sg',
-          canManageAttachments: args.view === 'sg',
+          canComment: view !== 'sg',
+          canEdit: view === 'sg',
+          canManageAttachments: view === 'sg',
           followUp: args.followUp,
-          followUpComment: args.view === 'sg' && args.followUp ? OBSERVATION.followUpComment : null,
+          followUpComment: view === 'sg' && args.followUp ? OBSERVATION.followUpComment : null,
+          ...(args.isImpersonated ? IMPERSONATED : {}),
         }),
       ),
     );

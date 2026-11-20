@@ -12,6 +12,7 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { ZodResponse } from 'nestjs-zod';
 
+import type { Impersonation } from '../../shared/policies/personal-content.policies';
 import { MEMBER_ROLES, type RoleEnum } from '../../shared/role.enum';
 import { AuthedUser, HasRole } from '../../simple-auth';
 
@@ -42,7 +43,11 @@ export class MemberSessionsController {
   @Put('/:userId/sessions/transparence/garde-des-sceaux/:sessionId/files/:nominationFileId/memo')
   @HttpCode(HttpStatus.NO_CONTENT)
   async writeNominationFileMemberMemo(
-    @AuthedUser() authedUser: { id: string; role: RoleEnum },
+    @AuthedUser() authedUser: {
+      id: string;
+      impersonation: Impersonation | undefined;
+      role: RoleEnum;
+    },
     @Param('userId') userId: string,
     @Param('sessionId') sessionId: string,
     @Param('nominationFileId') nominationFileId: string,

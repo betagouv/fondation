@@ -10,6 +10,7 @@ import {
   NominationFileOutcomeEnum,
 } from '../../../shared/nomination-file-outcome.enum';
 import * as policies from '../../../shared/policies/nomination-file.policies';
+import type { Impersonation } from '../../../shared/policies/personal-content.policies';
 import { PriorityEnum } from '../../../shared/priority.enum';
 import type { RoleEnum } from '../../../shared/role.enum';
 import { TypeDeSaisineEnum } from '../../../shared/type-de-saisine.enum';
@@ -804,9 +805,12 @@ export class SessionTransparence {
     memo: string;
     nominationFileId: string;
     reporterIds: readonly string[];
-    user: { id: string; role: RoleEnum };
+    user: { id: string; impersonation: Impersonation | undefined; role: RoleEnum };
   }) {
-    if (!this.files.has(command.nominationFileId) || !policies.canKeepMemberMemo(command, command.user)) {
+    if (
+      !this.files.has(command.nominationFileId) ||
+      policies.memberMemoVisibility(command, command.user) !== 'VISIBLE'
+    ) {
       throw new MemberMemoNotAllowed(command.nominationFileId);
     }
 

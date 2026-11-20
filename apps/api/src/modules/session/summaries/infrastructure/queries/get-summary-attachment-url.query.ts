@@ -6,6 +6,7 @@ import { Prisma } from '../../../../../generated/prisma/client';
 import { Db } from '../../../../framework/database';
 import { Files } from '../../../../framework/files';
 import { FILE_MIME_TYPES, filenameToMimeType } from '../../../../framework/files/mime-type';
+import type { Impersonation } from '../../../../shared/policies/personal-content.policies';
 import { canReadSummary } from '../../../../shared/policies/summary.policies';
 import type { RoleEnum } from '../../../../shared/role.enum';
 
@@ -20,7 +21,7 @@ export class GetSummaryAttachmentUrlQuery {
     fileId: string;
     nominationFileId: string;
     sessionId: string;
-    user: { id: string; role: RoleEnum };
+    user: { id: string; impersonation: Impersonation | undefined; role: RoleEnum };
   }): Promise<GeneratedSummaryAttachmentPublicUrlDto> {
     const session = await this.db.tx.session.findUnique({
       where: { id: query.sessionId, deletedAt: null },

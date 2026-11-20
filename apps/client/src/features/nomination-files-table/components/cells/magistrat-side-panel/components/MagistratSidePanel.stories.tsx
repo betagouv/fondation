@@ -60,6 +60,7 @@ type SidePanelArgs = {
   hasAttachments: boolean;
   hasObservations: boolean;
   hasRecusedMembers: boolean;
+  isImpersonated: boolean;
   lockedReason: (typeof LOCKED_REASONS)[number];
   missingEvaluation: boolean;
   outcome: (typeof OUTCOMES)[number];
@@ -185,8 +186,24 @@ const OBSERVATIONS = [
   makeObservation({ description: '', files: [], followUp: null, id: 'observation-2', magistrat: BENALI }),
 ];
 
+const PERSONAL_CONTENT = {
+  impersonated: {
+    memo: { visibility: 'PRIVATE' },
+    summary: { canRead: false, visibility: 'PRIVATE' },
+  },
+  member: {
+    memo: { value: null, visibility: 'VISIBLE' },
+    summary: { canRead: true, visibility: 'VISIBLE' },
+  },
+  sg: {
+    memo: null,
+    summary: { canRead: true, visibility: null },
+  },
+} as const;
+
 function makeNominationFile(args: SidePanelArgs): SessionNominationFile {
   const isSg = args.view === 'sg';
+  const personalContent = PERSONAL_CONTENT[args.isImpersonated ? 'impersonated' : args.view];
   const lockedReason = args.lockedReason === NONE ? null : args.lockedReason;
   const isReported = lockedReason === 'REPORTED';
 
@@ -242,7 +259,7 @@ function makeNominationFile(args: SidePanelArgs): SessionNominationFile {
     hasJurisdictionSheet: args.hasAttachments,
     id,
     isArchived: lockedReason === 'ARCHIVED_SESSION',
-    memo: isSg ? null : { value: null },
+    memo: personalContent.memo,
     missingEvaluation: args.missingEvaluation,
     nonAffectableMembers: args.hasRecusedMembers ? [{ id: READER.id, reason: 'RECUSED' }] : [],
     nonRecusableMembers: canRecuseMembers ? REPORTERS.map(({ id }) => ({ id, reason: 'REPORTER' })) : [],
@@ -260,7 +277,7 @@ function makeNominationFile(args: SidePanelArgs): SessionNominationFile {
     priorities: ['ETOILE'],
     recusedMembers: args.hasRecusedMembers ? [READER] : [],
     reporters: REPORTERS,
-    summary: args.summary === NONE ? null : { canRead: true, canWrite: isSg, id },
+    summary: args.summary === NONE ? null : { ...personalContent.summary, canWrite: isSg, id },
   });
 }
 
@@ -480,7 +497,8 @@ function SeededSidePanel(props: { nominationFile: SessionNominationFile }) {
   );
 }
 
-function MagistratSidePanelStory(args: SidePanelArgs) {
+function MagistratSidePanelStory(controls: SidePanelArgs) {
+  const args: SidePanelArgs = controls.isImpersonated ? { ...controls, view: 'member' } : controls;
   const nominationFile = makeNominationFile(args);
   const isArchived = nominationFile.isArchived;
 
@@ -531,6 +549,7 @@ const meta = {
     hasAttachments: true,
     hasObservations: true,
     hasRecusedMembers: true,
+    isImpersonated: false,
     lockedReason: NONE,
     missingEvaluation: false,
     outcome: NONE,
@@ -549,6 +568,11 @@ const meta = {
     hasRecusedMembers: {
       control: 'boolean',
       description: 'edited by the SG beside the outcome, listed to a member under the reporters',
+    },
+    isImpersonated: {
+      control: 'boolean',
+      description:
+        'an admin acting as the member, in the member view: the notes and the shared summary stay private',
     },
     lockedReason: {
       control: 'inline-radio',

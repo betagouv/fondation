@@ -15,6 +15,7 @@ import { commentLastChangeSchema } from '../../../../../utils/comment';
 import { DateOnly, dateOnlyJsonSchema } from '../../../../../utils/date-only';
 import { toFullTextQuery } from '../../../../../utils/fulltext-search';
 import { partition } from '../../../../../utils/iterables';
+import { privateContentSchema } from '../../../../../utils/personal-content';
 import { timeOnlySchema } from '../../../../../utils/time-only';
 import { DocsService } from '../../../../docs/docs.service';
 import { Db } from '../../../../framework/database';
@@ -38,8 +39,18 @@ import {
   expectedReportersCount,
 } from '../../../../shared/policies/auditioned-position.policy';
 import * as nominationFilesPolicies from '../../../../shared/policies/nomination-file.policies';
+import {
+  type Impersonation,
+  PERSONAL_CONTENT_VISIBILITIES,
+  personalContentVisibility,
+  type PersonalContentVisibility,
+} from '../../../../shared/policies/personal-content.policies';
 import { canReadSession } from '../../../../shared/policies/session.policies';
-import { canReadSummary, canWriteSummary } from '../../../../shared/policies/summary.policies';
+import {
+  canReadSummary,
+  canWriteSummary,
+  summaryVisibility,
+} from '../../../../shared/policies/summary.policies';
 import { PriorityEnum } from '../../../../shared/priority.enum';
 import { isSecretariat, type RoleEnum } from '../../../../shared/role.enum';
 import {
@@ -82,7 +93,7 @@ export class ListNominationFilesQuery {
     pagination: Pagination;
     sessionId: string;
     sorting: Sortable<ListNominationFilesQueryDto>;
-    user: { id: string; role: RoleEnum };
+    user: { id: string; impersonation: Impersonation | undefined; role: RoleEnum };
     filters: {
       missingEvaluation: boolean | undefined;
       nominationFileIds: readonly string[] | undefined;
@@ -140,7 +151,7 @@ export class ListNominationFilesQuery {
   async detail(query: {
     nominationFileId: string;
     sessionId: string;
-    user: { id: string; role: RoleEnum };
+    user: { id: string; impersonation: Impersonation | undefined; role: RoleEnum };
   }): Promise<NominationFileAffectationItem | null> {
     const [file] = await this.db.withTransaction(async () => {
       const session = await this.findVisibleSession(query);
@@ -184,7 +195,7 @@ export class ListNominationFilesQuery {
     session: { archivedAt: Date | null };
     sessionId: string;
     sorting: Sortable<ListNominationFilesQueryDto>;
-    user: { id: string; role: RoleEnum };
+    user: { id: string; impersonation: Impersonation | undefined; role: RoleEnum };
     where: NominationFilesWhere;
   }): Promise<NominationFileAffectationItem[]> {
     const { where } = query;
@@ -314,12 +325,13 @@ export class ListNominationFilesQuery {
         hasJurisdictionSheet: x.hasJurisdictionSheet,
         id: x.id,
         isArchived,
-        memo: nominationFilesPolicies.canKeepMemberMemo(
-          { reporterIds: x.reporters.map(({ user }) => user.id) },
-          query.user,
-        )
-          ? { value: x.memberMemo || null }
-          : null,
+        memo: ListNominationFilesQuery.memoOf(
+          nominationFilesPolicies.memberMemoVisibility(
+            { reporterIds: x.reporters.map(({ user }) => user.id) },
+            query.user,
+          ),
+          x.memberMemo,
+        ),
         missingEvaluation: x.missingEvaluation,
         missingEvaluationComment: x.missingEvaluationComment,
         nonAffectableMembers: nonAffectableMembers(new Set(recusedMembers.get(x.id)?.map(({ id }) => id))),
@@ -331,7 +343,7 @@ export class ListNominationFilesQuery {
           date: DateOnly.fromUtcDate(obs.dateReception).toJson(),
           followUp: obs.followUp,
           hasDescription: !!obs.description.trim(),
-          hasUserComment: obs.hasUserComment,
+          hasUserComment: personalContentVisibility(query.user) === 'VISIBLE' && obs.hasUserComment,
           id: obs.id,
           magistrat: obs.magistrat,
         })),
@@ -350,10 +362,25 @@ export class ListNominationFilesQuery {
               ),
               canWrite: canWriteSummary(x.summary, query.user),
               id: x.id,
+              visibility: summaryVisibility({ readerIds: x.summary.readers }, query.user),
             }
           : null,
       };
     });
+  }
+
+  private static memoOf(
+    visibility: PersonalContentVisibility | null,
+    memo: string | null,
+  ): z.infer<typeof MemoSchema> | null {
+    switch (visibility) {
+      case null:
+        return null;
+      case 'PRIVATE':
+        return { visibility };
+      case 'VISIBLE':
+        return { value: memo || null, visibility };
+    }
   }
 
   private static filtersToPrismaWhere(
@@ -496,6 +523,11 @@ const RawListedNominationFiles = z.array(
   }),
 );
 
+const MemoSchema = z.discriminatedUnion('visibility', [
+  privateContentSchema,
+  z.object({ visibility: z.literal('VISIBLE'), value: z.string().nullable() }),
+]);
+
 const NominationFileAffectationItemSchema = z.object({
   id: z.string(),
   isArchived: z.boolean(),
@@ -538,11 +570,20 @@ const NominationFileAffectationItemSchema = z.object({
       }),
     }),
   ),
-  memo: z
-    .object({ value: z.string().nullable() })
-    .nullable()
-    .meta({ description: 'null when the user keeps no personal notes on this file' }),
-  summary: z.object({ id: z.string(), canRead: z.boolean(), canWrite: z.boolean() }).nullable(),
+  memo: MemoSchema.nullable().meta({
+    description: 'null when the user keeps no personal notes on this file',
+  }),
+  summary: z
+    .object({
+      id: z.string(),
+      canRead: z.boolean(),
+      canWrite: z.boolean(),
+      visibility: z
+        .enum(PERSONAL_CONTENT_VISIBILITIES)
+        .nullable()
+        .meta({ description: 'null when the summary is not shared with the user' }),
+    })
+    .nullable(),
   hasAttachment: z.boolean(),
   hasJurisdictionSheet: z.boolean(),
 });

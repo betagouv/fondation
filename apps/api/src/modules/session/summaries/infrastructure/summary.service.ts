@@ -5,6 +5,7 @@ import { isDefined } from '../../../../utils/is-defined';
 import { Db } from '../../../framework/database';
 import { Files } from '../../../framework/files';
 import { FILE_MIME_TYPES, filenameToMimeType } from '../../../framework/files/mime-type';
+import type { Impersonation } from '../../../shared/policies/personal-content.policies';
 import type { RoleEnum } from '../../../shared/role.enum';
 import { Summary } from '../domain/summary';
 
@@ -145,6 +146,7 @@ export class SummaryService {
 
   @Transactional()
   detailSummary(query: {
+    impersonation: Impersonation | undefined;
     nominationFileId: string;
     role: RoleEnum;
     sessionId: string;
@@ -157,7 +159,7 @@ export class SummaryService {
     fileId: string;
     nominationFileId: string;
     sessionId: string;
-    user: { id: string; role: RoleEnum };
+    user: { id: string; impersonation: Impersonation | undefined; role: RoleEnum };
   }): Promise<GeneratedSummaryAttachmentPublicUrlDto> {
     return this.generateAttachmentPublicUrlQuery.handle(query);
   }

@@ -1,10 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { Prisma } from '../../../../generated/prisma/client';
 import { Db } from '../../../framework/database';
 import { Files } from '../../../framework/files';
+import type { Impersonation } from '../../../shared/policies/personal-content.policies';
+import type { RoleEnum } from '../../../shared/role.enum';
+import { reportAttachmentsVisibility } from '../../domain/report-lock';
 
 @Injectable()
 export class GetReportAttachmentUrlQuery {
@@ -16,13 +19,15 @@ export class GetReportAttachmentUrlQuery {
   async handle(query: {
     fileId: string;
     reportId: string;
-    userId: string;
+    user: { id: string; impersonation: Impersonation | undefined; role: RoleEnum };
   }): Promise<GeneratedReportAttachmentUrlDto> {
+    if (reportAttachmentsVisibility(query.user) !== 'VISIBLE') throw new ForbiddenException();
+
     const attachment = await this.db.tx.reportFile.findUnique({
       select: { file: { select: { id: true, name: true } } } satisfies Prisma.ReportFileSelect,
       where: {
         primaryKey: { fileId: query.fileId, reportId: query.reportId },
-        report: { isDeleted: false, reporterId: query.userId },
+        report: { isDeleted: false, reporterId: query.user.id },
         usage: 'ATTACHMENT',
       },
     });

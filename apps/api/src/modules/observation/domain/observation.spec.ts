@@ -190,10 +190,17 @@ describe('Observation', () => {
         sessionId: 'session-1',
       });
 
+    const impersonation = { impersonatorId: 'admin-1' };
+
     it('lets a reporter of the nomination file comment', () => {
       const commented = observation();
 
-      commented.writeMemberComment({ comment: 'À vérifier', reporterIds: ['user-1'], userId: 'user-1' });
+      commented.writeMemberComment({
+        comment: 'À vérifier',
+        impersonation: undefined,
+        reporterIds: ['user-1'],
+        userId: 'user-1',
+      });
 
       expect(commented.messages).toEqual([
         new ObservationMemberCommentWritten('obs-1', 'user-1', 'À vérifier'),
@@ -204,7 +211,19 @@ describe('Observation', () => {
       expect(() =>
         observation().writeMemberComment({
           comment: 'À vérifier',
+          impersonation: undefined,
           reporterIds: ['user-2'],
+          userId: 'user-1',
+        }),
+      ).toThrow(UserNotAllowedToWriteCommentError);
+    });
+
+    it('refuses the comment written by the admin impersonating a reporter', () => {
+      expect(() =>
+        observation().writeMemberComment({
+          comment: 'À vérifier',
+          impersonation,
+          reporterIds: ['user-1'],
           userId: 'user-1',
         }),
       ).toThrow(UserNotAllowedToWriteCommentError);
@@ -214,7 +233,43 @@ describe('Observation', () => {
       expect(() =>
         observation().attachMemberCommentScreenshots({
           files: [{ id: 'file-1' }],
+          impersonation: undefined,
           reporterIds: ['user-2'],
+          userId: 'user-1',
+        }),
+      ).toThrow(UserNotAllowedToAttachScreenshotsError);
+    });
+
+    it('shows a member the comment they wrote', () => {
+      const reader = { impersonation: undefined, reporterIds: ['user-1'], userId: 'user-1' };
+
+      expect(Observation.memberCommentVisibility(reader, { exists: true })).toBe('VISIBLE');
+    });
+
+    it('keeps the comment of a former reporter readable to them', () => {
+      const reader = { impersonation: undefined, reporterIds: ['user-2'], userId: 'user-1' };
+
+      expect(Observation.memberCommentVisibility(reader, { exists: true })).toBe('VISIBLE');
+    });
+
+    it('keeps the comment of a reporter private from the admin impersonating them, written or not', () => {
+      const reader = { impersonation, reporterIds: ['user-1'], userId: 'user-1' };
+
+      expect(Observation.memberCommentVisibility(reader, { exists: false })).toBe('PRIVATE');
+    });
+
+    it('hides the comment of a former reporter from the admin impersonating them', () => {
+      const reader = { impersonation, reporterIds: ['user-2'], userId: 'user-1' };
+
+      expect(Observation.memberCommentVisibility(reader, { exists: true })).toBeNull();
+    });
+
+    it('refuses the screenshots attached by the admin impersonating a reporter', () => {
+      expect(() =>
+        observation().attachMemberCommentScreenshots({
+          files: [{ id: 'file-1' }],
+          impersonation,
+          reporterIds: ['user-1'],
           userId: 'user-1',
         }),
       ).toThrow(UserNotAllowedToAttachScreenshotsError);

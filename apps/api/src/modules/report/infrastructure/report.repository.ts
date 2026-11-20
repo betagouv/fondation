@@ -15,6 +15,7 @@ import { Clock } from '../../framework/clock';
 import { Db } from '../../framework/database';
 import { Files } from '../../framework/files';
 import { TransparenceService } from '../../session/transparence/infrastructure/transparence.service';
+import type { Impersonation } from '../../shared/policies/personal-content.policies';
 import {
   Report,
   ReportAttachmentDetached,
@@ -36,7 +37,11 @@ export class ReportRepository {
     private readonly sessions: TransparenceService,
   ) {}
 
-  async find(props: { id: string; reporterId: string }): Promise<Report> {
+  async find(props: {
+    id: string;
+    impersonation: Impersonation | undefined;
+    reporterId: string;
+  }): Promise<Report> {
     const report = await this.db.tx.report.findUnique({
       select: { id: true, sessionId: true } satisfies Prisma.ReportSelect,
       where: { id: props.id, isDeleted: false, reporterId: props.reporterId },
@@ -44,7 +49,7 @@ export class ReportRepository {
     if (!report) throw new NotFoundException();
 
     const state = await this.sessions.internalFindSessionState({ sessionId: report.sessionId });
-    const lock = reportLock({ isOpen: state === 'OPEN' });
+    const lock = reportLock({ isOpen: state === 'OPEN' }, props);
     if (lock) {
       this.logger.warn(
         `report ${report.id} is locked: ${lock.toLowerCase()}, session ${state.toLowerCase()}`,

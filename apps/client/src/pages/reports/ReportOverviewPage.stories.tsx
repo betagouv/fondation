@@ -26,6 +26,7 @@ const REPORT: DetailedReportDto = {
       usage: 'ATTACHMENT',
     },
   ],
+  attachmentsVisibility: 'VISIBLE',
   comment:
     '<p>Magistrate au parcours confirmé, appréciée de ses chefs de juridiction.</p><h2>Points d’attention</h2><p>Mobilité géographique à confirmer.</p>',
   id: 'report-2',
@@ -109,12 +110,18 @@ const MEMBER_REPORTS: ListedMemberSessionReportsDto = {
   ],
 };
 
-function ReportOverviewPageStory(props: { view: StoryView }) {
+const ACCESS = {
+  impersonated: { attachmentsVisibility: 'PRIVATE', lockedReason: 'IMPERSONATION' },
+  member: { attachmentsVisibility: 'VISIBLE', lockedReason: null },
+  sg: { attachmentsVisibility: null, lockedReason: null },
+} as const;
+
+function ReportOverviewPageStory(props: { isImpersonated: boolean; view: StoryView }) {
   return (
     <PageStory
       location={getGdsReportPath(REPORT.id)}
       path={ROUTE_PATHS.TRANSPARENCES.DETAILS_REPORTS}
-      view={props.view}
+      view={props.isImpersonated ? 'member' : props.view}
     >
       <ReportOverviewPage />
     </PageStory>
@@ -122,14 +129,24 @@ function ReportOverviewPageStory(props: { view: StoryView }) {
 }
 
 const meta = {
-  args: { view: 'member' },
+  args: { isImpersonated: false, view: 'member' },
   argTypes: {
+    isImpersonated: {
+      control: 'boolean',
+      description:
+        'an admin acting as the member, in the member view: the report is read-only and its attachments private',
+    },
     view: { control: 'inline-radio', options: STORY_VIEWS },
   },
-  beforeEach: ({ msw }) => {
+  beforeEach: ({ args, msw }) => {
     msw.use(
       ...summaryObservationsHandlers,
-      http.get('*/api/reports/v2/:reportId', () => HttpResponse.json<DetailedReportDto>(REPORT)),
+      http.get('*/api/reports/v2/:reportId', () =>
+        HttpResponse.json<DetailedReportDto>({
+          ...REPORT,
+          ...ACCESS[args.isImpersonated ? 'impersonated' : args.view],
+        }),
+      ),
       http.get('*/api/sessions/v2/:sessionId', () =>
         HttpResponse.json<DetailedNominationSessionDto>(STORY_SESSION),
       ),

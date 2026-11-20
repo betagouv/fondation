@@ -2,6 +2,7 @@ import Card from '@codegouvfr/react-dsfr/Card';
 import { FormattedMessage } from 'react-intl';
 
 import { AuditionScheduledBanner } from '@/shared/components/audition-banner';
+import { PrivateContentNotice } from '@/shared/components/private-content-notice';
 import { DetailsCard, DetailsPageLayout } from '@/shared/ui/details';
 import { type FilesUploader, TipTapEditor } from '@/shared/ui/tip-tap-editor';
 import { getObservationDetailsPath } from '@/utils/route-path.utils';
@@ -38,6 +39,9 @@ export function ObservationDetailsContent({
   uploadFiles,
 }: ObservationDetailsContentProps) {
   const relatedPropositions = observation.relatedPropositions ?? [];
+  const { memberComment } = observation;
+  const isCommentPrivate = memberComment?.visibility === 'PRIVATE';
+  const comment = memberComment?.visibility === 'VISIBLE' ? memberComment.comment : '';
 
   return (
     <DetailsPageLayout
@@ -93,18 +97,22 @@ export function ObservationDetailsContent({
       ) : null}
 
       {context === 'membre' &&
-        ((observation.canComment && onUpdateMemberComment) || observation.memberComment?.comment) && (
+        (isCommentPrivate || comment || (observation.canComment && onUpdateMemberComment)) && (
           <DetailsCard>
             <h2 className="fr-h4" id="member-comment-label">
               <FormattedMessage defaultMessage="Mon commentaire" />
             </h2>
-            <TipTapEditor
-              ariaLabelledby="member-comment-label"
-              onChange={onUpdateMemberComment}
-              readOnly={!observation.canComment}
-              uploadFiles={uploadFiles}
-              value={observation.memberComment?.comment ?? ''}
-            />
+            {isCommentPrivate ? (
+              <PrivateContentNotice />
+            ) : (
+              <TipTapEditor
+                ariaLabelledby="member-comment-label"
+                onChange={onUpdateMemberComment}
+                readOnly={!observation.canComment}
+                uploadFiles={uploadFiles}
+                value={comment}
+              />
+            )}
           </DetailsCard>
         )}
 

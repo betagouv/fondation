@@ -188,6 +188,36 @@ test.describe('Report E2E', () => {
     expect(responseBody.data?.attachments.map(({ name }) => name)).toContain(file.name);
   });
 
+  test('should let the admin impersonating a reporter read their report without changing it nor opening its attachments', async ({
+    expect,
+    impersonate,
+    member,
+  }) => {
+    const name = `evaluation_${crypto.randomUUID()}.png`;
+    await member.reports.attachFiles({
+      body: { files: [makeFile({ name, type: 'image/png' })] },
+      path: { reportId },
+      query: { usage: 'ATTACHMENT' },
+      throwOnError: true,
+    });
+    await member.reports.updateReport({ body: { comment: '<p>Avis</p>' }, path: { reportId }, throwOnError: true });
+
+    const impersonator = await impersonate(member['@user']!);
+
+    const read = await impersonator.reports.detailReport({ path: { reportId }, throwOnError: true });
+    expect(read.data).toMatchObject({
+      attachmentsVisibility: 'PRIVATE',
+      comment: '<p>Avis</p>',
+      lockedReason: 'IMPERSONATION',
+    });
+    const opened = await impersonator.reports.getAttachmentUrl({
+      path: { fileId: read.data.attachments[0]!.id, reportId },
+    });
+    expect(opened.response?.status).toBe(403);
+    const updated = await impersonator.reports.updateReport({ body: { comment: '' }, path: { reportId } });
+    expect(updated.response?.status).toBe(403);
+  });
+
   test('should detach one of two attachments of the same name, the other still opening', async ({ member, expect }) => {
     const name = `evaluation_${crypto.randomUUID()}.png`;
     await member.reports.attachFiles({

@@ -28,6 +28,7 @@ import {
   UseMultipartBody,
 } from '../../framework/files';
 import { ApiPaginated, Pagination, QueryPagination } from '../../framework/pagination';
+import type { Impersonation } from '../../shared/policies/personal-content.policies';
 import type { RoleEnum } from '../../shared/role.enum';
 import { AuthedUser, AuthedUserId, HasRole } from '../../simple-auth';
 
@@ -317,7 +318,7 @@ export class SessionController {
   })
   listNominationFiles(
     @Param('sessionId') sessionId: string,
-    @AuthedUser() user: { id: string; role: RoleEnum },
+    @AuthedUser() user: { id: string; impersonation: Impersonation | undefined; role: RoleEnum },
     @QueryPagination() pagination: Pagination,
     @Query(ZodValidationPipe) query: ListNominationFilesQueryDto,
   ) {
@@ -735,7 +736,7 @@ export class SessionController {
   detailNominationFile(
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
     @Param('nominationFileId', ParseUUIDPipe) nominationFileId: string,
-    @AuthedUser() user: { id: string; role: RoleEnum },
+    @AuthedUser() user: { id: string; impersonation: Impersonation | undefined; role: RoleEnum },
   ): Promise<DetailedNominationFileDto> {
     return this.sessions.detailNominationFile({ nominationFileId, sessionId, user });
   }

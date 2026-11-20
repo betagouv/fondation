@@ -1185,6 +1185,7 @@ test.describe('Session E2E', () => {
         canRead: true,
         canWrite: true,
         id: nominationFileId,
+        visibility: null,
       });
     }, 10_000);
 

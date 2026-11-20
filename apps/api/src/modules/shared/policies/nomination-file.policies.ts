@@ -3,6 +3,12 @@ import { NominationFileLockEnum } from '../nomination-file-lock.enum';
 import { NominationFileOutcome, NominationFileOutcomeEnum } from '../nomination-file-outcome.enum';
 import { isSecretariat, type RoleEnum } from '../role.enum';
 
+import {
+  type Impersonation,
+  personalContentVisibility,
+  type PersonalContentVisibility,
+} from './personal-content.policies';
+
 export function nominationFileLock(
   file: { isReported: boolean },
   session: { isArchived: boolean },
@@ -28,11 +34,13 @@ export function canUpdateNominationFile(
   return isSecretariat(user.role) && !file.lockedReason;
 }
 
-export function canKeepMemberMemo(
+export function memberMemoVisibility(
   file: { reporterIds: readonly string[] },
-  user: { id: string; role: RoleEnum },
-): boolean {
-  return !isSecretariat(user.role) && !file.reporterIds.includes(user.id);
+  user: { id: string; impersonation: Impersonation | undefined; role: RoleEnum },
+): PersonalContentVisibility | null {
+  if (isSecretariat(user.role) || file.reporterIds.includes(user.id)) return null;
+
+  return personalContentVisibility(user);
 }
 
 /** the members read the SG complement as the secretariat's: they see when it changed, not who changed it */

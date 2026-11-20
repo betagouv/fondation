@@ -1,9 +1,9 @@
 import { NominationFileOutcome } from '../nomination-file-outcome.enum';
 
 import {
-  canKeepMemberMemo,
   canScheduleAudition,
   canUpdateNominationFile,
+  memberMemoVisibility,
   nominationFileLock,
   sgCommentChangeSeenBy,
 } from './nomination-file.policies';
@@ -65,19 +65,27 @@ describe('canScheduleAudition', () => {
   });
 });
 
-describe('canKeepMemberMemo', () => {
-  const member = { id: 'member-1', role: 'MEMBRE_DU_SIEGE' } as const;
+describe('memberMemoVisibility', () => {
+  const member = { id: 'member-1', impersonation: undefined, role: 'MEMBRE_DU_SIEGE' } as const;
 
   it('lets a member keep notes on a file reported by others', () => {
-    expect(canKeepMemberMemo({ reporterIds: ['member-2'] }, member)).toBe(true);
+    expect(memberMemoVisibility({ reporterIds: ['member-2'] }, member)).toBe('VISIBLE');
+  });
+
+  it('keeps the notes of a member private from the admin impersonating them', () => {
+    const impersonated = { ...member, impersonation: { impersonatorId: 'admin-1' } };
+
+    expect(memberMemoVisibility({ reporterIds: ['member-2'] }, impersonated)).toBe('PRIVATE');
   });
 
   it('keeps a reporter from taking notes on a file in their charge', () => {
-    expect(canKeepMemberMemo({ reporterIds: ['member-2', member.id] }, member)).toBe(false);
+    expect(memberMemoVisibility({ reporterIds: ['member-2', member.id] }, member)).toBeNull();
   });
 
   it.each(['ADJOINT_SECRETAIRE_GENERAL'] as const)('keeps the secretariat (%s) from taking notes', (role) => {
-    expect(canKeepMemberMemo({ reporterIds: [] }, { id: 'sg-1', role })).toBe(false);
+    expect(
+      memberMemoVisibility({ reporterIds: [] }, { id: 'sg-1', impersonation: undefined, role }),
+    ).toBeNull();
   });
 });
 

@@ -146,7 +146,7 @@ Le préfixe `/api` est omis.
 | Changer le statut d'un retour                  | `PUT /feedbacks/v1/:feedbackId/status`       | —                        | —                        | ✓                        |
 | Télécharger un fichier par son lien temporaire | `GET /files/v1/:fileUrlId`                   | ✓                        | ✓                        | ✓                        |
 
-Quiconque détient un lien de téléchargement temporaire télécharge le fichier. Connecté à la place d'un utilisateur, l'administrateur n'enregistre ni réponse au questionnaire ni changement de mot de passe et envoie ses retours à son propre nom. Cette connexion ne vaut que pour l'onglet ouvert pour elle et ceux ouverts depuis lui.
+Quiconque détient un lien de téléchargement temporaire télécharge le fichier. Connecté à la place d'un utilisateur, l'administrateur n'enregistre ni réponse au questionnaire ni changement de mot de passe et envoie ses retours à son propre nom. Il ne lit pas non plus le contenu privé de l'utilisateur et ne peut pas le modifier : ses notes sur un dossier, ses commentaires sur une observation et les synthèses partagées avec lui. Un bloc "Contenu privé" les remplace. Il lit le rapport de l'utilisateur sans pouvoir le modifier ni en ouvrir les pièces jointes. Cette connexion ne vaut que pour l'onglet ouvert pour elle et ceux ouverts depuis lui.
 
 ### Sessions
 
