@@ -11,7 +11,8 @@ import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { SearchInput } from '@/shared/ui/search-input';
 import { useToasts } from '@/shared/ui/toast';
-import { getMagistratDetailsPath, ROUTE_PATHS } from '@/utils/route-path.utils';
+import { getMagistratDetailsPath } from '@/utils/route-path.utils';
+import { useMemberBreadcrumbRoot } from '@/utils/transparences-breadcrumb.utils';
 import { MAGISTRAT_SEARCH_MIN_LENGTH, useMagistratSearchQuery } from '@queries/magistrats.queries';
 
 import { MagistratSearchCard } from './MagistratSearchCard';
@@ -21,6 +22,7 @@ const SEARCH_FAILED_TOAST = 'magistrat-search-failed';
 export function MagistratSearch() {
   const { formatMessage } = useIntl();
   const breadcrumbRoot = useBreadcrumbRoot();
+  const memberRoot = useMemberBreadcrumbRoot();
   const toasts = useToasts();
   const isSgNavigation = useIsSgNavigation();
   const [search, setSearch] = useQueryState('recherche', parseAsString.withDefault(''));
@@ -77,14 +79,7 @@ export function MagistratSearch() {
         ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane de la recherche d'un magistrat" })}
         breadcrumb={{
           currentPageLabel: formatMessage({ defaultMessage: 'Rechercher un magistrat' }),
-          segments: isSgNavigation
-            ? breadcrumbRoot
-            : [
-                {
-                  label: formatMessage({ defaultMessage: 'Transparences' }),
-                  to: ROUTE_PATHS.TRANSPARENCES.DASHBOARD,
-                },
-              ],
+          segments: isSgNavigation ? breadcrumbRoot : memberRoot,
         }}
         className="fr-mt-0"
         id="magistrat-search-breadcrumb"

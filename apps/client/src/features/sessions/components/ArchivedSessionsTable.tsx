@@ -1,7 +1,7 @@
 import { createColumnHelper, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import clsx from 'clsx';
 import { useCallback, useMemo, type ReactNode } from 'react';
-import { defineMessage, useIntl } from 'react-intl';
+import { useIntl } from 'react-intl';
 import { generatePath, Link } from 'react-router';
 
 import { FormationBadge } from '@/shared/components/formation-badge';
@@ -30,8 +30,6 @@ export const SPACES = {
     session: ROUTE_PATHS.SG.GDS.SESSION_ID,
   },
   TRANSPARENCES: {
-    home: ROUTE_PATHS.TRANSPARENCES.DASHBOARD,
-    label: defineMessage({ defaultMessage: 'Transparences' }),
     session: ROUTE_PATHS.TRANSPARENCES.DETAIL_SESSION_GDS,
   },
 };

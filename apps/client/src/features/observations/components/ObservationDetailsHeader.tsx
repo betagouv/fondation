@@ -6,7 +6,7 @@ import { TitleNameIcons } from '@/shared/components/title-name-icons';
 import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { DetailsHeader } from '@/shared/ui/details';
-import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import { useMemberBreadcrumbRoot } from '@/utils/transparences-breadcrumb.utils';
 import type { GetObservationDetailsResponseDto } from '@api/types';
 
 import { ObservationFollowUpSelector } from './ObservationFollowUpSelector';
@@ -23,19 +23,8 @@ export function ObservationDetailsHeader(props: {
   const breadcrumbRoot = useBreadcrumbRoot();
   const { canEdit, followUp, followUpComment, observant } = props.observation;
 
-  const segments =
-    props.context === 'sg'
-      ? breadcrumbRoot
-      : [
-          {
-            label: formatMessage({ defaultMessage: 'Transparences' }),
-            to: ROUTE_PATHS.TRANSPARENCES.DASHBOARD,
-          },
-          {
-            label: formatMessage({ defaultMessage: 'Pouvoir de proposition du garde des Sceaux' }),
-            to: ROUTE_PATHS.TRANSPARENCES.DASHBOARD,
-          },
-        ];
+  const memberRoot = useMemberBreadcrumbRoot();
+  const segments = props.context === 'sg' ? breadcrumbRoot : memberRoot;
 
   return (
     <DetailsHeader
