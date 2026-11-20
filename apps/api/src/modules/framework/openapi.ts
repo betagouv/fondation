@@ -71,7 +71,6 @@ export function openapi(app: INestApplication): void {
     jsonDocumentUrl: '/openapi/root.json',
     swaggerOptions,
   });
-  // The file handed to the partners who call the public API
   SwaggerModule.setup('/openapi/public', app, () => publicOpenApiDocument(fullDocument()), {
     jsonDocumentUrl: '/openapi/public.json',
     swaggerOptions,
