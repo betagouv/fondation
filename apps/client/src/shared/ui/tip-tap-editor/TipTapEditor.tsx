@@ -93,7 +93,13 @@ export const TipTapEditor = ({
 
   return (
     <EditorContext.Provider value={providerValue}>
-      <div className="fr-p-4v bg-(--background-default-grey)">
+      <div
+        className={clsx(
+          'fr-p-4v bg-(--background-default-grey)',
+          readOnly &&
+            '[&_.ProseMirror]:cursor-not-allowed [&_.ProseMirror]:bg-(--background-contrast-grey) [&_.ProseMirror]:outline-(--border-disabled-grey)',
+        )}
+      >
         {!readOnly && <MenuBar end={toolbarEnd} features={features} />}
         <EditorContent editor={editor} />
         {!readOnly && autosave && (
