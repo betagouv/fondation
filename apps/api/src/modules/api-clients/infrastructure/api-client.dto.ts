@@ -20,12 +20,15 @@ export class AuthenticatedApiClientDto extends createZodDto(
 
 export class AuthenticateApiClientRefusedDto extends createZodDto(
   z.object({
-    error: z.enum(['invalid_request', 'unsupported_grant_type', 'invalid_client', 'access_denied']).meta({
-      description:
-        '- `invalid_request` (400): a parameter is missing\n' +
-        '- `unsupported_grant_type` (400): the grant is not `client_credentials`\n' +
-        '- `invalid_client` (401): unknown or revoked identifier, or wrong secret\n' +
-        '- `access_denied` (403): the request does not come from an allowed IP',
-    }),
+    error: z
+      .enum(['invalid_request', 'unsupported_grant_type', 'invalid_client', 'access_denied', 'slow_down'])
+      .meta({
+        description:
+          '- `invalid_request` (400): a parameter is missing\n' +
+          '- `unsupported_grant_type` (400): the grant is not `client_credentials`\n' +
+          '- `invalid_client` (401): unknown or revoked identifier, or wrong secret\n' +
+          '- `access_denied` (403): the request does not come from an allowed IP\n' +
+          '- `slow_down` (429): too many requests within the minute, `Retry-After` tells how many seconds to wait',
+      }),
   }),
 ) {}

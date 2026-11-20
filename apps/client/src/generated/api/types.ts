@@ -76,8 +76,9 @@ export type AuthenticateApiClientRefusedDto = {
      * - `unsupported_grant_type` (400): the grant is not `client_credentials`
      * - `invalid_client` (401): unknown or revoked identifier, or wrong secret
      * - `access_denied` (403): the request does not come from an allowed IP
+     * - `slow_down` (429): too many requests within the minute, `Retry-After` tells how many seconds to wait
      */
-    error: 'invalid_request' | 'unsupported_grant_type' | 'invalid_client' | 'access_denied';
+    error: 'invalid_request' | 'unsupported_grant_type' | 'invalid_client' | 'access_denied' | 'slow_down';
 };
 
 export type ListedMemberSessionReportsDto = {
@@ -3268,6 +3269,7 @@ export type AuthenticateApiClientErrors = {
     400: AuthenticateApiClientRefusedDto;
     401: AuthenticateApiClientRefusedDto;
     403: AuthenticateApiClientRefusedDto;
+    429: AuthenticateApiClientRefusedDto;
 };
 
 export type AuthenticateApiClientError = AuthenticateApiClientErrors[keyof AuthenticateApiClientErrors];
@@ -4527,6 +4529,18 @@ export type IdentifyMagistratData = {
 
 export type IdentifyMagistratErrors = {
     400: InvalidMagistratEmailDto;
+    /**
+     * Missing, unknown or expired token, or revoked client: ask for a new token
+     */
+    401: unknown;
+    /**
+     * The request comes from an IP, or asks for a route, the client is not allowed
+     */
+    403: unknown;
+    /**
+     * Too many calls within the minute
+     */
+    429: unknown;
 };
 
 export type IdentifyMagistratError = IdentifyMagistratErrors[keyof IdentifyMagistratErrors];
@@ -4552,9 +4566,21 @@ export type FindMagistratStatusErrors = {
      */
     400: unknown;
     /**
+     * Missing, unknown or expired token, or revoked client: ask for a new token
+     */
+    401: unknown;
+    /**
+     * The request comes from an IP, or asks for a route, the client is not allowed
+     */
+    403: unknown;
+    /**
      * No _Magistrat_ has this identifier: its status could not be checked
      */
     404: unknown;
+    /**
+     * Too many calls within the minute
+     */
+    429: unknown;
 };
 
 export type FindMagistratStatusResponses = {

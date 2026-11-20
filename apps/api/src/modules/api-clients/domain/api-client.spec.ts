@@ -5,6 +5,7 @@ import {
   ApiClientForbidden,
   ApiClientUnauthenticated,
   ApiScope,
+  canonicalIp,
   IssuedAccessToken,
 } from './api-client';
 
@@ -12,12 +13,13 @@ describe('ApiClient', () => {
   const now = new Date('2026-11-18T10:00:00Z');
   const { hash: secretHash, secret } = ApiClient.generateSecret();
 
-  const client = (props: { allowedIps?: string[]; revokedAt?: Date; scopes?: string[] } = {}) =>
+  const client = (props: { allowedIps?: string[]; revokedAt?: Date } = {}) =>
     new ApiClient({
       allowedIps: ['203.0.113.7'],
+      authLimitPerMinute: 10,
       id: 'client-1',
       revokedAt: null,
-      scopes: ['magistrats:identification'],
+      scopes: [{ limitPerMinute: 20, scope: 'magistrats:identification' }],
       secretHash,
       ...props,
     });
@@ -66,7 +68,7 @@ describe('ApiClient', () => {
         scope?: ApiScope;
         tokenExpiresAt?: Date;
       } = {},
-    ): void =>
+    ): { limitPerMinute: number } =>
       authorized.authorize({
         ip: '203.0.113.7',
         now,
@@ -75,12 +77,12 @@ describe('ApiClient', () => {
         ...command,
       });
 
-    it('should let a valid token through, from its IP and on its scope', () => {
-      expect(() => authorize(client())).not.toThrow();
+    it('should let a valid token through, from its IP and on its scope, and tell the limit of this scope', () => {
+      expect(authorize(client())).toEqual({ limitPerMinute: 20 });
     });
 
     it('should recognise an allowed IPv4 given in its IPv6 form', () => {
-      expect(() => authorize(client(), { ip: '::ffff:203.0.113.7' })).not.toThrow();
+      expect(authorize(client(), { ip: '::ffff:203.0.113.7' })).toEqual({ limitPerMinute: 20 });
     });
 
     it('should recognise an allowed IPv6 however it is written', () => {
@@ -115,6 +117,23 @@ describe('ApiClient', () => {
       expect(() => authorize(client(), { ip: '198.51.100.1', tokenExpiresAt: now })).toThrow(
         ApiClientUnauthenticated,
       );
+    });
+  });
+
+  describe('canonicalIp', () => {
+    it.each(['203.0.113.7', '::ffff:203.0.113.7', '::FFFF:203.0.113.7', '::ffff:cb00:7107'])(
+      'should give an IPv4 written as %s in its IPv4 form',
+      (ip) => {
+        expect(canonicalIp(ip)).toBe('203.0.113.7');
+      },
+    );
+
+    it('should give an IPv6 however it is written in its shortest form', () => {
+      expect(canonicalIp('2001:DB8:0:0:0:0:0:1')).toBe('2001:db8::1');
+    });
+
+    it('should give nothing for what is not an IP', () => {
+      expect(canonicalIp('unknown')).toBeUndefined();
     });
   });
 });
