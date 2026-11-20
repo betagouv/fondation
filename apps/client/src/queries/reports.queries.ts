@@ -76,6 +76,7 @@ export function useUpdateReportMutation() {
     onSettled: (_data, _error, { reportId }) =>
       Promise.all([
         queryClient.invalidateQueries({ queryKey: reportKeys.reportById({ reportId }) }),
+        queryClient.invalidateQueries({ queryKey: memberKeys.allListMemberGdsSessions() }),
         queryClient.invalidateQueries({ queryKey: memberKeys.allListMemberSessionReports() }),
       ]),
   });

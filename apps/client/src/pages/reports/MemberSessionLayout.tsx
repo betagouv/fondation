@@ -34,10 +34,7 @@ export function MemberSessionLayout() {
     <ArchiveBannerPortal isArchived={session.isArchived}>
       <Breadcrumb
         ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane des rapports" })}
-        breadcrumb={breadCrumbOf({
-          formation: session.formation,
-          name: TransparencesCurrentPage.perGdsTransparencyReports,
-        })}
+        breadcrumb={breadCrumbOf({ name: TransparencesCurrentPage.perGdsTransparencyReports, session })}
         className="fr-mb-0"
         id="reports-breadcrumb"
       />

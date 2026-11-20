@@ -79,14 +79,14 @@ export const routes: RouteObject[] = [
       {
         children: [
           {
+            lazy: () =>
+              import('@/pages/spaces/member/MemberHomePage').then(({ MemberHomePage }) => ({
+                Component: MemberHomePage,
+              })),
+            path: ROUTE_PATHS.TRANSPARENCES.DASHBOARD,
+          },
+          {
             children: [
-              {
-                lazy: () =>
-                  import('@/pages/transparence/SessionsPage').then(({ SessionsPage }) => ({
-                    Component: SessionsPage,
-                  })),
-                path: ROUTE_PATHS.TRANSPARENCES.DASHBOARD,
-              },
               {
                 lazy: () =>
                   import('@/pages/sessions/MemberArchivedSessionsPage').then(

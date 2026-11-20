@@ -40,6 +40,8 @@ export type MembersSorting =
   | [{ desc: boolean; id: NonNullable<NonNullable<ListMembersData['query']>['sortBy']> }];
 
 export const memberKeys = {
+  allListMemberGdsSessions: () => ['listMemberGdsSessions'] as const,
+
   allListMemberSessionReports: () => ['listMemberSessionReports'] as const,
 
   allListedMembers: () => ['listMembers'] as const,
@@ -186,26 +188,17 @@ export function useExcludedJurisdictionsMutation(options: { userId: string }) {
   });
 }
 
-export type SessionOfTypeGardeDesSceaux = Omit<ListedMemberSessionsDto['items'][number], 'createdAt'> & {
-  createdAt: Date;
-};
+export type ListedMemberSession = ListedMemberSessionsDto['items'][number];
 
 export function useListMemberGdsSessions(input: { userId: string | undefined }) {
   return useQuery({
     enabled: !!input.userId,
     queryFn: async () => {
-      if (!input.userId) return null;
-
-      const { data } = await $api.members.listMemberSessions({ path: { userId: input.userId! } });
-
-      if (!data) return null;
-
-      return {
-        items: data.items.map<SessionOfTypeGardeDesSceaux>((item) => ({
-          ...item,
-          createdAt: new Date(item.createdAt),
-        })),
-      };
+      const { data } = await $api.members.listMemberSessions({
+        path: { userId: input.userId! },
+        throwOnError: true,
+      });
+      return data;
     },
     queryKey: memberKeys.listMemberGdsSessions(input),
   });

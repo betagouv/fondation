@@ -1,14 +1,14 @@
 # Droits par rôle
 
-Ce document liste ce que chaque rôle peut voir et faire dans Fondation : les vues du client, puis les actions de l'API, puis les accès sans utilisateur. Il décrit les droits voulus. Deux tests le confrontent au code à chaque pull request : une ligne manquante, en trop ou dont les rôles diffèrent de ceux du code les fait échouer. Un changement de droit apparaît donc toujours dans le listing.
+Ce document liste ce que chaque rôle peut voir et faire dans Fondation (les vues du client, les actions de l'API, puis les accès sans utilisateur). Deux tests le confrontent au code à chaque pull request. Une ligne manquante, en trop ou aux rôles différents les fait échouer.
 
 ## Lecture
 
 **Rôles**
 
-- **Membre** : Membre du siège, Membre du parquet ou Membre commun. Un Membre du siège ou du parquet ne voit que les sessions de sa formation, un Membre commun voit les deux.
+- **Membre** : du siège, du parquet ou commun. Les deux premiers ne voient que les sessions de leur formation, le Membre commun voit les deux.
 - **Secrétariat général**.
-- **Administrateur** : personne du Secrétariat général qui détient en plus le droit d'administrateur. Elle passe toutes les gardes de rôle, côté API comme côté client, et peut se connecter à la place d'un autre utilisateur. Le domaine lui refuse ce qu'il refuse au Secrétariat général.
+- **Administrateur** : personne du Secrétariat général avec le droit d'administrateur. Elle passe toutes les gardes de rôle (API et client) et peut se connecter à la place d'un autre utilisateur. Le domaine lui refuse ce qu'il refuse au Secrétariat général.
 
 **Cases**
 
@@ -27,7 +27,7 @@ Les tests vérifient les rôles : une case `✓ si …` compte comme `✓`. Les 
 
 ## Vues
 
-Après la connexion, un Membre arrive sur `/transparences`, le Secrétariat général sur `/secretariat-general`. Le Secrétariat général n'ouvre pas les URL de l'espace membre, et un Membre n'ouvre pas celles du Secrétariat général. Les URL qui ne font que rediriger vers une autre ne sont pas des vues et ne figurent pas ici.
+Après la connexion, un Membre arrive sur `/transparences`, le Secrétariat général sur `/secretariat-general`. Aucun des deux n'ouvre les URL de l'espace de l'autre. Les URL qui ne font que rediriger ne figurent pas ici.
 
 ### Pages publiques
 
@@ -53,23 +53,23 @@ L'administrateur voit le questionnaire de satisfaction en aperçu : sa réponse 
 
 Le menu propose Accueil, Archives et Magistrats.
 
-| URL                                                                                                                                    | Vue                                    | Membre                                 | Secrétariat général | Administrateur |
-| -------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- | -------------------------------------- | ------------------- | -------------- |
-| `/transparences`                                                                                                                       | Mes sessions en cours                  | ✓ si sa formation, affectation publiée | —                   | ✓              |
-| `/transparences/archives/sessions`                                                                                                     | Sessions archivées                     | ✓ si sa formation, affectation publiée | —                   | ✓              |
-| `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/:sessionId`                                                        | Session : dossiers et mes rapports     | ✓ si sa formation                      | —                   | ✓              |
-| `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/:sessionId/auditions`                                              | Session, onglet Auditions              | ✓ si sa formation                      | —                   | ✓              |
-| `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/:sessionId/pieces-jointes`                                         | Session, onglet Pièces jointes         | ✓ si sa formation                      | —                   | ✓              |
-| `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/rapports/:id`                                                               | Rapport sur un dossier                 | ✓ si rapporteur du dossier             | —                   | ✓              |
-| `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/:sessionId/dossiers/:nominationFileId/observations/:observationId` | Détail d'une observation               | ✓ si sa formation                      | —                   | ✓              |
-| `/magistrats`                                                                                                                          | Recherche de magistrats                | ✓                                      | —                   | ✓              |
-| `/magistrats/:magistratId`                                                                                                             | Fiche d'un magistrat et son historique | ✓                                      | —                   | ✓              |
+| URL                                                                                                                                    | Vue                                                  | Membre                                 | Secrétariat général | Administrateur |
+| -------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- | -------------------------------------- | ------------------- | -------------- |
+| `/transparences`                                                                                                                       | Accueil : sessions en cours et mes dossiers par état | ✓ si sa formation, affectation publiée | —                   | ✓              |
+| `/transparences/archives/sessions`                                                                                                     | Sessions archivées                                   | ✓ si sa formation, affectation publiée | —                   | ✓              |
+| `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/:sessionId`                                                        | Session : dossiers et mes rapports                   | ✓ si sa formation                      | —                   | ✓              |
+| `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/:sessionId/auditions`                                              | Session, onglet Auditions                            | ✓ si sa formation                      | —                   | ✓              |
+| `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/:sessionId/pieces-jointes`                                         | Session, onglet Pièces jointes                       | ✓ si sa formation                      | —                   | ✓              |
+| `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/rapports/:id`                                                               | Rapport sur un dossier                               | ✓ si rapporteur du dossier             | —                   | ✓              |
+| `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/:sessionId/dossiers/:nominationFileId/observations/:observationId` | Détail d'une observation                             | ✓ si sa formation                      | —                   | ✓              |
+| `/magistrats`                                                                                                                          | Recherche de magistrats                              | ✓                                      | —                   | ✓              |
+| `/magistrats/:magistratId`                                                                                                             | Fiche d'un magistrat et son historique               | ✓                                      | —                   | ✓              |
 
 Un Membre ne voit les auditions d'une session qu'une fois publiées.
 
 ### Espace Secrétariat général
 
-L'accueil propose les deux pouvoirs de proposition. Le menu garde partout Rechercher un magistrat. Depuis le GDS, il y ajoute Gérer une session, Restitutions, Suivi des observations, Gérer les membres et Archives. Depuis le CSM, il y ajoute Veille des postes, Appels à candidature, Processus de sélection et Membres. Le logo ramène à l'accueil. L'Administrateur y voit en plus un sous-menu Administration. Sur Gérer une session, il peut aussi créer une session depuis une extraction Lodam.
+L'accueil propose les deux pouvoirs de proposition et le logo y ramène. Le menu garde partout Rechercher un magistrat. Le GDS y ajoute Gérer une session, Restitutions, Suivi des observations, Gérer les membres et Archives. Le CSM y ajoute Veille des postes. L'Administrateur a en plus un sous-menu Administration et peut créer une session depuis une extraction Lodam.
 
 | URL                                                                                                  | Vue                                                                | Membre | Secrétariat général | Administrateur |
 | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ------ | ------------------- | -------------- |
@@ -146,7 +146,16 @@ Le préfixe `/api` est omis.
 | Changer le statut d'un retour                  | `PUT /feedbacks/v1/:feedbackId/status`       | —                        | —                        | ✓                        |
 | Télécharger un fichier par son lien temporaire | `GET /files/v1/:fileUrlId`                   | ✓                        | ✓                        | ✓                        |
 
-Quiconque détient un lien de téléchargement temporaire télécharge le fichier. Connecté à la place d'un utilisateur, l'administrateur n'enregistre ni réponse au questionnaire ni changement de mot de passe et envoie ses retours à son propre nom. Il ne lit pas non plus le contenu privé de l'utilisateur et ne peut pas le modifier : ses notes sur un dossier, ses commentaires sur une observation et les synthèses partagées avec lui. Un bloc "Contenu privé" les remplace. Il lit le rapport de l'utilisateur sans pouvoir le modifier ni en ouvrir les pièces jointes. Cette connexion ne vaut que pour l'onglet ouvert pour elle et ceux ouverts depuis lui.
+Quiconque détient un lien de téléchargement temporaire télécharge le fichier.
+
+Connecté à la place d'un utilisateur, l'administrateur :
+
+- n'enregistre ni réponse au questionnaire ni changement de mot de passe
+- envoie ses retours à son propre nom
+- ne voit ni ne modifie ses notes, ses commentaires d'observation et les synthèses partagées avec lui
+- lit son rapport sans le modifier ni en ouvrir les pièces jointes
+
+Cette connexion ne vaut que pour l'onglet ouvert pour elle et ceux ouverts depuis lui.
 
 ### Sessions
 
@@ -278,7 +287,7 @@ Dans le détail d'une observation, un Membre ne voit que son propre commentaire.
 | Programmer l'audition d'un candidat          | `PUT /sessions/v2/:sessionId/files/:nominationFileId/audition/schedule` | —                 | ✓                   | ✓              |
 | Voir l'historique des auditions d'un dossier | `GET /sessions/v2/:sessionId/files/:nominationFileId/audition/history`  | —                 | ✓                   | ✓              |
 
-Un Membre ne voit les auditions qu'une fois publiées, et sans les coordonnées des candidats.
+Un Membre ne voit les auditions qu'une fois publiées et sans les coordonnées des candidats.
 
 ### Magistrats
 
@@ -435,9 +444,7 @@ Dans les dossiers d'un magistrat, un Membre ne voit que l'affectation et les aud
 | Lister les traitements            | `GET /jobs/v1`                                              | —      | —                   | ✓              |
 | Voir un traitement                | `GET /jobs/v1/:jobId`                                       | —      | —                   | ✓              |
 
-Le droit d'administrateur ne se donne qu'à une personne du Secrétariat général.
-
-Seul un compte technique peut en rendre un autre technique.
+Le droit d'administrateur ne se donne qu'à une personne du Secrétariat général. Seul un compte technique peut en rendre un autre technique.
 
 ## Accès sans utilisateur
 

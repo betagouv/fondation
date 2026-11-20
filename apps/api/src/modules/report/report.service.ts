@@ -7,10 +7,11 @@ import { StoredFile } from '../framework/files/multipart/multipart.types';
 import { FormationEnum } from '../shared/formation.enum';
 import type { Impersonation } from '../shared/policies/personal-content.policies';
 import { ReportFileUsageEnum } from '../shared/report-file-usage.enum';
-import { ReportStateEnum } from '../shared/report-state.enum';
+import { ReportStateEnum, type ReportStateCounts } from '../shared/report-state.enum';
 import type { RoleEnum } from '../shared/role.enum';
 
 import { AttachedScreenshotsDto } from './infrastructure/dtos/report.dto';
+import { MemberReportStatesFinder } from './infrastructure/finders/member-report-states.finder';
 import { type DetailedReportDto, DetailReportQuery } from './infrastructure/queries/detail-report.query';
 import {
   type GeneratedReportAttachmentUrlDto,
@@ -35,6 +36,7 @@ export class ReportService {
     private readonly getReportAttachmentUrlQuery: GetReportAttachmentUrlQuery,
     private readonly detailReportQuery: DetailReportQuery,
     private readonly listMemberSessionReportsQuery: ListMemberSessionReportsQuery,
+    private readonly memberReportStatesFinder: MemberReportStatesFinder,
     private readonly searchNominationFileMembersReportQuery: SearchNominationFileMembersReportQuery,
     private readonly files: Files,
   ) {}
@@ -133,6 +135,13 @@ export class ReportService {
     const sessionReports = await this.sessionReportsRepository.find(command);
     sessionReports.syncWith(command);
     await this.sessionReportsRepository.persist(sessionReports);
+  }
+
+  internalCountMemberReportStates(query: {
+    reporterId: string;
+    sessionIds: readonly string[];
+  }): Promise<Map<string, ReportStateCounts>> {
+    return this.memberReportStatesFinder.find(query);
   }
 
   listMemberSessionReports(query: {

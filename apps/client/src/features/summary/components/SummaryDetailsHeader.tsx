@@ -12,6 +12,7 @@ import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { DetailsHeader } from '@/shared/ui/details';
 import { openedDossierSearch, ROUTE_PATHS } from '@/utils/route-path.utils';
 import { requiresElision } from '@/utils/string.utils';
+import { useMemberBreadcrumbRoot } from '@/utils/transparences-breadcrumb.utils';
 import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
 
 import { SummaryReaderSelector } from './SummaryReaderSelector';
@@ -30,25 +31,11 @@ export function SummaryDetailsHeader() {
     search: openedDossierSearch(nominationFileId),
   };
 
-  const segments: { label: string; to: To }[] = isSg
-    ? breadcrumbRoot
-    : [
-        {
-          label: formatMessage({ defaultMessage: 'Transparences' }),
-          to: ROUTE_PATHS.TRANSPARENCES.DASHBOARD,
-        },
-        {
-          label: formatMessage({ defaultMessage: 'Pouvoir de proposition du garde des Sceaux' }),
-          to: ROUTE_PATHS.TRANSPARENCES.DASHBOARD,
-        },
-      ];
-
-  if (session) {
-    segments.push({
-      label: isSg ? session.name : session.label,
-      to: sessionPath,
-    });
-  }
+  const memberRoot = useMemberBreadcrumbRoot();
+  const segments: { label: string; to: To }[] = [
+    ...(isSg ? breadcrumbRoot : memberRoot),
+    ...(session ? [{ label: session.name, to: sessionPath }] : []),
+  ];
 
   return (
     <DetailsHeader

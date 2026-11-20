@@ -1,7 +1,6 @@
 import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import Input from '@codegouvfr/react-dsfr/Input';
 import Select from '@codegouvfr/react-dsfr/Select';
-import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { useCallback, useEffect, useMemo, type ChangeEvent } from 'react';
@@ -16,6 +15,7 @@ import { JusticeContactSelector } from '@/features/documents/components/JusticeC
 import { useOfficialReport } from '@/features/documents/context/OfficialReportContext';
 import { FormationEnumMessages } from '@/shared/enums/formation.enum';
 import { RequiredLabel } from '@/shared/ui/required-label';
+import { ToggleSwitch } from '@/shared/ui/toggle-switch';
 import { dateOnlyCodec, dateOnlyToIso, formatDateOnly } from '@/utils/date-only.util';
 import { normalizeSessionName } from '@/utils/session.utils';
 import { capitalize } from '@/utils/string.utils';

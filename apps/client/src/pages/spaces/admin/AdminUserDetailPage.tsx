@@ -1,7 +1,6 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import Input from '@codegouvfr/react-dsfr/Input';
 import Select from '@codegouvfr/react-dsfr/Select';
-import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 import { useCallback, useMemo, useState, type ReactNode, type SyntheticEvent } from 'react';
 import { defineMessage, FormattedMessage, useIntl } from 'react-intl';
 import { generatePath, useNavigate, useParams } from 'react-router';
@@ -16,6 +15,7 @@ import { useTab } from '@/shared/hooks/useTab';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { DetailsCard, DetailsHeader, DetailsPageLayout } from '@/shared/ui/details';
 import { IconButton } from '@/shared/ui/icon-button';
+import { ToggleSwitch } from '@/shared/ui/toggle-switch';
 import { generatePassword } from '@/utils/password.utils';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { capitalize } from '@/utils/string.utils';

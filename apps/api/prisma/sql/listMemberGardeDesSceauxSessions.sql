@@ -23,13 +23,16 @@ last_published_affectation AS (
 )
 
 SELECT
+  s."date",
+  s.formation,
   s.id,
   s."name",
-  s.date,
-  s.created_at AS "createdAt",
-  s.formation,
-  s.type_de_saisine AS "typeDeSaisine",
   COUNT(nfr.user_id) FILTER (WHERE nfr.user_id = $1::UUID) AS "fileCount",
+  (
+    SELECT COUNT(*)
+    FROM nominations_context.dossier_de_nomination AS d
+    WHERE d.session_id = s.id
+  ) AS "propositionCount",
   COALESCE(
     ARRAY_AGG(DISTINCT nfr.user_id) FILTER (WHERE nfr.user_id = $1::UUID)::UUID[],
     ARRAY[]::UUID[]
@@ -46,4 +49,6 @@ WHERE (
   AND ($2::FORMATION IS NULL OR s.formation = $2::FORMATION)
 )
 
-GROUP BY s.id;
+GROUP BY s.id
+
+ORDER BY s."date" DESC, s."name" ASC, s.id ASC;

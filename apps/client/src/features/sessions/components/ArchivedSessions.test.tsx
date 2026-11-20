@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { NuqsTestingAdapter, type OnUrlUpdateFunction } from 'nuqs/adapters/testing';
 import type { ComponentProps } from 'react';
@@ -79,6 +79,16 @@ describe('ArchivedSessions', () => {
     expect(screen.getByRole('link', { name: 'Transparence du 4 février 2026' })).toHaveAttribute(
       'href',
       '/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/session-1',
+    );
+  });
+
+  it('should lead a member back to their home from the breadcrumb', () => {
+    renderArchivedSessions({ space: 'TRANSPARENCES', withFormationFilter: false });
+
+    const breadcrumb = screen.getByRole('navigation', { name: "Fil d'Ariane des sessions archivées" });
+    expect(within(breadcrumb).getByRole('link', { name: 'Accueil' })).toHaveAttribute(
+      'href',
+      '/transparences',
     );
   });
 

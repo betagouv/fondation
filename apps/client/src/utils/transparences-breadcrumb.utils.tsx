@@ -1,8 +1,6 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useIntl } from 'react-intl';
-import { useNavigate } from 'react-router';
 
-import { type FormationEnum, FormationEnumMessages } from '@/shared/enums/formation.enum';
 import type { BreadcrumbVM } from '@/shared/ui/Breadcrumb';
 
 import { getDetailSessionGdsPath, ROUTE_PATHS } from './route-path.utils';
@@ -16,71 +14,47 @@ export enum TransparencesCurrentPage {
 type TransparencesCurrentPageType =
   | {
       name: typeof TransparencesCurrentPage.perGdsTransparencyReports;
-      formation: FormationEnum;
+      session: { name: string };
     }
   | {
       name: typeof TransparencesCurrentPage.gdsReport;
       nominationFileName: string;
-      session: { id: string; label: string };
+      session: { id: string; name: string };
     };
 
-export function useTransparencesBreadCrumb(): (currentPage: TransparencesCurrentPageType) => BreadcrumbVM {
+export function useMemberBreadcrumbRoot(): BreadcrumbVM['segments'] {
   const { formatMessage } = useIntl();
-  const navigate = useNavigate();
+  return useMemo(
+    () => [{ label: formatMessage({ defaultMessage: 'Accueil' }), to: ROUTE_PATHS.TRANSPARENCES.DASHBOARD }],
+    [formatMessage],
+  );
+}
+
+export function useTransparencesBreadCrumb(): (currentPage: TransparencesCurrentPageType) => BreadcrumbVM {
+  const memberRoot = useMemberBreadcrumbRoot();
 
   return useCallback(
     (currentPage: TransparencesCurrentPageType): BreadcrumbVM => {
-      const TRANSPARENCES_ANCHOR_ATTRIBUTES = {
-        to: ROUTE_PATHS.TRANSPARENCES.DASHBOARD,
-        onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
-          event.preventDefault();
-          navigate(ROUTE_PATHS.TRANSPARENCES.DASHBOARD);
-        },
-      };
-
-      const transparenciesSegment = {
-        label: formatMessage({ defaultMessage: 'Transparences' }),
-        ...TRANSPARENCES_ANCHOR_ATTRIBUTES,
-      };
-
-      const gdsTransparenciesSegment = {
-        label: formatMessage({ defaultMessage: 'Pouvoir de proposition du garde des Sceaux' }),
-        ...TRANSPARENCES_ANCHOR_ATTRIBUTES,
-      };
-
       switch (currentPage.name) {
-        case TransparencesCurrentPage.perGdsTransparencyReports: {
-          return {
-            currentPageLabel: formatMessage(
-              { defaultMessage: 'Formation {formation}' },
-              { formation: formatMessage(FormationEnumMessages[currentPage.formation]) },
-            ),
-            segments: [transparenciesSegment, gdsTransparenciesSegment],
-          };
-        }
+        case TransparencesCurrentPage.perGdsTransparencyReports:
+          return { currentPageLabel: currentPage.session.name, segments: memberRoot };
 
-        case TransparencesCurrentPage.gdsReport: {
-          const { session } = currentPage;
-          const path = getDetailSessionGdsPath({ sessionId: session.id });
-          const transparencySegment = {
-            label: session.label,
-            to: path,
-            onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
-              event.preventDefault();
-              navigate(path);
-            },
-          };
-
+        case TransparencesCurrentPage.gdsReport:
           return {
             currentPageLabel: currentPage.nominationFileName,
-            segments: [transparenciesSegment, gdsTransparenciesSegment, transparencySegment],
+            segments: [
+              ...memberRoot,
+              {
+                label: currentPage.session.name,
+                to: getDetailSessionGdsPath({ sessionId: currentPage.session.id }),
+              },
+            ],
           };
-        }
 
         default:
           return assertNever(currentPage);
       }
     },
-    [formatMessage, navigate],
+    [memberRoot],
   );
 }

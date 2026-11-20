@@ -193,13 +193,23 @@ export type ListedArchivedNominationSessionsDto = {
 
 export type ListedMemberSessionsDto = {
     items: Array<{
-        id: string;
-        label: string;
-        createdAt: string;
-        isAffected: boolean;
+        date: {
+            year: number;
+            month: number;
+            day: number;
+        };
         fileCount: number;
         formation: 'SIEGE' | 'PARQUET';
-        typeDeSaisine: 'TRANSPARENCE_GDS';
+        id: string;
+        isAffected: boolean;
+        name: string;
+        propositionCount: number;
+        reportCounts: {
+            IN_PROGRESS: number;
+            NEW: number;
+            READY_TO_SUPPORT: number;
+            SUPPORTED: number;
+        };
     }>;
 };
 

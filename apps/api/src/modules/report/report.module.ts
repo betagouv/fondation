@@ -2,6 +2,7 @@ import { forwardRef, Module } from '@nestjs/common';
 
 import { TransparenceModule } from '../session/transparence/transparence.module';
 
+import { MemberReportStatesFinder } from './infrastructure/finders/member-report-states.finder';
 import { DetailReportQuery } from './infrastructure/queries/detail-report.query';
 import { GetReportAttachmentUrlQuery } from './infrastructure/queries/get-report-attachment-url.query';
 import { ListMemberSessionReportsQuery } from './infrastructure/queries/list-member-session-reports.query';
@@ -17,13 +18,14 @@ import { ReportService } from './report.service';
   exports: [ReportService],
   imports: [forwardRef(() => TransparenceModule)],
   providers: [
+    DetailReportQuery,
+    GetReportAttachmentUrlQuery,
+    ListMemberSessionReportsQuery,
+    MemberReportStatesFinder,
     ReportRepository,
     ReportService,
-    SessionReportsRepository,
-    GetReportAttachmentUrlQuery,
-    DetailReportQuery,
-    ListMemberSessionReportsQuery,
     SearchNominationFileMembersReportQuery,
+    SessionReportsRepository,
   ],
 })
 export class ReportModule {}
