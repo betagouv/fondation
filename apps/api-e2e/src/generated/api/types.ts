@@ -1126,6 +1126,14 @@ export type InvalidMagistratEmailDto = {
     }>;
 };
 
+export type FoundMagistratStatusDto = {
+    /**
+     * - `ACTIVE`: the _Magistrat_ is in the last LOLFI extraction imported successfully
+     * - `INACTIVE`: it is no longer
+     */
+    status: 'ACTIVE' | 'INACTIVE';
+};
+
 export type SearchMagistratAuthorizationDto = {
     email: string;
 };
@@ -4525,6 +4533,32 @@ export type IdentifyMagistratResponses = {
 };
 
 export type IdentifyMagistratResponse = IdentifyMagistratResponses[keyof IdentifyMagistratResponses];
+
+export type FindMagistratStatusData = {
+    body?: never;
+    path: {
+        magistratId: string;
+    };
+    query?: never;
+    url: '/api/public/v1/magistrats/{magistratId}/status';
+};
+
+export type FindMagistratStatusErrors = {
+    /**
+     * The identifier is not a UUID
+     */
+    400: unknown;
+    /**
+     * No _Magistrat_ has this identifier: its status could not be checked
+     */
+    404: unknown;
+};
+
+export type FindMagistratStatusResponses = {
+    200: FoundMagistratStatusDto;
+};
+
+export type FindMagistratStatusResponse = FindMagistratStatusResponses[keyof FindMagistratStatusResponses];
 
 export type SearchMagistratAuthorizationData = {
     body: SearchMagistratAuthorizationDto;
