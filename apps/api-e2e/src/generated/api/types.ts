@@ -1125,19 +1125,20 @@ export type IdentifyMagistratDto = {
 
 export type IdentifiedMagistratDto = {
     /**
-     * - `ACTIVE`: the address is the professional one of a single active _Magistrat_
-     * - `UNKNOWN`: unknown address, inactive _Magistrat_ or address held by several of them, never told apart
+     * The address is the professional one of a single active _Magistrat_
      */
-    status: 'ACTIVE' | 'UNKNOWN';
-    /**
-     * Given with `ACTIVE` only
-     */
-    magistrat?: {
+    status: 'ACTIVE';
+    magistrat: {
         /**
          * The Fondation identifier, to read the status again later
          */
         id: string;
     };
+} | {
+    /**
+     * Unknown address, inactive _Magistrat_ or address held by several of them, never told apart
+     */
+    status: 'UNKNOWN';
 };
 
 export type InvalidMagistratEmailDto = {

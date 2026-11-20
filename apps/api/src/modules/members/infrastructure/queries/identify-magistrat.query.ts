@@ -24,18 +24,25 @@ export class IdentifyMagistratQuery {
 
 export class IdentifyMagistratDto extends createZodDto(z.object({ email: z.email() })) {}
 
-export class IdentifiedMagistratDto extends createZodDto(
-  z.object({
-    status: z.enum(['ACTIVE', 'UNKNOWN']).meta({
-      description:
-        '- `ACTIVE`: the address is the professional one of a single active _Magistrat_\n' +
-        '- `UNKNOWN`: unknown address, inactive _Magistrat_ or address held by several of them, never told apart',
-    }),
-    magistrat: z
-      .object({
+const identifiedMagistratSchema = z
+  .discriminatedUnion('status', [
+    z.object({
+      status: z.literal('ACTIVE').meta({
+        description: 'The address is the professional one of a single active _Magistrat_',
+      }),
+      magistrat: z.object({
         id: z.uuid().meta({ description: 'The Fondation identifier, to read the status again later' }),
-      })
-      .optional()
-      .meta({ description: 'Given with `ACTIVE` only' }),
-  }),
-) {}
+      }),
+    }),
+    z.object({
+      status: z.literal('UNKNOWN').meta({
+        description:
+          'Unknown address, inactive _Magistrat_ or address held by several of them, never told apart',
+      }),
+    }),
+  ])
+  .meta({ id: 'IdentifiedMagistratDto' });
+
+// A union has no members known statically: TypeScript refuses it as a base class (TS2509)
+export type IdentifiedMagistratDto = z.infer<typeof identifiedMagistratSchema>;
+export const IdentifiedMagistratDto = createZodDto(identifiedMagistratSchema);
