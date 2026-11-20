@@ -1,7 +1,7 @@
-import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import { AlertBanner } from '@/shared/ui/alert-banner';
+import { ToggleSwitch } from '@/shared/ui/toggle-switch';
 import { useUpdateNominationFileMissingEvaluationMutation } from '@queries/members.queries';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 

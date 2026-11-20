@@ -1,7 +1,6 @@
 import ButtonsGroup from '@codegouvfr/react-dsfr/ButtonsGroup';
 import Input from '@codegouvfr/react-dsfr/Input';
 import Select from '@codegouvfr/react-dsfr/Select';
-import ToggleSwitch from '@codegouvfr/react-dsfr/ToggleSwitch';
 import { zodResolver } from '@hookform/resolvers/zod';
 import clsx from 'clsx';
 import { format } from 'date-fns';
@@ -16,6 +15,7 @@ import { ChairmanSelector } from '@/features/documents/components/ChairmanSelect
 import { JusticeContactSelector } from '@/features/documents/components/JusticeContactSelector';
 import { usePresentationPlan } from '@/features/documents/context/presentation-plan.context';
 import { RequiredLabel } from '@/shared/ui/required-label';
+import { ToggleSwitch } from '@/shared/ui/toggle-switch';
 import { dateOnlyToIso } from '@/utils/date-only.util';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { memberFullName } from '@/utils/user.utils';
