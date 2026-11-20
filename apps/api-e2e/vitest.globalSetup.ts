@@ -19,6 +19,7 @@ async function truncate() {
   await sql`
     truncate "identity_and_access_context"."users" cascade;
     truncate "identity_and_access_context"."login_attempts";
+    truncate "identity_and_access_context"."api_clients" cascade;
 
     truncate "data_administration_context"."session" cascade;
     truncate "data_administration_context"."jurisdictions" cascade;

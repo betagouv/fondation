@@ -1,0 +1,54 @@
+/// A partner system that calls the public API, such as the website of the CSM
+model ApiClient {
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  /// The `client_id` handed to the partner
+  id         String    @id @db.Uuid
+  name       String    @db.VarChar
+  /// Its tokens stop working at once
+  revokedAt  DateTime? @map("revoked_at") @db.Timestamp(6)
+  /// SHA-256 of a random secret, shown once when the client is created
+  secretHash String    @map("secret_hash") @db.VarChar
+
+  accessTokens ApiAccessToken[]
+  allowedIps   ApiClientAllowedIp[]
+  scopes       ApiClientScope[]
+
+  @@map("api_clients")
+  @@schema("identity_and_access_context")
+}
+
+model ApiClientAllowedIp {
+  clientId String @map("client_id") @db.Uuid
+  ip       String @db.VarChar
+
+  client ApiClient @relation(fields: [clientId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([clientId, ip], name: "primaryKey")
+  @@map("api_client_allowed_ips")
+  @@schema("identity_and_access_context")
+}
+
+/// A route of the public API that the client may call
+model ApiClientScope {
+  clientId String @map("client_id") @db.Uuid
+  scope    String @db.VarChar
+
+  client ApiClient @relation(fields: [clientId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([clientId, scope], name: "primaryKey")
+  @@map("api_client_scopes")
+  @@schema("identity_and_access_context")
+}
+
+/// No index on the client: a client holds a handful of tokens, the expired ones go when it asks for a new one
+model ApiAccessToken {
+  clientId  String   @map("client_id") @db.Uuid
+  expiresAt DateTime @map("expires_at") @db.Timestamp(6)
+  /// SHA-256 of the token, which only the response of the authentication route shows
+  hash      String   @id @db.VarChar
+
+  client ApiClient @relation(fields: [clientId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@map("api_access_tokens")
+  @@schema("identity_and_access_context")
+}

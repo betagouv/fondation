@@ -11,6 +11,10 @@ const mark = (allowed: boolean) => (allowed ? '✓' : '—');
 
 function accessOf(endpoint: string, roles: readonly string[] | undefined): string {
   if (!roles) return 'public';
+  if (roles.includes('API_CLIENT')) {
+    if (roles.length === 1) return 'client API';
+    throw new Error(`${endpoint} lets API clients in along with other roles`);
+  }
   if (roles.includes('MACHINE')) {
     if (roles.length === 1) return 'machine';
     if (roles.length === 2 && roles.includes('ADMIN')) return 'machine ou Administrateur';

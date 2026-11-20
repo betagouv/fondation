@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 
 import { AdministrationModule } from './administration/administration.module';
+import { ApiClientsModule } from './api-clients';
 import { DocsModule } from './docs/docs.module';
 import { FeedbacksModule } from './feedbacks/feedbacks.module';
 import { FrameworkModule } from './framework/framework.module';
@@ -20,6 +21,7 @@ import { VeilleDesPostesModule } from './veille-des-postes/veille-des-postes.mod
 @Module({
   imports: [
     SimpleAuthModule,
+    ApiClientsModule,
     ReportModule,
     IngestModule,
     TransparenceModule,
