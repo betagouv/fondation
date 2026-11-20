@@ -1,3 +1,4 @@
+import * as assert from 'node:assert/strict';
 import * as crypto from 'node:crypto';
 
 import type { LolfiArchiveContent } from 'lolfi';
@@ -92,7 +93,8 @@ test.describe('public magistrat routes', () => {
       client: site.http,
       throwOnError: true,
     });
-    const magistratId = identified.data.magistrat!.id;
+    assert.equal(identified.data.status, 'ACTIVE');
+    const magistratId = identified.data.magistrat.id;
     const readStatus = () =>
       magistrats.findMagistratStatus({ client: site.http, path: { magistratId }, throwOnError: true });
 

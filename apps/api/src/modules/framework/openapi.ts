@@ -4,9 +4,12 @@ import {
   ApiOkResponse,
   DocumentBuilder,
   getSchemaPath,
+  type OpenAPIObject,
   SwaggerModule,
 } from '@nestjs/swagger';
 import { cleanupOpenApiDoc } from 'nestjs-zod';
+
+import { publicOpenApiDocument } from './public-openapi';
 
 type DiscriminatedByTypeDto = Type<unknown> & {
   schema: { shape: { '@type': { value: string } } };
@@ -38,38 +41,39 @@ export function ApiOkDiscriminatedByType(
   );
 }
 
+const swaggerOptions = { defaultModelsExpandDepth: -1, displayOperationId: true, docExpansion: 'none' };
+
 export function openapi(app: INestApplication): void {
-  SwaggerModule.setup(
-    '/openapi',
-    app,
-    () =>
-      cleanupOpenApiDoc(
-        SwaggerModule.createDocument(
-          app,
-          new DocumentBuilder()
-            .setOpenAPIVersion('3.1.0')
-            .setDescription(`[raw JSON](/openapi/root.json)`)
-            .addCookieAuth('sessionId', {
-              name: 'sessionId',
-              type: 'apiKey',
-              in: 'cookie',
-            })
-            .addBasicAuth({
-              type: 'http',
-              scheme: 'basic',
-            })
-            .addBearerAuth()
-            .build(),
-          { operationIdFactory: (_, methodKey) => methodKey },
-        ),
+  let document: OpenAPIObject | undefined;
+  const fullDocument = () =>
+    (document ??= cleanupOpenApiDoc(
+      SwaggerModule.createDocument(
+        app,
+        new DocumentBuilder()
+          .setOpenAPIVersion('3.1.0')
+          .setDescription(`[raw JSON](/openapi/root.json), [public API](/openapi/public)`)
+          .addCookieAuth('sessionId', {
+            name: 'sessionId',
+            type: 'apiKey',
+            in: 'cookie',
+          })
+          .addBasicAuth({
+            type: 'http',
+            scheme: 'basic',
+          })
+          .addBearerAuth()
+          .build(),
+        { operationIdFactory: (_, methodKey) => methodKey },
       ),
-    {
-      jsonDocumentUrl: '/openapi/root.json',
-      swaggerOptions: {
-        defaultModelsExpandDepth: -1,
-        displayOperationId: true,
-        docExpansion: 'none',
-      },
-    },
-  );
+    ));
+
+  SwaggerModule.setup('/openapi', app, fullDocument, {
+    jsonDocumentUrl: '/openapi/root.json',
+    swaggerOptions,
+  });
+  // The file handed to the partners who call the public API
+  SwaggerModule.setup('/openapi/public', app, () => publicOpenApiDocument(fullDocument()), {
+    jsonDocumentUrl: '/openapi/public.json',
+    swaggerOptions,
+  });
 }
