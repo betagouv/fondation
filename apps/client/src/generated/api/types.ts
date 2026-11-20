@@ -1093,19 +1093,28 @@ export type ListedJurisdictions = {
     }>;
 };
 
-export type SearchMagistratAuthorizationDto = {
+export type IdentifyMagistratDto = {
     email: string;
 };
 
-export type FoundMagistratAuthorizationDto = {
+export type IdentifiedMagistratDto = {
     /**
-     * - `MAGISTRAT` means that the email exists and refers to an active _Magistrat_
-     * - `UNKNOWN` we did not find any active _Magistrat_ with that email
+     * - `ACTIVE`: the address is the professional one of a single active _Magistrat_
+     * - `UNKNOWN`: unknown address, inactive _Magistrat_ or address held by several of them, never told apart
      */
-    role: 'MAGISTRAT' | 'UNKNOWN';
+    status: 'ACTIVE' | 'UNKNOWN';
+    /**
+     * Given with `ACTIVE` only
+     */
+    magistrat?: {
+        /**
+         * The Fondation identifier, to read the status again later
+         */
+        id: string;
+    };
 };
 
-export type SearchMagistratAuthorizationInvalidEmailDto = {
+export type InvalidMagistratEmailDto = {
     message: string;
     path: string;
     statusCode: 400;
@@ -1118,6 +1127,18 @@ export type SearchMagistratAuthorizationInvalidEmailDto = {
         path: Array<string>;
         pattern: string;
     }>;
+};
+
+export type SearchMagistratAuthorizationDto = {
+    email: string;
+};
+
+export type FoundMagistratAuthorizationDto = {
+    /**
+     * - `MAGISTRAT` means that the email exists and refers to an active _Magistrat_
+     * - `UNKNOWN` we did not find any active _Magistrat_ with that email
+     */
+    role: 'MAGISTRAT' | 'UNKNOWN';
 };
 
 export type SearchMagistratAuthorizationUnauthorizedDto = {
@@ -4489,6 +4510,25 @@ export type SearchResponses = {
 
 export type SearchResponse = SearchResponses[keyof SearchResponses];
 
+export type IdentifyMagistratData = {
+    body: IdentifyMagistratDto;
+    path?: never;
+    query?: never;
+    url: '/api/public/v1/magistrats/identification';
+};
+
+export type IdentifyMagistratErrors = {
+    400: InvalidMagistratEmailDto;
+};
+
+export type IdentifyMagistratError = IdentifyMagistratErrors[keyof IdentifyMagistratErrors];
+
+export type IdentifyMagistratResponses = {
+    200: IdentifiedMagistratDto;
+};
+
+export type IdentifyMagistratResponse = IdentifyMagistratResponses[keyof IdentifyMagistratResponses];
+
 export type SearchMagistratAuthorizationData = {
     body: SearchMagistratAuthorizationDto;
     path?: never;
@@ -4497,7 +4537,7 @@ export type SearchMagistratAuthorizationData = {
 };
 
 export type SearchMagistratAuthorizationErrors = {
-    400: SearchMagistratAuthorizationInvalidEmailDto;
+    400: InvalidMagistratEmailDto;
     401: SearchMagistratAuthorizationUnauthorizedDto;
 };
 

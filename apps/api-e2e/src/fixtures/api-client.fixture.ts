@@ -10,8 +10,8 @@ type ApiClientOptions = { allowedIps?: string[]; scopes?: string[] };
 /** registers an API client as the command line does, the API serving no route for it */
 export interface ApiClientFixture {
   register(options?: ApiClientOptions): Promise<{ id: string; secret: string }>;
-  /** an http client holding a fresh token of a newly registered API client */
-  authenticated(options?: ApiClientOptions): Promise<Client>;
+  /** a newly registered API client, with an http client holding its fresh token */
+  authenticated(options?: ApiClientOptions): Promise<{ http: Client; id: string }>;
 }
 
 // the tests reach the API through the loopback, in IPv4 or IPv6
@@ -37,7 +37,7 @@ export function makeApiClientFixture({ baseUrl, sql }: { baseUrl: string; sql: S
     return { id, secret };
   }
 
-  async function authenticated(options?: ApiClientOptions): Promise<Client> {
+  async function authenticated(options?: ApiClientOptions): Promise<{ http: Client; id: string }> {
     const { id, secret } = await register(options);
     const { data } = await apiClients.authenticateApiClient({
       body: { client_id: id, client_secret: secret, grant_type: 'client_credentials' },
@@ -45,7 +45,10 @@ export function makeApiClientFixture({ baseUrl, sql }: { baseUrl: string; sql: S
       throwOnError: true,
     });
 
-    return createClient(createConfig({ baseUrl, headers: { Authorization: `Bearer ${data.access_token}` } }));
+    return {
+      http: createClient(createConfig({ baseUrl, headers: { Authorization: `Bearer ${data.access_token}` } })),
+      id,
+    };
   }
 
   return { authenticated, register };

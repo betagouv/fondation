@@ -12,7 +12,7 @@ export class SearchMagistratAuthorizationUnauthorizedDto extends createZodDto(
   }),
 ) {}
 
-export class SearchMagistratAuthorizationInvalidEmailDto extends createZodDto(
+export class InvalidMagistratEmailDto extends createZodDto(
   z.object({
     message: z.string(),
     path: z.string(),
