@@ -27,9 +27,9 @@
     "local:empty-except-accounts": "dotenvx run -f .env -- node scripts/empty-local-or-staging-except-accounts.mjs"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "3.1161.0",
-    "@aws-sdk/lib-storage": "3.1161.0",
-    "@aws-sdk/s3-request-presigner": "3.1161.0",
+    "@aws-sdk/client-s3": "3.1164.0",
+    "@aws-sdk/lib-storage": "3.1164.0",
+    "@aws-sdk/s3-request-presigner": "3.1164.0",
     "@dotenvx/dotenvx": "1.75.1",
     "@nestjs-cls/transactional": "3.3.1",
     "@nestjs-cls/transactional-adapter-prisma": "1.4.1",
@@ -37,7 +37,7 @@
     "@nestjs/common": "11.2.8",
     "@nestjs/core": "11.2.8",
     "@nestjs/platform-express": "11.2.8",
-    "@nestjs/swagger": "11.4.7",
+    "@nestjs/swagger": "11.4.8",
     "@prisma/adapter-pg": "7.10.1",
     "@prisma/client": "7.10.1",
     "@sentry/node": "10.78.0",
