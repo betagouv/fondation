@@ -13,8 +13,17 @@ export function isNonRecusableOn(file: SessionNominationFile, memberId: string):
   return file.nonRecusableMembers.some(({ id }) => id === memberId);
 }
 
+export type NonAffectableReason = SessionNominationFile['nonAffectableMembers'][number]['reason'];
+
+export function nonAffectableReasonOn(
+  file: SessionNominationFile,
+  memberId: string,
+): NonAffectableReason | undefined {
+  return file.nonAffectableMembers.find(({ id }) => id === memberId)?.reason;
+}
+
 export function isNonAffectableOn(file: SessionNominationFile, memberId: string): boolean {
-  return file.nonAffectableMembers.some(({ id }) => id === memberId);
+  return !!nonAffectableReasonOn(file, memberId);
 }
 
 /**

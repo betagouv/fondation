@@ -196,6 +196,25 @@ export function useExcludedJurisdictionsMutation(options: { userId: string }) {
   });
 }
 
+export function useExcludedMagistratsMutation(options: { userId: string }) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (magistratIds: readonly string[]) => {
+      await $api.members.excludeMagistrats({
+        body: { magistratIds: [...magistratIds] },
+        path: { userId: options.userId },
+        throwOnError: true,
+      });
+    },
+    // the files serve the members who excluded their proposed magistrat
+    onSettled: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: memberKeys.detailsMember({ userId: options.userId }) }),
+        queryClient.invalidateQueries({ queryKey: sessionKeys.listSessionNominationFiles() }),
+      ]),
+  });
+}
+
 export type ListedMemberSession = ListedMemberSessionsDto['items'][number];
 
 export function useListMemberGdsSessions(input: { userId: string | undefined }) {

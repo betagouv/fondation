@@ -77,6 +77,24 @@ describe('auto affectation member', () => {
       ).toBe(false);
     });
 
+    it('should not allow an affectation to a member who excluded the proposed magistrat', () => {
+      const member = new AffectableMember(3, 'member-1', 'SIEGE', new Set());
+
+      expect(
+        member.canReportOn(
+          AutoAffectationNominationFile.from({
+            currentJurisdiction: 'CA  LYON',
+            id: 'file-1',
+            magistratExcludedMemberIds: new Set(['member-1']),
+            number: 1,
+            session,
+            targetedGrade: 'G2',
+            targetedJurisdiction: 'CA  STRASBOURG',
+          }),
+        ),
+      ).toBe(false);
+    });
+
     it('should check affectation on a list of files', () => {
       const member = new AffectableMember(3, 'member-1', 'SIEGE', new Set(['CA  NANTES']));
 

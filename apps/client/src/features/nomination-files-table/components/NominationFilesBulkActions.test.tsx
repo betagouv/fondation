@@ -46,9 +46,11 @@ const SOPHIE = { firstName: 'Sophie', id: 'member-2', lastName: 'PARQUET' };
 function file(props: {
   canUpdate?: boolean;
   id: string;
+  magistratExcludingIds?: readonly string[];
   nomMagistrat: string;
   nonAffectableMemberIds?: readonly string[];
   nonRecusableMemberIds?: readonly string[];
+  numeroDeDossier?: number;
   outcome?: 'VALIDATED' | 'NON_VALIDATED';
   priorities?: readonly string[];
   recusedMembers?: SessionNominationFile['recusedMembers'];
@@ -59,12 +61,15 @@ function file(props: {
     content: {
       jurisdictions: { current: null, targeted: null },
       nomMagistrat: props.nomMagistrat,
-      numeroDeDossier: 1,
+      numeroDeDossier: props.numeroDeDossier ?? 1,
       outcome: props.outcome ? { comment: null, value: props.outcome } : null,
       posteCible: 'Substitut du procureur près le TJ de Lyon',
     },
     id: props.id,
-    nonAffectableMembers: (props.nonAffectableMemberIds ?? []).map((id) => ({ id, reason: 'RECUSED' })),
+    nonAffectableMembers: [
+      ...(props.nonAffectableMemberIds ?? []).map((id) => ({ id, reason: 'RECUSED' })),
+      ...(props.magistratExcludingIds ?? []).map((id) => ({ id, reason: 'EXCLUDED_MAGISTRAT' })),
+    ],
     nonRecusableMembers: (props.nonRecusableMemberIds ?? []).map((id) => ({ id, reason: 'REPORTER' })),
     priorities: props.priorities ?? [],
     excludedJurisdictionConflicts: [],
@@ -445,6 +450,40 @@ describe('NominationFilesBulkActions', () => {
     await userEvent.click(close!);
 
     expect(affectReporters).not.toHaveBeenCalled();
+  });
+
+  it('should list the propositions whose proposed magistrat the member excluded, by number', async () => {
+    renderActions([
+      file({
+        id: 'file-1',
+        magistratExcludingIds: [CAMILLE.id],
+        nomMagistrat: 'BOURDIEU Pierre',
+        numeroDeDossier: 12,
+      }),
+      file({
+        id: 'file-2',
+        magistratExcludingIds: [CAMILLE.id],
+        nomMagistrat: 'HARENDT Anna',
+        numeroDeDossier: 15,
+      }),
+      file({ id: 'file-3', nomMagistrat: 'WEIL Simone', numeroDeDossier: 18 }),
+    ]);
+
+    await openDropdown(/Affecter un rapporteur/);
+    await chooseOption('Camille COMMUN');
+
+    const dialog = screen.getByRole('dialog', {
+      name: 'Affecter un membre pour qui le magistrat proposé est exclu',
+    });
+    expect(within(dialog).getByRole('listitem')).toHaveTextContent('Camille COMMUN : n° 12 et n° 15');
+    expect(dialog).not.toHaveTextContent('BOURDIEU');
+
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Affecter' }));
+
+    expect(affectReporters).toHaveBeenCalledWith(
+      { affectations: [{ nominationFileId: 'file-3', reporterIds: ['member-1'] }], sessionId: 'session-1' },
+      expect.anything(),
+    );
   });
 
   it('should affect nobody when the secretariat cancels', async () => {

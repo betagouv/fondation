@@ -25,11 +25,14 @@ import {
   PrioritySelect,
   ReporterSelect,
 } from './cells/magistrat-side-panel/components/header/AffectationFields';
+import { AffectedExcludingMembersNotice } from './cells/magistrat-side-panel/components/recused-members/AffectedExcludingMembersNotice';
 import { AffectedRecusedMembersNotice } from './cells/magistrat-side-panel/components/recused-members/AffectedRecusedMembersNotice';
 import {
   blockedMembers,
   isNonAffectableOn,
   isNonRecusableOn,
+  nonAffectableReasonOn,
+  type NonAffectableReason,
 } from './cells/magistrat-side-panel/components/recused-members/recused-reporters';
 import { RecusedMemberSelect } from './cells/magistrat-side-panel/components/recused-members/RecusedMemberSelect';
 import { RecusedReportersNotice } from './cells/magistrat-side-panel/components/recused-members/RecusedReportersNotice';
@@ -187,20 +190,33 @@ export function NominationFilesBulkActions(props: {
           };
         })
         .filter(({ formerReporterIds, reporterIds }) => isChanged(formerReporterIds, reporterIds));
-      const recusedMembers = blockedMembers(
-        props.selectedFiles,
-        change.added,
-        members?.items ?? [],
-        isNonAffectableOn,
-      );
-      if (recusedMembers.length > 0) {
+      const blockedBy = (reason: NonAffectableReason) =>
+        blockedMembers(
+          props.selectedFiles,
+          change.added,
+          members?.items ?? [],
+          (file, memberId) => nonAffectableReasonOn(file, memberId) === reason,
+        );
+      const recusedMembers = blockedBy('RECUSED');
+      const excludingMembers = blockedBy('EXCLUDED_MAGISTRAT');
+      if (recusedMembers.length > 0 || excludingMembers.length > 0) {
         const hasOtherPropositions = changedAffectations.length > 0;
         const { isConfirmed } = await waitForConfirmation({
           content: (
-            <AffectedRecusedMembersNotice
-              hasOtherPropositions={hasOtherPropositions}
-              members={recusedMembers}
-            />
+            <>
+              {recusedMembers.length > 0 && (
+                <AffectedRecusedMembersNotice
+                  hasOtherPropositions={hasOtherPropositions && excludingMembers.length === 0}
+                  members={recusedMembers}
+                />
+              )}
+              {excludingMembers.length > 0 && (
+                <AffectedExcludingMembersNotice
+                  hasOtherPropositions={hasOtherPropositions}
+                  members={excludingMembers}
+                />
+              )}
+            </>
           ),
           i18n: hasOtherPropositions
             ? {
@@ -209,9 +225,26 @@ export function NominationFilesBulkActions(props: {
               }
             : { cancel: formatMessage({ defaultMessage: 'Fermer' }), confirm: null },
           title:
-            recusedMembers.length > 1
-              ? formatMessage({ defaultMessage: 'Affecter des membres déportés' })
-              : formatMessage({ defaultMessage: 'Affecter un membre déporté' }),
+            excludingMembers.length === 0
+              ? formatMessage(
+                  {
+                    defaultMessage:
+                      '{count, plural, one {Affecter un membre déporté} other {Affecter des membres déportés}}',
+                  },
+                  { count: recusedMembers.length },
+                )
+              : recusedMembers.length === 0
+                ? formatMessage(
+                    {
+                      defaultMessage:
+                        '{count, plural, one {Affecter un membre pour qui le magistrat proposé est exclu} other {Affecter des membres pour qui le magistrat proposé est exclu}}',
+                    },
+                    { count: excludingMembers.length },
+                  )
+                : formatMessage({
+                    defaultMessage:
+                      'Affecter des membres déportés ou pour qui le magistrat proposé est exclu',
+                  }),
         });
         if (!isConfirmed) return;
       }

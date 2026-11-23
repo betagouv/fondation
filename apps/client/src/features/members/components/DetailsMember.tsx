@@ -10,11 +10,13 @@ import { capitalize } from '@/utils/string.utils';
 import type { DetailedMemberDto } from '@api/types';
 import {
   useExcludedJurisdictionsMutation,
+  useExcludedMagistratsMutation,
   useUpdateDisplayTitleMutation,
   useUpdateRecusalTitleMutation,
 } from '@queries/members.queries';
 
 import { JurisdictionSelector } from './JurisdictionSelector';
+import { MagistratSelector } from './MagistratSelector';
 
 function MemberInfoItem(props: { children: ReactNode; label: ReactNode }) {
   return (
@@ -59,6 +61,7 @@ function DetailsMemberHeader(props: { name: string }) {
 export function DetailsMember(props: { member: DetailedMemberDto }) {
   const { member } = props;
   const { mutateAsync: excludeMemberJurisdictions } = useExcludedJurisdictionsMutation({ userId: member.id });
+  const { mutateAsync: excludeMagistrats } = useExcludedMagistratsMutation({ userId: member.id });
   const updateDisplayTitle = useUpdateDisplayTitleMutation({ userId: member.id });
   const updateRecusalTitle = useUpdateRecusalTitleMutation({ userId: member.id });
   const name = `${capitalize(member.firstName)} ${member.lastName.toUpperCase()}`;
@@ -116,11 +119,13 @@ export function DetailsMember(props: { member: DetailedMemberDto }) {
               />
             </dd>
           </div>
-          <div className="flex flex-row items-center justify-between gap-4">
-            <dt className="font-bold">
-              <FormattedMessage defaultMessage="Personnes exclues" />
+          <div className="flex flex-row items-start justify-between gap-4">
+            <dt className="shrink-0 font-bold">
+              <FormattedMessage defaultMessage="Magistrats exclus" />
             </dt>
-            <dd className="m-0 font-bold text-(--text-disabled-grey)">n/a</dd>
+            <dd className="m-0 flex-1">
+              <MagistratSelector excluded={member.excludedMagistrats} onChange={excludeMagistrats} />
+            </dd>
           </div>
         </dl>
       </DetailsCard>

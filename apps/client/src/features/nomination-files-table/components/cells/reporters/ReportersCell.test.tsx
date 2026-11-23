@@ -14,12 +14,16 @@ const LYON = { id: 'CA  LYON', label: "Cour d'appel de Lyon" };
 const CAMILLE = { firstName: 'Camille', id: 'camille', lastName: 'Commun' };
 const PAUL = { firstName: 'Paul', id: 'paul', lastName: 'Parquet' };
 
-function renderCell(excludingMembers: (typeof CAMILLE)[]) {
+function renderCell(
+  excludingMembers: (typeof CAMILLE)[],
+  magistratExcludingReporterIds: readonly string[] = [],
+) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   client.setQueryData(authKeys.introspectSession(), { ...PAUL, role: 'MEMBRE_DU_SIEGE' });
 
   const dossier = makeSessionNominationFile({
     excludedJurisdictionConflicts: excludingMembers.map((member) => ({ jurisdiction: LYON, member })),
+    reporterWarnings: magistratExcludingReporterIds.map((id) => ({ id, reason: 'EXCLUDED_MAGISTRAT' })),
     reporters: [CAMILLE, PAUL],
   });
 
@@ -67,5 +71,14 @@ describe('ReportersCell', () => {
     expect(within(camille).getByText('CC')).toBeInTheDocument();
     expect(container.querySelectorAll('.fr-icon-error-line')).toHaveLength(1);
     expect(within(paul).queryByRole('img')).not.toBeInTheDocument();
+  });
+
+  it('warns about a reporter in place who excluded the proposed magistrat since', () => {
+    renderCell([CAMILLE], [CAMILLE.id]);
+
+    expect(screen.getAllByRole('tooltip', { hidden: true }).map((tooltip) => tooltip.textContent)).toEqual([
+      'Vous',
+      `Juridiction exclue pour Camille COMMUN : ${LYON.label}. Magistrat proposé exclu pour Camille COMMUN`,
+    ]);
   });
 });

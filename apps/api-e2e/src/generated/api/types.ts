@@ -599,7 +599,7 @@ export type PaginatedNominationFiles = {
         missingEvaluationComment: string | null;
         nonAffectableMembers: Array<{
             id: string;
-            reason: 'RECUSED';
+            reason: 'RECUSED' | 'EXCLUDED_MAGISTRAT';
         }>;
         /**
          * empty when the user cannot recuse members on this file
@@ -607,6 +607,13 @@ export type PaginatedNominationFiles = {
         nonRecusableMembers: Array<{
             id: string;
             reason: 'REPORTER';
+        }>;
+        /**
+         * the reporters in place who keep the file despite a warning, for the secretariat only
+         */
+        reporterWarnings: Array<{
+            id: string;
+            reason: 'EXCLUDED_MAGISTRAT';
         }>;
         reporters: Array<{
             id: string;
@@ -971,7 +978,7 @@ export type DetailedNominationFileDto = {
     missingEvaluationComment: string | null;
     nonAffectableMembers: Array<{
         id: string;
-        reason: 'RECUSED';
+        reason: 'RECUSED' | 'EXCLUDED_MAGISTRAT';
     }>;
     /**
      * empty when the user cannot recuse members on this file
@@ -979,6 +986,13 @@ export type DetailedNominationFileDto = {
     nonRecusableMembers: Array<{
         id: string;
         reason: 'REPORTER';
+    }>;
+    /**
+     * the reporters in place who keep the file despite a warning, for the secretariat only
+     */
+    reporterWarnings: Array<{
+        id: string;
+        reason: 'EXCLUDED_MAGISTRAT';
     }>;
     reporters: Array<{
         id: string;
@@ -1263,6 +1277,22 @@ export type DetailedMemberDto = {
         id: string;
         label: string | null;
     }>;
+    excludedMagistrats: Array<{
+        id: string;
+        name: string;
+        status: 'ACTIVE' | 'INACTIVE';
+        gradeAndJurisdiction: string | null;
+        currentPosition: {
+            function: {
+                id: string;
+                label: string;
+            } | null;
+            jurisdiction: {
+                id: string;
+                label: string | null;
+            };
+        } | null;
+    }>;
     stats: Array<{
         count: number;
         year: number;
@@ -1272,6 +1302,10 @@ export type DetailedMemberDto = {
 
 export type ExcludeJurisdictionsDto = {
     jurisdictionIds: Array<string>;
+};
+
+export type ExcludeMagistratsDto = {
+    magistratIds: Array<string>;
 };
 
 export type UpdateMemberDisplayTitleDto = {
@@ -4767,6 +4801,21 @@ export type ExcludeJurisdictionsResponses = {
 };
 
 export type ExcludeJurisdictionsResponse = ExcludeJurisdictionsResponses[keyof ExcludeJurisdictionsResponses];
+
+export type ExcludeMagistratsData = {
+    body: ExcludeMagistratsDto;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/members/v1/{userId}/excluded-magistrats';
+};
+
+export type ExcludeMagistratsResponses = {
+    204: void;
+};
+
+export type ExcludeMagistratsResponse = ExcludeMagistratsResponses[keyof ExcludeMagistratsResponses];
 
 export type UpdateDisplayTitleData = {
     body: UpdateMemberDisplayTitleDto;

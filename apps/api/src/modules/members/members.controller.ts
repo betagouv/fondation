@@ -16,7 +16,11 @@ import { ApiPaginated, Pagination, QueryPagination } from '../framework/paginati
 import { AuthedUser, HasRole } from '../simple-auth';
 
 import { ListMembersQueryDto } from './infrastructure/dtos/members.dto';
-import { ExcludeJurisdictionsDto, UpdateMemberDisplayTitleDto } from './infrastructure/member.dto';
+import {
+  ExcludeJurisdictionsDto,
+  ExcludeMagistratsDto,
+  UpdateMemberDisplayTitleDto,
+} from './infrastructure/member.dto';
 import { MembersService } from './infrastructure/members.service';
 import { DetailedMemberDto } from './infrastructure/queries/details-member.query';
 import { PaginatedMemberListItemDto } from './infrastructure/queries/list-members.query';
@@ -63,6 +67,17 @@ export class MembersController {
     @Body() { jurisdictionIds }: ExcludeJurisdictionsDto,
   ): Promise<void> {
     return this.members.excludeJurisdictions({ userId, jurisdictionIds });
+  }
+
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @Put('/:userId/excluded-magistrats')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UsePipes(ZodValidationPipe)
+  excludeMagistrats(
+    @Param('userId', ParseUUIDPipe) userId: string,
+    @Body() { magistratIds }: ExcludeMagistratsDto,
+  ): Promise<void> {
+    return this.members.excludeMagistrats({ magistratIds, userId });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')

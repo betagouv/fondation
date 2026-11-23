@@ -13,6 +13,7 @@ import {
   CannotScheduleAuditionOnNominationFile,
   CantUpdateNominationFiles,
   LodamSessionTransparenceFilesCreated,
+  MagistratExcludedMemberAffected,
   MemberMemoNotAllowed,
   NominationFilesNotFound,
   NonFormationMemberDefinedAsReporter,
@@ -71,6 +72,7 @@ describe('SessionTransparence', () => {
       ],
       authorId: 'author-id',
       formationMemberIds: new Set(['reporter-1', 'reporter-2']),
+      magistratExcludedMemberIdsByFile: new Map(),
       recusedMemberIdsByFile: new Map(),
     });
 
@@ -111,6 +113,7 @@ describe('SessionTransparence', () => {
         ],
         authorId: 'author-id',
         formationMemberIds: new Set(['reporter-1', 'reporter-2']),
+        magistratExcludedMemberIdsByFile: new Map(),
         recusedMemberIdsByFile: new Map(),
       }),
     ).toThrow(CantUpdateNominationFiles);
@@ -141,6 +144,7 @@ describe('SessionTransparence', () => {
       ],
       authorId: 'author-id',
       formationMemberIds: new Set(['reporter-1', 'reporter-2']),
+      magistratExcludedMemberIdsByFile: new Map(),
       recusedMemberIdsByFile: new Map(),
     });
 
@@ -186,6 +190,7 @@ describe('SessionTransparence', () => {
         ],
         authorId: 'author-id',
         formationMemberIds: new Set(['reporter-1']),
+        magistratExcludedMemberIdsByFile: new Map(),
         recusedMemberIdsByFile: new Map(),
       }),
     ).toThrow(NonFormationMemberDefinedAsReporter);
@@ -208,6 +213,7 @@ describe('SessionTransparence', () => {
       assignedReporterIds: new Map([['nomination-file-id-1', new Set(['deactivated-reporter'])]]),
       authorId: 'author-id',
       formationMemberIds: new Set(['reporter-1']),
+      magistratExcludedMemberIdsByFile: new Map(),
       recusedMemberIdsByFile: new Map(),
     };
 
@@ -242,6 +248,7 @@ describe('SessionTransparence', () => {
     const command = {
       authorId: 'author-id',
       formationMemberIds: new Set(['reporter-1', 'recused-member']),
+      magistratExcludedMemberIdsByFile: new Map(),
       recusedMemberIdsByFile: new Map([['nomination-file-id-2', new Set(['recused-member'])]]),
     };
 
@@ -281,6 +288,77 @@ describe('SessionTransparence', () => {
           formationMemberIds: command.formationMemberIds,
         }),
       ).toThrow(RecusedMemberAffected);
+    });
+  });
+
+  describe('affecting a member who excluded the proposed magistrat', () => {
+    const session = () =>
+      SessionTransparence.from({
+        formation: 'SIEGE',
+        id: 'session-id',
+        nominationFiles: ['nomination-file-id-1'].map((id) => ({
+          auditionRequired: false,
+          id,
+          isReported: false,
+          outcome: null,
+          positionRequiresAudition: false,
+        })),
+        version: { id: 'version-id', isDraft: true, version: 3 },
+      });
+    const command = {
+      authorId: 'author-id',
+      formationMemberIds: new Set(['reporter-1', 'excluding-member']),
+      magistratExcludedMemberIdsByFile: new Map([['nomination-file-id-1', new Set(['excluding-member'])]]),
+      recusedMemberIdsByFile: new Map(),
+    };
+
+    it('refuses to add them', () => {
+      const transparence = session();
+
+      expect(() =>
+        transparence.affectNominationFileReporters({
+          ...command,
+          affectations: [{ nominationFileId: 'nomination-file-id-1', reporterIds: ['excluding-member'] }],
+        }),
+      ).toThrow(MagistratExcludedMemberAffected);
+      expect(transparence.messages).toEqual([]);
+    });
+
+    it('keeps them on a file they already report on', () => {
+      const transparence = session();
+
+      transparence.affectNominationFileReporters({
+        ...command,
+        affectations: [
+          { nominationFileId: 'nomination-file-id-1', reporterIds: ['excluding-member', 'reporter-1'] },
+        ],
+        assignedReporterIds: new Map([['nomination-file-id-1', new Set(['excluding-member'])]]),
+      });
+
+      expect(transparence.messages).toHaveLength(1);
+    });
+
+    it('refuses an auto-affectation that would affect them', () => {
+      const transparence = session();
+      const autoAffectations = AutoAffectations.from({
+        files: [
+          // oxfmt-ignore
+          AutoAffectationNominationFile.from({ id: 'nomination-file-id-1', magistratExcludedMemberIds: new Set(['excluding-member']), targetedGrade: 'G3', targetedJurisdiction: 'CA  LYON', currentJurisdiction: 'CA  RENNES', number: 1, session: { date: new DateOnly(2025, 12, 10), formation: 'SIEGE' } }),
+        ],
+        members: [],
+      });
+      // the distribution already skips them: this simulates a regression in it
+      vi.spyOn(autoAffectations, 'distribute').mockReturnValue([
+        { nominationFileId: 'nomination-file-id-1', reporterIds: ['excluding-member'] },
+      ]);
+
+      expect(() =>
+        transparence.autoAffectNominationFileReporters({
+          authorId: 'author-id',
+          autoAffectations,
+          formationMemberIds: command.formationMemberIds,
+        }),
+      ).toThrow(MagistratExcludedMemberAffected);
     });
   });
 

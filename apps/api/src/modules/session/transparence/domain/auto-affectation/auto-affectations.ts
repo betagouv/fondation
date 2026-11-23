@@ -10,8 +10,9 @@ export class AutoAffectations {
   private constructor(
     private readonly members: AutoAffectationMemberCollection,
     private readonly nominationFiles: IteratorObject<readonly AutoAffectationNominationFile[]>,
-    /** handed back to the affectation, which refuses a recused member whatever the caller */
+    /** handed back to the affectation, which refuses a non affectable member whatever the caller */
     readonly recusedMemberIdsByFile: ReadonlyMap<string, ReadonlySet<string>>,
+    readonly magistratExcludedMemberIdsByFile: ReadonlyMap<string, ReadonlySet<string>>,
   ) {
     /* istanbul ignore next */
     if (process.env.NODE_ENV === 'test' || process.env.CI) {
@@ -27,6 +28,7 @@ export class AutoAffectations {
       new AutoAffectationMemberCollection(props.members),
       AutoAffectationNominationFile.group(props.files),
       new Map(props.files.map(({ id, recusedMemberIds }) => [id, recusedMemberIds])),
+      new Map(props.files.map(({ id, magistratExcludedMemberIds }) => [id, magistratExcludedMemberIds])),
     );
   }
 
