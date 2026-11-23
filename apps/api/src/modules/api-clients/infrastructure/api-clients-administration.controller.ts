@@ -26,6 +26,7 @@ import {
   UpdateApiClientDto,
 } from './api-client.dto';
 import { ApiClientsErrorMapper } from './api-clients.filter';
+import { ListedApiClientChangesDto } from './queries/list-api-client-changes.query';
 import { ListedApiClientsDto } from './queries/list-api-clients.query';
 
 /** Each action also checks canManageApiClients: the admin right alone is not enough */
@@ -56,6 +57,16 @@ export class ApiClientsAdministrationController {
       name: body.name,
       scopes: body.scopes.map(({ id }) => id),
     });
+  }
+
+  @HasRole('ADMIN')
+  @Get('/:clientId/changes')
+  @ZodResponse({ status: HttpStatus.OK, type: ListedApiClientChangesDto })
+  listApiClientChanges(
+    @AuthedUser() actor: { id: string },
+    @Param('clientId', ParseUUIDPipe) clientId: string,
+  ): Promise<ListedApiClientChangesDto> {
+    return this.apiClients.listChanges({ actorId: actor.id, clientId });
   }
 
   @HasRole('ADMIN')

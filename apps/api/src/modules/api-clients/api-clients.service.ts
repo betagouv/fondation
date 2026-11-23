@@ -21,12 +21,17 @@ import {
 } from './domain/api-client';
 import { RateWindow } from './domain/rate-window';
 import { ApiClientRepository } from './infrastructure/api-client.repository';
+import {
+  ListApiClientChangesQuery,
+  ListedApiClientChangesDto,
+} from './infrastructure/queries/list-api-client-changes.query';
 import { ListApiClientsQuery, ListedApiClientsDto } from './infrastructure/queries/list-api-clients.query';
 
 @Injectable()
 export class ApiClientsService {
   constructor(
     private readonly clock: Clock,
+    private readonly listApiClientChanges: ListApiClientChangesQuery,
     private readonly listApiClients: ListApiClientsQuery,
     private readonly repository: ApiClientRepository,
   ) {}
@@ -122,8 +127,10 @@ export class ApiClientsService {
         authLimitPerMinute: DEFAULT_LIMITS_PER_MINUTE.auth,
         scopes: command.scopes.map((scope) => ({ limitPerMinute: DEFAULT_LIMITS_PER_MINUTE[scope], scope })),
       }),
-      id,
+      actorId: command.actorId,
+      clientId: id,
       name: command.name,
+      now: this.clock.now(),
       secretHash,
     });
 
@@ -138,9 +145,15 @@ export class ApiClientsService {
     days?: number;
   }): Promise<{ previousValidUntil: Date; secret: string }> {
     const client = await this.findManagedClient(command);
+    const now = this.clock.now();
 
-    const { secret, ...secrets } = client.rotateSecret({ days: command.days, now: this.clock.now() });
-    const saved = await this.repository.saveRotatedSecret({ clientId: client.id, ...secrets });
+    const { secret, ...secrets } = client.rotateSecret({ days: command.days, now });
+    const saved = await this.repository.saveRotatedSecret({
+      actorId: command.actorId,
+      clientId: client.id,
+      now,
+      ...secrets,
+    });
     if (!saved) throw new ApiClientNotRotatable('rotating');
 
     return { previousValidUntil: secrets.previousSecret.expiresAt, secret };
@@ -154,9 +167,10 @@ export class ApiClientsService {
   @Transactional()
   async endSecretRotation(command: { actorId: string; clientId: string }): Promise<void> {
     const client = await this.findManagedClient(command);
-    if (!client.canEndSecretRotation(this.clock.now())) return;
+    const now = this.clock.now();
+    if (!client.canEndSecretRotation(now)) return;
 
-    await this.repository.endSecretRotation(client.id);
+    await this.repository.endSecretRotation({ actorId: command.actorId, clientId: client.id, now });
   }
 
   /** Read on each call (see ApiClient.authorize): the next call of the partner meets the new configuration */
@@ -169,7 +183,12 @@ export class ApiClientsService {
     const client = await this.findManagedClient(command);
 
     const configuration = client.update(command.configuration);
-    const saved = await this.repository.saveConfiguration({ clientId: client.id, configuration });
+    const saved = await this.repository.saveConfiguration({
+      actorId: command.actorId,
+      clientId: client.id,
+      configuration,
+      now: this.clock.now(),
+    });
     if (!saved) throw new ApiClientNotUpdatable('revoked');
   }
 
@@ -179,7 +198,14 @@ export class ApiClientsService {
     const client = await this.findManagedClient(command);
     if (!client.canRevoke()) return;
 
-    await this.repository.revoke({ clientId: client.id, now: this.clock.now() });
+    await this.repository.revoke({ actorId: command.actorId, clientId: client.id, now: this.clock.now() });
+  }
+
+  @Transactional()
+  async listChanges(command: { actorId: string; clientId: string }): Promise<ListedApiClientChangesDto> {
+    const client = await this.findManagedClient(command);
+
+    return this.listApiClientChanges.handle({ clientId: client.id });
   }
 
   private async findManagedClient(command: { actorId: string; clientId: string }): Promise<ApiClient> {
