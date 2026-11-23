@@ -50,10 +50,12 @@ export class ApiClientsService {
       const client = await this.repository.findById(command.clientId);
       if (!client) throw new ApiClientUnauthenticated();
 
-      const token = this.alertingForbidden({ clientId: client.id, route: 'auth' }, () =>
-        client.authenticate({ ip: command.ip, now: window.now, secret: command.clientSecret }),
+      const token = await this.alertingForbidden(
+        window,
+        { clientId: client.id, ip: command.ip, route: 'auth' },
+        () => client.authenticate({ ip: command.ip, now: window.now, secret: command.clientSecret }),
       );
-      await this.countCall(window, { clientId: client.id, limit: client.authLimitPerMinute, route: 'auth' });
+      await this.limitCall(window, { clientId: client.id, limit: client.authLimitPerMinute, route: 'auth' });
       const saved = await this.repository.saveToken({ clientId: client.id, token });
       if (!saved) throw new ApiClientUnauthenticated();
 
@@ -69,18 +71,36 @@ export class ApiClientsService {
       if (!found) throw new ApiClientUnauthenticated();
 
       const { client, tokenExpiresAt } = found;
-      const { limitPerMinute } = this.alertingForbidden({ clientId: client.id, route: command.scope }, () =>
-        client.authorize({ ip: command.ip, now: window.now, scope: command.scope, tokenExpiresAt }),
+      const { limitPerMinute } = await this.alertingForbidden(
+        window,
+        { clientId: client.id, ip: command.ip, route: command.scope },
+        () => client.authorize({ ip: command.ip, now: window.now, scope: command.scope, tokenExpiresAt }),
       );
-      await this.countCall(window, { clientId: client.id, limit: limitPerMinute, route: command.scope });
+      await this.limitCall(window, { clientId: client.id, limit: limitPerMinute, route: command.scope });
     });
   }
 
-  private alertingForbidden<T>(refusal: { clientId: string; route: string }, check: () => T): T {
+  /**
+   * Reports the first 403 of the minute per IP or per route, like the Sentry issues: from an allowed IP, nothing else
+   * stops a client calling a route out of its scopes in a loop
+   */
+  private async alertingForbidden<T>(
+    window: RateWindow,
+    refusal: { clientId: string; ip: string; route: string },
+    check: () => T,
+  ): Promise<T> {
     try {
       return check();
     } catch (error) {
-      if (error instanceof ApiClientForbidden) this.alerts.forbidden({ ...refusal, reason: error.reason });
+      if (error instanceof ApiClientForbidden) {
+        const cause = error.reason === 'ip' ? (canonicalIp(refusal.ip) ?? refusal.ip) : refusal.route;
+        const count = await this.repository.countCall({
+          caller: `client:${refusal.clientId}`,
+          minute: window.start,
+          route: `forbidden:${cause}`,
+        });
+        if (count === 1) this.alerts.forbidden({ ...refusal, reason: error.reason });
+      }
       throw error;
     }
   }
@@ -93,8 +113,7 @@ export class ApiClientsService {
   private async slowingRefusalsDown<T>(window: RateWindow, ip: string, check: () => Promise<T>): Promise<T> {
     if (isAllowedIp(ip, await this.repository.findAllowedIps())) return check();
 
-    const caller = canonicalIp(ip) ?? ip;
-    const refusals = { caller: `ip:${caller}`, minute: window.start, route: 'refused' };
+    const refusals = { caller: `ip:${canonicalIp(ip) ?? ip}`, minute: window.start, route: 'refused' };
     window.assertWithin(REFUSALS_LIMIT_PER_MINUTE, (await this.repository.findCount(refusals)) + 1);
 
     try {
@@ -102,9 +121,9 @@ export class ApiClientsService {
     } catch (error) {
       if (error instanceof ApiClientUnauthenticated || error instanceof ApiClientForbidden) {
         const count = await this.repository.countCall(refusals);
-        // This refusal turns the IP away until the next minute, and the 429s that follow are not counted
-        if (count === REFUSALS_LIMIT_PER_MINUTE) {
-          this.alerts.refusalsLimited({ ip: caller, limit: REFUSALS_LIMIT_PER_MINUTE });
+        // The IP is turned away from the next call on, and the 429s are not counted: the last refusal is reported
+        if (window.isLastWithin(REFUSALS_LIMIT_PER_MINUTE, count)) {
+          this.alerts.refusalsLimited({ ip, limit: REFUSALS_LIMIT_PER_MINUTE });
         }
       }
       throw error;
@@ -228,7 +247,8 @@ export class ApiClientsService {
     if (!(await this.repository.canBeManagedBy(actorId))) throw new CantManageApiClients();
   }
 
-  private async countCall(
+  /** Counts the call of the client, then refuses it over the limit, reporting the first one refused in the minute */
+  private async limitCall(
     window: RateWindow,
     call: { clientId: string; limit: number; route: string },
   ): Promise<void> {
@@ -237,8 +257,7 @@ export class ApiClientsService {
       minute: window.start,
       route: call.route,
     });
-    // The refused calls count too: only the first one over the limit is reported
-    if (count === call.limit + 1) this.alerts.rateLimited(call);
+    if (window.isFirstOver(call.limit, count)) this.alerts.rateLimited(call);
     window.assertWithin(call.limit, count);
   }
 }

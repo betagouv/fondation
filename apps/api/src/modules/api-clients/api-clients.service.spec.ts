@@ -54,6 +54,7 @@ describe('ApiClientsService', () => {
 
       expect(alerts.forbidden).toHaveBeenCalledWith({
         clientId: 'client-1',
+        ip: unknownIp,
         reason: 'ip',
         route: 'magistrats:identification',
       });
@@ -66,9 +67,25 @@ describe('ApiClientsService', () => {
 
       expect(alerts.forbidden).toHaveBeenCalledWith({
         clientId: 'client-1',
+        ip: partnerIp,
         reason: 'scope',
         route: 'magistrats:status',
       });
+    });
+
+    it('should not report the route again within the minute', async () => {
+      repository.countCall.mockResolvedValue(2);
+
+      await expect(
+        service.authorize({ ip: partnerIp, scope: 'magistrats:status', token: 'token' }),
+      ).rejects.toThrow(ApiClientForbidden);
+
+      expect(repository.countCall).toHaveBeenCalledWith({
+        caller: 'client:client-1',
+        minute: new Date('2026-11-23T10:00:00Z'),
+        route: 'forbidden:magistrats:status',
+      });
+      expect(alerts.forbidden).not.toHaveBeenCalled();
     });
 
     it('should report a right secret sent from an IP the client does not allow', async () => {
@@ -76,7 +93,12 @@ describe('ApiClientsService', () => {
         service.authenticate({ clientId: 'client-1', clientSecret: secret, ip: unknownIp }),
       ).rejects.toThrow(ApiClientForbidden);
 
-      expect(alerts.forbidden).toHaveBeenCalledWith({ clientId: 'client-1', reason: 'ip', route: 'auth' });
+      expect(alerts.forbidden).toHaveBeenCalledWith({
+        clientId: 'client-1',
+        ip: unknownIp,
+        reason: 'ip',
+        route: 'auth',
+      });
     });
 
     it('should not report a wrong secret on its own', async () => {
