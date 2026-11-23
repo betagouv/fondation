@@ -48,8 +48,18 @@ describe('ApiClient', () => {
         expiresIn: 900,
         hash: ApiClient.hash(issued.token),
         issuedAt: now,
+        secretHash,
         token: expect.stringMatching(/^[\w-]{43}$/),
       });
+    });
+
+    it('should tell the replaced secret a token was given for while a rotation lasts', () => {
+      const replaced = ApiClient.generateSecret();
+      const rotating = client({
+        previousSecret: { expiresAt: new Date('2026-11-25T10:00:00Z'), hash: replaced.hash },
+      });
+
+      expect(authenticate(rotating, { secret: replaced.secret }).secretHash).toBe(replaced.hash);
     });
 
     it('should refuse a wrong secret', () => {

@@ -78,16 +78,34 @@ export class ApiClientRepository {
     return counter?.count ?? 0;
   }
 
+  /**
+   * The client row is written first, on the condition that the secret is still accepted: a rotation ended or a
+   * revocation at the same time waits for this token to be saved, then deletes or refuses it, or is waited for and
+   * found here
+   *
+   * @returns whether the token was saved: not when its secret was dropped since it was checked
+   */
   @Transactional()
-  async saveToken(command: { clientId: string; token: IssuedAccessToken }): Promise<void> {
+  async saveToken(command: { clientId: string; token: IssuedAccessToken }): Promise<boolean> {
     const { clientId, token } = command;
+    const { count } = await this.db.tx.apiClient.updateMany({
+      where: {
+        id: clientId,
+        revokedAt: null,
+        OR: [
+          { secretHash: token.secretHash },
+          { previousSecretExpiresAt: { gt: token.issuedAt }, previousSecretHash: token.secretHash },
+        ],
+      },
+      data: { lastTokenIssuedAt: token.issuedAt },
+    });
+    if (count === 0) return false;
+
     await this.db.tx.apiAccessToken.create({
       data: { clientId, expiresAt: token.expiresAt, hash: token.hash },
     });
-    await this.db.tx.apiClient.update({
-      where: { id: clientId },
-      data: { lastTokenIssuedAt: token.issuedAt },
-    });
+
+    return true;
   }
 
   /** @returns whether the user may manage the API clients, false when unknown */

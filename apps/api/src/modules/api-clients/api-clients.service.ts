@@ -46,7 +46,8 @@ export class ApiClientsService {
         limit: client.authLimitPerMinute,
         route: 'auth',
       });
-      await this.repository.saveToken({ clientId: client.id, token });
+      const saved = await this.repository.saveToken({ clientId: client.id, token });
+      if (!saved) throw new ApiClientUnauthenticated();
 
       return { accessToken: token.token, expiresIn: token.expiresIn };
     });

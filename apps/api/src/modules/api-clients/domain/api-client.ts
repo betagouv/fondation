@@ -51,6 +51,8 @@ export type IssuedAccessToken = {
   expiresIn: number;
   hash: string;
   issuedAt: Date;
+  /** The hash of the secret it was given for: saved only while that secret is still accepted */
+  secretHash: string;
   token: string;
 };
 
@@ -122,8 +124,8 @@ export class ApiClient {
     const { previousSecret, secretHash } = this.props;
     const given = ApiClient.hash(command.secret);
     const accepted = this.isRotating(command.now) ? [secretHash, previousSecret!.hash] : [secretHash];
-    const isKnown = accepted.some((hash) => ApiClient.sameHash(given, hash));
-    if (this.props.revokedAt || !isKnown) throw new ApiClientUnauthenticated();
+    const matched = accepted.find((hash) => ApiClient.sameHash(given, hash));
+    if (this.props.revokedAt || !matched) throw new ApiClientUnauthenticated();
     this.assertAllowedIp(command.ip);
 
     const token = randomBytes(32).toString('base64url');
@@ -133,6 +135,7 @@ export class ApiClient {
       expiresIn: ApiClient.TOKEN_LIFETIME_MS / time.SECONDS,
       hash: ApiClient.hash(token),
       issuedAt: command.now,
+      secretHash: matched,
       token,
     };
   }
