@@ -47,6 +47,7 @@ import {
   type MagistratProposition,
 } from './finders/hydrated-nomination-files.finder';
 import { LolfiNominationSessionFinder } from './finders/lolfi-nomination-session.finder';
+import { MagistratExcludedMembersFinder } from './finders/magistrat-excluded-members.finder';
 import { NominationFileOutcomesFinder } from './finders/nomination-file-outcomes.finder';
 import {
   type NominationFileProgress,
@@ -168,6 +169,7 @@ export class TransparenceService {
     private readonly nominationSessionFileFinder: TransparenceFilesFinder,
     private readonly nominationSessionRepository: SessionTransparenceRepository,
     private readonly recusedMembersFinder: RecusedMembersFinder,
+    private readonly magistratExcludedMembersFinder: MagistratExcludedMembersFinder,
     private readonly listCurrentlyAffectedReportersQuery: ListCurrentlyAffectedReportersQuery,
     private readonly countUnaffectedFilesQuery: CountUnaffectedFilesQuery,
     private readonly countNominationFilesByStatusQuery: CountNominationFilesByStatusQuery,
@@ -297,6 +299,9 @@ export class TransparenceService {
       ...command,
       assignedReporterIds,
       formationMemberIds,
+      magistratExcludedMemberIdsByFile: await this.magistratExcludedMembersFinder.findIds({
+        nominationFileIds,
+      }),
       recusedMemberIdsByFile,
     });
 

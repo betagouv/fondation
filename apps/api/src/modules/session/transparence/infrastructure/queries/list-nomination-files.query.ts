@@ -71,6 +71,7 @@ import {
 import { ListNominationFilesQueryDto, RecusedMemberSchema } from '../dtos/nomination-file.dto';
 import { AffectationVersionFinder, OptionalAffectationVersion } from '../finders/affectation-version.finder';
 import { AuditionsSeenFinder } from '../finders/auditions-seen.finder';
+import { MagistratExcludedMembersFinder } from '../finders/magistrat-excluded-members.finder';
 import { NominationFileCommentChangesFinder } from '../finders/nomination-file-comment-changes.finder';
 import { NominationFileJurisdictionsFinder } from '../finders/nomination-file-jurisdictions.finder';
 import { RecusedMembersFinder } from '../finders/recused-members.finder';
@@ -86,6 +87,7 @@ export class ListNominationFilesQuery {
     private readonly jurisdictionsFinder: NominationFileJurisdictionsFinder,
     private readonly members: MembersService,
     private readonly recusedMembersFinder: RecusedMembersFinder,
+    private readonly magistratExcludedMembersFinder: MagistratExcludedMembersFinder,
 
     @Inject(forwardRef(() => DocsService))
     private readonly docs: DocsService,
@@ -251,6 +253,10 @@ export class ListNominationFilesQuery {
       nominationFileIds: [...nominationFileIds],
     });
     const recusedMembers = await this.recusedMembersFinder.find({ nominationFileIds });
+    // a personal tie stays with the secretariat: this route is open to the members too
+    const magistratExcludedMembers = isSecretariat(query.user.role)
+      ? await this.magistratExcludedMembersFinder.findIds({ nominationFileIds })
+      : new Map<string, ReadonlySet<string>>();
     const commentChanges = await this.commentChanges.findLast({ nominationFileIds: [...nominationFileIds] });
     const reporters = isSecretariat(query.user.role)
       ? await this.versionFinder.findPublishedAndLatestReporters({
@@ -351,7 +357,12 @@ export class ListNominationFilesQuery {
         ),
         missingEvaluation: x.missingEvaluation,
         missingEvaluationComment: x.missingEvaluationComment,
-        nonAffectableMembers: nonAffectableMembers(new Set(recusedMembers.get(x.id)?.map(({ id }) => id))),
+        nonAffectableMembers: nonAffectableMembers({
+          magistratExcludedIds: nominationFilesPolicies.canUpdateNominationFile(x, query.user)
+            ? (magistratExcludedMembers.get(x.id) ?? new Set())
+            : new Set(),
+          recusedIds: new Set(recusedMembers.get(x.id)?.map(({ id }) => id)),
+        }),
         nonRecusableMembers: nominationFilesPolicies.canUpdateNominationFile(x, query.user)
           ? nonRecusableMembers(reporters.get(x.id) ?? { latestIds: new Set(), publishedIds: new Set() })
           : [],

@@ -234,6 +234,7 @@ model Magistrat {
   candidacies                 Candidate[]
   nominations                 Nomination[]
   detectedInNominationFiles   DossierDeNomination[]
+  excludingMembers            ExcludedMagistrat[]
   phoneNumbers                MagistratPhoneNumber[]
   positionComments            PositionComment[]
   positionVacancies           PositionVacancy[]

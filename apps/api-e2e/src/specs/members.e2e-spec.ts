@@ -8,10 +8,11 @@ test.describe('Members E2E', () => {
     let memberId: string;
     let memberLastName: string;
     let jurisdictionIds: string[];
+    let magistratId: string;
 
     // Jurisdictions are populated by importing a LODAM session
     test.beforeEach(async ({ agent, sessions, registerUser, expect }) => {
-      await sessions.createOne({
+      const session = await sessions.createOne({
         name: `Setup (${randomUUID()})`,
         createdAt: '22/04/2026',
         candidates: [
@@ -31,6 +32,7 @@ test.describe('Members E2E', () => {
           },
         ],
       });
+      magistratId = session.files[0]!.magistratId;
 
       const jurisdictions = await agent.jurisdictions.search({ query: { search: 'LYON' } });
       expect(jurisdictions.response?.status).toBe(200);
@@ -57,6 +59,32 @@ test.describe('Members E2E', () => {
       expect(detailedMemberAfter.data?.excludedJurisdictions).toEqual([
         expect.objectContaining({ id: expect.stringMatching(/LYON/i) }),
       ]);
+    });
+
+    test('replaces the magistrats a member excludes', async ({ agent, expect }) => {
+      const updated = await agent.members.excludeMagistrats({
+        body: { magistratIds: [magistratId] },
+        path: { userId: memberId },
+      });
+      expect(updated.response?.status).toBe(204);
+
+      const { data } = await agent.members.detailsMember({ path: { userId: memberId }, throwOnError: true });
+      expect(data.excludedMagistrats).toEqual([
+        {
+          currentPosition: {
+            function: expect.objectContaining({ id: seed.functions.PR.id }),
+            jurisdiction: expect.objectContaining({ id: seed.jurisdictions['CA  LYON'].id }),
+          },
+          grade: expect.any(String),
+          id: magistratId,
+          name: 'TREVOUX Etienne',
+          status: 'ACTIVE',
+        },
+      ]);
+
+      await agent.members.excludeMagistrats({ body: { magistratIds: [] }, path: { userId: memberId } });
+      const emptied = await agent.members.detailsMember({ path: { userId: memberId }, throwOnError: true });
+      expect(emptied.data.excludedMagistrats).toEqual([]);
     });
 
     test('details a member with the count of their reports', async ({ agent, expect, sessions }) => {

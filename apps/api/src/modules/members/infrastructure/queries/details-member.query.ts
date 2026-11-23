@@ -1,9 +1,12 @@
+import { Transactional } from '@nestjs-cls/transactional';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
-import { detailsMemberRawQuery } from '../../../../generated/prisma/sql';
+import { PrismaMagistratStatusEnum } from '../../../../generated/prisma/enums';
+import { detailsMemberRawQuery, listExcludedMagistratsRawQuery } from '../../../../generated/prisma/sql';
 import { Db } from '../../../framework/database';
+import { magistratFullName } from '../../../magistrat/domain/magistrat-name';
 import { GradeEnum } from '../../../shared/grade.enum';
 import {
   ExcludedJurisdictionsSchema,
@@ -16,10 +19,13 @@ import {
 export class DetailsMemberQuery {
   constructor(private readonly db: Db) {}
 
+  @Transactional()
   async handle(query: { userId: string }): Promise<DetailedMemberDto> {
     const [user] = await this.db.tx.$queryRawTyped(detailsMemberRawQuery(query.userId));
 
     if (!user || !isMember(user)) throw new NotFoundException();
+
+    const excludedMagistrats = await this.db.tx.$queryRawTyped(listExcludedMagistratsRawQuery(query.userId));
 
     return {
       id: user.id,
@@ -31,6 +37,20 @@ export class DetailsMemberQuery {
       displayTitle: user.displayTitle ?? null,
       recusalTitle: user.recusalTitle ?? null,
       excludedJurisdictions: ExcludedJurisdictionsSchema.parse(user.excludedJurisdictions),
+      excludedMagistrats: excludedMagistrats.map((magistrat) => ({
+        id: magistrat.id,
+        name: magistratFullName(magistrat),
+        status: magistrat.status,
+        grade: magistrat.grade,
+        currentPosition: magistrat.jurisdictionId
+          ? {
+              function: magistrat.functionId
+                ? { id: magistrat.functionId, label: magistrat.functionLabel }
+                : null,
+              jurisdiction: { id: magistrat.jurisdictionId, label: magistrat.jurisdictionLabel },
+            }
+          : null,
+      })),
       stats: MemberStatsSchema.parse(user.stats ?? []),
     };
   }
@@ -56,6 +76,20 @@ export class DetailedMemberDto extends createZodDto(
     recusalTitle: z.string().nullable(),
 
     excludedJurisdictions: ExcludedJurisdictionsSchema,
+    excludedMagistrats: z.array(
+      z.object({
+        id: z.string(),
+        name: z.string(),
+        status: z.enum(PrismaMagistratStatusEnum),
+        grade: z.string().nullable(),
+        currentPosition: z
+          .object({
+            function: z.object({ id: z.string(), label: z.string() }).nullable(),
+            jurisdiction: z.object({ id: z.string(), label: z.string().nullable() }),
+          })
+          .nullable(),
+      }),
+    ),
 
     stats: MemberStatsSchema,
   }),

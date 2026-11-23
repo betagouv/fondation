@@ -5,6 +5,7 @@ import * as seed from '../utils/seed.ts';
 test.describe('Session Affectations E2E', () => {
   let sessionId: string;
   let nominationFileId: string;
+  let magistratId: string;
   let memberId: string;
 
   test.beforeEach(async ({ agent, expect, member, sessions }) => {
@@ -31,6 +32,7 @@ test.describe('Session Affectations E2E', () => {
       name: 'Transparence affectation',
     });
     sessionId = session.id;
+    magistratId = session.files[0]!.magistratId;
 
     const files = await agent.sessions.listNominationFiles({ path: { sessionId } });
     expect(files.response?.status).toBe(200);
@@ -159,6 +161,84 @@ test.describe('Session Affectations E2E', () => {
 
     const files = await agent.sessions.listNominationFiles({ path: { sessionId } });
     expect(files.data!.items[0]!.reporters).toEqual([]);
+  });
+
+  test('never auto-affects a member a file whose proposed magistrat they exclude', async ({
+    agent,
+    expect,
+    registerUser,
+  }) => {
+    const excluding = await registerUser('MEMBRE_COMMUN');
+    await agent.members.excludeMagistrats({
+      body: { magistratIds: [magistratId] },
+      path: { userId: excluding.id },
+      throwOnError: true,
+    });
+
+    // every other member of the test database stays out, for the excluding one to be the only candidate
+    const otherMemberIds: string[] = [];
+    for (let page = 1; ; page++) {
+      const members = await agent.members.listMembers({ query: { formations: [], limit: 200, page } });
+      otherMemberIds.push(...members.data!.items.map(({ id }) => id).filter((id) => id !== excluding.id));
+      if (members.data!.items.length < 200) break;
+    }
+
+    const affected = await agent.sessions.autoAffectation({
+      body: { excludedMemberIds: otherMemberIds, nominationFileIds: [nominationFileId] },
+      path: { sessionId },
+    });
+    expect(affected.response?.status).toBe(204);
+
+    const files = await agent.sessions.listNominationFiles({ path: { sessionId } });
+    expect(files.data!.items[0]!.reporters).toEqual([]);
+  });
+
+  test('refuses to affect a member a file whose proposed magistrat they exclude', async ({ agent, expect }) => {
+    await agent.members.excludeMagistrats({
+      body: { magistratIds: [magistratId] },
+      path: { userId: memberId },
+      throwOnError: true,
+    });
+
+    const affected = await agent.sessions.affectReporters({
+      body: { items: [{ nominationFileId, reporterIds: [memberId] }] },
+      path: { sessionId },
+    });
+    expect(affected.response?.status).toBe(400);
+  });
+
+  test('keeps a reporter in place who excludes the proposed magistrat afterwards', async ({ agent, expect }) => {
+    const body = { items: [{ nominationFileId, reporterIds: [memberId] }] };
+    await agent.sessions.affectReporters({ body, path: { sessionId }, throwOnError: true });
+    await agent.members.excludeMagistrats({
+      body: { magistratIds: [magistratId] },
+      path: { userId: memberId },
+      throwOnError: true,
+    });
+
+    const saved = await agent.sessions.affectReporters({ body, path: { sessionId } });
+    expect(saved.response?.status).toBe(204);
+
+    const files = await agent.sessions.listNominationFiles({ path: { sessionId } });
+    expect(files.data!.items[0]).toMatchObject({
+      nonAffectableMembers: [{ id: memberId, reason: 'EXCLUDED_MAGISTRAT' }],
+      reporters: [{ id: memberId }],
+    });
+  });
+
+  test('never tells a member who excluded the proposed magistrat', async ({ agent, expect, member }) => {
+    await agent.members.excludeMagistrats({
+      body: { magistratIds: [magistratId] },
+      path: { userId: memberId },
+      throwOnError: true,
+    });
+
+    const files = await api.sessions.listNominationFiles({
+      client: member['@client'],
+      path: { sessionId },
+      throwOnError: true,
+    });
+    expect(files.data.items[0]!.nonAffectableMembers).toEqual([]);
   });
 
   test('counts a nomination file once whatever its number of reporters', async ({ agent, expect, logIn }) => {

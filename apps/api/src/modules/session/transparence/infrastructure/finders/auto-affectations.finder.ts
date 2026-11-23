@@ -17,6 +17,7 @@ import {
   AutoAffectations,
 } from '../../domain/auto-affectation';
 
+import { MagistratExcludedMembersFinder } from './magistrat-excluded-members.finder';
 import { NominationFileJurisdictionsFinder } from './nomination-file-jurisdictions.finder';
 import { RecusedMembersFinder } from './recused-members.finder';
 import { UnaffectedFilesFinder } from './unaffected-files.finder';
@@ -31,6 +32,7 @@ export class AutoAffectationsFinder {
     private readonly unaffectedFilesFinder: UnaffectedFilesFinder,
     private readonly jurisdictionsFinder: NominationFileJurisdictionsFinder,
     private readonly recusedMembersFinder: RecusedMembersFinder,
+    private readonly magistratExcludedMembersFinder: MagistratExcludedMembersFinder,
   ) {}
 
   @Transactional()
@@ -68,6 +70,9 @@ export class AutoAffectationsFinder {
     const recusedMemberIds = await this.recusedMembersFinder.findIds({
       nominationFileIds: new Set(nominationFileIds),
     });
+    const magistratExcludedMemberIds = await this.magistratExcludedMembersFinder.findIds({
+      nominationFileIds: new Set(nominationFileIds),
+    });
 
     const files = this.toAutoAffectationNominationFiles(
       nominationFiles.items.map((file) => {
@@ -75,6 +80,7 @@ export class AutoAffectationsFinder {
         return {
           ...file,
           currentJurisdiction: current?.id ?? null,
+          magistratExcludedMemberIds: magistratExcludedMemberIds.get(file.id) ?? new Set(),
           recusedMemberIds: recusedMemberIds.get(file.id) ?? new Set(),
           targetedJurisdiction: targeted?.id ?? null,
         };
@@ -93,6 +99,7 @@ export class AutoAffectationsFinder {
       id: string;
       targetedGrade: string | null;
       currentJurisdiction: string | null;
+      magistratExcludedMemberIds: ReadonlySet<string>;
       recusedMemberIds: ReadonlySet<string>;
       targetedJurisdiction: string | null;
       number: number | null;
@@ -100,25 +107,36 @@ export class AutoAffectationsFinder {
     session: { formation: FormationEnum; date: DateOnly },
   ): AutoAffectationNominationFile[] {
     return nominationFiles
-      .map(({ id, number, recusedMemberIds, targetedGrade, targetedJurisdiction, currentJurisdiction }) => {
-        if (
-          !isDefined(number) ||
-          !isGrade(targetedGrade) ||
-          (!currentJurisdiction && !targetedJurisdiction)
-        ) {
-          return null;
-        }
-
-        return AutoAffectationNominationFile.from({
+      .map(
+        ({
           id,
-          session,
-          targetedGrade,
           number,
-          currentJurisdiction,
+          magistratExcludedMemberIds,
           recusedMemberIds,
+          targetedGrade,
           targetedJurisdiction,
-        });
-      })
+          currentJurisdiction,
+        }) => {
+          if (
+            !isDefined(number) ||
+            !isGrade(targetedGrade) ||
+            (!currentJurisdiction && !targetedJurisdiction)
+          ) {
+            return null;
+          }
+
+          return AutoAffectationNominationFile.from({
+            id,
+            session,
+            targetedGrade,
+            number,
+            currentJurisdiction,
+            magistratExcludedMemberIds,
+            recusedMemberIds,
+            targetedJurisdiction,
+          });
+        },
+      )
       .filter(isDefined);
   }
 

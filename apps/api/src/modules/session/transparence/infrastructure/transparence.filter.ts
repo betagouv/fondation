@@ -17,6 +17,7 @@ import {
 import {
   CannotScheduleAuditionOnNominationFile,
   CantUpdateNominationFiles,
+  MagistratExcludedMemberAffected,
   MemberMemoNotAllowed,
   NominationFilesNotFound,
   NonFormationMemberDefinedAsReporter,
@@ -78,7 +79,11 @@ export class TransparenceExceptionFilter implements NestInterceptor {
             );
           }
 
-          if (err instanceof ReporterRecused || err instanceof RecusedMemberAffected) {
+          if (
+            err instanceof ReporterRecused ||
+            err instanceof RecusedMemberAffected ||
+            err instanceof MagistratExcludedMemberAffected
+          ) {
             return new BadRequestException({ validationErrors: [err.message] }, { cause: err });
           }
 

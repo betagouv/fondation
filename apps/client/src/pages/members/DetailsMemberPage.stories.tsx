@@ -15,6 +15,7 @@ const MEMBER: DetailedMemberDto = {
     { id: 'CA  LYON', label: "Cour d'appel de Lyon" },
     { id: 'TJ  VILLEFRANCHE SUR SAONE', label: 'Tribunal judiciaire de Villefranche-sur-Saône' },
   ],
+  excludedMagistrats: [],
   firstName: 'Hélène',
   formation: { id: 'SIEGE', label: 'Siège' },
   gender: 'FEMALE',

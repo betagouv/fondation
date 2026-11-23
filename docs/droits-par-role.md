@@ -315,6 +315,7 @@ Dans les dossiers d'un magistrat, un Membre ne voit que l'affectation et les aud
 | Modifier le titre affiché d'un membre                 | `PUT /members/v1/:userId/display-title`          | —      | ✓                   | ✓              |
 | Modifier le titre déport d'un membre                  | `PUT /members/v1/:userId/recusal-title`          | —      | ✓                   | ✓              |
 | Exclure des juridictions de l'affectation d'un membre | `PUT /members/v1/:userId/excluded-jurisdictions` | —      | ✓                   | ✓              |
+| Exclure des magistrats de l'affectation d'un membre   | `PUT /members/v1/:userId/excluded-magistrats`    | —      | ✓                   | ✓              |
 
 ### Veille des postes
 

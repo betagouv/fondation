@@ -18,7 +18,7 @@ import { UserStatus } from '../../../shared/user-status.enum';
 
 import type { PublishableAuditions } from './audition-publication';
 import { AutoAffectations } from './auto-affectation';
-import { type FileReporters, nonAffectableMembers, nonRecusableMembers } from './member-recusal';
+import { type FileReporters, nonRecusableMembers, refusedReporters } from './member-recusal';
 import { NominationFileSnapshot } from './nomination-file-snapshot';
 import {
   LodamTransparenceFile,
@@ -341,6 +341,12 @@ export class RecusedMemberAffected extends Error {
   }
 }
 
+export class MagistratExcludedMemberAffected extends Error {
+  constructor() {
+    super(`Un membre ne peut pas être affecté à un dossier dont il a exclu le magistrat proposé`);
+  }
+}
+
 /** a member deactivated since keeps their place on a file, without being offered for other ones */
 function isFormationMemberOrKept(
   memberId: string,
@@ -573,6 +579,9 @@ export class SessionTransparence {
         affectations,
         authorId: null,
         formationMemberIds: new Set(command.formationMembers.map(({ id }) => id)),
+        // the magistrat is identified when the files are inserted: an imported reporter who excluded
+        // them stays in place with a warning, like one who excludes them afterwards
+        magistratExcludedMemberIdsByFile: new Map(),
         // nobody can be recused from a session that does not exist yet
         recusedMemberIdsByFile: new Map(),
       });
@@ -601,10 +610,11 @@ export class SessionTransparence {
     assignedReporterIds?: ReadonlyMap<string, ReadonlySet<string>>;
     authorId: string | null;
     formationMemberIds: Set<string>;
+    magistratExcludedMemberIdsByFile: ReadonlyMap<string, ReadonlySet<string>>;
     recusedMemberIdsByFile: ReadonlyMap<string, ReadonlySet<string>>;
   }) {
     this.assertsCanUpdateFiles(...command.affectations.map(({ nominationFileId }) => nominationFileId));
-    this.assertsNoRecusedMemberAffected(command);
+    this.assertsNoRefusedReporter(command);
 
     let versionId = this.version?.id;
 
@@ -656,6 +666,7 @@ export class SessionTransparence {
       affectations,
       authorId: command.authorId,
       formationMemberIds: command.formationMemberIds,
+      magistratExcludedMemberIdsByFile: command.autoAffectations.magistratExcludedMemberIdsByFile,
       recusedMemberIdsByFile: command.autoAffectations.recusedMemberIdsByFile,
     });
   }
@@ -976,17 +987,22 @@ export class SessionTransparence {
     }
   }
 
-  private assertsNoRecusedMemberAffected(command: {
+  private assertsNoRefusedReporter(command: {
     affectations: readonly { nominationFileId: string; reporterIds: readonly string[] }[];
+    assignedReporterIds?: ReadonlyMap<string, ReadonlySet<string>>;
+    magistratExcludedMemberIdsByFile: ReadonlyMap<string, ReadonlySet<string>>;
     recusedMemberIdsByFile: ReadonlyMap<string, ReadonlySet<string>>;
   }): void {
-    const affectsARecusedMember = command.affectations.some(({ nominationFileId, reporterIds }) => {
-      const recusedIds = command.recusedMemberIdsByFile.get(nominationFileId);
-      if (!recusedIds) return false;
-      const nonAffectableIds = new Set(nonAffectableMembers(recusedIds).map(({ id }) => id));
-      return reporterIds.some((id) => nonAffectableIds.has(id));
-    });
-    if (affectsARecusedMember) throw new RecusedMemberAffected();
+    const refused = command.affectations.flatMap(({ nominationFileId, reporterIds }) =>
+      refusedReporters({
+        assignedIds: command.assignedReporterIds?.get(nominationFileId) ?? new Set(),
+        magistratExcludedIds: command.magistratExcludedMemberIdsByFile.get(nominationFileId) ?? new Set(),
+        recusedIds: command.recusedMemberIdsByFile.get(nominationFileId) ?? new Set(),
+        reporterIds,
+      }),
+    );
+    if (refused.some(({ reason }) => reason === 'RECUSED')) throw new RecusedMemberAffected();
+    if (refused.length > 0) throw new MagistratExcludedMemberAffected();
   }
 
   private assertsCanUpdateFiles(...nominationFileIds: readonly string[]): void {

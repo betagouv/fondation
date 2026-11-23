@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { ApiClientsModule } from '../api-clients';
 
 import { ExcludedJurisdictionsFinder } from './infrastructure/finders/excluded-jurisdictions.finder';
+import { ExcludedMagistratsFinder } from './infrastructure/finders/excluded-magistrats.finder';
 import { JurisdictionsService } from './infrastructure/jurisdictions.service';
 import { MemberRepository } from './infrastructure/member-repository';
 import { MembersService } from './infrastructure/members.service';
@@ -26,6 +27,7 @@ import { MembersController } from './members.controller';
   providers: [
     DetailsMemberQuery,
     ExcludedJurisdictionsFinder,
+    ExcludedMagistratsFinder,
     FindMagistratStatusQuery,
     IdentifyMagistratQuery,
     InternalFindMembersByFormationQuery,

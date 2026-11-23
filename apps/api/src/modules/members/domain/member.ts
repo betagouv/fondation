@@ -35,6 +35,17 @@ export class Member {
     );
   }
 
+  /** replaces the whole list: the members manager saves the selection of its modal */
+  excludeMagistrats(command: {
+    knownMagistratIds: ReadonlySet<string>;
+    magistratIds: readonly string[];
+  }): void {
+    const unknownMagistratIds = command.magistratIds.filter((id) => !command.knownMagistratIds.has(id));
+    if (unknownMagistratIds.length > 0) throw new NotFoundException({ magistrats: unknownMagistratIds });
+
+    this.#messages.push(new MemberMagistratsExcluded(this.id, [...new Set(command.magistratIds)]));
+  }
+
   updateDisplayTitle(displayTitle: string | null): void {
     this.#messages.push(new MemberDisplayTitleUpdated(this.id, displayTitle));
   }
@@ -45,7 +56,14 @@ export class Member {
   }
 }
 
-export type MemberEvent = ExcludedMemberJurisdictions | MemberDisplayTitleUpdated;
+export type MemberEvent = ExcludedMemberJurisdictions | MemberDisplayTitleUpdated | MemberMagistratsExcluded;
+
+export class MemberMagistratsExcluded {
+  constructor(
+    readonly userId: string,
+    readonly magistratIds: readonly string[],
+  ) {}
+}
 
 export class ExcludedMemberJurisdictions {
   readonly userId: string;
