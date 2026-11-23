@@ -10,6 +10,7 @@ import {
   ApiClientNotRotatable,
   ApiClientUnauthenticated,
   ApiScope,
+  CantManageApiClients,
   canonicalIp,
   DEFAULT_LIMITS_PER_MINUTE,
   isAllowedIp,
@@ -17,11 +18,13 @@ import {
 } from './domain/api-client';
 import { RateWindow } from './domain/rate-window';
 import { ApiClientRepository } from './infrastructure/api-client.repository';
+import { ListApiClientsQuery, ListedApiClientsDto } from './infrastructure/queries/list-api-clients.query';
 
 @Injectable()
 export class ApiClientsService {
   constructor(
     private readonly clock: Clock,
+    private readonly listApiClients: ListApiClientsQuery,
     private readonly repository: ApiClientRepository,
   ) {}
 
@@ -43,7 +46,8 @@ export class ApiClientsService {
         limit: client.authLimitPerMinute,
         route: 'auth',
       });
-      await this.repository.saveToken({ clientId: client.id, token });
+      const saved = await this.repository.saveToken({ clientId: client.id, token });
+      if (!saved) throw new ApiClientUnauthenticated();
 
       return { accessToken: token.token, expiresIn: token.expiresIn };
     });
@@ -91,20 +95,30 @@ export class ApiClientsService {
     }
   }
 
+  @Transactional()
+  async list(command: { actorId: string }): Promise<ListedApiClientsDto> {
+    await this.assertManager(command.actorId);
+
+    return this.listApiClients.handle({ now: this.clock.now() });
+  }
+
   /** The secret is returned once and never stored: lost, it can only be replaced */
-  async register(command: {
+  @Transactional()
+  async create(command: {
+    actorId: string;
     allowedIps: readonly string[];
     name: string;
     scopes: readonly ApiScope[];
   }): Promise<{ id: string; secret: string }> {
+    await this.assertManager(command.actorId);
     const id = makeId('ApiClientId');
     const { hash: secretHash, secret } = ApiClient.generateSecret();
     await this.repository.create({
-      // an IP or a scope given twice would break the primary key
-      allowedIps: [...new Set(command.allowedIps)],
+      allowedIps: ApiClient.allowedIps(command.allowedIps),
       authLimitPerMinute: DEFAULT_LIMITS_PER_MINUTE.auth,
       id,
       name: command.name,
+      // a scope given twice would break the primary key
       scopes: [...new Set(command.scopes)].map((scope) => ({
         limitPerMinute: DEFAULT_LIMITS_PER_MINUTE[scope],
         scope,
@@ -118,11 +132,11 @@ export class ApiClientsService {
   /** The new secret is returned once, like the first one */
   @Transactional()
   async rotateSecret(command: {
+    actorId: string;
     clientId: string;
     days?: number;
   }): Promise<{ previousValidUntil: Date; secret: string }> {
-    const client = await this.repository.findById(command.clientId);
-    if (!client) throw new NotFoundException();
+    const client = await this.findManagedClient(command);
 
     const { secret, ...secrets } = client.rotateSecret({ days: command.days, now: this.clock.now() });
     const saved = await this.repository.saveRotatedSecret({ clientId: client.id, ...secrets });
@@ -133,13 +147,36 @@ export class ApiClientsService {
 
   /**
    * Once the partner confirms it has switched, or at once when the replaced secret is in doubt: the tokens already
-   * given go with it, the partner asks for a new one with the secret it holds
+   * given go with it, the partner asks for a new one with the secret it holds. Nothing happens once the rotation is
+   * over, which a second click finds
    */
   @Transactional()
-  async endSecretRotation(command: { clientId: string }): Promise<void> {
-    if (!(await this.repository.findById(command.clientId))) throw new NotFoundException();
+  async endSecretRotation(command: { actorId: string; clientId: string }): Promise<void> {
+    const client = await this.findManagedClient(command);
+    if (!client.canEndSecretRotation(this.clock.now())) return;
 
-    await this.repository.endSecretRotation(command.clientId);
+    await this.repository.endSecretRotation(client.id);
+  }
+
+  /** Its tokens stop working at once (see ApiClient.authorize). Nothing happens once revoked: it keeps its date */
+  @Transactional()
+  async revoke(command: { actorId: string; clientId: string }): Promise<void> {
+    const client = await this.findManagedClient(command);
+    if (!client.canRevoke()) return;
+
+    await this.repository.revoke({ clientId: client.id, now: this.clock.now() });
+  }
+
+  private async findManagedClient(command: { actorId: string; clientId: string }): Promise<ApiClient> {
+    await this.assertManager(command.actorId);
+    const client = await this.repository.findById(command.clientId);
+    if (!client) throw new NotFoundException();
+
+    return client;
+  }
+
+  private async assertManager(actorId: string): Promise<void> {
+    if (!(await this.repository.canBeManagedBy(actorId))) throw new CantManageApiClients();
   }
 
   private async countCall(

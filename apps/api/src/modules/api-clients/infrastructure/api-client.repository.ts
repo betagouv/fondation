@@ -4,10 +4,11 @@ import z from 'zod';
 
 import { Prisma } from '../../../generated/prisma/client';
 import { countApiCallRawQuery } from '../../../generated/prisma/sql';
+import { User } from '../../administration/domain/user';
 import { Db } from '../../framework/database';
 import { ApiClient, ApiScope, IssuedAccessToken } from '../domain/api-client';
 
-const CLIENT_SELECT = {
+export const CLIENT_SELECT = {
   allowedIps: { select: { ip: true } },
   authLimitPerMinute: true,
   id: true,
@@ -77,10 +78,51 @@ export class ApiClientRepository {
     return counter?.count ?? 0;
   }
 
-  async saveToken(command: { clientId: string; token: IssuedAccessToken }): Promise<void> {
+  /**
+   * The client row is written first, on the condition that the secret is still accepted: a rotation ended or a
+   * revocation at the same time waits for this token to be saved, then deletes or refuses it, or is waited for and
+   * found here
+   *
+   * @returns whether the token was saved: not when its secret was dropped since it was checked
+   */
+  @Transactional()
+  async saveToken(command: { clientId: string; token: IssuedAccessToken }): Promise<boolean> {
     const { clientId, token } = command;
+    const { count } = await this.db.tx.apiClient.updateMany({
+      where: {
+        id: clientId,
+        revokedAt: null,
+        OR: [
+          { secretHash: token.secretHash },
+          { previousSecretExpiresAt: { gt: token.issuedAt }, previousSecretHash: token.secretHash },
+        ],
+      },
+      data: { lastTokenIssuedAt: token.issuedAt },
+    });
+    if (count === 0) return false;
+
     await this.db.tx.apiAccessToken.create({
       data: { clientId, expiresAt: token.expiresAt, hash: token.hash },
+    });
+
+    return true;
+  }
+
+  /** @returns whether the user may manage the API clients, false when unknown */
+  async canBeManagedBy(userId: string): Promise<boolean> {
+    const user = await this.db.tx.user.findUnique({
+      where: { id: userId },
+      select: { isAdmin: true, isTechnical: true } satisfies Prisma.UserSelect,
+    });
+
+    return !!user && User.canManageApiClients(user);
+  }
+
+  /** Keeps the date of a revocation made at the same time: the first one wins */
+  async revoke(command: { clientId: string; now: Date }): Promise<void> {
+    await this.db.tx.apiClient.updateMany({
+      where: { id: command.clientId, revokedAt: null },
+      data: { revokedAt: command.now },
     });
   }
 
@@ -139,7 +181,7 @@ export class ApiClientRepository {
     await this.db.tx.apiAccessToken.deleteMany({ where: { clientId } });
   }
 
-  private static toDomain(client: Prisma.ApiClientGetPayload<{ select: typeof CLIENT_SELECT }>): ApiClient {
+  static toDomain(client: Prisma.ApiClientGetPayload<{ select: typeof CLIENT_SELECT }>): ApiClient {
     return new ApiClient({
       allowedIps: client.allowedIps.map(({ ip }) => ip),
       authLimitPerMinute: client.authLimitPerMinute,

@@ -5,6 +5,8 @@ model ApiClient {
   createdAt               DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
   /// The `client_id` handed to the partner
   id                      String    @id @db.Uuid
+  /// Written with each token, not with each call: the tokens themselves are purged once expired
+  lastTokenIssuedAt       DateTime? @map("last_token_issued_at") @db.Timestamp(6)
   name                    String    @db.VarChar
   /// Until when the secret replaced by the last rotation is accepted, so that the partner switches without being cut off.
   /// A check constraint keeps both columns set or empty together

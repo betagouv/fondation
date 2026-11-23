@@ -46,9 +46,7 @@ export const test = base
       return registerUser({ client, user });
     };
   })
-  .extend('apiClients', ({ baseUrl, sql }) =>
-    makeApiClientFixture({ baseUrl, databaseUrl: inject('databaseUrl'), sql }),
-  )
+  .extend('apiClients', ({ baseUrl, sql }) => makeApiClientFixture({ baseUrl, sql }))
   .extend('lolfi', ({ admin, baseUrl }) => makeLolfiFixture({ admin, baseUrl }))
   .extend('sessions', ({ admin, lolfi }) => makeCreateSessionFixture(admin, lolfi))
   .extend('docs', ({ admin, agent, registerUser, sessions }) =>

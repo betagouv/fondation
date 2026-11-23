@@ -225,6 +225,16 @@ describe('User', () => {
     });
   });
 
+  describe('canManageApiClients', () => {
+    it('should let an administrator with a technical account manage the API clients', () => {
+      expect(User.canManageApiClients({ isAdmin: true, isTechnical: true })).toBe(true);
+    });
+
+    it('should keep the other administrators away from the API clients', () => {
+      expect(User.canManageApiClients({ isAdmin: true, isTechnical: false })).toBe(false);
+    });
+  });
+
   it('should update email', () => {
     const user = User.from(baseProps);
     user.updateEmail({ email: 'new@email.com', isTakenByAnotherUser: false });

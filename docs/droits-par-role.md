@@ -115,16 +115,17 @@ L'accueil propose les deux pouvoirs de proposition et le logo y ramène. Le menu
 
 ### Espace administration
 
-| URL                           | Vue                                                                                                                                  | Membre | Secrétariat général | Administrateur |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ------ | ------------------- | -------------- |
-| `/admin/lolfi`                | Import d'une archive Lolfi                                                                                                           | —      | —                   | ✓              |
-| `/admin/ingestions`           | Liste des traitements en arrière-plan                                                                                                | —      | —                   | ✓              |
-| `/admin/ingestions/:jobId`    | Détail d'un traitement                                                                                                               | —      | —                   | ✓              |
-| `/admin/avis`                 | Export des réponses au questionnaire                                                                                                 | —      | —                   | ✓              |
-| `/admin/retours/:status`      | Retours d'un statut (nouveaux, pris en compte, traités ou écartés) et suivi de ce statut                                             | —      | —                   | ✓              |
-| `/admin/aide`                 | Édition des pages d'aide                                                                                                             | —      | —                   | ✓              |
-| `/admin/utilisateurs`         | Liste des utilisateurs                                                                                                               | —      | —                   | ✓              |
-| `/admin/utilisateurs/:userId` | Fiche d'un utilisateur : nom, prénom, e-mail, mot de passe, rôle, titre, droit d'administrateur, désactivation, connexion à sa place | —      | —                   | ✓              |
+| URL                           | Vue                                                                                                                                  | Membre | Secrétariat général | Administrateur     |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ------ | ------------------- | ------------------ |
+| `/admin/lolfi`                | Import d'une archive Lolfi                                                                                                           | —      | —                   | ✓                  |
+| `/admin/ingestions`           | Liste des traitements en arrière-plan                                                                                                | —      | —                   | ✓                  |
+| `/admin/ingestions/:jobId`    | Détail d'un traitement                                                                                                               | —      | —                   | ✓                  |
+| `/admin/avis`                 | Export des réponses au questionnaire                                                                                                 | —      | —                   | ✓                  |
+| `/admin/retours/:status`      | Retours d'un statut (nouveaux, pris en compte, traités ou écartés) et suivi de ce statut                                             | —      | —                   | ✓                  |
+| `/admin/aide`                 | Édition des pages d'aide                                                                                                             | —      | —                   | ✓                  |
+| `/admin/utilisateurs`         | Liste des utilisateurs                                                                                                               | —      | —                   | ✓                  |
+| `/admin/utilisateurs/:userId` | Fiche d'un utilisateur : nom, prénom, e-mail, mot de passe, rôle, titre, droit d'administrateur, désactivation, connexion à sa place | —      | —                   | ✓                  |
+| `/admin/clients-api`          | Clients API : création, rotation du secret, révocation                                                                               | —      | —                   | ✓ compte technique |
 
 ## Actions de l'API
 
@@ -422,29 +423,34 @@ Dans les dossiers d'un magistrat, un Membre ne voit que l'affectation et les aud
 
 ### Administration
 
-| Action                            | Endpoint                                                    | Membre | Secrétariat général | Administrateur |
-| --------------------------------- | ----------------------------------------------------------- | ------ | ------------------- | -------------- |
-| Lister les utilisateurs           | `GET /administration/v1/users`                              | —      | —                   | ✓              |
-| Créer un compte                   | `POST /administration/v1/users`                             | —      | —                   | ✓              |
-| Voir un utilisateur               | `GET /administration/v1/users/:userId`                      | —      | —                   | ✓              |
-| Voir les rôles proposés           | `GET /administration/v1/roles`                              | —      | —                   | ✓              |
-| Voir les titulaires des fonctions | `GET /administration/v1/title-holders`                      | —      | —                   | ✓              |
-| Modifier l'e-mail                 | `PUT /administration/v1/users/:userId/email`                | —      | —                   | ✓              |
-| Modifier le nom ou le prénom      | `PUT /administration/v1/users/:userId/name`                 | —      | —                   | ✓              |
-| Modifier le mot de passe          | `PUT /administration/v1/users/:userId/password`             | —      | —                   | ✓              |
-| Modifier le rôle                  | `PUT /administration/v1/users/:userId/role`                 | —      | —                   | ✓              |
-| Modifier le titre affiché         | `PUT /administration/v1/users/:userId/display-title`        | —      | —                   | ✓              |
-| Modifier le titre déport          | `PUT /administration/v1/users/:userId/recusal-title`        | —      | —                   | ✓              |
-| Donner le droit d'administrateur  | `PUT /administration/v1/users/:userId/promotion`            | —      | —                   | ✓              |
-| Retirer le droit d'administrateur | `DELETE /administration/v1/users/:userId/promotion`         | —      | —                   | ✓              |
-| Marquer un compte technique       | `PUT /administration/v1/users/:userId/technical-account`    | —      | —                   | ✓              |
-| Démarquer un compte technique     | `DELETE /administration/v1/users/:userId/technical-account` | —      | —                   | ✓              |
-| Désactiver un compte              | `PUT /administration/v1/users/:userId/deactivation`         | —      | —                   | ✓              |
-| Réactiver un compte               | `DELETE /administration/v1/users/:userId/deactivation`      | —      | —                   | ✓              |
-| Lister les traitements            | `GET /jobs/v1`                                              | —      | —                   | ✓              |
-| Voir un traitement                | `GET /jobs/v1/:jobId`                                       | —      | —                   | ✓              |
+| Action                            | Endpoint                                                          | Membre | Secrétariat général | Administrateur     |
+| --------------------------------- | ----------------------------------------------------------------- | ------ | ------------------- | ------------------ |
+| Lister les utilisateurs           | `GET /administration/v1/users`                                    | —      | —                   | ✓                  |
+| Créer un compte                   | `POST /administration/v1/users`                                   | —      | —                   | ✓                  |
+| Voir un utilisateur               | `GET /administration/v1/users/:userId`                            | —      | —                   | ✓                  |
+| Voir les rôles proposés           | `GET /administration/v1/roles`                                    | —      | —                   | ✓                  |
+| Voir les titulaires des fonctions | `GET /administration/v1/title-holders`                            | —      | —                   | ✓                  |
+| Modifier l'e-mail                 | `PUT /administration/v1/users/:userId/email`                      | —      | —                   | ✓                  |
+| Modifier le nom ou le prénom      | `PUT /administration/v1/users/:userId/name`                       | —      | —                   | ✓                  |
+| Modifier le mot de passe          | `PUT /administration/v1/users/:userId/password`                   | —      | —                   | ✓                  |
+| Modifier le rôle                  | `PUT /administration/v1/users/:userId/role`                       | —      | —                   | ✓                  |
+| Modifier le titre affiché         | `PUT /administration/v1/users/:userId/display-title`              | —      | —                   | ✓                  |
+| Modifier le titre déport          | `PUT /administration/v1/users/:userId/recusal-title`              | —      | —                   | ✓                  |
+| Donner le droit d'administrateur  | `PUT /administration/v1/users/:userId/promotion`                  | —      | —                   | ✓                  |
+| Retirer le droit d'administrateur | `DELETE /administration/v1/users/:userId/promotion`               | —      | —                   | ✓                  |
+| Marquer un compte technique       | `PUT /administration/v1/users/:userId/technical-account`          | —      | —                   | ✓                  |
+| Démarquer un compte technique     | `DELETE /administration/v1/users/:userId/technical-account`       | —      | —                   | ✓                  |
+| Désactiver un compte              | `PUT /administration/v1/users/:userId/deactivation`               | —      | —                   | ✓                  |
+| Réactiver un compte               | `DELETE /administration/v1/users/:userId/deactivation`            | —      | —                   | ✓                  |
+| Lister les traitements            | `GET /jobs/v1`                                                    | —      | —                   | ✓                  |
+| Voir un traitement                | `GET /jobs/v1/:jobId`                                             | —      | —                   | ✓                  |
+| Lister les clients API            | `GET /administration/v1/api-clients`                              | —      | —                   | ✓ compte technique |
+| Créer un client API               | `POST /administration/v1/api-clients`                             | —      | —                   | ✓ compte technique |
+| Lancer la rotation d'un secret    | `POST /administration/v1/api-clients/:clientId/secret-rotation`   | —      | —                   | ✓ compte technique |
+| Clore la rotation d'un secret     | `DELETE /administration/v1/api-clients/:clientId/secret-rotation` | —      | —                   | ✓ compte technique |
+| Révoquer un client API            | `PUT /administration/v1/api-clients/:clientId/revocation`         | —      | —                   | ✓ compte technique |
 
-Le droit d'administrateur ne se donne qu'à une personne du Secrétariat général. Seul un compte technique peut en rendre un autre technique.
+Le droit d'administrateur ne se donne qu'à une personne du Secrétariat général. Seul un compte technique peut en rendre un autre technique, et gérer les clients API.
 
 ## Accès sans utilisateur
 

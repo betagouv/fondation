@@ -8,6 +8,7 @@ import type { DetailedUserResponseDto } from '@api/types';
 
 export type SessionUser = Pick<
   DetailedUserResponseDto,
+  | 'canManageApiClients'
   | 'canManageTechnicalAccounts'
   | 'displayedRole'
   | 'email'
@@ -33,6 +34,7 @@ function introspectSession(): Promise<SessionUser | null> {
     .then(({ data }): SessionUser | null =>
       data
         ? {
+            canManageApiClients: data.canManageApiClients,
             canManageTechnicalAccounts: data.canManageTechnicalAccounts,
             civility: `${data.gender === 'FEMALE' ? 'Madame' : 'Monsieur'} ${data.lastName.toUpperCase()}`,
             displayedRole: data.displayedRole,

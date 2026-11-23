@@ -46,7 +46,29 @@ export class ApiClientNotRotatable extends Error {
   }
 }
 
-export type IssuedAccessToken = { expiresAt: Date; expiresIn: number; hash: string; token: string };
+export type IssuedAccessToken = {
+  expiresAt: Date;
+  expiresIn: number;
+  hash: string;
+  issuedAt: Date;
+  /** The hash of the secret it was given for: saved only while that secret is still accepted */
+  secretHash: string;
+  token: string;
+};
+
+export type ApiClientStatus =
+  | { value: 'ACTIVE' }
+  | { until: Date; value: 'ROTATING' }
+  | { since: Date; value: 'REVOKED' };
+
+/** See User.canManageApiClients */
+export class CantManageApiClients extends Error {}
+
+export class InvalidAllowedIp extends Error {
+  constructor(readonly ip: string) {
+    super(`${ip} is not an IPv4 or IPv6 address`);
+  }
+}
 
 /**
  * A partner system that calls the public API with a short-lived token, obtained from its identifier and its secret.
@@ -81,6 +103,14 @@ export class ApiClient {
     return { hash: ApiClient.hash(secret), secret };
   }
 
+  /** The IPs of a new client, named when one is no address: an IP given twice would break the primary key */
+  static allowedIps(ips: readonly string[]): string[] {
+    const invalid = ips.find((ip) => canonicalIp(ip) === undefined);
+    if (invalid !== undefined) throw new InvalidAllowedIp(invalid);
+
+    return [...new Set(ips)];
+  }
+
   static hash(secretOrToken: string): string {
     return createHash('sha256').update(secretOrToken).digest('hex');
   }
@@ -94,8 +124,8 @@ export class ApiClient {
     const { previousSecret, secretHash } = this.props;
     const given = ApiClient.hash(command.secret);
     const accepted = this.isRotating(command.now) ? [secretHash, previousSecret!.hash] : [secretHash];
-    const isKnown = accepted.some((hash) => ApiClient.sameHash(given, hash));
-    if (this.props.revokedAt || !isKnown) throw new ApiClientUnauthenticated();
+    const matched = accepted.find((hash) => ApiClient.sameHash(given, hash));
+    if (this.props.revokedAt || !matched) throw new ApiClientUnauthenticated();
     this.assertAllowedIp(command.ip);
 
     const token = randomBytes(32).toString('base64url');
@@ -104,8 +134,30 @@ export class ApiClient {
       expiresAt: new Date(command.now.getTime() + ApiClient.TOKEN_LIFETIME_MS),
       expiresIn: ApiClient.TOKEN_LIFETIME_MS / time.SECONDS,
       hash: ApiClient.hash(token),
+      issuedAt: command.now,
+      secretHash: matched,
       token,
     };
+  }
+
+  status(now: Date): ApiClientStatus {
+    const { previousSecret, revokedAt } = this.props;
+    if (revokedAt) return { since: revokedAt, value: 'REVOKED' };
+    if (this.isRotating(now)) return { until: previousSecret!.expiresAt, value: 'ROTATING' };
+
+    return { value: 'ACTIVE' };
+  }
+
+  canRotateSecret(now: Date): boolean {
+    return this.status(now).value === 'ACTIVE';
+  }
+
+  canEndSecretRotation(now: Date): boolean {
+    return this.status(now).value === 'ROTATING';
+  }
+
+  canRevoke(): boolean {
+    return !this.props.revokedAt;
   }
 
   /**
@@ -121,8 +173,9 @@ export class ApiClient {
     secretHash: string;
   } {
     const days = command.days ?? ROTATION_DAYS.default;
-    if (this.props.revokedAt) throw new ApiClientNotRotatable('revoked');
-    if (this.isRotating(command.now)) throw new ApiClientNotRotatable('rotating');
+    const status = this.status(command.now).value;
+    if (status === 'REVOKED') throw new ApiClientNotRotatable('revoked');
+    if (status === 'ROTATING') throw new ApiClientNotRotatable('rotating');
     if (days < 1 || days > ROTATION_DAYS.max) throw new ApiClientNotRotatable('days');
     const { hash: secretHash, secret } = ApiClient.generateSecret();
 

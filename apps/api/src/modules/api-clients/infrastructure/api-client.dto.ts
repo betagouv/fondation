@@ -1,6 +1,51 @@
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
+import { API_SCOPES, ROTATION_DAYS } from '../domain/api-client';
+
+export class CreateApiClientDto extends createZodDto(
+  z.object({
+    name: z.string().trim().min(1).max(100),
+    // without any IP or any route, the client would be refused everything and its secret shown for nothing: it
+    // cannot be changed afterwards. Each IP is checked by the domain, which names the wrong one
+    allowedIps: z
+      .array(z.object({ ip: z.string().trim().max(64) }))
+      .min(1)
+      .max(20),
+    scopes: z
+      .array(z.object({ id: z.enum(API_SCOPES) }))
+      .min(1)
+      .max(API_SCOPES.length),
+  }),
+) {}
+
+export class CreatedApiClientDto extends createZodDto(
+  z.object({
+    id: z.string().meta({ description: 'The `client_id` handed to the partner' }),
+    secret: z.string().meta({ description: 'Shown this once: Fondation keeps its hash only' }),
+  }),
+) {}
+
+export class RotateApiClientSecretDto extends createZodDto(
+  z.object({
+    // the bounds are the domain's, ApiClientNotRotatable('days') tells them
+    days: z
+      .number()
+      .int()
+      .optional()
+      .meta({
+        description: `How long the replaced secret stays valid, ${ROTATION_DAYS.default} days by default`,
+      }),
+  }),
+) {}
+
+export class RotatedApiClientSecretDto extends createZodDto(
+  z.object({
+    secret: z.string().meta({ description: 'Shown this once, like the first one' }),
+    previousSecretValidUntil: z.iso.datetime(),
+  }),
+) {}
+
 /** The names are those of the OAuth 2.0 client credentials grant (RFC 6749, §4.4) */
 export class AuthenticateApiClientDto extends createZodDto(
   z.object({
