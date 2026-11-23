@@ -98,10 +98,13 @@ function run {
   for filename in $(ls -rt "$DATA_PATH"/* | head -n1); do
     log "sending $filename to $ENV_LABEL"
 
+    type='application/pkcs7-mime'
+    [[ "$filename" == *.pgp || "$filename" == *.gpg || "$filename" == *.asc ]] && type='application/pgp-encrypted'
+
     if curl --silent --fail --retry-max-time 120 \
       --header "Authorization: Bearer $SCALINGO_TOKEN" \
       --header "X-Script-Digest: $(script_digest)" \
-      --form "file=@${filename};type=application/pkcs7-mime" \
+      --form "file=@${filename};type=${type}" \
       "$SCALINGO_URL/api/ingest/v1/lolfi";
     then
       mkdir -p "$BASEDIR/ftp_history/$ENV_LABEL/$TODAY"

@@ -36,6 +36,7 @@ export const ConfigSchema = z.object({
   lolfi: z.preprocess(
     () => ({}),
     z.object({
+      gnupgHome: z.prefault(z.string().trim().nonempty().optional(), process.env.LOLFI_GNUPG_HOME),
       // share of the active magistrats an import may deactivate before its extraction is held incomplete
       maxDeactivationRatio: z.prefault(
         z.number().min(0).max(1),

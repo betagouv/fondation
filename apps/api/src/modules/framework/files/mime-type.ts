@@ -15,6 +15,7 @@ export const FILE_MIME_TYPES = {
   ods: 'application/vnd.oasis.opendocument.spreadsheet',
   odt: 'application/vnd.oasis.opendocument.text',
   pdf: 'application/pdf',
+  pgp: 'application/pgp-encrypted',
   png: 'image/png',
   ppt: 'application/vnd.ms-powerpoint',
   pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
