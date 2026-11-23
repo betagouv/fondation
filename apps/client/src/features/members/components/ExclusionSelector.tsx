@@ -1,9 +1,10 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import { useState, type ReactNode } from 'react';
-import { FormattedMessage } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 
 import { IconButton } from '@/shared/ui/icon-button';
 import { Modal } from '@/shared/ui/modal';
+import { useToasts } from '@/shared/ui/toast';
 
 type Picker = (selection: { selected: readonly string[]; setSelected: (ids: string[]) => void }) => ReactNode;
 
@@ -16,6 +17,8 @@ function ExclusionSelectorModal(props: {
   picker: Picker;
   title: ReactNode;
 }) {
+  const { formatMessage } = useIntl();
+  const toasts = useToasts();
   const [isChanging, setIsChanging] = useState(false);
   const [selected, setSelected] = useState<readonly string[]>(props.originalIds);
 
@@ -27,6 +30,11 @@ function ExclusionSelectorModal(props: {
     try {
       await props.onSave(selected);
       props.onClose();
+    } catch {
+      toasts.error({
+        description: formatMessage({ defaultMessage: 'Réessayez plus tard.' }),
+        title: formatMessage({ defaultMessage: "Les exclusions n'ont pas pu être enregistrées" }),
+      });
     } finally {
       setIsChanging(false);
     }
