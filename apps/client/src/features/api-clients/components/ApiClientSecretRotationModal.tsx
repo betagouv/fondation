@@ -6,24 +6,30 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { useDateAndTime } from '@/shared/hooks/useDateAndTime';
 import { Modal } from '@/shared/ui/modal';
 import { ValidationError } from '@/utils/validation-error';
+import type { ListedApiClientsDto } from '@api/types';
 import { useRotateApiClientSecretMutation } from '@queries/api-clients.queries';
 
 import { ApiClientSecret } from './ApiClientSecret';
 
-const DEFAULT_DAYS = 7;
-
-/** The client stays mounted for the fade out: the caller keeps it until onClosed */
+/**
+ * The client stays mounted for the fade out: the caller keeps it until onClosed. It cannot be closed while the secret
+ * is on its way, which the server never gives again
+ */
 export function ApiClientSecretRotationModal(props: {
   client: { id: string; name: string } | null;
   onClose: () => void;
   onClosed: () => void;
   open: boolean;
+  secretRotationDays: ListedApiClientsDto['secretRotationDays'];
 }) {
   const { formatMessage } = useIntl();
   const dateAndTime = useDateAndTime();
   const formId = useId();
-  const [days, setDays] = useState(DEFAULT_DAYS);
+  const [days, setDays] = useState(props.secretRotationDays.default);
   const rotation = useRotateApiClientSecretMutation();
+  const close = () => {
+    if (!rotation.isPending) props.onClose();
+  };
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
@@ -34,7 +40,7 @@ export function ApiClientSecretRotationModal(props: {
     <Modal
       actions={
         rotation.data ? (
-          <Button onClick={props.onClose}>
+          <Button onClick={close}>
             <FormattedMessage defaultMessage="J'ai transmis le secret" />
           </Button>
         ) : (
@@ -46,7 +52,7 @@ export function ApiClientSecretRotationModal(props: {
                 )}
               </p>
             )}
-            <Button onClick={props.onClose} priority="secondary" type="button">
+            <Button disabled={rotation.isPending} onClick={close} priority="secondary" type="button">
               <FormattedMessage defaultMessage="Annuler" />
             </Button>
             <Button disabled={rotation.isPending} nativeButtonProps={{ form: formId }} type="submit">
@@ -56,10 +62,10 @@ export function ApiClientSecretRotationModal(props: {
         )
       }
       closeOnBackdrop={false}
-      onClose={props.onClose}
+      onClose={close}
       onClosed={() => {
         rotation.reset();
-        setDays(DEFAULT_DAYS);
+        setDays(props.secretRotationDays.default);
         props.onClosed();
       }}
       open={props.open}
@@ -87,6 +93,7 @@ export function ApiClientSecretRotationModal(props: {
             })}
             label={formatMessage({ defaultMessage: "Durée de validité de l'ancien secret (en jours)" })}
             nativeInputProps={{
+              max: props.secretRotationDays.max,
               min: 1,
               onChange: (event) => setDays(event.target.valueAsNumber),
               required: true,

@@ -120,12 +120,19 @@ export type ListedApiClientsDto = {
         id: 'magistrats:identification' | 'magistrats:status';
         label: string;
     }>;
+    /**
+     * How many days the replaced secret may stay valid after a rotation
+     */
+    secretRotationDays: {
+        default: number;
+        max: number;
+    };
 };
 
 export type CreateApiClientDto = {
     name: string;
     allowedIps: Array<{
-        ip: string | string;
+        ip: string;
     }>;
     scopes: Array<{
         id: 'magistrats:identification' | 'magistrats:status';

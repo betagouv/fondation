@@ -1,7 +1,7 @@
 import Badge from '@codegouvfr/react-dsfr/Badge';
 import Button from '@codegouvfr/react-dsfr/Button';
 import { createColumnHelper, getCoreRowModel, useReactTable } from '@tanstack/react-table';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import { ApiClientCreationModal } from '@/features/api-clients/components/ApiClientCreationModal';
@@ -11,6 +11,7 @@ import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { useDateAndTime } from '@/shared/hooks/useDateAndTime';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { DataTable } from '@/shared/ui/data-table';
+import { useToasts } from '@/shared/ui/toast';
 import type { ListedApiClientsDto } from '@api/types';
 import {
   useApiClientsQuery,
@@ -60,15 +61,38 @@ function LastTokenIssuedAt(props: { at: string | null }) {
   );
 }
 
+const actionsIdOf = (clientId: string) => `api-client-actions-${clientId}`;
+
+/** The button that had the focus may be gone with the change: the focus stays on the row rather than falling to the page */
+function keepFocusOnActionsOf(clientId: string) {
+  if (document.activeElement !== document.body) return;
+  const actions = document.getElementById(actionsIdOf(clientId));
+  (actions?.querySelector('button') ?? actions)?.focus();
+}
+
 function ApiClientActions(props: { client: ListedApiClient; onRotate: (client: ListedApiClient) => void }) {
   const { formatMessage } = useIntl();
   const confirmation = useConfirmModal();
+  const toasts = useToasts();
   const endRotation = useEndApiClientSecretRotationMutation();
   const revocation = useRevokeApiClientMutation();
   const { client } = props;
+  const status = client.status.value;
+  const shownStatus = useRef(status);
+
+  useEffect(() => {
+    if (shownStatus.current === status) return;
+    shownStatus.current = status;
+    keepFocusOnActionsOf(client.id);
+  }, [client.id, status]);
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-2" id={actionsIdOf(client.id)} tabIndex={-1}>
+      {!client.canRotateSecret && !client.canEndSecretRotation && !client.canRevoke && (
+        <span className="fr-sr-only">
+          <FormattedMessage defaultMessage="Aucune action possible" />
+        </span>
+      )}
       {client.canRotateSecret && (
         <Button onClick={() => props.onRotate(client)} priority="tertiary" size="small">
           <FormattedMessage defaultMessage="Lancer une rotation" />
@@ -89,7 +113,16 @@ function ApiClientActions(props: { client: ListedApiClient; onRotate: (client: L
                 { name: client.name },
               ),
             });
-            if (isConfirmed) endRotation.mutate(client.id);
+            if (!isConfirmed) return;
+            endRotation.mutate(client.id, {
+              onError: () =>
+                toasts.error({
+                  title: formatMessage(
+                    { defaultMessage: "La rotation de « {name} » n'a pas pu être close" },
+                    { name: client.name },
+                  ),
+                }),
+            });
           }}
           priority="tertiary"
           size="small"
@@ -109,7 +142,16 @@ function ApiClientActions(props: { client: ListedApiClient; onRotate: (client: L
               i18n: { confirm: formatMessage({ defaultMessage: 'Révoquer' }) },
               title: formatMessage({ defaultMessage: 'Révoquer « {name} » ?' }, { name: client.name }),
             });
-            if (isConfirmed) revocation.mutate(client.id);
+            if (!isConfirmed) return;
+            revocation.mutate(client.id, {
+              onError: () =>
+                toasts.error({
+                  title: formatMessage(
+                    { defaultMessage: "« {name} » n'a pas pu être révoqué" },
+                    { name: client.name },
+                  ),
+                }),
+            });
           }}
           priority="tertiary no outline"
           size="small"
@@ -192,7 +234,7 @@ function useApiClientColumns(onRotate: (client: ListedApiClient) => void) {
 export function AdminApiClientsPage() {
   const { formatMessage } = useIntl();
   const breadcrumbRoot = useBreadcrumbRoot();
-  const { data, isLoading } = useApiClientsQuery();
+  const { data, isError, isFetching, isLoading, refetch } = useApiClientsQuery();
   const [isCreating, setCreating] = useState(false);
   const [rotated, setRotated] = useState<{ client: ListedApiClient; isOpen: boolean } | null>(null);
   const openRotation = useCallback((client: ListedApiClient) => setRotated({ client, isOpen: true }), []);
@@ -238,20 +280,27 @@ export function AdminApiClientsPage() {
         emptyLabel={formatMessage({ defaultMessage: 'Aucun client API' })}
         fluid
         isLoading={isLoading}
+        loadError={
+          isError ? { isNextPage: false, isRetrying: isFetching, onRetry: () => void refetch() } : undefined
+        }
         table={table}
       />
 
-      <ApiClientCreationModal
-        onClose={() => setCreating(false)}
-        open={isCreating}
-        scopes={data?.scopes ?? []}
-      />
-      <ApiClientSecretRotationModal
-        client={rotated?.client ?? null}
-        onClose={() => setRotated((current) => current && { ...current, isOpen: false })}
-        onClosed={() => setRotated(null)}
-        open={!!rotated?.isOpen}
-      />
+      {data && (
+        <>
+          <ApiClientCreationModal onClose={() => setCreating(false)} open={isCreating} scopes={data.scopes} />
+          <ApiClientSecretRotationModal
+            client={rotated?.client ?? null}
+            onClose={() => setRotated((current) => current && { ...current, isOpen: false })}
+            onClosed={() => {
+              if (rotated) keepFocusOnActionsOf(rotated.client.id);
+              setRotated(null);
+            }}
+            open={!!rotated?.isOpen}
+            secretRotationDays={data.secretRotationDays}
+          />
+        </>
+      )}
     </div>
   );
 }

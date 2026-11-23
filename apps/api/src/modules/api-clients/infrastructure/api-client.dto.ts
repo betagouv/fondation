@@ -5,10 +5,17 @@ import { API_SCOPES, ROTATION_DAYS } from '../domain/api-client';
 
 export class CreateApiClientDto extends createZodDto(
   z.object({
-    name: z.string().trim().min(1),
-    // without any, the client would be refused from everywhere and its secret shown for nothing
-    allowedIps: z.array(z.object({ ip: z.union([z.ipv4(), z.ipv6()]) })).min(1),
-    scopes: z.array(z.object({ id: z.enum(API_SCOPES) })),
+    name: z.string().trim().min(1).max(100),
+    // without any IP or any route, the client would be refused everything and its secret shown for nothing: it
+    // cannot be changed afterwards. Each IP is checked by the domain, which names the wrong one
+    allowedIps: z
+      .array(z.object({ ip: z.string().trim().max(64) }))
+      .min(1)
+      .max(20),
+    scopes: z
+      .array(z.object({ id: z.enum(API_SCOPES) }))
+      .min(1)
+      .max(API_SCOPES.length),
   }),
 ) {}
 

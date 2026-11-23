@@ -157,10 +157,11 @@ export class ApiClientsService {
     await this.repository.endSecretRotation(client.id);
   }
 
-  /** Its tokens stop working at once (see ApiClient.authorize) */
+  /** Its tokens stop working at once (see ApiClient.authorize). Nothing happens once revoked: it keeps its date */
   @Transactional()
   async revoke(command: { actorId: string; clientId: string }): Promise<void> {
     const client = await this.findManagedClient(command);
+    if (!client.canRevoke()) return;
 
     await this.repository.revoke({ clientId: client.id, now: this.clock.now() });
   }

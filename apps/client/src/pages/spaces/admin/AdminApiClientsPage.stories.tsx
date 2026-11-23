@@ -71,7 +71,11 @@ const meta = {
   beforeEach: ({ args, msw }) => {
     msw.use(
       http.get('*/api/administration/v1/api-clients', () =>
-        HttpResponse.json<ListedApiClientsDto>({ items: args.empty ? [] : CLIENTS, scopes: SCOPES }),
+        HttpResponse.json<ListedApiClientsDto>({
+          items: args.empty ? [] : CLIENTS,
+          scopes: SCOPES,
+          secretRotationDays: { default: 7, max: 30 },
+        }),
       ),
       http.post('*/api/administration/v1/api-clients', () =>
         HttpResponse.json<CreatedApiClientDto>(

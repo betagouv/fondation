@@ -106,7 +106,11 @@ test.describe('api clients', () => {
     teamMember,
   }) => {
     const { data: created } = await teamMember.apiClients.createApiClient({
-      body: { allowedIps: LOOPBACK_IPS.map((ip) => ({ ip })), name: 'Site du CSM', scopes: [] },
+      body: {
+        allowedIps: LOOPBACK_IPS.map((ip) => ({ ip })),
+        name: 'Site du CSM',
+        scopes: [{ id: 'magistrats:identification' }],
+      },
       throwOnError: true,
     });
     await tokenStatus(baseUrl, created.id, created.secret);

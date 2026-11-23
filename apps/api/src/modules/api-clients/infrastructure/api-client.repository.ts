@@ -100,7 +100,7 @@ export class ApiClientRepository {
     return !!user && User.canManageApiClients(user);
   }
 
-  /** Once only: a client revoked stays so, and keeps the date it was */
+  /** Keeps the date of a revocation made at the same time: the first one wins */
   async revoke(command: { clientId: string; now: Date }): Promise<void> {
     await this.db.tx.apiClient.updateMany({
       where: { id: command.clientId, revokedAt: null },

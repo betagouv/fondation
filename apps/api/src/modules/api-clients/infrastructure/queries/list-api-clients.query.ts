@@ -4,7 +4,7 @@ import z from 'zod';
 
 import { Prisma } from '../../../../generated/prisma/client';
 import { Db } from '../../../framework/database';
-import { API_SCOPES, ApiClientStatus, ApiScope } from '../../domain/api-client';
+import { API_SCOPES, ApiClientStatus, ApiScope, ROTATION_DAYS } from '../../domain/api-client';
 import { CLIENT_SELECT, ApiClientRepository } from '../api-client.repository';
 
 const SCOPE_LABELS = {
@@ -59,6 +59,7 @@ export class ListApiClientsQuery {
         };
       }),
       scopes: API_SCOPES.map((id) => ({ id, label: SCOPE_LABELS[id] })),
+      secretRotationDays: ROTATION_DAYS,
     };
   }
 }
@@ -90,5 +91,8 @@ export class ListedApiClientsDto extends createZodDto(
     scopes: z
       .array(z.object({ id: z.enum(API_SCOPES), label: z.string() }))
       .meta({ description: 'The routes a new client may be given' }),
+    secretRotationDays: z
+      .object({ default: z.number().int(), max: z.number().int() })
+      .meta({ description: 'How many days the replaced secret may stay valid after a rotation' }),
   }),
 ) {}

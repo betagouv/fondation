@@ -14,6 +14,7 @@ import { ApiClientSecret } from './ApiClientSecret';
 
 const NON_BLANK = '.*\\S.*';
 
+/** It cannot be closed while the secret is on its way, which the server never gives again */
 export function ApiClientCreationModal(props: {
   onClose: () => void;
   open: boolean;
@@ -29,6 +30,9 @@ export function ApiClientCreationModal(props: {
     .split('\n')
     .map((ip) => ip.trim())
     .filter(Boolean);
+  const close = () => {
+    if (!creation.isPending) props.onClose();
+  };
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
@@ -43,7 +47,7 @@ export function ApiClientCreationModal(props: {
     <Modal
       actions={
         creation.data ? (
-          <Button onClick={props.onClose}>
+          <Button onClick={close}>
             <FormattedMessage defaultMessage="J'ai transmis le secret" />
           </Button>
         ) : (
@@ -51,15 +55,17 @@ export function ApiClientCreationModal(props: {
             {creation.isError && (
               <p className="fr-error-text fr-mt-0 mr-auto" role="alert">
                 {ValidationError.messageOf(creation.error) ?? (
-                  <FormattedMessage defaultMessage="La création a échoué : vérifiez les adresses IP" />
+                  <FormattedMessage defaultMessage="La création a échoué" />
                 )}
               </p>
             )}
-            <Button onClick={props.onClose} priority="secondary" type="button">
+            <Button disabled={creation.isPending} onClick={close} priority="secondary" type="button">
               <FormattedMessage defaultMessage="Annuler" />
             </Button>
             <Button
-              disabled={creation.isPending || !name.trim() || allowedIps.length === 0}
+              disabled={
+                creation.isPending || !name.trim() || allowedIps.length === 0 || scopeIds.length === 0
+              }
               nativeButtonProps={{ form: formId }}
               type="submit"
             >
@@ -69,7 +75,7 @@ export function ApiClientCreationModal(props: {
         )
       }
       closeOnBackdrop={false}
-      onClose={props.onClose}
+      onClose={close}
       onClosed={() => {
         creation.reset();
         setName('');
@@ -115,7 +121,11 @@ export function ApiClientCreationModal(props: {
             textArea
           />
           <Checkbox
-            legend={formatMessage({ defaultMessage: 'Routes autorisées' })}
+            legend={
+              <RequiredLabel>
+                <FormattedMessage defaultMessage="Routes autorisées" />
+              </RequiredLabel>
+            }
             options={props.scopes.map((scope) => ({
               label: scope.label,
               nativeInputProps: {

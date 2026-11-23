@@ -1,10 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { AUTHORIZED_ROLES } from '../constants/authorized-roles.constants';
+import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { sessionQueryOptions } from '@queries/auth.queries';
 import { queryClient } from '@queries/query-client';
 
-import { isAuthorized, roleGuard } from './role-guard';
+import { capabilityGuard, isAuthorized, roleGuard } from './role-guard';
 
 describe('isAuthorized', () => {
   it('rejects an anonymous user', () => {
@@ -33,29 +34,29 @@ describe('isAuthorized', () => {
   });
 });
 
+const member = {
+  canManageApiClients: false,
+  canManageTechnicalAccounts: false,
+  civility: 'Madame LOVELACE',
+  displayedRole: { group: 'MEMBER' as const, id: 'MEMBRE_SIEGE' as const, label: 'Membre du siège' },
+  email: 'ada.lovelace@justice.fr',
+  firstName: 'Ada',
+  formation: 'SIEGE' as const,
+  gender: 'FEMALE' as const,
+  id: '5f6478c1-46a1-4b64-8cbd-4a0d67101d7e',
+  isAdmin: false,
+  isImpersonated: false,
+  lastName: 'Lovelace',
+  passwordChange: 'ALLOWED' as const,
+  role: 'MEMBRE_DU_SIEGE' as const,
+};
+
+afterEach(() => {
+  vi.restoreAllMocks();
+  queryClient.clear();
+});
+
 describe('roleGuard', () => {
-  const member = {
-    canManageApiClients: false,
-    canManageTechnicalAccounts: false,
-    civility: 'Madame LOVELACE',
-    displayedRole: { group: 'MEMBER' as const, id: 'MEMBRE_SIEGE' as const, label: 'Membre du siège' },
-    email: 'ada.lovelace@justice.fr',
-    firstName: 'Ada',
-    formation: 'SIEGE' as const,
-    gender: 'FEMALE' as const,
-    id: '5f6478c1-46a1-4b64-8cbd-4a0d67101d7e',
-    isAdmin: false,
-    isImpersonated: false,
-    lastName: 'Lovelace',
-    passwordChange: 'ALLOWED' as const,
-    role: 'MEMBRE_DU_SIEGE' as const,
-  };
-
-  afterEach(() => {
-    vi.restoreAllMocks();
-    queryClient.clear();
-  });
-
   it('lets an authorized user through', async () => {
     vi.spyOn(queryClient, 'ensureQueryData').mockResolvedValue(member);
 
@@ -82,5 +83,25 @@ describe('roleGuard', () => {
     vi.spyOn(queryClient, 'ensureQueryData').mockRejectedValue(new Error('network down'));
 
     await expect(roleGuard(AUTHORIZED_ROLES.MEMBER)()).rejects.toThrow('network down');
+  });
+});
+
+describe('capabilityGuard', () => {
+  it('lets an admin who has the capability through', async () => {
+    vi.spyOn(queryClient, 'ensureQueryData').mockResolvedValue({
+      ...member,
+      canManageApiClients: true,
+      isAdmin: true,
+    });
+
+    await expect(capabilityGuard('canManageApiClients')()).resolves.toBeNull();
+  });
+
+  it('sends an admin without the capability back to the administration', async () => {
+    vi.spyOn(queryClient, 'ensureQueryData').mockResolvedValue({ ...member, isAdmin: true });
+
+    const response = await capabilityGuard('canManageApiClients')();
+
+    expect((response as Response).headers.get('Location')).toBe(ROUTE_PATHS.ADMIN.USERS);
   });
 });
