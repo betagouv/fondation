@@ -63,12 +63,24 @@ export class ApiClientNotUpdatable extends Error {
   }
 }
 
-/** What an administrator sets on a client after its creation */
+/** Where a client may call from, what for and how often */
 export type ApiClientConfiguration = {
   allowedIps: readonly string[];
   authLimitPerMinute: number;
   scopes: readonly { limitPerMinute: number; scope: ApiScope }[];
 };
+
+/**
+ * Each IP checked (see ApiClient.allowedIps), an IP or a route given twice kept once, the route with the last limit
+ * given: twice would break the primary key
+ */
+export function distinctConfiguration(configuration: ApiClientConfiguration): ApiClientConfiguration {
+  return {
+    allowedIps: ApiClient.allowedIps(configuration.allowedIps),
+    authLimitPerMinute: configuration.authLimitPerMinute,
+    scopes: [...new Map(configuration.scopes.map((granted) => [granted.scope, granted])).values()],
+  };
+}
 
 export type IssuedAccessToken = {
   expiresAt: Date;
@@ -193,7 +205,7 @@ export class ApiClient {
    * Replaces the IPs, the routes and the limits, applied from the next call. Without any IP left, the client is refused
    * from everywhere: the administration asks for a confirmation, the domain lets it happen
    *
-   * @returns the configuration to save, an IP or a route given twice once only
+   * @returns the configuration to save (see distinctConfiguration)
    */
   update(configuration: ApiClientConfiguration): ApiClientConfiguration {
     if (!this.canUpdate()) throw new ApiClientNotUpdatable('revoked');
@@ -202,11 +214,7 @@ export class ApiClient {
     if (!limits.every((limit) => Number.isInteger(limit) && limit >= min && limit <= max))
       throw new ApiClientNotUpdatable('limit');
 
-    return {
-      allowedIps: ApiClient.allowedIps(configuration.allowedIps),
-      authLimitPerMinute: configuration.authLimitPerMinute,
-      scopes: [...new Map(configuration.scopes.map((granted) => [granted.scope, granted])).values()],
-    };
+    return distinctConfiguration(configuration);
   }
 
   /**

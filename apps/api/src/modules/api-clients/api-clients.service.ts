@@ -15,6 +15,7 @@ import {
   CantManageApiClients,
   canonicalIp,
   DEFAULT_LIMITS_PER_MINUTE,
+  distinctConfiguration,
   isAllowedIp,
   REFUSALS_LIMIT_PER_MINUTE,
 } from './domain/api-client';
@@ -116,15 +117,13 @@ export class ApiClientsService {
     const id = makeId('ApiClientId');
     const { hash: secretHash, secret } = ApiClient.generateSecret();
     await this.repository.create({
-      allowedIps: ApiClient.allowedIps(command.allowedIps),
-      authLimitPerMinute: DEFAULT_LIMITS_PER_MINUTE.auth,
+      ...distinctConfiguration({
+        allowedIps: command.allowedIps,
+        authLimitPerMinute: DEFAULT_LIMITS_PER_MINUTE.auth,
+        scopes: command.scopes.map((scope) => ({ limitPerMinute: DEFAULT_LIMITS_PER_MINUTE[scope], scope })),
+      }),
       id,
       name: command.name,
-      // a scope given twice would break the primary key
-      scopes: [...new Set(command.scopes)].map((scope) => ({
-        limitPerMinute: DEFAULT_LIMITS_PER_MINUTE[scope],
-        scope,
-      })),
       secretHash,
     });
 
