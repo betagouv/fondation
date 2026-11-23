@@ -17,7 +17,9 @@ export function ReporterTagList(props: {
 
   const reporters = props.reporters
     .map((reporter) => ({ ...reporter, isCurrentUser: reporter.id === user?.id }))
-    .toSorted((a, b) => a.lastName.localeCompare(b.lastName));
+    .toSorted(
+      (a, b) => Number(b.isCurrentUser) - Number(a.isCurrentUser) || a.lastName.localeCompare(b.lastName),
+    );
   const max = props.max ?? 3;
   const hidden = reporters.slice(max);
 

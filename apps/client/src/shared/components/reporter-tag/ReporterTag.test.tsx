@@ -13,7 +13,7 @@ const ADA = { firstName: 'Ada', id: 'ada', lastName: 'Lovelace' };
 
 function renderList(max?: number) {
   const client = new QueryClient();
-  client.setQueryData(authKeys.introspectSession(), { ...ADA, role: 'MEMBRE_DU_SIEGE' });
+  client.setQueryData(authKeys.introspectSession(), { ...HONORINE, role: 'MEMBRE_DU_SIEGE' });
 
   return render(
     <QueryClientProvider client={client}>
@@ -73,14 +73,20 @@ describe('ReporterTagList', () => {
 
     expect(screen.getAllByRole('tooltip', { hidden: true }).map((tooltip) => tooltip.textContent)).toEqual([
       'Vous',
-      'Honorine VALROSE',
+      'Ada LOVELACE',
     ]);
+  });
+
+  it('shows the current user before the remainder, even when the alphabetical order puts them after', () => {
+    renderList(1);
+
+    expect(screen.getAllByRole('tooltip', { hidden: true }).at(0)).toHaveTextContent('Vous');
   });
 
   it('names the reporters left out of the list in the remainder tooltip', () => {
     renderList(1);
 
     expect(screen.getByText('+1')).toBeInTheDocument();
-    expect(screen.getAllByRole('tooltip', { hidden: true }).at(-1)).toHaveTextContent('Honorine VALROSE');
+    expect(screen.getAllByRole('tooltip', { hidden: true }).at(-1)).toHaveTextContent('Ada LOVELACE');
   });
 });

@@ -49,8 +49,8 @@ describe('ReportersCell', () => {
     renderCell([]);
 
     expect(screen.getAllByRole('tooltip', { hidden: true }).map((tooltip) => tooltip.textContent)).toEqual([
-      'Camille COMMUN',
       'Vous',
+      'Camille COMMUN',
     ]);
   });
 
@@ -58,8 +58,8 @@ describe('ReportersCell', () => {
     renderCell([LYON]);
 
     expect(screen.getAllByRole('tooltip', { hidden: true }).map((tooltip) => tooltip.textContent)).toEqual([
-      `Juridiction exclue pour Camille COMMUN : ${LYON.label}`,
       'Vous',
+      `Juridiction exclue pour Camille COMMUN : ${LYON.label}`,
     ]);
   });
 
@@ -67,15 +67,15 @@ describe('ReportersCell', () => {
     renderCell([LYON], [LYON]);
 
     expect(screen.getAllByRole('tooltip', { hidden: true }).map((tooltip) => tooltip.textContent)).toEqual([
-      `Juridiction exclue pour Camille COMMUN : ${LYON.label}`,
       `Juridiction exclue pour Paul PARQUET : ${LYON.label}`,
+      `Juridiction exclue pour Camille COMMUN : ${LYON.label}`,
     ]);
   });
 
   it('flags the excluded reporter only, and leaves the icon silent for screen readers', () => {
     const { container } = renderCell([LYON]);
 
-    const [camille, paul] = screen.getAllByRole('listitem');
+    const [paul, camille] = screen.getAllByRole('listitem');
     expect(within(camille).getByText('CC')).toBeInTheDocument();
     expect(container.querySelectorAll('.fr-icon-error-line')).toHaveLength(1);
     expect(within(paul).queryByRole('img')).not.toBeInTheDocument();
