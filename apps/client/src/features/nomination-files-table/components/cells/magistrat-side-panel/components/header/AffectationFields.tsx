@@ -153,7 +153,7 @@ export function ReporterSelect(props: {
           )}
           {blockedReasons.size > 1 && ' '}
           {blockedReasons.has('EXCLUDED_MAGISTRAT') && (
-            <FormattedMessage defaultMessage="Un membre qui a exclu le magistrat proposé ne peut pas être affecté." />
+            <FormattedMessage defaultMessage="Un membre pour qui le magistrat proposé est exclu ne peut pas être affecté." />
           )}
         </p>
       )}

@@ -237,12 +237,13 @@ export function NominationFilesBulkActions(props: {
                 ? formatMessage(
                     {
                       defaultMessage:
-                        '{count, plural, one {Affecter un membre ayant exclu le magistrat proposé} other {Affecter des membres ayant exclu le magistrat proposé}}',
+                        '{count, plural, one {Affecter un membre pour qui le magistrat proposé est exclu} other {Affecter des membres pour qui le magistrat proposé est exclu}}',
                     },
                     { count: excludingMembers.length },
                   )
                 : formatMessage({
-                    defaultMessage: 'Affecter des membres déportés ou ayant exclu le magistrat proposé',
+                    defaultMessage:
+                      'Affecter des membres déportés ou pour qui le magistrat proposé est exclu',
                   }),
         });
         if (!isConfirmed) return;

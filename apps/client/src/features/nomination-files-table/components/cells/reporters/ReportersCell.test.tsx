@@ -78,7 +78,7 @@ describe('ReportersCell', () => {
 
     expect(screen.getAllByRole('tooltip', { hidden: true }).map((tooltip) => tooltip.textContent)).toEqual([
       'Vous',
-      `Juridiction exclue pour Camille COMMUN : ${LYON.label}. Camille COMMUN a exclu le magistrat proposé`,
+      `Juridiction exclue pour Camille COMMUN : ${LYON.label}. Magistrat proposé exclu pour Camille COMMUN`,
     ]);
   });
 });

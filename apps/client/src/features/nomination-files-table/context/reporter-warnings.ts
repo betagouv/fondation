@@ -19,7 +19,7 @@ export function useReporterWarnings(
     if (!reporter) continue;
 
     const title = formatMessage(
-      { defaultMessage: '{memberName} a exclu le magistrat proposé' },
+      { defaultMessage: 'Magistrat proposé exclu pour {memberName}' },
       { memberName: memberFullName(reporter) },
     );
     const jurisdictions = warnings.get(id);

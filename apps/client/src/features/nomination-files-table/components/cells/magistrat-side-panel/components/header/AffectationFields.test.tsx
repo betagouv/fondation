@@ -105,7 +105,7 @@ describe('ReporterSelect', () => {
 
     expect(await screen.findByRole('option', { name: 'Jean ALBERT (magistrat exclu)' })).toBeDisabled();
     expect(trigger).toHaveAccessibleDescription(
-      'Un membre qui a exclu le magistrat proposé ne peut pas être affecté.',
+      'Un membre pour qui le magistrat proposé est exclu ne peut pas être affecté.',
     );
   });
 });

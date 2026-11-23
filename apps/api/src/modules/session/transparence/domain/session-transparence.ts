@@ -343,7 +343,7 @@ export class RecusedMemberAffected extends Error {
 
 export class MagistratExcludedMemberAffected extends Error {
   constructor() {
-    super(`Un membre ne peut pas être affecté à un dossier dont il a exclu le magistrat proposé`);
+    super(`Un membre ne peut pas être affecté à un dossier dont le magistrat proposé est exclu pour lui`);
   }
 }
 

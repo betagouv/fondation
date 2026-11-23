@@ -473,7 +473,7 @@ describe('NominationFilesBulkActions', () => {
     await chooseOption('Camille COMMUN');
 
     const dialog = screen.getByRole('dialog', {
-      name: 'Affecter un membre ayant exclu le magistrat proposé',
+      name: 'Affecter un membre pour qui le magistrat proposé est exclu',
     });
     expect(within(dialog).getByRole('listitem')).toHaveTextContent('Camille COMMUN : n° 12 et n° 15');
     expect(dialog).not.toHaveTextContent('BOURDIEU');

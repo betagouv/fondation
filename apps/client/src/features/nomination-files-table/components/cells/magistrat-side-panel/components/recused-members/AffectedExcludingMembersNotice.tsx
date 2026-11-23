@@ -22,7 +22,7 @@ export function AffectedExcludingMembersNotice(props: {
     <>
       <p>
         <FormattedMessage
-          defaultMessage="{count, plural, one {Ce membre a exclu le magistrat proposé de propositions sélectionnées, auxquelles il ne peut pas être affecté :} other {Ces membres ont exclu le magistrat proposé de propositions sélectionnées, auxquelles ils ne peuvent pas être affectés :}}"
+          defaultMessage="{count, plural, one {Le magistrat proposé de propositions sélectionnées est exclu pour ce membre, qui ne peut pas y être affecté :} other {Le magistrat proposé de propositions sélectionnées est exclu pour ces membres, qui ne peuvent pas y être affectés :}}"
           values={{ count: props.members.length }}
         />
       </p>
