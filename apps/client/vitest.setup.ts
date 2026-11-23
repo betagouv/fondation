@@ -25,6 +25,13 @@ Object.assign(HTMLDialogElement.prototype, {
   },
 });
 
+// jsdom has no ResizeObserver, which every DataTable uses
+globalThis.ResizeObserver ??= class {
+  disconnect() {}
+  observe() {}
+  unobserve() {}
+};
+
 expect.extend(axeMatchers);
 
 declare module 'vitest' {

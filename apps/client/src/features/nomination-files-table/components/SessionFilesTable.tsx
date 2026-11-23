@@ -1,6 +1,6 @@
 import type { Table } from '@tanstack/react-table';
 import clsx from 'clsx';
-import { type PropsWithChildren, type ReactNode } from 'react';
+import { type PropsWithChildren, type ReactNode, useLayoutEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useIntl } from 'react-intl';
 
@@ -15,6 +15,7 @@ import type { SessionNominationFile } from '@queries/nomination-sessions.queries
 import { MagistratSidePanel } from './cells/magistrat-side-panel/components/MagistratSidePanel';
 import { useSidePanel } from './cells/magistrat-side-panel/context/side-panel.context';
 import { SidePanelProvider } from './cells/magistrat-side-panel/context/SidePanelProvider';
+import { useJustClosedFile } from './cells/magistrat-side-panel/hooks/use-just-closed-file/use-just-closed-file.hook';
 import { useOutOfListFile } from './cells/magistrat-side-panel/hooks/use-out-of-list-file/use-out-of-list-file.hook';
 import { NominationFileOutcomeCommentModalProvider } from './cells/nomination-file-outcome/NominationFileOutcomeCommentModalProvider';
 import { NominationFileTargetPositionProvider } from './cells/targeted-position/NominationFileTargetPositionProvider';
@@ -28,8 +29,21 @@ function SessionFilesDataTable(props: {
   table: Table<SessionNominationFile>;
 }) {
   const { activeId } = useSidePanel();
+  const justClosedId = useJustClosedFile(activeId);
   const intl = useIntl();
   const isEmpty = !props.isLoading && props.table.getRowModel().rows.length === 0;
+
+  // a fade rather than a width transition: rows rewrapping at every frame of it would shake the table
+  const narrowed = useRef<HTMLDivElement>(null);
+  const isNarrow = !!activeId;
+  const wasNarrow = useRef(isNarrow);
+  useLayoutEffect(() => {
+    if (wasNarrow.current === isNarrow) return;
+    wasNarrow.current = isNarrow;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    narrowed.current?.animate([{ opacity: 0.4 }, { opacity: 1 }], { duration: 250, easing: 'ease-out' });
+  }, [isNarrow]);
 
   const table = (
     <DataTable
@@ -42,7 +56,9 @@ function SessionFilesDataTable(props: {
       isLoading={props.isLoading}
       onEndReached={props.onEndReached}
       revealedRowId={activeId}
-      rowTint={(row) => (row.id === activeId ? 'bg-(--background-alt-blue-france)' : undefined)}
+      rowTint={(row) =>
+        row.id === (activeId ?? justClosedId) ? 'bg-(--background-alt-blue-france)' : undefined
+      }
       scrollsWithPage={props.scrollsWithPage}
       table={props.table}
       visibleRows={props.scrollsWithPage ? undefined : 10}
@@ -52,7 +68,7 @@ function SessionFilesDataTable(props: {
   if (!props.narrowsBesideSidePanel) return table;
 
   return (
-    <div className={clsx('w-full transition-[width] duration-300 ease-out', activeId && 'md:w-[52%]')}>
+    <div className={clsx('w-full', activeId && 'md:w-[52%]')} ref={narrowed}>
       {table}
     </div>
   );
