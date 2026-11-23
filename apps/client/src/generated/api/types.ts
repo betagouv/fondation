@@ -4884,7 +4884,7 @@ export type SearchMagistratAuthorizationResponse = SearchMagistratAuthorizationR
 export type IngestLolfiArchiveData = {
     body: {
         /**
-         * a .zip file
+         * a .zip archive, as is or encrypted in PGP or S/MIME
          */
         file: Blob | File;
     };

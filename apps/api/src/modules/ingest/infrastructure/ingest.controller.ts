@@ -19,6 +19,7 @@ import { MulterFile } from '../../framework/files/multipart/multipart.types';
 import { Tchap } from '../../framework/tchap';
 import { HasRole, IsMachine } from '../../simple-auth';
 import { isScriptDivergent } from '../domain/divergent-script';
+import { ENCRYPTED_LOLFI_TYPES } from '../services/lolfi-crypto.service';
 
 import { IngestedLolfiArchiveDto } from './ingest.dto';
 import { IngestService } from './ingest.service';
@@ -54,7 +55,11 @@ export class IngestController {
       type: 'object',
       required: ['file'],
       properties: {
-        file: { type: 'string', format: 'binary', description: 'a .zip file' },
+        file: {
+          type: 'string',
+          format: 'binary',
+          description: 'a .zip archive, as is or encrypted in PGP or S/MIME',
+        },
       },
     },
   })
@@ -62,7 +67,10 @@ export class IngestController {
     FileInterceptor('file', {
       limits: { files: 1, fileSize: 30 * 1_024 * 1_024 /* Mb */ },
       fileFilter(_req, file, callback) {
-        callback(null, file.mimetype === FILE_MIME_TYPES.zip || file.mimetype === FILE_MIME_TYPES.smime);
+        callback(
+          null,
+          [...ENCRYPTED_LOLFI_TYPES, FILE_MIME_TYPES.zip].some((type) => type === file.mimetype),
+        );
       },
     }),
   )
