@@ -4,7 +4,14 @@ import z from 'zod';
 
 import { Prisma } from '../../../../generated/prisma/client';
 import { Db } from '../../../framework/database';
-import { API_SCOPES, ApiClientStatus, ApiScope, ROTATION_DAYS } from '../../domain/api-client';
+import {
+  API_SCOPES,
+  ApiClientStatus,
+  ApiScope,
+  DEFAULT_LIMITS_PER_MINUTE,
+  LIMIT_PER_MINUTE,
+  ROTATION_DAYS,
+} from '../../domain/api-client';
 import { CLIENT_SELECT, ApiClientRepository } from '../api-client.repository';
 
 const SCOPE_LABELS = {
@@ -47,6 +54,7 @@ export class ListApiClientsQuery {
           id: client.id,
           name,
           allowedIps: stored.allowedIps,
+          authLimitPerMinute: client.authLimitPerMinute,
           scopes: stored.scopes.map(({ limitPerMinute, scope }) => ({
             limitPerMinute,
             scope: labeledScope(scope),
@@ -56,9 +64,15 @@ export class ListApiClientsQuery {
           canEndSecretRotation: client.canEndSecretRotation(query.now),
           canRevoke: client.canRevoke(),
           canRotateSecret: client.canRotateSecret(query.now),
+          canUpdate: client.canUpdate(),
         };
       }),
-      scopes: API_SCOPES.map((id) => ({ id, label: SCOPE_LABELS[id] })),
+      scopes: API_SCOPES.map((id) => ({
+        id,
+        label: SCOPE_LABELS[id],
+        defaultLimitPerMinute: DEFAULT_LIMITS_PER_MINUTE[id],
+      })),
+      limitPerMinute: LIMIT_PER_MINUTE,
       secretRotationDays: ROTATION_DAYS,
     };
   }
@@ -73,6 +87,7 @@ export class ListedApiClientsDto extends createZodDto(
         id: z.string(),
         name: z.string(),
         allowedIps: z.array(z.object({ ip: z.string() })),
+        authLimitPerMinute: z.number().int(),
         scopes: z.array(z.object({ limitPerMinute: z.number(), scope: LabeledScopeSchema })),
         status: z.discriminatedUnion('value', [
           z.object({ value: z.literal('ACTIVE') }),
@@ -86,11 +101,24 @@ export class ListedApiClientsDto extends createZodDto(
         canEndSecretRotation: z.boolean(),
         canRevoke: z.boolean(),
         canRotateSecret: z.boolean(),
+        canUpdate: z.boolean(),
       }),
     ),
     scopes: z
-      .array(z.object({ id: z.enum(API_SCOPES), label: z.string() }))
-      .meta({ description: 'The routes a new client may be given' }),
+      .array(
+        z.object({
+          id: z.enum(API_SCOPES),
+          label: z.string(),
+          defaultLimitPerMinute: z
+            .number()
+            .int()
+            .meta({ description: 'The limit a client gets when the route is opened to it' }),
+        }),
+      )
+      .meta({ description: 'The routes a client may be given' }),
+    limitPerMinute: z
+      .object({ min: z.number().int(), max: z.number().int() })
+      .meta({ description: 'The bounds of a limit, for the authentication as for a route' }),
     secretRotationDays: z
       .object({ default: z.number().int(), max: z.number().int() })
       .meta({ description: 'How many days the replaced secret may stay valid after a rotation' }),

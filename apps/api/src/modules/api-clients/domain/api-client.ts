@@ -14,6 +14,12 @@ export const DEFAULT_LIMITS_PER_MINUTE = {
 } as const satisfies Record<ApiScope | 'auth', number>;
 
 /**
+ * The calls a minute an administrator may allow: at least one, a route being closed rather than set to 0, and well under
+ * the 32-bit integers the limits are stored in
+ */
+export const LIMIT_PER_MINUTE = { min: 1, max: 10_000 } as const;
+
+/**
  * How many calls of an IP may be refused (401, 403) in a minute, all routes together, before it is turned away
  * unchecked. Not for an IP a client is allowed: a partner gets 401s in normal times, when its token expires or a
  * rotation ends, and its tokens, 32 random bytes, cannot be guessed
@@ -45,6 +51,24 @@ export class ApiClientNotRotatable extends Error {
     super(`The secret cannot be replaced: ${NOT_ROTATABLE[reason]}`);
   }
 }
+
+const NOT_UPDATABLE = {
+  limit: `a limit is a whole number of calls a minute between ${LIMIT_PER_MINUTE.min} and ${LIMIT_PER_MINUTE.max}: to refuse a route, close it`,
+  revoked: 'the API client is revoked',
+} as const;
+
+export class ApiClientNotUpdatable extends Error {
+  constructor(readonly reason: keyof typeof NOT_UPDATABLE) {
+    super(`The API client cannot be updated: ${NOT_UPDATABLE[reason]}`);
+  }
+}
+
+/** What an administrator sets on a client after its creation */
+export type ApiClientConfiguration = {
+  allowedIps: readonly string[];
+  authLimitPerMinute: number;
+  scopes: readonly { limitPerMinute: number; scope: ApiScope }[];
+};
 
 export type IssuedAccessToken = {
   expiresAt: Date;
@@ -103,7 +127,7 @@ export class ApiClient {
     return { hash: ApiClient.hash(secret), secret };
   }
 
-  /** The IPs of a new client, named when one is no address: an IP given twice would break the primary key */
+  /** The IPs of a client, named when one is no address: an IP given twice would break the primary key */
   static allowedIps(ips: readonly string[]): string[] {
     const invalid = ips.find((ip) => canonicalIp(ip) === undefined);
     if (invalid !== undefined) throw new InvalidAllowedIp(invalid);
@@ -158,6 +182,31 @@ export class ApiClient {
 
   canRevoke(): boolean {
     return !this.props.revokedAt;
+  }
+
+  /** A revoked client no longer serves anybody */
+  canUpdate(): boolean {
+    return !this.props.revokedAt;
+  }
+
+  /**
+   * Replaces the IPs, the routes and the limits, applied from the next call. Without any IP left, the client is refused
+   * from everywhere: the administration asks for a confirmation, the domain lets it happen
+   *
+   * @returns the configuration to save, an IP or a route given twice once only
+   */
+  update(configuration: ApiClientConfiguration): ApiClientConfiguration {
+    if (!this.canUpdate()) throw new ApiClientNotUpdatable('revoked');
+    const limits = [configuration.authLimitPerMinute, ...configuration.scopes.map((s) => s.limitPerMinute)];
+    const { max, min } = LIMIT_PER_MINUTE;
+    if (!limits.every((limit) => Number.isInteger(limit) && limit >= min && limit <= max))
+      throw new ApiClientNotUpdatable('limit');
+
+    return {
+      allowedIps: ApiClient.allowedIps(configuration.allowedIps),
+      authLimitPerMinute: configuration.authLimitPerMinute,
+      scopes: [...new Map(configuration.scopes.map((granted) => [granted.scope, granted])).values()],
+    };
   }
 
   /**

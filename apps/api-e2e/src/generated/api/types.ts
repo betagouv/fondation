@@ -86,6 +86,7 @@ export type ListedApiClientsDto = {
         allowedIps: Array<{
             ip: string;
         }>;
+        authLimitPerMinute: number;
         scopes: Array<{
             limitPerMinute: number;
             scope: {
@@ -109,14 +110,26 @@ export type ListedApiClientsDto = {
         canEndSecretRotation: boolean;
         canRevoke: boolean;
         canRotateSecret: boolean;
+        canUpdate: boolean;
     }>;
     /**
-     * The routes a new client may be given
+     * The routes a client may be given
      */
     scopes: Array<{
         id: 'magistrats:identification' | 'magistrats:status';
         label: string;
+        /**
+         * The limit a client gets when the route is opened to it
+         */
+        defaultLimitPerMinute: number;
     }>;
+    /**
+     * The bounds of a limit, for the authentication as for a route
+     */
+    limitPerMinute: {
+        min: number;
+        max: number;
+    };
     /**
      * How many days the replaced secret may stay valid after a rotation
      */
@@ -145,6 +158,20 @@ export type CreatedApiClientDto = {
      * Shown this once: Fondation keeps its hash only
      */
     secret: string;
+};
+
+export type UpdateApiClientDto = {
+    /**
+     * Without any, the client is refused from everywhere
+     */
+    allowedIps: Array<{
+        ip: string;
+    }>;
+    authLimitPerMinute: number;
+    scopes: Array<{
+        id: 'magistrats:identification' | 'magistrats:status';
+        limitPerMinute: number;
+    }>;
 };
 
 export type RotateApiClientSecretDto = {
@@ -3428,6 +3455,21 @@ export type CreateApiClientResponses = {
 };
 
 export type CreateApiClientResponse = CreateApiClientResponses[keyof CreateApiClientResponses];
+
+export type UpdateApiClientData = {
+    body: UpdateApiClientDto;
+    path: {
+        clientId: string;
+    };
+    query?: never;
+    url: '/api/administration/v1/api-clients/{clientId}';
+};
+
+export type UpdateApiClientResponses = {
+    204: void;
+};
+
+export type UpdateApiClientResponse = UpdateApiClientResponses[keyof UpdateApiClientResponses];
 
 export type EndApiClientSecretRotationData = {
     body?: never;

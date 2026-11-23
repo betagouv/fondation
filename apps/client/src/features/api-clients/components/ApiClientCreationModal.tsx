@@ -4,6 +4,7 @@ import Input from '@codegouvfr/react-dsfr/Input';
 import { useId, useState, type FormEvent } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
+import { allowedIpsOf } from '../utils/allowed-ips.utils';
 import { Modal } from '@/shared/ui/modal';
 import { RequiredLabel } from '@/shared/ui/required-label';
 import { ValidationError } from '@/utils/validation-error';
@@ -26,10 +27,7 @@ export function ApiClientCreationModal(props: {
   const [ips, setIps] = useState('');
   const [scopeIds, setScopeIds] = useState<ListedApiClientsDto['scopes'][number]['id'][]>([]);
   const creation = useCreateApiClientMutation();
-  const allowedIps = ips
-    .split('\n')
-    .map((ip) => ip.trim())
-    .filter(Boolean);
+  const allowedIps = allowedIpsOf(ips);
   const close = () => {
     if (!creation.isPending) props.onClose();
   };
@@ -37,7 +35,7 @@ export function ApiClientCreationModal(props: {
   const submit = (event: FormEvent) => {
     event.preventDefault();
     creation.mutate({
-      allowedIps: allowedIps.map((ip) => ({ ip })),
+      allowedIps,
       name,
       scopes: scopeIds.map((id) => ({ id })),
     });

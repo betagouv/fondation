@@ -11,8 +11,10 @@ import { catchError, Observable, throwError } from 'rxjs';
 
 import {
   ApiClientNotRotatable,
+  ApiClientNotUpdatable,
   CantManageApiClients,
   InvalidAllowedIp,
+  LIMIT_PER_MINUTE,
   ROTATION_DAYS,
 } from '../domain/api-client';
 
@@ -21,6 +23,11 @@ const NOT_ROTATABLE_MESSAGES = {
   revoked: 'Ce client API est révoqué',
   rotating: "Une rotation est en cours : clore la rotation avant d'en lancer une autre",
 } as const satisfies Record<ApiClientNotRotatable['reason'], string>;
+
+const NOT_UPDATABLE_MESSAGES = {
+  limit: `Une limite est un nombre entier d'appels par minute, entre ${LIMIT_PER_MINUTE.min} et ${LIMIT_PER_MINUTE.max}`,
+  revoked: 'Ce client API est révoqué',
+} as const satisfies Record<ApiClientNotUpdatable['reason'], string>;
 
 @Injectable()
 export class ApiClientsErrorMapper implements NestInterceptor {
@@ -40,6 +47,14 @@ export class ApiClientsErrorMapper implements NestInterceptor {
             const validationError = NOT_ROTATABLE_MESSAGES[error.reason];
 
             return error.reason === 'days'
+              ? new BadRequestException({ validationError })
+              : new ConflictException({ validationError });
+          }
+
+          if (error instanceof ApiClientNotUpdatable) {
+            const validationError = NOT_UPDATABLE_MESSAGES[error.reason];
+
+            return error.reason === 'limit'
               ? new BadRequestException({ validationError })
               : new ConflictException({ validationError });
           }

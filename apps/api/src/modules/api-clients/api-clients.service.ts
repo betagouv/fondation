@@ -6,8 +6,10 @@ import { Clock } from '../framework/clock';
 
 import {
   ApiClient,
+  ApiClientConfiguration,
   ApiClientForbidden,
   ApiClientNotRotatable,
+  ApiClientNotUpdatable,
   ApiClientUnauthenticated,
   ApiScope,
   CantManageApiClients,
@@ -156,6 +158,20 @@ export class ApiClientsService {
     if (!client.canEndSecretRotation(this.clock.now())) return;
 
     await this.repository.endSecretRotation(client.id);
+  }
+
+  /** Read on each call (see ApiClient.authorize): the next call of the partner meets the new configuration */
+  @Transactional()
+  async update(command: {
+    actorId: string;
+    clientId: string;
+    configuration: ApiClientConfiguration;
+  }): Promise<void> {
+    const client = await this.findManagedClient(command);
+
+    const configuration = client.update(command.configuration);
+    const saved = await this.repository.saveConfiguration({ clientId: client.id, configuration });
+    if (!saved) throw new ApiClientNotUpdatable('revoked');
   }
 
   /** Its tokens stop working at once (see ApiClient.authorize). Nothing happens once revoked: it keeps its date */

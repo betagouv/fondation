@@ -6,7 +6,7 @@ import { Prisma } from '../../../generated/prisma/client';
 import { countApiCallRawQuery } from '../../../generated/prisma/sql';
 import { User } from '../../administration/domain/user';
 import { Db } from '../../framework/database';
-import { ApiClient, ApiScope, IssuedAccessToken } from '../domain/api-client';
+import { ApiClient, ApiClientConfiguration, ApiScope, IssuedAccessToken } from '../domain/api-client';
 
 export const CLIENT_SELECT = {
   allowedIps: { select: { ip: true } },
@@ -124,6 +124,35 @@ export class ApiClientRepository {
       where: { id: command.clientId, revokedAt: null },
       data: { revokedAt: command.now },
     });
+  }
+
+  /**
+   * The client row is written first: a revocation at the same time waits, or is waited for and found here
+   *
+   * @returns whether the configuration was saved: not when the client was revoked in the meantime
+   */
+  @Transactional(Propagation.Mandatory)
+  async saveConfiguration(command: {
+    clientId: string;
+    configuration: ApiClientConfiguration;
+  }): Promise<boolean> {
+    const { clientId, configuration } = command;
+    const { count } = await this.db.tx.apiClient.updateMany({
+      where: { id: clientId, revokedAt: null },
+      data: { authLimitPerMinute: configuration.authLimitPerMinute },
+    });
+    if (count === 0) return false;
+
+    await this.db.tx.apiClientAllowedIp.deleteMany({ where: { clientId } });
+    await this.db.tx.apiClientAllowedIp.createMany({
+      data: configuration.allowedIps.map((ip) => ({ clientId, ip })),
+    });
+    await this.db.tx.apiClientScope.deleteMany({ where: { clientId } });
+    await this.db.tx.apiClientScope.createMany({
+      data: configuration.scopes.map(({ limitPerMinute, scope }) => ({ clientId, limitPerMinute, scope })),
+    });
+
+    return true;
   }
 
   /** @param countedSince the minute the calls are counted under: the ones before it no longer limit anybody */
