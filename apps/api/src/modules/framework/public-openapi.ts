@@ -10,8 +10,8 @@ type Schemas = NonNullable<NonNullable<OpenAPIObject['components']>['schemas']>;
  * The document handed to the API clients: the routes under `/api/public/v1` they can call, and the schemas these
  * routes reference, nothing else
  *
- * @remarks a route reserved to another role (the fixed machine tokens) stays out, and so does `x-roles`, which only
- * serves Fondation's own checks. The schemas lose the `_Output` suffix of nestjs-zod: the API clients generate their
+ * @remarks a route reserved to another role stays out (none is today, the filter guards the routes to come), and so
+ * does `x-roles`, which only serves Fondation's own checks. The schemas lose the `_Output` suffix of nestjs-zod: the API clients generate their
  * types from these names, which can no longer change once the document is handed over
  */
 export function publicOpenApiDocument(document: OpenAPIObject): OpenAPIObject {

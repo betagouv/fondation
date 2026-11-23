@@ -1335,25 +1335,6 @@ export type FoundMagistratStatusDto = {
     status: 'ACTIVE' | 'INACTIVE';
 };
 
-export type SearchMagistratAuthorizationDto = {
-    email: string;
-};
-
-export type FoundMagistratAuthorizationDto = {
-    /**
-     * - `MAGISTRAT` means that the email exists and refers to an active _Magistrat_
-     * - `UNKNOWN` we did not find any active _Magistrat_ with that email
-     */
-    role: 'MAGISTRAT' | 'UNKNOWN';
-};
-
-export type SearchMagistratAuthorizationUnauthorizedDto = {
-    message: string;
-    path: string;
-    statusCode: 401;
-    timestamp: string;
-};
-
 export type IngestedLolfiArchiveDto = {
     id: number;
     status: 'STARTED' | 'FAILED';
@@ -4889,26 +4870,6 @@ export type FindMagistratStatusResponses = {
 };
 
 export type FindMagistratStatusResponse = FindMagistratStatusResponses[keyof FindMagistratStatusResponses];
-
-export type SearchMagistratAuthorizationData = {
-    body: SearchMagistratAuthorizationDto;
-    path?: never;
-    query?: never;
-    url: '/api/public/v1/magistrats/role';
-};
-
-export type SearchMagistratAuthorizationErrors = {
-    400: InvalidMagistratEmailDto;
-    401: SearchMagistratAuthorizationUnauthorizedDto;
-};
-
-export type SearchMagistratAuthorizationError = SearchMagistratAuthorizationErrors[keyof SearchMagistratAuthorizationErrors];
-
-export type SearchMagistratAuthorizationResponses = {
-    200: FoundMagistratAuthorizationDto;
-};
-
-export type SearchMagistratAuthorizationResponse = SearchMagistratAuthorizationResponses[keyof SearchMagistratAuthorizationResponses];
 
 export type IngestLolfiArchiveData = {
     body: {
