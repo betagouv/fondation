@@ -63,6 +63,16 @@ export class ApiClientNotUpdatable extends Error {
   }
 }
 
+/** The actions kept in the history of a client, with their author and date but never their values */
+export const API_CLIENT_CHANGES = [
+  'CREATED',
+  'UPDATED',
+  'SECRET_ROTATION_STARTED',
+  'SECRET_ROTATION_ENDED',
+  'REVOKED',
+] as const;
+export type ApiClientChange = (typeof API_CLIENT_CHANGES)[number];
+
 /** Where a client may call from, what for and how often */
 export type ApiClientConfiguration = {
   allowedIps: readonly string[];

@@ -172,6 +172,44 @@ test.describe('api clients', () => {
       token: response?.status,
     }).toEqual({ renewed: 200, replaced: 401, token: 401 });
   });
+
+  test('should keep who created, rotated then revoked a client, and until when the replaced secret works', async ({
+    expect,
+    teamMember,
+  }) => {
+    const { data: created } = await teamMember.apiClients.createApiClient({
+      body: {
+        allowedIps: LOOPBACK_IPS.map((ip) => ({ ip })),
+        name: 'Site du CSM',
+        scopes: [{ id: 'magistrats:identification' }],
+      },
+      throwOnError: true,
+    });
+    const { data: rotated } = await teamMember.apiClients.rotateApiClientSecret({
+      body: {},
+      path: { clientId: created.id },
+      throwOnError: true,
+    });
+    await teamMember.apiClients.revokeApiClient({ path: { clientId: created.id }, throwOnError: true });
+
+    const { data } = await teamMember.apiClients.listApiClientChanges({
+      path: { clientId: created.id },
+      throwOnError: true,
+    });
+
+    const author = teamMember['@user']!.id;
+    expect(
+      data.items.map(({ change, changedBy, previousSecretValidUntil }) => ({
+        author: changedBy.id,
+        change: change.id,
+        previousSecretValidUntil,
+      })),
+    ).toEqual([
+      { author, change: 'REVOKED', previousSecretValidUntil: null },
+      { author, change: 'SECRET_ROTATION_STARTED', previousSecretValidUntil: rotated.previousSecretValidUntil },
+      { author, change: 'CREATED', previousSecretValidUntil: null },
+    ]);
+  });
 });
 
 /** @returns the new secret, shown once in the response */

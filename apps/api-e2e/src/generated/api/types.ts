@@ -160,6 +160,24 @@ export type CreatedApiClientDto = {
     secret: string;
 };
 
+export type ListedApiClientChangesDto = {
+    items: Array<{
+        change: {
+            id: 'CREATED' | 'UPDATED' | 'SECRET_ROTATION_STARTED' | 'SECRET_ROTATION_ENDED' | 'REVOKED';
+            label: string;
+        };
+        changedAt: string;
+        changedBy: {
+            id: string;
+            name: string;
+        };
+        /**
+         * Only when a rotation starts: when the replaced secret stops working if nobody ends the rotation
+         */
+        previousSecretValidUntil: string | null;
+    }>;
+};
+
 export type UpdateApiClientDto = {
     /**
      * Without any, the client is refused from everywhere
@@ -3455,6 +3473,21 @@ export type CreateApiClientResponses = {
 };
 
 export type CreateApiClientResponse = CreateApiClientResponses[keyof CreateApiClientResponses];
+
+export type ListApiClientChangesData = {
+    body?: never;
+    path: {
+        clientId: string;
+    };
+    query?: never;
+    url: '/api/administration/v1/api-clients/{clientId}/changes';
+};
+
+export type ListApiClientChangesResponses = {
+    200: ListedApiClientChangesDto;
+};
+
+export type ListApiClientChangesResponse = ListApiClientChangesResponses[keyof ListApiClientChangesResponses];
 
 export type UpdateApiClientData = {
     body: UpdateApiClientDto;

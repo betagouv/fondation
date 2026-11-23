@@ -4,6 +4,7 @@ import { createColumnHelper, getCoreRowModel, useReactTable } from '@tanstack/re
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
+import { ApiClientChangesModal } from '@/features/api-clients/components/ApiClientChangesModal';
 import { ApiClientCreationModal } from '@/features/api-clients/components/ApiClientCreationModal';
 import { ApiClientSecretRotationModal } from '@/features/api-clients/components/ApiClientSecretRotationModal';
 import { ApiClientUpdateModal } from '@/features/api-clients/components/ApiClientUpdateModal';
@@ -71,7 +72,7 @@ function keepFocusOnActionsOf(clientId: string) {
   (actions?.querySelector('button') ?? actions)?.focus();
 }
 
-type ApiClientModal = 'rotation' | 'update';
+type ApiClientModal = 'changes' | 'rotation' | 'update';
 
 type OpenModal = (modal: ApiClientModal, client: ListedApiClient) => void;
 
@@ -93,11 +94,6 @@ function ApiClientActions(props: { client: ListedApiClient; onOpen: OpenModal })
 
   return (
     <div className="flex flex-wrap gap-2" id={actionsIdOf(client.id)} tabIndex={-1}>
-      {!client.canUpdate && !client.canRotateSecret && !client.canEndSecretRotation && !client.canRevoke && (
-        <span className="fr-sr-only">
-          <FormattedMessage defaultMessage="Aucune action possible" />
-        </span>
-      )}
       {client.canUpdate && (
         <Button onClick={() => props.onOpen('update', client)} priority="tertiary" size="small">
           <FormattedMessage defaultMessage="Modifier" />
@@ -169,6 +165,9 @@ function ApiClientActions(props: { client: ListedApiClient; onOpen: OpenModal })
           <FormattedMessage defaultMessage="Révoquer" />
         </Button>
       )}
+      <Button onClick={() => props.onOpen('changes', client)} priority="tertiary no outline" size="small">
+        <FormattedMessage defaultMessage="Historique" />
+      </Button>
     </div>
   );
 }
@@ -317,6 +316,7 @@ export function AdminApiClientsPage() {
             limitPerMinute={data.limitPerMinute}
             scopes={data.scopes}
           />
+          <ApiClientChangesModal {...modalProps('changes')} />
           <ApiClientSecretRotationModal
             {...modalProps('rotation')}
             secretRotationDays={data.secretRotationDays}

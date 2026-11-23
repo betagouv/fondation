@@ -6,7 +6,13 @@ import { Prisma } from '../../../generated/prisma/client';
 import { countApiCallRawQuery } from '../../../generated/prisma/sql';
 import { User } from '../../administration/domain/user';
 import { Db } from '../../framework/database';
-import { ApiClient, ApiClientConfiguration, ApiScope, IssuedAccessToken } from '../domain/api-client';
+import {
+  ApiClient,
+  ApiClientChange,
+  ApiClientConfiguration,
+  ApiScope,
+  IssuedAccessToken,
+} from '../domain/api-client';
 
 export const CLIENT_SELECT = {
   allowedIps: { select: { ip: true } },
@@ -18,6 +24,9 @@ export const CLIENT_SELECT = {
   scopes: { select: { limitPerMinute: true, scope: true } },
   secretHash: true,
 } satisfies Prisma.ApiClientSelect;
+
+/** Who changes which client and when, kept in its history by each write (see recordChange) */
+type Change = { actorId: string; clientId: string; now: Date };
 
 @Injectable()
 export class ApiClientRepository {
@@ -118,12 +127,14 @@ export class ApiClientRepository {
     return !!user && User.canManageApiClients(user);
   }
 
-  /** Keeps the date of a revocation made at the same time: the first one wins */
-  async revoke(command: { clientId: string; now: Date }): Promise<void> {
-    await this.db.tx.apiClient.updateMany({
+  /** Keeps the date of a revocation made at the same time: the first one wins, and is the only one in the history */
+  @Transactional(Propagation.Mandatory)
+  async revoke(command: Change): Promise<void> {
+    const { count } = await this.db.tx.apiClient.updateMany({
       where: { id: command.clientId, revokedAt: null },
       data: { revokedAt: command.now },
     });
+    if (count === 1) await this.recordChange('REVOKED', command);
   }
 
   /**
@@ -132,10 +143,7 @@ export class ApiClientRepository {
    * @returns whether the configuration was saved: not when the client was revoked in the meantime
    */
   @Transactional(Propagation.Mandatory)
-  async saveConfiguration(command: {
-    clientId: string;
-    configuration: ApiClientConfiguration;
-  }): Promise<boolean> {
+  async saveConfiguration(command: Change & { configuration: ApiClientConfiguration }): Promise<boolean> {
     const { clientId, configuration } = command;
     const { count } = await this.db.tx.apiClient.updateMany({
       where: { id: clientId, revokedAt: null },
@@ -151,6 +159,7 @@ export class ApiClientRepository {
     await this.db.tx.apiClientScope.createMany({
       data: configuration.scopes.map(({ limitPerMinute, scope }) => ({ clientId, limitPerMinute, scope })),
     });
+    await this.recordChange('UPDATED', command);
 
     return true;
   }
@@ -162,32 +171,34 @@ export class ApiClientRepository {
     await this.db.tx.apiRateCounter.deleteMany({ where: { minute: { lt: command.countedSince } } });
   }
 
-  async create(client: {
-    allowedIps: readonly string[];
-    authLimitPerMinute: number;
-    id: string;
-    name: string;
-    scopes: readonly { limitPerMinute: number; scope: ApiScope }[];
-    secretHash: string;
-  }): Promise<void> {
+  @Transactional(Propagation.Mandatory)
+  async create(
+    command: Change & {
+      allowedIps: readonly string[];
+      authLimitPerMinute: number;
+      name: string;
+      scopes: readonly { limitPerMinute: number; scope: ApiScope }[];
+      secretHash: string;
+    },
+  ): Promise<void> {
     await this.db.tx.apiClient.create({
       data: {
-        allowedIps: { create: client.allowedIps.map((ip) => ({ ip })) },
-        authLimitPerMinute: client.authLimitPerMinute,
-        id: client.id,
-        name: client.name,
-        scopes: { create: client.scopes.map(({ limitPerMinute, scope }) => ({ limitPerMinute, scope })) },
-        secretHash: client.secretHash,
+        allowedIps: { create: command.allowedIps.map((ip) => ({ ip })) },
+        authLimitPerMinute: command.authLimitPerMinute,
+        id: command.clientId,
+        name: command.name,
+        scopes: { create: command.scopes.map(({ limitPerMinute, scope }) => ({ limitPerMinute, scope })) },
+        secretHash: command.secretHash,
       },
     });
+    await this.recordChange('CREATED', command);
   }
 
   /** @returns whether the secret was replaced: not when another rotation replaced it in the meantime */
-  async saveRotatedSecret(command: {
-    clientId: string;
-    previousSecret: { expiresAt: Date; hash: string };
-    secretHash: string;
-  }): Promise<boolean> {
+  @Transactional(Propagation.Mandatory)
+  async saveRotatedSecret(
+    command: Change & { previousSecret: { expiresAt: Date; hash: string }; secretHash: string },
+  ): Promise<boolean> {
     const { count } = await this.db.tx.apiClient.updateMany({
       where: { id: command.clientId, secretHash: command.previousSecret.hash },
       data: {
@@ -196,18 +207,47 @@ export class ApiClientRepository {
         secretHash: command.secretHash,
       },
     });
+    if (count === 0) return false;
 
-    return count === 1;
+    await this.recordChange('SECRET_ROTATION_STARTED', command, {
+      previousSecretValidUntil: command.previousSecret.expiresAt,
+    });
+
+    return true;
   }
 
-  /** The tokens do not tell which secret they were given for: all those of the client go with the replaced secret */
+  /**
+   * The tokens do not tell which secret they were given for: all those of the client go with the replaced secret.
+   * Nothing happens when another call ended the rotation in the meantime
+   */
   @Transactional(Propagation.Mandatory)
-  async endSecretRotation(clientId: string): Promise<void> {
-    await this.db.tx.apiClient.update({
-      where: { id: clientId },
+  async endSecretRotation(command: Change): Promise<void> {
+    const { clientId } = command;
+    const { count } = await this.db.tx.apiClient.updateMany({
+      where: { id: clientId, previousSecretHash: { not: null } },
       data: { previousSecretExpiresAt: null, previousSecretHash: null },
     });
+    if (count === 0) return;
+
     await this.db.tx.apiAccessToken.deleteMany({ where: { clientId } });
+    await this.recordChange('SECRET_ROTATION_ENDED', command);
+  }
+
+  /** In the transaction of the action and with its date: an action undone by a failure leaves no line */
+  private recordChange(
+    change: ApiClientChange,
+    command: Change,
+    details?: { previousSecretValidUntil: Date },
+  ) {
+    return this.db.tx.apiClientChange.create({
+      data: {
+        change,
+        changedAt: command.now,
+        changedBy: command.actorId,
+        clientId: command.clientId,
+        ...details,
+      },
+    });
   }
 
   static toDomain(client: Prisma.ApiClientGetPayload<{ select: typeof CLIENT_SELECT }>): ApiClient {

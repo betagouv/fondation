@@ -125,7 +125,7 @@ L'accueil propose les deux pouvoirs de proposition et le logo y ramène. Le menu
 | `/admin/aide`                 | Édition des pages d'aide                                                                                                             | —      | —                   | ✓                  |
 | `/admin/utilisateurs`         | Liste des utilisateurs                                                                                                               | —      | —                   | ✓                  |
 | `/admin/utilisateurs/:userId` | Fiche d'un utilisateur : nom, prénom, e-mail, mot de passe, rôle, titre, droit d'administrateur, désactivation, connexion à sa place | —      | —                   | ✓                  |
-| `/admin/clients-api`          | Clients API : création, modification, rotation du secret, révocation                                                                 | —      | —                   | ✓ compte technique |
+| `/admin/clients-api`          | Clients API : création, modification, rotation du secret, révocation, historique                                                     | —      | —                   | ✓ compte technique |
 
 ## Actions de l'API
 
@@ -445,6 +445,7 @@ Dans les dossiers d'un magistrat, un Membre ne voit que l'affectation et les aud
 | Lister les traitements            | `GET /jobs/v1`                                                    | —      | —                   | ✓                  |
 | Voir un traitement                | `GET /jobs/v1/:jobId`                                             | —      | —                   | ✓                  |
 | Lister les clients API            | `GET /administration/v1/api-clients`                              | —      | —                   | ✓ compte technique |
+| Lire l'historique d'un client API | `GET /administration/v1/api-clients/:clientId/changes`            | —      | —                   | ✓ compte technique |
 | Créer un client API               | `POST /administration/v1/api-clients`                             | —      | —                   | ✓ compte technique |
 | Modifier un client API            | `PUT /administration/v1/api-clients/:clientId`                    | —      | —                   | ✓ compte technique |
 | Lancer la rotation d'un secret    | `POST /administration/v1/api-clients/:clientId/secret-rotation`   | —      | —                   | ✓ compte technique |

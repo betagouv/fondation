@@ -19,9 +19,39 @@ model ApiClient {
 
   accessTokens ApiAccessToken[]
   allowedIps   ApiClientAllowedIp[]
+  changes      ApiClientChange[]
   scopes       ApiClientScope[]
 
   @@map("api_clients")
+  @@schema("identity_and_access_context")
+}
+
+/// Who did what on a client and when, without the values: no secret, hash nor IP lands here
+model ApiClientChange {
+  change                   PrismaApiClientChangeEnum
+  changedAt                DateTime                  @map("changed_at") @db.Timestamp(6)
+  /// Accounts are deactivated, never deleted: every line keeps its author
+  changedBy                String                    @map("changed_by") @db.Uuid
+  clientId                 String                    @map("client_id") @db.Uuid
+  /// Only for SECRET_ROTATION_STARTED: a rotation nobody ends stops on its own at this date, without a line of its own
+  previousSecretValidUntil DateTime?                 @map("previous_secret_valid_until") @db.Timestamp(6)
+
+  author User      @relation("api_client_change_author", fields: [changedBy], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  client ApiClient @relation(fields: [clientId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([clientId, changedAt], name: "primaryKey")
+  @@map("api_client_changes")
+  @@schema("identity_and_access_context")
+}
+
+enum PrismaApiClientChangeEnum {
+  CREATED
+  UPDATED
+  SECRET_ROTATION_STARTED
+  SECRET_ROTATION_ENDED
+  REVOKED
+
+  @@map("api_client_change_enum")
   @@schema("identity_and_access_context")
 }
 

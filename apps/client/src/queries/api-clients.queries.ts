@@ -5,6 +5,8 @@ import * as $api from '@api/sdk';
 import type { CreateApiClientDto, UpdateApiClientDto } from '@api/types';
 
 const apiClientKeys = {
+  all: () => ['apiClients'] as const,
+  listApiClientChanges: (clientId: string) => ['apiClients', 'listApiClientChanges', clientId] as const,
   listApiClients: () => ['apiClients', 'listApiClients'] as const,
 };
 
@@ -14,12 +16,22 @@ export const useApiClientsQuery = () =>
     queryKey: apiClientKeys.listApiClients(),
   });
 
+export const useApiClientChangesQuery = (clientId: string) =>
+  useQuery({
+    queryFn: () =>
+      $api.apiClients
+        .listApiClientChanges({ path: { clientId }, throwOnError: true })
+        .then(({ data }) => data),
+    queryKey: apiClientKeys.listApiClientChanges(clientId),
+  });
+
+/** Each action changes the list and adds a line to the history of its client */
 function useInvalidatingMutation<TVariables, TData>(mutationFn: (variables: TVariables) => Promise<TData>) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn,
-    onSettled: () => queryClient.invalidateQueries({ queryKey: apiClientKeys.listApiClients() }),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: apiClientKeys.all() }),
   });
 }
 

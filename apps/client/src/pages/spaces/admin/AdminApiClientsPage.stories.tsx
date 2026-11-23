@@ -3,7 +3,12 @@ import { http, HttpResponse } from 'msw';
 
 import { PageStory } from '@/shared/storybook/PageStory';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import type { CreatedApiClientDto, ListedApiClientsDto, RotatedApiClientSecretDto } from '@api/types';
+import type {
+  CreatedApiClientDto,
+  ListedApiClientChangesDto,
+  ListedApiClientsDto,
+  RotatedApiClientSecretDto,
+} from '@api/types';
 
 import { AdminApiClientsPage } from './AdminApiClientsPage';
 
@@ -61,6 +66,27 @@ const CLIENTS: ListedApiClientsDto['items'] = [
   },
 ];
 
+const CHANGES: ListedApiClientChangesDto['items'] = [
+  {
+    change: { id: 'SECRET_ROTATION_STARTED', label: 'Rotation du secret lancée' },
+    changedAt: '2026-11-23T09:15:00.000Z',
+    changedBy: { id: 'b6f0c2a4-1d3e-4f5a-9b7c-8d2e1f0a3c55', name: 'Alice ADMIN' },
+    previousSecretValidUntil: '2026-11-30T09:15:00.000Z',
+  },
+  {
+    change: { id: 'UPDATED', label: 'Modification des IP, des routes ou des limites' },
+    changedAt: '2026-11-23T08:30:00.000Z',
+    previousSecretValidUntil: null,
+    changedBy: { id: 'b6f0c2a4-1d3e-4f5a-9b7c-8d2e1f0a3c55', name: 'Alice ADMIN' },
+  },
+  {
+    change: { id: 'CREATED', label: 'Création' },
+    changedAt: '2026-11-18T10:00:00.000Z',
+    changedBy: { id: 'c1a2b3d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d', name: 'Simon SECRETARIAT' },
+    previousSecretValidUntil: null,
+  },
+];
+
 function AdminApiClientsPageStory(props: { empty: boolean }) {
   return (
     // a fresh page asks the list again when the control changes
@@ -102,6 +128,9 @@ const meta = {
           },
           { status: 201 },
         ),
+      ),
+      http.get('*/api/administration/v1/api-clients/:clientId/changes', () =>
+        HttpResponse.json<ListedApiClientChangesDto>({ items: CHANGES }),
       ),
       http.put(
         '*/api/administration/v1/api-clients/:clientId',

@@ -48,6 +48,7 @@ model User {
 
   adminRightChanges                            AdminRightChange[]                     @relation("admin_right_change_user")
   agendasAuthor                                Agenda[]                               @relation("agenda_author")
+  apiClientChanges                             ApiClientChange[]                      @relation("api_client_change_author")
   archiverOfSessions                           Session[]                              @relation("session_archive_author")
   authImpersonations                           AuthImpersonation[]
   authorOfAdminRightChanges                    AdminRightChange[]                     @relation("admin_right_change_author")
