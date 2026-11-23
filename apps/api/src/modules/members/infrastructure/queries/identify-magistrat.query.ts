@@ -11,7 +11,6 @@ export class IdentifyMagistratQuery {
 
   async handle(query: { email: string }): Promise<IdentifiedMagistratDto> {
     // Two rows tell an address held by several magistrats, which identifies none of them
-    // TODO: see SearchMagistratAuthorizationQuery, which answers the route this one replaces
     const [magistrat, homonym] = await this.db.tx.$queryRawTyped(
       findActiveMagistratIdsByEmailRawQuery(query.email),
     );

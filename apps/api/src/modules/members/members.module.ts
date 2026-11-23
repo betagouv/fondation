@@ -15,7 +15,6 @@ import { InternalFindMembersQuery } from './infrastructure/queries/internal-find
 import { InternalGetMemberQuery } from './infrastructure/queries/internal-get-member.query';
 import { ListMembersQuery } from './infrastructure/queries/list-members.query';
 import { SearchJurisdictionsQuery } from './infrastructure/queries/search-jurisdictions.query';
-import { SearchMagistratAuthorizationQuery } from './infrastructure/queries/search-magistrat-authorization.query';
 import { JurisdictionsController } from './jurisdictions.controller';
 import { MagistratPublicController } from './magistrat.public.controller';
 import { MembersController } from './members.controller';
@@ -38,7 +37,6 @@ import { MembersController } from './members.controller';
     MemberRepository,
     MembersService,
     SearchJurisdictionsQuery,
-    SearchMagistratAuthorizationQuery,
   ],
 })
 export class MembersModule {}
