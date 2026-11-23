@@ -20,6 +20,7 @@ import {
   REFUSALS_LIMIT_PER_MINUTE,
 } from './domain/api-client';
 import { RateWindow } from './domain/rate-window';
+import { ApiClientAlerts } from './infrastructure/api-client-alerts';
 import { ApiClientRepository } from './infrastructure/api-client.repository';
 import {
   ListApiClientChangesQuery,
@@ -30,6 +31,7 @@ import { ListApiClientsQuery, ListedApiClientsDto } from './infrastructure/queri
 @Injectable()
 export class ApiClientsService {
   constructor(
+    private readonly alerts: ApiClientAlerts,
     private readonly clock: Clock,
     private readonly listApiClientChanges: ListApiClientChangesQuery,
     private readonly listApiClients: ListApiClientsQuery,
@@ -48,12 +50,10 @@ export class ApiClientsService {
       const client = await this.repository.findById(command.clientId);
       if (!client) throw new ApiClientUnauthenticated();
 
-      const token = client.authenticate({ ip: command.ip, now: window.now, secret: command.clientSecret });
-      await this.countCall(window, {
-        caller: `client:${client.id}`,
-        limit: client.authLimitPerMinute,
-        route: 'auth',
-      });
+      const token = this.alertingForbidden({ clientId: client.id, route: 'auth' }, () =>
+        client.authenticate({ ip: command.ip, now: window.now, secret: command.clientSecret }),
+      );
+      await this.countCall(window, { clientId: client.id, limit: client.authLimitPerMinute, route: 'auth' });
       const saved = await this.repository.saveToken({ clientId: client.id, token });
       if (!saved) throw new ApiClientUnauthenticated();
 
@@ -68,18 +68,21 @@ export class ApiClientsService {
       const found = command.token ? await this.repository.findByToken(command.token) : null;
       if (!found) throw new ApiClientUnauthenticated();
 
-      const { limitPerMinute } = found.client.authorize({
-        ip: command.ip,
-        now: window.now,
-        scope: command.scope,
-        tokenExpiresAt: found.tokenExpiresAt,
-      });
-      await this.countCall(window, {
-        caller: `client:${found.client.id}`,
-        limit: limitPerMinute,
-        route: command.scope,
-      });
+      const { client, tokenExpiresAt } = found;
+      const { limitPerMinute } = this.alertingForbidden({ clientId: client.id, route: command.scope }, () =>
+        client.authorize({ ip: command.ip, now: window.now, scope: command.scope, tokenExpiresAt }),
+      );
+      await this.countCall(window, { clientId: client.id, limit: limitPerMinute, route: command.scope });
     });
+  }
+
+  private alertingForbidden<T>(refusal: { clientId: string; route: string }, check: () => T): T {
+    try {
+      return check();
+    } catch (error) {
+      if (error instanceof ApiClientForbidden) this.alerts.forbidden({ ...refusal, reason: error.reason });
+      throw error;
+    }
   }
 
   /**
@@ -90,14 +93,19 @@ export class ApiClientsService {
   private async slowingRefusalsDown<T>(window: RateWindow, ip: string, check: () => Promise<T>): Promise<T> {
     if (isAllowedIp(ip, await this.repository.findAllowedIps())) return check();
 
-    const refusals = { caller: `ip:${canonicalIp(ip) ?? ip}`, minute: window.start, route: 'refused' };
+    const caller = canonicalIp(ip) ?? ip;
+    const refusals = { caller: `ip:${caller}`, minute: window.start, route: 'refused' };
     window.assertWithin(REFUSALS_LIMIT_PER_MINUTE, (await this.repository.findCount(refusals)) + 1);
 
     try {
       return await check();
     } catch (error) {
       if (error instanceof ApiClientUnauthenticated || error instanceof ApiClientForbidden) {
-        await this.repository.countCall(refusals);
+        const count = await this.repository.countCall(refusals);
+        // This refusal turns the IP away until the next minute, and the 429s that follow are not counted
+        if (count === REFUSALS_LIMIT_PER_MINUTE) {
+          this.alerts.refusalsLimited({ ip: caller, limit: REFUSALS_LIMIT_PER_MINUTE });
+        }
       }
       throw error;
     }
@@ -222,13 +230,15 @@ export class ApiClientsService {
 
   private async countCall(
     window: RateWindow,
-    call: { caller: string; limit: number; route: string },
+    call: { clientId: string; limit: number; route: string },
   ): Promise<void> {
     const count = await this.repository.countCall({
-      caller: call.caller,
+      caller: `client:${call.clientId}`,
       minute: window.start,
       route: call.route,
     });
+    // The refused calls count too: only the first one over the limit is reported
+    if (count === call.limit + 1) this.alerts.rateLimited(call);
     window.assertWithin(call.limit, count);
   }
 }

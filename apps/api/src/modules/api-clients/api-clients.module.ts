@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 
 import { ApiClientsService } from './api-clients.service';
+import { ApiClientAlerts } from './infrastructure/api-client-alerts';
 import { ApiClientAuthController } from './infrastructure/api-client-auth.controller';
 import { ApiClientPurge } from './infrastructure/api-client-purge';
 import { ApiClientRepository } from './infrastructure/api-client.repository';
@@ -12,6 +13,7 @@ import { ListApiClientsQuery } from './infrastructure/queries/list-api-clients.q
   controllers: [ApiClientAuthController, ApiClientsAdministrationController],
   exports: [ApiClientsService],
   providers: [
+    ApiClientAlerts,
     ApiClientPurge,
     ApiClientRepository,
     ApiClientsService,
