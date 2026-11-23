@@ -49,10 +49,22 @@ test.describe('api clients', () => {
       expect(await statusOf(revoked.http)).toBe(401);
     });
 
-    test('should refuse a token used from an IP the client is not allowed', async ({ apiClients, expect, sql }) => {
-      // the token was issued from an allowed IP, which is then taken away from the client
+    test('should refuse the next call of a client from an IP taken away from it in the administration', async ({
+      apiClients,
+      expect,
+      teamMember,
+    }) => {
+      // the token was issued from an allowed IP, which is then replaced by another one
       const moved = await apiClients.authenticated({ scopes: ['magistrats:identification'] });
-      await sql`delete from identity_and_access_context.api_client_allowed_ips where client_id = ${moved.id}`;
+      await teamMember.apiClients.updateApiClient({
+        body: {
+          allowedIps: [{ ip: '198.51.100.7' }],
+          authLimitPerMinute: 10,
+          scopes: [{ id: 'magistrats:identification', limitPerMinute: 20 }],
+        },
+        path: { clientId: moved.id },
+        throwOnError: true,
+      });
 
       expect(await statusOf(moved.http)).toBe(403);
     });

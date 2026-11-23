@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { withValidationError } from '@/utils/validation-error';
 import * as $api from '@api/sdk';
-import type { CreateApiClientDto } from '@api/types';
+import type { CreateApiClientDto, UpdateApiClientDto } from '@api/types';
 
 const apiClientKeys = {
   listApiClients: () => ['apiClients', 'listApiClients'] as const,
@@ -27,6 +27,17 @@ export const useCreateApiClientMutation = () =>
   useInvalidatingMutation((body: CreateApiClientDto) =>
     withValidationError(() => $api.apiClients.createApiClient({ body, throwOnError: true })).then(
       ({ data }) => data,
+    ),
+  );
+
+export const useUpdateApiClientMutation = () =>
+  useInvalidatingMutation((props: { body: UpdateApiClientDto; clientId: string }) =>
+    withValidationError(() =>
+      $api.apiClients.updateApiClient({
+        body: props.body,
+        path: { clientId: props.clientId },
+        throwOnError: true,
+      }),
     ),
   );
 

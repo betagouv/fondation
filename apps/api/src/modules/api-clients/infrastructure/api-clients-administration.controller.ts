@@ -23,6 +23,7 @@ import {
   CreatedApiClientDto,
   RotateApiClientSecretDto,
   RotatedApiClientSecretDto,
+  UpdateApiClientDto,
 } from './api-client.dto';
 import { ApiClientsErrorMapper } from './api-clients.filter';
 import { ListedApiClientsDto } from './queries/list-api-clients.query';
@@ -54,6 +55,26 @@ export class ApiClientsAdministrationController {
       allowedIps: body.allowedIps.map(({ ip }) => ip),
       name: body.name,
       scopes: body.scopes.map(({ id }) => id),
+    });
+  }
+
+  @HasRole('ADMIN')
+  @Put('/:clientId')
+  @UsePipes(ZodValidationPipe)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  updateApiClient(
+    @AuthedUser() actor: { id: string },
+    @Param('clientId', ParseUUIDPipe) clientId: string,
+    @Body() body: UpdateApiClientDto,
+  ): Promise<void> {
+    return this.apiClients.update({
+      actorId: actor.id,
+      clientId,
+      configuration: {
+        allowedIps: body.allowedIps.map(({ ip }) => ip),
+        authLimitPerMinute: body.authLimitPerMinute,
+        scopes: body.scopes.map(({ id, limitPerMinute }) => ({ limitPerMinute, scope: id })),
+      },
     });
   }
 

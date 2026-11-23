@@ -6,6 +6,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 
 import { ApiClientCreationModal } from '@/features/api-clients/components/ApiClientCreationModal';
 import { ApiClientSecretRotationModal } from '@/features/api-clients/components/ApiClientSecretRotationModal';
+import { ApiClientUpdateModal } from '@/features/api-clients/components/ApiClientUpdateModal';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { useDateAndTime } from '@/shared/hooks/useDateAndTime';
@@ -70,7 +71,11 @@ function keepFocusOnActionsOf(clientId: string) {
   (actions?.querySelector('button') ?? actions)?.focus();
 }
 
-function ApiClientActions(props: { client: ListedApiClient; onRotate: (client: ListedApiClient) => void }) {
+type ApiClientModal = 'rotation' | 'update';
+
+type OpenModal = (modal: ApiClientModal, client: ListedApiClient) => void;
+
+function ApiClientActions(props: { client: ListedApiClient; onOpen: OpenModal }) {
   const { formatMessage } = useIntl();
   const confirmation = useConfirmModal();
   const toasts = useToasts();
@@ -88,13 +93,18 @@ function ApiClientActions(props: { client: ListedApiClient; onRotate: (client: L
 
   return (
     <div className="flex flex-wrap gap-2" id={actionsIdOf(client.id)} tabIndex={-1}>
-      {!client.canRotateSecret && !client.canEndSecretRotation && !client.canRevoke && (
+      {!client.canUpdate && !client.canRotateSecret && !client.canEndSecretRotation && !client.canRevoke && (
         <span className="fr-sr-only">
           <FormattedMessage defaultMessage="Aucune action possible" />
         </span>
       )}
+      {client.canUpdate && (
+        <Button onClick={() => props.onOpen('update', client)} priority="tertiary" size="small">
+          <FormattedMessage defaultMessage="Modifier" />
+        </Button>
+      )}
       {client.canRotateSecret && (
-        <Button onClick={() => props.onRotate(client)} priority="tertiary" size="small">
+        <Button onClick={() => props.onOpen('rotation', client)} priority="tertiary" size="small">
           <FormattedMessage defaultMessage="Lancer une rotation" />
         </Button>
       )}
@@ -163,7 +173,7 @@ function ApiClientActions(props: { client: ListedApiClient; onRotate: (client: L
   );
 }
 
-function useApiClientColumns(onRotate: (client: ListedApiClient) => void) {
+function useApiClientColumns(onOpen: OpenModal) {
   const { formatMessage } = useIntl();
 
   return useMemo(
@@ -221,13 +231,13 @@ function useApiClientColumns(onRotate: (client: ListedApiClient) => void) {
         size: 180,
       }),
       h.display({
-        cell: ({ row }) => <ApiClientActions client={row.original} onRotate={onRotate} />,
+        cell: ({ row }) => <ApiClientActions client={row.original} onOpen={onOpen} />,
         header: formatMessage({ defaultMessage: 'Actions' }),
         id: 'actions',
         size: 280,
       }),
     ],
-    [formatMessage, onRotate],
+    [formatMessage, onOpen],
   );
 }
 
@@ -236,9 +246,22 @@ export function AdminApiClientsPage() {
   const breadcrumbRoot = useBreadcrumbRoot();
   const { data, isError, isFetching, isLoading, refetch } = useApiClientsQuery();
   const [isCreating, setCreating] = useState(false);
-  const [rotated, setRotated] = useState<{ client: ListedApiClient; isOpen: boolean } | null>(null);
-  const openRotation = useCallback((client: ListedApiClient) => setRotated({ client, isOpen: true }), []);
-  const columns = useApiClientColumns(openRotation);
+  const [opened, setOpened] = useState<{
+    client: ListedApiClient;
+    isOpen: boolean;
+    modal: ApiClientModal;
+  } | null>(null);
+  const open = useCallback<OpenModal>((modal, client) => setOpened({ client, isOpen: true, modal }), []);
+  const columns = useApiClientColumns(open);
+  const modalProps = (modal: ApiClientModal) => ({
+    client: opened?.modal === modal ? opened.client : null,
+    onClose: () => setOpened((current) => current && { ...current, isOpen: false }),
+    onClosed: () => {
+      if (opened) keepFocusOnActionsOf(opened.client.id);
+      setOpened(null);
+    },
+    open: opened?.modal === modal && opened.isOpen,
+  });
 
   const table = useReactTable({
     columns,
@@ -289,14 +312,13 @@ export function AdminApiClientsPage() {
       {data && (
         <>
           <ApiClientCreationModal onClose={() => setCreating(false)} open={isCreating} scopes={data.scopes} />
+          <ApiClientUpdateModal
+            {...modalProps('update')}
+            limitPerMinute={data.limitPerMinute}
+            scopes={data.scopes}
+          />
           <ApiClientSecretRotationModal
-            client={rotated?.client ?? null}
-            onClose={() => setRotated((current) => current && { ...current, isOpen: false })}
-            onClosed={() => {
-              if (rotated) keepFocusOnActionsOf(rotated.client.id);
-              setRotated(null);
-            }}
-            open={!!rotated?.isOpen}
+            {...modalProps('rotation')}
             secretRotationDays={data.secretRotationDays}
           />
         </>

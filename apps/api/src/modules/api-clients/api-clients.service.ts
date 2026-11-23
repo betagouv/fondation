@@ -6,13 +6,16 @@ import { Clock } from '../framework/clock';
 
 import {
   ApiClient,
+  ApiClientConfiguration,
   ApiClientForbidden,
   ApiClientNotRotatable,
+  ApiClientNotUpdatable,
   ApiClientUnauthenticated,
   ApiScope,
   CantManageApiClients,
   canonicalIp,
   DEFAULT_LIMITS_PER_MINUTE,
+  distinctConfiguration,
   isAllowedIp,
   REFUSALS_LIMIT_PER_MINUTE,
 } from './domain/api-client';
@@ -114,15 +117,13 @@ export class ApiClientsService {
     const id = makeId('ApiClientId');
     const { hash: secretHash, secret } = ApiClient.generateSecret();
     await this.repository.create({
-      allowedIps: ApiClient.allowedIps(command.allowedIps),
-      authLimitPerMinute: DEFAULT_LIMITS_PER_MINUTE.auth,
+      ...distinctConfiguration({
+        allowedIps: command.allowedIps,
+        authLimitPerMinute: DEFAULT_LIMITS_PER_MINUTE.auth,
+        scopes: command.scopes.map((scope) => ({ limitPerMinute: DEFAULT_LIMITS_PER_MINUTE[scope], scope })),
+      }),
       id,
       name: command.name,
-      // a scope given twice would break the primary key
-      scopes: [...new Set(command.scopes)].map((scope) => ({
-        limitPerMinute: DEFAULT_LIMITS_PER_MINUTE[scope],
-        scope,
-      })),
       secretHash,
     });
 
@@ -156,6 +157,20 @@ export class ApiClientsService {
     if (!client.canEndSecretRotation(this.clock.now())) return;
 
     await this.repository.endSecretRotation(client.id);
+  }
+
+  /** Read on each call (see ApiClient.authorize): the next call of the partner meets the new configuration */
+  @Transactional()
+  async update(command: {
+    actorId: string;
+    clientId: string;
+    configuration: ApiClientConfiguration;
+  }): Promise<void> {
+    const client = await this.findManagedClient(command);
+
+    const configuration = client.update(command.configuration);
+    const saved = await this.repository.saveConfiguration({ clientId: client.id, configuration });
+    if (!saved) throw new ApiClientNotUpdatable('revoked');
   }
 
   /** Its tokens stop working at once (see ApiClient.authorize). Nothing happens once revoked: it keeps its date */

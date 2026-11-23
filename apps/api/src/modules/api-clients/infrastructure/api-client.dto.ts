@@ -6,8 +6,8 @@ import { API_SCOPES, ROTATION_DAYS } from '../domain/api-client';
 export class CreateApiClientDto extends createZodDto(
   z.object({
     name: z.string().trim().min(1).max(100),
-    // without any IP or any route, the client would be refused everything and its secret shown for nothing: it
-    // cannot be changed afterwards. Each IP is checked by the domain, which names the wrong one
+    // without any IP or any route, the client would be refused everything and its secret shown for nothing. Each IP is
+    // checked by the domain, which names the wrong one
     allowedIps: z
       .array(z.object({ ip: z.string().trim().max(64) }))
       .min(1)
@@ -23,6 +23,22 @@ export class CreatedApiClientDto extends createZodDto(
   z.object({
     id: z.string().meta({ description: 'The `client_id` handed to the partner' }),
     secret: z.string().meta({ description: 'Shown this once: Fondation keeps its hash only' }),
+  }),
+) {}
+
+/** The whole configuration, which replaces the previous one */
+export class UpdateApiClientDto extends createZodDto(
+  z.object({
+    // each IP is checked by the domain, which names the wrong one. The bounds of the limits are the domain's too,
+    // ApiClientNotUpdatable('limit') tells them
+    allowedIps: z
+      .array(z.object({ ip: z.string().trim().max(64) }))
+      .max(20)
+      .meta({ description: 'Without any, the client is refused from everywhere' }),
+    authLimitPerMinute: z.number().int(),
+    scopes: z
+      .array(z.object({ id: z.enum(API_SCOPES), limitPerMinute: z.number().int() }))
+      .max(API_SCOPES.length),
   }),
 ) {}
 

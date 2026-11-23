@@ -4,11 +4,13 @@ import {
   ApiClient,
   ApiClientForbidden,
   ApiClientNotRotatable,
+  ApiClientNotUpdatable,
   ApiClientUnauthenticated,
   ApiScope,
   canonicalIp,
   InvalidAllowedIp,
   IssuedAccessToken,
+  LIMIT_PER_MINUTE,
 } from './api-client';
 
 describe('ApiClient', () => {
@@ -125,6 +127,62 @@ describe('ApiClient', () => {
 
     it('should not keep the replaced secret valid more than thirty days', () => {
       expect(() => client().rotateSecret({ days: 31, now })).toThrow(new ApiClientNotRotatable('days'));
+    });
+  });
+
+  describe('update', () => {
+    const configuration = {
+      allowedIps: ['203.0.113.8'],
+      authLimitPerMinute: 5,
+      scopes: [{ limitPerMinute: 600, scope: 'magistrats:status' as const }],
+    };
+
+    it('should keep an IP or a route given twice once only', () => {
+      const updated = client().update({
+        allowedIps: ['203.0.113.8', '203.0.113.8'],
+        authLimitPerMinute: 5,
+        scopes: [
+          { limitPerMinute: 600, scope: 'magistrats:status' },
+          { limitPerMinute: 300, scope: 'magistrats:status' },
+        ],
+      });
+
+      expect(updated).toEqual({
+        allowedIps: ['203.0.113.8'],
+        authLimitPerMinute: 5,
+        scopes: [{ limitPerMinute: 300, scope: 'magistrats:status' }],
+      });
+    });
+
+    it('should let the last IP go, the client being refused from everywhere', () => {
+      expect(client().update({ ...configuration, allowedIps: [] }).allowedIps).toEqual([]);
+    });
+
+    it('should name the IP that is no address', () => {
+      expect(() => client().update({ ...configuration, allowedIps: ['203.0.113.8', '203.0.113'] })).toThrow(
+        new InvalidAllowedIp('203.0.113'),
+      );
+    });
+
+    it.each([0, -1, 1.5, LIMIT_PER_MINUTE.max + 1])(
+      'should refuse a limit of %s calls a minute',
+      (limitPerMinute) => {
+        expect(() =>
+          client().update({ ...configuration, scopes: [{ limitPerMinute, scope: 'magistrats:status' }] }),
+        ).toThrow(new ApiClientNotUpdatable('limit'));
+      },
+    );
+
+    it('should refuse an authentication limit of zero', () => {
+      expect(() => client().update({ ...configuration, authLimitPerMinute: 0 })).toThrow(
+        new ApiClientNotUpdatable('limit'),
+      );
+    });
+
+    it('should not update a revoked client', () => {
+      expect(() => client({ revokedAt: now }).update(configuration)).toThrow(
+        new ApiClientNotUpdatable('revoked'),
+      );
     });
   });
 

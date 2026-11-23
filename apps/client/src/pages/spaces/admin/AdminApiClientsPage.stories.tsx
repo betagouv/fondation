@@ -8,16 +8,22 @@ import type { CreatedApiClientDto, ListedApiClientsDto, RotatedApiClientSecretDt
 import { AdminApiClientsPage } from './AdminApiClientsPage';
 
 const SCOPES: ListedApiClientsDto['scopes'] = [
-  { id: 'magistrats:identification', label: 'Identifier un magistrat par son adresse professionnelle' },
-  { id: 'magistrats:status', label: "Relire le statut d'un magistrat" },
+  {
+    defaultLimitPerMinute: 20,
+    id: 'magistrats:identification',
+    label: 'Identifier un magistrat par son adresse professionnelle',
+  },
+  { defaultLimitPerMinute: 300, id: 'magistrats:status', label: "Relire le statut d'un magistrat" },
 ];
 
 const CLIENTS: ListedApiClientsDto['items'] = [
   {
     allowedIps: [{ ip: '203.0.113.7' }, { ip: '2001:db8::1' }],
+    authLimitPerMinute: 10,
     canEndSecretRotation: false,
     canRevoke: true,
     canRotateSecret: true,
+    canUpdate: true,
     id: '0b3c6f9e-6a1d-4f53-9a2e-5c8f1d2b7a41',
     lastTokenIssuedAt: '2026-11-23T08:45:00.000Z',
     name: 'Site du CSM',
@@ -29,9 +35,11 @@ const CLIENTS: ListedApiClientsDto['items'] = [
   },
   {
     allowedIps: [{ ip: '198.51.100.12' }],
+    authLimitPerMinute: 10,
     canEndSecretRotation: true,
     canRevoke: true,
     canRotateSecret: false,
+    canUpdate: true,
     id: '7e2a9c14-3b8f-4d6a-8c1e-2f5b9a0d3e77',
     lastTokenIssuedAt: '2026-11-22T17:10:00.000Z',
     name: 'Recette du site du CSM',
@@ -40,9 +48,11 @@ const CLIENTS: ListedApiClientsDto['items'] = [
   },
   {
     allowedIps: [{ ip: '192.0.2.44' }],
+    authLimitPerMinute: 10,
     canEndSecretRotation: false,
     canRevoke: false,
     canRotateSecret: false,
+    canUpdate: false,
     id: 'c41d8e2f-9a6b-4e3c-b7d1-0f2a5c8e6b93',
     lastTokenIssuedAt: null,
     name: 'Ancien prestataire',
@@ -74,6 +84,7 @@ const meta = {
         HttpResponse.json<ListedApiClientsDto>({
           items: args.empty ? [] : CLIENTS,
           scopes: SCOPES,
+          limitPerMinute: { min: 1, max: 10_000 },
           secretRotationDays: { default: 7, max: 30 },
         }),
       ),
@@ -91,6 +102,10 @@ const meta = {
           },
           { status: 201 },
         ),
+      ),
+      http.put(
+        '*/api/administration/v1/api-clients/:clientId',
+        () => new HttpResponse(null, { status: 204 }),
       ),
       http.delete(
         '*/api/administration/v1/api-clients/:clientId/secret-rotation',
