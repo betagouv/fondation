@@ -27,7 +27,8 @@ function uncheckedSelects(file: string): string[] {
 }
 
 describe('Prisma selects', () => {
-  it('should all be checked by the compiler', () => {
+  // parses every source file: 0.5 s alone, beyond the default 5 s when the whole suite shares the CPU
+  it('should all be checked by the compiler', { timeout: 30_000 }, () => {
     const files = readdirSync(SRC_DIR, { encoding: 'utf8', recursive: true })
       .filter((path) => path.endsWith('.ts') && !path.endsWith('.spec.ts') && !path.startsWith('generated'))
       .map((path) => join(SRC_DIR, path));

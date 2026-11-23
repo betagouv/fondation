@@ -12,7 +12,8 @@ import type { TestStepsAdmin } from '../steps.ts';
 import * as seed from '../utils/seed.ts';
 import { waitFor } from '../utils/wait-for.ts';
 
-test.describe('lolfi', () => {
+// each test waits for ingestion jobs through `waitFor`, whose 5 s would otherwise match the test's own
+test.describe('lolfi', { timeout: 20_000 }, () => {
   test('should import a session from lolfi', async ({ sessions, expect }) => {
     const session = await sessions.createOne({
       name: 'Transparence annuelle',
@@ -377,50 +378,50 @@ test.describe('lolfi', () => {
     expect(alerts[0]!.text).toContain('aucune proposition');
   });
 
-  test(
-    'should alert once for a transparence that stays broken, and again when it changes',
-    { timeout: 20_000 },
-    async ({ admin, expect, lolfi }) => {
-      const broken = {
-        id: crypto.randomInt(1_000, 900_000),
-        name: crypto.randomUUID(),
-        createdAt: '04/09/2026',
-        candidates: [{ ...trevoux(), designated: false }],
-      };
+  test('should alert once for a transparence that stays broken, and again when it changes', async ({
+    admin,
+    expect,
+    lolfi,
+  }) => {
+    const broken = {
+      id: crypto.randomInt(1_000, 900_000),
+      name: crypto.randomUUID(),
+      createdAt: '04/09/2026',
+      candidates: [{ ...trevoux(), designated: false }],
+    };
 
-      const firstJob = await lolfi.ingest([broken]);
-      expect(firstJob.status).toBe('SUCCEEDED');
-      await waitFor(async () => {
-        assert.equal((await findAlerts(broken.id)).length, 1, `the first import must alert`);
-      });
+    const firstJob = await lolfi.ingest([broken]);
+    expect(firstJob.status).toBe('SUCCEEDED');
+    await waitFor(async () => {
+      assert.equal((await findAlerts(broken.id)).length, 1, `the first import must alert`);
+    });
 
-      const secondJob = await lolfi.ingest([broken]);
-      expect(secondJob.status).toBe('SUCCEEDED');
-      await waitFor(async () => {
-        const reported = (await jobMessages(admin, secondJob.id)).find(aboutTransparence(broken.id));
-        assert.equal(
-          reported?.severity,
-          'WARNING',
-          `transparence ${broken.id} must stay reported on job #${secondJob.id}`,
-        );
-      });
-      expect(await findAlerts(broken.id)).toHaveLength(1);
+    const secondJob = await lolfi.ingest([broken]);
+    expect(secondJob.status).toBe('SUCCEEDED');
+    await waitFor(async () => {
+      const reported = (await jobMessages(admin, secondJob.id)).find(aboutTransparence(broken.id));
+      assert.equal(
+        reported?.severity,
+        'WARNING',
+        `transparence ${broken.id} must stay reported on job #${secondJob.id}`,
+      );
+    });
+    expect(await findAlerts(broken.id)).toHaveLength(1);
 
-      const worse = { ...broken, candidates: [...broken.candidates, { ...berger(), designated: false }] };
-      const thirdJob = await lolfi.ingest([worse]);
-      expect(thirdJob.status).toBe('SUCCEEDED');
+    const worse = { ...broken, candidates: [...broken.candidates, { ...berger(), designated: false }] };
+    const thirdJob = await lolfi.ingest([worse]);
+    expect(thirdJob.status).toBe('SUCCEEDED');
 
-      const alerts = await waitFor(async () => {
-        const alerts = await findAlerts(broken.id);
-        assert.equal(alerts.length, 2, `the changed anomaly must alert, got ${alerts.length} alerts`);
+    const alerts = await waitFor(async () => {
+      const alerts = await findAlerts(broken.id);
+      assert.equal(alerts.length, 2, `the changed anomaly must alert, got ${alerts.length} alerts`);
 
-        return alerts;
-      });
+      return alerts;
+    });
 
-      expect(alerts[0]!.text).toContain('1 candidature et aucune proposition');
-      expect(alerts[1]!.text).toContain('2 candidatures et aucune proposition');
-    },
-  );
+    expect(alerts[0]!.text).toContain('1 candidature et aucune proposition');
+    expect(alerts[1]!.text).toContain('2 candidatures et aucune proposition');
+  });
 
   test('should report a transparence that never received its candidatures', async ({ admin, expect, lolfi }) => {
     const abandoned = {
