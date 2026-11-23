@@ -14,21 +14,31 @@ export function useRowAnchor(props: {
     if (!rowGroup || !scroller) return;
 
     let anchor: { row: HTMLElement; top: number } | null = null;
+    let isHoldingInPlace = false;
 
     const anchorOn = (event: Event) => {
       const row = event.target instanceof Element ? event.target.closest<HTMLElement>('[role="row"]') : null;
-      if (row?.parentElement === rowGroup) anchor = { row, top: row.getBoundingClientRect().top };
+      // the focus given back on closing a side panel lands once the rows have already reflowed
+      if (row?.parentElement !== rowGroup || anchor?.row === row) return;
+
+      anchor = { row, top: row.getBoundingClientRect().top };
     };
 
     const follow = () => {
-      if (anchor?.row.isConnected) anchor.top = anchor.row.getBoundingClientRect().top;
+      // the scroll rounds the shift to whole pixels: taking it in would drift the row a little at each reflow
+      if (!isHoldingInPlace && anchor?.row.isConnected) anchor.top = anchor.row.getBoundingClientRect().top;
     };
 
     const holdInPlace = () => {
       if (!anchor?.row.isConnected) return;
 
       const shift = anchor.row.getBoundingClientRect().top - anchor.top;
-      if (Math.abs(shift) >= 1) scroller.scrollBy({ behavior: 'instant', top: shift });
+      if (Math.abs(shift) < 1) return;
+
+      isHoldingInPlace = true;
+      scroller.scrollBy({ behavior: 'instant', top: shift });
+      // the scroll events of a frame run before its animation callbacks
+      requestAnimationFrame(() => (isHoldingInPlace = false));
     };
 
     rowGroup.addEventListener('pointerdown', anchorOn);
