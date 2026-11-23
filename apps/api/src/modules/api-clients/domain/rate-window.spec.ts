@@ -34,4 +34,16 @@ describe('RateWindow', () => {
       new ApiClientRateLimited(60),
     );
   });
+
+  it('should tell the first call refused in the minute from the ones after it', () => {
+    const window = new RateWindow(new Date('2026-11-18T10:00:20Z'));
+
+    expect([20, 21, 22].map((count) => window.isFirstOver(20, count))).toEqual([false, true, false]);
+  });
+
+  it('should tell the last call let through in the minute from the ones before it', () => {
+    const window = new RateWindow(new Date('2026-11-18T10:00:20Z'));
+
+    expect([9, 10, 11].map((count) => window.isLastWithin(10, count))).toEqual([false, true, false]);
+  });
 });
