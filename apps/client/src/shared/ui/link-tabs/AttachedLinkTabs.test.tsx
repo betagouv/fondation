@@ -1,16 +1,9 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import { AttachedLinkTab, AttachedLinkTabs } from './AttachedLinkTabs';
-
-class NoopObserver {
-  disconnect() {}
-  observe() {}
-  unobserve() {}
-}
-vi.stubGlobal('ResizeObserver', NoopObserver);
 
 describe('AttachedLinkTabs', () => {
   it('gives the table beside them their height and takes it back when they leave', () => {

@@ -15,7 +15,6 @@ class NoopObserver {
   unobserve() {}
 }
 vi.stubGlobal('IntersectionObserver', NoopObserver);
-vi.stubGlobal('ResizeObserver', NoopObserver);
 
 const useInfiniteFollowedUpObservationsQuery = vi.hoisted(() =>
   vi.fn<(filters: object) => object>(() => ({
