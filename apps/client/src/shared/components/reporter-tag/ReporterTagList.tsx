@@ -3,23 +3,23 @@ import { useIntl } from 'react-intl';
 
 import { Tooltip } from '@/shared/ui/tooltip';
 import { memberFullName } from '@/utils/user.utils';
+import { useUser } from '@queries/auth.queries';
 
 import { ReporterTag } from './ReporterTag';
 
 export function ReporterTagList(props: {
   max?: number;
-  reporters: readonly {
-    excludedTitle?: string;
-    firstName: string;
-    id: string;
-    isCurrentUser?: boolean;
-    lastName: string;
-  }[];
+  reporters: readonly { excludedTitle?: string; firstName: string; id: string; lastName: string }[];
 }) {
   const intl = useIntl();
+  const { user } = useUser();
   if (props.reporters.length === 0) return null;
 
-  const reporters = props.reporters.toSorted((a, b) => a.lastName.localeCompare(b.lastName));
+  const reporters = props.reporters
+    .map((reporter) => ({ ...reporter, isCurrentUser: reporter.id === user?.id }))
+    .toSorted(
+      (a, b) => Number(b.isCurrentUser) - Number(a.isCurrentUser) || a.lastName.localeCompare(b.lastName),
+    );
   const max = props.max ?? 3;
   const hidden = reporters.slice(max);
 
