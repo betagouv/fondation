@@ -4,7 +4,7 @@ import { generatePath } from 'react-router';
 
 import { PageStory } from '@/shared/storybook/PageStory';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
-import type { DetailedMemberDto } from '@api/types';
+import type { DetailedMemberDto, SearchMagistratsResponseDto } from '@api/types';
 
 import { DetailsMemberPage } from './DetailsMemberPage';
 
@@ -15,7 +15,19 @@ const MEMBER: DetailedMemberDto = {
     { id: 'CA  LYON', label: "Cour d'appel de Lyon" },
     { id: 'TJ  VILLEFRANCHE SUR SAONE', label: 'Tribunal judiciaire de Villefranche-sur-Saône' },
   ],
-  excludedMagistrats: [],
+  excludedMagistrats: [
+    {
+      currentPosition: {
+        function: { id: 'JUGE', label: 'Juge' },
+        jurisdiction: { id: 'TJ  LYON', label: 'Tribunal judiciaire de Lyon' },
+      },
+      grade: 'I',
+      id: 'magistrat-1',
+      name: 'DURAND Claire',
+      status: 'ACTIVE',
+    },
+    { currentPosition: null, grade: 'HH', id: 'magistrat-2', name: 'MARTIN Paul', status: 'INACTIVE' },
+  ],
   firstName: 'Hélène',
   formation: { id: 'SIEGE', label: 'Siège' },
   gender: 'FEMALE',
@@ -54,6 +66,28 @@ const meta = {
         args.response === 404
           ? new HttpResponse(null, { status: 404 })
           : HttpResponse.json<DetailedMemberDto>(MEMBER),
+      ),
+      http.get('*/api/magistrats/v1', () =>
+        HttpResponse.json<SearchMagistratsResponseDto>({
+          currentPageIndex: 1,
+          items: [
+            {
+              currentPosition: {
+                function: { id: 'SUBSTITUT', label: 'Substitut du procureur' },
+                jurisdiction: { id: 'TJ  RENNES', label: 'Tribunal judiciaire de Rennes' },
+              },
+              firstName: 'Louise',
+              grade: 'II',
+              gradeAndJurisdiction: 'II - TJ RENNES',
+              id: 'magistrat-3',
+              lastName: 'DUPONT',
+              name: 'DUPONT Louise',
+              status: 'ACTIVE',
+              usedName: null,
+            },
+          ],
+          totalCount: 1,
+        }),
       ),
     );
   },

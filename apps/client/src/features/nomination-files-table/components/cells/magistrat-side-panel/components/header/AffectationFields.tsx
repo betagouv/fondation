@@ -3,6 +3,7 @@ import { useId, type Ref } from 'react';
 import { FormattedMessage } from 'react-intl';
 
 import { MEMBER_TAG } from '../member-tag';
+import type { NonAffectableReason } from '../recused-members/recused-reporters';
 import { PriorityBadge } from '@/shared/components/priority-badge';
 import { PrioriteEnum } from '@/shared/enums/priorite.enum';
 import { Dropdown, type DropdownHandle } from '@/shared/ui/dropdown';
@@ -43,8 +44,11 @@ export function ReporterSelect(props: {
   available: readonly Reporter[];
   disabled?: boolean;
   excludedTitleByRapporteurId?: ReadonlyMap<string, string>;
-  /** a member recused from the file, who cannot become its reporter */
-  isNonAffectable?: (memberId: string) => boolean;
+  /**
+   * why a member cannot become a reporter of the file; a reporter in place who excluded the
+   * proposed magistrat since stays selected, until removed
+   */
+  nonAffectableReason?: (memberId: string) => NonAffectableReason | undefined;
   onChange: (ids: string[]) => void;
   onClear?: () => void;
   ref?: Ref<DropdownHandle>;
@@ -53,7 +57,7 @@ export function ReporterSelect(props: {
   const {
     available,
     excludedTitleByRapporteurId = NO_EXCLUSION,
-    isNonAffectable,
+    nonAffectableReason,
     onChange,
     onClear,
     ref,
@@ -61,11 +65,15 @@ export function ReporterSelect(props: {
   } = props;
   const hintId = useId();
 
+  const blockedReasons = new Set<NonAffectableReason>();
   const reporterOptions = [...available]
     .sort((a, b) => a.lastName.localeCompare(b.lastName))
     .map((reporter) => {
-      const title = excludedTitleByRapporteurId.get(reporter.userId);
-      const nonAffectable = !!isNonAffectable?.(reporter.userId);
+      const reason = value.includes(reporter.userId) ? undefined : nonAffectableReason?.(reporter.userId);
+      const nonAffectable = !!reason;
+      if (reason) blockedReasons.add(reason);
+      // the reason already tells why a member cannot be chosen
+      const title = nonAffectable ? undefined : excludedTitleByRapporteurId.get(reporter.userId);
 
       return {
         disabled: nonAffectable,
@@ -81,9 +89,14 @@ export function ReporterSelect(props: {
             )}
             title={title}
           >
-            {nonAffectable ? (
+            {reason === 'RECUSED' ? (
               <FormattedMessage
                 defaultMessage="{member} (déport)"
+                values={{ member: memberFullName(reporter) }}
+              />
+            ) : reason === 'EXCLUDED_MAGISTRAT' ? (
+              <FormattedMessage
+                defaultMessage="{member} (magistrat exclu)"
                 values={{ member: memberFullName(reporter) }}
               />
             ) : (
@@ -119,12 +132,11 @@ export function ReporterSelect(props: {
         ...reporterOptions,
       ]
     : reporterOptions;
-  const hasNonAffectable = reporterOptions.some(({ disabled }) => disabled);
 
   return (
     <>
       <Dropdown
-        aria-describedby={hasNonAffectable ? hintId : undefined}
+        aria-describedby={blockedReasons.size > 0 ? hintId : undefined}
         disabled={props.disabled}
         label={<FormattedMessage defaultMessage="Affecter un rapporteur" />}
         multiple
@@ -137,9 +149,15 @@ export function ReporterSelect(props: {
         ref={ref}
         selected={value}
       />
-      {hasNonAffectable && (
+      {blockedReasons.size > 0 && (
         <p className="fr-hint-text fr-mb-0" id={hintId}>
-          <FormattedMessage defaultMessage="Un membre déporté de ce dossier ne peut pas être affecté : retirez d'abord son déport." />
+          {blockedReasons.has('RECUSED') && (
+            <FormattedMessage defaultMessage="Un membre déporté de ce dossier ne peut pas être affecté : retirez d'abord son déport." />
+          )}
+          {blockedReasons.size > 1 && ' '}
+          {blockedReasons.has('EXCLUDED_MAGISTRAT') && (
+            <FormattedMessage defaultMessage="Un membre qui a exclu le magistrat proposé ne peut pas être affecté." />
+          )}
         </p>
       )}
     </>
