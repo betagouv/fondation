@@ -15,6 +15,7 @@
     "types:check:test": "tsc --noEmit -p ./tsconfig.vitest.json",
     "test": "vitest",
     "test:coverage": "vitest run --coverage",
+    "test:routes": "vitest run src/routes.test.ts",
     "test:watch": "vitest",
     "update-icons": "react-dsfr update-icons --silent",
     "predev": "pnpm run update-icons && rm -rf node_modules/.vite-app",

@@ -8,6 +8,7 @@ La forme du code et les points que les outils ne vérifient pas. Une revue appli
 - Exploiter les capacités offertes par les frameworks plutôt que d'essayer de les contourner
 - Éviter les commentaires au profit d'un code lisible qui reprend le vocabulaire métier. Un commentaire ne garde que ce que le code ne peut pas dire : un piège, une décision métier, une contrainte extérieure
 - Trier par ordre alphabétique les propriétés d'un objet, les clés d'un type et les attributs JSX. Exceptions : les dates calendaires (jour, mois, année), un ordre qui reflète l'interface, les DTO du back-end et les blocs existants qu'on ne touche pas
+- Un secret de test, de story ou de seed est visiblement factice (`'secret-de-test'`) : une valeur réaliste déclenche GitGuardian après le push
 
 ## TypeScript
 

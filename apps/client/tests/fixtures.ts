@@ -47,7 +47,7 @@ export const test = base.extend<Fixtures>({
 
   http: async ({ playwright }, use) => {
     // see apps/api/.env.e2e
-    const token = 'FthDG8SXXzWD6eOzybymzXh1bHqHepZG';
+    const token = 'jeton-e2e-de-test';
 
     const http = await playwright.request.newContext({
       failOnStatusCode: true,
