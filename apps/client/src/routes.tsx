@@ -603,6 +603,13 @@ export const routes: RouteObject[] = [
           },
           {
             lazy: () =>
+              import('@/pages/spaces/admin/AdminApiClientsPage').then(({ AdminApiClientsPage }) => ({
+                Component: AdminApiClientsPage,
+              })),
+            path: ROUTE_PATHS.ADMIN.API_CLIENTS,
+          },
+          {
+            lazy: () =>
               import('@/pages/spaces/admin/AdminHelpPage').then(({ AdminHelpPage }) => ({
                 Component: AdminHelpPage,
               })),

@@ -31,6 +31,7 @@ export type DetailedUserResponseDto = {
     isAdmin: boolean;
     displayTitle: string | null;
     canManageTechnicalAccounts: boolean;
+    canManageApiClients: boolean;
     duty: 'PRESIDENT' | 'DEPUTY_PRESIDENT' | 'SECRETARY' | 'OFFICER' | null;
     title: 'PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_PARQUET' | 'FIRST_SECRETARY' | null;
 };
@@ -79,6 +80,82 @@ export type AuthenticateApiClientRefusedDto = {
      * - `slow_down` (429): too many requests within the minute, `Retry-After` tells how many seconds to wait
      */
     error: 'invalid_request' | 'unsupported_grant_type' | 'invalid_client' | 'access_denied' | 'slow_down';
+};
+
+export type ListedApiClientsDto = {
+    items: Array<{
+        id: string;
+        name: string;
+        allowedIps: Array<{
+            ip: string;
+        }>;
+        scopes: Array<{
+            limitPerMinute: number;
+            scope: {
+                id: string;
+                label: string;
+            };
+        }>;
+        status: {
+            value: 'ACTIVE';
+        } | {
+            /**
+             * The replaced secret is refused from then
+             */
+            until: string;
+            value: 'ROTATING';
+        } | {
+            since: string;
+            value: 'REVOKED';
+        };
+        lastTokenIssuedAt: string | null;
+        canEndSecretRotation: boolean;
+        canRevoke: boolean;
+        canRotateSecret: boolean;
+    }>;
+    /**
+     * The routes a new client may be given
+     */
+    scopes: Array<{
+        id: 'magistrats:identification' | 'magistrats:status';
+        label: string;
+    }>;
+};
+
+export type CreateApiClientDto = {
+    name: string;
+    allowedIps: Array<{
+        ip: string | string;
+    }>;
+    scopes: Array<{
+        id: 'magistrats:identification' | 'magistrats:status';
+    }>;
+};
+
+export type CreatedApiClientDto = {
+    /**
+     * The `client_id` handed to the partner
+     */
+    id: string;
+    /**
+     * Shown this once: Fondation keeps its hash only
+     */
+    secret: string;
+};
+
+export type RotateApiClientSecretDto = {
+    /**
+     * How long the replaced secret stays valid, 7 days by default
+     */
+    days?: number;
+};
+
+export type RotatedApiClientSecretDto = {
+    /**
+     * Shown this once, like the first one
+     */
+    secret: string;
+    previousSecretValidUntil: string;
 };
 
 export type ListedMemberSessionReportsDto = {
@@ -3321,6 +3398,77 @@ export type AuthenticateApiClientResponses = {
 };
 
 export type AuthenticateApiClientResponse = AuthenticateApiClientResponses[keyof AuthenticateApiClientResponses];
+
+export type ListApiClientsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/administration/v1/api-clients';
+};
+
+export type ListApiClientsResponses = {
+    200: ListedApiClientsDto;
+};
+
+export type ListApiClientsResponse = ListApiClientsResponses[keyof ListApiClientsResponses];
+
+export type CreateApiClientData = {
+    body: CreateApiClientDto;
+    path?: never;
+    query?: never;
+    url: '/api/administration/v1/api-clients';
+};
+
+export type CreateApiClientResponses = {
+    201: CreatedApiClientDto;
+};
+
+export type CreateApiClientResponse = CreateApiClientResponses[keyof CreateApiClientResponses];
+
+export type EndApiClientSecretRotationData = {
+    body?: never;
+    path: {
+        clientId: string;
+    };
+    query?: never;
+    url: '/api/administration/v1/api-clients/{clientId}/secret-rotation';
+};
+
+export type EndApiClientSecretRotationResponses = {
+    204: void;
+};
+
+export type EndApiClientSecretRotationResponse = EndApiClientSecretRotationResponses[keyof EndApiClientSecretRotationResponses];
+
+export type RotateApiClientSecretData = {
+    body: RotateApiClientSecretDto;
+    path: {
+        clientId: string;
+    };
+    query?: never;
+    url: '/api/administration/v1/api-clients/{clientId}/secret-rotation';
+};
+
+export type RotateApiClientSecretResponses = {
+    201: RotatedApiClientSecretDto;
+};
+
+export type RotateApiClientSecretResponse = RotateApiClientSecretResponses[keyof RotateApiClientSecretResponses];
+
+export type RevokeApiClientData = {
+    body?: never;
+    path: {
+        clientId: string;
+    };
+    query?: never;
+    url: '/api/administration/v1/api-clients/{clientId}/revocation';
+};
+
+export type RevokeApiClientResponses = {
+    204: void;
+};
+
+export type RevokeApiClientResponse = RevokeApiClientResponses[keyof RevokeApiClientResponses];
 
 export type ListMemberSessionReportsData = {
     body?: never;

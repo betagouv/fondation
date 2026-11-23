@@ -115,16 +115,17 @@ L'accueil propose les deux pouvoirs de proposition et le logo y ramène. Le menu
 
 ### Espace administration
 
-| URL                           | Vue                                                                                                                                  | Membre | Secrétariat général | Administrateur |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ------ | ------------------- | -------------- |
-| `/admin/lolfi`                | Import d'une archive Lolfi                                                                                                           | —      | —                   | ✓              |
-| `/admin/ingestions`           | Liste des traitements en arrière-plan                                                                                                | —      | —                   | ✓              |
-| `/admin/ingestions/:jobId`    | Détail d'un traitement                                                                                                               | —      | —                   | ✓              |
-| `/admin/avis`                 | Export des réponses au questionnaire                                                                                                 | —      | —                   | ✓              |
-| `/admin/retours/:status`      | Retours d'un statut (nouveaux, pris en compte, traités ou écartés) et suivi de ce statut                                             | —      | —                   | ✓              |
-| `/admin/aide`                 | Édition des pages d'aide                                                                                                             | —      | —                   | ✓              |
-| `/admin/utilisateurs`         | Liste des utilisateurs                                                                                                               | —      | —                   | ✓              |
-| `/admin/utilisateurs/:userId` | Fiche d'un utilisateur : nom, prénom, e-mail, mot de passe, rôle, titre, droit d'administrateur, désactivation, connexion à sa place | —      | —                   | ✓              |
+| URL                           | Vue                                                                                                                                  | Membre | Secrétariat général | Administrateur     |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ------ | ------------------- | ------------------ |
+| `/admin/lolfi`                | Import d'une archive Lolfi                                                                                                           | —      | —                   | ✓                  |
+| `/admin/ingestions`           | Liste des traitements en arrière-plan                                                                                                | —      | —                   | ✓                  |
+| `/admin/ingestions/:jobId`    | Détail d'un traitement                                                                                                               | —      | —                   | ✓                  |
+| `/admin/avis`                 | Export des réponses au questionnaire                                                                                                 | —      | —                   | ✓                  |
+| `/admin/retours/:status`      | Retours d'un statut (nouveaux, pris en compte, traités ou écartés) et suivi de ce statut                                             | —      | —                   | ✓                  |
+| `/admin/aide`                 | Édition des pages d'aide                                                                                                             | —      | —                   | ✓                  |
+| `/admin/utilisateurs`         | Liste des utilisateurs                                                                                                               | —      | —                   | ✓                  |
+| `/admin/utilisateurs/:userId` | Fiche d'un utilisateur : nom, prénom, e-mail, mot de passe, rôle, titre, droit d'administrateur, désactivation, connexion à sa place | —      | —                   | ✓                  |
+| `/admin/clients-api`          | Clients API : création, rotation du secret, révocation                                                                               | —      | —                   | ✓ compte technique |
 
 ## Actions de l'API
 

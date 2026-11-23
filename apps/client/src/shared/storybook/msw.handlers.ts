@@ -16,6 +16,7 @@ const noContent = () => new HttpResponse(null, { status: 204 });
 const FILE_URL = 'about:blank';
 
 const STORY_USER: DetailedUserResponseDto = {
+  canManageApiClients: false,
   canManageTechnicalAccounts: false,
   displayedRole: { group: 'MEMBER', id: 'MEMBRE_COMMUN', label: 'Membre commun' },
   displayTitle: null,
