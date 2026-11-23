@@ -39,6 +39,7 @@ export function makeSessionNominationFile(overrides: NominationFileOverrides = {
     comment: null,
     commentLastChange: null,
     content: { ...baseContent, ...content },
+    excludedJurisdictionConflicts: [],
     expectedReportersCount: null,
     hasAttachment: false,
     id: 'nomination-file',

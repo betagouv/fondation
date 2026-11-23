@@ -69,6 +69,7 @@ const NOMINATION_FILE: DetailedNominationFileDto = {
     status: { dates: [], value: 'TO_REPORT' },
     version: 2,
   },
+  excludedJurisdictionConflicts: [],
   expectedReportersCount: 2,
   hasAttachment: false,
   id: REPORT.nominationFileId,

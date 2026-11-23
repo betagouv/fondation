@@ -33,7 +33,6 @@ const RENNES = { id: 'CA  RENNES', label: "Cour d'appel de Rennes" };
 
 function renderHeader(options: {
   canManage?: boolean;
-  excludedJurisdictionsOfOtherReporter?: (typeof LYON)[];
   isSg?: boolean;
   myReport?: FoundNominationFileMembersReportDto['report'];
   nominationFile: SessionNominationFile;
@@ -49,18 +48,10 @@ function renderHeader(options: {
   const members = {
     items: [
       { ...CURRENT_USER, excludedJurisdictions: [], status: 'ACTIVE' },
-      {
-        ...OTHER_REPORTER,
-        excludedJurisdictions: options.excludedJurisdictionsOfOtherReporter ?? [],
-        status: 'ACTIVE',
-      },
+      { ...OTHER_REPORTER, excludedJurisdictions: [], status: 'ACTIVE' },
     ],
   };
   client.setQueryData(memberKeys.listMembers(memberListOptions), members);
-  client.setQueryData(
-    memberKeys.listMembers({ ...memberListOptions, statuses: ['ACTIVE', 'DEACTIVATED'] }),
-    members,
-  );
   client.setQueryData(
     reportKeys.myReport({ nominationFileId: options.nominationFile.id }),
     options.myReport ?? null,
@@ -168,9 +159,8 @@ describe('Header reporter status', () => {
 
   it('flags a reporter excluded from the jurisdiction of the file', () => {
     renderHeader({
-      excludedJurisdictionsOfOtherReporter: [LYON],
       nominationFile: makeSessionNominationFile({
-        content: { jurisdictions: { current: LYON, targeted: null } },
+        excludedJurisdictionConflicts: [{ jurisdiction: LYON, member: OTHER_REPORTER }],
         reporters: [OTHER_REPORTER],
       }),
     });
@@ -182,9 +172,11 @@ describe('Header reporter status', () => {
 
   it('names every excluded jurisdiction of the file for the same reporter', () => {
     renderHeader({
-      excludedJurisdictionsOfOtherReporter: [RENNES, LYON],
       nominationFile: makeSessionNominationFile({
-        content: { jurisdictions: { current: LYON, targeted: RENNES } },
+        excludedJurisdictionConflicts: [
+          { jurisdiction: LYON, member: OTHER_REPORTER },
+          { jurisdiction: RENNES, member: OTHER_REPORTER },
+        ],
         reporters: [OTHER_REPORTER],
       }),
     });
@@ -194,18 +186,6 @@ describe('Header reporter status', () => {
         "Juridictions exclues pour Marie LEFEVRE : Cour d'appel de Lyon et Cour d'appel de Rennes",
       ),
     ).toBeInTheDocument();
-  });
-
-  it('leaves a reporter alone when the file is outside their excluded jurisdictions', () => {
-    renderHeader({
-      excludedJurisdictionsOfOtherReporter: [LYON],
-      nominationFile: makeSessionNominationFile({
-        content: { jurisdictions: { current: { id: 'CA  PARIS', label: null }, targeted: null } },
-        reporters: [OTHER_REPORTER],
-      }),
-    });
-
-    expect(screen.queryByText(/Juridiction exclue pour/)).not.toBeInTheDocument();
   });
 });
 
