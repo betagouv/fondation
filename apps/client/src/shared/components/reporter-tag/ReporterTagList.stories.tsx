@@ -1,14 +1,18 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
+import { StoryQueryClient } from '@/shared/storybook/StoryQueryClient';
+import { authKeys } from '@queries/auth.queries';
+
 import { ReporterTagList } from './ReporterTagList';
 
 const CAMILLE = { firstName: 'Camille', id: 'camille', lastName: 'Commun' };
+const MARIE = { firstName: 'Marie', id: 'marie', lastName: 'Curie' };
 
 const OTHER_REPORTERS = [
   { firstName: 'Honorine', id: 'honorine', lastName: 'Valrose' },
   { firstName: 'Ada', id: 'ada', lastName: 'Lovelace' },
   { firstName: 'Jean-Pierre', id: 'jean-pierre', lastName: 'de la Tour' },
-  { firstName: 'Marie', id: 'marie', lastName: 'Curie' },
+  MARIE,
   { firstName: 'Sophie', id: 'sophie', lastName: 'Siège' },
   { firstName: 'Paul', id: 'paul', lastName: 'Parquet' },
 ];
@@ -18,7 +22,15 @@ function ReporterTagListStory(props: { excludedJurisdiction: boolean; max: numbe
     ? { ...CAMILLE, excludedTitle: "Juridiction exclue pour Camille COMMUN : Cour d'appel de Lyon" }
     : CAMILLE;
 
-  return <ReporterTagList max={props.max} reporters={[camille, ...OTHER_REPORTERS]} />;
+  return (
+    <StoryQueryClient
+      seed={(client) =>
+        client.setQueryData(authKeys.introspectSession(), { ...MARIE, role: 'MEMBRE_DU_SIEGE' })
+      }
+    >
+      <ReporterTagList max={props.max} reporters={[camille, ...OTHER_REPORTERS]} />
+    </StoryQueryClient>
+  );
 }
 
 const meta = {

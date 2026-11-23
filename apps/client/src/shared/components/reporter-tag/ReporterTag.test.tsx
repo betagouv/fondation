@@ -1,12 +1,28 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
 import { IntlProvider } from 'react-intl';
 import { describe, expect, it } from 'vitest';
+
+import { authKeys } from '@queries/auth.queries';
 
 import { ReporterTag } from './ReporterTag';
 import { ReporterTagList } from './ReporterTagList';
 
 const HONORINE = { firstName: 'Honorine', id: 'honorine', lastName: 'Valrose' };
 const ADA = { firstName: 'Ada', id: 'ada', lastName: 'Lovelace' };
+
+function renderList(max?: number) {
+  const client = new QueryClient();
+  client.setQueryData(authKeys.introspectSession(), { ...ADA, role: 'MEMBRE_DU_SIEGE' });
+
+  return render(
+    <QueryClientProvider client={client}>
+      <IntlProvider defaultLocale="fr" locale="fr">
+        <ReporterTagList max={max} reporters={[HONORINE, ADA]} />
+      </IntlProvider>
+    </QueryClientProvider>,
+  );
+}
 
 function renderTag(enableTooltip?: boolean, isCurrentUser?: boolean) {
   return render(
@@ -52,12 +68,8 @@ describe('ReporterTag', () => {
 });
 
 describe('ReporterTagList', () => {
-  it('gives each reporter its own tooltip', () => {
-    render(
-      <IntlProvider defaultLocale="fr" locale="fr">
-        <ReporterTagList reporters={[HONORINE, { ...ADA, isCurrentUser: true }]} />
-      </IntlProvider>,
-    );
+  it('gives each reporter its own tooltip, and addresses the current user', () => {
+    renderList();
 
     expect(screen.getAllByRole('tooltip', { hidden: true }).map((tooltip) => tooltip.textContent)).toEqual([
       'Vous',
@@ -66,11 +78,7 @@ describe('ReporterTagList', () => {
   });
 
   it('names the reporters left out of the list in the remainder tooltip', () => {
-    render(
-      <IntlProvider defaultLocale="fr" locale="fr">
-        <ReporterTagList max={1} reporters={[HONORINE, ADA]} />
-      </IntlProvider>,
-    );
+    renderList(1);
 
     expect(screen.getByText('+1')).toBeInTheDocument();
     expect(screen.getAllByRole('tooltip', { hidden: true }).at(-1)).toHaveTextContent('Honorine VALROSE');
