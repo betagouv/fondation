@@ -55,6 +55,7 @@ export class DetailsUserQuery {
     const isImpersonated = isDefined(query.impersonationId);
     return {
       ...user,
+      canManageApiClients: User.canManageApiClients({ isAdmin: user.isAdmin, isTechnical }),
       canManageTechnicalAccounts: User.canManageTechnicalAccounts({ isTechnical }),
       displayedRole: servedAdminUserRole(
         AdminUserRole.from({ duty: user.duty, role, title: user.title }),
@@ -86,6 +87,7 @@ export class DetailedUserResponseDto extends createZodDto(
     isAdmin: z.boolean(),
     displayTitle: z.string().nullable(),
     canManageTechnicalAccounts: z.boolean(),
+    canManageApiClients: z.boolean(),
     duty: z.enum(USER_DUTIES).nullable(),
     title: z.enum(USER_TITLES).nullable(),
   }),

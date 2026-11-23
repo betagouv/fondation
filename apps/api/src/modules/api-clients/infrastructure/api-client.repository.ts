@@ -4,10 +4,11 @@ import z from 'zod';
 
 import { Prisma } from '../../../generated/prisma/client';
 import { countApiCallRawQuery } from '../../../generated/prisma/sql';
+import { User } from '../../administration/domain/user';
 import { Db } from '../../framework/database';
 import { ApiClient, ApiScope, IssuedAccessToken } from '../domain/api-client';
 
-const CLIENT_SELECT = {
+export const CLIENT_SELECT = {
   allowedIps: { select: { ip: true } },
   authLimitPerMinute: true,
   id: true,
@@ -77,10 +78,33 @@ export class ApiClientRepository {
     return counter?.count ?? 0;
   }
 
+  @Transactional()
   async saveToken(command: { clientId: string; token: IssuedAccessToken }): Promise<void> {
     const { clientId, token } = command;
     await this.db.tx.apiAccessToken.create({
       data: { clientId, expiresAt: token.expiresAt, hash: token.hash },
+    });
+    await this.db.tx.apiClient.update({
+      where: { id: clientId },
+      data: { lastTokenIssuedAt: token.issuedAt },
+    });
+  }
+
+  /** @returns whether the user may manage the API clients, false when unknown */
+  async canBeManagedBy(userId: string): Promise<boolean> {
+    const user = await this.db.tx.user.findUnique({
+      where: { id: userId },
+      select: { isAdmin: true, isTechnical: true } satisfies Prisma.UserSelect,
+    });
+
+    return !!user && User.canManageApiClients(user);
+  }
+
+  /** Once only: a client revoked stays so, and keeps the date it was */
+  async revoke(command: { clientId: string; now: Date }): Promise<void> {
+    await this.db.tx.apiClient.updateMany({
+      where: { id: command.clientId, revokedAt: null },
+      data: { revokedAt: command.now },
     });
   }
 
@@ -139,7 +163,7 @@ export class ApiClientRepository {
     await this.db.tx.apiAccessToken.deleteMany({ where: { clientId } });
   }
 
-  private static toDomain(client: Prisma.ApiClientGetPayload<{ select: typeof CLIENT_SELECT }>): ApiClient {
+  static toDomain(client: Prisma.ApiClientGetPayload<{ select: typeof CLIENT_SELECT }>): ApiClient {
     return new ApiClient({
       allowedIps: client.allowedIps.map(({ ip }) => ip),
       authLimitPerMinute: client.authLimitPerMinute,

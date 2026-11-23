@@ -7,6 +7,7 @@ import {
   ApiClientUnauthenticated,
   ApiScope,
   canonicalIp,
+  InvalidAllowedIp,
   IssuedAccessToken,
 } from './api-client';
 
@@ -46,6 +47,7 @@ describe('ApiClient', () => {
         expiresAt: new Date('2026-11-18T10:15:00Z'),
         expiresIn: 900,
         hash: ApiClient.hash(issued.token),
+        issuedAt: now,
         token: expect.stringMatching(/^[\w-]{43}$/),
       });
     });
@@ -116,6 +118,28 @@ describe('ApiClient', () => {
     });
   });
 
+  describe('status', () => {
+    const replaced = { expiresAt: new Date('2026-11-25T10:00:00Z'), hash: 'replaced' };
+
+    it('should be rotating until the replaced secret stops being accepted', () => {
+      expect(client({ previousSecret: replaced }).status(now)).toEqual({
+        until: replaced.expiresAt,
+        value: 'ROTATING',
+      });
+    });
+
+    it('should be active again once the replaced secret is no longer accepted', () => {
+      expect(client({ previousSecret: replaced }).status(replaced.expiresAt)).toEqual({ value: 'ACTIVE' });
+    });
+
+    it('should stay revoked whatever rotation was running', () => {
+      expect(client({ previousSecret: replaced, revokedAt: now }).status(now)).toEqual({
+        since: now,
+        value: 'REVOKED',
+      });
+    });
+  });
+
   describe('authorize', () => {
     const authorize = (
       authorized: ApiClient,
@@ -173,6 +197,21 @@ describe('ApiClient', () => {
       expect(() => authorize(client(), { ip: '198.51.100.1', tokenExpiresAt: now })).toThrow(
         ApiClientUnauthenticated,
       );
+    });
+  });
+
+  describe('allowedIps', () => {
+    it('should name the line that is no address', () => {
+      expect(() => ApiClient.allowedIps(['203.0.113.7', '203.0.113'])).toThrow(
+        new InvalidAllowedIp('203.0.113'),
+      );
+    });
+
+    it('should keep an IP given twice once', () => {
+      expect(ApiClient.allowedIps(['203.0.113.7', '2001:db8::1', '203.0.113.7'])).toEqual([
+        '203.0.113.7',
+        '2001:db8::1',
+      ]);
     });
   });
 
