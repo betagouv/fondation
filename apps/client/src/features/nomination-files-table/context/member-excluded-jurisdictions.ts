@@ -1,20 +1,12 @@
 import { memberFullName } from '@/utils/user.utils';
 
-type Jurisdiction = { id: string; label: string | null };
-
 type ConflictingFile = {
-  content: {
-    jurisdictions: { current: Jurisdiction | null; targeted: Jurisdiction | null };
-    numeroDeDossier: number | null;
-  };
+  content: { numeroDeDossier: number | null };
+  excludedJurisdictionConflicts: readonly {
+    jurisdiction: { id: string; label: string | null };
+    member: { firstName: string; id: string; lastName: string };
+  }[];
   id: string;
-};
-
-type Member = {
-  excludedJurisdictions: readonly Jurisdiction[];
-  firstName: string;
-  id: string;
-  lastName: string;
 };
 
 export type ExcludedJurisdictionConflict = {
@@ -25,48 +17,19 @@ export type ExcludedJurisdictionConflict = {
   memberName: string;
 };
 
-export class MemberExcludedJurisdictions {
-  private constructor(
-    private readonly membersByExcludedJurisdictionId: ReadonlyMap<
-      string,
-      { excluded: Jurisdiction; member: Member }[]
-    >,
-  ) {}
-
-  static fromMembers(members: readonly Member[]): MemberExcludedJurisdictions {
-    const byJurisdictionId = new Map<string, { excluded: Jurisdiction; member: Member }[]>();
-
-    for (const member of members) {
-      for (const excluded of member.excludedJurisdictions) {
-        const entries = byJurisdictionId.get(excluded.id) ?? [];
-        entries.push({ excluded, member });
-        byJurisdictionId.set(excluded.id, entries);
-      }
-    }
-
-    return new MemberExcludedJurisdictions(byJurisdictionId);
-  }
-
-  conflictsFor(file: ConflictingFile, memberIds: readonly string[]): ExcludedJurisdictionConflict[] {
-    const { current, targeted } = file.content.jurisdictions;
-    const jurisdictions = new Map(
-      [current, targeted]
-        .filter((jurisdiction): jurisdiction is Jurisdiction => !!jurisdiction)
-        .map((jurisdiction) => [jurisdiction.id, jurisdiction]),
-    );
-
-    return [...jurisdictions.values()].flatMap((jurisdiction) =>
-      (this.membersByExcludedJurisdictionId.get(jurisdiction.id) ?? [])
-        .filter(({ member }) => memberIds.includes(member.id))
-        .map(({ excluded, member }) => ({
-          fileId: file.id,
-          fileNumber: file.content.numeroDeDossier,
-          jurisdiction: jurisdiction.label ?? excluded.label ?? jurisdiction.id,
-          memberId: member.id,
-          memberName: memberFullName(member),
-        })),
-    );
-  }
+export function excludedJurisdictionConflictsOf(
+  file: ConflictingFile,
+  memberIds: readonly string[],
+): ExcludedJurisdictionConflict[] {
+  return file.excludedJurisdictionConflicts
+    .filter(({ member }) => memberIds.includes(member.id))
+    .map(({ jurisdiction, member }) => ({
+      fileId: file.id,
+      fileNumber: file.content.numeroDeDossier,
+      jurisdiction: jurisdiction.label ?? jurisdiction.id,
+      memberId: member.id,
+      memberName: memberFullName(member),
+    }));
 }
 
 export function jurisdictionsByMember(

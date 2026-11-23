@@ -2,11 +2,9 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import {
-  useExcludedJurisdictions,
-  useExcludedJurisdictionTitles,
-} from '../context/excluded-jurisdictions.context';
 import { useNominationFilesTable } from '../context/files-table.context';
+import { excludedJurisdictionConflictsOf } from '../context/member-excluded-jurisdictions';
+import { useExcludedJurisdictionTitles } from '../hooks/useExcludedJurisdictionTitles';
 import { OutcomeBadge } from '@/shared/components/outcome-badge';
 import { useConfirmModal } from '@/shared/context/confirm-modal';
 import type { NominationFileOutcomeEnum } from '@/shared/enums/nomination-file-outcome.enum';
@@ -121,9 +119,8 @@ export function NominationFilesBulkActions(props: {
     [members],
   );
 
-  const excludedJurisdictions = useExcludedJurisdictions();
   const conflicts = props.selectedFiles.flatMap((file) =>
-    excludedJurisdictions.conflictsFor(
+    excludedJurisdictionConflictsOf(
       file,
       availableReporters.map(({ userId }) => userId),
     ),

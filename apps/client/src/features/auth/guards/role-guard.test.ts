@@ -35,6 +35,7 @@ describe('isAuthorized', () => {
 });
 
 const member = {
+  canListDeactivatedMembers: false,
   canManageApiClients: false,
   canManageTechnicalAccounts: false,
   civility: 'Madame LOVELACE',

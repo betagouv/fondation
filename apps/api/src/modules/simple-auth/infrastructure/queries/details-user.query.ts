@@ -12,6 +12,7 @@ import {
   ServedAdminUserRoleSchema,
 } from '../../../administration/infrastructure/dto/administration.dto';
 import { Db } from '../../../framework/database';
+import { canListDeactivatedMembers } from '../../../members/domain/member-list.policy';
 import { FormationEnum } from '../../../shared/formation.enum';
 import { GenderEnum } from '../../../shared/gender.enum';
 import { prismaGenderEnumToGenderEnum } from '../../../shared/mappers/gender-enum.mapper';
@@ -55,6 +56,7 @@ export class DetailsUserQuery {
     const isImpersonated = isDefined(query.impersonationId);
     return {
       ...user,
+      canListDeactivatedMembers: canListDeactivatedMembers(user),
       canManageApiClients: User.canManageApiClients({ isAdmin: user.isAdmin, isTechnical }),
       canManageTechnicalAccounts: User.canManageTechnicalAccounts({ isTechnical }),
       displayedRole: servedAdminUserRole(
@@ -88,6 +90,7 @@ export class DetailedUserResponseDto extends createZodDto(
     displayTitle: z.string().nullable(),
     canManageTechnicalAccounts: z.boolean(),
     canManageApiClients: z.boolean(),
+    canListDeactivatedMembers: z.boolean(),
     duty: z.enum(USER_DUTIES).nullable(),
     title: z.enum(USER_TITLES).nullable(),
   }),

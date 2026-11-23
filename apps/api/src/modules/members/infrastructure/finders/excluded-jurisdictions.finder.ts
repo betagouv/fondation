@@ -3,6 +3,10 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '../../../../generated/prisma/client';
 import { assertPgParams } from '../../../../utils/assert-pg-params';
 import { Db } from '../../../framework/database';
+import { roleEnumToPrismaRoleEnum } from '../../../shared/mappers/role-enum.mapper';
+import { MemberFormation, memberRolesOf } from '../member.utils';
+
+export type ExcludingMember = { id: string; firstName: string; lastName: string };
 
 @Injectable()
 export class ExcludedJurisdictionsFinder {
@@ -22,5 +26,33 @@ export class ExcludedJurisdictionsFinder {
     }
 
     return byMemberId;
+  }
+
+  /** deactivated members included: a reporter deactivated since keeps the files they have */
+  async findExcludingMembers(query: {
+    formations: readonly MemberFormation[];
+    jurisdictionIds: readonly string[];
+  }): Promise<Map<string, ExcludingMember[]>> {
+    if (query.jurisdictionIds.length === 0) return new Map();
+    assertPgParams(query.jurisdictionIds);
+
+    const exclusions = await this.db.tx.excludedJurisdiction.findMany({
+      orderBy: [{ user: { lastName: 'asc' } }, { user: { firstName: 'asc' } }],
+      select: {
+        jurisdictionId: true,
+        user: { select: { firstName: true, id: true, lastName: true } },
+      } satisfies Prisma.ExcludedJurisdictionSelect,
+      where: {
+        jurisdictionId: { in: [...query.jurisdictionIds] },
+        user: { role: { in: memberRolesOf(query.formations).map(roleEnumToPrismaRoleEnum) } },
+      },
+    });
+
+    const byJurisdictionId = new Map<string, ExcludingMember[]>();
+    for (const { jurisdictionId, user } of exclusions) {
+      byJurisdictionId.set(jurisdictionId, [...(byJurisdictionId.get(jurisdictionId) ?? []), user]);
+    }
+
+    return byJurisdictionId;
   }
 }

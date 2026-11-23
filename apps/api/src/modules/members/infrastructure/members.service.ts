@@ -1,11 +1,12 @@
 import { Transactional } from '@nestjs-cls/transactional';
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 
 import { Pagination } from '../../framework/pagination';
 import { FormationEnum } from '../../shared/formation.enum';
 import { UserStatus } from '../../shared/user-status.enum';
+import { canListDeactivatedMembers } from '../domain/member-list.policy';
 
-import { ExcludedJurisdictionsFinder } from './finders/excluded-jurisdictions.finder';
+import { ExcludedJurisdictionsFinder, ExcludingMember } from './finders/excluded-jurisdictions.finder';
 import { MemberRepository } from './member-repository';
 import { MemberFormation } from './member.utils';
 import { DetailedMemberDto, DetailsMemberQuery } from './queries/details-member.query';
@@ -38,7 +39,12 @@ export class MembersService {
     sortBy: 'firstName' | 'lastName' | undefined;
     sortDirection: 'asc' | 'desc' | undefined;
     statuses: readonly UserStatus[];
+    user: { isAdmin: boolean };
   }): Promise<PaginatedMemberListItemDto> {
+    if (query.statuses.includes('DEACTIVATED') && !canListDeactivatedMembers(query.user)) {
+      throw new ForbiddenException();
+    }
+
     return this.listMembersQuery.handle(query);
   }
 
@@ -81,6 +87,14 @@ export class MembersService {
     memberIds: readonly string[];
   }): Promise<Map<string, Set<string>>> {
     return this.excludedJurisdictionsFinder.find(query);
+  }
+
+  /** @internal */
+  internalFindExcludingMembers(query: {
+    formations: readonly MemberFormation[];
+    jurisdictionIds: readonly string[];
+  }): Promise<Map<string, ExcludingMember[]>> {
+    return this.excludedJurisdictionsFinder.findExcludingMembers(query);
   }
 
   /** @internal */

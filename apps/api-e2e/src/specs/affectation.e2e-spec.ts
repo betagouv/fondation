@@ -113,6 +113,28 @@ test.describe('Session Affectations E2E', () => {
     expect(files.data!.items[0]!.reporters).toEqual([]);
   });
 
+  test('flags a member deactivated since who excluded the jurisdiction of a file', async ({
+    admin,
+    agent,
+    expect,
+    registerUser,
+  }) => {
+    const excluding = await registerUser('MEMBRE_COMMUN');
+    await agent.members.excludeJurisdictions({
+      body: { jurisdictionIds: [seed.jurisdictions['CA  LYON'].id] },
+      path: { userId: excluding.id },
+      throwOnError: true,
+    });
+    await admin.administration.deactivate({ path: { userId: excluding.id }, throwOnError: true });
+
+    const { data } = await agent.sessions.listNominationFiles({ path: { sessionId }, throwOnError: true });
+
+    expect(data.items[0]!.excludedJurisdictionConflicts).toContainEqual({
+      jurisdiction: expect.objectContaining({ id: seed.jurisdictions['CA  LYON'].id }),
+      member: expect.objectContaining({ id: excluding.id }),
+    });
+  });
+
   test('never auto-affects a member a file they recused from', async ({ agent, expect, registerUser }) => {
     const recused = await registerUser('MEMBRE_COMMUN');
     await agent.sessions.recuseMembers({

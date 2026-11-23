@@ -13,7 +13,7 @@ import {
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { ApiPaginated, Pagination, QueryPagination } from '../framework/pagination';
-import { HasRole } from '../simple-auth';
+import { AuthedUser, HasRole } from '../simple-auth';
 
 import { ListMembersQueryDto } from './infrastructure/dtos/members.dto';
 import { ExcludeJurisdictionsDto, UpdateMemberDisplayTitleDto } from './infrastructure/member.dto';
@@ -34,6 +34,7 @@ export class MembersController {
     @QueryPagination()
     pagination: Pagination,
     @Query() query: ListMembersQueryDto,
+    @AuthedUser() user: { isAdmin: boolean },
   ): Promise<PaginatedMemberListItemDto> {
     return this.members.listMembers({
       pagination,
@@ -42,6 +43,7 @@ export class MembersController {
       sortBy: query.sortBy,
       sortDirection: query.sortDirection,
       statuses: query.statuses,
+      user,
     });
   }
 

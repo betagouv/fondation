@@ -5,6 +5,7 @@ export type StoryView = (typeof STORY_VIEWS)[number];
 
 export const STORY_USERS = {
   member: {
+    canListDeactivatedMembers: false,
     canManageApiClients: false,
     canManageTechnicalAccounts: false,
     civility: 'Madame PETIT',
@@ -21,6 +22,7 @@ export const STORY_USERS = {
     role: 'MEMBRE_DU_SIEGE',
   },
   sg: {
+    canListDeactivatedMembers: false,
     canManageApiClients: false,
     canManageTechnicalAccounts: false,
     civility: 'Madame BERNARD',
