@@ -11,12 +11,12 @@ import { isNonAffectableOn } from '../recused-members/recused-reporters';
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { ExcludedJurisdictionIcon } from '@/features/nomination-files-table/components/ExcludedJurisdictionIcon';
 import { ExcludedJurisdictionNotice } from '@/features/nomination-files-table/components/ExcludedJurisdictionNotice';
-import {
-  useExcludedJurisdictions,
-  useExcludedJurisdictionTitles,
-} from '@/features/nomination-files-table/context/excluded-jurisdictions.context';
 import { useNominationFilesTable } from '@/features/nomination-files-table/context/files-table.context';
-import { type ExcludedJurisdictionConflict } from '@/features/nomination-files-table/context/member-excluded-jurisdictions';
+import {
+  excludedJurisdictionConflictsOf,
+  type ExcludedJurisdictionConflict,
+} from '@/features/nomination-files-table/context/member-excluded-jurisdictions';
+import { useExcludedJurisdictionTitles } from '@/features/nomination-files-table/hooks/useExcludedJurisdictionTitles';
 import { DetailsLink } from '@/shared/components/details-link';
 import { LolfiLink } from '@/shared/components/lolfi-link';
 import { PriorityBadgeList } from '@/shared/components/priority-badge';
@@ -76,8 +76,7 @@ export function Header(props: { nominationFile: SessionNominationFile; sessionId
 
   const canEdit = canManage && nominationFile.canUpdate;
 
-  const excludedJurisdictions = useExcludedJurisdictions();
-  const conflicts = excludedJurisdictions.conflictsFor(
+  const conflicts = excludedJurisdictionConflictsOf(
     nominationFile,
     affectation.availableRapporteurs.map(({ userId }) => userId),
   );

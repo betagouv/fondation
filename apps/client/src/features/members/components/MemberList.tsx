@@ -2,9 +2,11 @@ import Tag from '@codegouvfr/react-dsfr/Tag';
 import { createColumnHelper, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import clsx from 'clsx';
 import { useCallback, useMemo } from 'react';
-import { defineMessages, FormattedMessage, useIntl } from 'react-intl';
+import { defineMessages, FormattedMessage, type IntlShape, useIntl } from 'react-intl';
 
 import { PinnedHeader } from '@/shared/components/pinned-header';
+import { UserStatusBadge } from '@/shared/components/user-status-badge';
+import { UserStatusEnum, UserStatusEnumMessages } from '@/shared/enums/user-status.enum';
 import {
   DataTable,
   DataTableCount,
@@ -17,6 +19,7 @@ import { SearchInput } from '@/shared/ui/search-input';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import { capitalize } from '@/utils/string.utils';
 import type { PaginatedMemberListItemDto } from '@api/types';
+import { useUser } from '@queries/auth.queries';
 import { type MembersSorting, useInfiniteMembersQuery } from '@queries/members.queries';
 
 const FORMATION_LABELS = defineMessages({
@@ -28,7 +31,32 @@ const FORMATION_LABELS = defineMessages({
 type ListedMember = PaginatedMemberListItemDto['items'][number];
 
 const h = createColumnHelper<ListedMember>();
-function useMemberColumns() {
+const statusColumn = (formatMessage: IntlShape['formatMessage']) =>
+  h.accessor('status', {
+    cell: ({ getValue }) => <UserStatusBadge status={getValue()} />,
+    enableSorting: false,
+    header: formatMessage({ defaultMessage: 'Compte' }),
+    id: 'status',
+    meta: {
+      filters: {
+        filterId: 'status',
+        label: formatMessage({ defaultMessage: 'Compte' }),
+        type: 'enum',
+        values: Object.values(UserStatusEnum).map((status) => ({
+          id: status,
+          label: formatMessage(UserStatusEnumMessages[status]),
+        })),
+      },
+    },
+    size: 140,
+  });
+
+/** every account unless filtered, where the API defaults to the active ones */
+function statusesOf(selected: ListedMember['status'][] | undefined): ListedMember['status'][] {
+  return selected?.length ? selected : Object.values(UserStatusEnum);
+}
+
+function useMemberColumns(canListDeactivated: boolean) {
   const { formatMessage } = useIntl();
 
   return useMemo(
@@ -87,6 +115,8 @@ function useMemberColumns() {
         size: 300,
       }),
 
+      ...(canListDeactivated ? [statusColumn(formatMessage)] : []),
+
       h.display({
         cell: ({ row }) => {
           const label = formatMessage(
@@ -106,22 +136,29 @@ function useMemberColumns() {
         size: 80,
       }),
     ],
-    [formatMessage],
+    [formatMessage, canListDeactivated],
   );
 }
 
 export function MemberList() {
   const { formatMessage } = useIntl();
+  const canListDeactivated = !!useUser().user?.canListDeactivatedMembers;
   const { onColumnFiltersChange, onSortingChange, setTableState, tableState } = useDataTableUrlState({
-    columnFilters: [] as { id: 'formation'; value: ('COMMUN' | 'PARQUET' | 'SIEGE')[] }[],
+    columnFilters: [] as (
+      | { id: 'formation'; value: ('COMMUN' | 'PARQUET' | 'SIEGE')[] }
+      | { id: 'status'; value: ListedMember['status'][] }
+    )[],
     globalFilter: '',
     sorting: [] as MembersSorting,
   });
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useInfiniteMembersQuery({
     filters: {
-      formations: tableState.columnFilters.find(({ id }) => id === 'formation')?.value,
+      formations: tableState.columnFilters.find((filter) => filter.id === 'formation')?.value,
       search: tableState.globalFilter,
+      statuses: canListDeactivated
+        ? statusesOf(tableState.columnFilters.find((filter) => filter.id === 'status')?.value)
+        : undefined,
     },
     sorting: tableState.sorting,
   });
@@ -134,7 +171,7 @@ export function MemberList() {
     if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
-  const columns = useMemberColumns();
+  const columns = useMemberColumns(canListDeactivated);
   const isFiltered =
     !!tableState.globalFilter || tableState.columnFilters.some(({ value }) => value.length > 0);
 

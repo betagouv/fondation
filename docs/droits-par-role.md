@@ -310,7 +310,7 @@ Dans les dossiers d'un magistrat, un Membre ne voit que l'affectation et les aud
 
 | Action                                                | Endpoint                                         | Membre | Secrétariat général | Administrateur |
 | ----------------------------------------------------- | ------------------------------------------------ | ------ | ------------------- | -------------- |
-| Lister les membres                                    | `GET /members/v1`                                | —      | ✓                   | ✓              |
+| Lister les membres                                    | `GET /members/v1`                                | —      | ✓ si comptes actifs | ✓              |
 | Voir un membre                                        | `GET /members/v1/:userId`                        | —      | ✓                   | ✓              |
 | Modifier le titre affiché d'un membre                 | `PUT /members/v1/:userId/display-title`          | —      | ✓                   | ✓              |
 | Modifier le titre déport d'un membre                  | `PUT /members/v1/:userId/recusal-title`          | —      | ✓                   | ✓              |
