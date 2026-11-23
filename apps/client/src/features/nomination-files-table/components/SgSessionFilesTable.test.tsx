@@ -16,13 +16,6 @@ import type { SessionNominationFileLockedReason } from '@queries/nomination-sess
 
 import { SgSessionFilesTable } from './SgSessionFilesTable';
 
-class NoopObserver {
-  disconnect() {}
-  observe() {}
-  unobserve() {}
-}
-vi.stubGlobal('ResizeObserver', NoopObserver);
-
 function listFiles(lockedReason: SessionNominationFileLockedReason) {
   vi.spyOn($api.sessions, 'listNominationFiles').mockResolvedValue({
     data: {

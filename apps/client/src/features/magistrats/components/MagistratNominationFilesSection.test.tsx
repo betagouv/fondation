@@ -8,15 +8,6 @@ import { frFormat } from '@/i18n/formats';
 import { MagistratNominationFilesSection } from './MagistratNominationFilesSection';
 import type { MagistratNominationFile } from './MagistratNominationFilesTable';
 
-vi.stubGlobal(
-  'ResizeObserver',
-  class {
-    disconnect() {}
-    observe() {}
-    unobserve() {}
-  },
-);
-
 const fetchNextPage = vi.fn();
 let query: {
   data: { pages: { items: MagistratNominationFile[] }[] } | undefined;

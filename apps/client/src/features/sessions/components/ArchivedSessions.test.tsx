@@ -16,7 +16,6 @@ class NoopObserver {
   unobserve() {}
 }
 vi.stubGlobal('IntersectionObserver', NoopObserver);
-vi.stubGlobal('ResizeObserver', NoopObserver);
 
 const useArchivedSessionsQuery = vi.hoisted(() =>
   vi.fn(() => ({

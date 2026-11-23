@@ -9,15 +9,6 @@ import { ROUTE_PATHS } from '@/utils/route-path.utils';
 
 import { PresentationPreviewPage } from './PresentationsPreviewPage';
 
-vi.stubGlobal(
-  'ResizeObserver',
-  class {
-    disconnect() {}
-    observe() {}
-    unobserve() {}
-  },
-);
-
 const mocks = vi.hoisted(() => ({
   html: { data: undefined, error: null as unknown, isPending: true },
   metadata: { data: undefined as unknown, isFetching: false },
