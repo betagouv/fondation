@@ -221,7 +221,8 @@ test.describe('Session Affectations E2E', () => {
 
     const files = await agent.sessions.listNominationFiles({ path: { sessionId } });
     expect(files.data!.items[0]).toMatchObject({
-      nonAffectableMembers: [{ id: memberId, reason: 'EXCLUDED_MAGISTRAT' }],
+      nonAffectableMembers: [],
+      reporterWarnings: [{ id: memberId, reason: 'EXCLUDED_MAGISTRAT' }],
       reporters: [{ id: memberId }],
     });
   });

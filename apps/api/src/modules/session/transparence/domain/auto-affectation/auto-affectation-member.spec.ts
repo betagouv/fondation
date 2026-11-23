@@ -83,13 +83,13 @@ describe('auto affectation member', () => {
       expect(
         member.canReportOn(
           AutoAffectationNominationFile.from({
-            session,
-            number: 1,
+            currentJurisdiction: 'CA  LYON',
             id: 'file-1',
             magistratExcludedMemberIds: new Set(['member-1']),
+            number: 1,
+            session,
             targetedGrade: 'G2',
             targetedJurisdiction: 'CA  STRASBOURG',
-            currentJurisdiction: 'CA  LYON',
           }),
         ),
       ).toBe(false);

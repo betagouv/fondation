@@ -608,6 +608,13 @@ export type PaginatedNominationFiles = {
             id: string;
             reason: 'REPORTER';
         }>;
+        /**
+         * the reporters in place who keep the file despite a warning, for the secretariat only
+         */
+        reporterWarnings: Array<{
+            id: string;
+            reason: 'EXCLUDED_MAGISTRAT';
+        }>;
         reporters: Array<{
             id: string;
             firstName: string;
@@ -980,6 +987,13 @@ export type DetailedNominationFileDto = {
         id: string;
         reason: 'REPORTER';
     }>;
+    /**
+     * the reporters in place who keep the file despite a warning, for the secretariat only
+     */
+    reporterWarnings: Array<{
+        id: string;
+        reason: 'EXCLUDED_MAGISTRAT';
+    }>;
     reporters: Array<{
         id: string;
         firstName: string;
@@ -1267,7 +1281,7 @@ export type DetailedMemberDto = {
         id: string;
         name: string;
         status: 'ACTIVE' | 'INACTIVE';
-        grade: string | null;
+        gradeAndJurisdiction: string | null;
         currentPosition: {
             function: {
                 id: string;

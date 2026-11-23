@@ -75,7 +75,7 @@ test.describe('Members E2E', () => {
             function: expect.objectContaining({ id: seed.functions.PR.id }),
             jurisdiction: expect.objectContaining({ id: seed.jurisdictions['CA  LYON'].id }),
           },
-          grade: expect.any(String),
+          gradeAndJurisdiction: expect.stringContaining('CA LYON'),
           id: magistratId,
           name: 'TREVOUX Etienne',
           status: 'ACTIVE',

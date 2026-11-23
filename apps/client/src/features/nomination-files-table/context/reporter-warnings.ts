@@ -1,6 +1,5 @@
 import { useIntl } from 'react-intl';
 
-import { nonAffectableReasonOn } from '../components/cells/magistrat-side-panel/components/recused-members/recused-reporters';
 import { memberFullName } from '@/utils/user.utils';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
 
@@ -15,15 +14,16 @@ export function useReporterWarnings(
   const { formatMessage } = useIntl();
   const warnings = new Map(jurisdictionTitles);
 
-  for (const reporter of file.reporters) {
-    if (nonAffectableReasonOn(file, reporter.id) !== 'EXCLUDED_MAGISTRAT') continue;
+  for (const { id } of file.reporterWarnings) {
+    const reporter = file.reporters.find((candidate) => candidate.id === id);
+    if (!reporter) continue;
 
     const title = formatMessage(
       { defaultMessage: '{memberName} a exclu le magistrat proposé' },
       { memberName: memberFullName(reporter) },
     );
-    const jurisdictions = warnings.get(reporter.id);
-    warnings.set(reporter.id, jurisdictions ? `${jurisdictions}. ${title}` : title);
+    const jurisdictions = warnings.get(id);
+    warnings.set(id, jurisdictions ? `${jurisdictions}. ${title}` : title);
   }
 
   return warnings;

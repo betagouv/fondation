@@ -12,15 +12,14 @@ function ExcludedMagistratList(props: { excluded: readonly ExcludedMagistrat[] }
 
   return (
     <ul className="fr-p-0 fr-m-0 flex list-none flex-col items-end gap-1 text-right">
-      {props.excluded.map(({ currentPosition, grade, id, name }) => {
-        const position = [grade, currentPosition?.jurisdiction.label].filter(Boolean).join(', ');
-        return (
-          <li className="fr-p-0" key={id}>
-            {name}
-            {position && <span className="text-(--text-mention-grey)"> · {position}</span>}
-          </li>
-        );
-      })}
+      {props.excluded.map(({ gradeAndJurisdiction, id, name }) => (
+        <li className="fr-p-0" key={id}>
+          {name}
+          {gradeAndJurisdiction && (
+            <span className="text-(--text-mention-grey)"> · {gradeAndJurisdiction}</span>
+          )}
+        </li>
+      ))}
     </ul>
   );
 }

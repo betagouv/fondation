@@ -83,6 +83,7 @@ const NOMINATION_FILE: DetailedNominationFileDto = {
   observations: [],
   priorities: ['ETOILE'],
   recusedMembers: [],
+  reporterWarnings: [],
   reporters: [{ firstName: 'Jean', id: STORY_USERS.member.id, lastName: 'Petit' }],
   summary: null,
 };

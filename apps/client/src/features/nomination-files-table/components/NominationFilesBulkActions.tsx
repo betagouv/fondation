@@ -195,10 +195,7 @@ export function NominationFilesBulkActions(props: {
           props.selectedFiles,
           change.added,
           members?.items ?? [],
-          // a reporter in place who excluded the proposed magistrat since keeps the file
-          (file, memberId) =>
-            nonAffectableReasonOn(file, memberId) === reason &&
-            !file.reporters.some(({ id }) => id === memberId),
+          (file, memberId) => nonAffectableReasonOn(file, memberId) === reason,
         );
       const recusedMembers = blockedBy('RECUSED');
       const excludingMembers = blockedBy('EXCLUDED_MAGISTRAT');
@@ -236,13 +233,17 @@ export function NominationFilesBulkActions(props: {
                   },
                   { count: recusedMembers.length },
                 )
-              : formatMessage(
-                  {
-                    defaultMessage:
-                      '{count, plural, one {Affecter un membre non affectable} other {Affecter des membres non affectables}}',
-                  },
-                  { count: recusedMembers.length + excludingMembers.length },
-                ),
+              : recusedMembers.length === 0
+                ? formatMessage(
+                    {
+                      defaultMessage:
+                        '{count, plural, one {Affecter un membre ayant exclu le magistrat proposé} other {Affecter des membres ayant exclu le magistrat proposé}}',
+                    },
+                    { count: excludingMembers.length },
+                  )
+                : formatMessage({
+                    defaultMessage: 'Affecter des membres déportés ou ayant exclu le magistrat proposé',
+                  }),
         });
         if (!isConfirmed) return;
       }

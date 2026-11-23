@@ -46,8 +46,8 @@ const SOPHIE = { firstName: 'Sophie', id: 'member-2', lastName: 'PARQUET' };
 function file(props: {
   canUpdate?: boolean;
   id: string;
-  nomMagistrat: string;
   magistratExcludingIds?: readonly string[];
+  nomMagistrat: string;
   nonAffectableMemberIds?: readonly string[];
   nonRecusableMemberIds?: readonly string[];
   numeroDeDossier?: number;
@@ -472,7 +472,9 @@ describe('NominationFilesBulkActions', () => {
     await openDropdown(/Affecter un rapporteur/);
     await chooseOption('Camille COMMUN');
 
-    const dialog = screen.getByRole('dialog', { name: 'Affecter un membre non affectable' });
+    const dialog = screen.getByRole('dialog', {
+      name: 'Affecter un membre ayant exclu le magistrat proposé',
+    });
     expect(within(dialog).getByRole('listitem')).toHaveTextContent('Camille COMMUN : n° 12 et n° 15');
     expect(dialog).not.toHaveTextContent('BOURDIEU');
 
@@ -480,27 +482,6 @@ describe('NominationFilesBulkActions', () => {
 
     expect(affectReporters).toHaveBeenCalledWith(
       { affectations: [{ nominationFileId: 'file-3', reporterIds: ['member-1'] }], sessionId: 'session-1' },
-      expect.anything(),
-    );
-  });
-
-  it('should not flag a reporter in place who excluded the proposed magistrat since', async () => {
-    renderActions([
-      file({
-        id: 'file-1',
-        magistratExcludingIds: [CAMILLE.id],
-        nomMagistrat: 'BOURDIEU Pierre',
-        reporters: [{ id: CAMILLE.id }],
-      }),
-      file({ id: 'file-2', nomMagistrat: 'HARENDT Anna' }),
-    ]);
-
-    await openDropdown(/Affecter un rapporteur/);
-    await chooseOption('Camille COMMUN');
-
-    expect(screen.queryByRole('dialog')).toBeNull();
-    expect(affectReporters).toHaveBeenCalledWith(
-      { affectations: [{ nominationFileId: 'file-2', reporterIds: ['member-1'] }], sessionId: 'session-1' },
       expect.anything(),
     );
   });

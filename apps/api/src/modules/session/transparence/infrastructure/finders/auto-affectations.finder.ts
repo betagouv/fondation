@@ -109,13 +109,13 @@ export class AutoAffectationsFinder {
     return nominationFiles
       .map(
         ({
+          currentJurisdiction,
           id,
-          number,
           magistratExcludedMemberIds,
+          number,
           recusedMemberIds,
           targetedGrade,
           targetedJurisdiction,
-          currentJurisdiction,
         }) => {
           if (
             !isDefined(number) ||
@@ -126,13 +126,13 @@ export class AutoAffectationsFinder {
           }
 
           return AutoAffectationNominationFile.from({
+            currentJurisdiction,
             id,
+            magistratExcludedMemberIds,
+            number,
+            recusedMemberIds,
             session,
             targetedGrade,
-            number,
-            currentJurisdiction,
-            magistratExcludedMemberIds,
-            recusedMemberIds,
             targetedJurisdiction,
           });
         },

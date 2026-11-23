@@ -1,41 +1,63 @@
-import { nonAffectableMembers, nonRecusableMembers, refusedReporters } from './member-recusal';
+import {
+  nonAffectableMembers,
+  nonRecusableMembers,
+  refusedReporters,
+  reporterWarnings,
+} from './member-recusal';
+
+const file = {
+  assignedIds: new Set<string>(),
+  magistratExcludedIds: new Set<string>(),
+  recusedIds: new Set<string>(),
+};
 
 describe('nonAffectableMembers', () => {
   it('keeps every member recused from the file out of its reporters', () => {
-    expect(
-      nonAffectableMembers({
-        magistratExcludedIds: new Set(),
-        recusedIds: new Set(['member-1', 'member-2']),
-      }),
-    ).toEqual([
+    expect(nonAffectableMembers({ ...file, recusedIds: new Set(['member-1', 'member-2']) })).toEqual([
       { id: 'member-1', reason: 'RECUSED' },
       { id: 'member-2', reason: 'RECUSED' },
     ]);
   });
 
   it('keeps every member who excluded the proposed magistrat out of its reporters', () => {
-    expect(
-      nonAffectableMembers({ magistratExcludedIds: new Set(['member-1']), recusedIds: new Set() }),
-    ).toEqual([{ id: 'member-1', reason: 'EXCLUDED_MAGISTRAT' }]);
+    expect(nonAffectableMembers({ ...file, magistratExcludedIds: new Set(['member-1']) })).toEqual([
+      { id: 'member-1', reason: 'EXCLUDED_MAGISTRAT' },
+    ]);
   });
 
   it('gives the recusal of a member who also excluded the magistrat', () => {
     expect(
       nonAffectableMembers({
+        ...file,
         magistratExcludedIds: new Set(['member-1']),
         recusedIds: new Set(['member-1']),
       }),
     ).toEqual([{ id: 'member-1', reason: 'RECUSED' }]);
   });
+
+  it('leaves a reporter in place who excluded the magistrat afterwards affectable', () => {
+    expect(
+      nonAffectableMembers({
+        ...file,
+        assignedIds: new Set(['member-1']),
+        magistratExcludedIds: new Set(['member-1']),
+      }),
+    ).toEqual([]);
+  });
+});
+
+describe('reporterWarnings', () => {
+  it('warns about a reporter in place who excluded the magistrat afterwards', () => {
+    expect(
+      reporterWarnings({
+        assignedIds: new Set(['member-1', 'member-2']),
+        magistratExcludedIds: new Set(['member-1', 'member-3']),
+      }),
+    ).toEqual([{ id: 'member-1', reason: 'EXCLUDED_MAGISTRAT' }]);
+  });
 });
 
 describe('refusedReporters', () => {
-  const file = {
-    assignedIds: new Set<string>(),
-    magistratExcludedIds: new Set<string>(),
-    recusedIds: new Set<string>(),
-  };
-
   it('refuses a member who excluded the proposed magistrat', () => {
     expect(
       refusedReporters({ ...file, magistratExcludedIds: new Set(['member-1']), reporterIds: ['member-1'] }),

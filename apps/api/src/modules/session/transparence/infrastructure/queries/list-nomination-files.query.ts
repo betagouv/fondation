@@ -63,6 +63,8 @@ import {
   NON_RECUSABLE_REASONS,
   nonAffectableMembers,
   nonRecusableMembers,
+  REPORTER_WARNING_REASONS,
+  reporterWarnings,
 } from '../../domain/member-recusal';
 import {
   NOMINATION_SESSION_FILE_STATUSES,
@@ -289,6 +291,10 @@ export class ListNominationFilesQuery {
     }));
 
     return files.map((x): NominationFileAffectationItem => {
+      const affectability = {
+        assignedIds: reporters.get(x.id)?.latestIds ?? new Set<string>(),
+        magistratExcludedIds: magistratExcludedMembers.get(x.id) ?? new Set<string>(),
+      };
       const auditionedPosition = {
         detectedJurisdictionId: x.detectedJurisdictionId ?? null,
         detectedJurisdictionType: x.detectedJurisdictionType ?? null,
@@ -358,8 +364,9 @@ export class ListNominationFilesQuery {
         missingEvaluation: x.missingEvaluation,
         missingEvaluationComment: x.missingEvaluationComment,
         nonAffectableMembers: nonAffectableMembers({
+          ...affectability,
           magistratExcludedIds: nominationFilesPolicies.canUpdateNominationFile(x, query.user)
-            ? (magistratExcludedMembers.get(x.id) ?? new Set())
+            ? affectability.magistratExcludedIds
             : new Set(),
           recusedIds: new Set(recusedMembers.get(x.id)?.map(({ id }) => id)),
         }),
@@ -377,6 +384,7 @@ export class ListNominationFilesQuery {
         })),
         priorities: x.priorities.map(prismaPrioriteEnumToPriorityEnum),
         recusedMembers: recusedMembers.get(x.id) ?? [],
+        reporterWarnings: reporterWarnings(affectability),
         reporters: x.reporters.map(({ user: { id, firstName, lastName } }) => ({
           firstName,
           id,
@@ -589,6 +597,9 @@ const NominationFileAffectationItemSchema = z.object({
   nonRecusableMembers: z
     .array(z.object({ id: z.string(), reason: z.enum(NON_RECUSABLE_REASONS) }))
     .meta({ description: 'empty when the user cannot recuse members on this file' }),
+  reporterWarnings: z.array(z.object({ id: z.string(), reason: z.enum(REPORTER_WARNING_REASONS) })).meta({
+    description: 'the reporters in place who keep the file despite a warning, for the secretariat only',
+  }),
   reporters: z.array(
     z.object({
       id: z.string(),

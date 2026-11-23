@@ -108,22 +108,4 @@ describe('ReporterSelect', () => {
       'Un membre qui a exclu le magistrat proposé ne peut pas être affecté.',
     );
   });
-
-  it('lets the secretariat remove a reporter in place who excluded the proposed magistrat since', async () => {
-    const onChange = vi.fn();
-    const user = userEvent.setup();
-    renderWithIntl(
-      <ReporterSelect
-        available={REPORTERS}
-        nonAffectableReason={(memberId) => (memberId === 'a' ? 'EXCLUDED_MAGISTRAT' : undefined)}
-        onChange={onChange}
-        value={['a']}
-      />,
-    );
-
-    await user.click(screen.getByRole('button', { name: 'Affecter un rapporteur 1 sélectionné' }));
-    await user.click(await screen.findByRole('option', { name: 'Jean ALBERT' }));
-
-    expect(onChange).toHaveBeenCalledWith([]);
-  });
 });

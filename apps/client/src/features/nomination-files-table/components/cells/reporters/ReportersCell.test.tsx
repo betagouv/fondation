@@ -14,13 +14,16 @@ const LYON = { id: 'CA  LYON', label: "Cour d'appel de Lyon" };
 const CAMILLE = { firstName: 'Camille', id: 'camille', lastName: 'Commun' };
 const PAUL = { firstName: 'Paul', id: 'paul', lastName: 'Parquet' };
 
-function renderCell(excludingMembers: (typeof CAMILLE)[], magistratExcludingIds: readonly string[] = []) {
+function renderCell(
+  excludingMembers: (typeof CAMILLE)[],
+  magistratExcludingReporterIds: readonly string[] = [],
+) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   client.setQueryData(authKeys.introspectSession(), { ...PAUL, role: 'MEMBRE_DU_SIEGE' });
 
   const dossier = makeSessionNominationFile({
     excludedJurisdictionConflicts: excludingMembers.map((member) => ({ jurisdiction: LYON, member })),
-    nonAffectableMembers: magistratExcludingIds.map((id) => ({ id, reason: 'EXCLUDED_MAGISTRAT' })),
+    reporterWarnings: magistratExcludingReporterIds.map((id) => ({ id, reason: 'EXCLUDED_MAGISTRAT' })),
     reporters: [CAMILLE, PAUL],
   });
 

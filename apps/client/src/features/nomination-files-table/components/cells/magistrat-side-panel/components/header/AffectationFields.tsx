@@ -44,10 +44,7 @@ export function ReporterSelect(props: {
   available: readonly Reporter[];
   disabled?: boolean;
   excludedTitleByRapporteurId?: ReadonlyMap<string, string>;
-  /**
-   * why a member cannot become a reporter of the file; a reporter in place who excluded the
-   * proposed magistrat since stays selected, until removed
-   */
+  /** why a member cannot become a reporter of the file */
   nonAffectableReason?: (memberId: string) => NonAffectableReason | undefined;
   onChange: (ids: string[]) => void;
   onClear?: () => void;
@@ -69,7 +66,7 @@ export function ReporterSelect(props: {
   const reporterOptions = [...available]
     .sort((a, b) => a.lastName.localeCompare(b.lastName))
     .map((reporter) => {
-      const reason = value.includes(reporter.userId) ? undefined : nonAffectableReason?.(reporter.userId);
+      const reason = nonAffectableReason?.(reporter.userId);
       const nonAffectable = !!reason;
       if (reason) blockedReasons.add(reason);
       // the reason already tells why a member cannot be chosen

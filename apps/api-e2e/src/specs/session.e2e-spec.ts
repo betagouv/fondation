@@ -160,6 +160,7 @@ test.describe('Session E2E', () => {
         observations: [],
         priorities: [],
         recusedMembers: [],
+        reporterWarnings: [],
         reporters: [
           expect.objectContaining({
             firstName: 'côme',
@@ -222,6 +223,7 @@ test.describe('Session E2E', () => {
         observations: [],
         priorities: [],
         recusedMembers: [],
+        reporterWarnings: [],
         reporters: expect.arrayContaining([
           expect.objectContaining({
             firstName: 'charles',

@@ -62,7 +62,7 @@ export class MembersService {
   }
 
   @Transactional()
-  async excludeMagistrats(command: { userId: string; magistratIds: readonly string[] }): Promise<void> {
+  async excludeMagistrats(command: { magistratIds: readonly string[]; userId: string }): Promise<void> {
     const member = await this.memberRepository.find(command.userId);
     member.excludeMagistrats({
       knownMagistratIds: await this.memberRepository.findKnownMagistratIds(command.magistratIds),
