@@ -97,6 +97,17 @@ test.describe('Members E2E', () => {
       expect(member?.excludedJurisdictions).toEqual([expect.objectContaining({ id: expect.stringMatching(/LYON/i) })]);
       expect(member?.formation).toEqual({ id: 'COMMUN', label: 'Commun' });
     });
+
+    test('lists a deactivated member to an admin', async ({ admin, expect }) => {
+      await admin.administration.deactivate({ path: { userId: memberId }, throwOnError: true });
+
+      const { data } = await admin.members.listMembers({
+        query: { formations: [], search: memberLastName, statuses: ['DEACTIVATED'] },
+        throwOnError: true,
+      });
+
+      expect(data.items).toEqual([expect.objectContaining({ id: memberId, status: 'DEACTIVATED' })]);
+    });
   });
 
   test.describe('Given a user with role MEMBRE_COMMUN', () => {

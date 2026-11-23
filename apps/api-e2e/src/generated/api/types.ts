@@ -28,6 +28,7 @@ export type DetailedUserResponseDto = {
     isAdmin: boolean;
     displayTitle: string | null;
     canManageTechnicalAccounts: boolean;
+    canListDeactivatedMembers: boolean;
     duty: 'PRESIDENT' | 'DEPUTY_PRESIDENT' | 'SECRETARY' | 'OFFICER' | null;
     title: 'PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_PARQUET' | 'FIRST_SECRETARY' | null;
 };
@@ -450,6 +451,20 @@ export type PaginatedNominationFiles = {
             minutes: number;
             seconds: number;
         } | null;
+        /**
+         * the members of the session formation, deactivated ones included, who excluded the current or the targeted jurisdiction; empty outside the secretariat
+         */
+        excludedJurisdictionConflicts: Array<{
+            jurisdiction: {
+                id: string;
+                label: string | null;
+            };
+            member: {
+                id: string;
+                firstName: string;
+                lastName: string;
+            };
+        }>;
         expectedReportersCount: number | null;
         missingEvaluation: boolean;
         missingEvaluationComment: string | null;
@@ -808,6 +823,20 @@ export type DetailedNominationFileDto = {
         minutes: number;
         seconds: number;
     } | null;
+    /**
+     * the members of the session formation, deactivated ones included, who excluded the current or the targeted jurisdiction; empty outside the secretariat
+     */
+    excludedJurisdictionConflicts: Array<{
+        jurisdiction: {
+            id: string;
+            label: string | null;
+        };
+        member: {
+            id: string;
+            firstName: string;
+            lastName: string;
+        };
+    }>;
     expectedReportersCount: number | null;
     missingEvaluation: boolean;
     missingEvaluationComment: string | null;

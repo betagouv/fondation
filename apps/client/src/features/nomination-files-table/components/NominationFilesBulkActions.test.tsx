@@ -3,9 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { IntlProvider } from 'react-intl';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { ExcludedJurisdictionsContext } from '../context/excluded-jurisdictions.context';
 import { NominationFilesTableContext } from '../context/files-table.context';
-import { MemberExcludedJurisdictions } from '../context/member-excluded-jurisdictions';
 import { ConfirmModalProvider } from '@/shared/context/confirm-modal';
 import { ToastProvider } from '@/shared/ui/toast';
 import type { SessionNominationFile } from '@queries/nomination-sessions.queries';
@@ -69,6 +67,7 @@ function file(props: {
     nonAffectableMembers: (props.nonAffectableMemberIds ?? []).map((id) => ({ id, reason: 'RECUSED' })),
     nonRecusableMembers: (props.nonRecusableMemberIds ?? []).map((id) => ({ id, reason: 'REPORTER' })),
     priorities: props.priorities ?? [],
+    excludedJurisdictionConflicts: [],
     recusedMembers: props.recusedMembers ?? [],
     reporters: props.reporters ?? [],
   } as unknown as SessionNominationFile;
@@ -82,9 +81,7 @@ function actions(selectedFiles: readonly SessionNominationFile[]) {
           <NominationFilesTableContext
             value={{ canManage: true, formation: 'PARQUET', outcomes: OUTCOMES, sessionId: 'session-1' }}
           >
-            <ExcludedJurisdictionsContext value={MemberExcludedJurisdictions.fromMembers([])}>
-              <NominationFilesBulkActions onClose={vi.fn()} selectedFiles={selectedFiles} />
-            </ExcludedJurisdictionsContext>
+            <NominationFilesBulkActions onClose={vi.fn()} selectedFiles={selectedFiles} />
           </NominationFilesTableContext>
         </ConfirmModalProvider>
       </ToastProvider>

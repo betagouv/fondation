@@ -14,6 +14,7 @@ import { auditionScheduleSchema } from '../../../../../utils/audition-schedule';
 import { commentLastChangeSchema } from '../../../../../utils/comment';
 import { DateOnly, dateOnlyJsonSchema } from '../../../../../utils/date-only';
 import { toFullTextQuery } from '../../../../../utils/fulltext-search';
+import { isDefined } from '../../../../../utils/is-defined';
 import { partition } from '../../../../../utils/iterables';
 import { privateContentSchema } from '../../../../../utils/personal-content';
 import { timeOnlySchema } from '../../../../../utils/time-only';
@@ -22,8 +23,10 @@ import { Db } from '../../../../framework/database';
 import { createPaginatedZodDto, paginate, Pagination } from '../../../../framework/pagination';
 import { Sortable } from '../../../../framework/sorting';
 import { proposedMagistratName } from '../../../../magistrat/domain/magistrat-name';
+import { type ExcludingMember, MembersService } from '../../../../members';
 import { ObservationFollowUp } from '../../../../observation/domain/observation-follow-up';
 import { ObservationService } from '../../../../observation/observation.service';
+import { FormationEnum } from '../../../../shared/formation.enum';
 import { GradeEnum } from '../../../../shared/grade.enum';
 import {
   priorityEnumToPrismaPrioriteEnum,
@@ -53,6 +56,7 @@ import {
 } from '../../../../shared/policies/summary.policies';
 import { PriorityEnum } from '../../../../shared/priority.enum';
 import { isSecretariat, type RoleEnum } from '../../../../shared/role.enum';
+import { excludedJurisdictionConflicts } from '../../domain/excluded-jurisdiction-conflicts';
 import {
   type FileReporters,
   NON_AFFECTABLE_REASONS,
@@ -80,6 +84,7 @@ export class ListNominationFilesQuery {
     private readonly db: Db,
     private readonly versionFinder: AffectationVersionFinder,
     private readonly jurisdictionsFinder: NominationFileJurisdictionsFinder,
+    private readonly members: MembersService,
     private readonly recusedMembersFinder: RecusedMembersFinder,
 
     @Inject(forwardRef(() => DocsService))
@@ -192,7 +197,7 @@ export class ListNominationFilesQuery {
   private async loadFiles(query: {
     nominationFileIds: string[] | null;
     pagination: { limit: number; page: number };
-    session: { archivedAt: Date | null };
+    session: { archivedAt: Date | null; formation: FormationEnum };
     sessionId: string;
     sorting: Sortable<ListNominationFilesQueryDto>;
     user: { id: string; impersonation: Impersonation | undefined; role: RoleEnum };
@@ -252,6 +257,18 @@ export class ListNominationFilesQuery {
           nominationFileIds: [...nominationFileIds],
         })
       : new Map<string, FileReporters>();
+    const excludingMembers = isSecretariat(query.user.role)
+      ? await this.members.internalFindExcludingMembers({
+          formations: ['COMMUN', query.session.formation],
+          jurisdictionIds: [
+            ...new Set(
+              [...jurisdictions.values()].flatMap(({ current, targeted }) =>
+                [current?.id, targeted?.id].filter(isDefined),
+              ),
+            ),
+          ],
+        })
+      : new Map<string, ExcludingMember[]>();
 
     const isArchived = !!query.session.archivedAt;
 
@@ -319,6 +336,7 @@ export class ListNominationFilesQuery {
           },
           version: 2,
         },
+        excludedJurisdictionConflicts: excludedJurisdictionConflicts(x.jurisdictions, excludingMembers),
         expectedReportersCount: expectedReportersCount(auditionedPosition),
         hasAttachment: x.hasAttachment,
         id: x.id,
@@ -542,6 +560,17 @@ const NominationFileAffectationItemSchema = z.object({
   auditionRequired: z.boolean(),
   auditionRequirement: z.enum(AUDITION_REQUIREMENTS).nullable(),
   auditionTime: timeOnlySchema.nullable(),
+  excludedJurisdictionConflicts: z
+    .array(
+      z.object({
+        jurisdiction: JurisdictionSchema,
+        member: z.object({ id: z.string(), firstName: z.string(), lastName: z.string() }),
+      }),
+    )
+    .meta({
+      description:
+        'the members of the session formation, deactivated ones included, who excluded the current or the targeted jurisdiction; empty outside the secretariat',
+    }),
   expectedReportersCount: z.number().nullable(),
   missingEvaluation: z.boolean(),
   missingEvaluationComment: z.string().nullable(),
