@@ -10,7 +10,7 @@ export class CountUsersNewSessionsQuery {
 
   async handle(): Promise<CountUsersNewSessionsDto> {
     const count = await this.db.tx.session.count({
-      where: { validatedAt: null, deletedAt: null },
+      where: { archivedAt: null, deletedAt: null, validatedAt: null },
     });
 
     return { count };

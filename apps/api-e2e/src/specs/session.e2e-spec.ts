@@ -1238,6 +1238,17 @@ test.describe('Session E2E', () => {
       });
       expect(concurrentWrite.response?.status).toBe(403);
     }, 10_000);
+
+    test('should leave the archived sessions out of the new ones', async ({ agent, expect, sessions, sql }) => {
+      const { id } = await sessions.createOne(TREVOUX_SESSION);
+      const { data: before } = await agent.sessions.countUsersNewSessions({ throwOnError: true });
+
+      // only the sessions validated before September 2026 were archived without a validation date
+      await sql`update nominations_context.session set archived_at = now() where id = ${id}`;
+
+      const { data: after } = await agent.sessions.countUsersNewSessions({ throwOnError: true });
+      expect(after.count).toBe(before.count - 1);
+    });
   });
 
   test.describe('Given a member affected to a nomination file', () => {
