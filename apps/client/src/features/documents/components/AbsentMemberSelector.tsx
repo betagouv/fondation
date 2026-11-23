@@ -51,7 +51,7 @@ export function AbsentMemberSelector(
           id: member.id,
           label: memberFullName(member),
         }))}
-      placeholder={<FormattedMessage defaultMessage="Sélectionner les members absents" />}
+      placeholder={<FormattedMessage defaultMessage="Sélectionner les membres absents" />}
       removeTitle={(member) => formatMessage({ defaultMessage: 'Retirer {member} des absents' }, { member })}
       selected={field.value.flatMap((id) => {
         const member = members.get(id);

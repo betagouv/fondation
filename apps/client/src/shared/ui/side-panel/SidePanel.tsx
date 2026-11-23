@@ -45,7 +45,8 @@ export function SidePanel(props: {
       previouslyFocused.current = document.activeElement as HTMLElement | null;
       panelRef.current?.focus();
     } else {
-      previouslyFocused.current?.focus();
+      // the page scrolled on under the panel: bringing the trigger back into view would jump it to the first file opened
+      previouslyFocused.current?.focus({ preventScroll: true });
       previouslyFocused.current = null;
     }
   }, [open]);
