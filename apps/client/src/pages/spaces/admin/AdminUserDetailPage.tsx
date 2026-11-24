@@ -15,6 +15,7 @@ import { useTab } from '@/shared/hooks/useTab';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { DetailsCard, DetailsHeader, DetailsPageLayout } from '@/shared/ui/details';
 import { IconButton } from '@/shared/ui/icon-button';
+import { Timeline } from '@/shared/ui/timeline';
 import { ToggleSwitch } from '@/shared/ui/toggle-switch';
 import { generatePassword } from '@/utils/password.utils';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
@@ -658,7 +659,7 @@ function AccessCard(props: { user: DetailedAdminUserDto }) {
 }
 
 function AccountStatusHistory(props: { statusChanges: DetailedAdminUserDto['statusChanges'] }) {
-  const { formatDate, formatMessage, formatTime } = useIntl();
+  const { formatMessage } = useIntl();
   const { user: currentUser } = useUser();
   if (props.statusChanges.length === 0) return null;
 
@@ -667,44 +668,28 @@ function AccountStatusHistory(props: { statusChanges: DetailedAdminUserDto['stat
       <p className="fr-text--xs fr-mb-2v font-bold text-(--text-mention-grey) uppercase">
         <FormattedMessage defaultMessage="Historique" />
       </p>
-      <ul className="fr-m-0 fr-p-0 fr-pl-4v flex list-none flex-col gap-3 border-l border-(--border-default-grey)">
-        {props.statusChanges.map(({ changedAt, changedBy, status }, index) => {
-          // the oldest change, last of the list, is the creation of the account
-          const change =
-            index === props.statusChanges.length - 1
-              ? 'created'
-              : status === 'DEACTIVATED'
-                ? 'deactivated'
-                : 'reactivated';
-          return (
-            <li className="fr-p-0 relative" key={changedAt}>
-              <span
-                aria-hidden
-                className={`absolute top-1.5 -left-[calc(1rem+4.5px)] size-2 rounded-full ${index === 0 ? 'bg-(--background-action-high-blue-france)' : 'bg-(--border-default-grey)'}`}
-              />
-              <p className="fr-text--xs fr-mb-0 text-(--text-mention-grey)">
-                <FormattedMessage
-                  defaultMessage="{date} à {time}"
-                  values={{
-                    date: formatDate(changedAt, { format: 'zonedDateShort' }),
-                    time: formatTime(changedAt, { format: 'zonedTimeShort' }),
-                  }}
-                />
-              </p>
-              <p className="fr-text--sm fr-mb-0">
-                <FormattedMessage
-                  defaultMessage="{change, select, created {Compte créé} deactivated {Compte désactivé} other {Compte réactivé}}{who, select, self { par vous} someone { par {name}} other {}}"
-                  values={{
-                    change,
-                    name: changedBy?.name,
-                    who: whoWrote({ currentUserId: currentUser?.id, writer: changedBy }),
-                  }}
-                />
-              </p>
-            </li>
-          );
-        })}
-      </ul>
+      <Timeline
+        items={props.statusChanges.map(({ changedAt, changedBy, status }, index) => ({
+          at: changedAt,
+          content: (
+            <FormattedMessage
+              defaultMessage="{change, select, created {Compte créé} deactivated {Compte désactivé} other {Compte réactivé}}{who, select, self { par vous} someone { par {name}} other {}}"
+              values={{
+                // the oldest change, last of the list, is the creation of the account
+                change:
+                  index === props.statusChanges.length - 1
+                    ? 'created'
+                    : status === 'DEACTIVATED'
+                      ? 'deactivated'
+                      : 'reactivated',
+                name: changedBy?.name,
+                who: whoWrote({ currentUserId: currentUser?.id, writer: changedBy }),
+              }}
+            />
+          ),
+          key: changedAt,
+        }))}
+      />
     </section>
   );
 }
