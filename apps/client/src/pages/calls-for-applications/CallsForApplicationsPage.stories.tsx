@@ -15,18 +15,39 @@ type ListedCall = ListedCallsForApplicationsDto['items'][number];
 
 /** a call never changed since its creation */
 function created(
-  call: Omit<ListedCall, 'history'> & { createdAt: string; createdBy: ListedCall['history'][number]['by'] },
+  call: Omit<ListedCall, 'comment' | 'history'> & {
+    createdAt: string;
+    createdBy: ListedCall['history'][number]['by'];
+  },
 ): ListedCall {
   const { createdAt, createdBy, ...listed } = call;
   return {
     ...listed,
-    history: [{ action: { id: 'CREATED', label: 'Créé' }, at: createdAt, by: createdBy }],
+    comment: null,
+    history: [{ action: 'CREATED', at: createdAt, by: createdBy, fields: [] }],
+  };
+}
+
+/** the same call, changed since by an agent */
+function updated(call: ListedCall, fields: ListedCall['history'][number]['fields']): ListedCall {
+  return {
+    ...call,
+    history: [
+      {
+        action: 'UPDATED',
+        at: '2026-11-22T13:00:00.000Z',
+        by: { id: 'user-3', name: 'Paul MARTIN' },
+        fields,
+      },
+      ...call.history,
+    ],
   };
 }
 
 const CALLS: Record<'ONGOING' | 'PAST', ListedCall[]> = {
   ONGOING: [
     created({
+      canChange: true,
       createdOn: { day: 20, month: 11, year: 2026 },
       deadline: null,
       id: 'call-2',
@@ -37,20 +58,28 @@ const CALLS: Record<'ONGOING' | 'PAST', ListedCall[]> = {
       targetJurisdictionType: { id: 'COURT_OF_APPEAL', label: 'CA' },
       type: { id: 'GENERAL', label: 'Général' },
     }),
-    created({
-      createdOn: { day: 3, month: 11, year: 2026 },
-      deadline: { day: 15, month: 1, year: 2027 },
-      id: 'call-3',
-      createdAt: '2026-11-03T10:00:00.000Z',
-      createdBy: { id: 'user-2', name: 'Hélène GARNIER' },
-      publishedOn: { day: 1, month: 12, year: 2026 },
-      status: { id: 'UNPUBLISHED', label: 'Non publié' },
-      targetJurisdictionType: { id: 'JUDICIAL_COURT', label: 'TJ' },
-      type: { id: 'GENERAL', label: 'Général' },
-    }),
+    updated(
+      created({
+        canChange: true,
+        createdOn: { day: 3, month: 11, year: 2026 },
+        deadline: { day: 15, month: 1, year: 2027 },
+        id: 'call-3',
+        createdAt: '2026-11-03T10:00:00.000Z',
+        createdBy: { id: 'user-2', name: 'Hélène GARNIER' },
+        publishedOn: { day: 1, month: 12, year: 2026 },
+        status: { id: 'UNPUBLISHED', label: 'Non publié' },
+        targetJurisdictionType: { id: 'JUDICIAL_COURT', label: 'TJ' },
+        type: { id: 'GENERAL', label: 'Général' },
+      }),
+      [
+        { id: 'DEADLINE', label: 'la date limite' },
+        { id: 'COMMENT', label: 'le commentaire' },
+      ],
+    ),
   ],
   PAST: [
     created({
+      canChange: false,
       createdOn: { day: 2, month: 10, year: 2026 },
       deadline: { day: 15, month: 11, year: 2026 },
       id: 'call-1',

@@ -30,13 +30,16 @@ test.describe('Calls for applications E2E', () => {
       throwOnError: true,
     });
     expect(data.items.find(({ id }) => id === created.id)).toEqual({
+      canChange: true,
+      comment: 'Postes de présidents',
       createdOn: todayInParis(),
       deadline: { day: 15, month: 1, year: 2100 },
       history: [
         {
-          action: { id: 'CREATED', label: 'Créé' },
+          action: 'CREATED',
           at: expect.any(String),
           by: { id: agent['@user']!.id, name: expect.any(String) },
+          fields: [],
         },
       ],
       id: created.id,
@@ -67,5 +70,53 @@ test.describe('Calls for applications E2E', () => {
     });
     expect(data.items.map(({ id }) => id)).toContain(created.id);
     expect(data.years).toContain(2001);
+  });
+
+  test('should note the fields an update changed in the history of the call', async ({ agent, expect }) => {
+    const form = {
+      deadline: '2098-02-01',
+      publishedOn: '2098-01-10',
+      targetJurisdictionType: 'JUDICIAL_COURT',
+      type: 'GENERAL',
+    } as const;
+    const { data: created } = await agent.callsForApplications.createCallForApplications({
+      body: form,
+      throwOnError: true,
+    });
+
+    await agent.callsForApplications.updateCallForApplications({
+      body: { ...form, comment: 'Postes vacants', deadline: '2098-02-15' },
+      path: { callId: created.id },
+      throwOnError: true,
+    });
+
+    const { data } = await agent.callsForApplications.listCallsForApplications({
+      query: { limit: 200, period: 'ONGOING', years: ['2098'] },
+      throwOnError: true,
+    });
+    const updated = data.items.find(({ id }) => id === created.id);
+    expect(updated?.deadline).toEqual({ day: 15, month: 2, year: 2098 });
+    expect(updated?.history.map(({ action, fields }) => [action, fields.map(({ id }) => id)])).toEqual([
+      ['UPDATED', ['DEADLINE', 'COMMENT']],
+      ['CREATED', []],
+    ]);
+  });
+
+  test('should take a deleted call for applications out of the list', async ({ agent, expect }) => {
+    const { data: created } = await agent.callsForApplications.createCallForApplications({
+      body: { publishedOn: '2097-03-01', targetJurisdictionType: 'COURT_OF_APPEAL', type: 'GENERAL' },
+      throwOnError: true,
+    });
+
+    await agent.callsForApplications.deleteCallForApplications({
+      path: { callId: created.id },
+      throwOnError: true,
+    });
+
+    const { data } = await agent.callsForApplications.listCallsForApplications({
+      query: { limit: 200, period: 'ONGOING', years: ['2097'] },
+      throwOnError: true,
+    });
+    expect(data.items.map(({ id }) => id)).not.toContain(created.id);
   });
 });

@@ -3198,6 +3198,8 @@ export type FoundCallForApplicationsFormDto = {
 
 export type ListedCallsForApplicationsDto = {
     items: Array<{
+        canChange: boolean;
+        comment: string | null;
         createdOn: {
             year: number;
             month: number;
@@ -3209,15 +3211,16 @@ export type ListedCallsForApplicationsDto = {
             day: number;
         } | null;
         history: Array<{
-            action: {
-                id: 'CREATED';
-                label: string;
-            };
+            action: 'CREATED' | 'UPDATED' | 'DELETED';
             at: string;
             by: {
                 id: string;
                 name: string;
             } | null;
+            fields: Array<{
+                id: 'TYPE' | 'TARGET_JURISDICTION_TYPE' | 'PUBLISHED_ON' | 'DEADLINE' | 'COMMENT';
+                label: string;
+            }>;
         }>;
         id: string;
         publishedOn: {
@@ -3255,6 +3258,14 @@ export type ListedCallsForApplicationsDto = {
         label: string;
     }>;
     years: Array<number>;
+};
+
+export type UpdateCallForApplicationsDto = {
+    comment?: string | null;
+    deadline?: string | null;
+    publishedOn?: string | null;
+    targetJurisdictionType: 'COURT_OF_APPEAL' | 'JUDICIAL_COURT';
+    type: 'GENERAL';
 };
 
 export type GetFileByFileUrlData = {
@@ -6752,9 +6763,14 @@ export type ListCallsForApplicationsData = {
     path?: never;
     query: {
         period: 'ONGOING' | 'PAST';
+        sortBy?: 'createdOn' | 'deadline' | 'publishedOn' | 'status' | 'targetJurisdictionType';
         statuses?: Array<'UNPUBLISHED' | 'PUBLISHED'>;
         targetJurisdictionTypes?: Array<'COURT_OF_APPEAL' | 'JUDICIAL_COURT'>;
         years?: Array<string>;
+        /**
+         * true
+         */
+        sortDesc?: string | boolean;
         page?: number;
         limit?: number;
     };
@@ -6779,6 +6795,36 @@ export type CreateCallForApplicationsResponses = {
 };
 
 export type CreateCallForApplicationsResponse = CreateCallForApplicationsResponses[keyof CreateCallForApplicationsResponses];
+
+export type DeleteCallForApplicationsData = {
+    body?: never;
+    path: {
+        callId: string;
+    };
+    query?: never;
+    url: '/api/calls-for-applications/v1/{callId}';
+};
+
+export type DeleteCallForApplicationsResponses = {
+    204: void;
+};
+
+export type DeleteCallForApplicationsResponse = DeleteCallForApplicationsResponses[keyof DeleteCallForApplicationsResponses];
+
+export type UpdateCallForApplicationsData = {
+    body: UpdateCallForApplicationsDto;
+    path: {
+        callId: string;
+    };
+    query?: never;
+    url: '/api/calls-for-applications/v1/{callId}';
+};
+
+export type UpdateCallForApplicationsResponses = {
+    204: void;
+};
+
+export type UpdateCallForApplicationsResponse = UpdateCallForApplicationsResponses[keyof UpdateCallForApplicationsResponses];
 
 export type FindCallForApplicationsFormData = {
     body?: never;

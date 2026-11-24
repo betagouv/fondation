@@ -21,7 +21,8 @@ Ce document liste ce que chaque rôle peut voir et faire dans Fondation (les vue
   - _session non archivée_ : la session n'est pas archivée ;
   - _auteur de la synthèse_ : l'utilisateur a rédigé la synthèse le premier ;
   - _lecteur de la synthèse_ : l'utilisateur est l'auteur ou un lecteur de la synthèse ; tant qu'elle n'a pas d'auteur, le Secrétariat général aussi ;
-  - _ses propres données_ : l'utilisateur de l'URL est celui qui est connecté.
+  - _ses propres données_ : l'utilisateur de l'URL est celui qui est connecté ;
+  - _appel non publié_ : l'appel à candidatures n'est pas encore publié. Une fois publié, seul l'Administrateur le modifie ou le supprime.
 
 Les tests vérifient les rôles : une case `✓ si …` compte comme `✓`. Les conditions relèvent des tests du domaine. La colonne Administrateur n'est pas vérifiée.
 
@@ -336,11 +337,13 @@ Dans les dossiers d'un magistrat, un Membre ne voit que l'affectation et les aud
 
 ### Appels à candidatures
 
-| Action                                        | Endpoint                              | Membre | Secrétariat général | Administrateur |
-| --------------------------------------------- | ------------------------------------- | ------ | ------------------- | -------------- |
-| Lister les appels à candidatures              | `GET /calls-for-applications/v1`      | —      | ✓                   | ✓              |
-| Créer un appel à candidatures                 | `POST /calls-for-applications/v1`     | —      | ✓                   | ✓              |
-| Consulter les choix du formulaire de création | `GET /calls-for-applications/v1/form` | —      | ✓                   | ✓              |
+| Action                                        | Endpoint                                    | Membre | Secrétariat général   | Administrateur |
+| --------------------------------------------- | ------------------------------------------- | ------ | --------------------- | -------------- |
+| Lister les appels à candidatures              | `GET /calls-for-applications/v1`            | —      | ✓                     | ✓              |
+| Créer un appel à candidatures                 | `POST /calls-for-applications/v1`           | —      | ✓                     | ✓              |
+| Modifier un appel à candidatures              | `PUT /calls-for-applications/v1/:callId`    | —      | ✓ si appel non publié | ✓              |
+| Supprimer un appel à candidatures             | `DELETE /calls-for-applications/v1/:callId` | —      | ✓ si appel non publié | ✓              |
+| Consulter les choix du formulaire de création | `GET /calls-for-applications/v1/form`       | —      | ✓                     | ✓              |
 
 ### Documents de séance : préparation
 

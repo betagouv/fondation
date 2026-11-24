@@ -1,11 +1,20 @@
 import { Propagation, Transactional } from '@nestjs-cls/transactional';
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
+import { Prisma } from '../../../generated/prisma/client';
 import { assertNever } from '../../../utils/assert-never';
+import { DateOnly } from '../../../utils/date-only';
 import { makeId } from '../../../utils/id';
 import { Clock } from '../../framework/clock';
 import { Db } from '../../framework/database';
-import { CallForApplications, CallForApplicationsCreated } from '../domain/call-for-applications';
+import {
+  type CallForApplicationsAction,
+  CallForApplications,
+  CallForApplicationsCreated,
+  CallForApplicationsDeleted,
+  type CallForApplicationsField,
+  CallForApplicationsUpdated,
+} from '../domain/call-for-applications';
 
 @Injectable()
 export class CallForApplicationsRepository {
@@ -15,33 +24,87 @@ export class CallForApplicationsRepository {
   ) {}
 
   @Transactional(Propagation.Mandatory)
+  async find({ id }: { id: string }): Promise<CallForApplications> {
+    const call = await this.db.tx.callForApplications.findUnique({
+      select: {
+        comment: true,
+        deadline: true,
+        id: true,
+        publishedOn: true,
+        status: true,
+        targetJurisdictionType: true,
+        type: true,
+      } satisfies Prisma.CallForApplicationsSelect,
+      where: { id },
+    });
+    if (!call) throw new NotFoundException();
+
+    // a general call always targets a type of jurisdiction: the base checks it
+    const { targetJurisdictionType } = call;
+    if (!targetJurisdictionType) throw new Error(`call for applications ${id} without target`);
+
+    return CallForApplications.from({
+      ...call,
+      deadline: DateOnly.fromOptionalUtcDate(call.deadline),
+      publishedOn: DateOnly.fromOptionalUtcDate(call.publishedOn),
+      targetJurisdictionType,
+    });
+  }
+
+  @Transactional(Propagation.Mandatory)
   async persist(call: CallForApplications): Promise<void> {
     for (const message of call.messages) {
       if (message instanceof CallForApplicationsCreated) await this.persistCreated(message);
+      else if (message instanceof CallForApplicationsDeleted) await this.persistDeleted(message);
+      else if (message instanceof CallForApplicationsUpdated) await this.persistUpdated(message);
       else assertNever(message);
     }
   }
 
   private async persistCreated(message: CallForApplicationsCreated) {
     await this.db.tx.callForApplications.create({
-      data: {
-        comment: message.comment,
-        createdOn: message.createdOn.toDate(),
-        deadline: message.deadline?.toDate() ?? null,
-        id: message.id,
-        publishedOn: message.publishedOn?.toDate() ?? null,
-        targetJurisdictionType: message.targetJurisdictionType,
-        type: message.type,
-      },
+      data: { ...columnsOf(message.metadata), createdOn: message.createdOn.toDate(), id: message.id },
     });
+    await this.journal('CREATED', message);
+  }
+
+  private async persistDeleted(message: CallForApplicationsDeleted) {
+    await this.db.tx.callForApplications.delete({ where: { id: message.id } });
+    await this.journal('DELETED', message);
+  }
+
+  private async persistUpdated(message: CallForApplicationsUpdated) {
+    await this.db.tx.callForApplications.update({
+      data: columnsOf(message.metadata),
+      where: { id: message.id },
+    });
+    await this.journal('UPDATED', message, message.fields);
+  }
+
+  private async journal(
+    action: CallForApplicationsAction,
+    message: { authorId: string; id: string },
+    fields: readonly CallForApplicationsField[] = [],
+  ) {
     await this.db.tx.callForApplicationsChange.create({
       data: {
-        action: 'CREATED',
+        action,
         at: this.clock.now(),
         authorId: message.authorId,
         callId: message.id,
+        fields: { create: fields.map((field) => ({ field })) },
         id: makeId(),
       },
     });
   }
+}
+
+function columnsOf(metadata: CallForApplicationsCreated['metadata']) {
+  return {
+    comment: metadata.comment,
+    deadline: metadata.deadline?.toDate() ?? null,
+    publishedOn: metadata.publishedOn?.toDate() ?? null,
+    targetJurisdictionType: metadata.targetJurisdictionType,
+    type: metadata.type,
+  };
 }

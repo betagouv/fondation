@@ -12,14 +12,19 @@ import type {
   CreateCallForApplicationsDto,
   ListCallsForApplicationsData,
   ListedCallsForApplicationsDto,
+  UpdateCallForApplicationsDto,
 } from '@api/types';
 
 export type CallForApplications = ListedCallsForApplicationsDto['items'][number];
 export type CallsForApplicationsPeriod = ListCallsForApplicationsData['query']['period'];
 export type CallForApplicationsStatus = CallForApplications['status']['id'];
 export type TargetJurisdictionType = NonNullable<CallForApplications['targetJurisdictionType']>['id'];
+export type CallsForApplicationsSorting =
+  | []
+  | [{ desc: boolean; id: NonNullable<ListCallsForApplicationsData['query']['sortBy']> }];
 type CallsForApplicationsList = {
   period: CallsForApplicationsPeriod;
+  sorting: CallsForApplicationsSorting;
   statuses: CallForApplicationsStatus[];
   targetJurisdictionTypes: TargetJurisdictionType[];
   years: string[];
@@ -55,6 +60,8 @@ export function useCallsForApplicationsQuery(props: CallsForApplicationsList) {
           limit: CALLS_FOR_APPLICATIONS_PAGE_SIZE,
           page: pageParam,
           period: props.period,
+          sortBy: props.sorting[0]?.id,
+          sortDesc: props.sorting[0]?.desc ? 'true' : undefined,
           statuses: props.statuses,
           targetJurisdictionTypes: props.targetJurisdictionTypes,
           years: props.years,
@@ -91,6 +98,28 @@ export function useCreateCallForApplicationsMutation() {
         });
         return data;
       }),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: callsForApplicationsKeys.list() }),
+  });
+}
+
+export function useUpdateCallForApplicationsMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ body, callId }: { body: UpdateCallForApplicationsDto; callId: string }) =>
+      withValidationError(() =>
+        $api.callsForApplications.updateCallForApplications({ body, path: { callId }, throwOnError: true }),
+      ),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: callsForApplicationsKeys.list() }),
+  });
+}
+
+export function useDeleteCallForApplicationsMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (callId: string) =>
+      withValidationError(() =>
+        $api.callsForApplications.deleteCallForApplications({ path: { callId }, throwOnError: true }),
+      ),
     onSettled: () => queryClient.invalidateQueries({ queryKey: callsForApplicationsKeys.list() }),
   });
 }

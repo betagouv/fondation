@@ -2,7 +2,7 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import { useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import { CallForApplicationsCreationModal } from '@/features/calls-for-applications/components/CallForApplicationsCreationModal';
+import { CallForApplicationsModal } from '@/features/calls-for-applications/components/CallForApplicationsModal';
 import { CallsForApplicationsTable } from '@/features/calls-for-applications/components/CallsForApplicationsTable';
 import { PinnedHeader } from '@/shared/components/pinned-header';
 import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
@@ -26,7 +26,8 @@ function CreateCallForApplicationsButton() {
         <FormattedMessage defaultMessage="Créer un appel à candidatures" />
       </Button>
       {creation && (
-        <CallForApplicationsCreationModal
+        <CallForApplicationsModal
+          edited={null}
           onClose={() => setCreation({ open: false })}
           onClosed={() => setCreation(null)}
           open={creation.open}

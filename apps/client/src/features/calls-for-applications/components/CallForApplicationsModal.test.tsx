@@ -8,8 +8,9 @@ import { ToastProvider } from '@/shared/ui/toast';
 import { httpAssert } from '@/utils/http-exception';
 import * as $api from '@api/sdk';
 import type { FoundCallForApplicationsFormDto } from '@api/types';
+import type { CallForApplications } from '@queries/calls-for-applications.queries';
 
-import { CallForApplicationsCreationModal } from './CallForApplicationsCreationModal';
+import { CallForApplicationsModal } from './CallForApplicationsModal';
 
 const FORM: FoundCallForApplicationsFormDto = {
   commentMaxLength: 50_000,
@@ -30,7 +31,7 @@ function refusal(validationError: string): unknown {
   }
 }
 
-function renderModal() {
+function renderModal(edited: CallForApplications | null = null) {
   const client = new QueryClient({
     defaultOptions: { mutations: { retry: false }, queries: { retry: false } },
   });
@@ -40,7 +41,7 @@ function renderModal() {
     <IntlProvider defaultLocale="fr" locale="fr">
       <QueryClientProvider client={client}>
         <ToastProvider>
-          <CallForApplicationsCreationModal onClose={onClose} onClosed={vi.fn()} open />
+          <CallForApplicationsModal edited={edited} onClose={onClose} onClosed={vi.fn()} open />
         </ToastProvider>
       </QueryClientProvider>
     </IntlProvider>,
@@ -49,7 +50,7 @@ function renderModal() {
   return { onClose };
 }
 
-describe('CallForApplicationsCreationModal', () => {
+describe('CallForApplicationsModal', () => {
   beforeEach(() => {
     vi.spyOn($api.callsForApplications, 'findCallForApplicationsForm').mockResolvedValue({
       data: FORM,
@@ -93,7 +94,7 @@ describe('CallForApplicationsCreationModal', () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 
-  it('tells under the deadline why the API refuses it', async () => {
+  it('tells why the API refuses the call', async () => {
     vi.spyOn($api.callsForApplications, 'createCallForApplications').mockRejectedValue(
       refusal('La date limite ne peut pas précéder la date de publication'),
     );
@@ -108,5 +109,63 @@ describe('CallForApplicationsCreationModal', () => {
     ).toBeInTheDocument();
     expect(screen.queryByText('La création a échoué, réessayez')).not.toBeInTheDocument();
     expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('updates the call it opens on, with the values it holds', async () => {
+    const update = vi
+      .spyOn($api.callsForApplications, 'updateCallForApplications')
+      .mockResolvedValue({ data: undefined } as never);
+    const { onClose } = renderModal({
+      canChange: true,
+      comment: 'Postes vacants',
+      createdOn: { day: 20, month: 11, year: 2026 },
+      deadline: { day: 15, month: 1, year: 2027 },
+      history: [],
+      id: 'call-1',
+      publishedOn: { day: 1, month: 12, year: 2026 },
+      status: { id: 'UNPUBLISHED', label: 'Non publié' },
+      targetJurisdictionType: { id: 'JUDICIAL_COURT', label: 'TJ' },
+      type: { id: 'GENERAL', label: 'Général' },
+    });
+    const user = userEvent.setup();
+
+    await user.selectOptions(await screen.findByRole('combobox', { name: /Juridiction cible/ }), 'CA');
+    await user.click(screen.getByRole('button', { name: 'Enregistrer les modifications' }));
+
+    expect(update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: {
+          comment: 'Postes vacants',
+          deadline: '2027-01-15',
+          publishedOn: '2026-12-01',
+          targetJurisdictionType: 'COURT_OF_APPEAL',
+          type: 'GENERAL',
+        },
+        path: { callId: 'call-1' },
+      }),
+    );
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it('saves nothing while the form still holds the values saved', async () => {
+    renderModal({
+      canChange: true,
+      comment: null,
+      createdOn: { day: 20, month: 11, year: 2026 },
+      deadline: null,
+      history: [],
+      id: 'call-1',
+      publishedOn: null,
+      status: { id: 'UNPUBLISHED', label: 'Non publié' },
+      targetJurisdictionType: { id: 'JUDICIAL_COURT', label: 'TJ' },
+      type: { id: 'GENERAL', label: 'Général' },
+    });
+    const user = userEvent.setup();
+    const target = await screen.findByRole('combobox', { name: /Juridiction cible/ });
+    const save = screen.getByRole('button', { name: 'Enregistrer les modifications' });
+
+    expect(save).toBeDisabled();
+    await user.selectOptions(target, 'CA');
+    expect(save).toBeEnabled();
   });
 });

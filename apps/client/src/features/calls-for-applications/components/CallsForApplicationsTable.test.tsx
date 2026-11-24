@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import { userEvent } from '@testing-library/user-event';
 import { NuqsTestingAdapter } from 'nuqs/adapters/testing';
 import { IntlProvider } from 'react-intl';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -35,7 +36,7 @@ function renderTable() {
   render(
     <IntlProvider defaultLocale="fr" locale="fr">
       <QueryClientProvider client={client}>
-        <NuqsTestingAdapter>
+        <NuqsTestingAdapter hasMemory>
           <CallsForApplicationsTable filtersSlot={null} period="PAST" />
         </NuqsTestingAdapter>
       </QueryClientProvider>
@@ -62,5 +63,20 @@ describe('CallsForApplicationsTable', () => {
         }),
       ),
     );
+  });
+
+  it('asks the API to sort by the column picked, and leaves the type unsortable', async () => {
+    const list = vi.spyOn($api.callsForApplications, 'listCallsForApplications').mockResolvedValue(listed());
+    renderTable();
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole('button', { name: 'Date limite' }));
+
+    await waitFor(() =>
+      expect(list).toHaveBeenLastCalledWith(
+        expect.objectContaining({ query: expect.objectContaining({ sortBy: 'deadline' }) }),
+      ),
+    );
+    expect(screen.queryByRole('button', { name: "Type d'appel" })).not.toBeInTheDocument();
   });
 });
