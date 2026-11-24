@@ -30,7 +30,6 @@ export const ROUTE_PATHS = {
       CALLS_FOR_APPLICATIONS: '/secretariat-general/csm/appels-a-candidature',
       CALLS_FOR_APPLICATIONS_ONGOING: '/secretariat-general/csm/appels-a-candidature/en-cours',
       CALLS_FOR_APPLICATIONS_PAST: '/secretariat-general/csm/appels-a-candidature/passes',
-      MEMBERS: '/secretariat-general/csm/membres',
       ROOT: '/secretariat-general/csm',
       SELECTION_PROCESS: '/secretariat-general/csm/processus-de-selection',
       VEILLE_DES_POSTES: '/secretariat-general/csm/veille-des-postes',
@@ -52,9 +51,7 @@ export const ROUTE_PATHS = {
         '/secretariat-general/gds/session/:sessionId/docs/ordre-du-jour/:agendaId/metadonnees',
       ARCHIVED_SESSIONS: '/secretariat-general/gds/archives/sessions',
       FOLLOWED_UP_OBSERVATIONS: '/secretariat-general/gds/suivi-des-observations',
-      MANAGE_MEMBERS: '/secretariat-general/gds/membres',
       MANAGE_SESSION: '/secretariat-general/gds/sessions',
-      MANAGE_SINGLE_MEMBER: '/secretariat-general/gds/membres/:userId',
       OBSERVATION_DETAILS:
         '/secretariat-general/gds/session/:sessionId/dossiers/:nominationFileId/observations/:observationId',
       OFFICIAL_REPORT_EDIT:
@@ -81,6 +78,8 @@ export const ROUTE_PATHS = {
     },
     MAGISTRAT_DETAILS: '/secretariat-general/magistrats/:magistratId',
     MAGISTRAT_SEARCH: '/secretariat-general/magistrats',
+    MANAGE_MEMBERS: '/secretariat-general/membres',
+    MANAGE_SINGLE_MEMBER: '/secretariat-general/membres/:userId',
   },
   SUMMARY: '/session/:sessionId/dossier/:fileId/synthese',
   SURVEY: '/avis',
@@ -178,7 +177,6 @@ export const getMagistratDetailsPath = (props: { context: 'sg' | 'membre'; magis
  */
 export const LEGACY_GDS_PATHS = [
   '/secretariat-general/archives/*',
-  '/secretariat-general/membres/*',
   '/secretariat-general/restitutions/*',
   '/secretariat-general/session/*',
   '/secretariat-general/sessions',
@@ -188,4 +186,15 @@ export const LEGACY_GDS_PATHS = [
 export const redirectToGdsPath = ({ request }: { request: Request }) => {
   const { pathname, search } = new URL(request.url);
   return redirect(`${ROUTE_PATHS.SG.GDS.ROOT}${pathname.slice(ROUTE_PATHS.SG.DASHBOARD.length)}${search}`);
+};
+
+/**
+ * the members' pages lived under the GDS before both pouvoirs de proposition shared them
+ * TODO: remove once these URLs have faded from bookmarks
+ */
+export const LEGACY_GDS_MEMBERS_PATH = '/secretariat-general/gds/membres/*';
+
+export const redirectFromGdsPath = ({ request }: { request: Request }) => {
+  const { pathname, search } = new URL(request.url);
+  return redirect(`${ROUTE_PATHS.SG.DASHBOARD}${pathname.slice(ROUTE_PATHS.SG.GDS.ROOT.length)}${search}`);
 };

@@ -25,8 +25,3 @@ export function SelectionProcessPage() {
   const { formatMessage } = useIntl();
   return <CsmUpcomingPage title={formatMessage({ defaultMessage: 'Processus de sélection' })} />;
 }
-
-export function CsmMembersPage() {
-  const { formatMessage } = useIntl();
-  return <CsmUpcomingPage title={formatMessage({ defaultMessage: 'Membres' })} />;
-}

@@ -105,11 +105,6 @@ export const AppHeader = () => {
       text: formatMessage({ defaultMessage: 'Suivi des observations' }),
     },
     {
-      isActive: routeMatches([ROUTE_PATHS.SG.GDS.MANAGE_MEMBERS, ROUTE_PATHS.SG.GDS.MANAGE_SINGLE_MEMBER]),
-      linkProps: { to: ROUTE_PATHS.SG.GDS.MANAGE_MEMBERS, viewTransition: true },
-      text: formatMessage({ defaultMessage: 'Gérer les membres' }),
-    },
-    {
       isActive: isArchived || routeMatches([ROUTE_PATHS.SG.GDS.ARCHIVED_SESSIONS]),
       linkProps: { to: ROUTE_PATHS.SG.GDS.ARCHIVED_SESSIONS, viewTransition: true },
       text: formatMessage({ defaultMessage: 'Archives' }),
@@ -134,16 +129,17 @@ export const AppHeader = () => {
             linkProps: { to: ROUTE_PATHS.SG.CSM.SELECTION_PROCESS, viewTransition: true },
             text: formatMessage({ defaultMessage: 'Processus de sélection' }),
           },
-          {
-            isActive: routeMatches([ROUTE_PATHS.SG.CSM.MEMBERS]),
-            linkProps: { to: ROUTE_PATHS.SG.CSM.MEMBERS, viewTransition: true },
-            text: formatMessage({ defaultMessage: 'Membres' }),
-          },
         ]
       : []),
   ];
 
-  const sgCommonNavigation: MainNavigationProps.Item[] = [];
+  const sgCommonNavigation: MainNavigationProps.Item[] = [
+    {
+      isActive: routeMatches([ROUTE_PATHS.SG.MANAGE_MEMBERS]),
+      linkProps: { to: ROUTE_PATHS.SG.MANAGE_MEMBERS, viewTransition: true },
+      text: formatMessage({ defaultMessage: 'Gérer les membres' }),
+    },
+  ];
   if (isUserAdmin) {
     sgCommonNavigation.push({
       isActive: routeMatches([

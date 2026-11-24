@@ -18,7 +18,7 @@ export function MemberNotFound() {
         <FormattedMessage defaultMessage="Le membre que vous cherchez n'existe pas ou n'a plus de compte dans Fondation." />
       </p>
 
-      <Button linkProps={{ to: ROUTE_PATHS.SG.GDS.MANAGE_MEMBERS }}>
+      <Button linkProps={{ to: ROUTE_PATHS.SG.MANAGE_MEMBERS }}>
         <FormattedMessage defaultMessage="Liste des membres" />
       </Button>
     </ErrorPageLayout>
