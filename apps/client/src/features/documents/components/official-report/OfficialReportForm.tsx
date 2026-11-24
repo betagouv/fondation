@@ -97,6 +97,10 @@ export function OfficialReportForm() {
   });
 
   const secretaries = useMemo(() => secretariesData?.items ?? [], [secretariesData]);
+  const isRequestedAgendaListed = agendas?.items.some(({ id }) => id === requestedAgendaId) ?? false;
+  // the table's button names the agenda: it stays chosen unless the fresh list no longer offers it
+  const lockedAgendaId =
+    !officialReportId && (!areAgendasFresh || isRequestedAgendaListed) ? requestedAgendaId : null;
 
   const defaultValues = useMemo(
     () => ({
@@ -145,34 +149,28 @@ export function OfficialReportForm() {
       name: 'agendaId',
       formState: { values: true, dirtyFields: true },
       callback: (state) => {
+        // setValues below notifies without a name, which reaches this subscription too
+        if (state.name !== 'agendaId') return;
+
         const agenda = (agendas?.items ?? []).find((agenda) => agenda.id === state.values.agendaId);
         if (!agenda) return;
 
+        const plan = agenda.presentationPlan;
+        const startTime = plan?.startTime ? formTimeOnlyCodec.encode(plan.startTime) : '';
+        const endTime = plan?.endTime ? formTimeOnlyCodec.encode(plan.endTime) : '';
+
+        // only the fields the agenda fills: validating the others flags them before the user gets to them
         setValues(
-          (form) => ({
-            ...form,
-            chairmanId: agenda.chairman.id ? agenda.chairman.id : form.chairmanId,
-            secretaryId: agenda.presentationPlan?.secretaryId
-              ? agenda.presentationPlan.secretaryId
-              : form.secretaryId,
-            justiceContactId: agenda.presentationPlan?.justiceContactId
-              ? agenda.presentationPlan.justiceContactId
-              : form.justiceContactId,
-            sessionMeetingDate: dateOnlyToIso(agenda.presentationPlan?.date ?? agenda.sessionMeetingDate),
-            sessionMeetingStartingTime: agenda.presentationPlan?.startTime
-              ? formTimeOnlyCodec.encode(agenda.presentationPlan.startTime) || form.sessionMeetingStartingTime
-              : form.sessionMeetingStartingTime,
-            sessionMeetingEndingTime: agenda.presentationPlan?.endTime
-              ? formTimeOnlyCodec.encode(agenda.presentationPlan.endTime) || form.sessionMeetingEndingTime
-              : form.sessionMeetingEndingTime,
-            memberIds: agenda.presentationPlan?.absentMembers
-              ? [...agenda.presentationPlan.absentMembers]
-              : form.memberIds,
-            hasRenunciation:
-              agenda.presentationPlan && !agenda.presentationPlan.hasRenunciation
-                ? agenda.presentationPlan.hasRenunciation
-                : form.hasRenunciation,
-          }),
+          {
+            ...(agenda.chairman.id ? { chairmanId: agenda.chairman.id } : {}),
+            ...(plan && !plan.hasRenunciation ? { hasRenunciation: false } : {}),
+            ...(plan?.justiceContactId ? { justiceContactId: plan.justiceContactId } : {}),
+            ...(plan?.absentMembers ? { memberIds: [...plan.absentMembers] } : {}),
+            ...(plan?.secretaryId ? { secretaryId: plan.secretaryId } : {}),
+            sessionMeetingDate: dateOnlyToIso(plan?.date ?? agenda.sessionMeetingDate),
+            ...(endTime ? { sessionMeetingEndingTime: endTime } : {}),
+            ...(startTime ? { sessionMeetingStartingTime: startTime } : {}),
+          },
           { shouldDirty: true, shouldTouch: true, shouldValidate: true },
         );
       },
@@ -183,11 +181,20 @@ export function OfficialReportForm() {
 
   // a cached list can predate the notice and the selection is never redone once the fresh one arrives
   useEffect(() => {
-    if (officialReportId || !requestedAgendaId || !areAgendasFresh || getValues('agendaId')) return;
-    if (!agendas?.items.some(({ id }) => id === requestedAgendaId)) return;
+    if (!areAgendasFresh || !lockedAgendaId || getValues('agendaId')) return;
 
-    setValue('agendaId', requestedAgendaId, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
-  }, [agendas, areAgendasFresh, getValues, officialReportId, requestedAgendaId, setValue]);
+    setValue('agendaId', lockedAgendaId, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+  }, [areAgendasFresh, getValues, lockedAgendaId, setValue]);
+
+  // a failed creation refreshes the list: an agenda that got its report meanwhile must be chosen again
+  useEffect(() => {
+    if (officialReportId || !areAgendasFresh) return;
+
+    const agendaId = getValues('agendaId');
+    if (agendaId && !agendas?.items.some(({ id }) => id === agendaId)) {
+      setValue('agendaId', '', { shouldValidate: true });
+    }
+  }, [agendas, areAgendasFresh, getValues, officialReportId, setValue]);
 
   const onAgendaSelected = useCallback(
     (event: ChangeEvent<HTMLSelectElement>) => {
@@ -210,15 +217,22 @@ export function OfficialReportForm() {
         control={control}
         render={({ field }) => (
           <Select
-            disabled={Boolean(officialReportId) || (agendas?.items ?? []).length === 0}
-            state={errors.agendaId ? 'error' : 'default'}
-            stateRelatedMessage={errors.agendaId?.message}
-            nativeSelectProps={{ ...field, onChange: onAgendaSelected }}
+            disabled={
+              Boolean(officialReportId) || lockedAgendaId !== null || (agendas?.items ?? []).length === 0
+            }
+            hint={
+              field.value === lockedAgendaId ? (
+                <FormattedMessage defaultMessage="Choisi depuis le tableau de la documentation" />
+              ) : undefined
+            }
             label={
               <RequiredLabel>
                 <FormattedMessage defaultMessage="Ordre du jour" />
               </RequiredLabel>
             }
+            nativeSelectProps={{ ...field, onChange: onAgendaSelected }}
+            state={errors.agendaId ? 'error' : 'default'}
+            stateRelatedMessage={errors.agendaId?.message}
           >
             <option value="" disabled>
               <FormattedMessage defaultMessage="Sélectionner un ordre du jour" />
