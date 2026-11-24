@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import { userEvent } from '@testing-library/user-event';
 import { NuqsTestingAdapter } from 'nuqs/adapters/testing';
 import { IntlProvider } from 'react-intl';
 import { MemoryRouter } from 'react-router';
@@ -34,7 +35,7 @@ vi.mock('@queries/observations.queries', async (importOriginal) => ({
 function renderTable(searchParams: string) {
   render(
     <MemoryRouter>
-      <NuqsTestingAdapter searchParams={searchParams}>
+      <NuqsTestingAdapter hasMemory searchParams={searchParams}>
         <QueryClientProvider client={new QueryClient()}>
           <IntlProvider defaultLocale="fr" formats={frFormat} locale="fr">
             <FollowedUpObservationsTable />
@@ -57,5 +58,31 @@ describe('FollowedUpObservationsTable', () => {
   it('should open on the observations still to track, unless the link holds an empty filter list', () => {
     expect(renderTable('')).toMatchObject({ trackingStatuses: ['IN_PROGRESS'] });
     expect(renderTable('?filters=')).toMatchObject({ trackingStatuses: [] });
+  });
+
+  it('should list every tracking status once the toggle is unchecked, and keep the other filters', async () => {
+    renderTable('?filters=followUps:["ALERT"],trackingStatuses:["IN_PROGRESS"]');
+    const toggle = screen.getByRole('checkbox', { name: 'Afficher uniquement les suivis en cours' });
+    expect(toggle).toBeChecked();
+
+    await userEvent.click(toggle);
+
+    expect(toggle).not.toBeChecked();
+    expect(useInfiniteFollowedUpObservationsQuery.mock.lastCall?.[0]).toMatchObject({
+      followUps: ['ALERT'],
+      trackingStatuses: [],
+    });
+  });
+
+  it('should leave the toggle unchecked when the "Statut de suivi" filter keeps the done ones', async () => {
+    renderTable('?filters=trackingStatuses:["DONE"]');
+    const toggle = screen.getByRole('checkbox', { name: 'Afficher uniquement les suivis en cours' });
+    expect(toggle).not.toBeChecked();
+
+    await userEvent.click(toggle);
+
+    expect(useInfiniteFollowedUpObservationsQuery.mock.lastCall?.[0]).toMatchObject({
+      trackingStatuses: ['IN_PROGRESS'],
+    });
   });
 });

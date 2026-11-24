@@ -27,6 +27,7 @@ import {
   useDataTableUrlState,
 } from '@/shared/ui/data-table';
 import { SearchInput } from '@/shared/ui/search-input';
+import { ToggleSwitch } from '@/shared/ui/toggle-switch';
 import { formatDateOnly } from '@/utils/date-only.util';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import type { ListedFollowedUpObservationSessionYearsDto } from '@api/types';
@@ -52,8 +53,9 @@ const YEAR = /^\d{4}$/;
 export function FollowedUpObservationsTable() {
   const intl = useIntl();
   const { onColumnFiltersChange, onSortingChange, setTableState, tableState } = useDataTableUrlState({
-    // opens on the observations still to track. Once every filter is unchecked, the link holds an empty
-    // `filters=`, which a reload or a shared link keeps: only a link without it opens filtered again
+    // opens on the observations still to track. Once the toggle and every filter are unchecked, the link
+    // holds an empty `filters=`, which a reload or a shared link keeps: only a link without it opens
+    // filtered again
     columnFilters: [{ id: 'trackingStatuses', value: ['IN_PROGRESS'] }] as (
       | { id: 'followUps'; value: string[] }
       | { id: 'sessionStatuses'; value: SessionStatus[] }
@@ -74,6 +76,17 @@ export function FollowedUpObservationsTable() {
     .filter((year): year is string => typeof year === 'string');
   // compared by value, so that the columns are rebuilt only when the checked years change
   const checkedYearsJson = JSON.stringify(checkedYears);
+  const trackingStatuses = tableState.columnFilters.flatMap((filter) =>
+    filter.id === 'trackingStatuses' ? filter.value : [],
+  );
+  // the toggle and the "Statut de suivi" filter share the same filter: "Terminé" alone unchecks the toggle
+  const isInProgressOnly = trackingStatuses.length === 1 && trackingStatuses[0] === 'IN_PROGRESS';
+  const setInProgressOnly = (checked: boolean) =>
+    onColumnFiltersChange((filters) =>
+      filters
+        .filter(({ id }) => id !== 'trackingStatuses')
+        .concat(checked ? [{ id: 'trackingStatuses', value: ['IN_PROGRESS'] }] : []),
+    );
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
     useInfiniteFollowedUpObservationsQuery({
       followUps: tableState.columnFilters.flatMap((filter) =>
@@ -85,9 +98,7 @@ export function FollowedUpObservationsTable() {
       ),
       sessionYears: checkedYears.filter((year) => YEAR.test(year)),
       sorting,
-      trackingStatuses: tableState.columnFilters.flatMap((filter) =>
-        filter.id === 'trackingStatuses' ? filter.value : [],
-      ),
+      trackingStatuses,
     });
 
   const search = useDataTableSearch(tableState.globalFilter ?? '', (globalFilter) =>
@@ -233,7 +244,17 @@ export function FollowedUpObservationsTable() {
             {data && <DataTableCount loaded={observations.length} total={data.totalCount} />}
           </h1>
           <div className="flex items-center justify-between gap-4">
-            <DataTableFilters table={table} />
+            <div className="flex items-center gap-4">
+              <DataTableFilters table={table} />
+              <ToggleSwitch
+                checked={isInProgressOnly}
+                classes={{ label: 'flex-nowrap grow whitespace-nowrap before:mr-3!' }}
+                label={<FormattedMessage defaultMessage="Afficher uniquement les suivis en cours" />}
+                labelPosition="right"
+                onChange={setInProgressOnly}
+                showCheckedHint={false}
+              />
+            </div>
             <SearchInput
               className="ml-auto w-72"
               onChange={search.onChange}
