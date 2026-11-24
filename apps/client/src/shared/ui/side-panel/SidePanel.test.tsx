@@ -110,4 +110,25 @@ describe('SidePanel', () => {
 
     trigger.remove();
   });
+
+  it('restores the focus on close without scrolling the page back to the element', () => {
+    const trigger = document.createElement('button');
+    document.body.appendChild(trigger);
+    trigger.focus();
+    const focus = vi.spyOn(trigger, 'focus');
+
+    const ui = (open: boolean) => (
+      <IntlProvider defaultLocale="fr" locale="fr">
+        <SidePanel ariaLabel="Détails" onClose={vi.fn()} open={open}>
+          <button type="button">Inside</button>
+        </SidePanel>
+      </IntlProvider>
+    );
+    const view = render(ui(true));
+    view.rerender(ui(false));
+
+    expect(focus).toHaveBeenCalledWith({ preventScroll: true });
+
+    trigger.remove();
+  });
 });

@@ -1,11 +1,13 @@
 import { Transactional } from '@nestjs-cls/transactional';
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 
 import { Pagination } from '../../framework/pagination';
 import { FormationEnum } from '../../shared/formation.enum';
 import { UserStatus } from '../../shared/user-status.enum';
+import { canListDeactivatedMembers } from '../domain/member-list.policy';
 
-import { ExcludedJurisdictionsFinder } from './finders/excluded-jurisdictions.finder';
+import { ExcludedJurisdictionsFinder, ExcludingMember } from './finders/excluded-jurisdictions.finder';
+import { ExcludedMagistratsFinder } from './finders/excluded-magistrats.finder';
 import { MemberRepository } from './member-repository';
 import { MemberFormation } from './member.utils';
 import { DetailedMemberDto, DetailsMemberQuery } from './queries/details-member.query';
@@ -29,6 +31,7 @@ export class MembersService {
     private readonly internalGetMemberQuery: InternalGetMemberQuery,
     private readonly internalFindMembersByFormationQuery: InternalFindMembersByFormationQuery,
     private readonly excludedJurisdictionsFinder: ExcludedJurisdictionsFinder,
+    private readonly excludedMagistratsFinder: ExcludedMagistratsFinder,
   ) {}
 
   listMembers(query: {
@@ -38,7 +41,12 @@ export class MembersService {
     sortBy: 'firstName' | 'lastName' | undefined;
     sortDirection: 'asc' | 'desc' | undefined;
     statuses: readonly UserStatus[];
+    user: { isAdmin: boolean };
   }): Promise<PaginatedMemberListItemDto> {
+    if (query.statuses.includes('DEACTIVATED') && !canListDeactivatedMembers(query.user)) {
+      throw new ForbiddenException();
+    }
+
     return this.listMembersQuery.handle(query);
   }
 
@@ -50,6 +58,16 @@ export class MembersService {
   async excludeJurisdictions(command: { userId: string; jurisdictionIds: readonly string[] }) {
     const member = await this.memberRepository.findWithJurisdictions(command);
     member.excludeJurisdictions(command.jurisdictionIds);
+    await this.memberRepository.persist(member);
+  }
+
+  @Transactional()
+  async excludeMagistrats(command: { magistratIds: readonly string[]; userId: string }): Promise<void> {
+    const member = await this.memberRepository.find(command.userId);
+    member.excludeMagistrats({
+      knownMagistratIds: await this.memberRepository.findKnownMagistratIds(command.magistratIds),
+      magistratIds: command.magistratIds,
+    });
     await this.memberRepository.persist(member);
   }
 
@@ -81,6 +99,21 @@ export class MembersService {
     memberIds: readonly string[];
   }): Promise<Map<string, Set<string>>> {
     return this.excludedJurisdictionsFinder.find(query);
+  }
+
+  /** @internal the members who excluded each magistrat */
+  internalFindExcludedMagistrats(query: {
+    magistratIds: ReadonlySet<string>;
+  }): Promise<Map<string, Set<string>>> {
+    return this.excludedMagistratsFinder.find(query);
+  }
+
+  /** @internal */
+  internalFindExcludingMembers(query: {
+    formations: readonly MemberFormation[];
+    jurisdictionIds: readonly string[];
+  }): Promise<Map<string, ExcludingMember[]>> {
+    return this.excludedJurisdictionsFinder.findExcludingMembers(query);
   }
 
   /** @internal */

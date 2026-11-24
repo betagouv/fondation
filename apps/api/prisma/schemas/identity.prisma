@@ -48,6 +48,7 @@ model User {
 
   adminRightChanges                            AdminRightChange[]                     @relation("admin_right_change_user")
   agendasAuthor                                Agenda[]                               @relation("agenda_author")
+  apiClientChanges                             ApiClientChange[]                      @relation("api_client_change_author")
   archiverOfSessions                           Session[]                              @relation("session_archive_author")
   authImpersonations                           AuthImpersonation[]
   authorOfAdminRightChanges                    AdminRightChange[]                     @relation("admin_right_change_author")
@@ -87,6 +88,7 @@ model User {
   editorOfOfficialReportNotes                  OfficialReportNominationFile[]         @relation("official_report_note_editor")
   editorOfOfficialReportVersions               OfficialReportVersion[]                @relation("official_report_version_editor")
   excludedJurisdictionIds                      ExcludedJurisdiction[]
+  excludedMagistrats                           ExcludedMagistrat[]
   followedUpObservations                       Observation[]                          @relation("user_to_observation_follow_up")
   impersonatedInFeedbacks                      Feedback[]                             @relation("feedback_impersonated")
   impersonatorOfAuditionPublications           AuditionPublication[]                  @relation("audition_publication_impersonator")
@@ -181,6 +183,18 @@ model ExcludedJurisdiction {
 
   @@id([userId, jurisdictionId], map: "excluded_jurisdictions_user_id_jurisdiction_id_pk")
   @@map("excluded_jurisdictions")
+  @@schema("identity_and_access_context")
+}
+
+model ExcludedMagistrat {
+  userId      String @map("user_id") @db.Uuid
+  magistratId String @map("magistrat_id") @db.Uuid
+
+  magistrat Magistrat @relation(fields: [magistratId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([userId, magistratId])
+  @@map("excluded_magistrats")
   @@schema("identity_and_access_context")
 }
 

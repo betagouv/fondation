@@ -69,6 +69,7 @@ const NOMINATION_FILE: DetailedNominationFileDto = {
     status: { dates: [], value: 'TO_REPORT' },
     version: 2,
   },
+  excludedJurisdictionConflicts: [],
   expectedReportersCount: 2,
   hasAttachment: false,
   id: REPORT.nominationFileId,
@@ -82,6 +83,7 @@ const NOMINATION_FILE: DetailedNominationFileDto = {
   observations: [],
   priorities: ['ETOILE'],
   recusedMembers: [],
+  reporterWarnings: [],
   reporters: [{ firstName: 'Jean', id: STORY_USERS.member.id, lastName: 'Petit' }],
   summary: null,
 };

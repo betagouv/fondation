@@ -28,12 +28,12 @@ export type ListMembersOptions = {
   pagination?: { pageIndex: number; pageSize: number };
   search?: string;
   sorting?: { id: string; desc: boolean }[];
-  statuses?: NonNullable<ListMembersData['query']>['statuses'];
 };
 
 export type MembersFilters = {
   formations?: NonNullable<ListMembersData['query']>['formations'];
   search?: string;
+  statuses?: NonNullable<ListMembersData['query']>['statuses'];
 };
 export type MembersSorting =
   | []
@@ -90,7 +90,6 @@ export const useMemberListQuery = ({
             search: options.search?.trim() || undefined,
             sortBy,
             sortDirection,
-            statuses: options.statuses,
           },
         })
         .then(({ data }) => data ?? null);
@@ -124,6 +123,7 @@ export const useInfiniteMembersQuery = (options: { filters: MembersFilters; sort
             search: options.filters.search?.trim() || undefined,
             sortBy: options.sorting[0]?.id,
             sortDirection: options.sorting[0]?.desc ? 'desc' : undefined,
+            statuses: options.filters.statuses,
           },
         })
         .then(({ data = null }) => data),
@@ -184,7 +184,34 @@ export function useExcludedJurisdictionsMutation(options: { userId: string }) {
         queryKey: memberKeys.detailsMember({ userId: options.userId }),
       });
       await queryClient.invalidateQueries({ queryKey: memberKeys.allListedMembers() });
+      // the files serve the conflicts with the excluded jurisdictions
+      await queryClient.invalidateQueries({ queryKey: sessionKeys.listSessionNominationFiles() });
+      await queryClient.invalidateQueries({
+        queryKey: sessionKeys.detailSessionNominationFile({
+          nominationFileId: undefined,
+          sessionId: undefined,
+        }),
+      });
     },
+  });
+}
+
+export function useExcludedMagistratsMutation(options: { userId: string }) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (magistratIds: readonly string[]) => {
+      await $api.members.excludeMagistrats({
+        body: { magistratIds: [...magistratIds] },
+        path: { userId: options.userId },
+        throwOnError: true,
+      });
+    },
+    // the files serve the members who excluded their proposed magistrat
+    onSettled: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: memberKeys.detailsMember({ userId: options.userId }) }),
+        queryClient.invalidateQueries({ queryKey: sessionKeys.listSessionNominationFiles() }),
+      ]),
   });
 }
 

@@ -3,8 +3,6 @@ import { render, screen, within } from '@testing-library/react';
 import { IntlProvider } from 'react-intl';
 import { describe, expect, it } from 'vitest';
 
-import { ExcludedJurisdictionsContext } from '@/features/nomination-files-table/context/excluded-jurisdictions.context';
-import { MemberExcludedJurisdictions } from '@/features/nomination-files-table/context/member-excluded-jurisdictions';
 import { frFormat } from '@/i18n/formats';
 import { makeSessionNominationFile } from '@/test-utils/factories/session-nomination-file.factory';
 import { authKeys } from '@queries/auth.queries';
@@ -17,28 +15,22 @@ const CAMILLE = { firstName: 'Camille', id: 'camille', lastName: 'Commun' };
 const PAUL = { firstName: 'Paul', id: 'paul', lastName: 'Parquet' };
 
 function renderCell(
-  excludedJurisdictionsOfCamille: (typeof LYON)[],
-  excludedJurisdictionsOfPaul: (typeof LYON)[] = [],
+  excludingMembers: (typeof CAMILLE)[],
+  magistratExcludingReporterIds: readonly string[] = [],
 ) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   client.setQueryData(authKeys.introspectSession(), { ...PAUL, role: 'MEMBRE_DU_SIEGE' });
 
   const dossier = makeSessionNominationFile({
-    content: { jurisdictions: { current: LYON, targeted: null } },
+    excludedJurisdictionConflicts: excludingMembers.map((member) => ({ jurisdiction: LYON, member })),
+    reporterWarnings: magistratExcludingReporterIds.map((id) => ({ id, reason: 'EXCLUDED_MAGISTRAT' })),
     reporters: [CAMILLE, PAUL],
   });
-
-  const model = MemberExcludedJurisdictions.fromMembers([
-    { ...CAMILLE, excludedJurisdictions: excludedJurisdictionsOfCamille },
-    { ...PAUL, excludedJurisdictions: excludedJurisdictionsOfPaul },
-  ]);
 
   return render(
     <QueryClientProvider client={client}>
       <IntlProvider defaultLocale="fr" formats={frFormat} locale="fr">
-        <ExcludedJurisdictionsContext value={model}>
-          <ReportersCell dossier={dossier} />
-        </ExcludedJurisdictionsContext>
+        <ReportersCell dossier={dossier} />
       </IntlProvider>
     </QueryClientProvider>,
   );
@@ -55,7 +47,7 @@ describe('ReportersCell', () => {
   });
 
   it('states the excluded jurisdiction in the tooltip of the reporter it concerns', () => {
-    renderCell([LYON]);
+    renderCell([CAMILLE]);
 
     expect(screen.getAllByRole('tooltip', { hidden: true }).map((tooltip) => tooltip.textContent)).toEqual([
       'Vous',
@@ -64,7 +56,7 @@ describe('ReportersCell', () => {
   });
 
   it('states it for every reporter sharing that jurisdiction', () => {
-    renderCell([LYON], [LYON]);
+    renderCell([CAMILLE, PAUL]);
 
     expect(screen.getAllByRole('tooltip', { hidden: true }).map((tooltip) => tooltip.textContent)).toEqual([
       `Juridiction exclue pour Paul PARQUET : ${LYON.label}`,
@@ -73,11 +65,20 @@ describe('ReportersCell', () => {
   });
 
   it('flags the excluded reporter only, and leaves the icon silent for screen readers', () => {
-    const { container } = renderCell([LYON]);
+    const { container } = renderCell([CAMILLE]);
 
     const [paul, camille] = screen.getAllByRole('listitem');
     expect(within(camille).getByText('CC')).toBeInTheDocument();
     expect(container.querySelectorAll('.fr-icon-error-line')).toHaveLength(1);
     expect(within(paul).queryByRole('img')).not.toBeInTheDocument();
+  });
+
+  it('warns about a reporter in place who excluded the proposed magistrat since', () => {
+    renderCell([CAMILLE], [CAMILLE.id]);
+
+    expect(screen.getAllByRole('tooltip', { hidden: true }).map((tooltip) => tooltip.textContent)).toEqual([
+      'Vous',
+      `Juridiction exclue pour Camille COMMUN : ${LYON.label}. Magistrat proposé exclu pour Camille COMMUN`,
+    ]);
   });
 });

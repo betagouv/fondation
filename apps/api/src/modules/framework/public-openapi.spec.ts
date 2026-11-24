@@ -18,7 +18,8 @@ const document: OpenAPIObject = {
   paths: {
     '/api/public/v1/auth': { post: answers('Token_Output') },
     '/api/public/v1/magistrats/identification': { post: answers('Identified', ['API_CLIENT']) },
-    '/api/public/v1/magistrats/role': { post: answers('Role', ['MACHINE']) },
+    // no public route is reserved to the machines today: this one only stands for the case
+    '/api/public/v1/machine-only': { post: answers('Role', ['MACHINE']) },
     '/sessions/v2': { get: answers('Session') },
   },
   components: {

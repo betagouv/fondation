@@ -254,6 +254,7 @@ function makeNominationFile(args: SidePanelArgs): SessionNominationFile {
         ? { dates: [{ day: 5, month: 10, year: 2026 }], value: 'DSJ_REPORTED' }
         : { dates: [], value: 'TO_REPORT' },
     },
+    excludedJurisdictionConflicts: [],
     expectedReportersCount: isAuditionedPosition ? 2 : null,
     hasAttachment: args.hasAttachments,
     id,

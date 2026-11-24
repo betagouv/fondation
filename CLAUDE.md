@@ -31,7 +31,7 @@ Le projet est un monorepo pnpm. Les conventions du back-end vivent dans [apps/ap
 
 - Le domaine est testé unitairement au maximum
 - Les e2e de l'API vivent dans [apps/api-e2e](apps/api-e2e) et testent les cas nominaux, un scénario par test. Les 401 et les 403 ne se testent pas fonctionnalité par fonctionnalité : les gardes sont centrales et testées ailleurs. Pas d'assertion triviale
-- Le hook `pre-push` lance `pnpm run prepush` (lint, formatage, types), qui demande un client Prisma généré. Après une modification d'un schéma Prisma ou d'une requête SQL : `pnpm --filter api prisma:generate`, puis `pnpm run openapi:generate` (API démarrée sur le port 3000) si un contrat change. Les dossiers `generated` du client et des e2e ne se modifient jamais à la main
+- Le hook `pre-push` lance `pnpm run prepush` (lint, formatage, types, et `routes.test.ts` du client pour qu'une route oubliée dans `docs/droits-par-role.md` se voie avant le push), qui demande un client Prisma généré. Après une modification d'un schéma Prisma ou d'une requête SQL : `pnpm --filter api prisma:generate`, puis `pnpm run openapi:generate` (API démarrée sur le port 3000) si un contrat change. Les dossiers `generated` du client et des e2e ne se modifient jamais à la main
 
 ## Façon de travailler
 

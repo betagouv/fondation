@@ -155,6 +155,7 @@ export const AppHeader = () => {
         ROUTE_PATHS.ADMIN.SURVEYS,
         ROUTE_PATHS.ADMIN.FEEDBACKS,
         ROUTE_PATHS.ADMIN.HELP,
+        ROUTE_PATHS.ADMIN.API_CLIENTS,
       ]),
       menuLinks: [
         {
@@ -211,6 +212,19 @@ export const AppHeader = () => {
             </span>
           ),
         },
+        ...(user?.canManageApiClients
+          ? [
+              {
+                isActive: routeMatches([ROUTE_PATHS.ADMIN.API_CLIENTS]),
+                linkProps: { onClick: foldMenus, to: ROUTE_PATHS.ADMIN.API_CLIENTS, viewTransition: true },
+                text: (
+                  <span className={clsx('ri-key-2-line', NAV_ICON_CLASS)}>
+                    {formatMessage({ defaultMessage: 'Gérer les clients API' })}
+                  </span>
+                ),
+              },
+            ]
+          : []),
       ],
       text: (
         <span className={clsx('ri-admin-line', NAV_ICON_CLASS)}>

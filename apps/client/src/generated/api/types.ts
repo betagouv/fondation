@@ -31,6 +31,8 @@ export type DetailedUserResponseDto = {
     isAdmin: boolean;
     displayTitle: string | null;
     canManageTechnicalAccounts: boolean;
+    canManageApiClients: boolean;
+    canListDeactivatedMembers: boolean;
     duty: 'PRESIDENT' | 'DEPUTY_PRESIDENT' | 'SECRETARY' | 'OFFICER' | null;
     title: 'PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_PARQUET' | 'FIRST_SECRETARY' | null;
 };
@@ -79,6 +81,134 @@ export type AuthenticateApiClientRefusedDto = {
      * - `slow_down` (429): too many requests within the minute, `Retry-After` tells how many seconds to wait
      */
     error: 'invalid_request' | 'unsupported_grant_type' | 'invalid_client' | 'access_denied' | 'slow_down';
+};
+
+export type ListedApiClientsDto = {
+    items: Array<{
+        id: string;
+        name: string;
+        allowedIps: Array<{
+            ip: string;
+        }>;
+        authLimitPerMinute: number;
+        scopes: Array<{
+            limitPerMinute: number;
+            scope: {
+                id: string;
+                label: string;
+            };
+        }>;
+        status: {
+            value: 'ACTIVE';
+        } | {
+            /**
+             * The replaced secret is refused from then
+             */
+            until: string;
+            value: 'ROTATING';
+        } | {
+            since: string;
+            value: 'REVOKED';
+        };
+        lastTokenIssuedAt: string | null;
+        canEndSecretRotation: boolean;
+        canRevoke: boolean;
+        canRotateSecret: boolean;
+        canUpdate: boolean;
+    }>;
+    /**
+     * The routes a client may be given
+     */
+    scopes: Array<{
+        id: 'magistrats:identification' | 'magistrats:status';
+        label: string;
+        /**
+         * The limit a client gets when the route is opened to it
+         */
+        defaultLimitPerMinute: number;
+    }>;
+    /**
+     * The bounds of a limit, for the authentication as for a route
+     */
+    limitPerMinute: {
+        min: number;
+        max: number;
+    };
+    /**
+     * How many days the replaced secret may stay valid after a rotation
+     */
+    secretRotationDays: {
+        default: number;
+        max: number;
+    };
+};
+
+export type CreateApiClientDto = {
+    name: string;
+    allowedIps: Array<{
+        ip: string;
+    }>;
+    scopes: Array<{
+        id: 'magistrats:identification' | 'magistrats:status';
+    }>;
+};
+
+export type CreatedApiClientDto = {
+    /**
+     * The `client_id` handed to the partner
+     */
+    id: string;
+    /**
+     * Shown this once: Fondation keeps its hash only
+     */
+    secret: string;
+};
+
+export type ListedApiClientChangesDto = {
+    items: Array<{
+        change: {
+            id: 'CREATED' | 'UPDATED' | 'SECRET_ROTATION_STARTED' | 'SECRET_ROTATION_ENDED' | 'REVOKED';
+            label: string;
+        };
+        changedAt: string;
+        changedBy: {
+            id: string;
+            name: string;
+        };
+        /**
+         * Only when a rotation starts: when the replaced secret stops working if nobody ends the rotation
+         */
+        previousSecretValidUntil: string | null;
+    }>;
+};
+
+export type UpdateApiClientDto = {
+    /**
+     * Without any, the client is refused from everywhere
+     */
+    allowedIps: Array<{
+        ip: string;
+    }>;
+    authLimitPerMinute: number;
+    scopes: Array<{
+        id: 'magistrats:identification' | 'magistrats:status';
+        limitPerMinute: number;
+    }>;
+};
+
+export type RotateApiClientSecretDto = {
+    /**
+     * How long the replaced secret stays valid, 7 days by default
+     */
+    days?: number;
+};
+
+export type RotatedApiClientSecretDto = {
+    /**
+     * Shown this once, like the first one
+     */
+    secret: string;
+    previousSecretValidUntil: string;
 };
 
 export type ListedMemberSessionReportsDto = {
@@ -453,12 +583,26 @@ export type PaginatedNominationFiles = {
             minutes: number;
             seconds: number;
         } | null;
+        /**
+         * the members of the session formation, deactivated ones included, who excluded the current or the targeted jurisdiction; empty outside the secretariat
+         */
+        excludedJurisdictionConflicts: Array<{
+            jurisdiction: {
+                id: string;
+                label: string | null;
+            };
+            member: {
+                id: string;
+                firstName: string;
+                lastName: string;
+            };
+        }>;
         expectedReportersCount: number | null;
         missingEvaluation: boolean;
         missingEvaluationComment: string | null;
         nonAffectableMembers: Array<{
             id: string;
-            reason: 'RECUSED';
+            reason: 'RECUSED' | 'EXCLUDED_MAGISTRAT';
         }>;
         /**
          * empty when the user cannot recuse members on this file
@@ -466,6 +610,13 @@ export type PaginatedNominationFiles = {
         nonRecusableMembers: Array<{
             id: string;
             reason: 'REPORTER';
+        }>;
+        /**
+         * the reporters in place who keep the file despite a warning, for the secretariat only
+         */
+        reporterWarnings: Array<{
+            id: string;
+            reason: 'EXCLUDED_MAGISTRAT';
         }>;
         reporters: Array<{
             id: string;
@@ -811,12 +962,26 @@ export type DetailedNominationFileDto = {
         minutes: number;
         seconds: number;
     } | null;
+    /**
+     * the members of the session formation, deactivated ones included, who excluded the current or the targeted jurisdiction; empty outside the secretariat
+     */
+    excludedJurisdictionConflicts: Array<{
+        jurisdiction: {
+            id: string;
+            label: string | null;
+        };
+        member: {
+            id: string;
+            firstName: string;
+            lastName: string;
+        };
+    }>;
     expectedReportersCount: number | null;
     missingEvaluation: boolean;
     missingEvaluationComment: string | null;
     nonAffectableMembers: Array<{
         id: string;
-        reason: 'RECUSED';
+        reason: 'RECUSED' | 'EXCLUDED_MAGISTRAT';
     }>;
     /**
      * empty when the user cannot recuse members on this file
@@ -824,6 +989,13 @@ export type DetailedNominationFileDto = {
     nonRecusableMembers: Array<{
         id: string;
         reason: 'REPORTER';
+    }>;
+    /**
+     * the reporters in place who keep the file despite a warning, for the secretariat only
+     */
+    reporterWarnings: Array<{
+        id: string;
+        reason: 'EXCLUDED_MAGISTRAT';
     }>;
     reporters: Array<{
         id: string;
@@ -1108,6 +1280,22 @@ export type DetailedMemberDto = {
         id: string;
         label: string | null;
     }>;
+    excludedMagistrats: Array<{
+        id: string;
+        name: string;
+        status: 'ACTIVE' | 'INACTIVE';
+        gradeAndJurisdiction: string | null;
+        currentPosition: {
+            function: {
+                id: string;
+                label: string;
+            } | null;
+            jurisdiction: {
+                id: string;
+                label: string | null;
+            };
+        } | null;
+    }>;
     stats: Array<{
         count: number;
         year: number;
@@ -1117,6 +1305,10 @@ export type DetailedMemberDto = {
 
 export type ExcludeJurisdictionsDto = {
     jurisdictionIds: Array<string>;
+};
+
+export type ExcludeMagistratsDto = {
+    magistratIds: Array<string>;
 };
 
 export type UpdateMemberDisplayTitleDto = {
@@ -1175,25 +1367,6 @@ export type FoundMagistratStatusDto = {
      * - `INACTIVE`: it is no longer
      */
     status: 'ACTIVE' | 'INACTIVE';
-};
-
-export type SearchMagistratAuthorizationDto = {
-    email: string;
-};
-
-export type FoundMagistratAuthorizationDto = {
-    /**
-     * - `MAGISTRAT` means that the email exists and refers to an active _Magistrat_
-     * - `UNKNOWN` we did not find any active _Magistrat_ with that email
-     */
-    role: 'MAGISTRAT' | 'UNKNOWN';
-};
-
-export type SearchMagistratAuthorizationUnauthorizedDto = {
-    message: string;
-    path: string;
-    statusCode: 401;
-    timestamp: string;
 };
 
 export type IngestedLolfiArchiveDto = {
@@ -3422,6 +3595,107 @@ export type AuthenticateApiClientResponses = {
 
 export type AuthenticateApiClientResponse = AuthenticateApiClientResponses[keyof AuthenticateApiClientResponses];
 
+export type ListApiClientsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/administration/v1/api-clients';
+};
+
+export type ListApiClientsResponses = {
+    200: ListedApiClientsDto;
+};
+
+export type ListApiClientsResponse = ListApiClientsResponses[keyof ListApiClientsResponses];
+
+export type CreateApiClientData = {
+    body: CreateApiClientDto;
+    path?: never;
+    query?: never;
+    url: '/api/administration/v1/api-clients';
+};
+
+export type CreateApiClientResponses = {
+    201: CreatedApiClientDto;
+};
+
+export type CreateApiClientResponse = CreateApiClientResponses[keyof CreateApiClientResponses];
+
+export type ListApiClientChangesData = {
+    body?: never;
+    path: {
+        clientId: string;
+    };
+    query?: never;
+    url: '/api/administration/v1/api-clients/{clientId}/changes';
+};
+
+export type ListApiClientChangesResponses = {
+    200: ListedApiClientChangesDto;
+};
+
+export type ListApiClientChangesResponse = ListApiClientChangesResponses[keyof ListApiClientChangesResponses];
+
+export type UpdateApiClientData = {
+    body: UpdateApiClientDto;
+    path: {
+        clientId: string;
+    };
+    query?: never;
+    url: '/api/administration/v1/api-clients/{clientId}';
+};
+
+export type UpdateApiClientResponses = {
+    204: void;
+};
+
+export type UpdateApiClientResponse = UpdateApiClientResponses[keyof UpdateApiClientResponses];
+
+export type EndApiClientSecretRotationData = {
+    body?: never;
+    path: {
+        clientId: string;
+    };
+    query?: never;
+    url: '/api/administration/v1/api-clients/{clientId}/secret-rotation';
+};
+
+export type EndApiClientSecretRotationResponses = {
+    204: void;
+};
+
+export type EndApiClientSecretRotationResponse = EndApiClientSecretRotationResponses[keyof EndApiClientSecretRotationResponses];
+
+export type RotateApiClientSecretData = {
+    body: RotateApiClientSecretDto;
+    path: {
+        clientId: string;
+    };
+    query?: never;
+    url: '/api/administration/v1/api-clients/{clientId}/secret-rotation';
+};
+
+export type RotateApiClientSecretResponses = {
+    201: RotatedApiClientSecretDto;
+};
+
+export type RotateApiClientSecretResponse = RotateApiClientSecretResponses[keyof RotateApiClientSecretResponses];
+
+export type RevokeApiClientData = {
+    body?: never;
+    path: {
+        clientId: string;
+    };
+    query?: never;
+    url: '/api/administration/v1/api-clients/{clientId}/revocation';
+};
+
+export type RevokeApiClientResponses = {
+    204: void;
+};
+
+export type RevokeApiClientResponse = RevokeApiClientResponses[keyof RevokeApiClientResponses];
+
 export type ListMemberSessionReportsData = {
     body?: never;
     path: {
@@ -4631,6 +4905,21 @@ export type ExcludeJurisdictionsResponses = {
 
 export type ExcludeJurisdictionsResponse = ExcludeJurisdictionsResponses[keyof ExcludeJurisdictionsResponses];
 
+export type ExcludeMagistratsData = {
+    body: ExcludeMagistratsDto;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/members/v1/{userId}/excluded-magistrats';
+};
+
+export type ExcludeMagistratsResponses = {
+    204: void;
+};
+
+export type ExcludeMagistratsResponse = ExcludeMagistratsResponses[keyof ExcludeMagistratsResponses];
+
 export type UpdateDisplayTitleData = {
     body: UpdateMemberDisplayTitleDto;
     path: {
@@ -4731,30 +5020,10 @@ export type FindMagistratStatusResponses = {
 
 export type FindMagistratStatusResponse = FindMagistratStatusResponses[keyof FindMagistratStatusResponses];
 
-export type SearchMagistratAuthorizationData = {
-    body: SearchMagistratAuthorizationDto;
-    path?: never;
-    query?: never;
-    url: '/api/public/v1/magistrats/role';
-};
-
-export type SearchMagistratAuthorizationErrors = {
-    400: InvalidMagistratEmailDto;
-    401: SearchMagistratAuthorizationUnauthorizedDto;
-};
-
-export type SearchMagistratAuthorizationError = SearchMagistratAuthorizationErrors[keyof SearchMagistratAuthorizationErrors];
-
-export type SearchMagistratAuthorizationResponses = {
-    200: FoundMagistratAuthorizationDto;
-};
-
-export type SearchMagistratAuthorizationResponse = SearchMagistratAuthorizationResponses[keyof SearchMagistratAuthorizationResponses];
-
 export type IngestLolfiArchiveData = {
     body: {
         /**
-         * a .zip file
+         * a .zip archive, as is or encrypted in PGP or S/MIME
          */
         file: Blob | File;
     };

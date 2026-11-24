@@ -30,6 +30,22 @@ export class RateWindow {
     if (count > limit) throw new ApiClientRateLimited(this.retryAfter);
   }
 
+  /**
+   * The first call refused in the window: the ones after it count too, hence once a minute at most
+   * @param count the calls of the window, this one included
+   */
+  isFirstOver(limit: number, count: number): boolean {
+    return count === limit + 1;
+  }
+
+  /**
+   * The last call let through in the window: the next one is refused, hence once a minute at most
+   * @param count the calls of the window, this one included
+   */
+  isLastWithin(limit: number, count: number): boolean {
+    return count === limit;
+  }
+
   /** Never 0: a caller told to retry at once would be refused again */
   private get retryAfter(): number {
     return Math.ceil((this.start.getTime() + RateWindow.SIZE_MS - this.now.getTime()) / time.SECONDS);

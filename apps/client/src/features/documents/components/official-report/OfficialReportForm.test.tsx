@@ -70,11 +70,16 @@ function OfficialReportFormTree(
   props: Pick<
     Partial<OfficialReportContextType>,
     'changedSinceValidation' | 'officialReportId' | 'report'
-  > = {},
+  > & { requestedAgendaId?: string | null } = {},
 ) {
+  const { requestedAgendaId = 'agenda-1' } = props;
   return (
     <IntlProvider defaultLocale="fr" locale="fr">
-      <MemoryRouter initialEntries={[{ pathname: '/', state: { agendaId: 'agenda-1' } }]}>
+      <MemoryRouter
+        initialEntries={[
+          { pathname: '/', state: requestedAgendaId ? { agendaId: requestedAgendaId } : null },
+        ]}
+      >
         <OfficialReportContext
           value={{
             cancel: vi.fn(),
@@ -118,6 +123,65 @@ describe('OfficialReportForm', () => {
     expect(await screen.findByDisplayValue('10:30')).toHaveAccessibleName(/Heure de début de la séance/);
     expect(screen.getByLabelText(/Heure de fin de la séance/)).toHaveValue('12:15');
     expect(screen.getByLabelText(/Date de la séance/)).toHaveValue('2026-03-13');
+  });
+
+  it("should keep the agenda chosen from the documentation table's button", async () => {
+    mocks.agendas = { data: agendaList(null), isFetchedAfterMount: true };
+    render(<OfficialReportFormTree />);
+
+    const agenda = screen.getByRole('combobox', { name: /Ordre du jour/ });
+    await waitFor(() => expect(agenda).toHaveValue('agenda-1'));
+    expect(agenda).toBeDisabled();
+    expect(agenda).toHaveAccessibleName(/Choisi depuis le tableau de la documentation/);
+  });
+
+  it('should not flag the fields the chosen agenda leaves empty', async () => {
+    mocks.agendas = { data: agendaList(null), isFetchedAfterMount: true };
+    render(<OfficialReportFormTree />);
+
+    await waitFor(() => expect(screen.getByLabelText(/Date de la séance/)).toHaveValue('2026-03-12'));
+    expect(screen.queryAllByText(/Format incorrect/)).toHaveLength(0);
+    expect(screen.queryByText('Veuillez sélectionner un secrétaire')).not.toBeInTheDocument();
+  });
+
+  it('should not claim a choice while the agenda list is still the cached one', () => {
+    mocks.agendas = { data: agendaList(null), isFetchedAfterMount: false };
+    render(<OfficialReportFormTree />);
+
+    const agenda = screen.getByRole('combobox', { name: /Ordre du jour/ });
+    expect(agenda).toBeDisabled();
+    expect(agenda).not.toHaveAccessibleName(/Choisi depuis le tableau/);
+  });
+
+  it('should let the agenda be chosen when the fresh list no longer offers the requested one', () => {
+    mocks.agendas = { data: agendaList(null), isFetchedAfterMount: true };
+    render(<OfficialReportFormTree requestedAgendaId="agenda-with-a-report" />);
+
+    expect(screen.getByRole('combobox', { name: /Ordre du jour/ })).toBeEnabled();
+  });
+
+  it('should ask for another agenda when the refreshed list no longer offers the chosen one', async () => {
+    mocks.agendas = { data: agendaList(null), isFetchedAfterMount: true };
+    const { rerender } = render(<OfficialReportFormTree />);
+    await waitFor(() =>
+      expect(screen.getByRole('combobox', { name: /Ordre du jour/ })).toHaveValue('agenda-1'),
+    );
+
+    mocks.agendas = {
+      data: { items: agendaList(null).items.map((agenda) => ({ ...agenda, id: 'agenda-2' })) },
+      isFetchedAfterMount: true,
+    };
+    rerender(<OfficialReportFormTree />);
+
+    expect(await screen.findByText('Veuillez sélectionner un ordre du jour')).toBeVisible();
+    expect(screen.getByRole('combobox', { name: /Ordre du jour/ })).toBeEnabled();
+  });
+
+  it('should let the agenda be chosen when the form opens from the menu', () => {
+    mocks.agendas = { data: agendaList(null), isFetchedAfterMount: true };
+    render(<OfficialReportFormTree requestedAgendaId={null} />);
+
+    expect(screen.getByRole('combobox', { name: /Ordre du jour/ })).toBeEnabled();
   });
 
   it('should not offer to update a report until a field moves', async () => {

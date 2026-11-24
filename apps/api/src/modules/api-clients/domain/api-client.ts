@@ -14,6 +14,12 @@ export const DEFAULT_LIMITS_PER_MINUTE = {
 } as const satisfies Record<ApiScope | 'auth', number>;
 
 /**
+ * The calls a minute an administrator may allow: at least one, a route being closed rather than set to 0, and well under
+ * the 32-bit integers the limits are stored in
+ */
+export const LIMIT_PER_MINUTE = { min: 1, max: 10_000 } as const;
+
+/**
  * How many calls of an IP may be refused (401, 403) in a minute, all routes together, before it is turned away
  * unchecked. Not for an IP a client is allowed: a partner gets 401s in normal times, when its token expires or a
  * rotation ends, and its tokens, 32 random bytes, cannot be guessed
@@ -46,7 +52,69 @@ export class ApiClientNotRotatable extends Error {
   }
 }
 
-export type IssuedAccessToken = { expiresAt: Date; expiresIn: number; hash: string; token: string };
+const NOT_UPDATABLE = {
+  limit: `a limit is a whole number of calls a minute between ${LIMIT_PER_MINUTE.min} and ${LIMIT_PER_MINUTE.max}: to refuse a route, close it`,
+  revoked: 'the API client is revoked',
+} as const;
+
+export class ApiClientNotUpdatable extends Error {
+  constructor(readonly reason: keyof typeof NOT_UPDATABLE) {
+    super(`The API client cannot be updated: ${NOT_UPDATABLE[reason]}`);
+  }
+}
+
+/** The actions kept in the history of a client, with their author and date but never their values */
+export const API_CLIENT_CHANGES = [
+  'CREATED',
+  'UPDATED',
+  'SECRET_ROTATION_STARTED',
+  'SECRET_ROTATION_ENDED',
+  'REVOKED',
+] as const;
+export type ApiClientChange = (typeof API_CLIENT_CHANGES)[number];
+
+/** Where a client may call from, what for and how often */
+export type ApiClientConfiguration = {
+  allowedIps: readonly string[];
+  authLimitPerMinute: number;
+  scopes: readonly { limitPerMinute: number; scope: ApiScope }[];
+};
+
+/**
+ * Each IP checked (see ApiClient.allowedIps), an IP or a route given twice kept once, the route with the last limit
+ * given: twice would break the primary key
+ */
+export function distinctConfiguration(configuration: ApiClientConfiguration): ApiClientConfiguration {
+  return {
+    allowedIps: ApiClient.allowedIps(configuration.allowedIps),
+    authLimitPerMinute: configuration.authLimitPerMinute,
+    scopes: [...new Map(configuration.scopes.map((granted) => [granted.scope, granted])).values()],
+  };
+}
+
+export type IssuedAccessToken = {
+  expiresAt: Date;
+  expiresIn: number;
+  hash: string;
+  issuedAt: Date;
+  /** The hash of the secret it was given for: saved only while that secret is still accepted */
+  secretHash: string;
+  token: string;
+};
+
+export type ApiClientStatus =
+  | { value: 'ACTIVE' }
+  | { until: Date; value: 'ROTATING' }
+  | { since: Date; value: 'REVOKED' };
+
+/** See User.canManageApiClients */
+export class CantManageApiClients extends Error {}
+
+export class InvalidAllowedIp extends Error {
+  constructor(readonly ip: string) {
+    super(`${ip} is not an IPv4 or IPv6 address`);
+  }
+}
 
 /**
  * A partner system that calls the public API with a short-lived token, obtained from its identifier and its secret.
@@ -81,6 +149,14 @@ export class ApiClient {
     return { hash: ApiClient.hash(secret), secret };
   }
 
+  /** The IPs of a client, named when one is no address: an IP given twice would break the primary key */
+  static allowedIps(ips: readonly string[]): string[] {
+    const invalid = ips.find((ip) => canonicalIp(ip) === undefined);
+    if (invalid !== undefined) throw new InvalidAllowedIp(invalid);
+
+    return [...new Set(ips)];
+  }
+
   static hash(secretOrToken: string): string {
     return createHash('sha256').update(secretOrToken).digest('hex');
   }
@@ -94,8 +170,8 @@ export class ApiClient {
     const { previousSecret, secretHash } = this.props;
     const given = ApiClient.hash(command.secret);
     const accepted = this.isRotating(command.now) ? [secretHash, previousSecret!.hash] : [secretHash];
-    const isKnown = accepted.some((hash) => ApiClient.sameHash(given, hash));
-    if (this.props.revokedAt || !isKnown) throw new ApiClientUnauthenticated();
+    const matched = accepted.find((hash) => ApiClient.sameHash(given, hash));
+    if (this.props.revokedAt || !matched) throw new ApiClientUnauthenticated();
     this.assertAllowedIp(command.ip);
 
     const token = randomBytes(32).toString('base64url');
@@ -104,8 +180,51 @@ export class ApiClient {
       expiresAt: new Date(command.now.getTime() + ApiClient.TOKEN_LIFETIME_MS),
       expiresIn: ApiClient.TOKEN_LIFETIME_MS / time.SECONDS,
       hash: ApiClient.hash(token),
+      issuedAt: command.now,
+      secretHash: matched,
       token,
     };
+  }
+
+  status(now: Date): ApiClientStatus {
+    const { previousSecret, revokedAt } = this.props;
+    if (revokedAt) return { since: revokedAt, value: 'REVOKED' };
+    if (this.isRotating(now)) return { until: previousSecret!.expiresAt, value: 'ROTATING' };
+
+    return { value: 'ACTIVE' };
+  }
+
+  canRotateSecret(now: Date): boolean {
+    return this.status(now).value === 'ACTIVE';
+  }
+
+  canEndSecretRotation(now: Date): boolean {
+    return this.status(now).value === 'ROTATING';
+  }
+
+  canRevoke(): boolean {
+    return !this.props.revokedAt;
+  }
+
+  /** A revoked client no longer serves anybody */
+  canUpdate(): boolean {
+    return !this.props.revokedAt;
+  }
+
+  /**
+   * Replaces the IPs, the routes and the limits, applied from the next call. Without any IP left, the client is refused
+   * from everywhere: the administration asks for a confirmation, the domain lets it happen
+   *
+   * @returns the configuration to save (see distinctConfiguration)
+   */
+  update(configuration: ApiClientConfiguration): ApiClientConfiguration {
+    if (!this.canUpdate()) throw new ApiClientNotUpdatable('revoked');
+    const limits = [configuration.authLimitPerMinute, ...configuration.scopes.map((s) => s.limitPerMinute)];
+    const { max, min } = LIMIT_PER_MINUTE;
+    if (!limits.every((limit) => Number.isInteger(limit) && limit >= min && limit <= max))
+      throw new ApiClientNotUpdatable('limit');
+
+    return distinctConfiguration(configuration);
   }
 
   /**
@@ -121,8 +240,9 @@ export class ApiClient {
     secretHash: string;
   } {
     const days = command.days ?? ROTATION_DAYS.default;
-    if (this.props.revokedAt) throw new ApiClientNotRotatable('revoked');
-    if (this.isRotating(command.now)) throw new ApiClientNotRotatable('rotating');
+    const status = this.status(command.now).value;
+    if (status === 'REVOKED') throw new ApiClientNotRotatable('revoked');
+    if (status === 'ROTATING') throw new ApiClientNotRotatable('rotating');
     if (days < 1 || days > ROTATION_DAYS.max) throw new ApiClientNotRotatable('days');
     const { hash: secretHash, secret } = ApiClient.generateSecret();
 

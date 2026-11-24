@@ -117,16 +117,17 @@ L'accueil propose les deux pouvoirs de proposition et le logo y ramène. Le menu
 
 ### Espace administration
 
-| URL                           | Vue                                                                                                                                  | Membre | Secrétariat général | Administrateur |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ------ | ------------------- | -------------- |
-| `/admin/lolfi`                | Import d'une archive Lolfi                                                                                                           | —      | —                   | ✓              |
-| `/admin/ingestions`           | Liste des traitements en arrière-plan                                                                                                | —      | —                   | ✓              |
-| `/admin/ingestions/:jobId`    | Détail d'un traitement                                                                                                               | —      | —                   | ✓              |
-| `/admin/avis`                 | Export des réponses au questionnaire                                                                                                 | —      | —                   | ✓              |
-| `/admin/retours/:status`      | Retours d'un statut (nouveaux, pris en compte, traités ou écartés) et suivi de ce statut                                             | —      | —                   | ✓              |
-| `/admin/aide`                 | Édition des pages d'aide                                                                                                             | —      | —                   | ✓              |
-| `/admin/utilisateurs`         | Liste des utilisateurs                                                                                                               | —      | —                   | ✓              |
-| `/admin/utilisateurs/:userId` | Fiche d'un utilisateur : nom, prénom, e-mail, mot de passe, rôle, titre, droit d'administrateur, désactivation, connexion à sa place | —      | —                   | ✓              |
+| URL                           | Vue                                                                                                                                  | Membre | Secrétariat général | Administrateur     |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ------ | ------------------- | ------------------ |
+| `/admin/lolfi`                | Import d'une archive Lolfi                                                                                                           | —      | —                   | ✓                  |
+| `/admin/ingestions`           | Liste des traitements en arrière-plan                                                                                                | —      | —                   | ✓                  |
+| `/admin/ingestions/:jobId`    | Détail d'un traitement                                                                                                               | —      | —                   | ✓                  |
+| `/admin/avis`                 | Export des réponses au questionnaire                                                                                                 | —      | —                   | ✓                  |
+| `/admin/retours/:status`      | Retours d'un statut (nouveaux, pris en compte, traités ou écartés) et suivi de ce statut                                             | —      | —                   | ✓                  |
+| `/admin/aide`                 | Édition des pages d'aide                                                                                                             | —      | —                   | ✓                  |
+| `/admin/utilisateurs`         | Liste des utilisateurs                                                                                                               | —      | —                   | ✓                  |
+| `/admin/utilisateurs/:userId` | Fiche d'un utilisateur : nom, prénom, e-mail, mot de passe, rôle, titre, droit d'administrateur, désactivation, connexion à sa place | —      | —                   | ✓                  |
+| `/admin/clients-api`          | Clients API : création, modification, rotation du secret, révocation, historique                                                     | —      | —                   | ✓ compte technique |
 
 ## Actions de l'API
 
@@ -311,11 +312,12 @@ Dans les dossiers d'un magistrat, un Membre ne voit que l'affectation et les aud
 
 | Action                                                | Endpoint                                         | Membre | Secrétariat général | Administrateur |
 | ----------------------------------------------------- | ------------------------------------------------ | ------ | ------------------- | -------------- |
-| Lister les membres                                    | `GET /members/v1`                                | —      | ✓                   | ✓              |
+| Lister les membres                                    | `GET /members/v1`                                | —      | ✓ si comptes actifs | ✓              |
 | Voir un membre                                        | `GET /members/v1/:userId`                        | —      | ✓                   | ✓              |
 | Modifier le titre affiché d'un membre                 | `PUT /members/v1/:userId/display-title`          | —      | ✓                   | ✓              |
 | Modifier le titre déport d'un membre                  | `PUT /members/v1/:userId/recusal-title`          | —      | ✓                   | ✓              |
 | Exclure des juridictions de l'affectation d'un membre | `PUT /members/v1/:userId/excluded-jurisdictions` | —      | ✓                   | ✓              |
+| Exclure des magistrats de l'affectation d'un membre   | `PUT /members/v1/:userId/excluded-magistrats`    | —      | ✓                   | ✓              |
 
 ### Veille des postes
 
@@ -434,45 +436,51 @@ Dans les dossiers d'un magistrat, un Membre ne voit que l'affectation et les aud
 
 ### Administration
 
-| Action                            | Endpoint                                                    | Membre | Secrétariat général | Administrateur |
-| --------------------------------- | ----------------------------------------------------------- | ------ | ------------------- | -------------- |
-| Lister les utilisateurs           | `GET /administration/v1/users`                              | —      | —                   | ✓              |
-| Créer un compte                   | `POST /administration/v1/users`                             | —      | —                   | ✓              |
-| Voir un utilisateur               | `GET /administration/v1/users/:userId`                      | —      | —                   | ✓              |
-| Voir les rôles proposés           | `GET /administration/v1/roles`                              | —      | —                   | ✓              |
-| Voir les titulaires des fonctions | `GET /administration/v1/title-holders`                      | —      | —                   | ✓              |
-| Modifier l'e-mail                 | `PUT /administration/v1/users/:userId/email`                | —      | —                   | ✓              |
-| Modifier le nom ou le prénom      | `PUT /administration/v1/users/:userId/name`                 | —      | —                   | ✓              |
-| Modifier le mot de passe          | `PUT /administration/v1/users/:userId/password`             | —      | —                   | ✓              |
-| Modifier le rôle                  | `PUT /administration/v1/users/:userId/role`                 | —      | —                   | ✓              |
-| Modifier le titre affiché         | `PUT /administration/v1/users/:userId/display-title`        | —      | —                   | ✓              |
-| Modifier le titre déport          | `PUT /administration/v1/users/:userId/recusal-title`        | —      | —                   | ✓              |
-| Donner le droit d'administrateur  | `PUT /administration/v1/users/:userId/promotion`            | —      | —                   | ✓              |
-| Retirer le droit d'administrateur | `DELETE /administration/v1/users/:userId/promotion`         | —      | —                   | ✓              |
-| Marquer un compte technique       | `PUT /administration/v1/users/:userId/technical-account`    | —      | —                   | ✓              |
-| Démarquer un compte technique     | `DELETE /administration/v1/users/:userId/technical-account` | —      | —                   | ✓              |
-| Désactiver un compte              | `PUT /administration/v1/users/:userId/deactivation`         | —      | —                   | ✓              |
-| Réactiver un compte               | `DELETE /administration/v1/users/:userId/deactivation`      | —      | —                   | ✓              |
-| Lister les traitements            | `GET /jobs/v1`                                              | —      | —                   | ✓              |
-| Voir un traitement                | `GET /jobs/v1/:jobId`                                       | —      | —                   | ✓              |
+| Action                            | Endpoint                                                          | Membre | Secrétariat général | Administrateur     |
+| --------------------------------- | ----------------------------------------------------------------- | ------ | ------------------- | ------------------ |
+| Lister les utilisateurs           | `GET /administration/v1/users`                                    | —      | —                   | ✓                  |
+| Créer un compte                   | `POST /administration/v1/users`                                   | —      | —                   | ✓                  |
+| Voir un utilisateur               | `GET /administration/v1/users/:userId`                            | —      | —                   | ✓                  |
+| Voir les rôles proposés           | `GET /administration/v1/roles`                                    | —      | —                   | ✓                  |
+| Voir les titulaires des fonctions | `GET /administration/v1/title-holders`                            | —      | —                   | ✓                  |
+| Modifier l'e-mail                 | `PUT /administration/v1/users/:userId/email`                      | —      | —                   | ✓                  |
+| Modifier le nom ou le prénom      | `PUT /administration/v1/users/:userId/name`                       | —      | —                   | ✓                  |
+| Modifier le mot de passe          | `PUT /administration/v1/users/:userId/password`                   | —      | —                   | ✓                  |
+| Modifier le rôle                  | `PUT /administration/v1/users/:userId/role`                       | —      | —                   | ✓                  |
+| Modifier le titre affiché         | `PUT /administration/v1/users/:userId/display-title`              | —      | —                   | ✓                  |
+| Modifier le titre déport          | `PUT /administration/v1/users/:userId/recusal-title`              | —      | —                   | ✓                  |
+| Donner le droit d'administrateur  | `PUT /administration/v1/users/:userId/promotion`                  | —      | —                   | ✓                  |
+| Retirer le droit d'administrateur | `DELETE /administration/v1/users/:userId/promotion`               | —      | —                   | ✓                  |
+| Marquer un compte technique       | `PUT /administration/v1/users/:userId/technical-account`          | —      | —                   | ✓                  |
+| Démarquer un compte technique     | `DELETE /administration/v1/users/:userId/technical-account`       | —      | —                   | ✓                  |
+| Désactiver un compte              | `PUT /administration/v1/users/:userId/deactivation`               | —      | —                   | ✓                  |
+| Réactiver un compte               | `DELETE /administration/v1/users/:userId/deactivation`            | —      | —                   | ✓                  |
+| Lister les traitements            | `GET /jobs/v1`                                                    | —      | —                   | ✓                  |
+| Voir un traitement                | `GET /jobs/v1/:jobId`                                             | —      | —                   | ✓                  |
+| Lister les clients API            | `GET /administration/v1/api-clients`                              | —      | —                   | ✓ compte technique |
+| Lire l'historique d'un client API | `GET /administration/v1/api-clients/:clientId/changes`            | —      | —                   | ✓ compte technique |
+| Créer un client API               | `POST /administration/v1/api-clients`                             | —      | —                   | ✓ compte technique |
+| Modifier un client API            | `PUT /administration/v1/api-clients/:clientId`                    | —      | —                   | ✓ compte technique |
+| Lancer la rotation d'un secret    | `POST /administration/v1/api-clients/:clientId/secret-rotation`   | —      | —                   | ✓ compte technique |
+| Clore la rotation d'un secret     | `DELETE /administration/v1/api-clients/:clientId/secret-rotation` | —      | —                   | ✓ compte technique |
+| Révoquer un client API            | `PUT /administration/v1/api-clients/:clientId/revocation`         | —      | —                   | ✓ compte technique |
 
-Le droit d'administrateur ne se donne qu'à une personne du Secrétariat général. Seul un compte technique peut en rendre un autre technique.
+Le droit d'administrateur ne se donne qu'à une personne du Secrétariat général. Seul un compte technique peut en rendre un autre technique, et gérer les clients API.
 
 ## Accès sans utilisateur
 
 Ces endpoints ne passent par aucun rôle : ils sont publics ou réservés à d'autres systèmes. Le préfixe `/api` est omis.
 
-| Accès                                             | Endpoint                                        | Qui                       | Raison                                                    |
-| ------------------------------------------------- | ----------------------------------------------- | ------------------------- | --------------------------------------------------------- |
-| Se connecter                                      | `POST /auth/v2/login`                           | public                    | Connexion par e-mail et mot de passe                      |
-| Lister les fournisseurs OpenID                    | `GET /auth/v2/openid/providers`                 | public                    | Connexion OpenID                                          |
-| Préparer une connexion OpenID                     | `POST /auth/v2/openid/:provider/requests`       | public                    | Connexion OpenID                                          |
-| Retour du fournisseur OpenID                      | `GET /auth/v2/openid/:provider/callback`        | public                    | Connexion OpenID                                          |
-| Vérifier les droits d'un magistrat (API publique) | `POST /public/v1/magistrats/role`               | machine                   | Service partenaire, authentifié par jeton                 |
-| Obtenir un jeton de client API (API publique)     | `POST /public/v1/auth`                          | public                    | Jeton de 15 minutes contre un identifiant et un secret    |
-| Identifier un magistrat actif (API publique)      | `POST /public/v1/magistrats/identification`     | client API                | Site du CSM, première connexion d'un magistrat            |
-| Relire le statut d'un magistrat (API publique)    | `GET /public/v1/magistrats/:magistratId/status` | client API                | Site du CSM, une fois par jour au plus pour un magistrat  |
-| Importer une archive Lolfi                        | `POST /ingest/v1/lolfi`                         | machine ou Administrateur | Dépôt automatique des archives Lolfi, ou import à la main |
+| Accès                                          | Endpoint                                        | Qui                       | Raison                                                    |
+| ---------------------------------------------- | ----------------------------------------------- | ------------------------- | --------------------------------------------------------- |
+| Se connecter                                   | `POST /auth/v2/login`                           | public                    | Connexion par e-mail et mot de passe                      |
+| Lister les fournisseurs OpenID                 | `GET /auth/v2/openid/providers`                 | public                    | Connexion OpenID                                          |
+| Préparer une connexion OpenID                  | `POST /auth/v2/openid/:provider/requests`       | public                    | Connexion OpenID                                          |
+| Retour du fournisseur OpenID                   | `GET /auth/v2/openid/:provider/callback`        | public                    | Connexion OpenID                                          |
+| Obtenir un jeton de client API (API publique)  | `POST /public/v1/auth`                          | public                    | Jeton de 15 minutes contre un identifiant et un secret    |
+| Identifier un magistrat actif (API publique)   | `POST /public/v1/magistrats/identification`     | client API                | Site du CSM, première connexion d'un magistrat            |
+| Relire le statut d'un magistrat (API publique) | `GET /public/v1/magistrats/:magistratId/status` | client API                | Site du CSM, une fois par jour au plus pour un magistrat  |
+| Importer une archive Lolfi                     | `POST /ingest/v1/lolfi`                         | machine ou Administrateur | Dépôt automatique des archives Lolfi, ou import à la main |
 
 ### Hors spécification OpenAPI
 

@@ -272,6 +272,11 @@ export class User {
     return User.canManageTechnicalAccounts({ isTechnical: this.isTechnical });
   }
 
+  /** Machine accesses are the developers' business: an administrator of the CSM does not touch them */
+  static canManageApiClients(actor: { isAdmin: boolean; isTechnical: boolean }): boolean {
+    return actor.isAdmin && actor.isTechnical;
+  }
+
   technicalAccountManageableBy(actor: { isTechnical: boolean }): boolean {
     return (
       User.canManageTechnicalAccounts(actor) &&

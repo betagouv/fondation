@@ -113,7 +113,7 @@ export class OfficialReportsFilter implements NestInterceptor {
 
           if (err instanceof EmptyMembersList) {
             return new BadRequestException({
-              validationError: `La liste des members présent est vide`,
+              validationError: `Au moins un membre doit être présent`,
             });
           }
 

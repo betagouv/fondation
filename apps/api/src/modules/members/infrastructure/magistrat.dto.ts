@@ -1,17 +1,6 @@
 import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
-export class SearchMagistratAuthorizationDto extends createZodDto(z.object({ email: z.email() })) {}
-
-export class SearchMagistratAuthorizationUnauthorizedDto extends createZodDto(
-  z.object({
-    message: z.string(),
-    path: z.string(),
-    statusCode: z.literal(401),
-    timestamp: z.iso.datetime({ local: false }),
-  }),
-) {}
-
 export class InvalidMagistratEmailDto extends createZodDto(
   z.object({
     message: z.string(),

@@ -4,14 +4,13 @@ import * as Sentry from '@sentry/node';
 import { CommandFactory } from 'nest-commander';
 
 import { AppModule } from './app.module';
-import { ApiClientsCliModule } from './modules/api-clients/infrastructure/api-client.cli';
 import { DeleteUnusedFilesCliModule } from './modules/framework/files/delete-unused-files.cli';
 import { IngestCliModule } from './modules/ingest/ingest-cli.module';
 import { AuthCliModule } from './modules/simple-auth/infrastructure/cli/auth-cli.module';
 import * as time from './utils/time';
 
 @Module({
-  imports: [AppModule, ApiClientsCliModule, AuthCliModule, DeleteUnusedFilesCliModule, IngestCliModule],
+  imports: [AppModule, AuthCliModule, DeleteUnusedFilesCliModule, IngestCliModule],
 })
 class CliAppModule {}
 

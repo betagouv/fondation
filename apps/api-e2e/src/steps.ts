@@ -47,7 +47,7 @@ export type TestStepsAdmin = Omit<TestSteps, 'members'> & {
 // an intersection merges the keys of a namespace: one narrowed below must first leave the complement
 export type TestStepsAgent = Omit<
   Complement<TestSteps, TestStepsMember>,
-  'administration' | 'auth' | 'feedbacks' | 'help' | 'ingest' | 'jobs' | 'magistrats' | 'surveys'
+  'administration' | 'auth' | 'feedbacks' | 'help' | 'ingest' | 'jobs' | 'surveys'
 > & {
   archivedSessions: TestSteps['archivedSessions'];
   auth: Omit<
@@ -58,7 +58,6 @@ export type TestStepsAgent = Omit<
   // the secretariat also opens the attachments it serves
   files: TestSteps['files'];
   help: TestStepsMember['help'];
-  magistrats: Omit<TestSteps['magistrats'], 'searchMagistratAuthorization'>;
   // the secretariat also reads the observations it receives
   observations: TestSteps['observations'];
   // the secretariat also reads the summaries it writes

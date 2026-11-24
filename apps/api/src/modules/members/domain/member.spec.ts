@@ -2,7 +2,7 @@ import { NotFoundException } from '@nestjs/common';
 
 import { makeId } from '../../../utils/id';
 
-import { ExcludedMemberJurisdictions, Member } from './member';
+import { ExcludedMemberJurisdictions, Member, MemberMagistratsExcluded } from './member';
 
 describe('Member', () => {
   it('should exclude a jurisdiction', () => {
@@ -47,5 +47,26 @@ describe('Member', () => {
     });
 
     expect(() => member.excludeJurisdictions(['TGI LYON'])).toThrow(NotFoundException);
+  });
+
+  describe('excluding magistrats', () => {
+    const member = () => Member.from({ id: 'member-id', jurisdictionIds: new Set(), role: 'MEMBRE_COMMUN' });
+
+    it('replaces the excluded magistrats, once each', () => {
+      const excluding = member();
+
+      excluding.excludeMagistrats({
+        knownMagistratIds: new Set(['magistrat-1']),
+        magistratIds: ['magistrat-1', 'magistrat-1'],
+      });
+
+      expect(excluding.messages).toEqual([new MemberMagistratsExcluded('member-id', ['magistrat-1'])]);
+    });
+
+    it('throws for an unknown magistrat', () => {
+      expect(() =>
+        member().excludeMagistrats({ knownMagistratIds: new Set(), magistratIds: ['magistrat-1'] }),
+      ).toThrow(NotFoundException);
+    });
   });
 });

@@ -8,10 +8,11 @@ test.describe('Members E2E', () => {
     let memberId: string;
     let memberLastName: string;
     let jurisdictionIds: string[];
+    let magistratId: string;
 
     // Jurisdictions are populated by importing a LODAM session
     test.beforeEach(async ({ agent, sessions, registerUser, expect }) => {
-      await sessions.createOne({
+      const session = await sessions.createOne({
         name: `Setup (${randomUUID()})`,
         createdAt: '22/04/2026',
         candidates: [
@@ -31,6 +32,7 @@ test.describe('Members E2E', () => {
           },
         ],
       });
+      magistratId = session.files[0]!.magistratId;
 
       const jurisdictions = await agent.jurisdictions.search({ query: { search: 'LYON' } });
       expect(jurisdictions.response?.status).toBe(200);
@@ -57,6 +59,32 @@ test.describe('Members E2E', () => {
       expect(detailedMemberAfter.data?.excludedJurisdictions).toEqual([
         expect.objectContaining({ id: expect.stringMatching(/LYON/i) }),
       ]);
+    });
+
+    test('replaces the magistrats a member excludes', async ({ agent, expect }) => {
+      const updated = await agent.members.excludeMagistrats({
+        body: { magistratIds: [magistratId] },
+        path: { userId: memberId },
+      });
+      expect(updated.response?.status).toBe(204);
+
+      const { data } = await agent.members.detailsMember({ path: { userId: memberId }, throwOnError: true });
+      expect(data.excludedMagistrats).toEqual([
+        {
+          currentPosition: {
+            function: expect.objectContaining({ id: seed.functions.PR.id }),
+            jurisdiction: expect.objectContaining({ id: seed.jurisdictions['CA  LYON'].id }),
+          },
+          gradeAndJurisdiction: expect.stringContaining('CA LYON'),
+          id: magistratId,
+          name: 'TREVOUX Etienne',
+          status: 'ACTIVE',
+        },
+      ]);
+
+      await agent.members.excludeMagistrats({ body: { magistratIds: [] }, path: { userId: memberId } });
+      const emptied = await agent.members.detailsMember({ path: { userId: memberId }, throwOnError: true });
+      expect(emptied.data.excludedMagistrats).toEqual([]);
     });
 
     test('details a member with the count of their reports', async ({ agent, expect, sessions }) => {
@@ -96,6 +124,17 @@ test.describe('Members E2E', () => {
       const member = members.data?.items.find(({ id }) => id === memberId);
       expect(member?.excludedJurisdictions).toEqual([expect.objectContaining({ id: expect.stringMatching(/LYON/i) })]);
       expect(member?.formation).toEqual({ id: 'COMMUN', label: 'Commun' });
+    });
+
+    test('lists a deactivated member to an admin', async ({ admin, expect }) => {
+      await admin.administration.deactivate({ path: { userId: memberId }, throwOnError: true });
+
+      const { data } = await admin.members.listMembers({
+        query: { formations: [], search: memberLastName, statuses: ['DEACTIVATED'] },
+        throwOnError: true,
+      });
+
+      expect(data.items).toEqual([expect.objectContaining({ id: memberId, status: 'DEACTIVATED' })]);
     });
   });
 

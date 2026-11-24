@@ -7,7 +7,12 @@ import { makeId } from '../../../utils/id';
 import { Db } from '../../framework/database';
 import { prismaRoleEnumToRoleEnum } from '../../shared/mappers/role-enum.mapper';
 import { MEMBER_ROLES } from '../../shared/role.enum';
-import { ExcludedMemberJurisdictions, Member, MemberDisplayTitleUpdated } from '../domain/member';
+import {
+  ExcludedMemberJurisdictions,
+  Member,
+  MemberDisplayTitleUpdated,
+  MemberMagistratsExcluded,
+} from '../domain/member';
 
 @Injectable()
 export class MemberRepository {
@@ -57,8 +62,28 @@ export class MemberRepository {
         await this.persistExcludedMemberJurisdictions(message);
       else if (message instanceof MemberDisplayTitleUpdated)
         await this.persistMemberDisplayTitleUpdated(message);
+      else if (message instanceof MemberMagistratsExcluded)
+        await this.persistMemberMagistratsExcluded(message);
       else assertNever(message);
     }
+  }
+
+  @Transactional()
+  async findKnownMagistratIds(magistratIds: readonly string[]): Promise<Set<string>> {
+    if (magistratIds.length === 0) return new Set();
+
+    const magistrats = await this.db.tx.magistrat.findMany({
+      select: { id: true } satisfies Prisma.MagistratSelect,
+      where: { id: { in: [...magistratIds] } },
+    });
+    return new Set(magistrats.map(({ id }) => id));
+  }
+
+  private async persistMemberMagistratsExcluded(message: MemberMagistratsExcluded) {
+    await this.db.tx.excludedMagistrat.deleteMany({ where: { userId: message.userId } });
+    await this.db.tx.excludedMagistrat.createMany({
+      data: message.magistratIds.map((magistratId) => ({ magistratId, userId: message.userId })),
+    });
   }
 
   private persistExcludedMemberJurisdictions(message: ExcludedMemberJurisdictions) {

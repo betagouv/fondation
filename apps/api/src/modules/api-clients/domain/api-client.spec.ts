@@ -4,10 +4,13 @@ import {
   ApiClient,
   ApiClientForbidden,
   ApiClientNotRotatable,
+  ApiClientNotUpdatable,
   ApiClientUnauthenticated,
   ApiScope,
   canonicalIp,
+  InvalidAllowedIp,
   IssuedAccessToken,
+  LIMIT_PER_MINUTE,
 } from './api-client';
 
 describe('ApiClient', () => {
@@ -46,8 +49,19 @@ describe('ApiClient', () => {
         expiresAt: new Date('2026-11-18T10:15:00Z'),
         expiresIn: 900,
         hash: ApiClient.hash(issued.token),
+        issuedAt: now,
+        secretHash,
         token: expect.stringMatching(/^[\w-]{43}$/),
       });
+    });
+
+    it('should tell the replaced secret a token was given for while a rotation lasts', () => {
+      const replaced = ApiClient.generateSecret();
+      const rotating = client({
+        previousSecret: { expiresAt: new Date('2026-11-25T10:00:00Z'), hash: replaced.hash },
+      });
+
+      expect(authenticate(rotating, { secret: replaced.secret }).secretHash).toBe(replaced.hash);
     });
 
     it('should refuse a wrong secret', () => {
@@ -116,6 +130,84 @@ describe('ApiClient', () => {
     });
   });
 
+  describe('update', () => {
+    const configuration = {
+      allowedIps: ['203.0.113.8'],
+      authLimitPerMinute: 5,
+      scopes: [{ limitPerMinute: 600, scope: 'magistrats:status' as const }],
+    };
+
+    it('should keep an IP or a route given twice once only', () => {
+      const updated = client().update({
+        allowedIps: ['203.0.113.8', '203.0.113.8'],
+        authLimitPerMinute: 5,
+        scopes: [
+          { limitPerMinute: 600, scope: 'magistrats:status' },
+          { limitPerMinute: 300, scope: 'magistrats:status' },
+        ],
+      });
+
+      expect(updated).toEqual({
+        allowedIps: ['203.0.113.8'],
+        authLimitPerMinute: 5,
+        scopes: [{ limitPerMinute: 300, scope: 'magistrats:status' }],
+      });
+    });
+
+    it('should let the last IP go, the client being refused from everywhere', () => {
+      expect(client().update({ ...configuration, allowedIps: [] }).allowedIps).toEqual([]);
+    });
+
+    it('should name the IP that is no address', () => {
+      expect(() => client().update({ ...configuration, allowedIps: ['203.0.113.8', '203.0.113'] })).toThrow(
+        new InvalidAllowedIp('203.0.113'),
+      );
+    });
+
+    it.each([0, -1, 1.5, LIMIT_PER_MINUTE.max + 1])(
+      'should refuse a limit of %s calls a minute',
+      (limitPerMinute) => {
+        expect(() =>
+          client().update({ ...configuration, scopes: [{ limitPerMinute, scope: 'magistrats:status' }] }),
+        ).toThrow(new ApiClientNotUpdatable('limit'));
+      },
+    );
+
+    it('should refuse an authentication limit of zero', () => {
+      expect(() => client().update({ ...configuration, authLimitPerMinute: 0 })).toThrow(
+        new ApiClientNotUpdatable('limit'),
+      );
+    });
+
+    it('should not update a revoked client', () => {
+      expect(() => client({ revokedAt: now }).update(configuration)).toThrow(
+        new ApiClientNotUpdatable('revoked'),
+      );
+    });
+  });
+
+  describe('status', () => {
+    const replaced = { expiresAt: new Date('2026-11-25T10:00:00Z'), hash: 'replaced' };
+
+    it('should be rotating until the replaced secret stops being accepted', () => {
+      expect(client({ previousSecret: replaced }).status(now)).toEqual({
+        until: replaced.expiresAt,
+        value: 'ROTATING',
+      });
+    });
+
+    it('should be active again once the replaced secret is no longer accepted', () => {
+      expect(client({ previousSecret: replaced }).status(replaced.expiresAt)).toEqual({ value: 'ACTIVE' });
+    });
+
+    it('should stay revoked whatever rotation was running', () => {
+      expect(client({ previousSecret: replaced, revokedAt: now }).status(now)).toEqual({
+        since: now,
+        value: 'REVOKED',
+      });
+    });
+  });
+
   describe('authorize', () => {
     const authorize = (
       authorized: ApiClient,
@@ -173,6 +265,21 @@ describe('ApiClient', () => {
       expect(() => authorize(client(), { ip: '198.51.100.1', tokenExpiresAt: now })).toThrow(
         ApiClientUnauthenticated,
       );
+    });
+  });
+
+  describe('allowedIps', () => {
+    it('should name the line that is no address', () => {
+      expect(() => ApiClient.allowedIps(['203.0.113.7', '203.0.113'])).toThrow(
+        new InvalidAllowedIp('203.0.113'),
+      );
+    });
+
+    it('should keep an IP given twice once', () => {
+      expect(ApiClient.allowedIps(['203.0.113.7', '2001:db8::1', '203.0.113.7'])).toEqual([
+        '203.0.113.7',
+        '2001:db8::1',
+      ]);
     });
   });
 

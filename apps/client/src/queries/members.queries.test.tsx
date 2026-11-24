@@ -6,6 +6,7 @@ import { httpAssert } from '@/utils/http-exception';
 import * as $api from '@api/sdk';
 
 import {
+  useExcludedJurisdictionsMutation,
   useUpdateNominationFileCommentMutation,
   useWriteNominationFileMemberMemoMutation,
 } from './members.queries';
@@ -37,6 +38,46 @@ function renderMemoWithList() {
 
   return { listNominationFiles, result };
 }
+
+describe('useExcludedJurisdictionsMutation', () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it('reloads the files and the one the side panel reads, which serve the conflicts', async () => {
+    vi.spyOn($api.members, 'excludeJurisdictions').mockResolvedValue(
+      {} as Awaited<ReturnType<typeof $api.members.excludeJurisdictions>>,
+    );
+    const listNominationFiles = vi.fn().mockResolvedValue(null);
+    const detailNominationFile = vi.fn().mockResolvedValue(null);
+    const client = new QueryClient({
+      defaultOptions: { mutations: { retry: false }, queries: { retry: false } },
+    });
+    const { result } = renderHook(
+      () => ({
+        detail: useQuery({
+          queryFn: detailNominationFile,
+          queryKey: sessionKeys.detailSessionNominationFile({
+            nominationFileId: memo.nominationFileId,
+            sessionId: memo.sessionId,
+          }),
+        }),
+        exclude: useExcludedJurisdictionsMutation({ userId: memo.userId }),
+        list: useQuery({
+          queryFn: listNominationFiles,
+          queryKey: sessionKeys.listSessionNominationFiles({ sessionId: memo.sessionId }),
+        }),
+      }),
+      { wrapper: (props) => <QueryClientProvider client={client}>{props.children}</QueryClientProvider> },
+    );
+    await waitFor(() => expect(result.current.list.isSuccess && result.current.detail.isSuccess).toBe(true));
+
+    await act(() => result.current.exclude.mutateAsync(['CA  LYON']));
+
+    await waitFor(() => {
+      expect(listNominationFiles).toHaveBeenCalledTimes(2);
+      expect(detailNominationFile).toHaveBeenCalledTimes(2);
+    });
+  });
+});
 
 describe('useUpdateNominationFileCommentMutation', () => {
   afterEach(() => vi.restoreAllMocks());

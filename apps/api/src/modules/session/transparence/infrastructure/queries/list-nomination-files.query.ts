@@ -14,6 +14,7 @@ import { auditionScheduleSchema } from '../../../../../utils/audition-schedule';
 import { commentLastChangeSchema } from '../../../../../utils/comment';
 import { DateOnly, dateOnlyJsonSchema } from '../../../../../utils/date-only';
 import { toFullTextQuery } from '../../../../../utils/fulltext-search';
+import { isDefined } from '../../../../../utils/is-defined';
 import { partition } from '../../../../../utils/iterables';
 import { privateContentSchema } from '../../../../../utils/personal-content';
 import { timeOnlySchema } from '../../../../../utils/time-only';
@@ -22,8 +23,10 @@ import { Db } from '../../../../framework/database';
 import { createPaginatedZodDto, paginate, Pagination } from '../../../../framework/pagination';
 import { Sortable } from '../../../../framework/sorting';
 import { proposedMagistratName } from '../../../../magistrat/domain/magistrat-name';
+import { type ExcludingMember, MembersService } from '../../../../members';
 import { ObservationFollowUp } from '../../../../observation/domain/observation-follow-up';
 import { ObservationService } from '../../../../observation/observation.service';
+import { FormationEnum } from '../../../../shared/formation.enum';
 import { GradeEnum } from '../../../../shared/grade.enum';
 import {
   priorityEnumToPrismaPrioriteEnum,
@@ -53,12 +56,15 @@ import {
 } from '../../../../shared/policies/summary.policies';
 import { PriorityEnum } from '../../../../shared/priority.enum';
 import { isSecretariat, type RoleEnum } from '../../../../shared/role.enum';
+import { excludedJurisdictionConflicts } from '../../domain/excluded-jurisdiction-conflicts';
 import {
   type FileReporters,
   NON_AFFECTABLE_REASONS,
   NON_RECUSABLE_REASONS,
   nonAffectableMembers,
   nonRecusableMembers,
+  REPORTER_WARNING_REASONS,
+  reporterWarnings,
 } from '../../domain/member-recusal';
 import {
   NOMINATION_SESSION_FILE_STATUSES,
@@ -67,6 +73,7 @@ import {
 import { ListNominationFilesQueryDto, RecusedMemberSchema } from '../dtos/nomination-file.dto';
 import { AffectationVersionFinder, OptionalAffectationVersion } from '../finders/affectation-version.finder';
 import { AuditionsSeenFinder } from '../finders/auditions-seen.finder';
+import { MagistratExcludedMembersFinder } from '../finders/magistrat-excluded-members.finder';
 import { NominationFileCommentChangesFinder } from '../finders/nomination-file-comment-changes.finder';
 import { NominationFileJurisdictionsFinder } from '../finders/nomination-file-jurisdictions.finder';
 import { RecusedMembersFinder } from '../finders/recused-members.finder';
@@ -80,7 +87,9 @@ export class ListNominationFilesQuery {
     private readonly db: Db,
     private readonly versionFinder: AffectationVersionFinder,
     private readonly jurisdictionsFinder: NominationFileJurisdictionsFinder,
+    private readonly members: MembersService,
     private readonly recusedMembersFinder: RecusedMembersFinder,
+    private readonly magistratExcludedMembersFinder: MagistratExcludedMembersFinder,
 
     @Inject(forwardRef(() => DocsService))
     private readonly docs: DocsService,
@@ -192,7 +201,7 @@ export class ListNominationFilesQuery {
   private async loadFiles(query: {
     nominationFileIds: string[] | null;
     pagination: { limit: number; page: number };
-    session: { archivedAt: Date | null };
+    session: { archivedAt: Date | null; formation: FormationEnum };
     sessionId: string;
     sorting: Sortable<ListNominationFilesQueryDto>;
     user: { id: string; impersonation: Impersonation | undefined; role: RoleEnum };
@@ -246,12 +255,28 @@ export class ListNominationFilesQuery {
       nominationFileIds: [...nominationFileIds],
     });
     const recusedMembers = await this.recusedMembersFinder.find({ nominationFileIds });
+    // a personal tie stays with the secretariat: this route is open to the members too
+    const magistratExcludedMembers = isSecretariat(query.user.role)
+      ? await this.magistratExcludedMembersFinder.findIds({ nominationFileIds })
+      : new Map<string, ReadonlySet<string>>();
     const commentChanges = await this.commentChanges.findLast({ nominationFileIds: [...nominationFileIds] });
     const reporters = isSecretariat(query.user.role)
       ? await this.versionFinder.findPublishedAndLatestReporters({
           nominationFileIds: [...nominationFileIds],
         })
       : new Map<string, FileReporters>();
+    const excludingMembers = isSecretariat(query.user.role)
+      ? await this.members.internalFindExcludingMembers({
+          formations: ['COMMUN', query.session.formation],
+          jurisdictionIds: [
+            ...new Set(
+              [...jurisdictions.values()].flatMap(({ current, targeted }) =>
+                [current?.id, targeted?.id].filter(isDefined),
+              ),
+            ),
+          ],
+        })
+      : new Map<string, ExcludingMember[]>();
 
     const isArchived = !!query.session.archivedAt;
 
@@ -266,6 +291,10 @@ export class ListNominationFilesQuery {
     }));
 
     return files.map((x): NominationFileAffectationItem => {
+      const affectability = {
+        assignedIds: reporters.get(x.id)?.latestIds ?? new Set<string>(),
+        magistratExcludedIds: magistratExcludedMembers.get(x.id) ?? new Set<string>(),
+      };
       const auditionedPosition = {
         detectedJurisdictionId: x.detectedJurisdictionId ?? null,
         detectedJurisdictionType: x.detectedJurisdictionType ?? null,
@@ -319,6 +348,7 @@ export class ListNominationFilesQuery {
           },
           version: 2,
         },
+        excludedJurisdictionConflicts: excludedJurisdictionConflicts(x.jurisdictions, excludingMembers),
         expectedReportersCount: expectedReportersCount(auditionedPosition),
         hasAttachment: x.hasAttachment,
         id: x.id,
@@ -333,7 +363,13 @@ export class ListNominationFilesQuery {
         ),
         missingEvaluation: x.missingEvaluation,
         missingEvaluationComment: x.missingEvaluationComment,
-        nonAffectableMembers: nonAffectableMembers(new Set(recusedMembers.get(x.id)?.map(({ id }) => id))),
+        nonAffectableMembers: nonAffectableMembers({
+          ...affectability,
+          magistratExcludedIds: nominationFilesPolicies.canUpdateNominationFile(x, query.user)
+            ? affectability.magistratExcludedIds
+            : new Set(),
+          recusedIds: new Set(recusedMembers.get(x.id)?.map(({ id }) => id)),
+        }),
         nonRecusableMembers: nominationFilesPolicies.canUpdateNominationFile(x, query.user)
           ? nonRecusableMembers(reporters.get(x.id) ?? { latestIds: new Set(), publishedIds: new Set() })
           : [],
@@ -348,6 +384,7 @@ export class ListNominationFilesQuery {
         })),
         priorities: x.priorities.map(prismaPrioriteEnumToPriorityEnum),
         recusedMembers: recusedMembers.get(x.id) ?? [],
+        reporterWarnings: reporterWarnings(affectability),
         reporters: x.reporters.map(({ user: { id, firstName, lastName } }) => ({
           firstName,
           id,
@@ -542,6 +579,17 @@ const NominationFileAffectationItemSchema = z.object({
   auditionRequired: z.boolean(),
   auditionRequirement: z.enum(AUDITION_REQUIREMENTS).nullable(),
   auditionTime: timeOnlySchema.nullable(),
+  excludedJurisdictionConflicts: z
+    .array(
+      z.object({
+        jurisdiction: JurisdictionSchema,
+        member: z.object({ id: z.string(), firstName: z.string(), lastName: z.string() }),
+      }),
+    )
+    .meta({
+      description:
+        'the members of the session formation, deactivated ones included, who excluded the current or the targeted jurisdiction; empty outside the secretariat',
+    }),
   expectedReportersCount: z.number().nullable(),
   missingEvaluation: z.boolean(),
   missingEvaluationComment: z.string().nullable(),
@@ -549,6 +597,9 @@ const NominationFileAffectationItemSchema = z.object({
   nonRecusableMembers: z
     .array(z.object({ id: z.string(), reason: z.enum(NON_RECUSABLE_REASONS) }))
     .meta({ description: 'empty when the user cannot recuse members on this file' }),
+  reporterWarnings: z.array(z.object({ id: z.string(), reason: z.enum(REPORTER_WARNING_REASONS) })).meta({
+    description: 'the reporters in place who keep the file despite a warning, for the secretariat only',
+  }),
   reporters: z.array(
     z.object({
       id: z.string(),

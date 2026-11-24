@@ -6,6 +6,7 @@ export const ROUTE_PATHS = {
   ACCESSIBILITY: '/accessibilite',
   ACCOUNT: '/mon-compte',
   ADMIN: {
+    API_CLIENTS: '/admin/clients-api',
     DETAILS_JOB: '/admin/ingestions/:jobId',
     FEEDBACKS: '/admin/retours',
     FEEDBACKS_STATUS: '/admin/retours/:status',

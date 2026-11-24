@@ -6,6 +6,7 @@ import { FormattedMessage } from 'react-intl';
 import { LoadFailure } from '@/shared/ui/load-failure';
 
 import { useFadeInOnQueryChange } from './hooks/useFadeInOnQueryChange';
+import { useRowAnchor } from './hooks/useRowAnchor';
 import { ESTIMATED_ROW_HEIGHT, useTableVirtualizer } from './hooks/useTableVirtualizer';
 
 function useScrollMargin(element: HTMLDivElement | null, scrollsWithPage?: boolean) {
@@ -138,6 +139,7 @@ export function DataTable<Data extends RowData>(props: {
   const rowGroupRef = useRef<HTMLDivElement>(null);
   const { columnFilters, globalFilter, sorting } = table.getState();
   useFadeInOnQueryChange(rowGroupRef, JSON.stringify([columnFilters, globalFilter, sorting]), rows);
+  useRowAnchor({ rowGroupRef, scrollBox, scrollsWithPage });
   const scrollMargin = useScrollMargin(scrollBox, scrollsWithPage);
   const virtualizer = useTableVirtualizer({ rowCount: totalRows, scrollBox, scrollMargin, scrollsWithPage });
   const virtualRows = virtualizer.getVirtualItems();
@@ -291,7 +293,8 @@ export function DataTable<Data extends RowData>(props: {
                   className={clsx(
                     'flex min-h-12 w-full border-b border-(--border-default-grey)',
                     'motion-safe:transition-colors motion-safe:duration-200 motion-safe:ease-out',
-                    props.rowTint?.(row),
+                    // the sticky cells inherit it: transparent, they would let the scrolled cells show through
+                    props.rowTint?.(row) ?? 'bg-(--background-default-grey)',
                     opensSelection && 'border-t border-t-(--border-active-blue-france)',
                     closesSelection && 'border-b-(--border-active-blue-france)',
                   )}

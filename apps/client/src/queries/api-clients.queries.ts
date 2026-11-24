@@ -1,0 +1,75 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+
+import { withValidationError } from '@/utils/validation-error';
+import * as $api from '@api/sdk';
+import type { CreateApiClientDto, UpdateApiClientDto } from '@api/types';
+
+const apiClientKeys = {
+  all: () => ['apiClients'] as const,
+  listApiClientChanges: (clientId: string) => ['apiClients', 'listApiClientChanges', clientId] as const,
+  listApiClients: () => ['apiClients', 'listApiClients'] as const,
+};
+
+export const useApiClientsQuery = () =>
+  useQuery({
+    queryFn: () => $api.apiClients.listApiClients({ throwOnError: true }).then(({ data }) => data),
+    queryKey: apiClientKeys.listApiClients(),
+  });
+
+export const useApiClientChangesQuery = (clientId: string) =>
+  useQuery({
+    queryFn: () =>
+      $api.apiClients
+        .listApiClientChanges({ path: { clientId }, throwOnError: true })
+        .then(({ data }) => data),
+    queryKey: apiClientKeys.listApiClientChanges(clientId),
+  });
+
+/** Each action changes the list and adds a line to the history of its client */
+function useInvalidatingMutation<TVariables, TData>(mutationFn: (variables: TVariables) => Promise<TData>) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn,
+    onSettled: () => queryClient.invalidateQueries({ queryKey: apiClientKeys.all() }),
+  });
+}
+
+export const useCreateApiClientMutation = () =>
+  useInvalidatingMutation((body: CreateApiClientDto) =>
+    withValidationError(() => $api.apiClients.createApiClient({ body, throwOnError: true })).then(
+      ({ data }) => data,
+    ),
+  );
+
+export const useUpdateApiClientMutation = () =>
+  useInvalidatingMutation((props: { body: UpdateApiClientDto; clientId: string }) =>
+    withValidationError(() =>
+      $api.apiClients.updateApiClient({
+        body: props.body,
+        path: { clientId: props.clientId },
+        throwOnError: true,
+      }),
+    ),
+  );
+
+export const useRotateApiClientSecretMutation = () =>
+  useInvalidatingMutation((props: { clientId: string; days: number }) =>
+    withValidationError(() =>
+      $api.apiClients.rotateApiClientSecret({
+        body: { days: props.days },
+        path: { clientId: props.clientId },
+        throwOnError: true,
+      }),
+    ).then(({ data }) => data),
+  );
+
+export const useEndApiClientSecretRotationMutation = () =>
+  useInvalidatingMutation((clientId: string) =>
+    $api.apiClients.endApiClientSecretRotation({ path: { clientId }, throwOnError: true }),
+  );
+
+export const useRevokeApiClientMutation = () =>
+  useInvalidatingMutation((clientId: string) =>
+    $api.apiClients.revokeApiClient({ path: { clientId }, throwOnError: true }),
+  );

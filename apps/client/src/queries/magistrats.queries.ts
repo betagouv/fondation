@@ -22,7 +22,8 @@ const magistratKeys = {
   magistratNominationFiles: (props: { magistratId: string }) => ['magistratNominationFiles', props] as const,
   magistratObservations: (props: { magistratId: string }) => ['magistratObservations', props] as const,
   magistratPhoneNumbers: (props: { magistratId: string }) => ['magistratPhoneNumbers', props] as const,
-  magistratSearch: (props: { search: string }) => ['magistratSearch', props] as const,
+  magistratSearch: (props: { ignore?: readonly string[]; search: string }) =>
+    ['magistratSearch', props] as const,
 };
 
 export function useMagistratDetailsQuery(props: { magistratId: string | undefined }) {
@@ -38,14 +39,14 @@ export function useMagistratDetailsQuery(props: { magistratId: string | undefine
   });
 }
 
-export function useMagistratSearchQuery(props: { search: string }) {
+export function useMagistratSearchQuery(props: { ignore?: readonly string[]; search: string }) {
   return useInfiniteQuery({
     enabled: props.search.length >= MAGISTRAT_SEARCH_MIN_LENGTH,
     initialPageParam: 1,
     placeholderData: keepPreviousData,
     queryFn: async ({ pageParam }) => {
       const { data } = await $api.magistrats.searchMagistrats({
-        query: { page: pageParam, search: props.search },
+        query: { ignore: props.ignore?.join(',') || undefined, page: pageParam, search: props.search },
         throwOnError: true,
       });
       return data;

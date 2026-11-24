@@ -2,7 +2,6 @@ import { useMemo, type PropsWithChildren } from 'react';
 
 import type { FormationEnum } from '@/shared/enums/formation.enum';
 
-import { ExcludedJurisdictionsProvider } from './ExcludedJurisdictionsProvider';
 import { NominationFilesTableContext, type SessionOutcome } from './files-table.context';
 
 export function NominationFilesTableProvider(
@@ -23,9 +22,5 @@ export function NominationFilesTableProvider(
     [props.canManage, props.formation, props.outcomes, props.sessionId],
   );
 
-  return (
-    <NominationFilesTableContext value={ctx}>
-      <ExcludedJurisdictionsProvider>{props.children}</ExcludedJurisdictionsProvider>
-    </NominationFilesTableContext>
-  );
+  return <NominationFilesTableContext value={ctx}>{props.children}</NominationFilesTableContext>;
 }

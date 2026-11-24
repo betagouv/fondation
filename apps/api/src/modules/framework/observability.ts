@@ -1,3 +1,5 @@
+import { createHmac } from 'node:crypto';
+
 import {
   CallHandler,
   ExecutionContext,
@@ -34,6 +36,14 @@ export const WITHOUT_PERSONAL_DATA = {
   },
   integrations: [Sentry.httpIntegration({ maxIncomingRequestBodySize: 'none' })],
 } satisfies Sentry.NodeOptions;
+
+/**
+ * What Sentry gets in place of an address, an IP or a browser, to tell them apart without revealing them. Keyed, because
+ * a plain hash of an IPv4 is reversed by trying them all
+ */
+export function pseudonymize(value: string, secret: string): string {
+  return createHmac('sha256', secret).update(value).digest('base64url');
+}
 
 @Injectable()
 export class SentryService {

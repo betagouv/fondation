@@ -4,10 +4,17 @@ import z from 'zod';
 
 import { Prisma } from '../../../generated/prisma/client';
 import { countApiCallRawQuery } from '../../../generated/prisma/sql';
+import { User } from '../../administration/domain/user';
 import { Db } from '../../framework/database';
-import { ApiClient, ApiScope, IssuedAccessToken } from '../domain/api-client';
+import {
+  ApiClient,
+  ApiClientChange,
+  ApiClientConfiguration,
+  ApiScope,
+  IssuedAccessToken,
+} from '../domain/api-client';
 
-const CLIENT_SELECT = {
+export const CLIENT_SELECT = {
   allowedIps: { select: { ip: true } },
   authLimitPerMinute: true,
   id: true,
@@ -17,6 +24,9 @@ const CLIENT_SELECT = {
   scopes: { select: { limitPerMinute: true, scope: true } },
   secretHash: true,
 } satisfies Prisma.ApiClientSelect;
+
+/** Who changes which client and when, kept in its history by each write (see recordChange) */
+type Change = { actorId: string; clientId: string; now: Date };
 
 @Injectable()
 export class ApiClientRepository {
@@ -77,11 +87,81 @@ export class ApiClientRepository {
     return counter?.count ?? 0;
   }
 
-  async saveToken(command: { clientId: string; token: IssuedAccessToken }): Promise<void> {
+  /**
+   * The client row is written first, on the condition that the secret is still accepted: a rotation ended or a
+   * revocation at the same time waits for this token to be saved, then deletes or refuses it, or is waited for and
+   * found here
+   *
+   * @returns whether the token was saved: not when its secret was dropped since it was checked
+   */
+  @Transactional()
+  async saveToken(command: { clientId: string; token: IssuedAccessToken }): Promise<boolean> {
     const { clientId, token } = command;
+    const { count } = await this.db.tx.apiClient.updateMany({
+      where: {
+        id: clientId,
+        revokedAt: null,
+        OR: [
+          { secretHash: token.secretHash },
+          { previousSecretExpiresAt: { gt: token.issuedAt }, previousSecretHash: token.secretHash },
+        ],
+      },
+      data: { lastTokenIssuedAt: token.issuedAt },
+    });
+    if (count === 0) return false;
+
     await this.db.tx.apiAccessToken.create({
       data: { clientId, expiresAt: token.expiresAt, hash: token.hash },
     });
+
+    return true;
+  }
+
+  /** @returns whether the user may manage the API clients, false when unknown */
+  async canBeManagedBy(userId: string): Promise<boolean> {
+    const user = await this.db.tx.user.findUnique({
+      where: { id: userId },
+      select: { isAdmin: true, isTechnical: true } satisfies Prisma.UserSelect,
+    });
+
+    return !!user && User.canManageApiClients(user);
+  }
+
+  /** Keeps the date of a revocation made at the same time: the first one wins, and is the only one in the history */
+  @Transactional(Propagation.Mandatory)
+  async revoke(command: Change): Promise<void> {
+    const { count } = await this.db.tx.apiClient.updateMany({
+      where: { id: command.clientId, revokedAt: null },
+      data: { revokedAt: command.now },
+    });
+    if (count === 1) await this.recordChange('REVOKED', command);
+  }
+
+  /**
+   * The client row is written first: a revocation at the same time waits, or is waited for and found here
+   *
+   * @returns whether the configuration was saved: not when the client was revoked in the meantime
+   */
+  @Transactional(Propagation.Mandatory)
+  async saveConfiguration(command: Change & { configuration: ApiClientConfiguration }): Promise<boolean> {
+    const { clientId, configuration } = command;
+    const { count } = await this.db.tx.apiClient.updateMany({
+      where: { id: clientId, revokedAt: null },
+      data: { authLimitPerMinute: configuration.authLimitPerMinute },
+    });
+    if (count === 0) return false;
+
+    await this.db.tx.apiClientAllowedIp.deleteMany({ where: { clientId } });
+    await this.db.tx.apiClientAllowedIp.createMany({
+      data: configuration.allowedIps.map((ip) => ({ clientId, ip })),
+    });
+    await this.db.tx.apiClientScope.deleteMany({ where: { clientId } });
+    await this.db.tx.apiClientScope.createMany({
+      data: configuration.scopes.map(({ limitPerMinute, scope }) => ({ clientId, limitPerMinute, scope })),
+    });
+    await this.recordChange('UPDATED', command);
+
+    return true;
   }
 
   /** @param countedSince the minute the calls are counted under: the ones before it no longer limit anybody */
@@ -91,32 +171,34 @@ export class ApiClientRepository {
     await this.db.tx.apiRateCounter.deleteMany({ where: { minute: { lt: command.countedSince } } });
   }
 
-  async create(client: {
-    allowedIps: readonly string[];
-    authLimitPerMinute: number;
-    id: string;
-    name: string;
-    scopes: readonly { limitPerMinute: number; scope: ApiScope }[];
-    secretHash: string;
-  }): Promise<void> {
+  @Transactional(Propagation.Mandatory)
+  async create(
+    command: Change & {
+      allowedIps: readonly string[];
+      authLimitPerMinute: number;
+      name: string;
+      scopes: readonly { limitPerMinute: number; scope: ApiScope }[];
+      secretHash: string;
+    },
+  ): Promise<void> {
     await this.db.tx.apiClient.create({
       data: {
-        allowedIps: { create: client.allowedIps.map((ip) => ({ ip })) },
-        authLimitPerMinute: client.authLimitPerMinute,
-        id: client.id,
-        name: client.name,
-        scopes: { create: client.scopes.map(({ limitPerMinute, scope }) => ({ limitPerMinute, scope })) },
-        secretHash: client.secretHash,
+        allowedIps: { create: command.allowedIps.map((ip) => ({ ip })) },
+        authLimitPerMinute: command.authLimitPerMinute,
+        id: command.clientId,
+        name: command.name,
+        scopes: { create: command.scopes.map(({ limitPerMinute, scope }) => ({ limitPerMinute, scope })) },
+        secretHash: command.secretHash,
       },
     });
+    await this.recordChange('CREATED', command);
   }
 
   /** @returns whether the secret was replaced: not when another rotation replaced it in the meantime */
-  async saveRotatedSecret(command: {
-    clientId: string;
-    previousSecret: { expiresAt: Date; hash: string };
-    secretHash: string;
-  }): Promise<boolean> {
+  @Transactional(Propagation.Mandatory)
+  async saveRotatedSecret(
+    command: Change & { previousSecret: { expiresAt: Date; hash: string }; secretHash: string },
+  ): Promise<boolean> {
     const { count } = await this.db.tx.apiClient.updateMany({
       where: { id: command.clientId, secretHash: command.previousSecret.hash },
       data: {
@@ -125,21 +207,50 @@ export class ApiClientRepository {
         secretHash: command.secretHash,
       },
     });
+    if (count === 0) return false;
 
-    return count === 1;
+    await this.recordChange('SECRET_ROTATION_STARTED', command, {
+      previousSecretValidUntil: command.previousSecret.expiresAt,
+    });
+
+    return true;
   }
 
-  /** The tokens do not tell which secret they were given for: all those of the client go with the replaced secret */
+  /**
+   * The tokens do not tell which secret they were given for: all those of the client go with the replaced secret.
+   * Nothing happens when another call ended the rotation in the meantime
+   */
   @Transactional(Propagation.Mandatory)
-  async endSecretRotation(clientId: string): Promise<void> {
-    await this.db.tx.apiClient.update({
-      where: { id: clientId },
+  async endSecretRotation(command: Change): Promise<void> {
+    const { clientId } = command;
+    const { count } = await this.db.tx.apiClient.updateMany({
+      where: { id: clientId, previousSecretHash: { not: null } },
       data: { previousSecretExpiresAt: null, previousSecretHash: null },
     });
+    if (count === 0) return;
+
     await this.db.tx.apiAccessToken.deleteMany({ where: { clientId } });
+    await this.recordChange('SECRET_ROTATION_ENDED', command);
   }
 
-  private static toDomain(client: Prisma.ApiClientGetPayload<{ select: typeof CLIENT_SELECT }>): ApiClient {
+  /** In the transaction of the action and with its date: an action undone by a failure leaves no line */
+  private recordChange(
+    change: ApiClientChange,
+    command: Change,
+    details?: { previousSecretValidUntil: Date },
+  ) {
+    return this.db.tx.apiClientChange.create({
+      data: {
+        change,
+        changedAt: command.now,
+        changedBy: command.actorId,
+        clientId: command.clientId,
+        ...details,
+      },
+    });
+  }
+
+  static toDomain(client: Prisma.ApiClientGetPayload<{ select: typeof CLIENT_SELECT }>): ApiClient {
     return new ApiClient({
       allowedIps: client.allowedIps.map(({ ip }) => ip),
       authLimitPerMinute: client.authLimitPerMinute,

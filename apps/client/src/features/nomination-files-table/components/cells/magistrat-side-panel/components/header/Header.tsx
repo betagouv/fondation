@@ -7,16 +7,14 @@ import { FormattedMessage } from 'react-intl';
 import { useAffectation } from '../../hooks/use-affectation/use-affectation.hook';
 import { useAuditionExpectation } from '../../hooks/use-audition-expectation/use-audition-expectation.hook';
 import { useUnsavedGuard } from '../../hooks/use-unsaved-guard/use-unsaved-guard.hook';
-import { isNonAffectableOn } from '../recused-members/recused-reporters';
+import { nonAffectableReasonOn } from '../recused-members/recused-reporters';
 import { useIsSgNavigation } from '@/features/auth/hooks/roles.hook';
 import { ExcludedJurisdictionIcon } from '@/features/nomination-files-table/components/ExcludedJurisdictionIcon';
 import { ExcludedJurisdictionNotice } from '@/features/nomination-files-table/components/ExcludedJurisdictionNotice';
-import {
-  useExcludedJurisdictions,
-  useExcludedJurisdictionTitles,
-} from '@/features/nomination-files-table/context/excluded-jurisdictions.context';
 import { useNominationFilesTable } from '@/features/nomination-files-table/context/files-table.context';
-import { type ExcludedJurisdictionConflict } from '@/features/nomination-files-table/context/member-excluded-jurisdictions';
+import { excludedJurisdictionConflictsOf } from '@/features/nomination-files-table/context/member-excluded-jurisdictions';
+import { useReporterWarnings } from '@/features/nomination-files-table/context/reporter-warnings';
+import { useExcludedJurisdictionTitles } from '@/features/nomination-files-table/hooks/useExcludedJurisdictionTitles';
 import { DetailsLink } from '@/shared/components/details-link';
 import { LolfiLink } from '@/shared/components/lolfi-link';
 import { PriorityBadgeList } from '@/shared/components/priority-badge';
@@ -76,12 +74,11 @@ export function Header(props: { nominationFile: SessionNominationFile; sessionId
 
   const canEdit = canManage && nominationFile.canUpdate;
 
-  const excludedJurisdictions = useExcludedJurisdictions();
-  const conflicts = excludedJurisdictions.conflictsFor(
+  const conflicts = excludedJurisdictionConflictsOf(
     nominationFile,
     affectation.availableRapporteurs.map(({ userId }) => userId),
   );
-  const excludedTitleByRapporteurId = useExcludedJurisdictionTitles(conflicts);
+  const warningByMemberId = useReporterWarnings(nominationFile, useExcludedJurisdictionTitles(conflicts));
   const displayedReporterIds = isEditing
     ? affectation.reporterIds
     : nominationFile.reporters.map(({ id }) => id);
@@ -161,8 +158,8 @@ export function Header(props: { nominationFile: SessionNominationFile; sessionId
         <div className="flex flex-col gap-1">
           <ReporterSelect
             available={affectation.availableRapporteurs}
-            excludedTitleByRapporteurId={excludedTitleByRapporteurId}
-            isNonAffectable={(memberId) => isNonAffectableOn(nominationFile, memberId)}
+            excludedTitleByRapporteurId={warningByMemberId}
+            nonAffectableReason={(memberId) => nonAffectableReasonOn(nominationFile, memberId)}
             onChange={affectation.setReporterIds}
             ref={reporterSelectRef}
             value={affectation.reporterIds}
@@ -173,9 +170,9 @@ export function Header(props: { nominationFile: SessionNominationFile; sessionId
       ) : (
         <div className="flex min-h-8 flex-wrap items-center justify-between gap-2">
           <ReporterStatus
-            conflicts={selectedConflicts}
             currentUserId={user?.id}
             nominationFile={nominationFile}
+            warningByMemberId={warningByMemberId}
           />
           {myReport && (
             <Button
@@ -228,13 +225,12 @@ function UnsavedWarning() {
 type Member = { firstName: string; id: string; lastName: string };
 
 function ReporterStatus(props: {
-  conflicts: readonly ExcludedJurisdictionConflict[];
   currentUserId: string | undefined;
   nominationFile: SessionNominationFile;
+  warningByMemberId: ReadonlyMap<string, string>;
 }) {
-  const { conflicts, currentUserId, nominationFile } = props;
+  const { currentUserId, nominationFile, warningByMemberId } = props;
   const { reporters } = nominationFile;
-  const excludedTitleByMemberId = useExcludedJurisdictionTitles(conflicts);
 
   if (reporters.length === 0)
     return (
@@ -253,11 +249,7 @@ function ReporterStatus(props: {
           values={{ count: reporters.length }}
         />
         {reporters.map((reporter) => (
-          <MemberTag
-            excludedTitle={excludedTitleByMemberId.get(reporter.id)}
-            key={reporter.id}
-            member={reporter}
-          />
+          <MemberTag excludedTitle={warningByMemberId.get(reporter.id)} key={reporter.id} member={reporter} />
         ))}
       </div>
     );
@@ -272,11 +264,7 @@ function ReporterStatus(props: {
       </span>
       {coReporters.length > 0 && <FormattedMessage defaultMessage="avec" />}
       {coReporters.map((reporter) => (
-        <MemberTag
-          excludedTitle={excludedTitleByMemberId.get(reporter.id)}
-          key={reporter.id}
-          member={reporter}
-        />
+        <MemberTag excludedTitle={warningByMemberId.get(reporter.id)} key={reporter.id} member={reporter} />
       ))}
     </div>
   );

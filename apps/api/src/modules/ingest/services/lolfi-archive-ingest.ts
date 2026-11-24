@@ -37,7 +37,7 @@ export class LolfiArchiveIngestor {
   async ingest(buffer: Buffer, options: { type: string | undefined }): Promise<IngestedLolfiArchive> {
     let archiveBuffer = buffer;
     if (this.crypto.shouldDecrypt(options)) {
-      archiveBuffer = await this.crypto.decrypt(buffer);
+      archiveBuffer = await this.crypto.decrypt(buffer, options);
     }
 
     const dir = await unzipper.Open.buffer(archiveBuffer);

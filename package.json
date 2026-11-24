@@ -9,7 +9,7 @@
     "openapi:generate": "pnpm run -r openapi:generate",
     "build": "pnpm run -r build",
     "prepare": "husky",
-    "prepush": "pnpm --filter './packages/*' build && pnpm lint:check && pnpm --filter client lint:colors && pnpm format:check && pnpm types:check && pnpm --filter client types:check:test",
+    "prepush": "pnpm --filter './packages/*' build && pnpm lint:check && pnpm --filter client lint:colors && pnpm format:check && pnpm types:check && pnpm --filter client types:check:test && pnpm --filter client test:routes",
     "scalingo-postbuild": "echo 'App already built. Disable build phase with envvar NPM_NO_BUILD=true'",
     "heroku-postbuild": "echo 'App already built'",
     "lint": "oxlint"

@@ -16,6 +16,7 @@ import { AutoAffectationsFinder } from './infrastructure/finders/auto-affectatio
 import { HydratedNominationFilesFinder } from './infrastructure/finders/hydrated-nomination-files.finder';
 import { LolfiTransparenceFilesFinder } from './infrastructure/finders/lolfi-nomination-files.finder';
 import { LolfiNominationSessionFinder } from './infrastructure/finders/lolfi-nomination-session.finder';
+import { MagistratExcludedMembersFinder } from './infrastructure/finders/magistrat-excluded-members.finder';
 import { NominationFileCommentChangesFinder } from './infrastructure/finders/nomination-file-comment-changes.finder';
 import { NominationFileJurisdictionsFinder } from './infrastructure/finders/nomination-file-jurisdictions.finder';
 import { NominationFileOutcomesFinder } from './infrastructure/finders/nomination-file-outcomes.finder';
@@ -104,6 +105,7 @@ import { SessionController } from './transparence.controller';
     ListNominationSessionsQuery,
     LolfiNominationSessionFinder,
     LolfiTransparenceFilesFinder,
+    MagistratExcludedMembersFinder,
     NominationFileCommentChangesFinder,
     NominationFileJurisdictionsFinder,
     ListArchivedNominationSessionsQuery,

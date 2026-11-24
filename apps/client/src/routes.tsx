@@ -1,7 +1,7 @@
 import { generatePath, redirect, type RouteObject } from 'react-router';
 
 import { AUTHORIZED_ROLES } from '@/features/auth/constants/authorized-roles.constants';
-import { roleGuard } from '@/features/auth/guards/role-guard';
+import { capabilityGuard, roleGuard } from '@/features/auth/guards/role-guard';
 import { RootLayout } from '@/layout/RootLayout';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { ErrorPage } from '@/pages/error/ErrorPage';
@@ -611,6 +611,14 @@ export const routes: RouteObject[] = [
             loader: ({ params }) =>
               redirect(generatePath(ROUTE_PATHS.ADMIN.USER_DETAIL, { userId: params.userId! })),
             path: '/admin/users/:userId',
+          },
+          {
+            lazy: () =>
+              import('@/pages/spaces/admin/AdminApiClientsPage').then(({ AdminApiClientsPage }) => ({
+                Component: AdminApiClientsPage,
+              })),
+            loader: capabilityGuard('canManageApiClients'),
+            path: ROUTE_PATHS.ADMIN.API_CLIENTS,
           },
           {
             lazy: () =>

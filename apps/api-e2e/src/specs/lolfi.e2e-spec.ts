@@ -12,7 +12,9 @@ import type { TestStepsAdmin } from '../steps.ts';
 import * as seed from '../utils/seed.ts';
 import { waitFor } from '../utils/wait-for.ts';
 
-test.describe('lolfi', () => {
+// `waitFor` gives up after 5 s, as a test does by default, and each ingestion waits for its job through it:
+// 20 s cover a few waits in a row, the tests that chain the most set their own timeout
+test.describe('lolfi', { timeout: 20_000 }, () => {
   test('should import a session from lolfi', async ({ sessions, expect }) => {
     const session = await sessions.createOne({
       name: 'Transparence annuelle',
@@ -379,7 +381,7 @@ test.describe('lolfi', () => {
 
   test(
     'should alert once for a transparence that stays broken, and again when it changes',
-    { timeout: 20_000 },
+    { timeout: 40_000 },
     async ({ admin, expect, lolfi }) => {
       const broken = {
         id: crypto.randomInt(1_000, 900_000),

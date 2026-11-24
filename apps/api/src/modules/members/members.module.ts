@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { ApiClientsModule } from '../api-clients';
 
 import { ExcludedJurisdictionsFinder } from './infrastructure/finders/excluded-jurisdictions.finder';
+import { ExcludedMagistratsFinder } from './infrastructure/finders/excluded-magistrats.finder';
 import { JurisdictionsService } from './infrastructure/jurisdictions.service';
 import { MemberRepository } from './infrastructure/member-repository';
 import { MembersService } from './infrastructure/members.service';
@@ -15,7 +16,6 @@ import { InternalFindMembersQuery } from './infrastructure/queries/internal-find
 import { InternalGetMemberQuery } from './infrastructure/queries/internal-get-member.query';
 import { ListMembersQuery } from './infrastructure/queries/list-members.query';
 import { SearchJurisdictionsQuery } from './infrastructure/queries/search-jurisdictions.query';
-import { SearchMagistratAuthorizationQuery } from './infrastructure/queries/search-magistrat-authorization.query';
 import { JurisdictionsController } from './jurisdictions.controller';
 import { MagistratPublicController } from './magistrat.public.controller';
 import { MembersController } from './members.controller';
@@ -27,6 +27,7 @@ import { MembersController } from './members.controller';
   providers: [
     DetailsMemberQuery,
     ExcludedJurisdictionsFinder,
+    ExcludedMagistratsFinder,
     FindMagistratStatusQuery,
     IdentifyMagistratQuery,
     InternalFindMembersByFormationQuery,
@@ -38,7 +39,6 @@ import { MembersController } from './members.controller';
     MemberRepository,
     MembersService,
     SearchJurisdictionsQuery,
-    SearchMagistratAuthorizationQuery,
   ],
 })
 export class MembersModule {}
