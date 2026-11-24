@@ -41,6 +41,41 @@ export function sortByObservationBlock<T extends BlockedObservation>(
   );
 }
 
+type ObservedObservation = {
+  dateReception: Date;
+  fileRank: number;
+  observantId: string;
+  observantName: string;
+  // the imported name stands in for the birth name when no magistrat is detected on the dossier
+  observed: { detectedMagistrat: { firstName: string; lastName: string } | null; name: string };
+};
+
+const compareNames = (a: string, b: string) => a.localeCompare(b, 'fr', { sensitivity: 'base' });
+
+// the blocs dissolve: the observations of one dossier follow each other, whatever the observant. Only the
+// name follows the requested order: dossiers of the same name and the rows of a dossier keep theirs.
+// The married name plays no part, unlike in the displayed name
+// TODO: see listNominationFilesRawQuery.sql, which sorts the dossiers by name with the database collation
+export function sortByObservedMagistrat<T extends ObservedObservation>(
+  observations: readonly T[],
+  order: 'asc' | 'desc',
+): T[] {
+  const direction = order === 'asc' ? 1 : -1;
+  const birthName = ({ observed }: T) =>
+    observed.detectedMagistrat ?? { firstName: '', lastName: observed.name };
+  return observations.toSorted(
+    (a, b) =>
+      direction *
+        (compareNames(birthName(a).lastName, birthName(b).lastName) ||
+          compareNames(birthName(a).firstName, birthName(b).firstName)) ||
+      a.fileRank - b.fileRank ||
+      b.dateReception.getTime() - a.dateReception.getTime() ||
+      compareNames(a.observantName, b.observantName) ||
+      // two homonymous observants keep the same order on every page
+      a.observantId.localeCompare(b.observantId),
+  );
+}
+
 // the observant is proposed again after their observations: in another session published after the most
 // recent reception date of the bloc, observations without a suite included
 export function laterPropositions<T extends { session: { date: DateOnly; id: string } }>(

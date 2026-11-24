@@ -6186,7 +6186,7 @@ export type ListSessionObservationsData = {
     query?: {
         followUps?: string;
         search?: string;
-        sortBy?: 'dateReception';
+        sortBy?: 'dateReception' | 'observedMagistrat';
         /**
          * true
          */

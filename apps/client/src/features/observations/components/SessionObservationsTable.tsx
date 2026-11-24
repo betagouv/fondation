@@ -18,7 +18,11 @@ import {
 import { SearchInput } from '@/shared/ui/search-input';
 import { TotalBadge } from '@/shared/ui/total-badge';
 import { formatDateOnly } from '@/utils/date-only.util';
-import { type SessionObservation, useInfiniteSessionObservationsQuery } from '@queries/observations.queries';
+import {
+  type SessionObservation,
+  type SessionObservationsSortBy,
+  useInfiniteSessionObservationsQuery,
+} from '@queries/observations.queries';
 
 import { FollowUpCell, ObservantCell, ObservedCell, TargetedCell } from './ObservationCells';
 
@@ -34,7 +38,7 @@ export function SessionObservationsTable(props: {
     columnFilters: [] as { id: 'followUps'; value: string[] }[],
     globalFilter: '',
     // the most recent blocs come first, as the API does without a sort
-    sorting: [{ desc: true, id: 'dateReception' }] as [{ desc: boolean; id: 'dateReception' }],
+    sorting: [{ desc: true, id: 'dateReception' }] as [{ desc: boolean; id: SessionObservationsSortBy }],
   });
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
@@ -42,6 +46,8 @@ export function SessionObservationsTable(props: {
       filters: {
         followUps: tableState.columnFilters.find(({ id }) => id === 'followUps')?.value ?? [],
         search: tableState.globalFilter ?? '',
+        // the URL may carry any column: only the observed magistrat replaces the reception date
+        sortBy: tableState.sorting[0]?.id === 'observedMagistrat' ? 'observedMagistrat' : 'dateReception',
         sortDesc: tableState.sorting[0]?.desc ?? true,
       },
       sessionId: props.sessionId,
@@ -90,11 +96,13 @@ export function SessionObservationsTable(props: {
         id: 'fileNumber',
         size: 50,
       }),
-      h.display({
+      h.accessor(({ nominationFile }) => nominationFile.magistrat.name, {
         cell: observedCell,
+        enableSorting: true,
         header: intl.formatMessage({ defaultMessage: 'Magistrat observé' }),
-        id: 'observed',
+        id: 'observedMagistrat',
         size: 240,
+        sortDescFirst: false,
       }),
       h.display({
         cell: targetedCell,

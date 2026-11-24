@@ -29,7 +29,7 @@ export class ListSessionObservationsQueryDto extends createSortableDto(
   z.object({
     followUps: followUpsFilterSchema,
     search: observantSearchSchema,
-    sortBy: z.enum(['dateReception']).optional(),
+    sortBy: z.enum(['dateReception', 'observedMagistrat']).optional(),
   }),
 ) {}
 

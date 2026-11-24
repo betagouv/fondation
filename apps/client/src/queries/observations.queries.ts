@@ -11,6 +11,7 @@ import type {
   ListedFollowedUpObservationsDto,
   ListedSessionObservationsDto,
   ListObservationsResponseDto,
+  ListSessionObservationsData,
   ScheduleObservantAuditionDto,
   UpdateObservationDto,
 } from '@api/types';
@@ -23,9 +24,14 @@ export type Observation = ListObservationsResponseDto['observations'][number];
 export type Observant = NonNullable<Observation['magistrat']>;
 export type SessionObservation = ListedSessionObservationsDto['items'][number];
 
+export type SessionObservationsSortBy = NonNullable<
+  NonNullable<ListSessionObservationsData['query']>['sortBy']
+>;
+
 type SessionObservationsFilters = {
   followUps: string[];
   search: string;
+  sortBy: SessionObservationsSortBy;
   sortDesc: boolean;
 };
 
@@ -148,7 +154,7 @@ export const useInfiniteSessionObservationsQuery = (props: {
     initialPageParam: 1,
     placeholderData: (previous) => previous,
     queryFn: async ({ pageParam }) => {
-      const { followUps, search, sortDesc } = props.filters;
+      const { followUps, search, sortBy, sortDesc } = props.filters;
       const { data = null } = await $api.observations.listSessionObservations({
         path: { sessionId: props.sessionId },
         query: {
@@ -156,7 +162,7 @@ export const useInfiniteSessionObservationsQuery = (props: {
           limit: SESSION_OBSERVATIONS_PAGE_SIZE,
           page: pageParam,
           search: search || undefined,
-          sortBy: 'dateReception',
+          sortBy,
           sortDesc: sortDesc ? 'true' : undefined,
         },
       });
