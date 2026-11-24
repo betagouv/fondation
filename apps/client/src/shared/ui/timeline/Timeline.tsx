@@ -1,8 +1,12 @@
+import clsx from 'clsx';
 import type { ReactNode } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 /** what happened, the latest first and marked: one dot per event on a vertical line */
-export function Timeline(props: { items: { at: string; content: ReactNode; key: string }[] }) {
+export function Timeline(props: {
+  items: { at: string; content: ReactNode; key: string }[];
+  size?: 'medium' | 'small';
+}) {
   const { formatDate, formatTime } = useIntl();
 
   return (
@@ -13,7 +17,12 @@ export function Timeline(props: { items: { at: string; content: ReactNode; key: 
             aria-hidden
             className={`absolute top-1.5 -left-[calc(1rem+4.5px)] size-2 rounded-full ${index === 0 ? 'bg-(--background-action-high-blue-france)' : 'bg-(--border-default-grey)'}`}
           />
-          <p className="fr-text--xs fr-mb-0 text-(--text-mention-grey)">
+          <p
+            className={clsx(
+              'fr-mb-0 text-(--text-mention-grey)',
+              props.size === 'small' ? 'fr-text--xs' : 'fr-text--sm',
+            )}
+          >
             <FormattedMessage
               defaultMessage="{date} à {time}"
               values={{
@@ -22,7 +31,7 @@ export function Timeline(props: { items: { at: string; content: ReactNode; key: 
               }}
             />
           </p>
-          <p className="fr-text--sm fr-mb-0">{content}</p>
+          <p className={clsx('fr-mb-0', props.size === 'small' && 'fr-text--sm')}>{content}</p>
         </li>
       ))}
     </ul>

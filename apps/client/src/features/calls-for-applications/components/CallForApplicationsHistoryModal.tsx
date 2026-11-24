@@ -24,7 +24,7 @@ export function CallForApplicationsHistoryModal(props: {
       size="medium"
       title={formatMessage({ defaultMessage: "Historique de l'appel à candidatures" })}
     >
-      <div className="fr-mt-6v">
+      <div className="fr-mt-6v fr-mb-4v">
         <Timeline
           items={props.history.map(({ action, at, by, fields }) => ({
             at,

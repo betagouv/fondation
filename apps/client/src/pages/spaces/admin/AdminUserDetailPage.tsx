@@ -689,6 +689,7 @@ function AccountStatusHistory(props: { statusChanges: DetailedAdminUserDto['stat
           ),
           key: changedAt,
         }))}
+        size="small"
       />
     </section>
   );

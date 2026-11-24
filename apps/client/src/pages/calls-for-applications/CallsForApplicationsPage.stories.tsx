@@ -104,13 +104,14 @@ const FORM: FoundCallForApplicationsFormDto = {
 };
 
 function CallsForApplicationsPageStory(props: {
-  createFails: boolean;
   deadlineRefused: boolean;
+  deleteFails: boolean;
   empty: boolean;
   formLoadFails: boolean;
   loadFails: boolean;
   nextPageFails: boolean;
   period: 'ONGOING' | 'PAST';
+  saveFails: boolean;
 }) {
   const path =
     props.period === 'PAST'
@@ -124,22 +125,33 @@ function CallsForApplicationsPageStory(props: {
   );
 }
 
+/** the answer of a failed creation or update, none when it succeeds */
+function saveFailure(args: { deadlineRefused: boolean; saveFails: boolean }) {
+  if (args.deadlineRefused)
+    return HttpResponse.json(
+      { validationError: 'La date limite ne peut pas précéder la date de publication' },
+      { status: 400 },
+    );
+  return args.saveFails ? new HttpResponse(null, { status: 500 }) : null;
+}
+
 const meta = {
   args: {
-    createFails: false,
     deadlineRefused: false,
+    deleteFails: false,
     empty: false,
     formLoadFails: false,
     loadFails: false,
     nextPageFails: false,
     period: 'ONGOING',
+    saveFails: false,
   },
   argTypes: {
-    createFails: { control: 'boolean', description: 'La création répond par une erreur.' },
     deadlineRefused: {
       control: 'boolean',
-      description: 'La création refuse une date limite antérieure à la date de publication.',
+      description: "L'enregistrement refuse une date limite antérieure à la date de publication.",
     },
+    deleteFails: { control: 'boolean', description: 'La suppression répond par une erreur.' },
     empty: { control: 'boolean', description: "Aucun appel à candidatures n'a été créé." },
     formLoadFails: { control: 'boolean', description: 'Le formulaire de création ne se charge pas.' },
     loadFails: { control: 'boolean', description: 'La liste répond par une erreur.' },
@@ -148,6 +160,7 @@ const meta = {
       description: 'La première page arrive, la suivante répond par une erreur.',
     },
     period: { control: 'inline-radio', description: "L'onglet ouvert.", options: ['ONGOING', 'PAST'] },
+    saveFails: { control: 'boolean', description: 'La création ou la modification répond par une erreur.' },
   },
   beforeEach: ({ args, msw }) => {
     msw.use(
@@ -177,15 +190,18 @@ const meta = {
           ? new HttpResponse(null, { status: 500 })
           : HttpResponse.json<FoundCallForApplicationsFormDto>(FORM),
       ),
-      http.post('*/api/calls-for-applications/v1', () =>
-        args.deadlineRefused
-          ? HttpResponse.json(
-              { validationError: 'La date limite ne peut pas précéder la date de publication' },
-              { status: 400 },
-            )
-          : args.createFails
-            ? new HttpResponse(null, { status: 500 })
-            : HttpResponse.json<CreatedCallForApplicationsDto>({ id: 'call-3' }, { status: 201 }),
+      http.post(
+        '*/api/calls-for-applications/v1',
+        () =>
+          saveFailure(args) ??
+          HttpResponse.json<CreatedCallForApplicationsDto>({ id: 'call-4' }, { status: 201 }),
+      ),
+      http.put(
+        '*/api/calls-for-applications/v1/:callId',
+        () => saveFailure(args) ?? new HttpResponse(null, { status: 204 }),
+      ),
+      http.delete('*/api/calls-for-applications/v1/:callId', () =>
+        args.deleteFails ? new HttpResponse(null, { status: 500 }) : new HttpResponse(null, { status: 204 }),
       ),
     );
   },
