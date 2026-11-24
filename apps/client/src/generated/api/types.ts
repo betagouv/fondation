@@ -3208,14 +3208,18 @@ export type ListedCallsForApplicationsDto = {
             month: number;
             day: number;
         } | null;
-        id: string;
-        lastChange: {
+        history: Array<{
+            action: {
+                id: 'CREATED';
+                label: string;
+            };
             at: string;
             by: {
                 id: string;
                 name: string;
             } | null;
-        };
+        }>;
+        id: string;
         publishedOn: {
             year: number;
             month: number;
@@ -3242,6 +3246,15 @@ export type ListedCallsForApplicationsDto = {
         next?: string;
         previous?: string;
     };
+    statuses: Array<{
+        id: 'UNPUBLISHED' | 'PUBLISHED';
+        label: string;
+    }>;
+    targetJurisdictionTypes: Array<{
+        id: 'COURT_OF_APPEAL' | 'JUDICIAL_COURT';
+        label: string;
+    }>;
+    years: Array<number>;
 };
 
 export type GetFileByFileUrlData = {
@@ -6737,7 +6750,11 @@ export type ChangeFeedbackStatusResponse = ChangeFeedbackStatusResponses[keyof C
 export type ListCallsForApplicationsData = {
     body?: never;
     path?: never;
-    query?: {
+    query: {
+        period: 'ONGOING' | 'PAST';
+        statuses?: Array<'UNPUBLISHED' | 'PUBLISHED'>;
+        targetJurisdictionTypes?: Array<'COURT_OF_APPEAL' | 'JUDICIAL_COURT'>;
+        years?: Array<string>;
         page?: number;
         limit?: number;
     };

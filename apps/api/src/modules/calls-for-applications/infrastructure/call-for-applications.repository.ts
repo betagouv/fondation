@@ -2,6 +2,7 @@ import { Propagation, Transactional } from '@nestjs-cls/transactional';
 import { Injectable } from '@nestjs/common';
 
 import { assertNever } from '../../../utils/assert-never';
+import { makeId } from '../../../utils/id';
 import { Clock } from '../../framework/clock';
 import { Db } from '../../framework/database';
 import { CallForApplications, CallForApplicationsCreated } from '../domain/call-for-applications';
@@ -24,7 +25,6 @@ export class CallForApplicationsRepository {
   private async persistCreated(message: CallForApplicationsCreated) {
     await this.db.tx.callForApplications.create({
       data: {
-        authorId: message.authorId,
         comment: message.comment,
         createdOn: message.createdOn.toDate(),
         deadline: message.deadline?.toDate() ?? null,
@@ -32,7 +32,15 @@ export class CallForApplicationsRepository {
         publishedOn: message.publishedOn?.toDate() ?? null,
         targetJurisdictionType: message.targetJurisdictionType,
         type: message.type,
-        updatedAt: this.clock.now(),
+      },
+    });
+    await this.db.tx.callForApplicationsChange.create({
+      data: {
+        action: 'CREATED',
+        at: this.clock.now(),
+        authorId: message.authorId,
+        callId: message.id,
+        id: makeId(),
       },
     });
   }

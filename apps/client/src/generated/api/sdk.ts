@@ -1519,8 +1519,8 @@ export class feedbacks {
 }
 
 export class callsForApplications {
-    public static listCallsForApplications<ThrowOnError extends boolean = false>(options?: Options<ListCallsForApplicationsData, ThrowOnError>): RequestResult<ListCallsForApplicationsResponses, unknown, ThrowOnError> {
-        return (options?.client ?? client).get<ListCallsForApplicationsResponses, unknown, ThrowOnError>({ url: '/api/calls-for-applications/v1', ...options });
+    public static listCallsForApplications<ThrowOnError extends boolean = false>(options: Options<ListCallsForApplicationsData, ThrowOnError>): RequestResult<ListCallsForApplicationsResponses, unknown, ThrowOnError> {
+        return (options.client ?? client).get<ListCallsForApplicationsResponses, unknown, ThrowOnError>({ url: '/api/calls-for-applications/v1', ...options });
     }
     
     public static createCallForApplications<ThrowOnError extends boolean = false>(options: Options<CreateCallForApplicationsData, ThrowOnError>): RequestResult<CreateCallForApplicationsResponses, unknown, ThrowOnError> {

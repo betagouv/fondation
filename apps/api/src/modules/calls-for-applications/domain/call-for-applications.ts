@@ -22,6 +22,15 @@ const STATUS_LABELS: Record<CallForApplicationsStatus, string> = {
   UNPUBLISHED: 'Non publié',
 };
 
+export const CALL_FOR_APPLICATIONS_ACTIONS = ['CREATED'] as const;
+export type CallForApplicationsAction = (typeof CALL_FOR_APPLICATIONS_ACTIONS)[number];
+
+const ACTION_LABELS: Record<CallForApplicationsAction, string> = { CREATED: 'Créé' };
+
+export function callForApplicationsActionOf(id: CallForApplicationsAction) {
+  return { id, label: ACTION_LABELS[id] };
+}
+
 export function callForApplicationsTypeOf(id: CallForApplicationsType) {
   return { id, label: TYPE_LABELS[id] };
 }

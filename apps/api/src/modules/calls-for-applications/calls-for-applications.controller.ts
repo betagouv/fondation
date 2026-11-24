@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpStatus, Post, UseInterceptors, UsePipes } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, Post, Query, UseInterceptors, UsePipes } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
@@ -10,6 +10,7 @@ import { CallsForApplicationsService } from './calls-for-applications.service';
 import {
   CreateCallForApplicationsDto,
   CreatedCallForApplicationsDto,
+  ListCallsForApplicationsDto,
 } from './infrastructure/call-for-applications.dto';
 import { CallsForApplicationsFilter } from './infrastructure/calls-for-applications.filter';
 import { FoundCallForApplicationsFormDto } from './infrastructure/queries/find-call-for-applications-form.query';
@@ -52,11 +53,19 @@ export class CallsForApplicationsController {
 
   @Get()
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @UsePipes(ZodValidationPipe)
   @ApiPaginated()
   @ZodResponse({ status: HttpStatus.OK, type: ListedCallsForApplicationsDto })
   listCallsForApplications(
+    @Query() query: ListCallsForApplicationsDto,
     @QueryPagination({ defaultLimit: 20 }) pagination: Pagination,
   ): Promise<ListedCallsForApplicationsDto> {
-    return this.callsForApplications.listCallsForApplications({ pagination });
+    return this.callsForApplications.listCallsForApplications({
+      pagination,
+      period: query.period,
+      statuses: query.statuses ?? [],
+      targetJurisdictionTypes: query.targetJurisdictionTypes ?? [],
+      years: query.years ?? [],
+    });
   }
 }

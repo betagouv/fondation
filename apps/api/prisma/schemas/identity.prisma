@@ -53,7 +53,7 @@ model User {
   authorOfAdminRightChanges                    AdminRightChange[]                     @relation("admin_right_change_author")
   authorOfAffectationVersions                  AffectationVersion[]                   @relation("affectation_version_author")
   authorOfAgendaVersions                       AgendaVersion[]                        @relation("agenda_version_author")
-  authorOfCallsForApplications                 CallForApplications[]
+  authorOfCallForApplicationsChanges           CallForApplicationsChange[]
   authorOfFeedbacks                            Feedback[]                             @relation("feedback_author")
   authorOfFeedbackStatusChanges                FeedbackStatusChange[]                 @relation("feedback_status_change_author")
   authorOfJusticeDepartmentContacts            JusticeDepartmentContact[]

@@ -1,6 +1,5 @@
 // a call for applications launched by the CSM, prepared in Fondation before its publication
 model CallForApplications {
-  authorId               String?                             @map("author_id") @db.Uuid
   comment                String?
   createdOn              DateTime                            @map("created_on") @db.Date
   deadline               DateTime?                           @db.Date
@@ -9,9 +8,6 @@ model CallForApplications {
   status                 PrismaCallForApplicationsStatusEnum @default(UNPUBLISHED)
   targetJurisdictionType PrismaTargetJurisdictionTypeEnum?   @map("target_jurisdiction_type")
   type                   PrismaCallForApplicationsTypeEnum
-  updatedAt              DateTime                            @map("updated_at") @db.Timestamp(3)
-
-  author User? @relation(fields: [authorId], references: [id], onDelete: SetNull, onUpdate: NoAction)
 
   @@map("call_for_applications")
   @@schema("nominations_context")
@@ -37,5 +33,26 @@ enum PrismaTargetJurisdictionTypeEnum {
   JUDICIAL_COURT
 
   @@map("target_jurisdiction_type_enum")
+  @@schema("nominations_context")
+}
+
+// what was done to a call for applications, by whom and when: kept once the call is deleted, so without a key to it
+model CallForApplicationsChange {
+  action   PrismaCallForApplicationsActionEnum
+  at       DateTime                            @db.Timestamp(3)
+  authorId String?                             @map("author_id") @db.Uuid
+  callId   String                              @map("call_id") @db.Uuid
+  id       String                              @id @db.Uuid
+
+  author User? @relation(fields: [authorId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
+  @@map("call_for_applications_change")
+  @@schema("nominations_context")
+}
+
+enum PrismaCallForApplicationsActionEnum {
+  CREATED
+
+  @@map("call_for_applications_action_enum")
   @@schema("nominations_context")
 }

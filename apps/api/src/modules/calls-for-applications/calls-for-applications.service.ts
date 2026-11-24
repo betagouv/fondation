@@ -7,9 +7,11 @@ import { Pagination } from '../framework/pagination';
 
 import {
   CallForApplications,
+  type CallForApplicationsStatus,
   type CallForApplicationsType,
   type TargetJurisdictionType,
 } from './domain/call-for-applications';
+import type { CallForApplicationsPeriod } from './domain/call-for-applications-period';
 import type { CreatedCallForApplicationsDto } from './infrastructure/call-for-applications.dto';
 import { CallForApplicationsRepository } from './infrastructure/call-for-applications.repository';
 import {
@@ -52,7 +54,13 @@ export class CallsForApplicationsService {
     return this.findCallForApplicationsFormQuery.handle();
   }
 
-  listCallsForApplications(query: { pagination: Pagination }): Promise<ListedCallsForApplicationsDto> {
+  listCallsForApplications(query: {
+    pagination: Pagination;
+    period: CallForApplicationsPeriod;
+    statuses: readonly CallForApplicationsStatus[];
+    targetJurisdictionTypes: readonly TargetJurisdictionType[];
+    years: readonly number[];
+  }): Promise<ListedCallsForApplicationsDto> {
     return this.listCallsForApplicationsQuery.handle(query);
   }
 }

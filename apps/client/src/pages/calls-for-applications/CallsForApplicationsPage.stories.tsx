@@ -9,30 +9,60 @@ import type {
   ListedCallsForApplicationsDto,
 } from '@api/types';
 
-import { CallsForApplicationsPage } from './CallsForApplicationsPage';
+import { OngoingCallsForApplicationsPage, PastCallsForApplicationsPage } from './CallsForApplicationsPage';
 
-const CALLS: ListedCallsForApplicationsDto['items'] = [
-  {
-    createdOn: { day: 20, month: 11, year: 2026 },
-    deadline: null,
-    id: 'call-2',
-    lastChange: { at: '2026-11-20T09:30:00.000Z', by: { id: 'user-2', name: 'Hélène GARNIER' } },
-    publishedOn: null,
-    status: { id: 'UNPUBLISHED', label: 'Non publié' },
-    targetJurisdictionType: { id: 'COURT_OF_APPEAL', label: 'CA' },
-    type: { id: 'GENERAL', label: 'Général' },
-  },
-  {
-    createdOn: { day: 2, month: 10, year: 2026 },
-    deadline: { day: 15, month: 11, year: 2026 },
-    id: 'call-1',
-    lastChange: { at: '2026-10-02T14:00:00.000Z', by: null },
-    publishedOn: { day: 15, month: 10, year: 2026 },
-    status: { id: 'PUBLISHED', label: 'Publié' },
-    targetJurisdictionType: { id: 'JUDICIAL_COURT', label: 'TJ' },
-    type: { id: 'GENERAL', label: 'Général' },
-  },
-];
+type ListedCall = ListedCallsForApplicationsDto['items'][number];
+
+/** a call never changed since its creation */
+function created(
+  call: Omit<ListedCall, 'history'> & { createdAt: string; createdBy: ListedCall['history'][number]['by'] },
+): ListedCall {
+  const { createdAt, createdBy, ...listed } = call;
+  return {
+    ...listed,
+    history: [{ action: { id: 'CREATED', label: 'Créé' }, at: createdAt, by: createdBy }],
+  };
+}
+
+const CALLS: Record<'ONGOING' | 'PAST', ListedCall[]> = {
+  ONGOING: [
+    created({
+      createdOn: { day: 20, month: 11, year: 2026 },
+      deadline: null,
+      id: 'call-2',
+      createdAt: '2026-11-20T09:30:00.000Z',
+      createdBy: { id: 'user-2', name: 'Hélène GARNIER' },
+      publishedOn: null,
+      status: { id: 'UNPUBLISHED', label: 'Non publié' },
+      targetJurisdictionType: { id: 'COURT_OF_APPEAL', label: 'CA' },
+      type: { id: 'GENERAL', label: 'Général' },
+    }),
+    created({
+      createdOn: { day: 3, month: 11, year: 2026 },
+      deadline: { day: 15, month: 1, year: 2027 },
+      id: 'call-3',
+      createdAt: '2026-11-03T10:00:00.000Z',
+      createdBy: { id: 'user-2', name: 'Hélène GARNIER' },
+      publishedOn: { day: 1, month: 12, year: 2026 },
+      status: { id: 'UNPUBLISHED', label: 'Non publié' },
+      targetJurisdictionType: { id: 'JUDICIAL_COURT', label: 'TJ' },
+      type: { id: 'GENERAL', label: 'Général' },
+    }),
+  ],
+  PAST: [
+    created({
+      createdOn: { day: 2, month: 10, year: 2026 },
+      deadline: { day: 15, month: 11, year: 2026 },
+      id: 'call-1',
+      createdAt: '2026-10-02T14:00:00.000Z',
+      createdBy: null,
+      publishedOn: { day: 15, month: 10, year: 2026 },
+      status: { id: 'PUBLISHED', label: 'Publié' },
+      targetJurisdictionType: { id: 'JUDICIAL_COURT', label: 'TJ' },
+      type: { id: 'GENERAL', label: 'Général' },
+    }),
+  ],
+};
 
 const FORM: FoundCallForApplicationsFormDto = {
   commentMaxLength: 50_000,
@@ -51,15 +81,16 @@ function CallsForApplicationsPageStory(props: {
   formLoadFails: boolean;
   loadFails: boolean;
   nextPageFails: boolean;
+  period: 'ONGOING' | 'PAST';
 }) {
+  const path =
+    props.period === 'PAST'
+      ? ROUTE_PATHS.SG.CSM.CALLS_FOR_APPLICATIONS_PAST
+      : ROUTE_PATHS.SG.CSM.CALLS_FOR_APPLICATIONS_ONGOING;
+
   return (
-    <PageStory
-      key={JSON.stringify(props)}
-      location={ROUTE_PATHS.SG.CSM.CALLS_FOR_APPLICATIONS}
-      path={ROUTE_PATHS.SG.CSM.CALLS_FOR_APPLICATIONS}
-      view="sg"
-    >
-      <CallsForApplicationsPage />
+    <PageStory key={JSON.stringify(props)} location={path} path={path} view="sg">
+      {props.period === 'PAST' ? <PastCallsForApplicationsPage /> : <OngoingCallsForApplicationsPage />}
     </PageStory>
   );
 }
@@ -72,6 +103,7 @@ const meta = {
     formLoadFails: false,
     loadFails: false,
     nextPageFails: false,
+    period: 'ONGOING',
   },
   argTypes: {
     createFails: { control: 'boolean', description: 'La création répond par une erreur.' },
@@ -86,20 +118,29 @@ const meta = {
       control: 'boolean',
       description: 'La première page arrive, la suivante répond par une erreur.',
     },
+    period: { control: 'inline-radio', description: "L'onglet ouvert.", options: ['ONGOING', 'PAST'] },
   },
   beforeEach: ({ args, msw }) => {
     msw.use(
       http.get('*/api/calls-for-applications/v1', ({ request }) => {
-        const page = Number(new URL(request.url).searchParams.get('page'));
+        const params = new URL(request.url).searchParams;
+        const page = Number(params.get('page'));
         if (args.loadFails || (args.nextPageFails && page > 1))
           return new HttpResponse(null, { status: 500 });
 
-        const items = args.empty ? [] : CALLS;
+        const years = params.getAll('years');
+        const items = args.empty || (years.length > 0 && !years.includes('2026')) ? [] : CALLS[args.period];
         return HttpResponse.json<ListedCallsForApplicationsDto>({
           currentPageIndex: page,
           items,
           nextPageIndex: args.nextPageFails ? page + 1 : undefined,
+          statuses: [
+            { id: 'UNPUBLISHED', label: 'Non publié' },
+            { id: 'PUBLISHED', label: 'Publié' },
+          ],
+          targetJurisdictionTypes: FORM.targetJurisdictionTypes,
           totalCount: args.nextPageFails ? items.length + 1 : items.length,
+          years: [2026, 2025],
         });
       }),
       http.get('*/api/calls-for-applications/v1/form', () =>
