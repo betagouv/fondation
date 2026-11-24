@@ -3338,6 +3338,93 @@ export type ChangeFeedbackStatusDto = {
     status: 'NEW' | 'ACKNOWLEDGED' | 'PROCESSED' | 'DISMISSED';
 };
 
+export type CreateCallForApplicationsDto = {
+    comment?: string | null;
+    deadline?: string | null;
+    publishedOn?: string | null;
+    type: 'GENERAL';
+};
+
+export type CreatedCallForApplicationsDto = {
+    id: string;
+};
+
+export type FoundCallForApplicationsFormDto = {
+    commentMaxLength: number;
+    dateRange: {
+        max: string;
+        min: string;
+    };
+    types: Array<{
+        id: 'GENERAL';
+        label: string;
+        scope: string;
+    }>;
+};
+
+export type ListedCallsForApplicationsDto = {
+    items: Array<{
+        canChange: boolean;
+        comment: string | null;
+        createdOn: {
+            year: number;
+            month: number;
+            day: number;
+        };
+        deadline: {
+            year: number;
+            month: number;
+            day: number;
+        } | null;
+        history: Array<{
+            action: 'CREATED' | 'UPDATED' | 'DELETED';
+            at: string;
+            by: {
+                id: string;
+                name: string;
+            } | null;
+            fields: Array<{
+                id: 'TYPE' | 'PUBLISHED_ON' | 'DEADLINE' | 'COMMENT';
+                label: string;
+            }>;
+        }>;
+        id: string;
+        publishedOn: {
+            year: number;
+            month: number;
+            day: number;
+        } | null;
+        status: {
+            id: 'UNPUBLISHED' | 'PUBLISHED';
+            label: string;
+        };
+        type: {
+            id: 'GENERAL';
+            label: string;
+        };
+    }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
+    links?: {
+        next?: string;
+        previous?: string;
+    };
+    statuses: Array<{
+        id: 'UNPUBLISHED' | 'PUBLISHED';
+        label: string;
+    }>;
+    years: Array<number>;
+};
+
+export type UpdateCallForApplicationsDto = {
+    comment?: string | null;
+    deadline?: string | null;
+    publishedOn?: string | null;
+    type: 'GENERAL';
+};
+
 export type GetFileByFileUrlData = {
     body?: never;
     headers?: {
@@ -3744,7 +3831,7 @@ export type ListArchivedSessionsData = {
         formations?: Array<'SIEGE' | 'PARQUET'>;
         sortBy?: 'archivedAt' | 'date';
         /**
-         * true
+         * 'true' sorts from the highest value
          */
         sortDesc?: string | boolean;
         page?: number;
@@ -3799,7 +3886,7 @@ export type ListSessionsOfTypeGardeDesSceauxData = {
         formations?: Array<'SIEGE' | 'PARQUET'>;
         sortBy?: 'date' | 'dueDate';
         /**
-         * true
+         * 'true' sorts from the highest value
          */
         sortDesc?: string | boolean;
         page?: number;
@@ -4026,7 +4113,7 @@ export type ListSessionAuditionsData = {
         search?: string;
         sortBy?: 'auditionDate';
         /**
-         * true
+         * 'true' sorts from the highest value
          */
         sortDesc?: string | boolean;
         page?: number;
@@ -4068,7 +4155,7 @@ export type ListNominationFilesData = {
         search?: string;
         missingEvaluation?: string | boolean;
         /**
-         * true
+         * 'true' sorts from the highest value
          */
         sortDesc?: string | boolean;
         page?: number;
@@ -5947,7 +6034,7 @@ export type ListFollowedUpObservationsData = {
         sortBy?: 'dateReception';
         trackingStatuses?: string;
         /**
-         * true
+         * 'true' sorts from the highest value
          */
         sortDesc?: string | boolean;
         page?: number;
@@ -6188,7 +6275,7 @@ export type ListSessionObservationsData = {
         search?: string;
         sortBy?: 'dateReception';
         /**
-         * true
+         * 'true' sorts from the highest value
          */
         sortDesc?: string | boolean;
         page?: number;
@@ -6246,7 +6333,7 @@ export type ListCourtOfAppealFirstPresidentsData = {
         statuses?: Array<'OCCUPIED' | 'MAY_BECOME_VACANT' | 'VACANT'>;
         sortBy?: 'court' | 'installationDate' | 'name' | 'status';
         /**
-         * true
+         * 'true' sorts from the highest value
          */
         sortDesc?: string | boolean;
         page?: number;
@@ -6272,7 +6359,7 @@ export type ListCourtOfCassationHoldersData = {
         positions?: Array<'FIRST_PRESIDENT' | 'CHAMBER_PRESIDENT' | 'COUNSELLOR' | 'REFERENDARY_COUNSELLOR' | 'AUDITOR_SECOND_GRADE' | 'AUDITOR_FIRST_GRADE'>;
         sortBy?: 'installationDate' | 'name' | 'status';
         /**
-         * true
+         * 'true' sorts from the highest value
          */
         sortDesc?: string | boolean;
         page?: number;
@@ -6298,7 +6385,7 @@ export type ListJudicialCourtPresidentsData = {
         ressorts?: Array<string>;
         sortBy?: 'court' | 'installationDate' | 'name' | 'ressort' | 'status';
         /**
-         * true
+         * 'true' sorts from the highest value
          */
         sortDesc?: string | boolean;
         page?: number;
@@ -6511,7 +6598,7 @@ export type ListUsersData = {
         roles?: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN' | Array<'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN'>;
         statuses?: 'ACTIVE' | 'DEACTIVATED' | Array<'ACTIVE' | 'DEACTIVATED'>;
         /**
-         * true
+         * 'true' sorts from the highest value
          */
         sortDesc?: string | boolean;
         page?: number;
@@ -6881,7 +6968,7 @@ export type ListFeedbacksData = {
         sortBy?: 'sentAt' | 'status';
         statuses?: Array<'NEW' | 'ACKNOWLEDGED' | 'PROCESSED' | 'DISMISSED'>;
         /**
-         * true
+         * 'true' sorts from the highest value
          */
         sortDesc?: string | boolean;
         page?: number;
@@ -6923,3 +7010,83 @@ export type ChangeFeedbackStatusResponses = {
 };
 
 export type ChangeFeedbackStatusResponse = ChangeFeedbackStatusResponses[keyof ChangeFeedbackStatusResponses];
+
+export type ListCallsForApplicationsData = {
+    body?: never;
+    path?: never;
+    query: {
+        period: 'ONGOING' | 'PAST';
+        sortBy?: 'createdOn' | 'deadline' | 'publishedOn' | 'status';
+        statuses?: Array<'UNPUBLISHED' | 'PUBLISHED'>;
+        years?: Array<string>;
+        /**
+         * 'true' sorts from the highest value
+         */
+        sortDesc?: string | boolean;
+        page?: number;
+        limit?: number;
+    };
+    url: '/api/calls-for-applications/v1';
+};
+
+export type ListCallsForApplicationsResponses = {
+    200: ListedCallsForApplicationsDto;
+};
+
+export type ListCallsForApplicationsResponse = ListCallsForApplicationsResponses[keyof ListCallsForApplicationsResponses];
+
+export type CreateCallForApplicationsData = {
+    body: CreateCallForApplicationsDto;
+    path?: never;
+    query?: never;
+    url: '/api/calls-for-applications/v1';
+};
+
+export type CreateCallForApplicationsResponses = {
+    201: CreatedCallForApplicationsDto;
+};
+
+export type CreateCallForApplicationsResponse = CreateCallForApplicationsResponses[keyof CreateCallForApplicationsResponses];
+
+export type DeleteCallForApplicationsData = {
+    body?: never;
+    path: {
+        callId: string;
+    };
+    query?: never;
+    url: '/api/calls-for-applications/v1/{callId}';
+};
+
+export type DeleteCallForApplicationsResponses = {
+    204: void;
+};
+
+export type DeleteCallForApplicationsResponse = DeleteCallForApplicationsResponses[keyof DeleteCallForApplicationsResponses];
+
+export type UpdateCallForApplicationsData = {
+    body: UpdateCallForApplicationsDto;
+    path: {
+        callId: string;
+    };
+    query?: never;
+    url: '/api/calls-for-applications/v1/{callId}';
+};
+
+export type UpdateCallForApplicationsResponses = {
+    204: void;
+};
+
+export type UpdateCallForApplicationsResponse = UpdateCallForApplicationsResponses[keyof UpdateCallForApplicationsResponses];
+
+export type FindCallForApplicationsFormData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/calls-for-applications/v1/form';
+};
+
+export type FindCallForApplicationsFormResponses = {
+    200: FoundCallForApplicationsFormDto;
+};
+
+export type FindCallForApplicationsFormResponse = FindCallForApplicationsFormResponses[keyof FindCallForApplicationsFormResponses];

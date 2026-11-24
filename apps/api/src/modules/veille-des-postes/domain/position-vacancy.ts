@@ -14,9 +14,6 @@ export type VacancyReason = (typeof VACANCY_REASONS)[number];
 /** shown whole in the side panel and on hover in the tables */
 export const REASON_DETAIL_MAX_LENGTH = 300;
 
-/** a date out of these is a typing slip: the field saves once left, even on "05/01/02" */
-export const VACANCY_START_DATE_RANGE = { max: '2100-12-31', min: '2000-01-01' };
-
 const REASON_LABELS: Record<VacancyReason, string> = {
   DEATH: 'Décès',
   DISCHARGE: 'Décharge',

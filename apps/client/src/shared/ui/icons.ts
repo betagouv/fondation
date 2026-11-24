@@ -8,4 +8,5 @@ export const ACTION_ICONS = {
   delete: 'fr-icon-delete-bin-fill',
   download: 'fr-icon-download-line',
   edit: 'fr-icon-edit-fill',
+  history: 'ri-history-fill',
 } as const satisfies Record<string, IconClassName>;

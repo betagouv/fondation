@@ -28,6 +28,8 @@ export const ROUTE_PATHS = {
   SG: {
     CSM: {
       CALLS_FOR_APPLICATIONS: '/secretariat-general/csm/appels-a-candidature',
+      CALLS_FOR_APPLICATIONS_ONGOING: '/secretariat-general/csm/appels-a-candidature/en-cours',
+      CALLS_FOR_APPLICATIONS_PAST: '/secretariat-general/csm/appels-a-candidature/passes',
       MEMBERS: '/secretariat-general/csm/membres',
       ROOT: '/secretariat-general/csm',
       SELECTION_PROCESS: '/secretariat-general/csm/processus-de-selection',

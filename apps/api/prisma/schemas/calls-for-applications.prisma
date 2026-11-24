@@ -1,0 +1,74 @@
+// a call for applications launched by the CSM, prepared in Fondation before its publication
+model CallForApplications {
+  comment     String?
+  createdOn   DateTime                            @map("created_on") @db.Date
+  deadline    DateTime?                           @db.Date
+  id          String                              @id @db.Uuid
+  publishedOn DateTime?                           @map("published_on") @db.Date
+  status      PrismaCallForApplicationsStatusEnum @default(UNPUBLISHED)
+  type        PrismaCallForApplicationsTypeEnum
+
+  @@map("call_for_applications")
+  @@schema("nominations_context")
+}
+
+enum PrismaCallForApplicationsStatusEnum {
+  PUBLISHED
+  UNPUBLISHED
+
+  @@map("call_for_applications_status_enum")
+  @@schema("nominations_context")
+}
+
+enum PrismaCallForApplicationsTypeEnum {
+  GENERAL
+
+  @@map("call_for_applications_type_enum")
+  @@schema("nominations_context")
+}
+
+// what was done to a call for applications, by whom and when: kept once the call is deleted, so without a key to it
+model CallForApplicationsChange {
+  action   PrismaCallForApplicationsActionEnum
+  at       DateTime                            @db.Timestamp(3)
+  authorId String?                             @map("author_id") @db.Uuid
+  callId   String                              @map("call_id") @db.Uuid
+  id       String                              @id @db.Uuid
+
+  author User?                             @relation(fields: [authorId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  fields CallForApplicationsChangedField[]
+
+  @@map("call_for_applications_change")
+  @@schema("nominations_context")
+}
+
+enum PrismaCallForApplicationsActionEnum {
+  CREATED
+  DELETED
+  UPDATED
+
+  @@map("call_for_applications_action_enum")
+  @@schema("nominations_context")
+}
+
+// the fields a change of a call for applications touched
+model CallForApplicationsChangedField {
+  changeId String                             @map("change_id") @db.Uuid
+  field    PrismaCallForApplicationsFieldEnum
+
+  change CallForApplicationsChange @relation(fields: [changeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([changeId, field], name: "primaryKey")
+  @@map("call_for_applications_changed_field")
+  @@schema("nominations_context")
+}
+
+enum PrismaCallForApplicationsFieldEnum {
+  COMMENT
+  DEADLINE
+  PUBLISHED_ON
+  TYPE
+
+  @@map("call_for_applications_field_enum")
+  @@schema("nominations_context")
+}

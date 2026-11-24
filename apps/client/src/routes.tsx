@@ -226,11 +226,22 @@ export const routes: RouteObject[] = [
             path: ROUTE_PATHS.SG.CSM.ROOT,
           },
           {
-            lazy: () =>
-              import('@/pages/csm/CsmUpcomingPages').then(({ CallsForApplicationsPage }) => ({
-                Component: CallsForApplicationsPage,
-              })),
+            loader: () => redirect(ROUTE_PATHS.SG.CSM.CALLS_FOR_APPLICATIONS_ONGOING),
             path: ROUTE_PATHS.SG.CSM.CALLS_FOR_APPLICATIONS,
+          },
+          {
+            lazy: () =>
+              import('@/pages/calls-for-applications/CallsForApplicationsPage').then(
+                ({ OngoingCallsForApplicationsPage }) => ({ Component: OngoingCallsForApplicationsPage }),
+              ),
+            path: ROUTE_PATHS.SG.CSM.CALLS_FOR_APPLICATIONS_ONGOING,
+          },
+          {
+            lazy: () =>
+              import('@/pages/calls-for-applications/CallsForApplicationsPage').then(
+                ({ PastCallsForApplicationsPage }) => ({ Component: PastCallsForApplicationsPage }),
+              ),
+            path: ROUTE_PATHS.SG.CSM.CALLS_FOR_APPLICATIONS_PAST,
           },
           {
             lazy: () =>
