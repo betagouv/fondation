@@ -87,8 +87,13 @@ export function useCallForApplicationsFormQuery() {
   });
 }
 
-export function useCreateCallForApplicationsMutation() {
+/** not awaited: the callbacks of a row would wait for a refreshed list that may no longer hold it */
+function useInvalidatingList() {
   const queryClient = useQueryClient();
+  return () => void queryClient.invalidateQueries({ queryKey: callsForApplicationsKeys.list() });
+}
+
+export function useCreateCallForApplicationsMutation() {
   return useMutation({
     mutationFn: (body: CreateCallForApplicationsDto) =>
       withValidationError(async () => {
@@ -98,28 +103,26 @@ export function useCreateCallForApplicationsMutation() {
         });
         return data;
       }),
-    onSettled: () => queryClient.invalidateQueries({ queryKey: callsForApplicationsKeys.list() }),
+    onSettled: useInvalidatingList(),
   });
 }
 
 export function useUpdateCallForApplicationsMutation() {
-  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ body, callId }: { body: UpdateCallForApplicationsDto; callId: string }) =>
       withValidationError(() =>
         $api.callsForApplications.updateCallForApplications({ body, path: { callId }, throwOnError: true }),
       ),
-    onSettled: () => queryClient.invalidateQueries({ queryKey: callsForApplicationsKeys.list() }),
+    onSettled: useInvalidatingList(),
   });
 }
 
 export function useDeleteCallForApplicationsMutation() {
-  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (callId: string) =>
       withValidationError(() =>
         $api.callsForApplications.deleteCallForApplications({ path: { callId }, throwOnError: true }),
       ),
-    onSettled: () => queryClient.invalidateQueries({ queryKey: callsForApplicationsKeys.list() }),
+    onSettled: useInvalidatingList(),
   });
 }

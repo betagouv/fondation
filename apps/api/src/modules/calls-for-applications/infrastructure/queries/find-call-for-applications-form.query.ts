@@ -10,6 +10,7 @@ import {
   TARGET_JURISDICTION_TYPES,
   targetJurisdictionTypeOf,
 } from '../../domain/call-for-applications';
+import { callForApplicationsTypeSchema, targetJurisdictionTypeSchema } from '../call-for-applications.dto';
 
 @Injectable()
 export class FindCallForApplicationsFormQuery {
@@ -27,7 +28,7 @@ export class FoundCallForApplicationsFormDto extends createZodDto(
   z.object({
     commentMaxLength: z.number().int(),
     dateRange: z.object({ max: z.iso.date(), min: z.iso.date() }),
-    targetJurisdictionTypes: z.array(z.object({ id: z.enum(TARGET_JURISDICTION_TYPES), label: z.string() })),
-    types: z.array(z.object({ id: z.enum(CALL_FOR_APPLICATIONS_TYPES), label: z.string() })),
+    targetJurisdictionTypes: z.array(targetJurisdictionTypeSchema),
+    types: z.array(callForApplicationsTypeSchema),
   }),
 ) {}

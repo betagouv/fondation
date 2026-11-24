@@ -79,4 +79,11 @@ describe('CallsForApplicationsTable', () => {
     );
     expect(screen.queryByRole('button', { name: "Type d'appel" })).not.toBeInTheDocument();
   });
+
+  it('says there is no call yet rather than that the filters match none', async () => {
+    vi.spyOn($api.callsForApplications, 'listCallsForApplications').mockResolvedValue(listed());
+    renderTable();
+
+    expect(await screen.findByText('Aucun appel à candidatures')).toBeInTheDocument();
+  });
 });

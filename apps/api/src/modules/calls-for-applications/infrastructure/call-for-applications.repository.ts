@@ -77,10 +77,13 @@ export class CallForApplicationsRepository {
   }
 
   private async persistUpdated(message: CallForApplicationsUpdated) {
-    await this.db.tx.callForApplications.update({
+    // a deletion may have gone first since the call was read
+    const { count } = await this.db.tx.callForApplications.updateMany({
       data: columnsOf(message.metadata),
       where: { id: message.id },
     });
+    if (count === 0) throw new NotFoundException();
+
     await this.journal('UPDATED', message, message.fields);
   }
 

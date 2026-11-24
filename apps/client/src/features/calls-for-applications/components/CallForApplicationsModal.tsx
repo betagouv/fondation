@@ -116,7 +116,7 @@ function CallForApplicationsFields(props: {
           <Input
             className="fr-mb-0"
             label={<FormattedMessage defaultMessage="Date limite" />}
-            nativeInputProps={dateInput('deadline')}
+            nativeInputProps={{ ...dateInput('deadline'), min: draft.publishedOn || form.dateRange.min }}
           />
         </div>
       </fieldset>

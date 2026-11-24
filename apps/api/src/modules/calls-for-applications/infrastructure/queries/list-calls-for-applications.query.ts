@@ -13,7 +13,6 @@ import {
   CALL_FOR_APPLICATIONS_ACTIONS,
   CALL_FOR_APPLICATIONS_FIELDS,
   CALL_FOR_APPLICATIONS_STATUSES,
-  CALL_FOR_APPLICATIONS_TYPES,
   type CallForApplicationsStatus,
   callForApplicationsFieldOf,
   canChange,
@@ -28,6 +27,12 @@ import {
   type CallForApplicationsSortableColumn,
   sortedCalls,
 } from '../../domain/call-for-applications-sorting';
+import {
+  callForApplicationsFieldSchema,
+  callForApplicationsStatusSchema,
+  callForApplicationsTypeSchema,
+  targetJurisdictionTypeSchema,
+} from '../call-for-applications.dto';
 
 @Injectable()
 export class ListCallsForApplicationsQuery {
@@ -150,19 +155,19 @@ export class ListedCallsForApplicationsDto extends createPaginatedZodDto(
         at: z.iso.datetime(),
         by: writerSchema,
         /** the fields an update touched, in the order of the form */
-        fields: z.array(z.object({ id: z.enum(CALL_FOR_APPLICATIONS_FIELDS), label: z.string() })),
+        fields: z.array(callForApplicationsFieldSchema),
       }),
     ),
     id: z.uuid(),
     publishedOn: dateOnlyJsonSchema.nullable(),
-    status: z.object({ id: z.enum(CALL_FOR_APPLICATIONS_STATUSES), label: z.string() }),
+    status: callForApplicationsStatusSchema,
     /** only a general call targets a type of jurisdiction */
-    targetJurisdictionType: z.object({ id: z.enum(TARGET_JURISDICTION_TYPES), label: z.string() }).nullable(),
-    type: z.object({ id: z.enum(CALL_FOR_APPLICATIONS_TYPES), label: z.string() }),
+    targetJurisdictionType: targetJurisdictionTypeSchema.nullable(),
+    type: callForApplicationsTypeSchema,
   }),
   z.object({
-    statuses: z.array(z.object({ id: z.enum(CALL_FOR_APPLICATIONS_STATUSES), label: z.string() })),
-    targetJurisdictionTypes: z.array(z.object({ id: z.enum(TARGET_JURISDICTION_TYPES), label: z.string() })),
+    statuses: z.array(callForApplicationsStatusSchema),
+    targetJurisdictionTypes: z.array(targetJurisdictionTypeSchema),
     /** the years with a call in the period, the most recent first */
     years: z.array(z.number().int()),
   }),

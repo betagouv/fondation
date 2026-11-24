@@ -56,10 +56,13 @@ describe('yearsOf', () => {
     ).toEqual([2025, 2026]);
   });
 
-  it('keeps the year of a publication to come without deadline', () => {
+  it('shows at once a call prepared for next year, from its creation to its publication', () => {
     expect(
-      yearsOf({ createdOn: TODAY, deadline: null, publishedOn: new DateOnly(2027, 2, 1) }, TODAY),
-    ).toEqual([2027]);
+      yearsOf(
+        { createdOn: TODAY, deadline: new DateOnly(2027, 2, 1), publishedOn: new DateOnly(2027, 1, 4) },
+        TODAY,
+      ),
+    ).toEqual([2026, 2027]);
   });
 });
 

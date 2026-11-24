@@ -1,6 +1,6 @@
 import Badge from '@codegouvfr/react-dsfr/Badge';
 import { createColumnHelper, getCoreRowModel, useReactTable } from '@tanstack/react-table';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { FormattedMessage, useIntl } from 'react-intl';
 
@@ -158,9 +158,10 @@ export function CallsForApplicationsTable(props: {
   period: CallsForApplicationsPeriod;
 }) {
   const { formatMessage } = useIntl();
+  const [defaultFilters] = useState(() => [{ id: 'years', value: [String(new Date().getFullYear())] }]);
   const { onColumnFiltersChange, onSortingChange, tableState } = useDataTableUrlState({
     // the spec opens on the current year. Once every year is unchecked, the link keeps an empty filter: every year
-    columnFilters: [{ id: 'years', value: [String(new Date().getFullYear())] }] as (
+    columnFilters: defaultFilters as (
       | { id: 'statuses'; value: unknown }
       | { id: 'targetJurisdictionTypes'; value: unknown }
       | { id: 'years'; value: unknown }
@@ -231,7 +232,7 @@ export function CallsForApplicationsTable(props: {
             : formatMessage({ defaultMessage: 'Appels à candidatures en cours' })
         }
         emptyLabel={
-          tableState.columnFilters.length > 0
+          JSON.stringify(tableState.columnFilters) !== JSON.stringify(defaultFilters)
             ? formatMessage({ defaultMessage: 'Aucun appel à candidatures ne correspond aux filtres' })
             : formatMessage({ defaultMessage: 'Aucun appel à candidatures' })
         }

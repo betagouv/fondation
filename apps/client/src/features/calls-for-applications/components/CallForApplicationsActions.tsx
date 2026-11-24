@@ -5,6 +5,7 @@ import { useConfirmModal } from '@/shared/context/confirm-modal';
 import { IconButton } from '@/shared/ui/icon-button';
 import { ACTION_ICONS } from '@/shared/ui/icons';
 import { useToasts } from '@/shared/ui/toast';
+import { formatDateOnly } from '@/utils/date-only.util';
 import { ValidationError } from '@/utils/validation-error';
 import {
   type CallForApplications,
@@ -27,7 +28,14 @@ export function CallForApplicationsActions(props: { call: CallForApplications })
     const { isConfirmed } = await waitForConfirmation({
       content: (
         <p className="fr-mb-0">
-          <FormattedMessage defaultMessage="La suppression est définitive. L'appel à candidatures ne pourra pas être récupéré." />
+          <FormattedMessage
+            defaultMessage="L'appel à candidatures ({type}, {target}) créé le {createdOn} sera définitivement supprimé."
+            values={{
+              createdOn: formatDateOnly(props.call.createdOn),
+              target: props.call.targetJurisdictionType?.label,
+              type: props.call.type.label,
+            }}
+          />
         </p>
       ),
       i18n: { confirm: formatMessage({ defaultMessage: 'Supprimer' }) },
