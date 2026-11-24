@@ -122,13 +122,13 @@ export const AppHeader = () => {
       linkProps: { to: ROUTE_PATHS.SG.CSM.VEILLE_DES_POSTES, viewTransition: true },
       text: formatMessage({ defaultMessage: 'Veille des postes' }),
     },
+    {
+      isActive: routeMatches([ROUTE_PATHS.SG.CSM.CALLS_FOR_APPLICATIONS]),
+      linkProps: { to: ROUTE_PATHS.SG.CSM.CALLS_FOR_APPLICATIONS, viewTransition: true },
+      text: formatMessage({ defaultMessage: 'Appels à candidatures' }),
+    },
     ...(SHOW_UPCOMING_CSM_PAGES
       ? [
-          {
-            isActive: routeMatches([ROUTE_PATHS.SG.CSM.CALLS_FOR_APPLICATIONS]),
-            linkProps: { to: ROUTE_PATHS.SG.CSM.CALLS_FOR_APPLICATIONS, viewTransition: true },
-            text: formatMessage({ defaultMessage: 'Appels à candidature' }),
-          },
           {
             isActive: routeMatches([ROUTE_PATHS.SG.CSM.SELECTION_PROCESS]),
             linkProps: { to: ROUTE_PATHS.SG.CSM.SELECTION_PROCESS, viewTransition: true },

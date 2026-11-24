@@ -1,0 +1,112 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { render, screen } from '@testing-library/react';
+import { userEvent } from '@testing-library/user-event';
+import { IntlProvider } from 'react-intl';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { ToastProvider } from '@/shared/ui/toast';
+import { httpAssert } from '@/utils/http-exception';
+import * as $api from '@api/sdk';
+import type { FoundCallForApplicationsFormDto } from '@api/types';
+
+import { CallForApplicationsCreationModal } from './CallForApplicationsCreationModal';
+
+const FORM: FoundCallForApplicationsFormDto = {
+  commentMaxLength: 50_000,
+  dateRange: { max: '2100-12-31', min: '2000-01-01' },
+  targetJurisdictionTypes: [
+    { id: 'COURT_OF_APPEAL', label: 'CA' },
+    { id: 'JUDICIAL_COURT', label: 'TJ' },
+  ],
+  types: [{ id: 'GENERAL', label: 'Général' }],
+};
+
+/** what the client of the API throws on a 400 naming what to fix */
+function refusal(validationError: string): unknown {
+  try {
+    httpAssert(Response.json({ validationError }, { status: 400 }));
+  } catch (error) {
+    return error;
+  }
+}
+
+function renderModal() {
+  const client = new QueryClient({
+    defaultOptions: { mutations: { retry: false }, queries: { retry: false } },
+  });
+  const onClose = vi.fn();
+
+  render(
+    <IntlProvider defaultLocale="fr" locale="fr">
+      <QueryClientProvider client={client}>
+        <ToastProvider>
+          <CallForApplicationsCreationModal onClose={onClose} onClosed={vi.fn()} open />
+        </ToastProvider>
+      </QueryClientProvider>
+    </IntlProvider>,
+  );
+
+  return { onClose };
+}
+
+describe('CallForApplicationsCreationModal', () => {
+  beforeEach(() => {
+    vi.spyOn($api.callsForApplications, 'findCallForApplicationsForm').mockResolvedValue({
+      data: FORM,
+    } as never);
+  });
+  afterEach(() => vi.restoreAllMocks());
+
+  it('creates a general call once its target is picked, without the dates left empty', async () => {
+    const create = vi
+      .spyOn($api.callsForApplications, 'createCallForApplications')
+      .mockResolvedValue({ data: { id: 'call-1' } } as never);
+    const { onClose } = renderModal();
+    const user = userEvent.setup();
+
+    await user.selectOptions(await screen.findByRole('combobox', { name: /Juridiction cible/ }), 'TJ');
+    await user.click(screen.getByRole('button', { name: "Créer l'appel à candidatures" }));
+
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: {
+          comment: null,
+          deadline: null,
+          publishedOn: null,
+          targetJurisdictionType: 'JUDICIAL_COURT',
+          type: 'GENERAL',
+        },
+      }),
+    );
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it('stays open and says so when the creation fails', async () => {
+    vi.spyOn($api.callsForApplications, 'createCallForApplications').mockRejectedValue(new Error('500'));
+    const { onClose } = renderModal();
+    const user = userEvent.setup();
+
+    await user.selectOptions(await screen.findByRole('combobox', { name: /Juridiction cible/ }), 'CA');
+    await user.click(screen.getByRole('button', { name: "Créer l'appel à candidatures" }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('La création a échoué, réessayez');
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('tells under the deadline why the API refuses it', async () => {
+    vi.spyOn($api.callsForApplications, 'createCallForApplications').mockRejectedValue(
+      refusal('La date limite ne peut pas précéder la date de publication'),
+    );
+    const { onClose } = renderModal();
+    const user = userEvent.setup();
+
+    await user.selectOptions(await screen.findByRole('combobox', { name: /Juridiction cible/ }), 'CA');
+    await user.click(screen.getByRole('button', { name: "Créer l'appel à candidatures" }));
+
+    expect(
+      await screen.findByText('La date limite ne peut pas précéder la date de publication'),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('La création a échoué, réessayez')).not.toBeInTheDocument();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+});

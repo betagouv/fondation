@@ -3165,6 +3165,82 @@ export type ChangeFeedbackStatusDto = {
     status: 'NEW' | 'ACKNOWLEDGED' | 'PROCESSED' | 'DISMISSED';
 };
 
+export type CreateCallForApplicationsDto = {
+    comment?: string | null;
+    deadline?: string | null;
+    publishedOn?: string | null;
+    targetJurisdictionType: 'COURT_OF_APPEAL' | 'JUDICIAL_COURT';
+    type: 'GENERAL';
+};
+
+export type CreatedCallForApplicationsDto = {
+    id: string;
+};
+
+export type FoundCallForApplicationsFormDto = {
+    commentMaxLength: number;
+    dateRange: {
+        max: string;
+        min: string;
+    };
+    targetJurisdictionTypes: Array<{
+        id: 'COURT_OF_APPEAL' | 'JUDICIAL_COURT';
+        label: string;
+    }>;
+    types: Array<{
+        id: 'GENERAL';
+        label: string;
+    }>;
+};
+
+export type ListedCallsForApplicationsDto = {
+    items: Array<{
+        createdOn: {
+            year: number;
+            month: number;
+            day: number;
+        };
+        deadline: {
+            year: number;
+            month: number;
+            day: number;
+        } | null;
+        id: string;
+        lastChange: {
+            at: string;
+            by: {
+                id: string;
+                name: string;
+            } | null;
+        };
+        publishedOn: {
+            year: number;
+            month: number;
+            day: number;
+        } | null;
+        status: {
+            id: 'UNPUBLISHED' | 'PUBLISHED';
+            label: string;
+        };
+        targetJurisdictionType: {
+            id: 'COURT_OF_APPEAL' | 'JUDICIAL_COURT';
+            label: string;
+        } | null;
+        type: {
+            id: 'GENERAL';
+            label: string;
+        };
+    }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
+    links?: {
+        next?: string;
+        previous?: string;
+    };
+};
+
 export type GetFileByFileUrlData = {
     body?: never;
     headers?: {
@@ -6654,3 +6730,45 @@ export type ChangeFeedbackStatusResponses = {
 };
 
 export type ChangeFeedbackStatusResponse = ChangeFeedbackStatusResponses[keyof ChangeFeedbackStatusResponses];
+
+export type ListCallsForApplicationsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        page?: number;
+        limit?: number;
+    };
+    url: '/api/calls-for-applications/v1';
+};
+
+export type ListCallsForApplicationsResponses = {
+    200: ListedCallsForApplicationsDto;
+};
+
+export type ListCallsForApplicationsResponse = ListCallsForApplicationsResponses[keyof ListCallsForApplicationsResponses];
+
+export type CreateCallForApplicationsData = {
+    body: CreateCallForApplicationsDto;
+    path?: never;
+    query?: never;
+    url: '/api/calls-for-applications/v1';
+};
+
+export type CreateCallForApplicationsResponses = {
+    201: CreatedCallForApplicationsDto;
+};
+
+export type CreateCallForApplicationsResponse = CreateCallForApplicationsResponses[keyof CreateCallForApplicationsResponses];
+
+export type FindCallForApplicationsFormData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/calls-for-applications/v1/form';
+};
+
+export type FindCallForApplicationsFormResponses = {
+    200: FoundCallForApplicationsFormDto;
+};
+
+export type FindCallForApplicationsFormResponse = FindCallForApplicationsFormResponses[keyof FindCallForApplicationsFormResponses];

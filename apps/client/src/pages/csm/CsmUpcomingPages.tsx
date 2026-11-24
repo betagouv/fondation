@@ -21,11 +21,6 @@ function CsmUpcomingPage(props: { title: string }) {
   );
 }
 
-export function CallsForApplicationsPage() {
-  const { formatMessage } = useIntl();
-  return <CsmUpcomingPage title={formatMessage({ defaultMessage: 'Appels à candidature' })} />;
-}
-
 export function SelectionProcessPage() {
   const { formatMessage } = useIntl();
   return <CsmUpcomingPage title={formatMessage({ defaultMessage: 'Processus de sélection' })} />;

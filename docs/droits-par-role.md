@@ -69,7 +69,7 @@ Un Membre ne voit les auditions d'une session qu'une fois publiées.
 
 ### Espace Secrétariat général
 
-L'accueil propose les deux pouvoirs de proposition et le logo y ramène. Le menu garde partout Rechercher un magistrat. Le GDS y ajoute Gérer une session, Restitutions, Suivi des observations, Gérer les membres et Archives. Le CSM y ajoute Veille des postes. L'Administrateur a en plus un sous-menu Administration et peut créer une session depuis une extraction Lodam.
+L'accueil propose les deux pouvoirs de proposition et le logo y ramène. Le menu garde partout Rechercher un magistrat. Le GDS y ajoute Gérer une session, Restitutions, Suivi des observations, Gérer les membres et Archives. Le CSM y ajoute Veille des postes et Appels à candidatures. L'Administrateur a en plus un sous-menu Administration et peut créer une session depuis une extraction Lodam.
 
 | URL                                                                                                  | Vue                                                                | Membre | Secrétariat général | Administrateur |
 | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ------ | ------------------- | -------------- |
@@ -78,7 +78,7 @@ L'accueil propose les deux pouvoirs de proposition et le logo y ramène. Le menu
 | `/secretariat-general/csm/veille-des-postes/cours-d-appel`                                           | Veille des postes, premiers présidents de cour d'appel             | —      | ✓                   | ✓              |
 | `/secretariat-general/csm/veille-des-postes/tribunaux-judiciaires`                                   | Veille des postes, présidents de tribunaux judiciaires             | —      | ✓                   | ✓              |
 | `/secretariat-general/csm/veille-des-postes/cour-de-cassation/:position`                             | Veille des postes, magistrats du siège de la Cour de cassation     | —      | ✓                   | ✓              |
-| `/secretariat-general/csm/appels-a-candidature`                                                      | Appels à candidature (à venir)                                     | —      | ✓                   | ✓              |
+| `/secretariat-general/csm/appels-a-candidature`                                                      | Appels à candidatures                                              | —      | ✓                   | ✓              |
 | `/secretariat-general/csm/processus-de-selection`                                                    | Processus de sélection (à venir)                                   | —      | ✓                   | ✓              |
 | `/secretariat-general/csm/membres`                                                                   | Membres du pouvoir CSM (à venir)                                   | —      | ✓                   | ✓              |
 | `/secretariat-general/gds/sessions`                                                                  | Gérer les sessions                                                 | —      | ✓                   | ✓              |
@@ -332,6 +332,14 @@ Dans les dossiers d'un magistrat, un Membre ne voit que l'affectation et les aud
 | Ouvrir une pièce jointe de la vacance                  | `GET /veille-des-postes/v1/titulaires/:magistratId/vacance/pieces-jointes/:fileId`    | —      | ✓                   | ✓              |
 | Renommer une pièce jointe de la vacance                | `PATCH /veille-des-postes/v1/titulaires/:magistratId/vacance/pieces-jointes/:fileId`  | —      | ✓                   | ✓              |
 | Supprimer une pièce jointe de la vacance               | `DELETE /veille-des-postes/v1/titulaires/:magistratId/vacance/pieces-jointes/:fileId` | —      | ✓                   | ✓              |
+
+### Appels à candidatures
+
+| Action                                        | Endpoint                              | Membre | Secrétariat général | Administrateur |
+| --------------------------------------------- | ------------------------------------- | ------ | ------------------- | -------------- |
+| Lister les appels à candidatures              | `GET /calls-for-applications/v1`      | —      | ✓                   | ✓              |
+| Créer un appel à candidatures                 | `POST /calls-for-applications/v1`     | —      | ✓                   | ✓              |
+| Consulter les choix du formulaire de création | `GET /calls-for-applications/v1/form` | —      | ✓                   | ✓              |
 
 ### Documents de séance : préparation
 

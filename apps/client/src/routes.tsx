@@ -227,9 +227,9 @@ export const routes: RouteObject[] = [
           },
           {
             lazy: () =>
-              import('@/pages/csm/CsmUpcomingPages').then(({ CallsForApplicationsPage }) => ({
-                Component: CallsForApplicationsPage,
-              })),
+              import('@/pages/calls-for-applications/CallsForApplicationsPage').then(
+                ({ CallsForApplicationsPage }) => ({ Component: CallsForApplicationsPage }),
+              ),
             path: ROUTE_PATHS.SG.CSM.CALLS_FOR_APPLICATIONS,
           },
           {

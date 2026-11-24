@@ -1,0 +1,41 @@
+// a call for applications launched by the CSM, prepared in Fondation before its publication
+model CallForApplications {
+  authorId               String?                             @map("author_id") @db.Uuid
+  comment                String?
+  createdOn              DateTime                            @map("created_on") @db.Date
+  deadline               DateTime?                           @db.Date
+  id                     String                              @id @db.Uuid
+  publishedOn            DateTime?                           @map("published_on") @db.Date
+  status                 PrismaCallForApplicationsStatusEnum @default(UNPUBLISHED)
+  targetJurisdictionType PrismaTargetJurisdictionTypeEnum?   @map("target_jurisdiction_type")
+  type                   PrismaCallForApplicationsTypeEnum
+  updatedAt              DateTime                            @map("updated_at") @db.Timestamp(3)
+
+  author User? @relation(fields: [authorId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
+  @@map("call_for_applications")
+  @@schema("nominations_context")
+}
+
+enum PrismaCallForApplicationsStatusEnum {
+  PUBLISHED
+  UNPUBLISHED
+
+  @@map("call_for_applications_status_enum")
+  @@schema("nominations_context")
+}
+
+enum PrismaCallForApplicationsTypeEnum {
+  GENERAL
+
+  @@map("call_for_applications_type_enum")
+  @@schema("nominations_context")
+}
+
+enum PrismaTargetJurisdictionTypeEnum {
+  COURT_OF_APPEAL
+  JUDICIAL_COURT
+
+  @@map("target_jurisdiction_type_enum")
+  @@schema("nominations_context")
+}
