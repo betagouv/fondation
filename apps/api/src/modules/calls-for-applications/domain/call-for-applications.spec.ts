@@ -13,7 +13,6 @@ const metadata = {
   comment: null,
   deadline: null,
   publishedOn: null,
-  targetJurisdictionType: 'JUDICIAL_COURT',
   type: 'GENERAL',
 } as const;
 const AGENT = { id: 'agent', isAdmin: false };

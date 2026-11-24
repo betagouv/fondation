@@ -18,9 +18,6 @@ import {
   canChange,
   callForApplicationsStatusOf,
   callForApplicationsTypeOf,
-  TARGET_JURISDICTION_TYPES,
-  type TargetJurisdictionType,
-  targetJurisdictionTypeOf,
 } from '../../domain/call-for-applications';
 import { type CallForApplicationsPeriod, periodOf, yearsOf } from '../../domain/call-for-applications-period';
 import {
@@ -31,7 +28,6 @@ import {
   callForApplicationsFieldSchema,
   callForApplicationsStatusSchema,
   callForApplicationsTypeSchema,
-  targetJurisdictionTypeSchema,
 } from '../call-for-applications.dto';
 
 @Injectable()
@@ -49,7 +45,6 @@ export class ListCallsForApplicationsQuery {
     period: CallForApplicationsPeriod;
     sorting: Sortable<CallForApplicationsSortableColumn>;
     statuses: readonly CallForApplicationsStatus[];
-    targetJurisdictionTypes: readonly TargetJurisdictionType[];
     years: readonly number[];
   }): Promise<ListedCallsForApplicationsDto> {
     const today = DateOnly.fromInstantInParis(this.clock.now());
@@ -61,7 +56,6 @@ export class ListCallsForApplicationsQuery {
         id: true,
         publishedOn: true,
         status: true,
-        targetJurisdictionType: true,
         type: true,
       } satisfies Prisma.CallForApplicationsSelect,
     });
@@ -80,13 +74,7 @@ export class ListCallsForApplicationsQuery {
           (call) =>
             query.years.length === 0 || yearsOf(call, today).some((year) => query.years.includes(year)),
         )
-        .filter((call) => query.statuses.length === 0 || query.statuses.includes(call.status))
-        .filter(
-          (call) =>
-            query.targetJurisdictionTypes.length === 0 ||
-            (!!call.targetJurisdictionType &&
-              query.targetJurisdictionTypes.includes(call.targetJurisdictionType)),
-        ),
+        .filter((call) => query.statuses.length === 0 || query.statuses.includes(call.status)),
       query.sorting,
     );
 
@@ -123,15 +111,12 @@ export class ListCallsForApplicationsQuery {
           id: call.id,
           publishedOn: call.publishedOn?.toJson() ?? null,
           status: callForApplicationsStatusOf(call.status),
-          targetJurisdictionType:
-            call.targetJurisdictionType && targetJurisdictionTypeOf(call.targetJurisdictionType),
           type: callForApplicationsTypeOf(call.type),
         })),
         pagination: query.pagination,
         totalCount: listed.length,
       }),
       statuses: CALL_FOR_APPLICATIONS_STATUSES.map(callForApplicationsStatusOf),
-      targetJurisdictionTypes: TARGET_JURISDICTION_TYPES.map(targetJurisdictionTypeOf),
       // the current year stays offered even before its first call
       years: [...new Set([today.toJson().year, ...calls.flatMap((call) => yearsOf(call, today))])].toSorted(
         (a, b) => b - a,
@@ -161,13 +146,10 @@ export class ListedCallsForApplicationsDto extends createPaginatedZodDto(
     id: z.uuid(),
     publishedOn: dateOnlyJsonSchema.nullable(),
     status: callForApplicationsStatusSchema,
-    /** only a general call targets a type of jurisdiction */
-    targetJurisdictionType: targetJurisdictionTypeSchema.nullable(),
     type: callForApplicationsTypeSchema,
   }),
   z.object({
     statuses: z.array(callForApplicationsStatusSchema),
-    targetJurisdictionTypes: z.array(targetJurisdictionTypeSchema),
     /** the years with a call in the period, the most recent first */
     years: z.array(z.number().int()),
   }),

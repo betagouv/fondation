@@ -32,22 +32,16 @@ export class CallForApplicationsRepository {
         id: true,
         publishedOn: true,
         status: true,
-        targetJurisdictionType: true,
         type: true,
       } satisfies Prisma.CallForApplicationsSelect,
       where: { id },
     });
     if (!call) throw new NotFoundException();
 
-    // a general call always targets a type of jurisdiction: the base checks it
-    const { targetJurisdictionType } = call;
-    if (!targetJurisdictionType) throw new Error(`call for applications ${id} without target`);
-
     return CallForApplications.from({
       ...call,
       deadline: DateOnly.fromOptionalUtcDate(call.deadline),
       publishedOn: DateOnly.fromOptionalUtcDate(call.publishedOn),
-      targetJurisdictionType,
     });
   }
 
@@ -110,7 +104,6 @@ function columnsOf(metadata: CallForApplicationsCreated['metadata']) {
     comment: metadata.comment,
     deadline: metadata.deadline?.toDate() ?? null,
     publishedOn: metadata.publishedOn?.toDate() ?? null,
-    targetJurisdictionType: metadata.targetJurisdictionType,
     type: metadata.type,
   };
 }

@@ -40,7 +40,6 @@ function metadataOf(body: CreateCallForApplicationsDto | UpdateCallForApplicatio
     comment: body.comment ?? null,
     deadline: dateOf(body.deadline),
     publishedOn: dateOf(body.publishedOn),
-    targetJurisdictionType: body.targetJurisdictionType,
     type: body.type,
   };
 }
@@ -95,7 +94,6 @@ export class CallsForApplicationsController {
       period: query.period,
       sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
       statuses: query.statuses ?? [],
-      targetJurisdictionTypes: query.targetJurisdictionTypes ?? [],
       years: query.years ?? [],
     });
   }

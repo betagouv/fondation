@@ -10,7 +10,6 @@ import {
   CallForApplications,
   type CallForApplicationsStatus,
   type CallForApplicationsType,
-  type TargetJurisdictionType,
 } from './domain/call-for-applications';
 import type { CallForApplicationsPeriod } from './domain/call-for-applications-period';
 import type { CallForApplicationsSortableColumn } from './domain/call-for-applications-sorting';
@@ -40,7 +39,6 @@ export class CallsForApplicationsService {
     comment: string | null;
     deadline: DateOnly | null;
     publishedOn: DateOnly | null;
-    targetJurisdictionType: TargetJurisdictionType;
     type: CallForApplicationsType;
   }): Promise<CreatedCallForApplicationsDto> {
     const call = CallForApplications.create({
@@ -72,7 +70,6 @@ export class CallsForApplicationsService {
     period: CallForApplicationsPeriod;
     sorting: Sortable<CallForApplicationsSortableColumn>;
     statuses: readonly CallForApplicationsStatus[];
-    targetJurisdictionTypes: readonly TargetJurisdictionType[];
     years: readonly number[];
   }): Promise<ListedCallsForApplicationsDto> {
     return this.listCallsForApplicationsQuery.handle(query);
@@ -85,7 +82,6 @@ export class CallsForApplicationsService {
     deadline: DateOnly | null;
     id: string;
     publishedOn: DateOnly | null;
-    targetJurisdictionType: TargetJurisdictionType;
     type: CallForApplicationsType;
   }): Promise<void> {
     const { id, ...update } = command;

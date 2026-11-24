@@ -15,11 +15,7 @@ import { CallForApplicationsModal } from './CallForApplicationsModal';
 const FORM: FoundCallForApplicationsFormDto = {
   commentMaxLength: 50_000,
   dateRange: { max: '2100-12-31', min: '2000-01-01' },
-  targetJurisdictionTypes: [
-    { id: 'COURT_OF_APPEAL', label: 'CA' },
-    { id: 'JUDICIAL_COURT', label: 'TJ' },
-  ],
-  types: [{ id: 'GENERAL', label: 'Général' }],
+  types: [{ id: 'GENERAL', label: 'Général', scope: 'Vise tous les postes de CA et de TJ' }],
 };
 
 /** what the client of the API throws on a 400 naming what to fix */
@@ -58,14 +54,15 @@ describe('CallForApplicationsModal', () => {
   });
   afterEach(() => vi.restoreAllMocks());
 
-  it('creates a general call once its target is picked, without the dates left empty', async () => {
+  it('creates a call of the only type, telling what it targets, without the dates left empty', async () => {
     const create = vi
       .spyOn($api.callsForApplications, 'createCallForApplications')
       .mockResolvedValue({ data: { id: 'call-1' } } as never);
     const { onClose } = renderModal();
     const user = userEvent.setup();
 
-    await user.selectOptions(await screen.findByRole('combobox', { name: /Juridiction cible/ }), 'TJ');
+    await screen.findByRole('textbox', { name: 'Commentaire' });
+    expect(screen.getByText('Vise tous les postes de CA et de TJ')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: "Créer l'appel à candidatures" }));
 
     expect(create).toHaveBeenCalledWith(
@@ -74,7 +71,6 @@ describe('CallForApplicationsModal', () => {
           comment: null,
           deadline: null,
           publishedOn: null,
-          targetJurisdictionType: 'JUDICIAL_COURT',
           type: 'GENERAL',
         },
       }),
@@ -87,7 +83,7 @@ describe('CallForApplicationsModal', () => {
     const { onClose } = renderModal();
     const user = userEvent.setup();
 
-    await user.selectOptions(await screen.findByRole('combobox', { name: /Juridiction cible/ }), 'CA');
+    await screen.findByRole('textbox', { name: 'Commentaire' });
     await user.click(screen.getByRole('button', { name: "Créer l'appel à candidatures" }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent('La création a échoué, réessayez');
@@ -101,7 +97,7 @@ describe('CallForApplicationsModal', () => {
     const { onClose } = renderModal();
     const user = userEvent.setup();
 
-    await user.selectOptions(await screen.findByRole('combobox', { name: /Juridiction cible/ }), 'CA');
+    await screen.findByRole('textbox', { name: 'Commentaire' });
     await user.click(screen.getByRole('button', { name: "Créer l'appel à candidatures" }));
 
     expect(
@@ -124,21 +120,19 @@ describe('CallForApplicationsModal', () => {
       id: 'call-1',
       publishedOn: { day: 1, month: 12, year: 2026 },
       status: { id: 'UNPUBLISHED', label: 'Non publié' },
-      targetJurisdictionType: { id: 'JUDICIAL_COURT', label: 'TJ' },
       type: { id: 'GENERAL', label: 'Général' },
     });
     const user = userEvent.setup();
 
-    await user.selectOptions(await screen.findByRole('combobox', { name: /Juridiction cible/ }), 'CA');
+    await user.type(await screen.findByRole('textbox', { name: 'Commentaire' }), ' et créés');
     await user.click(screen.getByRole('button', { name: 'Enregistrer les modifications' }));
 
     expect(update).toHaveBeenCalledWith(
       expect.objectContaining({
         body: {
-          comment: 'Postes vacants',
+          comment: 'Postes vacants et créés',
           deadline: '2027-01-15',
           publishedOn: '2026-12-01',
-          targetJurisdictionType: 'COURT_OF_APPEAL',
           type: 'GENERAL',
         },
         path: { callId: 'call-1' },
@@ -157,15 +151,14 @@ describe('CallForApplicationsModal', () => {
       id: 'call-1',
       publishedOn: null,
       status: { id: 'UNPUBLISHED', label: 'Non publié' },
-      targetJurisdictionType: { id: 'JUDICIAL_COURT', label: 'TJ' },
       type: { id: 'GENERAL', label: 'Général' },
     });
     const user = userEvent.setup();
-    const target = await screen.findByRole('combobox', { name: /Juridiction cible/ });
+    const comment = await screen.findByRole('textbox', { name: 'Commentaire' });
     const save = screen.getByRole('button', { name: 'Enregistrer les modifications' });
 
     expect(save).toBeDisabled();
-    await user.selectOptions(target, 'CA');
+    await user.type(comment, 'Postes vacants');
     expect(save).toBeEnabled();
   });
 });

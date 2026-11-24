@@ -24,7 +24,6 @@ function listed(): never {
       currentPageIndex: 1,
       items: [],
       statuses: [],
-      targetJurisdictionTypes: [],
       totalCount: 0,
       years: [2026, 2025],
     } satisfies ListedCallsForApplicationsDto,
@@ -57,7 +56,6 @@ describe('CallsForApplicationsTable', () => {
           query: expect.objectContaining({
             period: 'PAST',
             statuses: [],
-            targetJurisdictionTypes: [],
             years: [String(new Date().getFullYear())],
           }),
         }),

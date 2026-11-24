@@ -20,7 +20,6 @@ const CALL: CallForApplications = {
   id: 'call-1',
   publishedOn: null,
   status: { id: 'UNPUBLISHED', label: 'Non publié' },
-  targetJurisdictionType: { id: 'JUDICIAL_COURT', label: 'TJ' },
   type: { id: 'GENERAL', label: 'Général' },
 };
 

@@ -12,7 +12,6 @@ import {
   type CallForApplicationsStatus,
   type CallsForApplicationsPeriod,
   type CallsForApplicationsSorting,
-  type TargetJurisdictionType,
   useCallsForApplicationsQuery,
 } from '@queries/calls-for-applications.queries';
 
@@ -22,13 +21,9 @@ const h = createColumnHelper<CallForApplications>();
 
 type FilterValues = { id: string; label: string }[];
 
-function useCallsForApplicationsColumns(props: {
-  statuses: FilterValues;
-  targetJurisdictionTypes: FilterValues;
-  years: FilterValues;
-}) {
+function useCallsForApplicationsColumns(props: { statuses: FilterValues; years: FilterValues }) {
   const { formatDate, formatMessage } = useIntl();
-  const { statuses, targetJurisdictionTypes, years } = props;
+  const { statuses, years } = props;
 
   return useMemo(
     () => [
@@ -44,19 +39,6 @@ function useCallsForApplicationsColumns(props: {
             label: formatMessage({ defaultMessage: 'Année' }),
             type: 'enum',
             values: years,
-          },
-        },
-      }),
-      h.accessor('targetJurisdictionType', {
-        cell: ({ getValue }) => getValue()?.label ?? '-',
-        header: formatMessage({ defaultMessage: 'Juridiction cible' }),
-        id: 'targetJurisdictionType',
-        meta: {
-          filters: {
-            filterId: 'targetJurisdictionTypes',
-            label: formatMessage({ defaultMessage: 'Juridiction cible' }),
-            type: 'enum',
-            values: targetJurisdictionTypes,
           },
         },
       }),
@@ -131,7 +113,7 @@ function useCallsForApplicationsColumns(props: {
         size: 140,
       }),
     ],
-    [formatDate, formatMessage, statuses, targetJurisdictionTypes, years],
+    [formatDate, formatMessage, statuses, years],
   );
 }
 
@@ -141,15 +123,10 @@ const SORTABLE_COLUMNS = new Set<string>([
   'deadline',
   'publishedOn',
   'status',
-  'targetJurisdictionType',
 ] satisfies NonNullable<CallsForApplicationsSorting[number]>['id'][]);
 /** the order of the spec, which the API keeps without a column picked */
 const DEFAULT_SORTING: CallsForApplicationsSorting = [];
 const KNOWN_STATUSES: Record<CallForApplicationsStatus, true> = { PUBLISHED: true, UNPUBLISHED: true };
-const KNOWN_TARGET_JURISDICTION_TYPES: Record<TargetJurisdictionType, true> = {
-  COURT_OF_APPEAL: true,
-  JUDICIAL_COURT: true,
-};
 const NO_VALUES: FilterValues = [];
 
 export function CallsForApplicationsTable(props: {
@@ -161,11 +138,7 @@ export function CallsForApplicationsTable(props: {
   const [defaultFilters] = useState(() => [{ id: 'years', value: [String(new Date().getFullYear())] }]);
   const { onColumnFiltersChange, onSortingChange, tableState } = useDataTableUrlState({
     // the spec opens on the current year. Once every year is unchecked, the link keeps an empty filter: every year
-    columnFilters: defaultFilters as (
-      | { id: 'statuses'; value: unknown }
-      | { id: 'targetJurisdictionTypes'; value: unknown }
-      | { id: 'years'; value: unknown }
-    )[],
+    columnFilters: defaultFilters as ({ id: 'statuses'; value: unknown } | { id: 'years'; value: unknown })[],
     sorting: DEFAULT_SORTING,
   });
   // a saved link can carry a sort the API does not accept
@@ -187,10 +160,6 @@ export function CallsForApplicationsTable(props: {
     period: props.period,
     sorting,
     statuses: knownValues(filterOf('statuses'), KNOWN_STATUSES),
-    targetJurisdictionTypes: knownValues(
-      filterOf('targetJurisdictionTypes'),
-      KNOWN_TARGET_JURISDICTION_TYPES,
-    ),
     years: checkedYears,
   });
   const fetchMore = useCallback(() => {
@@ -208,7 +177,6 @@ export function CallsForApplicationsTable(props: {
   const table = useReactTable({
     columns: useCallsForApplicationsColumns({
       statuses: data?.statuses ?? NO_VALUES,
-      targetJurisdictionTypes: data?.targetJurisdictionTypes ?? NO_VALUES,
       years,
     }),
     data: useMemo(() => data?.items ?? [], [data]),

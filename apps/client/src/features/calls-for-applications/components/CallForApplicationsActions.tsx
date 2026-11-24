@@ -29,10 +29,9 @@ export function CallForApplicationsActions(props: { call: CallForApplications })
       content: (
         <p className="fr-mb-0">
           <FormattedMessage
-            defaultMessage="L'appel à candidatures ({type}, {target}) créé le {createdOn} sera définitivement supprimé."
+            defaultMessage="L'appel à candidatures ({type}) créé le {createdOn} sera définitivement supprimé."
             values={{
               createdOn: formatDateOnly(props.call.createdOn),
-              target: props.call.targetJurisdictionType?.label,
               type: props.call.type.label,
             }}
           />

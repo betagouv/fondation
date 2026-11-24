@@ -14,7 +14,6 @@ function callOf(props: {
     id: props.id,
     publishedOn: null,
     status: props.status ?? 'UNPUBLISHED',
-    targetJurisdictionType: 'JUDICIAL_COURT',
   } as const;
 }
 

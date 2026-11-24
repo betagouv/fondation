@@ -3345,7 +3345,6 @@ export type CreateCallForApplicationsDto = {
     comment?: string | null;
     deadline?: string | null;
     publishedOn?: string | null;
-    targetJurisdictionType: 'COURT_OF_APPEAL' | 'JUDICIAL_COURT';
     type: 'GENERAL';
 };
 
@@ -3359,13 +3358,10 @@ export type FoundCallForApplicationsFormDto = {
         max: string;
         min: string;
     };
-    targetJurisdictionTypes: Array<{
-        id: 'COURT_OF_APPEAL' | 'JUDICIAL_COURT';
-        label: string;
-    }>;
     types: Array<{
         id: 'GENERAL';
         label: string;
+        scope: string;
     }>;
 };
 
@@ -3391,7 +3387,7 @@ export type ListedCallsForApplicationsDto = {
                 name: string;
             } | null;
             fields: Array<{
-                id: 'TYPE' | 'TARGET_JURISDICTION_TYPE' | 'PUBLISHED_ON' | 'DEADLINE' | 'COMMENT';
+                id: 'TYPE' | 'PUBLISHED_ON' | 'DEADLINE' | 'COMMENT';
                 label: string;
             }>;
         }>;
@@ -3405,10 +3401,6 @@ export type ListedCallsForApplicationsDto = {
             id: 'UNPUBLISHED' | 'PUBLISHED';
             label: string;
         };
-        targetJurisdictionType: {
-            id: 'COURT_OF_APPEAL' | 'JUDICIAL_COURT';
-            label: string;
-        } | null;
         type: {
             id: 'GENERAL';
             label: string;
@@ -3426,10 +3418,6 @@ export type ListedCallsForApplicationsDto = {
         id: 'UNPUBLISHED' | 'PUBLISHED';
         label: string;
     }>;
-    targetJurisdictionTypes: Array<{
-        id: 'COURT_OF_APPEAL' | 'JUDICIAL_COURT';
-        label: string;
-    }>;
     years: Array<number>;
 };
 
@@ -3437,7 +3425,6 @@ export type UpdateCallForApplicationsDto = {
     comment?: string | null;
     deadline?: string | null;
     publishedOn?: string | null;
-    targetJurisdictionType: 'COURT_OF_APPEAL' | 'JUDICIAL_COURT';
     type: 'GENERAL';
 };
 
@@ -7032,9 +7019,8 @@ export type ListCallsForApplicationsData = {
     path?: never;
     query: {
         period: 'ONGOING' | 'PAST';
-        sortBy?: 'createdOn' | 'deadline' | 'publishedOn' | 'status' | 'targetJurisdictionType';
+        sortBy?: 'createdOn' | 'deadline' | 'publishedOn' | 'status';
         statuses?: Array<'UNPUBLISHED' | 'PUBLISHED'>;
-        targetJurisdictionTypes?: Array<'COURT_OF_APPEAL' | 'JUDICIAL_COURT'>;
         years?: Array<string>;
         /**
          * 'true' sorts from the highest value

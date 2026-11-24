@@ -4,17 +4,14 @@ import { makeId } from '../../../utils/id';
 export const CALL_FOR_APPLICATIONS_TYPES = ['GENERAL'] as const;
 export type CallForApplicationsType = (typeof CALL_FOR_APPLICATIONS_TYPES)[number];
 
-export const TARGET_JURISDICTION_TYPES = ['COURT_OF_APPEAL', 'JUDICIAL_COURT'] as const;
-export type TargetJurisdictionType = (typeof TARGET_JURISDICTION_TYPES)[number];
-
 export const CALL_FOR_APPLICATIONS_STATUSES = ['UNPUBLISHED', 'PUBLISHED'] as const;
 export type CallForApplicationsStatus = (typeof CALL_FOR_APPLICATIONS_STATUSES)[number];
 
 const TYPE_LABELS: Record<CallForApplicationsType, string> = { GENERAL: 'Général' };
 
-const TARGET_JURISDICTION_TYPE_LABELS: Record<TargetJurisdictionType, string> = {
-  COURT_OF_APPEAL: 'CA',
-  JUDICIAL_COURT: 'TJ',
+/** what each type of call targets: a general call always targets every position of the CA and the TJ */
+const TYPE_SCOPES: Record<CallForApplicationsType, string> = {
+  GENERAL: 'Vise tous les postes de CA et de TJ',
 };
 
 const STATUS_LABELS: Record<CallForApplicationsStatus, string> = {
@@ -26,13 +23,7 @@ export const CALL_FOR_APPLICATIONS_ACTIONS = ['CREATED', 'UPDATED', 'DELETED'] a
 export type CallForApplicationsAction = (typeof CALL_FOR_APPLICATIONS_ACTIONS)[number];
 
 /** in the order of the form: the history lists them so */
-export const CALL_FOR_APPLICATIONS_FIELDS = [
-  'TYPE',
-  'TARGET_JURISDICTION_TYPE',
-  'PUBLISHED_ON',
-  'DEADLINE',
-  'COMMENT',
-] as const;
+export const CALL_FOR_APPLICATIONS_FIELDS = ['TYPE', 'PUBLISHED_ON', 'DEADLINE', 'COMMENT'] as const;
 export type CallForApplicationsField = (typeof CALL_FOR_APPLICATIONS_FIELDS)[number];
 
 /** with their article: the history reads "a modifié la date limite et le commentaire" */
@@ -40,7 +31,6 @@ const FIELD_LABELS: Record<CallForApplicationsField, string> = {
   COMMENT: 'le commentaire',
   DEADLINE: 'la date limite',
   PUBLISHED_ON: 'la date de publication',
-  TARGET_JURISDICTION_TYPE: 'la juridiction cible',
   TYPE: "le type d'appel",
 };
 
@@ -52,8 +42,8 @@ export function callForApplicationsTypeOf(id: CallForApplicationsType) {
   return { id, label: TYPE_LABELS[id] };
 }
 
-export function targetJurisdictionTypeOf(id: TargetJurisdictionType) {
-  return { id, label: TARGET_JURISDICTION_TYPE_LABELS[id] };
+export function callForApplicationsTypeScopeOf(id: CallForApplicationsType) {
+  return { ...callForApplicationsTypeOf(id), scope: TYPE_SCOPES[id] };
 }
 
 export function callForApplicationsStatusOf(id: CallForApplicationsStatus) {
@@ -67,7 +57,6 @@ type Metadata = {
   comment: string | null;
   deadline: DateOnly | null;
   publishedOn: DateOnly | null;
-  targetJurisdictionType: TargetJurisdictionType;
   type: CallForApplicationsType;
 };
 
@@ -94,7 +83,6 @@ function changedFields(before: Metadata, after: Metadata): CallForApplicationsFi
     COMMENT: before.comment !== after.comment,
     DEADLINE: !isSameDate(before.deadline, after.deadline),
     PUBLISHED_ON: !isSameDate(before.publishedOn, after.publishedOn),
-    TARGET_JURISDICTION_TYPE: before.targetJurisdictionType !== after.targetJurisdictionType,
     TYPE: before.type !== after.type,
   };
   return CALL_FOR_APPLICATIONS_FIELDS.filter((field) => changed[field]);

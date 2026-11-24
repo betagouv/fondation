@@ -3,7 +3,7 @@ ALTER TYPE "nominations_context"."call_for_applications_action_enum" ADD VALUE '
 ALTER TYPE "nominations_context"."call_for_applications_action_enum" ADD VALUE 'UPDATED';
 
 -- CreateEnum
-CREATE TYPE "nominations_context"."call_for_applications_field_enum" AS ENUM ('COMMENT', 'DEADLINE', 'PUBLISHED_ON', 'TARGET_JURISDICTION_TYPE', 'TYPE');
+CREATE TYPE "nominations_context"."call_for_applications_field_enum" AS ENUM ('COMMENT', 'DEADLINE', 'PUBLISHED_ON', 'TYPE');
 
 -- CreateTable
 CREATE TABLE "nominations_context"."call_for_applications_changed_field" (

@@ -55,7 +55,6 @@ const CALLS: Record<'ONGOING' | 'PAST', ListedCall[]> = {
       createdBy: { id: 'user-2', name: 'Hélène GARNIER' },
       publishedOn: null,
       status: { id: 'UNPUBLISHED', label: 'Non publié' },
-      targetJurisdictionType: { id: 'COURT_OF_APPEAL', label: 'CA' },
       type: { id: 'GENERAL', label: 'Général' },
     }),
     updated(
@@ -68,7 +67,6 @@ const CALLS: Record<'ONGOING' | 'PAST', ListedCall[]> = {
         createdBy: { id: 'user-2', name: 'Hélène GARNIER' },
         publishedOn: { day: 1, month: 12, year: 2026 },
         status: { id: 'UNPUBLISHED', label: 'Non publié' },
-        targetJurisdictionType: { id: 'JUDICIAL_COURT', label: 'TJ' },
         type: { id: 'GENERAL', label: 'Général' },
       }),
       [
@@ -87,7 +85,6 @@ const CALLS: Record<'ONGOING' | 'PAST', ListedCall[]> = {
       createdBy: null,
       publishedOn: { day: 15, month: 10, year: 2026 },
       status: { id: 'PUBLISHED', label: 'Publié' },
-      targetJurisdictionType: { id: 'JUDICIAL_COURT', label: 'TJ' },
       type: { id: 'GENERAL', label: 'Général' },
     }),
   ],
@@ -96,11 +93,7 @@ const CALLS: Record<'ONGOING' | 'PAST', ListedCall[]> = {
 const FORM: FoundCallForApplicationsFormDto = {
   commentMaxLength: 50_000,
   dateRange: { max: '2100-12-31', min: '2000-01-01' },
-  targetJurisdictionTypes: [
-    { id: 'COURT_OF_APPEAL', label: 'CA' },
-    { id: 'JUDICIAL_COURT', label: 'TJ' },
-  ],
-  types: [{ id: 'GENERAL', label: 'Général' }],
+  types: [{ id: 'GENERAL', label: 'Général', scope: 'Vise tous les postes de CA et de TJ' }],
 };
 
 function CallsForApplicationsPageStory(props: {
@@ -180,7 +173,6 @@ const meta = {
             { id: 'UNPUBLISHED', label: 'Non publié' },
             { id: 'PUBLISHED', label: 'Publié' },
           ],
-          targetJurisdictionTypes: FORM.targetJurisdictionTypes,
           totalCount: args.nextPageFails ? items.length + 1 : items.length,
           years: [2026, 2025],
         });

@@ -22,14 +22,13 @@ type Draft = Partial<CreateCallForApplicationsDto>;
 type DateField = 'deadline' | 'publishedOn';
 
 function completeOf(draft: Draft): CreateCallForApplicationsDto | null {
-  const { targetJurisdictionType, type } = draft;
-  if (!targetJurisdictionType || !type) return null;
+  const { type } = draft;
+  if (!type) return null;
 
   return {
     comment: draft.comment?.trim() || null,
     deadline: draft.deadline || null,
     publishedOn: draft.publishedOn || null,
-    targetJurisdictionType,
     type,
   };
 }
@@ -41,6 +40,7 @@ function CallForApplicationsFields(props: {
 }) {
   const { formatMessage } = useIntl();
   const { draft, form, onChange } = props;
+  const scope = form.types.find(({ id }) => id === draft.type)?.scope;
   const dateInput = (field: DateField) => ({
     max: form.dateRange.max,
     min: form.dateRange.min,
@@ -52,56 +52,32 @@ function CallForApplicationsFields(props: {
   return (
     <>
       <div className="grid gap-x-6 gap-y-8 md:grid-cols-2">
-        <Select
-          className="fr-mb-0"
-          label={
-            <RequiredLabel>
-              <FormattedMessage defaultMessage="Type d'appel" />
-            </RequiredLabel>
-          }
-          nativeSelectProps={{
-            onChange: (event) =>
-              onChange({ type: form.types.find(({ id }) => id === event.target.value)?.id }),
-            required: true,
-            value: draft.type ?? '',
-          }}
-        >
-          <option disabled hidden value="">
-            {formatMessage({ defaultMessage: 'Sélectionner' })}
-          </option>
-          {form.types.map(({ id, label }) => (
-            <option key={id} value={id}>
-              {label}
+        <div>
+          <Select
+            className="fr-mb-0"
+            label={
+              <RequiredLabel>
+                <FormattedMessage defaultMessage="Type d'appel" />
+              </RequiredLabel>
+            }
+            nativeSelectProps={{
+              onChange: (event) =>
+                onChange({ type: form.types.find(({ id }) => id === event.target.value)?.id }),
+              required: true,
+              value: draft.type ?? '',
+            }}
+          >
+            <option disabled hidden value="">
+              {formatMessage({ defaultMessage: 'Sélectionner' })}
             </option>
-          ))}
-        </Select>
-        <Select
-          className="fr-mb-0"
-          label={
-            <RequiredLabel>
-              <FormattedMessage defaultMessage="Juridiction cible" />
-            </RequiredLabel>
-          }
-          nativeSelectProps={{
-            onChange: (event) =>
-              onChange({
-                targetJurisdictionType: form.targetJurisdictionTypes.find(
-                  ({ id }) => id === event.target.value,
-                )?.id,
-              }),
-            required: true,
-            value: draft.targetJurisdictionType ?? '',
-          }}
-        >
-          <option disabled hidden value="">
-            {formatMessage({ defaultMessage: 'Sélectionner' })}
-          </option>
-          {form.targetJurisdictionTypes.map(({ id, label }) => (
-            <option key={id} value={id}>
-              {label}
-            </option>
-          ))}
-        </Select>
+            {form.types.map(({ id, label }) => (
+              <option key={id} value={id}>
+                {label}
+              </option>
+            ))}
+          </Select>
+          {scope && <p className="fr-hint-text fr-mt-2v fr-mb-0">{scope}</p>}
+        </div>
       </div>
       <fieldset className="fr-m-0 fr-p-0 border-0">
         <legend className="fr-mb-2v mx-0 px-0 pb-0 font-semibold text-(--text-label-grey)">
@@ -140,7 +116,6 @@ function draftOf(call: CallForApplications): Draft {
     comment: call.comment ?? '',
     deadline: dateOnlyToIso(call.deadline) ?? '',
     publishedOn: dateOnlyToIso(call.publishedOn) ?? '',
-    targetJurisdictionType: call.targetJurisdictionType?.id,
     type: call.type.id,
   };
 }

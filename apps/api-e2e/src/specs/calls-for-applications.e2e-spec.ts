@@ -19,7 +19,6 @@ test.describe('Calls for applications E2E', () => {
         comment: 'Postes de présidents',
         deadline: '2100-01-15',
         publishedOn: '2099-12-01',
-        targetJurisdictionType: 'JUDICIAL_COURT',
         type: 'GENERAL',
       },
       throwOnError: true,
@@ -45,7 +44,6 @@ test.describe('Calls for applications E2E', () => {
       id: created.id,
       publishedOn: { day: 1, month: 12, year: 2099 },
       status: { id: 'UNPUBLISHED', label: 'Non publié' },
-      targetJurisdictionType: { id: 'JUDICIAL_COURT', label: 'TJ' },
       type: { id: 'GENERAL', label: 'Général' },
     });
   });
@@ -58,7 +56,6 @@ test.describe('Calls for applications E2E', () => {
       body: {
         deadline: '2001-02-10',
         publishedOn: '2001-01-10',
-        targetJurisdictionType: 'COURT_OF_APPEAL',
         type: 'GENERAL',
       },
       throwOnError: true,
@@ -76,7 +73,6 @@ test.describe('Calls for applications E2E', () => {
     const form = {
       deadline: '2098-02-01',
       publishedOn: '2098-01-10',
-      targetJurisdictionType: 'JUDICIAL_COURT',
       type: 'GENERAL',
     } as const;
     const { data: created } = await agent.callsForApplications.createCallForApplications({
@@ -104,7 +100,7 @@ test.describe('Calls for applications E2E', () => {
 
   test('should take a deleted call for applications out of the list', async ({ agent, expect }) => {
     const { data: created } = await agent.callsForApplications.createCallForApplications({
-      body: { publishedOn: '2097-03-01', targetJurisdictionType: 'COURT_OF_APPEAL', type: 'GENERAL' },
+      body: { publishedOn: '2097-03-01', type: 'GENERAL' },
       throwOnError: true,
     });
 
