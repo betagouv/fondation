@@ -135,6 +135,15 @@ describe('OfficialReportForm', () => {
     expect(agenda).toHaveAccessibleName(/Choisi depuis le tableau de la documentation/);
   });
 
+  it('should not flag the fields the chosen agenda leaves empty', async () => {
+    mocks.agendas = { data: agendaList(null), isFetchedAfterMount: true };
+    render(<OfficialReportFormTree />);
+
+    await waitFor(() => expect(screen.getByLabelText(/Date de la séance/)).toHaveValue('2026-03-12'));
+    expect(screen.queryAllByText(/Format incorrect/)).toHaveLength(0);
+    expect(screen.queryByText('Veuillez sélectionner un secrétaire')).not.toBeInTheDocument();
+  });
+
   it('should not claim a choice while the agenda list is still the cached one', () => {
     mocks.agendas = { data: agendaList(null), isFetchedAfterMount: false };
     render(<OfficialReportFormTree />);

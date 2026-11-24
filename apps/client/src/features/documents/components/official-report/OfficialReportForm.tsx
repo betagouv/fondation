@@ -149,34 +149,28 @@ export function OfficialReportForm() {
       name: 'agendaId',
       formState: { values: true, dirtyFields: true },
       callback: (state) => {
+        // setValues below notifies without a name, which reaches this subscription too
+        if (state.name !== 'agendaId') return;
+
         const agenda = (agendas?.items ?? []).find((agenda) => agenda.id === state.values.agendaId);
         if (!agenda) return;
 
+        const plan = agenda.presentationPlan;
+        const startTime = plan?.startTime ? formTimeOnlyCodec.encode(plan.startTime) : '';
+        const endTime = plan?.endTime ? formTimeOnlyCodec.encode(plan.endTime) : '';
+
+        // only the fields the agenda fills: validating the others flags them before the user gets to them
         setValues(
-          (form) => ({
-            ...form,
-            chairmanId: agenda.chairman.id ? agenda.chairman.id : form.chairmanId,
-            secretaryId: agenda.presentationPlan?.secretaryId
-              ? agenda.presentationPlan.secretaryId
-              : form.secretaryId,
-            justiceContactId: agenda.presentationPlan?.justiceContactId
-              ? agenda.presentationPlan.justiceContactId
-              : form.justiceContactId,
-            sessionMeetingDate: dateOnlyToIso(agenda.presentationPlan?.date ?? agenda.sessionMeetingDate),
-            sessionMeetingStartingTime: agenda.presentationPlan?.startTime
-              ? formTimeOnlyCodec.encode(agenda.presentationPlan.startTime) || form.sessionMeetingStartingTime
-              : form.sessionMeetingStartingTime,
-            sessionMeetingEndingTime: agenda.presentationPlan?.endTime
-              ? formTimeOnlyCodec.encode(agenda.presentationPlan.endTime) || form.sessionMeetingEndingTime
-              : form.sessionMeetingEndingTime,
-            memberIds: agenda.presentationPlan?.absentMembers
-              ? [...agenda.presentationPlan.absentMembers]
-              : form.memberIds,
-            hasRenunciation:
-              agenda.presentationPlan && !agenda.presentationPlan.hasRenunciation
-                ? agenda.presentationPlan.hasRenunciation
-                : form.hasRenunciation,
-          }),
+          {
+            ...(agenda.chairman.id ? { chairmanId: agenda.chairman.id } : {}),
+            ...(plan && !plan.hasRenunciation ? { hasRenunciation: false } : {}),
+            ...(plan?.justiceContactId ? { justiceContactId: plan.justiceContactId } : {}),
+            ...(plan?.absentMembers ? { memberIds: [...plan.absentMembers] } : {}),
+            ...(plan?.secretaryId ? { secretaryId: plan.secretaryId } : {}),
+            sessionMeetingDate: dateOnlyToIso(plan?.date ?? agenda.sessionMeetingDate),
+            ...(endTime ? { sessionMeetingEndingTime: endTime } : {}),
+            ...(startTime ? { sessionMeetingStartingTime: startTime } : {}),
+          },
           { shouldDirty: true, shouldTouch: true, shouldValidate: true },
         );
       },
