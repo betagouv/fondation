@@ -10,6 +10,13 @@ export const dateOnlyJsonSchema = z.object({
 
 export type DateOnlyJson = z.infer<typeof dateOnlyJsonSchema>;
 
+/** a date typed out of these is a slip: a date field reads "05/01/02" as the year 2 */
+export const TYPED_DATE_RANGE = { max: '2100-12-31', min: '2000-01-01' };
+
+export const typedDateSchema = z.iso
+  .date()
+  .refine((date) => date >= TYPED_DATE_RANGE.min && date <= TYPED_DATE_RANGE.max);
+
 const parisCalendar = new Intl.DateTimeFormat('fr', {
   day: '2-digit',
   month: '2-digit',

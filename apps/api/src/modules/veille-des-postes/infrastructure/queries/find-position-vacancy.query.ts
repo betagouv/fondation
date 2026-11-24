@@ -4,7 +4,7 @@ import { createZodDto } from 'nestjs-zod';
 import z from 'zod';
 
 import { Prisma } from '../../../../generated/prisma/client';
-import { DateOnly, dateOnlyJsonSchema } from '../../../../utils/date-only';
+import { DateOnly, dateOnlyJsonSchema, TYPED_DATE_RANGE } from '../../../../utils/date-only';
 import { writerOf, writerSchema } from '../../../../utils/user.util';
 import { Db } from '../../../framework/database';
 import { alertRulesOf, alertsOf } from '../../domain/position-alert';
@@ -12,7 +12,6 @@ import { positionStatusOf } from '../../domain/position-status';
 import {
   REASON_DETAIL_MAX_LENGTH,
   VACANCY_REASONS,
-  VACANCY_START_DATE_RANGE,
   vacancyReasonOf,
   vacancyReasons,
 } from '../../domain/position-vacancy';
@@ -73,7 +72,7 @@ export class FindPositionVacancyQuery {
       alerts: alerts.map(alertJson),
       detailMaxLength: REASON_DETAIL_MAX_LENGTH,
       reasons: vacancyReasons(),
-      startDateRange: VACANCY_START_DATE_RANGE,
+      startDateRange: TYPED_DATE_RANGE,
       status: positionStatusOf(
         {
           alertCount: alerts.length,
