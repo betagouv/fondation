@@ -37,7 +37,8 @@ export function useSessionBreadcrumbRoot(
   space: SessionSpace,
 ): (session: { isArchived: boolean } | null | undefined) => BreadcrumbVM['segments'] {
   const { formatMessage } = useIntl();
-  const sgRoot = useBreadcrumbRoot();
+  // the secretariat's sessions live in the GDS, even on a common page such as the summary, opened in a new tab
+  const sgRoot = useBreadcrumbRoot('GDS');
   const memberRoot = useMemberBreadcrumbRoot();
   const root = space === 'SG' ? sgRoot : memberRoot;
 

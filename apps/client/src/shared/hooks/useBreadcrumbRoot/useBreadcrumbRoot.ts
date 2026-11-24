@@ -1,12 +1,14 @@
 import { useMemo } from 'react';
 import { useIntl } from 'react-intl';
 
-import { usePouvoirDeProposition } from '@/shared/hooks/usePouvoirDeProposition';
+import { type PouvoirDeProposition, usePouvoirDeProposition } from '@/shared/hooks/usePouvoirDeProposition';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 
-export function useBreadcrumbRoot(): { label: string; to: string }[] {
+/** `of` names the pouvoir of a page that belongs to one, whatever the tab was opened from */
+export function useBreadcrumbRoot(of?: PouvoirDeProposition): { label: string; to: string }[] {
   const { formatMessage } = useIntl();
-  const pouvoir = usePouvoirDeProposition();
+  const pagePouvoir = usePouvoirDeProposition();
+  const pouvoir = of ?? pagePouvoir;
 
   return useMemo(() => {
     if (pouvoir === 'CSM') {
