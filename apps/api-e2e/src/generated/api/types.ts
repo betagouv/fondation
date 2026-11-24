@@ -3844,7 +3844,7 @@ export type ListArchivedSessionsData = {
         formations?: Array<'SIEGE' | 'PARQUET'>;
         sortBy?: 'archivedAt' | 'date';
         /**
-         * true
+         * 'true' sorts from the highest value
          */
         sortDesc?: string | boolean;
         page?: number;
@@ -3899,7 +3899,7 @@ export type ListSessionsOfTypeGardeDesSceauxData = {
         formations?: Array<'SIEGE' | 'PARQUET'>;
         sortBy?: 'date' | 'dueDate';
         /**
-         * true
+         * 'true' sorts from the highest value
          */
         sortDesc?: string | boolean;
         page?: number;
@@ -4126,7 +4126,7 @@ export type ListSessionAuditionsData = {
         search?: string;
         sortBy?: 'auditionDate';
         /**
-         * true
+         * 'true' sorts from the highest value
          */
         sortDesc?: string | boolean;
         page?: number;
@@ -4168,7 +4168,7 @@ export type ListNominationFilesData = {
         search?: string;
         missingEvaluation?: string | boolean;
         /**
-         * true
+         * 'true' sorts from the highest value
          */
         sortDesc?: string | boolean;
         page?: number;
@@ -6047,7 +6047,7 @@ export type ListFollowedUpObservationsData = {
         sortBy?: 'dateReception';
         trackingStatuses?: string;
         /**
-         * true
+         * 'true' sorts from the highest value
          */
         sortDesc?: string | boolean;
         page?: number;
@@ -6288,7 +6288,7 @@ export type ListSessionObservationsData = {
         search?: string;
         sortBy?: 'dateReception';
         /**
-         * true
+         * 'true' sorts from the highest value
          */
         sortDesc?: string | boolean;
         page?: number;
@@ -6346,7 +6346,7 @@ export type ListCourtOfAppealFirstPresidentsData = {
         statuses?: Array<'OCCUPIED' | 'MAY_BECOME_VACANT' | 'VACANT'>;
         sortBy?: 'court' | 'installationDate' | 'name' | 'status';
         /**
-         * true
+         * 'true' sorts from the highest value
          */
         sortDesc?: string | boolean;
         page?: number;
@@ -6372,7 +6372,7 @@ export type ListCourtOfCassationHoldersData = {
         positions?: Array<'FIRST_PRESIDENT' | 'CHAMBER_PRESIDENT' | 'COUNSELLOR' | 'REFERENDARY_COUNSELLOR' | 'AUDITOR_SECOND_GRADE' | 'AUDITOR_FIRST_GRADE'>;
         sortBy?: 'installationDate' | 'name' | 'status';
         /**
-         * true
+         * 'true' sorts from the highest value
          */
         sortDesc?: string | boolean;
         page?: number;
@@ -6398,7 +6398,7 @@ export type ListJudicialCourtPresidentsData = {
         ressorts?: Array<string>;
         sortBy?: 'court' | 'installationDate' | 'name' | 'ressort' | 'status';
         /**
-         * true
+         * 'true' sorts from the highest value
          */
         sortDesc?: string | boolean;
         page?: number;
@@ -6611,7 +6611,7 @@ export type ListUsersData = {
         roles?: 'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN' | Array<'FIRST_SECRETARY' | 'SECRETARY' | 'OFFICER' | 'PRESIDENT_SIEGE' | 'DEPUTY_PRESIDENT_SIEGE' | 'PRESIDENT_PARQUET' | 'DEPUTY_PRESIDENT_PARQUET' | 'MEMBRE_PARQUET' | 'MEMBRE_SIEGE' | 'MEMBRE_COMMUN'>;
         statuses?: 'ACTIVE' | 'DEACTIVATED' | Array<'ACTIVE' | 'DEACTIVATED'>;
         /**
-         * true
+         * 'true' sorts from the highest value
          */
         sortDesc?: string | boolean;
         page?: number;
@@ -6981,7 +6981,7 @@ export type ListFeedbacksData = {
         sortBy?: 'sentAt' | 'status';
         statuses?: Array<'NEW' | 'ACKNOWLEDGED' | 'PROCESSED' | 'DISMISSED'>;
         /**
-         * true
+         * 'true' sorts from the highest value
          */
         sortDesc?: string | boolean;
         page?: number;
@@ -7034,7 +7034,7 @@ export type ListCallsForApplicationsData = {
         targetJurisdictionTypes?: Array<'COURT_OF_APPEAL' | 'JUDICIAL_COURT'>;
         years?: Array<string>;
         /**
-         * true
+         * 'true' sorts from the highest value
          */
         sortDesc?: string | boolean;
         page?: number;
