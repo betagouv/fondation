@@ -718,6 +718,30 @@ test.describe('Official report', () => {
     expect(block?.kind === 'file' && block.html).not.toContain('RENOMMÉ');
   });
 
+  test('should print a validated report under the names its chairman and present members bear today', async ({
+    admin,
+    agent,
+    docs,
+    expect,
+    member,
+    registerUser,
+  }) => {
+    const present = await registerUser('MEMBRE_DU_PARQUET');
+    const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
+    const { id: officialReportId } = await docs.officialReport(await docs.agenda(session), { status: 'VALIDATED' });
+
+    for (const [userId, lastName] of [
+      [docs.chairman.id, 'Présidente-Renommée'],
+      [present.id, 'Présent-Renommé'],
+    ] as const) {
+      await admin.administration.updateName({ body: { lastName }, path: { userId }, throwOnError: true });
+    }
+
+    const { data: html } = await agent.docs.generateOfficialReportHtml({ parseAs: 'text', path: { officialReportId } });
+    expect(html).toContain('PRÉSIDENTE-RENOMMÉE');
+    expect(html).toContain('PRÉSENT-RENOMMÉ');
+  });
+
   test('should name a magistrat first name first, as Lolfi names them today, in the draft opened on a validated report', async ({
     agent,
     docs,

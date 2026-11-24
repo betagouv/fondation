@@ -130,6 +130,7 @@ export class FindSessionDocsQuery {
           orderBy: { version: 'desc' },
           select: {
             author: { select: { firstName: true, id: true, lastName: true } },
+            chairman: { select: { firstName: true, lastName: true } },
             chairmanFirstName: true,
             chairmanLastName: true,
             createdAt: true,
@@ -241,7 +242,8 @@ export class FindSessionDocsQuery {
           date: DateOnly.fromUtcDate(file.sessionMeetingDate),
           type: 'OFFICIAL_REPORT',
           typeDeSaisine,
-          chairman: { firstName: file.chairmanFirstName, lastName: file.chairmanLastName },
+          // named as its PDF is, after the chairman's account
+          chairman: file.chairman ?? { firstName: file.chairmanFirstName, lastName: file.chairmanLastName },
         }),
       })),
     ];

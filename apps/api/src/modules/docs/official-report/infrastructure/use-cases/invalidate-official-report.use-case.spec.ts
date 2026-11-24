@@ -4,6 +4,7 @@ import { mock, type MockProxy } from 'vitest-mock-extended';
 
 import { OfficialReportNominationFileDelegate } from '../../../../../generated/prisma/models';
 import { transactionalTest } from '../../../../framework/database/transactional-test';
+import { Files } from '../../../../framework/files';
 import { DocsNominationFilesFinder } from '../../../shared/infrastructure/finders/docs-nomination-files.finder';
 import { OfficialReportVersionFinder } from '../finders/official-report-version.finder';
 import { OfficialReportRepository } from '../repositories/official-report.repository';
@@ -39,6 +40,7 @@ describe('InvalidateOfficialReportUseCase', () => {
     useCase = new InvalidateOfficialReportUseCase(
       db,
       mock<DocsNominationFilesFinder>(),
+      mock<Files>(),
       repository,
       mock<OfficialReportVersionFinder>(),
     );

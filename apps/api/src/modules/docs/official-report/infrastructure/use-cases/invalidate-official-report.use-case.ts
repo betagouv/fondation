@@ -5,6 +5,7 @@ import { lockOfficialReportsRawQuery } from '../../../../../generated/prisma/sql
 import { assertNever } from '../../../../../utils/assert-never';
 import { isDefined } from '../../../../../utils/is-defined';
 import { Db } from '../../../../framework/database';
+import { Files } from '../../../../framework/files';
 import { DocInvalidation } from '../../../shared/domain/doc-invalidation';
 import { nominationFileOutcomeToDocNominationFileOutcome } from '../../../shared/domain/doc-nomination-file-outcome';
 import { AGENDA_CONTENT_VERSIONS, agendaContentOf } from '../../../shared/infrastructure/agenda-content';
@@ -23,6 +24,7 @@ export class InvalidateOfficialReportUseCase {
   constructor(
     private readonly db: Db,
     private readonly docsNominationFilesFinder: DocsNominationFilesFinder,
+    private readonly files: Files,
     private readonly officialReportRepository: OfficialReportRepository,
     private readonly officialReportVersionFinder: OfficialReportVersionFinder,
   ) {}
@@ -51,6 +53,7 @@ export class InvalidateOfficialReportUseCase {
         return this.invalidate(await this.mapNominationFilesRecusalsUpdated({ invalidation }));
 
       case 'MemberRenamed':
+        await this.dropRenderedDocuments(invalidation.payload);
         return this.invalidate(await this.mapMemberRenamed({ invalidation }));
 
       // the report already answered when the draft was opened, and its own draft carries the answer
@@ -157,6 +160,39 @@ export class InvalidateOfficialReportUseCase {
           })),
       },
     }));
+  }
+
+  /**
+   * the document prints its chairman, secretary and present members under their name of today, a
+   * validated one too: what it stored under the former name is rendered again on the next read
+   */
+  private async dropRenderedDocuments(member: { userId: string }): Promise<void> {
+    const versions = await this.db.tx.officialReportVersion.findMany({
+      select: {
+        id: true,
+        pdf: { select: { id: true, path: true } },
+      } satisfies Prisma.OfficialReportVersionSelect,
+      where: {
+        AND: [
+          { OR: [{ html: { not: null } }, { pdfId: { not: null } }] },
+          {
+            OR: [
+              { chairmanId: member.userId },
+              { secretaryId: member.userId },
+              { members: { some: { memberId: member.userId } } },
+            ],
+          },
+        ],
+      },
+    });
+    if (versions.length === 0) return;
+
+    await this.db.tx.officialReportVersion.updateMany({
+      data: { html: null, pdfId: null },
+      where: { id: { in: versions.map(({ id }) => id) } },
+    });
+    const pdfs = versions.flatMap(({ pdf }) => (pdf ? [pdf] : []));
+    if (pdfs.length > 0) this.files.delete(pdfs);
   }
 
   /** a row whose name the migration could not tie to a member keeps a null id: a rename does not reach it */

@@ -208,9 +208,19 @@ export class OfficialReportRenderContextFinder {
       role: prismaRoleEnumToRoleEnum(rawSecretary.role),
     });
 
+    // like the chairman and the secretary, the present members are printed under their name of today
+    const accounts = await this.db.tx.user.findMany({
+      select: { firstName: true, id: true, lastName: true } satisfies Prisma.UserSelect,
+      where: { id: { in: report.members.map(({ memberId }) => memberId) } },
+    });
+    const names = new Map(accounts.map(({ id, ...name }) => [id, name]));
     const membersList = OfficialReportMembersList.from(
       report.members.map((member) =>
-        OfficialReportMember.recorded({ ...member, gender: prismaGenderEnumToGenderEnum(member.gender) }),
+        OfficialReportMember.recorded({
+          ...member,
+          ...names.get(member.memberId),
+          gender: prismaGenderEnumToGenderEnum(member.gender),
+        }),
       ),
     );
 

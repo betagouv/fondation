@@ -40,6 +40,7 @@ export class FindOfficialReportDocumentPdfQuery {
       where: { id: versionId },
       select: {
         sessionMeetingDate: true,
+        chairman: { select: { firstName: true, lastName: true } },
         chairmanFirstName: true,
         chairmanLastName: true,
         officialReport: {
@@ -75,7 +76,11 @@ export class FindOfficialReportDocumentPdfQuery {
       date: DateOnly.fromUtcDate(officialReport.sessionMeetingDate),
       sessionName: agenda.sessionName,
       typeDeSaisine: 'TRANSPARENCE_GDS',
-      chairman: { firstName: officialReport.chairmanFirstName, lastName: officialReport.chairmanLastName },
+      // named like the document, after the chairman's account; the copy only stands in for a deleted one
+      chairman: officialReport.chairman ?? {
+        firstName: officialReport.chairmanFirstName,
+        lastName: officialReport.chairmanLastName,
+      },
     });
     // the version belongs in the path: a shared one would have the validation delete the object it
     // has just written, since it renders the draft before dropping the version it replaces
