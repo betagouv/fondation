@@ -52,7 +52,7 @@ export function DropdownFilter({
   }, [isOpen]);
 
   const checkboxOptions = options.map((option) => ({
-    label: <span className="text-sm">{option.label}</span>,
+    label: option.label,
     nativeInputProps: {
       checked: selectedValues.includes(option.value),
       name: `checkboxes-${option.value}`,
