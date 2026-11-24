@@ -11,7 +11,9 @@ import {
   FIRST_COURT_OF_CASSATION_POSITION,
 } from '@/pages/veille-des-postes/court-of-cassation-position-paths';
 import {
+  LEGACY_GDS_MEMBERS_PATH,
   LEGACY_GDS_PATHS,
+  redirectFromGdsPath,
   redirectToGdsPath,
   redirectToMemberMagistratDetails,
   ROUTE_PATHS,
@@ -183,6 +185,7 @@ export const routes: RouteObject[] = [
             path: ROUTE_PATHS.SG.GDS.ROOT,
           },
           ...LEGACY_GDS_PATHS.map((path) => ({ loader: redirectToGdsPath, path })),
+          { loader: redirectFromGdsPath, path: LEGACY_GDS_MEMBERS_PATH },
           {
             children: [
               {
@@ -249,13 +252,6 @@ export const routes: RouteObject[] = [
                 Component: SelectionProcessPage,
               })),
             path: ROUTE_PATHS.SG.CSM.SELECTION_PROCESS,
-          },
-          {
-            lazy: () =>
-              import('@/pages/csm/CsmUpcomingPages').then(({ CsmMembersPage }) => ({
-                Component: CsmMembersPage,
-              })),
-            path: ROUTE_PATHS.SG.CSM.MEMBERS,
           },
           {
             children: [
@@ -366,14 +362,14 @@ export const routes: RouteObject[] = [
               import('@/pages/members/MemberListPage').then(({ MemberListPage }) => ({
                 Component: MemberListPage,
               })),
-            path: ROUTE_PATHS.SG.GDS.MANAGE_MEMBERS,
+            path: ROUTE_PATHS.SG.MANAGE_MEMBERS,
           },
           {
             lazy: () =>
               import('@/pages/members/DetailsMemberPage').then(({ DetailsMemberPage }) => ({
                 Component: DetailsMemberPage,
               })),
-            path: ROUTE_PATHS.SG.GDS.MANAGE_SINGLE_MEMBER,
+            path: ROUTE_PATHS.SG.MANAGE_SINGLE_MEMBER,
           },
           {
             children: [

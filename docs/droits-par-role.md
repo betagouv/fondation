@@ -70,7 +70,7 @@ Un Membre ne voit les auditions d'une session qu'une fois publiées.
 
 ### Espace Secrétariat général
 
-L'accueil propose les deux pouvoirs de proposition et le logo y ramène. Le menu garde partout Rechercher un magistrat. Le GDS y ajoute Gérer une session, Restitutions, Suivi des observations, Gérer les membres et Archives. Le CSM y ajoute Veille des postes et Appels à candidatures. L'Administrateur a en plus un sous-menu Administration et peut créer une session depuis une extraction Lodam.
+L'accueil propose les deux pouvoirs de proposition et le logo y ramène. Le menu garde partout Gérer les membres et Rechercher un magistrat. Le GDS y ajoute Gérer une session, Restitutions, Suivi des observations et Archives. Le CSM y ajoute Veille des postes et Appels à candidatures. L'Administrateur a en plus un sous-menu Administration et peut créer une session depuis une extraction Lodam.
 
 | URL                                                                                                  | Vue                                                                | Membre | Secrétariat général | Administrateur |
 | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ------ | ------------------- | -------------- |
@@ -82,7 +82,6 @@ L'accueil propose les deux pouvoirs de proposition et le logo y ramène. Le menu
 | `/secretariat-general/csm/appels-a-candidature/en-cours`                                             | Appels à candidatures en cours                                     | —      | ✓                   | ✓              |
 | `/secretariat-general/csm/appels-a-candidature/passes`                                               | Appels à candidatures passés                                       | —      | ✓                   | ✓              |
 | `/secretariat-general/csm/processus-de-selection`                                                    | Processus de sélection (à venir)                                   | —      | ✓                   | ✓              |
-| `/secretariat-general/csm/membres`                                                                   | Membres du pouvoir CSM (à venir)                                   | —      | ✓                   | ✓              |
 | `/secretariat-general/gds/sessions`                                                                  | Gérer les sessions                                                 | —      | ✓                   | ✓              |
 | `/secretariat-general/gds/archives/sessions`                                                         | Sessions archivées                                                 | —      | ✓                   | ✓              |
 | `/secretariat-general/gds/session/:sessionId`                                                        | Session, onglet Propositions : dossiers, affectation, décisions    | —      | ✓                   | ✓              |
@@ -95,8 +94,8 @@ L'accueil propose les deux pouvoirs de proposition et le logo y ramène. Le menu
 | `/secretariat-general/gds/session/:sessionId/dossiers/:nominationFileId/observations/:observationId` | Détail d'une observation                                           | —      | ✓                   | ✓              |
 | `/secretariat-general/magistrats`                                                                    | Recherche de magistrats                                            | —      | ✓                   | ✓              |
 | `/secretariat-general/magistrats/:magistratId`                                                       | Fiche d'un magistrat, avec ses numéros de téléphone                | —      | ✓                   | ✓              |
-| `/secretariat-general/gds/membres`                                                                   | Liste des membres                                                  | —      | ✓                   | ✓              |
-| `/secretariat-general/gds/membres/:userId`                                                           | Fiche d'un membre : titre, juridictions exclues                    | —      | ✓                   | ✓              |
+| `/secretariat-general/membres`                                                                       | Liste des membres                                                  | —      | ✓                   | ✓              |
+| `/secretariat-general/membres/:userId`                                                               | Fiche d'un membre : titre, juridictions exclues                    | —      | ✓                   | ✓              |
 | `/secretariat-general/gds/session/:sessionId/docs/ordre-du-jour`                                     | Nouvel ordre du jour                                               | —      | ✓                   | ✓              |
 | `/secretariat-general/gds/session/:sessionId/docs/ordre-du-jour/:agendaId/metadonnees`               | Ordre du jour : métadonnées                                        | —      | ✓                   | ✓              |
 | `/secretariat-general/gds/session/:sessionId/docs/ordre-du-jour/:agendaId/dossiers`                  | Ordre du jour : dossiers                                           | —      | ✓                   | ✓              |

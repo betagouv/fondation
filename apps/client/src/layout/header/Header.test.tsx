@@ -50,4 +50,14 @@ describe('AppHeader', () => {
 
     expect(screen.getByRole('link', { name: 'Restitutions' })).toHaveAttribute('aria-current', 'page');
   });
+
+  it.each([
+    ROUTE_PATHS.SG.DASHBOARD,
+    ROUTE_PATHS.SG.GDS.MANAGE_SESSION,
+    ROUTE_PATHS.SG.CSM.VEILLE_DES_POSTES,
+  ])('offers Gérer les membres on %s', (pathname) => {
+    renderHeader(pathname);
+
+    expect(screen.getByRole('link', { name: 'Gérer les membres' })).toBeInTheDocument();
+  });
 });

@@ -27,6 +27,11 @@ class LolfiIngestPage {
 
     await this.app.page.getByRole('button', { name: 'Enregistrer' }).click();
     await this.app.page.getByRole('heading', { level: 1, name: 'Suivre les ingestions' }).waitFor();
+    await this.app.page
+      .getByRole('dialog', { name: "Détail d'une ingestion" })
+      .getByRole('button', { name: 'Fermer' })
+      .click();
+    await this.app.page.waitForURL('**/admin/ingestions');
 
     let { id: jobId } = await (await lolfiIngestionPromise).json();
 

@@ -117,8 +117,6 @@ describe('routes', () => {
 
   it.each([
     '/secretariat-general/archives/sessions',
-    '/secretariat-general/membres',
-    '/secretariat-general/membres/user-1',
     '/secretariat-general/restitutions/plan-1/validation',
     '/secretariat-general/session/session-1/dossiers/file-1/observations/observation-1',
     '/secretariat-general/sessions',
@@ -137,10 +135,23 @@ describe('routes', () => {
     expect(response.headers.get('Location')).toBe(location);
   });
 
-  it.each([ROUTE_PATHS.SG.MAGISTRAT_SEARCH, '/secretariat-general/magistrats/magistrat-1'])(
-    'leave the page %s common to both pouvoirs where it is',
-    (pathname) => {
-      expect(matchRoutes(routes, pathname)?.at(-1)?.route.loader).toBeUndefined();
-    },
-  );
+  it.each([
+    ['/secretariat-general/gds/membres', ROUTE_PATHS.SG.MANAGE_MEMBERS],
+    ['/secretariat-general/gds/membres/user-1', '/secretariat-general/membres/user-1'],
+  ])('redirect the old GDS members URL %s to %s', async (pathname, location) => {
+    const loader = matchRoutes(routes, pathname)?.at(-1)?.route.loader as LoaderFunction;
+    const request = new Request(`http://localhost${pathname}`);
+    const response = (await loader({ request } as LoaderFunctionArgs)) as Response;
+
+    expect(response.headers.get('Location')).toBe(location);
+  });
+
+  it.each([
+    ROUTE_PATHS.SG.MAGISTRAT_SEARCH,
+    '/secretariat-general/magistrats/magistrat-1',
+    ROUTE_PATHS.SG.MANAGE_MEMBERS,
+    '/secretariat-general/membres/user-1',
+  ])('leave the page %s common to both pouvoirs where it is', (pathname) => {
+    expect(matchRoutes(routes, pathname)?.at(-1)?.route.loader).toBeUndefined();
+  });
 });

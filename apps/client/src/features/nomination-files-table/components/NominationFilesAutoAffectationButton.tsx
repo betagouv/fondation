@@ -59,7 +59,7 @@ export function NominationFilesAutoAffectationButton() {
               }
               values={{
                 link: (x) => (
-                  <Link onClick={confirmation.cancel} to={ROUTE_PATHS.SG.GDS.MANAGE_MEMBERS}>
+                  <Link onClick={confirmation.cancel} to={ROUTE_PATHS.SG.MANAGE_MEMBERS}>
                     {x}
                   </Link>
                 ),
