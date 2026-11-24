@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useIntl } from 'react-intl';
 
 import { usePouvoirDeProposition } from '@/shared/hooks/usePouvoirDeProposition';
@@ -7,16 +8,18 @@ export function useBreadcrumbRoot(): { label: string; to: string }[] {
   const { formatMessage } = useIntl();
   const pouvoir = usePouvoirDeProposition();
 
-  if (pouvoir === 'CSM') {
+  return useMemo(() => {
+    if (pouvoir === 'CSM') {
+      return [
+        { label: formatMessage({ defaultMessage: 'Accueil' }), to: ROUTE_PATHS.SG.DASHBOARD },
+        { label: formatMessage({ defaultMessage: 'CSM' }), to: ROUTE_PATHS.SG.CSM.VEILLE_DES_POSTES },
+      ];
+    }
+    if (pouvoir !== 'GDS') return [{ label: formatMessage({ defaultMessage: 'Accueil' }), to: '/' }];
+
     return [
       { label: formatMessage({ defaultMessage: 'Accueil' }), to: ROUTE_PATHS.SG.DASHBOARD },
-      { label: formatMessage({ defaultMessage: 'CSM' }), to: ROUTE_PATHS.SG.CSM.VEILLE_DES_POSTES },
+      { label: formatMessage({ defaultMessage: 'GDS' }), to: ROUTE_PATHS.SG.GDS.MANAGE_SESSION },
     ];
-  }
-  if (pouvoir !== 'GDS') return [{ label: formatMessage({ defaultMessage: 'Accueil' }), to: '/' }];
-
-  return [
-    { label: formatMessage({ defaultMessage: 'Accueil' }), to: ROUTE_PATHS.SG.DASHBOARD },
-    { label: formatMessage({ defaultMessage: 'GDS' }), to: ROUTE_PATHS.SG.GDS.MANAGE_SESSION },
-  ];
+  }, [formatMessage, pouvoir]);
 }

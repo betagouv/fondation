@@ -4,17 +4,12 @@ import { IntlProvider } from 'react-intl';
 import { generatePath, MemoryRouter } from 'react-router';
 import { describe, expect, it } from 'vitest';
 
-import { ROUTE_PATHS } from './route-path.utils';
+import { ROUTE_PATHS, SESSION_SPACES, type SessionSpace } from './route-path.utils';
 import { useSessionBreadcrumbRoot } from './transparences-breadcrumb.utils';
 
-const SG_SESSION_PATH = generatePath(ROUTE_PATHS.SG.GDS.SESSION_ID, { sessionId: 'session-1' });
-const MEMBER_SESSION_PATH = generatePath(ROUTE_PATHS.TRANSPARENCES.DETAIL_SESSION_GDS, {
-  sessionId: 'session-1',
-});
-
-function sessionRootOf(space: 'SG' | 'TRANSPARENCES', session: { isArchived: boolean }) {
+function sessionRootOf(space: SessionSpace, session: { isArchived: boolean }) {
   const wrapper = ({ children }: PropsWithChildren) => (
-    <MemoryRouter initialEntries={[space === 'SG' ? SG_SESSION_PATH : MEMBER_SESSION_PATH]}>
+    <MemoryRouter initialEntries={[generatePath(SESSION_SPACES[space].session, { sessionId: 'session-1' })]}>
       <IntlProvider defaultLocale="fr" locale="fr">
         {children}
       </IntlProvider>

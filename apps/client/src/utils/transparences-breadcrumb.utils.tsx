@@ -4,7 +4,7 @@ import { useIntl } from 'react-intl';
 import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import type { BreadcrumbVM } from '@/shared/ui/Breadcrumb';
 
-import { getDetailSessionGdsPath, ROUTE_PATHS } from './route-path.utils';
+import { getDetailSessionGdsPath, ROUTE_PATHS, SESSION_SPACES, type SessionSpace } from './route-path.utils';
 import { assertNever } from './types.util';
 
 export enum TransparencesCurrentPage {
@@ -25,11 +25,6 @@ type TransparencesCurrentPageType =
       session: BreadcrumbSession & { id: string };
     };
 
-const ARCHIVED_SESSIONS_PATHS = {
-  SG: ROUTE_PATHS.SG.GDS.ARCHIVED_SESSIONS,
-  TRANSPARENCES: ROUTE_PATHS.TRANSPARENCES.ARCHIVED_SESSIONS,
-};
-
 export function useMemberBreadcrumbRoot(): BreadcrumbVM['segments'] {
   const { formatMessage } = useIntl();
   return useMemo(
@@ -38,9 +33,8 @@ export function useMemberBreadcrumbRoot(): BreadcrumbVM['segments'] {
   );
 }
 
-// the segments that lead to a session: an archived one is reached through the archived sessions
 export function useSessionBreadcrumbRoot(
-  space: keyof typeof ARCHIVED_SESSIONS_PATHS,
+  space: SessionSpace,
 ): (session: { isArchived: boolean } | null | undefined) => BreadcrumbVM['segments'] {
   const { formatMessage } = useIntl();
   const sgRoot = useBreadcrumbRoot();
@@ -54,7 +48,7 @@ export function useSessionBreadcrumbRoot(
             ...root,
             {
               label: formatMessage({ defaultMessage: 'Sessions archivées' }),
-              to: ARCHIVED_SESSIONS_PATHS[space],
+              to: SESSION_SPACES[space].archivedSessions,
             },
           ]
         : root,

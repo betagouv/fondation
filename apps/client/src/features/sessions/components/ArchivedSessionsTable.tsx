@@ -16,7 +16,7 @@ import {
 } from '@/shared/ui/data-table';
 import { SearchInput } from '@/shared/ui/search-input';
 import { formatDateOnly } from '@/utils/date-only.util';
-import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import { SESSION_SPACES, type SessionSpace } from '@/utils/route-path.utils';
 import { capitalize } from '@/utils/string.utils';
 import type { ListedArchivedNominationSessionsDto } from '@api/types';
 import {
@@ -25,18 +25,9 @@ import {
 } from '@queries/archived-nomination-sessions.queries';
 
 type ArchivedSession = ListedArchivedNominationSessionsDto['items'][number];
-export const SPACES = {
-  SG: {
-    session: ROUTE_PATHS.SG.GDS.SESSION_ID,
-  },
-  TRANSPARENCES: {
-    session: ROUTE_PATHS.TRANSPARENCES.DETAIL_SESSION_GDS,
-  },
-};
-export type Space = keyof typeof SPACES;
 
 const h = createColumnHelper<ArchivedSession>();
-function useArchivedSessionColumns(props: { space: Space; withFormationFilter: boolean }) {
+function useArchivedSessionColumns(props: { space: SessionSpace; withFormationFilter: boolean }) {
   const { formatDate, formatMessage } = useIntl();
 
   return useMemo(
@@ -57,7 +48,7 @@ function useArchivedSessionColumns(props: { space: Space; withFormationFilter: b
 
       h.accessor('name', {
         cell: ({ row }) => (
-          <Link to={generatePath(SPACES[props.space].session, { sessionId: row.original.id })}>
+          <Link to={generatePath(SESSION_SPACES[props.space].session, { sessionId: row.original.id })}>
             {row.original.name}
           </Link>
         ),
@@ -118,7 +109,7 @@ const SORTABLE_COLUMNS = new Set<string>([
 ] satisfies ArchivedSessionsSorting[number]['id'][]);
 
 export function ArchivedSessionsTable(props: {
-  space: Space;
+  space: SessionSpace;
   title?: ReactNode;
   withFormationFilter: boolean;
 }) {
