@@ -7,20 +7,19 @@ import { DetailsLink } from '@/shared/components/details-link';
 import { LolfiLink } from '@/shared/components/lolfi-link';
 import { PriorityBadge } from '@/shared/components/priority-badge';
 import { TitleNameIcons } from '@/shared/components/title-name-icons';
-import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { DetailsHeader } from '@/shared/ui/details';
 import { openedDossierSearch, ROUTE_PATHS } from '@/utils/route-path.utils';
 import { requiresElision } from '@/utils/string.utils';
-import { useMemberBreadcrumbRoot } from '@/utils/transparences-breadcrumb.utils';
+import { useSessionBreadcrumbRoot } from '@/utils/transparences-breadcrumb.utils';
 import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
 
 import { SummaryReaderSelector } from './SummaryReaderSelector';
 
 export function SummaryDetailsHeader() {
   const { formatMessage } = useIntl();
-  const breadcrumbRoot = useBreadcrumbRoot();
   const isSg = useIsSg();
+  const sessionRootOf = useSessionBreadcrumbRoot(isSg ? 'SG' : 'TRANSPARENCES');
   const { nominationFileId, sessionId, summary } = useSummary();
   const { data: session } = useDetailedNominationSessionQuery({ sessionId });
 
@@ -31,9 +30,8 @@ export function SummaryDetailsHeader() {
     search: openedDossierSearch(nominationFileId),
   };
 
-  const memberRoot = useMemberBreadcrumbRoot();
   const segments: { label: string; to: To }[] = [
-    ...(isSg ? breadcrumbRoot : memberRoot),
+    ...sessionRootOf(session),
     ...(session ? [{ label: session.name, to: sessionPath }] : []),
   ];
 

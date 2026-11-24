@@ -10,17 +10,17 @@ import { SessionValidationBanner } from '@/features/transparence/components/sess
 import { TableauDeBordResume } from '@/features/transparence/components/session/TableauDeBordResume';
 import { ArchiveBannerPortal } from '@/shared/components/banners';
 import { PinnedHeader } from '@/shared/components/pinned-header';
-import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { Breadcrumb, type BreadcrumbVM } from '@/shared/ui/Breadcrumb';
 import { Collapse } from '@/shared/ui/collapse';
 import { isNotFound } from '@/utils/http-exception';
+import { useSessionBreadcrumbRoot } from '@/utils/transparences-breadcrumb.utils';
 import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
 
 import type { TransparenceOutletContext } from './transparence-outlet-context.type';
 
 export function TransparencePage() {
   const { formatMessage } = useIntl();
-  const breadcrumbRoot = useBreadcrumbRoot();
+  const sessionRootOf = useSessionBreadcrumbRoot('SG');
   const { sessionId } = useParams();
   const [filtersSlot, setFiltersSlot] = useState<HTMLDivElement | null>(null);
   const [headerSlot, setHeaderSlot] = useState<HTMLDivElement | null>(null);
@@ -45,7 +45,7 @@ export function TransparencePage() {
 
   const breadcrumb: BreadcrumbVM = {
     currentPageLabel: transparence.name,
-    segments: breadcrumbRoot,
+    segments: sessionRootOf(transparence),
   };
 
   return (

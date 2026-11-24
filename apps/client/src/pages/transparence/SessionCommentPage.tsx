@@ -6,15 +6,15 @@ import { generatePath, Link, useParams } from 'react-router';
 import { DocumentScreen } from '@/features/documents/components/DocumentScreen';
 import { SessionCommentField } from '@/features/transparence/components/session/SessionCommentField';
 import { useSessionCommentDraft } from '@/features/transparence/hooks/useSessionCommentDraft';
-import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { useUnsavedChangesGuard } from '@/shared/hooks/useUnsavedChangesGuard';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import { useSessionBreadcrumbRoot } from '@/utils/transparences-breadcrumb.utils';
 import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
 
 export function SessionCommentPage() {
   const { formatMessage } = useIntl();
-  const breadcrumbRoot = useBreadcrumbRoot();
+  const sessionRootOf = useSessionBreadcrumbRoot('SG');
   const { sessionId = '' } = useParams();
   const { data: session, isPending } = useDetailedNominationSessionQuery({ sessionId });
   const draft = useSessionCommentDraft({ sessionId });
@@ -61,7 +61,7 @@ export function SessionCommentPage() {
           ariaLabel={formatMessage({ defaultMessage: "Fil d'Ariane du commentaire d'une session" })}
           breadcrumb={{
             currentPageLabel: formatMessage({ defaultMessage: 'Commentaire de la notice' }),
-            segments: [...breadcrumbRoot, { label: session.name, to: sessionPath }],
+            segments: [...sessionRootOf(session), { label: session.name, to: sessionPath }],
           }}
           id="session-comment-breadcrumb"
         />
