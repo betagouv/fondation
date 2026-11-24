@@ -1,6 +1,6 @@
 import { DateOnly } from '../../../utils/date-only';
 
-import { byPublication, periodOf, yearOf } from './call-for-applications-period';
+import { byPublication, periodOf, yearsOf } from './call-for-applications-period';
 
 const TODAY = new DateOnly(2026, 11, 24);
 
@@ -27,15 +27,39 @@ describe('periodOf', () => {
   });
 });
 
-describe('yearOf', () => {
-  it('takes the year of the publication', () => {
-    expect(yearOf({ createdOn: new DateOnly(2025, 12, 15), publishedOn: new DateOnly(2026, 1, 10) })).toBe(
-      2026,
-    );
+describe('yearsOf', () => {
+  it('spans the years from the publication to the deadline', () => {
+    expect(
+      yearsOf(
+        {
+          createdOn: new DateOnly(2026, 11, 2),
+          deadline: new DateOnly(2027, 1, 15),
+          publishedOn: new DateOnly(2026, 12, 1),
+        },
+        TODAY,
+      ),
+    ).toEqual([2026, 2027]);
   });
 
-  it('takes the year of the creation while the call has no publication date', () => {
-    expect(yearOf({ createdOn: new DateOnly(2025, 12, 15), publishedOn: null })).toBe(2025);
+  it('starts at the creation while the call has no publication date', () => {
+    expect(
+      yearsOf(
+        { createdOn: new DateOnly(2025, 12, 15), deadline: new DateOnly(2026, 1, 31), publishedOn: null },
+        TODAY,
+      ),
+    ).toEqual([2025, 2026]);
+  });
+
+  it('runs until today while the call has no deadline, being still open', () => {
+    expect(
+      yearsOf({ createdOn: new DateOnly(2025, 12, 15), deadline: null, publishedOn: null }, TODAY),
+    ).toEqual([2025, 2026]);
+  });
+
+  it('keeps the year of a publication to come without deadline', () => {
+    expect(
+      yearsOf({ createdOn: TODAY, deadline: null, publishedOn: new DateOnly(2027, 2, 1) }, TODAY),
+    ).toEqual([2027]);
   });
 });
 

@@ -23,7 +23,7 @@ import {
   type TargetJurisdictionType,
   targetJurisdictionTypeOf,
 } from '../../domain/call-for-applications';
-import { type CallForApplicationsPeriod, periodOf, yearOf } from '../../domain/call-for-applications-period';
+import { type CallForApplicationsPeriod, periodOf, yearsOf } from '../../domain/call-for-applications-period';
 import {
   type CallForApplicationsSortableColumn,
   sortedCalls,
@@ -71,7 +71,10 @@ export class ListCallsForApplicationsQuery {
     // an empty filter keeps every value
     const listed = sortedCalls(
       calls
-        .filter((call) => query.years.length === 0 || query.years.includes(yearOf(call)))
+        .filter(
+          (call) =>
+            query.years.length === 0 || yearsOf(call, today).some((year) => query.years.includes(year)),
+        )
         .filter((call) => query.statuses.length === 0 || query.statuses.includes(call.status))
         .filter(
           (call) =>
@@ -125,7 +128,9 @@ export class ListCallsForApplicationsQuery {
       statuses: CALL_FOR_APPLICATIONS_STATUSES.map(callForApplicationsStatusOf),
       targetJurisdictionTypes: TARGET_JURISDICTION_TYPES.map(targetJurisdictionTypeOf),
       // the current year stays offered even before its first call
-      years: [...new Set([today.toJson().year, ...calls.map(yearOf)])].toSorted((a, b) => b - a),
+      years: [...new Set([today.toJson().year, ...calls.flatMap((call) => yearsOf(call, today))])].toSorted(
+        (a, b) => b - a,
+      ),
     };
   }
 }

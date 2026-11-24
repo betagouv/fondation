@@ -10,9 +10,17 @@ export function periodOf(call: Pick<DatedCall, 'deadline'>, today: DateOnly): Ca
   return call.deadline && call.deadline.toDate() < today.toDate() ? 'PAST' : 'ONGOING';
 }
 
-/** the year of its publication, or of its creation while it has no publication date */
-export function yearOf(call: Pick<DatedCall, 'createdOn' | 'publishedOn'>): number {
-  return (call.publishedOn ?? call.createdOn).toJson().year;
+/**
+ * every year its period of application spans, so that a call open across the new year stays in both: from its
+ * publication (or its creation while it has none) to its deadline (or today while it has none, being still open)
+ */
+export function yearsOf(
+  call: Pick<DatedCall, 'createdOn' | 'deadline' | 'publishedOn'>,
+  today: DateOnly,
+): number[] {
+  const first = (call.publishedOn ?? call.createdOn).toJson().year;
+  const last = Math.max(first, (call.deadline ?? today).toJson().year);
+  return Array.from({ length: last - first + 1 }, (_, index) => first + index);
 }
 
 /** the latest publication first: a call without a publication date is still being prepared and comes first */

@@ -37,6 +37,15 @@ function useCallsForApplicationsColumns(props: {
         enableSorting: false,
         header: formatMessage({ defaultMessage: "Type d'appel" }),
         id: 'type',
+        // the filters follow the columns: the year, spanning the whole period of a call, comes first
+        meta: {
+          filters: {
+            filterId: 'years',
+            label: formatMessage({ defaultMessage: 'Année' }),
+            type: 'enum',
+            values: years,
+          },
+        },
       }),
       h.accessor('targetJurisdictionType', {
         cell: ({ getValue }) => getValue()?.label ?? '-',
@@ -78,14 +87,6 @@ function useCallsForApplicationsColumns(props: {
         },
         header: formatMessage({ defaultMessage: 'Date de publication' }),
         id: 'publishedOn',
-        meta: {
-          filters: {
-            filterId: 'years',
-            label: formatMessage({ defaultMessage: 'Année' }),
-            type: 'enum',
-            values: years,
-          },
-        },
       }),
       h.accessor('deadline', {
         cell: ({ getValue }) => {
