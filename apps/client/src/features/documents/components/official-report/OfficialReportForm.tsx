@@ -192,6 +192,16 @@ export function OfficialReportForm() {
     setValue('agendaId', lockedAgendaId, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
   }, [areAgendasFresh, getValues, lockedAgendaId, setValue]);
 
+  // a failed creation refreshes the list: an agenda that got its report meanwhile must be chosen again
+  useEffect(() => {
+    if (officialReportId || !areAgendasFresh) return;
+
+    const agendaId = getValues('agendaId');
+    if (agendaId && !agendas?.items.some(({ id }) => id === agendaId)) {
+      setValue('agendaId', '', { shouldValidate: true });
+    }
+  }, [agendas, areAgendasFresh, getValues, officialReportId, setValue]);
+
   const onAgendaSelected = useCallback(
     (event: ChangeEvent<HTMLSelectElement>) => {
       const agendaId: string = event.currentTarget.value;

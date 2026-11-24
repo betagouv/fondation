@@ -151,6 +151,23 @@ describe('OfficialReportForm', () => {
     expect(screen.getByRole('combobox', { name: /Ordre du jour/ })).toBeEnabled();
   });
 
+  it('should ask for another agenda when the refreshed list no longer offers the chosen one', async () => {
+    mocks.agendas = { data: agendaList(null), isFetchedAfterMount: true };
+    const { rerender } = render(<OfficialReportFormTree />);
+    await waitFor(() =>
+      expect(screen.getByRole('combobox', { name: /Ordre du jour/ })).toHaveValue('agenda-1'),
+    );
+
+    mocks.agendas = {
+      data: { items: agendaList(null).items.map((agenda) => ({ ...agenda, id: 'agenda-2' })) },
+      isFetchedAfterMount: true,
+    };
+    rerender(<OfficialReportFormTree />);
+
+    expect(await screen.findByText('Veuillez sélectionner un ordre du jour')).toBeVisible();
+    expect(screen.getByRole('combobox', { name: /Ordre du jour/ })).toBeEnabled();
+  });
+
   it('should let the agenda be chosen when the form opens from the menu', () => {
     mocks.agendas = { data: agendaList(null), isFetchedAfterMount: true };
     render(<OfficialReportFormTree requestedAgendaId={null} />);
