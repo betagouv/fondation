@@ -49,6 +49,15 @@ export class OfficialReportSnapshotMeta {
     );
   }
 
+  /** whom the page names besides its propositions: the chairman, the secretary and the members present */
+  prints(memberId: string): boolean {
+    return (
+      this.chairman.id === memberId ||
+      this.secretary.id === memberId ||
+      this.members.members.get(memberId)?.isAbsent === false
+    );
+  }
+
   private introEquals(next: UpdateOfficialReportCommand['officialReport']): boolean {
     return (
       this.hasRenunciation === next.hasRenunciation &&

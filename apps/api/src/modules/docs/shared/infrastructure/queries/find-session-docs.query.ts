@@ -9,6 +9,7 @@ import { dateToTimeOnly, timeOnlySchema } from '../../../../../utils/time-only';
 import { writerOf, writerSchema } from '../../../../../utils/user.util';
 import { Db } from '../../../../framework/database';
 import { TransparenceService } from '../../../../session/transparence/infrastructure/transparence.service';
+import { printedChairmanName } from '../../../official-report/infrastructure/recorded-signatories';
 import {
   presentationPlanStatusOf,
   presentationPlanStatusSchema,
@@ -242,8 +243,7 @@ export class FindSessionDocsQuery {
           date: DateOnly.fromUtcDate(file.sessionMeetingDate),
           type: 'OFFICIAL_REPORT',
           typeDeSaisine,
-          // named as its PDF is, after the chairman's account
-          chairman: file.chairman ?? { firstName: file.chairmanFirstName, lastName: file.chairmanLastName },
+          chairman: printedChairmanName(file),
         }),
       })),
     ];

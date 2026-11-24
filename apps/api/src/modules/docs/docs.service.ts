@@ -116,7 +116,7 @@ export class DocsService {
    * keeps the one it was sent with. The presentation plan still keeps the name it was given.
    */
   @Transactional(Propagation.Mandatory)
-  internalFollowRenamedMember(command: { userId: string }): Promise<void> {
+  internalFollowRenamedMember(command: { change: 'NAME' | 'RECUSAL_TITLE'; userId: string }): Promise<void> {
     return this.invalidateDocsUseCase.handle([{ payload: command, type: 'MemberRenamed' }]);
   }
 

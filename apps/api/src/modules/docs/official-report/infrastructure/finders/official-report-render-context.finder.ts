@@ -9,6 +9,7 @@ import { dateToTimeOnly } from '../../../../../utils/time-only';
 import { writerOf } from '../../../../../utils/user.util';
 import { Db } from '../../../../framework/database';
 import { TransparenceService } from '../../../../session/transparence/infrastructure/transparence.service';
+import { FormationEnum } from '../../../../shared/formation.enum';
 import { prismaFormationEnumToFormationEnum } from '../../../../shared/mappers/formation.mapper';
 import { prismaGenderEnumToGenderEnum } from '../../../../shared/mappers/gender-enum.mapper';
 import { prismaRoleEnumToRoleEnum } from '../../../../shared/mappers/role-enum.mapper';
@@ -20,10 +21,24 @@ import { OfficialReportMember } from '../../domain/official-report-member';
 import { OfficialReportMembersList } from '../../domain/official-report-member-list';
 import { OfficialReportSecretary } from '../../domain/official-report-secretary';
 import { OfficialReportSessionMeeting } from '../../domain/official-report-session-meeting';
+import { RECORDED_SIGNATORIES, recordedSignatories } from '../recorded-signatories';
 import { officialReportFileNote } from '../services/renderers/official-report-note.html';
 import type { OfficialReportRenderContext } from '../services/renderers/official-report.renderer';
 
 import { OfficialReportVersionFinder } from './official-report-version.finder';
+
+const SIGNATORY_ACCOUNT = {
+  displayTitle: true,
+  duty: true,
+  firstName: true,
+  gender: true,
+  id: true,
+  lastName: true,
+  role: true,
+  title: true,
+} as const satisfies Prisma.UserSelect;
+
+type SignatoryAccount = Prisma.UserGetPayload<{ select: typeof SIGNATORY_ACCOUNT }>;
 
 @Injectable()
 export class OfficialReportRenderContextFinder {
@@ -39,19 +54,8 @@ export class OfficialReportRenderContextFinder {
     const versionId = await this.officialReportVersionFinder.latest(query);
     const report = await this.db.tx.officialReportVersion.findUnique({
       select: {
-        chairman: {
-          select: {
-            displayTitle: true,
-            duty: true,
-            firstName: true,
-            gender: true,
-            id: true,
-            lastName: true,
-            role: true,
-            sort: true,
-            title: true,
-          },
-        },
+        ...RECORDED_SIGNATORIES,
+        chairman: { select: { ...SIGNATORY_ACCOUNT, sort: true } },
         conclusionHtml: true,
         conclusionOutdated: true,
         hasRenunciation: true,
@@ -124,23 +128,13 @@ export class OfficialReportRenderContextFinder {
             },
           },
         },
-        secretary: {
-          select: {
-            displayTitle: true,
-            duty: true,
-            firstName: true,
-            gender: true,
-            id: true,
-            lastName: true,
-            role: true,
-            title: true,
-          },
-        },
+        secretary: { select: SIGNATORY_ACCOUNT },
         sectionIntros: { select: { html: true, outcome: true } },
         sectionTitles: { select: { outcome: true, title: true } },
         sessionMeetingDate: true,
         sessionMeetingEndingTime: true,
         sessionMeetingStartingTime: true,
+        status: true,
       } satisfies Prisma.OfficialReportVersionSelect,
       where: { id: versionId },
     });
@@ -187,32 +181,19 @@ export class OfficialReportRenderContextFinder {
 
     const formation = prismaFormationEnumToFormationEnum(agenda.formation);
 
-    const rawChairman = assertIsDefined(
-      report.chairman,
-      `unknown chairman for official report "${query.officialReportId}"`,
-    );
-    const chairman = OfficialReportChairman.from({
-      ...rawChairman,
-      expectedFormation: formation,
-      gender: prismaGenderEnumToGenderEnum(rawChairman.gender),
-      role: prismaRoleEnumToRoleEnum(rawChairman.role),
-    });
+    // a validated report never changes: it reads as the validation recorded it
+    const isValidated = report.status === 'VALIDATED';
+    const { chairman, secretary } = isValidated
+      ? recordedSignatories(report)
+      : this.currentSignatories(report, { formation, officialReportId: query.officialReportId });
 
-    const rawSecretary = assertIsDefined(
-      report.secretary,
-      `unknown secretary for official report "${query.officialReportId}"`,
-    );
-    const secretary = OfficialReportSecretary.from({
-      ...rawSecretary,
-      gender: prismaGenderEnumToGenderEnum(rawSecretary.gender),
-      role: prismaRoleEnumToRoleEnum(rawSecretary.role),
-    });
-
-    // like the chairman and the secretary, the present members are printed under their name of today
-    const accounts = await this.db.tx.user.findMany({
-      select: { firstName: true, id: true, lastName: true } satisfies Prisma.UserSelect,
-      where: { id: { in: report.members.map(({ memberId }) => memberId) } },
-    });
+    // a draft prints its members under their name of today, as it does its chairman and its secretary
+    const accounts = isValidated
+      ? []
+      : await this.db.tx.user.findMany({
+          select: { firstName: true, id: true, lastName: true } satisfies Prisma.UserSelect,
+          where: { id: { in: report.members.map(({ memberId }) => memberId) } },
+        });
     const names = new Map(accounts.map(({ id, ...name }) => [id, name]));
     const membersList = OfficialReportMembersList.from(
       report.members.map((member) =>
@@ -323,5 +304,34 @@ export class OfficialReportRenderContextFinder {
         outcomes: userDefinedOutcomes,
       },
     } satisfies OfficialReportRenderContext;
+  }
+
+  /** a draft names its chairman and its secretary after their account, which must still fit the part */
+  private currentSignatories(
+    report: { chairman: (SignatoryAccount & { sort: number }) | null; secretary: SignatoryAccount | null },
+    context: { formation: FormationEnum; officialReportId: string },
+  ): { chairman: OfficialReportChairman; secretary: OfficialReportSecretary } {
+    const chairman = assertIsDefined(
+      report.chairman,
+      `unknown chairman for official report "${context.officialReportId}"`,
+    );
+    const secretary = assertIsDefined(
+      report.secretary,
+      `unknown secretary for official report "${context.officialReportId}"`,
+    );
+
+    return {
+      chairman: OfficialReportChairman.from({
+        ...chairman,
+        expectedFormation: context.formation,
+        gender: prismaGenderEnumToGenderEnum(chairman.gender),
+        role: prismaRoleEnumToRoleEnum(chairman.role),
+      }),
+      secretary: OfficialReportSecretary.from({
+        ...secretary,
+        gender: prismaGenderEnumToGenderEnum(secretary.gender),
+        role: prismaRoleEnumToRoleEnum(secretary.role),
+      }),
+    };
   }
 }

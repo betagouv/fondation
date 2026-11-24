@@ -59,15 +59,14 @@ import {
   OfficialReportValidated,
 } from '../../domain/official-report';
 import { OfficialReportAgenda } from '../../domain/official-report-agenda';
-import { OfficialReportChairman } from '../../domain/official-report-chairman';
 import { OfficialReportMember } from '../../domain/official-report-member';
 import { OfficialReportMembersList } from '../../domain/official-report-member-list';
-import { OfficialReportSecretary } from '../../domain/official-report-secretary';
 import { OfficialReportSessionMeeting } from '../../domain/official-report-session-meeting';
 import { OfficialReportSnapshot } from '../../domain/snapshot/official-report-snapshot';
 import { OfficialReportSnapshotFile } from '../../domain/snapshot/official-report-snapshot-file';
 import { OfficialReportSnapshotMeta } from '../../domain/snapshot/official-report-snapshot-meta';
 import { OfficialReportVersionFinder } from '../finders/official-report-version.finder';
+import { RECORDED_SIGNATORIES, recordedSignatories } from '../recorded-signatories';
 
 @Injectable()
 export class OfficialReportRepository {
@@ -88,12 +87,7 @@ export class OfficialReportRepository {
     const versionId = await this.officialReportVersionFinder.latest({ officialReportId: query.id });
     const version = await this.db.tx.officialReportVersion.findUnique({
       select: {
-        chairmanDisplayTitle: true,
-        chairmanFirstName: true,
-        chairmanGender: true,
-        chairmanId: true,
-        chairmanLastName: true,
-        chairmanTitle: true,
+        ...RECORDED_SIGNATORIES,
         conclusionHtml: true,
         hasRenunciation: true,
         introHtml: true,
@@ -129,12 +123,6 @@ export class OfficialReportRepository {
           },
         },
         pdfId: true,
-        secretaryDisplayTitle: true,
-        secretaryFirstName: true,
-        secretaryGender: true,
-        secretaryId: true,
-        secretaryLastName: true,
-        secretaryTitle: true,
         sessionMeetingDate: true,
         sessionMeetingEndingTime: true,
         sessionMeetingStartingTime: true,
@@ -174,23 +162,7 @@ export class OfficialReportRepository {
       ),
     );
 
-    const chairman = new OfficialReportChairman(
-      officialReport.chairmanId,
-      officialReport.chairmanFirstName,
-      officialReport.chairmanLastName,
-      prismaGenderEnumToGenderEnum(officialReport.chairmanGender),
-      officialReport.chairmanDisplayTitle,
-      officialReport.chairmanTitle as any,
-    );
-
-    const secretary = new OfficialReportSecretary(
-      officialReport.secretaryId,
-      officialReport.secretaryFirstName,
-      officialReport.secretaryLastName,
-      prismaGenderEnumToGenderEnum(officialReport.secretaryGender),
-      officialReport.secretaryDisplayTitle,
-      officialReport.secretaryTitle as any,
-    );
+    const { chairman, secretary } = recordedSignatories(officialReport);
 
     const files = await this.findOfficialReportFiles({ id: query.id });
 
@@ -848,6 +820,7 @@ export class OfficialReportRepository {
     const [draft, ...superseded] = versions;
     if (!draft || draft.status === 'VALIDATED') throw new NotFoundException();
 
+    await this.recordPrintedNames(draft.id);
     await this.db.tx.officialReportVersion.update({
       data: { status: 'VALIDATED', validatedAt: message.validatedAt, validatedBy: message.validatedBy },
       where: { id: draft.id },
@@ -855,6 +828,59 @@ export class OfficialReportRepository {
 
     // the business asked for no history: validating drops the version it replaces
     await this.discardVersions(superseded);
+  }
+
+  /**
+   * a draft prints everyone as their account stands today, and a validated report never changes:
+   * the copy takes what its PDF prints, for the screen to tell the same
+   */
+  private async recordPrintedNames(versionId: string): Promise<void> {
+    const signatory = {
+      displayTitle: true,
+      firstName: true,
+      gender: true,
+      lastName: true,
+      title: true,
+    } as const;
+    const version = await this.db.tx.officialReportVersion.findUniqueOrThrow({
+      select: {
+        chairman: { select: signatory },
+        members: { omit: { id: true, versionId: true } },
+        secretary: { select: signatory },
+      } satisfies Prisma.OfficialReportVersionSelect,
+      where: { id: versionId },
+    });
+    const { chairman, members, secretary } = version;
+
+    await this.db.tx.officialReportVersion.update({
+      data: {
+        ...(chairman && {
+          chairmanDisplayTitle: chairman.displayTitle,
+          chairmanFirstName: chairman.firstName,
+          chairmanGender: chairman.gender,
+          chairmanLastName: chairman.lastName,
+          chairmanTitle: chairman.title,
+        }),
+        ...(secretary && {
+          secretaryDisplayTitle: secretary.displayTitle,
+          secretaryFirstName: secretary.firstName,
+          secretaryGender: secretary.gender,
+          secretaryLastName: secretary.lastName,
+          secretaryTitle: secretary.title,
+        }),
+      },
+      where: { id: versionId },
+    });
+
+    const accounts = await this.db.tx.user.findMany({
+      select: { firstName: true, id: true, lastName: true } satisfies Prisma.UserSelect,
+      where: { id: { in: members.map(({ memberId }) => memberId) } },
+    });
+    const names = new Map(accounts.map(({ id, ...name }) => [id, name]));
+    await this.db.tx.officialReportMember.deleteMany({ where: { versionId } });
+    await this.db.tx.officialReportMember.createMany({
+      data: members.map((member) => ({ ...member, ...names.get(member.memberId), versionId })),
+    });
   }
 
   private async persistOfficialReportDraftUpdatedBySystem(message: OfficialReportDraftUpdatedBySystem) {

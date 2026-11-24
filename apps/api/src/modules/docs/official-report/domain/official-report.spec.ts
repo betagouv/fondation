@@ -20,6 +20,8 @@ import {
   OfficialReportValidated,
   OfficialReportWithoutValidatedVersion,
 } from './official-report';
+import { OfficialReportChairman } from './official-report-chairman';
+import { OfficialReportMember } from './official-report-member';
 import { OfficialReportMembersList } from './official-report-member-list';
 import * as helpers from './official-report-test-utils';
 import type { UpdateOfficialReportCommand } from './official-report-types';
@@ -293,9 +295,74 @@ describe('OfficialReport', () => {
                 reporters: [helpers.JOHN_DOE],
               },
             ],
+            change: 'NAME',
+            userId: 'member-forget',
           },
           type: 'MemberRenamed',
         });
+      const accountRenamed = (
+        report: OfficialReport,
+        userId: string,
+        change: 'NAME' | 'RECUSAL_TITLE' = 'NAME',
+      ) =>
+        report.invalidate({ id: report.id, payload: { change, files: [], userId }, type: 'MemberRenamed' });
+      const chairedBy = (id: string) => ({
+        chairman: OfficialReportChairman.from(helpers.makeChairman({ id })),
+      });
+
+      it('should print a draft again under the new name of a member present', () => {
+        const report = makeReport({ actorId: null });
+
+        accountRenamed(report, 'member-1');
+
+        expect(report.messages).toEqual([
+          new OfficialReportDraftUpdatedBySystem(report.id, 'DESIGNATION'),
+          expect.objectContaining({ changesDocument: true }),
+        ]);
+      });
+
+      it('should print a draft again under the new name of its chairman', () => {
+        const report = makeReport({ actorId: null, snapshot: chairedBy('chairman-1') });
+
+        accountRenamed(report, 'chairman-1');
+
+        expect(report.messages).toEqual([
+          new OfficialReportDraftUpdatedBySystem(report.id, 'DESIGNATION'),
+          expect.objectContaining({ changesDocument: true }),
+        ]);
+      });
+
+      it('should leave a draft as it is when a member present only gets another recusal title', () => {
+        const report = makeReport({ actorId: null });
+
+        accountRenamed(report, 'member-1', 'RECUSAL_TITLE');
+
+        expect(report.messages).toEqual([]);
+      });
+
+      it('should leave a draft as it is when the member renamed was absent', () => {
+        const report = makeReport({
+          actorId: null,
+          snapshot: {
+            members: OfficialReportMembersList.from([
+              OfficialReportMember.from(helpers.makeMember({ id: 'member-absent', isAbsent: true })),
+              OfficialReportMember.from(helpers.makeMember({ id: 'member-present' })),
+            ]),
+          },
+        });
+
+        accountRenamed(report, 'member-absent');
+
+        expect(report.messages).toEqual([]);
+      });
+
+      it('should never print a validated report again, even under the new name of its chairman', () => {
+        const report = makeReport({ actorId: null, isValidated: true, snapshot: chairedBy('chairman-1') });
+
+        accountRenamed(report, 'chairman-1');
+
+        expect(report.messages).toEqual([]);
+      });
 
       it('should follow the new designation in a draft, saying why', () => {
         const report = withRecusal({ actorId: null });
@@ -347,6 +414,8 @@ describe('OfficialReport', () => {
                 reporters: [other],
               },
             ],
+            change: 'NAME',
+            userId: 'member-forget',
           },
           type: 'MemberRenamed',
         });

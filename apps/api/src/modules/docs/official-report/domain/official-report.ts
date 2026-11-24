@@ -362,10 +362,15 @@ export class OfficialReport {
     }
 
     const diff = this.snapshot.invalidate(command);
-    if (!diff.hasAny) return;
+    // the draft prints its chairman, secretary and members present under their name of today
+    const reprinted =
+      command.type === 'MemberRenamed' &&
+      command.payload.change === 'NAME' &&
+      this.snapshot.meta.prints(command.payload.userId);
+    if (!diff.hasAny && !reprinted) return;
 
     // a change the draft does not show leaves it the reader's, and so discardable
-    const changed = changesDocument(diff);
+    const changed = reprinted || changesDocument(diff);
     if (changed) this.openDraft(INVALIDATION_CAUSES[command.type]);
     this.#messages.push(new OfficialReportInvalidated(this.id, diff, changed));
   }

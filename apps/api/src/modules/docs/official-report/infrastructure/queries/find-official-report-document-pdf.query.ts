@@ -7,6 +7,7 @@ import { contentDisposition, FILE_MIME_TYPES, Files } from '../../../../framewor
 import { PdfRenderer } from '../../../../framework/pdf';
 import { docFileName } from '../../../shared/domain/doc-file-name';
 import { OfficialReportVersionFinder } from '../finders/official-report-version.finder';
+import { printedChairmanName } from '../recorded-signatories';
 
 import { FindOfficialReportDocumentQuery } from './find-official-report-document.query';
 
@@ -47,6 +48,7 @@ export class FindOfficialReportDocumentPdfQuery {
           select: { agenda: { select: { formation: true, sessionId: true, sessionName: true } } },
         },
         pdf: { select: { id: true, name: true } },
+        status: true,
       } satisfies Prisma.OfficialReportVersionSelect,
     });
 
@@ -76,11 +78,7 @@ export class FindOfficialReportDocumentPdfQuery {
       date: DateOnly.fromUtcDate(officialReport.sessionMeetingDate),
       sessionName: agenda.sessionName,
       typeDeSaisine: 'TRANSPARENCE_GDS',
-      // named like the document, after the chairman's account; the copy only stands in for a deleted one
-      chairman: officialReport.chairman ?? {
-        firstName: officialReport.chairmanFirstName,
-        lastName: officialReport.chairmanLastName,
-      },
+      chairman: printedChairmanName(officialReport),
     });
     // the version belongs in the path: a shared one would have the validation delete the object it
     // has just written, since it renders the draft before dropping the version it replaces

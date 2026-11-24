@@ -71,6 +71,8 @@ export type InvalidateOfficialReportCommand = { id: string } & (
           recusedMembers: readonly NamedMember[];
           reporters: readonly NamedMember[];
         }[];
+        change: 'NAME' | 'RECUSAL_TITLE';
+        userId: string;
       };
     }
   | {
