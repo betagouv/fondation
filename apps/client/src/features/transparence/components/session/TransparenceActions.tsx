@@ -12,8 +12,11 @@ import {
   useDeleteNominationSessionMutation,
 } from '@queries/nomination-sessions.queries';
 
-export function TransparenceActions(props: { transparence: DetailedNominationSessionDto }) {
-  const { transparence } = props;
+export function TransparenceActions(props: {
+  onArchived: () => void;
+  transparence: DetailedNominationSessionDto;
+}) {
+  const { onArchived, transparence } = props;
   const { formatMessage } = useIntl();
   const navigate = useNavigate();
   const confirmation = useConfirmModal();
@@ -53,8 +56,9 @@ export function TransparenceActions(props: { transparence: DetailedNominationSes
             { name: transparence.name },
           ),
         }),
+      // the user stays on the session, now read-only under the archived banner
       onSuccess: () => {
-        navigate(ROUTE_PATHS.SG.GDS.MANAGE_SESSION);
+        onArchived();
         toasts.success({
           title: formatMessage(
             { defaultMessage: 'Transparence "{name}" archivée' },
