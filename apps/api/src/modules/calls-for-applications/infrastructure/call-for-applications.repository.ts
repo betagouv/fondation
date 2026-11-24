@@ -69,7 +69,10 @@ export class CallForApplicationsRepository {
   }
 
   private async persistDeleted(message: CallForApplicationsDeleted) {
-    await this.db.tx.callForApplications.delete({ where: { id: message.id } });
+    // another deletion may have gone first since the call was read
+    const { count } = await this.db.tx.callForApplications.deleteMany({ where: { id: message.id } });
+    if (count === 0) throw new NotFoundException();
+
     await this.journal('DELETED', message);
   }
 

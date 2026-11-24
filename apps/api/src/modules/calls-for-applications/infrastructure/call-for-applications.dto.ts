@@ -5,7 +5,11 @@ import { COMMENT_MAX_LENGTH } from '../../../utils/comment';
 import { typedDateSchema } from '../../../utils/date-only';
 import { listOf } from '../../../utils/query-list';
 import { createSortableDto } from '../../framework/sorting';
-import { CALL_FOR_APPLICATIONS_STATUSES, TARGET_JURISDICTION_TYPES } from '../domain/call-for-applications';
+import {
+  CALL_FOR_APPLICATIONS_STATUSES,
+  CALL_FOR_APPLICATIONS_TYPES,
+  TARGET_JURISDICTION_TYPES,
+} from '../domain/call-for-applications';
 import { CALL_FOR_APPLICATIONS_PERIODS } from '../domain/call-for-applications-period';
 import { CALL_FOR_APPLICATIONS_SORTABLE_COLUMNS } from '../domain/call-for-applications-sorting';
 
@@ -15,7 +19,7 @@ const callForApplicationsForm = z.object({
   deadline: typedDateSchema.nullish(),
   publishedOn: typedDateSchema.nullish(),
   targetJurisdictionType: z.enum(TARGET_JURISDICTION_TYPES),
-  type: z.literal('GENERAL'),
+  type: z.enum(CALL_FOR_APPLICATIONS_TYPES),
 });
 
 export class CreateCallForApplicationsDto extends createZodDto(callForApplicationsForm) {}
