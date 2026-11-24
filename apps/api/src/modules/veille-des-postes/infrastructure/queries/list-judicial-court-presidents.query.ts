@@ -107,7 +107,7 @@ export class ListJudicialCourtPresidentsQuery {
     const { counts, matching } = facetedRows(
       rows,
       { alert: query.alerts, deadline: query.deadlines, ressort: query.ressorts, status: query.statuses },
-      (asked) => ({ ...statusAndAlertValues(asked), ressort: (row) => [row.ressort.id] }),
+      (asked) => ({ ...statusAndAlertValues(asked, today), ressort: (row) => [row.ressort.id] }),
     );
     const sorted =
       query.sorting.sortBy === 'status'

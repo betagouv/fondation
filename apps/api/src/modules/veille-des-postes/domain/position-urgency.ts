@@ -1,10 +1,16 @@
 import type { DateOnly } from '../../../utils/date-only';
 
-import { type AlertDeadline, deadlinesOf, type HolderAlert, type PositionAlert } from './position-alert';
+import {
+  type AlertDeadline,
+  deadlineOf,
+  deadlinesOf,
+  type HolderAlert,
+  type PositionAlert,
+} from './position-alert';
 import type { PositionStatus } from './position-status';
 
 export type AskedAlerts = { alert: readonly string[]; deadline: readonly string[] };
-type AssessedPosition = {
+export type AssessedPosition = {
   alerts: HolderAlert[];
   status: { id: PositionStatus };
   vacancyStartDate: DateOnly | null;
@@ -18,17 +24,31 @@ function ofAsked(asked: AskedAlerts, alert: HolderAlert): boolean {
   );
 }
 
+/** a declared vacancy is no alert: its start date answers the filter and the sort only while no alert is asked */
+function askedVacancyStartDate(asked: AskedAlerts, position: Pick<AssessedPosition, 'vacancyStartDate'>) {
+  return asked.alert.length === 0 ? position.vacancyStartDate : null;
+}
+
 /**
  * the alert and its deadline go together: "retirement within six months" leaves out a retirement in ten
  * months, even beside a proposal next month
  */
-export function alertFacetValues(asked: AskedAlerts): {
+export function alertFacetValues(
+  asked: AskedAlerts,
+  today: DateOnly,
+): {
   alert: (alerts: readonly HolderAlert[]) => PositionAlert[];
-  deadline: (alerts: readonly HolderAlert[]) => AlertDeadline[];
+  deadline: (position: Pick<AssessedPosition, 'alerts' | 'vacancyStartDate'>) => AlertDeadline[];
 } {
   return {
     alert: (alerts) => alerts.filter((alert) => ofAsked({ ...asked, alert: [] }, alert)).map(({ id }) => id),
-    deadline: (alerts) => deadlinesOf(alerts.filter((alert) => ofAsked({ ...asked, deadline: [] }, alert))),
+    deadline: (position) => {
+      const vacancyStartDate = askedVacancyStartDate(asked, position);
+      return deadlinesOf([
+        ...position.alerts.filter((alert) => ofAsked({ ...asked, deadline: [] }, alert)),
+        ...(vacancyStartDate ? [{ deadline: deadlineOf(vacancyStartDate, today) }] : []),
+      ]);
+    },
   };
 }
 
@@ -45,7 +65,7 @@ export function sortedByUrgency<Position extends AssessedPosition>(
     if (position.status.id === 'VACANT') return Number.NEGATIVE_INFINITY;
 
     const times = [
-      position.vacancyStartDate,
+      askedVacancyStartDate(asked, position),
       position.alerts.find((alert) => ofAsked(asked, alert))?.dueDate,
     ].flatMap((date) => (date ? [date.toDate().getTime()] : []));
     return times.length > 0 ? Math.min(...times) : undefined;

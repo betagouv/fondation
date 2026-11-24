@@ -53,10 +53,27 @@ const VACANT = position('vacant', null);
 
 describe('alertFacetValues', () => {
   it('ties the deadline asked to the alert asked', () => {
-    const values = alertFacetValues({ alert: ['RETIREMENT'], deadline: ['WITHIN_SIX_MONTHS'] });
+    const values = alertFacetValues({ alert: ['RETIREMENT'], deadline: ['WITHIN_SIX_MONTHS'] }, TODAY);
 
     expect(values.alert(LATER_RETIREMENT.alerts)).toEqual(['PROPOSED_IN_SESSION']);
-    expect(values.deadline(LATER_RETIREMENT.alerts)).toEqual(['WITHIN_TWELVE_MONTHS']);
+    expect(values.deadline(LATER_RETIREMENT)).toEqual(['WITHIN_TWELVE_MONTHS']);
+  });
+
+  it('answers the deadline of a declared vacancy', () => {
+    const values = alertFacetValues(NO_FILTER, TODAY);
+
+    expect(values.deadline(position('vacancy in eight months', {}, new DateOnly(2027, 7, 21)))).toEqual([
+      'WITHIN_TWELVE_MONTHS',
+    ]);
+    expect(values.deadline(position('vacancy started', {}, new DateOnly(2026, 11, 1)))).toEqual([
+      'WITHIN_SIX_MONTHS',
+      'WITHIN_TWELVE_MONTHS',
+    ]);
+    expect(values.deadline(position('vacancy in two years', {}, new DateOnly(2028, 11, 13)))).toEqual([]);
+  });
+
+  it('leaves out a declared vacancy when an alert is asked', () => {
+    expect(alertFacetValues({ alert: ['RETIREMENT'], deadline: [] }, TODAY).deadline(DECLARED)).toEqual([]);
   });
 });
 
@@ -92,6 +109,22 @@ describe('sortedByUrgency', () => {
       'retirement in three months',
       'occupied without alert',
     ]);
+  });
+
+  it('leaves out a declared vacancy from the sort when an alert is asked', () => {
+    const declaredBeforeRetirement = position(
+      'retirement in ten months, vacancy declared next month',
+      { birthDate: new DateOnly(1960, 9, 13) },
+      new DateOnly(2026, 12, 13),
+    );
+
+    expect(
+      sortedByUrgency(
+        [declaredBeforeRetirement, SOON_RETIREMENT],
+        { alert: ['RETIREMENT'], deadline: [] },
+        false,
+      ).map(({ name }) => name),
+    ).toEqual(['retirement in three months', 'retirement in ten months, vacancy declared next month']);
   });
 
   it('sorts on the alerts asked, not on a nearer one', () => {

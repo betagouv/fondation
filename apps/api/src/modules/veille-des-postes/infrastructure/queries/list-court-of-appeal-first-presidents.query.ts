@@ -105,7 +105,7 @@ export class ListCourtOfAppealFirstPresidentsQuery {
     const { counts, matching } = facetedRows(
       rows,
       { alert: query.alerts, deadline: query.deadlines, status: query.statuses },
-      statusAndAlertValues,
+      (asked) => statusAndAlertValues(asked, today),
     );
     const sorted =
       query.sorting.sortBy === 'status'

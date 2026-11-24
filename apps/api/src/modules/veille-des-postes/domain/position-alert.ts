@@ -158,12 +158,12 @@ export function alertsOf(holder: HolderFacts, rules: AlertRules, today: DateOnly
 }
 
 /** the deadlines a holder answers: an alert within six months is within twelve months too */
-export function deadlinesOf(alerts: readonly HolderAlert[]): AlertDeadline[] {
+export function deadlinesOf(alerts: readonly { deadline: AlertDeadline | null }[]): AlertDeadline[] {
   if (alerts.some(({ deadline }) => deadline === 'WITHIN_SIX_MONTHS')) return [...ALERT_DEADLINES];
   return alerts.some(({ deadline }) => deadline === 'WITHIN_TWELVE_MONTHS') ? ['WITHIN_TWELVE_MONTHS'] : [];
 }
 
-function deadlineOf(dueDate: DateOnly, today: DateOnly): AlertDeadline | null {
+export function deadlineOf(dueDate: DateOnly, today: DateOnly): AlertDeadline | null {
   if (!isAfter(dueDate, plusMonths(today, 6))) return 'WITHIN_SIX_MONTHS';
   return isAfter(dueDate, plusMonths(today, 12)) ? null : 'WITHIN_TWELVE_MONTHS';
 }

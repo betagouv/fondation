@@ -116,7 +116,7 @@ export class ListCourtOfCassationHoldersQuery {
     const { counts, matching } = facetedRows(
       rows,
       { alert: query.alerts, deadline: query.deadlines, position: query.positions, status: query.statuses },
-      (asked) => ({ ...statusAndAlertValues(asked), position: (row) => [row.positionId] }),
+      (asked) => ({ ...statusAndAlertValues(asked, today), position: (row) => [row.positionId] }),
     );
     const sorted =
       query.sorting.sortBy === 'status'
