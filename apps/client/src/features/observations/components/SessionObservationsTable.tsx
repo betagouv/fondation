@@ -10,6 +10,7 @@ import {
 import {
   DataTable,
   DataTableFilters,
+  loadFailureOf,
   rowCell,
   type TableMetaFilterEnum,
   useDataTableSearch,
@@ -41,25 +42,34 @@ export function SessionObservationsTable(props: {
     sorting: [{ desc: true, id: 'dateReception' }] as [{ desc: boolean; id: SessionObservationsSortBy }],
   });
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
-    useInfiniteSessionObservationsQuery({
-      filters: {
-        followUps: tableState.columnFilters.find(({ id }) => id === 'followUps')?.value ?? [],
-        search: tableState.globalFilter ?? '',
-        // the URL may carry any column: only the observed magistrat replaces the reception date
-        sortBy: tableState.sorting[0]?.id === 'observedMagistrat' ? 'observedMagistrat' : 'dateReception',
-        sortDesc: tableState.sorting[0]?.desc ?? true,
-      },
-      sessionId: props.sessionId,
-    });
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isError,
+    isFetching,
+    isFetchingNextPage,
+    isFetchNextPageError,
+    isLoading,
+    refetch,
+  } = useInfiniteSessionObservationsQuery({
+    filters: {
+      followUps: tableState.columnFilters.find(({ id }) => id === 'followUps')?.value ?? [],
+      search: tableState.globalFilter ?? '',
+      // the URL may carry any column: only the observed magistrat replaces the reception date
+      sortBy: tableState.sorting[0]?.id === 'observedMagistrat' ? 'observedMagistrat' : 'dateReception',
+      sortDesc: tableState.sorting[0]?.desc ?? true,
+    },
+    sessionId: props.sessionId,
+  });
 
   const search = useDataTableSearch(tableState.globalFilter ?? '', (globalFilter) =>
     setTableState((state) => ({ ...state, globalFilter })),
   );
 
   const fetchMore = useCallback(() => {
-    if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+    if (hasNextPage && !isFetchingNextPage && !isFetchNextPageError) void fetchNextPage();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage, isFetchNextPageError]);
 
   const columns = useMemo(() => {
     const followUps: TableMetaFilterEnum = {
@@ -174,6 +184,7 @@ export function SessionObservationsTable(props: {
         }
         fluid
         isLoading={isLoading}
+        loadError={loadFailureOf({ fetchNextPage, isError, isFetching, isFetchNextPageError, refetch })}
         onEndReached={fetchMore}
         scrollsWithPage
         table={table}
