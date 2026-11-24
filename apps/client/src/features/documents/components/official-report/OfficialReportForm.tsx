@@ -99,8 +99,8 @@ export function OfficialReportForm() {
   const secretaries = useMemo(() => secretariesData?.items ?? [], [secretariesData]);
   const isRequestedAgendaListed = agendas?.items.some(({ id }) => id === requestedAgendaId) ?? false;
   // the table's button names the agenda: it stays chosen unless the fresh list no longer offers it
-  const isAgendaRequested =
-    !officialReportId && requestedAgendaId !== null && (!areAgendasFresh || isRequestedAgendaListed);
+  const lockedAgendaId =
+    !officialReportId && (!areAgendasFresh || isRequestedAgendaListed) ? requestedAgendaId : null;
 
   const defaultValues = useMemo(
     () => ({
@@ -187,11 +187,10 @@ export function OfficialReportForm() {
 
   // a cached list can predate the notice and the selection is never redone once the fresh one arrives
   useEffect(() => {
-    if (officialReportId || !requestedAgendaId || !areAgendasFresh || getValues('agendaId')) return;
-    if (!isRequestedAgendaListed) return;
+    if (!areAgendasFresh || !lockedAgendaId || getValues('agendaId')) return;
 
-    setValue('agendaId', requestedAgendaId, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
-  }, [areAgendasFresh, getValues, isRequestedAgendaListed, officialReportId, requestedAgendaId, setValue]);
+    setValue('agendaId', lockedAgendaId, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
+  }, [areAgendasFresh, getValues, lockedAgendaId, setValue]);
 
   const onAgendaSelected = useCallback(
     (event: ChangeEvent<HTMLSelectElement>) => {
@@ -214,20 +213,22 @@ export function OfficialReportForm() {
         control={control}
         render={({ field }) => (
           <Select
-            disabled={Boolean(officialReportId) || isAgendaRequested || (agendas?.items ?? []).length === 0}
-            hint={
-              isAgendaRequested && (
-                <FormattedMessage defaultMessage="Choisi depuis le tableau de la documentation" />
-              )
+            disabled={
+              Boolean(officialReportId) || lockedAgendaId !== null || (agendas?.items ?? []).length === 0
             }
-            state={errors.agendaId ? 'error' : 'default'}
-            stateRelatedMessage={errors.agendaId?.message}
-            nativeSelectProps={{ ...field, onChange: onAgendaSelected }}
+            hint={
+              field.value === lockedAgendaId ? (
+                <FormattedMessage defaultMessage="Choisi depuis le tableau de la documentation" />
+              ) : undefined
+            }
             label={
               <RequiredLabel>
                 <FormattedMessage defaultMessage="Ordre du jour" />
               </RequiredLabel>
             }
+            nativeSelectProps={{ ...field, onChange: onAgendaSelected }}
+            state={errors.agendaId ? 'error' : 'default'}
+            stateRelatedMessage={errors.agendaId?.message}
           >
             <option value="" disabled>
               <FormattedMessage defaultMessage="Sélectionner un ordre du jour" />

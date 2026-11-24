@@ -70,12 +70,15 @@ function OfficialReportFormTree(
   props: Pick<
     Partial<OfficialReportContextType>,
     'changedSinceValidation' | 'officialReportId' | 'report'
-  > & { fromMenu?: boolean } = {},
+  > & { requestedAgendaId?: string | null } = {},
 ) {
+  const { requestedAgendaId = 'agenda-1' } = props;
   return (
     <IntlProvider defaultLocale="fr" locale="fr">
       <MemoryRouter
-        initialEntries={[{ pathname: '/', state: props.fromMenu ? null : { agendaId: 'agenda-1' } }]}
+        initialEntries={[
+          { pathname: '/', state: requestedAgendaId ? { agendaId: requestedAgendaId } : null },
+        ]}
       >
         <OfficialReportContext
           value={{
@@ -129,11 +132,28 @@ describe('OfficialReportForm', () => {
     const agenda = screen.getByRole('combobox', { name: /Ordre du jour/ });
     await waitFor(() => expect(agenda).toHaveValue('agenda-1'));
     expect(agenda).toBeDisabled();
+    expect(agenda).toHaveAccessibleName(/Choisi depuis le tableau de la documentation/);
+  });
+
+  it('should not claim a choice while the agenda list is still the cached one', () => {
+    mocks.agendas = { data: agendaList(null), isFetchedAfterMount: false };
+    render(<OfficialReportFormTree />);
+
+    const agenda = screen.getByRole('combobox', { name: /Ordre du jour/ });
+    expect(agenda).toBeDisabled();
+    expect(agenda).not.toHaveAccessibleName(/Choisi depuis le tableau/);
+  });
+
+  it('should let the agenda be chosen when the fresh list no longer offers the requested one', () => {
+    mocks.agendas = { data: agendaList(null), isFetchedAfterMount: true };
+    render(<OfficialReportFormTree requestedAgendaId="agenda-with-a-report" />);
+
+    expect(screen.getByRole('combobox', { name: /Ordre du jour/ })).toBeEnabled();
   });
 
   it('should let the agenda be chosen when the form opens from the menu', () => {
     mocks.agendas = { data: agendaList(null), isFetchedAfterMount: true };
-    render(<OfficialReportFormTree fromMenu />);
+    render(<OfficialReportFormTree requestedAgendaId={null} />);
 
     expect(screen.getByRole('combobox', { name: /Ordre du jour/ })).toBeEnabled();
   });
