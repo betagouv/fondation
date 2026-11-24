@@ -97,6 +97,10 @@ export function OfficialReportForm() {
   });
 
   const secretaries = useMemo(() => secretariesData?.items ?? [], [secretariesData]);
+  const isRequestedAgendaListed = agendas?.items.some(({ id }) => id === requestedAgendaId) ?? false;
+  // the table's button names the agenda: it stays chosen unless the fresh list no longer offers it
+  const isAgendaRequested =
+    !officialReportId && requestedAgendaId !== null && (!areAgendasFresh || isRequestedAgendaListed);
 
   const defaultValues = useMemo(
     () => ({
@@ -184,10 +188,10 @@ export function OfficialReportForm() {
   // a cached list can predate the notice and the selection is never redone once the fresh one arrives
   useEffect(() => {
     if (officialReportId || !requestedAgendaId || !areAgendasFresh || getValues('agendaId')) return;
-    if (!agendas?.items.some(({ id }) => id === requestedAgendaId)) return;
+    if (!isRequestedAgendaListed) return;
 
     setValue('agendaId', requestedAgendaId, { shouldDirty: true, shouldTouch: true, shouldValidate: true });
-  }, [agendas, areAgendasFresh, getValues, officialReportId, requestedAgendaId, setValue]);
+  }, [areAgendasFresh, getValues, isRequestedAgendaListed, officialReportId, requestedAgendaId, setValue]);
 
   const onAgendaSelected = useCallback(
     (event: ChangeEvent<HTMLSelectElement>) => {
@@ -210,7 +214,12 @@ export function OfficialReportForm() {
         control={control}
         render={({ field }) => (
           <Select
-            disabled={Boolean(officialReportId) || (agendas?.items ?? []).length === 0}
+            disabled={Boolean(officialReportId) || isAgendaRequested || (agendas?.items ?? []).length === 0}
+            hint={
+              isAgendaRequested && (
+                <FormattedMessage defaultMessage="Choisi depuis le tableau de la documentation" />
+              )
+            }
             state={errors.agendaId ? 'error' : 'default'}
             stateRelatedMessage={errors.agendaId?.message}
             nativeSelectProps={{ ...field, onChange: onAgendaSelected }}
