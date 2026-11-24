@@ -27,7 +27,6 @@ import type {
 } from '@api/types';
 
 import { agendaKeys, officialReportKeys, presentationPlanKeys } from './agenda.queries';
-import { archivedSessionKeys } from './archived-nomination-sessions.queries';
 
 type NonNullableKey<Parts extends unknown[], Rest extends unknown[] = []> = Parts extends never[]
   ? Rest
@@ -872,14 +871,14 @@ export function useArchiveNominationSessionMutation(input: { sessionId: string }
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () => $api.sessions.archiveSession({ path: { sessionId: input.sessionId } }),
-    onSettled: () =>
-      Promise.allSettled([
-        queryClient.invalidateQueries({
-          queryKey: sessionKeys.detailSession({ sessionId: input.sessionId }),
-        }),
-        queryClient.invalidateQueries({ queryKey: sessionKeys.listGdsSessions() }),
-        queryClient.invalidateQueries({ queryKey: archivedSessionKeys.listArchivedGdsSessions() }),
-      ]),
+    onSettled: () => {
+      const isSession = doesQueryKey.matchesAny(sessionKeys.detailSession({ sessionId: input.sessionId }));
+      // archiving freezes every view of the session (files, auditions, observations, summaries, documents),
+      // whose queries are spread across the query files: only the displayed ones refetch, without delaying the toast
+      void queryClient.invalidateQueries({ predicate: (query) => !isSession(query) });
+      // the banner and the read-only actions come with the reloaded session
+      return queryClient.invalidateQueries({ predicate: isSession });
+    },
   });
 }
 

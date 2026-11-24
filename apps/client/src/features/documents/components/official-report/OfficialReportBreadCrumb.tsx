@@ -2,14 +2,14 @@ import { useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import { generatePath, matchPath, useLocation, useParams } from 'react-router';
 
-import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
+import { useSessionBreadcrumbRoot } from '@/utils/transparences-breadcrumb.utils';
 import { useDetailedNominationSessionQuery } from '@queries/nomination-sessions.queries';
 
 export function OfficialReportBreadCrumb() {
   const { formatMessage } = useIntl();
-  const breadcrumbRoot = useBreadcrumbRoot();
+  const sessionRootOf = useSessionBreadcrumbRoot('SG');
   const { sessionId = '' } = useParams<{ sessionId: string }>();
   const { pathname } = useLocation();
   const { data: session } = useDetailedNominationSessionQuery({ sessionId });
@@ -37,7 +37,7 @@ export function OfficialReportBreadCrumb() {
       breadcrumb={{
         currentPageLabel: label,
         segments: [
-          ...breadcrumbRoot,
+          ...sessionRootOf(session),
           {
             to: generatePath(ROUTE_PATHS.SG.GDS.SESSION_ID, { sessionId }),
             label: session?.name ?? formatMessage({ defaultMessage: 'Session' }),

@@ -2,11 +2,12 @@ import { FormattedMessage, useIntl } from 'react-intl';
 
 import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
+import type { SessionSpace } from '@/utils/route-path.utils';
 import { useMemberBreadcrumbRoot } from '@/utils/transparences-breadcrumb.utils';
 
-import { ArchivedSessionsTable, type Space } from './ArchivedSessionsTable';
+import { ArchivedSessionsTable } from './ArchivedSessionsTable';
 
-export function ArchivedSessions(props: { space: Space; withFormationFilter: boolean }) {
+export function ArchivedSessions(props: { space: SessionSpace; withFormationFilter: boolean }) {
   const { formatMessage } = useIntl();
   const breadcrumbRoot = useBreadcrumbRoot();
   const memberRoot = useMemberBreadcrumbRoot();

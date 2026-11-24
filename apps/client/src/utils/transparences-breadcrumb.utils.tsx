@@ -1,9 +1,10 @@
 import { useCallback, useMemo } from 'react';
 import { useIntl } from 'react-intl';
 
+import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import type { BreadcrumbVM } from '@/shared/ui/Breadcrumb';
 
-import { getDetailSessionGdsPath, ROUTE_PATHS } from './route-path.utils';
+import { getDetailSessionGdsPath, ROUTE_PATHS, SESSION_SPACES, type SessionSpace } from './route-path.utils';
 import { assertNever } from './types.util';
 
 export enum TransparencesCurrentPage {
@@ -11,15 +12,17 @@ export enum TransparencesCurrentPage {
   gdsReport = 'gds-report',
 }
 
+type BreadcrumbSession = { isArchived: boolean; name: string };
+
 type TransparencesCurrentPageType =
   | {
       name: typeof TransparencesCurrentPage.perGdsTransparencyReports;
-      session: { name: string };
+      session: BreadcrumbSession;
     }
   | {
       name: typeof TransparencesCurrentPage.gdsReport;
       nominationFileName: string;
-      session: { id: string; name: string };
+      session: BreadcrumbSession & { id: string };
     };
 
 export function useMemberBreadcrumbRoot(): BreadcrumbVM['segments'] {
@@ -30,20 +33,44 @@ export function useMemberBreadcrumbRoot(): BreadcrumbVM['segments'] {
   );
 }
 
-export function useTransparencesBreadCrumb(): (currentPage: TransparencesCurrentPageType) => BreadcrumbVM {
+export function useSessionBreadcrumbRoot(
+  space: SessionSpace,
+): (session: { isArchived: boolean } | null | undefined) => BreadcrumbVM['segments'] {
+  const { formatMessage } = useIntl();
+  // the secretariat's sessions live in the GDS, even on a common page such as the summary, opened in a new tab
+  const sgRoot = useBreadcrumbRoot('GDS');
   const memberRoot = useMemberBreadcrumbRoot();
+  const root = space === 'SG' ? sgRoot : memberRoot;
+
+  return useCallback(
+    (session) =>
+      session?.isArchived
+        ? [
+            ...root,
+            {
+              label: formatMessage({ defaultMessage: 'Sessions archivées' }),
+              to: SESSION_SPACES[space].archivedSessions,
+            },
+          ]
+        : root,
+    [formatMessage, root, space],
+  );
+}
+
+export function useTransparencesBreadCrumb(): (currentPage: TransparencesCurrentPageType) => BreadcrumbVM {
+  const sessionRootOf = useSessionBreadcrumbRoot('TRANSPARENCES');
 
   return useCallback(
     (currentPage: TransparencesCurrentPageType): BreadcrumbVM => {
       switch (currentPage.name) {
         case TransparencesCurrentPage.perGdsTransparencyReports:
-          return { currentPageLabel: currentPage.session.name, segments: memberRoot };
+          return { currentPageLabel: currentPage.session.name, segments: sessionRootOf(currentPage.session) };
 
         case TransparencesCurrentPage.gdsReport:
           return {
             currentPageLabel: currentPage.nominationFileName,
             segments: [
-              ...memberRoot,
+              ...sessionRootOf(currentPage.session),
               {
                 label: currentPage.session.name,
                 to: getDetailSessionGdsPath({ sessionId: currentPage.session.id }),
@@ -55,6 +82,6 @@ export function useTransparencesBreadCrumb(): (currentPage: TransparencesCurrent
           return assertNever(currentPage);
       }
     },
-    [memberRoot],
+    [sessionRootOf],
   );
 }

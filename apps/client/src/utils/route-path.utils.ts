@@ -95,6 +95,16 @@ export const ROUTE_PATHS = {
   },
 } as const;
 
+/** the spaces a GDS session is read from: the secretariat's and the members' */
+export const SESSION_SPACES = {
+  SG: { archivedSessions: ROUTE_PATHS.SG.GDS.ARCHIVED_SESSIONS, session: ROUTE_PATHS.SG.GDS.SESSION_ID },
+  TRANSPARENCES: {
+    archivedSessions: ROUTE_PATHS.TRANSPARENCES.ARCHIVED_SESSIONS,
+    session: ROUTE_PATHS.TRANSPARENCES.DETAIL_SESSION_GDS,
+  },
+} as const;
+export type SessionSpace = keyof typeof SESSION_SPACES;
+
 type RoutePath = typeof ROUTE_PATHS;
 
 export type FondationPath<Node = RoutePath> = Node extends string ? Node : FondationPath<Node[keyof Node]>;

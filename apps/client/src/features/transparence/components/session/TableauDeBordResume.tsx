@@ -1,5 +1,5 @@
 import Button from '@codegouvfr/react-dsfr/Button';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { FormattedMessage } from 'react-intl';
 
 import { FormationBadge } from '@/shared/components/formation-badge';
@@ -15,10 +15,11 @@ import { TransparenceActions } from './TransparenceActions';
 export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) => {
   const { isArchived } = useArchivedSession();
   const [editStatus, setEditStatus] = useState<'closing' | 'editing' | 'idle'>('idle');
+  const titleRef = useRef<HTMLHeadingElement>(null);
 
   return (
     <div className="flex w-full flex-col">
-      <h1 className="fr-h4 fr-mb-0 flex flex-wrap items-center gap-x-3">
+      <h1 className="fr-h4 fr-mb-0 flex flex-wrap items-center gap-x-3" ref={titleRef} tabIndex={-1}>
         <FormationBadge formation={transparence.formation} />
         <span className="hyphens-auto text-(--text-title-blue-france)">{transparence.name}</span>
         {transparence.date && (
@@ -49,7 +50,8 @@ export const TableauDeBordResume = (transparence: DetailedNominationSessionDto) 
             </Button>
           )}
 
-          <TransparenceActions transparence={transparence} />
+          {/* the archive button disappears once archived: the focus goes to the title */}
+          <TransparenceActions onArchived={() => titleRef.current?.focus()} transparence={transparence} />
         </div>
       </Collapse>
 
