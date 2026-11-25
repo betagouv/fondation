@@ -5352,10 +5352,10 @@ export type ResetAgendaFileBlockData = {
     body?: never;
     path: {
         agendaId: string;
-        fileId: string;
+        nominationFileId: string;
     };
     query?: never;
-    url: '/api/docs/v1/agendas/{agendaId}/blocks/files/{fileId}';
+    url: '/api/docs/v1/agendas/{agendaId}/blocks/files/{nominationFileId}';
 };
 
 export type ResetAgendaFileBlockResponses = {
@@ -5368,10 +5368,10 @@ export type EditAgendaFileBlockData = {
     body: EditAgendaFileBlockDto;
     path: {
         agendaId: string;
-        fileId: string;
+        nominationFileId: string;
     };
     query?: never;
-    url: '/api/docs/v1/agendas/{agendaId}/blocks/files/{fileId}';
+    url: '/api/docs/v1/agendas/{agendaId}/blocks/files/{nominationFileId}';
 };
 
 export type EditAgendaFileBlockResponses = {

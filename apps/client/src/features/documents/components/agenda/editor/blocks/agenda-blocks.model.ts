@@ -326,13 +326,13 @@ export class AgendaEditionBlockPersistor {
 
   reset({ block }: AgendaEditionBlock): Promise<unknown> {
     return $api.docs.resetAgendaFileBlock({
-      path: { agendaId: this.agendaId, fileId: block.fileId },
+      path: { agendaId: this.agendaId, nominationFileId: block.fileId },
     });
   }
 
   persist({ block }: AgendaEditionBlock): Promise<unknown> {
     return $api.docs.editAgendaFileBlock({
-      path: { agendaId: this.agendaId, fileId: block.fileId },
+      path: { agendaId: this.agendaId, nominationFileId: block.fileId },
       body: { html: block.html, outdated: block.outdated },
     });
   }

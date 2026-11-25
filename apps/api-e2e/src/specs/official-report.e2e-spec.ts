@@ -389,7 +389,7 @@ test.describe('Official report', () => {
     const html = `<strong>MME HANNAH ARENDT</strong>, réécrite à la main dans l'ordre du jour.`;
     const editedBlock = await agent.docs.editAgendaFileBlock({
       body: { html, outdated: false },
-      path: { agendaId, fileId: firstBlock!.id },
+      path: { agendaId, nominationFileId: firstBlock!.id },
     });
     expect(editedBlock.response?.status).toBe(204);
 
@@ -409,7 +409,7 @@ test.describe('Official report', () => {
     const later = `<strong>MME HANNAH ARENDT</strong>, corrigée dans l'ordre du jour après coup.`;
     await agent.docs.editAgendaFileBlock({
       body: { html: later, outdated: false },
-      path: { agendaId, fileId: firstBlock!.id },
+      path: { agendaId, nominationFileId: firstBlock!.id },
     });
 
     const whileAgendaDrafts = await agent.docs.detailsOfficialReportDocument({ path: { officialReportId } });
@@ -450,7 +450,7 @@ test.describe('Official report', () => {
     const later = `<strong>MME HANNAH ARENDT</strong>, réécrite après la validation du procès-verbal.`;
     await agent.docs.editAgendaFileBlock({
       body: { html: later, outdated: false },
-      path: { agendaId, fileId: firstBlock!.id },
+      path: { agendaId, nominationFileId: firstBlock!.id },
     });
     await agent.docs.validateAgenda({ path: { agendaId } });
 
@@ -480,7 +480,7 @@ test.describe('Official report', () => {
     const later = `<strong>MME HANNAH ARENDT</strong>, réécrite après la validation du procès-verbal.`;
     await agent.docs.editAgendaFileBlock({
       body: { html: later, outdated: false },
-      path: { agendaId, fileId: firstBlock!.id },
+      path: { agendaId, nominationFileId: firstBlock!.id },
     });
     await agent.docs.validateAgenda({ path: { agendaId } });
 

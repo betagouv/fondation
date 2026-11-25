@@ -360,22 +360,22 @@ Dans les dossiers d'un magistrat, un Membre ne voit que l'affectation et les aud
 
 ### Ordres du jour
 
-| Action                             | Endpoint                                                 | Membre | Secrétariat général | Administrateur |
-| ---------------------------------- | -------------------------------------------------------- | ------ | ------------------- | -------------- |
-| Créer un ordre du jour             | `POST /docs/v1/sessions/:sessionId/agendas`              | —      | ✓                   | ✓              |
-| Voir l'ordre du jour d'une session | `GET /docs/v1/sessions/:sessionId/agendas/:agendaId`     | —      | ✓                   | ✓              |
-| Voir les métadonnées               | `GET /docs/v1/agendas/:agendaId`                         | —      | ✓                   | ✓              |
-| Modifier les métadonnées           | `PUT /docs/v1/agendas/:agendaId/metadata`                | —      | ✓                   | ✓              |
-| Voir les dossiers                  | `GET /docs/v1/agendas/:agendaId/files`                   | —      | ✓                   | ✓              |
-| Modifier les dossiers              | `PUT /docs/v1/agendas/:agendaId/files`                   | —      | ✓                   | ✓              |
-| Voir les blocs du document         | `GET /docs/v1/agendas/:agendaId/blocks`                  | —      | ✓                   | ✓              |
-| Retoucher le bloc d'un dossier     | `PATCH /docs/v1/agendas/:agendaId/blocks/files/:fileId`  | —      | ✓                   | ✓              |
-| Rétablir le bloc d'un dossier      | `DELETE /docs/v1/agendas/:agendaId/blocks/files/:fileId` | —      | ✓                   | ✓              |
-| Abandonner le brouillon            | `DELETE /docs/v1/agendas/:agendaId/draft`                | —      | ✓                   | ✓              |
-| Valider                            | `POST /docs/v1/agendas/:agendaId/validation`             | —      | ✓                   | ✓              |
-| Générer le HTML                    | `GET /docs/v1/agendas/:agendaId.html`                    | —      | ✓                   | ✓              |
-| Générer le PDF                     | `GET /docs/v1/agendas/:agendaId.pdf`                     | —      | ✓                   | ✓              |
-| Supprimer                          | `DELETE /docs/v1/agendas/:agendaId`                      | —      | ✓                   | ✓              |
+| Action                             | Endpoint                                                           | Membre | Secrétariat général | Administrateur |
+| ---------------------------------- | ------------------------------------------------------------------ | ------ | ------------------- | -------------- |
+| Créer un ordre du jour             | `POST /docs/v1/sessions/:sessionId/agendas`                        | —      | ✓                   | ✓              |
+| Voir l'ordre du jour d'une session | `GET /docs/v1/sessions/:sessionId/agendas/:agendaId`               | —      | ✓                   | ✓              |
+| Voir les métadonnées               | `GET /docs/v1/agendas/:agendaId`                                   | —      | ✓                   | ✓              |
+| Modifier les métadonnées           | `PUT /docs/v1/agendas/:agendaId/metadata`                          | —      | ✓                   | ✓              |
+| Voir les dossiers                  | `GET /docs/v1/agendas/:agendaId/files`                             | —      | ✓                   | ✓              |
+| Modifier les dossiers              | `PUT /docs/v1/agendas/:agendaId/files`                             | —      | ✓                   | ✓              |
+| Voir les blocs du document         | `GET /docs/v1/agendas/:agendaId/blocks`                            | —      | ✓                   | ✓              |
+| Retoucher le bloc d'un dossier     | `PATCH /docs/v1/agendas/:agendaId/blocks/files/:nominationFileId`  | —      | ✓                   | ✓              |
+| Rétablir le bloc d'un dossier      | `DELETE /docs/v1/agendas/:agendaId/blocks/files/:nominationFileId` | —      | ✓                   | ✓              |
+| Abandonner le brouillon            | `DELETE /docs/v1/agendas/:agendaId/draft`                          | —      | ✓                   | ✓              |
+| Valider                            | `POST /docs/v1/agendas/:agendaId/validation`                       | —      | ✓                   | ✓              |
+| Générer le HTML                    | `GET /docs/v1/agendas/:agendaId.html`                              | —      | ✓                   | ✓              |
+| Générer le PDF                     | `GET /docs/v1/agendas/:agendaId.pdf`                               | —      | ✓                   | ✓              |
+| Supprimer                          | `DELETE /docs/v1/agendas/:agendaId`                                | —      | ✓                   | ✓              |
 
 ### Procès-verbaux
 

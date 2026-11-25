@@ -98,7 +98,7 @@ describe('AgendaEditionBlock', () => {
 
       expect(editFile).toHaveBeenCalledWith(
         expect.objectContaining({
-          path: { agendaId: 'agenda-1', fileId: '42' },
+          path: { agendaId: 'agenda-1', nominationFileId: '42' },
           body: { html: '<strong>Contenu</strong>', outdated: true },
         }),
       );
@@ -123,7 +123,7 @@ describe('AgendaEditionBlock', () => {
 
       expect(resetFile).toHaveBeenCalledWith(
         expect.objectContaining({
-          path: { agendaId: 'agenda-1', fileId: '42' },
+          path: { agendaId: 'agenda-1', nominationFileId: '42' },
         }),
       );
     });
