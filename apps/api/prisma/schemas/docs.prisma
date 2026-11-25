@@ -194,6 +194,12 @@ model OfficialReportVersion {
   sessionMeetingEndingTime   DateTime @map("session_meeting_ending_time") @db.Time
   hasRenunciation            Boolean  @map("has_renunciation")
 
+  // what the intro of the stored html, the one its PDF prints, says of the agenda and the session: written
+  // with the html for the screen of a validated report to tell what its PDF does; a draft reads them live
+  agendaDate             DateTime? @map("agenda_date") @db.Date
+  agendaPropositionCount Int?      @map("agenda_proposition_count")
+  sessionDate            DateTime? @map("session_date") @db.Date
+
   justiceDepartmentContactId   BigInt? @map("justice_department_contact_id")
   justiceDepartmentContactName String  @map("justice_department_contact_name")
 

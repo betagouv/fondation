@@ -55,6 +55,8 @@ export class OfficialReportRenderContextFinder {
     const report = await this.db.tx.officialReportVersion.findUnique({
       select: {
         ...RECORDED_SIGNATORIES,
+        agendaDate: true,
+        agendaPropositionCount: true,
         chairman: { select: { ...SIGNATORY_ACCOUNT, sort: true } },
         conclusionHtml: true,
         conclusionOutdated: true,
@@ -131,6 +133,7 @@ export class OfficialReportRenderContextFinder {
         secretary: { select: SIGNATORY_ACCOUNT },
         sectionIntros: { select: { html: true, outcome: true } },
         sectionTitles: { select: { outcome: true, title: true } },
+        sessionDate: true,
         sessionMeetingDate: true,
         sessionMeetingEndingTime: true,
         sessionMeetingStartingTime: true,
@@ -177,12 +180,24 @@ export class OfficialReportRenderContextFinder {
       ),
     );
 
-    const session = await this.sessions.internalGetSession({ sessionId: agenda.sessionId });
-
     const formation = prismaFormationEnumToFormationEnum(agenda.formation);
 
     // a validated report never changes: it reads as the validation recorded it
     const isValidated = report.status === 'VALIDATED';
+    // a validation needs a stored PDF, whose render recorded these; a PDF the former code rendered during
+    // the deploy recorded nothing, and its report reads today's values as it did before
+    const printed =
+      isValidated && report.agendaDate && report.sessionDate && isDefined(report.agendaPropositionCount)
+        ? {
+            agendaDate: DateOnly.fromUtcDate(report.agendaDate),
+            propositionCount: report.agendaPropositionCount,
+            sessionDate: DateOnly.fromUtcDate(report.sessionDate),
+          }
+        : {
+            agendaDate: DateOnly.fromUtcDate(agendaContent.date),
+            propositionCount: agendaContent._count.nominationFiles,
+            sessionDate: (await this.sessions.internalGetSession({ sessionId: agenda.sessionId })).date,
+          };
     const { chairman, secretary } = isValidated
       ? recordedSignatories(report)
       : this.currentSignatories(report, { formation, officialReportId: query.officialReportId });
@@ -268,10 +283,10 @@ export class OfficialReportRenderContextFinder {
 
     return {
       agenda: {
-        date: DateOnly.fromUtcDate(agendaContent.date),
+        date: printed.agendaDate,
         formation,
         id: agenda.id,
-        propositionCount: agendaContent._count.nominationFiles,
+        propositionCount: printed.propositionCount,
       },
       agendaProposals,
       chairman,
@@ -295,7 +310,7 @@ export class OfficialReportRenderContextFinder {
       justiceDepartmentContact: report.justiceDepartmentContactName,
       members: membersList,
       secretary,
-      session: { date: session.date, id: agenda.sessionId },
+      session: { date: printed.sessionDate, id: agenda.sessionId },
       sessionMeeting,
       userDefinedBlocks: {
         conclusion: userDefinedConclusion,

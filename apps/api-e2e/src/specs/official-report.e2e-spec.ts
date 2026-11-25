@@ -802,6 +802,89 @@ test.describe('Official report', () => {
     });
   });
 
+  test('should show a validated report with the agenda and session dates its PDF prints, changed since', async ({
+    agent,
+    docs,
+    expect,
+    member,
+  }) => {
+    const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
+    const agenda = await docs.agenda(session);
+    const { id: officialReportId } = await docs.officialReport(agenda, { status: 'VALIDATED' });
+    const intro = async () =>
+      (await agent.docs.detailsOfficialReportDocument({ path: { officialReportId } })).data!.blocks.find(
+        ({ kind }) => kind === 'intro',
+      );
+    const validated = await intro();
+
+    await agent.docs.updateAgendaMetadata({
+      body: { chairmanId: docs.chairman.id, date: { day: 3, month: 3, year: 2026 }, sessionMeetingDate: MEETING_DATE },
+      path: { agendaId: agenda.id },
+      throwOnError: true,
+    });
+    await agent.docs.updateAgendaFiles({
+      body: { nominationFileIds: [session.files[0]!.id] },
+      path: { agendaId: agenda.id },
+      throwOnError: true,
+    });
+    const { data: details } = await agent.sessions.detailsNominationSession({ path: { sessionId: session.id } });
+    const iso = ({ day, month, year }: { day: number; month: number; year: number }) =>
+      `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    await agent.sessions.updateNominationSession({
+      body: {
+        date: '2027-04-17',
+        dueDate: details!.dueDate && iso(details!.dueDate),
+        name: details!.name,
+        observationsClosingDate: iso(details!.observationsClosingDate),
+        positionStartDate: details!.positionStartDate && iso(details!.positionStartDate),
+      },
+      path: { sessionId: session.id },
+      throwOnError: true,
+    });
+
+    const { data: report } = await agent.docs.detailsOfficialReport({ path: { officialReportId } });
+    expect(report!.changedSinceValidation).toEqual(
+      expect.arrayContaining(['AGENDA_DATE', 'AGENDA_PROPOSITIONS', 'SESSION_DATE']),
+    );
+    expect(await intro()).toEqual(validated);
+  });
+
+  test('should show a validated report with the agenda its PDF printed, though the agenda was validated again before', async ({
+    agent,
+    docs,
+    expect,
+    member,
+  }) => {
+    const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
+    const agenda = await docs.agenda(session, { status: 'VALIDATED' });
+    const { id: officialReportId } = await docs.officialReport(agenda);
+    const introHtml = async () =>
+      (await agent.docs.detailsOfficialReportDocument({ path: { officialReportId } })).data!.blocks.find(
+        ({ kind }) => kind === 'intro',
+      )?.html;
+    const printed = await introHtml();
+    await agent.docs.generateOfficialReportPdf({
+      parseAs: 'arrayBuffer',
+      path: { officialReportId },
+      throwOnError: true,
+    });
+
+    await agent.docs.updateAgendaMetadata({
+      body: { chairmanId: docs.chairman.id, date: { day: 3, month: 3, year: 2026 }, sessionMeetingDate: MEETING_DATE },
+      path: { agendaId: agenda.id },
+      throwOnError: true,
+    });
+    await agent.docs.updateAgendaFiles({
+      body: { nominationFileIds: [session.files[0]!.id] },
+      path: { agendaId: agenda.id },
+      throwOnError: true,
+    });
+    await agent.docs.validateAgenda({ path: { agendaId: agenda.id }, throwOnError: true });
+    await agent.docs.validateOfficialReport({ path: { officialReportId }, throwOnError: true });
+
+    expect(await introHtml()).toBe(printed);
+  });
+
   test('should name a magistrat first name first, as Lolfi names them today, in the draft opened on a validated report', async ({
     agent,
     docs,
