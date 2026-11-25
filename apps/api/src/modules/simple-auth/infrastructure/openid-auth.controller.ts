@@ -1,9 +1,14 @@
-import { Controller, Get, HttpStatus, Inject, Logger, Post, Query, Res } from '@nestjs/common';
+import { Controller, Get, HttpStatus, Inject, Logger, Post, Query, Req, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { type CookieOptions, type Response as ExpressResponse } from 'express';
+import {
+  type CookieOptions,
+  type Request as ExpressRequest,
+  type Response as ExpressResponse,
+} from 'express';
 import { ZodResponse } from 'nestjs-zod';
 
 import { API_CONFIG_TOKEN, ApiConfig } from '../../framework/config';
+import { RequestEvent } from '../../framework/request-event';
 import { OpenIdProvider } from '../openid';
 import { OpenIdProviderParam } from '../openid/openid.decorator';
 import { SimpleAuthService } from '../simple-auth.service';
@@ -26,6 +31,7 @@ export class OpenIdAuthController {
   constructor(
     private readonly auth: SimpleAuthService,
     private readonly listOpenIdProvidersQuery: ListOpenIdProvidersQuery,
+    private readonly requestEvent: RequestEvent,
 
     @Inject(API_CONFIG_TOKEN)
     private readonly config: ApiConfig,
@@ -49,6 +55,7 @@ export class OpenIdAuthController {
   async callback(
     @Query() query: OpenIdCallbackQueryDto,
     @OpenIdProviderParam() provider: OpenIdProvider,
+    @Req() req: ExpressRequest,
     @Res() res: ExpressResponse,
   ): Promise<void> {
     const redirect = new URL('/login', this.config.frontendOriginUrl);
@@ -58,6 +65,8 @@ export class OpenIdAuthController {
       res.cookie('sessionId', session.id, { ...SESSION_COOKIE_OPTIONS, expires: session.expiresAt });
     } catch (error) {
       this.logger.error('Error while login with openid', error);
+      // Answered by a redirection, the failure reaches no exception filter
+      this.requestEvent.failWith(error, req);
       redirect.searchParams.set('error', 'true');
     }
 

@@ -11,7 +11,7 @@ import {
   Put,
   Req,
   Res,
-  UseFilters,
+  UseInterceptors,
   UsePipes,
 } from '@nestjs/common';
 import { ApiBasicAuth, ApiBody, ApiConsumes, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -30,7 +30,7 @@ import { AuthedUser, HasRole } from './simple-auth.decorator';
 import { SimpleAuthService } from './simple-auth.service';
 
 @ApiTags('Auth')
-@UseFilters(AuthExceptionFilter)
+@UseInterceptors(AuthExceptionFilter)
 @Controller('/api/auth/v2')
 export class SimpleAuthController {
   private static readonly COOKIE_OPTIONS: CookieOptions = {

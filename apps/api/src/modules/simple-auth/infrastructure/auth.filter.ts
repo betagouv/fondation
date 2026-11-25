@@ -1,11 +1,13 @@
 import {
   BadRequestException,
-  Catch,
-  ExceptionFilter,
+  type CallHandler,
+  type ExecutionContext,
   ForbiddenException,
-  InternalServerErrorException,
+  Injectable,
+  type NestInterceptor,
   UnauthorizedException,
 } from '@nestjs/common';
+import { catchError, type Observable, throwError } from 'rxjs';
 
 import {
   AuthUserNotAuthentifiable,
@@ -14,28 +16,25 @@ import {
   WrongCurrentPassword,
 } from '../domain/auth-user';
 
-@Catch(AuthUserNotAuthentifiable, CannotChangePassword, UserNotImpersonable, WrongCurrentPassword)
-export class AuthExceptionFilter implements ExceptionFilter {
-  catch(
-    exception: AuthUserNotAuthentifiable | CannotChangePassword | UserNotImpersonable | WrongCurrentPassword,
-  ) {
-    if (exception instanceof AuthUserNotAuthentifiable) {
-      throw new UnauthorizedException();
-    }
+@Injectable()
+export class AuthExceptionFilter implements NestInterceptor {
+  intercept(_context: ExecutionContext, next: CallHandler): Observable<unknown> {
+    return next
+      .handle()
+      .pipe(catchError((err: unknown) => throwError(() => AuthExceptionFilter.httpException(err))));
+  }
 
-    if (exception instanceof CannotChangePassword) {
-      throw new ForbiddenException();
-    }
-
-    if (exception instanceof UserNotImpersonable) {
-      throw new BadRequestException({ validationError: `Seul le compte actif d'un membre peut être usurpé` });
-    }
-
+  private static httpException(err: unknown): unknown {
+    if (err instanceof AuthUserNotAuthentifiable) return new UnauthorizedException();
+    if (err instanceof CannotChangePassword) return new ForbiddenException();
+    if (err instanceof UserNotImpersonable)
+      return new BadRequestException({
+        validationError: `Seul le compte actif d'un membre peut être usurpé`,
+      });
     // a 400 and not a 401, which the client would take for the end of the session
-    if (exception instanceof WrongCurrentPassword) {
-      throw new BadRequestException({ validationError: `Le mot de passe actuel est incorrect` });
-    }
+    if (err instanceof WrongCurrentPassword)
+      return new BadRequestException({ validationError: `Le mot de passe actuel est incorrect` });
 
-    throw new InternalServerErrorException();
+    return err;
   }
 }

@@ -6,6 +6,7 @@ import cookieParser from 'cookie-parser';
 import { APP_VERSION_HEADER } from './modules/framework/app-version';
 import { API_CONFIG_TOKEN, type ApiConfig } from './modules/framework/config';
 import { openapi } from './modules/framework/openapi';
+import { RequestEvent } from './modules/framework/request-event';
 import { RootModule } from './modules/root.module';
 
 @Module({ imports: [RootModule] })
@@ -25,6 +26,8 @@ export class AppModule {
       origin: config.frontendOriginUrl,
       credentials: true,
     });
+    // After CORS: a preflight carries no user request
+    RequestEvent.mount(app);
     app.use(cookieParser(config.cookieSecret));
     app.enableShutdownHooks();
 
