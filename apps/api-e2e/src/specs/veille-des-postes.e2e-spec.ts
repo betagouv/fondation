@@ -89,6 +89,55 @@ test.describe('Veille des postes E2E', () => {
     });
   });
 
+  test('should filter a vacancy declared in eight months within the next twelve months', async ({
+    agent,
+    expect,
+    sessions,
+  }) => {
+    const lastName = Array.from({ length: 12 }, () => String.fromCharCode(65 + crypto.randomInt(26))).join('');
+    const president = {
+      function: seed.functions.P,
+      grade: 'G3' as const,
+      jurisdiction: seed.jurisdictions['TJ  GRASSE'],
+    };
+    const { files } = await sessions.createOne({
+      candidates: [
+        {
+          birthDate: YOUNG_BIRTH_DATE,
+          firstName: 'ZOE',
+          installationDate: lolfiDateIn(TWO_YEARS_AGO),
+          lastName,
+          position: president,
+          targetPosition: president,
+        },
+      ],
+      // a session beyond twelve months gives the proposal no deadline: only the vacancy answers the filter
+      createdAt: lolfiDateIn({ months: 0, years: 2 }),
+      name: `Transparence ${lastName}`,
+    });
+    const { day, month, year } = dateOnlyIn({ months: 8, years: 0 });
+    await agent.veilleDesPostes.declarePositionVacancy({
+      body: {
+        form: vacancyForm({
+          reason: 'RETIREMENT',
+          startDate: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+        }),
+      },
+      path: { magistratId: files[0]!.magistratId },
+      throwOnError: true,
+    });
+    const listedWithin = async (deadline: 'WITHIN_SIX_MONTHS' | 'WITHIN_TWELVE_MONTHS') => {
+      const { data } = await agent.veilleDesPostes.listJudicialCourtPresidents({
+        query: { deadlines: [deadline], search: lastName },
+        throwOnError: true,
+      });
+      return data.items.map(({ magistrat }) => magistrat?.id);
+    };
+
+    expect(await listedWithin('WITHIN_TWELVE_MONTHS')).toEqual([files[0]!.magistratId]);
+    expect(await listedWithin('WITHIN_SIX_MONTHS')).toEqual([]);
+  });
+
   test('should delete a vacancy once a LOLFI import moved its magistrat', async ({ agent, expect, sessions }) => {
     const lastName = Array.from({ length: 12 }, () => String.fromCharCode(65 + crypto.randomInt(26))).join('');
     const holder = {

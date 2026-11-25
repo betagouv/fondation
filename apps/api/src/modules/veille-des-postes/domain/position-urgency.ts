@@ -1,10 +1,16 @@
 import type { DateOnly } from '../../../utils/date-only';
 
-import { type AlertDeadline, deadlinesOf, type HolderAlert, type PositionAlert } from './position-alert';
+import {
+  type AlertDeadline,
+  deadlineOf,
+  deadlinesOf,
+  type HolderAlert,
+  type PositionAlert,
+} from './position-alert';
 import type { PositionStatus } from './position-status';
 
 export type AskedAlerts = { alert: readonly string[]; deadline: readonly string[] };
-type AssessedPosition = {
+export type AssessedPosition = {
   alerts: HolderAlert[];
   status: { id: PositionStatus };
   vacancyStartDate: DateOnly | null;
@@ -20,15 +26,25 @@ function ofAsked(asked: AskedAlerts, alert: HolderAlert): boolean {
 
 /**
  * the alert and its deadline go together: "retirement within six months" leaves out a retirement in ten
- * months, even beside a proposal next month
+ * months, even beside a proposal next month. A declared vacancy is no alert: its start date answers the deadline
+ * only while no alert is asked
  */
-export function alertFacetValues(asked: AskedAlerts): {
+export function alertFacetValues(
+  asked: AskedAlerts,
+  today: DateOnly,
+): {
   alert: (alerts: readonly HolderAlert[]) => PositionAlert[];
-  deadline: (alerts: readonly HolderAlert[]) => AlertDeadline[];
+  deadline: (position: Pick<AssessedPosition, 'alerts' | 'vacancyStartDate'>) => AlertDeadline[];
 } {
   return {
     alert: (alerts) => alerts.filter((alert) => ofAsked({ ...asked, alert: [] }, alert)).map(({ id }) => id),
-    deadline: (alerts) => deadlinesOf(alerts.filter((alert) => ofAsked({ ...asked, deadline: [] }, alert))),
+    deadline: ({ alerts, vacancyStartDate }) =>
+      deadlinesOf([
+        ...alerts.filter((alert) => ofAsked({ ...asked, deadline: [] }, alert)),
+        ...(vacancyStartDate && asked.alert.length === 0
+          ? [{ deadline: deadlineOf(vacancyStartDate, today) }]
+          : []),
+      ]),
   };
 }
 

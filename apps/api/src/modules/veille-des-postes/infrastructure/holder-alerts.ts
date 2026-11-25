@@ -1,5 +1,6 @@
 import z from 'zod';
 
+import type { DateOnly } from '../../../utils/date-only';
 import {
   ALERT_DEADLINES,
   alertDeadlines,
@@ -8,7 +9,7 @@ import {
   positionAlerts,
 } from '../domain/position-alert';
 import { POSITION_STATUSES, positionStatuses } from '../domain/position-status';
-import { alertFacetValues } from '../domain/position-urgency';
+import { alertFacetValues, type AssessedPosition } from '../domain/position-urgency';
 
 import type { FacetValues } from './faceted-rows';
 
@@ -33,15 +34,14 @@ export const statusAndAlertFacetsSchema = z.object({
   statuses: z.array(z.object({ count: z.number(), id: z.enum(POSITION_STATUSES), label: z.string() })),
 });
 
-type AssessedRow = { alerts: HolderAlert[]; status: { id: string } };
-
-export function statusAndAlertValues<Row extends AssessedRow>(
+export function statusAndAlertValues<Row extends AssessedPosition>(
   asked: Record<'alert' | 'deadline' | 'status', readonly string[]>,
+  today: DateOnly,
 ): FacetValues<Row, 'alert' | 'deadline' | 'status'> {
-  const alertValues = alertFacetValues(asked);
+  const alertValues = alertFacetValues(asked, today);
   return {
     alert: (row) => alertValues.alert(row.alerts),
-    deadline: (row) => alertValues.deadline(row.alerts),
+    deadline: (row) => alertValues.deadline(row),
     status: (row) => [row.status.id],
   };
 }

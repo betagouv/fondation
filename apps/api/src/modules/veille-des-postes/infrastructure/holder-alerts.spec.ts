@@ -13,7 +13,12 @@ function holder(name: string, facts: Partial<HolderFacts>) {
     PRESIDENT,
     TODAY,
   );
-  return { alerts, name, status: { id: alerts.length > 0 ? 'MAY_BECOME_VACANT' : 'OCCUPIED' } };
+  return {
+    alerts,
+    name,
+    status: { id: alerts.length > 0 ? ('MAY_BECOME_VACANT' as const) : ('OCCUPIED' as const) },
+    vacancyStartDate: null,
+  };
 }
 
 const IN_TEN_MONTHS_RETIREMENT = holder('retirement in ten months, proposal next month', {
@@ -33,7 +38,7 @@ describe('statusAndAlertValues', () => {
     const { counts, matching } = facetedRows(
       [IN_TEN_MONTHS_RETIREMENT, SOON_RETIREMENT, WITHOUT_ALERT],
       { alert: ['RETIREMENT'], deadline: ['WITHIN_SIX_MONTHS'], status: [] },
-      statusAndAlertValues,
+      (asked) => statusAndAlertValues(asked, TODAY),
     );
 
     expect(matching.map(({ name }) => name)).toEqual(['retirement in three months']);
