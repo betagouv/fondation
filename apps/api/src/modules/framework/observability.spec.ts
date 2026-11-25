@@ -99,7 +99,7 @@ describe('Sentry', () => {
         headers: { cookie: `sid=${SECRET}` },
         method: 'POST',
         route: { path: '/login' },
-        userId: 'user-id',
+        user: { id: 'user-id', type: 'human' },
       } as unknown as ExpressRequest,
       500,
     );

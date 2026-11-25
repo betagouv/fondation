@@ -50,11 +50,7 @@ export class SentryService {
     Sentry.withScope((scope) => {
       scope.setTags({ url: (route as IRoute).path });
       scope.setExtras({ method, status });
-      if (request.user && request.user.type === 'human') {
-        scope.setUser({ id: request.user.id });
-      } else if (request.userId) {
-        scope.setUser({ id: request.userId });
-      }
+      if (request.user?.type === 'human') scope.setUser({ id: request.user.id });
 
       Sentry.captureException(exception);
     });
