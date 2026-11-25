@@ -55,13 +55,13 @@ drains Scalingo ; Logs Data Platform figure parmi eux.
 Temps de réponse de la liste des dossiers d'une session (`/api/sessions/v2/:sessionId/files`), avec et
 sans l'événement, `npx autocannon`, 20 connexions pendant 30 s, deux passages chacun :
 
-| Mesure                        | Sans l'événement                       | Avec l'événement                  |
-| ----------------------------- | -------------------------------------- | --------------------------------- |
-| Local, moyenne                | 4,57 ms et 4,65 ms                     | 5,32 ms et 5,29 ms                |
-| Local, p50 / p97,5            | 4 ms / 9 ms                            | 5 ms / 10 ms                      |
-| Local, requêtes par seconde   | 3 817 et 3 767                         | 3 536 et 3 561                    |
-| Staging, p50 / p97,5          | 643 ms / 1 005 ms et 611 ms / 1 701 ms | _à mesurer, après le déploiement_ |
-| Staging, requêtes par seconde | 31,6 et 31,4                           | _à mesurer, après le déploiement_ |
+| Mesure                        | Sans l'événement                       | Avec l'événement            |
+| ----------------------------- | -------------------------------------- | --------------------------- |
+| Local, moyenne                | 4,57 ms et 4,65 ms                     | 5,32 ms et 5,29 ms          |
+| Local, p50 / p97,5            | 4 ms / 9 ms                            | 5 ms / 10 ms                |
+| Local, requêtes par seconde   | 3 817 et 3 767                         | 3 536 et 3 561              |
+| Staging, p50 / p97,5          | 643 ms / 1 005 ms et 611 ms / 1 701 ms | _non mesuré, voir plus bas_ |
+| Staging, requêtes par seconde | 31,6 et 31,4                           | _non mesuré, voir plus bas_ |
 
 En local, sans session, chaque requête s'arrête sur une 401 après le middleware, la garde et le filtre
 d'exception : le cas où l'événement pèse le plus, en proportion. L'API y tourne à saturation, et
@@ -71,7 +71,10 @@ de la saturation, il reste ces 20 µs.
 
 Sur staging, avec une session, la même liste (100 dossiers, 180 Ko) plafonne à une trentaine de
 requêtes par seconde : chacune occupe l'API une trentaine de millisecondes, et les 20 µs de l'événement s'y
-perdent. L'écart entre les deux p97,5 « sans » montre le bruit d'une machine partagée.
+perdent. L'écart entre les deux p97,5 « sans », près de 700 ms, montre le bruit d'une machine partagée :
+il dépasse des dizaines de milliers de fois le coût de l'événement, qu'une mesure « avec » sur staging
+ne ferait pas ressortir. Elle n'est donc pas faite ; après le déploiement, staging sert à vérifier que la
+ligne s'écrit avec, en `request.id`, le `request_id` de la ligne du routeur.
 
 ## Options écartées
 
