@@ -3,6 +3,7 @@ import type { Sql } from 'postgres';
 import { test } from '../fixtures.ts';
 import { MEETING_DATE } from '../fixtures/docs.fixture.ts';
 import type { TestStepsAdmin } from '../steps.ts';
+import { isoDate } from '../utils/date.ts';
 import { makeFile } from '../utils/files.ts';
 import { attachmentForm } from '../utils/nomination-file-attachment.ts';
 
@@ -802,7 +803,7 @@ test.describe('Official report', () => {
     });
   });
 
-  test('should show a validated report with the agenda and session dates its PDF prints, changed since', async ({
+  test('should keep the agenda and session dates a validated report prints once they change', async ({
     agent,
     docs,
     expect,
@@ -828,15 +829,13 @@ test.describe('Official report', () => {
       throwOnError: true,
     });
     const { data: details } = await agent.sessions.detailsNominationSession({ path: { sessionId: session.id } });
-    const iso = ({ day, month, year }: { day: number; month: number; year: number }) =>
-      `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     await agent.sessions.updateNominationSession({
       body: {
         date: '2027-04-17',
-        dueDate: details!.dueDate && iso(details!.dueDate),
+        dueDate: details!.dueDate && isoDate(details!.dueDate),
         name: details!.name,
-        observationsClosingDate: iso(details!.observationsClosingDate),
-        positionStartDate: details!.positionStartDate && iso(details!.positionStartDate),
+        observationsClosingDate: isoDate(details!.observationsClosingDate),
+        positionStartDate: details!.positionStartDate && isoDate(details!.positionStartDate),
       },
       path: { sessionId: session.id },
       throwOnError: true,

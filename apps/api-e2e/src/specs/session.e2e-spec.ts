@@ -10,6 +10,7 @@ import { test } from '../fixtures.ts';
 import { strongPassword } from '../fixtures/auth.fixture.ts';
 import * as api from '../generated/api/sdk.ts';
 import type { ImportNominationSessionFromLodamXlsxDto, PaginatedNominationFiles } from '../generated/api/types.ts';
+import { isoDate } from '../utils/date.ts';
 import { makeFile } from '../utils/files.ts';
 import { attachmentForm } from '../utils/nomination-file-attachment.ts';
 import * as seed from '../utils/seed.ts';
@@ -37,10 +38,6 @@ function lodamForm(): ImportNominationSessionFromLodamXlsxDto['form'] {
     ],
     { type: 'application/json' },
   ) as any;
-}
-
-function isoDate(date: { day: number; month: number; year: number }): string {
-  return `${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`;
 }
 
 // the e2e reach the database, not the storage: a path nothing was stored at stands for a lost object

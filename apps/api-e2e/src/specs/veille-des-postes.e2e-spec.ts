@@ -3,6 +3,7 @@ import * as crypto from 'node:crypto';
 import { test } from '../fixtures.ts';
 import type { DeclarePositionVacancyDto } from '../generated/api/types.ts';
 import type { TestStepsAdmin } from '../steps.ts';
+import { isoDate } from '../utils/date.ts';
 import { makeFile } from '../utils/files.ts';
 import * as seed from '../utils/seed.ts';
 
@@ -115,12 +116,11 @@ test.describe('Veille des postes E2E', () => {
       createdAt: lolfiDateIn({ months: 0, years: 2 }),
       name: `Transparence ${lastName}`,
     });
-    const { day, month, year } = dateOnlyIn({ months: 8, years: 0 });
     await agent.veilleDesPostes.declarePositionVacancy({
       body: {
         form: vacancyForm({
           reason: 'RETIREMENT',
-          startDate: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+          startDate: isoDate(dateOnlyIn({ months: 8, years: 0 })),
         }),
       },
       path: { magistratId: files[0]!.magistratId },
