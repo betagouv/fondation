@@ -1,7 +1,8 @@
 import { CIVILITIES, type Civility } from '../../magistrat/domain/magistrat-name';
+import type { CourtOfCassationPosition } from '../../shared/court-of-cassation-position.enum';
 
 import { SUPERIOR_COURT_OF_APPEAL_TYPE_ID } from './court-of-appeal-first-president';
-import type { CourtOfCassationPosition, HolderService } from './court-of-cassation-position';
+import type { HolderService } from './court-of-cassation-position';
 
 type Titles = { man: string; woman: string };
 

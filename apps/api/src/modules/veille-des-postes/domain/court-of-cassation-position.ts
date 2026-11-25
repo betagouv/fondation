@@ -1,15 +1,9 @@
-export const COURT_OF_CASSATION_ID = 'CC  PARIS';
+import {
+  COURT_OF_CASSATION_POSITIONS,
+  type CourtOfCassationPosition,
+} from '../../shared/court-of-cassation-position.enum';
 
-/** in the order of the hierarchy, which sorts the holders */
-export const COURT_OF_CASSATION_POSITIONS = [
-  'FIRST_PRESIDENT',
-  'CHAMBER_PRESIDENT',
-  'COUNSELLOR',
-  'REFERENDARY_COUNSELLOR',
-  'AUDITOR_SECOND_GRADE',
-  'AUDITOR_FIRST_GRADE',
-] as const;
-export type CourtOfCassationPosition = (typeof COURT_OF_CASSATION_POSITIONS)[number];
+export const COURT_OF_CASSATION_ID = 'CC  PARIS';
 
 export const HOLDER_SERVICES = ['EXTRAORDINARY', 'ORDINARY'] as const;
 export type HolderService = (typeof HOLDER_SERVICES)[number];
