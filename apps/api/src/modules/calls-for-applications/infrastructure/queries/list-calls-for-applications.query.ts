@@ -13,11 +13,16 @@ import {
   CALL_FOR_APPLICATIONS_ACTIONS,
   CALL_FOR_APPLICATIONS_FIELDS,
   CALL_FOR_APPLICATIONS_STATUSES,
+  CALL_FOR_APPLICATIONS_TYPES,
   type CallForApplicationsStatus,
+  type CallForApplicationsType,
   callForApplicationsFieldOf,
   canChange,
   callForApplicationsStatusOf,
   callForApplicationsTypeOf,
+  sortedByHierarchy,
+  targetLabelOf,
+  targetPositionOf,
 } from '../../domain/call-for-applications';
 import { type CallForApplicationsPeriod, periodOf, yearsOf } from '../../domain/call-for-applications-period';
 import {
@@ -28,6 +33,7 @@ import {
   callForApplicationsFieldSchema,
   callForApplicationsStatusSchema,
   callForApplicationsTypeSchema,
+  targetPositionSchema,
 } from '../call-for-applications.dto';
 
 @Injectable()
@@ -45,6 +51,7 @@ export class ListCallsForApplicationsQuery {
     period: CallForApplicationsPeriod;
     sorting: Sortable<CallForApplicationsSortableColumn>;
     statuses: readonly CallForApplicationsStatus[];
+    types: readonly CallForApplicationsType[];
     years: readonly number[];
   }): Promise<ListedCallsForApplicationsDto> {
     const today = DateOnly.fromInstantInParis(this.clock.now());
@@ -56,6 +63,7 @@ export class ListCallsForApplicationsQuery {
         id: true,
         publishedOn: true,
         status: true,
+        targetPositions: { select: { position: true } },
         type: true,
       } satisfies Prisma.CallForApplicationsSelect,
     });
@@ -65,6 +73,7 @@ export class ListCallsForApplicationsQuery {
         createdOn: DateOnly.fromUtcDate(row.createdOn),
         deadline: DateOnly.fromOptionalUtcDate(row.deadline),
         publishedOn: DateOnly.fromOptionalUtcDate(row.publishedOn),
+        targetPositions: sortedByHierarchy(row.targetPositions.map(({ position }) => position)),
       }))
       .filter((call) => periodOf(call, today) === query.period);
     // an empty filter keeps every value
@@ -74,7 +83,8 @@ export class ListCallsForApplicationsQuery {
           (call) =>
             query.years.length === 0 || yearsOf(call, today).some((year) => query.years.includes(year)),
         )
-        .filter((call) => query.statuses.length === 0 || query.statuses.includes(call.status)),
+        .filter((call) => query.statuses.length === 0 || query.statuses.includes(call.status))
+        .filter((call) => query.types.length === 0 || query.types.includes(call.type)),
       query.sorting,
     );
 
@@ -111,12 +121,15 @@ export class ListCallsForApplicationsQuery {
           id: call.id,
           publishedOn: call.publishedOn?.toJson() ?? null,
           status: callForApplicationsStatusOf(call.status),
+          targetLabel: targetLabelOf(call),
+          targetPositions: call.targetPositions.map(targetPositionOf),
           type: callForApplicationsTypeOf(call.type),
         })),
         pagination: query.pagination,
         totalCount: listed.length,
       }),
       statuses: CALL_FOR_APPLICATIONS_STATUSES.map(callForApplicationsStatusOf),
+      types: CALL_FOR_APPLICATIONS_TYPES.map(callForApplicationsTypeOf),
       // the current year stays offered even before its first call
       years: [...new Set([today.toJson().year, ...calls.flatMap((call) => yearsOf(call, today))])].toSorted(
         (a, b) => b - a,
@@ -146,10 +159,15 @@ export class ListedCallsForApplicationsDto extends createPaginatedZodDto(
     id: z.uuid(),
     publishedOn: dateOnlyJsonSchema.nullable(),
     status: callForApplicationsStatusSchema,
+    /** what the call targets as the list shows it */
+    targetLabel: z.string(),
+    /** the positions picked to fill the form of an update */
+    targetPositions: z.array(targetPositionSchema),
     type: callForApplicationsTypeSchema,
   }),
   z.object({
     statuses: z.array(callForApplicationsStatusSchema),
+    types: z.array(callForApplicationsTypeSchema),
     /** the years with a call in the period, the most recent first */
     years: z.array(z.number().int()),
   }),

@@ -1,4 +1,4 @@
-/** the positions of the Cour de cassation, in the order of the hierarchy */
+/** the positions of the Cour de cassation from the highest to the lowest */
 export const COURT_OF_CASSATION_POSITIONS = [
   'FIRST_PRESIDENT',
   'CHAMBER_PRESIDENT',

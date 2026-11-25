@@ -8,7 +8,11 @@ import {
 } from '@nestjs/common';
 import { catchError, Observable, throwError } from 'rxjs';
 
-import { DeadlineBeforePublication, PublishedCallLocked } from '../domain/call-for-applications';
+import {
+  DeadlineBeforePublication,
+  MissingTargetPosition,
+  PublishedCallLocked,
+} from '../domain/call-for-applications';
 
 @Injectable()
 export class CallsForApplicationsFilter implements NestInterceptor {
@@ -20,6 +24,8 @@ export class CallsForApplicationsFilter implements NestInterceptor {
             return new BadRequestException({
               validationError: 'La date limite ne peut pas précéder la date de publication',
             });
+          if (err instanceof MissingTargetPosition)
+            return new BadRequestException({ validationError: 'Choisissez au moins un poste cible' });
           if (err instanceof PublishedCallLocked)
             return new ConflictException({
               validationError: 'Seul un administrateur peut modifier ou supprimer un appel publié',

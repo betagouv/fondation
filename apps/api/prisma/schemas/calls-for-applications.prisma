@@ -8,6 +8,8 @@ model CallForApplications {
   status      PrismaCallForApplicationsStatusEnum @default(UNPUBLISHED)
   type        PrismaCallForApplicationsTypeEnum
 
+  targetPositions CallForApplicationsTargetPosition[]
+
   @@map("call_for_applications")
   @@schema("nominations_context")
 }
@@ -21,6 +23,7 @@ enum PrismaCallForApplicationsStatusEnum {
 }
 
 enum PrismaCallForApplicationsTypeEnum {
+  CCASS
   GENERAL
 
   @@map("call_for_applications_type_enum")
@@ -67,8 +70,33 @@ enum PrismaCallForApplicationsFieldEnum {
   COMMENT
   DEADLINE
   PUBLISHED_ON
+  TARGET_POSITIONS
   TYPE
 
   @@map("call_for_applications_field_enum")
+  @@schema("nominations_context")
+}
+
+// the positions of the Cour de cassation targeted by a call
+model CallForApplicationsTargetPosition {
+  callId   String                             @map("call_id") @db.Uuid
+  position PrismaCourtOfCassationPositionEnum
+
+  call CallForApplications @relation(fields: [callId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([callId, position], name: "primaryKey")
+  @@map("call_for_applications_target_position")
+  @@schema("nominations_context")
+}
+
+enum PrismaCourtOfCassationPositionEnum {
+  AUDITOR_FIRST_GRADE
+  AUDITOR_SECOND_GRADE
+  CHAMBER_PRESIDENT
+  COUNSELLOR
+  FIRST_PRESIDENT
+  REFERENDARY_COUNSELLOR
+
+  @@map("court_of_cassation_position_enum")
   @@schema("nominations_context")
 }

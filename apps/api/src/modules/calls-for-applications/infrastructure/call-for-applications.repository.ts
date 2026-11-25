@@ -32,6 +32,7 @@ export class CallForApplicationsRepository {
         id: true,
         publishedOn: true,
         status: true,
+        targetPositions: { select: { position: true } },
         type: true,
       } satisfies Prisma.CallForApplicationsSelect,
       where: { id },
@@ -42,6 +43,7 @@ export class CallForApplicationsRepository {
       ...call,
       deadline: DateOnly.fromOptionalUtcDate(call.deadline),
       publishedOn: DateOnly.fromOptionalUtcDate(call.publishedOn),
+      targetPositions: call.targetPositions.map(({ position }) => position),
     });
   }
 
@@ -57,7 +59,12 @@ export class CallForApplicationsRepository {
 
   private async persistCreated(message: CallForApplicationsCreated) {
     await this.db.tx.callForApplications.create({
-      data: { ...columnsOf(message.metadata), createdOn: message.createdOn.toDate(), id: message.id },
+      data: {
+        ...columnsOf(message.metadata),
+        createdOn: message.createdOn.toDate(),
+        id: message.id,
+        targetPositions: { create: message.metadata.targetPositions.map((position) => ({ position })) },
+      },
     });
     await this.journal('CREATED', message);
   }
@@ -78,6 +85,10 @@ export class CallForApplicationsRepository {
     });
     if (count === 0) throw new NotFoundException();
 
+    await this.db.tx.callForApplicationsTargetPosition.deleteMany({ where: { callId: message.id } });
+    await this.db.tx.callForApplicationsTargetPosition.createMany({
+      data: message.metadata.targetPositions.map((position) => ({ callId: message.id, position })),
+    });
     await this.journal('UPDATED', message, message.fields);
   }
 

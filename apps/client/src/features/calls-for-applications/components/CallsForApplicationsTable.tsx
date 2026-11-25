@@ -10,6 +10,7 @@ import { knownValues, stringValues } from '@/utils/known-values.utils';
 import {
   type CallForApplications,
   type CallForApplicationsStatus,
+  type CallForApplicationsType,
   type CallsForApplicationsPeriod,
   type CallsForApplicationsSorting,
   useCallsForApplicationsQuery,
@@ -21,26 +22,42 @@ const h = createColumnHelper<CallForApplications>();
 
 type FilterValues = { id: string; label: string }[];
 
-function useCallsForApplicationsColumns(props: { statuses: FilterValues; years: FilterValues }) {
+function useCallsForApplicationsColumns(props: {
+  statuses: FilterValues;
+  types: FilterValues;
+  years: FilterValues;
+}) {
   const { formatDate, formatMessage } = useIntl();
-  const { statuses, years } = props;
+  const { statuses, types, years } = props;
 
   return useMemo(
     () => [
-      // a single type so far: sorting it changes nothing
       h.accessor('type.label', {
-        enableSorting: false,
         header: formatMessage({ defaultMessage: "Type d'appel" }),
         id: 'type',
         // the filters follow the columns: the year, spanning the whole period of a call, comes first
         meta: {
-          filters: {
-            filterId: 'years',
-            label: formatMessage({ defaultMessage: 'Année' }),
-            type: 'enum',
-            values: years,
-          },
+          filters: [
+            {
+              filterId: 'years',
+              label: formatMessage({ defaultMessage: 'Année' }),
+              type: 'enum',
+              values: years,
+            },
+            {
+              filterId: 'types',
+              label: formatMessage({ defaultMessage: 'Type' }),
+              type: 'enum',
+              values: types,
+            },
+          ],
         },
+      }),
+      h.accessor('targetLabel', {
+        enableSorting: false,
+        header: formatMessage({ defaultMessage: 'Cible' }),
+        id: 'target',
+        size: 190,
       }),
       h.accessor('createdOn', {
         cell: ({ getValue, row }) => {
@@ -77,6 +94,7 @@ function useCallsForApplicationsColumns(props: { statuses: FilterValues; years: 
         },
         header: formatMessage({ defaultMessage: 'Date limite' }),
         id: 'deadline',
+        size: 135,
       }),
       h.accessor('status', {
         // the colours of the affectations: published in green, not yet in orange
@@ -113,7 +131,7 @@ function useCallsForApplicationsColumns(props: { statuses: FilterValues; years: 
         size: 140,
       }),
     ],
-    [formatDate, formatMessage, statuses, years],
+    [formatDate, formatMessage, statuses, types, years],
   );
 }
 
@@ -123,10 +141,12 @@ const SORTABLE_COLUMNS = new Set<string>([
   'deadline',
   'publishedOn',
   'status',
+  'type',
 ] satisfies NonNullable<CallsForApplicationsSorting[number]>['id'][]);
 /** the order of the spec, which the API keeps without a column picked */
 const DEFAULT_SORTING: CallsForApplicationsSorting = [];
 const KNOWN_STATUSES: Record<CallForApplicationsStatus, true> = { PUBLISHED: true, UNPUBLISHED: true };
+const KNOWN_TYPES: Record<CallForApplicationsType, true> = { CCASS: true, GENERAL: true };
 const NO_VALUES: FilterValues = [];
 
 export function CallsForApplicationsTable(props: {
@@ -138,7 +158,11 @@ export function CallsForApplicationsTable(props: {
   const [defaultFilters] = useState(() => [{ id: 'years', value: [String(new Date().getFullYear())] }]);
   const { onColumnFiltersChange, onSortingChange, tableState } = useDataTableUrlState({
     // the spec opens on the current year. Once every year is unchecked, the link keeps an empty filter: every year
-    columnFilters: defaultFilters as ({ id: 'statuses'; value: unknown } | { id: 'years'; value: unknown })[],
+    columnFilters: defaultFilters as (
+      | { id: 'statuses'; value: unknown }
+      | { id: 'types'; value: unknown }
+      | { id: 'years'; value: unknown }
+    )[],
     sorting: DEFAULT_SORTING,
   });
   // a saved link can carry a sort the API does not accept
@@ -160,6 +184,7 @@ export function CallsForApplicationsTable(props: {
     period: props.period,
     sorting,
     statuses: knownValues(filterOf('statuses'), KNOWN_STATUSES),
+    types: knownValues(filterOf('types'), KNOWN_TYPES),
     years: checkedYears,
   });
   const fetchMore = useCallback(() => {
@@ -177,6 +202,7 @@ export function CallsForApplicationsTable(props: {
   const table = useReactTable({
     columns: useCallsForApplicationsColumns({
       statuses: data?.statuses ?? NO_VALUES,
+      types: data?.types ?? NO_VALUES,
       years,
     }),
     data: useMemo(() => data?.items ?? [], [data]),

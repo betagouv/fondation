@@ -40,6 +40,7 @@ function metadataOf(body: CreateCallForApplicationsDto | UpdateCallForApplicatio
     comment: body.comment ?? null,
     deadline: dateOf(body.deadline),
     publishedOn: dateOf(body.publishedOn),
+    targetPositions: body.targetPositions ?? [],
     type: body.type,
   };
 }
@@ -94,6 +95,7 @@ export class CallsForApplicationsController {
       period: query.period,
       sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
       statuses: query.statuses ?? [],
+      types: query.types ?? [],
       years: query.years ?? [],
     });
   }

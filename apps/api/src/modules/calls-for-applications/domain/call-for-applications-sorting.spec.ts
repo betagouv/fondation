@@ -7,6 +7,7 @@ function callOf(props: {
   deadline?: DateOnly | null;
   id: string;
   status?: 'PUBLISHED';
+  type?: 'CCASS';
 }) {
   return {
     createdOn: props.createdOn ?? new DateOnly(2026, 11, 1),
@@ -14,6 +15,7 @@ function callOf(props: {
     id: props.id,
     publishedOn: null,
     status: props.status ?? 'UNPUBLISHED',
+    type: props.type ?? 'GENERAL',
   } as const;
 }
 
@@ -43,6 +45,15 @@ describe('sortedCalls', () => {
     expect(sortedCalls(calls, { sortBy: 'status', sortDesc: false }).map(({ id }) => id)).toEqual([
       'unpublished',
       'published',
+    ]);
+  });
+
+  it('lists the general calls before the calls for the Cour de cassation', () => {
+    const calls = [callOf({ id: 'ccass', type: 'CCASS' }), callOf({ id: 'general' })];
+
+    expect(sortedCalls(calls, { sortBy: 'type', sortDesc: false }).map(({ id }) => id)).toEqual([
+      'general',
+      'ccass',
     ]);
   });
 
