@@ -111,22 +111,6 @@ describe('sortedByUrgency', () => {
     ]);
   });
 
-  it('leaves out a declared vacancy from the sort when an alert is asked', () => {
-    const declaredBeforeRetirement = position(
-      'retirement in ten months, vacancy declared next month',
-      { birthDate: new DateOnly(1960, 9, 13) },
-      new DateOnly(2026, 12, 13),
-    );
-
-    expect(
-      sortedByUrgency(
-        [declaredBeforeRetirement, SOON_RETIREMENT],
-        { alert: ['RETIREMENT'], deadline: [] },
-        false,
-      ).map(({ name }) => name),
-    ).toEqual(['retirement in three months', 'retirement in ten months, vacancy declared next month']);
-  });
-
   it('sorts on the alerts asked, not on a nearer one', () => {
     expect(
       sortedByUrgency(

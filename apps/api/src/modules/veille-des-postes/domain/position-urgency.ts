@@ -24,14 +24,10 @@ function ofAsked(asked: AskedAlerts, alert: HolderAlert): boolean {
   );
 }
 
-/** a declared vacancy is no alert: its start date answers the filter and the sort only while no alert is asked */
-function askedVacancyStartDate(asked: AskedAlerts, position: Pick<AssessedPosition, 'vacancyStartDate'>) {
-  return asked.alert.length === 0 ? position.vacancyStartDate : null;
-}
-
 /**
  * the alert and its deadline go together: "retirement within six months" leaves out a retirement in ten
- * months, even beside a proposal next month
+ * months, even beside a proposal next month. A declared vacancy is no alert: its start date answers the deadline
+ * only while no alert is asked
  */
 export function alertFacetValues(
   asked: AskedAlerts,
@@ -42,13 +38,13 @@ export function alertFacetValues(
 } {
   return {
     alert: (alerts) => alerts.filter((alert) => ofAsked({ ...asked, alert: [] }, alert)).map(({ id }) => id),
-    deadline: (position) => {
-      const vacancyStartDate = askedVacancyStartDate(asked, position);
-      return deadlinesOf([
-        ...position.alerts.filter((alert) => ofAsked({ ...asked, deadline: [] }, alert)),
-        ...(vacancyStartDate ? [{ deadline: deadlineOf(vacancyStartDate, today) }] : []),
-      ]);
-    },
+    deadline: ({ alerts, vacancyStartDate }) =>
+      deadlinesOf([
+        ...alerts.filter((alert) => ofAsked({ ...asked, deadline: [] }, alert)),
+        ...(vacancyStartDate && asked.alert.length === 0
+          ? [{ deadline: deadlineOf(vacancyStartDate, today) }]
+          : []),
+      ]),
   };
 }
 
@@ -65,7 +61,7 @@ export function sortedByUrgency<Position extends AssessedPosition>(
     if (position.status.id === 'VACANT') return Number.NEGATIVE_INFINITY;
 
     const times = [
-      askedVacancyStartDate(asked, position),
+      position.vacancyStartDate,
       position.alerts.find((alert) => ofAsked(asked, alert))?.dueDate,
     ].flatMap((date) => (date ? [date.toDate().getTime()] : []));
     return times.length > 0 ? Math.min(...times) : undefined;
