@@ -1,41 +1,14 @@
-import Button from '@codegouvfr/react-dsfr/Button';
 import { useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import { CallForApplicationsModal } from '@/features/calls-for-applications/components/CallForApplicationsModal';
 import { CallsForApplicationsTable } from '@/features/calls-for-applications/components/CallsForApplicationsTable';
+import { CreateCallForApplicationsButton } from '@/features/calls-for-applications/components/CreateCallForApplicationsButton';
 import { PinnedHeader } from '@/shared/components/pinned-header';
 import { useBreadcrumbRoot } from '@/shared/hooks/useBreadcrumbRoot';
 import { Breadcrumb } from '@/shared/ui/Breadcrumb';
 import { LinkTab, LinkTabs } from '@/shared/ui/link-tabs';
 import { ROUTE_PATHS } from '@/utils/route-path.utils';
 import type { CallsForApplicationsPeriod } from '@queries/calls-for-applications.queries';
-
-function CreateCallForApplicationsButton() {
-  // the modal outlives the closing, for it to fade out with its content
-  const [creation, setCreation] = useState<{ open: boolean } | null>(null);
-
-  return (
-    <>
-      <Button
-        className="btn-compact"
-        iconId="fr-icon-add-line"
-        onClick={() => setCreation({ open: true })}
-        size="small"
-      >
-        <FormattedMessage defaultMessage="Créer un appel à candidatures" />
-      </Button>
-      {creation && (
-        <CallForApplicationsModal
-          edited={null}
-          onClose={() => setCreation({ open: false })}
-          onClosed={() => setCreation(null)}
-          open={creation.open}
-        />
-      )}
-    </>
-  );
-}
 
 function CallsForApplicationsPage(props: { period: CallsForApplicationsPeriod }) {
   const { formatMessage } = useIntl();

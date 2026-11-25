@@ -13,6 +13,7 @@ model Jurisdiction {
 
   comments                  CourtComment[]
   targetedByCalls           CallForApplicationsTargetCourt[]
+  changedInCalls            CallForApplicationsChangedCourt[]
   excludedByUserIds         ExcludedJurisdiction[]
   positions                 Position[]
   detectedInNominationFiles DossierDeNomination[]

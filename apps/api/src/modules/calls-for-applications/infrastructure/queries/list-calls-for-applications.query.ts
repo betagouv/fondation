@@ -10,34 +10,82 @@ import { Db } from '../../../framework/database';
 import { createPaginatedZodDto, pageOf, paginate, Pagination } from '../../../framework/pagination';
 import { Sortable } from '../../../framework/sorting';
 import {
+  COURT_OF_CASSATION_POSITIONS,
+  type CourtOfCassationPosition,
+} from '../../../shared/court-of-cassation-position.enum';
+import {
+  type AddedAndRemoved,
   CALL_FOR_APPLICATIONS_ACTIONS,
   CALL_FOR_APPLICATIONS_FIELDS,
   CALL_FOR_APPLICATIONS_STATUSES,
   CALL_FOR_APPLICATIONS_TYPES,
+  type CallForApplicationsField,
+  type CallForApplicationsFieldChange,
   type CallForApplicationsStatus,
   type CallForApplicationsType,
-  callForApplicationsFieldOf,
-  canChange,
+  type LolfiCourt,
   callForApplicationsStatusOf,
   callForApplicationsTypeOf,
+  canChange,
   sortedByHierarchy,
   sortedCourts,
   targetCourtOf,
   targetLabelOf,
   targetPositionOf,
 } from '../../domain/call-for-applications';
+import {
+  callForApplicationsChangedFieldEntriesOf,
+  type ChangedItem,
+} from '../../domain/call-for-applications-history';
 import { type CallForApplicationsPeriod, periodOf, yearsOf } from '../../domain/call-for-applications-period';
 import {
   type CallForApplicationsSortableColumn,
   sortedCalls,
 } from '../../domain/call-for-applications-sorting';
 import {
-  callForApplicationsFieldSchema,
+  callForApplicationsFieldChangeSchema,
   callForApplicationsStatusSchema,
   callForApplicationsTypeSchema,
+  changedTargetSchema,
   targetCourtSchema,
   targetPositionSchema,
 } from '../call-for-applications.dto';
+
+type JournaledItem = { fieldChange: CallForApplicationsFieldChange; label: string };
+
+function addedAndRemovedOf(items: readonly JournaledItem[]): AddedAndRemoved<ChangedItem> {
+  const labelsWith = (change: CallForApplicationsFieldChange) =>
+    items.filter(({ fieldChange }) => fieldChange === change).map(({ label }) => ({ label }));
+  return { added: labelsWith('ADDED'), removed: labelsWith('REMOVED') };
+}
+
+/** the courts or the positions a change journaled for the field (none for another field) */
+function changedItemsOf(
+  field: CallForApplicationsField,
+  change: {
+    changedCourts: readonly { court: LolfiCourt; fieldChange: CallForApplicationsFieldChange }[];
+    changedPositions: readonly {
+      fieldChange: CallForApplicationsFieldChange;
+      position: CourtOfCassationPosition;
+    }[];
+  },
+): AddedAndRemoved<ChangedItem> {
+  if (field === 'TARGET_COURTS')
+    return addedAndRemovedOf(
+      sortedCourts(change.changedCourts.map(({ court, fieldChange }) => ({ ...court, fieldChange }))).map(
+        (court) => ({ fieldChange: court.fieldChange, label: targetCourtOf(court).label }),
+      ),
+    );
+  if (field === 'TARGET_POSITIONS')
+    return addedAndRemovedOf(
+      COURT_OF_CASSATION_POSITIONS.flatMap((position) =>
+        change.changedPositions
+          .filter((changed) => changed.position === position)
+          .map(({ fieldChange }) => ({ fieldChange, label: targetPositionOf(position).label })),
+      ),
+    );
+  return { added: [], removed: [] };
+}
 
 @Injectable()
 export class ListCallsForApplicationsQuery {
@@ -103,7 +151,23 @@ export class ListCallsForApplicationsQuery {
         at: true,
         author: { select: { firstName: true, id: true, lastName: true } },
         callId: true,
-        fields: { select: { field: true } },
+        changedCourts: {
+          select: {
+            court: { select: { codejur: true, libelle: true, typeJur: true, ville_jur: true } },
+            fieldChange: true,
+          },
+        },
+        changedPositions: { select: { fieldChange: true, position: true } },
+        fields: {
+          select: {
+            dateAfter: true,
+            dateBefore: true,
+            field: true,
+            fieldChange: true,
+            typeAfter: true,
+            typeBefore: true,
+          },
+        },
       } satisfies Prisma.CallForApplicationsChangeSelect,
       where: { callId: { in: page.map(({ id }) => id) } },
     });
@@ -121,9 +185,23 @@ export class ListCallsForApplicationsQuery {
               action: change.action,
               at: change.at.toISOString(),
               by: writerOf(change.author),
-              fields: CALL_FOR_APPLICATIONS_FIELDS.filter((field) =>
-                change.fields.some((changed) => changed.field === field),
-              ).map(callForApplicationsFieldOf),
+              changes: change.fields
+                .toSorted(
+                  (a, b) =>
+                    CALL_FOR_APPLICATIONS_FIELDS.indexOf(a.field) -
+                    CALL_FOR_APPLICATIONS_FIELDS.indexOf(b.field),
+                )
+                .flatMap(({ fieldChange, ...journaled }) =>
+                  callForApplicationsChangedFieldEntriesOf(
+                    {
+                      ...journaled,
+                      change: fieldChange,
+                      dateAfter: DateOnly.fromOptionalUtcDate(journaled.dateAfter),
+                      dateBefore: DateOnly.fromOptionalUtcDate(journaled.dateBefore),
+                    },
+                    changedItemsOf(journaled.field, change),
+                  ),
+                ),
             })),
           id: call.id,
           publishedOn: call.publishedOn?.toJson() ?? null,
@@ -160,8 +238,18 @@ export class ListedCallsForApplicationsDto extends createPaginatedZodDto(
         action: z.enum(CALL_FOR_APPLICATIONS_ACTIONS),
         at: z.iso.datetime(),
         by: writerSchema,
-        /** the fields an update touched, in the order of the form */
-        fields: z.array(callForApplicationsFieldSchema),
+        /** what an update did in the order of the form: a list changed both ways gives two entries */
+        changes: z.array(
+          z.object({
+            change: callForApplicationsFieldChangeSchema,
+            /** the field as the sentence names it after the verb with its values or its items */
+            label: z.string(),
+            /** the courts or the positions too many to name in the sentence (null when the sentence names them) */
+            targets: z
+              .object({ added: z.array(changedTargetSchema), removed: z.array(changedTargetSchema) })
+              .nullable(),
+          }),
+        ),
       }),
     ),
     id: z.uuid(),
