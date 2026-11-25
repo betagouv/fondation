@@ -179,12 +179,6 @@ export function FollowedUpObservationsTable() {
         sortDescFirst: true,
       }),
       h.display({
-        cell: rowCell<FollowedUpObservation>(({ observation }) => observation.nominationFile.number ?? '-'),
-        header: intl.formatMessage({ defaultMessage: 'N°' }),
-        id: 'fileNumber',
-        size: 50,
-      }),
-      h.display({
         cell: rowCell<FollowedUpObservation>(({ observation }) => <ObservedCell observation={observation} />),
         header: intl.formatMessage({ defaultMessage: 'Magistrat observé' }),
         id: 'observed',
