@@ -34,7 +34,7 @@ export class CatchEverythingFilter implements ExceptionFilter {
     const level: 'warn' | 'error' = status >= 500 ? 'error' : 'warn';
     this.logger[level](
       `${request.path} - ${status}`,
-      'cause' in (exception as any) ? (exception as any).cause : exception,
+      exception instanceof Error && exception.cause !== undefined ? exception.cause : exception,
     );
 
     const exceptionResponse = exception instanceof HttpException ? exception.getResponse() : {};

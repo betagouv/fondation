@@ -12,6 +12,13 @@ class FailingController {
   fail(): never {
     throw new Error('boom');
   }
+
+  @Get('string')
+  failWithString(): never {
+    // A library can throw a value that is not an Error
+    // oxlint-disable-next-line typescript/only-throw-error
+    throw 'timeout';
+  }
 }
 
 @Global()
@@ -39,5 +46,15 @@ describe('CatchEverythingFilter', () => {
 
     expect(response.status).toBe(500);
     expect(sentry.captureException).toHaveBeenCalledWith(expect.any(Error), expect.anything(), 500);
+  });
+
+  it('should report once to Sentry a thrown value that is not an Error', async () => {
+    vi.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
+    sentry.captureException.mockClear();
+
+    const response = await fetch(`${await app.getUrl()}/string`);
+
+    expect(response.status).toBe(500);
+    expect(sentry.captureException.mock.calls.map(([exception]) => exception)).toEqual(['timeout']);
   });
 });
