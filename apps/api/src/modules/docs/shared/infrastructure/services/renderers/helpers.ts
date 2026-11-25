@@ -1,6 +1,6 @@
 import { DateOnlyJson } from '../../../../../../utils/date-only';
 import { DateOnly } from '../../../../../../utils/date-only';
-import { unaccent } from '../../../../../../utils/unaccent';
+import { lowerFirst } from '../../../../../../utils/french-words';
 import { fullname } from '../../../../../../utils/user.util';
 import { GenderEnum } from '../../../../../shared/gender.enum';
 import { UserTitleEnum } from '../../../../../shared/user-title.enum';
@@ -40,10 +40,6 @@ export function displayTitled(props: {
   return `${output}, ${lowerFirst(title)}`;
 }
 
-export function lowerFirst(label: string): string {
-  return label.charAt(0).toLowerCase() + label.slice(1);
-}
-
 const shortDate = new Intl.DateTimeFormat('fr', {
   day: '2-digit',
   month: '2-digit',
@@ -66,12 +62,6 @@ export function date(date: DateOnly | DateOnlyJson, format: DateFormat = 'dd/MM/
   // In French only the first of the month takes an ordinal
   const formatted = longDate.format(dateOnly.toDate());
   return new SafeHtml(dateOnly.toJson().day === 1 ? formatted.replace(/^1 /, `1<sup>er</sup> `) : formatted);
-}
-
-const elidingInitials = new Set(['a', 'e', 'i', 'o', 'u', 'y', 'h']);
-export function requiresElision(word: string): boolean {
-  const first = unaccent(word).trim()[0]?.toLowerCase();
-  return !!first && elidingInitials.has(first);
 }
 
 /**

@@ -1,11 +1,10 @@
 import { addMonths } from 'date-fns';
 
 import { DateOnly } from '../../../utils/date-only';
+import { frenchDate } from '../../../utils/french-date';
 import type { Civility } from '../../magistrat/domain/magistrat-name';
 import type { CourtOfCassationPosition } from '../../shared/court-of-cassation-position.enum';
 import type { NominationFileOutcomeEnum } from '../../shared/nomination-file-outcome.enum';
-
-import { frenchDate } from './french-date';
 
 export const POSITION_ALERTS = ['RETIREMENT', 'SEVEN_YEARS_ON_POSITION', 'PROPOSED_IN_SESSION'] as const;
 export type PositionAlert = (typeof POSITION_ALERTS)[number];

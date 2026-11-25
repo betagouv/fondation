@@ -1,3 +1,4 @@
+import { lowerFirst } from '../../../utils/french-words';
 import { CIVILITIES, type Civility } from '../../magistrat/domain/magistrat-name';
 import { SUPERIOR_COURT_OF_APPEAL_TYPE_ID } from '../../shared/court';
 import {
@@ -18,11 +19,6 @@ function titleOf(titles: Titles, civility: Civility | null): string {
   return civility === 'MME' ? titles.woman : titles.man;
 }
 
-/** a sentence lowers the capital of a court label: "Tribunal judiciaire de Grasse" */
-function inSentence(courtLabel: string): string {
-  return courtLabel.charAt(0).toLowerCase() + courtLabel.slice(1);
-}
-
 export function courtOfAppealHeadTitle(holder: {
   civility: Civility | null;
   courtLabel: string;
@@ -31,7 +27,7 @@ export function courtOfAppealHeadTitle(holder: {
   if (holder.courtTypeId === SUPERIOR_COURT_OF_APPEAL_TYPE_ID) return judicialCourtPresidentTitle(holder);
 
   const title = titleOf({ man: 'Premier président', woman: 'Première présidente' }, holder.civility);
-  return `${title} de la ${inSentence(holder.courtLabel)}`;
+  return `${title} de la ${lowerFirst(holder.courtLabel)}`;
 }
 
 export function courtOfCassationHolderTitle(holder: {
@@ -52,5 +48,5 @@ export function judicialCourtPresidentTitle(holder: {
   courtLabel: string;
 }): string {
   const title = titleOf({ man: 'Président', woman: 'Présidente' }, holder.civility);
-  return `${title} du ${inSentence(holder.courtLabel)}`;
+  return `${title} du ${lowerFirst(holder.courtLabel)}`;
 }

@@ -1,6 +1,7 @@
 import { load } from 'cheerio';
 
 import { DateOnly } from '../../../../../../utils/date-only';
+import { requiresElision } from '../../../../../../utils/french-words';
 import { assertIsDefined } from '../../../../../../utils/is-defined';
 import { TimeOnly, timeOnlyToString } from '../../../../../../utils/time-only';
 import { fullname } from '../../../../../../utils/user.util';
@@ -15,7 +16,7 @@ import {
   commonDocumentCss,
   documentLayout,
 } from '../../../../shared/infrastructure/services/renderers/common.html';
-import { date, requiresElision } from '../../../../shared/infrastructure/services/renderers/helpers';
+import { date } from '../../../../shared/infrastructure/services/renderers/helpers';
 import {
   indentedHtml as html,
   SafeHtml,

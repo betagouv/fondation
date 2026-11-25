@@ -1,4 +1,5 @@
 import { DateOnly } from '../../../../../../utils/date-only';
+import { requiresElision } from '../../../../../../utils/french-words';
 import { FormationEnum } from '../../../../../shared/formation.enum';
 import { GenderEnum } from '../../../../../shared/gender.enum';
 import { UserTitleEnum } from '../../../../../shared/user-title.enum';
@@ -10,7 +11,6 @@ import {
   conjunctionList,
   date,
   readsTheSame,
-  requiresElision,
   titled,
 } from '../../../../shared/infrastructure/services/renderers/helpers';
 import { html, SafeHtml } from '../../../../shared/infrastructure/services/renderers/safe-html';

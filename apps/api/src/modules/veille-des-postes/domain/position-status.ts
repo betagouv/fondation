@@ -1,6 +1,6 @@
 import type { DateOnly } from '../../../utils/date-only';
+import { frenchDate } from '../../../utils/french-date';
 
-import { frenchDate } from './french-date';
 import { isDetailRequired, type VacancyReason, vacancyReasonOf } from './position-vacancy';
 
 export const POSITION_STATUSES = ['OCCUPIED', 'MAY_BECOME_VACANT', 'VACANT'] as const;
