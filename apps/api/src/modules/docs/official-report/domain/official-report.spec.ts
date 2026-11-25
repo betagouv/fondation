@@ -563,6 +563,58 @@ describe('OfficialReport', () => {
       expect(report.messages).toEqual([new OfficialReportUpdateSkipped(report.id, 'OUTCOME')]);
     });
 
+    describe('when the agenda is validated again', () => {
+      const withProposition = () =>
+        makeReport({
+          actorId: null,
+          isValidated: true,
+          snapshot: {
+            files: new Map([
+              [
+                'file-1',
+                OfficialReportSnapshotFile.from({
+                  hasManuallyEditedHtml: false,
+                  nominationFileId: 'file-1',
+                  note: { html: null, outdatedBy: null, status: 'GENERATED' },
+                  outcome: { comment: null, value: 'VALIDATED' },
+                  recusedMembers: [],
+                  reporters: [helpers.JOHN_DOE],
+                }),
+              ],
+            ]),
+          },
+        });
+      const agendaValidated = (report: OfficialReport, nominationFileIds: readonly string[]) =>
+        report.invalidate({
+          id: report.id,
+          payload: {
+            files: nominationFileIds.map((nominationFileId) => ({
+              nominationFileId,
+              outcome: { comment: null, value: 'VALIDATED' },
+              recusedMembers: [],
+              reporters: [{ ...helpers.JOHN_DOE, name: 'M. John DOE-RENAMED' }],
+            })),
+          },
+          type: 'AgendaNominationFilesUpdated',
+        });
+
+      it('should say its propositions changed when the agenda adds one', () => {
+        const report = withProposition();
+
+        agendaValidated(report, ['file-1', 'file-2']);
+
+        expect(report.messages).toEqual([new OfficialReportUpdateSkipped(report.id, 'AGENDA_PROPOSITIONS')]);
+      });
+
+      it('should not say its propositions changed when only a reporter was renamed', () => {
+        const report = withProposition();
+
+        agendaValidated(report, ['file-1']);
+
+        expect(report.messages).toEqual([]);
+      });
+    });
+
     it('should have nothing to discard', () => {
       const report = validated();
 

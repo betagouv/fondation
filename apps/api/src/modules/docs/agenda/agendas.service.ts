@@ -206,6 +206,8 @@ export class AgendasService {
       // a validation sent twice waits for the first one, then finds the agenda validated
       await this.lockAgenda(command.agendaId);
 
+      // the other documents speak of the validated version: a new one brings them its date
+      const previousDate = await this.spokenOfDate(command.agendaId);
       await this.announcingSentenceChanges(command.agendaId, async () => {
         const agenda = await this.agendaRepository.find({
           actorId: command.authorId,
@@ -214,8 +216,21 @@ export class AgendasService {
         agenda.validate({ at: this.clock.now(), authorId: command.authorId });
         await this.agendaRepository.persist(agenda);
       });
+      const currentDate = await this.spokenOfDate(command.agendaId);
 
       await this.invalidateDocsUseCase.handle([
+        ...(previousDate && currentDate && !previousDate.equals(currentDate)
+          ? [
+              {
+                payload: {
+                  agendaId: command.agendaId,
+                  currentDate: currentDate.toJson(),
+                  previousDate: previousDate.toJson(),
+                },
+                type: 'AgendaDateUpdated' as const,
+              },
+            ]
+          : []),
         { payload: { agendaId: command.agendaId }, type: 'AgendaValidated' },
       ]);
     });
@@ -303,6 +318,18 @@ export class AgendasService {
         type: 'AgendaFileBlockEdited',
       })),
     );
+  }
+
+  private async spokenOfDate(agendaId: string): Promise<DateOnly | undefined> {
+    const agenda = await this.db.tx.agenda.findUniqueOrThrow({
+      select: {
+        versions: { ...AGENDA_CONTENT_VERSIONS, select: { date: true, status: true } },
+      } satisfies Prisma.AgendaSelect,
+      where: { id: agendaId },
+    });
+    const content = agendaContentOf(agenda.versions);
+
+    return content && DateOnly.fromUtcDate(content.date);
   }
 
   /** the sentence each proposition reads today, empty when the agenda leaves it to the template */

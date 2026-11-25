@@ -48,15 +48,27 @@ export class OfficialReportSnapshot {
     return this.filesSnapshot.files.get(nominationFileId);
   }
 
-  /** a suspension decided since then leaves the files as they are, yet it did happen */
   changedSince(
     command: Exclude<InvalidateOfficialReportCommand, { type: 'AgendaFileBlockEdited' }>,
   ): boolean {
-    if (command.type !== 'NominationFilesOutcomeUpdated') return this.invalidate(command).hasAny;
+    switch (command.type) {
+      // a suspension decided since then leaves the files as they are, yet it did happen
+      case 'NominationFilesOutcomeUpdated':
+        return command.payload.files.some(({ nominationFileId, outcome }) =>
+          this.filesSnapshot.files.get(nominationFileId)?.outcomeDiffers(outcome),
+        );
 
-    return command.payload.files.some(({ nominationFileId, outcome }) =>
-      this.filesSnapshot.files.get(nominationFileId)?.outcomeDiffers(outcome),
-    );
+      // the agenda adds or removes propositions: a renaming, a reporter or an outcome tells its own cause
+      case 'AgendaNominationFilesUpdated': {
+        const nominationFileIds = new Set(
+          command.payload.files.map(({ nominationFileId }) => nominationFileId),
+        );
+        return nominationFileIds.symmetricDifference(new Set(this.filesSnapshot.files.keys())).size > 0;
+      }
+
+      default:
+        return this.invalidate(command).hasAny;
+    }
   }
 
   invalidate(

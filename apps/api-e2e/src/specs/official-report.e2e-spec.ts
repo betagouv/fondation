@@ -849,7 +849,7 @@ test.describe('Official report', () => {
     expect(await intro()).toEqual(validated);
   });
 
-  test('should show a validated report with the agenda its PDF printed, though the agenda was validated again before', async ({
+  test('should print the agenda validated again in a draft report whose PDF was already stored', async ({
     agent,
     docs,
     expect,
@@ -858,11 +858,6 @@ test.describe('Official report', () => {
     const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
     const agenda = await docs.agenda(session, { status: 'VALIDATED' });
     const { id: officialReportId } = await docs.officialReport(agenda);
-    const introHtml = async () =>
-      (await agent.docs.detailsOfficialReportDocument({ path: { officialReportId } })).data!.blocks.find(
-        ({ kind }) => kind === 'intro',
-      )?.html;
-    const printed = await introHtml();
     await agent.docs.generateOfficialReportPdf({
       parseAs: 'arrayBuffer',
       path: { officialReportId },
@@ -882,7 +877,37 @@ test.describe('Official report', () => {
     await agent.docs.validateAgenda({ path: { agendaId: agenda.id }, throwOnError: true });
     await agent.docs.validateOfficialReport({ path: { officialReportId }, throwOnError: true });
 
-    expect(await introHtml()).toBe(printed);
+    // the screen of a validated report reads what its PDF prints
+    const { data } = await agent.docs.detailsOfficialReportDocument({ path: { officialReportId } });
+    const intro = data!.blocks.find(({ kind }) => kind === 'intro');
+    expect(intro).toMatchObject({ html: expect.stringContaining('sur la proposition figurant') });
+    expect(intro).toMatchObject({ html: expect.stringContaining('arrêté le 3 mars 2026') });
+  });
+
+  test('should tell a validated report the agenda validated again changed its date and propositions', async ({
+    agent,
+    docs,
+    expect,
+    member,
+  }) => {
+    const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
+    const agenda = await docs.agenda(session, { status: 'VALIDATED' });
+    const { id: officialReportId } = await docs.officialReport(agenda, { status: 'VALIDATED' });
+
+    await agent.docs.updateAgendaMetadata({
+      body: { chairmanId: docs.chairman.id, date: { day: 3, month: 3, year: 2026 }, sessionMeetingDate: MEETING_DATE },
+      path: { agendaId: agenda.id },
+      throwOnError: true,
+    });
+    await agent.docs.updateAgendaFiles({
+      body: { nominationFileIds: [session.files[0]!.id] },
+      path: { agendaId: agenda.id },
+      throwOnError: true,
+    });
+    await agent.docs.validateAgenda({ path: { agendaId: agenda.id }, throwOnError: true });
+
+    const { data: report } = await agent.docs.detailsOfficialReport({ path: { officialReportId } });
+    expect(report!.changedSinceValidation).toEqual(expect.arrayContaining(['AGENDA_DATE', 'AGENDA_PROPOSITIONS']));
   });
 
   test('should name a magistrat first name first, as Lolfi names them today, in the draft opened on a validated report', async ({
