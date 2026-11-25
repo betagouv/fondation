@@ -5,9 +5,10 @@ import { DateOnly } from '../../../../utils/date-only';
 import { Clock } from '../../../framework/clock';
 import { Db } from '../../../framework/database';
 import type { Civility } from '../../../magistrat/domain/magistrat-name';
+import { isRemovedCourt } from '../../../shared/court';
 import { civilityOf } from '../../domain/holder-title';
 import type { WatchedPosition } from '../../domain/position-alert';
-import { isRemovedCourt, watchedPositionOf } from '../../domain/watched-position';
+import { watchedPositionOf } from '../../domain/watched-position';
 
 export type HeldPosition = {
   birthDate: DateOnly | null;

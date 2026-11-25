@@ -1,6 +1,8 @@
+import { JUDICIAL_COURT_TYPE_IDS } from '../../shared/court';
+
 import { COURT_OF_APPEAL_HEADS } from './court-of-appeal-first-president';
 import { COURT_OF_CASSATION_ID, courtOfCassationPositionOf } from './court-of-cassation-position';
-import { JUDICIAL_COURT_TYPE_IDS, PRESIDENT_FUNCTION_ID } from './judicial-court-president';
+import { PRESIDENT_FUNCTION_ID } from './judicial-court-president';
 import type { WatchedPosition } from './position-alert';
 
 /** the position a table of the veille lists (as its query selects it): null for any other */
@@ -21,16 +23,4 @@ export function watchedPositionOf(lolfi: {
     return 'JUDICIAL_COURT_PRESIDENT';
   }
   return null;
-}
-
-/** a court whose head a table lists */
-export function isWatchedCourt(courtTypeId: string): boolean {
-  return (
-    COURT_OF_APPEAL_HEADS.some((head) => head.jurisdictionTypeId === courtTypeId) ||
-    JUDICIAL_COURT_TYPE_IDS.includes(courtTypeId)
-  );
-}
-
-export function isRemovedCourt(dateSuppression: Date | null, now: Date): boolean {
-  return dateSuppression !== null && dateSuppression <= now;
 }
