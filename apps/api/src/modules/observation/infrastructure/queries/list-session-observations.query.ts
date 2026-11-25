@@ -12,7 +12,7 @@ import { MagistratService } from '../../../magistrat/magistrat.service';
 import type { FoundNominationFile } from '../../../session/transparence/infrastructure/finders/hydrated-nomination-files.finder';
 import { TransparenceService } from '../../../session/transparence/infrastructure/transparence.service';
 import type { RoleEnum } from '../../../shared/role.enum';
-import { sortByObservationBlock } from '../../domain/observation-block';
+import { sortByObservationBlock, sortByObservedMagistrat } from '../../domain/observation-block';
 import type { ObservationFollowUpEnum } from '../../domain/observation-follow-up';
 import type {
   ListedSessionObservationSchema,
@@ -39,7 +39,7 @@ export class ListSessionObservationsQuery {
     pagination: Pagination;
     role: RoleEnum;
     sessionId: string;
-    sortBy: 'dateReception' | null;
+    sortBy: 'dateReception' | 'observedMagistrat' | null;
     sortDesc: boolean;
   }): Promise<ListedSessionObservationsDto> {
     return this.db.withTransaction(async () => {
@@ -72,27 +72,35 @@ export class ListSessionObservationsQuery {
         return [{ ...observation, observant }];
       });
 
-      const sortedFileIds = await this.sessions.internalSortNominationFiles({
-        nominationFileIds: [...new Set(matching.map(({ nominationFileId }) => nominationFileId))],
-      });
+      const nominationFileIds = [...new Set(matching.map(({ nominationFileId }) => nominationFileId))];
+      // every matching file, whatever the sort, in one query: the sort by observed magistrat reads all their
+      // names, and the page is only known once sorted
+      const files = await this.sessions.internalFindNominationFilesByIds({ nominationFileIds });
+      const sortedFileIds = await this.sessions.internalSortNominationFiles({ nominationFileIds });
       const fileRanks = new Map(sortedFileIds.map((id, rank) => [id, rank]));
-      const sorted = sortByObservationBlock(
-        matching.map((observation) => ({
+      const sortable = matching.map((observation) => {
+        const observed = files.get(observation.nominationFileId);
+        assert.ok(observed, `no nomination file ${observation.nominationFileId}`);
+        return {
           ...observation,
           fileRank: fileRanks.get(observation.nominationFileId) ?? sortedFileIds.length,
           observantId: observation.magistratId,
           observantName: observation.observant.name,
+          observed,
           sessionId: query.sessionId,
-        })),
-        // most recent first unless the reception date is explicitly sorted ascending
-        query.sortBy === 'dateReception' && !query.sortDesc ? 'asc' : 'desc',
-      );
+        };
+      });
+      const sorted =
+        query.sortBy === 'observedMagistrat'
+          ? sortByObservedMagistrat(sortable, query.sortDesc ? 'desc' : 'asc')
+          : sortByObservationBlock(
+              sortable,
+              // most recent first unless the reception date is explicitly sorted ascending
+              query.sortBy === 'dateReception' && !query.sortDesc ? 'asc' : 'desc',
+            );
 
       const { limit, page } = query.pagination;
       const pageItems = sorted.slice((page - 1) * limit, page * limit);
-      const files = await this.sessions.internalFindNominationFilesByIds({
-        nominationFileIds: pageItems.map(({ nominationFileId }) => nominationFileId),
-      });
 
       return paginate({
         items: pageItems.map((observation) => toListedSessionObservation(observation, files)),

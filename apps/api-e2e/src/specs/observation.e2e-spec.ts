@@ -562,6 +562,39 @@ test.describe('Observation', () => {
     expect(count.total).toBe(3);
   });
 
+  test('should list the observations of a session by observed magistrat, dossier by dossier', async ({
+    agent,
+    expect,
+    sessions,
+  }) => {
+    const session = await sessions.createOne(SESSION);
+    const [corvisart, daubenton] = session.files;
+    const observe = async (file: { id: string }, magistratId: string, dateReception: string) => {
+      const { data } = await agent.observations.createObservation({
+        body: { form: observationForm({ dateReception, magistratId }) },
+        path: { nominationFileId: file.id, sessionId: session.id },
+        throwOnError: true,
+      });
+      return data.id;
+    };
+    // the two observants share Corvisart's dossier: its rows follow each other, against the blocs of observant
+    const onDaubenton = await observe(daubenton!, corvisart!.magistratId, '2026-05-05');
+    const earlyOnCorvisart = await observe(corvisart!, corvisart!.magistratId, '2026-05-01');
+    const lateOnCorvisart = await observe(corvisart!, daubenton!.magistratId, '2026-05-03');
+
+    const list = async (sortDesc: string) => {
+      const { data } = await agent.observations.listSessionObservations({
+        path: { sessionId: session.id },
+        query: { sortBy: 'observedMagistrat', sortDesc },
+        throwOnError: true,
+      });
+      return data.items.map(({ id }) => id);
+    };
+
+    expect(await list('false')).toEqual([lateOnCorvisart, earlyOnCorvisart, onDaubenton]);
+    expect(await list('true')).toEqual([onDaubenton, lateOnCorvisart, earlyOnCorvisart]);
+  });
+
   test('should list the observations with a suite of every session, by session then bloc of observant', async ({
     agent,
     expect,

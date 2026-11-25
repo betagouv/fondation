@@ -192,15 +192,20 @@ WHERE (
 ORDER BY 
   (CASE WHEN $11::TEXT IS NOT NULL THEN /* queryRank */ TS_RANK(ddn."search", query) END) DESC,
 
+  /* the displayed name: the detected magistrat's birth name then first name, the imported name otherwise */
+  /* TODO: see sortByObservedMagistrat in observation-block.ts, which ignores accents and case whatever the collation */
+
   /* DESC */
-  (CASE WHEN $12::TEXT = 'name' AND $13::TEXT = 'desc' THEN "name" END) DESC,
+  (CASE WHEN $12::TEXT = 'name' AND $13::TEXT = 'desc' THEN COALESCE(detected_magistrat.last_name, ddn."name") END) DESC,
+  (CASE WHEN $12::TEXT = 'name' AND $13::TEXT = 'desc' THEN detected_magistrat.first_name END) DESC,
   (CASE WHEN $12::TEXT = 'targetedPosition' AND $13::TEXT = 'desc' THEN "targeted_position" END) DESC,
   (CASE WHEN $12::TEXT = 'targetedGrade' AND $13::TEXT = 'desc' THEN "sortable_targeted_grade" END) DESC,
   (CASE WHEN $12::TEXT = 'targetedGrade' AND $13::TEXT = 'desc' THEN "number" END) ASC,
   (CASE WHEN ($12::TEXT = 'fileNumber' OR $12::TEXT IS NULL) AND $13::TEXT = 'desc' THEN "number" END) DESC,
 
   /* ASC */
-  (CASE WHEN $12::TEXT = 'name' AND ($13::TEXT = 'asc' OR $13::TEXT IS NULL) THEN "name" END) ASC,
+  (CASE WHEN $12::TEXT = 'name' AND ($13::TEXT = 'asc' OR $13::TEXT IS NULL) THEN COALESCE(detected_magistrat.last_name, ddn."name") END) ASC,
+  (CASE WHEN $12::TEXT = 'name' AND ($13::TEXT = 'asc' OR $13::TEXT IS NULL) THEN detected_magistrat.first_name END) ASC,
   (CASE WHEN $12::TEXT = 'targetedPosition' AND ($13::TEXT = 'asc' OR $13::TEXT IS NULL) THEN "targeted_position" END) ASC,
   (CASE WHEN $12::TEXT = 'targetedGrade' AND ($13::TEXT = 'asc' OR $13::TEXT IS NULL) THEN "sortable_targeted_grade" END) ASC,
   (CASE WHEN ($12::TEXT = ANY('{targetedGrade,fileNumber}'::TEXT[]) OR $12::TEXT IS NULL) AND ($13::TEXT = 'asc' OR $13::TEXT IS NULL) THEN "number" END) ASC

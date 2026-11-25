@@ -5,6 +5,7 @@ import {
   ObservationBlock,
   ObservationBlockTracked,
   sortByObservationBlock,
+  sortByObservedMagistrat,
   sortBySessionThenObservationBlock,
 } from './observation-block';
 
@@ -133,6 +134,98 @@ describe('sortByObservationBlock', () => {
     );
 
     expect(ids(sorted)).toEqual(['june-late', 'june-early', 'march']);
+  });
+});
+
+describe('sortByObservedMagistrat', () => {
+  const observed = (
+    id: string,
+    props: {
+      date?: string;
+      fileRank?: number;
+      firstName?: string;
+      // without a last name, no magistrat is detected on the dossier
+      imported?: string;
+      lastName?: string;
+      observantId?: string;
+      observantName?: string;
+    },
+  ) => ({
+    dateReception: new Date(props.date ?? '2026-03-01'),
+    fileRank: props.fileRank ?? 0,
+    id,
+    observantId: props.observantId ?? id,
+    observantName: props.observantName ?? 'Martin',
+    observed: {
+      detectedMagistrat:
+        props.lastName === undefined ? null : { firstName: props.firstName ?? '', lastName: props.lastName },
+      name: props.imported ?? '',
+    },
+  });
+
+  it('orders the dossiers by birth name in the requested order', () => {
+    const observations = [
+      observed('fabre', { lastName: 'FABRE' }),
+      observed('emile', { lastName: 'ÉMILE' }),
+      observed('durand', { lastName: 'DURAND' }),
+    ];
+
+    expect(ids(sortByObservedMagistrat(observations, 'asc'))).toEqual(['durand', 'emile', 'fabre']);
+    expect(ids(sortByObservedMagistrat(observations, 'desc'))).toEqual(['fabre', 'emile', 'durand']);
+  });
+
+  it('compares the whole birth name before the first name', () => {
+    const observations = [
+      observed('du-gard', { firstName: 'Anne', lastName: 'MARTIN DU GARD' }),
+      observed('martin', { firstName: 'Zoé', lastName: 'MARTIN' }),
+    ];
+
+    expect(ids(sortByObservedMagistrat(observations, 'asc'))).toEqual(['martin', 'du-gard']);
+    expect(ids(sortByObservedMagistrat(observations, 'desc'))).toEqual(['du-gard', 'martin']);
+  });
+
+  it('sorts a dossier without a detected magistrat on its imported name', () => {
+    const observations = [
+      observed('naud', { lastName: 'NAUD' }),
+      observed('imported', { imported: 'MARTIN Paul' }),
+      observed('legrand', { lastName: 'LEGRAND' }),
+    ];
+
+    expect(ids(sortByObservedMagistrat(observations, 'asc'))).toEqual(['legrand', 'imported', 'naud']);
+  });
+
+  it('takes names differing only by accents or case as the same, ordered by file rank in both orders', () => {
+    const observations = [
+      observed('second', { fileRank: 2, firstName: 'Zoe', lastName: 'martin' }),
+      observed('first', { fileRank: 1, firstName: 'Zoé', lastName: 'MARTIN' }),
+    ];
+
+    expect(ids(sortByObservedMagistrat(observations, 'asc'))).toEqual(['first', 'second']);
+    expect(ids(sortByObservedMagistrat(observations, 'desc'))).toEqual(['first', 'second']);
+  });
+
+  it('keeps the rows of a dossier together, most recent first, in both orders', () => {
+    // the other dossier holds the most recent observation, and the oldest row's observant comes first
+    const observations = [
+      observed('other-file', { date: '2026-03-10', fileRank: 2, lastName: 'MARTIN' }),
+      observed('early', { date: '2026-03-01', fileRank: 1, lastName: 'MARTIN', observantName: 'Albert' }),
+      observed('late', { date: '2026-03-05', fileRank: 1, lastName: 'MARTIN', observantName: 'Zola' }),
+    ];
+    const expected = ['late', 'early', 'other-file'];
+
+    expect(ids(sortByObservedMagistrat(observations, 'asc'))).toEqual(expected);
+    expect(ids(sortByObservedMagistrat(observations, 'desc'))).toEqual(expected);
+  });
+
+  it('orders the rows of a dossier received the same day by observant name, in both orders', () => {
+    // the observant ids run against their names
+    const observations = [
+      observed('fabre', { lastName: 'MARTIN', observantId: 'a', observantName: 'Fabre' }),
+      observed('emile', { lastName: 'MARTIN', observantId: 'z', observantName: 'émile' }),
+    ];
+
+    expect(ids(sortByObservedMagistrat(observations, 'asc'))).toEqual(['emile', 'fabre']);
+    expect(ids(sortByObservedMagistrat(observations, 'desc'))).toEqual(['emile', 'fabre']);
   });
 });
 

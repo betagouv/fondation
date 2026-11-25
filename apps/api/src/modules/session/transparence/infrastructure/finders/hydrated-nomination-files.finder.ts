@@ -47,8 +47,10 @@ export type HydratedNominationFile = {
 
 export type FoundNominationFile = {
   currentPosition: string | null;
+  detectedMagistrat: { firstName: string; lastName: string } | null;
   detectedMagistratId: string | null;
   grade: string | null;
+  // the displayed name: the detected magistrat's when there is one, the imported one otherwise
   name: string;
   number: number | null;
   sessionId: string;
@@ -98,7 +100,14 @@ export class HydratedNominationFilesFinder {
     return new Map(
       files.map(({ detectedMagistrat, id, ...file }) => [
         id,
-        { ...file, name: proposedMagistratName({ detectedMagistrat, name: file.name }) },
+        {
+          ...file,
+          detectedMagistrat: detectedMagistrat && {
+            firstName: detectedMagistrat.firstName,
+            lastName: detectedMagistrat.lastName,
+          },
+          name: proposedMagistratName({ detectedMagistrat, name: file.name }),
+        },
       ]),
     );
   }

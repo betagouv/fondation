@@ -450,7 +450,7 @@ export class ObservationService {
     pagination: Pagination;
     role: RoleEnum;
     sessionId: string;
-    sortBy: 'dateReception' | null;
+    sortBy: 'dateReception' | 'observedMagistrat' | null;
     sortDesc: boolean;
   }): Promise<ListedSessionObservationsDto> {
     return this.listSessionObservationsQuery.handle(query);

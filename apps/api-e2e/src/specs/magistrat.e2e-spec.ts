@@ -347,6 +347,36 @@ test.describe('Magistrat E2E', () => {
     ]);
   });
 
+  test('should sort the nomination files by the name of their magistrat once LOLFI renamed them', async ({
+    agent,
+    expect,
+    sessions,
+  }) => {
+    const [brun, moreau] = [
+      { ...VALROSE_SESSION.candidates[1]!, firstName: 'ALICE', id: crypto.randomInt(1_000, 900_000), lastName: 'BRUN' },
+      { ...VALROSE_SESSION.candidates[1]!, firstName: 'BOB', id: crypto.randomInt(1_000, 900_000), lastName: 'MOREAU' },
+    ];
+    const session = await sessions.createOne({
+      ...VALROSE_SESSION,
+      candidates: [brun!, moreau!],
+      id: crypto.randomInt(1_000, 900_000),
+    });
+    // the same LOLFI id renames the magistrat, the nomination file of the first session keeps its imported name
+    await sessions.createOne({
+      ...VALROSE_SESSION,
+      candidates: [{ ...brun!, lastName: 'ZOLA' }],
+      id: crypto.randomInt(1_000, 900_000),
+    });
+
+    const { data } = await agent.sessions.listNominationFiles({
+      path: { sessionId: session.id },
+      query: { sortBy: 'name' },
+      throwOnError: true,
+    });
+
+    expect(data.items.map(({ content }) => content.nomMagistrat)).toEqual(['MOREAU Bob', 'ZOLA Alice']);
+  });
+
   test('should list the nomination files of a magistrat', async ({ agent, expect, member, valrose }) => {
     await agent.sessions.updateNominationFileAuditionDate({
       body: {
