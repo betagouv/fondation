@@ -16,6 +16,7 @@ import type { CallForApplicationsPeriod } from './domain/call-for-applications-p
 import type { CallForApplicationsSortableColumn } from './domain/call-for-applications-sorting';
 import type { CreatedCallForApplicationsDto } from './infrastructure/call-for-applications.dto';
 import { CallForApplicationsRepository } from './infrastructure/call-for-applications.repository';
+import { TargetableCourtFinder } from './infrastructure/finders/targetable-court.finder';
 import {
   FindCallForApplicationsFormQuery,
   FoundCallForApplicationsFormDto,
@@ -32,6 +33,7 @@ export class CallsForApplicationsService {
     private readonly clock: Clock,
     private readonly findCallForApplicationsFormQuery: FindCallForApplicationsFormQuery,
     private readonly listCallsForApplicationsQuery: ListCallsForApplicationsQuery,
+    private readonly targetableCourts: TargetableCourtFinder,
   ) {}
 
   @Transactional()
@@ -40,12 +42,14 @@ export class CallsForApplicationsService {
     comment: string | null;
     deadline: DateOnly | null;
     publishedOn: DateOnly | null;
+    targetCourts: readonly string[];
     targetPositions: readonly CourtOfCassationPosition[];
     type: CallForApplicationsType;
   }): Promise<CreatedCallForApplicationsDto> {
     const call = CallForApplications.create({
       ...command,
       createdOn: DateOnly.fromInstantInParis(this.clock.now()),
+      targetableCourts: await this.targetableCourts.among(command.targetCourts),
     });
     await this.calls.persist(call);
 
@@ -62,7 +66,7 @@ export class CallsForApplicationsService {
     await this.calls.persist(call);
   }
 
-  findCallForApplicationsForm(): FoundCallForApplicationsFormDto {
+  findCallForApplicationsForm(): Promise<FoundCallForApplicationsFormDto> {
     return this.findCallForApplicationsFormQuery.handle();
   }
 
@@ -85,12 +89,13 @@ export class CallsForApplicationsService {
     deadline: DateOnly | null;
     id: string;
     publishedOn: DateOnly | null;
+    targetCourts: readonly string[];
     targetPositions: readonly CourtOfCassationPosition[];
     type: CallForApplicationsType;
   }): Promise<void> {
     const { id, ...update } = command;
     const call = await this.calls.find({ id });
-    call.update(update);
+    call.update({ ...update, targetableCourts: await this.targetableCourts.among(command.targetCourts) });
     await this.calls.persist(call);
   }
 }

@@ -146,7 +146,7 @@ const SORTABLE_COLUMNS = new Set<string>([
 /** the order of the spec, which the API keeps without a column picked */
 const DEFAULT_SORTING: CallsForApplicationsSorting = [];
 const KNOWN_STATUSES: Record<CallForApplicationsStatus, true> = { PUBLISHED: true, UNPUBLISHED: true };
-const KNOWN_TYPES: Record<CallForApplicationsType, true> = { CCASS: true, GENERAL: true };
+const KNOWN_TYPES: Record<CallForApplicationsType, true> = { CCASS: true, GENERAL: true, SPECIFIC: true };
 const NO_VALUES: FilterValues = [];
 
 export function CallsForApplicationsTable(props: {

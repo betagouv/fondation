@@ -6,18 +6,24 @@ import {
   CallForApplicationsDeleted,
   CallForApplicationsUpdated,
   DeadlineBeforePublication,
+  MissingTargetCourt,
   MissingTargetPosition,
   PublishedCallLocked,
+  sortedCourts,
+  targetCourtTypeOf,
   targetLabelOf,
+  UntargetableCourt,
 } from './call-for-applications';
 
 const metadata = {
   comment: null,
   deadline: null,
   publishedOn: null,
+  targetCourts: [],
   targetPositions: [],
   type: 'GENERAL',
 } as const;
+const NO_TARGETABLE_COURT = { targetableCourts: new Set<string>() };
 const AGENT = { id: 'agent', isAdmin: false };
 const ADMIN = { id: 'admin', isAdmin: true };
 
@@ -30,6 +36,7 @@ describe('CallForApplications', () => {
     it('creates the call with its comment without the surrounding spaces', () => {
       const createdOn = new DateOnly(2026, 11, 23);
       const call = CallForApplications.create({
+        ...NO_TARGETABLE_COURT,
         ...metadata,
         authorId: 'author',
         comment: '  Postes de présidents  ',
@@ -46,6 +53,7 @@ describe('CallForApplications', () => {
 
     it('creates the call without a comment left with spaces only', () => {
       const call = CallForApplications.create({
+        ...NO_TARGETABLE_COURT,
         ...metadata,
         authorId: 'author',
         comment: '   ',
@@ -58,6 +66,7 @@ describe('CallForApplications', () => {
     it('refuses a deadline before the publication', () => {
       expect(() =>
         CallForApplications.create({
+          ...NO_TARGETABLE_COURT,
           ...metadata,
           authorId: 'author',
           createdOn: new DateOnly(2026, 11, 23),
@@ -69,6 +78,7 @@ describe('CallForApplications', () => {
 
     it('accepts a deadline on the day of the publication', () => {
       const call = CallForApplications.create({
+        ...NO_TARGETABLE_COURT,
         ...metadata,
         authorId: 'author',
         createdOn: new DateOnly(2026, 11, 23),
@@ -85,7 +95,7 @@ describe('CallForApplications', () => {
       const call = saved();
       const changed = { ...metadata, comment: 'Postes vacants', deadline: new DateOnly(2027, 1, 15) };
 
-      call.update({ ...changed, actor: AGENT });
+      call.update({ ...NO_TARGETABLE_COURT, ...changed, actor: AGENT });
 
       expect(call.messages).toEqual([
         new CallForApplicationsUpdated('agent', ['DEADLINE', 'COMMENT'], 'call', changed),
@@ -95,7 +105,7 @@ describe('CallForApplications', () => {
     it('leaves no trace when nothing changed', () => {
       const call = saved();
 
-      call.update({ ...metadata, actor: AGENT });
+      call.update({ ...NO_TARGETABLE_COURT, ...metadata, actor: AGENT });
 
       expect(call.messages).toEqual([]);
     });
@@ -103,6 +113,7 @@ describe('CallForApplications', () => {
     it('refuses a deadline before the publication', () => {
       expect(() =>
         saved().update({
+          ...NO_TARGETABLE_COURT,
           ...metadata,
           actor: AGENT,
           deadline: new DateOnly(2026, 11, 30),
@@ -112,15 +123,15 @@ describe('CallForApplications', () => {
     });
 
     it('refuses an agent once the call is published', () => {
-      expect(() => saved('PUBLISHED').update({ ...metadata, actor: AGENT, comment: 'Corrigé' })).toThrow(
-        PublishedCallLocked,
-      );
+      expect(() =>
+        saved('PUBLISHED').update({ ...NO_TARGETABLE_COURT, ...metadata, actor: AGENT, comment: 'Corrigé' }),
+      ).toThrow(PublishedCallLocked);
     });
 
     it('lets an administrator change a published call', () => {
       const call = saved('PUBLISHED');
 
-      call.update({ ...metadata, actor: ADMIN, comment: 'Corrigé' });
+      call.update({ ...NO_TARGETABLE_COURT, ...metadata, actor: ADMIN, comment: 'Corrigé' });
 
       expect(call.messages).toMatchObject([{ fields: ['COMMENT'] }]);
     });
@@ -157,13 +168,14 @@ describe('CallForApplications', () => {
     } as const;
 
     it('refuses a call that targets no position', () => {
-      expect(() => CallForApplications.create({ ...ccass, targetPositions: [] })).toThrow(
-        MissingTargetPosition,
-      );
+      expect(() =>
+        CallForApplications.create({ ...NO_TARGETABLE_COURT, ...ccass, targetPositions: [] }),
+      ).toThrow(MissingTargetPosition);
     });
 
     it('keeps each position once, in the order of the hierarchy', () => {
       const call = CallForApplications.create({
+        ...NO_TARGETABLE_COURT,
         ...ccass,
         targetPositions: ['COUNSELLOR', 'FIRST_PRESIDENT', 'COUNSELLOR'],
       });
@@ -181,7 +193,12 @@ describe('CallForApplications', () => {
         targetPositions: ['COUNSELLOR', 'FIRST_PRESIDENT'],
       });
 
-      call.update({ ...ccass, actor: AGENT, targetPositions: ['FIRST_PRESIDENT', 'COUNSELLOR'] });
+      call.update({
+        ...NO_TARGETABLE_COURT,
+        ...ccass,
+        actor: AGENT,
+        targetPositions: ['FIRST_PRESIDENT', 'COUNSELLOR'],
+      });
 
       expect(call.messages).toEqual([]);
     });
@@ -194,36 +211,144 @@ describe('CallForApplications', () => {
         targetPositions: ['COUNSELLOR'],
       });
 
-      call.update({ ...ccass, actor: AGENT, targetPositions: ['COUNSELLOR', 'CHAMBER_PRESIDENT'] });
+      call.update({
+        ...NO_TARGETABLE_COURT,
+        ...ccass,
+        actor: AGENT,
+        targetPositions: ['COUNSELLOR', 'CHAMBER_PRESIDENT'],
+      });
 
       expect(call.messages).toMatchObject([{ fields: ['TARGET_POSITIONS'] }]);
     });
   });
 
+  describe('a specific call', () => {
+    const specific = {
+      ...metadata,
+      authorId: 'author',
+      createdOn: new DateOnly(2026, 11, 26),
+      targetableCourts: new Set(['CA  AGEN', 'TJ  AUCH']),
+      type: 'SPECIFIC',
+    } as const;
+
+    it('refuses a call that targets no court', () => {
+      expect(() => CallForApplications.create({ ...specific, targetCourts: [] })).toThrow(MissingTargetCourt);
+    });
+
+    it('refuses a court that a call cannot target', () => {
+      expect(() =>
+        CallForApplications.create({ ...specific, targetCourts: ['CA  AGEN', 'TGI AUCH'] }),
+      ).toThrow(UntargetableCourt);
+    });
+
+    it('keeps each court once', () => {
+      const call = CallForApplications.create({
+        ...specific,
+        targetCourts: ['TJ  AUCH', 'CA  AGEN', 'TJ  AUCH'],
+      });
+
+      expect(call.messages).toMatchObject([{ metadata: { targetCourts: ['CA  AGEN', 'TJ  AUCH'] } }]);
+    });
+
+    it('keeps a court removed since the call targeted it', () => {
+      const call = CallForApplications.from({
+        ...specific,
+        id: 'call',
+        status: 'UNPUBLISHED',
+        targetCourts: ['TSA MAMOUDZOU'],
+      });
+
+      call.update({
+        ...specific,
+        actor: AGENT,
+        comment: 'Corrigé',
+        targetCourts: ['TSA MAMOUDZOU', 'CA  AGEN'],
+      });
+
+      expect(call.messages).toMatchObject([{ fields: ['TARGET_COURTS', 'COMMENT'] }]);
+    });
+
+    it('notes nothing when the courts read come back in another order', () => {
+      const call = CallForApplications.from({
+        ...specific,
+        id: 'call',
+        status: 'UNPUBLISHED',
+        targetCourts: ['TJ  AUCH', 'CA  AGEN'],
+      });
+
+      call.update({ ...specific, actor: AGENT, targetCourts: ['CA  AGEN', 'TJ  AUCH'] });
+
+      expect(call.messages).toEqual([]);
+    });
+  });
+
   describe('a general call', () => {
-    it('targets no position, whatever is sent', () => {
+    it('targets no position nor court whatever is sent', () => {
       const call = CallForApplications.create({
         ...metadata,
         authorId: 'author',
         createdOn: new DateOnly(2026, 11, 25),
+        targetableCourts: new Set(['CA  AGEN']),
+        targetCourts: ['CA  AGEN'],
         targetPositions: ['COUNSELLOR'],
       });
 
-      expect(call.messages).toMatchObject([{ metadata: { targetPositions: [] } }]);
+      expect(call.messages).toMatchObject([{ metadata: { targetCourts: [], targetPositions: [] } }]);
     });
   });
 });
 
 describe('targetLabelOf', () => {
   it('lists the positions of a call for the Cour de cassation', () => {
-    expect(targetLabelOf({ targetPositions: ['FIRST_PRESIDENT', 'COUNSELLOR'], type: 'CCASS' })).toBe(
-      'Premier président et Conseiller',
-    );
+    expect(
+      targetLabelOf({ targetCourts: [], targetPositions: ['FIRST_PRESIDENT', 'COUNSELLOR'], type: 'CCASS' }),
+    ).toBe('Premier président et Conseiller');
   });
 
   it('names the courts of appeal and the judicial courts for a general call', () => {
-    expect(targetLabelOf({ targetPositions: [], type: 'GENERAL' })).toBe(
+    expect(targetLabelOf({ targetCourts: [], targetPositions: [], type: 'GENERAL' })).toBe(
       "Cours d'appel et tribunaux judiciaires",
     );
+  });
+
+  it('lists the courts of a specific call', () => {
+    expect(
+      targetLabelOf({
+        targetCourts: [{ label: "Cour d'appel d'Agen" }, { label: "Tribunal judiciaire d'Auch" }],
+        targetPositions: [],
+        type: 'SPECIFIC',
+      }),
+    ).toBe("Cour d'appel d'Agen et Tribunal judiciaire d'Auch");
+  });
+});
+
+describe('targetCourtTypeOf', () => {
+  it.each([
+    ['CA', 'COURT_OF_APPEAL'],
+    ['TSA', 'COURT_OF_APPEAL'],
+    ['TJ', 'JUDICIAL_COURT'],
+    ['TPI', 'JUDICIAL_COURT'],
+  ])('groups a court of type %s under %s', (typeJur, type) => {
+    expect(targetCourtTypeOf(typeJur)).toBe(type);
+  });
+});
+
+describe('sortedCourts', () => {
+  it('puts the courts of appeal first and then sorts each group by city', () => {
+    const court = (codejur: string, typeJur: string, ville_jur: string) => ({
+      codejur,
+      libelle: null,
+      typeJur,
+      ville_jur,
+    });
+
+    expect(
+      sortedCourts([
+        court('TJ  AUCH', 'TJ', 'AUCH'),
+        court('TSA SAINT PIERRE ET MIQUELON', 'TSA', 'SAINT PIERRE ET MIQUELON'),
+        court('TPI NOUMEA', 'TPI', 'NOUMEA'),
+        court('CA  AGEN', 'CA', 'AGEN'),
+      ]).map(({ codejur }) => codejur),
+    ).toEqual(['CA  AGEN', 'TSA SAINT PIERRE ET MIQUELON', 'TJ  AUCH', 'TPI NOUMEA']);
   });
 });

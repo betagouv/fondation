@@ -8,6 +8,7 @@ model CallForApplications {
   status      PrismaCallForApplicationsStatusEnum @default(UNPUBLISHED)
   type        PrismaCallForApplicationsTypeEnum
 
+  targetCourts    CallForApplicationsTargetCourt[]
   targetPositions CallForApplicationsTargetPosition[]
 
   @@map("call_for_applications")
@@ -25,6 +26,7 @@ enum PrismaCallForApplicationsStatusEnum {
 enum PrismaCallForApplicationsTypeEnum {
   CCASS
   GENERAL
+  SPECIFIC
 
   @@map("call_for_applications_type_enum")
   @@schema("nominations_context")
@@ -70,10 +72,24 @@ enum PrismaCallForApplicationsFieldEnum {
   COMMENT
   DEADLINE
   PUBLISHED_ON
+  TARGET_COURTS
   TARGET_POSITIONS
   TYPE
 
   @@map("call_for_applications_field_enum")
+  @@schema("nominations_context")
+}
+
+// the courts whose head a specific call targets
+model CallForApplicationsTargetCourt {
+  callId  String @map("call_id") @db.Uuid
+  courtId String @map("court_id")
+
+  call  CallForApplications @relation(fields: [callId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  court Jurisdiction        @relation(fields: [courtId], references: [codejur], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([callId, courtId], name: "primaryKey")
+  @@map("call_for_applications_target_court")
   @@schema("nominations_context")
 }
 

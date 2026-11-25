@@ -15,6 +15,30 @@ import { CallForApplicationsModal } from './CallForApplicationsModal';
 const FORM: FoundCallForApplicationsFormDto = {
   commentMaxLength: 50_000,
   dateRange: { max: '2100-12-31', min: '2000-01-01' },
+  targetCourtTypes: [
+    {
+      courts: [
+        { id: 'CA  AGEN', label: "Cour d'appel d'Agen", type: 'COURT_OF_APPEAL' },
+        { id: 'CA  LYON', label: "Cour d'appel de Lyon", type: 'COURT_OF_APPEAL' },
+        {
+          id: 'TSA SAINT PIERRE ET MIQUELON',
+          label: "Tribunal supérieur d'appel de Saint-Pierre et Miquelon",
+          type: 'COURT_OF_APPEAL',
+        },
+      ],
+      id: 'COURT_OF_APPEAL',
+      label: "Cours d'appel",
+    },
+    {
+      courts: [
+        { id: 'TJ  AGEN', label: "Tribunal judiciaire d'Agen", type: 'JUDICIAL_COURT' },
+        { id: 'TJ  AUCH', label: "Tribunal judiciaire d'Auch", type: 'JUDICIAL_COURT' },
+        { id: 'TPI NOUMEA', label: 'Tribunal de première instance de Nouméa', type: 'JUDICIAL_COURT' },
+      ],
+      id: 'JUDICIAL_COURT',
+      label: 'Tribunaux judiciaires',
+    },
+  ],
   targetPositions: [
     { id: 'FIRST_PRESIDENT', label: 'Premier président' },
     { id: 'CHAMBER_PRESIDENT', label: 'Président de chambre' },
@@ -28,13 +52,19 @@ const FORM: FoundCallForApplicationsFormDto = {
       id: 'GENERAL',
       label: 'Général',
       scope: "Vise tous les postes des cours d'appel et des tribunaux judiciaires",
-      targetPositionsRequired: false,
+      targetPick: 'NONE',
+    },
+    {
+      id: 'SPECIFIC',
+      label: 'Spécifique',
+      scope: 'Vise la présidence des juridictions choisies',
+      targetPick: 'COURTS',
     },
     {
       id: 'CCASS',
       label: 'Cour de cassation',
       scope: 'Vise les postes de la Cour de cassation choisis',
-      targetPositionsRequired: true,
+      targetPick: 'POSITIONS',
     },
   ],
 };
@@ -48,6 +78,7 @@ const SAVED = {
   id: 'call-1',
   publishedOn: null,
   status: { id: 'UNPUBLISHED', label: 'Non publié' },
+  targetCourts: [],
   targetLabel: "Cours d'appel et tribunaux judiciaires",
   targetPositions: [],
   type: { id: 'GENERAL', label: 'Général' },
@@ -108,6 +139,7 @@ describe('CallForApplicationsModal', () => {
           comment: null,
           deadline: null,
           publishedOn: null,
+          targetCourts: [],
           targetPositions: [],
           type: 'GENERAL',
         },
@@ -166,6 +198,7 @@ describe('CallForApplicationsModal', () => {
           comment: 'Postes vacants et créés',
           deadline: '2027-01-15',
           publishedOn: '2026-12-01',
+          targetCourts: [],
           targetPositions: [],
           type: 'GENERAL',
         },
@@ -217,6 +250,80 @@ describe('CallForApplicationsModal', () => {
           targetPositions: ['FIRST_PRESIDENT', 'CHAMBER_PRESIDENT', 'COUNSELLOR'],
         }),
       }),
+    );
+  });
+
+  it('creates a specific call once a court found by a search is picked', async () => {
+    const create = vi
+      .spyOn($api.callsForApplications, 'createCallForApplications')
+      .mockResolvedValue({ data: { id: 'call-1' } } as never);
+    renderModal();
+    const user = userEvent.setup();
+
+    await user.selectOptions(await screen.findByRole('combobox', { name: /Type d'appel/ }), 'SPECIFIC');
+    const save = screen.getByRole('button', { name: "Créer l'appel à candidatures" });
+    await user.click(screen.getByRole('checkbox', { name: 'Tribunaux judiciaires' }));
+    expect(save).toBeDisabled();
+    await user.type(screen.getByRole('textbox', { name: 'Rechercher une juridiction' }), 'auch');
+    expect(screen.queryByRole('checkbox', { name: "Tribunal judiciaire d'Agen" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('checkbox', { name: "Tribunal judiciaire d'Auch" }));
+    await user.click(save);
+
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: expect.objectContaining({ targetCourts: ['TJ  AUCH'], type: 'SPECIFIC' }),
+      }),
+    );
+  });
+
+  it('opens a specific call on its courts and drops those of a type unchecked', async () => {
+    const update = vi
+      .spyOn($api.callsForApplications, 'updateCallForApplications')
+      .mockResolvedValue({ data: undefined } as never);
+    renderModal({
+      ...SAVED,
+      targetCourts: [
+        { id: 'CA  AGEN', label: "Cour d'appel d'Agen", type: 'COURT_OF_APPEAL' },
+        { id: 'TJ  AUCH', label: "Tribunal judiciaire d'Auch", type: 'JUDICIAL_COURT' },
+      ],
+      targetLabel: "Cour d'appel d'Agen et Tribunal judiciaire d'Auch",
+      type: { id: 'SPECIFIC', label: 'Spécifique' },
+    });
+    const user = userEvent.setup();
+
+    expect(await screen.findByRole('checkbox', { name: "Cour d'appel d'Agen" })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: "Tribunal judiciaire d'Auch" })).toBeChecked();
+    await user.click(screen.getByRole('checkbox', { name: "Cours d'appel" }));
+    expect(screen.queryByRole('checkbox', { name: "Cour d'appel d'Agen" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Enregistrer les modifications' }));
+
+    expect(update).toHaveBeenCalledWith(
+      expect.objectContaining({ body: expect.objectContaining({ targetCourts: ['TJ  AUCH'] }) }),
+    );
+  });
+
+  it('shows checked a court removed from the referential since the call targeted it', async () => {
+    const update = vi
+      .spyOn($api.callsForApplications, 'updateCallForApplications')
+      .mockResolvedValue({ data: undefined } as never);
+    renderModal({
+      ...SAVED,
+      targetCourts: [
+        { id: 'CA  AGEN', label: "Cour d'appel d'Agen", type: 'COURT_OF_APPEAL' },
+        { id: 'TSA MAMOUDZOU', label: "Tribunal supérieur d'appel de Mamoudzou", type: 'COURT_OF_APPEAL' },
+      ],
+      targetLabel: "Cour d'appel d'Agen et Tribunal supérieur d'appel de Mamoudzou",
+      type: { id: 'SPECIFIC', label: 'Spécifique' },
+    });
+    const user = userEvent.setup();
+    const removed = await screen.findByRole('checkbox', { name: "Tribunal supérieur d'appel de Mamoudzou" });
+
+    expect(removed).toBeChecked();
+    await user.click(removed);
+    await user.click(screen.getByRole('button', { name: 'Enregistrer les modifications' }));
+
+    expect(update).toHaveBeenCalledWith(
+      expect.objectContaining({ body: expect.objectContaining({ targetCourts: ['CA  AGEN'] }) }),
     );
   });
 

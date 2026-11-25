@@ -3342,8 +3342,9 @@ export type CreateCallForApplicationsDto = {
     comment?: string | null;
     deadline?: string | null;
     publishedOn?: string | null;
+    targetCourts?: Array<string> | null;
     targetPositions?: Array<'FIRST_PRESIDENT' | 'CHAMBER_PRESIDENT' | 'COUNSELLOR' | 'REFERENDARY_COUNSELLOR' | 'AUDITOR_SECOND_GRADE' | 'AUDITOR_FIRST_GRADE'> | null;
-    type: 'GENERAL' | 'CCASS';
+    type: 'GENERAL' | 'SPECIFIC' | 'CCASS';
 };
 
 export type CreatedCallForApplicationsDto = {
@@ -3356,15 +3357,24 @@ export type FoundCallForApplicationsFormDto = {
         max: string;
         min: string;
     };
+    targetCourtTypes: Array<{
+        id: 'COURT_OF_APPEAL' | 'JUDICIAL_COURT';
+        label: string;
+        courts: Array<{
+            id: string;
+            label: string;
+            type: 'COURT_OF_APPEAL' | 'JUDICIAL_COURT';
+        }>;
+    }>;
     targetPositions: Array<{
         id: 'FIRST_PRESIDENT' | 'CHAMBER_PRESIDENT' | 'COUNSELLOR' | 'REFERENDARY_COUNSELLOR' | 'AUDITOR_SECOND_GRADE' | 'AUDITOR_FIRST_GRADE';
         label: string;
     }>;
     types: Array<{
-        id: 'GENERAL' | 'CCASS';
+        id: 'GENERAL' | 'SPECIFIC' | 'CCASS';
         label: string;
         scope: string;
-        targetPositionsRequired: boolean;
+        targetPick: 'NONE' | 'COURTS' | 'POSITIONS';
     }>;
 };
 
@@ -3390,7 +3400,7 @@ export type ListedCallsForApplicationsDto = {
                 name: string;
             } | null;
             fields: Array<{
-                id: 'TYPE' | 'TARGET_POSITIONS' | 'PUBLISHED_ON' | 'DEADLINE' | 'COMMENT';
+                id: 'TYPE' | 'TARGET_COURTS' | 'TARGET_POSITIONS' | 'PUBLISHED_ON' | 'DEADLINE' | 'COMMENT';
                 label: string;
             }>;
         }>;
@@ -3404,13 +3414,18 @@ export type ListedCallsForApplicationsDto = {
             id: 'UNPUBLISHED' | 'PUBLISHED';
             label: string;
         };
+        targetCourts: Array<{
+            id: string;
+            label: string;
+            type: 'COURT_OF_APPEAL' | 'JUDICIAL_COURT';
+        }>;
         targetLabel: string;
         targetPositions: Array<{
             id: 'FIRST_PRESIDENT' | 'CHAMBER_PRESIDENT' | 'COUNSELLOR' | 'REFERENDARY_COUNSELLOR' | 'AUDITOR_SECOND_GRADE' | 'AUDITOR_FIRST_GRADE';
             label: string;
         }>;
         type: {
-            id: 'GENERAL' | 'CCASS';
+            id: 'GENERAL' | 'SPECIFIC' | 'CCASS';
             label: string;
         };
     }>;
@@ -3427,7 +3442,7 @@ export type ListedCallsForApplicationsDto = {
         label: string;
     }>;
     types: Array<{
-        id: 'GENERAL' | 'CCASS';
+        id: 'GENERAL' | 'SPECIFIC' | 'CCASS';
         label: string;
     }>;
     years: Array<number>;
@@ -3437,8 +3452,9 @@ export type UpdateCallForApplicationsDto = {
     comment?: string | null;
     deadline?: string | null;
     publishedOn?: string | null;
+    targetCourts?: Array<string> | null;
     targetPositions?: Array<'FIRST_PRESIDENT' | 'CHAMBER_PRESIDENT' | 'COUNSELLOR' | 'REFERENDARY_COUNSELLOR' | 'AUDITOR_SECOND_GRADE' | 'AUDITOR_FIRST_GRADE'> | null;
-    type: 'GENERAL' | 'CCASS';
+    type: 'GENERAL' | 'SPECIFIC' | 'CCASS';
 };
 
 export type GetFileByFileUrlData = {
@@ -7034,7 +7050,7 @@ export type ListCallsForApplicationsData = {
         period: 'ONGOING' | 'PAST';
         sortBy?: 'createdOn' | 'deadline' | 'publishedOn' | 'status' | 'type';
         statuses?: Array<'UNPUBLISHED' | 'PUBLISHED'>;
-        types?: Array<'GENERAL' | 'CCASS'>;
+        types?: Array<'GENERAL' | 'SPECIFIC' | 'CCASS'>;
         years?: Array<string>;
         /**
          * 'true' sorts from the highest value

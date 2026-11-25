@@ -19,10 +19,14 @@ import {
   useUpdateCallForApplicationsMutation,
 } from '@queries/calls-for-applications.queries';
 
-type Draft = Partial<CreateCallForApplicationsDto>;
+import { TargetCourtsPicker } from './TargetCourtsPicker';
+
+type CourtType = FoundCallForApplicationsFormDto['targetCourtTypes'][number];
+/** the types of courts checked stay in the draft only: the API reads them from the courts */
+type Draft = Partial<CreateCallForApplicationsDto> & { targetCourtTypes?: CourtType['id'][] };
 type DateField = 'deadline' | 'publishedOn';
 
-/** null while the type is missing or a type requiring positions has none */
+/** null while the type is missing or nothing is picked as the target its type requires */
 function completeOf(
   draft: Draft,
   form: FoundCallForApplicationsFormDto | undefined,
@@ -30,25 +34,97 @@ function completeOf(
   const { type } = draft;
   if (!type || !form) return null;
 
-  const required = form.types.find(({ id }) => id === type)?.targetPositionsRequired ?? false;
-  const targetPositions = required
-    ? form.targetPositions.map(({ id }) => id).filter((id) => draft.targetPositions?.includes(id))
-    : [];
-  if (required && targetPositions.length === 0) return null;
+  const pick = form.types.find(({ id }) => id === type)?.targetPick;
+  const targetPositions =
+    pick === 'POSITIONS'
+      ? form.targetPositions.map(({ id }) => id).filter((id) => draft.targetPositions?.includes(id))
+      : [];
+  // sorted so that a court unchecked then checked again does not count as a change
+  const targetCourts = pick === 'COURTS' ? (draft.targetCourts ?? []).toSorted() : [];
+  if (pick === 'POSITIONS' && targetPositions.length === 0) return null;
+  if (pick === 'COURTS' && targetCourts.length === 0) return null;
 
   return {
     comment: draft.comment?.trim() || null,
     deadline: draft.deadline || null,
     publishedOn: draft.publishedOn || null,
+    targetCourts,
     targetPositions,
     type,
   };
+}
+
+function TargetCourtsFields(props: {
+  draft: Draft;
+  form: FoundCallForApplicationsFormDto;
+  onChange: (changes: Draft) => void;
+  savedCourts: CallForApplications['targetCourts'];
+}) {
+  const { draft, form, onChange } = props;
+  // a court removed from the referential since the call targeted it is no longer offered but stays shown
+  const courtTypes = form.targetCourtTypes.map((courtType) => ({
+    ...courtType,
+    courts: [
+      ...courtType.courts,
+      ...props.savedCourts.filter(
+        (saved) => saved.type === courtType.id && !courtType.courts.some(({ id }) => id === saved.id),
+      ),
+    ],
+  }));
+  const checkedCourts = draft.targetCourts ?? [];
+  // the types of an edited call are those of its courts
+  const checkedTypes =
+    draft.targetCourtTypes ??
+    courtTypes
+      .filter(({ courts }) => courts.some(({ id }) => checkedCourts.includes(id)))
+      .map(({ id }) => id);
+  const uncheck = (courtType: CourtType) =>
+    onChange({
+      targetCourts: checkedCourts.filter((id) => !courtType.courts.some((court) => court.id === id)),
+      targetCourtTypes: checkedTypes.filter((id) => id !== courtType.id),
+    });
+
+  return (
+    <>
+      <Checkbox
+        className="fr-mb-0"
+        legend={
+          <RequiredLabel>
+            <FormattedMessage defaultMessage="Types de juridictions cibles" />
+          </RequiredLabel>
+        }
+        options={courtTypes.map((courtType) => ({
+          label: courtType.label,
+          nativeInputProps: {
+            checked: checkedTypes.includes(courtType.id),
+            onChange: (event) =>
+              event.target.checked
+                ? onChange({ targetCourtTypes: [...checkedTypes, courtType.id] })
+                : uncheck(courtType),
+            value: courtType.id,
+          },
+        }))}
+        orientation="horizontal"
+      />
+      {courtTypes
+        .filter(({ id }) => checkedTypes.includes(id))
+        .map((courtType) => (
+          <TargetCourtsPicker
+            checked={checkedCourts}
+            courtType={courtType}
+            key={courtType.id}
+            onChange={(targetCourts) => onChange({ targetCourts, targetCourtTypes: checkedTypes })}
+          />
+        ))}
+    </>
+  );
 }
 
 function CallForApplicationsFields(props: {
   draft: Draft;
   form: FoundCallForApplicationsFormDto;
   onChange: (changes: Draft) => void;
+  savedCourts: CallForApplications['targetCourts'];
 }) {
   const { formatMessage } = useIntl();
   const { draft, form, onChange } = props;
@@ -92,7 +168,10 @@ function CallForApplicationsFields(props: {
           {type && <p className="fr-hint-text fr-mt-2v fr-mb-0">{type.scope}</p>}
         </div>
       </div>
-      {type?.targetPositionsRequired && (
+      {type?.targetPick === 'COURTS' && (
+        <TargetCourtsFields draft={draft} form={form} onChange={onChange} savedCourts={props.savedCourts} />
+      )}
+      {type?.targetPick === 'POSITIONS' && (
         <Checkbox
           className="fr-mb-0"
           legend={
@@ -153,6 +232,7 @@ function draftOf(call: CallForApplications): Draft {
     comment: call.comment ?? '',
     deadline: dateOnlyToIso(call.deadline) ?? '',
     publishedOn: dateOnlyToIso(call.publishedOn) ?? '',
+    targetCourts: call.targetCourts.map(({ id }) => id),
     targetPositions: call.targetPositions.map(({ id }) => id),
     type: call.type.id,
   };
@@ -250,6 +330,7 @@ export function CallForApplicationsModal(props: {
             draft={shown}
             form={form.data}
             onChange={(changes) => setDraft({ ...shown, ...changes })}
+            savedCourts={props.edited?.targetCourts ?? []}
           />
         </form>
       ) : form.isError ? (
