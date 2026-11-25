@@ -25,6 +25,7 @@ function listed(): never {
       items: [],
       statuses: [],
       totalCount: 0,
+      types: [],
       years: [2026, 2025],
     } satisfies ListedCallsForApplicationsDto,
   } as never;
@@ -56,6 +57,7 @@ describe('CallsForApplicationsTable', () => {
           query: expect.objectContaining({
             period: 'PAST',
             statuses: [],
+            types: [],
             years: [String(new Date().getFullYear())],
           }),
         }),
@@ -63,7 +65,7 @@ describe('CallsForApplicationsTable', () => {
     );
   });
 
-  it('asks the API to sort by the column picked, and leaves the type unsortable', async () => {
+  it('asks the API to sort by the column picked and leaves the target unsortable', async () => {
     const list = vi.spyOn($api.callsForApplications, 'listCallsForApplications').mockResolvedValue(listed());
     renderTable();
     const user = userEvent.setup();
@@ -75,7 +77,7 @@ describe('CallsForApplicationsTable', () => {
         expect.objectContaining({ query: expect.objectContaining({ sortBy: 'deadline' }) }),
       ),
     );
-    expect(screen.queryByRole('button', { name: "Type d'appel" })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Cible' })).not.toBeInTheDocument();
   });
 
   it('says there is no call yet rather than that the filters match none', async () => {

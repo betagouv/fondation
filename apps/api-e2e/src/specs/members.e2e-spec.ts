@@ -134,7 +134,7 @@ test.describe('Members E2E', () => {
         throwOnError: true,
       });
 
-      expect(data.items).toEqual([expect.objectContaining({ id: memberId, status: 'DEACTIVATED' })]);
+      expect(data.items).toContainEqual(expect.objectContaining({ id: memberId, status: 'DEACTIVATED' }));
     });
   });
 

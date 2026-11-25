@@ -2,7 +2,7 @@ import z from 'zod';
 
 import { listOf } from '../../../../utils/query-list';
 import { createSortableDto } from '../../../framework/sorting';
-import { COURT_OF_CASSATION_POSITIONS } from '../../domain/court-of-cassation-position';
+import { COURT_OF_CASSATION_POSITIONS } from '../../../shared/court-of-cassation-position.enum';
 import { ALERT_DEADLINES, POSITION_ALERTS } from '../../domain/position-alert';
 import { POSITION_STATUSES } from '../../domain/position-status';
 

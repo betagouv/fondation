@@ -18,6 +18,7 @@ import type {
 export type CallForApplications = ListedCallsForApplicationsDto['items'][number];
 export type CallsForApplicationsPeriod = ListCallsForApplicationsData['query']['period'];
 export type CallForApplicationsStatus = CallForApplications['status']['id'];
+export type CallForApplicationsType = CallForApplications['type']['id'];
 export type CallsForApplicationsSorting =
   | []
   | [{ desc: boolean; id: NonNullable<ListCallsForApplicationsData['query']['sortBy']> }];
@@ -25,6 +26,7 @@ type CallsForApplicationsList = {
   period: CallsForApplicationsPeriod;
   sorting: CallsForApplicationsSorting;
   statuses: CallForApplicationsStatus[];
+  types: CallForApplicationsType[];
   years: string[];
 };
 
@@ -42,6 +44,7 @@ function selectCallsForApplications(data: InfiniteData<ListedCallsForApplication
     items: data.pages.flatMap((page) => page.items),
     totalCount: data.pages.at(-1)?.totalCount ?? 0,
     statuses: data.pages.at(-1)?.statuses ?? [],
+    types: data.pages.at(-1)?.types ?? [],
     years: data.pages.at(-1)?.years ?? [],
   };
 }
@@ -60,6 +63,7 @@ export function useCallsForApplicationsQuery(props: CallsForApplicationsList) {
           sortBy: props.sorting[0]?.id,
           sortDesc: props.sorting[0]?.desc ? 'true' : undefined,
           statuses: props.statuses,
+          types: props.types,
           years: props.years,
         },
         throwOnError: true,

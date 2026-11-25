@@ -5,6 +5,7 @@ import { DateOnly } from '../../utils/date-only';
 import { Clock } from '../framework/clock';
 import { Pagination } from '../framework/pagination';
 import type { Sortable } from '../framework/sorting';
+import type { CourtOfCassationPosition } from '../shared/court-of-cassation-position.enum';
 
 import {
   CallForApplications,
@@ -39,6 +40,7 @@ export class CallsForApplicationsService {
     comment: string | null;
     deadline: DateOnly | null;
     publishedOn: DateOnly | null;
+    targetPositions: readonly CourtOfCassationPosition[];
     type: CallForApplicationsType;
   }): Promise<CreatedCallForApplicationsDto> {
     const call = CallForApplications.create({
@@ -70,6 +72,7 @@ export class CallsForApplicationsService {
     period: CallForApplicationsPeriod;
     sorting: Sortable<CallForApplicationsSortableColumn>;
     statuses: readonly CallForApplicationsStatus[];
+    types: readonly CallForApplicationsType[];
     years: readonly number[];
   }): Promise<ListedCallsForApplicationsDto> {
     return this.listCallsForApplicationsQuery.handle(query);
@@ -82,6 +85,7 @@ export class CallsForApplicationsService {
     deadline: DateOnly | null;
     id: string;
     publishedOn: DateOnly | null;
+    targetPositions: readonly CourtOfCassationPosition[];
     type: CallForApplicationsType;
   }): Promise<void> {
     const { id, ...update } = command;

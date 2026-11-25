@@ -47,9 +47,10 @@ _Quand ne pas utiliser l'anglais ?_
 
 ### Nomination
 
-| **Anglais**         | Français                            | Définition                                                                  |
-| ------------------- | ----------------------------------- | --------------------------------------------------------------------------- |
-| **Nomination File** | Proposition de nomination / Dossier | La combinaison de la candidature et de l'identité des magistrats concernés. |
+| **Anglais**               | Français                            | Définition                                                                  |
+| ------------------------- | ----------------------------------- | --------------------------------------------------------------------------- |
+| **Nomination File**       | Proposition de nomination / Dossier | La combinaison de la candidature et de l'identité des magistrats concernés. |
+| **Call for applications** | Appel à candidatures (AàC)          | L'appel lancé par le CSM pour que les magistrats candidatent à des postes.  |
 
 ### Éditique et documents
 
@@ -66,3 +67,5 @@ _Quand ne pas utiliser l'anglais ?_
    la valeur `TRANSPARENCE_GDS` de `TypeDeSaisine`.
 
 2. **Magistrat**
+
+3. **Veille des postes** : faute d'équivalent anglais, le module garde son nom (`veille-des-postes`).

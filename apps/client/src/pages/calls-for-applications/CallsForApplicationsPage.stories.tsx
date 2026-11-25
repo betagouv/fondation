@@ -13,15 +13,18 @@ import { OngoingCallsForApplicationsPage, PastCallsForApplicationsPage } from '.
 
 type ListedCall = ListedCallsForApplicationsDto['items'][number];
 
-/** a call never changed since its creation */
+/** a call never changed since its creation (general by default) */
 function created(
-  call: Omit<ListedCall, 'comment' | 'history'> & {
-    createdAt: string;
-    createdBy: ListedCall['history'][number]['by'];
-  },
+  call: Omit<ListedCall, 'comment' | 'history' | 'targetLabel' | 'targetPositions'> &
+    Partial<Pick<ListedCall, 'targetLabel' | 'targetPositions'>> & {
+      createdAt: string;
+      createdBy: ListedCall['history'][number]['by'];
+    },
 ): ListedCall {
   const { createdAt, createdBy, ...listed } = call;
   return {
+    targetLabel: "Cours d'appel et tribunaux judiciaires",
+    targetPositions: [],
     ...listed,
     comment: null,
     history: [{ action: 'CREATED', at: createdAt, by: createdBy, fields: [] }],
@@ -46,6 +49,22 @@ function updated(call: ListedCall, fields: ListedCall['history'][number]['fields
 
 const CALLS: Record<'ONGOING' | 'PAST', ListedCall[]> = {
   ONGOING: [
+    created({
+      canChange: true,
+      createdAt: '2026-11-24T08:00:00.000Z',
+      createdBy: { id: 'user-2', name: 'Hélène GARNIER' },
+      createdOn: { day: 24, month: 11, year: 2026 },
+      deadline: { day: 31, month: 1, year: 2027 },
+      id: 'call-4',
+      publishedOn: { day: 5, month: 1, year: 2027 },
+      status: { id: 'UNPUBLISHED', label: 'Non publié' },
+      targetLabel: 'Premier président et Conseiller',
+      targetPositions: [
+        { id: 'FIRST_PRESIDENT', label: 'Premier président' },
+        { id: 'COUNSELLOR', label: 'Conseiller' },
+      ],
+      type: { id: 'CCASS', label: 'Cour de cassation' },
+    }),
     created({
       canChange: true,
       createdOn: { day: 20, month: 11, year: 2026 },
@@ -93,7 +112,28 @@ const CALLS: Record<'ONGOING' | 'PAST', ListedCall[]> = {
 const FORM: FoundCallForApplicationsFormDto = {
   commentMaxLength: 50_000,
   dateRange: { max: '2100-12-31', min: '2000-01-01' },
-  types: [{ id: 'GENERAL', label: 'Général', scope: 'Vise tous les postes de CA et de TJ' }],
+  targetPositions: [
+    { id: 'FIRST_PRESIDENT', label: 'Premier président' },
+    { id: 'CHAMBER_PRESIDENT', label: 'Président de chambre' },
+    { id: 'COUNSELLOR', label: 'Conseiller' },
+    { id: 'REFERENDARY_COUNSELLOR', label: 'Conseiller référendaire' },
+    { id: 'AUDITOR_SECOND_GRADE', label: 'Auditeur 2e grade' },
+    { id: 'AUDITOR_FIRST_GRADE', label: 'Auditeur 1er grade' },
+  ],
+  types: [
+    {
+      id: 'GENERAL',
+      label: 'Général',
+      scope: "Vise tous les postes des cours d'appel et des tribunaux judiciaires",
+      targetPositionsRequired: false,
+    },
+    {
+      id: 'CCASS',
+      label: 'Cour de cassation',
+      scope: 'Vise les postes de la Cour de cassation choisis',
+      targetPositionsRequired: true,
+    },
+  ],
 };
 
 function CallsForApplicationsPageStory(props: {
@@ -163,8 +203,7 @@ const meta = {
         if (args.loadFails || (args.nextPageFails && page > 1))
           return new HttpResponse(null, { status: 500 });
 
-        const years = params.getAll('years');
-        const items = args.empty || (years.length > 0 && !years.includes('2026')) ? [] : CALLS[args.period];
+        const items = args.empty ? [] : CALLS[args.period];
         return HttpResponse.json<ListedCallsForApplicationsDto>({
           currentPageIndex: page,
           items,
@@ -174,6 +213,7 @@ const meta = {
             { id: 'PUBLISHED', label: 'Publié' },
           ],
           totalCount: args.nextPageFails ? items.length + 1 : items.length,
+          types: FORM.types.map(({ id, label }) => ({ id, label })),
           years: [2026, 2025],
         });
       }),
@@ -186,7 +226,7 @@ const meta = {
         '*/api/calls-for-applications/v1',
         () =>
           saveFailure(args) ??
-          HttpResponse.json<CreatedCallForApplicationsDto>({ id: 'call-4' }, { status: 201 }),
+          HttpResponse.json<CreatedCallForApplicationsDto>({ id: 'call-5' }, { status: 201 }),
       ),
       http.put(
         '*/api/calls-for-applications/v1/:callId',
@@ -199,7 +239,7 @@ const meta = {
   },
   component: CallsForApplicationsPageStory,
   parameters: { layout: 'fullscreen' },
-  title: 'Pages/CallsForApplications',
+  title: 'Session/CSM/CallsForApplications/CallsForApplicationsPage',
 } satisfies Meta<typeof CallsForApplicationsPageStory>;
 
 export default meta;

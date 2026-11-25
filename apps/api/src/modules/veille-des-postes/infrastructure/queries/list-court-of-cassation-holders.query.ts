@@ -10,14 +10,16 @@ import { createPaginatedZodDto, pageOf, paginate, Pagination } from '../../../fr
 import { Sortable } from '../../../framework/sorting';
 import { magistratFullName } from '../../../magistrat/domain/magistrat-name';
 import {
-  COURT_OF_CASSATION_ID,
   COURT_OF_CASSATION_POSITIONS,
+  type CourtOfCassationPosition,
+} from '../../../shared/court-of-cassation-position.enum';
+import {
+  COURT_OF_CASSATION_ID,
   courtOfCassationPositionOfRank,
   courtOfCassationPositions,
   HOLDER_SERVICES,
   holderServiceOf,
   rankedLolfiPositions,
-  type CourtOfCassationPosition,
 } from '../../domain/court-of-cassation-position';
 import { civilityOf, courtOfCassationHolderTitle } from '../../domain/holder-title';
 import { type AlertDeadline, alertRulesOf, alertsOf, type PositionAlert } from '../../domain/position-alert';

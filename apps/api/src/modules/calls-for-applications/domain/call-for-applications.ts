@@ -1,18 +1,54 @@
 import type { DateOnly } from '../../../utils/date-only';
 import { makeId } from '../../../utils/id';
+import {
+  COURT_OF_CASSATION_POSITION_TITLES,
+  COURT_OF_CASSATION_POSITIONS,
+  type CourtOfCassationPosition,
+} from '../../shared/court-of-cassation-position.enum';
 
-export const CALL_FOR_APPLICATIONS_TYPES = ['GENERAL'] as const;
+export const CALL_FOR_APPLICATIONS_TYPES = ['GENERAL', 'CCASS'] as const;
 export type CallForApplicationsType = (typeof CALL_FOR_APPLICATIONS_TYPES)[number];
 
 export const CALL_FOR_APPLICATIONS_STATUSES = ['UNPUBLISHED', 'PUBLISHED'] as const;
 export type CallForApplicationsStatus = (typeof CALL_FOR_APPLICATIONS_STATUSES)[number];
 
-const TYPE_LABELS: Record<CallForApplicationsType, string> = { GENERAL: 'Général' };
-
-/** what each type of call targets: a general call always targets every position of the CA and the TJ */
-const TYPE_SCOPES: Record<CallForApplicationsType, string> = {
-  GENERAL: 'Vise tous les postes de CA et de TJ',
+const TYPE_LABELS: Record<CallForApplicationsType, string> = {
+  CCASS: 'Cour de cassation',
+  GENERAL: 'Général',
 };
+
+/** what each type of call targets: a general call always targets every position of the courts of appeal and the judicial courts */
+const TYPE_SCOPES: Record<CallForApplicationsType, string> = {
+  CCASS: 'Vise les postes de la Cour de cassation choisis',
+  GENERAL: "Vise tous les postes des cours d'appel et des tribunaux judiciaires",
+};
+
+/** only a call for the Cour de cassation targets the positions picked */
+export function targetsPositions(type: CallForApplicationsType): boolean {
+  return type === 'CCASS';
+}
+
+/** each position once from the highest to the lowest since the base returns them in any order */
+export function sortedByHierarchy(
+  positions: readonly CourtOfCassationPosition[],
+): CourtOfCassationPosition[] {
+  return COURT_OF_CASSATION_POSITIONS.filter((position) => positions.includes(position));
+}
+
+export function targetPositionOf(id: CourtOfCassationPosition) {
+  return { id, label: COURT_OF_CASSATION_POSITION_TITLES[id].man };
+}
+
+export function targetLabelOf(call: {
+  targetPositions: readonly CourtOfCassationPosition[];
+  type: CallForApplicationsType;
+}) {
+  return targetsPositions(call.type)
+    ? new Intl.ListFormat('fr').format(
+        call.targetPositions.map((position) => COURT_OF_CASSATION_POSITION_TITLES[position].man),
+      )
+    : "Cours d'appel et tribunaux judiciaires";
+}
 
 const STATUS_LABELS: Record<CallForApplicationsStatus, string> = {
   PUBLISHED: 'Publié',
@@ -23,7 +59,13 @@ export const CALL_FOR_APPLICATIONS_ACTIONS = ['CREATED', 'UPDATED', 'DELETED'] a
 export type CallForApplicationsAction = (typeof CALL_FOR_APPLICATIONS_ACTIONS)[number];
 
 /** in the order of the form: the history lists them so */
-export const CALL_FOR_APPLICATIONS_FIELDS = ['TYPE', 'PUBLISHED_ON', 'DEADLINE', 'COMMENT'] as const;
+export const CALL_FOR_APPLICATIONS_FIELDS = [
+  'TYPE',
+  'TARGET_POSITIONS',
+  'PUBLISHED_ON',
+  'DEADLINE',
+  'COMMENT',
+] as const;
 export type CallForApplicationsField = (typeof CALL_FOR_APPLICATIONS_FIELDS)[number];
 
 /** with their article: the history reads "a modifié la date limite et le commentaire" */
@@ -31,6 +73,7 @@ const FIELD_LABELS: Record<CallForApplicationsField, string> = {
   COMMENT: 'le commentaire',
   DEADLINE: 'la date limite',
   PUBLISHED_ON: 'la date de publication',
+  TARGET_POSITIONS: 'les postes cibles',
   TYPE: "le type d'appel",
 };
 
@@ -42,8 +85,12 @@ export function callForApplicationsTypeOf(id: CallForApplicationsType) {
   return { id, label: TYPE_LABELS[id] };
 }
 
-export function callForApplicationsTypeScopeOf(id: CallForApplicationsType) {
-  return { ...callForApplicationsTypeOf(id), scope: TYPE_SCOPES[id] };
+export function callForApplicationsTypeOptionOf(id: CallForApplicationsType) {
+  return {
+    ...callForApplicationsTypeOf(id),
+    scope: TYPE_SCOPES[id],
+    targetPositionsRequired: targetsPositions(id),
+  };
 }
 
 export function callForApplicationsStatusOf(id: CallForApplicationsStatus) {
@@ -51,12 +98,14 @@ export function callForApplicationsStatusOf(id: CallForApplicationsStatus) {
 }
 
 export class DeadlineBeforePublication extends Error {}
+export class MissingTargetPosition extends Error {}
 export class PublishedCallLocked extends Error {}
 
 type Metadata = {
   comment: string | null;
   deadline: DateOnly | null;
   publishedOn: DateOnly | null;
+  targetPositions: readonly CourtOfCassationPosition[];
   type: CallForApplicationsType;
 };
 
@@ -65,13 +114,16 @@ export function canChange(call: { status: CallForApplicationsStatus }, actor: { 
   return call.status === 'UNPUBLISHED' || actor.isAdmin;
 }
 
-/** the deadline closes the period that the publication opens */
+/** the deadline cannot precede the publication and a call targeting positions needs one at least */
 function validated(metadata: Metadata): Metadata {
   const { deadline, publishedOn } = metadata;
   if (deadline && publishedOn && deadline.toDate() < publishedOn.toDate())
     throw new DeadlineBeforePublication();
 
-  return { ...metadata, comment: metadata.comment?.trim() || null };
+  const targetPositions = targetsPositions(metadata.type) ? sortedByHierarchy(metadata.targetPositions) : [];
+  if (targetsPositions(metadata.type) && targetPositions.length === 0) throw new MissingTargetPosition();
+
+  return { ...metadata, comment: metadata.comment?.trim() || null, targetPositions };
 }
 
 function isSameDate(a: DateOnly | null, b: DateOnly | null): boolean {
@@ -83,6 +135,7 @@ function changedFields(before: Metadata, after: Metadata): CallForApplicationsFi
     COMMENT: before.comment !== after.comment,
     DEADLINE: !isSameDate(before.deadline, after.deadline),
     PUBLISHED_ON: !isSameDate(before.publishedOn, after.publishedOn),
+    TARGET_POSITIONS: before.targetPositions.join() !== after.targetPositions.join(),
     TYPE: before.type !== after.type,
   };
   return CALL_FOR_APPLICATIONS_FIELDS.filter((field) => changed[field]);
@@ -133,7 +186,10 @@ export class CallForApplications {
 
   static from(props: Metadata & { id: string; status: CallForApplicationsStatus }): CallForApplications {
     const { id, status, ...metadata } = props;
-    return new CallForApplications(id, status, metadata);
+    return new CallForApplications(id, status, {
+      ...metadata,
+      targetPositions: sortedByHierarchy(metadata.targetPositions),
+    });
   }
 
   /** createdOn is the day it is saved in Fondation: the agent does not pick it */

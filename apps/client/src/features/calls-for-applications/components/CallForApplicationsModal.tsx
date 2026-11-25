@@ -1,4 +1,5 @@
 import Button from '@codegouvfr/react-dsfr/Button';
+import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
 import Input from '@codegouvfr/react-dsfr/Input';
 import Select from '@codegouvfr/react-dsfr/Select';
 import { useId, useState, type FormEvent } from 'react';
@@ -21,14 +22,25 @@ import {
 type Draft = Partial<CreateCallForApplicationsDto>;
 type DateField = 'deadline' | 'publishedOn';
 
-function completeOf(draft: Draft): CreateCallForApplicationsDto | null {
+/** null while the type is missing or a type requiring positions has none */
+function completeOf(
+  draft: Draft,
+  form: FoundCallForApplicationsFormDto | undefined,
+): CreateCallForApplicationsDto | null {
   const { type } = draft;
-  if (!type) return null;
+  if (!type || !form) return null;
+
+  const required = form.types.find(({ id }) => id === type)?.targetPositionsRequired ?? false;
+  const targetPositions = required
+    ? form.targetPositions.map(({ id }) => id).filter((id) => draft.targetPositions?.includes(id))
+    : [];
+  if (required && targetPositions.length === 0) return null;
 
   return {
     comment: draft.comment?.trim() || null,
     deadline: draft.deadline || null,
     publishedOn: draft.publishedOn || null,
+    targetPositions,
     type,
   };
 }
@@ -40,7 +52,8 @@ function CallForApplicationsFields(props: {
 }) {
   const { formatMessage } = useIntl();
   const { draft, form, onChange } = props;
-  const scope = form.types.find(({ id }) => id === draft.type)?.scope;
+  const type = form.types.find(({ id }) => id === draft.type);
+  const checkedPositions = draft.targetPositions ?? [];
   const dateInput = (field: DateField) => ({
     max: form.dateRange.max,
     min: form.dateRange.min,
@@ -76,9 +89,33 @@ function CallForApplicationsFields(props: {
               </option>
             ))}
           </Select>
-          {scope && <p className="fr-hint-text fr-mt-2v fr-mb-0">{scope}</p>}
+          {type && <p className="fr-hint-text fr-mt-2v fr-mb-0">{type.scope}</p>}
         </div>
       </div>
+      {type?.targetPositionsRequired && (
+        <Checkbox
+          className="fr-mb-0"
+          legend={
+            <RequiredLabel>
+              <FormattedMessage defaultMessage="Postes cibles" />
+            </RequiredLabel>
+          }
+          options={form.targetPositions.map(({ id, label }) => ({
+            label,
+            nativeInputProps: {
+              checked: checkedPositions.includes(id),
+              onChange: (event) =>
+                onChange({
+                  targetPositions: event.target.checked
+                    ? [...checkedPositions, id]
+                    : checkedPositions.filter((position) => position !== id),
+                }),
+              value: id,
+            },
+          }))}
+          orientation="horizontal"
+        />
+      )}
       <fieldset className="fr-m-0 fr-p-0 border-0">
         <legend className="fr-mb-2v mx-0 px-0 pb-0 font-semibold text-(--text-label-grey)">
           <FormattedMessage defaultMessage="Période de candidature" />
@@ -116,6 +153,7 @@ function draftOf(call: CallForApplications): Draft {
     comment: call.comment ?? '',
     deadline: dateOnlyToIso(call.deadline) ?? '',
     publishedOn: dateOnlyToIso(call.publishedOn) ?? '',
+    targetPositions: call.targetPositions.map(({ id }) => id),
     type: call.type.id,
   };
 }
@@ -135,14 +173,12 @@ export function CallForApplicationsModal(props: {
   const update = useUpdateCallForApplicationsMutation();
   const saving = props.edited ? update : create;
   const [draft, setDraft] = useState<Draft | null>(null);
-  // a new call starts on the type when only one exists: the agent picks it anyway
-  const initial: Draft = props.edited
-    ? draftOf(props.edited)
-    : { type: form.data?.types.length === 1 ? form.data.types[0]?.id : undefined };
+  const initial: Draft = props.edited ? draftOf(props.edited) : {};
   const shown = draft ?? initial;
-  const complete = completeOf(shown);
+  const complete = completeOf(shown, form.data);
   // nothing to save while the form still holds the values saved
-  const isUnchanged = !!props.edited && JSON.stringify(complete) === JSON.stringify(completeOf(initial));
+  const isUnchanged =
+    !!props.edited && JSON.stringify(complete) === JSON.stringify(completeOf(initial, form.data));
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
@@ -207,7 +243,7 @@ export function CallForApplicationsModal(props: {
         <form className="fr-mt-6v flex flex-col gap-8" id={formId} onSubmit={submit}>
           {props.edited && (
             <p className="fr-mb-0">
-              <FormattedMessage defaultMessage="Les valeurs enregistrées seront remplacées. Il ne sera pas possible de revenir en arrière." />
+              <FormattedMessage defaultMessage="Les valeurs actuelles seront remplacées et ne seront pas conservées." />
             </p>
           )}
           <CallForApplicationsFields

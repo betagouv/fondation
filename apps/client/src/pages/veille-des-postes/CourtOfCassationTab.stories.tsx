@@ -182,7 +182,7 @@ const meta = {
     layout: 'fullscreen',
     router: { initialEntries: ['/secretariat-general/csm/veille-des-postes/cour-de-cassation/conseillers'] },
   },
-  title: 'Session/CSM/CourtOfCassationTab',
+  title: 'Session/CSM/VeilleDesPostes/CourtOfCassationTab',
 } satisfies Meta<typeof CourtOfCassationHoldersStory>;
 
 export default meta;

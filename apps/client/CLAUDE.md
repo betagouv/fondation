@@ -27,7 +27,7 @@ export function MyAwesomeComponent(props: { foo: string }) {
 - Préférer un `Context` au prop drilling
 - Croiser deux sources de données passe par un modèle construit une fois et partagé par un `Context`, pas par un hook appelé à chaque ligne
 - Un nom de composant se suffit à lui-même, même dans un dossier déjà ciblé : `MagistratDetailsContent` plutôt que `DetailsContent`
-- Le titre d'une story suit le dossier du composant : `Pages/...`, `Features/...`, `Shared/...` ou `Layout/...`. Exception : l'en-tête et les tableaux d'un pouvoir de proposition vont sous `Session/GDS/...` ou `Session/CSM/...`
+- Le titre d'une story suit le dossier du composant : `Pages/...`, `Features/...`, `Shared/...` ou `Layout/...`. Exception : l'en-tête et les tableaux d'un pouvoir de proposition vont sous `Session/GDS/...` ou `Session/CSM/...`. Côté CSM, chaque écran a son dossier (`Session/CSM/VeilleDesPostes/...` et `Session/CSM/CallsForApplications/...`)
 - Une story montre un écran ou une brique en entier, jamais ses blocs un par un. Elle passe les états par des contrôles qui reprennent les valeurs de l'API : une seule story `Playground` suffit. Seule exception : une story `Usages` à côté, quand une galerie compare des variantes côte à côte (tailles, usages d'une icône)
 - Utiliser TanStack Query pour gérer l'état asynchrone de l'application (voir [État asynchrone](#état-asynchrone))
 

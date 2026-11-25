@@ -6,13 +6,16 @@ import {
   CallForApplicationsDeleted,
   CallForApplicationsUpdated,
   DeadlineBeforePublication,
+  MissingTargetPosition,
   PublishedCallLocked,
+  targetLabelOf,
 } from './call-for-applications';
 
 const metadata = {
   comment: null,
   deadline: null,
   publishedOn: null,
+  targetPositions: [],
   type: 'GENERAL',
 } as const;
 const AGENT = { id: 'agent', isAdmin: false };
@@ -143,5 +146,84 @@ describe('CallForApplications', () => {
 
       expect(call.messages).toEqual([new CallForApplicationsDeleted('admin', 'call')]);
     });
+  });
+
+  describe('a call for the Cour de cassation', () => {
+    const ccass = {
+      ...metadata,
+      authorId: 'author',
+      createdOn: new DateOnly(2026, 11, 25),
+      type: 'CCASS',
+    } as const;
+
+    it('refuses a call that targets no position', () => {
+      expect(() => CallForApplications.create({ ...ccass, targetPositions: [] })).toThrow(
+        MissingTargetPosition,
+      );
+    });
+
+    it('keeps each position once, in the order of the hierarchy', () => {
+      const call = CallForApplications.create({
+        ...ccass,
+        targetPositions: ['COUNSELLOR', 'FIRST_PRESIDENT', 'COUNSELLOR'],
+      });
+
+      expect(call.messages).toMatchObject([
+        { metadata: { targetPositions: ['FIRST_PRESIDENT', 'COUNSELLOR'] } },
+      ]);
+    });
+
+    it('notes nothing when the positions read come back in another order', () => {
+      const call = CallForApplications.from({
+        ...ccass,
+        id: 'call',
+        status: 'UNPUBLISHED',
+        targetPositions: ['COUNSELLOR', 'FIRST_PRESIDENT'],
+      });
+
+      call.update({ ...ccass, actor: AGENT, targetPositions: ['FIRST_PRESIDENT', 'COUNSELLOR'] });
+
+      expect(call.messages).toEqual([]);
+    });
+
+    it('names the positions an update changed', () => {
+      const call = CallForApplications.from({
+        ...ccass,
+        id: 'call',
+        status: 'UNPUBLISHED',
+        targetPositions: ['COUNSELLOR'],
+      });
+
+      call.update({ ...ccass, actor: AGENT, targetPositions: ['COUNSELLOR', 'CHAMBER_PRESIDENT'] });
+
+      expect(call.messages).toMatchObject([{ fields: ['TARGET_POSITIONS'] }]);
+    });
+  });
+
+  describe('a general call', () => {
+    it('targets no position, whatever is sent', () => {
+      const call = CallForApplications.create({
+        ...metadata,
+        authorId: 'author',
+        createdOn: new DateOnly(2026, 11, 25),
+        targetPositions: ['COUNSELLOR'],
+      });
+
+      expect(call.messages).toMatchObject([{ metadata: { targetPositions: [] } }]);
+    });
+  });
+});
+
+describe('targetLabelOf', () => {
+  it('lists the positions of a call for the Cour de cassation', () => {
+    expect(targetLabelOf({ targetPositions: ['FIRST_PRESIDENT', 'COUNSELLOR'], type: 'CCASS' })).toBe(
+      'Premier président et Conseiller',
+    );
+  });
+
+  it('names the courts of appeal and the judicial courts for a general call', () => {
+    expect(targetLabelOf({ targetPositions: [], type: 'GENERAL' })).toBe(
+      "Cours d'appel et tribunaux judiciaires",
+    );
   });
 });

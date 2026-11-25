@@ -193,7 +193,7 @@ const meta = {
     },
     layout: 'fullscreen',
   },
-  title: 'Session/CSM/JudicialCourtPresidentsTable',
+  title: 'Session/CSM/VeilleDesPostes/JudicialCourtPresidentsTable',
 } satisfies Meta<typeof JudicialCourtPresidentsStory>;
 
 export default meta;

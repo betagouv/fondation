@@ -4,8 +4,8 @@ import { Injectable } from '@nestjs/common';
 import type { DateOnly } from '../../utils/date-only';
 import { Pagination } from '../framework/pagination';
 import { Sortable } from '../framework/sorting';
+import type { CourtOfCassationPosition } from '../shared/court-of-cassation-position.enum';
 
-import type { CourtOfCassationPosition } from './domain/court-of-cassation-position';
 import type { AlertDeadline, PositionAlert } from './domain/position-alert';
 import type { PositionStatus } from './domain/position-status';
 import type { VacancyReason } from './domain/position-vacancy';

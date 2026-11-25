@@ -15,8 +15,43 @@ import { CallForApplicationsModal } from './CallForApplicationsModal';
 const FORM: FoundCallForApplicationsFormDto = {
   commentMaxLength: 50_000,
   dateRange: { max: '2100-12-31', min: '2000-01-01' },
-  types: [{ id: 'GENERAL', label: 'Général', scope: 'Vise tous les postes de CA et de TJ' }],
+  targetPositions: [
+    { id: 'FIRST_PRESIDENT', label: 'Premier président' },
+    { id: 'CHAMBER_PRESIDENT', label: 'Président de chambre' },
+    { id: 'COUNSELLOR', label: 'Conseiller' },
+    { id: 'REFERENDARY_COUNSELLOR', label: 'Conseiller référendaire' },
+    { id: 'AUDITOR_SECOND_GRADE', label: 'Auditeur 2e grade' },
+    { id: 'AUDITOR_FIRST_GRADE', label: 'Auditeur 1er grade' },
+  ],
+  types: [
+    {
+      id: 'GENERAL',
+      label: 'Général',
+      scope: "Vise tous les postes des cours d'appel et des tribunaux judiciaires",
+      targetPositionsRequired: false,
+    },
+    {
+      id: 'CCASS',
+      label: 'Cour de cassation',
+      scope: 'Vise les postes de la Cour de cassation choisis',
+      targetPositionsRequired: true,
+    },
+  ],
 };
+
+const SAVED = {
+  canChange: true,
+  comment: null,
+  createdOn: { day: 20, month: 11, year: 2026 },
+  deadline: null,
+  history: [],
+  id: 'call-1',
+  publishedOn: null,
+  status: { id: 'UNPUBLISHED', label: 'Non publié' },
+  targetLabel: "Cours d'appel et tribunaux judiciaires",
+  targetPositions: [],
+  type: { id: 'GENERAL', label: 'Général' },
+} satisfies CallForApplications;
 
 /** what the client of the API throws on a 400 naming what to fix */
 function refusal(validationError: string): unknown {
@@ -54,15 +89,17 @@ describe('CallForApplicationsModal', () => {
   });
   afterEach(() => vi.restoreAllMocks());
 
-  it('creates a call of the only type, telling what it targets, without the dates left empty', async () => {
+  it('creates a general call telling what it targets without the dates left empty', async () => {
     const create = vi
       .spyOn($api.callsForApplications, 'createCallForApplications')
       .mockResolvedValue({ data: { id: 'call-1' } } as never);
     const { onClose } = renderModal();
     const user = userEvent.setup();
 
-    await screen.findByRole('textbox', { name: 'Commentaire' });
-    expect(screen.getByText('Vise tous les postes de CA et de TJ')).toBeInTheDocument();
+    await user.selectOptions(await screen.findByRole('combobox', { name: /Type d'appel/ }), 'GENERAL');
+    expect(
+      screen.getByText("Vise tous les postes des cours d'appel et des tribunaux judiciaires"),
+    ).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: "Créer l'appel à candidatures" }));
 
     expect(create).toHaveBeenCalledWith(
@@ -71,6 +108,7 @@ describe('CallForApplicationsModal', () => {
           comment: null,
           deadline: null,
           publishedOn: null,
+          targetPositions: [],
           type: 'GENERAL',
         },
       }),
@@ -83,7 +121,7 @@ describe('CallForApplicationsModal', () => {
     const { onClose } = renderModal();
     const user = userEvent.setup();
 
-    await screen.findByRole('textbox', { name: 'Commentaire' });
+    await user.selectOptions(await screen.findByRole('combobox', { name: /Type d'appel/ }), 'GENERAL');
     await user.click(screen.getByRole('button', { name: "Créer l'appel à candidatures" }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent('La création a échoué, réessayez');
@@ -97,7 +135,7 @@ describe('CallForApplicationsModal', () => {
     const { onClose } = renderModal();
     const user = userEvent.setup();
 
-    await screen.findByRole('textbox', { name: 'Commentaire' });
+    await user.selectOptions(await screen.findByRole('combobox', { name: /Type d'appel/ }), 'GENERAL');
     await user.click(screen.getByRole('button', { name: "Créer l'appel à candidatures" }));
 
     expect(
@@ -107,20 +145,15 @@ describe('CallForApplicationsModal', () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 
-  it('updates the call it opens on, with the values it holds', async () => {
+  it('updates the call it opens on with the values it holds', async () => {
     const update = vi
       .spyOn($api.callsForApplications, 'updateCallForApplications')
       .mockResolvedValue({ data: undefined } as never);
     const { onClose } = renderModal({
-      canChange: true,
+      ...SAVED,
       comment: 'Postes vacants',
-      createdOn: { day: 20, month: 11, year: 2026 },
       deadline: { day: 15, month: 1, year: 2027 },
-      history: [],
-      id: 'call-1',
       publishedOn: { day: 1, month: 12, year: 2026 },
-      status: { id: 'UNPUBLISHED', label: 'Non publié' },
-      type: { id: 'GENERAL', label: 'Général' },
     });
     const user = userEvent.setup();
 
@@ -133,6 +166,7 @@ describe('CallForApplicationsModal', () => {
           comment: 'Postes vacants et créés',
           deadline: '2027-01-15',
           publishedOn: '2026-12-01',
+          targetPositions: [],
           type: 'GENERAL',
         },
         path: { callId: 'call-1' },
@@ -142,17 +176,7 @@ describe('CallForApplicationsModal', () => {
   });
 
   it('saves nothing while the form still holds the values saved', async () => {
-    renderModal({
-      canChange: true,
-      comment: null,
-      createdOn: { day: 20, month: 11, year: 2026 },
-      deadline: null,
-      history: [],
-      id: 'call-1',
-      publishedOn: null,
-      status: { id: 'UNPUBLISHED', label: 'Non publié' },
-      type: { id: 'GENERAL', label: 'Général' },
-    });
+    renderModal(SAVED);
     const user = userEvent.setup();
     const comment = await screen.findByRole('textbox', { name: 'Commentaire' });
     const save = screen.getByRole('button', { name: 'Enregistrer les modifications' });
@@ -160,5 +184,60 @@ describe('CallForApplicationsModal', () => {
     expect(save).toBeDisabled();
     await user.type(comment, 'Postes vacants');
     expect(save).toBeEnabled();
+  });
+
+  it('opens a call for the Cour de cassation on its positions and saves a position added', async () => {
+    const update = vi
+      .spyOn($api.callsForApplications, 'updateCallForApplications')
+      .mockResolvedValue({ data: undefined } as never);
+    renderModal({
+      ...SAVED,
+      targetLabel: 'Premier président et Conseiller',
+      targetPositions: [
+        { id: 'FIRST_PRESIDENT', label: 'Premier président' },
+        { id: 'COUNSELLOR', label: 'Conseiller' },
+      ],
+      type: { id: 'CCASS', label: 'Cour de cassation' },
+    });
+    const user = userEvent.setup();
+    const chamberPresident = await screen.findByRole('checkbox', { name: 'Président de chambre' });
+    const save = screen.getByRole('button', { name: 'Enregistrer les modifications' });
+
+    expect(screen.getByRole('checkbox', { name: 'Premier président' })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'Conseiller' })).toBeChecked();
+    await user.click(chamberPresident);
+    await user.click(chamberPresident);
+    expect(save).toBeDisabled();
+    await user.click(chamberPresident);
+    await user.click(save);
+
+    expect(update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: expect.objectContaining({
+          targetPositions: ['FIRST_PRESIDENT', 'CHAMBER_PRESIDENT', 'COUNSELLOR'],
+        }),
+      }),
+    );
+  });
+
+  it('creates a call for the Cour de cassation once a position is picked', async () => {
+    const create = vi
+      .spyOn($api.callsForApplications, 'createCallForApplications')
+      .mockResolvedValue({ data: { id: 'call-1' } } as never);
+    renderModal();
+    const user = userEvent.setup();
+
+    await user.selectOptions(await screen.findByRole('combobox', { name: /Type d'appel/ }), 'CCASS');
+    const save = screen.getByRole('button', { name: "Créer l'appel à candidatures" });
+    expect(save).toBeDisabled();
+    await user.click(screen.getByRole('checkbox', { name: 'Conseiller' }));
+    await user.click(screen.getByRole('checkbox', { name: 'Premier président' }));
+    await user.click(save);
+
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: expect.objectContaining({ targetPositions: ['FIRST_PRESIDENT', 'COUNSELLOR'], type: 'CCASS' }),
+      }),
+    );
   });
 });

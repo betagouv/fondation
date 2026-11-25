@@ -1,6 +1,11 @@
 import type { DateOnly } from '../../../utils/date-only';
 
-import { CALL_FOR_APPLICATIONS_STATUSES, type CallForApplicationsStatus } from './call-for-applications';
+import {
+  CALL_FOR_APPLICATIONS_STATUSES,
+  CALL_FOR_APPLICATIONS_TYPES,
+  type CallForApplicationsStatus,
+  type CallForApplicationsType,
+} from './call-for-applications';
 import { byPublication } from './call-for-applications-period';
 
 export const CALL_FOR_APPLICATIONS_SORTABLE_COLUMNS = [
@@ -8,6 +13,7 @@ export const CALL_FOR_APPLICATIONS_SORTABLE_COLUMNS = [
   'deadline',
   'publishedOn',
   'status',
+  'type',
 ] as const;
 export type CallForApplicationsSortableColumn = (typeof CALL_FOR_APPLICATIONS_SORTABLE_COLUMNS)[number];
 
@@ -17,6 +23,7 @@ type SortedCall = {
   id: string;
   publishedOn: DateOnly | null;
   status: CallForApplicationsStatus;
+  type: CallForApplicationsType;
 };
 
 function sortValueOf(call: SortedCall, column: CallForApplicationsSortableColumn): number | null {
@@ -29,6 +36,8 @@ function sortValueOf(call: SortedCall, column: CallForApplicationsSortableColumn
       return call.publishedOn?.toDate().getTime() ?? null;
     case 'status':
       return CALL_FOR_APPLICATIONS_STATUSES.indexOf(call.status);
+    case 'type':
+      return CALL_FOR_APPLICATIONS_TYPES.indexOf(call.type);
   }
 }
 
