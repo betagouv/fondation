@@ -44,7 +44,7 @@ test.describe('Calls for applications E2E', () => {
       id: created.id,
       publishedOn: { day: 1, month: 12, year: 2099 },
       status: { id: 'UNPUBLISHED', label: 'Non publié' },
-      targetLabel: 'CA et TJ',
+      targetLabel: "Cours d'appel et tribunaux judiciaires",
       targetPositions: [],
       type: { id: 'GENERAL', label: 'Général' },
     });
@@ -165,5 +165,25 @@ test.describe('Calls for applications E2E', () => {
     const updated = data.items.find(({ id }) => id === created.id);
     expect(updated?.targetPositions.map(({ id }) => id)).toEqual(['CHAMBER_PRESIDENT', 'COUNSELLOR']);
     expect(updated?.history[0]?.fields.map(({ id }) => id)).toEqual(['TARGET_POSITIONS']);
+  });
+
+  test('should list only the calls of the type picked', async ({ agent, expect }) => {
+    const publishedOn = '2094-03-01';
+    const { data: general } = await agent.callsForApplications.createCallForApplications({
+      body: { publishedOn, type: 'GENERAL' },
+      throwOnError: true,
+    });
+    const { data: ccass } = await agent.callsForApplications.createCallForApplications({
+      body: { publishedOn, targetPositions: ['COUNSELLOR'], type: 'CCASS' },
+      throwOnError: true,
+    });
+
+    const { data } = await agent.callsForApplications.listCallsForApplications({
+      query: { limit: 200, period: 'ONGOING', types: ['CCASS'], years: ['2094'] },
+      throwOnError: true,
+    });
+    expect(data.items.map(({ type }) => type.id)).toEqual(data.items.map(() => 'CCASS'));
+    expect(data.items.map(({ id }) => id)).toContain(ccass.id);
+    expect(data.items.map(({ id }) => id)).not.toContain(general.id);
   });
 });

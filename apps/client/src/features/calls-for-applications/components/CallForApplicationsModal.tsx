@@ -173,10 +173,7 @@ export function CallForApplicationsModal(props: {
   const update = useUpdateCallForApplicationsMutation();
   const saving = props.edited ? update : create;
   const [draft, setDraft] = useState<Draft | null>(null);
-  // a new call starts on the type when only one exists: the agent picks it anyway
-  const initial: Draft = props.edited
-    ? draftOf(props.edited)
-    : { type: form.data?.types.length === 1 ? form.data.types[0]?.id : undefined };
+  const initial: Draft = props.edited ? draftOf(props.edited) : {};
   const shown = draft ?? initial;
   const complete = completeOf(shown, form.data);
   // nothing to save while the form still holds the values saved

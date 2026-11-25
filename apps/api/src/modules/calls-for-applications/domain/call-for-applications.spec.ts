@@ -221,7 +221,9 @@ describe('targetLabelOf', () => {
     );
   });
 
-  it('names the CA and the TJ for a general call', () => {
-    expect(targetLabelOf({ targetPositions: [], type: 'GENERAL' })).toBe('CA et TJ');
+  it('names the courts of appeal and the judicial courts for a general call', () => {
+    expect(targetLabelOf({ targetPositions: [], type: 'GENERAL' })).toBe(
+      "Cours d'appel et tribunaux judiciaires",
+    );
   });
 });

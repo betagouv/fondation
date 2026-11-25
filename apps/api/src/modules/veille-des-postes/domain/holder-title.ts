@@ -1,19 +1,13 @@
 import { CIVILITIES, type Civility } from '../../magistrat/domain/magistrat-name';
-import type { CourtOfCassationPosition } from '../../shared/court-of-cassation-position.enum';
+import {
+  COURT_OF_CASSATION_POSITION_TITLES,
+  type CourtOfCassationPosition,
+} from '../../shared/court-of-cassation-position.enum';
 
 import { SUPERIOR_COURT_OF_APPEAL_TYPE_ID } from './court-of-appeal-first-president';
 import type { HolderService } from './court-of-cassation-position';
 
 type Titles = { man: string; woman: string };
-
-const COURT_OF_CASSATION_TITLES: Record<CourtOfCassationPosition, Titles> = {
-  AUDITOR_FIRST_GRADE: { man: 'Auditeur 1er grade', woman: 'Auditrice 1er grade' },
-  AUDITOR_SECOND_GRADE: { man: 'Auditeur 2e grade', woman: 'Auditrice 2e grade' },
-  CHAMBER_PRESIDENT: { man: 'Président de chambre', woman: 'Présidente de chambre' },
-  COUNSELLOR: { man: 'Conseiller', woman: 'Conseillère' },
-  FIRST_PRESIDENT: { man: 'Premier président', woman: 'Première présidente' },
-  REFERENDARY_COUNSELLOR: { man: 'Conseiller référendaire', woman: 'Conseillère référendaire' },
-};
 
 /** LOLFI sends the civility as free text: anything but MME or M. is unknown */
 export function civilityOf(lolfi: string | null): Civility | null {
@@ -45,7 +39,7 @@ export function courtOfCassationHolderTitle(holder: {
   position: CourtOfCassationPosition;
   service: HolderService;
 }): string {
-  const title = titleOf(COURT_OF_CASSATION_TITLES[holder.position], holder.civility);
+  const title = titleOf(COURT_OF_CASSATION_POSITION_TITLES[holder.position], holder.civility);
   // the first president presides over the court: the others sit in it
   const court = holder.position === 'FIRST_PRESIDENT' ? 'de la Cour de cassation' : 'à la Cour de cassation';
   return holder.service === 'EXTRAORDINARY'

@@ -23,7 +23,7 @@ function created(
 ): ListedCall {
   const { createdAt, createdBy, ...listed } = call;
   return {
-    targetLabel: 'CA et TJ',
+    targetLabel: "Cours d'appel et tribunaux judiciaires",
     targetPositions: [],
     ...listed,
     comment: null,
@@ -117,14 +117,14 @@ const FORM: FoundCallForApplicationsFormDto = {
     { id: 'CHAMBER_PRESIDENT', label: 'Président de chambre' },
     { id: 'COUNSELLOR', label: 'Conseiller' },
     { id: 'REFERENDARY_COUNSELLOR', label: 'Conseiller référendaire' },
-    { id: 'AUDITOR_SECOND_GRADE', label: 'Auditeur 2nd grade' },
+    { id: 'AUDITOR_SECOND_GRADE', label: 'Auditeur 2e grade' },
     { id: 'AUDITOR_FIRST_GRADE', label: 'Auditeur 1er grade' },
   ],
   types: [
     {
       id: 'GENERAL',
       label: 'Général',
-      scope: 'Vise tous les postes de CA et de TJ',
+      scope: "Vise tous les postes des cours d'appel et des tribunaux judiciaires",
       targetPositionsRequired: false,
     },
     {
@@ -203,8 +203,7 @@ const meta = {
         if (args.loadFails || (args.nextPageFails && page > 1))
           return new HttpResponse(null, { status: 500 });
 
-        const years = params.getAll('years');
-        const items = args.empty || (years.length > 0 && !years.includes('2026')) ? [] : CALLS[args.period];
+        const items = args.empty ? [] : CALLS[args.period];
         return HttpResponse.json<ListedCallsForApplicationsDto>({
           currentPageIndex: page,
           items,

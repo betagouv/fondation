@@ -20,7 +20,7 @@ const CALL: CallForApplications = {
   id: 'call-1',
   publishedOn: null,
   status: { id: 'UNPUBLISHED', label: 'Non publié' },
-  targetLabel: 'CA et TJ',
+  targetLabel: "Cours d'appel et tribunaux judiciaires",
   targetPositions: [],
   type: { id: 'GENERAL', label: 'Général' },
 };

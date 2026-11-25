@@ -1,6 +1,7 @@
 import type { DateOnly } from '../../../utils/date-only';
 import { makeId } from '../../../utils/id';
 import {
+  COURT_OF_CASSATION_POSITION_TITLES,
   COURT_OF_CASSATION_POSITIONS,
   type CourtOfCassationPosition,
 } from '../../shared/court-of-cassation-position.enum';
@@ -16,26 +17,16 @@ const TYPE_LABELS: Record<CallForApplicationsType, string> = {
   GENERAL: 'Général',
 };
 
-/** what each type of call targets: a general call always targets every position of the CA and the TJ */
+/** what each type of call targets: a general call always targets every position of the courts of appeal and the judicial courts */
 const TYPE_SCOPES: Record<CallForApplicationsType, string> = {
   CCASS: 'Vise les postes de la Cour de cassation choisis',
-  GENERAL: 'Vise tous les postes de CA et de TJ',
+  GENERAL: "Vise tous les postes des cours d'appel et des tribunaux judiciaires",
 };
 
 /** only a call for the Cour de cassation targets the positions picked */
 export function targetsPositions(type: CallForApplicationsType): boolean {
   return type === 'CCASS';
 }
-
-/** singular labels since the agent picks one position at a time (the veille names its tabs in the plural) */
-const POSITION_LABELS: Record<CourtOfCassationPosition, string> = {
-  AUDITOR_FIRST_GRADE: 'Auditeur 1er grade',
-  AUDITOR_SECOND_GRADE: 'Auditeur 2nd grade',
-  CHAMBER_PRESIDENT: 'Président de chambre',
-  COUNSELLOR: 'Conseiller',
-  FIRST_PRESIDENT: 'Premier président',
-  REFERENDARY_COUNSELLOR: 'Conseiller référendaire',
-};
 
 /** each position once from the highest to the lowest since the base returns them in any order */
 export function sortedByHierarchy(
@@ -45,7 +36,7 @@ export function sortedByHierarchy(
 }
 
 export function targetPositionOf(id: CourtOfCassationPosition) {
-  return { id, label: POSITION_LABELS[id] };
+  return { id, label: COURT_OF_CASSATION_POSITION_TITLES[id].man };
 }
 
 export function targetLabelOf(call: {
@@ -53,8 +44,10 @@ export function targetLabelOf(call: {
   type: CallForApplicationsType;
 }) {
   return targetsPositions(call.type)
-    ? new Intl.ListFormat('fr').format(call.targetPositions.map((position) => POSITION_LABELS[position]))
-    : 'CA et TJ';
+    ? new Intl.ListFormat('fr').format(
+        call.targetPositions.map((position) => COURT_OF_CASSATION_POSITION_TITLES[position].man),
+      )
+    : "Cours d'appel et tribunaux judiciaires";
 }
 
 const STATUS_LABELS: Record<CallForApplicationsStatus, string> = {
