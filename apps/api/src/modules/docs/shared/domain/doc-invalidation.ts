@@ -26,7 +26,7 @@ export type DocInvalidation =
   | {
       /** how a member is printed changed: their name, or the title they get once recused */
       type: 'MemberRenamed';
-      payload: { userId: string };
+      payload: { change: 'NAME' | 'RECUSAL_TITLE'; userId: string };
     }
   | {
       type: 'NominationFilesOutcomeUpdated';

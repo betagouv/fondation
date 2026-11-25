@@ -163,7 +163,8 @@ export class InvalidateOfficialReportUseCase {
   private async mapMemberRenamed(query: {
     invalidation: Extract<DocInvalidation, { type: 'MemberRenamed' }>;
   }): Promise<InvalidateOfficialReportCommand[]> {
-    const member = [{ id: query.invalidation.payload.userId }];
+    const { change, userId } = query.invalidation.payload;
+    const member = [{ id: userId }];
     const reportFiles = await this.db.tx.officialReportNominationFile.findMany({
       where: {
         OR: [{ recusedMembers: { array_contains: member } }, { reporters: { array_contains: member } }],
@@ -198,11 +199,35 @@ export class InvalidateOfficialReportUseCase {
       for (const item of items) files.set(item.id, item);
     }
 
-    return [...reports].map(([officialReportId, { nominationFileIds }]) => ({
+    // a draft naming the member as its chairman, its secretary or present is printed again under their
+    // new name, propositions aside; the title they get once recused is printed in the propositions only
+    const drafts =
+      change === 'NAME'
+        ? await this.db.tx.officialReportVersion.findMany({
+            distinct: ['officialReportId'],
+            select: { officialReportId: true } satisfies Prisma.OfficialReportVersionSelect,
+            where: {
+              OR: [
+                { chairmanId: userId },
+                { secretaryId: userId },
+                { members: { some: { isAbsent: false, memberId: userId } } },
+              ],
+              status: 'DRAFT',
+            },
+          })
+        : [];
+
+    const officialReportIds = new Set([
+      ...reports.keys(),
+      ...drafts.map(({ officialReportId }) => officialReportId),
+    ]);
+    return [...officialReportIds].map((officialReportId) => ({
       type: 'MemberRenamed',
       id: officialReportId,
       payload: {
-        files: [...nominationFileIds].flatMap((nominationFileId) => {
+        change,
+        userId,
+        files: [...(reports.get(officialReportId)?.nominationFileIds ?? [])].flatMap((nominationFileId) => {
           const file = files.get(nominationFileId);
           if (!file) return [];
 

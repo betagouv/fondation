@@ -125,7 +125,7 @@ export class AdministrationService {
     const user = await this.userRepository.findById(command.userId);
     user.updateName(command);
     await this.userRepository.persist(user);
-    await this.docs.internalFollowRenamedMember(command);
+    await this.docs.internalFollowRenamedMember({ change: 'NAME', userId: command.userId });
   }
 
   @Transactional()
@@ -176,7 +176,7 @@ export class AdministrationService {
     const user = await this.userRepository.findById(command.userId);
     user.updateRecusalTitle(command.recusalTitle);
     await this.userRepository.persist(user);
-    await this.docs.internalFollowRenamedMember(command);
+    await this.docs.internalFollowRenamedMember({ change: 'RECUSAL_TITLE', userId: command.userId });
   }
 
   /** the members' page reaches the members only */

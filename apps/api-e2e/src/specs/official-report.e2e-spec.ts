@@ -2,6 +2,7 @@ import type { Sql } from 'postgres';
 
 import { test } from '../fixtures.ts';
 import { MEETING_DATE } from '../fixtures/docs.fixture.ts';
+import type { TestStepsAdmin } from '../steps.ts';
 import { makeFile } from '../utils/files.ts';
 import { attachmentForm } from '../utils/nomination-file-attachment.ts';
 
@@ -716,6 +717,89 @@ test.describe('Official report', () => {
     const document = await agent.docs.detailsOfficialReportDocument({ path: { officialReportId } });
     const block = document.data!.blocks.find((b) => b.kind === 'file' && b.nominationFileId === nominationFileId);
     expect(block?.kind === 'file' && block.html).not.toContain('RENOMMÉ');
+  });
+
+  test.describe('when its chairman, its secretary and a member present are renamed', () => {
+    // the docs fixture shares its chairman and secretary between the tests: each one gives its own names,
+    // with an accent and a hyphen that the fonts a page embeds in base64 never spell
+    const renameEveryone = async (
+      admin: TestStepsAdmin,
+      docs: { chairman: { id: string }; secretary: { id: string } },
+      present: { id: string },
+      names: { chairman: { firstName: string; lastName: string }; tag: string },
+    ) => {
+      for (const [userId, body] of [
+        [docs.chairman.id, names.chairman],
+        [docs.secretary.id, { lastName: `Secrétaire-${names.tag}` }],
+        [present.id, { lastName: `Présent-${names.tag}` }],
+      ] as const) {
+        await admin.administration.updateName({ body, path: { userId }, throwOnError: true });
+      }
+    };
+
+    test('should print a draft under their names of today, file name included', async ({
+      admin,
+      agent,
+      docs,
+      expect,
+      member,
+      registerUser,
+    }) => {
+      const present = await registerUser('MEMBRE_DU_PARQUET');
+      const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
+      const { id: officialReportId } = await docs.officialReport(await docs.agenda(session));
+      const html = async () =>
+        (await agent.docs.generateOfficialReportHtml({ parseAs: 'text', path: { officialReportId } })).data;
+      // the page stored on this first read is printed again after the renaming
+      await html();
+
+      await renameEveryone(admin, docs, present, {
+        chairman: { firstName: 'Zélie', lastName: 'Zébulon-Brouillon' },
+        tag: 'Brouillon',
+      });
+
+      const printed = await html();
+      expect(printed).toContain('ZÉBULON-BROUILLON');
+      expect(printed).toContain('SECRÉTAIRE-BROUILLON');
+      expect(printed).toContain('PRÉSENT-BROUILLON');
+      const found = await agent.docs.findSessionDocs({ path: { sessionId: session.id } });
+      expect(found.data!.items.find(({ id }) => id === officialReportId)?.name).toContain(' - ZZ');
+    });
+
+    test('should never change a validated report, on screen as in its PDF', async ({
+      admin,
+      agent,
+      docs,
+      expect,
+      member,
+      registerUser,
+    }) => {
+      const present = await registerUser('MEMBRE_DU_PARQUET');
+      const session = await docs.session({ outcome: VALIDATED, reporters: [member['@user']!] });
+      const { id: officialReportId } = await docs.officialReport(await docs.agenda(session), { status: 'VALIDATED' });
+      const listedName = async () =>
+        (await agent.docs.findSessionDocs({ path: { sessionId: session.id } })).data!.items.find(
+          ({ id }) => id === officialReportId,
+        )?.name;
+      const validatedName = await listedName();
+
+      await renameEveryone(admin, docs, present, {
+        chairman: { firstName: 'Yvette', lastName: 'Yser-Validée' },
+        tag: 'Validée',
+      });
+
+      const { data: html } = await agent.docs.generateOfficialReportHtml({
+        parseAs: 'text',
+        path: { officialReportId },
+      });
+      const { data: screen } = await agent.docs.detailsOfficialReportDocument({ path: { officialReportId } });
+      for (const printed of [html, JSON.stringify(screen)]) {
+        expect(printed).not.toContain('YSER-VALIDÉE');
+        expect(printed).not.toContain('SECRÉTAIRE-VALIDÉE');
+        expect(printed).not.toContain('PRÉSENT-VALIDÉE');
+      }
+      expect(await listedName()).toBe(validatedName);
+    });
   });
 
   test('should name a magistrat first name first, as Lolfi names them today, in the draft opened on a validated report', async ({

@@ -17,6 +17,25 @@ export class OfficialReportSecretary {
     return typeof this.id === 'string' && typeof other.id === 'string' && this.id === other.id;
   }
 
+  /** as the version recorded it: the checks ran when the secretary was chosen */
+  static recorded(props: {
+    displayTitle: string | null;
+    firstName: string;
+    gender: GenderEnum;
+    id: string | null;
+    lastName: string;
+    title: UserTitleEnum | null;
+  }): OfficialReportSecretary {
+    return new OfficialReportSecretary(
+      props.id,
+      props.firstName,
+      props.lastName,
+      props.gender,
+      props.displayTitle,
+      props.title === 'FIRST_SECRETARY' ? props.title : null,
+    );
+  }
+
   static from(props: {
     id: string | null;
     firstName: string;
