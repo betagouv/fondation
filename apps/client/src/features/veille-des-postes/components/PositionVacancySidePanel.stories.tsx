@@ -98,7 +98,7 @@ const meta = {
     },
     layout: 'fullscreen',
   },
-  title: 'Session/CSM/PositionVacancySidePanel',
+  title: 'Session/CSM/VeilleDesPostes/PositionVacancySidePanel',
 } satisfies Meta<typeof PositionVacancySidePanelStory>;
 
 export default meta;

@@ -158,7 +158,7 @@ const meta = {
     },
     layout: 'fullscreen',
   },
-  title: 'Session/CSM/CourtOfAppealFirstPresidentsTable',
+  title: 'Session/CSM/VeilleDesPostes/CourtOfAppealFirstPresidentsTable',
 } satisfies Meta<typeof CourtOfAppealFirstPresidentsStory>;
 
 export default meta;

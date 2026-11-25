@@ -65,7 +65,7 @@ Points clés :
   les vraies props** du composant. Si une prop change, la story ne compile plus.
 - Le nom de l'export devient le nom affiché (`Default`, `EditableEmpty` => "Editable Empty").
 - `title` : il suit le dossier du composant, `Pages/...`, `Features/...`, `Shared/...` ou `Layout/...`.
-  L'en-tête et les tableaux d'un pouvoir de proposition vont sous `Session/GDS/...` ou `Session/CSM/...`
+  L'en-tête et les tableaux d'un pouvoir de proposition vont sous `Session/GDS/...` ou `Session/CSM/...`. Côté CSM, chaque écran a son dossier (`Session/CSM/VeilleDesPostes/...` et `Session/CSM/CallsForApplications/...`)
 - `tags: ['autodocs']` : génère une page "Docs". Utile pour un composant partagé, inutile pour
   une page.
 
