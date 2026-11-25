@@ -35,7 +35,17 @@ export class FindOfficialReportDocumentQuery {
   private async renderHtml(officialReportId: string, versionId: string): Promise<string> {
     const renderContext = await this.officialReportRenderContextFinder.find({ officialReportId });
     const html = this.officialReportRenderer.html(renderContext);
-    await this.db.tx.officialReportVersion.update({ where: { id: versionId }, data: { html } });
+    // the PDF prints this html: what its intro says of the agenda and the session is recorded with it,
+    // for the screen of the validated report to tell the same
+    await this.db.tx.officialReportVersion.update({
+      data: {
+        agendaDate: renderContext.agenda.date.toDate(),
+        agendaPropositionCount: renderContext.agenda.propositionCount,
+        html,
+        sessionDate: renderContext.session.date.toDate(),
+      },
+      where: { id: versionId },
+    });
 
     return html;
   }

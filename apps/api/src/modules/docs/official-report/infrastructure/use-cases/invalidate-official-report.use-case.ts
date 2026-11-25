@@ -53,9 +53,14 @@ export class InvalidateOfficialReportUseCase {
       case 'MemberRenamed':
         return this.invalidate(await this.mapMemberRenamed({ invalidation }));
 
-      // the report already answered when the draft was opened, and its own draft carries the answer
+      // the report speaks of the validated version, so a draft edited on it changes nothing until it is
+      // validated: its propositions are sent here, its date as an AgendaDateUpdated by the agendas service
       case 'AgendaValidated':
-        return;
+        return this.invalidate(
+          await this.mapAgendaNominationFilesUpdated({
+            invalidation: { payload: invalidation.payload, type: 'AgendaNominationFilesUpdated' },
+          }),
+        );
 
       default:
         return assertNever(invalidation);
