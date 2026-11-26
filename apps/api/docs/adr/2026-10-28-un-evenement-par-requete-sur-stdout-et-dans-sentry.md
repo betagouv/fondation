@@ -107,6 +107,9 @@ ligne s'écrit avec, en `request.id`, le `request_id` de la ligne du routeur.
   avant la réponse (`fondation.request.interrupted`, sans statut puisqu'aucune réponse n'est partie),
   contrairement à `finish`. Le middleware est monté avant le body parser de Nest, pour qu'un corps
   illisible ou trop gros soit décrit aussi, et après CORS : `/_health` et les preflights n'en émettent pas.
+  Une commande CLI ouvre le sien dans `cli.ts`, autour de `CommandFactory.runApplication`, par
+  `WideEvent.runCommand` (FON-867) : `job.name` avec la sous-commande (`user register`), jamais ses
+  arguments, `job.duration`, `process.exit.code`, et `fondation.ingestion_job.id` pour l'ingestion.
 - **Des identifiants seulement** : utilisateur, rôle, usurpateur, statut, route, durée, `error.type`,
   et les identifiants de la route (`:sessionId` devient `fondation.session.id`, `:nominationFileId`
   `fondation.nomination_file.id`), lus dans `req.params` à l'émission sans rien ajouter dans chaque
@@ -133,9 +136,12 @@ ligne s'écrit avec, en `request.id`, le `request_id` de la ligne du routeur.
 - Les archives Scalingo gardent stdout un an, sans purge possible de notre côté ; Sentry purge à
   90 jours, réglage commun à toute l'instance. Le RSSI et le DPO du CSM ont validé ces durées le
   30 octobre 2026 (FON-703).
-- L'événement des commandes planifiées suit avec FON-867.
 - Le niveau dépend du statut : `info` sous 400, `warn` de 400 à 499 et pour une requête interrompue,
-  `error` à partir de 500.
+  `error` à partir de 500. Une commande est en `error` dès que son code de sortie n'est pas 0, que
+  l'ingestion pose sans lever d'exception.
+- `app.close()` vide le tampon de Sentry à la fin de chaque commande, réussie ou non
+  (`SentryService.onApplicationShutdown`). Une erreur de commander lui-même, comme une option
+  inconnue, arrête le processus aussitôt : elle n'a ni événement ni erreur dans Sentry.
 - La métrique Sentry `http.server.request.duration` disparaît : les durées se lisent dans les
   événements.
 - Si l'incubateur désactive les Logs ou change d'instance, l'API continue d'écrire sur stdout et l'on

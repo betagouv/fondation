@@ -6,6 +6,7 @@ import {
   Get,
   Global,
   type INestApplication,
+  type INestApplicationContext,
   Injectable,
   Logger,
   Module,
@@ -15,10 +16,19 @@ import {
 import { Test } from '@nestjs/testing';
 import * as Sentry from '@sentry/node';
 import type { Request as ExpressRequest } from 'express';
+import {
+  Command,
+  CommandFactory,
+  CommandRunner,
+  CommandRunnerService,
+  Option,
+  SubCommand,
+} from 'nest-commander';
 import { ClsModule } from 'nestjs-cls';
 
 import { Prisma } from '../../generated/prisma/client';
 
+import { CommandName } from './command-name';
 import { API_CONFIG_TOKEN } from './config';
 import { ExceptionModule } from './exception';
 import { SentryService, WITHOUT_PERSONAL_DATA } from './observability';
@@ -118,6 +128,52 @@ class TestController {
   ],
 })
 class TestModule {}
+
+@SubCommand({ name: 'register' })
+class RegisterCommand extends CommandRunner {
+  async run(): Promise<void> {}
+}
+
+@Command({ name: 'user', subCommands: [RegisterCommand] })
+class UserCommand extends CommandRunner {
+  async run(): Promise<void> {}
+}
+
+// As the ingestion, which ends with 1 when it fails, without throwing
+@Command({ name: 'failed-job' })
+class FailedJobCommand extends CommandRunner {
+  constructor(private readonly wideEvent: WideEvent) {
+    super();
+  }
+
+  // As IngestLolfiCommand.parseJobId: commander calls it before the command runs
+  @Option({ flags: '--jobId <id>', name: 'jobId' })
+  parseJobId(jobId: string): number {
+    if (!/^\d+$/.test(jobId)) throw new TypeError('not a job id');
+    return Number(jobId);
+  }
+
+  async run(): Promise<void> {
+    this.wideEvent.set({ 'fondation.ingestion_job.id': '7' });
+    process.exitCode = 1;
+  }
+}
+
+@Command({ name: 'throwing' })
+class ThrowingCommand extends CommandRunner {
+  async run(): Promise<void> {
+    throw new Prisma.PrismaClientKnownRequestError('Unique constraint failed on jean.dupont@example.fr', {
+      clientVersion: 'test',
+      code: 'P2002',
+    });
+  }
+}
+
+@Module({
+  imports: [ClsModule.forRoot({ global: true })],
+  providers: [CommandName, FailedJobCommand, RegisterCommand, ThrowingCommand, UserCommand, WideEvent],
+})
+class TestCliModule {}
 
 describe('WideEvent', () => {
   const errors: { contexts?: { trace?: { trace_id?: string } } }[] = [];
@@ -328,5 +384,103 @@ describe('WideEvent', () => {
     });
 
     expect(lines).toEqual([expect.objectContaining({ 'http.route': '/forbidden' })]);
+  });
+
+  describe('of a command', () => {
+    let cli: INestApplicationContext;
+
+    beforeAll(async () => {
+      cli = await CommandFactory.createWithoutRunning(TestCliModule, {
+        logger: false,
+        // As in cli.ts
+        serviceErrorHandler: (error: unknown) => {
+          throw error;
+        },
+      });
+    });
+
+    afterAll(() => cli.close());
+
+    afterEach(() => {
+      process.exitCode = undefined;
+    });
+
+    async function commandEventOf(...args: string[]): Promise<Record<string, unknown>> {
+      const [event] = await linesOf(() =>
+        cli.get(WideEvent).runCommand(() => cli.get(CommandRunnerService).run(['node', 'cli', ...args])),
+      );
+      return event!;
+    }
+
+    it('should describe a command that succeeds, named with its subcommand', async () => {
+      const event = await commandEventOf('user', 'register');
+
+      expect(event).toEqual({
+        'job.duration': expect.any(Number),
+        'job.name': 'user register',
+        level: 'info',
+        message: 'user register',
+        'process.exit.code': 0,
+        timestamp: expect.any(String),
+      });
+    });
+
+    it('should describe as an error a command that ends with an exit code other than 0', async () => {
+      const event = await commandEventOf('failed-job');
+
+      expect(event).toMatchObject({ 'job.name': 'failed-job', level: 'error', 'process.exit.code': 1 });
+    });
+
+    it('should name a command whose option commander cannot read', async () => {
+      const [event] = await linesOf(() =>
+        cli
+          .get(WideEvent)
+          .runCommand(() =>
+            cli.get(CommandRunnerService).run(['node', 'cli', 'failed-job', '--jobId', 'abc']),
+          )
+          .catch(() => undefined),
+      );
+
+      expect(event).toMatchObject({ 'error.type': 'TypeError', 'job.name': 'failed-job', level: 'error' });
+    });
+
+    it('should describe a command that throws, without its message, and let its error through to cli.ts', async () => {
+      let thrown: unknown;
+      const [event] = await linesOf(() =>
+        cli
+          .get(WideEvent)
+          .runCommand(() => cli.get(CommandRunnerService).run(['node', 'cli', 'throwing']))
+          .catch((error: unknown) => (thrown = error)),
+      );
+
+      expect(thrown).toBeInstanceOf(Prisma.PrismaClientKnownRequestError);
+      expect(event).toMatchObject({
+        'error.type': 'PrismaClientKnownRequestError',
+        level: 'error',
+        // As cli.ts ends the process
+        'process.exit.code': 1,
+      });
+      expect(JSON.stringify(event)).not.toContain('jean.dupont');
+    });
+
+    it('should send the event of a command to Sentry Logs', async () => {
+      await Sentry.flush();
+      logs.length = 0;
+      await commandEventOf('failed-job');
+      await Sentry.flush();
+
+      expect(logs).toEqual([
+        expect.objectContaining({
+          attributes: expect.objectContaining({ 'job.name': { type: 'string', value: 'failed-job' } }),
+          level: 'error',
+        }),
+      ]);
+    });
+
+    it('should keep what the command set, as the ingestion job it ran', async () => {
+      const event = await commandEventOf('failed-job');
+
+      expect(event).toMatchObject({ 'fondation.ingestion_job.id': '7' });
+    });
   });
 });

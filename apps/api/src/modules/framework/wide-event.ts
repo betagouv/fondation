@@ -19,13 +19,18 @@ type WideEventAttributes = {
   'fondation.magistrat.status'?: string;
   'fondation.request.interrupted'?: true;
   'fondation.user.role'?: string;
-  'http.request.method': string;
+  'http.request.method'?: string;
   // None when the request is cut before its answer: res.statusCode would still be its default 200
   'http.response.status_code'?: number;
   'http.route'?: string;
   'http.server.request.duration'?: number;
+  // In seconds, as http.server.request.duration
+  'job.duration'?: number;
+  // The command of the CLI, with its subcommand as `user register`: never its arguments
+  'job.name'?: string;
+  'process.exit.code'?: number;
   // No path: the route and its identifiers say it, and the Scalingo router line of the same id has it
-  'request.id': string;
+  'request.id'?: string;
   // The Sentry trace of the request, kept even when it is not sampled: its errors carry the same
   'trace.id'?: string;
   'user.id'?: string;
@@ -77,17 +82,24 @@ function openEvent(cls: ClsService, req: ExpressRequest, res: ExpressResponse): 
       event['fondation.impersonator.id'] = req.user.impersonation?.impersonatorId;
     }
 
-    writeEvent(event);
+    writeRequestEvent(event);
   });
 }
 
-function writeEvent(event: WideEventAttributes): void {
+function errorType(exception: unknown): string {
+  return exception instanceof Error ? exception.constructor.name : typeof exception;
+}
+
+function writeRequestEvent(event: WideEventAttributes): void {
   const status = event['http.response.status_code'] ?? 0;
   // A failure answered by a redirection, as the OpenID login, keeps a status below 400
   const failed = status >= 400 || event['error.type'] || event['fondation.request.interrupted'];
   const level = status >= 500 ? 'error' : failed ? 'warn' : 'info';
-  const message = `${event['http.request.method']} ${event['http.route'] ?? '(no route)'}`;
 
+  writeEvent(level, `${event['http.request.method']} ${event['http.route'] ?? '(no route)'}`, event);
+}
+
+function writeEvent(level: 'error' | 'info' | 'warn', message: string, event: WideEventAttributes): void {
   process.stdout.write(
     `${JSON.stringify({ level, message, timestamp: new Date().toISOString(), ...event })}\n`,
   );
@@ -109,11 +121,37 @@ export class WideEvent {
     app.use(new ClsMiddleware({ generateId: true, idGenerator: requestId, setup: openEvent }).use);
   }
 
-  /** What only the code serving the request knows, as the client of the public API or the magistrat it answered about */
+  /** Runs a command of the CLI in its own event, named by CommandName once commander has found it */
+  runCommand(run: () => Promise<unknown>): Promise<void> {
+    return this.cls.run(async () => {
+      const startedAt = performance.now();
+      const event: WideEventAttributes = {};
+      this.cls.set(WIDE_EVENT, event);
+
+      try {
+        await run();
+      } catch (error) {
+        // No message: those of Prisma or pg can quote personal data
+        event['error.type'] = errorType(error);
+        throw error;
+      } finally {
+        event['job.duration'] = (performance.now() - startedAt) / time.SECONDS;
+        // cli.ts ends with 1 a command that throws. The ingestion tells its failure by its exit code, without throwing
+        event['process.exit.code'] = event['error.type'] ? 1 : Number(process.exitCode ?? 0);
+        const level = event['process.exit.code'] === 0 ? 'info' : 'error';
+        writeEvent(level, event['job.name'] ?? '(no command)', event);
+      }
+    });
+  }
+
+  /**
+   * What only the code serving the request or running the command knows, as the client of the public API, the magistrat
+   * it answered about or the ingestion job a command runs
+   */
   set(
     attributes: Pick<
       WideEventAttributes,
-      'api_client.id' | 'fondation.magistrat.status' | `fondation.${string}.id`
+      'api_client.id' | 'fondation.magistrat.status' | 'job.name' | `fondation.${string}.id`
     >,
   ): void {
     const event = this.cls.get<WideEventAttributes | undefined>(WIDE_EVENT);
@@ -124,7 +162,7 @@ export class WideEvent {
     const event = this.cls.get<WideEventAttributes | undefined>(WIDE_EVENT);
     if (!event) return;
 
-    event['error.type'] = exception instanceof Error ? exception.constructor.name : typeof exception;
+    event['error.type'] = errorType(exception);
     // Our own messages only: those of Prisma or pg, and the 404 of the router (no route), can quote personal data
     if (exception instanceof HttpException && request.route) event['error.message'] = exception.message;
   }

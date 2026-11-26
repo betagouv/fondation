@@ -5,6 +5,7 @@ import z from 'zod';
 
 import { API_CONFIG_TOKEN, ApiConfig } from '../framework/config';
 import { Tchap } from '../framework/tchap';
+import { WideEvent } from '../framework/wide-event';
 
 import { IngestService } from './infrastructure/ingest.service';
 import { IngestModule } from './ingest.module';
@@ -15,6 +16,7 @@ export class IngestLolfiCommand extends CommandRunner {
   constructor(
     private readonly ingestor: IngestService,
     private readonly tchap: Tchap,
+    private readonly wideEvent: WideEvent,
     @Inject(API_CONFIG_TOKEN) private readonly config: ApiConfig,
   ) {
     super();
@@ -31,6 +33,7 @@ export class IngestLolfiCommand extends CommandRunner {
 
     return IngestLolfiCommand.cancelable(async (signal) => {
       const { jobId } = options;
+      this.wideEvent.set({ 'fondation.ingestion_job.id': `${jobId}` });
       let failure: string | null = null;
 
       try {
