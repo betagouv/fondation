@@ -2,7 +2,7 @@ import { Controller, Global, type INestApplication, Module, Post, UseFilters } f
 import { Test } from '@nestjs/testing';
 import { ClsModule } from 'nestjs-cls';
 
-import { RequestEvent } from '../../framework/request-event';
+import { WideEvent } from '../../framework/wide-event';
 import { ApiClientUnauthenticated } from '../domain/api-client';
 
 import { OAuthErrorFilter } from './oauth-error.filter';
@@ -19,9 +19,9 @@ class TokenController {
 @Global()
 @Module({
   controllers: [TokenController],
-  exports: [RequestEvent],
+  exports: [WideEvent],
   imports: [ClsModule.forRoot({ global: true })],
-  providers: [RequestEvent],
+  providers: [WideEvent],
 })
 class TestModule {}
 
@@ -31,7 +31,7 @@ describe('OAuthErrorFilter', () => {
   beforeAll(async () => {
     const module = await Test.createTestingModule({ imports: [TestModule] }).compile();
     app = module.createNestApplication({ logger: false });
-    RequestEvent.mount(app);
+    WideEvent.mount(app);
     await app.listen(0);
   });
 

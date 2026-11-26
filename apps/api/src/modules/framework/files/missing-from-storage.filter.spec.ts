@@ -14,7 +14,7 @@ import type { Response as ExpressResponse } from 'express';
 import { ClsModule } from 'nestjs-cls';
 import { mock } from 'vitest-mock-extended';
 
-import { RequestEvent } from '../request-event';
+import { WideEvent } from '../wide-event';
 
 import { FileMissingFromStorage } from './missing-from-storage';
 import { MissingFromStorageFilter } from './missing-from-storage.filter';
@@ -31,9 +31,9 @@ class FilesController {
 @Global()
 @Module({
   controllers: [FilesController],
-  exports: [RequestEvent],
+  exports: [WideEvent],
   imports: [ClsModule.forRoot({ global: true })],
-  providers: [RequestEvent],
+  providers: [WideEvent],
 })
 class TestModule {}
 
@@ -43,7 +43,7 @@ describe('MissingFromStorageFilter in an application', () => {
   beforeAll(async () => {
     const module = await Test.createTestingModule({ imports: [TestModule] }).compile();
     app = module.createNestApplication({ logger: false });
-    RequestEvent.mount(app);
+    WideEvent.mount(app);
     await app.listen(0);
   });
 

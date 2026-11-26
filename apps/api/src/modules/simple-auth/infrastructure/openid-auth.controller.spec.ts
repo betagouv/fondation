@@ -3,7 +3,7 @@ import { Test } from '@nestjs/testing';
 import { ClsModule } from 'nestjs-cls';
 
 import { API_CONFIG_TOKEN } from '../../framework/config';
-import { RequestEvent } from '../../framework/request-event';
+import { WideEvent } from '../../framework/wide-event';
 import { SimpleAuthService } from '../simple-auth.service';
 
 import { OpenIdAuthController } from './openid-auth.controller';
@@ -12,10 +12,10 @@ import { ListOpenIdProvidersQuery } from './queries/list-openid-providers.query'
 @Global()
 @Module({
   controllers: [OpenIdAuthController],
-  exports: [RequestEvent],
+  exports: [WideEvent],
   imports: [ClsModule.forRoot({ global: true })],
   providers: [
-    RequestEvent,
+    WideEvent,
     { provide: API_CONFIG_TOKEN, useValue: { frontendOriginUrl: 'https://fondation.test' } },
     { provide: ListOpenIdProvidersQuery, useValue: {} },
     {
@@ -32,7 +32,7 @@ describe('OpenIdAuthController', () => {
   beforeAll(async () => {
     const module = await Test.createTestingModule({ imports: [TestModule] }).compile();
     app = module.createNestApplication({ logger: false });
-    RequestEvent.mount(app);
+    WideEvent.mount(app);
     await app.listen(0);
   });
 

@@ -2,7 +2,7 @@
 import { mock, type MockProxy } from 'vitest-mock-extended';
 
 import { Clock } from '../framework/clock';
-import { RequestEvent } from '../framework/request-event';
+import { WideEvent } from '../framework/wide-event';
 
 import { ApiClientsService } from './api-clients.service';
 import {
@@ -31,7 +31,7 @@ describe('ApiClientsService', () => {
 
   let alerts: MockProxy<ApiClientAlerts>;
   let repository: MockProxy<ApiClientRepository>;
-  let requestEvent: MockProxy<RequestEvent>;
+  let wideEvent: MockProxy<WideEvent>;
   let service: ApiClientsService;
 
   beforeEach(() => {
@@ -45,8 +45,8 @@ describe('ApiClientsService', () => {
     repository.saveToken.mockResolvedValue(true);
     const clock = mock<Clock>();
     clock.now.mockReturnValue(new Date('2026-11-23T10:00:00Z'));
-    requestEvent = mock();
-    service = new ApiClientsService(alerts, clock, mock(), mock(), repository, requestEvent);
+    wideEvent = mock();
+    service = new ApiClientsService(alerts, clock, mock(), mock(), repository, wideEvent);
   });
 
   describe('the event of the request', () => {
@@ -55,7 +55,7 @@ describe('ApiClientsService', () => {
         service.authorize({ ip: unknownIp, scope: 'magistrats:identification', token: 'token' }),
       ).rejects.toThrow(ApiClientForbidden);
 
-      expect(requestEvent.set).toHaveBeenCalledWith({ 'api_client.id': 'client-1' });
+      expect(wideEvent.set).toHaveBeenCalledWith({ 'api_client.id': 'client-1' });
     });
 
     it('should name the client a wrong secret is tried on', async () => {
@@ -63,7 +63,7 @@ describe('ApiClientsService', () => {
         service.authenticate({ clientId: 'client-1', clientSecret: 'wrong', ip: partnerIp }),
       ).rejects.toThrow(ApiClientUnauthenticated);
 
-      expect(requestEvent.set).toHaveBeenCalledWith({ 'api_client.id': 'client-1' });
+      expect(wideEvent.set).toHaveBeenCalledWith({ 'api_client.id': 'client-1' });
     });
 
     it('should name nothing for an unknown token', async () => {

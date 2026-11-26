@@ -22,7 +22,7 @@ import { Prisma } from '../../generated/prisma/client';
 import { API_CONFIG_TOKEN } from './config';
 import { ExceptionModule } from './exception';
 import { SentryService, WITHOUT_PERSONAL_DATA } from './observability';
-import { RequestEvent } from './request-event';
+import { WideEvent } from './wide-event';
 
 class Authenticated implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
@@ -47,10 +47,10 @@ class Forbidden implements CanActivate {
 // As ApiScopeGuard: the client is known before its call is refused
 @Injectable()
 class KnownClientForbidden implements CanActivate {
-  constructor(private readonly requestEvent: RequestEvent) {}
+  constructor(private readonly wideEvent: WideEvent) {}
 
   canActivate(): boolean {
-    this.requestEvent.set({ 'api_client.id': 'client-id' });
+    this.wideEvent.set({ 'api_client.id': 'client-id' });
     return false;
   }
 }
@@ -102,14 +102,14 @@ class TestController {
   }
 }
 
-// Global, as the FrameworkModule: the exception filter gets the RequestEvent and the SentryService from it
+// Global, as the FrameworkModule: the exception filter gets the WideEvent and the SentryService from it
 @Global()
 @Module({
   controllers: [TestController],
-  exports: [RequestEvent, SentryService],
+  exports: [WideEvent, SentryService],
   imports: [ClsModule.forRoot({ global: true }), ExceptionModule],
   providers: [
-    RequestEvent,
+    WideEvent,
     SentryService,
     {
       provide: API_CONFIG_TOKEN,
@@ -119,7 +119,7 @@ class TestController {
 })
 class TestModule {}
 
-describe('RequestEvent', () => {
+describe('WideEvent', () => {
   const errors: { contexts?: { trace?: { trace_id?: string } } }[] = [];
   const logs: { attributes: Record<string, { value: unknown }>; level: string; trace_id?: string }[] = [];
   let app: INestApplication;
@@ -145,7 +145,7 @@ describe('RequestEvent', () => {
     });
     const module = await Test.createTestingModule({ imports: [TestModule] }).compile();
     app = module.createNestApplication({ logger: false });
-    RequestEvent.mount(app);
+    WideEvent.mount(app);
     await app.listen(0);
     url = await app.getUrl();
   });

@@ -9,7 +9,7 @@ import * as time from '../../utils/time';
 
 // Identifiers only: never a name, an email, a body, a query string or free text, the event is kept a year by Scalingo
 /** @see https://opentelemetry.io/docs/specs/semconv/ for the technical attributes */
-type RequestEventAttributes = {
+type WideEventAttributes = {
   // The client of the public API, as in the tags of its Sentry issues (see ApiClientAlerts)
   'api_client.id'?: string;
   'error.message'?: string;
@@ -33,7 +33,7 @@ type RequestEventAttributes = {
   [routeIdentifier: `fondation.${string}.id`]: string | undefined;
 };
 
-const REQUEST_EVENT = 'requestEvent';
+const WIDE_EVENT = 'wideEvent';
 const UNLOGGED_PATHS = ['/_health'];
 const UUID = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i;
 
@@ -48,13 +48,13 @@ function openEvent(cls: ClsService, req: ExpressRequest, res: ExpressResponse): 
   if (UNLOGGED_PATHS.includes(path)) return;
 
   const startedAt = performance.now();
-  const event: RequestEventAttributes = {
+  const event: WideEventAttributes = {
     'http.request.method': req.method,
     'request.id': cls.getId(),
     // Opened by the HTTP server of Sentry before any middleware, absent when Sentry is off
     'trace.id': Sentry.getActiveSpan()?.spanContext().traceId,
   };
-  cls.set(REQUEST_EVENT, event);
+  cls.set(WIDE_EVENT, event);
 
   // Unlike 'finish', 'close' also fires when the client goes away before the response is sent
   res.on('close', () => {
@@ -81,7 +81,7 @@ function openEvent(cls: ClsService, req: ExpressRequest, res: ExpressResponse): 
   });
 }
 
-function writeEvent(event: RequestEventAttributes): void {
+function writeEvent(event: WideEventAttributes): void {
   const status = event['http.response.status_code'] ?? 0;
   // A failure answered by a redirection, as the OpenID login, keeps a status below 400
   const failed = status >= 400 || event['error.type'] || event['fondation.request.interrupted'];
@@ -100,7 +100,7 @@ function writeEvent(event: RequestEventAttributes): void {
 }
 
 @Injectable()
-export class RequestEvent {
+export class WideEvent {
   constructor(private readonly cls: ClsService) {}
 
   // Before the body parser, which Nest adds at init, so a malformed or oversized body is described too.
@@ -112,16 +112,16 @@ export class RequestEvent {
   /** What only the code serving the request knows, as the client of the public API or the magistrat it answered about */
   set(
     attributes: Pick<
-      RequestEventAttributes,
+      WideEventAttributes,
       'api_client.id' | 'fondation.magistrat.status' | `fondation.${string}.id`
     >,
   ): void {
-    const event = this.cls.get<RequestEventAttributes | undefined>(REQUEST_EVENT);
+    const event = this.cls.get<WideEventAttributes | undefined>(WIDE_EVENT);
     if (event) Object.assign(event, attributes);
   }
 
   failWith(exception: unknown, request: ExpressRequest): void {
-    const event = this.cls.get<RequestEventAttributes | undefined>(REQUEST_EVENT);
+    const event = this.cls.get<WideEventAttributes | undefined>(WIDE_EVENT);
     if (!event) return;
 
     event['error.type'] = exception instanceof Error ? exception.constructor.name : typeof exception;

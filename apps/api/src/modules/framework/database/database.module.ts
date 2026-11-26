@@ -15,7 +15,7 @@ import { PrismaService } from './prisma.service';
   imports: [
     ClsModule.forRoot({
       global: true,
-      // The middleware is mounted by RequestEvent.mount, ahead of the body parser
+      // The middleware is mounted by WideEvent.mount, ahead of the body parser
       plugins: [
         new ClsPluginTransactional({
           adapter: new TransactionalAdapterPrismaWithAfterCommit({

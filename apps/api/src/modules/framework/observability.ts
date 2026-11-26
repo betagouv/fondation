@@ -7,7 +7,7 @@ import { Request as ExpressRequest, IRoute } from 'express';
 import * as time from '../../utils/time';
 
 import { API_CONFIG_TOKEN, ApiConfig } from './config';
-import { RequestEvent } from './request-event';
+import { WideEvent } from './wide-event';
 
 export const SENTRY_FLUSH_TIMEOUT = 5 * time.SECONDS;
 
@@ -67,7 +67,7 @@ export class SentryService implements OnApplicationShutdown {
 }
 
 @Module({
-  exports: [RequestEvent, SentryService],
-  providers: [RequestEvent, SentryService],
+  exports: [WideEvent, SentryService],
+  providers: [WideEvent, SentryService],
 })
 export class ObservabilityModule {}

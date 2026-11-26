@@ -110,7 +110,7 @@ ligne s'écrit avec, en `request.id`, le `request_id` de la ligne du routeur.
 - **Des identifiants seulement** : utilisateur, rôle, usurpateur, statut, route, durée, `error.type`,
   et les identifiants de la route (`:sessionId` devient `fondation.session.id`, `:nominationFileId`
   `fondation.nomination_file.id`), lus dans `req.params` à l'émission sans rien ajouter dans chaque
-  module. Seule l'API publique ajoute ce que la route ne dit pas, par `RequestEvent.set` : le client
+  module. Seule l'API publique ajoute ce que la route ne dit pas, par `WideEvent.set` : le client
   (`api_client.id`, depuis `ApiClientsService`, `/auth` compris, qui n'a pas de garde) et, pour les
   routes magistrat, l'identifiant trouvé et la réponse (`fondation.magistrat.status`), jamais l'adresse
   demandée (FON-855). `error.message` ne figure que pour une `HttpException` qui a trouvé sa route : nos messages,

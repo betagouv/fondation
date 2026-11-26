@@ -11,7 +11,7 @@ import { Test } from '@nestjs/testing';
 import { ClsModule } from 'nestjs-cls';
 
 import { ExceptionModule } from '../../framework/exception';
-import { RequestEvent } from '../../framework/request-event';
+import { WideEvent } from '../../framework/wide-event';
 import { UserNotImpersonable } from '../domain/auth-user';
 
 import { AuthExceptionFilter } from './auth.filter';
@@ -30,9 +30,9 @@ class ImpersonationController {
 @Global()
 @Module({
   controllers: [ImpersonationController],
-  exports: [RequestEvent],
+  exports: [WideEvent],
   imports: [ClsModule.forRoot({ global: true }), ExceptionModule],
-  providers: [RequestEvent],
+  providers: [WideEvent],
 })
 class TestModule {}
 
@@ -42,7 +42,7 @@ describe('AuthExceptionFilter', () => {
   beforeAll(async () => {
     const module = await Test.createTestingModule({ imports: [TestModule] }).compile();
     app = module.createNestApplication({ logger: false });
-    RequestEvent.mount(app);
+    WideEvent.mount(app);
     await app.listen(0);
   });
 
