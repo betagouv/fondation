@@ -26,7 +26,7 @@ test.describe('Calls for applications E2E', () => {
     });
 
     const { data } = await agent.callsForApplications.listCallsForApplications({
-      query: { limit: 200, period: 'ONGOING', years: ['2099'] },
+      query: { limit: 200, period: 'ONGOING', sortBy: 'createdOn', sortDesc: 'true', years: ['2099'] },
       throwOnError: true,
     });
     expect(data.items.find(({ id }) => id === created.id)).toEqual({
@@ -63,7 +63,7 @@ test.describe('Calls for applications E2E', () => {
     });
 
     const { data } = await agent.callsForApplications.listCallsForApplications({
-      query: { limit: 200, period: 'ONGOING', years: ['2096'] },
+      query: { limit: 200, period: 'ONGOING', sortBy: 'createdOn', sortDesc: 'true', years: ['2096'] },
       throwOnError: true,
     });
     expect(data.items.find(({ id }) => id === created.id)).toMatchObject({
@@ -101,7 +101,7 @@ test.describe('Calls for applications E2E', () => {
     });
 
     const { data } = await agent.callsForApplications.listCallsForApplications({
-      query: { limit: 200, period: 'ONGOING', years: ['2093'] },
+      query: { limit: 200, period: 'ONGOING', sortBy: 'createdOn', sortDesc: 'true', years: ['2093'] },
       throwOnError: true,
     });
     expect(data.items.find(({ id }) => id === created.id)).toMatchObject({
@@ -128,7 +128,7 @@ test.describe('Calls for applications E2E', () => {
     });
 
     const { data } = await agent.callsForApplications.listCallsForApplications({
-      query: { limit: 200, period: 'ONGOING', years: ['2092'] },
+      query: { limit: 200, period: 'ONGOING', sortBy: 'createdOn', sortDesc: 'true', years: ['2092'] },
       throwOnError: true,
     });
     const updated = data.items.find(({ id }) => id === created.id);
@@ -161,7 +161,7 @@ test.describe('Calls for applications E2E', () => {
     });
 
     const { data } = await agent.callsForApplications.listCallsForApplications({
-      query: { limit: 200, period: 'PAST', years: ['2001'] },
+      query: { limit: 200, period: 'PAST', sortBy: 'createdOn', sortDesc: 'true', years: ['2001'] },
       throwOnError: true,
     });
     expect(data.items.map(({ id }) => id)).toContain(created.id);
@@ -186,7 +186,7 @@ test.describe('Calls for applications E2E', () => {
     });
 
     const { data } = await agent.callsForApplications.listCallsForApplications({
-      query: { limit: 200, period: 'ONGOING', years: ['2098'] },
+      query: { limit: 200, period: 'ONGOING', sortBy: 'createdOn', sortDesc: 'true', years: ['2098'] },
       throwOnError: true,
     });
     const updated = data.items.find(({ id }) => id === created.id);
@@ -221,7 +221,7 @@ test.describe('Calls for applications E2E', () => {
     });
 
     const { data } = await agent.callsForApplications.listCallsForApplications({
-      query: { limit: 200, period: 'ONGOING', years: ['2097'] },
+      query: { limit: 200, period: 'ONGOING', sortBy: 'createdOn', sortDesc: 'true', years: ['2097'] },
       throwOnError: true,
     });
     expect(data.items.map(({ id }) => id)).not.toContain(created.id);
@@ -244,7 +244,7 @@ test.describe('Calls for applications E2E', () => {
     });
 
     const { data } = await agent.callsForApplications.listCallsForApplications({
-      query: { limit: 200, period: 'ONGOING', years: ['2095'] },
+      query: { limit: 200, period: 'ONGOING', sortBy: 'createdOn', sortDesc: 'true', years: ['2095'] },
       throwOnError: true,
     });
     const updated = data.items.find(({ id }) => id === created.id);
@@ -270,7 +270,14 @@ test.describe('Calls for applications E2E', () => {
     });
 
     const { data } = await agent.callsForApplications.listCallsForApplications({
-      query: { limit: 200, period: 'ONGOING', types: ['CCASS'], years: ['2094'] },
+      query: {
+        limit: 200,
+        period: 'ONGOING',
+        sortBy: 'createdOn',
+        sortDesc: 'true',
+        types: ['CCASS'],
+        years: ['2094'],
+      },
       throwOnError: true,
     });
     expect(data.items.map(({ type }) => type.id)).toEqual(data.items.map(() => 'CCASS'));
