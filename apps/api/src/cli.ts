@@ -27,6 +27,11 @@ function reportAndExit(error: unknown): void {
 async function cli() {
   await CommandFactory.run(CliAppModule, {
     logger: ['verbose', 'debug', 'log', 'warn', 'error', 'fatal'],
+    // The errors of commander only, as an unknown option
     errorHandler: reportAndExit,
+    // An error thrown by a command would only be written on stderr, and the process would end with 0
+    serviceErrorHandler: (error: unknown) => {
+      throw error;
+    },
   });
 }
