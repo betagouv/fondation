@@ -1,6 +1,6 @@
 import { FRENCH_TIME_ZONES } from '../../../../../../utils/french-time-zones';
 
-import { date as renderDate, readsTheSame, requiresElision } from './helpers';
+import { date as renderDate, readsTheSame } from './helpers';
 
 const systemTimeZone = process.env.TZ;
 afterEach(() => {
@@ -29,22 +29,6 @@ describe('renderer helpers', () => {
       );
       expect(String(renderDate({ year: 2026, month: 6, day: 11 }, 'do MMMM yyyy'))).toBe('11 juin 2026');
       expect(String(renderDate({ year: 2026, month: 6, day: 21 }, 'do MMMM yyyy'))).toBe('21 juin 2026');
-    });
-  });
-
-  describe('requiresElision', () => {
-    it.each`
-      word            | expected
-      ${'Procureur'}  | ${false}
-      ${'Substitut'}  | ${false}
-      ${'Avocat'}     | ${true}
-      ${'Inspecteur'} | ${true}
-      ${'Échevin'}    | ${true}
-      ${'Huissier'}   | ${true}
-      ${'  Avocat'}   | ${true}
-      ${''}           | ${false}
-    `(`returns $expected for "$word"`, ({ word, expected }) => {
-      expect(requiresElision(word)).toBe(expected);
     });
   });
 

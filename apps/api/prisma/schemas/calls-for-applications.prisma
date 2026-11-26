@@ -40,8 +40,10 @@ model CallForApplicationsChange {
   callId   String                              @map("call_id") @db.Uuid
   id       String                              @id @db.Uuid
 
-  author User?                             @relation(fields: [authorId], references: [id], onDelete: SetNull, onUpdate: NoAction)
-  fields CallForApplicationsChangedField[]
+  author           User?                                @relation(fields: [authorId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  changedCourts    CallForApplicationsChangedCourt[]
+  changedPositions CallForApplicationsChangedPosition[]
+  fields           CallForApplicationsChangedField[]
 
   @@map("call_for_applications_change")
   @@schema("nominations_context")
@@ -56,15 +58,30 @@ enum PrismaCallForApplicationsActionEnum {
   @@schema("nominations_context")
 }
 
-// the fields a change of a call for applications touched
+// the fields a change of a call for applications touched with the dates or the types before and after
 model CallForApplicationsChangedField {
-  changeId String                             @map("change_id") @db.Uuid
-  field    PrismaCallForApplicationsFieldEnum
+  changeId    String                                   @map("change_id") @db.Uuid
+  dateAfter   DateTime?                                @map("date_after") @db.Date
+  dateBefore  DateTime?                                @map("date_before") @db.Date
+  field       PrismaCallForApplicationsFieldEnum
+  fieldChange PrismaCallForApplicationsFieldChangeEnum @default(CHANGED) @map("field_change")
+  typeAfter   PrismaCallForApplicationsTypeEnum?       @map("type_after")
+  typeBefore  PrismaCallForApplicationsTypeEnum?       @map("type_before")
 
   change CallForApplicationsChange @relation(fields: [changeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@id([changeId, field], name: "primaryKey")
   @@map("call_for_applications_changed_field")
+  @@schema("nominations_context")
+}
+
+// what an update did to a field: the rows journaled before read as CHANGED
+enum PrismaCallForApplicationsFieldChangeEnum {
+  ADDED
+  CHANGED
+  REMOVED
+
+  @@map("call_for_applications_field_change_enum")
   @@schema("nominations_context")
 }
 
@@ -77,6 +94,33 @@ enum PrismaCallForApplicationsFieldEnum {
   TYPE
 
   @@map("call_for_applications_field_enum")
+  @@schema("nominations_context")
+}
+
+// the courts a change added to the targets of a call or removed from them
+model CallForApplicationsChangedCourt {
+  changeId    String                                   @map("change_id") @db.Uuid
+  courtId     String                                   @map("court_id")
+  fieldChange PrismaCallForApplicationsFieldChangeEnum @map("field_change")
+
+  change CallForApplicationsChange @relation(fields: [changeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  court  Jurisdiction              @relation(fields: [courtId], references: [codejur], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([changeId, courtId], name: "primaryKey")
+  @@map("call_for_applications_changed_court")
+  @@schema("nominations_context")
+}
+
+// the positions of the Cour de cassation a change added to the targets of a call or removed from them
+model CallForApplicationsChangedPosition {
+  changeId    String                                   @map("change_id") @db.Uuid
+  fieldChange PrismaCallForApplicationsFieldChangeEnum @map("field_change")
+  position    PrismaCourtOfCassationPositionEnum
+
+  change CallForApplicationsChange @relation(fields: [changeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([changeId, position], name: "primaryKey")
+  @@map("call_for_applications_changed_position")
   @@schema("nominations_context")
 }
 

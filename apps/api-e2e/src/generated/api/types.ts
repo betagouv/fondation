@@ -3401,9 +3401,15 @@ export type ListedCallsForApplicationsDto = {
                 id: string;
                 name: string;
             } | null;
-            fields: Array<{
-                id: 'TYPE' | 'TARGET_COURTS' | 'TARGET_POSITIONS' | 'PUBLISHED_ON' | 'DEADLINE' | 'COMMENT';
+            changes: Array<{
+                change: {
+                    id: 'ADDED' | 'CHANGED' | 'REMOVED';
+                    label: string;
+                };
                 label: string;
+                targets: Array<{
+                    label: string;
+                }> | null;
             }>;
         }>;
         id: string;

@@ -39,7 +39,7 @@ test.describe('Calls for applications E2E', () => {
           action: 'CREATED',
           at: expect.any(String),
           by: { id: agent['@user']!.id, name: expect.any(String) },
-          fields: [],
+          changes: [],
         },
       ],
       id: created.id,
@@ -133,7 +133,18 @@ test.describe('Calls for applications E2E', () => {
     });
     const updated = data.items.find(({ id }) => id === created.id);
     expect(updated?.targetCourts.map(({ id }) => id)).toEqual(['TJ  GRASSE']);
-    expect(updated?.history[0]?.fields.map(({ id }) => id)).toEqual(['TARGET_COURTS']);
+    expect(updated?.history[0]?.changes).toEqual([
+      {
+        change: { id: 'ADDED', label: 'ajouté' },
+        label: 'le tribunal judiciaire de Grasse',
+        targets: null,
+      },
+      {
+        change: { id: 'REMOVED', label: 'retiré' },
+        label: "la cour d'appel de Lyon",
+        targets: null,
+      },
+    ]);
   });
 
   test('should list a call for applications in the past ones of its year once its deadline is over', async ({
@@ -157,7 +168,7 @@ test.describe('Calls for applications E2E', () => {
     expect(data.years).toContain(2001);
   });
 
-  test('should note the fields an update changed in the history of the call', async ({ agent, expect }) => {
+  test('should note in the history of the call what an update did to each field', async ({ agent, expect }) => {
     const form = {
       deadline: '2098-02-01',
       publishedOn: '2098-01-10',
@@ -180,10 +191,22 @@ test.describe('Calls for applications E2E', () => {
     });
     const updated = data.items.find(({ id }) => id === created.id);
     expect(updated?.deadline).toEqual({ day: 15, month: 2, year: 2098 });
-    expect(updated?.history.map(({ action, fields }) => [action, fields.map(({ id }) => id)])).toEqual([
-      ['UPDATED', ['DEADLINE', 'COMMENT']],
-      ['CREATED', []],
-    ]);
+    expect(updated?.history[0]).toMatchObject({
+      action: 'UPDATED',
+      changes: [
+        {
+          change: { id: 'CHANGED', label: 'modifié' },
+          label: 'la date limite du 01/02/2098 au 15/02/2098',
+          targets: null,
+        },
+        {
+          change: { id: 'ADDED', label: 'ajouté' },
+          label: 'un commentaire',
+          targets: null,
+        },
+      ],
+    });
+    expect(updated?.history[1]).toMatchObject({ action: 'CREATED', changes: [] });
   });
 
   test('should take a deleted call for applications out of the list', async ({ agent, expect }) => {
@@ -226,7 +249,13 @@ test.describe('Calls for applications E2E', () => {
     });
     const updated = data.items.find(({ id }) => id === created.id);
     expect(updated?.targetPositions.map(({ id }) => id)).toEqual(['CHAMBER_PRESIDENT', 'COUNSELLOR']);
-    expect(updated?.history[0]?.fields.map(({ id }) => id)).toEqual(['TARGET_POSITIONS']);
+    expect(updated?.history[0]?.changes).toEqual([
+      {
+        change: { id: 'ADDED', label: 'ajouté' },
+        label: 'le président de chambre aux postes cibles',
+        targets: null,
+      },
+    ]);
   });
 
   test('should list only the calls of the type picked', async ({ agent, expect }) => {

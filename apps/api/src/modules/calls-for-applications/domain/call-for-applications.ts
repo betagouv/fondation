@@ -58,7 +58,12 @@ export function targetCourtTypeOf(typeJur: string): TargetCourtType {
   return COURT_OF_APPEAL_TYPE_IDS.includes(typeJur) ? 'COURT_OF_APPEAL' : 'JUDICIAL_COURT';
 }
 
-type LolfiCourt = { codejur: string; libelle: string | null; typeJur: string; ville_jur: string | null };
+export type LolfiCourt = {
+  codejur: string;
+  libelle: string | null;
+  typeJur: string;
+  ville_jur: string | null;
+};
 
 /** the courts of appeal first then the judicial courts with each group by city (then by id) */
 export function sortedCourts<T extends LolfiCourt>(courts: readonly T[]): T[] {
@@ -130,18 +135,32 @@ export const CALL_FOR_APPLICATIONS_FIELDS = [
 ] as const;
 export type CallForApplicationsField = (typeof CALL_FOR_APPLICATIONS_FIELDS)[number];
 
-/** with their article: the history reads "a modifié la date limite et le commentaire" */
-const FIELD_LABELS: Record<CallForApplicationsField, string> = {
-  COMMENT: 'le commentaire',
-  DEADLINE: 'la date limite',
-  PUBLISHED_ON: 'la date de publication',
-  TARGET_COURTS: 'les juridictions cibles',
-  TARGET_POSITIONS: 'les postes cibles',
-  TYPE: "le type d'appel",
+/** what an update did to a field: the ones changed before this distinction read as CHANGED */
+export const CALL_FOR_APPLICATIONS_FIELD_CHANGES = ['ADDED', 'CHANGED', 'REMOVED'] as const;
+export type CallForApplicationsFieldChange = (typeof CALL_FOR_APPLICATIONS_FIELD_CHANGES)[number];
+
+/** the dates or the types before and after a change (none for the other fields) */
+type ChangedValues = {
+  dateAfter: DateOnly | null;
+  dateBefore: DateOnly | null;
+  typeAfter: CallForApplicationsType | null;
+  typeBefore: CallForApplicationsType | null;
 };
 
-export function callForApplicationsFieldOf(id: CallForApplicationsField) {
-  return { id, label: FIELD_LABELS[id] };
+/** a field an update changed as the journal keeps it */
+export type CallForApplicationsChangedField = ChangedValues & {
+  change: CallForApplicationsFieldChange;
+  field: CallForApplicationsField;
+};
+
+/** the items of a list that an update added and removed */
+export type AddedAndRemoved<T> = { added: readonly T[]; removed: readonly T[] };
+
+export function addedAndRemoved<T>(before: readonly T[], after: readonly T[]): AddedAndRemoved<T> {
+  return {
+    added: after.filter((item) => !before.includes(item)),
+    removed: before.filter((item) => !after.includes(item)),
+  };
 }
 
 export function callForApplicationsTypeOf(id: CallForApplicationsType) {
@@ -206,20 +225,57 @@ function validated(metadata: Metadata, targetableCourts: ReadonlySet<string>): M
   return { ...metadata, comment: metadata.comment?.trim() || null, targetCourts, targetPositions };
 }
 
-function isSameDate(a: DateOnly | null, b: DateOnly | null): boolean {
-  return a === null || b === null ? a === b : a.equals(b);
+/** a value filled or emptied (null when it stays the same) */
+function valueChangeOf<T>(
+  before: T | null,
+  after: T | null,
+  same: (a: T, b: T) => boolean,
+): CallForApplicationsFieldChange | null {
+  if (before === null) return after === null ? null : 'ADDED';
+  if (after === null) return 'REMOVED';
+  return same(before, after) ? null : 'CHANGED';
 }
 
-function changedFields(before: Metadata, after: Metadata): CallForApplicationsField[] {
-  const changed: Record<CallForApplicationsField, boolean> = {
-    COMMENT: before.comment !== after.comment,
-    DEADLINE: !isSameDate(before.deadline, after.deadline),
-    PUBLISHED_ON: !isSameDate(before.publishedOn, after.publishedOn),
-    TARGET_COURTS: before.targetCourts.join() !== after.targetCourts.join(),
-    TARGET_POSITIONS: before.targetPositions.join() !== after.targetPositions.join(),
-    TYPE: before.type !== after.type,
+/** what the agent did to a list: only added or only removed items or both (null when it stays the same) */
+function listChangeOf<T>({ added, removed }: AddedAndRemoved<T>): CallForApplicationsFieldChange | null {
+  if (added.length === 0) return removed.length === 0 ? null : 'REMOVED';
+  return removed.length === 0 ? 'ADDED' : 'CHANGED';
+}
+
+const NO_VALUE: ChangedValues = { dateAfter: null, dateBefore: null, typeAfter: null, typeBefore: null };
+
+function changedFields(
+  before: Metadata,
+  after: Metadata,
+  targets: { courts: AddedAndRemoved<string>; positions: AddedAndRemoved<CourtOfCassationPosition> },
+): CallForApplicationsChangedField[] {
+  const isSame = <T>(a: T, b: T) => a === b;
+  const dates = (dateBefore: DateOnly | null, dateAfter: DateOnly | null) => ({
+    ...NO_VALUE,
+    change: valueChangeOf(dateBefore, dateAfter, (a, b) => a.equals(b)),
+    dateAfter,
+    dateBefore,
+  });
+  const changes: Record<
+    CallForApplicationsField,
+    ChangedValues & { change: CallForApplicationsFieldChange | null }
+  > = {
+    COMMENT: { ...NO_VALUE, change: valueChangeOf(before.comment, after.comment, isSame) },
+    DEADLINE: dates(before.deadline, after.deadline),
+    PUBLISHED_ON: dates(before.publishedOn, after.publishedOn),
+    TARGET_COURTS: { ...NO_VALUE, change: listChangeOf(targets.courts) },
+    TARGET_POSITIONS: { ...NO_VALUE, change: listChangeOf(targets.positions) },
+    TYPE: {
+      ...NO_VALUE,
+      change: valueChangeOf(before.type, after.type, isSame),
+      typeAfter: after.type,
+      typeBefore: before.type,
+    },
   };
-  return CALL_FOR_APPLICATIONS_FIELDS.filter((field) => changed[field]);
+  return CALL_FOR_APPLICATIONS_FIELDS.flatMap((field) => {
+    const { change, ...values } = changes[field];
+    return change ? [{ ...values, change, field }] : [];
+  });
 }
 
 export class CallForApplicationsCreated {
@@ -234,9 +290,13 @@ export class CallForApplicationsCreated {
 export class CallForApplicationsUpdated {
   constructor(
     readonly authorId: string,
-    readonly fields: readonly CallForApplicationsField[],
+    /** the courts added and removed */
+    readonly courts: AddedAndRemoved<string>,
+    readonly fields: readonly CallForApplicationsChangedField[],
     readonly id: string,
     readonly metadata: Metadata,
+    /** the positions of the Cour de cassation added and removed */
+    readonly positions: AddedAndRemoved<CourtOfCassationPosition>,
   ) {}
 }
 
@@ -292,9 +352,13 @@ export class CallForApplications {
 
     // a court removed since the call targeted it stays allowed
     const metadata = validated(requested, new Set([...targetableCourts, ...this.metadata.targetCourts]));
-    const fields = changedFields(this.metadata, metadata);
+    const courts = addedAndRemoved(this.metadata.targetCourts, metadata.targetCourts);
+    const positions = addedAndRemoved(this.metadata.targetPositions, metadata.targetPositions);
+    const fields = changedFields(this.metadata, metadata, { courts, positions });
     if (fields.length > 0)
-      this.#messages.push(new CallForApplicationsUpdated(actor.id, fields, this.id, metadata));
+      this.#messages.push(
+        new CallForApplicationsUpdated(actor.id, courts, fields, this.id, metadata, positions),
+      );
   }
 
   delete(actor: { id: string; isAdmin: boolean }): void {

@@ -7,7 +7,7 @@ import { listOf } from '../../../utils/query-list';
 import { createSortableDto } from '../../framework/sorting';
 import { COURT_OF_CASSATION_POSITIONS } from '../../shared/court-of-cassation-position.enum';
 import {
-  CALL_FOR_APPLICATIONS_FIELDS,
+  CALL_FOR_APPLICATIONS_FIELD_CHANGES,
   CALL_FOR_APPLICATIONS_STATUSES,
   CALL_FOR_APPLICATIONS_TYPES,
   TARGET_COURT_TYPES,
@@ -30,9 +30,11 @@ export const targetCourtSchema = z.object({
   type: z.enum(TARGET_COURT_TYPES),
 });
 export const targetCourtTypeSchema = z.object({ id: z.enum(TARGET_COURT_TYPES), label: z.string() });
+/** a court or a position an update added to the targets of a call or removed from them */
+export const changedTargetSchema = z.object({ label: z.string() });
 export const targetPositionSchema = z.object({ id: z.enum(COURT_OF_CASSATION_POSITIONS), label: z.string() });
-export const callForApplicationsFieldSchema = z.object({
-  id: z.enum(CALL_FOR_APPLICATIONS_FIELDS),
+export const callForApplicationsFieldChangeSchema = z.object({
+  id: z.enum(CALL_FOR_APPLICATIONS_FIELD_CHANGES),
   label: z.string(),
 });
 

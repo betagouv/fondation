@@ -24,6 +24,7 @@ const metadata = {
   type: 'GENERAL',
 } as const;
 const NO_TARGETABLE_COURT = { targetableCourts: new Set<string>() };
+const NO_VALUE = { dateAfter: null, dateBefore: null, typeAfter: null, typeBefore: null };
 const AGENT = { id: 'agent', isAdmin: false };
 const ADMIN = { id: 'admin', isAdmin: true };
 
@@ -91,14 +92,45 @@ describe('CallForApplications', () => {
   });
 
   describe('update', () => {
-    it('names only the fields that changed, in the order of the form', () => {
+    it('names only the fields that changed in the order of the form', () => {
       const call = saved();
       const changed = { ...metadata, comment: 'Postes vacants', deadline: new DateOnly(2027, 1, 15) };
 
       call.update({ ...NO_TARGETABLE_COURT, ...changed, actor: AGENT });
 
       expect(call.messages).toEqual([
-        new CallForApplicationsUpdated('agent', ['DEADLINE', 'COMMENT'], 'call', changed),
+        new CallForApplicationsUpdated(
+          'agent',
+          { added: [], removed: [] },
+          [
+            { ...NO_VALUE, change: 'ADDED', dateAfter: new DateOnly(2027, 1, 15), field: 'DEADLINE' },
+            { ...NO_VALUE, change: 'ADDED', field: 'COMMENT' },
+          ],
+          'call',
+          changed,
+          { added: [], removed: [] },
+        ),
+      ]);
+    });
+
+    it('tells a field emptied from a field given another value', () => {
+      const call = CallForApplications.from({
+        ...metadata,
+        comment: 'Postes vacants',
+        deadline: new DateOnly(2027, 1, 15),
+        id: 'call',
+        status: 'UNPUBLISHED',
+      });
+
+      call.update({ ...NO_TARGETABLE_COURT, ...metadata, actor: AGENT, comment: 'Postes créés' });
+
+      expect(call.messages).toMatchObject([
+        {
+          fields: [
+            { change: 'REMOVED', field: 'DEADLINE' },
+            { change: 'CHANGED', field: 'COMMENT' },
+          ],
+        },
       ]);
     });
 
@@ -133,7 +165,7 @@ describe('CallForApplications', () => {
 
       call.update({ ...NO_TARGETABLE_COURT, ...metadata, actor: ADMIN, comment: 'Corrigé' });
 
-      expect(call.messages).toMatchObject([{ fields: ['COMMENT'] }]);
+      expect(call.messages).toMatchObject([{ fields: [{ change: 'ADDED', field: 'COMMENT' }] }]);
     });
   });
 
@@ -218,7 +250,7 @@ describe('CallForApplications', () => {
         targetPositions: ['COUNSELLOR', 'CHAMBER_PRESIDENT'],
       });
 
-      expect(call.messages).toMatchObject([{ fields: ['TARGET_POSITIONS'] }]);
+      expect(call.messages).toMatchObject([{ fields: [{ change: 'ADDED', field: 'TARGET_POSITIONS' }] }]);
     });
   });
 
@@ -265,7 +297,14 @@ describe('CallForApplications', () => {
         targetCourts: ['TSA MAMOUDZOU', 'CA  AGEN'],
       });
 
-      expect(call.messages).toMatchObject([{ fields: ['TARGET_COURTS', 'COMMENT'] }]);
+      expect(call.messages).toMatchObject([
+        {
+          fields: [
+            { change: 'ADDED', field: 'TARGET_COURTS' },
+            { change: 'ADDED', field: 'COMMENT' },
+          ],
+        },
+      ]);
     });
 
     it('notes nothing when the courts read come back in another order', () => {
@@ -295,6 +334,38 @@ describe('CallForApplications', () => {
 
       expect(call.messages).toMatchObject([{ metadata: { targetCourts: [], targetPositions: [] } }]);
     });
+  });
+});
+
+describe('the changes of a list of courts', () => {
+  const specific = {
+    ...metadata,
+    targetableCourts: new Set(['CA  AGEN', 'TJ  AUCH', 'TJ  CAHORS']),
+    type: 'SPECIFIC',
+  } as const;
+  const updated = (before: string[], after: string[]) => {
+    const call = CallForApplications.from({
+      ...specific,
+      id: 'call',
+      status: 'UNPUBLISHED',
+      targetCourts: before,
+    });
+    call.update({ ...specific, actor: AGENT, targetCourts: after });
+    return call.messages;
+  };
+
+  it.each([
+    [['CA  AGEN'], ['CA  AGEN', 'TJ  AUCH'], 'ADDED'],
+    [['CA  AGEN', 'TJ  AUCH'], ['CA  AGEN'], 'REMOVED'],
+    [['CA  AGEN', 'TJ  AUCH'], ['CA  AGEN', 'TJ  CAHORS'], 'CHANGED'],
+  ])('reads %j then %j as %s', (before, after, change) => {
+    expect(updated(before, after)).toMatchObject([{ fields: [{ change, field: 'TARGET_COURTS' }] }]);
+  });
+
+  it('carries the courts added and removed for the journal', () => {
+    expect(updated(['CA  AGEN', 'TJ  AUCH'], ['CA  AGEN', 'TJ  CAHORS'])).toMatchObject([
+      { courts: { added: ['TJ  CAHORS'], removed: ['TJ  AUCH'] } },
+    ]);
   });
 });
 

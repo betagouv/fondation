@@ -8,11 +8,11 @@ import { makeId } from '../../../utils/id';
 import { Clock } from '../../framework/clock';
 import { Db } from '../../framework/database';
 import {
-  type CallForApplicationsAction,
+  type AddedAndRemoved,
   CallForApplications,
+  type CallForApplicationsAction,
   CallForApplicationsCreated,
   CallForApplicationsDeleted,
-  type CallForApplicationsField,
   CallForApplicationsUpdated,
 } from '../domain/call-for-applications';
 
@@ -96,25 +96,58 @@ export class CallForApplicationsRepository {
     await this.db.tx.callForApplicationsTargetPosition.createMany({
       data: message.metadata.targetPositions.map((position) => ({ callId: message.id, position })),
     });
-    await this.journal('UPDATED', message, message.fields);
+    await this.journal('UPDATED', message, {
+      changedCourts: {
+        create: itemChangesOf(message.courts).map(({ fieldChange, item }) => ({
+          courtId: item,
+          fieldChange,
+        })),
+      },
+      changedPositions: {
+        create: itemChangesOf(message.positions).map(({ fieldChange, item }) => ({
+          fieldChange,
+          position: item,
+        })),
+      },
+      fields: {
+        create: message.fields.map(({ change, dateAfter, dateBefore, field, typeAfter, typeBefore }) => ({
+          dateAfter: dateAfter?.toDate() ?? null,
+          dateBefore: dateBefore?.toDate() ?? null,
+          field,
+          fieldChange: change,
+          typeAfter,
+          typeBefore,
+        })),
+      },
+    });
   }
 
   private async journal(
     action: CallForApplicationsAction,
     message: { authorId: string; id: string },
-    fields: readonly CallForApplicationsField[] = [],
+    details: Pick<
+      Prisma.CallForApplicationsChangeCreateInput,
+      'changedCourts' | 'changedPositions' | 'fields'
+    > = {},
   ) {
     await this.db.tx.callForApplicationsChange.create({
       data: {
+        ...details,
         action,
         at: this.clock.now(),
         authorId: message.authorId,
         callId: message.id,
-        fields: { create: fields.map((field) => ({ field })) },
         id: makeId(),
       },
     });
   }
+}
+
+function itemChangesOf<T>(items: AddedAndRemoved<T>) {
+  return [
+    ...items.added.map((item) => ({ fieldChange: 'ADDED' as const, item })),
+    ...items.removed.map((item) => ({ fieldChange: 'REMOVED' as const, item })),
+  ];
 }
 
 function columnsOf(metadata: CallForApplicationsCreated['metadata']) {

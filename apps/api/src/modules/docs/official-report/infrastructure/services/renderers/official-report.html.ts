@@ -1,4 +1,5 @@
 import { DateOnly } from '../../../../../../utils/date-only';
+import { lowerFirst, requiresElision } from '../../../../../../utils/french-words';
 import { Id } from '../../../../../../utils/id';
 import { isDefined } from '../../../../../../utils/is-defined';
 import { fullname } from '../../../../../../utils/user.util';
@@ -21,9 +22,7 @@ import {
   conjunctionList,
   date,
   displayTitled,
-  lowerFirst,
   readsTheSame,
-  requiresElision,
 } from '../../../../shared/infrastructure/services/renderers/helpers';
 import { html, SafeHtml } from '../../../../shared/infrastructure/services/renderers/safe-html';
 import { Template } from '../../../../shared/infrastructure/services/renderers/templates.types';
