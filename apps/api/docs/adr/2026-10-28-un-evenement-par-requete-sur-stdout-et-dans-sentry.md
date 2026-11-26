@@ -114,7 +114,10 @@ ligne s'écrit avec, en `request.id`, le `request_id` de la ligne du routeur.
   `fondation.<gotenberg|storage>.call.count`, `.call.duration` (somme, en secondes) et
   `.call.failure.count`, par `WideEvent.timeCall`, sans URL ni nom de fichier. Un appel compte dès son
   départ : une requête coupée pendant qu'elle l'attend, souvent la plus lente, garde le temps attendu
-  jusqu'à la coupure, sans échec puisque l'issue de l'appel n'est pas encore connue. Le stockage est
+  jusqu'à la coupure, sans échec puisque l'issue de l'appel n'est pas encore connue. Un échec est un
+  service qui n'a pas fait son travail : toute erreur de Gotenberg, puisqu'aucun PDF n'est produit,
+  mais pour le stockage ni un fichier qu'il n'a plus (signalé à part à Sentry), ni une plage au-delà
+  de la fin du fichier (demandée par le navigateur) : `isStorageFailure`. Le stockage est
   chronométré par un middleware de chaque client S3, à l'étape qui envoie la requête : chaque
   tentative compte, une URL signée, construite sans appel, ne compte pas. La lecture d'un fichier par
   son URL signée l'est jusqu'aux en-têtes de la réponse, le corps passant ensuite au navigateur ; elle

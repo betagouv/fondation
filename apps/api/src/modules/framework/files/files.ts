@@ -46,7 +46,7 @@ import { renamedFileName } from './file-name';
 import { type FondationFile } from './files.types';
 import { filenameToMimeType } from './mime-type';
 import { FileMissingFromStorage, isMissingFromStorage } from './missing-from-storage';
-import { timeStorageCalls } from './storage-calls';
+import { isStorageFailure, timeStorageCalls } from './storage-calls';
 
 /** @internal */
 class RollbackFilePathOperationError {
@@ -505,7 +505,11 @@ export class Files implements OnApplicationBootstrap {
     // Up to the headers of the storage, the transfer of the body counting in the duration of the request alone. One call
     // with the retries of HttpService, which the S3 client counts one by one (see timeStorageCalls)
     const response = await this.wideEvent
-      .timeCall('storage', () => lastValueFrom(this.http.get(file.url, { headers, responseType: 'stream' })))
+      .timeCall(
+        'storage',
+        () => lastValueFrom(this.http.get(file.url, { headers, responseType: 'stream' })),
+        isStorageFailure,
+      )
       .catch((error: unknown) => {
         if (isMissingFromStorage(error)) {
           this.reportMissingFromStorage(file.file);

@@ -80,6 +80,19 @@ class TestController {
     return this.wideEvent.timeCall('gotenberg', () => Promise.resolve('pdf'));
   }
 
+  // A file the storage no longer has, which it answers rightly
+  @Get('missing-file')
+  async missingFile(): Promise<string> {
+    await this.wideEvent
+      .timeCall(
+        'storage',
+        () => Promise.reject(new Error('NoSuchKey')),
+        () => false,
+      )
+      .catch(() => undefined);
+    return 'missing';
+  }
+
   @Get('sessions/:sessionId/nomination-files/:nominationFileId')
   @UseGuards(Authenticated)
   read(): string {
@@ -367,6 +380,13 @@ describe('WideEvent', () => {
       'http.response.status_code': 200,
     });
     expect(event).not.toHaveProperty('fondation.storage.call.count');
+  });
+
+  it('should not count as failed a call the service answers rightly', async () => {
+    const event = await eventOf('/missing-file');
+
+    expect(event).toMatchObject({ 'fondation.storage.call.count': 1 });
+    expect(event).not.toHaveProperty('fondation.storage.call.failure.count');
   });
 
   it('should run a call made outside any request or command', async () => {

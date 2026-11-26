@@ -28,6 +28,7 @@ describe('Files', () => {
   let http: MockProxy<HttpService>;
   let send: ReturnType<typeof vi.fn>;
   let files: Files;
+  let storageFailures: number;
 
   const linkedCopy = { id: 'copy-id', path: ['observations', 'courrier.pdf'] };
 
@@ -45,7 +46,15 @@ describe('Files', () => {
 
     http = mock<HttpService>();
     const wideEvent = mock<WideEvent>();
-    wideEvent.timeCall.mockImplementation((_, call) => call());
+    storageFailures = 0;
+    wideEvent.timeCall.mockImplementation(async (_, call, isFailure) => {
+      try {
+        return await call();
+      } catch (error) {
+        if (isFailure?.(error) ?? true) storageFailures++;
+        throw error;
+      }
+    });
     files = new Files(
       new Clock(),
       db,
@@ -120,6 +129,7 @@ describe('Files', () => {
         extra: { fileId: 'file-id', path: 'observations/courrier.pdf' },
         level: 'warning',
       });
+      expect(storageFailures).toBe(0);
     });
 
     it('keeps a storage refusal as a server error', async () => {
@@ -127,6 +137,7 @@ describe('Files', () => {
 
       await expect(files.getFileContent('public-url-id')).rejects.toBeInstanceOf(AxiosError);
       expect(Sentry.captureMessage).not.toHaveBeenCalled();
+      expect(storageFailures).toBe(1);
     });
 
     function storageStreams(response: Pick<AxiosResponse, 'headers' | 'status'>) {
@@ -161,6 +172,7 @@ describe('Files', () => {
       await expect(files.getFileContent('public-url-id', { range: 'bytes=99-' })).rejects.toSatisfy(
         (error) => error instanceof HttpException && error.getStatus() === 416,
       );
+      expect(storageFailures).toBe(0);
     });
 
     it('keeps an unknown or expired public url apart from a file the storage lost', async () => {

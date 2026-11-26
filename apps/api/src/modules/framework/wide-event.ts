@@ -188,9 +188,14 @@ export class WideEvent {
 
   /**
    * Adds a call to a service to the event: a request can make several, so the event counts them, sums their duration
-   * (in seconds) and counts those that failed
+   * (in seconds) and counts those that failed: every rejection, unless isFailure tells an answer the service gave
+   * rightly, as a file it does not have
    */
-  async timeCall<T>(service: OutboundService, call: () => Promise<T>): Promise<T> {
+  async timeCall<T>(
+    service: OutboundService,
+    call: () => Promise<T>,
+    isFailure: (error: unknown) => boolean = () => true,
+  ): Promise<T> {
     const event = this.cls.get<WideEventAttributes | undefined>(WIDE_EVENT);
     if (!event) return call();
 
@@ -204,7 +209,8 @@ export class WideEvent {
     try {
       return await call();
     } catch (error) {
-      if (calls.has(pending)) event[`${prefix}.failure.count`] = (event[`${prefix}.failure.count`] ?? 0) + 1;
+      if (calls.has(pending) && isFailure(error))
+        event[`${prefix}.failure.count`] = (event[`${prefix}.failure.count`] ?? 0) + 1;
       throw error;
     } finally {
       // Unless the event was written while the call was waited for
