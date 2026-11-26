@@ -69,6 +69,17 @@ const slowRequest = { answer: Promise.withResolvers<string>(), received: Promise
 
 @Controller()
 class TestController {
+  constructor(private readonly wideEvent: WideEvent) {}
+
+  // As a PDF retried after Gotenberg failed once
+  @Get('pdf')
+  async pdf(): Promise<string> {
+    await this.wideEvent
+      .timeCall('gotenberg', () => Promise.reject(new Error('ECONNREFUSED')))
+      .catch(() => undefined);
+    return this.wideEvent.timeCall('gotenberg', () => Promise.resolve('pdf'));
+  }
+
   @Get('sessions/:sessionId/nomination-files/:nominationFileId')
   @UseGuards(Authenticated)
   read(): string {
@@ -343,6 +354,24 @@ describe('WideEvent', () => {
       level: 'error',
     });
     expect(JSON.stringify(event)).not.toContain('jean.dupont');
+  });
+
+  it('should count the calls to a service, their total duration and their failures', async () => {
+    const event = await eventOf('/pdf');
+
+    expect(event).toMatchObject({
+      'fondation.gotenberg.call.count': 2,
+      'fondation.gotenberg.call.duration': expect.any(Number),
+      'fondation.gotenberg.call.failure.count': 1,
+      'http.response.status_code': 200,
+    });
+    expect(event).not.toHaveProperty('fondation.storage.call.count');
+  });
+
+  it('should run a call made outside any request or command', async () => {
+    await expect(app.get(WideEvent).timeCall('storage', () => Promise.resolve('bucket'))).resolves.toBe(
+      'bucket',
+    );
   });
 
   it('should describe a request whose body cannot be read, refused before the router', async () => {

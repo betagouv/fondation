@@ -110,6 +110,13 @@ ligne s'écrit avec, en `request.id`, le `request_id` de la ligne du routeur.
   Une commande CLI ouvre le sien dans `cli.ts`, autour de `CommandFactory.runApplication`, par
   `WideEvent.runCommand` (FON-867) : `job.name` avec la sous-commande (`user register`), jamais ses
   arguments, `job.duration`, `process.exit.code`, et `fondation.ingestion_job.id` pour l'ingestion.
+- **Les appels sortants sont comptés par service** (FON-869) : pour Gotenberg et le stockage S3,
+  `fondation.<gotenberg|storage>.call.count`, `.call.duration` (somme, en secondes) et
+  `.call.failure.count`, par `WideEvent.timeCall`, sans URL ni nom de fichier. Le stockage est
+  chronométré par un middleware de chaque client S3, à l'étape qui envoie la requête : chaque
+  tentative compte, une URL signée, construite sans appel, ne compte pas. La lecture d'un fichier par
+  son URL signée l'est jusqu'aux en-têtes de la réponse, le corps passant ensuite au navigateur. Tchap
+  et l'API Scalingo ne sont pas suivis : appelés hors requête, leurs échecs vont déjà à Sentry.
 - **Des identifiants seulement** : utilisateur, rôle, usurpateur, statut, route, durée, `error.type`,
   et les identifiants de la route (`:sessionId` devient `fondation.session.id`, `:nominationFileId`
   `fondation.nomination_file.id`), lus dans `req.params` à l'émission sans rien ajouter dans chaque

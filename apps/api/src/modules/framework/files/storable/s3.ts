@@ -5,6 +5,8 @@ import { Inject, Injectable, OnApplicationBootstrap } from '@nestjs/common';
 
 import * as time from '../../../../utils/time';
 import { API_CONFIG_TOKEN, ApiConfig } from '../../config';
+import { WideEvent } from '../../wide-event';
+import { timeStorageCalls } from '../storage-calls';
 
 import { StorablePath } from './storable.types';
 
@@ -25,6 +27,7 @@ export class S3Client implements Pick<S3, 'send'>, OnApplicationBootstrap {
   constructor(
     @Inject(API_CONFIG_TOKEN)
     private readonly config: ApiConfig,
+    wideEvent: WideEvent,
   ) {
     const { encryptionKeyBase64: SSECustomerKey } = config.s3;
     if (SSECustomerKey) {
@@ -47,6 +50,7 @@ export class S3Client implements Pick<S3, 'send'>, OnApplicationBootstrap {
       endpoint: config.s3.endpoint,
       forcePathStyle: config.s3.forcePathStyle,
     });
+    timeStorageCalls(this.client, wideEvent);
 
     this.send = this.client.send.bind(this.client);
   }

@@ -1,12 +1,21 @@
+// oxlint-disable typescript/unbound-method
 import { HttpService } from '@nestjs/axios';
 import { ServiceUnavailableException } from '@nestjs/common';
 import { AxiosError } from 'axios';
 import { of, throwError } from 'rxjs';
 import { mock } from 'vitest-mock-extended';
 
+import { WideEvent } from '../wide-event';
+
 import { GotenbergHttpClient } from './gotenberg-http-client.service';
 
 describe('GotenbergHttpClient', () => {
+  const wideEvent = mock<WideEvent>();
+
+  beforeEach(() => {
+    wideEvent.timeCall.mockReset().mockImplementation((_, call) => call());
+  });
+
   describe('htmlToPdf', () => {
     it('should call the html to pdf endpoint', async () => {
       const http = mock<HttpService>();
@@ -14,9 +23,19 @@ describe('GotenbergHttpClient', () => {
         .calledWith('http://gotenberg.dev/forms/chromium/convert/html', expect.any(FormData))
         .mockReturnValue(of({ data: new ArrayBuffer(0) } as any));
 
-      const client = new GotenbergHttpClient(http, new URL('http://gotenberg.dev'));
+      const client = new GotenbergHttpClient(http, new URL('http://gotenberg.dev'), wideEvent);
 
       await expect(client.htmlToPdf({ 'index.html': '<html></html>' })).resolves.toEqual(expect.any(Buffer));
+    });
+
+    it('should time the call in the event of the request', async () => {
+      const http = mock<HttpService>();
+      http.post.mockReturnValue(of({ data: new ArrayBuffer(0) } as any));
+
+      const client = new GotenbergHttpClient(http, new URL('http://gotenberg.dev'), wideEvent);
+      await client.htmlToPdf({ 'index.html': '<html></html>' });
+
+      expect(wideEvent.timeCall).toHaveBeenCalledWith('gotenberg', expect.any(Function));
     });
 
     it('should convert options to form', async () => {
@@ -25,7 +44,7 @@ describe('GotenbergHttpClient', () => {
         .calledWith('http://gotenberg.dev/forms/chromium/convert/html', expect.any(FormData))
         .mockReturnValue(of({ data: new ArrayBuffer(0) } as any));
 
-      const client = new GotenbergHttpClient(http, new URL('http://gotenberg.dev'));
+      const client = new GotenbergHttpClient(http, new URL('http://gotenberg.dev'), wideEvent);
 
       await client.htmlToPdf({ printBackground: false, 'index.html': '<html></html>' });
 
@@ -37,7 +56,7 @@ describe('GotenbergHttpClient', () => {
       const http = mock<HttpService>();
       http.post.mockReturnValue(of({ data: new ArrayBuffer(0) } as any));
 
-      const client = new GotenbergHttpClient(http, new URL('https://proxy.dev/gotenberg'));
+      const client = new GotenbergHttpClient(http, new URL('https://proxy.dev/gotenberg'), wideEvent);
       await client.htmlToPdf({ 'index.html': '<html></html>' });
 
       const [url] = http.post.mock.lastCall! as [string];
@@ -56,7 +75,7 @@ describe('GotenbergHttpClient', () => {
         ),
       );
 
-      const client = new GotenbergHttpClient(http, new URL('http://gotenberg.dev'));
+      const client = new GotenbergHttpClient(http, new URL('http://gotenberg.dev'), wideEvent);
 
       await expect(client.htmlToPdf({ 'index.html': '<html></html>' })).rejects.toThrow(
         ServiceUnavailableException,
@@ -69,7 +88,7 @@ describe('GotenbergHttpClient', () => {
         throwError(() => new AxiosError('connect ECONNREFUSED 10.240.0.2:80', 'ECONNREFUSED')),
       );
 
-      const client = new GotenbergHttpClient(http, new URL('http://gotenberg.dev'));
+      const client = new GotenbergHttpClient(http, new URL('http://gotenberg.dev'), wideEvent);
 
       await expect(client.htmlToPdf({ 'index.html': '<html></html>' })).rejects.toThrow(
         ServiceUnavailableException,
@@ -81,7 +100,7 @@ describe('GotenbergHttpClient', () => {
       const boom = new Error('boom');
       http.post.mockReturnValue(throwError(() => boom));
 
-      const client = new GotenbergHttpClient(http, new URL('http://gotenberg.dev'));
+      const client = new GotenbergHttpClient(http, new URL('http://gotenberg.dev'), wideEvent);
 
       await expect(client.htmlToPdf({ 'index.html': '<html></html>' })).rejects.toBe(boom);
     });

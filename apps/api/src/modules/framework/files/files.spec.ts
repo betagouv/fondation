@@ -13,6 +13,7 @@ import { FileDelegate, FilePublicUrlDelegate } from '../../../generated/prisma/m
 import { Clock } from '../clock';
 import { ApiConfig } from '../config';
 import { Db } from '../database';
+import { WideEvent } from '../wide-event';
 
 import { Files } from './files';
 import { FileMissingFromStorage } from './missing-from-storage';
@@ -43,10 +44,18 @@ describe('Files', () => {
     }) as never);
 
     http = mock<HttpService>();
-    files = new Files(new Clock(), db, http, {
-      originUrl: 'http://localhost:3000',
-      s3: { bucket: 'fondation', region: 'fr-par', signedUrlDurationSeconds: 60 },
-    } as ApiConfig);
+    const wideEvent = mock<WideEvent>();
+    wideEvent.timeCall.mockImplementation((_, call) => call());
+    files = new Files(
+      new Clock(),
+      db,
+      http,
+      {
+        originUrl: 'http://localhost:3000',
+        s3: { bucket: 'fondation', region: 'fr-par', signedUrlDurationSeconds: 60 },
+      } as ApiConfig,
+      wideEvent,
+    );
 
     send = vi.fn().mockResolvedValue({ Deleted: [], Errors: [] });
     (files as any).client = { send };

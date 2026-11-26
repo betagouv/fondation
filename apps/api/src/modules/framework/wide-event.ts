@@ -7,9 +7,17 @@ import { ClsMiddleware, ClsService } from 'nestjs-cls';
 
 import * as time from '../../utils/time';
 
+/** The services a request or a command waits for: Tchap and Scalingo are called outside of them */
+type OutboundService = 'gotenberg' | 'storage';
+
+// Per service called, without its URL nor the name of a file, which can quote a magistrat (see timeCall)
+type OutboundCallAttributes = {
+  [name in `fondation.${OutboundService}.call.${'count' | 'duration' | 'failure.count'}`]?: number;
+};
+
 // Identifiers only: never a name, an email, a body, a query string or free text, the event is kept a year by Scalingo
 /** @see https://opentelemetry.io/docs/specs/semconv/ for the technical attributes */
-type WideEventAttributes = {
+type WideEventAttributes = OutboundCallAttributes & {
   // The client of the public API, as in the tags of its Sentry issues (see ApiClientAlerts)
   'api_client.id'?: string;
   'error.message'?: string;
@@ -157,6 +165,28 @@ export class WideEvent {
   ): void {
     const event = this.cls.get<WideEventAttributes | undefined>(WIDE_EVENT);
     if (event) Object.assign(event, attributes);
+  }
+
+  /**
+   * Adds a call to a service to the event: a request can make several, so the event counts them, sums their duration
+   * (in seconds) and counts those that failed
+   */
+  async timeCall<T>(service: OutboundService, call: () => Promise<T>): Promise<T> {
+    const event = this.cls.get<WideEventAttributes | undefined>(WIDE_EVENT);
+    if (!event) return call();
+
+    const prefix = `fondation.${service}.call` as const;
+    const startedAt = performance.now();
+    try {
+      return await call();
+    } catch (error) {
+      event[`${prefix}.failure.count`] = (event[`${prefix}.failure.count`] ?? 0) + 1;
+      throw error;
+    } finally {
+      event[`${prefix}.count`] = (event[`${prefix}.count`] ?? 0) + 1;
+      event[`${prefix}.duration`] =
+        (event[`${prefix}.duration`] ?? 0) + (performance.now() - startedAt) / time.SECONDS;
+    }
   }
 
   failWith(exception: unknown, request: ExpressRequest): void {
