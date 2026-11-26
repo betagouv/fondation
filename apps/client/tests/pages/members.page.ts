@@ -17,7 +17,8 @@ class ExcludeJurisdictionModal {
   }
 
   async select(name: string): Promise<void> {
-    return this.page.getByRole('checkbox', { name }).check();
+    // the DSFR label covers its checkbox
+    return this.page.getByRole('checkbox', { name }).check({ force: true });
   }
 
   get saveButton(): Locator {

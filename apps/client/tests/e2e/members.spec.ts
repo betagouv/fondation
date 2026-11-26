@@ -11,7 +11,8 @@ test.describe('Gérer les membres', () => {
       (x) => x.toString().padStart(2, '0'),
     );
 
-    const jurisdictionId = `CA  MARSEILLE ${crypto.randomUUID()}`;
+    const jurisdictionKey = crypto.randomUUID();
+    const jurisdictionId = `CA  MARSEILLE ${jurisdictionKey}`;
 
     const ingestion = await app.pages.admin.goto('newIngestion');
     await ingestion.upload({
@@ -54,7 +55,7 @@ test.describe('Gérer les membres', () => {
     await modal.search.fill(jurisdictionId);
     await app.page.waitForResponse('**/api/jurisdictions/v1?search=*');
 
-    await modal.select("Cour d'appel de Marseille");
+    await modal.select(jurisdictionKey);
     // Et que je sélectionne "Cour d'appel de Marseille"
     await modal.saveButton.click();
     // Et que je sauvegarde mon choix
