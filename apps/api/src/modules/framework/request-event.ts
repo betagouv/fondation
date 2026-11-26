@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 
 import { HttpException, Injectable, type INestApplication } from '@nestjs/common';
+import * as Sentry from '@sentry/node';
 import type { Request as ExpressRequest, Response as ExpressResponse, IRoute } from 'express';
 import { ClsMiddleware, ClsService } from 'nestjs-cls';
 
@@ -21,6 +22,8 @@ type RequestEventAttributes = {
   'http.server.request.duration'?: number;
   // No path: the route and its identifiers say it, and the Scalingo router line of the same id has it
   'request.id': string;
+  // The Sentry trace of the request, kept even when it is not sampled: its errors carry the same
+  'trace.id'?: string;
   'user.id'?: string;
   // The identifiers of the route, as `fondation.nomination_file.id` for `:nominationFileId`
   [routeIdentifier: `fondation.${string}.id`]: string | undefined;
@@ -41,7 +44,12 @@ function openEvent(cls: ClsService, req: ExpressRequest, res: ExpressResponse): 
   if (UNLOGGED_PATHS.includes(path)) return;
 
   const startedAt = performance.now();
-  const event: RequestEventAttributes = { 'http.request.method': req.method, 'request.id': cls.getId() };
+  const event: RequestEventAttributes = {
+    'http.request.method': req.method,
+    'request.id': cls.getId(),
+    // Opened by the HTTP server of Sentry before any middleware, absent when Sentry is off
+    'trace.id': Sentry.getActiveSpan()?.spanContext().traceId,
+  };
   cls.set(REQUEST_EVENT, event);
 
   // Unlike 'finish', 'close' also fires when the client goes away before the response is sent
@@ -79,6 +87,8 @@ function writeEvent(event: RequestEventAttributes): void {
   process.stdout.write(
     `${JSON.stringify({ level, message, timestamp: new Date().toISOString(), ...event })}\n`,
   );
+  // Buffered and sent in the background: an unreachable Sentry neither slows nor fails the request
+  Sentry.logger[level](message, event);
 }
 
 @Injectable()

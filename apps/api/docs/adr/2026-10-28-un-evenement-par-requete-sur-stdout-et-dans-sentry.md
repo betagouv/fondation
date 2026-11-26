@@ -44,7 +44,7 @@ durable et exhaustive, elle n'a rien à faire dans des logs jetables. Le client 
 | Rétention                            | 90 jours, fixée pour toute l'instance | Politique ISM au choix                  | Au choix                    | De 1 jour à 5 ans                                            | 14 jours, 1 mois, 3 mois ou 1 an, fixée à la création |
 | Accès nominatif                      | Oui                                   | **Non : un seul utilisateur partagé**   | Comptes de la base partagés | Oui, comptes IAM Scaleway                                    | Oui, comptes IAM OVHcloud                             |
 | Dépendance ajoutée                   | Aucune (`@sentry/node` déjà là)       | Aucune côté API                         | Aucune                      | Aucune côté API                                              | Aucune côté API                                       |
-| Impact sur le temps de réponse       | Envoi à mesurer avec FON-866          | —                                       | Une écriture par requête    | Aucun : le relais lit les logs                               | Aucun : le drain lit stdout                           |
+| Impact sur le temps de réponse       | 11 µs par événement, envoi différé    | —                                       | Une écriture par requête    | Aucun : le relais lit les logs                               | Aucun : le drain lit stdout                           |
 
 Vérifié le 28 octobre 2026 : l'instance de l'incubateur (version 25.9.0) accepte les logs envoyés par
 `Sentry.logger`, les filtre sur un attribut, les regroupe par `http.route` et calcule un p95 sur un
@@ -68,6 +68,11 @@ d'exception : le cas où l'événement pèse le plus, en proportion. L'API y tou
 l'écart de débit donne le coût de l'événement : environ 20 µs de calcul par requête. Les 0,7 ms de
 plus en moyenne viennent de la file d'attente des 20 connexions ; à une vingtaine d'utilisateurs, loin
 de la saturation, il reste ces 20 µs.
+
+La copie dans Sentry Logs coûte environ 11 µs de plus par événement (`Sentry.logger`, 100 000 appels
+avec un transport qui ne fait rien, trois passages entre 10,6 et 12,1 µs) : le SDK met les logs en
+tampon et les envoie par paquets de 100 ou toutes les 5 secondes, hors de la requête. L'API vide ce
+tampon à son arrêt : sans cela, un redémarrage perdrait les 5 dernières secondes.
 
 Sur staging, avec une session, la même liste (100 dossiers, 180 Ko) plafonne à une trentaine de
 requêtes par seconde : chacune occupe l'API une trentaine de millisecondes, et les 20 µs de l'événement s'y
@@ -112,7 +117,8 @@ ligne s'écrit avec, en `request.id`, le `request_id` de la ligne du routeur.
   est rangé sous `fondation.*`, parce que `session.id` y désigne une session de navigation.
 - **L'identifiant de requête** est l'en-tête `X-Request-ID` posé par le routeur Scalingo s'il a la forme
   d'un UUID (le routeur garde celui qu'envoie un client), sinon un UUID tiré par l'API ; `trace.id`
-  reliera l'événement à sa trace Sentry (FON-866). L'événement ne porte pas le chemin : la ligne du
+  relie l'événement à sa trace Sentry, y compris quand la trace n'est pas échantillonnée : les erreurs
+  de la requête portent le même identifiant. L'événement ne porte pas le chemin : la ligne du
   routeur de même `request_id`, dans les archives, l'a déjà.
 - **Le contrat est une ligne JSON sur stdout** : le stockage se branche derrière et se remplace sans
   toucher au code. Sentry Logs ne reçoit que l'événement, les lignes de `this.logger` restent sur stdout.
@@ -123,8 +129,7 @@ ligne s'écrit avec, en `request.id`, le `request_id` de la ligne du routeur.
 - Les archives Scalingo gardent stdout un an, sans purge possible de notre côté ; Sentry purge à
   90 jours, réglage commun à toute l'instance. Le RSSI et le DPO du CSM ont validé ces durées le
   30 octobre 2026 (FON-703).
-- L'événement HTTP sur stdout arrive en premier (FON-865) ; l'envoi à Sentry Logs et `trace.id`
-  suivent avec FON-866, l'événement des commandes planifiées avec FON-867.
+- L'événement des commandes planifiées suit avec FON-867.
 - Le niveau dépend du statut : `info` sous 400, `warn` de 400 à 499 et pour une requête interrompue,
   `error` à partir de 500.
 - La métrique Sentry `http.server.request.duration` disparaît : les durées se lisent dans les
