@@ -12,12 +12,15 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import * as Sentry from '@sentry/node';
 import type { Request as ExpressRequest } from 'express';
 import { ClsModule } from 'nestjs-cls';
 
 import { Prisma } from '../../generated/prisma/client';
 
+import { API_CONFIG_TOKEN } from './config';
 import { ExceptionModule } from './exception';
+import { SentryService, WITHOUT_PERSONAL_DATA } from './observability';
 import { RequestEvent } from './request-event';
 
 class Authenticated implements CanActivate {
@@ -81,21 +84,47 @@ class TestController {
   }
 }
 
-// Global, as the FrameworkModule: the exception filter gets the RequestEvent from it
+// Global, as the FrameworkModule: the exception filter gets the RequestEvent and the SentryService from it
 @Global()
 @Module({
   controllers: [TestController],
-  exports: [RequestEvent],
+  exports: [RequestEvent, SentryService],
   imports: [ClsModule.forRoot({ global: true }), ExceptionModule],
-  providers: [RequestEvent],
+  providers: [
+    RequestEvent,
+    SentryService,
+    {
+      provide: API_CONFIG_TOKEN,
+      useValue: { isProduction: true, sentryDsn: 'https://public@sentry.test/1' },
+    },
+  ],
 })
 class TestModule {}
 
 describe('RequestEvent', () => {
+  const errors: { contexts?: { trace?: { trace_id?: string } } }[] = [];
+  const logs: { attributes: Record<string, { value: unknown }>; level: string; trace_id?: string }[] = [];
   let app: INestApplication;
   let url: string;
 
   beforeAll(async () => {
+    // Before the server starts, so the HTTP server of Sentry opens the span of each request
+    Sentry.init({
+      ...WITHOUT_PERSONAL_DATA,
+      dsn: 'https://public@sentry.test/1',
+      // As most requests in production (0.2): without a rate, every request would share one trace
+      tracesSampleRate: 0,
+      transport: () => ({
+        flush: () => Promise.resolve(true),
+        send: ([, items]) => {
+          for (const [header, payload] of items) {
+            if (header.type === 'event') errors.push(payload as (typeof errors)[number]);
+            if (header.type === 'log') logs.push(...(payload as { items: (typeof logs)[number][] }).items);
+          }
+          return Promise.resolve({});
+        },
+      }),
+    });
     const module = await Test.createTestingModule({ imports: [TestModule] }).compile();
     app = module.createNestApplication({ logger: false });
     RequestEvent.mount(app);
@@ -103,9 +132,10 @@ describe('RequestEvent', () => {
     url = await app.getUrl();
   });
 
-  afterAll(() => {
+  afterAll(async () => {
     slowRequest.answer.resolve('late');
-    return app.close();
+    await app.close();
+    await Sentry.close();
   });
 
   beforeEach(() => {
@@ -148,6 +178,7 @@ describe('RequestEvent', () => {
       message: 'GET /sessions/:sessionId/nomination-files/:nominationFileId',
       'request.id': '0b9e6a4c-2f1d-4e8a-9c3b-7d5f1a2e4b6c',
       timestamp: expect.any(String),
+      'trace.id': expect.stringMatching(/^[\da-f]{32}$/),
       'user.id': 'user-id',
     });
   });
@@ -158,6 +189,43 @@ describe('RequestEvent', () => {
     expect(event).toMatchObject({ 'fondation.nomination_file.id': '12' });
     expect(event).not.toHaveProperty('fondation.session.id');
     expect(JSON.stringify(event)).not.toContain('jean.dupont');
+  });
+
+  it('should send the event to Sentry Logs, in the trace of its request even when it is not sampled', async () => {
+    await Sentry.flush();
+    logs.length = 0;
+    const event = await eventOf('/forbidden');
+    const next = await eventOf('/forbidden');
+    await Sentry.flush();
+
+    expect(next['trace.id']).not.toBe(event['trace.id']);
+    expect(logs[0]).toMatchObject({
+      attributes: {
+        'http.response.status_code': { value: 403 },
+        'request.id': { value: event['request.id'] },
+      },
+      level: 'warn',
+      trace_id: event['trace.id'],
+    });
+  });
+
+  it('should share the trace of its request with the error sent to Sentry', async () => {
+    await Sentry.flush();
+    errors.length = 0;
+    const event = await eventOf('/prisma');
+    await Sentry.flush();
+
+    expect(errors.map((error) => error.contexts?.trace?.trace_id)).toEqual([event['trace.id']]);
+  });
+
+  it('should not send to Sentry Logs an attribute the event leaves unset', async () => {
+    await Sentry.flush();
+    logs.length = 0;
+    await eventOf('/unknown');
+    await Sentry.flush();
+
+    expect(logs[0]?.attributes).toMatchObject({ 'http.response.status_code': { value: 404 } });
+    expect(logs[0]?.attributes).not.toHaveProperty('http.route');
   });
 
   it('should replace a request id other than the UUID of the Scalingo router', async () => {
