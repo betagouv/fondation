@@ -32,6 +32,7 @@ export class CallForApplicationsRepository {
         id: true,
         publishedOn: true,
         status: true,
+        targetCourts: { select: { courtId: true } },
         targetPositions: { select: { position: true } },
         type: true,
       } satisfies Prisma.CallForApplicationsSelect,
@@ -43,6 +44,7 @@ export class CallForApplicationsRepository {
       ...call,
       deadline: DateOnly.fromOptionalUtcDate(call.deadline),
       publishedOn: DateOnly.fromOptionalUtcDate(call.publishedOn),
+      targetCourts: call.targetCourts.map(({ courtId }) => courtId),
       targetPositions: call.targetPositions.map(({ position }) => position),
     });
   }
@@ -63,6 +65,7 @@ export class CallForApplicationsRepository {
         ...columnsOf(message.metadata),
         createdOn: message.createdOn.toDate(),
         id: message.id,
+        targetCourts: { create: message.metadata.targetCourts.map((courtId) => ({ courtId })) },
         targetPositions: { create: message.metadata.targetPositions.map((position) => ({ position })) },
       },
     });
@@ -85,6 +88,10 @@ export class CallForApplicationsRepository {
     });
     if (count === 0) throw new NotFoundException();
 
+    await this.db.tx.callForApplicationsTargetCourt.deleteMany({ where: { callId: message.id } });
+    await this.db.tx.callForApplicationsTargetCourt.createMany({
+      data: message.metadata.targetCourts.map((courtId) => ({ callId: message.id, courtId })),
+    });
     await this.db.tx.callForApplicationsTargetPosition.deleteMany({ where: { callId: message.id } });
     await this.db.tx.callForApplicationsTargetPosition.createMany({
       data: message.metadata.targetPositions.map((position) => ({ callId: message.id, position })),

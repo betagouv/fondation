@@ -1,4 +1,5 @@
 import { test } from '../fixtures.ts';
+import { jurisdictions } from '../utils/seed.ts';
 
 /** the day in Paris, which the API gives as the creation date */
 function todayInParis() {
@@ -44,6 +45,7 @@ test.describe('Calls for applications E2E', () => {
       id: created.id,
       publishedOn: { day: 1, month: 12, year: 2099 },
       status: { id: 'UNPUBLISHED', label: 'Non publié' },
+      targetCourts: [],
       targetLabel: "Cours d'appel et tribunaux judiciaires",
       targetPositions: [],
       type: { id: 'GENERAL', label: 'Général' },
@@ -72,6 +74,66 @@ test.describe('Calls for applications E2E', () => {
       ],
       type: { id: 'CCASS', label: 'Cour de cassation' },
     });
+  });
+
+  test('should offer the courts of appeal and the judicial courts a specific call can target', async ({
+    agent,
+    expect,
+  }) => {
+    const { data } = await agent.callsForApplications.findCallForApplicationsForm({ throwOnError: true });
+
+    const courtsOf = (typeId: string) => data.targetCourtTypes.find(({ type }) => type.id === typeId)?.courts;
+    expect(courtsOf('COURT_OF_APPEAL')).toContainEqual({ ...jurisdictions['CA  LYON'], type: 'COURT_OF_APPEAL' });
+    expect(data.targetCourtTypes.flatMap(({ courts }) => courts)).not.toContainEqual(
+      expect.objectContaining({ id: 'CC  PARIS' }),
+    );
+    expect(courtsOf('JUDICIAL_COURT')).toContainEqual({
+      id: jurisdictions['TJ  GRASSE'].id,
+      label: jurisdictions['TJ  GRASSE'].label,
+      type: 'JUDICIAL_COURT',
+    });
+  });
+
+  test('should list a specific call with the courts it targets', async ({ agent, expect }) => {
+    const { data: created } = await agent.callsForApplications.createCallForApplications({
+      body: { publishedOn: '2093-06-01', targetCourts: ['TJ  GRASSE', 'CA  LYON'], type: 'SPECIFIC' },
+      throwOnError: true,
+    });
+
+    const { data } = await agent.callsForApplications.listCallsForApplications({
+      query: { limit: 200, period: 'ONGOING', years: ['2093'] },
+      throwOnError: true,
+    });
+    expect(data.items.find(({ id }) => id === created.id)).toMatchObject({
+      targetCourts: [
+        { ...jurisdictions['CA  LYON'], type: 'COURT_OF_APPEAL' },
+        { id: 'TJ  GRASSE', label: 'Tribunal judiciaire de Grasse', type: 'JUDICIAL_COURT' },
+      ],
+      targetLabel: "Cour d'appel de Lyon et Tribunal judiciaire de Grasse",
+      type: { id: 'SPECIFIC', label: 'Spécifique' },
+    });
+  });
+
+  test('should replace the courts a specific call targets and note it in its history', async ({ agent, expect }) => {
+    const form = { publishedOn: '2092-02-01', type: 'SPECIFIC' } as const;
+    const { data: created } = await agent.callsForApplications.createCallForApplications({
+      body: { ...form, targetCourts: ['CA  LYON'] },
+      throwOnError: true,
+    });
+
+    await agent.callsForApplications.updateCallForApplications({
+      body: { ...form, targetCourts: ['TJ  GRASSE'] },
+      path: { callId: created.id },
+      throwOnError: true,
+    });
+
+    const { data } = await agent.callsForApplications.listCallsForApplications({
+      query: { limit: 200, period: 'ONGOING', years: ['2092'] },
+      throwOnError: true,
+    });
+    const updated = data.items.find(({ id }) => id === created.id);
+    expect(updated?.targetCourts.map(({ id }) => id)).toEqual(['TJ  GRASSE']);
+    expect(updated?.history[0]?.fields.map(({ id }) => id)).toEqual(['TARGET_COURTS']);
   });
 
   test('should list a call for applications in the past ones of its year once its deadline is over', async ({

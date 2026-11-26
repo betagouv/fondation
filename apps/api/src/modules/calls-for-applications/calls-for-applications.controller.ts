@@ -40,6 +40,7 @@ function metadataOf(body: CreateCallForApplicationsDto | UpdateCallForApplicatio
     comment: body.comment ?? null,
     deadline: dateOf(body.deadline),
     publishedOn: dateOf(body.publishedOn),
+    targetCourts: body.targetCourts ?? [],
     targetPositions: body.targetPositions ?? [],
     type: body.type,
   };
@@ -75,7 +76,7 @@ export class CallsForApplicationsController {
   @Get('/form')
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
   @ZodResponse({ status: HttpStatus.OK, type: FoundCallForApplicationsFormDto })
-  findCallForApplicationsForm(): FoundCallForApplicationsFormDto {
+  findCallForApplicationsForm(): Promise<FoundCallForApplicationsFormDto> {
     return this.callsForApplications.findCallForApplicationsForm();
   }
 

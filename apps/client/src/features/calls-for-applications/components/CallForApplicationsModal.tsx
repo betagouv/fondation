@@ -19,36 +19,133 @@ import {
   useUpdateCallForApplicationsMutation,
 } from '@queries/calls-for-applications.queries';
 
-type Draft = Partial<CreateCallForApplicationsDto>;
+import { TargetCourtsPicker } from './TargetCourtsPicker';
+
+type CourtGroup = FoundCallForApplicationsFormDto['targetCourtTypes'][number];
+type SavedCourts = CallForApplications['targetCourts'];
+/** the types of courts checked stay in the draft only: the API reads them from the courts */
+type Draft = Partial<CreateCallForApplicationsDto> & { targetCourtTypes?: CourtGroup['type']['id'][] };
 type DateField = 'deadline' | 'publishedOn';
 
-/** null while the type is missing or a type requiring positions has none */
+/** a court removed from the referential since the call targeted it is no longer offered but stays shown */
+function courtGroupsOf(form: FoundCallForApplicationsFormDto, savedCourts: SavedCourts): CourtGroup[] {
+  return form.targetCourtTypes.map((group) => ({
+    ...group,
+    courts: [
+      ...group.courts,
+      ...savedCourts.filter(
+        (saved) => saved.type === group.type.id && !group.courts.some(({ id }) => id === saved.id),
+      ),
+    ],
+  }));
+}
+
+/** the types of an edited call are those of its courts */
+function checkedTypesOf(draft: Draft, groups: readonly CourtGroup[]): CourtGroup['type']['id'][] {
+  return (
+    draft.targetCourtTypes ??
+    groups
+      .filter(({ courts }) => courts.some(({ id }) => draft.targetCourts?.includes(id)))
+      .map(({ type }) => type.id)
+  );
+}
+
+function isEmptyGroup(draft: Draft, group: CourtGroup): boolean {
+  return !group.courts.some(({ id }) => draft.targetCourts?.includes(id));
+}
+
+/** null while the type is missing or nothing is picked as the target its type requires (a court in each type checked) */
 function completeOf(
   draft: Draft,
   form: FoundCallForApplicationsFormDto | undefined,
+  savedCourts: SavedCourts,
 ): CreateCallForApplicationsDto | null {
   const { type } = draft;
   if (!type || !form) return null;
 
-  const required = form.types.find(({ id }) => id === type)?.targetPositionsRequired ?? false;
-  const targetPositions = required
-    ? form.targetPositions.map(({ id }) => id).filter((id) => draft.targetPositions?.includes(id))
-    : [];
-  if (required && targetPositions.length === 0) return null;
+  const pick = form.types.find(({ id }) => id === type)?.targetPick;
+  const targetPositions =
+    pick === 'POSITIONS'
+      ? form.targetPositions.map(({ id }) => id).filter((id) => draft.targetPositions?.includes(id))
+      : [];
+  // sorted so that a court unchecked then checked again does not count as a change
+  const targetCourts = pick === 'COURTS' ? (draft.targetCourts ?? []).toSorted() : [];
+  if (pick === 'POSITIONS' && targetPositions.length === 0) return null;
+  if (pick === 'COURTS' && targetCourts.length === 0) return null;
+  if (pick === 'COURTS') {
+    const groups = courtGroupsOf(form, savedCourts);
+    const checked = checkedTypesOf(draft, groups);
+    if (groups.some((group) => checked.includes(group.type.id) && isEmptyGroup(draft, group))) return null;
+  }
 
   return {
     comment: draft.comment?.trim() || null,
     deadline: draft.deadline || null,
     publishedOn: draft.publishedOn || null,
+    targetCourts,
     targetPositions,
     type,
   };
+}
+
+function TargetCourtsFields(props: {
+  draft: Draft;
+  form: FoundCallForApplicationsFormDto;
+  onChange: (changes: Draft) => void;
+  savedCourts: SavedCourts;
+}) {
+  const { draft, onChange } = props;
+  const groups = courtGroupsOf(props.form, props.savedCourts);
+  const checkedCourts = draft.targetCourts ?? [];
+  const checkedTypes = checkedTypesOf(draft, groups);
+  const uncheck = (group: CourtGroup) =>
+    onChange({
+      targetCourts: checkedCourts.filter((id) => !group.courts.some((court) => court.id === id)),
+      targetCourtTypes: checkedTypes.filter((id) => id !== group.type.id),
+    });
+
+  return (
+    <>
+      <Checkbox
+        className="fr-mb-0"
+        legend={
+          <RequiredLabel>
+            <FormattedMessage defaultMessage="Types de juridictions cibles" />
+          </RequiredLabel>
+        }
+        options={groups.map((group) => ({
+          label: group.type.label,
+          nativeInputProps: {
+            checked: checkedTypes.includes(group.type.id),
+            onChange: (event) =>
+              event.target.checked
+                ? onChange({ targetCourtTypes: [...checkedTypes, group.type.id] })
+                : uncheck(group),
+            value: group.type.id,
+          },
+        }))}
+        orientation="horizontal"
+      />
+      {groups
+        .filter(({ type }) => checkedTypes.includes(type.id))
+        .map((group) => (
+          <TargetCourtsPicker
+            checked={checkedCourts}
+            courtGroup={group}
+            isEmpty={isEmptyGroup(draft, group)}
+            key={group.type.id}
+            onChange={(targetCourts) => onChange({ targetCourts, targetCourtTypes: checkedTypes })}
+          />
+        ))}
+    </>
+  );
 }
 
 function CallForApplicationsFields(props: {
   draft: Draft;
   form: FoundCallForApplicationsFormDto;
   onChange: (changes: Draft) => void;
+  savedCourts: CallForApplications['targetCourts'];
 }) {
   const { formatMessage } = useIntl();
   const { draft, form, onChange } = props;
@@ -92,7 +189,10 @@ function CallForApplicationsFields(props: {
           {type && <p className="fr-hint-text fr-mt-2v fr-mb-0">{type.scope}</p>}
         </div>
       </div>
-      {type?.targetPositionsRequired && (
+      {type?.targetPick === 'COURTS' && (
+        <TargetCourtsFields draft={draft} form={form} onChange={onChange} savedCourts={props.savedCourts} />
+      )}
+      {type?.targetPick === 'POSITIONS' && (
         <Checkbox
           className="fr-mb-0"
           legend={
@@ -153,6 +253,7 @@ function draftOf(call: CallForApplications): Draft {
     comment: call.comment ?? '',
     deadline: dateOnlyToIso(call.deadline) ?? '',
     publishedOn: dateOnlyToIso(call.publishedOn) ?? '',
+    targetCourts: call.targetCourts.map(({ id }) => id),
     targetPositions: call.targetPositions.map(({ id }) => id),
     type: call.type.id,
   };
@@ -175,10 +276,12 @@ export function CallForApplicationsModal(props: {
   const [draft, setDraft] = useState<Draft | null>(null);
   const initial: Draft = props.edited ? draftOf(props.edited) : {};
   const shown = draft ?? initial;
-  const complete = completeOf(shown, form.data);
+  const savedCourts = props.edited?.targetCourts ?? [];
+  const complete = completeOf(shown, form.data, savedCourts);
   // nothing to save while the form still holds the values saved
   const isUnchanged =
-    !!props.edited && JSON.stringify(complete) === JSON.stringify(completeOf(initial, form.data));
+    !!props.edited &&
+    JSON.stringify(complete) === JSON.stringify(completeOf(initial, form.data, savedCourts));
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
@@ -250,6 +353,7 @@ export function CallForApplicationsModal(props: {
             draft={shown}
             form={form.data}
             onChange={(changes) => setDraft({ ...shown, ...changes })}
+            savedCourts={savedCourts}
           />
         </form>
       ) : form.isError ? (

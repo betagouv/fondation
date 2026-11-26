@@ -15,14 +15,15 @@ type ListedCall = ListedCallsForApplicationsDto['items'][number];
 
 /** a call never changed since its creation (general by default) */
 function created(
-  call: Omit<ListedCall, 'comment' | 'history' | 'targetLabel' | 'targetPositions'> &
-    Partial<Pick<ListedCall, 'targetLabel' | 'targetPositions'>> & {
+  call: Omit<ListedCall, 'comment' | 'history' | 'targetCourts' | 'targetLabel' | 'targetPositions'> &
+    Partial<Pick<ListedCall, 'targetCourts' | 'targetLabel' | 'targetPositions'>> & {
       createdAt: string;
       createdBy: ListedCall['history'][number]['by'];
     },
 ): ListedCall {
   const { createdAt, createdBy, ...listed } = call;
   return {
+    targetCourts: [],
     targetLabel: "Cours d'appel et tribunaux judiciaires",
     targetPositions: [],
     ...listed,
@@ -64,6 +65,24 @@ const CALLS: Record<'ONGOING' | 'PAST', ListedCall[]> = {
         { id: 'COUNSELLOR', label: 'Conseiller' },
       ],
       type: { id: 'CCASS', label: 'Cour de cassation' },
+    }),
+    created({
+      canChange: true,
+      createdAt: '2026-11-23T15:00:00.000Z',
+      createdBy: { id: 'user-2', name: 'Hélène GARNIER' },
+      createdOn: { day: 23, month: 11, year: 2026 },
+      deadline: { day: 22, month: 1, year: 2027 },
+      id: 'call-5',
+      publishedOn: { day: 2, month: 1, year: 2027 },
+      status: { id: 'UNPUBLISHED', label: 'Non publié' },
+      targetCourts: [
+        { id: 'CA  AGEN', label: "Cour d'appel d'Agen", type: 'COURT_OF_APPEAL' },
+        { id: 'TJ  AUCH', label: "Tribunal judiciaire d'Auch", type: 'JUDICIAL_COURT' },
+        { id: 'TPI NOUMEA', label: 'Tribunal de première instance de Nouméa', type: 'JUDICIAL_COURT' },
+      ],
+      targetLabel:
+        "Cour d'appel d'Agen, Tribunal judiciaire d'Auch et Tribunal de première instance de Nouméa",
+      type: { id: 'SPECIFIC', label: 'Spécifique' },
     }),
     created({
       canChange: true,
@@ -112,6 +131,28 @@ const CALLS: Record<'ONGOING' | 'PAST', ListedCall[]> = {
 const FORM: FoundCallForApplicationsFormDto = {
   commentMaxLength: 50_000,
   dateRange: { max: '2100-12-31', min: '2000-01-01' },
+  targetCourtTypes: [
+    {
+      courts: [
+        { id: 'CA  AGEN', label: "Cour d'appel d'Agen", type: 'COURT_OF_APPEAL' },
+        { id: 'CA  LYON', label: "Cour d'appel de Lyon", type: 'COURT_OF_APPEAL' },
+        {
+          id: 'TSA SAINT PIERRE ET MIQUELON',
+          label: "Tribunal supérieur d'appel de Saint-Pierre et Miquelon",
+          type: 'COURT_OF_APPEAL',
+        },
+      ],
+      type: { id: 'COURT_OF_APPEAL', label: "Cours d'appel" },
+    },
+    {
+      courts: [
+        { id: 'TJ  AGEN', label: "Tribunal judiciaire d'Agen", type: 'JUDICIAL_COURT' },
+        { id: 'TJ  AUCH', label: "Tribunal judiciaire d'Auch", type: 'JUDICIAL_COURT' },
+        { id: 'TPI NOUMEA', label: 'Tribunal de première instance de Nouméa', type: 'JUDICIAL_COURT' },
+      ],
+      type: { id: 'JUDICIAL_COURT', label: 'Tribunaux judiciaires' },
+    },
+  ],
   targetPositions: [
     { id: 'FIRST_PRESIDENT', label: 'Premier président' },
     { id: 'CHAMBER_PRESIDENT', label: 'Président de chambre' },
@@ -125,13 +166,19 @@ const FORM: FoundCallForApplicationsFormDto = {
       id: 'GENERAL',
       label: 'Général',
       scope: "Vise tous les postes des cours d'appel et des tribunaux judiciaires",
-      targetPositionsRequired: false,
+      targetPick: 'NONE',
+    },
+    {
+      id: 'SPECIFIC',
+      label: 'Spécifique',
+      scope: 'Vise la présidence des juridictions choisies',
+      targetPick: 'COURTS',
     },
     {
       id: 'CCASS',
       label: 'Cour de cassation',
       scope: 'Vise les postes de la Cour de cassation choisis',
-      targetPositionsRequired: true,
+      targetPick: 'POSITIONS',
     },
   ],
 };
@@ -226,7 +273,7 @@ const meta = {
         '*/api/calls-for-applications/v1',
         () =>
           saveFailure(args) ??
-          HttpResponse.json<CreatedCallForApplicationsDto>({ id: 'call-5' }, { status: 201 }),
+          HttpResponse.json<CreatedCallForApplicationsDto>({ id: 'call-6' }, { status: 201 }),
       ),
       http.put(
         '*/api/calls-for-applications/v1/:callId',

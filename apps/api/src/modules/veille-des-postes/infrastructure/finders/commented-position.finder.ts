@@ -3,9 +3,9 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '../../../../generated/prisma/client';
 import { Clock } from '../../../framework/clock';
 import { Db } from '../../../framework/database';
+import { isOpenCourtHeadedByCsm } from '../../../shared/court';
 import { isHeadOfCourt } from '../../domain/position-alert';
 import type { CommentedPosition } from '../../domain/position-comment';
-import { isRemovedCourt, isWatchedCourt } from '../../domain/watched-position';
 
 import { HeldPositionFinder } from './held-position.finder';
 
@@ -22,7 +22,7 @@ export class CommentedPositionFinder {
       select: { dateSuppression: true, typeJur: true } satisfies Prisma.JurisdictionSelect,
       where: { codejur: courtId },
     });
-    if (!court || isRemovedCourt(court.dateSuppression, this.clock.now()) || !isWatchedCourt(court.typeJur)) {
+    if (!court || !isOpenCourtHeadedByCsm(court, this.clock.now())) {
       throw new NotFoundException();
     }
 

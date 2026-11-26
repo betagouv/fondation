@@ -21,6 +21,8 @@ import {
   callForApplicationsStatusOf,
   callForApplicationsTypeOf,
   sortedByHierarchy,
+  sortedCourts,
+  targetCourtOf,
   targetLabelOf,
   targetPositionOf,
 } from '../../domain/call-for-applications';
@@ -33,6 +35,7 @@ import {
   callForApplicationsFieldSchema,
   callForApplicationsStatusSchema,
   callForApplicationsTypeSchema,
+  targetCourtSchema,
   targetPositionSchema,
 } from '../call-for-applications.dto';
 
@@ -63,6 +66,9 @@ export class ListCallsForApplicationsQuery {
         id: true,
         publishedOn: true,
         status: true,
+        targetCourts: {
+          select: { court: { select: { codejur: true, libelle: true, typeJur: true, ville_jur: true } } },
+        },
         targetPositions: { select: { position: true } },
         type: true,
       } satisfies Prisma.CallForApplicationsSelect,
@@ -73,6 +79,7 @@ export class ListCallsForApplicationsQuery {
         createdOn: DateOnly.fromUtcDate(row.createdOn),
         deadline: DateOnly.fromOptionalUtcDate(row.deadline),
         publishedOn: DateOnly.fromOptionalUtcDate(row.publishedOn),
+        targetCourts: sortedCourts(row.targetCourts.map(({ court }) => court)).map(targetCourtOf),
         targetPositions: sortedByHierarchy(row.targetPositions.map(({ position }) => position)),
       }))
       .filter((call) => periodOf(call, today) === query.period);
@@ -121,6 +128,7 @@ export class ListCallsForApplicationsQuery {
           id: call.id,
           publishedOn: call.publishedOn?.toJson() ?? null,
           status: callForApplicationsStatusOf(call.status),
+          targetCourts: call.targetCourts,
           targetLabel: targetLabelOf(call),
           targetPositions: call.targetPositions.map(targetPositionOf),
           type: callForApplicationsTypeOf(call.type),
@@ -159,6 +167,8 @@ export class ListedCallsForApplicationsDto extends createPaginatedZodDto(
     id: z.uuid(),
     publishedOn: dateOnlyJsonSchema.nullable(),
     status: callForApplicationsStatusSchema,
+    /** the courts picked to fill the form of an update */
+    targetCourts: z.array(targetCourtSchema),
     /** what the call targets as the list shows it */
     targetLabel: z.string(),
     /** the positions picked to fill the form of an update */
