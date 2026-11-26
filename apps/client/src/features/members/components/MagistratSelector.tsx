@@ -1,5 +1,7 @@
 import { FormattedMessage, useIntl } from 'react-intl';
 
+import { MagistratGradeAndPosition } from '@/features/magistrats/components/MagistratGradeAndPosition';
+
 import { ExclusionSelector } from './ExclusionSelector';
 import { MagistratAutocomplete, type ExcludedMagistrat } from './MagistratAutocomplete';
 
@@ -8,11 +10,14 @@ function ExcludedMagistratList(props: { excluded: readonly ExcludedMagistrat[] }
 
   return (
     <ul className="fr-p-0 fr-m-0 flex list-none flex-col items-end gap-1 text-right">
-      {props.excluded.map(({ gradeAndJurisdiction, id, name }) => (
-        <li className="fr-p-0" key={id}>
-          {name}
-          {gradeAndJurisdiction && (
-            <span className="text-(--text-mention-grey)"> · {gradeAndJurisdiction}</span>
+      {props.excluded.map((magistrat) => (
+        <li className="fr-p-0" key={magistrat.id}>
+          {magistrat.name}
+          {(magistrat.grade || magistrat.currentPosition) && (
+            <span className="text-(--text-mention-grey)">
+              {' · '}
+              <MagistratGradeAndPosition {...magistrat} />
+            </span>
           )}
         </li>
       ))}

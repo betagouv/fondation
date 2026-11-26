@@ -439,7 +439,7 @@ test.describe('Magistrat E2E', () => {
     });
 
     expect(nominationFiles.response?.status).toBe(200);
-    expect(nominationFiles.data!.items[0]).toMatchObject({
+    expect(nominationFiles.data!.items.find(({ id }) => id === valrose.otherNominationFile.id)).toMatchObject({
       auditionRequired: true,
       canScheduleAudition: true,
     });
@@ -457,7 +457,7 @@ test.describe('Magistrat E2E', () => {
     });
 
     expect(nominationFiles.response?.status).toBe(200);
-    expect(nominationFiles.data!.items[0]).toMatchObject({
+    expect(nominationFiles.data!.items.find(({ id }) => id === valrose.otherNominationFile.id)).toMatchObject({
       auditionRequired: true,
       canScheduleAudition: false,
     });

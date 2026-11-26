@@ -95,18 +95,6 @@ test.describe('Calls for applications E2E', () => {
     });
   });
 
-  test('should name for each type of court the adaptation of the guidelines a specific call may make', async ({
-    agent,
-    expect,
-  }) => {
-    const { data } = await agent.callsForApplications.findCallForApplicationsForm({ throwOnError: true });
-
-    expect(data.targetCourtTypes.map(({ guidelinesAdaptationLabel }) => guidelinesAdaptationLabel)).toEqual([
-      "Adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel pour les cours d'appel",
-      "Adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel pour les tribunaux judiciaires",
-    ]);
-  });
-
   test('should list a specific call with the courts it targets', async ({ agent, expect }) => {
     const { data: created } = await agent.callsForApplications.createCallForApplications({
       body: { publishedOn: '2093-06-01', targetCourts: ['TJ  GRASSE', 'CA  LYON'], type: 'SPECIFIC' },

@@ -22,6 +22,7 @@ export const useFoundJurisdictionsQuery = (
       $api.jurisdictions
         .search({
           query: { search: options.search, includeIds: options.includeIds?.join(',') },
+          throwOnError: true,
         })
-        .then(({ data = null }) => data),
+        .then(({ data }) => data),
   });

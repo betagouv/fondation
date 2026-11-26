@@ -244,6 +244,7 @@ const FORM: FoundCallForApplicationsFormDto = {
       guidelinesAdaptationLabel:
         "Adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel pour les cours d'appel",
       type: { id: 'COURT_OF_APPEAL', label: "Cours d'appel" },
+      typeInSentence: "cours d'appel",
     },
     {
       courts: [
@@ -258,6 +259,7 @@ const FORM: FoundCallForApplicationsFormDto = {
       guidelinesAdaptationLabel:
         "Adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel pour les tribunaux judiciaires",
       type: { id: 'JUDICIAL_COURT', label: 'Tribunaux judiciaires' },
+      typeInSentence: 'tribunaux judiciaires',
     },
   ],
   targetPositions: [

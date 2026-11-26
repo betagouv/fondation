@@ -13,15 +13,12 @@ class ExcludeJurisdictionModal {
   }
 
   get search(): Locator {
-    return this.page.getByRole('searchbox', { name: 'Rechercher' });
-  }
-
-  get listbox(): Locator {
-    return this.page.getByRole('listbox', { name: 'Rechercher' });
+    return this.page.getByRole('textbox', { name: 'Rechercher une juridiction' });
   }
 
   async select(name: string): Promise<void> {
-    return this.page.getByRole('option', { name }).click({ force: true });
+    // the DSFR label covers its checkbox
+    return this.page.getByRole('checkbox', { name }).check({ force: true });
   }
 
   get saveButton(): Locator {

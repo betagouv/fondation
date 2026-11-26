@@ -32,4 +32,19 @@ describe('Tooltip', () => {
 
     expect(fireEvent.keyDown(anchor, { key: 'Escape' })).toBe(true);
   });
+
+  it('wraps a block in a div that still opens its bubble', () => {
+    vi.mocked(HTMLElement.prototype.showPopover).mockClear();
+    render(
+      <Tooltip block label="Détail">
+        <div>Interrupteur</div>
+      </Tooltip>,
+    );
+    const anchor = screen.getByText('Interrupteur').parentElement!;
+
+    fireEvent.pointerEnter(anchor);
+
+    expect(anchor.tagName).toBe('DIV');
+    expect(HTMLElement.prototype.showPopover).toHaveBeenCalled();
+  });
 });

@@ -6,10 +6,12 @@ import {
   CallForApplicationsDeleted,
   CallForApplicationsUpdated,
   DeadlineBeforePublication,
+  guidelinesAdaptationLabelOf,
   MissingTargetCourt,
   MissingTargetPosition,
   PublishedCallLocked,
   sortedCourts,
+  targetCourtTypeInSentenceOf,
   targetCourtTypeOf,
   targetLabelOf,
   UntargetableCourt,
@@ -513,4 +515,25 @@ describe('sortedCourts', () => {
       ]).map(({ codejur }) => codejur),
     ).toEqual(['CA  AGEN', 'TSA SAINT PIERRE ET MIQUELON', 'TJ  AUCH', 'TPI NOUMEA']);
   });
+});
+
+describe('a type of court', () => {
+  it.each([
+    [
+      'COURT_OF_APPEAL',
+      "cours d'appel",
+      "Adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel pour les cours d'appel",
+    ],
+    [
+      'JUDICIAL_COURT',
+      'tribunaux judiciaires',
+      "Adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel pour les tribunaux judiciaires",
+    ],
+  ] as const)(
+    'names %s within a sentence and in the adaptation of the guidelines',
+    (type, inSentence, adaptation) => {
+      expect(targetCourtTypeInSentenceOf(type)).toBe(inSentence);
+      expect(guidelinesAdaptationLabelOf(type)).toBe(adaptation);
+    },
+  );
 });

@@ -1,5 +1,4 @@
 import { Button } from '@codegouvfr/react-dsfr/Button';
-import { Checkbox } from '@codegouvfr/react-dsfr/Checkbox';
 import clsx from 'clsx';
 import { useCallback, useMemo, useState, type ComponentProps } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
@@ -7,9 +6,9 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { useSummary } from '@/features/summary/context/SummaryContext';
 import { Marked } from '@/shared/ui/Marked';
 import { Modal } from '@/shared/ui/modal';
-import { SearchInput } from '@/shared/ui/search-input';
+import { matchesSearch, SearchableCheckboxList } from '@/shared/ui/searchable-checkbox-list';
 import { Tooltip } from '@/shared/ui/tooltip';
-import { capitalize, unaccent } from '@/utils/string.utils';
+import { capitalize } from '@/utils/string.utils';
 import { useSummaryReadersQuery, useUpdateSummaryReadersMutation } from '@queries/summary.queries';
 
 export function SummaryReaderSelector(
@@ -145,21 +144,13 @@ function SummaryReaderPicker(props: { onChange: (readers: string[]) => void; rea
   const [selectedIds, setSelectedIds] = useState(() => new Set(props.readers));
   const { data, isError, isLoading, refetch } = useSummaryReadersQuery({ nominationFileId, sessionId });
 
-  const matching = useMemo(() => {
-    const wanted = unaccent(search.trim()).toLowerCase();
-    return (data?.items ?? []).filter(({ firstName, lastName }) =>
-      unaccent(`${firstName} ${lastName}`).toLowerCase().includes(wanted),
-    );
-  }, [data, search]);
-
-  const toggle = (id: string) => {
-    const next = new Set(selectedIds);
-    if (next.has(id)) next.delete(id);
-    else next.add(id);
-
-    setSelectedIds(next);
-    props.onChange([...next]);
-  };
+  const matching = useMemo(
+    () =>
+      (data?.items ?? []).filter(({ firstName, lastName }) =>
+        matchesSearch(`${firstName} ${lastName}`, search),
+      ),
+    [data, search],
+  );
 
   if (isError) {
     return (
@@ -172,53 +163,35 @@ function SummaryReaderPicker(props: { onChange: (readers: string[]) => void; rea
     );
   }
 
-  if (isLoading) {
-    return (
-      <p className="text-(--text-mention-grey)">
-        <FormattedMessage defaultMessage="Chargement…" />
-      </p>
-    );
-  }
-
   return (
     <>
       <p className="fr-mb-6v">
         <FormattedMessage defaultMessage="Les personnes cochées peuvent lire la synthèse et ses pièces jointes" />
       </p>
-
-      <SearchInput
-        className="fr-mb-4v"
-        onChange={setSearch}
-        onClear={() => setSearch('')}
-        placeholder={intl.formatMessage({ defaultMessage: 'Rechercher une personne' })}
-        value={search}
-      />
-
-      <p aria-live="polite" className="fr-mb-2v text-sm text-(--text-mention-grey)">
-        <FormattedMessage
-          defaultMessage="{count, plural, =0 {Aucun lecteur sélectionné} one {# lecteur sélectionné} other {# lecteurs sélectionnés}}"
-          values={{ count: selectedIds.size }}
-        />
-      </p>
-
-      <div className="fr-px-4v fr-pt-4v max-h-[45dvh] overflow-y-auto border border-(--border-default-grey)">
-        {matching.length === 0 ? (
-          <p className="fr-mb-0 fr-pb-4v text-sm text-(--text-mention-grey)">
-            <FormattedMessage defaultMessage="Aucune personne ne correspond à cette recherche" />
-          </p>
-        ) : (
-          <Checkbox
-            classes={{ legend: 'fr-sr-only' }}
-            legend={<FormattedMessage defaultMessage="Lecteurs de la synthèse" />}
-            options={matching.map(({ displayedRole, firstName, id, lastName }) => ({
-              hintText: displayedRole.label,
-              label: <Marked search={search} value={`${capitalize(firstName)} ${lastName.toUpperCase()}`} />,
-              nativeInputProps: { checked: selectedIds.has(id), onChange: () => toggle(id), value: id },
-            }))}
-            small
+      <SearchableCheckboxList
+        checked={[...selectedIds]}
+        countLabel={
+          <FormattedMessage
+            defaultMessage="{count, plural, =0 {Aucun lecteur sélectionné} one {# lecteur sélectionné} other {# lecteurs sélectionnés}}"
+            values={{ count: selectedIds.size }}
           />
-        )}
-      </div>
+        }
+        emptyLabel={<FormattedMessage defaultMessage="Aucune personne ne correspond à cette recherche" />}
+        isLoading={isLoading}
+        legend={<FormattedMessage defaultMessage="Lecteurs de la synthèse" />}
+        onChange={(readers) => {
+          setSelectedIds(new Set(readers));
+          props.onChange(readers);
+        }}
+        onSearchChange={setSearch}
+        options={matching.map(({ displayedRole, firstName, id, lastName }) => ({
+          hint: displayedRole.label,
+          id,
+          label: <Marked search={search} value={`${capitalize(firstName)} ${lastName.toUpperCase()}`} />,
+        }))}
+        search={search}
+        searchLabel={intl.formatMessage({ defaultMessage: 'Rechercher une personne' })}
+      />
     </>
   );
 }

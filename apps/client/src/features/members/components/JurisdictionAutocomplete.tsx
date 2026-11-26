@@ -1,81 +1,63 @@
-import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
-import SearchBar from '@codegouvfr/react-dsfr/SearchBar';
-import { useCallback, useMemo, useState } from 'react';
+import { useState } from 'react';
+import { FormattedMessage, useIntl } from 'react-intl';
 import { useDebounce } from 'use-debounce';
 
+import { SearchableCheckboxList } from '@/shared/ui/searchable-checkbox-list';
 import { useFoundJurisdictionsQuery } from '@queries/jurisdictions.queries';
 
 export function JuridictionAutocomplete(props: {
   selected: readonly { id: string; label: string | null }[];
   onChange?: (selected: string[]) => unknown;
 }) {
+  const { formatMessage } = useIntl();
   const [selected, setSelected] = useState(props.selected.map(({ id }) => id));
-  const [debouncedSearch, setSearch] = useDebounce('', 400);
-
-  const [includeIds, setIncludeIds] = useState<string[] | undefined>([...selected]);
-  const { data: foundJurisdictions, isLoading } = useFoundJurisdictionsQuery({
+  const [search, setSearch] = useState('');
+  const [debouncedSearch] = useDebounce(search, 400);
+  // without a search the list shows the courts selected when the search was emptied: one unchecked stays in sight
+  const [includeIds, setIncludeIds] = useState<string[] | undefined>(selected);
+  const {
+    data: foundJurisdictions,
+    isError,
+    isLoading,
+  } = useFoundJurisdictionsQuery({
     includeIds,
     search: debouncedSearch,
   });
 
-  const selectedIds = useMemo(() => new Set(selected), [selected]);
-  const isSelected = useCallback((id: string) => selectedIds.has(id), [selectedIds]);
-
   return (
-    <div className="flex flex-col">
-      <SearchBar
-        renderInput={(props) => (
-          <input
-            {...props}
-            onChange={(e) => {
-              const value = e.target.value.trim();
-
-              setIncludeIds(value === '' ? [...selected] : undefined);
-              setSearch(e.target.value);
-            }}
-          />
-        )}
-      />
-      <p className="fr-mt-1v fr-mb-0 text-xs">
-        {selected.length > 1
-          ? `${selected.length} juridictions sélectionnées`
-          : `${selected.length} juridiction sélectionnée`}
-      </p>
-      <div
-        role="listbox"
-        className="fr-mt-6v fr-px-2v flex max-h-[calc(var(--modal-max-height)-20rem)] min-h-0 list-none flex-col items-start gap-y-2 overflow-y-scroll md:max-h-[calc(80vh-20rem)]"
-      >
-        {isLoading ? (
-          <p>Chargement ...</p>
+    <SearchableCheckboxList
+      checked={selected}
+      countLabel={
+        <FormattedMessage
+          defaultMessage="{count, plural, =0 {Aucune juridiction sélectionnée} one {# juridiction sélectionnée} other {# juridictions sélectionnées}}"
+          values={{ count: selected.length }}
+        />
+      }
+      emptyLabel={
+        isError ? (
+          <FormattedMessage defaultMessage="La recherche n'a pas pu aboutir. Modifiez la recherche ou réessayez plus tard" />
         ) : (
-          <Checkbox
-            options={(foundJurisdictions?.items ?? []).map((item) => ({
-              nativeInputProps: {
-                value: item.id,
-                checked: isSelected(item.id),
-                role: 'option',
-                onChange: (event) => {
-                  setSelected((ids) => {
-                    const newSelected = event.target.checked
-                      ? ids.concat(item.id)
-                      : ids.filter((i) => i !== item.id);
-                    props.onChange?.(newSelected);
-                    return newSelected;
-                  });
-                },
-              },
-              label: item.label ? (
-                <div>
-                  <div>{item.label}</div>
-                  <div className="text-xs">({item.id})</div>
-                </div>
-              ) : (
-                <div>{item.id}</div>
-              ),
-            }))}
-          />
-        )}
-      </div>
-    </div>
+          <FormattedMessage defaultMessage="Aucune juridiction ne correspond à la recherche" />
+        )
+      }
+      isLoading={isLoading}
+      legend={<FormattedMessage defaultMessage="Juridictions exclues" />}
+      onChange={(checked) => {
+        setSelected(checked);
+        props.onChange?.(checked);
+      }}
+      onSearchChange={(value) => {
+        setIncludeIds(value.trim() === '' ? [...selected] : undefined);
+        setSearch(value);
+      }}
+      // the results of the previous search stay in the query while the new one fails
+      options={(isError ? [] : (foundJurisdictions?.items ?? [])).map((item) => ({
+        hint: item.label ? item.id : undefined,
+        id: item.id,
+        label: item.label ?? item.id,
+      }))}
+      search={search}
+      searchLabel={formatMessage({ defaultMessage: 'Rechercher une juridiction' })}
+    />
   );
 }

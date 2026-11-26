@@ -1,10 +1,10 @@
-import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
-import SearchBar from '@codegouvfr/react-dsfr/SearchBar';
 import { useEffect, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useDebounce } from 'use-debounce';
 
+import { MagistratGradeAndPosition } from '@/features/magistrats/components/MagistratGradeAndPosition';
 import { MagistratStatusBadge } from '@/features/magistrats/components/MagistratStatusBadge';
+import { SearchableCheckboxList } from '@/shared/ui/searchable-checkbox-list';
 import { useToasts } from '@/shared/ui/toast';
 import type { DetailedMemberDto } from '@api/types';
 import { MAGISTRAT_SEARCH_MIN_LENGTH, useMagistratSearchQuery } from '@queries/magistrats.queries';
@@ -14,18 +14,11 @@ const SEARCH_FAILED_TOAST = 'excluded-magistrat-search-failed';
 export type ExcludedMagistrat = DetailedMemberDto['excludedMagistrats'][number];
 
 function MagistratOptionLabel(props: { magistrat: ExcludedMagistrat }) {
-  const { currentPosition, gradeAndJurisdiction, name, status } = props.magistrat;
-  const positionLabel = currentPosition?.function?.label ?? currentPosition?.jurisdiction.label;
-
   return (
-    <div>
-      <div className="flex items-center gap-2">
-        {name}
-        <MagistratStatusBadge status={status} />
-      </div>
-      {positionLabel && <div className="text-xs">{positionLabel}</div>}
-      {gradeAndJurisdiction && <div className="text-xs">{gradeAndJurisdiction}</div>}
-    </div>
+    <span className="flex items-center gap-2">
+      {props.magistrat.name}
+      <MagistratStatusBadge status={props.magistrat.status} />
+    </span>
   );
 }
 
@@ -59,60 +52,55 @@ export function MagistratAutocomplete(props: {
     else toasts.close(SEARCH_FAILED_TOAST);
   }, [error, formatMessage, toasts]);
 
+  const isLongEnough = search.trim().length >= MAGISTRAT_SEARCH_MIN_LENGTH;
   const found = (debouncedSearch.length >= MAGISTRAT_SEARCH_MIN_LENGTH ? (data?.pages ?? []) : []).flatMap(
     (page) => page.items,
   );
   const foundIds = new Set(found.map(({ id }) => id));
   const pickedIds = new Set(picked.map(({ id }) => id));
   // a magistrat checked in the results keeps its place, and moves up once the search leaves it out
-  const options = [...props.excluded, ...picked.filter(({ id }) => !foundIds.has(id)), ...found].map(
-    (magistrat) => ({
-      label: <MagistratOptionLabel magistrat={magistrat} />,
-      nativeInputProps: {
-        checked: props.selected.includes(magistrat.id),
-        onChange: (event: React.ChangeEvent<HTMLInputElement>) => {
-          if (!ignore.includes(magistrat.id) && !pickedIds.has(magistrat.id))
-            setPicked((current) => [...current, magistrat]);
-          props.onChange(
-            event.target.checked
-              ? [...props.selected, magistrat.id]
-              : props.selected.filter((id) => id !== magistrat.id),
-          );
-        },
-        value: magistrat.id,
-      },
-    }),
-  );
+  const magistrats = [...props.excluded, ...picked.filter(({ id }) => !foundIds.has(id)), ...found];
 
   return (
-    <div className="flex flex-col">
-      <SearchBar
-        label="Rechercher un magistrat par son nom ou son prénom"
-        renderInput={(inputProps) => (
-          <input {...inputProps} onChange={(event) => setSearch(event.target.value)} value={search} />
-        )}
-      />
-      <p className="fr-mt-1v fr-mb-0 text-xs">
+    <SearchableCheckboxList
+      checked={props.selected}
+      countLabel={
         <FormattedMessage
-          defaultMessage="{count, plural, one {# magistrat sélectionné} other {# magistrats sélectionnés}}"
+          defaultMessage="{count, plural, =0 {Aucun magistrat sélectionné} one {# magistrat sélectionné} other {# magistrats sélectionnés}}"
           values={{ count: props.selected.length }}
         />
-      </p>
-      <div
-        className="fr-mt-6v fr-px-2v max-h-[calc(var(--modal-max-height)-20rem)] min-h-0 overflow-y-auto md:max-h-[calc(80vh-20rem)]"
-        onScroll={(event) => {
-          const { clientHeight, scrollHeight, scrollTop } = event.currentTarget;
-          if (scrollHeight - scrollTop - clientHeight < 100 && hasNextPage && !isFetchingNextPage)
-            void fetchNextPage();
-        }}
-      >
-        {options.length > 0 && <Checkbox options={options} />}
-        {(isLoading || isFetchingNextPage) && (
-          <p>
-            <FormattedMessage defaultMessage="Chargement..." />
-          </p>
-        )}
-      </div>
-    </div>
+      }
+      emptyLabel={
+        // the toast already says the search failed
+        error ? null : !isLongEnough ? (
+          <FormattedMessage
+            defaultMessage="Saisissez au moins {count} caractères pour rechercher un magistrat"
+            values={{ count: MAGISTRAT_SEARCH_MIN_LENGTH }}
+          />
+        ) : (
+          <FormattedMessage defaultMessage="Aucun magistrat ne correspond à la recherche" />
+        )
+      }
+      isLoading={isLoading || isFetchingNextPage || (isLongEnough && search.trim() !== debouncedSearch)}
+      legend={<FormattedMessage defaultMessage="Magistrats exclus" />}
+      onChange={(checked) => {
+        const newlyPicked = magistrats.filter(
+          ({ id }) => checked.includes(id) && !ignore.includes(id) && !pickedIds.has(id),
+        );
+        if (newlyPicked.length > 0) setPicked((current) => [...current, ...newlyPicked]);
+        props.onChange(checked);
+      }}
+      onEndReached={() => {
+        if (hasNextPage && !isFetchingNextPage && !error) void fetchNextPage();
+      }}
+      onSearchChange={setSearch}
+      options={magistrats.map((magistrat) => ({
+        hint: (magistrat.grade || magistrat.currentPosition) && <MagistratGradeAndPosition {...magistrat} />,
+        id: magistrat.id,
+        label: <MagistratOptionLabel magistrat={magistrat} />,
+      }))}
+      search={search}
+      searchLabel={formatMessage({ defaultMessage: 'Rechercher un magistrat par son nom ou son prénom' })}
+    />
   );
 }
