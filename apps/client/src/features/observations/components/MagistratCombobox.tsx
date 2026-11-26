@@ -5,8 +5,8 @@ import { useEffect, useId, useState, type FocusEvent, type KeyboardEvent } from 
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useDebounce } from 'use-debounce';
 
+import { MagistratGradeAndPosition } from '@/features/magistrats/components/MagistratGradeAndPosition';
 import { currentPositionLabel } from '@/features/magistrats/utils/magistrat-position.utils';
-import { GradeAndPosition } from '@/shared/components/GradeAndPosition';
 import { RequiredLabel } from '@/shared/ui/required-label';
 import { MAGISTRAT_SEARCH_MIN_LENGTH, type FoundMagistrat } from '@queries/magistrats.queries';
 import { useSearchMagistratsQuery, type Observant } from '@queries/observations.queries';
@@ -146,10 +146,7 @@ export function MagistratCombobox(props: {
               >
                 <div className="font-medium">{result.name}</div>
                 <div className="text-xs text-(--text-mention-grey)">
-                  <GradeAndPosition
-                    grade={result.grade}
-                    position={currentPositionLabel(result.currentPosition)}
-                  />
+                  <MagistratGradeAndPosition {...result} />
                 </div>
               </div>
             ))}

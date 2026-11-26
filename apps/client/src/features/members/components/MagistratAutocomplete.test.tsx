@@ -76,5 +76,20 @@ describe('MagistratAutocomplete', () => {
         "La recherche n'a pas pu aboutir",
       ),
     ).toBeInTheDocument();
+    expect(screen.queryByText('Aucun magistrat ne correspond à la recherche')).not.toBeInTheDocument();
+  });
+
+  it('reads a search long enough as loading until it runs', async () => {
+    searchMagistrats.mockResolvedValue(found('dupont', 'DUPONT Louise'));
+    const user = userEvent.setup();
+    renderAutocomplete();
+
+    await user.type(
+      screen.getByRole('textbox', { name: 'Rechercher un magistrat par son nom ou son prénom' }),
+      'Du',
+    );
+
+    expect(screen.getByText('Chargement…')).toBeInTheDocument();
+    expect(screen.queryByText(/Saisissez au moins/)).not.toBeInTheDocument();
   });
 });

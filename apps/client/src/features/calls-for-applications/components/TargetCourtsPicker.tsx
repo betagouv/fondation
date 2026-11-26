@@ -66,16 +66,21 @@ export function TargetCourtsPicker(props: {
         <div id={listId}>
           <SearchableCheckboxList
             checked={checkedInGroup}
+            clearLabelSuffix={formatMessage({ defaultMessage: 'parmi les {group}' }, { group })}
             countLabel={
-              <FormattedMessage
-                defaultMessage="{count, plural, =0 {Aucune juridiction sélectionnée parmi les {group}} one {# juridiction sélectionnée parmi les {group}} other {# juridictions sélectionnées parmi les {group}}}"
-                values={{ count: checkedInGroup.length, group }}
-              />
+              <>
+                <FormattedMessage
+                  defaultMessage="{count, plural, =0 {Aucune juridiction sélectionnée} one {# juridiction sélectionnée} other {# juridictions sélectionnées}}"
+                  values={{ count: checkedInGroup.length }}
+                />{' '}
+                <span className="fr-sr-only">
+                  <FormattedMessage defaultMessage="parmi les {group}" values={{ group }} />
+                </span>
+              </>
             }
             emptyLabel={<FormattedMessage defaultMessage="Aucune juridiction ne correspond à la recherche" />}
             error={props.isEmpty ? error : undefined}
             legend={<span className="fr-sr-only">{type.label}</span>}
-            // the courts of the other type stay checked
             onChange={(checked) =>
               props.onChange([...props.checked.filter((id) => !isOfGroup(id)), ...checked])
             }
@@ -91,7 +96,10 @@ export function TargetCourtsPicker(props: {
       ) : chosen.length === 0 ? (
         <>
           <p className="fr-mb-0 text-sm text-(--text-mention-grey)">
-            <FormattedMessage defaultMessage="Aucune juridiction sélectionnée" />
+            <FormattedMessage defaultMessage="Aucune juridiction sélectionnée" />{' '}
+            <span className="fr-sr-only">
+              <FormattedMessage defaultMessage="parmi les {group}" values={{ group }} />
+            </span>
           </p>
           {props.isEmpty && <p className="fr-error-text fr-mt-0 fr-mb-0">{error}</p>}
         </>

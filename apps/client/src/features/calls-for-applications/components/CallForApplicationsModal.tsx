@@ -148,7 +148,6 @@ function TargetCourtsFields(props: {
               >
                 <ToggleSwitch
                   checked={adaptations.includes(group.type.id)}
-                  // the whole label is for a screen reader: both switches may show at once
                   label={
                     <>
                       <span aria-hidden>

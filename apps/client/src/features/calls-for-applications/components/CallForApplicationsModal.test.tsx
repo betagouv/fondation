@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { IntlProvider } from 'react-intl';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -359,8 +359,7 @@ describe('CallForApplicationsModal', () => {
     await user.click(screen.getByRole('checkbox', { name: 'Tribunaux judiciaires' }));
     await user.click(screen.getByRole('checkbox', { name: "Tribunal judiciaire d'Auch" }));
     await user.click(screen.getByRole('checkbox', { name: "Cour d'appel d'Agen" }));
-    const courtsOfAppeal = screen.getByRole('group', { name: "Cours d'appel" });
-    await user.click(within(courtsOfAppeal).getByRole('button', { name: 'Tout désélectionner' }));
+    await user.click(screen.getByRole('button', { name: "Tout désélectionner parmi les cours d'appel" }));
 
     expect(screen.getByRole('checkbox', { name: "Tribunal judiciaire d'Auch" })).toBeChecked();
     await user.click(screen.getByRole('checkbox', { name: "Cours d'appel" }));

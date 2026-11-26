@@ -58,7 +58,6 @@ export function targetCourtTypeInSentenceOf(type: TargetCourtType): string {
   return TARGET_COURT_TYPES_IN_SENTENCE[type];
 }
 
-/** what a specific call may adapt for each type of court it targets: the switch and the history read it */
 export function guidelinesAdaptationLabelOf(type: TargetCourtType): string {
   return `Adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel pour les ${targetCourtTypeInSentenceOf(type)}`;
 }

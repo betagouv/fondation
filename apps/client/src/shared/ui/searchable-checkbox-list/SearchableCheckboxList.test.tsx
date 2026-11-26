@@ -55,12 +55,21 @@ describe('SearchableCheckboxList', () => {
     expect(onChange).toHaveBeenCalledWith(['TJ  AUCH', 'TJ  CAHORS']);
   });
 
-  it('clears the whole choice from the bar under the list', async () => {
+  it('clears the whole choice and gives the focus back to the search', async () => {
     const { onChange } = renderList({ checked: ['TJ  AUCH', 'TJ  CAHORS'] });
 
     await userEvent.click(screen.getByRole('button', { name: 'Tout désélectionner' }));
 
     expect(onChange).toHaveBeenCalledWith([]);
+    expect(screen.getByRole('textbox', { name: 'Rechercher une juridiction' })).toHaveFocus();
+  });
+
+  it('names the list its clear button empties when two lists show at once', () => {
+    renderList({ checked: ['TJ  AUCH'], clearLabelSuffix: 'parmi les tribunaux judiciaires' });
+
+    expect(
+      screen.getByRole('button', { name: 'Tout désélectionner parmi les tribunaux judiciaires' }),
+    ).toBeInTheDocument();
   });
 
   it('offers nothing to clear while the choice is empty', () => {

@@ -77,7 +77,6 @@ export class FoundCallForApplicationsFormDto extends createZodDto(
         /** the switch that adapts the management guidelines for this type */
         guidelinesAdaptationLabel: z.string(),
         type: targetCourtTypeSchema,
-        /** the type within a sentence: "parmi les tribunaux judiciaires" */
         typeInSentence: z.string(),
       }),
     ),

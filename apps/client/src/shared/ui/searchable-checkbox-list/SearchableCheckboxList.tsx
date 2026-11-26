@@ -1,6 +1,6 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
-import { useId, type ReactNode } from 'react';
+import { useId, useRef, type ReactNode } from 'react';
 import { FormattedMessage } from 'react-intl';
 
 import { SearchInput } from '@/shared/ui/search-input';
@@ -29,6 +29,7 @@ function OptionRow(props: { checked: boolean; onToggle: () => void; option: Opti
 
 export function SearchableCheckboxList(props: {
   checked: readonly string[];
+  clearLabelSuffix?: string;
   countLabel: ReactNode;
   emptyLabel: ReactNode;
   error?: ReactNode;
@@ -42,6 +43,7 @@ export function SearchableCheckboxList(props: {
   searchLabel: string;
 }) {
   const errorId = useId();
+  const searchRef = useRef<HTMLDivElement>(null);
   const toggle = (id: string) =>
     props.onChange(
       props.checked.includes(id) ? props.checked.filter((other) => other !== id) : [...props.checked, id],
@@ -53,12 +55,14 @@ export function SearchableCheckboxList(props: {
       className="fr-m-0 fr-p-0 flex flex-col gap-2 border-0"
     >
       <legend className="fr-mb-2v fr-text--md mx-0 px-0 pb-0 font-bold">{props.legend}</legend>
-      <SearchInput
-        onChange={props.onSearchChange}
-        onClear={() => props.onSearchChange('')}
-        placeholder={props.searchLabel}
-        value={props.search}
-      />
+      <div ref={searchRef}>
+        <SearchInput
+          onChange={props.onSearchChange}
+          onClear={() => props.onSearchChange('')}
+          placeholder={props.searchLabel}
+          value={props.search}
+        />
+      </div>
       <div className="rounded border border-(--border-default-grey)">
         <ul
           className="fr-m-0 fr-p-0 max-h-64 list-none overflow-y-auto"
@@ -83,7 +87,8 @@ export function SearchableCheckboxList(props: {
               <FormattedMessage defaultMessage="Chargement…" />
             </span>
           ) : (
-            props.options.length === 0 && <span className="fr-py-4v block">{props.emptyLabel}</span>
+            props.options.length === 0 &&
+            props.emptyLabel && <span className="fr-py-4v block">{props.emptyLabel}</span>
           )}
         </p>
         <div className="fr-px-3v fr-py-1v flex items-center justify-between gap-2 border-t border-(--border-default-grey) bg-(--background-alt-grey)">
@@ -92,12 +97,22 @@ export function SearchableCheckboxList(props: {
           </p>
           <Button
             disabled={props.checked.length === 0}
-            onClick={() => props.onChange([])}
+            onClick={() => {
+              props.onChange([]);
+              // the button turns disabled: the focus would fall back on the page
+              searchRef.current?.querySelector('input')?.focus();
+            }}
             priority="tertiary no outline"
             size="small"
             type="button"
           >
             <FormattedMessage defaultMessage="Tout désélectionner" />
+            {props.clearLabelSuffix && (
+              <>
+                {' '}
+                <span className="fr-sr-only">{props.clearLabelSuffix}</span>
+              </>
+            )}
           </Button>
         </div>
       </div>

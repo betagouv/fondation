@@ -15,7 +15,11 @@ export function JuridictionAutocomplete(props: {
   const [debouncedSearch] = useDebounce(search, 400);
   // without a search the list shows the courts selected when the search was emptied: one unchecked stays in sight
   const [includeIds, setIncludeIds] = useState<string[] | undefined>(selected);
-  const { data: foundJurisdictions, isLoading } = useFoundJurisdictionsQuery({
+  const {
+    data: foundJurisdictions,
+    isError,
+    isLoading,
+  } = useFoundJurisdictionsQuery({
     includeIds,
     search: debouncedSearch,
   });
@@ -29,7 +33,13 @@ export function JuridictionAutocomplete(props: {
           values={{ count: selected.length }}
         />
       }
-      emptyLabel={<FormattedMessage defaultMessage="Aucune juridiction ne correspond à la recherche" />}
+      emptyLabel={
+        isError ? (
+          <FormattedMessage defaultMessage="La recherche n'a pas pu aboutir. Modifiez la recherche ou réessayez plus tard" />
+        ) : (
+          <FormattedMessage defaultMessage="Aucune juridiction ne correspond à la recherche" />
+        )
+      }
       isLoading={isLoading}
       legend={<FormattedMessage defaultMessage="Juridictions exclues" />}
       onChange={(checked) => {
@@ -40,7 +50,8 @@ export function JuridictionAutocomplete(props: {
         setIncludeIds(value.trim() === '' ? [...selected] : undefined);
         setSearch(value);
       }}
-      options={(foundJurisdictions?.items ?? []).map((item) => ({
+      // the results of the previous search stay in the query while the new one fails
+      options={(isError ? [] : (foundJurisdictions?.items ?? [])).map((item) => ({
         hint: item.label ? item.id : undefined,
         id: item.id,
         label: item.label ?? item.id,

@@ -1,7 +1,6 @@
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import { currentPositionLabel } from '@/features/magistrats/utils/magistrat-position.utils';
-import { GradeAndPosition } from '@/shared/components/GradeAndPosition';
+import { MagistratGradeAndPosition } from '@/features/magistrats/components/MagistratGradeAndPosition';
 
 import { ExclusionSelector } from './ExclusionSelector';
 import { MagistratAutocomplete, type ExcludedMagistrat } from './MagistratAutocomplete';
@@ -11,20 +10,17 @@ function ExcludedMagistratList(props: { excluded: readonly ExcludedMagistrat[] }
 
   return (
     <ul className="fr-p-0 fr-m-0 flex list-none flex-col items-end gap-1 text-right">
-      {props.excluded.map(({ currentPosition, grade, id, name }) => {
-        const position = currentPositionLabel(currentPosition);
-        return (
-          <li className="fr-p-0" key={id}>
-            {name}
-            {position && (
-              <span className="text-(--text-mention-grey)">
-                {' · '}
-                <GradeAndPosition grade={grade} position={position} />
-              </span>
-            )}
-          </li>
-        );
-      })}
+      {props.excluded.map((magistrat) => (
+        <li className="fr-p-0" key={magistrat.id}>
+          {magistrat.name}
+          {(magistrat.grade || magistrat.currentPosition) && (
+            <span className="text-(--text-mention-grey)">
+              {' · '}
+              <MagistratGradeAndPosition {...magistrat} />
+            </span>
+          )}
+        </li>
+      ))}
     </ul>
   );
 }

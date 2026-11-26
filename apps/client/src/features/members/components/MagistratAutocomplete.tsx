@@ -2,9 +2,8 @@ import { useEffect, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useDebounce } from 'use-debounce';
 
+import { MagistratGradeAndPosition } from '@/features/magistrats/components/MagistratGradeAndPosition';
 import { MagistratStatusBadge } from '@/features/magistrats/components/MagistratStatusBadge';
-import { currentPositionLabel } from '@/features/magistrats/utils/magistrat-position.utils';
-import { GradeAndPosition } from '@/shared/components/GradeAndPosition';
 import { SearchableCheckboxList } from '@/shared/ui/searchable-checkbox-list';
 import { useToasts } from '@/shared/ui/toast';
 import type { DetailedMemberDto } from '@api/types';
@@ -53,6 +52,7 @@ export function MagistratAutocomplete(props: {
     else toasts.close(SEARCH_FAILED_TOAST);
   }, [error, formatMessage, toasts]);
 
+  const isLongEnough = search.trim().length >= MAGISTRAT_SEARCH_MIN_LENGTH;
   const found = (debouncedSearch.length >= MAGISTRAT_SEARCH_MIN_LENGTH ? (data?.pages ?? []) : []).flatMap(
     (page) => page.items,
   );
@@ -71,7 +71,8 @@ export function MagistratAutocomplete(props: {
         />
       }
       emptyLabel={
-        debouncedSearch.length < MAGISTRAT_SEARCH_MIN_LENGTH ? (
+        // the toast already says the search failed
+        error ? null : !isLongEnough ? (
           <FormattedMessage
             defaultMessage="Saisissez au moins {count} caractères pour rechercher un magistrat"
             values={{ count: MAGISTRAT_SEARCH_MIN_LENGTH }}
@@ -80,7 +81,7 @@ export function MagistratAutocomplete(props: {
           <FormattedMessage defaultMessage="Aucun magistrat ne correspond à la recherche" />
         )
       }
-      isLoading={isLoading || isFetchingNextPage}
+      isLoading={isLoading || isFetchingNextPage || (isLongEnough && search.trim() !== debouncedSearch)}
       legend={<FormattedMessage defaultMessage="Magistrats exclus" />}
       onChange={(checked) => {
         const newlyPicked = magistrats.filter(
@@ -93,14 +94,11 @@ export function MagistratAutocomplete(props: {
         if (hasNextPage && !isFetchingNextPage && !error) void fetchNextPage();
       }}
       onSearchChange={setSearch}
-      options={magistrats.map((magistrat) => {
-        const position = currentPositionLabel(magistrat.currentPosition);
-        return {
-          hint: position ? <GradeAndPosition grade={magistrat.grade} position={position} /> : undefined,
-          id: magistrat.id,
-          label: <MagistratOptionLabel magistrat={magistrat} />,
-        };
-      })}
+      options={magistrats.map((magistrat) => ({
+        hint: (magistrat.grade || magistrat.currentPosition) && <MagistratGradeAndPosition {...magistrat} />,
+        id: magistrat.id,
+        label: <MagistratOptionLabel magistrat={magistrat} />,
+      }))}
       search={search}
       searchLabel={formatMessage({ defaultMessage: 'Rechercher un magistrat par son nom ou son prénom' })}
     />

@@ -54,7 +54,7 @@ test.describe('Gérer les membres', () => {
     await modal.search.fill(jurisdictionId);
     await app.page.waitForResponse('**/api/jurisdictions/v1?search=*');
 
-    await modal.select(`Cour d'appel de Marseille (${jurisdictionId})`);
+    await modal.select("Cour d'appel de Marseille");
     // Et que je sélectionne "Cour d'appel de Marseille"
     await modal.saveButton.click();
     // Et que je sauvegarde mon choix
