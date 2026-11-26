@@ -53,8 +53,8 @@ export class FindCallForApplicationsFormQuery {
       commentMaxLength: COMMENT_MAX_LENGTH,
       dateRange: TYPED_DATE_RANGE,
       targetCourtTypes: TARGET_COURT_TYPES.map((type) => ({
-        ...targetCourtTypeOptionOf(type),
         courts: targetable.filter((court) => court.type === type),
+        type: targetCourtTypeOptionOf(type),
       })),
       targetPositions: COURT_OF_CASSATION_POSITIONS.map(targetPositionOf),
       types: CALL_FOR_APPLICATIONS_TYPES.map(callForApplicationsTypeOptionOf),
@@ -67,7 +67,7 @@ export class FoundCallForApplicationsFormDto extends createZodDto(
     commentMaxLength: z.number().int(),
     dateRange: z.object({ max: z.iso.date(), min: z.iso.date() }),
     /** the courts a specific call may target grouped by type */
-    targetCourtTypes: z.array(targetCourtTypeSchema.extend({ courts: z.array(targetCourtSchema) })),
+    targetCourtTypes: z.array(z.object({ courts: z.array(targetCourtSchema), type: targetCourtTypeSchema })),
     targetPositions: z.array(targetPositionSchema),
     /** each type with the hint shown under the field and what the agent picks as its target */
     types: z.array(

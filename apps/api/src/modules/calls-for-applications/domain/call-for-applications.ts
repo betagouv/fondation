@@ -84,19 +84,27 @@ export function targetPositionOf(id: CourtOfCassationPosition) {
   return { id, label: COURT_OF_CASSATION_POSITION_TITLES[id].man };
 }
 
+const NAMED_TARGETS_MAX = 3;
+
+/** a few names then the count of the others: "A, B, C et 37 autres" */
+function shortList(labels: readonly string[]): string {
+  const named = labels.length > NAMED_TARGETS_MAX ? labels.slice(0, NAMED_TARGETS_MAX) : labels;
+  const others = labels.length - named.length;
+  return new Intl.ListFormat('fr').format(others > 0 ? [...named, `${others} autres`] : named);
+}
+
 export function targetLabelOf(call: {
   targetCourts: readonly { label: string }[];
   targetPositions: readonly CourtOfCassationPosition[];
   type: CallForApplicationsType;
 }) {
-  const list = new Intl.ListFormat('fr');
   switch (targetPickOf(call.type)) {
     case 'COURTS':
-      return list.format(call.targetCourts.map(({ label }) => label));
+      return shortList(call.targetCourts.map(({ label }) => label));
     case 'NONE':
       return "Cours d'appel et tribunaux judiciaires";
     case 'POSITIONS':
-      return list.format(
+      return shortList(
         call.targetPositions.map((position) => COURT_OF_CASSATION_POSITION_TITLES[position].man),
       );
   }

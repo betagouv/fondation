@@ -26,8 +26,7 @@ const FORM: FoundCallForApplicationsFormDto = {
           type: 'COURT_OF_APPEAL',
         },
       ],
-      id: 'COURT_OF_APPEAL',
-      label: "Cours d'appel",
+      type: { id: 'COURT_OF_APPEAL', label: "Cours d'appel" },
     },
     {
       courts: [
@@ -35,8 +34,7 @@ const FORM: FoundCallForApplicationsFormDto = {
         { id: 'TJ  AUCH', label: "Tribunal judiciaire d'Auch", type: 'JUDICIAL_COURT' },
         { id: 'TPI NOUMEA', label: 'Tribunal de première instance de Nouméa', type: 'JUDICIAL_COURT' },
       ],
-      id: 'JUDICIAL_COURT',
-      label: 'Tribunaux judiciaires',
+      type: { id: 'JUDICIAL_COURT', label: 'Tribunaux judiciaires' },
     },
   ],
   targetPositions: [
@@ -264,7 +262,10 @@ describe('CallForApplicationsModal', () => {
     const save = screen.getByRole('button', { name: "Créer l'appel à candidatures" });
     await user.click(screen.getByRole('checkbox', { name: 'Tribunaux judiciaires' }));
     expect(save).toBeDisabled();
-    await user.type(screen.getByRole('textbox', { name: 'Rechercher une juridiction' }), 'auch');
+    await user.type(
+      screen.getByRole('textbox', { name: 'Rechercher une juridiction parmi les tribunaux judiciaires' }),
+      'auch',
+    );
     expect(screen.queryByRole('checkbox', { name: "Tribunal judiciaire d'Agen" })).not.toBeInTheDocument();
     await user.click(screen.getByRole('checkbox', { name: "Tribunal judiciaire d'Auch" }));
     await user.click(save);
@@ -274,6 +275,24 @@ describe('CallForApplicationsModal', () => {
         body: expect.objectContaining({ targetCourts: ['TJ  AUCH'], type: 'SPECIFIC' }),
       }),
     );
+  });
+
+  it('waits for a court in each type checked before creating a specific call', async () => {
+    renderModal();
+    const user = userEvent.setup();
+
+    await user.selectOptions(await screen.findByRole('combobox', { name: /Type d'appel/ }), 'SPECIFIC');
+    await user.click(screen.getByRole('checkbox', { name: "Cours d'appel" }));
+    await user.click(screen.getByRole('checkbox', { name: 'Tribunaux judiciaires' }));
+    await user.click(screen.getByRole('checkbox', { name: "Tribunal judiciaire d'Auch" }));
+    const save = screen.getByRole('button', { name: "Créer l'appel à candidatures" });
+
+    expect(save).toBeDisabled();
+    expect(
+      screen.getByText("Choisissez au moins une juridiction parmi les cours d'appel"),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole('checkbox', { name: "Cour d'appel d'Agen" }));
+    expect(save).toBeEnabled();
   });
 
   it('opens a specific call on its courts and drops those of a type unchecked', async () => {

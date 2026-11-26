@@ -320,6 +320,16 @@ describe('targetLabelOf', () => {
       }),
     ).toBe("Cour d'appel d'Agen et Tribunal judiciaire d'Auch");
   });
+
+  it('names the first three courts and counts the others', () => {
+    expect(
+      targetLabelOf({
+        targetCourts: ['A', 'B', 'C', 'D', 'E'].map((label) => ({ label })),
+        targetPositions: [],
+        type: 'SPECIFIC',
+      }),
+    ).toBe('A, B, C et 2 autres');
+  });
 });
 
 describe('targetCourtTypeOf', () => {

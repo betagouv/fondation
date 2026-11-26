@@ -142,8 +142,7 @@ const FORM: FoundCallForApplicationsFormDto = {
           type: 'COURT_OF_APPEAL',
         },
       ],
-      id: 'COURT_OF_APPEAL',
-      label: "Cours d'appel",
+      type: { id: 'COURT_OF_APPEAL', label: "Cours d'appel" },
     },
     {
       courts: [
@@ -151,8 +150,7 @@ const FORM: FoundCallForApplicationsFormDto = {
         { id: 'TJ  AUCH', label: "Tribunal judiciaire d'Auch", type: 'JUDICIAL_COURT' },
         { id: 'TPI NOUMEA', label: 'Tribunal de première instance de Nouméa', type: 'JUDICIAL_COURT' },
       ],
-      id: 'JUDICIAL_COURT',
-      label: 'Tribunaux judiciaires',
+      type: { id: 'JUDICIAL_COURT', label: 'Tribunaux judiciaires' },
     },
   ],
   targetPositions: [
@@ -288,7 +286,7 @@ const meta = {
   },
   component: CallsForApplicationsPageStory,
   parameters: { layout: 'fullscreen' },
-  title: 'Session/CSM/CallsForApplications/CallsForApplicationsTable',
+  title: 'Session/CSM/CallsForApplications/CallsForApplicationsPage',
 } satisfies Meta<typeof CallsForApplicationsPageStory>;
 
 export default meta;

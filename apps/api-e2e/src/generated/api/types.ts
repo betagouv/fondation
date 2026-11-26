@@ -3358,13 +3358,15 @@ export type FoundCallForApplicationsFormDto = {
         min: string;
     };
     targetCourtTypes: Array<{
-        id: 'COURT_OF_APPEAL' | 'JUDICIAL_COURT';
-        label: string;
         courts: Array<{
             id: string;
             label: string;
             type: 'COURT_OF_APPEAL' | 'JUDICIAL_COURT';
         }>;
+        type: {
+            id: 'COURT_OF_APPEAL' | 'JUDICIAL_COURT';
+            label: string;
+        };
     }>;
     targetPositions: Array<{
         id: 'FIRST_PRESIDENT' | 'CHAMBER_PRESIDENT' | 'COUNSELLOR' | 'REFERENDARY_COUNSELLOR' | 'AUDITOR_SECOND_GRADE' | 'AUDITOR_FIRST_GRADE';

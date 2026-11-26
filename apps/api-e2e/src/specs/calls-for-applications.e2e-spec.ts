@@ -82,9 +82,11 @@ test.describe('Calls for applications E2E', () => {
   }) => {
     const { data } = await agent.callsForApplications.findCallForApplicationsForm({ throwOnError: true });
 
-    const courtsOf = (type: string) => data.targetCourtTypes.find(({ id }) => id === type)?.courts;
+    const courtsOf = (typeId: string) => data.targetCourtTypes.find(({ type }) => type.id === typeId)?.courts;
     expect(courtsOf('COURT_OF_APPEAL')).toContainEqual({ ...jurisdictions['CA  LYON'], type: 'COURT_OF_APPEAL' });
-    expect(courtsOf('COURT_OF_APPEAL')).not.toContainEqual(expect.objectContaining({ id: 'CC  PARIS' }));
+    expect(data.targetCourtTypes.flatMap(({ courts }) => courts)).not.toContainEqual(
+      expect.objectContaining({ id: 'CC  PARIS' }),
+    );
     expect(courtsOf('JUDICIAL_COURT')).toContainEqual({
       id: jurisdictions['TJ  GRASSE'].id,
       label: jurisdictions['TJ  GRASSE'].label,

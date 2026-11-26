@@ -21,15 +21,44 @@ import {
 
 import { TargetCourtsPicker } from './TargetCourtsPicker';
 
-type CourtType = FoundCallForApplicationsFormDto['targetCourtTypes'][number];
+type CourtGroup = FoundCallForApplicationsFormDto['targetCourtTypes'][number];
+type SavedCourts = CallForApplications['targetCourts'];
 /** the types of courts checked stay in the draft only: the API reads them from the courts */
-type Draft = Partial<CreateCallForApplicationsDto> & { targetCourtTypes?: CourtType['id'][] };
+type Draft = Partial<CreateCallForApplicationsDto> & { targetCourtTypes?: CourtGroup['type']['id'][] };
 type DateField = 'deadline' | 'publishedOn';
 
-/** null while the type is missing or nothing is picked as the target its type requires */
+/** a court removed from the referential since the call targeted it is no longer offered but stays shown */
+function courtGroupsOf(form: FoundCallForApplicationsFormDto, savedCourts: SavedCourts): CourtGroup[] {
+  return form.targetCourtTypes.map((group) => ({
+    ...group,
+    courts: [
+      ...group.courts,
+      ...savedCourts.filter(
+        (saved) => saved.type === group.type.id && !group.courts.some(({ id }) => id === saved.id),
+      ),
+    ],
+  }));
+}
+
+/** the types of an edited call are those of its courts */
+function checkedTypesOf(draft: Draft, groups: readonly CourtGroup[]): CourtGroup['type']['id'][] {
+  return (
+    draft.targetCourtTypes ??
+    groups
+      .filter(({ courts }) => courts.some(({ id }) => draft.targetCourts?.includes(id)))
+      .map(({ type }) => type.id)
+  );
+}
+
+function isEmptyGroup(draft: Draft, group: CourtGroup): boolean {
+  return !group.courts.some(({ id }) => draft.targetCourts?.includes(id));
+}
+
+/** null while the type is missing or nothing is picked as the target its type requires (a court in each type checked) */
 function completeOf(
   draft: Draft,
   form: FoundCallForApplicationsFormDto | undefined,
+  savedCourts: SavedCourts,
 ): CreateCallForApplicationsDto | null {
   const { type } = draft;
   if (!type || !form) return null;
@@ -43,6 +72,11 @@ function completeOf(
   const targetCourts = pick === 'COURTS' ? (draft.targetCourts ?? []).toSorted() : [];
   if (pick === 'POSITIONS' && targetPositions.length === 0) return null;
   if (pick === 'COURTS' && targetCourts.length === 0) return null;
+  if (pick === 'COURTS') {
+    const groups = courtGroupsOf(form, savedCourts);
+    const checked = checkedTypesOf(draft, groups);
+    if (groups.some((group) => checked.includes(group.type.id) && isEmptyGroup(draft, group))) return null;
+  }
 
   return {
     comment: draft.comment?.trim() || null,
@@ -58,30 +92,16 @@ function TargetCourtsFields(props: {
   draft: Draft;
   form: FoundCallForApplicationsFormDto;
   onChange: (changes: Draft) => void;
-  savedCourts: CallForApplications['targetCourts'];
+  savedCourts: SavedCourts;
 }) {
-  const { draft, form, onChange } = props;
-  // a court removed from the referential since the call targeted it is no longer offered but stays shown
-  const courtTypes = form.targetCourtTypes.map((courtType) => ({
-    ...courtType,
-    courts: [
-      ...courtType.courts,
-      ...props.savedCourts.filter(
-        (saved) => saved.type === courtType.id && !courtType.courts.some(({ id }) => id === saved.id),
-      ),
-    ],
-  }));
+  const { draft, onChange } = props;
+  const groups = courtGroupsOf(props.form, props.savedCourts);
   const checkedCourts = draft.targetCourts ?? [];
-  // the types of an edited call are those of its courts
-  const checkedTypes =
-    draft.targetCourtTypes ??
-    courtTypes
-      .filter(({ courts }) => courts.some(({ id }) => checkedCourts.includes(id)))
-      .map(({ id }) => id);
-  const uncheck = (courtType: CourtType) =>
+  const checkedTypes = checkedTypesOf(draft, groups);
+  const uncheck = (group: CourtGroup) =>
     onChange({
-      targetCourts: checkedCourts.filter((id) => !courtType.courts.some((court) => court.id === id)),
-      targetCourtTypes: checkedTypes.filter((id) => id !== courtType.id),
+      targetCourts: checkedCourts.filter((id) => !group.courts.some((court) => court.id === id)),
+      targetCourtTypes: checkedTypes.filter((id) => id !== group.type.id),
     });
 
   return (
@@ -93,26 +113,27 @@ function TargetCourtsFields(props: {
             <FormattedMessage defaultMessage="Types de juridictions cibles" />
           </RequiredLabel>
         }
-        options={courtTypes.map((courtType) => ({
-          label: courtType.label,
+        options={groups.map((group) => ({
+          label: group.type.label,
           nativeInputProps: {
-            checked: checkedTypes.includes(courtType.id),
+            checked: checkedTypes.includes(group.type.id),
             onChange: (event) =>
               event.target.checked
-                ? onChange({ targetCourtTypes: [...checkedTypes, courtType.id] })
-                : uncheck(courtType),
-            value: courtType.id,
+                ? onChange({ targetCourtTypes: [...checkedTypes, group.type.id] })
+                : uncheck(group),
+            value: group.type.id,
           },
         }))}
         orientation="horizontal"
       />
-      {courtTypes
-        .filter(({ id }) => checkedTypes.includes(id))
-        .map((courtType) => (
+      {groups
+        .filter(({ type }) => checkedTypes.includes(type.id))
+        .map((group) => (
           <TargetCourtsPicker
             checked={checkedCourts}
-            courtType={courtType}
-            key={courtType.id}
+            courtGroup={group}
+            isEmpty={isEmptyGroup(draft, group)}
+            key={group.type.id}
             onChange={(targetCourts) => onChange({ targetCourts, targetCourtTypes: checkedTypes })}
           />
         ))}
@@ -255,10 +276,12 @@ export function CallForApplicationsModal(props: {
   const [draft, setDraft] = useState<Draft | null>(null);
   const initial: Draft = props.edited ? draftOf(props.edited) : {};
   const shown = draft ?? initial;
-  const complete = completeOf(shown, form.data);
+  const savedCourts = props.edited?.targetCourts ?? [];
+  const complete = completeOf(shown, form.data, savedCourts);
   // nothing to save while the form still holds the values saved
   const isUnchanged =
-    !!props.edited && JSON.stringify(complete) === JSON.stringify(completeOf(initial, form.data));
+    !!props.edited &&
+    JSON.stringify(complete) === JSON.stringify(completeOf(initial, form.data, savedCourts));
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
@@ -330,7 +353,7 @@ export function CallForApplicationsModal(props: {
             draft={shown}
             form={form.data}
             onChange={(changes) => setDraft({ ...shown, ...changes })}
-            savedCourts={props.edited?.targetCourts ?? []}
+            savedCourts={savedCourts}
           />
         </form>
       ) : form.isError ? (
