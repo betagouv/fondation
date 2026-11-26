@@ -50,6 +50,23 @@ const WIDE_EVENT = 'wideEvent';
 const UNLOGGED_PATHS = ['/_health'];
 const UUID = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i;
 
+type PendingCall = { service: OutboundService; startedAt: number };
+
+// Out of the attributes, which are written as they are
+const pendingCalls = new WeakMap<WideEventAttributes, Set<PendingCall>>();
+
+function addCallDuration(event: WideEventAttributes, call: PendingCall): void {
+  const name = `fondation.${call.service}.call.duration` as const;
+  event[name] = (event[name] ?? 0) + (performance.now() - call.startedAt) / time.SECONDS;
+}
+
+// A request cut while it waits for Gotenberg, the slowest ones, is written before the call ends: it keeps the time waited
+function settlePendingCalls(event: WideEventAttributes): void {
+  const calls = pendingCalls.get(event);
+  for (const call of calls ?? []) addCallDuration(event, call);
+  calls?.clear();
+}
+
 function requestId(req: ExpressRequest): string {
   // The Scalingo router sets a UUID, to match its own log lines, but keeps the one a client sends: nothing else is kept
   const header = req.get('x-request-id');
@@ -90,6 +107,7 @@ function openEvent(cls: ClsService, req: ExpressRequest, res: ExpressResponse): 
       event['fondation.impersonator.id'] = req.user.impersonation?.impersonatorId;
     }
 
+    settlePendingCalls(event);
     writeRequestEvent(event);
   });
 }
@@ -148,6 +166,7 @@ export class WideEvent {
         // The ingestion tells its failure by its exit code, without throwing
         event['process.exit.code'] = Number(process.exitCode ?? 0);
         const level = event['process.exit.code'] === 0 ? 'info' : 'error';
+        settlePendingCalls(event);
         writeEvent(level, event['job.name'] ?? '(no command)', event);
       }
     });
@@ -176,16 +195,20 @@ export class WideEvent {
     if (!event) return call();
 
     const prefix = `fondation.${service}.call` as const;
-    const startedAt = performance.now();
+    // Counted at its start, so an event written while the call is waited for has it too (see settlePendingCalls)
+    event[`${prefix}.count`] = (event[`${prefix}.count`] ?? 0) + 1;
+    const pending: PendingCall = { service, startedAt: performance.now() };
+    const calls = pendingCalls.get(event) ?? new Set();
+    pendingCalls.set(event, calls.add(pending));
+
     try {
       return await call();
     } catch (error) {
-      event[`${prefix}.failure.count`] = (event[`${prefix}.failure.count`] ?? 0) + 1;
+      if (calls.has(pending)) event[`${prefix}.failure.count`] = (event[`${prefix}.failure.count`] ?? 0) + 1;
       throw error;
     } finally {
-      event[`${prefix}.count`] = (event[`${prefix}.count`] ?? 0) + 1;
-      event[`${prefix}.duration`] =
-        (event[`${prefix}.duration`] ?? 0) + (performance.now() - startedAt) / time.SECONDS;
+      // Unless the event was written while the call was waited for
+      if (calls.delete(pending)) addCallDuration(event, pending);
     }
   }
 

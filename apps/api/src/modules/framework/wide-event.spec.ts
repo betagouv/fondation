@@ -111,10 +111,11 @@ class TestController {
     return body;
   }
 
+  // As a PDF the client stops waiting for while Gotenberg renders it
   @Get('slow')
   slow(): Promise<string> {
     slowRequest.received.resolve();
-    return slowRequest.answer.promise;
+    return this.wideEvent.timeCall('gotenberg', () => slowRequest.answer.promise);
   }
 
   @Get('_health')
@@ -389,7 +390,7 @@ describe('WideEvent', () => {
     expect(JSON.stringify(event)).not.toContain('jean.dupont');
   });
 
-  it('should describe a request the client cuts before its answer, without the status it never got', async () => {
+  it('should describe a request the client cuts before its answer, without the status it never got, with the call it waited for', async () => {
     const controller = new AbortController();
     const [event] = await linesOf(async () => {
       const response = fetch(`${url}/slow`, { signal: controller.signal }).catch(() => undefined);
@@ -399,11 +400,14 @@ describe('WideEvent', () => {
     });
 
     expect(event).toMatchObject({
+      'fondation.gotenberg.call.count': 1,
+      'fondation.gotenberg.call.duration': expect.any(Number),
       'fondation.request.interrupted': true,
       'http.route': '/slow',
       level: 'warn',
     });
     expect(event).not.toHaveProperty('http.response.status_code');
+    expect(event).not.toHaveProperty('fondation.gotenberg.call.failure.count');
   });
 
   it('should not describe the health checks of Scalingo', async () => {

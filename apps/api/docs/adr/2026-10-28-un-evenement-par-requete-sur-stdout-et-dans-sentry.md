@@ -112,7 +112,9 @@ ligne s'écrit avec, en `request.id`, le `request_id` de la ligne du routeur.
   arguments, `job.duration`, `process.exit.code`, et `fondation.ingestion_job.id` pour l'ingestion.
 - **Les appels sortants sont comptés par service** (FON-869) : pour Gotenberg et le stockage S3,
   `fondation.<gotenberg|storage>.call.count`, `.call.duration` (somme, en secondes) et
-  `.call.failure.count`, par `WideEvent.timeCall`, sans URL ni nom de fichier. Le stockage est
+  `.call.failure.count`, par `WideEvent.timeCall`, sans URL ni nom de fichier. Un appel compte dès son
+  départ : une requête coupée pendant qu'elle l'attend, souvent la plus lente, garde le temps attendu
+  jusqu'à la coupure, sans échec puisque l'issue de l'appel n'est pas encore connue. Le stockage est
   chronométré par un middleware de chaque client S3, à l'étape qui envoie la requête : chaque
   tentative compte, une URL signée, construite sans appel, ne compte pas. La lecture d'un fichier par
   son URL signée l'est jusqu'aux en-têtes de la réponse, le corps passant ensuite au navigateur ; elle
