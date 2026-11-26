@@ -7,6 +7,7 @@ import {
   type CallForApplicationsField,
   type CallForApplicationsFieldChange,
   callForApplicationsTypeOf,
+  guidelinesAdaptationLabelOf,
 } from './call-for-applications';
 
 const LIST_FORMAT = new Intl.ListFormat('fr');
@@ -27,11 +28,11 @@ function always(label: string): Record<CallForApplicationsFieldChange, string> {
 const FIELD_LABELS: Record<CallForApplicationsField, Record<CallForApplicationsFieldChange, string>> = {
   COMMENT: { ADDED: 'un commentaire', CHANGED: 'le commentaire', REMOVED: 'le commentaire' },
   COURT_OF_APPEAL_GUIDELINES_ADAPTATION: always(
-    "l'adaptation aux lignes directrices de gestion pour les cours d'appel",
+    `l'${lowerFirst(guidelinesAdaptationLabelOf('COURT_OF_APPEAL'))}`,
   ),
   DEADLINE: always('la date limite'),
   JUDICIAL_COURT_GUIDELINES_ADAPTATION: always(
-    "l'adaptation aux lignes directrices de gestion pour les tribunaux judiciaires",
+    `l'${lowerFirst(guidelinesAdaptationLabelOf('JUDICIAL_COURT'))}`,
   ),
   PUBLISHED_ON: always('la date de publication'),
   TARGET_COURTS: always('les juridictions cibles'),

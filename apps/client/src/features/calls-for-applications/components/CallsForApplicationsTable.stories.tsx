@@ -116,7 +116,10 @@ const CALLS: Record<'ONGOING' | 'PAST', ListedCall[]> = {
       guidelinesAdaptations: [{ id: 'JUDICIAL_COURT', label: 'Tribunaux judiciaires' }],
       history: [
         updated('2026-11-26T09:00:00.000Z', ME, [
-          changed(ADDED, "l'adaptation aux lignes directrices de gestion pour les tribunaux judiciaires"),
+          changed(
+            ADDED,
+            "l'adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel pour les tribunaux judiciaires",
+          ),
         ]),
         updated('2026-11-25T09:00:00.000Z', ME, [
           changed(CHANGED, 'la date limite du 15/01/2027 au 22/01/2027'),
@@ -238,6 +241,8 @@ const FORM: FoundCallForApplicationsFormDto = {
   targetCourtTypes: [
     {
       courts: [COURTS['CA  AGEN'], COURTS['CA  LYON']],
+      guidelinesAdaptationLabel:
+        "Adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel pour les cours d'appel",
       type: { id: 'COURT_OF_APPEAL', label: "Cours d'appel" },
     },
     {
@@ -250,6 +255,8 @@ const FORM: FoundCallForApplicationsFormDto = {
         COURTS['TPI NOUMEA'],
         COURTS['TJ  PARIS'],
       ],
+      guidelinesAdaptationLabel:
+        "Adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel pour les tribunaux judiciaires",
       type: { id: 'JUDICIAL_COURT', label: 'Tribunaux judiciaires' },
     },
   ],

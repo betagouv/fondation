@@ -98,7 +98,6 @@ function TargetCourtsFields(props: {
   onChange: (changes: Draft) => void;
   savedCourts: SavedCourts;
 }) {
-  const { formatMessage } = useIntl();
   const { draft, onChange } = props;
   const groups = courtGroupsOf(props.form, props.savedCourts);
   const checkedCourts = draft.targetCourts ?? [];
@@ -145,14 +144,7 @@ function TargetCourtsFields(props: {
             />
             <ToggleSwitch
               checked={adaptations.includes(group.type.id)}
-              // both switches may show at once: each names its type for a screen reader to tell them apart
-              label={formatMessage(
-                {
-                  defaultMessage:
-                    "Adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel pour les {group}",
-                },
-                { group: group.type.label.toLowerCase() },
-              )}
+              label={group.guidelinesAdaptationLabel}
               labelPosition="right"
               onChange={(isOn) =>
                 onChange({

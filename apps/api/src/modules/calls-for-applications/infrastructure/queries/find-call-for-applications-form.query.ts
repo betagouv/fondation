@@ -12,6 +12,7 @@ import { COURT_OF_CASSATION_POSITIONS } from '../../../shared/court-of-cassation
 import {
   CALL_FOR_APPLICATIONS_TYPES,
   callForApplicationsTypeOptionOf,
+  guidelinesAdaptationLabelOf,
   sortedCourts,
   TARGET_COURT_TYPES,
   TARGET_PICKS,
@@ -54,6 +55,7 @@ export class FindCallForApplicationsFormQuery {
       dateRange: TYPED_DATE_RANGE,
       targetCourtTypes: TARGET_COURT_TYPES.map((type) => ({
         courts: targetable.filter((court) => court.type === type),
+        guidelinesAdaptationLabel: guidelinesAdaptationLabelOf(type),
         type: targetCourtTypeOptionOf(type),
       })),
       targetPositions: COURT_OF_CASSATION_POSITIONS.map(targetPositionOf),
@@ -67,7 +69,14 @@ export class FoundCallForApplicationsFormDto extends createZodDto(
     commentMaxLength: z.number().int(),
     dateRange: z.object({ max: z.iso.date(), min: z.iso.date() }),
     /** the courts a specific call may target grouped by type */
-    targetCourtTypes: z.array(z.object({ courts: z.array(targetCourtSchema), type: targetCourtTypeSchema })),
+    targetCourtTypes: z.array(
+      z.object({
+        courts: z.array(targetCourtSchema),
+        /** the switch that adapts the management guidelines for this type */
+        guidelinesAdaptationLabel: z.string(),
+        type: targetCourtTypeSchema,
+      }),
+    ),
     targetPositions: z.array(targetPositionSchema),
     /** each type with the hint shown under the field and what the agent picks as its target */
     types: z.array(

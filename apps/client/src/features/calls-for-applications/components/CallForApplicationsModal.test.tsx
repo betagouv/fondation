@@ -26,6 +26,8 @@ const FORM: FoundCallForApplicationsFormDto = {
           type: 'COURT_OF_APPEAL',
         },
       ],
+      guidelinesAdaptationLabel:
+        "Adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel pour les cours d'appel",
       type: { id: 'COURT_OF_APPEAL', label: "Cours d'appel" },
     },
     {
@@ -34,6 +36,8 @@ const FORM: FoundCallForApplicationsFormDto = {
         { id: 'TJ  AUCH', label: "Tribunal judiciaire d'Auch", type: 'JUDICIAL_COURT' },
         { id: 'TPI NOUMEA', label: 'Tribunal de première instance de Nouméa', type: 'JUDICIAL_COURT' },
       ],
+      guidelinesAdaptationLabel:
+        "Adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel pour les tribunaux judiciaires",
       type: { id: 'JUDICIAL_COURT', label: 'Tribunaux judiciaires' },
     },
   ],

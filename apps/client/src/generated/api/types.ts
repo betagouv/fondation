@@ -3367,6 +3367,7 @@ export type FoundCallForApplicationsFormDto = {
             label: string;
             type: 'COURT_OF_APPEAL' | 'JUDICIAL_COURT';
         }>;
+        guidelinesAdaptationLabel: string;
         type: {
             id: 'COURT_OF_APPEAL' | 'JUDICIAL_COURT';
             label: string;

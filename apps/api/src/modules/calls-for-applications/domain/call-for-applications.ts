@@ -49,6 +49,18 @@ const TARGET_COURT_TYPE_LABELS: Record<TargetCourtType, string> = {
   JUDICIAL_COURT: 'Tribunaux judiciaires',
 };
 
+/** what a specific call may adapt for each type of court it targets: the switch and the history read it */
+const GUIDELINES_ADAPTATION_LABELS: Record<TargetCourtType, string> = {
+  COURT_OF_APPEAL:
+    "Adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel pour les cours d'appel",
+  JUDICIAL_COURT:
+    "Adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel pour les tribunaux judiciaires",
+};
+
+export function guidelinesAdaptationLabelOf(type: TargetCourtType): string {
+  return GUIDELINES_ADAPTATION_LABELS[type];
+}
+
 export function targetCourtTypeOptionOf(id: TargetCourtType) {
   return { id, label: TARGET_COURT_TYPE_LABELS[id] };
 }

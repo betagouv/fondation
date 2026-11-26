@@ -41,7 +41,7 @@ describe('callForApplicationsHistoryChangesOf', () => {
     [{ change: 'ADDED', field: 'COMMENT' }, 'ajouté un commentaire'],
     [
       { change: 'ADDED', field: 'COURT_OF_APPEAL_GUIDELINES_ADAPTATION' },
-      "ajouté l'adaptation aux lignes directrices de gestion pour les cours d'appel",
+      "ajouté l'adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel pour les cours d'appel",
     ],
   ] as const)('reads %j as %s', (field, sentence) => {
     expect(sentenceOf(field)).toBe(sentence);
