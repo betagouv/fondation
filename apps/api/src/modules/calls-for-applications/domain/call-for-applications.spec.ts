@@ -330,6 +330,16 @@ describe('targetLabelOf', () => {
       }),
     ).toBe('A, B, C et 2 autres');
   });
+
+  it('names a fourth court rather than counting a single other', () => {
+    expect(
+      targetLabelOf({
+        targetCourts: ['A', 'B', 'C', 'D'].map((label) => ({ label })),
+        targetPositions: [],
+        type: 'SPECIFIC',
+      }),
+    ).toBe('A, B, C et D');
+  });
 });
 
 describe('targetCourtTypeOf', () => {

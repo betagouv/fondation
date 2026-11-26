@@ -88,7 +88,8 @@ const NAMED_TARGETS_MAX = 3;
 
 /** a few names then the count of the others: "A, B, C et 37 autres" */
 function shortList(labels: readonly string[]): string {
-  const named = labels.length > NAMED_TARGETS_MAX ? labels.slice(0, NAMED_TARGETS_MAX) : labels;
+  // a single other is named rather than counted: "et 1 autres" would read wrong
+  const named = labels.length > NAMED_TARGETS_MAX + 1 ? labels.slice(0, NAMED_TARGETS_MAX) : labels;
   const others = labels.length - named.length;
   return new Intl.ListFormat('fr').format(others > 0 ? [...named, `${others} autres`] : named);
 }
