@@ -457,9 +457,9 @@ describe('WideEvent', () => {
       expect(event).toMatchObject({
         'error.type': 'PrismaClientKnownRequestError',
         level: 'error',
-        // As cli.ts ends the process
         'process.exit.code': 1,
       });
+      expect(process.exitCode).toBe(1);
       expect(JSON.stringify(event)).not.toContain('jean.dupont');
     });
 

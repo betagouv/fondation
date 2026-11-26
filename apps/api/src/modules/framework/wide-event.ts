@@ -133,11 +133,12 @@ export class WideEvent {
       } catch (error) {
         // No message: those of Prisma or pg can quote personal data
         event['error.type'] = errorType(error);
+        process.exitCode = 1;
         throw error;
       } finally {
         event['job.duration'] = (performance.now() - startedAt) / time.SECONDS;
-        // cli.ts ends with 1 a command that throws. The ingestion tells its failure by its exit code, without throwing
-        event['process.exit.code'] = event['error.type'] ? 1 : Number(process.exitCode ?? 0);
+        // The ingestion tells its failure by its exit code, without throwing
+        event['process.exit.code'] = Number(process.exitCode ?? 0);
         const level = event['process.exit.code'] === 0 ? 'info' : 'error';
         writeEvent(level, event['job.name'] ?? '(no command)', event);
       }
