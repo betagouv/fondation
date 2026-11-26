@@ -218,7 +218,7 @@ test.describe('Agenda', () => {
     const [writtenBlock, generatedBlock] = before.data!.blocks;
     await agent.docs.editAgendaFileBlock({
       body: { html: '<p>Une phrase écrite à la main</p>', outdated: false },
-      path: { agendaId, fileId: writtenBlock!.id },
+      path: { agendaId, nominationFileId: writtenBlock!.id },
       throwOnError: true,
     });
 
@@ -259,7 +259,7 @@ test.describe('Agenda', () => {
 
     await agent.docs.editAgendaFileBlock({
       body: { html: '<p>Une phrase écrite à la main</p>', outdated: false },
-      path: { agendaId, fileId: writtenBlock!.id },
+      path: { agendaId, nominationFileId: writtenBlock!.id },
       throwOnError: true,
     });
 
@@ -290,7 +290,7 @@ test.describe('Agenda', () => {
 
     await agent.docs.editAgendaFileBlock({
       body: { html: '<p>Une phrase écrite à la main</p>', outdated: false },
-      path: { agendaId, fileId: writtenBlock!.id },
+      path: { agendaId, nominationFileId: writtenBlock!.id },
       throwOnError: true,
     });
 
@@ -339,7 +339,7 @@ test.describe('Agenda', () => {
     const { data } = await agent.docs.detailsAgendaDocumentBlocks({ path: { agendaId } });
     await agent.docs.editAgendaFileBlock({
       body: { html: '<p>Une phrase écrite à la main</p>', outdated: false },
-      path: { agendaId, fileId: data!.blocks[0]!.id },
+      path: { agendaId, nominationFileId: data!.blocks[0]!.id },
       throwOnError: true,
     });
 
@@ -357,7 +357,7 @@ test.describe('Agenda', () => {
     const { data } = await agent.docs.detailsAgendaDocumentBlocks({ path: { agendaId } });
     await agent.docs.editAgendaFileBlock({
       body: { html: '<p>Une phrase écrite à la main</p>', outdated: false },
-      path: { agendaId, fileId: data!.blocks[0]!.id },
+      path: { agendaId, nominationFileId: data!.blocks[0]!.id },
       throwOnError: true,
     });
     await admin.administration.updateName({
@@ -390,7 +390,7 @@ test.describe('Agenda', () => {
     // brand new, and it has to land there all the same
     const edited = await agent.docs.editAgendaFileBlock({
       body: { html: '<p>Une phrase écrite à la main</p>', outdated: false },
-      path: { agendaId, fileId: block.id },
+      path: { agendaId, nominationFileId: block.id },
     });
     expect(edited.response?.status).toBe(204);
 
@@ -418,7 +418,7 @@ test.describe('Agenda', () => {
     // both versions would have the drop delete the object just written, and the file would 404
     const reEdited = await agent.docs.editAgendaFileBlock({
       body: { html: '<p>Une seconde écriture</p>', outdated: false },
-      path: { agendaId, fileId: afterDiscard.data!.blocks[0]!.id },
+      path: { agendaId, nominationFileId: afterDiscard.data!.blocks[0]!.id },
     });
     expect(reEdited.response?.status).toBe(204);
 
@@ -432,7 +432,7 @@ test.describe('Agenda', () => {
     const [writtenBlock, otherBlock] = validatedBlocks.data!.blocks;
     await agent.docs.editAgendaFileBlock({
       body: { html: '<p>Une autre proposition</p>', outdated: false },
-      path: { agendaId, fileId: otherBlock!.id },
+      path: { agendaId, nominationFileId: otherBlock!.id },
     });
 
     const forked = await agent.docs.detailsAgendaDocumentBlocks({ path: { agendaId } });

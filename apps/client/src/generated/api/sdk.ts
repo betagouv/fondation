@@ -904,12 +904,12 @@ export class docs {
     }
     
     public static resetAgendaFileBlock<ThrowOnError extends boolean = false>(options: Options<ResetAgendaFileBlockData, ThrowOnError>): RequestResult<ResetAgendaFileBlockResponses, unknown, ThrowOnError> {
-        return (options.client ?? client).delete<ResetAgendaFileBlockResponses, unknown, ThrowOnError>({ url: '/api/docs/v1/agendas/{agendaId}/blocks/files/{fileId}', ...options });
+        return (options.client ?? client).delete<ResetAgendaFileBlockResponses, unknown, ThrowOnError>({ url: '/api/docs/v1/agendas/{agendaId}/blocks/files/{nominationFileId}', ...options });
     }
     
     public static editAgendaFileBlock<ThrowOnError extends boolean = false>(options: Options<EditAgendaFileBlockData, ThrowOnError>): RequestResult<EditAgendaFileBlockResponses, unknown, ThrowOnError> {
         return (options.client ?? client).patch<EditAgendaFileBlockResponses, unknown, ThrowOnError>({
-            url: '/api/docs/v1/agendas/{agendaId}/blocks/files/{fileId}',
+            url: '/api/docs/v1/agendas/{agendaId}/blocks/files/{nominationFileId}',
             ...options,
             headers: {
                 'Content-Type': 'application/json',

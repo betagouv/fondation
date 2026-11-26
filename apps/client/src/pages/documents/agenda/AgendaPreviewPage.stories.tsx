@@ -75,11 +75,11 @@ const meta = {
       http.get('*/api/docs/v1/agendas/:agendaId', () => HttpResponse.json(storyMetadata)),
       http.get('*/api/docs/v1/agendas/:agendaId/blocks', () => HttpResponse.json(storyBlocks)),
       http.patch(
-        '*/api/docs/v1/agendas/:agendaId/blocks/files/:fileId',
+        '*/api/docs/v1/agendas/:agendaId/blocks/files/:nominationFileId',
         () => new HttpResponse(null, { status: 204 }),
       ),
       http.delete(
-        '*/api/docs/v1/agendas/:agendaId/blocks/files/:fileId',
+        '*/api/docs/v1/agendas/:agendaId/blocks/files/:nominationFileId',
         () => new HttpResponse(null, { status: 204 }),
       ),
       http.put('*/api/docs/v1/agendas/:agendaId/files', () => new HttpResponse(null, { status: 204 })),

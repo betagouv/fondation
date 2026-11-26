@@ -1,5 +1,7 @@
-import { Catch, Logger, type ArgumentsHost, type ExceptionFilter } from '@nestjs/common';
+import { Catch, Logger, Optional, type ArgumentsHost, type ExceptionFilter } from '@nestjs/common';
 import type { Request as ExpressRequest, Response as ExpressResponse } from 'express';
+
+import { RequestEvent } from '../request-event';
 
 import { FileMissingFromStorage } from './missing-from-storage';
 
@@ -21,9 +23,13 @@ const MISSING_ATTACHMENT_PAGE = `<!doctype html>
 export class MissingFromStorageFilter implements ExceptionFilter {
   private readonly logger = new Logger(MissingFromStorageFilter.name);
 
-  catch(_exception: FileMissingFromStorage, host: ArgumentsHost): void {
+  constructor(@Optional() private readonly requestEvent?: RequestEvent) {}
+
+  catch(exception: FileMissingFromStorage, host: ArgumentsHost): void {
     const http = host.switchToHttp();
-    this.logger.warn(`${http.getRequest<ExpressRequest>().path} - 404`);
+    const request = http.getRequest<ExpressRequest>();
+    this.logger.warn(`${request.path} - 404`);
+    this.requestEvent?.failWith(exception, request);
 
     http.getResponse<ExpressResponse>().status(404).type('html').send(MISSING_ATTACHMENT_PAGE);
   }

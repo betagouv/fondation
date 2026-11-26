@@ -142,27 +142,27 @@ export class AgendasController {
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
-  @Patch('/agendas/:agendaId/blocks/files/:fileId')
+  @Patch('/agendas/:agendaId/blocks/files/:nominationFileId')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UsePipes(ZodValidationPipe)
-  @ApiParam({ name: 'fileId', type: 'string', format: 'int64' })
+  @ApiParam({ name: 'nominationFileId', type: 'string', format: 'int64' })
   editAgendaFileBlock(
     @AuthedUser() authUser: { id: string },
     @Param('agendaId') agendaId: string,
-    @Param('fileId', ParseBigIntPipe) fileId: bigint,
+    @Param('nominationFileId', ParseBigIntPipe) fileId: bigint,
     @Body() { html, outdated }: EditAgendaFileBlockDto,
   ): Promise<void> {
     return this.agendas.editAgendaFileBlock({ agendaId, authorId: authUser.id, fileId, html, outdated });
   }
 
   @HasRole('ADJOINT_SECRETAIRE_GENERAL')
-  @Delete('/agendas/:agendaId/blocks/files/:fileId')
+  @Delete('/agendas/:agendaId/blocks/files/:nominationFileId')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiParam({ name: 'fileId', type: 'string', format: 'int64' })
+  @ApiParam({ name: 'nominationFileId', type: 'string', format: 'int64' })
   resetAgendaFileBlock(
     @AuthedUser() authUser: { id: string },
     @Param('agendaId') agendaId: string,
-    @Param('fileId', ParseBigIntPipe) fileId: bigint,
+    @Param('nominationFileId', ParseBigIntPipe) fileId: bigint,
   ): Promise<void> {
     return this.agendas.resetAgendaFileBlock({ agendaId, authorId: authUser.id, fileId });
   }

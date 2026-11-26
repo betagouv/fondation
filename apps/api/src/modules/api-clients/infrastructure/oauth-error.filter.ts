@@ -2,11 +2,13 @@ import {
   BadRequestException,
   Catch,
   HttpStatus,
+  Optional,
   type ArgumentsHost,
   type ExceptionFilter,
 } from '@nestjs/common';
 import type { Request as ExpressRequest, Response as ExpressResponse } from 'express';
 
+import { RequestEvent } from '../../framework/request-event';
 import { ApiClientForbidden, ApiClientUnauthenticated } from '../domain/api-client';
 import { ApiClientRateLimited } from '../domain/rate-window';
 
@@ -22,10 +24,14 @@ type TokenRouteError =
  */
 @Catch(ApiClientForbidden, ApiClientRateLimited, ApiClientUnauthenticated, BadRequestException)
 export class OAuthErrorFilter implements ExceptionFilter {
+  constructor(@Optional() private readonly requestEvent?: RequestEvent) {}
+
   catch(exception: TokenRouteError, host: ArgumentsHost): void {
     const http = host.switchToHttp();
+    const request = http.getRequest<ExpressRequest>();
     const response = http.getResponse<ExpressResponse>();
-    const [status, error] = OAuthErrorFilter.answer(exception, http.getRequest<ExpressRequest>());
+    const [status, error] = OAuthErrorFilter.answer(exception, request);
+    this.requestEvent?.failWith(exception, request);
 
     if (exception instanceof ApiClientRateLimited) response.setHeader('Retry-After', exception.retryAfter);
     response.status(status).json({ error });
