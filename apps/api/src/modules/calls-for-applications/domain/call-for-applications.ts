@@ -49,16 +49,19 @@ const TARGET_COURT_TYPE_LABELS: Record<TargetCourtType, string> = {
   JUDICIAL_COURT: 'Tribunaux judiciaires',
 };
 
-/** what a specific call may adapt for each type of court it targets: the switch and the history read it */
-const GUIDELINES_ADAPTATION_LABELS: Record<TargetCourtType, string> = {
-  COURT_OF_APPEAL:
-    "Adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel pour les cours d'appel",
-  JUDICIAL_COURT:
-    "Adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel pour les tribunaux judiciaires",
+/** the type within a sentence: "parmi les tribunaux judiciaires" */
+const TARGET_COURT_TYPES_IN_SENTENCE: Record<TargetCourtType, string> = {
+  COURT_OF_APPEAL: "cours d'appel",
+  JUDICIAL_COURT: 'tribunaux judiciaires',
 };
 
+export function targetCourtTypeInSentenceOf(type: TargetCourtType): string {
+  return TARGET_COURT_TYPES_IN_SENTENCE[type];
+}
+
+/** what a specific call may adapt for each type of court it targets: the switch and the history read it */
 export function guidelinesAdaptationLabelOf(type: TargetCourtType): string {
-  return GUIDELINES_ADAPTATION_LABELS[type];
+  return `Adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel pour les ${targetCourtTypeInSentenceOf(type)}`;
 }
 
 export function targetCourtTypeOptionOf(id: TargetCourtType) {

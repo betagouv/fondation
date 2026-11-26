@@ -17,6 +17,7 @@ import {
   TARGET_COURT_TYPES,
   TARGET_PICKS,
   targetCourtOf,
+  targetCourtTypeInSentenceOf,
   targetCourtTypeOptionOf,
   targetPositionOf,
 } from '../../domain/call-for-applications';
@@ -57,6 +58,7 @@ export class FindCallForApplicationsFormQuery {
         courts: targetable.filter((court) => court.type === type),
         guidelinesAdaptationLabel: guidelinesAdaptationLabelOf(type),
         type: targetCourtTypeOptionOf(type),
+        typeInSentence: targetCourtTypeInSentenceOf(type),
       })),
       targetPositions: COURT_OF_CASSATION_POSITIONS.map(targetPositionOf),
       types: CALL_FOR_APPLICATIONS_TYPES.map(callForApplicationsTypeOptionOf),
@@ -75,6 +77,8 @@ export class FoundCallForApplicationsFormDto extends createZodDto(
         /** the switch that adapts the management guidelines for this type */
         guidelinesAdaptationLabel: z.string(),
         type: targetCourtTypeSchema,
+        /** the type within a sentence: "parmi les tribunaux judiciaires" */
+        typeInSentence: z.string(),
       }),
     ),
     targetPositions: z.array(targetPositionSchema),

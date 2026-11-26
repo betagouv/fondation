@@ -107,6 +107,15 @@ test.describe('Calls for applications E2E', () => {
     ]);
   });
 
+  test('should name each type of court within a sentence', async ({ agent, expect }) => {
+    const { data } = await agent.callsForApplications.findCallForApplicationsForm({ throwOnError: true });
+
+    expect(data.targetCourtTypes.map(({ typeInSentence }) => typeInSentence)).toEqual([
+      "cours d'appel",
+      'tribunaux judiciaires',
+    ]);
+  });
+
   test('should list a specific call with the courts it targets', async ({ agent, expect }) => {
     const { data: created } = await agent.callsForApplications.createCallForApplications({
       body: { publishedOn: '2093-06-01', targetCourts: ['TJ  GRASSE', 'CA  LYON'], type: 'SPECIFIC' },
