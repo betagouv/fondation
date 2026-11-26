@@ -73,7 +73,7 @@ describe('ApiClientsService', () => {
         service.authorize({ ip: partnerIp, scope: 'magistrats:identification', token: 'unknown' }),
       ).rejects.toThrow(ApiClientUnauthenticated);
 
-      expect(requestEvent.set).not.toHaveBeenCalled();
+      expect(wideEvent.set).not.toHaveBeenCalled();
     });
 
     it('should name nothing for an unknown client_id', async () => {
@@ -83,7 +83,7 @@ describe('ApiClientsService', () => {
         service.authenticate({ clientId: 'unknown', clientSecret: secret, ip: partnerIp }),
       ).rejects.toThrow(ApiClientUnauthenticated);
 
-      expect(requestEvent.set).not.toHaveBeenCalled();
+      expect(wideEvent.set).not.toHaveBeenCalled();
     });
   });
 
