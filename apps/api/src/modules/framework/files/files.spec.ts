@@ -102,10 +102,10 @@ describe('Files', () => {
   describe('getFileContent', () => {
     const storedFile = { id: 'file-id', name: 'courrier.pdf', path: ['observations', 'courrier.pdf'] };
 
-    function storageAnswers(status: number) {
+    function storageAnswers(status: number, data: unknown = null) {
       const error = new AxiosError('storage error', undefined, undefined, undefined, {
         config: { headers: new AxiosHeaders() },
-        data: null,
+        data,
         headers: {},
         status,
         statusText: '',
@@ -130,6 +130,14 @@ describe('Files', () => {
         level: 'warning',
       });
       expect(storageFailures).toBe(0);
+    });
+
+    it('lets go the body of a refused read, which would hold its socket', async () => {
+      const body = Readable.from(['<Error><Code>NoSuchKey</Code></Error>']);
+      storageAnswers(404, body);
+
+      await expect(files.getFileContent('public-url-id')).rejects.toThrow(FileMissingFromStorage);
+      expect(body.destroyed).toBe(true);
     });
 
     it('keeps a storage refusal as a server error', async () => {

@@ -39,6 +39,7 @@ import * as time from '../../../utils/time';
 import { Clock } from '../clock';
 import { API_CONFIG_TOKEN, type ApiConfig } from '../config';
 import { afterCommit, Db } from '../database';
+import { discardResponseBody } from '../http';
 import { WideEvent } from '../wide-event';
 
 import { contentDisposition } from './content-disposition';
@@ -511,6 +512,7 @@ export class Files implements OnApplicationBootstrap {
         isStorageFailure,
       )
       .catch((error: unknown) => {
+        discardResponseBody(error);
         if (isMissingFromStorage(error)) {
           this.reportMissingFromStorage(file.file);
           throw new FileMissingFromStorage();

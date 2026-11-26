@@ -1,3 +1,5 @@
+import { Readable } from 'node:stream';
+
 import { HttpService } from '@nestjs/axios';
 import { AXIOS_INSTANCE_TOKEN } from '@nestjs/axios/dist/http.constants';
 import { DynamicModule, Inject, Injectable, Logger, Module } from '@nestjs/common';
@@ -43,6 +45,12 @@ function retryAfter(error: unknown): number {
   return Number.isNaN(delay) ? 0 : Math.max(0, delay);
 }
 
+// The streamed body of a refused answer holds its socket until it is read: one nobody reads is let go
+export function discardResponseBody(error: unknown): void {
+  const data: unknown = axios.isAxiosError(error) ? error.response?.data : undefined;
+  if (data instanceof Readable) data.destroy();
+}
+
 // Retries inside the adapter, so the request and its interceptors stay the same across attempts
 export function retryFailedRequests(instance: AxiosInstance): void {
   const adapter = axios.getAdapter(instance.defaults.adapter);
@@ -54,6 +62,7 @@ export function retryFailedRequests(instance: AxiosInstance): void {
         const delay = retryAfter(error);
         // A server asking for a longer pause gets its answer passed on rather than a request held that long
         if (attempt === RETRIES || !isRetryable(error, config) || delay > MAX_RETRY_DELAY) throw error;
+        discardResponseBody(error);
         // The global timer, unlike node:timers/promises, is the one the tests can fake
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
