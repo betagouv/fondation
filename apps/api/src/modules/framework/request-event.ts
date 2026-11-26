@@ -87,8 +87,12 @@ function writeEvent(event: RequestEventAttributes): void {
   process.stdout.write(
     `${JSON.stringify({ level, message, timestamp: new Date().toISOString(), ...event })}\n`,
   );
-  // Buffered and sent in the background: an unreachable Sentry neither slows nor fails the request
-  Sentry.logger[level](message, event);
+  // Buffered and sent in the background: an unreachable Sentry neither slows nor fails the request.
+  // Without the unset attributes, which Sentry would turn into "" where stdout drops them
+  Sentry.logger[level](
+    message,
+    Object.fromEntries(Object.entries(event).filter(([, value]) => value !== undefined)),
+  );
 }
 
 @Injectable()

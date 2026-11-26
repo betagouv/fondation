@@ -218,6 +218,16 @@ describe('RequestEvent', () => {
     expect(errors.map((error) => error.contexts?.trace?.trace_id)).toEqual([event['trace.id']]);
   });
 
+  it('should not send to Sentry Logs an attribute the event leaves unset', async () => {
+    await Sentry.flush();
+    logs.length = 0;
+    await eventOf('/unknown');
+    await Sentry.flush();
+
+    expect(logs[0]?.attributes).toMatchObject({ 'http.response.status_code': { value: 404 } });
+    expect(logs[0]?.attributes).not.toHaveProperty('http.route');
+  });
+
   it('should replace a request id other than the UUID of the Scalingo router', async () => {
     const event = await eventOf('/forbidden', { headers: { 'x-request-id': 'jean.dupont@example.fr' } });
 
