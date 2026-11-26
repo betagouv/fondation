@@ -7,7 +7,7 @@ export function MagistratStatusBadge(props: { className?: string; status: Detail
   if (props.status === 'ACTIVE') return null;
 
   return (
-    <Badge className={props.className} noIcon small>
+    <Badge as="span" className={props.className} noIcon small>
       <FormattedMessage defaultMessage="Inactif" />
     </Badge>
   );
