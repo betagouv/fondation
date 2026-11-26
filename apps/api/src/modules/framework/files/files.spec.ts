@@ -13,6 +13,7 @@ import { FileDelegate, FilePublicUrlDelegate } from '../../../generated/prisma/m
 import { Clock } from '../clock';
 import { ApiConfig } from '../config';
 import { Db } from '../database';
+import { WideEvent } from '../wide-event';
 
 import { Files } from './files';
 import { FileMissingFromStorage } from './missing-from-storage';
@@ -27,6 +28,7 @@ describe('Files', () => {
   let http: MockProxy<HttpService>;
   let send: ReturnType<typeof vi.fn>;
   let files: Files;
+  let storageFailures: number;
 
   const linkedCopy = { id: 'copy-id', path: ['observations', 'courrier.pdf'] };
 
@@ -43,10 +45,26 @@ describe('Files', () => {
     }) as never);
 
     http = mock<HttpService>();
-    files = new Files(new Clock(), db, http, {
-      originUrl: 'http://localhost:3000',
-      s3: { bucket: 'fondation', region: 'fr-par', signedUrlDurationSeconds: 60 },
-    } as ApiConfig);
+    const wideEvent = mock<WideEvent>();
+    storageFailures = 0;
+    wideEvent.timeCall.mockImplementation(async (_, call, isFailure) => {
+      try {
+        return await call();
+      } catch (error) {
+        if (isFailure?.(error) ?? true) storageFailures++;
+        throw error;
+      }
+    });
+    files = new Files(
+      new Clock(),
+      db,
+      http,
+      {
+        originUrl: 'http://localhost:3000',
+        s3: { bucket: 'fondation', region: 'fr-par', signedUrlDurationSeconds: 60 },
+      } as ApiConfig,
+      wideEvent,
+    );
 
     send = vi.fn().mockResolvedValue({ Deleted: [], Errors: [] });
     (files as any).client = { send };
@@ -84,10 +102,10 @@ describe('Files', () => {
   describe('getFileContent', () => {
     const storedFile = { id: 'file-id', name: 'courrier.pdf', path: ['observations', 'courrier.pdf'] };
 
-    function storageAnswers(status: number) {
+    function storageAnswers(status: number, data: unknown = null) {
       const error = new AxiosError('storage error', undefined, undefined, undefined, {
         config: { headers: new AxiosHeaders() },
-        data: null,
+        data,
         headers: {},
         status,
         statusText: '',
@@ -111,6 +129,15 @@ describe('Files', () => {
         extra: { fileId: 'file-id', path: 'observations/courrier.pdf' },
         level: 'warning',
       });
+      expect(storageFailures).toBe(0);
+    });
+
+    it('lets go the body of a refused read, which would hold its socket', async () => {
+      const body = Readable.from(['<Error><Code>NoSuchKey</Code></Error>']);
+      storageAnswers(404, body);
+
+      await expect(files.getFileContent('public-url-id')).rejects.toThrow(FileMissingFromStorage);
+      expect(body.destroyed).toBe(true);
     });
 
     it('keeps a storage refusal as a server error', async () => {
@@ -118,6 +145,7 @@ describe('Files', () => {
 
       await expect(files.getFileContent('public-url-id')).rejects.toBeInstanceOf(AxiosError);
       expect(Sentry.captureMessage).not.toHaveBeenCalled();
+      expect(storageFailures).toBe(1);
     });
 
     function storageStreams(response: Pick<AxiosResponse, 'headers' | 'status'>) {
@@ -152,6 +180,7 @@ describe('Files', () => {
       await expect(files.getFileContent('public-url-id', { range: 'bytes=99-' })).rejects.toSatisfy(
         (error) => error instanceof HttpException && error.getStatus() === 416,
       );
+      expect(storageFailures).toBe(0);
     });
 
     it('keeps an unknown or expired public url apart from a file the storage lost', async () => {

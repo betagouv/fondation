@@ -69,6 +69,30 @@ const slowRequest = { answer: Promise.withResolvers<string>(), received: Promise
 
 @Controller()
 class TestController {
+  constructor(private readonly wideEvent: WideEvent) {}
+
+  // Two calls to the same service, the first failing
+  @Get('pdf')
+  async pdf(): Promise<string> {
+    await this.wideEvent
+      .timeCall('gotenberg', () => Promise.reject(new Error('ECONNREFUSED')))
+      .catch(() => undefined);
+    return this.wideEvent.timeCall('gotenberg', () => Promise.resolve('pdf'));
+  }
+
+  // A file the storage no longer has, which it answers rightly
+  @Get('missing-file')
+  async missingFile(): Promise<string> {
+    await this.wideEvent
+      .timeCall(
+        'storage',
+        () => Promise.reject(new Error('NoSuchKey')),
+        () => false,
+      )
+      .catch(() => undefined);
+    return 'missing';
+  }
+
   @Get('sessions/:sessionId/nomination-files/:nominationFileId')
   @UseGuards(Authenticated)
   read(): string {
@@ -100,10 +124,11 @@ class TestController {
     return body;
   }
 
+  // As a PDF the client stops waiting for while Gotenberg renders it
   @Get('slow')
   slow(): Promise<string> {
     slowRequest.received.resolve();
-    return slowRequest.answer.promise;
+    return this.wideEvent.timeCall('gotenberg', () => slowRequest.answer.promise);
   }
 
   @Get('_health')
@@ -345,6 +370,31 @@ describe('WideEvent', () => {
     expect(JSON.stringify(event)).not.toContain('jean.dupont');
   });
 
+  it('should count the calls to a service, their total duration and their failures', async () => {
+    const event = await eventOf('/pdf');
+
+    expect(event).toMatchObject({
+      'fondation.gotenberg.call.count': 2,
+      'fondation.gotenberg.call.duration': expect.any(Number),
+      'fondation.gotenberg.call.failure.count': 1,
+      'http.response.status_code': 200,
+    });
+    expect(event).not.toHaveProperty('fondation.storage.call.count');
+  });
+
+  it('should not count as failed a call the service answers rightly', async () => {
+    const event = await eventOf('/missing-file');
+
+    expect(event).toMatchObject({ 'fondation.storage.call.count': 1 });
+    expect(event).not.toHaveProperty('fondation.storage.call.failure.count');
+  });
+
+  it('should run a call made outside any request or command', async () => {
+    await expect(app.get(WideEvent).timeCall('storage', () => Promise.resolve('bucket'))).resolves.toBe(
+      'bucket',
+    );
+  });
+
   it('should describe a request whose body cannot be read, refused before the router', async () => {
     const event = await eventOf('/echo', {
       body: '{"email": "jean.dupont@example.fr"',
@@ -360,7 +410,7 @@ describe('WideEvent', () => {
     expect(JSON.stringify(event)).not.toContain('jean.dupont');
   });
 
-  it('should describe a request the client cuts before its answer, without the status it never got', async () => {
+  it('should describe a request the client cuts before its answer, without the status it never got, with the call it waited for', async () => {
     const controller = new AbortController();
     const [event] = await linesOf(async () => {
       const response = fetch(`${url}/slow`, { signal: controller.signal }).catch(() => undefined);
@@ -370,11 +420,14 @@ describe('WideEvent', () => {
     });
 
     expect(event).toMatchObject({
+      'fondation.gotenberg.call.count': 1,
+      'fondation.gotenberg.call.duration': expect.any(Number),
       'fondation.request.interrupted': true,
       'http.route': '/slow',
       level: 'warn',
     });
     expect(event).not.toHaveProperty('http.response.status_code');
+    expect(event).not.toHaveProperty('fondation.gotenberg.call.failure.count');
   });
 
   it('should not describe the health checks of Scalingo', async () => {

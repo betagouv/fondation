@@ -8,6 +8,7 @@ import { noop } from '../../../../utils/noop';
 import { SECONDS } from '../../../../utils/time';
 import type { Clock } from '../../clock';
 import type { ApiConfig } from '../../config';
+import type { WideEvent } from '../../wide-event';
 
 import { S3Client } from './s3';
 import { S3Storage } from './s3.storable';
@@ -45,7 +46,7 @@ describe('S3Storage', () => {
       signedUrlDurationSeconds: fileDuration / SECONDS,
     } satisfies ApiConfig['s3'];
 
-    s3 = new S3Client({ s3: config } as ApiConfig);
+    s3 = new S3Client({ s3: config } as ApiConfig, mock<WideEvent>());
     vi.spyOn(s3, 'send').mockResolvedValue();
 
     clock = mock<Clock>();

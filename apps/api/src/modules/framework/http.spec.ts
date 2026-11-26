@@ -1,3 +1,5 @@
+import { Readable } from 'node:stream';
+
 import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 
 import { loggableUrl, retryFailedRequests } from './http';
@@ -71,6 +73,23 @@ describe('retryFailedRequests', () => {
     await instance.put('http://example.test', {});
 
     expect(adapter).toHaveBeenCalledTimes(2);
+  });
+
+  it('should let go the streamed body of the answer it retries, which would hold its socket', async () => {
+    const body = Readable.from(['unavailable']);
+    const { instance } = clientFailingWith(
+      (config) =>
+        new AxiosError('failed', 'ERR_BAD_RESPONSE', config, undefined, {
+          data: body,
+          headers: {},
+          status: 503,
+        } as AxiosResponse),
+      1,
+    );
+
+    await instance.get('http://example.test', { responseType: 'stream' });
+
+    expect(body.destroyed).toBe(true);
   });
 
   it('should wait the delay a rate limiting server asks for before retrying', async () => {

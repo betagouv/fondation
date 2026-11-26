@@ -39,12 +39,15 @@ import * as time from '../../../utils/time';
 import { Clock } from '../clock';
 import { API_CONFIG_TOKEN, type ApiConfig } from '../config';
 import { afterCommit, Db } from '../database';
+import { discardResponseBody } from '../http';
+import { WideEvent } from '../wide-event';
 
 import { contentDisposition } from './content-disposition';
 import { renamedFileName } from './file-name';
 import { type FondationFile } from './files.types';
 import { filenameToMimeType } from './mime-type';
 import { FileMissingFromStorage, isMissingFromStorage } from './missing-from-storage';
+import { isStorageFailure, timeStorageCalls } from './storage-calls';
 
 /** @internal */
 class RollbackFilePathOperationError {
@@ -96,6 +99,7 @@ export class Files implements OnApplicationBootstrap {
     private readonly http: HttpService,
     @Inject(API_CONFIG_TOKEN)
     private readonly config: ApiConfig,
+    private readonly wideEvent: WideEvent,
   ) {
     const { encryptionKeyBase64: SSECustomerKey } = config.s3;
     if (SSECustomerKey) {
@@ -113,6 +117,7 @@ export class Files implements OnApplicationBootstrap {
 
     this.expiresInSeconds = config.s3.signedUrlDurationSeconds;
     this.bucketName = config.s3.bucket;
+    // TODO: see S3Client in storable/s3.ts, which builds the same client, encryption and CORS rules for StorableModule
     this.client = new S3Client({
       credentials: config.s3.credentials,
       endpoint: config.s3.endpoint,
@@ -120,6 +125,7 @@ export class Files implements OnApplicationBootstrap {
       maxAttempts: 3,
       region: config.s3.region,
     });
+    timeStorageCalls(this.client, wideEvent);
   }
 
   @Transactional(Propagation.RequiresNew)
@@ -497,22 +503,29 @@ export class Files implements OnApplicationBootstrap {
       });
     }
 
-    const response = await lastValueFrom(
-      this.http.get(file.url, {
-        headers,
-        responseType: 'stream',
-      }),
-    ).catch((error: unknown) => {
-      if (isMissingFromStorage(error)) {
-        this.reportMissingFromStorage(file.file);
-        throw new FileMissingFromStorage();
-      }
-      if (isAxiosError(error) && error.response?.status === HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE) {
-        throw new HttpException('range past the end of the file', HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE);
-      }
+    // Up to the headers of the storage, the transfer of the body counting in the duration of the request alone. One call
+    // with the retries of HttpService, which the S3 client counts one by one (see timeStorageCalls)
+    const response = await this.wideEvent
+      .timeCall(
+        'storage',
+        () => lastValueFrom(this.http.get(file.url, { headers, responseType: 'stream' })),
+        isStorageFailure,
+      )
+      .catch((error: unknown) => {
+        discardResponseBody(error);
+        if (isMissingFromStorage(error)) {
+          this.reportMissingFromStorage(file.file);
+          throw new FileMissingFromStorage();
+        }
+        if (isAxiosError(error) && error.response?.status === HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE) {
+          throw new HttpException(
+            'range past the end of the file',
+            HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE,
+          );
+        }
 
-      throw error;
-    });
+        throw error;
+      });
 
     const length = Number(response.headers['content-length']);
 

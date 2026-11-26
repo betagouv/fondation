@@ -7,9 +7,17 @@ import { ClsMiddleware, ClsService } from 'nestjs-cls';
 
 import * as time from '../../utils/time';
 
+/** The services a slow PDF or file waits for: Tchap, Scalingo and OpenID tell their failures already (see the ADR) */
+type OutboundService = 'gotenberg' | 'storage';
+
+// Per service called, without its URL nor the name of a file, which can quote a magistrat
+type OutboundCallAttributes = {
+  [name in `fondation.${OutboundService}.call.${'count' | 'duration' | 'failure.count'}`]?: number;
+};
+
 // Identifiers only: never a name, an email, a body, a query string or free text, the event is kept a year by Scalingo
 /** @see https://opentelemetry.io/docs/specs/semconv/ for the technical attributes */
-type WideEventAttributes = {
+type WideEventAttributes = OutboundCallAttributes & {
   // The client of the public API, as in the tags of its Sentry issues (see ApiClientAlerts)
   'api_client.id'?: string;
   'error.message'?: string;
@@ -41,6 +49,23 @@ type WideEventAttributes = {
 const WIDE_EVENT = 'wideEvent';
 const UNLOGGED_PATHS = ['/_health'];
 const UUID = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i;
+
+type PendingCall = { service: OutboundService; startedAt: number };
+
+// Out of the attributes, which are written as they are
+const pendingCalls = new WeakMap<WideEventAttributes, Set<PendingCall>>();
+
+function addCallDuration(event: WideEventAttributes, call: PendingCall): void {
+  const name = `fondation.${call.service}.call.duration` as const;
+  event[name] = (event[name] ?? 0) + (performance.now() - call.startedAt) / time.SECONDS;
+}
+
+// A request cut while it waits for Gotenberg, the slowest ones, is written before the call ends: it keeps the time waited
+function settlePendingCalls(event: WideEventAttributes): void {
+  const calls = pendingCalls.get(event);
+  for (const call of calls ?? []) addCallDuration(event, call);
+  calls?.clear();
+}
 
 function requestId(req: ExpressRequest): string {
   // The Scalingo router sets a UUID, to match its own log lines, but keeps the one a client sends: nothing else is kept
@@ -82,6 +107,7 @@ function openEvent(cls: ClsService, req: ExpressRequest, res: ExpressResponse): 
       event['fondation.impersonator.id'] = req.user.impersonation?.impersonatorId;
     }
 
+    settlePendingCalls(event);
     writeRequestEvent(event);
   });
 }
@@ -140,6 +166,7 @@ export class WideEvent {
         // The ingestion tells its failure by its exit code, without throwing
         event['process.exit.code'] = Number(process.exitCode ?? 0);
         const level = event['process.exit.code'] === 0 ? 'info' : 'error';
+        settlePendingCalls(event);
         writeEvent(level, event['job.name'] ?? '(no command)', event);
       }
     });
@@ -157,6 +184,38 @@ export class WideEvent {
   ): void {
     const event = this.cls.get<WideEventAttributes | undefined>(WIDE_EVENT);
     if (event) Object.assign(event, attributes);
+  }
+
+  /**
+   * Adds a call to a service to the event: a request can make several, so the event counts them, sums their duration
+   * (in seconds) and counts those that failed: every rejection, unless isFailure tells an answer the service gave
+   * rightly, as a file it does not have
+   */
+  async timeCall<T>(
+    service: OutboundService,
+    call: () => Promise<T>,
+    isFailure: (error: unknown) => boolean = () => true,
+  ): Promise<T> {
+    const event = this.cls.get<WideEventAttributes | undefined>(WIDE_EVENT);
+    if (!event) return call();
+
+    const prefix = `fondation.${service}.call` as const;
+    // Counted at its start, so an event written while the call is waited for has it too (see settlePendingCalls)
+    event[`${prefix}.count`] = (event[`${prefix}.count`] ?? 0) + 1;
+    const pending: PendingCall = { service, startedAt: performance.now() };
+    const calls = pendingCalls.get(event) ?? new Set();
+    pendingCalls.set(event, calls.add(pending));
+
+    try {
+      return await call();
+    } catch (error) {
+      if (calls.has(pending) && isFailure(error))
+        event[`${prefix}.failure.count`] = (event[`${prefix}.failure.count`] ?? 0) + 1;
+      throw error;
+    } finally {
+      // Unless the event was written while the call was waited for
+      if (calls.delete(pending)) addCallDuration(event, pending);
+    }
   }
 
   failWith(exception: unknown, request: ExpressRequest): void {

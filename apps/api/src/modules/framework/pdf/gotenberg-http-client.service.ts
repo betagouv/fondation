@@ -3,6 +3,8 @@ import { Logger, ServiceUnavailableException } from '@nestjs/common';
 import { isAxiosError } from 'axios';
 import { firstValueFrom } from 'rxjs';
 
+import { WideEvent } from '../wide-event';
+
 function readErrorBody(data: unknown): string {
   if (data == null) return '';
   if (Buffer.isBuffer(data)) return data.toString('utf8').trim().slice(0, 500);
@@ -20,6 +22,7 @@ export class GotenbergHttpClient {
   constructor(
     private readonly http: HttpService,
     private readonly baseUrl: URL,
+    private readonly wideEvent: WideEvent,
   ) {}
 
   async htmlToPdf(request: {
@@ -46,9 +49,13 @@ export class GotenbergHttpClient {
     }
 
     const url = this.endpoint(this.urls.htmlToPdf);
-    const response = await firstValueFrom(
-      this.http.post<ArrayBuffer>(url, form, { timeout: request.timeout, responseType: 'arraybuffer' }),
-    ).catch((error: unknown) => this.rethrow(url, error));
+    const response = await this.wideEvent
+      .timeCall('gotenberg', () =>
+        firstValueFrom(
+          this.http.post<ArrayBuffer>(url, form, { timeout: request.timeout, responseType: 'arraybuffer' }),
+        ),
+      )
+      .catch((error: unknown) => this.rethrow(url, error));
 
     return Buffer.from(response.data);
   }
