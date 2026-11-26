@@ -501,7 +501,8 @@ export class Files implements OnApplicationBootstrap {
       });
     }
 
-    // Up to the headers of the storage: the body then streams to the browser, in the duration of the request only
+    // Up to the headers of the storage, the transfer of the body counting in the duration of the request alone. One call
+    // with the retries of HttpService, which the S3 client counts one by one (see timeStorageCalls)
     const response = await this.wideEvent
       .timeCall('storage', () => lastValueFrom(this.http.get(file.url, { headers, responseType: 'stream' })))
       .catch((error: unknown) => {

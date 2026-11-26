@@ -10,7 +10,7 @@ import * as time from '../../utils/time';
 /** The services a request or a command waits for: Tchap and Scalingo are called outside of them */
 type OutboundService = 'gotenberg' | 'storage';
 
-// Per service called, without its URL nor the name of a file, which can quote a magistrat (see timeCall)
+// Per service called, without its URL nor the name of a file, which can quote a magistrat
 type OutboundCallAttributes = {
   [name in `fondation.${OutboundService}.call.${'count' | 'duration' | 'failure.count'}`]?: number;
 };

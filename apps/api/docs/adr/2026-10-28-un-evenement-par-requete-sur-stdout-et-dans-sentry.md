@@ -115,7 +115,8 @@ ligne s'écrit avec, en `request.id`, le `request_id` de la ligne du routeur.
   `.call.failure.count`, par `WideEvent.timeCall`, sans URL ni nom de fichier. Le stockage est
   chronométré par un middleware de chaque client S3, à l'étape qui envoie la requête : chaque
   tentative compte, une URL signée, construite sans appel, ne compte pas. La lecture d'un fichier par
-  son URL signée l'est jusqu'aux en-têtes de la réponse, le corps passant ensuite au navigateur. Tchap
+  son URL signée l'est jusqu'aux en-têtes de la réponse, le corps passant ensuite au navigateur ; elle
+  compte pour un appel avec les nouvelles tentatives de `HttpService`, pauses comprises. Tchap
   et l'API Scalingo ne sont pas suivis : appelés hors requête, leurs échecs vont déjà à Sentry.
 - **Des identifiants seulement** : utilisateur, rôle, usurpateur, statut, route, durée, `error.type`,
   et les identifiants de la route (`:sessionId` devient `fondation.session.id`, `:nominationFileId`
