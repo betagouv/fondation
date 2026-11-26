@@ -3407,14 +3407,9 @@ export type ListedCallsForApplicationsDto = {
                     label: string;
                 };
                 label: string;
-                targets: {
-                    added: Array<{
-                        label: string;
-                    }>;
-                    removed: Array<{
-                        label: string;
-                    }>;
-                } | null;
+                targets: Array<{
+                    label: string;
+                }> | null;
             }>;
         }>;
         id: string;

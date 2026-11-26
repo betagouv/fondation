@@ -9,40 +9,16 @@ import { useUser } from '@queries/auth.queries';
 import type { CallForApplications } from '@queries/calls-for-applications.queries';
 
 type Change = CallForApplications['history'][number]['changes'][number];
-type Target = { label: string };
-
-/** the names of the courts or the positions: both lists are told apart only when the update did both */
-function TargetsDetail(props: { targets: { added: readonly Target[]; removed: readonly Target[] } }) {
-  const { formatList } = useIntl();
-  const { added, removed } = props.targets;
-  const labelsOf = (targets: readonly Target[]) => formatList(targets.map(({ label }) => label));
-  if (removed.length === 0) return labelsOf(added);
-  if (added.length === 0) return labelsOf(removed);
-
-  return (
-    <>
-      <FormattedMessage
-        defaultMessage="{count, plural, one {Ajout} other {Ajouts}} : {targets}"
-        values={{ count: added.length, targets: labelsOf(added) }}
-      />
-      <br />
-      <FormattedMessage
-        defaultMessage="{count, plural, one {Retrait} other {Retraits}} : {targets}"
-        values={{ count: removed.length, targets: labelsOf(removed) }}
-      />
-    </>
-  );
-}
 
 function ChangeLabel(props: { change: Change }) {
-  const { formatMessage } = useIntl();
+  const { formatList, formatMessage } = useIntl();
   const { label, targets } = props.change;
   if (!targets) return label;
 
   return (
     <>
       {label}{' '}
-      <Tooltip className="align-middle" focusable label={<TargetsDetail targets={targets} />}>
+      <Tooltip className="align-middle" focusable label={formatList(targets.map((target) => target.label))}>
         <span
           aria-label={formatMessage({ defaultMessage: 'Détail : {label}' }, { label })}
           className="fr-icon-information-line fr-icon--sm text-(--text-action-high-blue-france)"
@@ -53,15 +29,14 @@ function ChangeLabel(props: { change: Change }) {
   );
 }
 
-/** the fields grouped by what the update did to them: "ajouté un commentaire et modifié la date limite" */
+/** the changes in the order the API serves them: the API has already grouped the fields under their verb */
 function ChangesSentence(props: { changes: readonly Change[] }) {
   const { formatList } = useIntl();
-  const groups = Map.groupBy(props.changes, ({ change }) => change.label);
 
   return formatList(
-    [...groups].map(([verb, changes]) => (
-      <Fragment key={verb}>
-        {verb} {formatList(changes.map((change) => <ChangeLabel change={change} key={change.label} />))}
+    props.changes.map((change) => (
+      <Fragment key={`${change.change.id} ${change.label}`}>
+        {change.change.label} <ChangeLabel change={change} />
       </Fragment>
     )),
   );

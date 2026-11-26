@@ -70,47 +70,62 @@ function inSentence({ label }: ChangedItem): string {
   return `${label.startsWith('Cour') ? 'la' : 'le'} ${lowerFirst(label)}`;
 }
 
-function entryOf(change: CallForApplicationsFieldChange, label: string) {
-  return { change: { id: change, label: FIELD_CHANGE_LABELS[change] }, label };
-}
-
 type HistoryEntry = {
   change: { id: CallForApplicationsFieldChange; label: string };
-  /** the field as the sentence names it after the verb with its values or its items */
   label: string;
   /** the courts or the positions too many to name in the sentence */
-  targets: { added: ChangedItem[]; removed: ChangedItem[] } | null;
+  targets: ChangedItem[] | null;
 };
 
-/** the entries of the history for a changed field
- * (a list changed both ways reads "ajouté le tribunal judiciaire d'Auch et retiré la cour d'appel d'Agen") */
-export function callForApplicationsChangedFieldEntriesOf(
-  changed: CallForApplicationsChangedField,
-  items: AddedAndRemoved<ChangedItem>,
-): HistoryEntry[] {
-  const { change, field } = changed;
-  const words = LIST_WORDS[field];
-  const count = items.added.length + items.removed.length;
-  // another field or a change journaled before its items were
-  if (!words || count === 0)
-    return [{ ...entryOf(change, `${FIELD_LABELS[field][change]}${valuesOf(changed)}`), targets: null }];
+export type ChangedFieldWithItems = CallForApplicationsChangedField & { items: AddedAndRemoved<ChangedItem> };
 
-  if (count > NAMED_ITEMS_MAX) {
-    const label = change === 'CHANGED' ? FIELD_LABELS[field].CHANGED : `${count} ${words.count}`;
-    return [{ ...entryOf(change, label), targets: { added: [...items.added], removed: [...items.removed] } }];
+type Pending = {
+  change: CallForApplicationsFieldChange;
+  labels: string[];
+  shared: boolean;
+  targets: ChangedItem[] | null;
+};
+
+/** the changes of an update as the history reads them: each gesture on a list stands alone so that its items stay
+ * with their verb and the other fields share theirs ("modifié la date limite et le commentaire") */
+export function callForApplicationsHistoryChangesOf(
+  fields: readonly ChangedFieldWithItems[],
+): HistoryEntry[] {
+  const pending: Pending[] = [];
+  for (const changed of fields) {
+    const words = LIST_WORDS[changed.field];
+    const { added, removed } = changed.items;
+    // a change journaled before its items were reads like any other field
+    if (words && added.length + removed.length > 0) {
+      // both ways the field goes without saying: each gesture names its items alone
+      const both = added.length > 0 && removed.length > 0;
+      const gestures: [CallForApplicationsFieldChange, readonly ChangedItem[], string][] = [
+        ['ADDED', added, words.added],
+        ['REMOVED', removed, words.removed],
+      ];
+      for (const [gesture, items, fieldWords] of gestures) {
+        if (items.length === 0) continue;
+        const counted = items.length > NAMED_ITEMS_MAX;
+        const named = counted ? `${items.length} ${words.count}` : LIST_FORMAT.format(items.map(inSentence));
+        pending.push({
+          change: gesture,
+          labels: [both ? named : `${named} ${fieldWords}`],
+          shared: false,
+          targets: counted ? [...items] : null,
+        });
+      }
+      continue;
+    }
+
+    const label = `${FIELD_LABELS[changed.field][changed.change]}${valuesOf(changed)}`;
+    const group = pending.find(({ change, shared }) => shared && change === changed.change);
+    if (group) group.labels.push(label);
+    else pending.push({ change: changed.change, labels: [label], shared: true, targets: null });
   }
 
-  const named = (list: readonly ChangedItem[]) => LIST_FORMAT.format(list.map(inSentence));
-  // both ways the agent sees the two gestures without the name of the field
-  const both = items.added.length > 0 && items.removed.length > 0;
-  const gestures: [CallForApplicationsFieldChange, readonly ChangedItem[], string][] = [
-    ['ADDED', items.added, words.added],
-    ['REMOVED', items.removed, words.removed],
-  ];
-  return gestures
-    .filter(([, list]) => list.length > 0)
-    .map(([gesture, list, fieldWords]) => ({
-      ...entryOf(gesture, both ? named(list) : `${named(list)} ${fieldWords}`),
-      targets: null,
-    }));
+  return pending.map(({ change, labels, targets }) => ({
+    change: { id: change, label: FIELD_CHANGE_LABELS[change] },
+    label: LIST_FORMAT.format(labels),
+    targets,
+  }));
 }

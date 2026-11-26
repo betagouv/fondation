@@ -34,8 +34,8 @@ import {
   targetPositionOf,
 } from '../../domain/call-for-applications';
 import {
-  callForApplicationsChangedFieldEntriesOf,
   type ChangedItem,
+  callForApplicationsHistoryChangesOf,
 } from '../../domain/call-for-applications-history';
 import { type CallForApplicationsPeriod, periodOf, yearsOf } from '../../domain/call-for-applications-period';
 import {
@@ -185,23 +185,21 @@ export class ListCallsForApplicationsQuery {
               action: change.action,
               at: change.at.toISOString(),
               by: writerOf(change.author),
-              changes: change.fields
-                .toSorted(
-                  (a, b) =>
-                    CALL_FOR_APPLICATIONS_FIELDS.indexOf(a.field) -
-                    CALL_FOR_APPLICATIONS_FIELDS.indexOf(b.field),
-                )
-                .flatMap(({ fieldChange, ...journaled }) =>
-                  callForApplicationsChangedFieldEntriesOf(
-                    {
-                      ...journaled,
-                      change: fieldChange,
-                      dateAfter: DateOnly.fromOptionalUtcDate(journaled.dateAfter),
-                      dateBefore: DateOnly.fromOptionalUtcDate(journaled.dateBefore),
-                    },
-                    changedItemsOf(journaled.field, change),
-                  ),
-                ),
+              changes: callForApplicationsHistoryChangesOf(
+                change.fields
+                  .toSorted(
+                    (a, b) =>
+                      CALL_FOR_APPLICATIONS_FIELDS.indexOf(a.field) -
+                      CALL_FOR_APPLICATIONS_FIELDS.indexOf(b.field),
+                  )
+                  .map(({ fieldChange, ...journaled }) => ({
+                    ...journaled,
+                    change: fieldChange,
+                    dateAfter: DateOnly.fromOptionalUtcDate(journaled.dateAfter),
+                    dateBefore: DateOnly.fromOptionalUtcDate(journaled.dateBefore),
+                    items: changedItemsOf(journaled.field, change),
+                  })),
+              ),
             })),
           id: call.id,
           publishedOn: call.publishedOn?.toJson() ?? null,
@@ -238,16 +236,14 @@ export class ListedCallsForApplicationsDto extends createPaginatedZodDto(
         action: z.enum(CALL_FOR_APPLICATIONS_ACTIONS),
         at: z.iso.datetime(),
         by: writerSchema,
-        /** what an update did in the order of the form: a list changed both ways gives two entries */
+        /** what an update did in the order of the form: each gesture on a list stands alone and the other fields share their verb */
         changes: z.array(
           z.object({
             change: callForApplicationsFieldChangeSchema,
-            /** the field as the sentence names it after the verb with its values or its items */
+            /** what the sentence names after the verb: one or more fields with their values or the items of a list */
             label: z.string(),
             /** the courts or the positions too many to name in the sentence (null when the sentence names them) */
-            targets: z
-              .object({ added: z.array(changedTargetSchema), removed: z.array(changedTargetSchema) })
-              .nullable(),
+            targets: z.array(changedTargetSchema).nullable(),
           }),
         ),
       }),

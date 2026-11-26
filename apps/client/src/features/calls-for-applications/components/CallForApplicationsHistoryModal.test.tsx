@@ -12,6 +12,7 @@ import { CallForApplicationsHistoryModal } from './CallForApplicationsHistoryMod
 const ME = { firstName: 'Anne', id: 'me', lastName: 'Roy', role: 'ADJOINT_SECRETAIRE_GENERAL' };
 const ADDED = { id: 'ADDED', label: 'ajouté' } as const;
 const CHANGED = { id: 'CHANGED', label: 'modifié' } as const;
+const REMOVED = { id: 'REMOVED', label: 'retiré' } as const;
 
 function renderHistory(history: CallForApplications['history']) {
   const client = new QueryClient();
@@ -27,7 +28,7 @@ function renderHistory(history: CallForApplications['history']) {
 }
 
 describe('CallForApplicationsHistoryModal', () => {
-  it('groups the fields by what each update did to them', () => {
+  it('tells the changes of each update in the order the API serves them', () => {
     renderHistory([
       {
         action: 'UPDATED',
@@ -36,10 +37,11 @@ describe('CallForApplicationsHistoryModal', () => {
         changes: [
           {
             change: CHANGED,
-            label: 'la date limite du 10/01/2027 au 15/01/2027',
+            label: 'la date limite du 10/01/2027 au 15/01/2027 et le commentaire',
             targets: null,
           },
-          { change: ADDED, label: 'un commentaire', targets: null },
+          { change: ADDED, label: "le tribunal judiciaire d'Auch", targets: null },
+          { change: REMOVED, label: "la cour d'appel d'Agen", targets: null },
         ],
       },
       {
@@ -52,7 +54,7 @@ describe('CallForApplicationsHistoryModal', () => {
 
     expect(
       screen.getByText(
-        'Vous avez modifié la date limite du 10/01/2027 au 15/01/2027 et ajouté un commentaire',
+        "Vous avez modifié la date limite du 10/01/2027 au 15/01/2027 et le commentaire, ajouté le tribunal judiciaire d'Auch et retiré la cour d'appel d'Agen",
       ),
     ).toBeInTheDocument();
     expect(screen.getByText("Paul MARTIN a créé l'appel")).toBeInTheDocument();
@@ -66,24 +68,22 @@ describe('CallForApplicationsHistoryModal', () => {
         by: { id: 'me', name: 'Anne ROY' },
         changes: [
           {
-            change: CHANGED,
-            label: 'les juridictions cibles',
-            targets: {
-              added: [
-                { label: "Tribunal judiciaire d'Auch" },
-                { label: 'Tribunal judiciaire de Cahors' },
-                { label: "Tribunal judiciaire d'Agen" },
-              ],
-              removed: [{ label: "Cour d'appel d'Agen" }],
-            },
+            change: ADDED,
+            label: '4 juridictions cibles',
+            targets: [
+              { label: "Tribunal judiciaire d'Auch" },
+              { label: 'Tribunal judiciaire de Cahors' },
+              { label: "Tribunal judiciaire d'Agen" },
+              { label: "Cour d'appel d'Agen" },
+            ],
           },
         ],
       },
     ]);
 
-    expect(screen.getByText('Vous avez modifié les juridictions cibles')).toBeInTheDocument();
+    expect(screen.getByText('Vous avez ajouté 4 juridictions cibles')).toBeInTheDocument();
     expect(screen.getByRole('tooltip', { hidden: true })).toHaveTextContent(
-      "Ajouts : Tribunal judiciaire d'Auch, Tribunal judiciaire de Cahors et Tribunal judiciaire d'AgenRetrait : Cour d'appel d'Agen",
+      "Tribunal judiciaire d'Auch, Tribunal judiciaire de Cahors, Tribunal judiciaire d'Agen et Cour d'appel d'Agen",
     );
   });
 });

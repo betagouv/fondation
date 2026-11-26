@@ -31,7 +31,10 @@ export function Timeline(props: {
               }}
             />
           </p>
-          <p className={clsx('fr-mb-0', props.size === 'small' && 'fr-text--sm')}>{content}</p>
+          {/* a div rather than a p (the content may hold a tooltip whose bubble is a div) with the size of a p */}
+          <div className={clsx('fr-mb-0', props.size === 'small' ? 'fr-text--sm' : 'fr-text--md')}>
+            {content}
+          </div>
         </li>
       ))}
     </ul>

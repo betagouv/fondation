@@ -114,15 +114,13 @@ const CALLS: Record<'ONGOING' | 'PAST', ListedCall[]> = {
           changed(REMOVED, "le tribunal judiciaire d'Agen"),
         ]),
         updated('2026-11-23T17:00:00.000Z', HELENE, [
-          changed(CHANGED, 'les juridictions cibles', {
-            added: [
-              { label: COURTS['CA  AGEN'].label },
-              { label: COURTS['TJ  AGEN'].label },
-              { label: COURTS['TJ  AUCH'].label },
-              { label: COURTS['TJ  PARIS'].label },
-            ],
-            removed: [{ label: COURTS['TJ  CRETEIL'].label }],
-          }),
+          changed(ADDED, '4 juridictions cibles', [
+            { label: COURTS['CA  AGEN'].label },
+            { label: COURTS['TJ  AGEN'].label },
+            { label: COURTS['TJ  AUCH'].label },
+            { label: COURTS['TJ  PARIS'].label },
+          ]),
+          changed(REMOVED, 'le tribunal judiciaire de Créteil'),
         ]),
         created('2026-11-23T15:00:00.000Z', HELENE),
       ],
