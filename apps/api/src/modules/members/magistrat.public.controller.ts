@@ -14,7 +14,7 @@ import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import * as time from '../../utils/time';
 import { HasApiScope } from '../api-clients';
-import { RequestEvent } from '../framework/request-event';
+import { WideEvent } from '../framework/wide-event';
 
 import { InvalidMagistratEmailDto } from './infrastructure/magistrat.dto';
 import {
@@ -33,7 +33,7 @@ export class MagistratPublicController {
   constructor(
     private readonly findMagistratStatusQuery: FindMagistratStatusQuery,
     private readonly identifyMagistratQuery: IdentifyMagistratQuery,
-    private readonly requestEvent: RequestEvent,
+    private readonly wideEvent: WideEvent,
   ) {}
 
   @HasApiScope('magistrats:identification')
@@ -44,7 +44,7 @@ export class MagistratPublicController {
   async identifyMagistrat(@Body() body: IdentifyMagistratDto): Promise<IdentifiedMagistratDto> {
     const identified = await this.identifyMagistratQuery.handle({ email: body.email });
     // The identifier tells whom the call was about, never the address it was asked with
-    this.requestEvent.set({
+    this.wideEvent.set({
       'fondation.magistrat.id': identified.status === 'ACTIVE' ? identified.magistrat.id : undefined,
       'fondation.magistrat.status': identified.status,
     });
@@ -63,7 +63,7 @@ export class MagistratPublicController {
     @Param('magistratId', ParseUUIDPipe) magistratId: string,
   ): Promise<FoundMagistratStatusDto> {
     const found = await this.findMagistratStatusQuery.handle({ magistratId });
-    this.requestEvent.set({ 'fondation.magistrat.status': found.status });
+    this.wideEvent.set({ 'fondation.magistrat.status': found.status });
 
     return found;
   }

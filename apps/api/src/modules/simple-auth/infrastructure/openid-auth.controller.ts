@@ -8,7 +8,7 @@ import {
 import { ZodResponse } from 'nestjs-zod';
 
 import { API_CONFIG_TOKEN, ApiConfig } from '../../framework/config';
-import { RequestEvent } from '../../framework/request-event';
+import { WideEvent } from '../../framework/wide-event';
 import { OpenIdProvider } from '../openid';
 import { OpenIdProviderParam } from '../openid/openid.decorator';
 import { SimpleAuthService } from '../simple-auth.service';
@@ -31,7 +31,7 @@ export class OpenIdAuthController {
   constructor(
     private readonly auth: SimpleAuthService,
     private readonly listOpenIdProvidersQuery: ListOpenIdProvidersQuery,
-    private readonly requestEvent: RequestEvent,
+    private readonly wideEvent: WideEvent,
 
     @Inject(API_CONFIG_TOKEN)
     private readonly config: ApiConfig,
@@ -66,7 +66,7 @@ export class OpenIdAuthController {
     } catch (error) {
       this.logger.error('Error while login with openid', error);
       // Answered by a redirection, the failure reaches no exception filter
-      this.requestEvent.failWith(error, req);
+      this.wideEvent.failWith(error, req);
       redirect.searchParams.set('error', 'true');
     }
 

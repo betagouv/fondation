@@ -3,7 +3,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { makeId } from '../../utils/id';
 import { Clock } from '../framework/clock';
-import { RequestEvent } from '../framework/request-event';
+import { WideEvent } from '../framework/wide-event';
 
 import {
   ApiClient,
@@ -37,7 +37,7 @@ export class ApiClientsService {
     private readonly listApiClientChanges: ListApiClientChangesQuery,
     private readonly listApiClients: ListApiClientsQuery,
     private readonly repository: ApiClientRepository,
-    private readonly requestEvent: RequestEvent,
+    private readonly wideEvent: WideEvent,
   ) {}
 
   /** An accepted authentication counts for the client: whoever knows the identifier alone cannot use up its tokens */
@@ -52,7 +52,7 @@ export class ApiClientsService {
       const client = await this.repository.findById(command.clientId);
       if (!client) throw new ApiClientUnauthenticated();
       // Refused too: a wrong secret tried on a known client is the call to find in the logs
-      this.requestEvent.set({ 'api_client.id': client.id });
+      this.wideEvent.set({ 'api_client.id': client.id });
 
       const token = await this.alertingForbidden(
         window,
@@ -75,7 +75,7 @@ export class ApiClientsService {
       if (!found) throw new ApiClientUnauthenticated();
 
       const { client, tokenExpiresAt } = found;
-      this.requestEvent.set({ 'api_client.id': client.id });
+      this.wideEvent.set({ 'api_client.id': client.id });
       const { limitPerMinute } = await this.alertingForbidden(
         window,
         { clientId: client.id, ip: command.ip, route: command.scope },

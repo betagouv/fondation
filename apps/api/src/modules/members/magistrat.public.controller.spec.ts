@@ -1,7 +1,7 @@
 // oxlint-disable typescript/unbound-method
 import { mock, type MockProxy } from 'vitest-mock-extended';
 
-import { RequestEvent } from '../framework/request-event';
+import { WideEvent } from '../framework/wide-event';
 
 import { FindMagistratStatusQuery } from './infrastructure/queries/find-magistrat-status.query';
 import { IdentifyMagistratQuery } from './infrastructure/queries/identify-magistrat.query';
@@ -12,18 +12,14 @@ describe('MagistratPublicController', () => {
 
   let findMagistratStatusQuery: MockProxy<FindMagistratStatusQuery>;
   let identifyMagistratQuery: MockProxy<IdentifyMagistratQuery>;
-  let requestEvent: MockProxy<RequestEvent>;
+  let wideEvent: MockProxy<WideEvent>;
   let controller: MagistratPublicController;
 
   beforeEach(() => {
     findMagistratStatusQuery = mock();
     identifyMagistratQuery = mock();
-    requestEvent = mock();
-    controller = new MagistratPublicController(
-      findMagistratStatusQuery,
-      identifyMagistratQuery,
-      requestEvent,
-    );
+    wideEvent = mock();
+    controller = new MagistratPublicController(findMagistratStatusQuery, identifyMagistratQuery, wideEvent);
   });
 
   describe('the event of the request', () => {
@@ -32,7 +28,7 @@ describe('MagistratPublicController', () => {
 
       await controller.identifyMagistrat({ email: 'jean.dupont@example.fr' });
 
-      expect(requestEvent.set).toHaveBeenCalledWith({
+      expect(wideEvent.set).toHaveBeenCalledWith({
         'fondation.magistrat.id': magistratId,
         'fondation.magistrat.status': 'ACTIVE',
       });
@@ -43,7 +39,7 @@ describe('MagistratPublicController', () => {
 
       await controller.identifyMagistrat({ email: 'jean.dupont@example.fr' });
 
-      expect(requestEvent.set).toHaveBeenCalledWith({
+      expect(wideEvent.set).toHaveBeenCalledWith({
         'fondation.magistrat.id': undefined,
         'fondation.magistrat.status': 'UNKNOWN',
       });
@@ -54,7 +50,7 @@ describe('MagistratPublicController', () => {
 
       await controller.findMagistratStatus(magistratId);
 
-      expect(requestEvent.set).toHaveBeenCalledWith({ 'fondation.magistrat.status': 'INACTIVE' });
+      expect(wideEvent.set).toHaveBeenCalledWith({ 'fondation.magistrat.status': 'INACTIVE' });
     });
   });
 });
