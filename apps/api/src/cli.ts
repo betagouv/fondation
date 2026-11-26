@@ -30,8 +30,7 @@ function reportAndExit(error: unknown): void {
 async function cli() {
   const app = await CommandFactory.createWithoutRunning(CliAppModule, {
     logger: ['verbose', 'debug', 'log', 'warn', 'error', 'fatal'],
-    // The errors of commander only, as an unknown option
-    errorHandler: reportAndExit,
+    // No errorHandler: commander exits as soon as it returns, before Sentry gets anything, and would call --help an error
     // An error thrown by a command would only be written on stderr, and the process would end with 0
     serviceErrorHandler: (error: unknown) => {
       throw error;
