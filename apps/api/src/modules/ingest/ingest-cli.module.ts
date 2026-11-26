@@ -22,7 +22,7 @@ export class IngestLolfiCommand extends CommandRunner {
     super();
   }
 
-  @Option({ flags: '--jobId <id>', name: 'jobId' })
+  @Option({ flags: '--jobId <id>', name: 'jobId', required: true })
   parseJobId(jobId: string): number {
     return z.coerce.number().int().gt(0).parse(jobId);
   }
