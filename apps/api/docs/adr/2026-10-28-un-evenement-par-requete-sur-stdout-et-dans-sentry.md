@@ -110,11 +110,15 @@ ligne s'écrit avec, en `request.id`, le `request_id` de la ligne du routeur.
 - **Des identifiants seulement** : utilisateur, rôle, usurpateur, statut, route, durée, `error.type`,
   et les identifiants de la route (`:sessionId` devient `fondation.session.id`, `:nominationFileId`
   `fondation.nomination_file.id`), lus dans `req.params` à l'émission sans rien ajouter dans chaque
-  module. `error.message` ne figure que pour une `HttpException` qui a trouvé sa route : nos messages,
+  module. Seule l'API publique ajoute ce que la route ne dit pas, par `RequestEvent.set` : le client
+  (`api_client.id`, depuis `ApiClientsService`, `/auth` compris, qui n'a pas de garde) et, pour les
+  routes magistrat, l'identifiant trouvé et la réponse (`fondation.magistrat.status`), jamais l'adresse
+  demandée (FON-855). `error.message` ne figure que pour une `HttpException` qui a trouvé sa route : nos messages,
   jamais ceux de Prisma ou de pg, ni la 404 du routeur, qui cite l'URL. Jamais de corps de requête ni
   de query string.
 - **Les noms suivent OpenTelemetry** (`http.route`, `http.response.status_code`, `user.id`) ; le métier
-  est rangé sous `fondation.*`, parce que `session.id` y désigne une session de navigation.
+  est rangé sous `fondation.*`, parce que `session.id` y désigne une session de navigation. Exception :
+  `api_client.id`, le nom du tag que portent déjà les issues Sentry des clients de l'API publique.
 - **L'identifiant de requête** est l'en-tête `X-Request-ID` posé par le routeur Scalingo s'il a la forme
   d'un UUID (le routeur garde celui qu'envoie un client), sinon un UUID tiré par l'API ; `trace.id`
   relie l'événement à sa trace Sentry, y compris quand la trace n'est pas échantillonnée : les erreurs
