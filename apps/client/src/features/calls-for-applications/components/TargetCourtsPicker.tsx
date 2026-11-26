@@ -1,14 +1,12 @@
-import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
-import { useState } from 'react';
+import Button from '@codegouvfr/react-dsfr/Button';
+import Tag from '@codegouvfr/react-dsfr/Tag';
+import { useId, useState, type ReactNode } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
-import { SearchInput } from '@/shared/ui/search-input';
-import { unaccent } from '@/utils/string.utils';
+import { matchesSearch, SearchableCheckboxList } from '@/shared/ui/searchable-checkbox-list';
 import type { FoundCallForApplicationsFormDto } from '@api/types';
 
-function matches(label: string, search: string): boolean {
-  return unaccent(label).toLowerCase().includes(unaccent(search.trim()).toLowerCase());
-}
+const MAX_TAGS = 10;
 
 /** the courts of one type that a specific call targets: a search narrows a list of more than a hundred */
 export function TargetCourtsPicker(props: {
@@ -17,69 +15,108 @@ export function TargetCourtsPicker(props: {
   /** the type is checked without any court: the form stays incomplete */
   isEmpty: boolean;
   onChange: (checked: string[]) => void;
+  titleAside?: ReactNode;
 }) {
   const { formatMessage } = useIntl();
   const [search, setSearch] = useState('');
-  const { courts, type } = props.courtGroup;
   // both pickers may show at once: each names its type for a screen reader to tell them apart
-  const group = type.label.toLowerCase();
-  const shown = courts.filter((court) => matches(court.label, search));
-  const checkedCount = courts.filter(({ id }) => props.checked.includes(id)).length;
+  const { courts, type, typeInSentence: group } = props.courtGroup;
+  const isOfGroup = (id: string) => courts.some((court) => court.id === id);
+  const checkedInGroup = props.checked.filter(isOfGroup);
+  const [isOpen, setOpen] = useState(checkedInGroup.length === 0);
+  const titleId = useId();
+  const listId = useId();
+  const error = formatMessage(
+    { defaultMessage: 'Choisissez au moins une juridiction parmi les {group}' },
+    { group },
+  );
+  const chosen = courts.filter((court) => checkedInGroup.includes(court.id));
 
   return (
-    <fieldset className="fr-m-0 fr-p-0 flex flex-col gap-3 border-0">
-      <legend className="fr-mb-2v mx-0 px-0 pb-0 font-semibold text-(--text-label-grey)">{type.label}</legend>
-      <SearchInput
-        onChange={setSearch}
-        onClear={() => setSearch('')}
-        placeholder={formatMessage(
-          { defaultMessage: 'Rechercher une juridiction parmi les {group}' },
-          { group },
-        )}
-        value={search}
-      />
-      <p className="fr-mb-0 text-xs" role="status">
-        <FormattedMessage
-          defaultMessage="{count, plural, =0 {Aucune juridiction sélectionnée parmi les {group}} one {# juridiction sélectionnée parmi les {group}} other {# juridictions sélectionnées parmi les {group}}}"
-          values={{ count: checkedCount, group }}
-        />
-      </p>
-      <div className="fr-px-1v max-h-60 overflow-y-auto">
-        {shown.length > 0 && (
-          <Checkbox
-            className="fr-mb-0"
-            options={shown.map(({ id, label }) => ({
-              label,
-              nativeInputProps: {
-                checked: props.checked.includes(id),
-                onChange: (event) =>
-                  props.onChange(
-                    event.target.checked
-                      ? [...props.checked, id]
-                      : props.checked.filter((court) => court !== id),
-                  ),
-                value: id,
-              },
-            }))}
-            small
-            state={props.isEmpty ? 'error' : 'default'}
-            stateRelatedMessage={
-              props.isEmpty
-                ? formatMessage(
-                    { defaultMessage: 'Choisissez au moins une juridiction parmi les {group}' },
-                    { group },
-                  )
-                : undefined
-            }
-          />
-        )}
-        {/* mounted before the search empties the list so that the message is announced */}
-        <p className="fr-mb-0" role="status">
-          {shown.length === 0 && (
-            <FormattedMessage defaultMessage="Aucune juridiction ne correspond à la recherche" />
-          )}
-        </p>
+    <section aria-labelledby={titleId} className="flex flex-col gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+          <p className="fr-mb-0 fr-text--md font-bold" id={titleId}>
+            {type.label}
+          </p>
+          {props.titleAside}
+        </div>
+        <Button
+          aria-controls={listId}
+          aria-expanded={isOpen}
+          className="shrink-0"
+          iconId={isOpen ? 'fr-icon-arrow-up-s-line' : 'fr-icon-arrow-down-s-line'}
+          iconPosition="right"
+          onClick={() => setOpen(!isOpen)}
+          priority="tertiary no outline"
+          size="small"
+          type="button"
+        >
+          {isOpen ? (
+            <FormattedMessage defaultMessage="Masquer la liste" />
+          ) : (
+            <FormattedMessage defaultMessage="Afficher la liste" />
+          )}{' '}
+          <span className="fr-sr-only">
+            <FormattedMessage defaultMessage="des {group}" values={{ group }} />
+          </span>
+        </Button>
       </div>
-    </fieldset>
+      {isOpen ? (
+        <div id={listId}>
+          <SearchableCheckboxList
+            checked={checkedInGroup}
+            countLabel={
+              <FormattedMessage
+                defaultMessage="{count, plural, =0 {Aucune juridiction sélectionnée parmi les {group}} one {# juridiction sélectionnée parmi les {group}} other {# juridictions sélectionnées parmi les {group}}}"
+                values={{ count: checkedInGroup.length, group }}
+              />
+            }
+            emptyLabel={<FormattedMessage defaultMessage="Aucune juridiction ne correspond à la recherche" />}
+            error={props.isEmpty ? error : undefined}
+            legend={<span className="fr-sr-only">{type.label}</span>}
+            // the courts of the other type stay checked
+            onChange={(checked) =>
+              props.onChange([...props.checked.filter((id) => !isOfGroup(id)), ...checked])
+            }
+            onSearchChange={setSearch}
+            options={courts.filter((court) => matchesSearch(court.label, search))}
+            search={search}
+            searchLabel={formatMessage(
+              { defaultMessage: 'Rechercher une juridiction parmi les {group}' },
+              { group },
+            )}
+          />
+        </div>
+      ) : chosen.length === 0 ? (
+        <>
+          <p className="fr-mb-0 text-sm text-(--text-mention-grey)">
+            <FormattedMessage defaultMessage="Aucune juridiction sélectionnée" />
+          </p>
+          {props.isEmpty && <p className="fr-error-text fr-mt-0 fr-mb-0">{error}</p>}
+        </>
+      ) : (
+        <ul className="fr-tags-group -mb-2">
+          {chosen.slice(0, MAX_TAGS).map((court) => (
+            <li key={court.id}>
+              <Tag>{court.label}</Tag>
+            </li>
+          ))}
+          {chosen.length > MAX_TAGS && (
+            <li>
+              <Tag>
+                <span aria-hidden>+{chosen.length - MAX_TAGS}</span>
+                <span className="fr-sr-only">
+                  <FormattedMessage
+                    defaultMessage="{count, plural, one {et # autre juridiction} other {et # autres juridictions}}"
+                    values={{ count: chosen.length - MAX_TAGS }}
+                  />
+                </span>
+              </Tag>
+            </li>
+          )}
+        </ul>
+      )}
+    </section>
   );
 }

@@ -1281,7 +1281,7 @@ export type DetailedMemberDto = {
         id: string;
         name: string;
         status: 'ACTIVE' | 'INACTIVE';
-        gradeAndJurisdiction: string | null;
+        grade: string | null;
         currentPosition: {
             function: {
                 id: string;
@@ -3369,6 +3369,7 @@ export type FoundCallForApplicationsFormDto = {
             id: 'COURT_OF_APPEAL' | 'JUDICIAL_COURT';
             label: string;
         };
+        typeInSentence: string;
     }>;
     targetPositions: Array<{
         id: 'FIRST_PRESIDENT' | 'CHAMBER_PRESIDENT' | 'COUNSELLOR' | 'REFERENDARY_COUNSELLOR' | 'AUDITOR_SECOND_GRADE' | 'AUDITOR_FIRST_GRADE';

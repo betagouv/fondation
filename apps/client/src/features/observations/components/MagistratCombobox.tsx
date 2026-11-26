@@ -5,20 +5,16 @@ import { useEffect, useId, useState, type FocusEvent, type KeyboardEvent } from 
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useDebounce } from 'use-debounce';
 
+import { currentPositionLabel } from '@/features/magistrats/utils/magistrat-position.utils';
+import { GradeAndPosition } from '@/shared/components/GradeAndPosition';
 import { RequiredLabel } from '@/shared/ui/required-label';
 import { MAGISTRAT_SEARCH_MIN_LENGTH, type FoundMagistrat } from '@queries/magistrats.queries';
 import { useSearchMagistratsQuery, type Observant } from '@queries/observations.queries';
 
 const searchTermFor = (magistrat: Observant) => `${magistrat.lastName} ${magistrat.firstName}`;
 
-const currentPositionLabel = ({ currentPosition }: FoundMagistrat) =>
-  [currentPosition?.function?.label, currentPosition?.jurisdiction.label].filter(Boolean).join(' ') || null;
-
-const magistratDetails = (magistrat: FoundMagistrat) =>
-  [magistrat.grade, currentPositionLabel(magistrat)].filter(Boolean).join(' - ');
-
 const toObservant = (magistrat: FoundMagistrat): Observant => ({
-  currentPosition: currentPositionLabel(magistrat),
+  currentPosition: currentPositionLabel(magistrat.currentPosition),
   firstName: magistrat.firstName,
   id: magistrat.id,
   lastName: magistrat.lastName,
@@ -149,7 +145,12 @@ export function MagistratCombobox(props: {
                 role="option"
               >
                 <div className="font-medium">{result.name}</div>
-                <div className="text-xs text-(--text-mention-grey)">{magistratDetails(result)}</div>
+                <div className="text-xs text-(--text-mention-grey)">
+                  <GradeAndPosition
+                    grade={result.grade}
+                    position={currentPositionLabel(result.currentPosition)}
+                  />
+                </div>
               </div>
             ))}
           </div>

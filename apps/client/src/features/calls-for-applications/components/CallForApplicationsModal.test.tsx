@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { IntlProvider } from 'react-intl';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -29,6 +29,7 @@ const FORM: FoundCallForApplicationsFormDto = {
       guidelinesAdaptationLabel:
         "Adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel pour les cours d'appel",
       type: { id: 'COURT_OF_APPEAL', label: "Cours d'appel" },
+      typeInSentence: "cours d'appel",
     },
     {
       courts: [
@@ -39,6 +40,7 @@ const FORM: FoundCallForApplicationsFormDto = {
       guidelinesAdaptationLabel:
         "Adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel pour les tribunaux judiciaires",
       type: { id: 'JUDICIAL_COURT', label: 'Tribunaux judiciaires' },
+      typeInSentence: 'tribunaux judiciaires',
     },
   ],
   targetPositions: [
@@ -303,7 +305,7 @@ describe('CallForApplicationsModal', () => {
     expect(save).toBeEnabled();
   });
 
-  it('opens a specific call on its courts and drops those of a type unchecked with its adaptation', async () => {
+  it('opens a specific call on its courts and gives back those of a type checked again but saves none of a type unchecked', async () => {
     const update = vi
       .spyOn($api.callsForApplications, 'updateCallForApplications')
       .mockResolvedValue({ data: undefined } as never);
@@ -322,14 +324,16 @@ describe('CallForApplicationsModal', () => {
     });
     const user = userEvent.setup();
 
-    expect(await screen.findByRole('checkbox', { name: "Cour d'appel d'Agen" })).toBeChecked();
-    expect(screen.getByRole('checkbox', { name: "Tribunal judiciaire d'Auch" })).toBeChecked();
+    expect(await screen.findByText("Cour d'appel d'Agen")).toBeInTheDocument();
+    expect(screen.getByText("Tribunal judiciaire d'Auch")).toBeInTheDocument();
     expect(screen.getByRole('checkbox', { name: adaptationOf("cours d'appel") })).toBeChecked();
     await user.click(screen.getByRole('checkbox', { name: "Cours d'appel" }));
-    expect(screen.queryByRole('checkbox', { name: "Cour d'appel d'Agen" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Cour d'appel d'Agen")).not.toBeInTheDocument();
     expect(screen.queryByRole('checkbox', { name: adaptationOf("cours d'appel") })).not.toBeInTheDocument();
     await user.click(screen.getByRole('checkbox', { name: "Cours d'appel" }));
-    expect(screen.getByRole('checkbox', { name: adaptationOf("cours d'appel") })).not.toBeChecked();
+    expect(screen.getByText("Cour d'appel d'Agen")).toBeInTheDocument();
+    expect(screen.queryByRole('checkbox', { name: "Cour d'appel d'Agen" })).not.toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: adaptationOf("cours d'appel") })).toBeChecked();
     await user.click(screen.getByRole('checkbox', { name: "Cours d'appel" }));
     await user.click(screen.getByRole('button', { name: 'Enregistrer les modifications' }));
 
@@ -340,6 +344,30 @@ describe('CallForApplicationsModal', () => {
           targetCourts: ['TJ  AUCH'],
         }),
       }),
+    );
+  });
+
+  it('clears the courts of one type only', async () => {
+    const create = vi
+      .spyOn($api.callsForApplications, 'createCallForApplications')
+      .mockResolvedValue({ data: { id: 'call-1' } } as never);
+    renderModal();
+    const user = userEvent.setup();
+
+    await user.selectOptions(await screen.findByRole('combobox', { name: /Type d'appel/ }), 'SPECIFIC');
+    await user.click(screen.getByRole('checkbox', { name: "Cours d'appel" }));
+    await user.click(screen.getByRole('checkbox', { name: 'Tribunaux judiciaires' }));
+    await user.click(screen.getByRole('checkbox', { name: "Tribunal judiciaire d'Auch" }));
+    await user.click(screen.getByRole('checkbox', { name: "Cour d'appel d'Agen" }));
+    const courtsOfAppeal = screen.getByRole('group', { name: "Cours d'appel" });
+    await user.click(within(courtsOfAppeal).getByRole('button', { name: 'Tout désélectionner' }));
+
+    expect(screen.getByRole('checkbox', { name: "Tribunal judiciaire d'Auch" })).toBeChecked();
+    await user.click(screen.getByRole('checkbox', { name: "Cours d'appel" }));
+    await user.click(screen.getByRole('button', { name: "Créer l'appel à candidatures" }));
+
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({ body: expect.objectContaining({ targetCourts: ['TJ  AUCH'] }) }),
     );
   });
 
@@ -378,7 +406,8 @@ describe('CallForApplicationsModal', () => {
       type: { id: 'SPECIFIC', label: 'Spécifique' },
     });
     const user = userEvent.setup();
-    const removed = await screen.findByRole('checkbox', { name: "Tribunal supérieur d'appel de Mamoudzou" });
+    await user.click(await screen.findByRole('button', { name: "Afficher la liste des cours d'appel" }));
+    const removed = screen.getByRole('checkbox', { name: "Tribunal supérieur d'appel de Mamoudzou" });
 
     expect(removed).toBeChecked();
     await user.click(removed);

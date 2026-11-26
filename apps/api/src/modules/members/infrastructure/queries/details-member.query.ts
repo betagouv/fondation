@@ -7,7 +7,6 @@ import { PrismaMagistratStatusEnum } from '../../../../generated/prisma/enums';
 import { detailsMemberRawQuery, listExcludedMagistratsRawQuery } from '../../../../generated/prisma/sql';
 import { Db } from '../../../framework/database';
 import { magistratFullName } from '../../../magistrat/domain/magistrat-name';
-import { magistratGradeAndJurisdiction } from '../../../magistrat/domain/magistrat-position';
 import { PositionSchema } from '../../../magistrat/infrastructure/queries/detail-magistrat.query';
 import { GradeEnum } from '../../../shared/grade.enum';
 import {
@@ -43,10 +42,7 @@ export class DetailsMemberQuery {
         id: magistrat.id,
         name: magistratFullName(magistrat),
         status: magistrat.status,
-        gradeAndJurisdiction: magistratGradeAndJurisdiction({
-          grade: magistrat.grade,
-          jurisdictionCode: magistrat.jurisdictionId,
-        }),
+        grade: magistrat.grade,
         currentPosition: magistrat.jurisdictionId
           ? {
               function: magistrat.functionId
@@ -86,7 +82,7 @@ export class DetailedMemberDto extends createZodDto(
         id: z.string(),
         name: z.string(),
         status: z.enum(PrismaMagistratStatusEnum),
-        gradeAndJurisdiction: z.string().nullable(),
+        grade: z.string().nullable(),
         currentPosition: PositionSchema.pick({ function: true, jurisdiction: true }).nullable(),
       }),
     ),

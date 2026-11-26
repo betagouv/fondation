@@ -16,7 +16,7 @@ function found(id: string, name: string) {
   return {
     data: {
       currentPageIndex: 1,
-      items: [{ currentPosition: null, gradeAndJurisdiction: null, id, name, status: 'ACTIVE' }],
+      items: [{ currentPosition: null, grade: null, id, name, status: 'ACTIVE' }],
       totalCount: 1,
     },
   } as unknown as Awaited<ReturnType<typeof $api.magistrats.searchMagistrats>>;
@@ -51,7 +51,7 @@ describe('MagistratAutocomplete', () => {
     const user = userEvent.setup();
     renderAutocomplete();
 
-    const search = screen.getByRole('searchbox');
+    const search = screen.getByRole('textbox', { name: 'Rechercher un magistrat par son nom ou son prénom' });
     await user.type(search, 'Dupont');
     await user.click(await screen.findByRole('checkbox', { name: /DUPONT Louise/ }));
     await user.clear(search);
@@ -66,7 +66,10 @@ describe('MagistratAutocomplete', () => {
     const user = userEvent.setup();
     renderAutocomplete();
 
-    await user.type(screen.getByRole('searchbox'), 'Dupont');
+    await user.type(
+      screen.getByRole('textbox', { name: 'Rechercher un magistrat par son nom ou son prénom' }),
+      'Dupont',
+    );
 
     expect(
       await within(screen.getByRole('region', { name: 'Notifications' })).findByText(
