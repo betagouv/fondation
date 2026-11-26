@@ -2,6 +2,7 @@
 import { mock, type MockProxy } from 'vitest-mock-extended';
 
 import { Clock } from '../framework/clock';
+import { RequestEvent } from '../framework/request-event';
 
 import { ApiClientsService } from './api-clients.service';
 import {
@@ -30,6 +31,7 @@ describe('ApiClientsService', () => {
 
   let alerts: MockProxy<ApiClientAlerts>;
   let repository: MockProxy<ApiClientRepository>;
+  let requestEvent: MockProxy<RequestEvent>;
   let service: ApiClientsService;
 
   beforeEach(() => {
@@ -43,7 +45,46 @@ describe('ApiClientsService', () => {
     repository.saveToken.mockResolvedValue(true);
     const clock = mock<Clock>();
     clock.now.mockReturnValue(new Date('2026-11-23T10:00:00Z'));
-    service = new ApiClientsService(alerts, clock, mock(), mock(), repository);
+    requestEvent = mock();
+    service = new ApiClientsService(alerts, clock, mock(), mock(), repository, requestEvent);
+  });
+
+  describe('the event of the request', () => {
+    it('should name the client, even when it is refused', async () => {
+      await expect(
+        service.authorize({ ip: unknownIp, scope: 'magistrats:identification', token: 'token' }),
+      ).rejects.toThrow(ApiClientForbidden);
+
+      expect(requestEvent.set).toHaveBeenCalledWith({ 'api_client.id': 'client-1' });
+    });
+
+    it('should name the client a wrong secret is tried on', async () => {
+      await expect(
+        service.authenticate({ clientId: 'client-1', clientSecret: 'wrong', ip: partnerIp }),
+      ).rejects.toThrow(ApiClientUnauthenticated);
+
+      expect(requestEvent.set).toHaveBeenCalledWith({ 'api_client.id': 'client-1' });
+    });
+
+    it('should name nothing for an unknown token', async () => {
+      repository.findByToken.mockResolvedValue(null);
+
+      await expect(
+        service.authorize({ ip: partnerIp, scope: 'magistrats:identification', token: 'unknown' }),
+      ).rejects.toThrow(ApiClientUnauthenticated);
+
+      expect(requestEvent.set).not.toHaveBeenCalled();
+    });
+
+    it('should name nothing for an unknown client_id', async () => {
+      repository.findById.mockResolvedValue(null);
+
+      await expect(
+        service.authenticate({ clientId: 'unknown', clientSecret: secret, ip: partnerIp }),
+      ).rejects.toThrow(ApiClientUnauthenticated);
+
+      expect(requestEvent.set).not.toHaveBeenCalled();
+    });
   });
 
   describe('a client refused despite a right token or secret', () => {

@@ -14,6 +14,7 @@ import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import * as time from '../../utils/time';
 import { HasApiScope } from '../api-clients';
+import { RequestEvent } from '../framework/request-event';
 
 import { InvalidMagistratEmailDto } from './infrastructure/magistrat.dto';
 import {
@@ -32,6 +33,7 @@ export class MagistratPublicController {
   constructor(
     private readonly findMagistratStatusQuery: FindMagistratStatusQuery,
     private readonly identifyMagistratQuery: IdentifyMagistratQuery,
+    private readonly requestEvent: RequestEvent,
   ) {}
 
   @HasApiScope('magistrats:identification')
@@ -39,8 +41,15 @@ export class MagistratPublicController {
   @UsePipes(ZodValidationPipe)
   @ZodResponse({ status: HttpStatus.OK, type: IdentifiedMagistratDto })
   @ZodResponse<any>({ status: HttpStatus.BAD_REQUEST, type: InvalidMagistratEmailDto })
-  identifyMagistrat(@Body() body: IdentifyMagistratDto): Promise<IdentifiedMagistratDto> {
-    return this.identifyMagistratQuery.handle({ email: body.email });
+  async identifyMagistrat(@Body() body: IdentifyMagistratDto): Promise<IdentifiedMagistratDto> {
+    const identified = await this.identifyMagistratQuery.handle({ email: body.email });
+    // The identifier tells whom the call was about, never the address it was asked with
+    this.requestEvent.set({
+      'fondation.magistrat.id': identified.status === 'ACTIVE' ? identified.magistrat.id : undefined,
+      'fondation.magistrat.status': identified.status,
+    });
+
+    return identified;
   }
 
   @HasApiScope('magistrats:status')
@@ -50,9 +59,12 @@ export class MagistratPublicController {
   @ApiNotFoundResponse({ description: 'No _Magistrat_ has this identifier: its status could not be checked' })
   // Lets the website keep a status for a day instead of asking again
   @Header('Cache-Control', `private, max-age=${(1 * time.DAYS) / time.SECONDS}`)
-  findMagistratStatus(
+  async findMagistratStatus(
     @Param('magistratId', ParseUUIDPipe) magistratId: string,
   ): Promise<FoundMagistratStatusDto> {
-    return this.findMagistratStatusQuery.handle({ magistratId });
+    const found = await this.findMagistratStatusQuery.handle({ magistratId });
+    this.requestEvent.set({ 'fondation.magistrat.status': found.status });
+
+    return found;
   }
 }

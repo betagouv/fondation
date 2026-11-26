@@ -6,6 +6,7 @@ import {
   Get,
   Global,
   type INestApplication,
+  Injectable,
   Logger,
   Module,
   Post,
@@ -43,6 +44,17 @@ class Forbidden implements CanActivate {
   }
 }
 
+// As ApiScopeGuard: the client is known before its call is refused
+@Injectable()
+class KnownClientForbidden implements CanActivate {
+  constructor(private readonly requestEvent: RequestEvent) {}
+
+  canActivate(): boolean {
+    this.requestEvent.set({ 'api_client.id': 'client-id' });
+    return false;
+  }
+}
+
 const slowRequest = { answer: Promise.withResolvers<string>(), received: Promise.withResolvers<void>() };
 
 @Controller()
@@ -56,6 +68,12 @@ class TestController {
   @Get('forbidden')
   @UseGuards(Forbidden)
   forbidden(): never {
+    throw new Error('unreachable');
+  }
+
+  @Get('public')
+  @UseGuards(KnownClientForbidden)
+  public(): never {
     throw new Error('unreachable');
   }
 
@@ -244,6 +262,12 @@ describe('RequestEvent', () => {
       'http.route': '/forbidden',
       level: 'warn',
     });
+  });
+
+  it('should keep what the code serving the request set, even when it refuses it', async () => {
+    const event = await eventOf('/public');
+
+    expect(event).toMatchObject({ 'api_client.id': 'client-id', 'http.response.status_code': 403 });
   });
 
   it('should drop the message of the router, which quotes the URL', async () => {

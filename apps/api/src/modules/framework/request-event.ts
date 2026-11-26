@@ -10,9 +10,13 @@ import * as time from '../../utils/time';
 // Identifiers only: never a name, an email, a body, a query string or free text, the event is kept a year by Scalingo
 /** @see https://opentelemetry.io/docs/specs/semconv/ for the technical attributes */
 type RequestEventAttributes = {
+  // The client of the public API, as in the tags of its Sentry issues (see ApiClientAlerts)
+  'api_client.id'?: string;
   'error.message'?: string;
   'error.type'?: string;
   'fondation.impersonator.id'?: string;
+  // The answer of the public API about a magistrat (ACTIVE, INACTIVE or UNKNOWN), which its status code does not tell
+  'fondation.magistrat.status'?: string;
   'fondation.request.interrupted'?: true;
   'fondation.user.role'?: string;
   'http.request.method': string;
@@ -25,7 +29,7 @@ type RequestEventAttributes = {
   // The Sentry trace of the request, kept even when it is not sampled: its errors carry the same
   'trace.id'?: string;
   'user.id'?: string;
-  // The identifiers of the route, as `fondation.nomination_file.id` for `:nominationFileId`
+  // The identifiers of the route, as `fondation.nomination_file.id` for `:nominationFileId`, or of the record found (see set)
   [routeIdentifier: `fondation.${string}.id`]: string | undefined;
 };
 
@@ -103,6 +107,17 @@ export class RequestEvent {
   // Unlike an interceptor, it runs before the guards, so it sees the 401 and 403
   static mount(app: INestApplication): void {
     app.use(new ClsMiddleware({ generateId: true, idGenerator: requestId, setup: openEvent }).use);
+  }
+
+  /** What only the code serving the request knows, as the client of the public API or the magistrat it answered about */
+  set(
+    attributes: Pick<
+      RequestEventAttributes,
+      'api_client.id' | 'fondation.magistrat.status' | `fondation.${string}.id`
+    >,
+  ): void {
+    const event = this.cls.get<RequestEventAttributes | undefined>(REQUEST_EVENT);
+    if (event) Object.assign(event, attributes);
   }
 
   failWith(exception: unknown, request: ExpressRequest): void {
