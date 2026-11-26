@@ -26,25 +26,27 @@ function ofAsked(asked: AskedAlerts, alert: HolderAlert): boolean {
 
 /**
  * the alert and its deadline go together: "retirement within six months" leaves out a retirement in ten
- * months, even beside a proposal next month. A declared vacancy is no alert: its start date answers the deadline
- * only while no alert is asked
+ * months even beside a proposal next month. Without an alert asked a vacant position is due today and a vacancy
+ * declared ahead on its start date
  */
 export function alertFacetValues(
   asked: AskedAlerts,
   today: DateOnly,
 ): {
   alert: (alerts: readonly HolderAlert[]) => PositionAlert[];
-  deadline: (position: Pick<AssessedPosition, 'alerts' | 'vacancyStartDate'>) => AlertDeadline[];
+  deadline: (position: AssessedPosition) => AlertDeadline[];
 } {
   return {
     alert: (alerts) => alerts.filter((alert) => ofAsked({ ...asked, alert: [] }, alert)).map(({ id }) => id),
-    deadline: ({ alerts, vacancyStartDate }) =>
-      deadlinesOf([
+    deadline: ({ alerts, status, vacancyStartDate }) => {
+      const vacancyDueDate = status.id === 'VACANT' ? today : vacancyStartDate;
+      return deadlinesOf([
         ...alerts.filter((alert) => ofAsked({ ...asked, deadline: [] }, alert)),
-        ...(vacancyStartDate && asked.alert.length === 0
-          ? [{ deadline: deadlineOf(vacancyStartDate, today) }]
+        ...(vacancyDueDate && asked.alert.length === 0
+          ? [{ deadline: deadlineOf(vacancyDueDate, today) }]
           : []),
-      ]),
+      ]);
+    },
   };
 }
 
