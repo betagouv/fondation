@@ -71,7 +71,7 @@ const slowRequest = { answer: Promise.withResolvers<string>(), received: Promise
 class TestController {
   constructor(private readonly wideEvent: WideEvent) {}
 
-  // As a PDF retried after Gotenberg failed once
+  // Two calls to the same service, the first failing
   @Get('pdf')
   async pdf(): Promise<string> {
     await this.wideEvent
