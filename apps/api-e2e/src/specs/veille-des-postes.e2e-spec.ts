@@ -591,6 +591,21 @@ test.describe('Veille des postes E2E', () => {
     });
   });
 
+  test('should filter a court of appeal without first president within the next six months', async ({
+    agent,
+    expect,
+  }) => {
+    const { data } = await agent.veilleDesPostes.listCourtOfAppealFirstPresidents({
+      query: { deadlines: ['WITHIN_SIX_MONTHS'], search: 'Reims' },
+      throwOnError: true,
+    });
+
+    // no test names a first president of Reims
+    expect(data.items).toEqual([
+      expect.objectContaining({ court: expect.objectContaining({ id: 'CA  REIMS' }), magistrat: null }),
+    ]);
+  });
+
   test('should list only the holders of the positions asked', async ({ agent, expect, sessions }) => {
     const lastName = Array.from({ length: 12 }, () => String.fromCharCode(65 + crypto.randomInt(26))).join('');
     const counsellor = {

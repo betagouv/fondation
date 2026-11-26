@@ -72,8 +72,18 @@ describe('alertFacetValues', () => {
     expect(values.deadline(position('vacancy in two years', {}, new DateOnly(2028, 11, 13)))).toEqual([]);
   });
 
-  it('leaves out a declared vacancy when an alert is asked', () => {
-    expect(alertFacetValues({ alert: ['RETIREMENT'], deadline: [] }, TODAY).deadline(DECLARED)).toEqual([]);
+  it('answers both deadlines for a court without holder', () => {
+    expect(alertFacetValues(NO_FILTER, TODAY).deadline(VACANT)).toEqual([
+      'WITHIN_SIX_MONTHS',
+      'WITHIN_TWELVE_MONTHS',
+    ]);
+  });
+
+  it('leaves out a vacancy when an alert is asked', () => {
+    const values = alertFacetValues({ alert: ['RETIREMENT'], deadline: [] }, TODAY);
+
+    expect(values.deadline(DECLARED)).toEqual([]);
+    expect(values.deadline(VACANT)).toEqual([]);
   });
 });
 
