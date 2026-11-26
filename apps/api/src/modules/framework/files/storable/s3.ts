@@ -43,6 +43,7 @@ export class S3Client implements Pick<S3, 'send'>, OnApplicationBootstrap {
     }
 
     this.bucketName = config.s3.bucket;
+    // TODO: see Files, which builds the same client, encryption and CORS rules until this module replaces it
     this.client = new S3({
       maxAttempts: 3,
       region: config.s3.region,

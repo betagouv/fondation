@@ -116,6 +116,7 @@ export class Files implements OnApplicationBootstrap {
 
     this.expiresInSeconds = config.s3.signedUrlDurationSeconds;
     this.bucketName = config.s3.bucket;
+    // TODO: see S3Client in storable/s3.ts, which builds the same client, encryption and CORS rules for StorableModule
     this.client = new S3Client({
       credentials: config.s3.credentials,
       endpoint: config.s3.endpoint,
