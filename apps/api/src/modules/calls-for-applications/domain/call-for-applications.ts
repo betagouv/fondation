@@ -49,7 +49,6 @@ const TARGET_COURT_TYPE_LABELS: Record<TargetCourtType, string> = {
   JUDICIAL_COURT: 'Tribunaux judiciaires',
 };
 
-/** the type within a sentence: "parmi les tribunaux judiciaires" */
 const TARGET_COURT_TYPES_IN_SENTENCE: Record<TargetCourtType, string> = {
   COURT_OF_APPEAL: "cours d'appel",
   JUDICIAL_COURT: 'tribunaux judiciaires',
