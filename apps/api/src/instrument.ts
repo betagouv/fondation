@@ -11,7 +11,8 @@ if (config.isProduction) {
     ...WITHOUT_PERSONAL_DATA,
     dsn: assertIsDefined('sentryDsn' in config ? config.sentryDsn : undefined, 'sentry DSN in not available'),
     sampleRate: 1.0,
-    tracesSampleRate: 0.2,
+    // Every request, so that the trace of each request event in Sentry Logs exists (≈ 6,000 a day in production)
+    tracesSampleRate: 1.0,
     environment: process.env.DEPLOY_ENV,
     release: [config.appName, config.appVersion].filter((x) => !!x).join('@'),
   });

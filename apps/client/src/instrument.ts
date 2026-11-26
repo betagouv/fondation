@@ -10,7 +10,7 @@ Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN,
   tunnel: '/monitoring',
   release: [`fondation-client`, import.meta.env.VITE_TAGGED_VERSION].filter((x) => !!x?.trim()).join('@'),
-  sampleRate: 0.8,
+  sampleRate: 1.0,
   tracesSampleRate: 0.2,
   ignoreErrors: [/UnauthorizedHttpException/],
   integrations: [
