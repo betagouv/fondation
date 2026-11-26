@@ -82,7 +82,12 @@ export function Tooltip(props: {
           if (event.target instanceof Element && !event.target.matches(':focus-visible')) return;
           show();
         }}
-        onKeyDown={(event) => event.key === 'Escape' && hide()}
+        onKeyDown={(event) => {
+          if (event.key !== 'Escape' || !isShown) return;
+          // the first Escape only hides the bubble: a dialog around it would close on the same key
+          event.preventDefault();
+          hide();
+        }}
         onPointerEnter={show}
         onPointerLeave={hide}
         ref={anchorRef}
