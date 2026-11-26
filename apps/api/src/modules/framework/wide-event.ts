@@ -7,7 +7,7 @@ import { ClsMiddleware, ClsService } from 'nestjs-cls';
 
 import * as time from '../../utils/time';
 
-/** The services a request or a command waits for: Tchap and Scalingo are called outside of them */
+/** The services a slow PDF or file waits for: Tchap, Scalingo and OpenID tell their failures already (see the ADR) */
 type OutboundService = 'gotenberg' | 'storage';
 
 // Per service called, without its URL nor the name of a file, which can quote a magistrat

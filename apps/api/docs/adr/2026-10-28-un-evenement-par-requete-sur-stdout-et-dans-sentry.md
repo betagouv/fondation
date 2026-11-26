@@ -118,8 +118,11 @@ ligne s'écrit avec, en `request.id`, le `request_id` de la ligne du routeur.
   chronométré par un middleware de chaque client S3, à l'étape qui envoie la requête : chaque
   tentative compte, une URL signée, construite sans appel, ne compte pas. La lecture d'un fichier par
   son URL signée l'est jusqu'aux en-têtes de la réponse, le corps passant ensuite au navigateur ; elle
-  compte pour un appel avec les nouvelles tentatives de `HttpService`, pauses comprises. Tchap
-  et l'API Scalingo ne sont pas suivis : appelés hors requête, leurs échecs vont déjà à Sentry.
+  compte pour un appel avec les nouvelles tentatives de `HttpService`, pauses comprises. Tchap,
+  l'API Scalingo et le fournisseur OpenID ne sont pas suivis, bien que des requêtes les attendent
+  (`POST /api/ingest/v1/lolfi`, `POST /api/tchap/alerts`, le retour de connexion) : un PDF ou un
+  fichier lent est le cas à diagnostiquer, et leurs échecs se voient déjà, dans Sentry pour Tchap,
+  dans l'erreur de la requête pour Scalingo et OpenID.
 - **Des identifiants seulement** : utilisateur, rôle, usurpateur, statut, route, durée, `error.type`,
   et les identifiants de la route (`:sessionId` devient `fondation.session.id`, `:nominationFileId`
   `fondation.nomination_file.id`), lus dans `req.params` à l'émission sans rien ajouter dans chaque
