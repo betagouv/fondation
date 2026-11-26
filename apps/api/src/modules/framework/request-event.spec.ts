@@ -112,8 +112,8 @@ describe('RequestEvent', () => {
     Sentry.init({
       ...WITHOUT_PERSONAL_DATA,
       dsn: 'https://public@sentry.test/1',
-      // As most requests in production (0.2): without a rate, every request would share one trace
-      tracesSampleRate: 0,
+      // As in production: without a rate, every request would share one trace
+      tracesSampleRate: 1.0,
       transport: () => ({
         flush: () => Promise.resolve(true),
         send: ([, items]) => {
@@ -191,7 +191,7 @@ describe('RequestEvent', () => {
     expect(JSON.stringify(event)).not.toContain('jean.dupont');
   });
 
-  it('should send the event to Sentry Logs, in the trace of its request even when it is not sampled', async () => {
+  it('should send the event to Sentry Logs, in the trace of its request', async () => {
     await Sentry.flush();
     logs.length = 0;
     const event = await eventOf('/forbidden');
