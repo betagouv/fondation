@@ -141,7 +141,10 @@ ligne s'écrit avec, en `request.id`, le `request_id` de la ligne du routeur.
   l'ingestion pose sans lever d'exception.
 - `app.close()` vide le tampon de Sentry à la fin de chaque commande, réussie ou non
   (`SentryService.onApplicationShutdown`). Une erreur de commander lui-même, comme une option
-  inconnue, arrête le processus aussitôt : elle n'a ni événement ni erreur dans Sentry.
+  inconnue, arrête le processus aussitôt : elle n'a ni événement ni erreur dans Sentry. Une commande
+  tuée par un signal, comme un conteneur que Scalingo arrête, n'en a pas non plus : la CLI ne pose pas
+  de shutdown hooks. L'annulation d'une ingestion passe par `SIGUSR1`, que la commande attend : elle a
+  son événement.
 - La métrique Sentry `http.server.request.duration` disparaît : les durées se lisent dans les
   événements.
 - Si l'incubateur désactive les Logs ou change d'instance, l'API continue d'écrire sur stdout et l'on
