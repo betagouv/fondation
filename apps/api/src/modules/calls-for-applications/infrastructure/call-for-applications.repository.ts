@@ -16,6 +16,8 @@ import {
   CallForApplicationsUpdated,
 } from '../domain/call-for-applications';
 
+import { guidelinesAdaptationColumnsOf, guidelinesAdaptationsOf } from './guidelines-adaptation-columns';
+
 @Injectable()
 export class CallForApplicationsRepository {
   constructor(
@@ -27,6 +29,8 @@ export class CallForApplicationsRepository {
   async find({ id }: { id: string }): Promise<CallForApplications> {
     const call = await this.db.tx.callForApplications.findUnique({
       select: {
+        adaptsCourtOfAppealGuidelines: true,
+        adaptsJudicialCourtGuidelines: true,
         comment: true,
         deadline: true,
         id: true,
@@ -43,6 +47,7 @@ export class CallForApplicationsRepository {
     return CallForApplications.from({
       ...call,
       deadline: DateOnly.fromOptionalUtcDate(call.deadline),
+      guidelinesAdaptations: guidelinesAdaptationsOf(call),
       publishedOn: DateOnly.fromOptionalUtcDate(call.publishedOn),
       targetCourts: call.targetCourts.map(({ courtId }) => courtId),
       targetPositions: call.targetPositions.map(({ position }) => position),
@@ -152,6 +157,7 @@ function itemChangesOf<T>(items: AddedAndRemoved<T>) {
 
 function columnsOf(metadata: CallForApplicationsCreated['metadata']) {
   return {
+    ...guidelinesAdaptationColumnsOf(metadata.guidelinesAdaptations),
     comment: metadata.comment,
     deadline: metadata.deadline?.toDate() ?? null,
     publishedOn: metadata.publishedOn?.toDate() ?? null,

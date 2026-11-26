@@ -3344,6 +3344,7 @@ export type ChangeFeedbackStatusDto = {
 export type CreateCallForApplicationsDto = {
     comment?: string | null;
     deadline?: string | null;
+    guidelinesAdaptations?: Array<'COURT_OF_APPEAL' | 'JUDICIAL_COURT'> | null;
     publishedOn?: string | null;
     targetCourts?: Array<string> | null;
     targetPositions?: Array<'FIRST_PRESIDENT' | 'CHAMBER_PRESIDENT' | 'COUNSELLOR' | 'REFERENDARY_COUNSELLOR' | 'AUDITOR_SECOND_GRADE' | 'AUDITOR_FIRST_GRADE'> | null;
@@ -3366,6 +3367,7 @@ export type FoundCallForApplicationsFormDto = {
             label: string;
             type: 'COURT_OF_APPEAL' | 'JUDICIAL_COURT';
         }>;
+        guidelinesAdaptationLabel: string;
         type: {
             id: 'COURT_OF_APPEAL' | 'JUDICIAL_COURT';
             label: string;
@@ -3376,10 +3378,12 @@ export type FoundCallForApplicationsFormDto = {
         label: string;
     }>;
     types: Array<{
-        id: 'GENERAL' | 'SPECIFIC' | 'CCASS';
-        label: string;
         scope: string;
         targetPick: 'NONE' | 'COURTS' | 'POSITIONS';
+        type: {
+            id: 'GENERAL' | 'SPECIFIC' | 'CCASS';
+            label: string;
+        };
     }>;
 };
 
@@ -3397,6 +3401,10 @@ export type ListedCallsForApplicationsDto = {
             month: number;
             day: number;
         } | null;
+        guidelinesAdaptations: Array<{
+            id: 'COURT_OF_APPEAL' | 'JUDICIAL_COURT';
+            label: string;
+        }>;
         history: Array<{
             action: 'CREATED' | 'UPDATED' | 'DELETED';
             at: string;
@@ -3462,6 +3470,7 @@ export type ListedCallsForApplicationsDto = {
 export type UpdateCallForApplicationsDto = {
     comment?: string | null;
     deadline?: string | null;
+    guidelinesAdaptations?: Array<'COURT_OF_APPEAL' | 'JUDICIAL_COURT'> | null;
     publishedOn?: string | null;
     targetCourts?: Array<string> | null;
     targetPositions?: Array<'FIRST_PRESIDENT' | 'CHAMBER_PRESIDENT' | 'COUNSELLOR' | 'REFERENDARY_COUNSELLOR' | 'AUDITOR_SECOND_GRADE' | 'AUDITOR_FIRST_GRADE'> | null;

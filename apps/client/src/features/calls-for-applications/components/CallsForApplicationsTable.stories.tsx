@@ -51,11 +51,20 @@ const UNPUBLISHED = { id: 'UNPUBLISHED', label: 'Non publié' } as const;
 
 /** a call as the API lists it: general and without a target by default */
 function call(
-  listed: Omit<ListedCall, 'comment' | 'targetCourts' | 'targetLabel' | 'targetPositions' | 'type'> &
-    Partial<Pick<ListedCall, 'comment' | 'targetCourts' | 'targetLabel' | 'targetPositions' | 'type'>>,
+  listed: Omit<
+    ListedCall,
+    'comment' | 'guidelinesAdaptations' | 'targetCourts' | 'targetLabel' | 'targetPositions' | 'type'
+  > &
+    Partial<
+      Pick<
+        ListedCall,
+        'comment' | 'guidelinesAdaptations' | 'targetCourts' | 'targetLabel' | 'targetPositions' | 'type'
+      >
+    >,
 ): ListedCall {
   return {
     comment: null,
+    guidelinesAdaptations: [],
     targetCourts: [],
     targetLabel: "Cours d'appel et tribunaux judiciaires",
     targetPositions: [],
@@ -104,7 +113,14 @@ const CALLS: Record<'ONGOING' | 'PAST', ListedCall[]> = {
       comment: 'Présidences vacantes au 1er mars',
       createdOn: { day: 23, month: 11, year: 2026 },
       deadline: { day: 22, month: 1, year: 2027 },
+      guidelinesAdaptations: [{ id: 'JUDICIAL_COURT', label: 'Tribunaux judiciaires' }],
       history: [
+        updated('2026-11-26T09:00:00.000Z', ME, [
+          changed(
+            ADDED,
+            "l'adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel pour les tribunaux judiciaires",
+          ),
+        ]),
         updated('2026-11-25T09:00:00.000Z', ME, [
           changed(CHANGED, 'la date limite du 15/01/2027 au 22/01/2027'),
           changed(ADDED, 'un commentaire'),
@@ -225,6 +241,8 @@ const FORM: FoundCallForApplicationsFormDto = {
   targetCourtTypes: [
     {
       courts: [COURTS['CA  AGEN'], COURTS['CA  LYON']],
+      guidelinesAdaptationLabel:
+        "Adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel pour les cours d'appel",
       type: { id: 'COURT_OF_APPEAL', label: "Cours d'appel" },
     },
     {
@@ -237,6 +255,8 @@ const FORM: FoundCallForApplicationsFormDto = {
         COURTS['TPI NOUMEA'],
         COURTS['TJ  PARIS'],
       ],
+      guidelinesAdaptationLabel:
+        "Adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel pour les tribunaux judiciaires",
       type: { id: 'JUDICIAL_COURT', label: 'Tribunaux judiciaires' },
     },
   ],
@@ -250,20 +270,17 @@ const FORM: FoundCallForApplicationsFormDto = {
   ],
   types: [
     {
-      id: 'GENERAL',
-      label: 'Général',
+      type: { id: 'GENERAL', label: 'Général' },
       scope: "Vise tous les postes des cours d'appel et des tribunaux judiciaires",
       targetPick: 'NONE',
     },
     {
-      id: 'SPECIFIC',
-      label: 'Spécifique',
+      type: { id: 'SPECIFIC', label: 'Spécifique' },
       scope: 'Vise la présidence des juridictions choisies',
       targetPick: 'COURTS',
     },
     {
-      id: 'CCASS',
-      label: 'Cour de cassation',
+      type: { id: 'CCASS', label: 'Cour de cassation' },
       scope: 'Vise les postes de la Cour de cassation choisis',
       targetPick: 'POSITIONS',
     },
@@ -365,7 +382,7 @@ const meta = {
           nextPageIndex: args.nextPageFails ? page + 1 : undefined,
           statuses: [UNPUBLISHED, PUBLISHED],
           totalCount: args.nextPageFails ? items.length + 1 : items.length,
-          types: FORM.types.map(({ id, label }) => ({ id, label })),
+          types: FORM.types.map(({ type }) => type),
           years: [2026, 2025],
         });
       }),

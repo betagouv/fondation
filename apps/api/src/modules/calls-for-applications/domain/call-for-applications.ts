@@ -49,6 +49,18 @@ const TARGET_COURT_TYPE_LABELS: Record<TargetCourtType, string> = {
   JUDICIAL_COURT: 'Tribunaux judiciaires',
 };
 
+/** what a specific call may adapt for each type of court it targets: the switch and the history read it */
+const GUIDELINES_ADAPTATION_LABELS: Record<TargetCourtType, string> = {
+  COURT_OF_APPEAL:
+    "Adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel pour les cours d'appel",
+  JUDICIAL_COURT:
+    "Adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel pour les tribunaux judiciaires",
+};
+
+export function guidelinesAdaptationLabelOf(type: TargetCourtType): string {
+  return GUIDELINES_ADAPTATION_LABELS[type];
+}
+
 export function targetCourtTypeOptionOf(id: TargetCourtType) {
   return { id, label: TARGET_COURT_TYPE_LABELS[id] };
 }
@@ -128,6 +140,8 @@ export type CallForApplicationsAction = (typeof CALL_FOR_APPLICATIONS_ACTIONS)[n
 export const CALL_FOR_APPLICATIONS_FIELDS = [
   'TYPE',
   'TARGET_COURTS',
+  'COURT_OF_APPEAL_GUIDELINES_ADAPTATION',
+  'JUDICIAL_COURT_GUIDELINES_ADAPTATION',
   'TARGET_POSITIONS',
   'PUBLISHED_ON',
   'DEADLINE',
@@ -168,11 +182,7 @@ export function callForApplicationsTypeOf(id: CallForApplicationsType) {
 }
 
 export function callForApplicationsTypeOptionOf(id: CallForApplicationsType) {
-  return {
-    ...callForApplicationsTypeOf(id),
-    scope: TYPE_SCOPES[id],
-    targetPick: targetPickOf(id),
-  };
+  return { scope: TYPE_SCOPES[id], targetPick: targetPickOf(id), type: callForApplicationsTypeOf(id) };
 }
 
 export function callForApplicationsStatusOf(id: CallForApplicationsStatus) {
@@ -188,6 +198,8 @@ export class UntargetableCourt extends Error {}
 type Metadata = {
   comment: string | null;
   deadline: DateOnly | null;
+  /** the types of court for which a specific call waives the time on the current post the management guidelines ask */
+  guidelinesAdaptations: readonly TargetCourtType[];
   publishedOn: DateOnly | null;
   /** the ids of the courts in the referential */
   targetCourts: readonly string[];
@@ -195,8 +207,11 @@ type Metadata = {
   type: CallForApplicationsType;
 };
 
-/** the courts a call may target: the targetable ones of the referential among those requested */
-type TargetableCourts = { targetableCourts: ReadonlySet<string> };
+/** a court of the referential with its type and whether a call may target it now */
+export type KnownCourt = { targetable: boolean; type: TargetCourtType };
+
+/** the courts of the referential among those requested (a court of another type is left out) */
+type KnownCourts = { knownCourts: ReadonlyMap<string, KnownCourt> };
 
 /** once published, only an administrator may still change or delete a call */
 export function canChange(call: { status: CallForApplicationsStatus }, actor: { isAdmin: boolean }): boolean {
@@ -209,7 +224,7 @@ function uniqueCourts(courts: readonly string[]): string[] {
 }
 
 /** the deadline cannot precede the publication and a call keeps only the target of its type (one at least) */
-function validated(metadata: Metadata, targetableCourts: ReadonlySet<string>): Metadata {
+function validated(metadata: Metadata, knownCourts: ReadonlyMap<string, KnownCourt>): Metadata {
   const { deadline, publishedOn } = metadata;
   if (deadline && publishedOn && deadline.toDate() < publishedOn.toDate())
     throw new DeadlineBeforePublication();
@@ -220,9 +235,21 @@ function validated(metadata: Metadata, targetableCourts: ReadonlySet<string>): M
 
   const targetCourts = pick === 'COURTS' ? uniqueCourts(metadata.targetCourts) : [];
   if (pick === 'COURTS' && targetCourts.length === 0) throw new MissingTargetCourt();
-  if (targetCourts.some((court) => !targetableCourts.has(court))) throw new UntargetableCourt();
+  if (targetCourts.some((court) => !knownCourts.get(court)?.targetable)) throw new UntargetableCourt();
 
-  return { ...metadata, comment: metadata.comment?.trim() || null, targetCourts, targetPositions };
+  // an adaptation stands only for a type of court the call targets
+  const targetedTypes = targetCourts.map((court) => knownCourts.get(court)?.type);
+  const guidelinesAdaptations = TARGET_COURT_TYPES.filter(
+    (type) => targetedTypes.includes(type) && metadata.guidelinesAdaptations.includes(type),
+  );
+
+  return {
+    ...metadata,
+    comment: metadata.comment?.trim() || null,
+    guidelinesAdaptations,
+    targetCourts,
+    targetPositions,
+  };
 }
 
 /** a value filled or emptied (null when it stays the same) */
@@ -250,6 +277,14 @@ function changedFields(
   targets: { courts: AddedAndRemoved<string>; positions: AddedAndRemoved<CourtOfCassationPosition> },
 ): CallForApplicationsChangedField[] {
   const isSame = <T>(a: T, b: T) => a === b;
+  const adaptation = (type: TargetCourtType) => ({
+    ...NO_VALUE,
+    change: valueChangeOf(
+      before.guidelinesAdaptations.includes(type) || null,
+      after.guidelinesAdaptations.includes(type) || null,
+      isSame,
+    ),
+  });
   const dates = (dateBefore: DateOnly | null, dateAfter: DateOnly | null) => ({
     ...NO_VALUE,
     change: valueChangeOf(dateBefore, dateAfter, (a, b) => a.equals(b)),
@@ -261,7 +296,9 @@ function changedFields(
     ChangedValues & { change: CallForApplicationsFieldChange | null }
   > = {
     COMMENT: { ...NO_VALUE, change: valueChangeOf(before.comment, after.comment, isSame) },
+    COURT_OF_APPEAL_GUIDELINES_ADAPTATION: adaptation('COURT_OF_APPEAL'),
     DEADLINE: dates(before.deadline, after.deadline),
+    JUDICIAL_COURT_GUIDELINES_ADAPTATION: adaptation('JUDICIAL_COURT'),
     PUBLISHED_ON: dates(before.publishedOn, after.publishedOn),
     TARGET_COURTS: { ...NO_VALUE, change: listChangeOf(targets.courts) },
     TARGET_POSITIONS: { ...NO_VALUE, change: listChangeOf(targets.positions) },
@@ -329,6 +366,9 @@ export class CallForApplications {
     const { id, status, ...metadata } = props;
     return new CallForApplications(id, status, {
       ...metadata,
+      guidelinesAdaptations: TARGET_COURT_TYPES.filter((type) =>
+        metadata.guidelinesAdaptations.includes(type),
+      ),
       targetCourts: uniqueCourts(metadata.targetCourts),
       targetPositions: sortedByHierarchy(metadata.targetPositions),
     });
@@ -336,22 +376,28 @@ export class CallForApplications {
 
   /** createdOn is the day it is saved in Fondation: the agent does not pick it */
   static create(
-    command: Metadata & TargetableCourts & { authorId: string; createdOn: DateOnly },
+    command: Metadata & KnownCourts & { authorId: string; createdOn: DateOnly },
   ): CallForApplications {
-    const { authorId, createdOn, targetableCourts, ...metadata } = command;
-    const call = new CallForApplications(makeId(), 'UNPUBLISHED', validated(metadata, targetableCourts));
+    const { authorId, createdOn, knownCourts, ...metadata } = command;
+    const call = new CallForApplications(makeId(), 'UNPUBLISHED', validated(metadata, knownCourts));
     call.#messages.push(new CallForApplicationsCreated(authorId, createdOn, call.id, call.metadata));
 
     return call;
   }
 
   /** every field is replaced: only the ones that changed go to the history (nothing when none did) */
-  update(command: Metadata & TargetableCourts & { actor: { id: string; isAdmin: boolean } }): void {
-    const { actor, targetableCourts, ...requested } = command;
+  update(command: Metadata & KnownCourts & { actor: { id: string; isAdmin: boolean } }): void {
+    const { actor, knownCourts, ...requested } = command;
     if (!canChange({ status: this.status }, actor)) throw new PublishedCallLocked();
 
     // a court removed since the call targeted it stays allowed
-    const metadata = validated(requested, new Set([...targetableCourts, ...this.metadata.targetCourts]));
+    const allowed = new Map(
+      [...knownCourts].map(([id, court]) => [
+        id,
+        this.metadata.targetCourts.includes(id) ? { ...court, targetable: true } : court,
+      ]),
+    );
+    const metadata = validated(requested, allowed);
     const courts = addedAndRemoved(this.metadata.targetCourts, metadata.targetCourts);
     const positions = addedAndRemoved(this.metadata.targetPositions, metadata.targetPositions);
     const fields = changedFields(this.metadata, metadata, { courts, positions });
