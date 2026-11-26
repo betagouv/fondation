@@ -30,6 +30,7 @@ import {
   sortedByHierarchy,
   sortedCourts,
   targetCourtOf,
+  targetCourtTypeOptionOf,
   targetLabelOf,
   targetPositionOf,
 } from '../../domain/call-for-applications';
@@ -48,8 +49,10 @@ import {
   callForApplicationsTypeSchema,
   changedTargetSchema,
   targetCourtSchema,
+  targetCourtTypeSchema,
   targetPositionSchema,
 } from '../call-for-applications.dto';
+import { guidelinesAdaptationsOf } from '../guidelines-adaptation-columns';
 
 type JournaledItem = { fieldChange: CallForApplicationsFieldChange; label: string };
 
@@ -108,6 +111,8 @@ export class ListCallsForApplicationsQuery {
     const today = DateOnly.fromInstantInParis(this.clock.now());
     const rows = await this.db.tx.callForApplications.findMany({
       select: {
+        adaptsCourtOfAppealGuidelines: true,
+        adaptsJudicialCourtGuidelines: true,
         comment: true,
         createdOn: true,
         deadline: true,
@@ -126,6 +131,7 @@ export class ListCallsForApplicationsQuery {
         ...row,
         createdOn: DateOnly.fromUtcDate(row.createdOn),
         deadline: DateOnly.fromOptionalUtcDate(row.deadline),
+        guidelinesAdaptations: guidelinesAdaptationsOf(row),
         publishedOn: DateOnly.fromOptionalUtcDate(row.publishedOn),
         targetCourts: sortedCourts(row.targetCourts.map(({ court }) => court)).map(targetCourtOf),
         targetPositions: sortedByHierarchy(row.targetPositions.map(({ position }) => position)),
@@ -179,6 +185,7 @@ export class ListCallsForApplicationsQuery {
           comment: call.comment,
           createdOn: call.createdOn.toJson(),
           deadline: call.deadline?.toJson() ?? null,
+          guidelinesAdaptations: call.guidelinesAdaptations.map(targetCourtTypeOptionOf),
           history: changes
             .filter(({ callId }) => callId === call.id)
             .map((change) => ({
@@ -230,6 +237,8 @@ export class ListedCallsForApplicationsDto extends createPaginatedZodDto(
     comment: z.string().nullable(),
     createdOn: dateOnlyJsonSchema,
     deadline: dateOnlyJsonSchema.nullable(),
+    /** the types of court whose management guidelines a specific call adapts to fill the form of an update */
+    guidelinesAdaptations: z.array(targetCourtTypeSchema),
     /** what was done to the call, the latest first: never empty, it holds at least the creation */
     history: z.array(
       z.object({

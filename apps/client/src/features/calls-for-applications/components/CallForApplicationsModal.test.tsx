@@ -47,20 +47,17 @@ const FORM: FoundCallForApplicationsFormDto = {
   ],
   types: [
     {
-      id: 'GENERAL',
-      label: 'Général',
+      type: { id: 'GENERAL', label: 'Général' },
       scope: "Vise tous les postes des cours d'appel et des tribunaux judiciaires",
       targetPick: 'NONE',
     },
     {
-      id: 'SPECIFIC',
-      label: 'Spécifique',
+      type: { id: 'SPECIFIC', label: 'Spécifique' },
       scope: 'Vise la présidence des juridictions choisies',
       targetPick: 'COURTS',
     },
     {
-      id: 'CCASS',
-      label: 'Cour de cassation',
+      type: { id: 'CCASS', label: 'Cour de cassation' },
       scope: 'Vise les postes de la Cour de cassation choisis',
       targetPick: 'POSITIONS',
     },
@@ -72,6 +69,7 @@ const SAVED = {
   comment: null,
   createdOn: { day: 20, month: 11, year: 2026 },
   deadline: null,
+  guidelinesAdaptations: [],
   history: [],
   id: 'call-1',
   publishedOn: null,
@@ -81,6 +79,10 @@ const SAVED = {
   targetPositions: [],
   type: { id: 'GENERAL', label: 'Général' },
 } satisfies CallForApplications;
+
+function adaptationOf(group: string): string {
+  return `Adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel pour les ${group}`;
+}
 
 /** what the client of the API throws on a 400 naming what to fix */
 function refusal(validationError: string): unknown {
@@ -136,6 +138,7 @@ describe('CallForApplicationsModal', () => {
         body: {
           comment: null,
           deadline: null,
+          guidelinesAdaptations: [],
           publishedOn: null,
           targetCourts: [],
           targetPositions: [],
@@ -195,6 +198,7 @@ describe('CallForApplicationsModal', () => {
         body: {
           comment: 'Postes vacants et créés',
           deadline: '2027-01-15',
+          guidelinesAdaptations: [],
           publishedOn: '2026-12-01',
           targetCourts: [],
           targetPositions: [],
@@ -295,12 +299,16 @@ describe('CallForApplicationsModal', () => {
     expect(save).toBeEnabled();
   });
 
-  it('opens a specific call on its courts and drops those of a type unchecked', async () => {
+  it('opens a specific call on its courts and drops those of a type unchecked with its adaptation', async () => {
     const update = vi
       .spyOn($api.callsForApplications, 'updateCallForApplications')
       .mockResolvedValue({ data: undefined } as never);
     renderModal({
       ...SAVED,
+      guidelinesAdaptations: [
+        { id: 'COURT_OF_APPEAL', label: "Cours d'appel" },
+        { id: 'JUDICIAL_COURT', label: 'Tribunaux judiciaires' },
+      ],
       targetCourts: [
         { id: 'CA  AGEN', label: "Cour d'appel d'Agen", type: 'COURT_OF_APPEAL' },
         { id: 'TJ  AUCH', label: "Tribunal judiciaire d'Auch", type: 'JUDICIAL_COURT' },
@@ -312,12 +320,43 @@ describe('CallForApplicationsModal', () => {
 
     expect(await screen.findByRole('checkbox', { name: "Cour d'appel d'Agen" })).toBeChecked();
     expect(screen.getByRole('checkbox', { name: "Tribunal judiciaire d'Auch" })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: adaptationOf("cours d'appel") })).toBeChecked();
     await user.click(screen.getByRole('checkbox', { name: "Cours d'appel" }));
     expect(screen.queryByRole('checkbox', { name: "Cour d'appel d'Agen" })).not.toBeInTheDocument();
+    expect(screen.queryByRole('checkbox', { name: adaptationOf("cours d'appel") })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('checkbox', { name: "Cours d'appel" }));
+    expect(screen.getByRole('checkbox', { name: adaptationOf("cours d'appel") })).not.toBeChecked();
+    await user.click(screen.getByRole('checkbox', { name: "Cours d'appel" }));
     await user.click(screen.getByRole('button', { name: 'Enregistrer les modifications' }));
 
     expect(update).toHaveBeenCalledWith(
-      expect.objectContaining({ body: expect.objectContaining({ targetCourts: ['TJ  AUCH'] }) }),
+      expect.objectContaining({
+        body: expect.objectContaining({
+          guidelinesAdaptations: ['JUDICIAL_COURT'],
+          targetCourts: ['TJ  AUCH'],
+        }),
+      }),
+    );
+  });
+
+  it('offers the adaptation of the guidelines only under a type of court checked', async () => {
+    const create = vi
+      .spyOn($api.callsForApplications, 'createCallForApplications')
+      .mockResolvedValue({ data: { id: 'call-1' } } as never);
+    renderModal();
+    const user = userEvent.setup();
+
+    await user.selectOptions(await screen.findByRole('combobox', { name: /Type d'appel/ }), 'SPECIFIC');
+    await user.click(screen.getByRole('checkbox', { name: 'Tribunaux judiciaires' }));
+    expect(screen.queryByRole('checkbox', { name: adaptationOf("cours d'appel") })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('checkbox', { name: "Tribunal judiciaire d'Auch" }));
+    await user.click(screen.getByRole('checkbox', { name: adaptationOf('tribunaux judiciaires') }));
+    await user.click(screen.getByRole('button', { name: "Créer l'appel à candidatures" }));
+
+    expect(create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: expect.objectContaining({ guidelinesAdaptations: ['JUDICIAL_COURT'] }),
+      }),
     );
   });
 

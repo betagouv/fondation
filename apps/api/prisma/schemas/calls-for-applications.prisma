@@ -1,12 +1,15 @@
 // a call for applications launched by the CSM, prepared in Fondation before its publication
 model CallForApplications {
-  comment     String?
-  createdOn   DateTime                            @map("created_on") @db.Date
-  deadline    DateTime?                           @db.Date
-  id          String                              @id @db.Uuid
-  publishedOn DateTime?                           @map("published_on") @db.Date
-  status      PrismaCallForApplicationsStatusEnum @default(UNPUBLISHED)
-  type        PrismaCallForApplicationsTypeEnum
+  // whether a specific call waives the time on the current post that the management guidelines ask (per type of court)
+  adaptsCourtOfAppealGuidelines Boolean                             @default(false) @map("adapts_court_of_appeal_guidelines")
+  adaptsJudicialCourtGuidelines Boolean                             @default(false) @map("adapts_judicial_court_guidelines")
+  comment                       String?
+  createdOn                     DateTime                            @map("created_on") @db.Date
+  deadline                      DateTime?                           @db.Date
+  id                            String                              @id @db.Uuid
+  publishedOn                   DateTime?                           @map("published_on") @db.Date
+  status                        PrismaCallForApplicationsStatusEnum @default(UNPUBLISHED)
+  type                          PrismaCallForApplicationsTypeEnum
 
   targetCourts    CallForApplicationsTargetCourt[]
   targetPositions CallForApplicationsTargetPosition[]
@@ -87,7 +90,9 @@ enum PrismaCallForApplicationsFieldChangeEnum {
 
 enum PrismaCallForApplicationsFieldEnum {
   COMMENT
+  COURT_OF_APPEAL_GUIDELINES_ADAPTATION
   DEADLINE
+  JUDICIAL_COURT_GUIDELINES_ADAPTATION
   PUBLISHED_ON
   TARGET_COURTS
   TARGET_POSITIONS

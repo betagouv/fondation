@@ -2,13 +2,14 @@ import Button from '@codegouvfr/react-dsfr/Button';
 import Checkbox from '@codegouvfr/react-dsfr/Checkbox';
 import Input from '@codegouvfr/react-dsfr/Input';
 import Select from '@codegouvfr/react-dsfr/Select';
-import { useId, useState, type FormEvent } from 'react';
+import { Fragment, useId, useState, type FormEvent } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import { LoadFailure } from '@/shared/ui/load-failure';
 import { Modal } from '@/shared/ui/modal';
 import { RequiredLabel } from '@/shared/ui/required-label';
 import { useToasts } from '@/shared/ui/toast';
+import { ToggleSwitch } from '@/shared/ui/toggle-switch';
 import { dateOnlyToIso } from '@/utils/date-only.util';
 import { ValidationError } from '@/utils/validation-error';
 import type { CreateCallForApplicationsDto, FoundCallForApplicationsFormDto } from '@api/types';
@@ -63,7 +64,7 @@ function completeOf(
   const { type } = draft;
   if (!type || !form) return null;
 
-  const pick = form.types.find(({ id }) => id === type)?.targetPick;
+  const pick = form.types.find((option) => option.type.id === type)?.targetPick;
   const targetPositions =
     pick === 'POSITIONS'
       ? form.targetPositions.map(({ id }) => id).filter((id) => draft.targetPositions?.includes(id))
@@ -72,15 +73,18 @@ function completeOf(
   const targetCourts = pick === 'COURTS' ? (draft.targetCourts ?? []).toSorted() : [];
   if (pick === 'POSITIONS' && targetPositions.length === 0) return null;
   if (pick === 'COURTS' && targetCourts.length === 0) return null;
-  if (pick === 'COURTS') {
-    const groups = courtGroupsOf(form, savedCourts);
-    const checked = checkedTypesOf(draft, groups);
-    if (groups.some((group) => checked.includes(group.type.id) && isEmptyGroup(draft, group))) return null;
-  }
+  const groups = courtGroupsOf(form, savedCourts);
+  const checked = pick === 'COURTS' ? checkedTypesOf(draft, groups) : [];
+  if (groups.some((group) => checked.includes(group.type.id) && isEmptyGroup(draft, group))) return null;
+  // in the order of the groups so that a switch turned off then on again does not count as a change
+  const guidelinesAdaptations = groups
+    .map(({ type }) => type.id)
+    .filter((id) => checked.includes(id) && draft.guidelinesAdaptations?.includes(id));
 
   return {
     comment: draft.comment?.trim() || null,
     deadline: draft.deadline || null,
+    guidelinesAdaptations,
     publishedOn: draft.publishedOn || null,
     targetCourts,
     targetPositions,
@@ -94,12 +98,15 @@ function TargetCourtsFields(props: {
   onChange: (changes: Draft) => void;
   savedCourts: SavedCourts;
 }) {
+  const { formatMessage } = useIntl();
   const { draft, onChange } = props;
   const groups = courtGroupsOf(props.form, props.savedCourts);
   const checkedCourts = draft.targetCourts ?? [];
   const checkedTypes = checkedTypesOf(draft, groups);
+  const adaptations = draft.guidelinesAdaptations ?? [];
   const uncheck = (group: CourtGroup) =>
     onChange({
+      guidelinesAdaptations: adaptations.filter((id) => id !== group.type.id),
       targetCourts: checkedCourts.filter((id) => !group.courts.some((court) => court.id === id)),
       targetCourtTypes: checkedTypes.filter((id) => id !== group.type.id),
     });
@@ -129,13 +136,35 @@ function TargetCourtsFields(props: {
       {groups
         .filter(({ type }) => checkedTypes.includes(type.id))
         .map((group) => (
-          <TargetCourtsPicker
-            checked={checkedCourts}
-            courtGroup={group}
-            isEmpty={isEmptyGroup(draft, group)}
-            key={group.type.id}
-            onChange={(targetCourts) => onChange({ targetCourts, targetCourtTypes: checkedTypes })}
-          />
+          <Fragment key={group.type.id}>
+            <TargetCourtsPicker
+              checked={checkedCourts}
+              courtGroup={group}
+              isEmpty={isEmptyGroup(draft, group)}
+              onChange={(targetCourts) => onChange({ targetCourts, targetCourtTypes: checkedTypes })}
+            />
+            <ToggleSwitch
+              checked={adaptations.includes(group.type.id)}
+              // both switches may show at once: each names its type for a screen reader to tell them apart
+              label={formatMessage(
+                {
+                  defaultMessage:
+                    "Adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel pour les {group}",
+                },
+                { group: group.type.label.toLowerCase() },
+              )}
+              labelPosition="right"
+              onChange={(isOn) =>
+                onChange({
+                  guidelinesAdaptations: isOn
+                    ? [...adaptations, group.type.id]
+                    : adaptations.filter((id) => id !== group.type.id),
+                  targetCourtTypes: checkedTypes,
+                })
+              }
+              showCheckedHint={false}
+            />
+          </Fragment>
         ))}
     </>
   );
@@ -149,7 +178,7 @@ function CallForApplicationsFields(props: {
 }) {
   const { formatMessage } = useIntl();
   const { draft, form, onChange } = props;
-  const type = form.types.find(({ id }) => id === draft.type);
+  const type = form.types.find((option) => option.type.id === draft.type);
   const checkedPositions = draft.targetPositions ?? [];
   const dateInput = (field: DateField) => ({
     max: form.dateRange.max,
@@ -172,7 +201,9 @@ function CallForApplicationsFields(props: {
             }
             nativeSelectProps={{
               onChange: (event) =>
-                onChange({ type: form.types.find(({ id }) => id === event.target.value)?.id }),
+                onChange({
+                  type: form.types.find((option) => option.type.id === event.target.value)?.type.id,
+                }),
               required: true,
               value: draft.type ?? '',
             }}
@@ -180,7 +211,7 @@ function CallForApplicationsFields(props: {
             <option disabled hidden value="">
               {formatMessage({ defaultMessage: 'Sélectionner' })}
             </option>
-            {form.types.map(({ id, label }) => (
+            {form.types.map(({ type: { id, label } }) => (
               <option key={id} value={id}>
                 {label}
               </option>
@@ -252,6 +283,7 @@ function draftOf(call: CallForApplications): Draft {
   return {
     comment: call.comment ?? '',
     deadline: dateOnlyToIso(call.deadline) ?? '',
+    guidelinesAdaptations: call.guidelinesAdaptations.map(({ id }) => id),
     publishedOn: dateOnlyToIso(call.publishedOn) ?? '',
     targetCourts: call.targetCourts.map(({ id }) => id),
     targetPositions: call.targetPositions.map(({ id }) => id),

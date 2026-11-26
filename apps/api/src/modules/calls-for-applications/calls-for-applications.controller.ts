@@ -39,6 +39,7 @@ function metadataOf(body: CreateCallForApplicationsDto | UpdateCallForApplicatio
   return {
     comment: body.comment ?? null,
     deadline: dateOf(body.deadline),
+    guidelinesAdaptations: body.guidelinesAdaptations ?? [],
     publishedOn: dateOf(body.publishedOn),
     targetCourts: body.targetCourts ?? [],
     targetPositions: body.targetPositions ?? [],

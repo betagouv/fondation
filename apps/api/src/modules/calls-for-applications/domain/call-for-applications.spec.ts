@@ -13,17 +13,26 @@ import {
   targetCourtTypeOf,
   targetLabelOf,
   UntargetableCourt,
+  type KnownCourt,
 } from './call-for-applications';
 
 const metadata = {
   comment: null,
   deadline: null,
+  guidelinesAdaptations: [],
   publishedOn: null,
   targetCourts: [],
   targetPositions: [],
   type: 'GENERAL',
 } as const;
-const NO_TARGETABLE_COURT = { targetableCourts: new Set<string>() };
+const NO_KNOWN_COURT = { knownCourts: new Map<string, KnownCourt>() };
+/** the referential as the finder serves it: a removed court stays known but no longer targetable */
+const KNOWN_COURTS = new Map<string, KnownCourt>([
+  ['CA  AGEN', { targetable: true, type: 'COURT_OF_APPEAL' }],
+  ['TJ  AUCH', { targetable: true, type: 'JUDICIAL_COURT' }],
+  ['TJ  CAHORS', { targetable: true, type: 'JUDICIAL_COURT' }],
+  ['TSA MAMOUDZOU', { targetable: false, type: 'COURT_OF_APPEAL' }],
+]);
 const NO_VALUE = { dateAfter: null, dateBefore: null, typeAfter: null, typeBefore: null };
 const AGENT = { id: 'agent', isAdmin: false };
 const ADMIN = { id: 'admin', isAdmin: true };
@@ -37,7 +46,7 @@ describe('CallForApplications', () => {
     it('creates the call with its comment without the surrounding spaces', () => {
       const createdOn = new DateOnly(2026, 11, 23);
       const call = CallForApplications.create({
-        ...NO_TARGETABLE_COURT,
+        ...NO_KNOWN_COURT,
         ...metadata,
         authorId: 'author',
         comment: '  Postes de présidents  ',
@@ -54,7 +63,7 @@ describe('CallForApplications', () => {
 
     it('creates the call without a comment left with spaces only', () => {
       const call = CallForApplications.create({
-        ...NO_TARGETABLE_COURT,
+        ...NO_KNOWN_COURT,
         ...metadata,
         authorId: 'author',
         comment: '   ',
@@ -67,7 +76,7 @@ describe('CallForApplications', () => {
     it('refuses a deadline before the publication', () => {
       expect(() =>
         CallForApplications.create({
-          ...NO_TARGETABLE_COURT,
+          ...NO_KNOWN_COURT,
           ...metadata,
           authorId: 'author',
           createdOn: new DateOnly(2026, 11, 23),
@@ -79,7 +88,7 @@ describe('CallForApplications', () => {
 
     it('accepts a deadline on the day of the publication', () => {
       const call = CallForApplications.create({
-        ...NO_TARGETABLE_COURT,
+        ...NO_KNOWN_COURT,
         ...metadata,
         authorId: 'author',
         createdOn: new DateOnly(2026, 11, 23),
@@ -96,7 +105,7 @@ describe('CallForApplications', () => {
       const call = saved();
       const changed = { ...metadata, comment: 'Postes vacants', deadline: new DateOnly(2027, 1, 15) };
 
-      call.update({ ...NO_TARGETABLE_COURT, ...changed, actor: AGENT });
+      call.update({ ...NO_KNOWN_COURT, ...changed, actor: AGENT });
 
       expect(call.messages).toEqual([
         new CallForApplicationsUpdated(
@@ -122,7 +131,7 @@ describe('CallForApplications', () => {
         status: 'UNPUBLISHED',
       });
 
-      call.update({ ...NO_TARGETABLE_COURT, ...metadata, actor: AGENT, comment: 'Postes créés' });
+      call.update({ ...NO_KNOWN_COURT, ...metadata, actor: AGENT, comment: 'Postes créés' });
 
       expect(call.messages).toMatchObject([
         {
@@ -137,7 +146,7 @@ describe('CallForApplications', () => {
     it('leaves no trace when nothing changed', () => {
       const call = saved();
 
-      call.update({ ...NO_TARGETABLE_COURT, ...metadata, actor: AGENT });
+      call.update({ ...NO_KNOWN_COURT, ...metadata, actor: AGENT });
 
       expect(call.messages).toEqual([]);
     });
@@ -145,7 +154,7 @@ describe('CallForApplications', () => {
     it('refuses a deadline before the publication', () => {
       expect(() =>
         saved().update({
-          ...NO_TARGETABLE_COURT,
+          ...NO_KNOWN_COURT,
           ...metadata,
           actor: AGENT,
           deadline: new DateOnly(2026, 11, 30),
@@ -156,14 +165,14 @@ describe('CallForApplications', () => {
 
     it('refuses an agent once the call is published', () => {
       expect(() =>
-        saved('PUBLISHED').update({ ...NO_TARGETABLE_COURT, ...metadata, actor: AGENT, comment: 'Corrigé' }),
+        saved('PUBLISHED').update({ ...NO_KNOWN_COURT, ...metadata, actor: AGENT, comment: 'Corrigé' }),
       ).toThrow(PublishedCallLocked);
     });
 
     it('lets an administrator change a published call', () => {
       const call = saved('PUBLISHED');
 
-      call.update({ ...NO_TARGETABLE_COURT, ...metadata, actor: ADMIN, comment: 'Corrigé' });
+      call.update({ ...NO_KNOWN_COURT, ...metadata, actor: ADMIN, comment: 'Corrigé' });
 
       expect(call.messages).toMatchObject([{ fields: [{ change: 'ADDED', field: 'COMMENT' }] }]);
     });
@@ -200,14 +209,14 @@ describe('CallForApplications', () => {
     } as const;
 
     it('refuses a call that targets no position', () => {
-      expect(() =>
-        CallForApplications.create({ ...NO_TARGETABLE_COURT, ...ccass, targetPositions: [] }),
-      ).toThrow(MissingTargetPosition);
+      expect(() => CallForApplications.create({ ...NO_KNOWN_COURT, ...ccass, targetPositions: [] })).toThrow(
+        MissingTargetPosition,
+      );
     });
 
     it('keeps each position once, in the order of the hierarchy', () => {
       const call = CallForApplications.create({
-        ...NO_TARGETABLE_COURT,
+        ...NO_KNOWN_COURT,
         ...ccass,
         targetPositions: ['COUNSELLOR', 'FIRST_PRESIDENT', 'COUNSELLOR'],
       });
@@ -226,7 +235,7 @@ describe('CallForApplications', () => {
       });
 
       call.update({
-        ...NO_TARGETABLE_COURT,
+        ...NO_KNOWN_COURT,
         ...ccass,
         actor: AGENT,
         targetPositions: ['FIRST_PRESIDENT', 'COUNSELLOR'],
@@ -244,7 +253,7 @@ describe('CallForApplications', () => {
       });
 
       call.update({
-        ...NO_TARGETABLE_COURT,
+        ...NO_KNOWN_COURT,
         ...ccass,
         actor: AGENT,
         targetPositions: ['COUNSELLOR', 'CHAMBER_PRESIDENT'],
@@ -259,9 +268,68 @@ describe('CallForApplications', () => {
       ...metadata,
       authorId: 'author',
       createdOn: new DateOnly(2026, 11, 26),
-      targetableCourts: new Set(['CA  AGEN', 'TJ  AUCH']),
+      knownCourts: KNOWN_COURTS,
       type: 'SPECIFIC',
     } as const;
+
+    it('keeps an adaptation of the guidelines only for a type of court the call targets', () => {
+      const call = CallForApplications.create({
+        ...specific,
+        guidelinesAdaptations: ['JUDICIAL_COURT', 'COURT_OF_APPEAL'],
+        targetCourts: ['TJ  AUCH'],
+      });
+
+      expect(call.messages).toMatchObject([{ metadata: { guidelinesAdaptations: ['JUDICIAL_COURT'] } }]);
+    });
+
+    it.each([
+      [[], ['JUDICIAL_COURT'], 'ADDED'],
+      [['JUDICIAL_COURT'], [], 'REMOVED'],
+    ] as const)(
+      'journals the adaptation of the judicial courts going from %j to %j as %s',
+      (before, after, change) => {
+        const call = CallForApplications.from({
+          ...specific,
+          guidelinesAdaptations: before,
+          id: 'call',
+          status: 'UNPUBLISHED',
+          targetCourts: ['TJ  AUCH'],
+        });
+
+        call.update({ ...specific, actor: AGENT, guidelinesAdaptations: after, targetCourts: ['TJ  AUCH'] });
+
+        expect(call.messages).toMatchObject([
+          { fields: [{ change, field: 'JUDICIAL_COURT_GUIDELINES_ADAPTATION' }] },
+        ]);
+      },
+    );
+
+    it('drops the adaptation of a type of court whose courts are all removed', () => {
+      const call = CallForApplications.from({
+        ...specific,
+        guidelinesAdaptations: ['COURT_OF_APPEAL'],
+        id: 'call',
+        status: 'UNPUBLISHED',
+        targetCourts: ['CA  AGEN', 'TJ  AUCH'],
+      });
+
+      call.update({
+        ...specific,
+        actor: AGENT,
+        guidelinesAdaptations: ['COURT_OF_APPEAL'],
+        targetCourts: ['TJ  AUCH'],
+      });
+
+      expect(call.messages).toMatchObject([
+        {
+          fields: [
+            { change: 'REMOVED', field: 'TARGET_COURTS' },
+            { change: 'REMOVED', field: 'COURT_OF_APPEAL_GUIDELINES_ADAPTATION' },
+          ],
+          metadata: { guidelinesAdaptations: [] },
+        },
+      ]);
+    });
 
     it('refuses a call that targets no court', () => {
       expect(() => CallForApplications.create({ ...specific, targetCourts: [] })).toThrow(MissingTargetCourt);
@@ -327,12 +395,15 @@ describe('CallForApplications', () => {
         ...metadata,
         authorId: 'author',
         createdOn: new DateOnly(2026, 11, 25),
-        targetableCourts: new Set(['CA  AGEN']),
+        knownCourts: KNOWN_COURTS,
         targetCourts: ['CA  AGEN'],
+        guidelinesAdaptations: ['COURT_OF_APPEAL'],
         targetPositions: ['COUNSELLOR'],
       });
 
-      expect(call.messages).toMatchObject([{ metadata: { targetCourts: [], targetPositions: [] } }]);
+      expect(call.messages).toMatchObject([
+        { metadata: { guidelinesAdaptations: [], targetCourts: [], targetPositions: [] } },
+      ]);
     });
   });
 });
@@ -340,7 +411,7 @@ describe('CallForApplications', () => {
 describe('the changes of a list of courts', () => {
   const specific = {
     ...metadata,
-    targetableCourts: new Set(['CA  AGEN', 'TJ  AUCH', 'TJ  CAHORS']),
+    knownCourts: KNOWN_COURTS,
     type: 'SPECIFIC',
   } as const;
   const updated = (before: string[], after: string[]) => {

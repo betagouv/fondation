@@ -11,12 +11,13 @@ import {
   CallForApplications,
   type CallForApplicationsStatus,
   type CallForApplicationsType,
+  type TargetCourtType,
 } from './domain/call-for-applications';
 import type { CallForApplicationsPeriod } from './domain/call-for-applications-period';
 import type { CallForApplicationsSortableColumn } from './domain/call-for-applications-sorting';
 import type { CreatedCallForApplicationsDto } from './infrastructure/call-for-applications.dto';
 import { CallForApplicationsRepository } from './infrastructure/call-for-applications.repository';
-import { TargetableCourtFinder } from './infrastructure/finders/targetable-court.finder';
+import { KnownCourtFinder } from './infrastructure/finders/known-court.finder';
 import {
   FindCallForApplicationsFormQuery,
   FoundCallForApplicationsFormDto,
@@ -33,7 +34,7 @@ export class CallsForApplicationsService {
     private readonly clock: Clock,
     private readonly findCallForApplicationsFormQuery: FindCallForApplicationsFormQuery,
     private readonly listCallsForApplicationsQuery: ListCallsForApplicationsQuery,
-    private readonly targetableCourts: TargetableCourtFinder,
+    private readonly knownCourts: KnownCourtFinder,
   ) {}
 
   @Transactional()
@@ -41,6 +42,7 @@ export class CallsForApplicationsService {
     authorId: string;
     comment: string | null;
     deadline: DateOnly | null;
+    guidelinesAdaptations: readonly TargetCourtType[];
     publishedOn: DateOnly | null;
     targetCourts: readonly string[];
     targetPositions: readonly CourtOfCassationPosition[];
@@ -49,7 +51,7 @@ export class CallsForApplicationsService {
     const call = CallForApplications.create({
       ...command,
       createdOn: DateOnly.fromInstantInParis(this.clock.now()),
-      targetableCourts: await this.targetableCourts.among(command.targetCourts),
+      knownCourts: await this.knownCourts.among(command.targetCourts),
     });
     await this.calls.persist(call);
 
@@ -87,6 +89,7 @@ export class CallsForApplicationsService {
     actor: { id: string; isAdmin: boolean };
     comment: string | null;
     deadline: DateOnly | null;
+    guidelinesAdaptations: readonly TargetCourtType[];
     id: string;
     publishedOn: DateOnly | null;
     targetCourts: readonly string[];
@@ -95,7 +98,7 @@ export class CallsForApplicationsService {
   }): Promise<void> {
     const { id, ...update } = command;
     const call = await this.calls.find({ id });
-    call.update({ ...update, targetableCourts: await this.targetableCourts.among(command.targetCourts) });
+    call.update({ ...update, knownCourts: await this.knownCourts.among(command.targetCourts) });
     await this.calls.persist(call);
   }
 }

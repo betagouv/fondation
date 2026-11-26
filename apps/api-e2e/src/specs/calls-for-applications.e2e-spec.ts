@@ -34,6 +34,7 @@ test.describe('Calls for applications E2E', () => {
       comment: 'Postes de présidents',
       createdOn: todayInParis(),
       deadline: { day: 15, month: 1, year: 2100 },
+      guidelinesAdaptations: [],
       history: [
         {
           action: 'CREATED',
@@ -112,6 +113,58 @@ test.describe('Calls for applications E2E', () => {
       targetLabel: "Cour d'appel de Lyon et Tribunal judiciaire de Grasse",
       type: { id: 'SPECIFIC', label: 'Spécifique' },
     });
+  });
+
+  test('should keep the adaptation of the guidelines a specific call makes for a type of court', async ({
+    agent,
+    expect,
+  }) => {
+    const { data: created } = await agent.callsForApplications.createCallForApplications({
+      body: {
+        guidelinesAdaptations: ['JUDICIAL_COURT'],
+        publishedOn: '2091-06-01',
+        targetCourts: ['TJ  GRASSE', 'CA  LYON'],
+        type: 'SPECIFIC',
+      },
+      throwOnError: true,
+    });
+
+    const { data } = await agent.callsForApplications.listCallsForApplications({
+      query: { limit: 200, period: 'ONGOING', sortBy: 'createdOn', sortDesc: 'true', years: ['2091'] },
+      throwOnError: true,
+    });
+    expect(data.items.find(({ id }) => id === created.id)?.guidelinesAdaptations).toEqual([
+      { id: 'JUDICIAL_COURT', label: 'Tribunaux judiciaires' },
+    ]);
+  });
+
+  test('should note in the history of a specific call the adaptation of the guidelines turned on', async ({
+    agent,
+    expect,
+  }) => {
+    const form = { publishedOn: '2090-02-01', targetCourts: ['CA  LYON'], type: 'SPECIFIC' as const };
+    const { data: created } = await agent.callsForApplications.createCallForApplications({
+      body: form,
+      throwOnError: true,
+    });
+
+    await agent.callsForApplications.updateCallForApplications({
+      body: { ...form, guidelinesAdaptations: ['COURT_OF_APPEAL'] },
+      path: { callId: created.id },
+      throwOnError: true,
+    });
+
+    const { data } = await agent.callsForApplications.listCallsForApplications({
+      query: { limit: 200, period: 'ONGOING', sortBy: 'createdOn', sortDesc: 'true', years: ['2090'] },
+      throwOnError: true,
+    });
+    expect(data.items.find(({ id }) => id === created.id)?.history[0]?.changes).toEqual([
+      {
+        change: { id: 'ADDED', label: 'ajouté' },
+        label: "l'adaptation aux lignes directrices de gestion pour les cours d'appel",
+        targets: null,
+      },
+    ]);
   });
 
   test('should replace the courts a specific call targets and note it in its history', async ({ agent, expect }) => {

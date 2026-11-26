@@ -39,6 +39,10 @@ describe('callForApplicationsHistoryChangesOf', () => {
       "modifié le type d'appel de Général en Spécifique",
     ],
     [{ change: 'ADDED', field: 'COMMENT' }, 'ajouté un commentaire'],
+    [
+      { change: 'ADDED', field: 'COURT_OF_APPEAL_GUIDELINES_ADAPTATION' },
+      "ajouté l'adaptation aux lignes directrices de gestion pour les cours d'appel",
+    ],
   ] as const)('reads %j as %s', (field, sentence) => {
     expect(sentenceOf(field)).toBe(sentence);
   });

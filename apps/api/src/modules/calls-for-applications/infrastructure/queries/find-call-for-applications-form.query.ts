@@ -71,7 +71,7 @@ export class FoundCallForApplicationsFormDto extends createZodDto(
     targetPositions: z.array(targetPositionSchema),
     /** each type with the hint shown under the field and what the agent picks as its target */
     types: z.array(
-      callForApplicationsTypeSchema.extend({ scope: z.string(), targetPick: z.enum(TARGET_PICKS) }),
+      z.object({ scope: z.string(), targetPick: z.enum(TARGET_PICKS), type: callForApplicationsTypeSchema }),
     ),
   }),
 ) {}

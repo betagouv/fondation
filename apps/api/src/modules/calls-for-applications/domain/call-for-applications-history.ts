@@ -26,7 +26,13 @@ function always(label: string): Record<CallForApplicationsFieldChange, string> {
 /** an added comment takes an indefinite article: "ajouté un commentaire" */
 const FIELD_LABELS: Record<CallForApplicationsField, Record<CallForApplicationsFieldChange, string>> = {
   COMMENT: { ADDED: 'un commentaire', CHANGED: 'le commentaire', REMOVED: 'le commentaire' },
+  COURT_OF_APPEAL_GUIDELINES_ADAPTATION: always(
+    "l'adaptation aux lignes directrices de gestion pour les cours d'appel",
+  ),
   DEADLINE: always('la date limite'),
+  JUDICIAL_COURT_GUIDELINES_ADAPTATION: always(
+    "l'adaptation aux lignes directrices de gestion pour les tribunaux judiciaires",
+  ),
   PUBLISHED_ON: always('la date de publication'),
   TARGET_COURTS: always('les juridictions cibles'),
   TARGET_POSITIONS: always('les postes cibles'),
