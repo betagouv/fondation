@@ -6,6 +6,7 @@ import { STORY_AUTHORS, STORY_VIEWS, type StoryView } from '@/shared/storybook/s
 import { getMagistratDetailsPath, ROUTE_PATHS } from '@/utils/route-path.utils';
 import type {
   DetailedMagistratDto,
+  ListedMagistratAttachedEmailsDto,
   ListedMagistratNominationFilesDto,
   ListedMagistratObservationsDto,
   ListedMagistratPhoneNumbersDto,
@@ -112,6 +113,27 @@ const PHONE_NUMBERS: ListedMagistratPhoneNumbersDto['items'] = [
   { date: null, number: '04 72 00 00 00', source: 'LOLFI' },
 ];
 
+const ATTACHED_EMAILS: ListedMagistratAttachedEmailsDto['items'] = [
+  {
+    attachedAt: '2026-11-20T09:30:00.000Z',
+    attachedBy: STORY_AUTHORS.sg,
+    email: 'nathalie.vasseur@diplomatie.gouv.fr',
+    id: 'attached-email-1',
+  },
+  {
+    attachedAt: '2026-10-02T14:10:00.000Z',
+    attachedBy: { id: 'user-2', name: 'Hélène GARNIER' },
+    email: 'n.vasseur@europarl.europa.eu',
+    id: 'attached-email-2',
+  },
+  {
+    attachedAt: '2026-09-15T08:00:00.000Z',
+    attachedBy: null,
+    email: 'nathalie.vasseur.magistrat@gmail.com',
+    id: 'attached-email-3',
+  },
+];
+
 function page<T>(items: T[]) {
   return { currentPageIndex: 1, items, totalCount: items.length };
 }
@@ -134,14 +156,16 @@ const PATHS = {
 } satisfies Record<StoryView, string>;
 
 function MagistratDetailsPageStory(props: {
+  attachedEmailsLoadFails: boolean;
   response: (typeof RESPONSES)[number];
   status: DetailedMagistratDto['status'];
   view: StoryView;
+  withAttachedEmails: boolean;
 }) {
   return (
     <PageStory
       // a new response needs a new fetch: the query cache lives in PageStory
-      key={props.response}
+      key={`${props.response} ${props.withAttachedEmails} ${props.attachedEmailsLoadFails}`}
       location={getMagistratDetailsPath({
         context: props.view === 'sg' ? 'sg' : 'membre',
         magistratId: MAGISTRAT.id,
@@ -155,13 +179,29 @@ function MagistratDetailsPageStory(props: {
 }
 
 const meta = {
-  args: { response: 200, status: 'ACTIVE', view: 'sg' },
+  args: {
+    attachedEmailsLoadFails: false,
+    response: 200,
+    status: 'ACTIVE',
+    view: 'sg',
+    withAttachedEmails: true,
+  },
   argTypes: {
+    attachedEmailsLoadFails: {
+      control: 'boolean',
+      description: 'Les adresses rattachées répondent par une erreur.',
+    },
     response: { control: 'inline-radio', options: RESPONSES },
     status: { control: 'inline-radio', options: STATUSES },
     view: { control: 'inline-radio', options: STORY_VIEWS },
+    withAttachedEmails: {
+      control: 'boolean',
+      description:
+        'Le pôle a rattaché trois adresses pour le site du CSM dont la dernière par vous. Visible du Secrétariat général seulement.',
+    },
   },
   beforeEach: ({ args, msw }) => {
+    let attachedEmails = args.withAttachedEmails ? ATTACHED_EMAILS : [];
     msw.use(
       http.get('*/api/magistrats/v1/:magistratId', () =>
         args.response === 404
@@ -169,6 +209,15 @@ const meta = {
           : HttpResponse.json<DetailedMagistratDto>({ ...MAGISTRAT, status: args.status }),
       ),
       ...magistratHandlers,
+      http.get('*/api/magistrats/v1/:magistratId/attached-emails', () =>
+        args.attachedEmailsLoadFails
+          ? new HttpResponse(null, { status: 500 })
+          : HttpResponse.json<ListedMagistratAttachedEmailsDto>({ items: attachedEmails }),
+      ),
+      http.delete('*/api/magistrats/v1/:magistratId/attached-emails/:attachedEmailId', ({ params }) => {
+        attachedEmails = attachedEmails.filter((email) => email.id !== params.attachedEmailId);
+        return new HttpResponse(null, { status: 204 });
+      }),
     );
   },
   component: MagistratDetailsPageStory,

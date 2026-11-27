@@ -196,7 +196,7 @@
               "status": {
                 "type": "string",
                 "const": "ACTIVE",
-                "description": "The address is the professional one of a single active _Magistrat_"
+                "description": "The professional address of a single active _Magistrat_ or an address the nominations pole attached to an active _Magistrat_"
               },
               "magistrat": {
                 "type": "object",
@@ -234,6 +234,7 @@
         "properties": {
           "email": {
             "type": "string",
+            "maxLength": 254,
             "format": "email",
             "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
           }

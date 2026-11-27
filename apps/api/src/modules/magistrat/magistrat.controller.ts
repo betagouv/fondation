@@ -17,16 +17,20 @@ import { ApiTags } from '@nestjs/swagger';
 import { ZodResponse, ZodValidationPipe } from 'nestjs-zod';
 
 import { ApiPaginated, Pagination, QueryPagination } from '../framework/pagination';
-import { AuthedUser, HasRole } from '../simple-auth';
+import { AuthedUser, AuthedUserId, HasRole } from '../simple-auth';
 
 import {
   AddMagistratPhoneNumberDto,
+  AttachUnrecognisedMagistratEmailDto,
+  ListUnrecognisedMagistratEmailsDto,
   SearchMagistratsQueryDto,
   UpdateMagistratPhoneNumberDto,
 } from './infrastructure/dtos/magistrat.dto';
 import { MagistratFilter } from './infrastructure/magistrat.filter';
 import { DetailedMagistratDto } from './infrastructure/queries/detail-magistrat.query';
+import { ListedMagistratAttachedEmailsDto } from './infrastructure/queries/list-magistrat-attached-emails.query';
 import { ListedMagistratPhoneNumbersDto } from './infrastructure/queries/list-magistrat-phone-numbers.query';
+import { ListedUnrecognisedMagistratEmailsDto } from './infrastructure/queries/list-unrecognised-magistrat-emails.query';
 import { SearchMagistratsResponseDto } from './infrastructure/queries/search-magistrats.query';
 import { MagistratService } from './magistrat.service';
 
@@ -55,6 +59,41 @@ export class MagistratController {
     });
   }
 
+  // before /:magistratId that would take its path for an identifier
+  @Get('/unrecognised-emails')
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @UsePipes(ZodValidationPipe)
+  @ApiPaginated()
+  @ZodResponse({ status: HttpStatus.OK, type: ListedUnrecognisedMagistratEmailsDto })
+  listUnrecognisedMagistratEmails(
+    @Query() query: ListUnrecognisedMagistratEmailsDto,
+    @QueryPagination({ defaultLimit: 20 }) pagination: Pagination,
+  ): Promise<ListedUnrecognisedMagistratEmailsDto> {
+    return this.magistrats.listUnrecognisedEmails({
+      pagination,
+      sorting: { sortBy: query.sortBy, sortDesc: query.sortDesc },
+    });
+  }
+
+  @Post('/unrecognised-emails/:id/attachment')
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @UsePipes(ZodValidationPipe)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async attachUnrecognisedMagistratEmail(
+    @AuthedUserId() authorId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: AttachUnrecognisedMagistratEmailDto,
+  ): Promise<void> {
+    await this.magistrats.attachUnrecognisedEmail({ authorId, id, magistratId: body.magistratId });
+  }
+
+  @Delete('/unrecognised-emails/:id')
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async dismissUnrecognisedMagistratEmail(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
+    await this.magistrats.dismissUnrecognisedEmail({ id });
+  }
+
   @Get('/:magistratId')
   @HasRole()
   @ZodResponse({
@@ -63,6 +102,25 @@ export class MagistratController {
   })
   detailMagistrat(@Param('magistratId') magistratId: string): Promise<DetailedMagistratDto> {
     return this.magistrats.detailMagistrat({ magistratId });
+  }
+
+  @Get('/:magistratId/attached-emails')
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @ZodResponse({ status: HttpStatus.OK, type: ListedMagistratAttachedEmailsDto })
+  listMagistratAttachedEmails(
+    @Param('magistratId', ParseUUIDPipe) magistratId: string,
+  ): Promise<ListedMagistratAttachedEmailsDto> {
+    return this.magistrats.listAttachedEmails({ magistratId });
+  }
+
+  @Delete('/:magistratId/attached-emails/:attachedEmailId')
+  @HasRole('ADJOINT_SECRETAIRE_GENERAL')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async detachMagistratEmail(
+    @Param('magistratId', ParseUUIDPipe) magistratId: string,
+    @Param('attachedEmailId', ParseUUIDPipe) attachedEmailId: string,
+  ): Promise<void> {
+    await this.magistrats.detachEmail({ id: attachedEmailId, magistratId });
   }
 
   @Get('/:magistratId/phone-numbers')

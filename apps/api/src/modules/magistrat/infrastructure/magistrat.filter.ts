@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { catchError, Observable, throwError } from 'rxjs';
 
+import { AttachedMagistratEmailAlreadyDetached } from '../domain/attached-magistrat-email';
 import {
   InvalidPhoneNumber,
   InvalidPhoneNumberLabel,
@@ -20,6 +21,10 @@ import {
   TooManyPhoneNumbers,
   UnknownPhoneNumber,
 } from '../domain/magistrat-phone-numbers';
+import {
+  InactiveMagistrat,
+  UnrecognisedMagistratEmailAlreadyHandled,
+} from '../domain/unrecognised-magistrat-email';
 
 @Injectable()
 export class MagistratFilter implements NestInterceptor {
@@ -41,6 +46,16 @@ export class MagistratFilter implements NestInterceptor {
             return new ConflictException({
               validationError: `${MAX_PHONE_NUMBERS} numéros au maximum par magistrat`,
             });
+
+          if (err instanceof InactiveMagistrat)
+            return new BadRequestException({
+              validationError: "Une adresse ne peut être rattachée qu'à un magistrat en activité",
+            });
+
+          if (err instanceof AttachedMagistratEmailAlreadyDetached)
+            return new ConflictException({ validationError: 'Cette adresse a déjà été détachée' });
+          if (err instanceof UnrecognisedMagistratEmailAlreadyHandled)
+            return new ConflictException({ validationError: 'Cette adresse a déjà été traitée' });
 
           if (err instanceof UnknownPhoneNumber) return new NotFoundException();
 

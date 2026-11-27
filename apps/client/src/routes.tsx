@@ -248,6 +248,15 @@ export const routes: RouteObject[] = [
           },
           {
             lazy: () =>
+              import('@/pages/calls-for-applications/CallsForApplicationsPage').then(
+                ({ UnrecognisedEmailsCallsForApplicationsPage }) => ({
+                  Component: UnrecognisedEmailsCallsForApplicationsPage,
+                }),
+              ),
+            path: ROUTE_PATHS.SG.CSM.CALLS_FOR_APPLICATIONS_UNRECOGNISED_EMAILS,
+          },
+          {
+            lazy: () =>
               import('@/pages/csm/CsmUpcomingPages').then(({ SelectionProcessPage }) => ({
                 Component: SelectionProcessPage,
               })),

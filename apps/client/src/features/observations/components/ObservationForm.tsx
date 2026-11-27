@@ -240,6 +240,8 @@ export function ObservationForm({
       ) : null}
       <MagistratCombobox
         errorMessage={errors.magistratId?.message}
+        hint={<FormattedMessage defaultMessage="Nom, prénom ou adresse email pro" />}
+        label={<FormattedMessage defaultMessage="Magistrat observant" />}
         magistrat={selectedMagistrat}
         onChange={handleMagistratChange}
       />

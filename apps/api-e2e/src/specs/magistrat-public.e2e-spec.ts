@@ -139,6 +139,20 @@ test.describe('public magistrat routes', () => {
     expect({ data, import: job.status }).toEqual({ data: { status: 'UNKNOWN' }, import: 'SUCCEEDED' });
   });
 
+  test('should refuse an address longer than an email can be', async ({ apiClients, expect }) => {
+    const site = await apiClients.authenticated({ scopes: ['magistrats:identification'] });
+
+    const { error, response } = await magistrats.identifyMagistrat({
+      body: { email: `${'a'.repeat(64)}@${'b'.repeat(187)}.fr` },
+      client: site.http,
+    });
+
+    expect({ error, status: response?.status }).toEqual({
+      error: expect.objectContaining({ errors: [expect.objectContaining({ code: 'too_big' })] }),
+      status: 400,
+    });
+  });
+
   test('should refuse the calls of an API client beyond its limit of the minute', async ({ apiClients, expect }) => {
     const site = await apiClients.authenticated({ limitPerMinute: 1, scopes: ['magistrats:identification'] });
     const identify = () => magistrats.identifyMagistrat({ body: { email: randomEmail() }, client: site.http });

@@ -1,10 +1,13 @@
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import clsx from 'clsx';
-import { useState } from 'react';
+import { useState, type InputHTMLAttributes } from 'react';
 import { useIntl } from 'react-intl';
 
 export function SearchInput(props: {
   className?: string;
+  /** a visible label points at the field by this id so the placeholder no longer names it */
+  id?: string;
+  inputProps?: Omit<InputHTMLAttributes<HTMLInputElement>, 'id' | 'onChange' | 'value'>;
   onChange: (value: string) => void;
   onClear: () => void;
   placeholder?: string;
@@ -19,13 +22,21 @@ export function SearchInput(props: {
   return (
     <div className={clsx('relative', props.className)} role="search">
       <input
-        aria-label={searchLabel}
-        className={clsx(cx('fr-input'), 'pr-12')}
-        onBlur={() => setIsFocused(false)}
-        onChange={(e) => props.onChange(e.target.value)}
-        onFocus={() => setIsFocused(true)}
-        placeholder={searchLabel}
+        aria-label={props.id ? undefined : searchLabel}
         type="text"
+        {...props.inputProps}
+        className={clsx(cx('fr-input'), 'pr-12', props.inputProps?.className)}
+        id={props.id}
+        onBlur={(event) => {
+          setIsFocused(false);
+          props.inputProps?.onBlur?.(event);
+        }}
+        onChange={(e) => props.onChange(e.target.value)}
+        onFocus={(event) => {
+          setIsFocused(true);
+          props.inputProps?.onFocus?.(event);
+        }}
+        placeholder={searchLabel}
         value={props.value}
       />
       {hasText ? (

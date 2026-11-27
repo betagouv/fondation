@@ -1,13 +1,14 @@
-import { Input } from '@codegouvfr/react-dsfr/Input';
 import Tag from '@codegouvfr/react-dsfr/Tag';
 import clsx from 'clsx';
-import { useEffect, useId, useState, type FocusEvent, type KeyboardEvent } from 'react';
+import { useEffect, useId, useState, type FocusEvent, type KeyboardEvent, type ReactNode } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { useDebounce } from 'use-debounce';
 
 import { MagistratGradeAndPosition } from '@/features/magistrats/components/MagistratGradeAndPosition';
+import { MagistratStatusBadge } from '@/features/magistrats/components/MagistratStatusBadge';
 import { currentPositionLabel } from '@/features/magistrats/utils/magistrat-position.utils';
 import { RequiredLabel } from '@/shared/ui/required-label';
+import { SearchInput } from '@/shared/ui/search-input';
 import { MAGISTRAT_SEARCH_MIN_LENGTH, type FoundMagistrat } from '@queries/magistrats.queries';
 import { useSearchMagistratsQuery, type Observant } from '@queries/observations.queries';
 
@@ -23,14 +24,20 @@ const toObservant = (magistrat: FoundMagistrat): Observant => ({
 
 export function MagistratCombobox(props: {
   errorMessage?: string;
+  hint: ReactNode;
+  label: ReactNode;
   magistrat: Observant | null;
   onChange: (magistrat: Observant | null) => void;
+  /** the results push the actions down rather than be cut off by the scrolling content of the modal */
+  inShortModal?: boolean;
 }) {
   const intl = useIntl();
   const { magistrat, onChange } = props;
 
   const id = useId();
   const listboxId = `${id}-listbox`;
+  const inputId = `${id}-input`;
+  const errorId = `${id}-error`;
   const optionId = (magistratId: string) => `${id}-option-${magistratId}`;
 
   const [searchTerm, setSearchTerm] = useState(magistrat ? searchTermFor(magistrat) : '');
@@ -77,39 +84,53 @@ export function MagistratCombobox(props: {
 
   return (
     <div className="relative" onBlur={closeOnFocusLeave}>
-      <Input
-        classes={{ root: 'fr-mb-0' }}
-        hintText={intl.formatMessage({ defaultMessage: 'Nom, prénom ou adresse email pro' })}
-        iconId="fr-icon-search-line"
-        label={
-          <RequiredLabel>
-            <FormattedMessage defaultMessage="Magistrat observant" />
-          </RequiredLabel>
-        }
-        nativeInputProps={{
-          'aria-activedescendant': activeMagistrat ? optionId(activeMagistrat.id) : undefined,
-          'aria-autocomplete': 'list',
-          'aria-controls': listboxId,
-          'aria-expanded': isOpen,
-          onChange: (event) => {
-            setSearchTerm(event.target.value);
+      <div className={clsx('fr-input-group fr-mb-0', props.errorMessage && 'fr-input-group--error')}>
+        <label className="fr-label" htmlFor={inputId}>
+          <RequiredLabel>{props.label}</RequiredLabel>
+          <span className="fr-hint-text">{props.hint}</span>
+        </label>
+        <SearchInput
+          className="fr-mt-1w"
+          id={inputId}
+          inputProps={{
+            'aria-activedescendant': activeMagistrat ? optionId(activeMagistrat.id) : undefined,
+            'aria-autocomplete': 'list',
+            'aria-controls': listboxId,
+            'aria-describedby': props.errorMessage ? errorId : undefined,
+            'aria-expanded': isOpen,
+            'aria-invalid': props.errorMessage ? true : undefined,
+            className: clsx(props.errorMessage && 'fr-input--error'),
+            onFocus: () => setShowResults(true),
+            onKeyDown,
+            role: 'combobox',
+          }}
+          onChange={(value) => {
+            setSearchTerm(value);
             setShowResults(true);
             setActiveIndex(0);
-            if (event.target.value === '') onChange(null);
-          },
-          onFocus: () => setShowResults(true),
-          onKeyDown,
-          placeholder: intl.formatMessage({ defaultMessage: 'Rechercher un magistrat' }),
-          role: 'combobox',
-          type: 'search',
-          value: searchTerm,
-        }}
-        state={props.errorMessage ? 'error' : 'default'}
-        stateRelatedMessage={props.errorMessage}
-      />
+            if (magistrat && value !== searchTermFor(magistrat)) onChange(null);
+          }}
+          onClear={() => {
+            setSearchTerm('');
+            onChange(null);
+          }}
+          placeholder={intl.formatMessage({ defaultMessage: 'Rechercher un magistrat' })}
+          value={searchTerm}
+        />
+        {props.errorMessage && (
+          <p className="fr-error-text" id={errorId}>
+            {props.errorMessage}
+          </p>
+        )}
+      </div>
 
       {isOpen && (
-        <div className="fr-mt-1v absolute z-(--z-index-popover) max-h-60 w-full overflow-y-auto rounded-sm border bg-(--background-default-grey) shadow-lg">
+        <div
+          className={clsx(
+            'fr-mt-1v max-h-60 w-full overflow-y-auto rounded-sm border bg-(--background-default-grey)',
+            !props.inShortModal && 'absolute z-(--z-index-popover) shadow-lg',
+          )}
+        >
           {isSearching && (
             <p className="fr-p-3v fr-mb-0 text-sm text-(--text-mention-grey)">
               <FormattedMessage defaultMessage="Recherche…" />
@@ -144,7 +165,9 @@ export function MagistratCombobox(props: {
                 onMouseEnter={() => setActiveIndex(index)}
                 role="option"
               >
-                <div className="font-medium">{result.name}</div>
+                <div className="font-medium">
+                  {result.name} <MagistratStatusBadge className="ml-1" status={result.status} />
+                </div>
                 <div className="text-xs text-(--text-mention-grey)">
                   <MagistratGradeAndPosition {...result} />
                 </div>
@@ -154,7 +177,7 @@ export function MagistratCombobox(props: {
         </div>
       )}
 
-      {magistrat && (
+      {magistrat && !props.inShortModal && (
         <div className="fr-mt-2v fr-p-2v flex items-center gap-2">
           <Tag
             as="button"

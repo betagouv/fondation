@@ -20,6 +20,7 @@ async function truncate() {
     truncate "identity_and_access_context"."users" cascade;
     truncate "identity_and_access_context"."login_attempts";
     truncate "identity_and_access_context"."api_clients" cascade;
+    truncate "identity_and_access_context"."unrecognised_magistrat_email";
 
     truncate "data_administration_context"."session" cascade;
     truncate "data_administration_context"."jurisdictions" cascade;
