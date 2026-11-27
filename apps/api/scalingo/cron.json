@@ -1,6 +1,7 @@
 {
   "jobs": [
     { "command": "0 3 * * * ./bin/delete-unused-files.sh" },
+    { "command": "15 3 * * * ./bin/forget-old-unrecognised-emails.sh" },
     { "command": "0 8 * * * ./bin/lolfi-freshness.sh" }
   ]
 }

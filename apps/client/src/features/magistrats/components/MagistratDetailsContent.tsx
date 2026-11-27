@@ -5,6 +5,7 @@ import { DetailsCard, DetailsPageLayout } from '@/shared/ui/details';
 import type { DetailedMagistratDto } from '@api/types';
 
 import { MagistratDetailsHeader } from './MagistratDetailsHeader';
+import { MagistratEmailsSection } from './MagistratEmailsSection';
 import { MagistratIdentityCard } from './MagistratIdentityCard';
 import { MagistratNominationFilesSection } from './MagistratNominationFilesSection';
 import { MagistratObservationsSection } from './MagistratObservationsSection';
@@ -25,9 +26,16 @@ export function MagistratDetailsContent({ context, magistrat }: MagistratDetails
       identity={
         <MagistratIdentityCard
           magistrat={magistrat}
-          phoneNumbers={
+          contacts={
             context === 'sg' ? (
-              <MagistratPhoneNumbersSection magistratId={magistrat.id} magistratName={magistrat.name} />
+              <>
+                <MagistratEmailsSection
+                  magistratId={magistrat.id}
+                  magistratName={magistrat.name}
+                  professionalEmail={magistrat.professionalEmail}
+                />
+                <MagistratPhoneNumbersSection magistratId={magistrat.id} magistratName={magistrat.name} />
+              </>
             ) : null
           }
         />

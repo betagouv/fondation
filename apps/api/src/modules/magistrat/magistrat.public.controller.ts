@@ -16,23 +16,19 @@ import * as time from '../../utils/time';
 import { HasApiScope } from '../api-clients';
 import { WideEvent } from '../framework/wide-event';
 
-import { InvalidMagistratEmailDto } from './infrastructure/magistrat.dto';
-import {
-  FindMagistratStatusQuery,
-  FoundMagistratStatusDto,
-} from './infrastructure/queries/find-magistrat-status.query';
+import { InvalidMagistratEmailDto } from './infrastructure/dtos/magistrat.dto';
+import { FoundMagistratStatusDto } from './infrastructure/queries/find-magistrat-status.query';
 import {
   IdentifiedMagistratDto,
   IdentifyMagistratDto,
-  IdentifyMagistratQuery,
 } from './infrastructure/queries/identify-magistrat.query';
+import { MagistratService } from './magistrat.service';
 
 @ApiTags('Magistrats')
 @Controller('/api/public/v1')
 export class MagistratPublicController {
   constructor(
-    private readonly findMagistratStatusQuery: FindMagistratStatusQuery,
-    private readonly identifyMagistratQuery: IdentifyMagistratQuery,
+    private readonly magistrats: MagistratService,
     private readonly wideEvent: WideEvent,
   ) {}
 
@@ -42,7 +38,7 @@ export class MagistratPublicController {
   @ZodResponse({ status: HttpStatus.OK, type: IdentifiedMagistratDto })
   @ZodResponse<any>({ status: HttpStatus.BAD_REQUEST, type: InvalidMagistratEmailDto })
   async identifyMagistrat(@Body() body: IdentifyMagistratDto): Promise<IdentifiedMagistratDto> {
-    const identified = await this.identifyMagistratQuery.handle({ email: body.email });
+    const identified = await this.magistrats.identifyMagistrat({ email: body.email });
     // The identifier tells whom the call was about, never the address it was asked with
     this.wideEvent.set({
       'fondation.magistrat.id': identified.status === 'ACTIVE' ? identified.magistrat.id : undefined,
@@ -62,7 +58,7 @@ export class MagistratPublicController {
   async findMagistratStatus(
     @Param('magistratId', ParseUUIDPipe) magistratId: string,
   ): Promise<FoundMagistratStatusDto> {
-    const found = await this.findMagistratStatusQuery.handle({ magistratId });
+    const found = await this.magistrats.findMagistratStatus({ magistratId });
     this.wideEvent.set({ 'fondation.magistrat.status': found.status });
 
     return found;

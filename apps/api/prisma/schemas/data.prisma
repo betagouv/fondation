@@ -237,6 +237,7 @@ model Magistrat {
   nominations                 Nomination[]
   detectedInNominationFiles   DossierDeNomination[]
   excludingMembers            ExcludedMagistrat[]
+  attachedEmails              AttachedMagistratEmail[]
   phoneNumbers                MagistratPhoneNumber[]
   positionComments            PositionComment[]
   positionVacancies           PositionVacancy[]

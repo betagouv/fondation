@@ -5,7 +5,7 @@ import { useIntl } from 'react-intl';
 
 export function SearchInput(props: {
   className?: string;
-  /** a visible label points at the field by this id: the placeholder no longer names it */
+  /** a visible label points at the field by this id so the placeholder no longer names it */
   id?: string;
   inputProps?: Omit<InputHTMLAttributes<HTMLInputElement>, 'id' | 'onChange' | 'value'>;
   onChange: (value: string) => void;

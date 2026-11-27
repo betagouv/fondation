@@ -1,12 +1,14 @@
 # Droits par rôle
 
-Ce document liste ce que chaque rôle peut voir et faire dans Fondation (les vues du client, les actions de l'API, puis les accès sans utilisateur). Deux tests le confrontent au code à chaque pull request. Une ligne manquante, en trop ou aux rôles différents les fait échouer.
+Ce document liste ce que chaque rôle peut voir et faire dans Fondation. Il couvre les vues du client, les actions de l'API puis les accès sans utilisateur. Le préfixe `/api` des endpoints est omis.
+
+Deux tests le confrontent au code à chaque pull request. Une ligne manquante, en trop ou aux rôles différents les fait échouer. Ils vérifient les colonnes Membre et Secrétariat général où une case `✓ si …` compte comme `✓`. Les conditions relèvent des tests du domaine.
 
 ## Lecture
 
 **Rôles**
 
-- **Membre** : du siège, du parquet ou commun. Les deux premiers ne voient que les sessions de leur formation, le Membre commun voit les deux.
+- **Membre** : du siège, du parquet ou commun. Les deux premiers ne voient que les sessions de leur formation. Le Membre commun voit les deux.
 - **Secrétariat général**.
 - **Administrateur** : personne du Secrétariat général avec le droit d'administrateur. Elle passe toutes les gardes de rôle (API et client) et peut se connecter à la place d'un autre utilisateur. Le domaine lui refuse ce qu'il refuse au Secrétariat général.
 
@@ -15,16 +17,17 @@ Ce document liste ce que chaque rôle peut voir et faire dans Fondation (les vue
 - `✓` : autorisé.
 - `—` : refusé.
 - `✓ si …` : autorisé sous condition. Les conditions viennent de cette liste :
-  - _sa formation_ : la session appartient à la formation du membre ;
-  - _affectation publiée_ : le membre ne voit que la dernière affectation publiée ;
-  - _rapporteur du dossier_ : le membre est rapporteur du dossier dans l'affectation publiée ;
+  - _sa formation_ : la session appartient à la formation du Membre ;
+  - _affectation publiée_ : le Membre ne voit que la dernière affectation publiée ;
+  - _rapporteur du dossier_ : le Membre est rapporteur du dossier dans l'affectation publiée ;
   - _session non archivée_ : la session n'est pas archivée ;
   - _auteur de la synthèse_ : l'utilisateur a rédigé la synthèse le premier ;
-  - _lecteur de la synthèse_ : l'utilisateur est l'auteur ou un lecteur de la synthèse ; tant qu'elle n'a pas d'auteur, le Secrétariat général aussi ;
+  - _lecteur de la synthèse_ : l'utilisateur en est l'auteur ou un lecteur. Tout le Secrétariat général la lit tant qu'elle n'a pas d'auteur ;
   - _ses propres données_ : l'utilisateur de l'URL est celui qui est connecté ;
-  - _appel non publié_ : l'appel à candidatures n'est pas encore publié. Une fois publié, seul l'Administrateur le modifie ou le supprime.
-
-Les tests vérifient les rôles : une case `✓ si …` compte comme `✓`. Les conditions relèvent des tests du domaine. La colonne Administrateur n'est pas vérifiée.
+  - _appel non publié_ : l'appel à candidatures n'est pas encore publié. Seul l'Administrateur le modifie ou le supprime une fois publié ;
+  - _comptes actifs_ : la liste ne montre que les comptes actifs. Les comptes désactivés sont réservés à l'Administrateur ;
+  - _page de l'espace membre_ : la page d'aide demandée est celle de l'espace membre ;
+  - _compte technique_ : l'Administrateur est un compte technique.
 
 ## Vues
 
@@ -43,12 +46,12 @@ Après la connexion, un Membre arrive sur `/transparences`, le Secrétariat gén
 | URL                                                   | Vue                                          | Membre                      | Secrétariat général         | Administrateur              |
 | ----------------------------------------------------- | -------------------------------------------- | --------------------------- | --------------------------- | --------------------------- |
 | `/avis`                                               | Questionnaire de satisfaction                | ✓                           | ✓                           | ✓                           |
-| `/aide`                                               | Centre d'aide de l'espace du lecteur         | ✓                           | ✓                           | ✓                           |
+| `/aide`                                               | Centre d'aide de son espace                  | ✓                           | ✓                           | ✓                           |
 | `/mon-compte`                                         | Son compte et son mot de passe               | ✓                           | ✓                           | ✓                           |
 | `/session/:sessionId/dossier/:fileId/synthese`        | Synthèse d'un dossier                        | ✓ si lecteur de la synthèse | ✓ si lecteur de la synthèse | ✓ si lecteur de la synthèse |
 | `/session/:sessionId/dossier/:fileId/lolfi-magistrat` | Redirection vers la fiche Lolfi du magistrat | ✓ si sa formation           | ✓                           | ✓                           |
 
-L'administrateur voit le questionnaire de satisfaction en aperçu : sa réponse n'est pas enregistrée, sauf en environnement de test.
+L'Administrateur voit le questionnaire de satisfaction en aperçu. Sa réponse n'est enregistrée qu'en environnement de test.
 
 ### Espace membre
 
@@ -56,9 +59,9 @@ Le menu propose Accueil, Archives et Magistrats.
 
 | URL                                                                                                                                    | Vue                                                  | Membre                                 | Secrétariat général | Administrateur |
 | -------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- | -------------------------------------- | ------------------- | -------------- |
-| `/transparences`                                                                                                                       | Accueil : sessions en cours et mes dossiers par état | ✓ si sa formation, affectation publiée | —                   | ✓              |
+| `/transparences`                                                                                                                       | Accueil : sessions en cours et ses dossiers par état | ✓ si sa formation, affectation publiée | —                   | ✓              |
 | `/transparences/archives/sessions`                                                                                                     | Sessions archivées                                   | ✓ si sa formation, affectation publiée | —                   | ✓              |
-| `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/:sessionId`                                                        | Session : dossiers et mes rapports                   | ✓ si sa formation                      | —                   | ✓              |
+| `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/:sessionId`                                                        | Session : dossiers et ses rapports                   | ✓ si sa formation                      | —                   | ✓              |
 | `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/:sessionId/auditions`                                              | Session, onglet Auditions                            | ✓ si sa formation                      | —                   | ✓              |
 | `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/sessions/:sessionId/pieces-jointes`                                         | Session, onglet Pièces jointes                       | ✓ si sa formation                      | —                   | ✓              |
 | `/transparences/pouvoir-de-proposition-du-garde-des-sceaux/rapports/:id`                                                               | Rapport sur un dossier                               | ✓ si rapporteur du dossier             | —                   | ✓              |
@@ -66,11 +69,9 @@ Le menu propose Accueil, Archives et Magistrats.
 | `/magistrats`                                                                                                                          | Recherche de magistrats                              | ✓                                      | —                   | ✓              |
 | `/magistrats/:magistratId`                                                                                                             | Fiche d'un magistrat et son historique               | ✓                                      | —                   | ✓              |
 
-Un Membre ne voit les auditions d'une session qu'une fois publiées.
-
 ### Espace Secrétariat général
 
-L'accueil propose les deux pouvoirs de proposition et le logo y ramène. Le menu garde partout Gérer les membres et Rechercher un magistrat. Le GDS y ajoute Gérer une session, Restitutions, Suivi des observations et Archives. Le CSM y ajoute Veille des postes et Appels à candidatures. L'Administrateur a en plus un sous-menu Administration et peut créer une session depuis une extraction Lodam.
+L'accueil propose les deux pouvoirs de proposition et le logo y ramène. Le menu garde partout Gérer les membres et Rechercher un magistrat. Le pouvoir du garde des Sceaux (GDS) y ajoute Gérer une session, Restitutions, Suivi des observations et Archives. Celui du CSM y ajoute Veille des postes et Appels à candidatures. L'Administrateur a en plus un sous-menu Administration et peut créer une session depuis une extraction Lodam.
 
 | URL                                                                                                  | Vue                                                                | Membre | Secrétariat général | Administrateur |
 | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ------ | ------------------- | -------------- |
@@ -81,6 +82,7 @@ L'accueil propose les deux pouvoirs de proposition et le logo y ramène. Le menu
 | `/secretariat-general/csm/veille-des-postes/cour-de-cassation/:position`                             | Veille des postes, magistrats du siège de la Cour de cassation     | —      | ✓                   | ✓              |
 | `/secretariat-general/csm/appels-a-candidature/en-cours`                                             | Appels à candidatures en cours                                     | —      | ✓                   | ✓              |
 | `/secretariat-general/csm/appels-a-candidature/passes`                                               | Appels à candidatures passés                                       | —      | ✓                   | ✓              |
+| `/secretariat-general/csm/appels-a-candidature/adresses-non-reconnues`                               | Appels à candidatures, onglet Adresses non reconnues               | —      | ✓                   | ✓              |
 | `/secretariat-general/csm/processus-de-selection`                                                    | Processus de sélection (à venir)                                   | —      | ✓                   | ✓              |
 | `/secretariat-general/gds/sessions`                                                                  | Gérer les sessions                                                 | —      | ✓                   | ✓              |
 | `/secretariat-general/gds/archives/sessions`                                                         | Sessions archivées                                                 | —      | ✓                   | ✓              |
@@ -92,10 +94,6 @@ L'accueil propose les deux pouvoirs de proposition et le logo y ramène. Le menu
 | `/secretariat-general/gds/session/:sessionId/pieces-jointes`                                         | Session, onglet Pièces jointes                                     | —      | ✓                   | ✓              |
 | `/secretariat-general/gds/session/:sessionId/commentaire`                                            | Commentaire de session                                             | —      | ✓                   | ✓              |
 | `/secretariat-general/gds/session/:sessionId/dossiers/:nominationFileId/observations/:observationId` | Détail d'une observation                                           | —      | ✓                   | ✓              |
-| `/secretariat-general/magistrats`                                                                    | Recherche de magistrats                                            | —      | ✓                   | ✓              |
-| `/secretariat-general/magistrats/:magistratId`                                                       | Fiche d'un magistrat, avec ses numéros de téléphone                | —      | ✓                   | ✓              |
-| `/secretariat-general/membres`                                                                       | Liste des membres                                                  | —      | ✓                   | ✓              |
-| `/secretariat-general/membres/:userId`                                                               | Fiche d'un membre : titre, juridictions exclues                    | —      | ✓                   | ✓              |
 | `/secretariat-general/gds/session/:sessionId/docs/ordre-du-jour`                                     | Nouvel ordre du jour                                               | —      | ✓                   | ✓              |
 | `/secretariat-general/gds/session/:sessionId/docs/ordre-du-jour/:agendaId/metadonnees`               | Ordre du jour : métadonnées                                        | —      | ✓                   | ✓              |
 | `/secretariat-general/gds/session/:sessionId/docs/ordre-du-jour/:agendaId/dossiers`                  | Ordre du jour : dossiers                                           | —      | ✓                   | ✓              |
@@ -113,24 +111,26 @@ L'accueil propose les deux pouvoirs de proposition et le logo y ramène. Le menu
 | `/secretariat-general/gds/restitutions/:planId/validation`                                           | Notice : aperçu et validation                                      | —      | ✓                   | ✓              |
 | `/secretariat-general/gds/restitutions/:planId/validation/edition`                                   | Notice : retouche du document                                      | —      | ✓                   | ✓              |
 | `/secretariat-general/gds/suivi-des-observations`                                                    | Suivi des observations : celles qui ont une suite, toutes sessions | —      | ✓                   | ✓              |
+| `/secretariat-general/magistrats`                                                                    | Recherche de magistrats                                            | —      | ✓                   | ✓              |
+| `/secretariat-general/magistrats/:magistratId`                                                       | Fiche d'un magistrat, avec ses numéros de téléphone                | —      | ✓                   | ✓              |
+| `/secretariat-general/membres`                                                                       | Liste des membres                                                  | —      | ✓                   | ✓              |
+| `/secretariat-general/membres/:userId`                                                               | Fiche d'un membre : titre, juridictions exclues                    | —      | ✓                   | ✓              |
 
 ### Espace administration
 
-| URL                           | Vue                                                                                                                                  | Membre | Secrétariat général | Administrateur     |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ------ | ------------------- | ------------------ |
-| `/admin/lolfi`                | Import d'une archive Lolfi                                                                                                           | —      | —                   | ✓                  |
-| `/admin/ingestions`           | Liste des traitements en arrière-plan                                                                                                | —      | —                   | ✓                  |
-| `/admin/ingestions/:jobId`    | Détail d'un traitement                                                                                                               | —      | —                   | ✓                  |
-| `/admin/avis`                 | Export des réponses au questionnaire                                                                                                 | —      | —                   | ✓                  |
-| `/admin/retours/:status`      | Retours d'un statut (nouveaux, pris en compte, traités ou écartés) et suivi de ce statut                                             | —      | —                   | ✓                  |
-| `/admin/aide`                 | Édition des pages d'aide                                                                                                             | —      | —                   | ✓                  |
-| `/admin/utilisateurs`         | Liste des utilisateurs                                                                                                               | —      | —                   | ✓                  |
-| `/admin/utilisateurs/:userId` | Fiche d'un utilisateur : nom, prénom, e-mail, mot de passe, rôle, titre, droit d'administrateur, désactivation, connexion à sa place | —      | —                   | ✓                  |
-| `/admin/clients-api`          | Clients API : création, modification, rotation du secret, révocation, historique                                                     | —      | —                   | ✓ compte technique |
+| URL                           | Vue                                                                                                                                  | Membre | Secrétariat général | Administrateur        |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ------ | ------------------- | --------------------- |
+| `/admin/lolfi`                | Import d'une archive Lolfi                                                                                                           | —      | —                   | ✓                     |
+| `/admin/ingestions`           | Liste des traitements en arrière-plan                                                                                                | —      | —                   | ✓                     |
+| `/admin/ingestions/:jobId`    | Détail d'un traitement                                                                                                               | —      | —                   | ✓                     |
+| `/admin/avis`                 | Export des réponses au questionnaire                                                                                                 | —      | —                   | ✓                     |
+| `/admin/retours/:status`      | Retours d'un statut (nouveaux, pris en compte, traités ou écartés) et suivi de ce statut                                             | —      | —                   | ✓                     |
+| `/admin/aide`                 | Édition des pages d'aide                                                                                                             | —      | —                   | ✓                     |
+| `/admin/utilisateurs`         | Liste des utilisateurs                                                                                                               | —      | —                   | ✓                     |
+| `/admin/utilisateurs/:userId` | Fiche d'un utilisateur : nom, prénom, e-mail, mot de passe, rôle, titre, droit d'administrateur, désactivation, connexion à sa place | —      | —                   | ✓                     |
+| `/admin/clients-api`          | Clients API : création, modification, rotation du secret, révocation, historique                                                     | —      | —                   | ✓ si compte technique |
 
 ## Actions de l'API
-
-Le préfixe `/api` est omis.
 
 ### Connexion et compte
 
@@ -150,7 +150,7 @@ Le préfixe `/api` est omis.
 
 Quiconque détient un lien de téléchargement temporaire télécharge le fichier.
 
-Connecté à la place d'un utilisateur, l'administrateur :
+Connecté à la place d'un utilisateur, l'Administrateur :
 
 - n'enregistre ni réponse au questionnaire ni changement de mot de passe
 - envoie ses retours à son propre nom
@@ -163,7 +163,7 @@ Cette connexion ne vaut que pour l'onglet ouvert pour elle et ceux ouverts depui
 
 | Action                                        | Endpoint                                                         | Membre                                                                            | Secrétariat général      | Administrateur           |
 | --------------------------------------------- | ---------------------------------------------------------------- | --------------------------------------------------------------------------------- | ------------------------ | ------------------------ |
-| Lister mes sessions en cours                  | `GET /members/v1/:userId/sessions/transparence/garde-des-sceaux` | ✓ si ses propres données, sa formation, affectation publiée, session non archivée | ✓ si ses propres données | ✓ si ses propres données |
+| Lister ses sessions en cours                  | `GET /members/v1/:userId/sessions/transparence/garde-des-sceaux` | ✓ si ses propres données, sa formation, affectation publiée, session non archivée | ✓ si ses propres données | ✓ si ses propres données |
 | Lister les sessions archivées                 | `GET /archived-sessions/v1`                                      | ✓ si sa formation, affectation publiée                                            | ✓                        | ✓                        |
 | Lister les sessions (gestion)                 | `GET /sessions/v2/garde-des-sceaux`                              | —                                                                                 | ✓                        | ✓                        |
 | Compter les nouvelles sessions                | `GET /sessions/v2/new/count`                                     | —                                                                                 | ✓                        | ✓                        |
@@ -213,7 +213,7 @@ Le Secrétariat général n'a pas de sessions en cours à lui : la liste lui rev
 | Exporter les évaluations manquantes (Excel)       | `GET /sessions/v2/:sessionId/files/missing-evaluations.xlsx`                                             | —                                                            | ✓                   | ✓              |
 | Écrire son mémo personnel sur un dossier          | `PUT /members/v1/:userId/sessions/transparence/garde-des-sceaux/:sessionId/files/:nominationFileId/memo` | ✓ si ses propres données, sa formation, session non archivée | —                   | —              |
 
-Un Membre ne voit pas le commentaire de décision d'un dossier. Un rapporteur du dossier n'a pas de mémo : il rédige le rapport. Un membre déporté garde l'accès à tout le dossier, sans pouvoir y être affecté comme rapporteur.
+Un Membre ne voit pas le commentaire de décision d'un dossier. Un rapporteur du dossier n'a pas de mémo puisqu'il rédige le rapport. Un Membre déporté garde l'accès à tout le dossier sans pouvoir y être affecté comme rapporteur.
 
 ### Affectation
 
@@ -230,8 +230,8 @@ Un Membre ne voit pas le commentaire de décision d'un dossier. Un rapporteur du
 
 | Action                                  | Endpoint                                                                                                    | Membre                                           | Secrétariat général      | Administrateur           |
 | --------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------ | ------------------------ | ------------------------ |
-| Lister mes rapports d'une session       | `GET /members/v1/:userId/sessions/transparence/garde-des-sceaux/:sessionId/reports`                         | ✓ si ses propres données, sa formation           | ✓ si ses propres données | ✓ si ses propres données |
-| Trouver mon rapport sur un dossier      | `GET /members/v1/:userId/sessions/transparence/garde-des-sceaux/:sessionId/files/:nominationFileId/reports` | ✓ si ses propres données                         | ✓ si ses propres données | ✓ si ses propres données |
+| Lister ses rapports d'une session       | `GET /members/v1/:userId/sessions/transparence/garde-des-sceaux/:sessionId/reports`                         | ✓ si ses propres données, sa formation           | ✓ si ses propres données | ✓ si ses propres données |
+| Trouver son rapport sur un dossier      | `GET /members/v1/:userId/sessions/transparence/garde-des-sceaux/:sessionId/files/:nominationFileId/reports` | ✓ si ses propres données                         | ✓ si ses propres données | ✓ si ses propres données |
 | Lire un rapport                         | `GET /reports/v2/:reportId`                                                                                 | ✓ si rapporteur du dossier                       | ✓                        | ✓                        |
 | Rédiger un rapport                      | `PATCH /reports/v2/:reportId`                                                                               | ✓ si rapporteur du dossier, session non archivée | —                        | —                        |
 | Valider une règle statutaire du rapport | `PUT /reports/v2/:reportId/rules/:ruleId`                                                                   | ✓ si rapporteur du dossier, session non archivée | —                        | —                        |
@@ -293,17 +293,21 @@ Un Membre ne voit les auditions qu'une fois publiées et sans les coordonnées d
 
 ### Magistrats
 
-| Action                               | Endpoint                                                          | Membre | Secrétariat général | Administrateur |
-| ------------------------------------ | ----------------------------------------------------------------- | ------ | ------------------- | -------------- |
-| Rechercher un magistrat              | `GET /magistrats/v1`                                              | ✓      | ✓                   | ✓              |
-| Voir la fiche d'un magistrat         | `GET /magistrats/v1/:magistratId`                                 | ✓      | ✓                   | ✓              |
-| Voir les dossiers d'un magistrat     | `GET /magistrats/v1/:magistratId/nomination-files`                | ✓      | ✓                   | ✓              |
-| Voir les observations d'un magistrat | `GET /magistrats/v1/:magistratId/observations`                    | ✓      | ✓                   | ✓              |
-| Lister les numéros de téléphone      | `GET /magistrats/v1/:magistratId/phone-numbers`                   | —      | ✓                   | ✓              |
-| Ajouter un numéro de téléphone       | `POST /magistrats/v1/:magistratId/phone-numbers`                  | —      | ✓                   | ✓              |
-| Modifier un numéro de téléphone      | `PATCH /magistrats/v1/:magistratId/phone-numbers/:phoneNumberId`  | —      | ✓                   | ✓              |
-| Supprimer un numéro de téléphone     | `DELETE /magistrats/v1/:magistratId/phone-numbers/:phoneNumberId` | —      | ✓                   | ✓              |
-| Rechercher une juridiction           | `GET /jurisdictions/v1`                                           | —      | ✓                   | ✓              |
+| Action                               | Endpoint                                                              | Membre | Secrétariat général | Administrateur |
+| ------------------------------------ | --------------------------------------------------------------------- | ------ | ------------------- | -------------- |
+| Rechercher un magistrat              | `GET /magistrats/v1`                                                  | ✓      | ✓                   | ✓              |
+| Voir la fiche d'un magistrat         | `GET /magistrats/v1/:magistratId`                                     | ✓      | ✓                   | ✓              |
+| Voir les dossiers d'un magistrat     | `GET /magistrats/v1/:magistratId/nomination-files`                    | ✓      | ✓                   | ✓              |
+| Voir les observations d'un magistrat | `GET /magistrats/v1/:magistratId/observations`                        | ✓      | ✓                   | ✓              |
+| Lister les numéros de téléphone      | `GET /magistrats/v1/:magistratId/phone-numbers`                       | —      | ✓                   | ✓              |
+| Ajouter un numéro de téléphone       | `POST /magistrats/v1/:magistratId/phone-numbers`                      | —      | ✓                   | ✓              |
+| Modifier un numéro de téléphone      | `PATCH /magistrats/v1/:magistratId/phone-numbers/:phoneNumberId`      | —      | ✓                   | ✓              |
+| Supprimer un numéro de téléphone     | `DELETE /magistrats/v1/:magistratId/phone-numbers/:phoneNumberId`     | —      | ✓                   | ✓              |
+| Lister les adresses rattachées       | `GET /magistrats/v1/:magistratId/attached-emails`                     | —      | ✓                   | ✓              |
+| Détacher une adresse                 | `DELETE /magistrats/v1/:magistratId/attached-emails/:attachedEmailId` | —      | ✓                   | ✓              |
+| Lister les adresses non reconnues    | `GET /magistrats/v1/unrecognised-emails`                              | —      | ✓                   | ✓              |
+| Rattacher une adresse non reconnue   | `POST /magistrats/v1/unrecognised-emails/:id/attachment`              | —      | ✓                   | ✓              |
+| Écarter une adresse non reconnue     | `DELETE /magistrats/v1/unrecognised-emails/:id`                       | —      | ✓                   | ✓              |
 
 Dans les dossiers d'un magistrat, un Membre ne voit que l'affectation et les auditions publiées.
 
@@ -317,6 +321,7 @@ Dans les dossiers d'un magistrat, un Membre ne voit que l'affectation et les aud
 | Modifier le titre déport d'un membre                  | `PUT /members/v1/:userId/recusal-title`          | —      | ✓                   | ✓              |
 | Exclure des juridictions de l'affectation d'un membre | `PUT /members/v1/:userId/excluded-jurisdictions` | —      | ✓                   | ✓              |
 | Exclure des magistrats de l'affectation d'un membre   | `PUT /members/v1/:userId/excluded-magistrats`    | —      | ✓                   | ✓              |
+| Rechercher une juridiction                            | `GET /jurisdictions/v1`                          | —      | ✓                   | ✓              |
 
 ### Veille des postes
 
@@ -325,11 +330,11 @@ Dans les dossiers d'un magistrat, un Membre ne voit que l'affectation et les aud
 | Lister les cours d'appel et leur premier président     | `GET /veille-des-postes/v1/cours-d-appel`                                             | —      | ✓                   | ✓              |
 | Lister les magistrats du siège de la Cour de cassation | `GET /veille-des-postes/v1/cour-de-cassation`                                         | —      | ✓                   | ✓              |
 | Lister les tribunaux judiciaires et leur président     | `GET /veille-des-postes/v1/tribunaux-judiciaires`                                     | —      | ✓                   | ✓              |
-| Consulter le commentaire d'une juridiction             | `GET /veille-des-postes/v1/juridictions/:courtId/commentaire`                         | —      | ✓                   | ✓              |
+| Voir le commentaire d'une juridiction                  | `GET /veille-des-postes/v1/juridictions/:courtId/commentaire`                         | —      | ✓                   | ✓              |
 | Écrire le commentaire d'une juridiction                | `PUT /veille-des-postes/v1/juridictions/:courtId/commentaire`                         | —      | ✓                   | ✓              |
-| Consulter le commentaire d'un poste                    | `GET /veille-des-postes/v1/titulaires/:magistratId/commentaire`                       | —      | ✓                   | ✓              |
+| Voir le commentaire d'un poste                         | `GET /veille-des-postes/v1/titulaires/:magistratId/commentaire`                       | —      | ✓                   | ✓              |
 | Écrire le commentaire d'un poste                       | `PUT /veille-des-postes/v1/titulaires/:magistratId/commentaire`                       | —      | ✓                   | ✓              |
-| Consulter la vacance déclarée d'un poste               | `GET /veille-des-postes/v1/titulaires/:magistratId/vacance`                           | —      | ✓                   | ✓              |
+| Voir la vacance déclarée d'un poste                    | `GET /veille-des-postes/v1/titulaires/:magistratId/vacance`                           | —      | ✓                   | ✓              |
 | Déclarer la vacance d'un poste                         | `PUT /veille-des-postes/v1/titulaires/:magistratId/vacance`                           | —      | ✓                   | ✓              |
 | Revenir au statut calculé d'un poste                   | `DELETE /veille-des-postes/v1/titulaires/:magistratId/vacance`                        | —      | ✓                   | ✓              |
 | Ouvrir une pièce jointe de la vacance                  | `GET /veille-des-postes/v1/titulaires/:magistratId/vacance/pieces-jointes/:fileId`    | —      | ✓                   | ✓              |
@@ -338,13 +343,13 @@ Dans les dossiers d'un magistrat, un Membre ne voit que l'affectation et les aud
 
 ### Appels à candidatures
 
-| Action                                        | Endpoint                                    | Membre | Secrétariat général   | Administrateur |
-| --------------------------------------------- | ------------------------------------------- | ------ | --------------------- | -------------- |
-| Lister les appels à candidatures              | `GET /calls-for-applications/v1`            | —      | ✓                     | ✓              |
-| Créer un appel à candidatures                 | `POST /calls-for-applications/v1`           | —      | ✓                     | ✓              |
-| Modifier un appel à candidatures              | `PUT /calls-for-applications/v1/:callId`    | —      | ✓ si appel non publié | ✓              |
-| Supprimer un appel à candidatures             | `DELETE /calls-for-applications/v1/:callId` | —      | ✓ si appel non publié | ✓              |
-| Consulter les choix du formulaire de création | `GET /calls-for-applications/v1/form`       | —      | ✓                     | ✓              |
+| Action                                   | Endpoint                                    | Membre | Secrétariat général   | Administrateur |
+| ---------------------------------------- | ------------------------------------------- | ------ | --------------------- | -------------- |
+| Lister les appels à candidatures         | `GET /calls-for-applications/v1`            | —      | ✓                     | ✓              |
+| Créer un appel à candidatures            | `POST /calls-for-applications/v1`           | —      | ✓                     | ✓              |
+| Modifier un appel à candidatures         | `PUT /calls-for-applications/v1/:callId`    | —      | ✓ si appel non publié | ✓              |
+| Supprimer un appel à candidatures        | `DELETE /calls-for-applications/v1/:callId` | —      | ✓ si appel non publié | ✓              |
+| Voir les choix du formulaire de création | `GET /calls-for-applications/v1/form`       | —      | ✓                     | ✓              |
 
 ### Documents de séance : préparation
 
@@ -435,51 +440,51 @@ Dans les dossiers d'un magistrat, un Membre ne voit que l'affectation et les aud
 
 ### Administration
 
-| Action                            | Endpoint                                                          | Membre | Secrétariat général | Administrateur     |
-| --------------------------------- | ----------------------------------------------------------------- | ------ | ------------------- | ------------------ |
-| Lister les utilisateurs           | `GET /administration/v1/users`                                    | —      | —                   | ✓                  |
-| Créer un compte                   | `POST /administration/v1/users`                                   | —      | —                   | ✓                  |
-| Voir un utilisateur               | `GET /administration/v1/users/:userId`                            | —      | —                   | ✓                  |
-| Voir les rôles proposés           | `GET /administration/v1/roles`                                    | —      | —                   | ✓                  |
-| Voir les titulaires des fonctions | `GET /administration/v1/title-holders`                            | —      | —                   | ✓                  |
-| Modifier l'e-mail                 | `PUT /administration/v1/users/:userId/email`                      | —      | —                   | ✓                  |
-| Modifier le nom ou le prénom      | `PUT /administration/v1/users/:userId/name`                       | —      | —                   | ✓                  |
-| Modifier le mot de passe          | `PUT /administration/v1/users/:userId/password`                   | —      | —                   | ✓                  |
-| Modifier le rôle                  | `PUT /administration/v1/users/:userId/role`                       | —      | —                   | ✓                  |
-| Modifier le titre affiché         | `PUT /administration/v1/users/:userId/display-title`              | —      | —                   | ✓                  |
-| Modifier le titre déport          | `PUT /administration/v1/users/:userId/recusal-title`              | —      | —                   | ✓                  |
-| Donner le droit d'administrateur  | `PUT /administration/v1/users/:userId/promotion`                  | —      | —                   | ✓                  |
-| Retirer le droit d'administrateur | `DELETE /administration/v1/users/:userId/promotion`               | —      | —                   | ✓                  |
-| Marquer un compte technique       | `PUT /administration/v1/users/:userId/technical-account`          | —      | —                   | ✓                  |
-| Démarquer un compte technique     | `DELETE /administration/v1/users/:userId/technical-account`       | —      | —                   | ✓                  |
-| Désactiver un compte              | `PUT /administration/v1/users/:userId/deactivation`               | —      | —                   | ✓                  |
-| Réactiver un compte               | `DELETE /administration/v1/users/:userId/deactivation`            | —      | —                   | ✓                  |
-| Lister les traitements            | `GET /jobs/v1`                                                    | —      | —                   | ✓                  |
-| Voir un traitement                | `GET /jobs/v1/:jobId`                                             | —      | —                   | ✓                  |
-| Lister les clients API            | `GET /administration/v1/api-clients`                              | —      | —                   | ✓ compte technique |
-| Lire l'historique d'un client API | `GET /administration/v1/api-clients/:clientId/changes`            | —      | —                   | ✓ compte technique |
-| Créer un client API               | `POST /administration/v1/api-clients`                             | —      | —                   | ✓ compte technique |
-| Modifier un client API            | `PUT /administration/v1/api-clients/:clientId`                    | —      | —                   | ✓ compte technique |
-| Lancer la rotation d'un secret    | `POST /administration/v1/api-clients/:clientId/secret-rotation`   | —      | —                   | ✓ compte technique |
-| Clore la rotation d'un secret     | `DELETE /administration/v1/api-clients/:clientId/secret-rotation` | —      | —                   | ✓ compte technique |
-| Révoquer un client API            | `PUT /administration/v1/api-clients/:clientId/revocation`         | —      | —                   | ✓ compte technique |
+| Action                            | Endpoint                                                          | Membre | Secrétariat général | Administrateur        |
+| --------------------------------- | ----------------------------------------------------------------- | ------ | ------------------- | --------------------- |
+| Lister les utilisateurs           | `GET /administration/v1/users`                                    | —      | —                   | ✓                     |
+| Créer un compte                   | `POST /administration/v1/users`                                   | —      | —                   | ✓                     |
+| Voir un utilisateur               | `GET /administration/v1/users/:userId`                            | —      | —                   | ✓                     |
+| Voir les rôles proposés           | `GET /administration/v1/roles`                                    | —      | —                   | ✓                     |
+| Voir les titulaires des fonctions | `GET /administration/v1/title-holders`                            | —      | —                   | ✓                     |
+| Modifier l'e-mail                 | `PUT /administration/v1/users/:userId/email`                      | —      | —                   | ✓                     |
+| Modifier le nom ou le prénom      | `PUT /administration/v1/users/:userId/name`                       | —      | —                   | ✓                     |
+| Modifier le mot de passe          | `PUT /administration/v1/users/:userId/password`                   | —      | —                   | ✓                     |
+| Modifier le rôle                  | `PUT /administration/v1/users/:userId/role`                       | —      | —                   | ✓                     |
+| Modifier le titre affiché         | `PUT /administration/v1/users/:userId/display-title`              | —      | —                   | ✓                     |
+| Modifier le titre déport          | `PUT /administration/v1/users/:userId/recusal-title`              | —      | —                   | ✓                     |
+| Donner le droit d'administrateur  | `PUT /administration/v1/users/:userId/promotion`                  | —      | —                   | ✓                     |
+| Retirer le droit d'administrateur | `DELETE /administration/v1/users/:userId/promotion`               | —      | —                   | ✓                     |
+| Marquer un compte technique       | `PUT /administration/v1/users/:userId/technical-account`          | —      | —                   | ✓                     |
+| Démarquer un compte technique     | `DELETE /administration/v1/users/:userId/technical-account`       | —      | —                   | ✓                     |
+| Désactiver un compte              | `PUT /administration/v1/users/:userId/deactivation`               | —      | —                   | ✓                     |
+| Réactiver un compte               | `DELETE /administration/v1/users/:userId/deactivation`            | —      | —                   | ✓                     |
+| Lister les traitements            | `GET /jobs/v1`                                                    | —      | —                   | ✓                     |
+| Voir un traitement                | `GET /jobs/v1/:jobId`                                             | —      | —                   | ✓                     |
+| Lister les clients API            | `GET /administration/v1/api-clients`                              | —      | —                   | ✓ si compte technique |
+| Lire l'historique d'un client API | `GET /administration/v1/api-clients/:clientId/changes`            | —      | —                   | ✓ si compte technique |
+| Créer un client API               | `POST /administration/v1/api-clients`                             | —      | —                   | ✓ si compte technique |
+| Modifier un client API            | `PUT /administration/v1/api-clients/:clientId`                    | —      | —                   | ✓ si compte technique |
+| Lancer la rotation d'un secret    | `POST /administration/v1/api-clients/:clientId/secret-rotation`   | —      | —                   | ✓ si compte technique |
+| Clore la rotation d'un secret     | `DELETE /administration/v1/api-clients/:clientId/secret-rotation` | —      | —                   | ✓ si compte technique |
+| Révoquer un client API            | `PUT /administration/v1/api-clients/:clientId/revocation`         | —      | —                   | ✓ si compte technique |
 
 Le droit d'administrateur ne se donne qu'à une personne du Secrétariat général. Seul un compte technique peut en rendre un autre technique, et gérer les clients API.
 
 ## Accès sans utilisateur
 
-Ces endpoints ne passent par aucun rôle : ils sont publics ou réservés à d'autres systèmes. Le préfixe `/api` est omis.
+Ces endpoints ne passent par aucun rôle. Ils sont publics ou réservés à d'autres systèmes.
 
-| Accès                                          | Endpoint                                        | Qui                       | Raison                                                    |
-| ---------------------------------------------- | ----------------------------------------------- | ------------------------- | --------------------------------------------------------- |
-| Se connecter                                   | `POST /auth/v2/login`                           | public                    | Connexion par e-mail et mot de passe                      |
-| Lister les fournisseurs OpenID                 | `GET /auth/v2/openid/providers`                 | public                    | Connexion OpenID                                          |
-| Préparer une connexion OpenID                  | `POST /auth/v2/openid/:provider/requests`       | public                    | Connexion OpenID                                          |
-| Retour du fournisseur OpenID                   | `GET /auth/v2/openid/:provider/callback`        | public                    | Connexion OpenID                                          |
-| Obtenir un jeton de client API (API publique)  | `POST /public/v1/auth`                          | public                    | Jeton de 15 minutes contre un identifiant et un secret    |
-| Identifier un magistrat actif (API publique)   | `POST /public/v1/magistrats/identification`     | client API                | Site du CSM, première connexion d'un magistrat            |
-| Relire le statut d'un magistrat (API publique) | `GET /public/v1/magistrats/:magistratId/status` | client API                | Site du CSM, une fois par jour au plus pour un magistrat  |
-| Importer une archive Lolfi                     | `POST /ingest/v1/lolfi`                         | machine ou Administrateur | Dépôt automatique des archives Lolfi, ou import à la main |
+| Accès                           | Endpoint                                        | Qui                       | Raison                                                    |
+| ------------------------------- | ----------------------------------------------- | ------------------------- | --------------------------------------------------------- |
+| Se connecter                    | `POST /auth/v2/login`                           | public                    | Connexion par e-mail et mot de passe                      |
+| Lister les fournisseurs OpenID  | `GET /auth/v2/openid/providers`                 | public                    | Connexion OpenID                                          |
+| Préparer une connexion OpenID   | `POST /auth/v2/openid/:provider/requests`       | public                    | Connexion OpenID                                          |
+| Retour du fournisseur OpenID    | `GET /auth/v2/openid/:provider/callback`        | public                    | Connexion OpenID                                          |
+| Obtenir un jeton de client API  | `POST /public/v1/auth`                          | public                    | Jeton de 15 minutes contre un identifiant et un secret    |
+| Identifier un magistrat actif   | `POST /public/v1/magistrats/identification`     | client API                | Site du CSM, première connexion d'un magistrat            |
+| Relire le statut d'un magistrat | `GET /public/v1/magistrats/:magistratId/status` | client API                | Site du CSM, une fois par jour au plus pour un magistrat  |
+| Importer une archive Lolfi      | `POST /ingest/v1/lolfi`                         | machine ou Administrateur | Dépôt automatique des archives Lolfi, ou import à la main |
 
 ### Hors spécification OpenAPI
 

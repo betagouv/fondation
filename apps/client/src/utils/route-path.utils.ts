@@ -30,6 +30,8 @@ export const ROUTE_PATHS = {
       CALLS_FOR_APPLICATIONS: '/secretariat-general/csm/appels-a-candidature',
       CALLS_FOR_APPLICATIONS_ONGOING: '/secretariat-general/csm/appels-a-candidature/en-cours',
       CALLS_FOR_APPLICATIONS_PAST: '/secretariat-general/csm/appels-a-candidature/passes',
+      CALLS_FOR_APPLICATIONS_UNRECOGNISED_EMAILS:
+        '/secretariat-general/csm/appels-a-candidature/adresses-non-reconnues',
       ROOT: '/secretariat-general/csm',
       SELECTION_PROCESS: '/secretariat-general/csm/processus-de-selection',
       VEILLE_DES_POSTES: '/secretariat-general/csm/veille-des-postes',

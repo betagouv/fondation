@@ -10,10 +10,11 @@ import { ApiLogger } from './modules/framework/logger';
 import { SENTRY_FLUSH_TIMEOUT } from './modules/framework/observability';
 import { WideEvent } from './modules/framework/wide-event';
 import { IngestCliModule } from './modules/ingest/ingest-cli.module';
+import { MagistratCliModule } from './modules/magistrat/magistrat-cli.module';
 import { AuthCliModule } from './modules/simple-auth/infrastructure/cli/auth-cli.module';
 
 @Module({
-  imports: [AppModule, AuthCliModule, DeleteUnusedFilesCliModule, IngestCliModule],
+  imports: [AppModule, AuthCliModule, DeleteUnusedFilesCliModule, IngestCliModule, MagistratCliModule],
   providers: [CommandName],
 })
 class CliAppModule {}

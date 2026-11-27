@@ -1321,51 +1321,6 @@ export type ListedJurisdictions = {
     }>;
 };
 
-export type IdentifyMagistratDto = {
-    email: string;
-};
-
-export type IdentifiedMagistratDto = {
-    /**
-     * The address is the professional one of a single active _Magistrat_
-     */
-    status: 'ACTIVE';
-    magistrat: {
-        /**
-         * The Fondation identifier, to read the status again later
-         */
-        id: string;
-    };
-} | {
-    /**
-     * Unknown address, inactive _Magistrat_ or address held by several of them, never told apart
-     */
-    status: 'UNKNOWN';
-};
-
-export type InvalidMagistratEmailDto = {
-    message: string;
-    path: string;
-    statusCode: 400;
-    timestamp: string;
-    errors: Array<{
-        code: 'invalid_format';
-        format: 'email';
-        message: string;
-        origin: string;
-        path: Array<string>;
-        pattern: string;
-    }>;
-};
-
-export type FoundMagistratStatusDto = {
-    /**
-     * - `ACTIVE`: the _Magistrat_ is in the last LOLFI extraction imported successfully
-     * - `INACTIVE`: it is no longer
-     */
-    status: 'ACTIVE' | 'INACTIVE';
-};
-
 export type IngestedLolfiArchiveDto = {
     id: number;
     status: 'STARTED' | 'FAILED';
@@ -2300,6 +2255,26 @@ export type SearchMagistratsResponseDto = {
     };
 };
 
+export type ListedUnrecognisedMagistratEmailsDto = {
+    items: Array<{
+        email: string;
+        id: string;
+        lastAttemptAt: string;
+    }>;
+    totalCount: number;
+    currentPageIndex: number;
+    nextPageIndex?: number;
+    previousPageIndex?: number;
+    links?: {
+        next?: string;
+        previous?: string;
+    };
+};
+
+export type AttachUnrecognisedMagistratEmailDto = {
+    magistratId: string;
+};
+
 export type DetailedMagistratDto = {
     id: string;
     name: string;
@@ -2346,6 +2321,18 @@ export type DetailedMagistratDto = {
     status: 'ACTIVE' | 'INACTIVE';
 };
 
+export type ListedMagistratAttachedEmailsDto = {
+    items: Array<{
+        attachedAt: string;
+        attachedBy: {
+            id: string;
+            name: string;
+        } | null;
+        email: string;
+        id: string;
+    }>;
+};
+
 export type ListedMagistratPhoneNumbersDto = {
     items: Array<{
         date: {
@@ -2380,6 +2367,51 @@ export type AddMagistratPhoneNumberDto = {
 export type UpdateMagistratPhoneNumberDto = {
     label: string | null;
     number: string;
+};
+
+export type IdentifyMagistratDto = {
+    email: string;
+};
+
+export type IdentifiedMagistratDto = {
+    /**
+     * The professional address of a single active _Magistrat_ or an address the nominations pole attached to an active _Magistrat_
+     */
+    status: 'ACTIVE';
+    magistrat: {
+        /**
+         * The Fondation identifier, to read the status again later
+         */
+        id: string;
+    };
+} | {
+    /**
+     * Unknown address, inactive _Magistrat_ or address held by several of them, never told apart
+     */
+    status: 'UNKNOWN';
+};
+
+export type InvalidMagistratEmailDto = {
+    message: string;
+    path: string;
+    statusCode: 400;
+    timestamp: string;
+    errors: Array<{
+        code: 'invalid_format';
+        format: 'email';
+        message: string;
+        origin: string;
+        path: Array<string>;
+        pattern: string;
+    }>;
+};
+
+export type FoundMagistratStatusDto = {
+    /**
+     * - `ACTIVE`: the _Magistrat_ is in the last LOLFI extraction imported successfully
+     * - `INACTIVE`: it is no longer
+     */
+    status: 'ACTIVE' | 'INACTIVE';
 };
 
 export type ListedFollowedUpObservationsDto = {
@@ -4986,75 +5018,6 @@ export type SearchResponses = {
 
 export type SearchResponse = SearchResponses[keyof SearchResponses];
 
-export type IdentifyMagistratData = {
-    body: IdentifyMagistratDto;
-    path?: never;
-    query?: never;
-    url: '/api/public/v1/magistrats/identification';
-};
-
-export type IdentifyMagistratErrors = {
-    400: InvalidMagistratEmailDto;
-    /**
-     * Missing, unknown or expired token, or revoked client: ask for a new token
-     */
-    401: unknown;
-    /**
-     * The request comes from an IP, or asks for a route, the client is not allowed
-     */
-    403: unknown;
-    /**
-     * Too many calls within the minute
-     */
-    429: unknown;
-};
-
-export type IdentifyMagistratError = IdentifyMagistratErrors[keyof IdentifyMagistratErrors];
-
-export type IdentifyMagistratResponses = {
-    200: IdentifiedMagistratDto;
-};
-
-export type IdentifyMagistratResponse = IdentifyMagistratResponses[keyof IdentifyMagistratResponses];
-
-export type FindMagistratStatusData = {
-    body?: never;
-    path: {
-        magistratId: string;
-    };
-    query?: never;
-    url: '/api/public/v1/magistrats/{magistratId}/status';
-};
-
-export type FindMagistratStatusErrors = {
-    /**
-     * The identifier is not a UUID
-     */
-    400: unknown;
-    /**
-     * Missing, unknown or expired token, or revoked client: ask for a new token
-     */
-    401: unknown;
-    /**
-     * The request comes from an IP, or asks for a route, the client is not allowed
-     */
-    403: unknown;
-    /**
-     * No _Magistrat_ has this identifier: its status could not be checked
-     */
-    404: unknown;
-    /**
-     * Too many calls within the minute
-     */
-    429: unknown;
-};
-
-export type FindMagistratStatusResponses = {
-    200: FoundMagistratStatusDto;
-};
-
-export type FindMagistratStatusResponse = FindMagistratStatusResponses[keyof FindMagistratStatusResponses];
-
 export type IngestLolfiArchiveData = {
     body: {
         /**
@@ -5997,6 +5960,57 @@ export type SearchMagistratsResponses = {
 
 export type SearchMagistratsResponse = SearchMagistratsResponses[keyof SearchMagistratsResponses];
 
+export type ListUnrecognisedMagistratEmailsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        sortBy?: 'email' | 'lastAttemptAt';
+        /**
+         * 'true' sorts from the highest value
+         */
+        sortDesc?: string | boolean;
+        page?: number;
+        limit?: number;
+    };
+    url: '/api/magistrats/v1/unrecognised-emails';
+};
+
+export type ListUnrecognisedMagistratEmailsResponses = {
+    200: ListedUnrecognisedMagistratEmailsDto;
+};
+
+export type ListUnrecognisedMagistratEmailsResponse = ListUnrecognisedMagistratEmailsResponses[keyof ListUnrecognisedMagistratEmailsResponses];
+
+export type AttachUnrecognisedMagistratEmailData = {
+    body: AttachUnrecognisedMagistratEmailDto;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/magistrats/v1/unrecognised-emails/{id}/attachment';
+};
+
+export type AttachUnrecognisedMagistratEmailResponses = {
+    204: void;
+};
+
+export type AttachUnrecognisedMagistratEmailResponse = AttachUnrecognisedMagistratEmailResponses[keyof AttachUnrecognisedMagistratEmailResponses];
+
+export type DismissUnrecognisedMagistratEmailData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/magistrats/v1/unrecognised-emails/{id}';
+};
+
+export type DismissUnrecognisedMagistratEmailResponses = {
+    204: void;
+};
+
+export type DismissUnrecognisedMagistratEmailResponse = DismissUnrecognisedMagistratEmailResponses[keyof DismissUnrecognisedMagistratEmailResponses];
+
 export type DetailMagistratData = {
     body?: never;
     path: {
@@ -6011,6 +6025,37 @@ export type DetailMagistratResponses = {
 };
 
 export type DetailMagistratResponse = DetailMagistratResponses[keyof DetailMagistratResponses];
+
+export type ListMagistratAttachedEmailsData = {
+    body?: never;
+    path: {
+        magistratId: string;
+    };
+    query?: never;
+    url: '/api/magistrats/v1/{magistratId}/attached-emails';
+};
+
+export type ListMagistratAttachedEmailsResponses = {
+    200: ListedMagistratAttachedEmailsDto;
+};
+
+export type ListMagistratAttachedEmailsResponse = ListMagistratAttachedEmailsResponses[keyof ListMagistratAttachedEmailsResponses];
+
+export type DetachMagistratEmailData = {
+    body?: never;
+    path: {
+        magistratId: string;
+        attachedEmailId: string;
+    };
+    query?: never;
+    url: '/api/magistrats/v1/{magistratId}/attached-emails/{attachedEmailId}';
+};
+
+export type DetachMagistratEmailResponses = {
+    204: void;
+};
+
+export type DetachMagistratEmailResponse = DetachMagistratEmailResponses[keyof DetachMagistratEmailResponses];
 
 export type ListMagistratPhoneNumbersData = {
     body?: never;
@@ -6073,6 +6118,75 @@ export type UpdateMagistratPhoneNumberResponses = {
 };
 
 export type UpdateMagistratPhoneNumberResponse = UpdateMagistratPhoneNumberResponses[keyof UpdateMagistratPhoneNumberResponses];
+
+export type IdentifyMagistratData = {
+    body: IdentifyMagistratDto;
+    path?: never;
+    query?: never;
+    url: '/api/public/v1/magistrats/identification';
+};
+
+export type IdentifyMagistratErrors = {
+    400: InvalidMagistratEmailDto;
+    /**
+     * Missing, unknown or expired token, or revoked client: ask for a new token
+     */
+    401: unknown;
+    /**
+     * The request comes from an IP, or asks for a route, the client is not allowed
+     */
+    403: unknown;
+    /**
+     * Too many calls within the minute
+     */
+    429: unknown;
+};
+
+export type IdentifyMagistratError = IdentifyMagistratErrors[keyof IdentifyMagistratErrors];
+
+export type IdentifyMagistratResponses = {
+    200: IdentifiedMagistratDto;
+};
+
+export type IdentifyMagistratResponse = IdentifyMagistratResponses[keyof IdentifyMagistratResponses];
+
+export type FindMagistratStatusData = {
+    body?: never;
+    path: {
+        magistratId: string;
+    };
+    query?: never;
+    url: '/api/public/v1/magistrats/{magistratId}/status';
+};
+
+export type FindMagistratStatusErrors = {
+    /**
+     * The identifier is not a UUID
+     */
+    400: unknown;
+    /**
+     * Missing, unknown or expired token, or revoked client: ask for a new token
+     */
+    401: unknown;
+    /**
+     * The request comes from an IP, or asks for a route, the client is not allowed
+     */
+    403: unknown;
+    /**
+     * No _Magistrat_ has this identifier: its status could not be checked
+     */
+    404: unknown;
+    /**
+     * Too many calls within the minute
+     */
+    429: unknown;
+};
+
+export type FindMagistratStatusResponses = {
+    200: FoundMagistratStatusDto;
+};
+
+export type FindMagistratStatusResponse = FindMagistratStatusResponses[keyof FindMagistratStatusResponses];
 
 export type ListFollowedUpObservationsData = {
     body?: never;

@@ -9,11 +9,12 @@ import { capitalizedFirstName } from '@/utils/user.utils';
 import type { DetailedMagistratDto } from '@api/types';
 
 export function MagistratIdentityCard({
+  contacts,
   magistrat,
-  phoneNumbers,
 }: {
+  /** replaces the line of the email of LOLFI */
+  contacts?: React.ReactNode;
   magistrat: DetailedMagistratDto;
-  phoneNumbers?: React.ReactNode;
 }) {
   const position = magistrat.currentPosition;
   const positionLabel = position
@@ -75,12 +76,13 @@ export function MagistratIdentityCard({
       <h2 className="fr-h4 fr-mt-8v">
         <FormattedMessage defaultMessage="Informations de contact" />
       </h2>
-      <MagistratInfoList>
-        <MagistratInfoItem label={<FormattedMessage defaultMessage="Email" />}>
-          {magistrat.professionalEmail?.toLowerCase() ?? '-'}
-        </MagistratInfoItem>
-      </MagistratInfoList>
-      {phoneNumbers ? <div className="fr-mt-2v">{phoneNumbers}</div> : null}
+      {contacts ?? (
+        <MagistratInfoList>
+          <MagistratInfoItem label={<FormattedMessage defaultMessage="Email" />}>
+            {magistrat.professionalEmail?.toLowerCase() ?? '-'}
+          </MagistratInfoItem>
+        </MagistratInfoList>
+      )}
     </DetailsCard>
   );
 }
