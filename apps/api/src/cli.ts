@@ -6,6 +6,7 @@ import { CommandFactory } from 'nest-commander';
 import { AppModule } from './app.module';
 import { CommandName } from './modules/framework/command-name';
 import { DeleteUnusedFilesCliModule } from './modules/framework/files/delete-unused-files.cli';
+import { ApiLogger } from './modules/framework/logger';
 import { SENTRY_FLUSH_TIMEOUT } from './modules/framework/observability';
 import { WideEvent } from './modules/framework/wide-event';
 import { IngestCliModule } from './modules/ingest/ingest-cli.module';
@@ -29,7 +30,8 @@ function reportAndExit(error: unknown): void {
 
 async function cli() {
   const app = await CommandFactory.createWithoutRunning(CliAppModule, {
-    logger: ['verbose', 'debug', 'log', 'warn', 'error', 'fatal'],
+    // Every level, debug and verbose included, as an application whose logger has no logLevels
+    logger: new ApiLogger(),
     // No errorHandler: commander exits as soon as it returns, before Sentry gets anything, and would call --help an error
     // An error thrown by a command would only be written on stderr, and the process would end with 0
     serviceErrorHandler: (error: unknown) => {

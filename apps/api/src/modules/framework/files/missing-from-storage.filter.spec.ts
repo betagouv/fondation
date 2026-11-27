@@ -5,7 +5,6 @@ import {
   Get,
   Global,
   type INestApplication,
-  Logger,
   Module,
   UseFilters,
 } from '@nestjs/common';
@@ -50,7 +49,6 @@ describe('MissingFromStorageFilter in an application', () => {
   afterAll(() => app.close());
 
   it('should describe the missing file in the request event', async () => {
-    vi.spyOn(Logger.prototype, 'warn').mockImplementation(() => {});
     const write = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
 
     const response = await fetch(`${await app.getUrl()}/files/3b8e1f6a-2c4d-4a9e-8f1b-6d7c2e5a9f30`);

@@ -127,6 +127,7 @@ ligne s'écrit avec, en `request.id`, le `request_id` de la ligne du routeur.
   fichier lent est le cas à diagnostiquer, et leurs échecs se voient déjà, dans Sentry pour Tchap,
   dans l'erreur de la requête pour Scalingo et OpenID.
 - **Des identifiants seulement** : utilisateur, rôle, usurpateur, statut, route, durée, `error.type`,
+  `error.cause.type` (la règle du domaine qu'enveloppe une erreur, `ReporterRecused` dans un 400),
   et les identifiants de la route (`:sessionId` devient `fondation.session.id`, `:nominationFileId`
   `fondation.nomination_file.id`), lus dans `req.params` à l'émission sans rien ajouter dans chaque
   module. Seule l'API publique ajoute ce que la route ne dit pas, par `WideEvent.set` : le client
@@ -142,7 +143,14 @@ ligne s'écrit avec, en `request.id`, le `request_id` de la ligne du routeur.
   d'un UUID (le routeur garde celui qu'envoie un client), sinon un UUID tiré par l'API ; `trace.id`
   relie l'événement à sa trace Sentry, y compris quand la trace n'est pas échantillonnée : les erreurs
   de la requête portent le même identifiant. L'événement ne porte pas le chemin : la ligne du
-  routeur de même `request_id`, dans les archives, l'a déjà.
+  routeur de même `request_id`, dans les archives, l'a déjà. Une commande tire le sien au lancement,
+  sous le même nom `request.id`, pour qu'une seule recherche trouve les lignes de l'une comme de
+  l'autre. Sur Scalingo, les lignes de `this.logger` s'écrivent en JSON avec l'identifiant de la
+  requête ou de la commande en cours, leur niveau et leur heure écrits comme ceux de l'événement
+  (`info` pour `log`, une date ISO) ; dans le terminal, elles restent du texte, sans identifiant
+  (`ApiLogger`, FON-868). Les filtres d'exception n'écrivent plus de ligne `chemin - code`, que
+  l'événement remplace : seule une 500 garde la sienne, pour sa pile, que l'événement n'a pas et que
+  seul Sentry aurait, éteint en local.
 - **Le contrat est une ligne JSON sur stdout** : le stockage se branche derrière et se remplace sans
   toucher au code. Sentry Logs ne reçoit que l'événement, les lignes de `this.logger` restent sur stdout.
 - **Tout est gardé** : à notre volume, l'échantillonnage n'a pas d'intérêt.

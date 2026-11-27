@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Global,
-  type INestApplication,
-  Logger,
-  Module,
-  Post,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Controller, Global, type INestApplication, Module, Post, UseInterceptors } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { ClsModule } from 'nestjs-cls';
 
@@ -49,7 +41,6 @@ describe('AuthExceptionFilter', () => {
   afterAll(() => app.close());
 
   it('should answer within the route, so the request event keeps the identifiers of the route', async () => {
-    vi.spyOn(Logger.prototype, 'warn').mockImplementation(() => {});
     const write = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
 
     const response = await fetch(`${await app.getUrl()}/users/${USER_ID}/impersonations`, { method: 'POST' });

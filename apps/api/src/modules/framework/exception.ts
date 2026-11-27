@@ -29,13 +29,12 @@ export class CatchEverythingFilter implements ExceptionFilter {
     const status = exception instanceof HttpException ? exception.getStatus() : 500;
     this.wideEvent?.failWith(exception, request);
 
-    if (status >= 500) this.sentryService?.captureException(exception, request, status);
-
-    const level: 'warn' | 'error' = status >= 500 ? 'error' : 'warn';
-    this.logger[level](
-      `${request.path} - ${status}`,
-      exception instanceof Error && exception.cause !== undefined ? exception.cause : exception,
-    );
+    // A 4xx has no line of its own, the event of the request tells it. A 500 keeps its stack, which the event leaves
+    // out and which only Sentry would have, off on a developer's machine. The error itself, which writes its cause too
+    if (status >= 500) {
+      this.sentryService?.captureException(exception, request, status);
+      this.logger.error(exception);
+    }
 
     const exceptionResponse = exception instanceof HttpException ? exception.getResponse() : {};
     ctx

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   type CanActivate,
   Controller,
@@ -8,7 +9,6 @@ import {
   type INestApplication,
   type INestApplicationContext,
   Injectable,
-  Logger,
   Module,
   Post,
   UseGuards,
@@ -65,6 +65,8 @@ class KnownClientForbidden implements CanActivate {
   }
 }
 
+class ReporterRecused extends Error {}
+
 const slowRequest = { answer: Promise.withResolvers<string>(), received: Promise.withResolvers<void>() };
 
 @Controller()
@@ -109,6 +111,15 @@ class TestController {
   @UseGuards(KnownClientForbidden)
   public(): never {
     throw new Error('unreachable');
+  }
+
+  // As TransparenceExceptionFilter: a rule of the domain answered by a 400
+  @Get('refused')
+  refused(): never {
+    throw new BadRequestException(
+      { validationErrors: ['Un rapporteur ne peut pas se déporter'] },
+      { cause: new ReporterRecused() },
+    );
   }
 
   @Get('prisma')
@@ -237,11 +248,6 @@ describe('WideEvent', () => {
     await Sentry.close();
   });
 
-  beforeEach(() => {
-    vi.spyOn(Logger.prototype, 'warn').mockImplementation(() => {});
-    vi.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
-  });
-
   async function linesOf(send: () => Promise<unknown>): Promise<Record<string, unknown>[]> {
     const write = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
     await send();
@@ -342,6 +348,16 @@ describe('WideEvent', () => {
       'http.response.status_code': 403,
       'http.route': '/forbidden',
       level: 'warn',
+    });
+  });
+
+  it('should name the rule a 400 wraps, which its own type does not tell', async () => {
+    const event = await eventOf('/refused');
+
+    expect(event).toMatchObject({
+      'error.cause.type': 'ReporterRecused',
+      'error.type': 'BadRequestException',
+      'http.response.status_code': 400,
     });
   });
 
@@ -465,7 +481,7 @@ describe('WideEvent', () => {
       return event!;
     }
 
-    it('should describe a command that succeeds, named with its subcommand', async () => {
+    it('should describe a command that succeeds, named with its subcommand and with its own id', async () => {
       const event = await commandEventOf('user', 'register');
 
       expect(event).toEqual({
@@ -474,6 +490,9 @@ describe('WideEvent', () => {
         level: 'info',
         message: 'user register',
         'process.exit.code': 0,
+        'request.id': expect.stringMatching(
+          /^[\da-f]{8}-[\da-f]{4}-4[\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/,
+        ),
         timestamp: expect.any(String),
       });
     });

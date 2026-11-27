@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { HttpException, Injectable, type INestApplication } from '@nestjs/common';
 import * as Sentry from '@sentry/node';
 import type { Request as ExpressRequest, Response as ExpressResponse, IRoute } from 'express';
-import { ClsMiddleware, ClsService } from 'nestjs-cls';
+import { ClsMiddleware, ClsService, ClsServiceManager } from 'nestjs-cls';
 
 import * as time from '../../utils/time';
 
@@ -20,6 +20,7 @@ type OutboundCallAttributes = {
 type WideEventAttributes = OutboundCallAttributes & {
   // The client of the public API, as in the tags of its Sentry issues (see ApiClientAlerts)
   'api_client.id'?: string;
+  'error.cause.type'?: string;
   'error.message'?: string;
   'error.type'?: string;
   'fondation.impersonator.id'?: string;
@@ -37,7 +38,8 @@ type WideEventAttributes = OutboundCallAttributes & {
   // The command of the CLI, with its subcommand as `user register`: never its arguments
   'job.name'?: string;
   'process.exit.code'?: number;
-  // No path: the route and its identifiers say it, and the Scalingo router line of the same id has it
+  // No path: the route and its identifiers say it, and the Scalingo router line of the same id has it.
+  // A command has one too, under the same name, so that one search finds the lines of either (see ApiLogger)
   'request.id'?: string;
   // The Sentry trace of the request, kept even when it is not sampled: its errors carry the same
   'trace.id'?: string;
@@ -141,6 +143,11 @@ function writeEvent(level: 'error' | 'info' | 'warn', message: string, event: Wi
 export class WideEvent {
   constructor(private readonly cls: ClsService) {}
 
+  /** The id of the request or command running, for the logger, which Nest creates before any provider */
+  static currentId(): string | undefined {
+    return ClsServiceManager.getClsService().get<WideEventAttributes | undefined>(WIDE_EVENT)?.['request.id'];
+  }
+
   // Before the body parser, which Nest adds at init, so a malformed or oversized body is described too.
   // Unlike an interceptor, it runs before the guards, so it sees the 401 and 403
   static mount(app: INestApplication): void {
@@ -151,7 +158,7 @@ export class WideEvent {
   runCommand(run: () => Promise<unknown>): Promise<void> {
     return this.cls.run(async () => {
       const startedAt = performance.now();
-      const event: WideEventAttributes = {};
+      const event: WideEventAttributes = { 'request.id': randomUUID() };
       this.cls.set(WIDE_EVENT, event);
 
       try {
@@ -223,6 +230,9 @@ export class WideEvent {
     if (!event) return;
 
     event['error.type'] = errorType(exception);
+    // The rule of the domain a 4xx wraps, as ReporterRecused in a BadRequestException: no 4xx writes a line of its own
+    if (exception instanceof Error && exception.cause instanceof Error)
+      event['error.cause.type'] = errorType(exception.cause);
     // Our own messages only: those of Prisma or pg, and the 404 of the router (no route), can quote personal data
     if (exception instanceof HttpException && request.route) event['error.message'] = exception.message;
   }

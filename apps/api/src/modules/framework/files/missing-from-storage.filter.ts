@@ -1,4 +1,4 @@
-import { Catch, Logger, Optional, type ArgumentsHost, type ExceptionFilter } from '@nestjs/common';
+import { Catch, Optional, type ArgumentsHost, type ExceptionFilter } from '@nestjs/common';
 import type { Request as ExpressRequest, Response as ExpressResponse } from 'express';
 
 import { WideEvent } from '../wide-event';
@@ -21,14 +21,11 @@ const MISSING_ATTACHMENT_PAGE = `<!doctype html>
 
 @Catch(FileMissingFromStorage)
 export class MissingFromStorageFilter implements ExceptionFilter {
-  private readonly logger = new Logger(MissingFromStorageFilter.name);
-
   constructor(@Optional() private readonly wideEvent?: WideEvent) {}
 
   catch(exception: FileMissingFromStorage, host: ArgumentsHost): void {
     const http = host.switchToHttp();
     const request = http.getRequest<ExpressRequest>();
-    this.logger.warn(`${request.path} - 404`);
     this.wideEvent?.failWith(exception, request);
 
     http.getResponse<ExpressResponse>().status(404).type('html').send(MISSING_ATTACHMENT_PAGE);

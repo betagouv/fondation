@@ -59,7 +59,8 @@ export class ChildProcessJobRunner implements OnApplicationShutdown {
         // and die of an EPIPE at the first module Prisma loads on demand, leaving the job idle
         env: { ...process.env, WATCH_REPORT_DEPENDENCIES: undefined },
         signal: this.controller.signal,
-        stdio: ['ignore', 'ignore', 'ignore', 'ipc'],
+        // Its lines and the event of its command join those of the API, as in a container of the Scalingo runner
+        stdio: ['ignore', 'inherit', 'inherit', 'ipc'],
       });
 
       child.on('message', (msg) => {
