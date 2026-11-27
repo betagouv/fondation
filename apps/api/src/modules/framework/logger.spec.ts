@@ -5,6 +5,9 @@ import { ClsModule } from 'nestjs-cls';
 import { ApiLogger } from './logger';
 import { WideEvent } from './wide-event';
 
+const config = vi.hoisted(() => ({ isProduction: true }));
+vi.mock('./config', () => ({ loadConfig: () => config }));
+
 @Controller()
 class LoggingController {
   private readonly logger = new Logger(LoggingController.name);
@@ -25,7 +28,10 @@ class TestModule {}
 describe('ApiLogger', () => {
   let app: INestApplication;
 
-  afterEach(() => app.close());
+  afterEach(async () => {
+    config.isProduction = true;
+    await app.close();
+  });
 
   async function start(logger: ApiLogger): Promise<string> {
     const module = await Test.createTestingModule({ imports: [TestModule] }).compile();
@@ -46,7 +52,7 @@ describe('ApiLogger', () => {
   }
 
   it('should write a line in JSON with the id of the event of its request, its level and its time written alike', async () => {
-    const url = await start(new ApiLogger({ json: true }));
+    const url = await start(new ApiLogger());
 
     const [line, event] = (await linesOf(() => fetch(url))).map(
       (written) => JSON.parse(written) as Record<string, unknown>,
@@ -59,7 +65,7 @@ describe('ApiLogger', () => {
   });
 
   it('should write a line in JSON with the id of the event of its command', async () => {
-    await start(new ApiLogger({ json: true }));
+    await start(new ApiLogger());
 
     const [line, event] = (
       await linesOf(() => app.get(WideEvent).runCommand(async () => new Logger('Command').log('running')))
@@ -71,7 +77,8 @@ describe('ApiLogger', () => {
   });
 
   it('should keep a readable text out of Scalingo', async () => {
-    const url = await start(new ApiLogger({ colors: false, json: false }));
+    config.isProduction = false;
+    const url = await start(new ApiLogger({ colors: false }));
 
     const [line] = await linesOf(() => fetch(url));
 
