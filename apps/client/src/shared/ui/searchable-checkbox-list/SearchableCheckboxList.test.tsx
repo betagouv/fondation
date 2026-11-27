@@ -151,6 +151,39 @@ describe('SearchableCheckboxList', () => {
     expect(screen.getAllByRole('checkbox')).toHaveLength(2);
   });
 
+  it('keeps an option unchecked in the selection shown with its focus until every option shows again', async () => {
+    function Choosing() {
+      const [checked, setChecked] = useState<string[]>(['TJ  AUCH', 'TJ  CAHORS']);
+      return (
+        <SearchableCheckboxList
+          canShowCheckedOnly
+          checked={checked}
+          countLabel=""
+          emptyLabel="Aucune juridiction ne correspond à la recherche"
+          legend="Tribunaux judiciaires"
+          onChange={setChecked}
+          onSearchChange={() => {}}
+          options={OPTIONS}
+          search=""
+          searchLabel="Rechercher une juridiction"
+        />
+      );
+    }
+    render(
+      <IntlProvider defaultLocale="fr" locale="fr">
+        <Choosing />
+      </IntlProvider>,
+    );
+
+    await userEvent.click(screen.getByRole('button', { name: 'Afficher la sélection' }));
+    screen.getByRole('checkbox', { name: 'Tribunal judiciaire de Cahors' }).focus();
+    await userEvent.keyboard(' ');
+
+    expect(screen.getByRole('checkbox', { name: 'Tribunal judiciaire de Cahors' })).not.toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'Tribunal judiciaire de Cahors' })).toHaveFocus();
+    expect(screen.getAllByRole('checkbox')).toHaveLength(2);
+  });
+
   it('goes back to every option once the last option shown is unchecked', async () => {
     function Choosing() {
       const [checked, setChecked] = useState<string[]>(['TJ  CAHORS']);

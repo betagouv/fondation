@@ -60,9 +60,10 @@ export function SearchableCheckboxList(props: {
 }) {
   const errorId = useId();
   const searchRef = useRef<HTMLDivElement>(null);
-  const [onlyChecked, setOnlyChecked] = useState(false);
-  const isOnlyChecked = onlyChecked && props.checked.length > 0;
-  const shown = isOnlyChecked ? props.options.filter(({ id }) => props.checked.includes(id)) : props.options;
+  // the options checked when the choice shows alone: one unchecked keeps its line and its focus
+  const [shownIds, setShownIds] = useState<readonly string[] | null>(null);
+  const isOnlyChecked = shownIds !== null;
+  const shown = shownIds ? props.options.filter(({ id }) => shownIds.includes(id)) : props.options;
   const suffix = props.buttonsLabelSuffix && (
     <>
       {' '}
@@ -70,7 +71,7 @@ export function SearchableCheckboxList(props: {
     </>
   );
   const change = (checked: string[]) => {
-    if (checked.length === 0) setOnlyChecked(false);
+    if (checked.length === 0) setShownIds(null);
     props.onChange(checked);
   };
   const toggle = (id: string) =>
@@ -130,7 +131,7 @@ export function SearchableCheckboxList(props: {
                 <Button
                   onClick={() => {
                     if (!isOnlyChecked) props.onSearchChange('');
-                    setOnlyChecked(!isOnlyChecked);
+                    setShownIds(isOnlyChecked ? null : [...props.checked]);
                   }}
                   priority="tertiary no outline"
                   size="small"
