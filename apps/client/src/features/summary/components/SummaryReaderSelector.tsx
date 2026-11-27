@@ -169,6 +169,7 @@ function SummaryReaderPicker(props: { onChange: (readers: string[]) => void; rea
         <FormattedMessage defaultMessage="Les personnes cochées peuvent lire la synthèse et ses pièces jointes" />
       </p>
       <SearchableCheckboxList
+        canShowCheckedOnly
         checked={[...selectedIds]}
         countLabel={
           <FormattedMessage

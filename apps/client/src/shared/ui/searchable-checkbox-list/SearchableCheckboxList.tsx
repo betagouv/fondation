@@ -1,12 +1,12 @@
 import Button from '@codegouvfr/react-dsfr/Button';
 import { cx } from '@codegouvfr/react-dsfr/fr/cx';
-import { useId, useRef, type ReactNode } from 'react';
+import { useId, useRef, useState, type ReactNode } from 'react';
 import { FormattedMessage } from 'react-intl';
 
 import { SearchInput } from '@/shared/ui/search-input';
 import { unaccent } from '@/utils/string.utils';
 
-type Option = { hint?: ReactNode; id: string; label: ReactNode };
+type Option = { aside?: ReactNode; hint?: ReactNode; id: string; label: ReactNode };
 
 export function matchesSearch(label: string, search: string): boolean {
   return unaccent(label).toLowerCase().includes(unaccent(search.trim()).toLowerCase());
@@ -14,8 +14,17 @@ export function matchesSearch(label: string, search: string): boolean {
 
 function OptionRow(props: { checked: boolean; onToggle: () => void; option: Option }) {
   const id = useId();
+  const asideRef = useRef<HTMLDivElement>(null);
   return (
-    <li className="fr-px-3v fr-py-2v border-b border-(--border-default-grey) last:border-b-0 hover:bg-(--background-default-grey-hover)">
+    <li
+      className="fr-px-3v fr-py-2v flex cursor-pointer items-center justify-between gap-4 border-b border-(--border-default-grey) last:border-b-0 hover:bg-(--background-default-grey-hover)"
+      onClick={(event) => {
+        const target = event.target as Node;
+        if (event.currentTarget.querySelector('.fr-checkbox-group')?.contains(target)) return;
+        if (asideRef.current?.contains(target)) return;
+        props.onToggle();
+      }}
+    >
       <div className={cx('fr-checkbox-group', 'fr-checkbox-group--sm')}>
         <input checked={props.checked} id={id} onChange={props.onToggle} type="checkbox" />
         <label className="fr-label" htmlFor={id}>
@@ -23,13 +32,20 @@ function OptionRow(props: { checked: boolean; onToggle: () => void; option: Opti
           {props.option.hint && <span className="fr-hint-text">{props.option.hint}</span>}
         </label>
       </div>
+      {props.option.aside && (
+        <div className="shrink-0" ref={asideRef}>
+          {props.option.aside}
+        </div>
+      )}
     </li>
   );
 }
 
 export function SearchableCheckboxList(props: {
   checked: readonly string[];
-  clearLabelSuffix?: string;
+  buttonsLabelSuffix?: string;
+  /** shows the checked options alone: only for a screen that lists every option rather than the results of a search */
+  canShowCheckedOnly?: boolean;
   countLabel: ReactNode;
   emptyLabel: ReactNode;
   error?: ReactNode;
@@ -44,8 +60,21 @@ export function SearchableCheckboxList(props: {
 }) {
   const errorId = useId();
   const searchRef = useRef<HTMLDivElement>(null);
+  const [onlyChecked, setOnlyChecked] = useState(false);
+  const isOnlyChecked = onlyChecked && props.checked.length > 0;
+  const shown = isOnlyChecked ? props.options.filter(({ id }) => props.checked.includes(id)) : props.options;
+  const suffix = props.buttonsLabelSuffix && (
+    <>
+      {' '}
+      <span className="fr-sr-only">{props.buttonsLabelSuffix}</span>
+    </>
+  );
+  const change = (checked: string[]) => {
+    if (checked.length === 0) setOnlyChecked(false);
+    props.onChange(checked);
+  };
   const toggle = (id: string) =>
-    props.onChange(
+    change(
       props.checked.includes(id) ? props.checked.filter((other) => other !== id) : [...props.checked, id],
     );
 
@@ -68,10 +97,10 @@ export function SearchableCheckboxList(props: {
           className="fr-m-0 fr-p-0 max-h-64 list-none overflow-y-auto"
           onScroll={(event) => {
             const { clientHeight, scrollHeight, scrollTop } = event.currentTarget;
-            if (scrollHeight - scrollTop - clientHeight < 100) props.onEndReached?.();
+            if (!isOnlyChecked && scrollHeight - scrollTop - clientHeight < 100) props.onEndReached?.();
           }}
         >
-          {props.options.map((option) => (
+          {shown.map((option) => (
             <OptionRow
               checked={props.checked.includes(option.id)}
               key={option.id}
@@ -87,7 +116,7 @@ export function SearchableCheckboxList(props: {
               <FormattedMessage defaultMessage="Chargement…" />
             </span>
           ) : (
-            props.options.length === 0 &&
+            shown.length === 0 &&
             props.emptyLabel && <span className="fr-py-4v block">{props.emptyLabel}</span>
           )}
         </p>
@@ -95,25 +124,41 @@ export function SearchableCheckboxList(props: {
           <p className="fr-mb-0 text-xs text-(--text-mention-grey)" role="status">
             {props.countLabel}
           </p>
-          <Button
-            disabled={props.checked.length === 0}
-            onClick={() => {
-              props.onChange([]);
-              // the button turns disabled: the focus would fall back on the page
-              searchRef.current?.querySelector('input')?.focus();
-            }}
-            priority="tertiary no outline"
-            size="small"
-            type="button"
-          >
-            <FormattedMessage defaultMessage="Tout désélectionner" />
-            {props.clearLabelSuffix && (
-              <>
-                {' '}
-                <span className="fr-sr-only">{props.clearLabelSuffix}</span>
-              </>
-            )}
-          </Button>
+          {props.checked.length > 0 && (
+            <div className="flex flex-wrap justify-end">
+              {props.canShowCheckedOnly && (
+                <Button
+                  onClick={() => {
+                    if (!isOnlyChecked) props.onSearchChange('');
+                    setOnlyChecked(!isOnlyChecked);
+                  }}
+                  priority="tertiary no outline"
+                  size="small"
+                  type="button"
+                >
+                  {isOnlyChecked ? (
+                    <FormattedMessage defaultMessage="Tout afficher" />
+                  ) : (
+                    <FormattedMessage defaultMessage="Afficher la sélection" />
+                  )}
+                  {suffix}
+                </Button>
+              )}
+              <Button
+                onClick={() => {
+                  change([]);
+                  // the button goes away: the focus would fall back on the page
+                  searchRef.current?.querySelector('input')?.focus();
+                }}
+                priority="tertiary no outline"
+                size="small"
+                type="button"
+              >
+                <FormattedMessage defaultMessage="Tout désélectionner" />
+                {suffix}
+              </Button>
+            </div>
+          )}
         </div>
       </div>
       {props.error && (
