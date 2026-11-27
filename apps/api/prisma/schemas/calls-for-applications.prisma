@@ -1,12 +1,12 @@
 // a call for applications launched by the CSM, prepared in Fondation before its publication
 model CallForApplications {
-  comment                       String?
-  createdOn                     DateTime                            @map("created_on") @db.Date
-  deadline                      DateTime?                           @db.Date
-  id                            String                              @id @db.Uuid
-  publishedOn                   DateTime?                           @map("published_on") @db.Date
-  status                        PrismaCallForApplicationsStatusEnum @default(UNPUBLISHED)
-  type                          PrismaCallForApplicationsTypeEnum
+  comment     String?
+  createdOn   DateTime                            @map("created_on") @db.Date
+  deadline    DateTime?                           @db.Date
+  id          String                              @id @db.Uuid
+  publishedOn DateTime?                           @map("published_on") @db.Date
+  status      PrismaCallForApplicationsStatusEnum @default(UNPUBLISHED)
+  type        PrismaCallForApplicationsTypeEnum
 
   targetCourts    CallForApplicationsTargetCourt[]
   targetPositions CallForApplicationsTargetPosition[]
