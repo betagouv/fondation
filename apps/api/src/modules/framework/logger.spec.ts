@@ -89,6 +89,25 @@ describe('ApiLogger', () => {
     expect(line!['request.id']).toEqual(event!['request.id']);
   });
 
+  it('should write an error in JSON with its stack and its cause, as the filter of a 500 hands it', async () => {
+    await start(new ApiLogger());
+    const write = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+
+    await app.get(WideEvent).runCommand(async () => {
+      new Logger('Command').error(
+        new Error('PDF_RENDERER_UNAVAILABLE', { cause: new Error('ECONNREFUSED') }),
+      );
+    });
+    const [line] = write.mock.calls.map(
+      ([written]) => JSON.parse(String(written)) as Record<string, unknown>,
+    );
+    write.mockRestore();
+
+    expect(line).toMatchObject({ context: 'Command', level: 'error', 'request.id': expect.any(String) });
+    expect(line!['message']).toMatch(/^Error: PDF_RENDERER_UNAVAILABLE\n\s+at /);
+    expect(line!['message']).toMatch(/\[cause\]: Error: ECONNREFUSED/);
+  });
+
   it('should keep a readable text out of Scalingo', async () => {
     config.isProduction = false;
     const url = await start(new ApiLogger({ colors: false }));

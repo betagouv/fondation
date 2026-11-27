@@ -1,4 +1,13 @@
-import { Controller, Get, Global, INestApplication, Logger, Module, NotFoundException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Global,
+  INestApplication,
+  Logger,
+  Module,
+  NotFoundException,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
 import { ExceptionModule } from './exception';
@@ -16,6 +25,11 @@ class FailingController {
   @Get('missing')
   failWithNotFound(): never {
     throw new NotFoundException();
+  }
+
+  @Get('wrapped')
+  failWithCause(): never {
+    throw new ServiceUnavailableException('PDF_RENDERER_UNAVAILABLE', { cause: new Error('ECONNREFUSED') });
   }
 
   @Get('string')
@@ -62,6 +76,19 @@ describe('CatchEverythingFilter', () => {
 
     expect(error).toHaveBeenCalledWith(
       expect.objectContaining({ message: 'boom', stack: expect.any(String) }),
+    );
+  });
+
+  it('should write the error of a 500 that wraps another, with its cause', async () => {
+    const error = vi.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
+
+    await fetch(`${await app.getUrl()}/wrapped`);
+
+    expect(error).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cause: expect.objectContaining({ message: 'ECONNREFUSED' }),
+        message: 'PDF_RENDERER_UNAVAILABLE',
+      }),
     );
   });
 
