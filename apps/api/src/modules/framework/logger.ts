@@ -1,4 +1,4 @@
-import { ConsoleLogger, type ConsoleLoggerOptions, type LogLevel } from '@nestjs/common';
+import { ConsoleLogger, type ConsoleLoggerOptions } from '@nestjs/common';
 
 import { loadConfig } from './config';
 import { WideEvent } from './wide-event';
@@ -12,16 +12,14 @@ export class ApiLogger extends ConsoleLogger {
     super({ ...options, json: options.json ?? loadConfig().isProduction });
   }
 
-  protected override getJsonLogObject(
-    message: unknown,
-    options: {
-      context: string;
-      errorStack?: unknown;
-      logLevel: LogLevel;
-      writeStreamType?: 'stderr' | 'stdout';
-    },
-  ) {
-    // The id first: past a million characters, Nest truncates every value after, in the order of the keys
-    return { 'request.id': WideEvent.currentId(), ...super.getJsonLogObject(message, options) };
+  protected override stringifyJsonLogObject(line: Record<string, unknown>): string {
+    return super.stringifyJsonLogObject({
+      // The id first: past a million characters, Nest truncates every value after, in the order of the keys
+      'request.id': WideEvent.currentId(),
+      ...line,
+      // The level and the time of the event, so that one filter reads both
+      level: line['level'] === 'log' ? 'info' : line['level'],
+      timestamp: new Date().toISOString(),
+    });
   }
 }

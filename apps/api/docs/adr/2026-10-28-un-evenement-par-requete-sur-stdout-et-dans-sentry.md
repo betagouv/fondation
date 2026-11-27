@@ -146,7 +146,8 @@ ligne s'écrit avec, en `request.id`, le `request_id` de la ligne du routeur.
   routeur de même `request_id`, dans les archives, l'a déjà. Une commande tire le sien au lancement,
   sous le même nom `request.id`, pour qu'une seule recherche trouve les lignes de l'une comme de
   l'autre. Sur Scalingo, les lignes de `this.logger` s'écrivent en JSON avec l'identifiant de la
-  requête ou de la commande en cours ; dans le terminal, elles restent du texte, sans identifiant
+  requête ou de la commande en cours, leur niveau et leur heure écrits comme ceux de l'événement
+  (`info` pour `log`, une date ISO) ; dans le terminal, elles restent du texte, sans identifiant
   (`ApiLogger`, FON-868). Les filtres d'exception n'écrivent plus de ligne `chemin - code`, que
   l'événement remplace : seule une 500 garde la sienne, pour sa pile, que l'événement n'a pas et que
   seul Sentry aurait, éteint en local.

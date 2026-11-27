@@ -45,15 +45,17 @@ describe('ApiLogger', () => {
     return lines;
   }
 
-  it('should write a line in JSON with the id of the event of its request', async () => {
+  it('should write a line in JSON with the id of the event of its request, its level and its time written alike', async () => {
     const url = await start(new ApiLogger({ json: true }));
 
     const [line, event] = (await linesOf(() => fetch(url))).map(
       (written) => JSON.parse(written) as Record<string, unknown>,
     );
 
-    expect(line).toMatchObject({ context: 'LoggingController', level: 'log', message: 'serving' });
+    expect(line).toMatchObject({ context: 'LoggingController', level: 'info', message: 'serving' });
     expect(line!['request.id']).toEqual(event!['request.id']);
+    expect(line!['timestamp']).toEqual(expect.stringMatching(/^\d{4}-\d{2}-\d{2}T[\d:.]+Z$/));
+    expect(event!['level']).toBe(line!['level']);
   });
 
   it('should write a line in JSON with the id of the event of its command', async () => {
