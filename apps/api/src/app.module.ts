@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 
 import { APP_VERSION_HEADER } from './modules/framework/app-version';
 import { API_CONFIG_TOKEN, type ApiConfig } from './modules/framework/config';
+import { ApiLogger } from './modules/framework/logger';
 import { openapi } from './modules/framework/openapi';
 import { WideEvent } from './modules/framework/wide-event';
 import { RootModule } from './modules/root.module';
@@ -12,7 +13,9 @@ import { RootModule } from './modules/root.module';
 @Module({ imports: [RootModule] })
 export class AppModule {
   static async create(): Promise<INestApplication> {
-    return this.configure(await NestFactory.create<NestExpressApplication>(AppModule));
+    return this.configure(
+      await NestFactory.create<NestExpressApplication>(AppModule, { logger: new ApiLogger() }),
+    );
   }
 
   static configure(app: NestExpressApplication): NestExpressApplication {
