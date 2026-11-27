@@ -69,6 +69,19 @@ describe('callForApplicationsHistoryChangesOf', () => {
     ).toBe("ajouté le tribunal judiciaire d'Auch à l'adaptation aux lignes directrices de gestion");
   });
 
+  it('names the adaptation when it moves from a court to another', () => {
+    expect(
+      sentenceOf({
+        change: 'CHANGED',
+        field: 'GUIDELINES_ADAPTATION',
+        added: ["Tribunal judiciaire d'Auch"],
+        removed: ["Cour d'appel d'Agen"],
+      }),
+    ).toBe(
+      "ajouté le tribunal judiciaire d'Auch à l'adaptation aux lignes directrices de gestion | retiré la cour d'appel d'Agen de l'adaptation aux lignes directrices de gestion",
+    );
+  });
+
   it('names the list of each gesture once the targets and the adaptation change together', () => {
     expect(
       sentenceOf(

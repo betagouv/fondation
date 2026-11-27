@@ -107,8 +107,12 @@ export function callForApplicationsHistoryChangesOf(
     const { added, removed } = changed.items;
     // a change journaled before its items were reads like any other field
     if (words && added.length + removed.length > 0) {
-      // both ways the field goes without saying unless another list changed too
-      const both = added.length > 0 && removed.length > 0 && listsWithItems === 1;
+      // both ways a list of targets goes without saying unless another list changed too
+      const both =
+        changed.field !== 'GUIDELINES_ADAPTATION' &&
+        added.length > 0 &&
+        removed.length > 0 &&
+        listsWithItems === 1;
       const gestures: [CallForApplicationsFieldChange, readonly ChangedItem[], string][] = [
         ['ADDED', added, words.added],
         ['REMOVED', removed, words.removed],
