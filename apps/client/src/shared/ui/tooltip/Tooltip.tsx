@@ -9,16 +9,15 @@ let openedTooltip: (() => void) | null = null;
 export function Tooltip(props: {
   /** start: the bubble begins where the anchor begins (for a line of text among others) */
   align?: 'center' | 'start';
-  /** wraps a block such as a DSFR switch: a span around it would not be valid HTML */
-  block?: boolean;
   children: ReactNode;
   className?: string;
   /** takes the focus itself, for when it wraps something a keyboard cannot reach, such as a disabled button */
   focusable?: boolean;
+  isVisualOnly?: boolean;
   label: ReactNode;
 }) {
   const bubbleId = useId();
-  const anchorRef = useRef<HTMLElement>(null);
+  const anchorRef = useRef<HTMLSpanElement>(null);
   const bubbleRef = useRef<HTMLDivElement>(null);
   const [isShown, setIsShown] = useState(false);
   const [arrowX, setArrowX] = useState(0);
@@ -73,12 +72,10 @@ export function Tooltip(props: {
     };
   }, [hide, isShown]);
 
-  const Anchor = props.block ? 'div' : 'span';
-
   return (
     <>
-      <Anchor
-        aria-describedby={bubbleId}
+      <span
+        aria-describedby={props.isVisualOnly ? undefined : bubbleId}
         className={clsx('inline-flex cursor-default', props.className)}
         onBlur={hide}
         onFocus={(event) => {
@@ -94,15 +91,14 @@ export function Tooltip(props: {
         }}
         onPointerEnter={show}
         onPointerLeave={hide}
-        ref={(anchor: HTMLElement | null) => {
-          anchorRef.current = anchor;
-        }}
+        ref={anchorRef}
         tabIndex={props.focusable ? 0 : undefined}
       >
         {props.children}
-      </Anchor>
+      </span>
 
       <div
+        aria-hidden={props.isVisualOnly}
         className="fixed m-0 max-w-[min(24rem,calc((100vw-2rem)*2/3))] overflow-visible border border-(--border-default-grey) bg-(--background-overlap-grey) p-2 text-left text-xs leading-5 font-normal text-wrap text-(--text-default-grey) shadow-[var(--overlap-shadow)]"
         id={bubbleId}
         popover="manual"

@@ -1,21 +1,25 @@
 import Button from '@codegouvfr/react-dsfr/Button';
+import { cx } from '@codegouvfr/react-dsfr/fr/cx';
 import Tag from '@codegouvfr/react-dsfr/Tag';
-import { useId, useState, type ReactNode } from 'react';
+import clsx from 'clsx';
+import { useId, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 
 import { matchesSearch, SearchableCheckboxList } from '@/shared/ui/searchable-checkbox-list';
+import { Tooltip } from '@/shared/ui/tooltip';
 import type { FoundCallForApplicationsFormDto } from '@api/types';
 
-const MAX_TAGS = 10;
+import { GuidelinesAdaptationBadge } from './GuidelinesAdaptationBadge';
 
 /** the courts of one type that a specific call targets: a search narrows a list of more than a hundred */
 export function TargetCourtsPicker(props: {
+  guidelinesAdaptations: readonly string[];
   checked: readonly string[];
   courtGroup: FoundCallForApplicationsFormDto['targetCourtTypes'][number];
   /** the type is checked without any court: the form stays incomplete */
   isEmpty: boolean;
+  onGuidelinesAdaptationsChange: (guidelinesAdaptations: string[]) => void;
   onChange: (checked: string[]) => void;
-  titleAside?: ReactNode;
 }) {
   const { formatMessage } = useIntl();
   const [search, setSearch] = useState('');
@@ -35,12 +39,9 @@ export function TargetCourtsPicker(props: {
   return (
     <section aria-labelledby={titleId} className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-          <p className="fr-mb-0 fr-text--md font-bold" id={titleId}>
-            {type.label}
-          </p>
-          {props.titleAside}
-        </div>
+        <p className="fr-mb-0 fr-text--md font-bold" id={titleId}>
+          {type.label}
+        </p>
         <Button
           aria-controls={listId}
           aria-expanded={isOpen}
@@ -66,7 +67,8 @@ export function TargetCourtsPicker(props: {
         <div id={listId}>
           <SearchableCheckboxList
             checked={checkedInGroup}
-            clearLabelSuffix={formatMessage({ defaultMessage: 'parmi les {group}' }, { group })}
+            buttonsLabelSuffix={formatMessage({ defaultMessage: 'parmi les {group}' }, { group })}
+            canShowCheckedOnly
             countLabel={
               <>
                 <FormattedMessage
@@ -85,7 +87,39 @@ export function TargetCourtsPicker(props: {
               props.onChange([...props.checked.filter((id) => !isOfGroup(id)), ...checked])
             }
             onSearchChange={setSearch}
-            options={courts.filter((court) => matchesSearch(court.label, search))}
+            options={courts
+              .filter((court) => matchesSearch(court.label, search))
+              .map((court) => ({
+                ...court,
+                aside: checkedInGroup.includes(court.id) && (
+                  <Tooltip
+                    label={<FormattedMessage defaultMessage="Sur la durée d'affectation du poste actuel" />}
+                  >
+                    <Tag
+                      nativeButtonProps={{
+                        // a button in a form submits it by default
+                        type: 'button',
+                        onClick: () =>
+                          props.onGuidelinesAdaptationsChange(
+                            props.guidelinesAdaptations.includes(court.id)
+                              ? props.guidelinesAdaptations.filter((id) => id !== court.id)
+                              : [...props.guidelinesAdaptations, court.id],
+                          ),
+                      }}
+                      pressed={props.guidelinesAdaptations.includes(court.id)}
+                      small
+                    >
+                      <FormattedMessage defaultMessage="Adapter les lignes directrices de gestion" />{' '}
+                      <span className="fr-sr-only">
+                        <FormattedMessage
+                          defaultMessage="sur la durée d'affectation du poste actuel pour {court}"
+                          values={{ court: court.label }}
+                        />
+                      </span>
+                    </Tag>
+                  </Tooltip>
+                ),
+              }))}
             search={search}
             searchLabel={formatMessage(
               { defaultMessage: 'Rechercher une juridiction parmi les {group}' },
@@ -105,24 +139,19 @@ export function TargetCourtsPicker(props: {
         </>
       ) : (
         <ul className="fr-tags-group -mb-2">
-          {chosen.slice(0, MAX_TAGS).map((court) => (
+          {chosen.map((court) => (
             <li key={court.id}>
-              <Tag>{court.label}</Tag>
+              {props.guidelinesAdaptations.includes(court.id) ? (
+                // a div rather than the paragraph of the DSFR tag: the tooltip holds a block
+                <div className={clsx(cx('fr-tag'), 'gap-1.5')}>
+                  {court.label}
+                  <GuidelinesAdaptationBadge />
+                </div>
+              ) : (
+                <Tag>{court.label}</Tag>
+              )}
             </li>
           ))}
-          {chosen.length > MAX_TAGS && (
-            <li>
-              <Tag>
-                <span aria-hidden>+{chosen.length - MAX_TAGS}</span>
-                <span className="fr-sr-only">
-                  <FormattedMessage
-                    defaultMessage="{count, plural, one {et # autre juridiction} other {et # autres juridictions}}"
-                    values={{ count: chosen.length - MAX_TAGS }}
-                  />
-                </span>
-              </Tag>
-            </li>
-          )}
         </ul>
       )}
     </section>

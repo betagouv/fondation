@@ -5,20 +5,9 @@ import { useLayoutEffect, useRef } from 'react';
 /** before: rewrites the content where the DSFR writes the status so a switch that shows it keeps the DSFR look */
 const WITHOUT_STATUS = '[&_label]:before:mt-0.5 [&_label]:after:top-0.5';
 const WITHOUT_STATUS_LABEL_ON_THE_RIGHT = '[&_label]:before:mr-3';
-const SMALL = clsx(
-  '[&_input]:top-1 [&_input]:h-4 [&_input]:w-8',
-  '[&_label]:text-sm sm:[&_label]:w-auto sm:[&_label]:whitespace-nowrap',
-  '[&_label]:before:mt-1 [&_label]:before:mr-1.5 [&_label]:before:h-4 [&_label]:before:max-w-8 [&_label]:before:min-w-8 [&_label]:before:bg-[length:100%_100%] [&_label]:before:pt-4',
-  '[&_label]:after:top-1 [&_label]:after:size-4 [&_label]:after:bg-[length:0.75rem]',
-);
 
 /** the DSFR one points its input at a hint even without one: the dangling description goes */
-export function ToggleSwitch({
-  small,
-  ...props
-}: ToggleSwitchProps & {
-  small?: boolean;
-}) {
+export function ToggleSwitch(props: ToggleSwitchProps) {
   const ref = useRef<HTMLDivElement>(null);
   const hasHint = props.helperText !== undefined;
   const withoutStatus = props.showCheckedHint === false;
@@ -33,12 +22,10 @@ export function ToggleSwitch({
       {...props}
       className={clsx(
         props.className,
-        small
-          ? SMALL
-          : withoutStatus && [
-              WITHOUT_STATUS,
-              props.labelPosition !== 'left' && WITHOUT_STATUS_LABEL_ON_THE_RIGHT,
-            ],
+        withoutStatus && [
+          WITHOUT_STATUS,
+          props.labelPosition !== 'left' && WITHOUT_STATUS_LABEL_ON_THE_RIGHT,
+        ],
       )}
     />
   );

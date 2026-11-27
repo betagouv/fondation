@@ -6,7 +6,7 @@ import {
   CallForApplicationsDeleted,
   CallForApplicationsUpdated,
   DeadlineBeforePublication,
-  guidelinesAdaptationLabelOf,
+  guidelinesAdaptationsLabelOf,
   MissingTargetCourt,
   MissingTargetPosition,
   PublishedCallLocked,
@@ -111,6 +111,7 @@ describe('CallForApplications', () => {
 
       expect(call.messages).toEqual([
         new CallForApplicationsUpdated(
+          { added: [], removed: [] },
           'agent',
           { added: [], removed: [] },
           [
@@ -274,42 +275,20 @@ describe('CallForApplications', () => {
       type: 'SPECIFIC',
     } as const;
 
-    it('keeps an adaptation of the guidelines only for a type of court the call targets', () => {
+    it('keeps an adaptation of the guidelines only for a court the call targets', () => {
       const call = CallForApplications.create({
         ...specific,
-        guidelinesAdaptations: ['JUDICIAL_COURT', 'COURT_OF_APPEAL'],
+        guidelinesAdaptations: ['TJ  AUCH', 'CA  AGEN', 'TJ  AUCH'],
         targetCourts: ['TJ  AUCH'],
       });
 
-      expect(call.messages).toMatchObject([{ metadata: { guidelinesAdaptations: ['JUDICIAL_COURT'] } }]);
+      expect(call.messages).toMatchObject([{ metadata: { guidelinesAdaptations: ['TJ  AUCH'] } }]);
     });
 
-    it.each([
-      [[], ['JUDICIAL_COURT'], 'ADDED'],
-      [['JUDICIAL_COURT'], [], 'REMOVED'],
-    ] as const)(
-      'journals the adaptation of the judicial courts going from %j to %j as %s',
-      (before, after, change) => {
-        const call = CallForApplications.from({
-          ...specific,
-          guidelinesAdaptations: before,
-          id: 'call',
-          status: 'UNPUBLISHED',
-          targetCourts: ['TJ  AUCH'],
-        });
-
-        call.update({ ...specific, actor: AGENT, guidelinesAdaptations: after, targetCourts: ['TJ  AUCH'] });
-
-        expect(call.messages).toMatchObject([
-          { fields: [{ change, field: 'JUDICIAL_COURT_GUIDELINES_ADAPTATION' }] },
-        ]);
-      },
-    );
-
-    it('drops the adaptation of a type of court whose courts are all removed', () => {
+    it('carries the courts added to the adaptation and removed from it for the journal', () => {
       const call = CallForApplications.from({
         ...specific,
-        guidelinesAdaptations: ['COURT_OF_APPEAL'],
+        guidelinesAdaptations: ['CA  AGEN'],
         id: 'call',
         status: 'UNPUBLISHED',
         targetCourts: ['CA  AGEN', 'TJ  AUCH'],
@@ -318,15 +297,40 @@ describe('CallForApplications', () => {
       call.update({
         ...specific,
         actor: AGENT,
-        guidelinesAdaptations: ['COURT_OF_APPEAL'],
+        guidelinesAdaptations: ['TJ  AUCH'],
+        targetCourts: ['CA  AGEN', 'TJ  AUCH'],
+      });
+
+      expect(call.messages).toMatchObject([
+        {
+          adaptations: { added: ['TJ  AUCH'], removed: ['CA  AGEN'] },
+          fields: [{ change: 'CHANGED', field: 'GUIDELINES_ADAPTATION' }],
+        },
+      ]);
+    });
+
+    it('drops from the adaptation a court removed from the targets', () => {
+      const call = CallForApplications.from({
+        ...specific,
+        guidelinesAdaptations: ['CA  AGEN'],
+        id: 'call',
+        status: 'UNPUBLISHED',
+        targetCourts: ['CA  AGEN', 'TJ  AUCH'],
+      });
+
+      call.update({
+        ...specific,
+        actor: AGENT,
+        guidelinesAdaptations: ['CA  AGEN'],
         targetCourts: ['TJ  AUCH'],
       });
 
       expect(call.messages).toMatchObject([
         {
+          adaptations: { added: [], removed: ['CA  AGEN'] },
           fields: [
             { change: 'REMOVED', field: 'TARGET_COURTS' },
-            { change: 'REMOVED', field: 'COURT_OF_APPEAL_GUIDELINES_ADAPTATION' },
+            { change: 'REMOVED', field: 'GUIDELINES_ADAPTATION' },
           ],
           metadata: { guidelinesAdaptations: [] },
         },
@@ -399,7 +403,7 @@ describe('CallForApplications', () => {
         createdOn: new DateOnly(2026, 11, 25),
         knownCourts: KNOWN_COURTS,
         targetCourts: ['CA  AGEN'],
-        guidelinesAdaptations: ['COURT_OF_APPEAL'],
+        guidelinesAdaptations: ['CA  AGEN'],
         targetPositions: ['COUNSELLOR'],
       });
 
@@ -519,21 +523,19 @@ describe('sortedCourts', () => {
 
 describe('a type of court', () => {
   it.each([
-    [
-      'COURT_OF_APPEAL',
-      "cours d'appel",
-      "Adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel pour les cours d'appel",
-    ],
-    [
-      'JUDICIAL_COURT',
-      'tribunaux judiciaires',
-      "Adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel pour les tribunaux judiciaires",
-    ],
-  ] as const)(
-    'names %s within a sentence and in the adaptation of the guidelines',
-    (type, inSentence, adaptation) => {
-      expect(targetCourtTypeInSentenceOf(type)).toBe(inSentence);
-      expect(guidelinesAdaptationLabelOf(type)).toBe(adaptation);
-    },
-  );
+    ['COURT_OF_APPEAL', "cours d'appel"],
+    ['JUDICIAL_COURT', 'tribunaux judiciaires'],
+  ] as const)('names %s within a sentence', (type, inSentence) => {
+    expect(targetCourtTypeInSentenceOf(type)).toBe(inSentence);
+  });
+});
+
+describe('guidelinesAdaptationsLabelOf', () => {
+  it.each([
+    [[], null],
+    [["Cour d'appel d'Agen"], "Cour d'appel d'Agen"],
+    [['A', 'B', 'C', "Tribunal judiciaire d'Auch", 'Tribunal judiciaire de Cahors'], 'A, B, C et 2 autres'],
+  ])('sums up %j as %j', (labels, summary) => {
+    expect(guidelinesAdaptationsLabelOf(labels.map((label) => ({ label })))).toBe(summary);
+  });
 });

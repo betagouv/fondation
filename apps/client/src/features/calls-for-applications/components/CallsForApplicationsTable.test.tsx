@@ -5,6 +5,8 @@ import { NuqsTestingAdapter } from 'nuqs/adapters/testing';
 import { IntlProvider } from 'react-intl';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { ConfirmModalProvider } from '@/shared/context/confirm-modal';
+import { ToastProvider } from '@/shared/ui/toast';
 import * as $api from '@api/sdk';
 import type { ListedCallsForApplicationsDto } from '@api/types';
 
@@ -18,13 +20,13 @@ class NoopObserver {
 vi.stubGlobal('IntersectionObserver', NoopObserver);
 vi.stubGlobal('ResizeObserver', NoopObserver);
 
-function listed(): never {
+function listed(items: ListedCallsForApplicationsDto['items'] = []): never {
   return {
     data: {
       currentPageIndex: 1,
-      items: [],
+      items,
       statuses: [],
-      totalCount: 0,
+      totalCount: items.length,
       types: [],
       years: [2026, 2025],
     } satisfies ListedCallsForApplicationsDto,
@@ -37,7 +39,11 @@ function renderTable() {
     <IntlProvider defaultLocale="fr" locale="fr">
       <QueryClientProvider client={client}>
         <NuqsTestingAdapter hasMemory>
-          <CallsForApplicationsTable filtersSlot={null} period="PAST" />
+          <ToastProvider>
+            <ConfirmModalProvider>
+              <CallsForApplicationsTable filtersSlot={null} period="PAST" />
+            </ConfirmModalProvider>
+          </ToastProvider>
         </NuqsTestingAdapter>
       </QueryClientProvider>
     </IntlProvider>,
@@ -78,6 +84,38 @@ describe('CallsForApplicationsTable', () => {
       ),
     );
     expect(screen.queryByRole('button', { name: 'Cible' })).not.toBeInTheDocument();
+  });
+
+  it('sums up under the target the courts for which a call adapts the guidelines', async () => {
+    const auch = { id: 'TJ  AUCH', label: "Tribunal judiciaire d'Auch", type: 'JUDICIAL_COURT' } as const;
+    vi.spyOn($api.callsForApplications, 'listCallsForApplications').mockResolvedValue(
+      listed([
+        {
+          canChange: true,
+          comment: null,
+          createdOn: { day: 26, month: 11, year: 2026 },
+          deadline: null,
+          guidelinesAdaptations: [auch],
+          guidelinesAdaptationsLabel: "Tribunal judiciaire d'Auch",
+          history: [],
+          id: 'call',
+          publishedOn: null,
+          status: { id: 'UNPUBLISHED', label: 'Non publié' },
+          targetCourts: [auch],
+          targetLabel: "Tribunal judiciaire d'Auch",
+          targetPositions: [],
+          type: { id: 'SPECIFIC', label: 'Spécifique' },
+        },
+      ]),
+    );
+    renderTable();
+
+    expect(
+      await screen.findByText(
+        "Lignes directrices de gestion adaptées sur la durée d'affectation du poste actuel",
+        { selector: 'span' },
+      ),
+    ).toBeInTheDocument();
   });
 
   it('says there is no call yet rather than that the filters match none', async () => {

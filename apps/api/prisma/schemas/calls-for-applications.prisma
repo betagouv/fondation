@@ -1,8 +1,5 @@
 // a call for applications launched by the CSM, prepared in Fondation before its publication
 model CallForApplications {
-  // whether a specific call waives the time on the current post that the management guidelines ask (per type of court)
-  adaptsCourtOfAppealGuidelines Boolean                             @default(false) @map("adapts_court_of_appeal_guidelines")
-  adaptsJudicialCourtGuidelines Boolean                             @default(false) @map("adapts_judicial_court_guidelines")
   comment                       String?
   createdOn                     DateTime                            @map("created_on") @db.Date
   deadline                      DateTime?                           @db.Date
@@ -90,9 +87,8 @@ enum PrismaCallForApplicationsFieldChangeEnum {
 
 enum PrismaCallForApplicationsFieldEnum {
   COMMENT
-  COURT_OF_APPEAL_GUIDELINES_ADAPTATION
   DEADLINE
-  JUDICIAL_COURT_GUIDELINES_ADAPTATION
+  GUIDELINES_ADAPTATION
   PUBLISHED_ON
   TARGET_COURTS
   TARGET_POSITIONS
@@ -102,16 +98,17 @@ enum PrismaCallForApplicationsFieldEnum {
   @@schema("nominations_context")
 }
 
-// the courts a change added to the targets of a call or removed from them
+// the courts a change added to the targets of a call or to its adaptation of the guidelines or removed from them
 model CallForApplicationsChangedCourt {
   changeId    String                                   @map("change_id") @db.Uuid
   courtId     String                                   @map("court_id")
+  field       PrismaCallForApplicationsFieldEnum       @default(TARGET_COURTS)
   fieldChange PrismaCallForApplicationsFieldChangeEnum @map("field_change")
 
   change CallForApplicationsChange @relation(fields: [changeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   court  Jurisdiction              @relation(fields: [courtId], references: [codejur], onDelete: Cascade, onUpdate: NoAction)
 
-  @@id([changeId, courtId], name: "primaryKey")
+  @@id([changeId, field, courtId], name: "primaryKey")
   @@map("call_for_applications_changed_court")
   @@schema("nominations_context")
 }
@@ -131,8 +128,9 @@ model CallForApplicationsChangedPosition {
 
 // the courts whose head a specific call targets
 model CallForApplicationsTargetCourt {
-  callId  String @map("call_id") @db.Uuid
-  courtId String @map("court_id")
+  adaptsGuidelines Boolean @default(false) @map("adapts_guidelines")
+  callId           String  @map("call_id") @db.Uuid
+  courtId          String  @map("court_id")
 
   call  CallForApplications @relation(fields: [callId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   court Jurisdiction        @relation(fields: [courtId], references: [codejur], onDelete: Cascade, onUpdate: NoAction)

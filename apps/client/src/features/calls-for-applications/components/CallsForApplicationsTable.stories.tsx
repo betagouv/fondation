@@ -53,18 +53,31 @@ const UNPUBLISHED = { id: 'UNPUBLISHED', label: 'Non publié' } as const;
 function call(
   listed: Omit<
     ListedCall,
-    'comment' | 'guidelinesAdaptations' | 'targetCourts' | 'targetLabel' | 'targetPositions' | 'type'
+    | 'comment'
+    | 'guidelinesAdaptations'
+    | 'guidelinesAdaptationsLabel'
+    | 'targetCourts'
+    | 'targetLabel'
+    | 'targetPositions'
+    | 'type'
   > &
     Partial<
       Pick<
         ListedCall,
-        'comment' | 'guidelinesAdaptations' | 'targetCourts' | 'targetLabel' | 'targetPositions' | 'type'
+        | 'comment'
+        | 'guidelinesAdaptations'
+        | 'guidelinesAdaptationsLabel'
+        | 'targetCourts'
+        | 'targetLabel'
+        | 'targetPositions'
+        | 'type'
       >
     >,
 ): ListedCall {
   return {
     comment: null,
     guidelinesAdaptations: [],
+    guidelinesAdaptationsLabel: null,
     targetCourts: [],
     targetLabel: "Cours d'appel et tribunaux judiciaires",
     targetPositions: [],
@@ -113,13 +126,11 @@ const CALLS: Record<'ONGOING' | 'PAST', ListedCall[]> = {
       comment: 'Présidences vacantes au 1er mars',
       createdOn: { day: 23, month: 11, year: 2026 },
       deadline: { day: 22, month: 1, year: 2027 },
-      guidelinesAdaptations: [{ id: 'JUDICIAL_COURT', label: 'Tribunaux judiciaires' }],
+      guidelinesAdaptations: [COURTS['TJ  AUCH']],
+      guidelinesAdaptationsLabel: "Tribunal judiciaire d'Auch",
       history: [
         updated('2026-11-26T09:00:00.000Z', ME, [
-          changed(
-            ADDED,
-            "l'adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel pour les tribunaux judiciaires",
-          ),
+          changed(ADDED, "le tribunal judiciaire d'Auch à l'adaptation aux lignes directrices de gestion"),
         ]),
         updated('2026-11-25T09:00:00.000Z', ME, [
           changed(CHANGED, 'la date limite du 15/01/2027 au 22/01/2027'),
@@ -241,8 +252,6 @@ const FORM: FoundCallForApplicationsFormDto = {
   targetCourtTypes: [
     {
       courts: [COURTS['CA  AGEN'], COURTS['CA  LYON']],
-      guidelinesAdaptationLabel:
-        "Adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel pour les cours d'appel",
       type: { id: 'COURT_OF_APPEAL', label: "Cours d'appel" },
       typeInSentence: "cours d'appel",
     },
@@ -256,8 +265,6 @@ const FORM: FoundCallForApplicationsFormDto = {
         COURTS['TPI NOUMEA'],
         COURTS['TJ  PARIS'],
       ],
-      guidelinesAdaptationLabel:
-        "Adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel pour les tribunaux judiciaires",
       type: { id: 'JUDICIAL_COURT', label: 'Tribunaux judiciaires' },
       typeInSentence: 'tribunaux judiciaires',
     },
@@ -413,7 +420,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "Les appels à candidatures en cours ou passés, avec le bouton de création au-dessus. Chaque ligne s'ouvre en modification, se supprime ou montre son historique. L'historique dit ce qui a été ajouté, retiré ou modifié avec les dates et les types d'avant et d'après, et nomme jusqu'à trois juridictions ou postes changés. Au-delà, une infobulle les liste. Un appel publié ne se modifie plus que par un administrateur. La story ne filtre ni ne trie : c'est l'API qui le fait.",
+          "Les appels à candidatures en cours ou passés, avec le bouton de création au-dessus. Chaque ligne s'ouvre en modification, se supprime ou montre son historique. L'historique dit ce qui a été ajouté, retiré ou modifié avec les dates et les types d'avant et d'après, et nomme jusqu'à trois juridictions ou postes changés. Au-delà, une infobulle les liste. Sous la cible, la pastille LDG précède les juridictions pour lesquelles l'appel adapte les lignes directrices de gestion. Un appel publié ne se modifie plus que par un administrateur. La story ne filtre ni ne trie : c'est l'API qui le fait.",
       },
     },
     layout: 'fullscreen',

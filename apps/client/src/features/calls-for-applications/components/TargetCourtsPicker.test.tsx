@@ -15,15 +15,15 @@ function renderPicker(checked: string[]) {
   return render(
     <IntlProvider defaultLocale="fr" locale="fr">
       <TargetCourtsPicker
+        guidelinesAdaptations={[]}
         checked={checked}
         courtGroup={{
           courts: COURTS,
-          guidelinesAdaptationLabel:
-            "Adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel pour les tribunaux judiciaires",
           type: { id: 'JUDICIAL_COURT', label: 'Tribunaux judiciaires' },
           typeInSentence: 'tribunaux judiciaires',
         }}
         isEmpty={checked.length === 0}
+        onGuidelinesAdaptationsChange={() => {}}
         onChange={() => {}}
       />
     </IntlProvider>,
@@ -31,16 +31,10 @@ function renderPicker(checked: string[]) {
 }
 
 describe('TargetCourtsPicker', () => {
-  it.each([
-    [10, 10, undefined],
-    [11, 11, 'et 1 autre juridiction'],
-    [12, 11, 'et 2 autres juridictions'],
-  ])('sums up %i courts chosen in %i tags', async (chosen, tags, count) => {
-    const { container } = renderPicker(COURTS.slice(0, chosen).map(({ id }) => id));
+  it('shows every court chosen once folded', async () => {
+    const { container } = renderPicker(COURTS.map(({ id }) => id));
 
-    expect(screen.getAllByRole('listitem')).toHaveLength(tags);
-    if (count) expect(screen.getByText(count)).toBeInTheDocument();
-    else expect(screen.queryByText(/^et \d+ autres? juridictions?$/)).not.toBeInTheDocument();
+    expect(screen.getAllByRole('listitem')).toHaveLength(12);
     expect(await axe(container)).toHaveNoViolations();
   });
 

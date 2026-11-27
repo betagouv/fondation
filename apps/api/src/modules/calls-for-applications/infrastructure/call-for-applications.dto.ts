@@ -42,8 +42,8 @@ export const callForApplicationsFieldChangeSchema = z.object({
 const callForApplicationsForm = z.object({
   comment: z.string().max(COMMENT_MAX_LENGTH).nullish(),
   deadline: typedDateSchema.nullish(),
-  /** the types of court of a specific call whose management guidelines on the time in post it waives */
-  guidelinesAdaptations: z.array(z.enum(TARGET_COURT_TYPES)).max(TARGET_COURT_TYPES.length).nullish(),
+  /** the targeted courts of a specific call for which it waives the time in post the management guidelines ask */
+  guidelinesAdaptations: z.array(z.string().max(100)).max(500).nullish(),
   publishedOn: typedDateSchema.nullish(),
   /** the ids of the courts in the referential (a few hundred at most) */
   targetCourts: z.array(z.string().max(100)).max(500).nullish(),

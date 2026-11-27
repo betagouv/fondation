@@ -3344,7 +3344,7 @@ export type ChangeFeedbackStatusDto = {
 export type CreateCallForApplicationsDto = {
     comment?: string | null;
     deadline?: string | null;
-    guidelinesAdaptations?: Array<'COURT_OF_APPEAL' | 'JUDICIAL_COURT'> | null;
+    guidelinesAdaptations?: Array<string> | null;
     publishedOn?: string | null;
     targetCourts?: Array<string> | null;
     targetPositions?: Array<'FIRST_PRESIDENT' | 'CHAMBER_PRESIDENT' | 'COUNSELLOR' | 'REFERENDARY_COUNSELLOR' | 'AUDITOR_SECOND_GRADE' | 'AUDITOR_FIRST_GRADE'> | null;
@@ -3367,7 +3367,6 @@ export type FoundCallForApplicationsFormDto = {
             label: string;
             type: 'COURT_OF_APPEAL' | 'JUDICIAL_COURT';
         }>;
-        guidelinesAdaptationLabel: string;
         type: {
             id: 'COURT_OF_APPEAL' | 'JUDICIAL_COURT';
             label: string;
@@ -3403,9 +3402,11 @@ export type ListedCallsForApplicationsDto = {
             day: number;
         } | null;
         guidelinesAdaptations: Array<{
-            id: 'COURT_OF_APPEAL' | 'JUDICIAL_COURT';
+            id: string;
             label: string;
+            type: 'COURT_OF_APPEAL' | 'JUDICIAL_COURT';
         }>;
+        guidelinesAdaptationsLabel: string | null;
         history: Array<{
             action: 'CREATED' | 'UPDATED' | 'DELETED';
             at: string;
@@ -3471,7 +3472,7 @@ export type ListedCallsForApplicationsDto = {
 export type UpdateCallForApplicationsDto = {
     comment?: string | null;
     deadline?: string | null;
-    guidelinesAdaptations?: Array<'COURT_OF_APPEAL' | 'JUDICIAL_COURT'> | null;
+    guidelinesAdaptations?: Array<string> | null;
     publishedOn?: string | null;
     targetCourts?: Array<string> | null;
     targetPositions?: Array<'FIRST_PRESIDENT' | 'CHAMBER_PRESIDENT' | 'COUNSELLOR' | 'REFERENDARY_COUNSELLOR' | 'AUDITOR_SECOND_GRADE' | 'AUDITOR_FIRST_GRADE'> | null;

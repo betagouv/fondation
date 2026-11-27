@@ -17,6 +17,7 @@ const CALL: CallForApplications = {
   createdOn: { day: 20, month: 11, year: 2026 },
   deadline: null,
   guidelinesAdaptations: [],
+  guidelinesAdaptationsLabel: null,
   history: [],
   id: 'call-1',
   publishedOn: null,

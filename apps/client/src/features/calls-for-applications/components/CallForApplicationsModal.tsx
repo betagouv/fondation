@@ -9,8 +9,6 @@ import { LoadFailure } from '@/shared/ui/load-failure';
 import { Modal } from '@/shared/ui/modal';
 import { RequiredLabel } from '@/shared/ui/required-label';
 import { useToasts } from '@/shared/ui/toast';
-import { ToggleSwitch } from '@/shared/ui/toggle-switch';
-import { Tooltip } from '@/shared/ui/tooltip';
 import { dateOnlyToIso } from '@/utils/date-only.util';
 import { ValidationError } from '@/utils/validation-error';
 import type { CreateCallForApplicationsDto, FoundCallForApplicationsFormDto } from '@api/types';
@@ -80,10 +78,7 @@ function completeOf(
   if (pick === 'POSITIONS' && targetPositions.length === 0) return null;
   if (pick === 'COURTS' && targetCourts.length === 0) return null;
   if (groups.some((group) => checked.includes(group.type.id) && isEmptyGroup(draft, group))) return null;
-  // in the order of the groups so that a switch turned off then on again does not count as a change
-  const guidelinesAdaptations = groups
-    .map(({ type }) => type.id)
-    .filter((id) => checked.includes(id) && draft.guidelinesAdaptations?.includes(id));
+  const guidelinesAdaptations = targetCourts.filter((id) => draft.guidelinesAdaptations?.includes(id));
 
   return {
     comment: draft.comment?.trim() || null,
@@ -106,7 +101,6 @@ function TargetCourtsFields(props: {
   const groups = courtGroupsOf(props.form, props.savedCourts);
   const checkedCourts = draft.targetCourts ?? [];
   const checkedTypes = checkedTypesOf(draft, groups);
-  const adaptations = draft.guidelinesAdaptations ?? [];
 
   return (
     <>
@@ -136,40 +130,15 @@ function TargetCourtsFields(props: {
         .filter(({ type }) => checkedTypes.includes(type.id))
         .map((group) => (
           <TargetCourtsPicker
+            guidelinesAdaptations={draft.guidelinesAdaptations ?? []}
             checked={checkedCourts}
             courtGroup={group}
             isEmpty={isEmptyGroup(draft, group)}
             key={group.type.id}
-            onChange={(targetCourts) => onChange({ targetCourts, targetCourtTypes: checkedTypes })}
-            titleAside={
-              <Tooltip
-                block
-                label={<FormattedMessage defaultMessage="Sur la durée d'affectation du poste actuel" />}
-              >
-                <ToggleSwitch
-                  checked={adaptations.includes(group.type.id)}
-                  label={
-                    <>
-                      <span aria-hidden>
-                        <FormattedMessage defaultMessage="Adaptation aux lignes directrices de gestion" />
-                      </span>
-                      <span className="fr-sr-only">{group.guidelinesAdaptationLabel}</span>
-                    </>
-                  }
-                  labelPosition="right"
-                  onChange={(isOn) =>
-                    onChange({
-                      guidelinesAdaptations: isOn
-                        ? [...adaptations, group.type.id]
-                        : adaptations.filter((id) => id !== group.type.id),
-                      targetCourtTypes: checkedTypes,
-                    })
-                  }
-                  showCheckedHint={false}
-                  small
-                />
-              </Tooltip>
+            onGuidelinesAdaptationsChange={(guidelinesAdaptations) =>
+              onChange({ guidelinesAdaptations, targetCourtTypes: checkedTypes })
             }
+            onChange={(targetCourts) => onChange({ targetCourts, targetCourtTypes: checkedTypes })}
           />
         ))}
     </>
@@ -370,6 +339,7 @@ export function CallForApplicationsModal(props: {
       }
       // a click beside the form would lose what is typed
       closeOnBackdrop={false}
+      fixedHeight
       onClose={props.onClose}
       onClosed={props.onClosed}
       open={props.open}

@@ -16,8 +16,6 @@ import {
   CallForApplicationsUpdated,
 } from '../domain/call-for-applications';
 
-import { guidelinesAdaptationColumnsOf, guidelinesAdaptationsOf } from './guidelines-adaptation-columns';
-
 @Injectable()
 export class CallForApplicationsRepository {
   constructor(
@@ -29,14 +27,12 @@ export class CallForApplicationsRepository {
   async find({ id }: { id: string }): Promise<CallForApplications> {
     const call = await this.db.tx.callForApplications.findUnique({
       select: {
-        adaptsCourtOfAppealGuidelines: true,
-        adaptsJudicialCourtGuidelines: true,
         comment: true,
         deadline: true,
         id: true,
         publishedOn: true,
         status: true,
-        targetCourts: { select: { courtId: true } },
+        targetCourts: { select: { adaptsGuidelines: true, courtId: true } },
         targetPositions: { select: { position: true } },
         type: true,
       } satisfies Prisma.CallForApplicationsSelect,
@@ -47,7 +43,9 @@ export class CallForApplicationsRepository {
     return CallForApplications.from({
       ...call,
       deadline: DateOnly.fromOptionalUtcDate(call.deadline),
-      guidelinesAdaptations: guidelinesAdaptationsOf(call),
+      guidelinesAdaptations: call.targetCourts
+        .filter(({ adaptsGuidelines }) => adaptsGuidelines)
+        .map(({ courtId }) => courtId),
       publishedOn: DateOnly.fromOptionalUtcDate(call.publishedOn),
       targetCourts: call.targetCourts.map(({ courtId }) => courtId),
       targetPositions: call.targetPositions.map(({ position }) => position),
@@ -70,7 +68,7 @@ export class CallForApplicationsRepository {
         ...columnsOf(message.metadata),
         createdOn: message.createdOn.toDate(),
         id: message.id,
-        targetCourts: { create: message.metadata.targetCourts.map((courtId) => ({ courtId })) },
+        targetCourts: { create: targetCourtsOf(message.metadata) },
         targetPositions: { create: message.metadata.targetPositions.map((position) => ({ position })) },
       },
     });
@@ -95,7 +93,7 @@ export class CallForApplicationsRepository {
 
     await this.db.tx.callForApplicationsTargetCourt.deleteMany({ where: { callId: message.id } });
     await this.db.tx.callForApplicationsTargetCourt.createMany({
-      data: message.metadata.targetCourts.map((courtId) => ({ callId: message.id, courtId })),
+      data: targetCourtsOf(message.metadata).map((court) => ({ ...court, callId: message.id })),
     });
     await this.db.tx.callForApplicationsTargetPosition.deleteMany({ where: { callId: message.id } });
     await this.db.tx.callForApplicationsTargetPosition.createMany({
@@ -103,10 +101,18 @@ export class CallForApplicationsRepository {
     });
     await this.journal('UPDATED', message, {
       changedCourts: {
-        create: itemChangesOf(message.courts).map(({ fieldChange, item }) => ({
-          courtId: item,
-          fieldChange,
-        })),
+        create: [
+          ...itemChangesOf(message.courts).map(({ fieldChange, item }) => ({
+            courtId: item,
+            field: 'TARGET_COURTS' as const,
+            fieldChange,
+          })),
+          ...itemChangesOf(message.adaptations).map(({ fieldChange, item }) => ({
+            courtId: item,
+            field: 'GUIDELINES_ADAPTATION' as const,
+            fieldChange,
+          })),
+        ],
       },
       changedPositions: {
         create: itemChangesOf(message.positions).map(({ fieldChange, item }) => ({
@@ -155,9 +161,15 @@ function itemChangesOf<T>(items: AddedAndRemoved<T>) {
   ];
 }
 
+function targetCourtsOf(metadata: CallForApplicationsCreated['metadata']) {
+  return metadata.targetCourts.map((courtId) => ({
+    adaptsGuidelines: metadata.guidelinesAdaptations.includes(courtId),
+    courtId,
+  }));
+}
+
 function columnsOf(metadata: CallForApplicationsCreated['metadata']) {
   return {
-    ...guidelinesAdaptationColumnsOf(metadata.guidelinesAdaptations),
     comment: metadata.comment,
     deadline: metadata.deadline?.toDate() ?? null,
     publishedOn: metadata.publishedOn?.toDate() ?? null,

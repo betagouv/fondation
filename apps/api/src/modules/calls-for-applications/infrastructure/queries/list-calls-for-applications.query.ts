@@ -29,8 +29,8 @@ import {
   canChange,
   sortedByHierarchy,
   sortedCourts,
+  guidelinesAdaptationsLabelOf,
   targetCourtOf,
-  targetCourtTypeOptionOf,
   targetLabelOf,
   targetPositionOf,
 } from '../../domain/call-for-applications';
@@ -49,10 +49,8 @@ import {
   callForApplicationsTypeSchema,
   changedTargetSchema,
   targetCourtSchema,
-  targetCourtTypeSchema,
   targetPositionSchema,
 } from '../call-for-applications.dto';
-import { guidelinesAdaptationsOf } from '../guidelines-adaptation-columns';
 
 type JournaledItem = { fieldChange: CallForApplicationsFieldChange; label: string };
 
@@ -66,18 +64,24 @@ function addedAndRemovedOf(items: readonly JournaledItem[]): AddedAndRemoved<Cha
 function changedItemsOf(
   field: CallForApplicationsField,
   change: {
-    changedCourts: readonly { court: LolfiCourt; fieldChange: CallForApplicationsFieldChange }[];
+    changedCourts: readonly {
+      court: LolfiCourt;
+      field: CallForApplicationsField;
+      fieldChange: CallForApplicationsFieldChange;
+    }[];
     changedPositions: readonly {
       fieldChange: CallForApplicationsFieldChange;
       position: CourtOfCassationPosition;
     }[];
   },
 ): AddedAndRemoved<ChangedItem> {
-  if (field === 'TARGET_COURTS')
+  if (field === 'TARGET_COURTS' || field === 'GUIDELINES_ADAPTATION')
     return addedAndRemovedOf(
-      sortedCourts(change.changedCourts.map(({ court, fieldChange }) => ({ ...court, fieldChange }))).map(
-        (court) => ({ fieldChange: court.fieldChange, label: targetCourtOf(court).label }),
-      ),
+      sortedCourts(
+        change.changedCourts
+          .filter((changed) => changed.field === field)
+          .map(({ court, fieldChange }) => ({ ...court, fieldChange })),
+      ).map((court) => ({ fieldChange: court.fieldChange, label: targetCourtOf(court).label })),
     );
   if (field === 'TARGET_POSITIONS')
     return addedAndRemovedOf(
@@ -111,8 +115,6 @@ export class ListCallsForApplicationsQuery {
     const today = DateOnly.fromInstantInParis(this.clock.now());
     const rows = await this.db.tx.callForApplications.findMany({
       select: {
-        adaptsCourtOfAppealGuidelines: true,
-        adaptsJudicialCourtGuidelines: true,
         comment: true,
         createdOn: true,
         deadline: true,
@@ -120,22 +122,30 @@ export class ListCallsForApplicationsQuery {
         publishedOn: true,
         status: true,
         targetCourts: {
-          select: { court: { select: { codejur: true, libelle: true, typeJur: true, ville_jur: true } } },
+          select: {
+            adaptsGuidelines: true,
+            court: { select: { codejur: true, libelle: true, typeJur: true, ville_jur: true } },
+          },
         },
         targetPositions: { select: { position: true } },
         type: true,
       } satisfies Prisma.CallForApplicationsSelect,
     });
     const calls = rows
-      .map((row) => ({
-        ...row,
-        createdOn: DateOnly.fromUtcDate(row.createdOn),
-        deadline: DateOnly.fromOptionalUtcDate(row.deadline),
-        guidelinesAdaptations: guidelinesAdaptationsOf(row),
-        publishedOn: DateOnly.fromOptionalUtcDate(row.publishedOn),
-        targetCourts: sortedCourts(row.targetCourts.map(({ court }) => court)).map(targetCourtOf),
-        targetPositions: sortedByHierarchy(row.targetPositions.map(({ position }) => position)),
-      }))
+      .map((row) => {
+        const courts = sortedCourts(
+          row.targetCourts.map(({ adaptsGuidelines, court }) => ({ ...court, adaptsGuidelines })),
+        );
+        return {
+          ...row,
+          createdOn: DateOnly.fromUtcDate(row.createdOn),
+          deadline: DateOnly.fromOptionalUtcDate(row.deadline),
+          guidelinesAdaptations: courts.filter(({ adaptsGuidelines }) => adaptsGuidelines).map(targetCourtOf),
+          publishedOn: DateOnly.fromOptionalUtcDate(row.publishedOn),
+          targetCourts: courts.map(targetCourtOf),
+          targetPositions: sortedByHierarchy(row.targetPositions.map(({ position }) => position)),
+        };
+      })
       .filter((call) => periodOf(call, today) === query.period);
     // an empty filter keeps every value
     const listed = sortedCalls(
@@ -160,6 +170,7 @@ export class ListCallsForApplicationsQuery {
         changedCourts: {
           select: {
             court: { select: { codejur: true, libelle: true, typeJur: true, ville_jur: true } },
+            field: true,
             fieldChange: true,
           },
         },
@@ -185,7 +196,8 @@ export class ListCallsForApplicationsQuery {
           comment: call.comment,
           createdOn: call.createdOn.toJson(),
           deadline: call.deadline?.toJson() ?? null,
-          guidelinesAdaptations: call.guidelinesAdaptations.map(targetCourtTypeOptionOf),
+          guidelinesAdaptations: call.guidelinesAdaptations,
+          guidelinesAdaptationsLabel: guidelinesAdaptationsLabelOf(call.guidelinesAdaptations),
           history: changes
             .filter(({ callId }) => callId === call.id)
             .map((change) => ({
@@ -237,8 +249,10 @@ export class ListedCallsForApplicationsDto extends createPaginatedZodDto(
     comment: z.string().nullable(),
     createdOn: dateOnlyJsonSchema,
     deadline: dateOnlyJsonSchema.nullable(),
-    /** the types of court whose management guidelines a specific call adapts to fill the form of an update */
-    guidelinesAdaptations: z.array(targetCourtTypeSchema),
+    /** the targeted courts for which a specific call adapts the management guidelines to fill the form of an update */
+    guidelinesAdaptations: z.array(targetCourtSchema),
+    /** under the target in the list (null without any adaptation) */
+    guidelinesAdaptationsLabel: z.string().nullable(),
     /** what was done to the call, the latest first: never empty, it holds at least the creation */
     history: z.array(
       z.object({
