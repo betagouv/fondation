@@ -40,8 +40,8 @@ describe('callForApplicationsHistoryChangesOf', () => {
     ],
     [{ change: 'ADDED', field: 'COMMENT' }, 'ajouté un commentaire'],
     [
-      { change: 'ADDED', field: 'COURT_OF_APPEAL_GUIDELINES_ADAPTATION' },
-      "ajouté l'adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel pour les cours d'appel",
+      { change: 'CHANGED', field: 'GUIDELINES_ADAPTATION' },
+      "modifié l'adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel",
     ],
   ] as const)('reads %j as %s', (field, sentence) => {
     expect(sentenceOf(field)).toBe(sentence);
@@ -61,6 +61,34 @@ describe('callForApplicationsHistoryChangesOf', () => {
         added: ["Tribunal judiciaire d'Auch", "Cour d'appel d'Agen"],
       }),
     ).toBe("ajouté le tribunal judiciaire d'Auch et la cour d'appel d'Agen aux juridictions cibles");
+  });
+
+  it('names the courts added to the adaptation of the guidelines', () => {
+    expect(
+      sentenceOf({ change: 'ADDED', field: 'GUIDELINES_ADAPTATION', added: ["Tribunal judiciaire d'Auch"] }),
+    ).toBe("ajouté le tribunal judiciaire d'Auch à l'adaptation aux lignes directrices de gestion");
+  });
+
+  it('names the list of each gesture once the targets and the adaptation change together', () => {
+    expect(
+      sentenceOf(
+        {
+          change: 'CHANGED',
+          field: 'TARGET_COURTS',
+          added: ["Tribunal judiciaire d'Auch"],
+          removed: ["Cour d'appel d'Agen"],
+        },
+        { change: 'ADDED', field: 'GUIDELINES_ADAPTATION', added: ["Tribunal judiciaire d'Auch"] },
+      ),
+    ).toBe(
+      "ajouté le tribunal judiciaire d'Auch aux juridictions cibles | retiré la cour d'appel d'Agen des juridictions cibles | ajouté le tribunal judiciaire d'Auch à l'adaptation aux lignes directrices de gestion",
+    );
+  });
+
+  it('names the list of a counted gesture once', () => {
+    expect(sentenceOf({ change: 'ADDED', field: 'TARGET_COURTS', added: ['A', 'B', 'C', 'D', 'E'] })).toBe(
+      'ajouté 5 juridictions cibles',
+    );
   });
 
   it('elides the article of a position', () => {

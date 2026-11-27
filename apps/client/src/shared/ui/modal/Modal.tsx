@@ -11,6 +11,7 @@ export function Modal(props: {
   actions?: ReactNode;
   children: ReactNode;
   closeOnBackdrop?: boolean;
+  fixedHeight?: boolean;
   id?: string;
   onClose: () => void;
   /** the fade out is over: the caller can drop whatever it kept alive to render this modal */
@@ -85,7 +86,12 @@ export function Modal(props: {
       ref={dialogRef}
     >
       {isMounted && (
-        <div className="flex max-h-[94dvh] flex-col bg-(--background-lifted-grey) text-(--text-default-grey) shadow-(--lifted-shadow)">
+        <div
+          className={clsx(
+            'flex flex-col bg-(--background-lifted-grey) text-(--text-default-grey) shadow-(--lifted-shadow)',
+            props.fixedHeight ? 'h-[min(94dvh,42rem)]' : 'max-h-[94dvh]',
+          )}
+        >
           <div className="flex shrink-0 justify-end px-8 py-4">
             <Button
               iconId="fr-icon-close-line"

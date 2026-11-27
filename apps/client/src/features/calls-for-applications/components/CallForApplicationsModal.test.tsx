@@ -26,8 +26,6 @@ const FORM: FoundCallForApplicationsFormDto = {
           type: 'COURT_OF_APPEAL',
         },
       ],
-      guidelinesAdaptationLabel:
-        "Adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel pour les cours d'appel",
       type: { id: 'COURT_OF_APPEAL', label: "Cours d'appel" },
       typeInSentence: "cours d'appel",
     },
@@ -37,8 +35,6 @@ const FORM: FoundCallForApplicationsFormDto = {
         { id: 'TJ  AUCH', label: "Tribunal judiciaire d'Auch", type: 'JUDICIAL_COURT' },
         { id: 'TPI NOUMEA', label: 'Tribunal de première instance de Nouméa', type: 'JUDICIAL_COURT' },
       ],
-      guidelinesAdaptationLabel:
-        "Adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel pour les tribunaux judiciaires",
       type: { id: 'JUDICIAL_COURT', label: 'Tribunaux judiciaires' },
       typeInSentence: 'tribunaux judiciaires',
     },
@@ -76,6 +72,7 @@ const SAVED = {
   createdOn: { day: 20, month: 11, year: 2026 },
   deadline: null,
   guidelinesAdaptations: [],
+  guidelinesAdaptationsLabel: null,
   history: [],
   id: 'call-1',
   publishedOn: null,
@@ -86,8 +83,8 @@ const SAVED = {
   type: { id: 'GENERAL', label: 'Général' },
 } satisfies CallForApplications;
 
-function adaptationOf(group: string): string {
-  return `Adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel pour les ${group}`;
+function adaptationOf(court: string): string {
+  return `Adapter les lignes directrices de gestion sur la durée d'affectation du poste actuel pour ${court}`;
 }
 
 /** what the client of the API throws on a 400 naming what to fix */
@@ -311,10 +308,6 @@ describe('CallForApplicationsModal', () => {
       .mockResolvedValue({ data: undefined } as never);
     renderModal({
       ...SAVED,
-      guidelinesAdaptations: [
-        { id: 'COURT_OF_APPEAL', label: "Cours d'appel" },
-        { id: 'JUDICIAL_COURT', label: 'Tribunaux judiciaires' },
-      ],
       targetCourts: [
         { id: 'CA  AGEN', label: "Cour d'appel d'Agen", type: 'COURT_OF_APPEAL' },
         { id: 'TJ  AUCH', label: "Tribunal judiciaire d'Auch", type: 'JUDICIAL_COURT' },
@@ -326,23 +319,17 @@ describe('CallForApplicationsModal', () => {
 
     expect(await screen.findByText("Cour d'appel d'Agen")).toBeInTheDocument();
     expect(screen.getByText("Tribunal judiciaire d'Auch")).toBeInTheDocument();
-    expect(screen.getByRole('checkbox', { name: adaptationOf("cours d'appel") })).toBeChecked();
     await user.click(screen.getByRole('checkbox', { name: "Cours d'appel" }));
     expect(screen.queryByText("Cour d'appel d'Agen")).not.toBeInTheDocument();
-    expect(screen.queryByRole('checkbox', { name: adaptationOf("cours d'appel") })).not.toBeInTheDocument();
     await user.click(screen.getByRole('checkbox', { name: "Cours d'appel" }));
     expect(screen.getByText("Cour d'appel d'Agen")).toBeInTheDocument();
     expect(screen.queryByRole('checkbox', { name: "Cour d'appel d'Agen" })).not.toBeInTheDocument();
-    expect(screen.getByRole('checkbox', { name: adaptationOf("cours d'appel") })).toBeChecked();
     await user.click(screen.getByRole('checkbox', { name: "Cours d'appel" }));
     await user.click(screen.getByRole('button', { name: 'Enregistrer les modifications' }));
 
     expect(update).toHaveBeenCalledWith(
       expect.objectContaining({
-        body: expect.objectContaining({
-          guidelinesAdaptations: ['JUDICIAL_COURT'],
-          targetCourts: ['TJ  AUCH'],
-        }),
+        body: expect.objectContaining({ targetCourts: ['TJ  AUCH'] }),
       }),
     );
   });
@@ -370,7 +357,7 @@ describe('CallForApplicationsModal', () => {
     );
   });
 
-  it('offers the adaptation of the guidelines only under a type of court checked', async () => {
+  it('adapts the guidelines for a court picked and drops the adaptation of a court unchecked', async () => {
     const create = vi
       .spyOn($api.callsForApplications, 'createCallForApplications')
       .mockResolvedValue({ data: { id: 'call-1' } } as never);
@@ -379,15 +366,81 @@ describe('CallForApplicationsModal', () => {
 
     await user.selectOptions(await screen.findByRole('combobox', { name: /Type d'appel/ }), 'SPECIFIC');
     await user.click(screen.getByRole('checkbox', { name: 'Tribunaux judiciaires' }));
-    expect(screen.queryByRole('checkbox', { name: adaptationOf("cours d'appel") })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: adaptationOf("Tribunal judiciaire d'Auch") }),
+    ).not.toBeInTheDocument();
+    await user.click(screen.getByRole('checkbox', { name: "Tribunal judiciaire d'Agen" }));
     await user.click(screen.getByRole('checkbox', { name: "Tribunal judiciaire d'Auch" }));
-    await user.click(screen.getByRole('checkbox', { name: adaptationOf('tribunaux judiciaires') }));
+    await user.click(screen.getByRole('button', { name: adaptationOf("Tribunal judiciaire d'Agen") }));
+    await user.click(screen.getByRole('button', { name: adaptationOf("Tribunal judiciaire d'Auch") }));
+    expect(screen.getByRole('button', { name: adaptationOf("Tribunal judiciaire d'Auch") })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(create).not.toHaveBeenCalled();
+    await user.click(screen.getByRole('checkbox', { name: "Tribunal judiciaire d'Agen" }));
     await user.click(screen.getByRole('button', { name: "Créer l'appel à candidatures" }));
 
     expect(create).toHaveBeenCalledWith(
       expect.objectContaining({
-        body: expect.objectContaining({ guidelinesAdaptations: ['JUDICIAL_COURT'] }),
+        body: expect.objectContaining({ guidelinesAdaptations: ['TJ  AUCH'], targetCourts: ['TJ  AUCH'] }),
       }),
+    );
+  });
+
+  it('saves no adaptation for a court of a type unchecked', async () => {
+    const update = vi
+      .spyOn($api.callsForApplications, 'updateCallForApplications')
+      .mockResolvedValue({ data: undefined } as never);
+    const agen = { id: 'CA  AGEN', label: "Cour d'appel d'Agen", type: 'COURT_OF_APPEAL' } as const;
+    const auch = { id: 'TJ  AUCH', label: "Tribunal judiciaire d'Auch", type: 'JUDICIAL_COURT' } as const;
+    renderModal({
+      ...SAVED,
+      guidelinesAdaptations: [auch],
+      guidelinesAdaptationsLabel: "Tribunal judiciaire d'Auch",
+      targetCourts: [agen, auch],
+      targetLabel: "Cour d'appel d'Agen et Tribunal judiciaire d'Auch",
+      type: { id: 'SPECIFIC', label: 'Spécifique' },
+    });
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole('checkbox', { name: 'Tribunaux judiciaires' }));
+    await user.click(screen.getByRole('button', { name: 'Enregistrer les modifications' }));
+
+    expect(update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: expect.objectContaining({ guidelinesAdaptations: [], targetCourts: ['CA  AGEN'] }),
+      }),
+    );
+  });
+
+  it('opens a call on the courts it adapts and saves one no longer adapted', async () => {
+    const update = vi
+      .spyOn($api.callsForApplications, 'updateCallForApplications')
+      .mockResolvedValue({ data: undefined } as never);
+    const auch = { id: 'TJ  AUCH', label: "Tribunal judiciaire d'Auch", type: 'JUDICIAL_COURT' } as const;
+    renderModal({
+      ...SAVED,
+      guidelinesAdaptations: [auch],
+      guidelinesAdaptationsLabel: "Tribunal judiciaire d'Auch",
+      targetCourts: [auch],
+      targetLabel: "Tribunal judiciaire d'Auch",
+      type: { id: 'SPECIFIC', label: 'Spécifique' },
+    });
+    const user = userEvent.setup();
+
+    expect(
+      await screen.findByText(
+        "Lignes directrices de gestion adaptées sur la durée d'affectation du poste actuel",
+        { selector: 'span' },
+      ),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Afficher la liste des tribunaux judiciaires' }));
+    await user.click(screen.getByRole('button', { name: adaptationOf("Tribunal judiciaire d'Auch") }));
+    await user.click(screen.getByRole('button', { name: 'Enregistrer les modifications' }));
+
+    expect(update).toHaveBeenCalledWith(
+      expect.objectContaining({ body: expect.objectContaining({ guidelinesAdaptations: [] }) }),
     );
   });
 

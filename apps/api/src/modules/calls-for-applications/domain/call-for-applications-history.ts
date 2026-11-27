@@ -7,7 +7,7 @@ import {
   type CallForApplicationsField,
   type CallForApplicationsFieldChange,
   callForApplicationsTypeOf,
-  guidelinesAdaptationLabelOf,
+  GUIDELINES_ADAPTATION_LABEL,
 } from './call-for-applications';
 
 const LIST_FORMAT = new Intl.ListFormat('fr');
@@ -27,13 +27,8 @@ function always(label: string): Record<CallForApplicationsFieldChange, string> {
 /** an added comment takes an indefinite article: "ajouté un commentaire" */
 const FIELD_LABELS: Record<CallForApplicationsField, Record<CallForApplicationsFieldChange, string>> = {
   COMMENT: { ADDED: 'un commentaire', CHANGED: 'le commentaire', REMOVED: 'le commentaire' },
-  COURT_OF_APPEAL_GUIDELINES_ADAPTATION: always(
-    `l'${lowerFirst(guidelinesAdaptationLabelOf('COURT_OF_APPEAL'))}`,
-  ),
   DEADLINE: always('la date limite'),
-  JUDICIAL_COURT_GUIDELINES_ADAPTATION: always(
-    `l'${lowerFirst(guidelinesAdaptationLabelOf('JUDICIAL_COURT'))}`,
-  ),
+  GUIDELINES_ADAPTATION: always(`l'${lowerFirst(GUIDELINES_ADAPTATION_LABEL)}`),
   PUBLISHED_ON: always('la date de publication'),
   TARGET_COURTS: always('les juridictions cibles'),
   TARGET_POSITIONS: always('les postes cibles'),
@@ -58,6 +53,11 @@ const NAMED_ITEMS_MAX = 3;
 const LIST_WORDS: Partial<
   Record<CallForApplicationsField, { added: string; count: string; removed: string }>
 > = {
+  GUIDELINES_ADAPTATION: {
+    added: "à l'adaptation aux lignes directrices de gestion",
+    count: "juridictions pour l'adaptation aux lignes directrices de gestion",
+    removed: "de l'adaptation aux lignes directrices de gestion",
+  },
   TARGET_COURTS: {
     added: 'aux juridictions cibles',
     count: 'juridictions cibles',
@@ -99,13 +99,16 @@ export function callForApplicationsHistoryChangesOf(
   fields: readonly ChangedFieldWithItems[],
 ): HistoryEntry[] {
   const pending: Pending[] = [];
+  const listsWithItems = fields.filter(
+    ({ field, items }) => LIST_WORDS[field] && items.added.length + items.removed.length > 0,
+  ).length;
   for (const changed of fields) {
     const words = LIST_WORDS[changed.field];
     const { added, removed } = changed.items;
     // a change journaled before its items were reads like any other field
     if (words && added.length + removed.length > 0) {
-      // both ways the field goes without saying: each gesture names its items alone
-      const both = added.length > 0 && removed.length > 0;
+      // both ways the field goes without saying unless another list changed too
+      const both = added.length > 0 && removed.length > 0 && listsWithItems === 1;
       const gestures: [CallForApplicationsFieldChange, readonly ChangedItem[], string][] = [
         ['ADDED', added, words.added],
         ['REMOVED', removed, words.removed],
@@ -116,7 +119,7 @@ export function callForApplicationsHistoryChangesOf(
         const named = counted ? `${items.length} ${words.count}` : LIST_FORMAT.format(items.map(inSentence));
         pending.push({
           change: gesture,
-          labels: [both ? named : `${named} ${fieldWords}`],
+          labels: [both || counted ? named : `${named} ${fieldWords}`],
           shared: false,
           targets: counted ? [...items] : null,
         });

@@ -11,7 +11,6 @@ import {
   CallForApplications,
   type CallForApplicationsStatus,
   type CallForApplicationsType,
-  type TargetCourtType,
 } from './domain/call-for-applications';
 import type { CallForApplicationsPeriod } from './domain/call-for-applications-period';
 import type { CallForApplicationsSortableColumn } from './domain/call-for-applications-sorting';
@@ -42,7 +41,7 @@ export class CallsForApplicationsService {
     authorId: string;
     comment: string | null;
     deadline: DateOnly | null;
-    guidelinesAdaptations: readonly TargetCourtType[];
+    guidelinesAdaptations: readonly string[];
     publishedOn: DateOnly | null;
     targetCourts: readonly string[];
     targetPositions: readonly CourtOfCassationPosition[];
@@ -89,7 +88,7 @@ export class CallsForApplicationsService {
     actor: { id: string; isAdmin: boolean };
     comment: string | null;
     deadline: DateOnly | null;
-    guidelinesAdaptations: readonly TargetCourtType[];
+    guidelinesAdaptations: readonly string[];
     id: string;
     publishedOn: DateOnly | null;
     targetCourts: readonly string[];

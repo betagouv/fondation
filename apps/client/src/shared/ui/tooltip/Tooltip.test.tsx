@@ -33,18 +33,17 @@ describe('Tooltip', () => {
     expect(fireEvent.keyDown(anchor, { key: 'Escape' })).toBe(true);
   });
 
-  it('wraps a block in a div that still opens its bubble', () => {
-    vi.mocked(HTMLElement.prototype.showPopover).mockClear();
+  it('leaves its anchor undescribed when the anchor already holds the whole text', () => {
     render(
-      <Tooltip block label="Détail">
-        <div>Interrupteur</div>
+      <Tooltip isVisualOnly label="Lignes directrices de gestion adaptées">
+        <span>LDG</span>
       </Tooltip>,
     );
-    const anchor = screen.getByText('Interrupteur').parentElement!;
 
-    fireEvent.pointerEnter(anchor);
-
-    expect(anchor.tagName).toBe('DIV');
-    expect(HTMLElement.prototype.showPopover).toHaveBeenCalled();
+    expect(screen.getByText('LDG').parentElement).not.toHaveAttribute('aria-describedby');
+    expect(screen.getByText('Lignes directrices de gestion adaptées', { selector: 'div' })).toHaveAttribute(
+      'aria-hidden',
+      'true',
+    );
   });
 });

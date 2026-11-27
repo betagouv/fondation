@@ -17,6 +17,7 @@ import {
 } from '@queries/calls-for-applications.queries';
 
 import { CallForApplicationsActions } from './CallForApplicationsActions';
+import { GuidelinesAdaptationBadge } from './GuidelinesAdaptationBadge';
 
 const h = createColumnHelper<CallForApplications>();
 
@@ -54,10 +55,21 @@ function useCallsForApplicationsColumns(props: {
         },
       }),
       h.accessor('targetLabel', {
+        cell: ({ getValue, row }) => (
+          // divs rather than spans: the tooltip of the badge holds a block
+          <div className="flex flex-col gap-1">
+            {getValue()}
+            {row.original.guidelinesAdaptationsLabel && (
+              <div className="mt-1 text-xs leading-4.5 text-(--text-mention-grey)">
+                <GuidelinesAdaptationBadge /> {row.original.guidelinesAdaptationsLabel}
+              </div>
+            )}
+          </div>
+        ),
         enableSorting: false,
         header: formatMessage({ defaultMessage: 'Cible' }),
         id: 'target',
-        size: 190,
+        size: 220,
       }),
       h.accessor('createdOn', {
         cell: ({ getValue, row }) => {
@@ -122,6 +134,7 @@ function useCallsForApplicationsColumns(props: {
             values: statuses,
           },
         },
+        size: 130,
       }),
       h.display({
         cell: ({ row }) => <CallForApplicationsActions call={row.original} />,

@@ -58,9 +58,8 @@ export function targetCourtTypeInSentenceOf(type: TargetCourtType): string {
   return TARGET_COURT_TYPES_IN_SENTENCE[type];
 }
 
-export function guidelinesAdaptationLabelOf(type: TargetCourtType): string {
-  return `Adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel pour les ${targetCourtTypeInSentenceOf(type)}`;
-}
+export const GUIDELINES_ADAPTATION_LABEL =
+  "Adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel";
 
 export function targetCourtTypeOptionOf(id: TargetCourtType) {
   return { id, label: TARGET_COURT_TYPE_LABELS[id] };
@@ -112,6 +111,10 @@ function shortList(labels: readonly string[]): string {
   return new Intl.ListFormat('fr').format(others > 0 ? [...named, `${others} autres`] : named);
 }
 
+export function guidelinesAdaptationsLabelOf(courts: readonly { label: string }[]): string | null {
+  return courts.length === 0 ? null : shortList(courts.map(({ label }) => label));
+}
+
 export function targetLabelOf(call: {
   targetCourts: readonly { label: string }[];
   targetPositions: readonly CourtOfCassationPosition[];
@@ -141,8 +144,7 @@ export type CallForApplicationsAction = (typeof CALL_FOR_APPLICATIONS_ACTIONS)[n
 export const CALL_FOR_APPLICATIONS_FIELDS = [
   'TYPE',
   'TARGET_COURTS',
-  'COURT_OF_APPEAL_GUIDELINES_ADAPTATION',
-  'JUDICIAL_COURT_GUIDELINES_ADAPTATION',
+  'GUIDELINES_ADAPTATION',
   'TARGET_POSITIONS',
   'PUBLISHED_ON',
   'DEADLINE',
@@ -199,8 +201,8 @@ export class UntargetableCourt extends Error {}
 type Metadata = {
   comment: string | null;
   deadline: DateOnly | null;
-  /** the types of court for which a specific call waives the time on the current post the management guidelines ask */
-  guidelinesAdaptations: readonly TargetCourtType[];
+  /** the targeted courts for which a specific call waives the time on the current post the management guidelines ask */
+  guidelinesAdaptations: readonly string[];
   publishedOn: DateOnly | null;
   /** the ids of the courts in the referential */
   targetCourts: readonly string[];
@@ -238,10 +240,8 @@ function validated(metadata: Metadata, knownCourts: ReadonlyMap<string, KnownCou
   if (pick === 'COURTS' && targetCourts.length === 0) throw new MissingTargetCourt();
   if (targetCourts.some((court) => !knownCourts.get(court)?.targetable)) throw new UntargetableCourt();
 
-  // an adaptation stands only for a type of court the call targets
-  const targetedTypes = targetCourts.map((court) => knownCourts.get(court)?.type);
-  const guidelinesAdaptations = TARGET_COURT_TYPES.filter(
-    (type) => targetedTypes.includes(type) && metadata.guidelinesAdaptations.includes(type),
+  const guidelinesAdaptations = uniqueCourts(metadata.guidelinesAdaptations).filter((court) =>
+    targetCourts.includes(court),
   );
 
   return {
@@ -275,17 +275,13 @@ const NO_VALUE: ChangedValues = { dateAfter: null, dateBefore: null, typeAfter: 
 function changedFields(
   before: Metadata,
   after: Metadata,
-  targets: { courts: AddedAndRemoved<string>; positions: AddedAndRemoved<CourtOfCassationPosition> },
+  targets: {
+    adaptations: AddedAndRemoved<string>;
+    courts: AddedAndRemoved<string>;
+    positions: AddedAndRemoved<CourtOfCassationPosition>;
+  },
 ): CallForApplicationsChangedField[] {
   const isSame = <T>(a: T, b: T) => a === b;
-  const adaptation = (type: TargetCourtType) => ({
-    ...NO_VALUE,
-    change: valueChangeOf(
-      before.guidelinesAdaptations.includes(type) || null,
-      after.guidelinesAdaptations.includes(type) || null,
-      isSame,
-    ),
-  });
   const dates = (dateBefore: DateOnly | null, dateAfter: DateOnly | null) => ({
     ...NO_VALUE,
     change: valueChangeOf(dateBefore, dateAfter, (a, b) => a.equals(b)),
@@ -297,9 +293,8 @@ function changedFields(
     ChangedValues & { change: CallForApplicationsFieldChange | null }
   > = {
     COMMENT: { ...NO_VALUE, change: valueChangeOf(before.comment, after.comment, isSame) },
-    COURT_OF_APPEAL_GUIDELINES_ADAPTATION: adaptation('COURT_OF_APPEAL'),
     DEADLINE: dates(before.deadline, after.deadline),
-    JUDICIAL_COURT_GUIDELINES_ADAPTATION: adaptation('JUDICIAL_COURT'),
+    GUIDELINES_ADAPTATION: { ...NO_VALUE, change: listChangeOf(targets.adaptations) },
     PUBLISHED_ON: dates(before.publishedOn, after.publishedOn),
     TARGET_COURTS: { ...NO_VALUE, change: listChangeOf(targets.courts) },
     TARGET_POSITIONS: { ...NO_VALUE, change: listChangeOf(targets.positions) },
@@ -327,6 +322,7 @@ export class CallForApplicationsCreated {
 
 export class CallForApplicationsUpdated {
   constructor(
+    readonly adaptations: AddedAndRemoved<string>,
     readonly authorId: string,
     /** the courts added and removed */
     readonly courts: AddedAndRemoved<string>,
@@ -367,9 +363,7 @@ export class CallForApplications {
     const { id, status, ...metadata } = props;
     return new CallForApplications(id, status, {
       ...metadata,
-      guidelinesAdaptations: TARGET_COURT_TYPES.filter((type) =>
-        metadata.guidelinesAdaptations.includes(type),
-      ),
+      guidelinesAdaptations: uniqueCourts(metadata.guidelinesAdaptations),
       targetCourts: uniqueCourts(metadata.targetCourts),
       targetPositions: sortedByHierarchy(metadata.targetPositions),
     });
@@ -399,12 +393,13 @@ export class CallForApplications {
       ]),
     );
     const metadata = validated(requested, allowed);
+    const adaptations = addedAndRemoved(this.metadata.guidelinesAdaptations, metadata.guidelinesAdaptations);
     const courts = addedAndRemoved(this.metadata.targetCourts, metadata.targetCourts);
     const positions = addedAndRemoved(this.metadata.targetPositions, metadata.targetPositions);
-    const fields = changedFields(this.metadata, metadata, { courts, positions });
+    const fields = changedFields(this.metadata, metadata, { adaptations, courts, positions });
     if (fields.length > 0)
       this.#messages.push(
-        new CallForApplicationsUpdated(actor.id, courts, fields, this.id, metadata, positions),
+        new CallForApplicationsUpdated(adaptations, actor.id, courts, fields, this.id, metadata, positions),
       );
   }
 

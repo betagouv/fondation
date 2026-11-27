@@ -35,6 +35,7 @@ test.describe('Calls for applications E2E', () => {
       createdOn: todayInParis(),
       deadline: { day: 15, month: 1, year: 2100 },
       guidelinesAdaptations: [],
+      guidelinesAdaptationsLabel: null,
       history: [
         {
           action: 'CREATED',
@@ -115,13 +116,10 @@ test.describe('Calls for applications E2E', () => {
     });
   });
 
-  test('should keep the adaptation of the guidelines a specific call makes for a type of court', async ({
-    agent,
-    expect,
-  }) => {
+  test('should keep the courts for which a specific call adapts the guidelines', async ({ agent, expect }) => {
     const { data: created } = await agent.callsForApplications.createCallForApplications({
       body: {
-        guidelinesAdaptations: ['JUDICIAL_COURT'],
+        guidelinesAdaptations: ['TJ  GRASSE'],
         publishedOn: '2091-06-01',
         targetCourts: ['TJ  GRASSE', 'CA  LYON'],
         type: 'SPECIFIC',
@@ -133,12 +131,13 @@ test.describe('Calls for applications E2E', () => {
       query: { limit: 200, period: 'ONGOING', sortBy: 'createdOn', sortDesc: 'true', years: ['2091'] },
       throwOnError: true,
     });
-    expect(data.items.find(({ id }) => id === created.id)?.guidelinesAdaptations).toEqual([
-      { id: 'JUDICIAL_COURT', label: 'Tribunaux judiciaires' },
-    ]);
+    expect(data.items.find(({ id }) => id === created.id)).toMatchObject({
+      guidelinesAdaptations: [{ id: 'TJ  GRASSE', label: 'Tribunal judiciaire de Grasse', type: 'JUDICIAL_COURT' }],
+      guidelinesAdaptationsLabel: 'Tribunal judiciaire de Grasse',
+    });
   });
 
-  test('should note in the history of a specific call the adaptation of the guidelines turned on', async ({
+  test('should note in the history of a specific call the court added to the adaptation of the guidelines', async ({
     agent,
     expect,
   }) => {
@@ -149,7 +148,7 @@ test.describe('Calls for applications E2E', () => {
     });
 
     await agent.callsForApplications.updateCallForApplications({
-      body: { ...form, guidelinesAdaptations: ['COURT_OF_APPEAL'] },
+      body: { ...form, guidelinesAdaptations: ['CA  LYON'] },
       path: { callId: created.id },
       throwOnError: true,
     });
@@ -161,8 +160,7 @@ test.describe('Calls for applications E2E', () => {
     expect(data.items.find(({ id }) => id === created.id)?.history[0]?.changes).toEqual([
       {
         change: { id: 'ADDED', label: 'ajouté' },
-        label:
-          "l'adaptation aux lignes directrices de gestion sur la durée d'affectation du poste actuel pour les cours d'appel",
+        label: "la cour d'appel de Lyon à l'adaptation aux lignes directrices de gestion",
         targets: null,
       },
     ]);
