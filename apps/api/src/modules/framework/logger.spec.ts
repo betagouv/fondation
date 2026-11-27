@@ -76,6 +76,19 @@ describe('ApiLogger', () => {
     expect(line!['request.id']).toEqual(event!['request.id']);
   });
 
+  it('should keep the id of a line longer than the million characters Nest truncates', async () => {
+    await start(new ApiLogger());
+
+    const [line, event] = (
+      await linesOf(() =>
+        app.get(WideEvent).runCommand(async () => new Logger('Command').log('x'.repeat(1_000_001))),
+      )
+    ).map((written) => JSON.parse(written) as Record<string, unknown>);
+
+    expect(line!['message']).toBe('[Truncated]');
+    expect(line!['request.id']).toEqual(event!['request.id']);
+  });
+
   it('should keep a readable text out of Scalingo', async () => {
     config.isProduction = false;
     const url = await start(new ApiLogger({ colors: false }));
