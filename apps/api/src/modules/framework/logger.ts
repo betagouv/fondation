@@ -21,6 +21,7 @@ export class ApiLogger extends ConsoleLogger {
       writeStreamType?: 'stderr' | 'stdout';
     },
   ) {
-    return { ...super.getJsonLogObject(message, options), 'request.id': WideEvent.currentId() };
+    // The id first: past a million characters, Nest truncates every value after, in the order of the keys
+    return { 'request.id': WideEvent.currentId(), ...super.getJsonLogObject(message, options) };
   }
 }
