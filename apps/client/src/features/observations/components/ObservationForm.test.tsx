@@ -194,6 +194,18 @@ describe('ObservationForm magistrat combobox', () => {
     ).toBeInTheDocument();
   });
 
+  it('drops the magistrat chosen once the search is typed again', async () => {
+    const user = userEvent.setup();
+    searchResults = [MARTIN];
+    renderForm();
+
+    const [martin] = await search(user);
+    await user.click(martin!);
+    await user.type(searchInput(), 'x');
+
+    expect(screen.queryByRole('button', { name: /MARTIN Léa - Juge/ })).not.toBeInTheDocument();
+  });
+
   it('tells when the search fails rather than finding no magistrat', async () => {
     const user = userEvent.setup();
     searchFailed = true;
