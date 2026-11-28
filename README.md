@@ -108,10 +108,15 @@ pnpm --filter api exec dotenvx run -f .env.e2e -f .env -- prisma migrate deploy
 4. Générer le code
 
 ```bash
+pnpm --filter './packages/*' build    # paquets du workspace (documents-assets, lolfi)
 pnpm --filter api prisma:generate   # client Prisma + requêtes TypedSQL
 ```
 
 > [!IMPORTANT]
+> L'API et les e2e importent les paquets de `packages/` depuis leur `dist/` : sans ce build,
+> `pnpm --filter api dev` s'arrête sur `Cannot find module 'documents-assets'`. À relancer
+> après une modification d'un paquet.
+>
 > `prisma generate --sql` se connecte à la base pour typer les requêtes de `prisma/sql/`.
 > Postgres doit donc tourner et les migrations être appliquées (étape 3). Ce code n'est pas
 > versionné, à relancer après chaque `pnpm install`.
